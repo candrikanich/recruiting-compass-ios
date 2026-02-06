@@ -28,6 +28,7 @@ struct LandingView: View {
               .font(.system(size: 80))
               .foregroundColor(.white)
               .shadow(radius: 10)
+              .accessibilityHidden(true)
 
             Text("Recruiting Compass")
               .font(.title)
@@ -35,6 +36,8 @@ struct LandingView: View {
               .foregroundColor(.white)
           }
           .padding(.bottom, 12)
+          .accessibilityElement(children: .combine)
+          .accessibilityLabel("Recruiting Compass")
 
           // CTA Buttons
           VStack(spacing: 12) {
@@ -49,6 +52,8 @@ struct LandingView: View {
                 .cornerRadius(12)
                 .shadow(radius: 5)
             }
+            .accessibilityLabel("Sign in to your account")
+            .accessibilityHint("Enter your email and password")
 
             NavigationLink(destination: SignupView()) {
               Text("Create Account")
@@ -61,6 +66,8 @@ struct LandingView: View {
                 .cornerRadius(12)
                 .shadow(radius: 5)
             }
+            .accessibilityLabel("Create a new account")
+            .accessibilityHint("Set up a new account with your information")
           }
           .padding(.horizontal)
           .padding(.bottom, 12)
@@ -106,6 +113,7 @@ struct FeatureCard: View {
       Image(systemName: icon)
         .font(.system(size: 32))
         .foregroundColor(.white)
+        .accessibilityHidden(true)
 
       Text(title)
         .font(.headline)
@@ -126,6 +134,9 @@ struct FeatureCard: View {
       RoundedRectangle(cornerRadius: 16)
         .stroke(Color.white.opacity(0.2), lineWidth: 1)
     )
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("Feature: \(title)")
+    .accessibilityValue(description)
   }
 }
 

@@ -15,6 +15,7 @@ struct InfoBanner: View {
       VStack(alignment: .leading, spacing: 8) {
         HStack(spacing: 12) {
           icon
+            .accessibilityHidden(true)
           VStack(alignment: .leading, spacing: 4) {
             Text(title)
               .font(.system(size: 14, weight: .semibold))
@@ -29,6 +30,10 @@ struct InfoBanner: View {
       .background(backgroundColor)
       .cornerRadius(8)
       .transition(.opacity)
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel(title)
+      .accessibilityValue(subtitle)
+      .accessibilityAddTraits(.isHeader)
     }
   }
 

@@ -28,11 +28,14 @@ struct LoginView: View {
             HStack(spacing: 4) {
               Image(systemName: "arrow.left")
                 .font(.system(size: 14, weight: .semibold))
+                .accessibilityHidden(true)
               Text("Back to Welcome")
                 .font(.system(size: 14, weight: .semibold))
             }
             .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
           }
+          .accessibilityLabel("Back to welcome screen")
+          .accessibilityHint("Returns to the login screen")
           Spacer()
         }
         .padding(.horizontal, 24)
@@ -44,10 +47,13 @@ struct LoginView: View {
               .font(.system(size: 48))
               .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
               .padding(.vertical, 12)
+              .accessibilityHidden(true)
 
             if viewModel.showTimeoutBanner {
               TimeoutBanner()
                 .transition(.opacity)
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isHeader)
             }
 
             if let error = viewModel.errorMessage {
@@ -56,6 +62,8 @@ struct LoginView: View {
                 onDismiss: viewModel.dismissError
               )
               .transition(.opacity)
+              .accessibilityElement(children: .combine)
+              .accessibilityAddTraits(.isHeader)
             }
 
             LoginFormField(
@@ -94,21 +102,21 @@ struct LoginView: View {
             }
 
             HStack(spacing: 12) {
-              HStack(spacing: 6) {
-                Image(systemName: viewModel.rememberMe ? "checkmark.square.fill" : "square")
-                  .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
-                  .onTapGesture {
-                    viewModel.rememberMe.toggle()
-                  }
+              Button(action: { viewModel.rememberMe.toggle() }) {
+                HStack(spacing: 6) {
+                  Image(systemName: viewModel.rememberMe ? "checkmark.square.fill" : "square")
+                    .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
+                    .accessibilityHidden(true)
 
-                Text("Remember me")
-                  .font(.system(size: 14, weight: .regular))
-                  .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
-                  .onTapGesture {
-                    viewModel.rememberMe.toggle()
-                  }
+                  Text("Remember me")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
+                }
+                .frame(height: 44)
               }
-              .frame(height: 44)
+              .accessibilityLabel("Remember me")
+              .accessibilityValue(viewModel.rememberMe ? "checked" : "unchecked")
+              .accessibilityHint("Check to save your email for next login")
 
               Spacer()
 
@@ -117,6 +125,8 @@ struct LoginView: View {
                   .font(.system(size: 14, weight: .regular))
                   .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
               }
+              .accessibilityLabel("Forgot password")
+              .accessibilityHint("Opens password recovery screen")
             }
 
             Button(action: {
@@ -150,11 +160,14 @@ struct LoginView: View {
               .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
               .disabled(viewModel.isButtonDisabled)
             }
+            .accessibilityLabel(viewModel.isLoading ? "Signing in" : "Sign in to account")
+            .accessibilityHint(viewModel.isLoading ? "Please wait while we verify your credentials" : "Sign in with your email and password")
 
             HStack {
               Rectangle()
                 .frame(height: 1)
                 .foregroundColor(Color(red: 0.827, green: 0.843, blue: 0.863))
+                .accessibilityHidden(true)
 
               Text("New to Recruiting Compass?")
                 .font(.system(size: 14, weight: .regular))
@@ -163,6 +176,7 @@ struct LoginView: View {
               Rectangle()
                 .frame(height: 1)
                 .foregroundColor(Color(red: 0.827, green: 0.843, blue: 0.863))
+                .accessibilityHidden(true)
             }
 
             HStack(spacing: 4) {
@@ -176,9 +190,12 @@ struct LoginView: View {
                     .font(.system(size: 14, weight: .semibold))
                   Image(systemName: "arrow.right")
                     .font(.system(size: 12, weight: .semibold))
+                    .accessibilityHidden(true)
                 }
                 .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
               }
+              .accessibilityLabel("Create account")
+              .accessibilityHint("Opens the account creation form")
             }
           }
           .padding(32)

@@ -16,19 +16,25 @@ struct LoginFormField: View {
       Text(label)
         .font(.system(size: 14, weight: .semibold))
         .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+        .accessibilityHidden(true)
 
       HStack(spacing: 12) {
         Image(systemName: icon)
           .foregroundColor(Color(red: 0.627, green: 0.655, blue: 0.686))
           .frame(width: 20)
+          .accessibilityHidden(true)
 
         if isSecure {
           SecureField(placeholder, text: $text)
+            .accessibilityLabel(label)
+            .accessibilityHint(error != nil ? error! : "")
             .autocorrectionDisabled()
             .textInputAutocapitalization(.never)
             .onSubmit(onBlur)
         } else {
           TextField(placeholder, text: $text)
+            .accessibilityLabel(label)
+            .accessibilityHint(error != nil ? error! : "")
             .keyboardType(keyboardType)
             .autocorrectionDisabled()
             .textInputAutocapitalization(.never)
@@ -44,8 +50,10 @@ struct LoginFormField: View {
         Text(error)
           .font(.system(size: 12, weight: .regular))
           .foregroundColor(Color(red: 0.859, green: 0.149, blue: 0.149))
+          .accessibilityLabel("Error: \(error)")
       }
     }
+    .accessibilityElement(children: .combine)
   }
 }
 

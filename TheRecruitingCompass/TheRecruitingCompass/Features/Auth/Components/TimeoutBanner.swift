@@ -5,6 +5,7 @@ struct TimeoutBanner: View {
     HStack(spacing: 12) {
       Image(systemName: "hourglass")
         .foregroundColor(Color(red: 0.576, green: 0.25, blue: 0.056))
+        .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 2) {
         Text("You were logged out due to inactivity. Please log in again.")
@@ -18,6 +19,9 @@ struct TimeoutBanner: View {
     .background(Color(red: 1, green: 0.984, blue: 0.92))
     .border(Color(red: 0.996, green: 0.891, blue: 0.658), width: 1)
     .cornerRadius(8)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("Session timeout warning")
+    .accessibilityAddTraits(.isHeader)
   }
 }
 
