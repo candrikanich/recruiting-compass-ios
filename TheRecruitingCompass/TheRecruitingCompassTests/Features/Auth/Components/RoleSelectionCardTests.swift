@@ -1,0 +1,69 @@
+import XCTest
+import SwiftUI
+@testable import TheRecruitingCompass
+
+final class RoleSelectionCardTests: XCTestCase {
+  func testRoleSelectionCardDisplaysParentRole() {
+    let card = RoleSelectionCard(
+      role: .parent,
+      isSelected: false,
+      action: {}
+    )
+
+    XCTAssertNotNil(card)
+  }
+
+  func testRoleSelectionCardDisplaysStudentRole() {
+    let card = RoleSelectionCard(
+      role: .student,
+      isSelected: false,
+      action: {}
+    )
+
+    XCTAssertNotNil(card)
+  }
+
+  func testRoleSelectionCardDisplaysPlayerRole() {
+    let card = RoleSelectionCard(
+      role: .player,
+      isSelected: false,
+      action: {}
+    )
+
+    XCTAssertNotNil(card)
+  }
+
+  func testRoleSelectionCardSelectednState() {
+    let card = RoleSelectionCard(
+      role: .parent,
+      isSelected: true,
+      action: {}
+    )
+
+    XCTAssertNotNil(card)
+  }
+
+  func testUserRoleDisplayNames() {
+    XCTAssertEqual(UserRole.parent.displayName, "Parent")
+    XCTAssertEqual(UserRole.student.displayName, "Student")
+    XCTAssertEqual(UserRole.player.displayName, "Player")
+  }
+
+  func testUserRoleIcons() {
+    XCTAssertNotNil(UserRole.parent.icon)
+    XCTAssertNotNil(UserRole.student.icon)
+    XCTAssertNotNil(UserRole.player.icon)
+  }
+
+  func testUserRoleDescriptions() {
+    XCTAssertFalse(UserRole.parent.description.isEmpty)
+    XCTAssertFalse(UserRole.student.description.isEmpty)
+    XCTAssertFalse(UserRole.player.description.isEmpty)
+  }
+
+  func testUserRoleRequiresFamilyCode() {
+    XCTAssertFalse(UserRole.parent.requiresFamilyCode)
+    XCTAssertTrue(UserRole.student.requiresFamilyCode)
+    XCTAssertTrue(UserRole.player.requiresFamilyCode)
+  }
+}
