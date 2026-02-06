@@ -49,6 +49,7 @@ struct InfoBanner: View {
       case .checking:
         ProgressView()
           .tint(Color(red: 0.149, green: 0.388, blue: 0.931))
+          .accessibilityLabel("Checking verification")
       case .verified:
         Image(systemName: "checkmark.circle.fill")
           .font(.system(size: 20))

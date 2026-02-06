@@ -29,11 +29,13 @@ struct EmailVerificationView: View {
             HStack(spacing: 4) {
               Image(systemName: "arrow.left")
                 .font(.system(size: 14, weight: .semibold))
+                .accessibilityHidden(true)
               Text("← Back to Welcome")
                 .font(.system(size: 14, weight: .semibold))
             }
             .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
           }
+          .accessibilityLabel("Back to welcome screen")
           Spacer()
         }
         .padding(.horizontal, 24)
@@ -55,6 +57,10 @@ struct EmailVerificationView: View {
                 .font(.system(size: 14, weight: .regular))
                 .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(headlineText)
+            .accessibilityValue(subtitleText)
+            .accessibilityAddTraits(.isHeader)
 
             // Info banner
             switch viewModel.verificationState {
@@ -98,6 +104,7 @@ struct EmailVerificationView: View {
                 if viewModel.verificationState == .checking {
                   ProgressView()
                     .tint(.white)
+                    .accessibilityLabel("Checking verification")
                 }
               }
               .frame(maxWidth: .infinity)
@@ -117,12 +124,15 @@ struct EmailVerificationView: View {
               .opacity(isButtonDisabled ? 0.5 : 1)
               .disabled(isButtonDisabled)
             }
+            .accessibilityLabel(accessibilityLabelForButton)
+            .accessibilityHint(accessibilityHintForButton)
 
             if !viewModel.canResendEmail && !viewModel.isVerified {
               Text("Resend email in \(viewModel.resendCooldownSeconds)s")
                 .font(.system(size: 12, weight: .regular))
                 .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
                 .frame(maxWidth: .infinity, alignment: .center)
+                .accessibilityLabel("Resend available in \(viewModel.resendCooldownSeconds) seconds")
             }
           }
           .padding(32)
@@ -191,6 +201,26 @@ struct EmailVerificationView: View {
       return false
     }
     return !viewModel.canResendEmail || viewModel.verificationState == .checking
+  }
+
+  private var accessibilityLabelForButton: String {
+    if viewModel.isVerified {
+      return "Continue to dashboard"
+    } else if viewModel.verificationState == .checking {
+      return "Checking verification status"
+    } else {
+      return "Resend verification email"
+    }
+  }
+
+  private var accessibilityHintForButton: String {
+    if viewModel.isVerified {
+      return "Navigate to dashboard"
+    } else if !viewModel.canResendEmail {
+      return "Wait \(viewModel.resendCooldownSeconds) seconds before resending"
+    } else {
+      return "Send another verification email"
+    }
   }
 }
 

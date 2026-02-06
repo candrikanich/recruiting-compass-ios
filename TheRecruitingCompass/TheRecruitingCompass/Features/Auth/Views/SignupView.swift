@@ -23,11 +23,13 @@ struct SignupView: View {
             HStack(spacing: 4) {
               Image(systemName: "arrow.left")
                 .font(.system(size: 14, weight: .semibold))
+                .accessibilityHidden(true)
               Text("Back")
                 .font(.system(size: 14, weight: .semibold))
             }
             .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
           }
+          .accessibilityLabel("Back to welcome screen")
           Spacer()
         }
         .padding(.horizontal, 24)
@@ -62,6 +64,7 @@ struct SignupView: View {
         .font(.system(size: 48))
         .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
         .padding(.vertical, 12)
+        .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 12) {
         Text("Select Your Role")
@@ -94,11 +97,14 @@ struct SignupView: View {
             HStack(spacing: 4) {
               Image(systemName: "arrow.left")
                 .font(.system(size: 12, weight: .semibold))
+                .accessibilityHidden(true)
               Text("Change Role")
                 .font(.system(size: 12, weight: .regular))
             }
             .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
           }
+          .accessibilityLabel("Change role selection")
+          .accessibilityHint("Return to role selection screen")
 
           Spacer()
 
@@ -106,6 +112,7 @@ struct SignupView: View {
             HStack(spacing: 6) {
               Image(systemName: role.icon)
                 .font(.system(size: 14))
+                .accessibilityHidden(true)
               Text(role.displayName)
                 .font(.system(size: 14, weight: .semibold))
             }
@@ -218,6 +225,7 @@ struct SignupView: View {
           if viewModel.isLoading {
             ProgressView()
               .tint(.white)
+              .accessibilityLabel("Creating account")
           }
         }
         .frame(maxWidth: .infinity)
@@ -237,6 +245,8 @@ struct SignupView: View {
         .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
         .disabled(viewModel.isButtonDisabled)
       }
+      .accessibilityLabel(viewModel.isLoading ? "Creating account, please wait" : "Create account")
+      .accessibilityHint("Double tap to create your account")
 
       HStack {
         Text("Already have an account?")
@@ -249,9 +259,12 @@ struct SignupView: View {
               .font(.system(size: 14, weight: .semibold))
             Image(systemName: "arrow.right")
               .font(.system(size: 12, weight: .semibold))
+              .accessibilityHidden(true)
           }
           .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
         }
+        .accessibilityLabel("Sign in to existing account")
+        .accessibilityHint("Navigate to login screen")
       }
     }
     .padding(32)

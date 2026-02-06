@@ -4,12 +4,26 @@ struct VerificationStatusIcon: View {
   let state: VerificationState
   @State private var isAnimating = false
 
+  private var accessibilityLabelForState: String {
+    switch state {
+    case .pending:
+      return "Email verification pending"
+    case .checking:
+      return "Checking email verification status"
+    case .verified:
+      return "Email verified successfully"
+    case .error(let message):
+      return "Verification error: \(message)"
+    }
+  }
+
   var body: some View {
     ZStack {
       // Background circle
       Circle()
         .fill(backgroundColor)
         .frame(width: 80, height: 80)
+        .accessibilityHidden(true)
 
       // Icon content
       Group {
@@ -18,11 +32,13 @@ struct VerificationStatusIcon: View {
           Image(systemName: "envelope.fill")
             .font(.system(size: 40))
             .foregroundColor(Color(red: 0.855, green: 0.620, blue: 0.118))
+            .accessibilityHidden(true)
 
         case .checking:
           ProgressView()
             .tint(Color(red: 0.149, green: 0.388, blue: 0.931))
             .scaleEffect(1.5)
+            .accessibilityLabel("Checking verification status")
 
         case .verified:
           Image(systemName: "checkmark.circle.fill")
@@ -30,14 +46,18 @@ struct VerificationStatusIcon: View {
             .foregroundColor(Color(red: 0.2, green: 0.62, blue: 0.4))
             .scaleEffect(isAnimating ? 1.1 : 1.0)
             .animation(.spring(response: 0.6, dampingFraction: 0.7), value: isAnimating)
+            .accessibilityHidden(true)
 
         case .error:
           Image(systemName: "xmark.circle.fill")
             .font(.system(size: 40))
             .foregroundColor(Color.red)
+            .accessibilityHidden(true)
         }
       }
     }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(accessibilityLabelForState)
     .onAppear {
       if case .verified = state {
         isAnimating = true

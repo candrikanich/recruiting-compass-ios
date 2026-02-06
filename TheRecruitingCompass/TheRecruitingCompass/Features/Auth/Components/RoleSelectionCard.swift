@@ -12,6 +12,7 @@ struct RoleSelectionCard: View {
           Image(systemName: role.icon)
             .font(.system(size: 28))
             .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
+            .accessibilityHidden(true)
 
           VStack(alignment: .leading, spacing: 4) {
             Text(role.displayName)
@@ -33,6 +34,7 @@ struct RoleSelectionCard: View {
                 ? Color(red: 0.149, green: 0.388, blue: 0.931)
                 : Color(red: 0.827, green: 0.843, blue: 0.863)
             )
+            .accessibilityHidden(true)
         }
       }
       .padding(16)
@@ -43,6 +45,11 @@ struct RoleSelectionCard: View {
       )
       .cornerRadius(8)
     }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(role.displayName) role")
+    .accessibilityValue(isSelected ? "Selected" : "Not selected")
+    .accessibilityHint(role.description)
+    .accessibilityAddTraits(.isButton)
   }
 }
 

@@ -48,6 +48,7 @@ struct PasswordStrengthIndicator: View {
         Text("Strength")
           .font(.system(size: 12, weight: .regular))
           .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+          .accessibilityHidden(true)
 
         Spacer()
 
@@ -55,6 +56,8 @@ struct PasswordStrengthIndicator: View {
           .font(.system(size: 12, weight: .semibold))
           .foregroundColor(strengthColor)
       }
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("Password strength: \(strengthText)")
 
       GeometryReader { geometry in
         ZStack(alignment: .leading) {
@@ -67,6 +70,7 @@ struct PasswordStrengthIndicator: View {
         }
       }
       .frame(height: 6)
+      .accessibilityHidden(true)
 
       if !strengthResult.errors.isEmpty {
         VStack(alignment: .leading, spacing: 4) {
@@ -75,6 +79,7 @@ struct PasswordStrengthIndicator: View {
               Image(systemName: "circle.fill")
                 .font(.system(size: 4))
                 .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+                .accessibilityHidden(true)
 
               Text("Missing \(error)")
                 .font(.system(size: 11, weight: .regular))
@@ -82,6 +87,8 @@ struct PasswordStrengthIndicator: View {
             }
           }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Password requirements: \(strengthResult.errors.joined(separator: ", "))")
       }
     }
   }
