@@ -36,9 +36,7 @@ class LoginViewModel: ObservableObject {
   // MARK: - Timeout Handling
 
   private func checkTimeoutReason(_ reason: String?) {
-    if reason == "timeout" {
-      showTimeoutBanner = true
-    }
+    showTimeoutBanner = (reason == "timeout")
   }
 
   func dismissTimeoutBanner() {

@@ -8,9 +8,9 @@ final class LoginViewModelTests: XCTestCase {
 
   override func setUp() {
     super.setUp()
+    clearUserDefaults()
     mockAuthManager = MockAuthManager()
     sut = LoginViewModel(authManager: mockAuthManager)
-    clearUserDefaults()
   }
 
   override func tearDown() {
@@ -21,9 +21,8 @@ final class LoginViewModelTests: XCTestCase {
   }
 
   private func clearUserDefaults() {
-    if let bundleID = Bundle.main.bundleIdentifier {
-      UserDefaults.standard.removePersistentDomain(forName: bundleID)
-    }
+    UserDefaults.standard.removeObject(forKey: "cachedEmail")
+    UserDefaults.standard.synchronize()
   }
 
   // MARK: - Initialization Tests
@@ -370,12 +369,12 @@ final class LoginViewModelTests: XCTestCase {
 
   // MARK: - Timeout Banner Tests
 
-  func testTimeoutBannerShowsWhenTimeoutReasonProvided() {
+  func testTimeoutBannerShowsWhenTimeoutReasonProvided() async {
     let viewModelWithTimeout = LoginViewModel(authManager: mockAuthManager, timeoutReason: "timeout")
     XCTAssertTrue(viewModelWithTimeout.showTimeoutBanner)
   }
 
-  func testTimeoutBannerHidesWhenOtherReasonProvided() {
+  func testTimeoutBannerHidesWhenOtherReasonProvided() async {
     let viewModelWithOtherReason = LoginViewModel(authManager: mockAuthManager, timeoutReason: "other")
     XCTAssertFalse(viewModelWithOtherReason.showTimeoutBanner)
   }
@@ -388,21 +387,20 @@ final class LoginViewModelTests: XCTestCase {
 
   // MARK: - Remember Me Tests
 
-  func testRememberMeCachesEmailWhenTrue() {
+  func testRememberMeCachesEmailWhenTrue() async {
     sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
     sut.rememberMe = true
     sut.validateEmail()
     sut.validatePassword()
 
-    Task {
-      await sut.login()
-    }
+    await sut.login()
 
     let cached = UserDefaults.standard.string(forKey: "cachedEmail")
     XCTAssertEqual(cached, "user@example.com")
   }
 
-  func testRememberMeClearsCacheWhenFalse() {
+  func testRememberMeClearsCacheWhenFalse() async {
     UserDefaults.standard.set("old@example.com", forKey: "cachedEmail")
     sut.email = "new@example.com"
     sut.password = "ValidPassword123"
@@ -410,15 +408,13 @@ final class LoginViewModelTests: XCTestCase {
     sut.validateEmail()
     sut.validatePassword()
 
-    Task {
-      await sut.login()
-    }
+    await sut.login()
 
     let cached = UserDefaults.standard.string(forKey: "cachedEmail")
     XCTAssertNil(cached)
   }
 
-  func testLoadsCachedEmailOnInit() {
+  func testLoadsCachedEmailOnInit() async {
     clearUserDefaults()
     UserDefaults.standard.set("cached@example.com", forKey: "cachedEmail")
 
