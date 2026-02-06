@@ -1,9 +1,14 @@
 import SwiftUI
+import Combine
 
 struct LoginView: View {
-  @StateObject private var viewModel = LoginViewModel()
+  @StateObject private var viewModel: LoginViewModel
   @EnvironmentObject var authManager: AuthManager
   @Environment(\.dismiss) var dismiss
+
+  init(timeoutReason: String? = nil, authManager: AuthManager = .shared) {
+    _viewModel = StateObject(wrappedValue: LoginViewModel(authManager: authManager, timeoutReason: timeoutReason))
+  }
 
   var body: some View {
     ZStack {
@@ -66,6 +71,7 @@ struct LoginView: View {
               keyboardType: .emailAddress,
               onBlur: viewModel.validateEmail
             )
+            .disabled(viewModel.isLoading)
 
             LoginFormField(
               label: "Password",
@@ -80,6 +86,12 @@ struct LoginView: View {
               keyboardType: .default,
               onBlur: viewModel.validatePassword
             )
+            .disabled(viewModel.isLoading)
+            .onSubmit {
+              Task {
+                await viewModel.login()
+              }
+            }
 
             HStack(spacing: 12) {
               HStack(spacing: 6) {

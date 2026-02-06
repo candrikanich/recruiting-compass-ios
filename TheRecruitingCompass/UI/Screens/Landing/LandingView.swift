@@ -1,9 +1,7 @@
 import SwiftUI
 
 struct LandingView: View {
-    @StateObject var viewModel = LandingViewModel()
-    @State var showSignIn = false
-    @State var showSignUp = false
+    @EnvironmentObject var authManager: AuthManager
 
     var body: some View {
         ZStack {
@@ -40,7 +38,7 @@ struct LandingView: View {
 
                     // CTA Buttons
                     VStack(spacing: 12) {
-                        NavigationLink(destination: SignInView()) {
+                        NavigationLink(destination: LoginView()) {
                             Text("Sign In")
                                 .font(.headline)
                                 .fontWeight(.semibold)
@@ -52,7 +50,7 @@ struct LandingView: View {
                                 .shadow(radius: 5)
                         }
 
-                        NavigationLink(destination: SignUpView()) {
+                        NavigationLink(destination: SignupView()) {
                             Text("Create Account")
                                 .font(.headline)
                                 .fontWeight(.semibold)
@@ -131,26 +129,6 @@ struct FeatureCard: View {
     }
 }
 
-// Placeholder screens for navigation
-struct SignInView: View {
-    var body: some View {
-        VStack {
-            Text("Sign In")
-                .font(.title)
-        }
-        .navigationTitle("Sign In")
-    }
-}
-
-struct SignUpView: View {
-    var body: some View {
-        VStack {
-            Text("Create Account")
-                .font(.title)
-        }
-        .navigationTitle("Create Account")
-    }
-}
 
 #Preview {
     NavigationStack {

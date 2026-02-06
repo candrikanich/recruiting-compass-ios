@@ -7,11 +7,16 @@ final class AuthManager: ObservableObject, AuthManaging {
   static let shared = AuthManager()
 
   @Published var isAuthenticated = false
+  @Published var isCheckingSession = true
   @Published var user: User?
   @Published var session: Session?
   @Published var errorMessage: String?
 
-  init() {}
+  init() {
+    Task {
+      await restoreSession()
+    }
+  }
 
   func login(email: String, password: String) async throws {
     do {
@@ -71,6 +76,26 @@ final class AuthManager: ObservableObject, AuthManaging {
     } catch {
       self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
       throw error
+    }
+  }
+
+  func logout() async throws {
+    self.user = nil
+    self.session = nil
+    self.isAuthenticated = false
+    self.errorMessage = nil
+  }
+
+  func restoreSession() async {
+    isCheckingSession = true
+    defer { isCheckingSession = false }
+
+    do {
+      // TODO: Implement session restoration from Keychain
+      // For now, assume no existing session
+      self.isAuthenticated = false
+    } catch {
+      self.isAuthenticated = false
     }
   }
 }

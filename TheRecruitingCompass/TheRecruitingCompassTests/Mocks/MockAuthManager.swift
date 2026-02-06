@@ -8,17 +8,95 @@ class MockAuthManager: AuthManaging {
   var isAuthenticated: Bool = false
   var user: User?
   var session: Session?
+  var errorMessage: String?
 
   // MARK: - Mock State
 
   var refreshSessionCallCount = 0
   var resendEmailCallCount = 0
+  var loginCallCount = 0
+  var signupCallCount = 0
+
   var shouldThrowRefreshError = false
   var shouldThrowResendError = false
+  var shouldThrowLoginError = false
+  var shouldThrowSignupError = false
+
   var mockUserToReturn: User?
+  var mockSessionToReturn: Session?
   var mockErrorToThrow: AuthError = .networkError("Mock network error")
 
   // MARK: - AuthManaging Methods
+
+  func login(email: String, password: String) async throws {
+    loginCallCount += 1
+
+    if shouldThrowLoginError {
+      throw mockErrorToThrow
+    }
+
+    let user = mockUserToReturn ?? User(
+      id: "test-user-id",
+      email: email,
+      emailConfirmedAt: "2024-01-01T00:00:00Z",
+      phone: nil,
+      userMetadata: nil,
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2024-01-01T00:00:00Z"
+    )
+
+    let session = mockSessionToReturn ?? Session(
+      accessToken: "test-access-token",
+      tokenType: "bearer",
+      expiresIn: 3600,
+      expiresAt: Int(Date().timeIntervalSince1970) + 3600,
+      refreshToken: "test-refresh-token",
+      user: user
+    )
+
+    self.user = user
+    self.session = session
+    self.isAuthenticated = true
+    self.errorMessage = nil
+  }
+
+  func signup(
+    email: String,
+    password: String,
+    fullName: String,
+    role: UserRole,
+    familyCode: String?
+  ) async throws {
+    signupCallCount += 1
+
+    if shouldThrowSignupError {
+      throw mockErrorToThrow
+    }
+
+    let user = mockUserToReturn ?? User(
+      id: "test-user-id",
+      email: email,
+      emailConfirmedAt: nil,
+      phone: nil,
+      userMetadata: nil,
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2024-01-01T00:00:00Z"
+    )
+
+    let session = mockSessionToReturn ?? Session(
+      accessToken: "test-access-token",
+      tokenType: "bearer",
+      expiresIn: 3600,
+      expiresAt: Int(Date().timeIntervalSince1970) + 3600,
+      refreshToken: "test-refresh-token",
+      user: user
+    )
+
+    self.user = user
+    self.session = session
+    self.isAuthenticated = true
+    self.errorMessage = nil
+  }
 
   func refreshSession() async throws -> User {
     refreshSessionCallCount += 1
@@ -43,6 +121,13 @@ class MockAuthManager: AuthManaging {
     }
   }
 
+  func logout() async throws {
+    self.user = nil
+    self.session = nil
+    self.isAuthenticated = false
+    self.errorMessage = nil
+  }
+
   // MARK: - Helper Methods
 
   func setMockUser(_ user: User) {
@@ -51,13 +136,27 @@ class MockAuthManager: AuthManaging {
     self.isAuthenticated = true
   }
 
+  func setMockSession(_ session: Session) {
+    self.session = session
+    self.mockSessionToReturn = session
+  }
+
   func reset() {
     refreshSessionCallCount = 0
     resendEmailCallCount = 0
+    loginCallCount = 0
+    signupCallCount = 0
+
     shouldThrowRefreshError = false
     shouldThrowResendError = false
+    shouldThrowLoginError = false
+    shouldThrowSignupError = false
+
     user = nil
     mockUserToReturn = nil
+    session = nil
+    mockSessionToReturn = nil
     isAuthenticated = false
+    errorMessage = nil
   }
 }
