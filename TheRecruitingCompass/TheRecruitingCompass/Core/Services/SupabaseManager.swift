@@ -75,6 +75,27 @@ class SupabaseManager {
     }
   }
 
+  func refreshSession() async throws -> User {
+    do {
+      let authSession = try await client.auth.session
+      let user = mapToUser(authSession.user)
+      return user
+    } catch {
+      throw AuthError.unknown(error)
+    }
+  }
+
+  func resendVerificationEmail(email: String) async throws {
+    do {
+      try await client.auth.resend(
+        email: email,
+        type: .signup
+      )
+    } catch {
+      throw AuthError.serverError("Failed to resend verification email")
+    }
+  }
+
   // MARK: - Private Helpers
 
   private func mapToUser(_ authUser: Supabase.User) -> User {

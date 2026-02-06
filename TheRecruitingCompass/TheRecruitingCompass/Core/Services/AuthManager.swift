@@ -3,7 +3,7 @@ import SwiftUI
 import Combine
 
 @MainActor
-final class AuthManager: ObservableObject {
+final class AuthManager: ObservableObject, AuthManaging {
   static let shared = AuthManager()
 
   @Published var isAuthenticated = false
@@ -48,6 +48,27 @@ final class AuthManager: ObservableObject {
       self.errorMessage = nil
     } catch {
       self.isAuthenticated = false
+      self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      throw error
+    }
+  }
+
+  func refreshSession() async throws -> User {
+    do {
+      let updatedUser = try await SupabaseManager.shared.refreshSession()
+      self.user = updatedUser
+      return updatedUser
+    } catch {
+      self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      throw error
+    }
+  }
+
+  func resendVerificationEmail(email: String) async throws {
+    do {
+      try await SupabaseManager.shared.resendVerificationEmail(email: email)
+      self.errorMessage = nil
+    } catch {
       self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
       throw error
     }

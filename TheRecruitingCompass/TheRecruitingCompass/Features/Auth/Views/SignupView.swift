@@ -48,6 +48,10 @@ struct SignupView: View {
       }
     }
     .navigationBarBackButtonHidden(true)
+    .navigationDestination(isPresented: $viewModel.shouldNavigateToVerifyEmail) {
+      EmailVerificationView()
+        .environmentObject(authManager)
+    }
   }
 
   // MARK: - Role Selection Step

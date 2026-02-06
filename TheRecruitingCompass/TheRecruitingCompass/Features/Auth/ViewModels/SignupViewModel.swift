@@ -23,6 +23,7 @@ class SignupViewModel: ObservableObject {
   @Published var isLoading = false
   @Published var errorMessage: String?
   @Published var fieldErrors: [String: String] = [:]
+  @Published var shouldNavigateToVerifyEmail = false
 
   private let authManager: AuthManager
   private let formValidator = FormValidator.self
@@ -181,6 +182,7 @@ class SignupViewModel: ObservableObject {
         role: role,
         familyCode: familyCodeToUse
       )
+      shouldNavigateToVerifyEmail = true
     } catch {
       errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
     }
