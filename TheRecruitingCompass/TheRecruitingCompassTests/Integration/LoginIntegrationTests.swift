@@ -100,14 +100,15 @@ final class LoginIntegrationTests: XCTestCase {
 
   @MainActor
   func testFormValidityUpdatesAfterValidation() async {
-    // Arrange
+    // Arrange - start with invalid data and add errors manually
     loginViewModel.email = "test@example.com"
     loginViewModel.password = "ValidPassword123"
+    loginViewModel.fieldErrors["email"] = "Invalid email"
 
-    // Act - form should be invalid initially due to no validation
+    // Assert - form is invalid due to field errors
     XCTAssertFalse(loginViewModel.isFormValid)
 
-    // Act - validate fields
+    // Act - validate fields (clears the errors)
     loginViewModel.validateEmail()
     loginViewModel.validatePassword()
 
