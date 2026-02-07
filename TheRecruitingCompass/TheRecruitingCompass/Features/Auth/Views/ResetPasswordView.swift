@@ -11,14 +11,7 @@ struct ResetPasswordView: View {
 
   var body: some View {
     ZStack {
-      LinearGradient(
-        gradient: Gradient(colors: [
-          Color(red: 0.024, green: 0.588, blue: 0.412),
-          Color(red: 0.016, green: 0.522, blue: 0.373)
-        ]),
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
+      LinearGradient.primaryBackground
       .ignoresSafeArea()
 
       VStack(spacing: 0) {
@@ -31,7 +24,7 @@ struct ResetPasswordView: View {
               Text("Back")
                 .font(.footnote.weight(.semibold))
             }
-            .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+            .foregroundColor(Color.darkSlate)
           }
           .accessibilityLabel("Back to previous screen")
           Spacer()
@@ -74,7 +67,7 @@ struct ResetPasswordView: View {
     VStack(spacing: 24) {
       Image(systemName: "lock.rotation")
         .font(.system(size: 48))
-        .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
+        .foregroundColor(Color.primaryGreen)
         .padding(.vertical, 12)
         .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
         .accessibilityHidden(true)
@@ -82,11 +75,11 @@ struct ResetPasswordView: View {
       VStack(spacing: 8) {
         Text("Reset Password")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+          .foregroundColor(Color.darkSlate)
 
         Text("Enter your new password below.")
           .font(.footnote)
-          .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+          .foregroundColor(Color.secondaryText)
       }
 
       PasswordFormField(
@@ -140,14 +133,7 @@ struct ResetPasswordView: View {
         .frame(height: 48)
         .foregroundColor(.white)
         .background(
-          LinearGradient(
-            gradient: Gradient(colors: [
-              Color(red: 0, green: 0.4, blue: 1),
-              Color(red: 0, green: 0.32, blue: 0.8)
-            ]),
-            startPoint: .leading,
-            endPoint: .trailing
-          )
+          LinearGradient.primaryButton
         )
         .cornerRadius(8)
         .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
@@ -165,15 +151,15 @@ struct ResetPasswordView: View {
     HStack(spacing: 6) {
       Image(systemName: viewModel.passwordsMatch ? "checkmark.circle.fill" : "xmark.circle.fill")
         .foregroundColor(viewModel.passwordsMatch
-          ? Color(red: 0.2, green: 0.62, blue: 0.4)
-          : Color(red: 0.859, green: 0.149, blue: 0.149))
+          ? Color.successGreen
+          : Color.errorRed)
         .accessibilityHidden(true)
 
       Text(viewModel.passwordsMatch ? "Passwords match" : "Passwords do not match")
         .font(.caption)
         .foregroundColor(viewModel.passwordsMatch
-          ? Color(red: 0.2, green: 0.62, blue: 0.4)
-          : Color(red: 0.859, green: 0.149, blue: 0.149))
+          ? Color.successGreen
+          : Color.errorRed)
     }
     .accessibilityElement(children: .combine)
     .accessibilityLabel(viewModel.passwordsMatch ? "Passwords match" : "Passwords do not match")
@@ -188,11 +174,11 @@ struct ResetPasswordView: View {
       VStack(spacing: 8) {
         Text("Password Reset!")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+          .foregroundColor(Color.darkSlate)
 
         Text("Your password has been updated successfully.")
           .font(.footnote)
-          .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+          .foregroundColor(Color.secondaryText)
           .multilineTextAlignment(.center)
       }
 
@@ -200,7 +186,7 @@ struct ResetPasswordView: View {
 
       Text("Redirecting to login in \(viewModel.successCountdown)s...")
         .font(.caption)
-        .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+        .foregroundColor(Color.secondaryText)
         .accessibilityLabel("Redirecting to login in \(viewModel.successCountdown) seconds")
 
       Button(action: { dismiss() }) {
@@ -210,14 +196,7 @@ struct ResetPasswordView: View {
           .frame(height: 48)
           .foregroundColor(.white)
           .background(
-            LinearGradient(
-              gradient: Gradient(colors: [
-                Color(red: 0, green: 0.4, blue: 1),
-                Color(red: 0, green: 0.32, blue: 0.8)
-              ]),
-              startPoint: .leading,
-              endPoint: .trailing
-            )
+            LinearGradient.primaryButton
           )
           .cornerRadius(8)
       }
@@ -236,11 +215,11 @@ struct ResetPasswordView: View {
       VStack(spacing: 8) {
         Text("Invalid Link")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+          .foregroundColor(Color.darkSlate)
 
         Text("This password reset link is no longer valid.")
           .font(.footnote)
-          .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+          .foregroundColor(Color.secondaryText)
           .multilineTextAlignment(.center)
       }
 
@@ -256,14 +235,7 @@ struct ResetPasswordView: View {
           .frame(height: 48)
           .foregroundColor(.white)
           .background(
-            LinearGradient(
-              gradient: Gradient(colors: [
-                Color(red: 0, green: 0.4, blue: 1),
-                Color(red: 0, green: 0.32, blue: 0.8)
-              ]),
-              startPoint: .leading,
-              endPoint: .trailing
-            )
+            LinearGradient.primaryButton
           )
           .cornerRadius(8)
       }
@@ -277,7 +249,7 @@ struct ResetPasswordView: View {
           Text("Back to Login")
             .font(.footnote.weight(.semibold))
         }
-        .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
+        .foregroundColor(Color.tertiaryText)
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }

@@ -20,26 +20,26 @@ struct DashboardView: View {
 
       Image(systemName: "compass.drawing")
         .font(.system(size: compassSize))
-        .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
+        .foregroundColor(Color.primaryGreen)
 
       VStack(spacing: 8) {
         Text("Welcome!")
           .font(.title)
-          .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+          .foregroundColor(Color.darkSlate)
 
         Text(viewModel.userEmail)
           .font(.callout)
-          .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+          .foregroundColor(Color.secondaryText)
       }
 
       VStack(alignment: .leading, spacing: 8) {
         Text("Session Token (debug)")
           .font(.caption.weight(.semibold))
-          .foregroundColor(Color(red: 0.627, green: 0.655, blue: 0.686))
+          .foregroundColor(Color.iconGray)
 
         Text(viewModel.truncatedSessionToken)
           .font(.system(size: 12, weight: .regular, design: .monospaced))
-          .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+          .foregroundColor(Color.secondaryText)
           .padding(12)
           .frame(maxWidth: .infinity, alignment: .leading)
           .background(Color(.systemGray6))
@@ -69,7 +69,7 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity)
         .frame(height: 48)
         .foregroundColor(.white)
-        .background(Color(red: 0.859, green: 0.149, blue: 0.149))
+        .background(Color.errorRed)
         .cornerRadius(8)
       }
       .disabled(viewModel.isLoggingOut)

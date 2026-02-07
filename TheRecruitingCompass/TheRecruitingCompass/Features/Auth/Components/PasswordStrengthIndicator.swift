@@ -20,13 +20,13 @@ struct PasswordStrengthIndicator: View {
 
   private var strengthColor: Color {
     if password.isEmpty {
-      return Color(red: 0.827, green: 0.843, blue: 0.863)
+      return Color.borderGray
     } else if strengthPercentage < 0.5 {
-      return Color(red: 0.859, green: 0.149, blue: 0.149)
+      return Color.errorRed
     } else if strengthPercentage < 1.0 {
-      return Color(red: 1, green: 0.647, blue: 0)
+      return Color.strengthOrange
     } else {
-      return Color(red: 0.024, green: 0.588, blue: 0.412)
+      return Color.primaryGreen
     }
   }
 
@@ -47,7 +47,7 @@ struct PasswordStrengthIndicator: View {
       HStack {
         Text("Strength")
           .font(.caption)
-          .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+          .foregroundColor(Color.secondaryText)
           .accessibilityHidden(true)
 
         Spacer()
@@ -62,7 +62,7 @@ struct PasswordStrengthIndicator: View {
       GeometryReader { geometry in
         ZStack(alignment: .leading) {
           RoundedRectangle(cornerRadius: 4)
-            .foregroundColor(Color(red: 0.827, green: 0.843, blue: 0.863))
+            .foregroundColor(Color.borderGray)
 
           RoundedRectangle(cornerRadius: 4)
             .foregroundColor(strengthColor)
@@ -78,12 +78,12 @@ struct PasswordStrengthIndicator: View {
             HStack(spacing: 6) {
               Image(systemName: "circle.fill")
                 .font(.system(size: 6))
-                .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+                .foregroundColor(Color.secondaryText)
                 .accessibilityHidden(true)
 
               Text("Missing \(error)")
                 .font(.caption2)
-                .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+                .foregroundColor(Color.secondaryText)
             }
           }
         }

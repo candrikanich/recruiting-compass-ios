@@ -13,14 +13,7 @@ struct LoginView: View {
 
   var body: some View {
     ZStack {
-      LinearGradient(
-        gradient: Gradient(colors: [
-          Color(red: 0.024, green: 0.588, blue: 0.412),
-          Color(red: 0.016, green: 0.522, blue: 0.373)
-        ]),
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
+      LinearGradient.primaryBackground
       .ignoresSafeArea()
 
       VStack(spacing: 0) {
@@ -33,7 +26,7 @@ struct LoginView: View {
               Text("Back to Welcome")
                 .font(.footnote.weight(.semibold))
             }
-            .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+            .foregroundColor(Color.darkSlate)
           }
           .accessibilityLabel("Back to welcome screen")
           .accessibilityHint("Returns to the login screen")
@@ -46,7 +39,7 @@ struct LoginView: View {
           VStack(spacing: 24) {
             Image(systemName: "compass.drawing")
               .font(.system(size: 48))
-              .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
+              .foregroundColor(Color.primaryGreen)
               .padding(.vertical, 12)
               .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
               .accessibilityHidden(true)
@@ -107,12 +100,12 @@ struct LoginView: View {
               Button(action: { viewModel.rememberMe.toggle() }) {
                 HStack(spacing: 6) {
                   Image(systemName: viewModel.rememberMe ? "checkmark.square.fill" : "square")
-                    .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
+                    .foregroundColor(Color.accentBlue)
                     .accessibilityHidden(true)
 
                   Text("Remember me")
                     .font(.footnote)
-                    .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
+                    .foregroundColor(Color.tertiaryText)
                 }
                 .frame(height: 44)
               }
@@ -125,7 +118,7 @@ struct LoginView: View {
               NavigationLink(destination: ForgotPasswordView()) {
                 Text("Forgot password?")
                   .font(.footnote)
-                  .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
+                  .foregroundColor(Color.tertiaryText)
                   .frame(minHeight: 44)
                   .contentShape(Rectangle())
               }
@@ -151,14 +144,7 @@ struct LoginView: View {
               .frame(height: 48)
               .foregroundColor(.white)
               .background(
-                LinearGradient(
-                  gradient: Gradient(colors: [
-                    Color(red: 0, green: 0.4, blue: 1),
-                    Color(red: 0, green: 0.32, blue: 0.8)
-                  ]),
-                  startPoint: .leading,
-                  endPoint: .trailing
-                )
+                LinearGradient.primaryButton
               )
               .cornerRadius(8)
               .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
@@ -170,23 +156,23 @@ struct LoginView: View {
             HStack {
               Rectangle()
                 .frame(height: 1)
-                .foregroundColor(Color(red: 0.827, green: 0.843, blue: 0.863))
+                .foregroundColor(Color.borderGray)
                 .accessibilityHidden(true)
 
               Text("New to Recruiting Compass?")
                 .font(.footnote)
-                .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
+                .foregroundColor(Color.tertiaryText)
 
               Rectangle()
                 .frame(height: 1)
-                .foregroundColor(Color(red: 0.827, green: 0.843, blue: 0.863))
+                .foregroundColor(Color.borderGray)
                 .accessibilityHidden(true)
             }
 
             HStack(spacing: 4) {
               Text("Don't have an account?")
                 .font(.footnote)
-                .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
+                .foregroundColor(Color.tertiaryText)
 
               NavigationLink(value: "signup") {
                 HStack(spacing: 4) {
@@ -196,7 +182,7 @@ struct LoginView: View {
                     .font(.caption.weight(.semibold))
                     .accessibilityHidden(true)
                 }
-                .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
+                .foregroundColor(Color.accentBlue)
                 .frame(minHeight: 44)
                 .contentShape(Rectangle())
               }

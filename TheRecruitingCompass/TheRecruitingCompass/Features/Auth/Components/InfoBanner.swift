@@ -50,15 +50,15 @@ struct InfoBanner: View {
       case .pending:
         Image(systemName: "envelope.fill")
           .font(.system(size: iconSize))
-          .foregroundColor(Color(red: 0.855, green: 0.620, blue: 0.118))
+          .foregroundColor(Color.amberGold)
       case .checking:
         ProgressView()
-          .tint(Color(red: 0.149, green: 0.388, blue: 0.931))
+          .tint(Color.accentBlue)
           .accessibilityLabel("Checking verification")
       case .verified:
         Image(systemName: "checkmark.circle.fill")
           .font(.system(size: iconSize))
-          .foregroundColor(Color(red: 0.2, green: 0.62, blue: 0.4))
+          .foregroundColor(Color.successGreen)
       }
     }
   }
@@ -88,22 +88,22 @@ struct InfoBanner: View {
   private var backgroundColor: Color {
     switch state {
     case .pending:
-      return Color(red: 0.855, green: 0.620, blue: 0.118).opacity(0.1)
+      return Color.amberGold.opacity(0.1)
     case .checking:
-      return Color(red: 0.149, green: 0.388, blue: 0.931).opacity(0.1)
+      return Color.accentBlue.opacity(0.1)
     case .verified:
-      return Color(red: 0.2, green: 0.62, blue: 0.4).opacity(0.1)
+      return Color.successGreen.opacity(0.1)
     }
   }
 
   private var subtitleColor: Color {
     switch state {
     case .pending:
-      return Color(red: 0.427, green: 0.467, blue: 0.514)
+      return Color.secondaryText
     case .checking:
-      return Color(red: 0.427, green: 0.467, blue: 0.514)
+      return Color.secondaryText
     case .verified:
-      return Color(red: 0.427, green: 0.467, blue: 0.514)
+      return Color.secondaryText
     }
   }
 

@@ -20,12 +20,12 @@ struct LoginFormField: View {
     VStack(alignment: .leading, spacing: 4) {
       Text(label)
         .font(.footnote.weight(.semibold))
-        .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+        .foregroundColor(Color.darkSlate)
         .accessibilityHidden(true)
 
       HStack(spacing: 12) {
         Image(systemName: icon)
-          .foregroundColor(Color(red: 0.627, green: 0.655, blue: 0.686))
+          .foregroundColor(Color.iconGray)
           .frame(width: iconWidth)
           .accessibilityHidden(true)
 
@@ -48,13 +48,13 @@ struct LoginFormField: View {
       }
       .padding(12)
       .background(Color.white)
-      .border(error != nil ? Color.red : Color(red: 0.82, green: 0.843, blue: 0.863), width: 1)
+      .border(error != nil ? Color.red : Color.borderGray, width: 1)
       .cornerRadius(8)
 
       if let error = error {
         Text(error)
           .font(.caption)
-          .foregroundColor(Color(red: 0.859, green: 0.149, blue: 0.149))
+          .foregroundColor(Color.errorRed)
           .accessibilityLabel("Error: \(error)")
       }
     }

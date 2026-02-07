@@ -20,17 +20,17 @@ struct RoleSelectionCard: View {
         HStack(spacing: 12) {
           Image(systemName: role.icon)
             .font(.system(size: roleIconSize))
-            .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
+            .foregroundColor(Color.primaryGreen)
             .accessibilityHidden(true)
 
           VStack(alignment: .leading, spacing: 4) {
             Text(role.displayName)
               .font(.callout.weight(.semibold))
-              .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+              .foregroundColor(Color.darkSlate)
 
             Text(role.description)
               .font(.caption)
-              .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+              .foregroundColor(Color.secondaryText)
               .lineLimit(2)
           }
 
@@ -40,8 +40,8 @@ struct RoleSelectionCard: View {
             .font(.system(size: checkmarkSize))
             .foregroundColor(
               isSelected
-                ? Color(red: 0.149, green: 0.388, blue: 0.931)
-                : Color(red: 0.827, green: 0.843, blue: 0.863)
+                ? Color.accentBlue
+                : Color.borderGray
             )
             .accessibilityHidden(true)
         }
@@ -49,7 +49,7 @@ struct RoleSelectionCard: View {
       .padding(16)
       .background(Color.white)
       .border(
-        isSelected ? Color(red: 0.149, green: 0.388, blue: 0.931) : Color(red: 0.827, green: 0.843, blue: 0.863),
+        isSelected ? Color.accentBlue : Color.borderGray,
         width: 2
       )
       .cornerRadius(8)

@@ -10,15 +10,7 @@ struct LandingView: View {
 
   var body: some View {
     ZStack {
-      // Background: Emerald gradient
-      LinearGradient(
-        gradient: Gradient(colors: [
-          Color(red: 0.3, green: 0.6, blue: 0.4),  // emerald-500
-          Color(red: 0.05, green: 0.5, blue: 0.35) // emerald-700
-        ]),
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
+      LinearGradient.landingBackground
       .ignoresSafeArea()
 
       // Main content
@@ -67,7 +59,7 @@ struct LandingView: View {
                 .frame(maxWidth: .infinity)
                 .padding(16)
                 .background(Color.white)
-                .foregroundColor(Color(red: 0.05, green: 0.05, blue: 0.1))
+                .foregroundColor(Color.nearBlack)
                 .cornerRadius(12)
                 .shadow(radius: 5)
             }
