@@ -66,42 +66,42 @@ final class SignupViewModelTests: XCTestCase {
     sut.fullName = "John Doe"
     sut.validateFullName()
 
-    XCTAssertNil(sut.fieldErrors["fullName"])
+    XCTAssertNil(sut.fieldErrors[.fullName])
   }
 
   func testValidateFullNameWithError() {
     sut.fullName = "J"
     sut.validateFullName()
 
-    XCTAssertNotNil(sut.fieldErrors["fullName"])
+    XCTAssertNotNil(sut.fieldErrors[.fullName])
   }
 
   func testValidateEmail() {
     sut.email = "john@example.com"
     sut.validateEmail()
 
-    XCTAssertNil(sut.fieldErrors["email"])
+    XCTAssertNil(sut.fieldErrors[.email])
   }
 
   func testValidateEmailWithError() {
     sut.email = "invalid.email"
     sut.validateEmail()
 
-    XCTAssertNotNil(sut.fieldErrors["email"])
+    XCTAssertNotNil(sut.fieldErrors[.email])
   }
 
   func testValidatePassword() {
     sut.password = "StrongPass123"
     sut.validatePassword()
 
-    XCTAssertNil(sut.fieldErrors["password"])
+    XCTAssertNil(sut.fieldErrors[.password])
   }
 
   func testValidatePasswordWithWeakPassword() {
     sut.password = "weak"
     sut.validatePassword()
 
-    XCTAssertNotNil(sut.fieldErrors["password"])
+    XCTAssertNotNil(sut.fieldErrors[.password])
   }
 
   func testValidateConfirmPassword() {
@@ -109,7 +109,7 @@ final class SignupViewModelTests: XCTestCase {
     sut.confirmPassword = "StrongPass123"
     sut.validateConfirmPassword()
 
-    XCTAssertNil(sut.fieldErrors["confirmPassword"])
+    XCTAssertNil(sut.fieldErrors[.confirmPassword])
   }
 
   func testValidateConfirmPasswordMismatch() {
@@ -117,7 +117,7 @@ final class SignupViewModelTests: XCTestCase {
     sut.confirmPassword = "DifferentPass123"
     sut.validateConfirmPassword()
 
-    XCTAssertNotNil(sut.fieldErrors["confirmPassword"])
+    XCTAssertNotNil(sut.fieldErrors[.confirmPassword])
   }
 
   func testValidateFamilyCodeForStudentRole() {
@@ -125,7 +125,7 @@ final class SignupViewModelTests: XCTestCase {
     sut.familyCode = "FAM-ABC12345"
     sut.validateFamilyCode()
 
-    XCTAssertNil(sut.fieldErrors["familyCode"])
+    XCTAssertNil(sut.fieldErrors[.familyCode])
   }
 
   func testValidateFamilyCodeOptionalForStudentRole() {
@@ -133,7 +133,7 @@ final class SignupViewModelTests: XCTestCase {
     sut.familyCode = ""
     sut.validateFamilyCode()
 
-    XCTAssertNil(sut.fieldErrors["familyCode"])
+    XCTAssertNil(sut.fieldErrors[.familyCode])
   }
 
   func testValidateFamilyCodeNotRequiredForParentRole() {
@@ -141,7 +141,7 @@ final class SignupViewModelTests: XCTestCase {
     sut.familyCode = ""
     sut.validateFamilyCode()
 
-    XCTAssertNil(sut.fieldErrors["familyCode"])
+    XCTAssertNil(sut.fieldErrors[.familyCode])
   }
 
   func testValidateTerms() {
@@ -235,7 +235,7 @@ final class SignupViewModelTests: XCTestCase {
     sut.password = "StrongPass123"
     sut.confirmPassword = "StrongPass123"
     sut.termsAccepted = true
-    sut.fieldErrors["email"] = "Invalid email"
+    sut.fieldErrors[.email] = "Invalid email"
 
     XCTAssertFalse(sut.isFormValid)
   }

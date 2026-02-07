@@ -8,7 +8,7 @@ class ForgotPasswordViewModel: ObservableObject {
   @Published var emailSent = false
   @Published var submittedEmail = ""
   @Published var errorMessage: String?
-  @Published var fieldErrors: [String: String] = [:]
+  @Published var fieldErrors: [FormFieldKey: String] = [:]
   @Published var canResendEmail = true
   @Published var resendCooldownSeconds = 0
 
@@ -29,9 +29,9 @@ class ForgotPasswordViewModel: ObservableObject {
 
   func validateEmail() {
     if let error = FormValidator.validateEmail(email) {
-      fieldErrors["email"] = error
+      fieldErrors[.email] = error
     } else {
-      fieldErrors["email"] = nil
+      fieldErrors[.email] = nil
     }
   }
 

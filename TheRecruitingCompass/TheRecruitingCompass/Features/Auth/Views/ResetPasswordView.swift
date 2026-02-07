@@ -87,8 +87,8 @@ struct ResetPasswordView: View {
         placeholder: "Enter your new password",
         text: $viewModel.newPassword,
         error: Binding(
-          get: { viewModel.fieldErrors["newPassword"] },
-          set: { viewModel.fieldErrors["newPassword"] = $0 }
+          get: { viewModel.fieldErrors[.newPassword] },
+          set: { viewModel.fieldErrors[.newPassword] = $0 }
         ),
         isPasswordVisible: $viewModel.isPasswordVisible,
         onBlur: viewModel.validateNewPassword
@@ -103,8 +103,8 @@ struct ResetPasswordView: View {
         placeholder: "Re-enter your new password",
         text: $viewModel.confirmPassword,
         error: Binding(
-          get: { viewModel.fieldErrors["confirmPassword"] },
-          set: { viewModel.fieldErrors["confirmPassword"] = $0 }
+          get: { viewModel.fieldErrors[.confirmPassword] },
+          set: { viewModel.fieldErrors[.confirmPassword] = $0 }
         ),
         isPasswordVisible: $viewModel.isPasswordVisible,
         onBlur: viewModel.validateConfirmPassword

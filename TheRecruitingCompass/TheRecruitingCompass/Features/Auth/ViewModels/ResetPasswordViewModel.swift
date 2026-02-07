@@ -14,7 +14,7 @@ class ResetPasswordViewModel: ObservableObject {
   @Published var newPassword = ""
   @Published var confirmPassword = ""
   @Published var isPasswordVisible = false
-  @Published var fieldErrors: [String: String] = [:]
+  @Published var fieldErrors: [FormFieldKey: String] = [:]
   @Published var successCountdown = 3
   @Published var shouldNavigateToLogin = false
 
@@ -48,9 +48,9 @@ class ResetPasswordViewModel: ObservableObject {
   func validateNewPassword() {
     let result = FormValidator.validatePasswordStrength(newPassword)
     if !result.isValid {
-      fieldErrors["newPassword"] = "Password does not meet requirements"
+      fieldErrors[.newPassword] = "Password does not meet requirements"
     } else {
-      fieldErrors["newPassword"] = nil
+      fieldErrors[.newPassword] = nil
     }
 
     if !confirmPassword.isEmpty {
@@ -60,9 +60,9 @@ class ResetPasswordViewModel: ObservableObject {
 
   func validateConfirmPassword() {
     if let error = FormValidator.validatePasswordMatch(newPassword, confirmPassword) {
-      fieldErrors["confirmPassword"] = error
+      fieldErrors[.confirmPassword] = error
     } else {
-      fieldErrors["confirmPassword"] = nil
+      fieldErrors[.confirmPassword] = nil
     }
   }
 

@@ -36,19 +36,19 @@ final class ForgotPasswordViewModelTests: XCTestCase {
   func testValidateEmailWithValidEmail() {
     sut.email = "user@example.com"
     sut.validateEmail()
-    XCTAssertNil(sut.fieldErrors["email"])
+    XCTAssertNil(sut.fieldErrors[.email])
   }
 
   func testValidateEmailWithEmptyEmail() {
     sut.email = ""
     sut.validateEmail()
-    XCTAssertNotNil(sut.fieldErrors["email"])
+    XCTAssertNotNil(sut.fieldErrors[.email])
   }
 
   func testValidateEmailWithInvalidEmail() {
     sut.email = "not-an-email"
     sut.validateEmail()
-    XCTAssertNotNil(sut.fieldErrors["email"])
+    XCTAssertNotNil(sut.fieldErrors[.email])
   }
 
   // MARK: - Form Valid
@@ -65,7 +65,7 @@ final class ForgotPasswordViewModelTests: XCTestCase {
 
   func testIsFormValidWithFieldErrors() {
     sut.email = "user@example.com"
-    sut.fieldErrors["email"] = "Invalid"
+    sut.fieldErrors[.email] = "Invalid"
     XCTAssertFalse(sut.isFormValid)
   }
 
@@ -162,7 +162,7 @@ final class ForgotPasswordViewModelTests: XCTestCase {
     sut.emailSent = true
     sut.submittedEmail = "user@example.com"
     sut.errorMessage = "Some error"
-    sut.fieldErrors["email"] = "Invalid"
+    sut.fieldErrors[.email] = "Invalid"
 
     sut.resetForm()
 

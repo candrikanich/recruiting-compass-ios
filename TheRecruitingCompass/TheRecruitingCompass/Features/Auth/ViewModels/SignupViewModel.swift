@@ -22,7 +22,7 @@ class SignupViewModel: ObservableObject {
 
   @Published var isLoading = false
   @Published var errorMessage: String?
-  @Published var fieldErrors: [String: String] = [:]
+  @Published var fieldErrors: [FormFieldKey: String] = [:]
   @Published var shouldNavigateToVerifyEmail = false
 
   private let authManager: AuthManager
@@ -91,47 +91,47 @@ class SignupViewModel: ObservableObject {
 
   func validateFullName() {
     if let error = formValidator.validateName(fullName) {
-      fieldErrors["fullName"] = error
+      fieldErrors[.fullName] = error
     } else {
-      fieldErrors["fullName"] = nil
+      fieldErrors[.fullName] = nil
     }
   }
 
   func validateEmail() {
     if let error = formValidator.validateEmail(email) {
-      fieldErrors["email"] = error
+      fieldErrors[.email] = error
     } else {
-      fieldErrors["email"] = nil
+      fieldErrors[.email] = nil
     }
   }
 
   func validatePassword() {
     let strengthResult = formValidator.validatePasswordStrength(password)
     if !strengthResult.isValid {
-      fieldErrors["password"] = "Password does not meet strength requirements"
+      fieldErrors[.password] = "Password does not meet strength requirements"
     } else {
-      fieldErrors["password"] = nil
+      fieldErrors[.password] = nil
     }
   }
 
   func validateConfirmPassword() {
     if let error = formValidator.validatePasswordMatch(password, confirmPassword) {
-      fieldErrors["confirmPassword"] = error
+      fieldErrors[.confirmPassword] = error
     } else {
-      fieldErrors["confirmPassword"] = nil
+      fieldErrors[.confirmPassword] = nil
     }
   }
 
   func validateFamilyCode() {
     guard let role = selectedRole, role.requiresFamilyCode else {
-      fieldErrors["familyCode"] = nil
+      fieldErrors[.familyCode] = nil
       return
     }
 
     if let error = formValidator.validateFamilyCode(familyCode) {
-      fieldErrors["familyCode"] = error
+      fieldErrors[.familyCode] = error
     } else {
-      fieldErrors["familyCode"] = nil
+      fieldErrors[.familyCode] = nil
     }
   }
 

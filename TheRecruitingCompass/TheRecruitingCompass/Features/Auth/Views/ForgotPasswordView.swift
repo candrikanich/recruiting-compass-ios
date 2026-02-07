@@ -86,8 +86,8 @@ struct ForgotPasswordView: View {
         icon: "envelope",
         text: $viewModel.email,
         error: Binding(
-          get: { viewModel.fieldErrors["email"] },
-          set: { viewModel.fieldErrors["email"] = $0 }
+          get: { viewModel.fieldErrors[.email] },
+          set: { viewModel.fieldErrors[.email] = $0 }
         ),
         isSecure: false,
         keyboardType: .emailAddress,

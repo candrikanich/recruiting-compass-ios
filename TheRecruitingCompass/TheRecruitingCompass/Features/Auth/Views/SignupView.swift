@@ -131,8 +131,8 @@ struct SignupView: View {
         icon: "person",
         text: $viewModel.fullName,
         error: Binding(
-          get: { viewModel.fieldErrors["fullName"] },
-          set: { viewModel.fieldErrors["fullName"] = $0 }
+          get: { viewModel.fieldErrors[.fullName] },
+          set: { viewModel.fieldErrors[.fullName] = $0 }
         ),
         isSecure: false,
         keyboardType: .default,
@@ -145,8 +145,8 @@ struct SignupView: View {
         icon: "envelope",
         text: $viewModel.email,
         error: Binding(
-          get: { viewModel.fieldErrors["email"] },
-          set: { viewModel.fieldErrors["email"] = $0 }
+          get: { viewModel.fieldErrors[.email] },
+          set: { viewModel.fieldErrors[.email] = $0 }
         ),
         isSecure: false,
         keyboardType: .emailAddress,
@@ -160,8 +160,8 @@ struct SignupView: View {
           icon: "lock",
           text: $viewModel.password,
           error: Binding(
-            get: { viewModel.fieldErrors["password"] },
-            set: { viewModel.fieldErrors["password"] = $0 }
+            get: { viewModel.fieldErrors[.password] },
+            set: { viewModel.fieldErrors[.password] = $0 }
           ),
           isSecure: true,
           keyboardType: .default,
@@ -179,8 +179,8 @@ struct SignupView: View {
         icon: "lock.fill",
         text: $viewModel.confirmPassword,
         error: Binding(
-          get: { viewModel.fieldErrors["confirmPassword"] },
-          set: { viewModel.fieldErrors["confirmPassword"] = $0 }
+          get: { viewModel.fieldErrors[.confirmPassword] },
+          set: { viewModel.fieldErrors[.confirmPassword] = $0 }
         ),
         isSecure: true,
         keyboardType: .default,
@@ -194,8 +194,8 @@ struct SignupView: View {
           icon: "person.2",
           text: $viewModel.familyCode,
           error: Binding(
-            get: { viewModel.fieldErrors["familyCode"] },
-            set: { viewModel.fieldErrors["familyCode"] = $0 }
+            get: { viewModel.fieldErrors[.familyCode] },
+            set: { viewModel.fieldErrors[.familyCode] = $0 }
           ),
           isSecure: false,
           keyboardType: .default,

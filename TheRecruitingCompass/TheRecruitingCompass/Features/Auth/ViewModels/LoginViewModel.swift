@@ -10,7 +10,7 @@ class LoginViewModel: ObservableObject {
   @Published var isLoading = false
   @Published var isValidating = false
   @Published var errorMessage: String?
-  @Published var fieldErrors: [String: String] = [:]
+  @Published var fieldErrors: [FormFieldKey: String] = [:]
   @Published var showTimeoutBanner = false
 
   private let authManager: any AuthManaging
@@ -68,9 +68,9 @@ class LoginViewModel: ObservableObject {
     defer { isValidating = false }
 
     if let error = formValidator.validateEmail(email) {
-      fieldErrors["email"] = error
+      fieldErrors[.email] = error
     } else {
-      fieldErrors["email"] = nil
+      fieldErrors[.email] = nil
     }
   }
 
@@ -79,9 +79,9 @@ class LoginViewModel: ObservableObject {
     defer { isValidating = false }
 
     if let error = formValidator.validatePassword(password) {
-      fieldErrors["password"] = error
+      fieldErrors[.password] = error
     } else {
-      fieldErrors["password"] = nil
+      fieldErrors[.password] = nil
     }
   }
 

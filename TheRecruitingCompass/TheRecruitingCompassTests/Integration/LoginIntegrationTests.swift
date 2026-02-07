@@ -29,8 +29,8 @@ final class LoginIntegrationTests: XCTestCase {
 
     // Assert form is valid
     XCTAssertTrue(loginViewModel.isFormValid)
-    XCTAssertNil(loginViewModel.fieldErrors["email"])
-    XCTAssertNil(loginViewModel.fieldErrors["password"])
+    XCTAssertNil(loginViewModel.fieldErrors[.email])
+    XCTAssertNil(loginViewModel.fieldErrors[.password])
   }
 
   @MainActor
@@ -43,8 +43,8 @@ final class LoginIntegrationTests: XCTestCase {
 
     // Assert
     XCTAssertFalse(loginViewModel.isFormValid)
-    XCTAssertNotNil(loginViewModel.fieldErrors["email"])
-    XCTAssertNotNil(loginViewModel.fieldErrors["password"])
+    XCTAssertNotNil(loginViewModel.fieldErrors[.email])
+    XCTAssertNotNil(loginViewModel.fieldErrors[.password])
   }
 
   @MainActor
@@ -68,8 +68,8 @@ final class LoginIntegrationTests: XCTestCase {
     loginViewModel.validateEmail()
 
     // Assert
-    XCTAssertNotNil(loginViewModel.fieldErrors["email"])
-    XCTAssertEqual(loginViewModel.fieldErrors["email"], "Email is required")
+    XCTAssertNotNil(loginViewModel.fieldErrors[.email])
+    XCTAssertEqual(loginViewModel.fieldErrors[.email], "Email is required")
   }
 
   @MainActor
@@ -81,8 +81,8 @@ final class LoginIntegrationTests: XCTestCase {
     loginViewModel.validatePassword()
 
     // Assert
-    XCTAssertNotNil(loginViewModel.fieldErrors["password"])
-    XCTAssertEqual(loginViewModel.fieldErrors["password"], "Password is required")
+    XCTAssertNotNil(loginViewModel.fieldErrors[.password])
+    XCTAssertEqual(loginViewModel.fieldErrors[.password], "Password is required")
   }
 
   @MainActor
@@ -94,8 +94,8 @@ final class LoginIntegrationTests: XCTestCase {
     loginViewModel.validatePassword()
 
     // Assert
-    XCTAssertNotNil(loginViewModel.fieldErrors["password"])
-    XCTAssertEqual(loginViewModel.fieldErrors["password"], "Password must be at least 8 characters")
+    XCTAssertNotNil(loginViewModel.fieldErrors[.password])
+    XCTAssertEqual(loginViewModel.fieldErrors[.password], "Password must be at least 8 characters")
   }
 
   @MainActor
@@ -103,7 +103,7 @@ final class LoginIntegrationTests: XCTestCase {
     // Arrange - start with invalid data and add errors manually
     loginViewModel.email = "test@example.com"
     loginViewModel.password = "ValidPassword123"
-    loginViewModel.fieldErrors["email"] = "Invalid email"
+    loginViewModel.fieldErrors[.email] = "Invalid email"
 
     // Assert - form is invalid due to field errors
     XCTAssertFalse(loginViewModel.isFormValid)
@@ -188,8 +188,8 @@ final class LoginIntegrationTests: XCTestCase {
     loginViewModel.password = "short"
     loginViewModel.validateEmail()
     loginViewModel.validatePassword()
-    XCTAssertNotNil(loginViewModel.fieldErrors["email"])
-    XCTAssertNotNil(loginViewModel.fieldErrors["password"])
+    XCTAssertNotNil(loginViewModel.fieldErrors[.email])
+    XCTAssertNotNil(loginViewModel.fieldErrors[.password])
 
     // Act - correct the data and validate again
     loginViewModel.email = "valid@example.com"
@@ -198,8 +198,8 @@ final class LoginIntegrationTests: XCTestCase {
     loginViewModel.validatePassword()
 
     // Assert
-    XCTAssertNil(loginViewModel.fieldErrors["email"])
-    XCTAssertNil(loginViewModel.fieldErrors["password"])
+    XCTAssertNil(loginViewModel.fieldErrors[.email])
+    XCTAssertNil(loginViewModel.fieldErrors[.password])
   }
 
   @MainActor
@@ -211,7 +211,7 @@ final class LoginIntegrationTests: XCTestCase {
     loginViewModel.validateEmail()
 
     // Assert
-    XCTAssertNotNil(loginViewModel.fieldErrors["email"])
+    XCTAssertNotNil(loginViewModel.fieldErrors[.email])
   }
 
   @MainActor
@@ -228,7 +228,7 @@ final class LoginIntegrationTests: XCTestCase {
     for email in validEmails {
       loginViewModel.email = email
       loginViewModel.validateEmail()
-      XCTAssertNil(loginViewModel.fieldErrors["email"], "Email '\(email)' should be valid")
+      XCTAssertNil(loginViewModel.fieldErrors[.email], "Email '\(email)' should be valid")
     }
   }
 
@@ -246,7 +246,7 @@ final class LoginIntegrationTests: XCTestCase {
     for email in invalidEmails {
       loginViewModel.email = email
       loginViewModel.validateEmail()
-      XCTAssertNotNil(loginViewModel.fieldErrors["email"], "Email '\(email)' should be invalid")
+      XCTAssertNotNil(loginViewModel.fieldErrors[.email], "Email '\(email)' should be invalid")
     }
   }
 }
