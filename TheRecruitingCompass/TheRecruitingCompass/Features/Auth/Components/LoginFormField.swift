@@ -16,6 +16,23 @@ struct LoginFormField: View {
     sizeCategory >= .extraLarge ? 22 : 20
   }
 
+  @ViewBuilder
+  private var inputField: some View {
+    Group {
+      if isSecure {
+        SecureField(placeholder, text: $text)
+      } else {
+        TextField(placeholder, text: $text)
+          .keyboardType(keyboardType)
+      }
+    }
+    .accessibilityLabel(label)
+    .accessibilityHint(error ?? "")
+    .autocorrectionDisabled()
+    .textInputAutocapitalization(.never)
+    .onSubmit(onBlur)
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(label)
@@ -29,22 +46,7 @@ struct LoginFormField: View {
           .frame(width: iconWidth)
           .accessibilityHidden(true)
 
-        if isSecure {
-          SecureField(placeholder, text: $text)
-            .accessibilityLabel(label)
-            .accessibilityHint(error != nil ? error! : "")
-            .autocorrectionDisabled()
-            .textInputAutocapitalization(.never)
-            .onSubmit(onBlur)
-        } else {
-          TextField(placeholder, text: $text)
-            .accessibilityLabel(label)
-            .accessibilityHint(error != nil ? error! : "")
-            .keyboardType(keyboardType)
-            .autocorrectionDisabled()
-            .textInputAutocapitalization(.never)
-            .onSubmit(onBlur)
-        }
+        inputField
       }
       .padding(12)
       .background(Color.white)
