@@ -5,6 +5,7 @@ struct LoginView: View {
   @StateObject private var viewModel: LoginViewModel
   @EnvironmentObject var authManager: AuthManager
   @Environment(\.dismiss) var dismiss
+  @Environment(\.sizeCategory) var sizeCategory
 
   init(timeoutReason: String? = nil, authManager: AuthManager = .shared) {
     _viewModel = StateObject(wrappedValue: LoginViewModel(authManager: authManager, timeoutReason: timeoutReason))
@@ -27,10 +28,10 @@ struct LoginView: View {
           Button(action: { dismiss() }) {
             HStack(spacing: 4) {
               Image(systemName: "arrow.left")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.footnote.weight(.semibold))
                 .accessibilityHidden(true)
               Text("Back to Welcome")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.footnote.weight(.semibold))
             }
             .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
           }
@@ -47,6 +48,7 @@ struct LoginView: View {
               .font(.system(size: 48))
               .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
               .padding(.vertical, 12)
+              .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
               .accessibilityHidden(true)
 
             if viewModel.showTimeoutBanner {
@@ -109,7 +111,7 @@ struct LoginView: View {
                     .accessibilityHidden(true)
 
                   Text("Remember me")
-                    .font(.system(size: 14, weight: .regular))
+                    .font(.footnote)
                     .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
                 }
                 .frame(height: 44)
@@ -122,8 +124,10 @@ struct LoginView: View {
 
               NavigationLink(value: "forgot-password") {
                 Text("Forgot password?")
-                  .font(.system(size: 14, weight: .regular))
+                  .font(.footnote)
                   .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
+                  .frame(minHeight: 44)
+                  .contentShape(Rectangle())
               }
               .accessibilityLabel("Forgot password")
               .accessibilityHint("Opens password recovery screen")
@@ -136,7 +140,7 @@ struct LoginView: View {
             }) {
               HStack {
                 Text(viewModel.isLoading ? "Signing in..." : "Sign In")
-                  .font(.system(size: 16, weight: .semibold))
+                  .font(.callout.weight(.semibold))
 
                 if viewModel.isLoading {
                   ProgressView()
@@ -170,7 +174,7 @@ struct LoginView: View {
                 .accessibilityHidden(true)
 
               Text("New to Recruiting Compass?")
-                .font(.system(size: 14, weight: .regular))
+                .font(.footnote)
                 .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
 
               Rectangle()
@@ -181,18 +185,20 @@ struct LoginView: View {
 
             HStack(spacing: 4) {
               Text("Don't have an account?")
-                .font(.system(size: 14, weight: .regular))
+                .font(.footnote)
                 .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
 
               NavigationLink(value: "signup") {
                 HStack(spacing: 4) {
                   Text("Create one now")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.footnote.weight(.semibold))
                   Image(systemName: "arrow.right")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .accessibilityHidden(true)
                 }
                 .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
               }
               .accessibilityLabel("Create account")
               .accessibilityHint("Opens the account creation form")
