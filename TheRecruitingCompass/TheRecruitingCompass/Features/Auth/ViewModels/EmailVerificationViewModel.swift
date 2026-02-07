@@ -33,8 +33,10 @@ class EmailVerificationViewModel: ObservableObject {
 
   private var pollingTask: Task<Void, Never>?
   private var cooldownTask: Task<Void, Never>?
-  private var currentInterval: TimeInterval = 2.0
-  private let maxInterval: TimeInterval = 10.0
+  private var currentInterval: TimeInterval
+  private let initialInterval: TimeInterval
+  private let maxInterval: TimeInterval
+  private let maxConsecutiveErrors: Int
   private var consecutiveErrors: Int = 0
 
   private let authManager: any AuthManaging
@@ -46,12 +48,17 @@ class EmailVerificationViewModel: ObservableObject {
 
   // MARK: - Initialization
 
-  init(authManager: (any AuthManaging)? = nil) {
-    if let authManager = authManager {
-      self.authManager = authManager
-    } else {
-      self.authManager = AuthManager.shared
-    }
+  init(
+    authManager: (any AuthManaging)? = nil,
+    initialPollingInterval: TimeInterval = 2.0,
+    maxPollingInterval: TimeInterval = 10.0,
+    maxConsecutiveErrors: Int = 3
+  ) {
+    self.authManager = authManager ?? AuthManager.shared
+    self.initialInterval = initialPollingInterval
+    self.currentInterval = initialPollingInterval
+    self.maxInterval = maxPollingInterval
+    self.maxConsecutiveErrors = maxConsecutiveErrors
 
     // Check initial verification state
     if isVerified {
@@ -134,7 +141,7 @@ class EmailVerificationViewModel: ObservableObject {
   private func handlePollingError(_ error: Error) {
     consecutiveErrors += 1
 
-    if consecutiveErrors <= 3 {
+    if consecutiveErrors <= maxConsecutiveErrors {
       applyExponentialBackoff()
       verificationState = .pending
     } else {
@@ -149,7 +156,7 @@ class EmailVerificationViewModel: ObservableObject {
   }
 
   private func resetBackoff() {
-    currentInterval = 2.0
+    currentInterval = initialInterval
     consecutiveErrors = 0
   }
 
