@@ -253,10 +253,15 @@ final class EmailVerificationViewModelTests: XCTestCase {
     mockAuthManager.setMockUser(user)
     mockAuthManager.shouldThrowRefreshError = true
     mockAuthManager.mockErrorToThrow = .networkError("Connection failed")
-    sut = EmailVerificationViewModel(authManager: mockAuthManager)
+    sut = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      initialPollingInterval: 0.05,
+      maxPollingInterval: 0.1,
+      maxConsecutiveErrors: 0
+    )
 
     sut.startPolling()
-    try? await Task.sleep(nanoseconds: 500_000_000)
+    try? await Task.sleep(nanoseconds: 300_000_000)
 
     XCTAssertNotNil(sut.errorMessage)
 
@@ -275,10 +280,15 @@ final class EmailVerificationViewModelTests: XCTestCase {
     )
     mockAuthManager.setMockUser(user)
     mockAuthManager.shouldThrowRefreshError = true
-    sut = EmailVerificationViewModel(authManager: mockAuthManager)
+    sut = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      initialPollingInterval: 0.05,
+      maxPollingInterval: 0.1,
+      maxConsecutiveErrors: 0
+    )
 
     sut.startPolling()
-    try? await Task.sleep(nanoseconds: 500_000_000)
+    try? await Task.sleep(nanoseconds: 300_000_000)
     XCTAssertNotNil(sut.errorMessage)
 
     sut.dismissError()

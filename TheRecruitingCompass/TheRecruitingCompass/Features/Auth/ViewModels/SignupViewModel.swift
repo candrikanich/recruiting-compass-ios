@@ -22,7 +22,7 @@ class SignupViewModel: ObservableObject {
 
   @Published var isLoading = false
   @Published var errorMessage: String?
-  @Published var fieldErrors: [String: String] = [:]
+  @Published var fieldErrors: [FormFieldKey: String] = [:]
   @Published var shouldNavigateToVerifyEmail = false
 
   private let authManager: AuthManager
@@ -89,50 +89,31 @@ class SignupViewModel: ObservableObject {
 
   // MARK: - Validation
 
-  func validateFullName() {
-    if let error = formValidator.validateName(fullName) {
-      fieldErrors["fullName"] = error
-    } else {
-      fieldErrors["fullName"] = nil
-    }
+  private func validate(_ field: FormFieldKey, using validator: () -> String?) {
+    fieldErrors[field] = validator()
   }
 
-  func validateEmail() {
-    if let error = formValidator.validateEmail(email) {
-      fieldErrors["email"] = error
-    } else {
-      fieldErrors["email"] = nil
-    }
-  }
+  func validateFullName() { validate(.fullName) { formValidator.validateName(fullName) } }
+  func validateEmail() { validate(.email) { formValidator.validateEmail(email) } }
 
   func validatePassword() {
-    let strengthResult = formValidator.validatePasswordStrength(password)
-    if !strengthResult.isValid {
-      fieldErrors["password"] = "Password does not meet strength requirements"
-    } else {
-      fieldErrors["password"] = nil
+    validate(.password) {
+      formValidator.validatePasswordStrength(password).isValid
+        ? nil
+        : "Password does not meet strength requirements"
     }
   }
 
   func validateConfirmPassword() {
-    if let error = formValidator.validatePasswordMatch(password, confirmPassword) {
-      fieldErrors["confirmPassword"] = error
-    } else {
-      fieldErrors["confirmPassword"] = nil
-    }
+    validate(.confirmPassword) { formValidator.validatePasswordMatch(password, confirmPassword) }
   }
 
   func validateFamilyCode() {
     guard let role = selectedRole, role.requiresFamilyCode else {
-      fieldErrors["familyCode"] = nil
+      fieldErrors[.familyCode] = nil
       return
     }
-
-    if let error = formValidator.validateFamilyCode(familyCode) {
-      fieldErrors["familyCode"] = error
-    } else {
-      fieldErrors["familyCode"] = nil
-    }
+    validate(.familyCode) { formValidator.validateFamilyCode(familyCode) }
   }
 
   func validateTerms() {

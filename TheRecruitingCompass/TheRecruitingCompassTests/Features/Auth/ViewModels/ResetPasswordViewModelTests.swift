@@ -87,7 +87,7 @@ final class ResetPasswordViewModelTests: XCTestCase {
   func testIsFormInvalidWithFieldErrors() {
     sut.newPassword = "StrongPass1"
     sut.confirmPassword = "StrongPass1"
-    sut.fieldErrors["newPassword"] = "Error"
+    sut.fieldErrors[.newPassword] = "Error"
     XCTAssertFalse(sut.isFormValid)
   }
 
@@ -116,20 +116,20 @@ final class ResetPasswordViewModelTests: XCTestCase {
   func testValidateNewPasswordWeak() {
     sut.newPassword = "weak"
     sut.validateNewPassword()
-    XCTAssertNotNil(sut.fieldErrors["newPassword"])
+    XCTAssertNotNil(sut.fieldErrors[.newPassword])
   }
 
   func testValidateNewPasswordStrong() {
     sut.newPassword = "StrongPass1"
     sut.validateNewPassword()
-    XCTAssertNil(sut.fieldErrors["newPassword"])
+    XCTAssertNil(sut.fieldErrors[.newPassword])
   }
 
   func testValidateNewPasswordAlsoValidatesConfirmWhenNotEmpty() {
     sut.newPassword = "StrongPass1"
     sut.confirmPassword = "OtherPass1"
     sut.validateNewPassword()
-    XCTAssertNotNil(sut.fieldErrors["confirmPassword"])
+    XCTAssertNotNil(sut.fieldErrors[.confirmPassword])
   }
 
   // MARK: - Validate Confirm Password
@@ -138,14 +138,14 @@ final class ResetPasswordViewModelTests: XCTestCase {
     sut.newPassword = "StrongPass1"
     sut.confirmPassword = "StrongPass1"
     sut.validateConfirmPassword()
-    XCTAssertNil(sut.fieldErrors["confirmPassword"])
+    XCTAssertNil(sut.fieldErrors[.confirmPassword])
   }
 
   func testValidateConfirmPasswordNoMatch() {
     sut.newPassword = "StrongPass1"
     sut.confirmPassword = "Different1"
     sut.validateConfirmPassword()
-    XCTAssertNotNil(sut.fieldErrors["confirmPassword"])
+    XCTAssertNotNil(sut.fieldErrors[.confirmPassword])
   }
 
   // MARK: - Reset Password
@@ -198,7 +198,7 @@ final class ResetPasswordViewModelTests: XCTestCase {
 
   func testReturnToForm() {
     sut.state = .error(message: "Error")
-    sut.fieldErrors["newPassword"] = "Error"
+    sut.fieldErrors[.newPassword] = "Error"
 
     sut.returnToForm()
 

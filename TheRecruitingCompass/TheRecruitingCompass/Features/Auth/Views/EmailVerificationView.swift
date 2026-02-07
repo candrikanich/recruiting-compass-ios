@@ -13,14 +13,7 @@ struct EmailVerificationView: View {
   var body: some View {
     ZStack {
       // Emerald gradient background
-      LinearGradient(
-        gradient: Gradient(colors: [
-          Color(red: 0.024, green: 0.588, blue: 0.412),
-          Color(red: 0.016, green: 0.522, blue: 0.373)
-        ]),
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
+      LinearGradient.primaryBackground
       .ignoresSafeArea()
 
       VStack(spacing: 0) {
@@ -34,7 +27,7 @@ struct EmailVerificationView: View {
               Text("← Back to Welcome")
                 .font(.footnote.weight(.semibold))
             }
-            .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+            .foregroundColor(Color.darkSlate)
           }
           .accessibilityLabel("Back to welcome screen")
           Spacer()
@@ -52,11 +45,11 @@ struct EmailVerificationView: View {
             VStack(alignment: .leading, spacing: 12) {
               Text(headlineText)
                 .font(.title2.weight(.semibold))
-                .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+                .foregroundColor(Color.darkSlate)
 
               Text(subtitleText)
                 .font(.footnote)
-                .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+                .foregroundColor(Color.secondaryText)
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel(headlineText)
@@ -112,14 +105,7 @@ struct EmailVerificationView: View {
               .frame(height: 48)
               .foregroundColor(.white)
               .background(
-                LinearGradient(
-                  gradient: Gradient(colors: [
-                    Color(red: 0, green: 0.4, blue: 1),
-                    Color(red: 0, green: 0.32, blue: 0.8)
-                  ]),
-                  startPoint: .leading,
-                  endPoint: .trailing
-                )
+                LinearGradient.primaryButton
               )
               .cornerRadius(8)
               .opacity(isButtonDisabled ? 0.5 : 1)
@@ -131,7 +117,7 @@ struct EmailVerificationView: View {
             if !viewModel.canResendEmail && !viewModel.isVerified {
               Text("Resend email in \(viewModel.resendCooldownSeconds)s")
                 .font(.caption)
-                .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+                .foregroundColor(Color.secondaryText)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .accessibilityLabel("Resend available in \(viewModel.resendCooldownSeconds) seconds")
             }

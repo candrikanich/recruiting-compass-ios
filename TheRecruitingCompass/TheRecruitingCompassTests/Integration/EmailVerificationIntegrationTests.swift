@@ -159,10 +159,15 @@ final class EmailVerificationIntegrationTests: XCTestCase {
     mockAuthManager.setMockUser(user)
     mockAuthManager.shouldThrowRefreshError = true
     mockAuthManager.mockErrorToThrow = .networkError("Connection failed")
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let viewModel = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      initialPollingInterval: 0.05,
+      maxPollingInterval: 0.1,
+      maxConsecutiveErrors: 0
+    )
 
     viewModel.startPolling()
-    try? await Task.sleep(nanoseconds: 500_000_000)
+    try? await Task.sleep(nanoseconds: 300_000_000)
 
     // Should have error message after retries
     XCTAssertNotNil(viewModel.errorMessage)
@@ -181,7 +186,12 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       updatedAt: "2024-01-01T00:00:00Z"
     )
     mockAuthManager.setMockUser(user)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let viewModel = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      initialPollingInterval: 0.05,
+      maxPollingInterval: 0.1,
+      maxConsecutiveErrors: 0
+    )
 
     viewModel.startPolling()
     try? await Task.sleep(nanoseconds: 100_000_000)
@@ -190,7 +200,7 @@ final class EmailVerificationIntegrationTests: XCTestCase {
     mockAuthManager.shouldThrowRefreshError = true
     mockAuthManager.mockErrorToThrow = .userNotFound
 
-    try? await Task.sleep(nanoseconds: 500_000_000)
+    try? await Task.sleep(nanoseconds: 300_000_000)
 
     // Should stop polling on session expiration
     XCTAssertNotNil(viewModel.errorMessage)
@@ -273,10 +283,15 @@ final class EmailVerificationIntegrationTests: XCTestCase {
     )
     mockAuthManager.setMockUser(user)
     mockAuthManager.shouldThrowRefreshError = true
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let viewModel = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      initialPollingInterval: 0.05,
+      maxPollingInterval: 0.1,
+      maxConsecutiveErrors: 0
+    )
 
     viewModel.startPolling()
-    try? await Task.sleep(nanoseconds: 500_000_000)
+    try? await Task.sleep(nanoseconds: 300_000_000)
 
     // Should have error after exponential backoff
     XCTAssertNotNil(viewModel.errorMessage)

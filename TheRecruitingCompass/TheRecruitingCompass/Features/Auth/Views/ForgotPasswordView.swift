@@ -11,14 +11,7 @@ struct ForgotPasswordView: View {
 
   var body: some View {
     ZStack {
-      LinearGradient(
-        gradient: Gradient(colors: [
-          Color(red: 0.024, green: 0.588, blue: 0.412),
-          Color(red: 0.016, green: 0.522, blue: 0.373)
-        ]),
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
+      LinearGradient.primaryBackground
       .ignoresSafeArea()
 
       VStack(spacing: 0) {
@@ -31,7 +24,7 @@ struct ForgotPasswordView: View {
               Text("Back to Login")
                 .font(.footnote.weight(.semibold))
             }
-            .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+            .foregroundColor(Color.darkSlate)
           }
           .accessibilityLabel("Back to login screen")
           .accessibilityHint("Returns to the sign in screen")
@@ -63,7 +56,7 @@ struct ForgotPasswordView: View {
     VStack(spacing: 24) {
       Image(systemName: "lock.rotation")
         .font(.system(size: 48))
-        .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
+        .foregroundColor(Color.primaryGreen)
         .padding(.vertical, 12)
         .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
         .accessibilityHidden(true)
@@ -71,11 +64,11 @@ struct ForgotPasswordView: View {
       VStack(spacing: 8) {
         Text("Forgot Password?")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+          .foregroundColor(Color.darkSlate)
 
         Text("Enter your email and we'll send you a link to reset your password.")
           .font(.footnote)
-          .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+          .foregroundColor(Color.secondaryText)
           .multilineTextAlignment(.center)
       }
 
@@ -93,8 +86,8 @@ struct ForgotPasswordView: View {
         icon: "envelope",
         text: $viewModel.email,
         error: Binding(
-          get: { viewModel.fieldErrors["email"] },
-          set: { viewModel.fieldErrors["email"] = $0 }
+          get: { viewModel.fieldErrors[.email] },
+          set: { viewModel.fieldErrors[.email] = $0 }
         ),
         isSecure: false,
         keyboardType: .emailAddress,
@@ -120,14 +113,7 @@ struct ForgotPasswordView: View {
         .frame(height: 48)
         .foregroundColor(.white)
         .background(
-          LinearGradient(
-            gradient: Gradient(colors: [
-              Color(red: 0, green: 0.4, blue: 1),
-              Color(red: 0, green: 0.32, blue: 0.8)
-            ]),
-            startPoint: .leading,
-            endPoint: .trailing
-          )
+          LinearGradient.primaryButton
         )
         .cornerRadius(8)
         .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
@@ -148,15 +134,15 @@ struct ForgotPasswordView: View {
       VStack(spacing: 8) {
         Text("Check Your Email")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+          .foregroundColor(Color.darkSlate)
 
         Text("We've sent a password reset link to:")
           .font(.footnote)
-          .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+          .foregroundColor(Color.secondaryText)
 
         Text(viewModel.submittedEmail)
           .font(.footnote.weight(.semibold))
-          .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+          .foregroundColor(Color.darkSlate)
       }
 
       if let error = viewModel.errorMessage {
@@ -177,15 +163,15 @@ struct ForgotPasswordView: View {
         HStack {
           if viewModel.isLoading {
             ProgressView()
-              .tint(Color(red: 0.149, green: 0.388, blue: 0.931))
+              .tint(Color.accentBlue)
           }
           Text(resendButtonText)
             .font(.callout.weight(.semibold))
         }
         .frame(maxWidth: .infinity)
         .frame(height: 48)
-        .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
-        .background(Color(red: 0.149, green: 0.388, blue: 0.931).opacity(0.1))
+        .foregroundColor(Color.accentBlue)
+        .background(Color.accentBlue.opacity(0.1))
         .cornerRadius(8)
         .opacity(viewModel.canResendEmail ? 1 : 0.5)
       }
@@ -195,7 +181,7 @@ struct ForgotPasswordView: View {
       Button(action: { viewModel.resetForm() }) {
         Text("Use Different Email")
           .font(.footnote.weight(.semibold))
-          .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
+          .foregroundColor(Color.accentBlue)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
       }
@@ -210,7 +196,7 @@ struct ForgotPasswordView: View {
           Text("Back to Login")
             .font(.footnote.weight(.semibold))
         }
-        .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
+        .foregroundColor(Color.tertiaryText)
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }

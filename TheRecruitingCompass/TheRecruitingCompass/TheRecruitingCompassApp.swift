@@ -54,14 +54,7 @@ struct TheRecruitingCompassApp: App {
 
   private var sessionLoadingView: some View {
     ZStack {
-      LinearGradient(
-        gradient: Gradient(colors: [
-          Color(red: 0.3, green: 0.6, blue: 0.4),
-          Color(red: 0.05, green: 0.5, blue: 0.35)
-        ]),
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
+      LinearGradient.landingBackground
       .ignoresSafeArea()
 
       VStack(spacing: 16) {
