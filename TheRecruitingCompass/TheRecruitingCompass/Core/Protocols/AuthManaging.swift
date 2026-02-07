@@ -11,4 +11,6 @@ protocol AuthManaging: AnyObject {
   func logout() async throws
   func refreshSession() async throws -> User
   func resendVerificationEmail(email: String) async throws
+  func resetPasswordForEmail(email: String) async throws
+  func updatePassword(newPassword: String) async throws
 }

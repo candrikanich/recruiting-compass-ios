@@ -11,6 +11,7 @@ import Supabase
 @main
 struct TheRecruitingCompassApp: App {
   @StateObject var authManager = AuthManager.shared
+  @State private var showResetPassword = false
 
   var body: some Scene {
     WindowGroup {
@@ -29,8 +30,26 @@ struct TheRecruitingCompassApp: App {
       }
       .animation(.easeInOut(duration: 0.3), value: authManager.isAuthenticated)
       .animation(.easeInOut(duration: 0.2), value: authManager.isCheckingSession)
+      .onOpenURL { url in
+        handleDeepLink(url)
+      }
+      .sheet(isPresented: $showResetPassword) {
+        NavigationStack {
+          ResetPasswordView(authManager: authManager)
+        }
+      }
     }
     .environmentObject(authManager)
+  }
+
+  private func handleDeepLink(_ url: URL) {
+    let route = DeepLinkHandler.parse(url)
+    switch route {
+    case .resetPassword:
+      showResetPassword = true
+    case .unknown:
+      break
+    }
   }
 
   private var sessionLoadingView: some View {

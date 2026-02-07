@@ -122,7 +122,7 @@ struct LoginView: View {
 
               Spacer()
 
-              NavigationLink(value: "forgot-password") {
+              NavigationLink(destination: ForgotPasswordView()) {
                 Text("Forgot password?")
                   .font(.footnote)
                   .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
