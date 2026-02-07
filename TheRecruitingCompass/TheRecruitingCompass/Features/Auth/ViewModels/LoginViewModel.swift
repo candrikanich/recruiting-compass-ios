@@ -119,28 +119,22 @@ class LoginViewModel: ObservableObject {
 
   // MARK: - Error Mapping
 
+  private static let errorPatterns: [(pattern: String, message: String)] = [
+    ("invalid credentials", "Invalid email or password"),
+    ("user not found", "Email not found. Please sign up first."),
+    ("email not verified", "Please verify your email. Check your inbox for a verification link."),
+    ("too many", "Too many login attempts. Please try again later."),
+    ("network", "Network error. Please check your connection and try again.")
+  ]
+
   func mapError(_ error: Error) -> String {
     if let authError = error as? AuthError {
       return authError.errorDescription ?? "An error occurred"
     }
-
-    let description = error.localizedDescription
-    if description.lowercased().contains("invalid credentials") {
-      return "Invalid email or password"
-    }
-    if description.lowercased().contains("user not found") {
-      return "Email not found. Please sign up first."
-    }
-    if description.lowercased().contains("email not verified") {
-      return "Please verify your email. Check your inbox for a verification link."
-    }
-    if description.lowercased().contains("too many") {
-      return "Too many login attempts. Please try again later."
-    }
-    if description.lowercased().contains("network") {
-      return "Network error. Please check your connection and try again."
-    }
-
-    return "An error occurred. Please try again."
+    let description = error.localizedDescription.lowercased()
+    return Self.errorPatterns
+      .first { description.contains($0.pattern) }
+      .map(\.message)
+      ?? "An error occurred. Please try again."
   }
 }
