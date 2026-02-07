@@ -4,6 +4,7 @@ struct EmailVerificationView: View {
   @StateObject private var viewModel: EmailVerificationViewModel
   @Environment(\.dismiss) var dismiss
   @Environment(\.scenePhase) var scenePhase
+  @Environment(\.sizeCategory) var sizeCategory
 
   init(authManager: any AuthManaging = AuthManager.shared) {
     _viewModel = StateObject(wrappedValue: EmailVerificationViewModel(authManager: authManager))
@@ -28,10 +29,10 @@ struct EmailVerificationView: View {
           Button(action: { dismiss() }) {
             HStack(spacing: 4) {
               Image(systemName: "arrow.left")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.footnote.weight(.semibold))
                 .accessibilityHidden(true)
               Text("← Back to Welcome")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.footnote.weight(.semibold))
             }
             .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
           }
@@ -50,11 +51,11 @@ struct EmailVerificationView: View {
             // Content
             VStack(alignment: .leading, spacing: 12) {
               Text(headlineText)
-                .font(.system(size: 24, weight: .semibold))
+                .font(.title2.weight(.semibold))
                 .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
 
               Text(subtitleText)
-                .font(.system(size: 14, weight: .regular))
+                .font(.footnote)
                 .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
             }
             .accessibilityElement(children: .combine)
@@ -99,7 +100,7 @@ struct EmailVerificationView: View {
             }) {
               HStack {
                 Text(actionButtonText)
-                  .font(.system(size: 16, weight: .semibold))
+                  .font(.callout.weight(.semibold))
 
                 if viewModel.verificationState == .checking {
                   ProgressView()
@@ -129,7 +130,7 @@ struct EmailVerificationView: View {
 
             if !viewModel.canResendEmail && !viewModel.isVerified {
               Text("Resend email in \(viewModel.resendCooldownSeconds)s")
-                .font(.system(size: 12, weight: .regular))
+                .font(.caption)
                 .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
                 .frame(maxWidth: .infinity, alignment: .center)
                 .accessibilityLabel("Resend available in \(viewModel.resendCooldownSeconds) seconds")

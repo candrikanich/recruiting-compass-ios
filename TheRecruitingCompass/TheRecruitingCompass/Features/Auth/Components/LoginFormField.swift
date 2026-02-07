@@ -10,18 +10,23 @@ struct LoginFormField: View {
   let isSecure: Bool
   let keyboardType: UIKeyboardType
   let onBlur: () -> Void
+  @Environment(\.sizeCategory) var sizeCategory
+
+  private var iconWidth: CGFloat {
+    sizeCategory >= .extraLarge ? 22 : 20
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(label)
-        .font(.system(size: 14, weight: .semibold))
+        .font(.footnote.weight(.semibold))
         .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
         .accessibilityHidden(true)
 
       HStack(spacing: 12) {
         Image(systemName: icon)
           .foregroundColor(Color(red: 0.627, green: 0.655, blue: 0.686))
-          .frame(width: 20)
+          .frame(width: iconWidth)
           .accessibilityHidden(true)
 
         if isSecure {
@@ -48,7 +53,7 @@ struct LoginFormField: View {
 
       if let error = error {
         Text(error)
-          .font(.system(size: 12, weight: .regular))
+          .font(.caption)
           .foregroundColor(Color(red: 0.859, green: 0.149, blue: 0.149))
           .accessibilityLabel("Error: \(error)")
       }

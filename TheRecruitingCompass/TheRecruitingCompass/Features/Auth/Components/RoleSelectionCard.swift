@@ -4,23 +4,32 @@ struct RoleSelectionCard: View {
   let role: UserRole
   let isSelected: Bool
   let action: () -> Void
+  @Environment(\.sizeCategory) var sizeCategory
+
+  private var roleIconSize: CGFloat {
+    sizeCategory >= .extraLarge ? 30 : 28
+  }
+
+  private var checkmarkSize: CGFloat {
+    sizeCategory >= .extraLarge ? 26 : 24
+  }
 
   var body: some View {
     Button(action: action) {
       VStack(alignment: .leading, spacing: 12) {
         HStack(spacing: 12) {
           Image(systemName: role.icon)
-            .font(.system(size: 28))
+            .font(.system(size: roleIconSize))
             .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
             .accessibilityHidden(true)
 
           VStack(alignment: .leading, spacing: 4) {
             Text(role.displayName)
-              .font(.system(size: 16, weight: .semibold))
+              .font(.callout.weight(.semibold))
               .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
 
             Text(role.description)
-              .font(.system(size: 12, weight: .regular))
+              .font(.caption)
               .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
               .lineLimit(2)
           }
@@ -28,7 +37,7 @@ struct RoleSelectionCard: View {
           Spacer()
 
           Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-            .font(.system(size: 24))
+            .font(.system(size: checkmarkSize))
             .foregroundColor(
               isSelected
                 ? Color(red: 0.149, green: 0.388, blue: 0.931)

@@ -12,7 +12,7 @@ struct ErrorBanner: View {
 
       VStack(alignment: .leading, spacing: 2) {
         Text(message)
-          .font(.system(size: 14, weight: .regular))
+          .font(.footnote)
           .foregroundColor(Color(red: 0.859, green: 0.149, blue: 0.149))
       }
 
@@ -21,6 +21,8 @@ struct ErrorBanner: View {
       Button(action: onDismiss) {
         Image(systemName: "xmark")
           .foregroundColor(Color(red: 0.859, green: 0.149, blue: 0.149))
+          .frame(minWidth: 44, minHeight: 44)
+          .contentShape(Rectangle())
       }
       .accessibilityLabel("Close error message")
     }

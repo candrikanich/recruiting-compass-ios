@@ -46,14 +46,14 @@ struct PasswordStrengthIndicator: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
         Text("Strength")
-          .font(.system(size: 12, weight: .regular))
+          .font(.caption)
           .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
           .accessibilityHidden(true)
 
         Spacer()
 
         Text(strengthText)
-          .font(.system(size: 12, weight: .semibold))
+          .font(.caption.weight(.semibold))
           .foregroundColor(strengthColor)
       }
       .accessibilityElement(children: .combine)
@@ -77,12 +77,12 @@ struct PasswordStrengthIndicator: View {
           ForEach(strengthResult.errors, id: \.self) { error in
             HStack(spacing: 6) {
               Image(systemName: "circle.fill")
-                .font(.system(size: 4))
+                .font(.system(size: 6))
                 .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
                 .accessibilityHidden(true)
 
               Text("Missing \(error)")
-                .font(.system(size: 11, weight: .regular))
+                .font(.caption2)
                 .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
             }
           }

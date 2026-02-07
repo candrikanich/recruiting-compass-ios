@@ -3,6 +3,15 @@ import SwiftUI
 struct VerificationStatusIcon: View {
   let state: VerificationState
   @State private var isAnimating = false
+  @Environment(\.sizeCategory) var sizeCategory
+
+  private var backgroundSize: CGFloat {
+    sizeCategory >= .extraLarge ? 88 : 80
+  }
+
+  private var iconSize: CGFloat {
+    sizeCategory >= .extraLarge ? 44 : 40
+  }
 
   private var accessibilityLabelForState: String {
     switch state {
@@ -22,7 +31,7 @@ struct VerificationStatusIcon: View {
       // Background circle
       Circle()
         .fill(backgroundColor)
-        .frame(width: 80, height: 80)
+        .frame(width: backgroundSize, height: backgroundSize)
         .accessibilityHidden(true)
 
       // Icon content
@@ -30,7 +39,7 @@ struct VerificationStatusIcon: View {
         switch state {
         case .pending:
           Image(systemName: "envelope.fill")
-            .font(.system(size: 40))
+            .font(.system(size: iconSize))
             .foregroundColor(Color(red: 0.855, green: 0.620, blue: 0.118))
             .accessibilityHidden(true)
 
@@ -42,7 +51,7 @@ struct VerificationStatusIcon: View {
 
         case .verified:
           Image(systemName: "checkmark.circle.fill")
-            .font(.system(size: 40))
+            .font(.system(size: iconSize))
             .foregroundColor(Color(red: 0.2, green: 0.62, blue: 0.4))
             .scaleEffect(isAnimating ? 1.1 : 1.0)
             .animation(.spring(response: 0.6, dampingFraction: 0.7), value: isAnimating)
@@ -50,7 +59,7 @@ struct VerificationStatusIcon: View {
 
         case .error:
           Image(systemName: "xmark.circle.fill")
-            .font(.system(size: 40))
+            .font(.system(size: iconSize))
             .foregroundColor(Color.red)
             .accessibilityHidden(true)
         }

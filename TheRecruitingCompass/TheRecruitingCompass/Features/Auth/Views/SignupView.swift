@@ -4,6 +4,7 @@ struct SignupView: View {
   @StateObject private var viewModel = SignupViewModel()
   @EnvironmentObject var authManager: AuthManager
   @Environment(\.dismiss) var dismiss
+  @Environment(\.sizeCategory) var sizeCategory
 
   var body: some View {
     ZStack {
@@ -22,10 +23,10 @@ struct SignupView: View {
           Button(action: { dismiss() }) {
             HStack(spacing: 4) {
               Image(systemName: "arrow.left")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.footnote.weight(.semibold))
                 .accessibilityHidden(true)
               Text("Back")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.footnote.weight(.semibold))
             }
             .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
           }
@@ -64,15 +65,16 @@ struct SignupView: View {
         .font(.system(size: 48))
         .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
         .padding(.vertical, 12)
+        .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 12) {
         Text("Select Your Role")
-          .font(.system(size: 20, weight: .semibold))
+          .font(.title3.weight(.semibold))
           .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
 
         Text("Choose the account type that best fits your needs")
-          .font(.system(size: 14, weight: .regular))
+          .font(.footnote)
           .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
       }
 
@@ -96,10 +98,10 @@ struct SignupView: View {
           Button(action: { viewModel.backToRoleSelection() }) {
             HStack(spacing: 4) {
               Image(systemName: "arrow.left")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.caption.weight(.semibold))
                 .accessibilityHidden(true)
               Text("Change Role")
-                .font(.system(size: 12, weight: .regular))
+                .font(.caption)
             }
             .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
           }
@@ -111,15 +113,15 @@ struct SignupView: View {
           if let role = viewModel.selectedRole {
             HStack(spacing: 6) {
               Image(systemName: role.icon)
-                .font(.system(size: 14))
+                .font(.footnote)
                 .accessibilityHidden(true)
               Text(role.displayName)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.footnote.weight(.semibold))
             }
             .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
           }
         }
-        .frame(height: 40)
+        .frame(minHeight: 44)
       }
 
       if let error = viewModel.errorMessage {
@@ -220,7 +222,7 @@ struct SignupView: View {
       }) {
         HStack {
           Text(viewModel.isLoading ? "Creating Account..." : "Create Account")
-            .font(.system(size: 16, weight: .semibold))
+            .font(.callout.weight(.semibold))
 
           if viewModel.isLoading {
             ProgressView()
@@ -250,18 +252,20 @@ struct SignupView: View {
 
       HStack {
         Text("Already have an account?")
-          .font(.system(size: 14, weight: .regular))
+          .font(.footnote)
           .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
 
         NavigationLink(value: "login") {
           HStack(spacing: 4) {
             Text("Sign In")
-              .font(.system(size: 14, weight: .semibold))
+              .font(.footnote.weight(.semibold))
             Image(systemName: "arrow.right")
-              .font(.system(size: 12, weight: .semibold))
+              .font(.caption.weight(.semibold))
               .accessibilityHidden(true)
           }
           .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
+          .frame(minHeight: 44)
+          .contentShape(Rectangle())
         }
         .accessibilityLabel("Sign in to existing account")
         .accessibilityHint("Navigate to login screen")

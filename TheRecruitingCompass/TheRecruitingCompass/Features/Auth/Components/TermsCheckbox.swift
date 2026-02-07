@@ -3,13 +3,18 @@ import SwiftUI
 struct TermsCheckbox: View {
   @Binding var isChecked: Bool
   let onTermsPressed: () -> Void
+  @Environment(\.sizeCategory) var sizeCategory
+
+  private var checkboxSize: CGFloat {
+    sizeCategory >= .extraLarge ? 20 : 18
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 10) {
         Button(action: { isChecked.toggle() }) {
           Image(systemName: isChecked ? "checkmark.square.fill" : "square")
-            .font(.system(size: 18))
+            .font(.system(size: checkboxSize))
             .foregroundColor(
               isChecked
                 ? Color(red: 0.149, green: 0.388, blue: 0.931)
@@ -24,13 +29,13 @@ struct TermsCheckbox: View {
 
         HStack(spacing: 4) {
           Text("I agree to the")
-            .font(.system(size: 14, weight: .regular))
+            .font(.footnote)
             .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
             .accessibilityHidden(true)
 
           Button(action: onTermsPressed) {
             Text("Terms of Service")
-              .font(.system(size: 14, weight: .semibold))
+              .font(.footnote.weight(.semibold))
               .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
               .underline()
           }
@@ -38,13 +43,13 @@ struct TermsCheckbox: View {
           .accessibilityHint("Opens Terms of Service")
 
           Text("and")
-            .font(.system(size: 14, weight: .regular))
+            .font(.footnote)
             .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
             .accessibilityHidden(true)
 
           Button(action: onTermsPressed) {
             Text("Privacy Policy")
-              .font(.system(size: 14, weight: .semibold))
+              .font(.footnote.weight(.semibold))
               .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
               .underline()
           }
