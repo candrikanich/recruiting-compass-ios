@@ -63,27 +63,14 @@ class LoginViewModel: ObservableObject {
 
   // MARK: - Validation
 
-  func validateEmail() {
+  private func validate(_ field: FormFieldKey, using validator: () -> String?) {
     isValidating = true
     defer { isValidating = false }
-
-    if let error = formValidator.validateEmail(email) {
-      fieldErrors[.email] = error
-    } else {
-      fieldErrors[.email] = nil
-    }
+    fieldErrors[field] = validator()
   }
 
-  func validatePassword() {
-    isValidating = true
-    defer { isValidating = false }
-
-    if let error = formValidator.validatePassword(password) {
-      fieldErrors[.password] = error
-    } else {
-      fieldErrors[.password] = nil
-    }
-  }
+  func validateEmail() { validate(.email) { formValidator.validateEmail(email) } }
+  func validatePassword() { validate(.password) { formValidator.validatePassword(password) } }
 
   // MARK: - Actions
 
