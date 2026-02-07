@@ -2,6 +2,11 @@ import SwiftUI
 
 struct LandingView: View {
   @EnvironmentObject var authManager: AuthManager
+  @Environment(\.sizeCategory) var sizeCategory
+
+  private var logoSize: CGFloat {
+    sizeCategory >= .extraLarge ? 88 : 80
+  }
 
   var body: some View {
     ZStack {
@@ -25,7 +30,7 @@ struct LandingView: View {
           // Logo
           VStack {
             Image(systemName: "compass.fill")
-              .font(.system(size: 80))
+              .font(.system(size: logoSize))
               .foregroundColor(.white)
               .shadow(radius: 10)
               .accessibilityHidden(true)
@@ -107,11 +112,16 @@ struct FeatureCard: View {
   let icon: String
   let title: String
   let description: String
+  @Environment(\.sizeCategory) var sizeCategory
+
+  private var iconSize: CGFloat {
+    sizeCategory >= .extraLarge ? 36 : 32
+  }
 
   var body: some View {
     VStack(spacing: 12) {
       Image(systemName: icon)
-        .font(.system(size: 32))
+        .font(.system(size: iconSize))
         .foregroundColor(.white)
         .accessibilityHidden(true)
 

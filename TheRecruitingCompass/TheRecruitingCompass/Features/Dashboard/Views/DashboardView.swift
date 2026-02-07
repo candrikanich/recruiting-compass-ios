@@ -4,9 +4,14 @@ import Combine
 struct DashboardView: View {
   @StateObject private var viewModel: DashboardViewModel
   @EnvironmentObject var authManager: AuthManager
+  @Environment(\.sizeCategory) var sizeCategory
 
   init(authManager: AuthManager = .shared) {
     _viewModel = StateObject(wrappedValue: DashboardViewModel(authManager: authManager))
+  }
+
+  private var compassSize: CGFloat {
+    sizeCategory >= .extraLarge ? 70 : 64
   }
 
   var body: some View {
@@ -14,22 +19,22 @@ struct DashboardView: View {
       Spacer()
 
       Image(systemName: "compass.drawing")
-        .font(.system(size: 64))
+        .font(.system(size: compassSize))
         .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
 
       VStack(spacing: 8) {
         Text("Welcome!")
-          .font(.system(size: 28, weight: .bold))
+          .font(.title)
           .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
 
         Text(viewModel.userEmail)
-          .font(.system(size: 16, weight: .medium))
+          .font(.callout)
           .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
       }
 
       VStack(alignment: .leading, spacing: 8) {
         Text("Session Token (debug)")
-          .font(.system(size: 12, weight: .semibold))
+          .font(.caption.weight(.semibold))
           .foregroundColor(Color(red: 0.627, green: 0.655, blue: 0.686))
 
         Text(viewModel.truncatedSessionToken)
@@ -44,7 +49,7 @@ struct DashboardView: View {
 
       if let errorMessage = viewModel.logoutErrorMessage {
         Text(errorMessage)
-          .font(.system(size: 14, weight: .regular))
+          .font(.footnote)
           .foregroundColor(.red)
           .padding(.horizontal, 32)
       }
@@ -59,7 +64,7 @@ struct DashboardView: View {
         HStack {
           Image(systemName: "rectangle.portrait.and.arrow.right")
           Text(viewModel.isLoggingOut ? "Logging out..." : "Log Out")
-            .font(.system(size: 16, weight: .semibold))
+            .font(.callout.weight(.semibold))
         }
         .frame(maxWidth: .infinity)
         .frame(height: 48)

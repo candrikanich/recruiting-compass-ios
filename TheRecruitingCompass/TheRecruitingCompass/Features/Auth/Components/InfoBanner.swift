@@ -3,11 +3,16 @@ import SwiftUI
 struct InfoBanner: View {
   let state: BannerState
   @State private var isVisible = true
+  @Environment(\.sizeCategory) var sizeCategory
 
   enum BannerState {
     case pending(email: String)
     case checking
     case verified
+  }
+
+  private var iconSize: CGFloat {
+    sizeCategory >= .extraLarge ? 22 : 20
   }
 
   var body: some View {
@@ -18,9 +23,9 @@ struct InfoBanner: View {
             .accessibilityHidden(true)
           VStack(alignment: .leading, spacing: 4) {
             Text(title)
-              .font(.system(size: 14, weight: .semibold))
+              .font(.footnote.weight(.semibold))
             Text(subtitle)
-              .font(.system(size: 12, weight: .regular))
+              .font(.caption)
               .foregroundColor(subtitleColor)
           }
           Spacer()
@@ -44,7 +49,7 @@ struct InfoBanner: View {
       switch state {
       case .pending:
         Image(systemName: "envelope.fill")
-          .font(.system(size: 20))
+          .font(.system(size: iconSize))
           .foregroundColor(Color(red: 0.855, green: 0.620, blue: 0.118))
       case .checking:
         ProgressView()
@@ -52,7 +57,7 @@ struct InfoBanner: View {
           .accessibilityLabel("Checking verification")
       case .verified:
         Image(systemName: "checkmark.circle.fill")
-          .font(.system(size: 20))
+          .font(.system(size: iconSize))
           .foregroundColor(Color(red: 0.2, green: 0.62, blue: 0.4))
       }
     }

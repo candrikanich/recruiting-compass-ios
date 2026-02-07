@@ -9,7 +9,7 @@ struct TimeoutBanner: View {
 
       VStack(alignment: .leading, spacing: 2) {
         Text("You were logged out due to inactivity. Please log in again.")
-          .font(.system(size: 14, weight: .regular))
+          .font(.footnote)
           .foregroundColor(Color(red: 0.576, green: 0.25, blue: 0.056))
       }
 
