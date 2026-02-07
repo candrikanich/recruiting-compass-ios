@@ -1,0 +1,7 @@
+node_modules/
+dist/
+playwright-report/
+playwright-results.xml
+playwright-results.json
+test-results/
+.env
