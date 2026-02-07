@@ -14,6 +14,9 @@ enum AuthError: LocalizedError {
   case passwordsDoNotMatch
   case invalidFamilyCode
   case termsNotAccepted
+  case invalidResetToken
+  case expiredResetToken
+  case resetEmailNotFound
   case unknown(Error)
 
   var errorDescription: String? {
@@ -47,6 +50,12 @@ enum AuthError: LocalizedError {
       return "Invalid family code format or code not found"
     case .termsNotAccepted:
       return "You must accept the terms and conditions"
+    case .invalidResetToken:
+      return "This password reset link is invalid."
+    case .expiredResetToken:
+      return "This password reset link has expired."
+    case .resetEmailNotFound:
+      return "No account found with this email address."
     case .unknown(let error):
       return error.localizedDescription
     }
@@ -76,6 +85,12 @@ enum AuthError: LocalizedError {
       return "Check the family code format or confirm it with the family administrator."
     case .termsNotAccepted:
       return "Please accept the terms and conditions to continue."
+    case .invalidResetToken:
+      return "Request a new password reset link."
+    case .expiredResetToken:
+      return "Request a new password reset link to continue."
+    case .resetEmailNotFound:
+      return "Check the email address or create a new account."
     case .unknown:
       return "Please try again or contact support."
     }

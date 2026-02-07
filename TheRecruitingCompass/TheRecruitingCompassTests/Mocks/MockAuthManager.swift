@@ -21,6 +21,11 @@ class MockAuthManager: AuthManaging {
   var shouldThrowResendError = false
   var shouldThrowLoginError = false
   var shouldThrowSignupError = false
+  var shouldThrowResetEmailError = false
+  var shouldThrowUpdatePasswordError = false
+
+  var resetEmailCallCount = 0
+  var updatePasswordCallCount = 0
 
   var mockUserToReturn: User?
   var mockSessionToReturn: Session?
@@ -121,6 +126,20 @@ class MockAuthManager: AuthManaging {
     }
   }
 
+  func resetPasswordForEmail(email: String) async throws {
+    resetEmailCallCount += 1
+    if shouldThrowResetEmailError {
+      throw mockErrorToThrow
+    }
+  }
+
+  func updatePassword(newPassword: String) async throws {
+    updatePasswordCallCount += 1
+    if shouldThrowUpdatePasswordError {
+      throw mockErrorToThrow
+    }
+  }
+
   func logout() async throws {
     self.user = nil
     self.session = nil
@@ -151,6 +170,10 @@ class MockAuthManager: AuthManaging {
     shouldThrowResendError = false
     shouldThrowLoginError = false
     shouldThrowSignupError = false
+    shouldThrowResetEmailError = false
+    shouldThrowUpdatePasswordError = false
+    resetEmailCallCount = 0
+    updatePasswordCallCount = 0
 
     user = nil
     mockUserToReturn = nil

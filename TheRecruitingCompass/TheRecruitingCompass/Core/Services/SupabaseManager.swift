@@ -96,6 +96,33 @@ class SupabaseManager {
     }
   }
 
+  func resetPasswordForEmail(email: String) async throws {
+    do {
+      try await client.auth.resetPasswordForEmail(email)
+    } catch {
+      let description = error.localizedDescription.lowercased()
+      if description.contains("not found") || description.contains("no user") {
+        throw AuthError.resetEmailNotFound
+      }
+      throw AuthError.serverError("Failed to send password reset email")
+    }
+  }
+
+  func updatePassword(newPassword: String) async throws {
+    do {
+      try await client.auth.update(user: UserAttributes(password: newPassword))
+    } catch {
+      let description = error.localizedDescription.lowercased()
+      if description.contains("invalid") || description.contains("token") {
+        throw AuthError.invalidResetToken
+      }
+      if description.contains("expired") {
+        throw AuthError.expiredResetToken
+      }
+      throw AuthError.serverError("Failed to update password")
+    }
+  }
+
   // MARK: - Private Helpers
 
   private func mapToUser(_ authUser: Supabase.User) -> User {
