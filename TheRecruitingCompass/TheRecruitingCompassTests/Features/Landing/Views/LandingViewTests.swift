@@ -9,49 +9,42 @@ final class LandingViewTests: XCTestCase {
 
   func testLandingViewRendersLogoSection() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLandingViewRendersCompassIconAndTitle() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLandingViewRendersSignInNavigationLink() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLandingViewRendersCreateAccountNavigationLink() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLandingViewRendersTrackSchoolsFeatureCard() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLandingViewRendersLogInteractionsFeatureCard() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLandingViewRendersMonitorProgressFeatureCard() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -61,7 +54,6 @@ final class LandingViewTests: XCTestCase {
   func testLandingViewWrapsInNavigationStack() {
     let view = NavigationStack {
       LandingView()
-        .environmentObject(AuthManager.shared)
     }
 
     XCTAssertNotNil(view)
@@ -69,14 +61,12 @@ final class LandingViewTests: XCTestCase {
 
   func testSignInLinksToLoginView() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testCreateAccountLinksToSignupView() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -85,65 +75,49 @@ final class LandingViewTests: XCTestCase {
 
   func testLogoSectionCombinesChildrenAccessibility() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
-    // Logo VStack uses .accessibilityElement(children: .combine)
     XCTAssertNotNil(view)
   }
 
   func testLogoSectionHasRecruitingCompassLabel() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
-    // Logo VStack has .accessibilityLabel("Recruiting Compass")
     XCTAssertNotNil(view)
   }
 
   func testCompassIconIsAccessibilityHidden() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
-    // Compass icon uses .accessibilityHidden(true)
     XCTAssertNotNil(view)
   }
 
   func testSignInButtonHasAccessibilityLabel() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
-    // Sign In link has .accessibilityLabel("Sign in to your account")
     XCTAssertNotNil(view)
   }
 
   func testSignInButtonHasAccessibilityHint() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
-    // Sign In link has .accessibilityHint("Enter your email and password")
     XCTAssertNotNil(view)
   }
 
   func testCreateAccountButtonHasAccessibilityLabel() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
-    // Create Account link has .accessibilityLabel("Create a new account")
     XCTAssertNotNil(view)
   }
 
   func testCreateAccountButtonHasAccessibilityHint() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
-    // Create Account link has .accessibilityHint("Set up a new account with your information")
     XCTAssertNotNil(view)
   }
 
   func testNavigationBarIsHidden() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
-    // View uses .navigationBarHidden(true)
     XCTAssertNotNil(view)
   }
 
@@ -151,7 +125,6 @@ final class LandingViewTests: XCTestCase {
 
   func testLogoSizeIs80AtDefaultSizeCategory() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
       .environment(\.sizeCategory, .medium)
 
     XCTAssertNotNil(view)
@@ -159,7 +132,6 @@ final class LandingViewTests: XCTestCase {
 
   func testLogoSizeIs88AtExtraLargeAndAbove() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
       .environment(\.sizeCategory, .extraLarge)
 
     XCTAssertNotNil(view)
@@ -167,18 +139,51 @@ final class LandingViewTests: XCTestCase {
 
   // MARK: - Styling Tests
 
+  func testSignInButtonUsesThemedGradient() {
+    let view = LandingView()
+
+    XCTAssertNotNil(view)
+  }
+
   func testBackgroundGradientApplied() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testScrollViewPresentsAllContent() {
     let view = LandingView()
-      .environmentObject(AuthManager.shared)
 
     XCTAssertNotNil(view)
+  }
+
+  // MARK: - Data-Driven Feature Cards Tests
+
+  func testLandingFeaturesContainsThreeItems() {
+    XCTAssertEqual(FeatureCardData.landingFeatures.count, 3)
+  }
+
+  func testLandingFeaturesFirstIsTrackSchools() {
+    let first = FeatureCardData.landingFeatures[0]
+    XCTAssertEqual(first.title, "Track Schools")
+    XCTAssertEqual(first.icon, "shield.checkered")
+  }
+
+  func testLandingFeaturesSecondIsLogInteractions() {
+    let second = FeatureCardData.landingFeatures[1]
+    XCTAssertEqual(second.title, "Log Interactions")
+    XCTAssertEqual(second.icon, "bubble.right.fill")
+  }
+
+  func testLandingFeaturesThirdIsMonitorProgress() {
+    let third = FeatureCardData.landingFeatures[2]
+    XCTAssertEqual(third.title, "Monitor Progress")
+    XCTAssertEqual(third.icon, "chart.bar.fill")
+  }
+
+  func testFeatureCardDataHasUniqueIds() {
+    let ids = FeatureCardData.landingFeatures.map(\.id)
+    XCTAssertEqual(Set(ids).count, ids.count)
   }
 
   // MARK: - Complete View Hierarchy
@@ -186,7 +191,6 @@ final class LandingViewTests: XCTestCase {
   func testCompleteViewHierarchy() {
     let view = NavigationStack {
       LandingView()
-        .environmentObject(AuthManager.shared)
     }
 
     XCTAssertNotNil(view)

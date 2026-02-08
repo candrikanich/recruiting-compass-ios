@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct LandingView: View {
-  @EnvironmentObject var authManager: AuthManager
   @Environment(\.sizeCategory) var sizeCategory
 
   private var logoSize: CGFloat {
@@ -11,140 +10,95 @@ struct LandingView: View {
   var body: some View {
     ZStack {
       LinearGradient.landingBackground
-      .ignoresSafeArea()
+        .ignoresSafeArea()
 
-      // Main content
       ScrollView {
         VStack(spacing: 32) {
           Spacer()
             .frame(height: 20)
 
-          // Logo
-          VStack {
-            Image(systemName: "compass.fill")
-              .font(.system(size: logoSize))
-              .foregroundColor(.white)
-              .shadow(radius: 10)
-              .accessibilityHidden(true)
-
-            Text("Recruiting Compass")
-              .font(.title)
-              .fontWeight(.bold)
-              .foregroundColor(.white)
-          }
-          .padding(.bottom, 12)
-          .accessibilityElement(children: .combine)
-          .accessibilityLabel("Recruiting Compass")
-
-          // CTA Buttons
-          VStack(spacing: 12) {
-            NavigationLink(destination: LoginView()) {
-              Text("Sign In")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .frame(maxWidth: .infinity)
-                .padding(16)
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(12)
-                .shadow(radius: 5)
-            }
-            .accessibilityLabel("Sign in to your account")
-            .accessibilityHint("Enter your email and password")
-
-            NavigationLink(destination: SignupView()) {
-              Text("Create Account")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .frame(maxWidth: .infinity)
-                .padding(16)
-                .background(Color.white)
-                .foregroundColor(Color.nearBlack)
-                .cornerRadius(12)
-                .shadow(radius: 5)
-            }
-            .accessibilityLabel("Create a new account")
-            .accessibilityHint("Set up a new account with your information")
-          }
-          .padding(.horizontal)
-          .padding(.bottom, 12)
-
-          // Feature Cards
-          VStack(spacing: 16) {
-            FeatureCard(
-              icon: "shield.checkered",
-              title: "Track Schools",
-              description: "Organize and manage your target colleges in one place"
-            )
-
-            FeatureCard(
-              icon: "bubble.right.fill",
-              title: "Log Interactions",
-              description: "Keep track of every conversation with coaches"
-            )
-
-            FeatureCard(
-              icon: "chart.bar.fill",
-              title: "Monitor Progress",
-              description: "Visualize your recruiting journey with insights"
-            )
-          }
-          .padding(.horizontal)
+          logoSection
+          ctaButtons
+          featureCardsSection
 
           Spacer()
             .frame(height: 20)
         }
       }
     }
-    .navigationBarHidden(true)
-  }
-}
-
-struct FeatureCard: View {
-  let icon: String
-  let title: String
-  let description: String
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var iconSize: CGFloat {
-    sizeCategory >= .extraLarge ? 36 : 32
+    .toolbar(.hidden, for: .navigationBar)
   }
 
-  var body: some View {
-    VStack(spacing: 12) {
-      Image(systemName: icon)
-        .font(.system(size: iconSize))
+  // MARK: - Sub-views
+
+  private var logoSection: some View {
+    VStack {
+      Image(systemName: "compass.fill")
+        .font(.system(size: logoSize))
         .foregroundColor(.white)
+        .shadow(radius: 10)
         .accessibilityHidden(true)
 
-      Text(title)
-        .font(.headline)
-        .fontWeight(.semibold)
+      Text("Recruiting Compass")
+        .font(.title)
+        .fontWeight(.bold)
         .foregroundColor(.white)
-
-      Text(description)
-        .font(.subheadline)
-        .foregroundColor(Color.white.opacity(0.85))
-        .lineLimit(3)
-        .multilineTextAlignment(.center)
     }
-    .frame(maxWidth: .infinity)
-    .padding(20)
-    .background(Color.white.opacity(0.1))
-    .cornerRadius(16)
-    .overlay(
-      RoundedRectangle(cornerRadius: 16)
-        .stroke(Color.white.opacity(0.2), lineWidth: 1)
-    )
+    .padding(.bottom, 12)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Feature: \(title)")
-    .accessibilityValue(description)
+    .accessibilityLabel("Recruiting Compass")
+  }
+
+  private var ctaButtons: some View {
+    VStack(spacing: 12) {
+      NavigationLink(destination: LoginView()) {
+        Text("Sign In")
+          .font(.headline)
+          .fontWeight(.semibold)
+          .frame(maxWidth: .infinity)
+          .padding(16)
+          .background(LinearGradient.primaryButton)
+          .foregroundColor(.white)
+          .cornerRadius(12)
+          .shadow(radius: 5)
+      }
+      .accessibilityLabel("Sign in to your account")
+      .accessibilityHint("Enter your email and password")
+
+      NavigationLink(destination: SignupView()) {
+        Text("Create Account")
+          .font(.headline)
+          .fontWeight(.semibold)
+          .frame(maxWidth: .infinity)
+          .padding(16)
+          .background(Color.white)
+          .foregroundColor(Color.nearBlack)
+          .cornerRadius(12)
+          .shadow(radius: 5)
+      }
+      .accessibilityLabel("Create a new account")
+      .accessibilityHint("Set up a new account with your information")
+    }
+    .padding(.horizontal)
+    .padding(.bottom, 12)
+  }
+
+  private var featureCardsSection: some View {
+    VStack(spacing: 16) {
+      ForEach(FeatureCardData.landingFeatures) { feature in
+        FeatureCard(
+          icon: feature.icon,
+          title: feature.title,
+          description: feature.description
+        )
+      }
+    }
+    .padding(.horizontal)
   }
 }
 
 #Preview {
   NavigationStack {
     LandingView()
-      .environmentObject(AuthManager.shared)
   }
 }
