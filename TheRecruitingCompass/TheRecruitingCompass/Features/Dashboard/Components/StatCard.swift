@@ -7,11 +7,16 @@ struct StatCard: View {
   let icon: String
   let gradientColors: [Color]
   let isEnabled: Bool
+  let destination: DashboardDestination?
 
   @Environment(\.sizeCategory) var sizeCategory
 
   private var iconSize: CGFloat {
     sizeCategory >= .extraLarge ? 36 : 32
+  }
+
+  private var countFontSize: CGFloat {
+    sizeCategory >= .extraLarge ? 40 : 32
   }
 
   var body: some View {
@@ -27,7 +32,7 @@ struct StatCard: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text("\(count)")
-          .font(.system(size: 32, weight: .bold))
+          .font(.system(size: countFontSize, weight: .bold))
           .foregroundColor(.white)
 
         Text(title)
@@ -57,6 +62,7 @@ struct StatCard: View {
     .accessibilityLabel("\(title): \(count)")
     .accessibilityValue(subtitle ?? "")
     .accessibilityAddTraits(isEnabled ? [.isButton] : [])
+    .accessibilityHint(isEnabled ? "Tap to view \(title.lowercased())" : "")
   }
 }
 
@@ -67,7 +73,8 @@ struct StatCard: View {
     subtitle: nil,
     icon: "person.2.fill",
     gradientColors: [Color(hex: "#3B82F6"), Color(hex: "#2563EB")],
-    isEnabled: false
+    isEnabled: true,
+    destination: .coaches
   )
   .padding()
 }

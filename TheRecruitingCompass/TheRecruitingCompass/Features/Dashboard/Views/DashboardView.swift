@@ -60,6 +60,9 @@ struct DashboardView: View {
         }
       }
       .navigationTitle("Dashboard")
+      .navigationDestination(for: DashboardDestination.self) { destination in
+        destinationView(for: destination)
+      }
       .task {
         await viewModel.fetchDashboardData()
       }
@@ -108,59 +111,83 @@ struct DashboardView: View {
   private var statsCardsSection: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
       if let stats = viewModel.stats {
-        StatCard(
-          title: "Coaches",
-          count: stats.coachCount,
-          subtitle: nil,
-          icon: "person.2.fill",
-          gradientColors: [Color(hex: "#3B82F6"), Color(hex: "#2563EB")],
-          isEnabled: false
-        )
+        NavigationLink(value: DashboardDestination.coaches) {
+          StatCard(
+            title: "Coaches",
+            count: stats.coachCount,
+            subtitle: nil,
+            icon: "person.2.fill",
+            gradientColors: [Color(hex: "#3B82F6"), Color(hex: "#2563EB")],
+            isEnabled: true,
+            destination: .coaches
+          )
+        }
+        .buttonStyle(PlainButtonStyle())
 
-        StatCard(
-          title: "Schools",
-          count: stats.schoolCount,
-          subtitle: nil,
-          icon: "building.2.fill",
-          gradientColors: [Color(hex: "#8B5CF6"), Color(hex: "#7C3AED")],
-          isEnabled: false
-        )
+        NavigationLink(value: DashboardDestination.schools) {
+          StatCard(
+            title: "Schools",
+            count: stats.schoolCount,
+            subtitle: nil,
+            icon: "building.2.fill",
+            gradientColors: [Color(hex: "#8B5CF6"), Color(hex: "#7C3AED")],
+            isEnabled: true,
+            destination: .schools
+          )
+        }
+        .buttonStyle(PlainButtonStyle())
 
-        StatCard(
-          title: "Interactions",
-          count: stats.interactionCount,
-          subtitle: nil,
-          icon: "bubble.left.and.bubble.right.fill",
-          gradientColors: [Color(hex: "#10B981"), Color(hex: "#059669")],
-          isEnabled: false
-        )
+        NavigationLink(value: DashboardDestination.interactions) {
+          StatCard(
+            title: "Interactions",
+            count: stats.interactionCount,
+            subtitle: nil,
+            icon: "bubble.left.and.bubble.right.fill",
+            gradientColors: [Color(hex: "#10B981"), Color(hex: "#059669")],
+            isEnabled: true,
+            destination: .interactions
+          )
+        }
+        .buttonStyle(PlainButtonStyle())
 
-        StatCard(
-          title: "Offers",
-          count: stats.totalOffers,
-          subtitle: nil,
-          icon: "gift.fill",
-          gradientColors: [Color(hex: "#F97316"), Color(hex: "#EA580C")],
-          isEnabled: false
-        )
+        NavigationLink(value: DashboardDestination.offers) {
+          StatCard(
+            title: "Offers",
+            count: stats.totalOffers,
+            subtitle: nil,
+            icon: "gift.fill",
+            gradientColors: [Color(hex: "#F97316"), Color(hex: "#EA580C")],
+            isEnabled: true,
+            destination: .offers
+          )
+        }
+        .buttonStyle(PlainButtonStyle())
 
-        StatCard(
-          title: "Accepted",
-          count: stats.acceptedOffers,
-          subtitle: stats.acceptanceRateFormatted,
-          icon: "checkmark.circle.fill",
-          gradientColors: [Color(hex: "#EF4444"), Color(hex: "#DC2626")],
-          isEnabled: false
-        )
+        NavigationLink(value: DashboardDestination.accepted) {
+          StatCard(
+            title: "Accepted",
+            count: stats.acceptedOffers,
+            subtitle: stats.acceptanceRateFormatted,
+            icon: "checkmark.circle.fill",
+            gradientColors: [Color(hex: "#EF4444"), Color(hex: "#DC2626")],
+            isEnabled: true,
+            destination: .accepted
+          )
+        }
+        .buttonStyle(PlainButtonStyle())
 
-        StatCard(
-          title: "A-Tier",
-          count: stats.aTierSchoolCount,
-          subtitle: nil,
-          icon: "star.fill",
-          gradientColors: [Color(hex: "#6366F1"), Color(hex: "#4F46E5")],
-          isEnabled: false
-        )
+        NavigationLink(value: DashboardDestination.aTier) {
+          StatCard(
+            title: "A-Tier",
+            count: stats.aTierSchoolCount,
+            subtitle: nil,
+            icon: "star.fill",
+            gradientColors: [Color(hex: "#6366F1"), Color(hex: "#4F46E5")],
+            isEnabled: true,
+            destination: .aTier
+          )
+        }
+        .buttonStyle(PlainButtonStyle())
       }
     }
   }
@@ -178,6 +205,11 @@ struct DashboardView: View {
         onDismiss: { id in
           Task {
             await viewModel.dismissSuggestion(id)
+          }
+        },
+        onComplete: { id in
+          Task {
+            await viewModel.completeSuggestion(id)
           }
         }
       )
@@ -209,6 +241,16 @@ struct DashboardView: View {
       if !viewModel.metrics.isEmpty {
         PerformanceMetricsWidget(metrics: viewModel.metrics)
       }
+
+      if !viewModel.isEmpty {
+        AtAGlanceSummary(
+          schoolsWithOffers: viewModel.schoolsWithOffersPercentage,
+          avgCoachResponsiveness: viewModel.avgCoachResponsivenessFormatted,
+          avgResponsivenessColor: viewModel.avgCoachResponsivenessColor,
+          interactionsThisMonth: viewModel.interactionsThisMonth,
+          daysUntilGraduation: viewModel.daysUntilGraduationFormatted
+        )
+      }
     }
   }
 
@@ -232,6 +274,26 @@ struct DashboardView: View {
     .disabled(viewModel.isLoggingOut)
     .opacity(viewModel.isLoggingOut ? 0.6 : 1)
     .padding(.horizontal)
+  }
+
+  @ViewBuilder
+  private func destinationView(for destination: DashboardDestination) -> some View {
+    switch destination {
+    case .coaches:
+      CoachesListView()
+    case .schools:
+      SchoolsListView()
+    case .interactions:
+      InteractionsListView()
+    case .offers:
+      OffersListView()
+    case .accepted:
+      OffersListView() // Reuse OffersListView, will filter by status later
+    case .aTier:
+      SchoolsListView() // Reuse SchoolsListView, will filter by tier later
+    case .suggestions:
+      SuggestionsListView(viewModel: viewModel)
+    }
   }
 }
 

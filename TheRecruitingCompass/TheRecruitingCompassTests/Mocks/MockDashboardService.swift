@@ -14,12 +14,14 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   var fetchRecentActivityCallCount = 0
   var fetchSuggestionsCallCount = 0
   var dismissSuggestionCallCount = 0
+  var completeSuggestionCallCount = 0
 
   // MARK: - Captured Arguments
 
   var lastFetchStatsFamilyUnitId: String?
   var lastFetchStatsUserId: String?
   var lastDismissedSuggestionId: String?
+  var lastCompletedSuggestionId: String?
 
   // MARK: - Error Flags
 
@@ -30,6 +32,7 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   var shouldThrowFetchMetrics = false
   var shouldThrowFetchInteractions = false
   var shouldThrowDismissSuggestion = false
+  var shouldThrowCompleteSuggestion = false
 
   // MARK: - Configurable Return Values
 
@@ -123,6 +126,14 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
     lastDismissedSuggestionId = id
     if shouldThrowDismissSuggestion {
       throw NSError(domain: "MockDashboard", code: 7, userInfo: [NSLocalizedDescriptionKey: "Mock dismiss suggestion error"])
+    }
+  }
+
+  func completeSuggestion(id: String) async throws {
+    completeSuggestionCallCount += 1
+    lastCompletedSuggestionId = id
+    if shouldThrowCompleteSuggestion {
+      throw NSError(domain: "MockDashboard", code: 8, userInfo: [NSLocalizedDescriptionKey: "Mock complete suggestion error"])
     }
   }
 }

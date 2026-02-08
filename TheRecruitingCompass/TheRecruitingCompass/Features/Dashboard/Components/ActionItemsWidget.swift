@@ -3,6 +3,7 @@ import SwiftUI
 struct ActionItemsWidget: View {
   let suggestions: [Suggestion]
   let onDismiss: (String) -> Void
+  let onComplete: (String) -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -21,16 +22,19 @@ struct ActionItemsWidget: View {
           ForEach(suggestions.prefix(3)) { suggestion in
             ActionItemCard(
               suggestion: suggestion,
-              onDismiss: { onDismiss(suggestion.id) }
+              onDismiss: { onDismiss(suggestion.id) },
+              onComplete: { onComplete(suggestion.id) }
             )
           }
         }
 
         if suggestions.count > 3 {
-          Button("Show \(suggestions.count - 3) more") {
+          NavigationLink(value: DashboardDestination.suggestions) {
+            Text("Show \(suggestions.count - 3) more")
+              .font(.caption)
+              .foregroundColor(Color.accentBlue)
           }
-          .font(.caption)
-          .foregroundColor(Color.accentBlue)
+          .buttonStyle(PlainButtonStyle())
         }
       }
     }
@@ -44,6 +48,7 @@ struct ActionItemsWidget: View {
 struct ActionItemCard: View {
   let suggestion: Suggestion
   let onDismiss: () -> Void
+  let onComplete: () -> Void
 
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
@@ -66,9 +71,18 @@ struct ActionItemCard: View {
 
       Spacer()
 
+      Button(action: onComplete) {
+        Image(systemName: "checkmark.circle.fill")
+          .foregroundColor(Color.accentBlue)
+          .font(.title3)
+      }
+      .buttonStyle(PlainButtonStyle())
+      .accessibilityLabel("Complete suggestion")
+
       Button(action: onDismiss) {
         Image(systemName: "xmark.circle.fill")
           .foregroundColor(Color.gray)
+          .font(.title3)
       }
       .buttonStyle(PlainButtonStyle())
       .accessibilityLabel("Dismiss suggestion")
@@ -103,7 +117,8 @@ struct ActionItemCard: View {
         createdAt: "2026-02-05T10:00:00Z"
       )
     ],
-    onDismiss: { _ in }
+    onDismiss: { _ in },
+    onComplete: { _ in }
   )
   .padding()
 }

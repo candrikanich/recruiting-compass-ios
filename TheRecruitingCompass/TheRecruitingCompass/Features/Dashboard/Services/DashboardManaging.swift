@@ -11,4 +11,5 @@ protocol DashboardManaging: Sendable {
   func fetchRecentActivity(userId: String, limit: Int) async throws -> [Activity]
   func fetchSuggestions(location: String) async throws -> [Suggestion]
   func dismissSuggestion(id: String) async throws
+  func completeSuggestion(id: String) async throws
 }

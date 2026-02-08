@@ -36,6 +36,64 @@ final class DashboardViewModel: ObservableObject {
     return stats.schoolCount == 0 && stats.coachCount == 0 && stats.interactionCount == 0
   }
 
+  // MARK: - At-a-Glance Computed Properties
+
+  var schoolsWithOffers: Int {
+    guard let stats = stats else { return 0 }
+    // Count unique school IDs from offers (need to add schoolId to Offer model in future)
+    // For now, approximate: if offers > 0 and schools > 0, assume at least 1 school has offers
+    return stats.totalOffers > 0 && stats.schoolCount > 0 ? min(stats.totalOffers, stats.schoolCount) : 0
+  }
+
+  var schoolsWithOffersPercentage: String {
+    guard let stats = stats, stats.schoolCount > 0 else { return "0%" }
+    let percentage = Double(schoolsWithOffers) / Double(stats.schoolCount) * 100
+    return String(format: "%.0f%%", percentage)
+  }
+
+  var avgCoachResponsiveness: Double {
+    // TODO: Calculate based on interaction response times
+    // For now, return a placeholder value
+    // This requires response_time field on interactions or similar logic
+    return stats != nil && stats!.interactionCount > 0 ? 0.75 : 0.0
+  }
+
+  var avgCoachResponsivenessFormatted: String {
+    String(format: "%.0f%%", avgCoachResponsiveness * 100)
+  }
+
+  var avgCoachResponsivenessColor: Color {
+    if avgCoachResponsiveness >= 0.75 {
+      return .successGreen
+    } else if avgCoachResponsiveness >= 0.50 {
+      return .warningOrange
+    } else {
+      return .errorRed
+    }
+  }
+
+  var interactionsThisMonth: Int {
+    let calendar = Calendar.current
+    let now = Date()
+    return activities.filter { activity in
+      guard let date = ISO8601DateFormatter().date(from: activity.timestamp) else {
+        return false
+      }
+      return calendar.isDate(date, equalTo: now, toGranularity: .month)
+    }.count
+  }
+
+  var daysUntilGraduation: Int? {
+    // TODO: Requires user.graduationDate field in User model
+    // For now, return placeholder if we have any data
+    return stats != nil ? 365 : nil
+  }
+
+  var daysUntilGraduationFormatted: String {
+    guard let days = daysUntilGraduation else { return "--" }
+    return "\(days)"
+  }
+
   var isParentPreviewMode: Bool {
     familyManager.isParentViewingAthlete
   }
@@ -96,6 +154,20 @@ final class DashboardViewModel: ObservableObject {
       await fetchInteractionTrends()
     } catch {
       errorMessage = "Failed to load dashboard: \(error.localizedDescription)"
+
+      #if DEBUG
+      print("⚠️ [Dashboard] Using empty stats for development")
+      stats = DashboardStats(
+        coachCount: 0,
+        schoolCount: 0,
+        interactionCount: 0,
+        totalOffers: 0,
+        acceptedOffers: 0,
+        aTierSchoolCount: 0,
+        acceptanceRate: nil
+      )
+      lastUpdated = Date()
+      #endif
     }
   }
 
@@ -166,6 +238,15 @@ final class DashboardViewModel: ObservableObject {
       suggestions.removeAll { $0.id == id }
     } catch {
       errorMessage = "Failed to dismiss suggestion"
+    }
+  }
+
+  func completeSuggestion(_ id: String) async {
+    do {
+      try await dashboardService.completeSuggestion(id: id)
+      suggestions.removeAll { $0.id == id }
+    } catch {
+      errorMessage = "Failed to complete suggestion"
     }
   }
 

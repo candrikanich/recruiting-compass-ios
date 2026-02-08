@@ -371,6 +371,42 @@ final class DashboardViewModelTests: XCTestCase {
     XCTAssertEqual(sut.suggestions.count, 1)
   }
 
+  // MARK: - Complete Suggestion Tests
+
+  func testCompleteSuggestionCallsService() async {
+    let suggestionId = "test-suggestion-id"
+
+    await sut.completeSuggestion(suggestionId)
+
+    XCTAssertEqual(mockDashboardService.completeSuggestionCallCount, 1)
+    XCTAssertEqual(mockDashboardService.lastCompletedSuggestionId, suggestionId)
+  }
+
+  func testCompleteSuggestionRemovesSuggestionFromList() async {
+    let suggestion = Suggestion(
+      id: "test-id",
+      title: "Test",
+      description: "Description",
+      urgency: .high,
+      actionUrl: nil,
+      location: "dashboard",
+      createdAt: "2026-02-01T12:00:00Z"
+    )
+    sut.suggestions = [suggestion]
+
+    await sut.completeSuggestion(suggestion.id)
+
+    XCTAssertTrue(sut.suggestions.isEmpty)
+  }
+
+  func testCompleteSuggestionSetsErrorOnFailure() async {
+    mockDashboardService.shouldThrowCompleteSuggestion = true
+
+    await sut.completeSuggestion("any-id")
+
+    XCTAssertEqual(sut.errorMessage, "Failed to complete suggestion")
+  }
+
   // MARK: - Interaction Trends Tests
 
   func testFetchInteractionTrendsGroupsByDateAndSorts() async {
@@ -428,5 +464,195 @@ final class DashboardViewModelTests: XCTestCase {
     familyManager.selectedAthleteId = athlete.id
 
     XCTAssertEqual(sut.selectedAthleteName, "Alex Doe")
+  }
+
+  // MARK: - At-a-Glance Computed Properties Tests
+
+  func testSchoolsWithOffersPercentageWhenNoSchools() async {
+    // Given: stats with 0 schools
+    authenticateUser()
+    let stats = DashboardStats(
+      coachCount: 5,
+      schoolCount: 0,
+      interactionCount: 10,
+      totalOffers: 2,
+      acceptedOffers: 1,
+      aTierSchoolCount: 0,
+      acceptanceRate: nil
+    )
+    mockDashboardService.stubbedStats = stats
+
+    // When
+    await sut.fetchDashboardData()
+
+    // Then
+    XCTAssertEqual(sut.schoolsWithOffersPercentage, "0%")
+  }
+
+  func testSchoolsWithOffersPercentageCalculatesCorrectly() async {
+    // Given: stats with schools and offers
+    authenticateUser()
+    let stats = DashboardStats(
+      coachCount: 5,
+      schoolCount: 10,
+      interactionCount: 20,
+      totalOffers: 3,
+      acceptedOffers: 1,
+      aTierSchoolCount: 2,
+      acceptanceRate: nil
+    )
+    mockDashboardService.stubbedStats = stats
+
+    // When
+    await sut.fetchDashboardData()
+
+    // Then
+    let percentage = sut.schoolsWithOffersPercentage
+    XCTAssertTrue(percentage.hasSuffix("%"))
+    // Should calculate 3/10 = 30%
+    XCTAssertEqual(percentage, "30%")
+  }
+
+  func testSchoolsWithOffersPercentageWhenNoOffers() async {
+    // Given: stats with schools but no offers
+    authenticateUser()
+    let stats = DashboardStats(
+      coachCount: 5,
+      schoolCount: 10,
+      interactionCount: 20,
+      totalOffers: 0,
+      acceptedOffers: 0,
+      aTierSchoolCount: 2,
+      acceptanceRate: nil
+    )
+    mockDashboardService.stubbedStats = stats
+
+    // When
+    await sut.fetchDashboardData()
+
+    // Then
+    XCTAssertEqual(sut.schoolsWithOffersPercentage, "0%")
+  }
+
+  func testAvgCoachResponsivenessColorLogicGreen() async {
+    // Given: stats with data (default 75% responsiveness)
+    authenticateUser()
+    let stats = DashboardStats(
+      coachCount: 5,
+      schoolCount: 10,
+      interactionCount: 20,
+      totalOffers: 3,
+      acceptedOffers: 1,
+      aTierSchoolCount: 2,
+      acceptanceRate: nil
+    )
+    mockDashboardService.stubbedStats = stats
+
+    // When
+    await sut.fetchDashboardData()
+
+    // Then: Color should match responsiveness level (>=75% = green)
+    let color = sut.avgCoachResponsivenessColor
+    XCTAssertEqual(color, .successGreen)
+  }
+
+  func testAvgCoachResponsivenessFormattedValue() async {
+    // Given: stats with data
+    authenticateUser()
+    let stats = DashboardStats(
+      coachCount: 5,
+      schoolCount: 10,
+      interactionCount: 20,
+      totalOffers: 3,
+      acceptedOffers: 1,
+      aTierSchoolCount: 2,
+      acceptanceRate: nil
+    )
+    mockDashboardService.stubbedStats = stats
+
+    // When
+    await sut.fetchDashboardData()
+
+    // Then: Should format as percentage
+    XCTAssertEqual(sut.avgCoachResponsivenessFormatted, "75%")
+  }
+
+  func testDaysUntilGraduationFormattedWhenNil() async {
+    // Given: no stats
+    sut.stats = nil
+
+    // Then
+    XCTAssertEqual(sut.daysUntilGraduationFormatted, "--")
+  }
+
+  func testDaysUntilGraduationFormattedWhenSet() async {
+    // Given: stats exist
+    authenticateUser()
+    let stats = DashboardStats(
+      coachCount: 5,
+      schoolCount: 10,
+      interactionCount: 20,
+      totalOffers: 3,
+      acceptedOffers: 1,
+      aTierSchoolCount: 2,
+      acceptanceRate: nil
+    )
+    mockDashboardService.stubbedStats = stats
+
+    // When
+    await sut.fetchDashboardData()
+
+    // Then: should return a number (placeholder is 365)
+    let formatted = sut.daysUntilGraduationFormatted
+    XCTAssertNotEqual(formatted, "--")
+    XCTAssertEqual(formatted, "365")
+  }
+
+  func testInteractionsThisMonthFiltersCorrectly() async {
+    // Given: activities from different months
+    authenticateUser()
+    let now = Date()
+    let calendar = Calendar.current
+    let formatter = ISO8601DateFormatter()
+
+    // Activity from this month
+    let thisMonth = formatter.string(from: now)
+
+    // Activity from last month
+    let lastMonthDate = calendar.date(byAdding: .month, value: -1, to: now)!
+    let lastMonth = formatter.string(from: lastMonthDate)
+
+    mockDashboardService.stubbedActivities = [
+      Activity(
+        id: "a1",
+        activityType: "interaction",
+        description: "This month",
+        timestamp: thisMonth,
+        userId: "test-user-id",
+        relatedEntityId: nil
+      ),
+      Activity(
+        id: "a2",
+        activityType: "interaction",
+        description: "This month 2",
+        timestamp: thisMonth,
+        userId: "test-user-id",
+        relatedEntityId: nil
+      ),
+      Activity(
+        id: "a3",
+        activityType: "interaction",
+        description: "Last month",
+        timestamp: lastMonth,
+        userId: "test-user-id",
+        relatedEntityId: nil
+      ),
+    ]
+
+    // When
+    await sut.fetchDashboardData()
+
+    // Then: should only count activities from this month
+    XCTAssertEqual(sut.interactionsThisMonth, 2)
   }
 }
