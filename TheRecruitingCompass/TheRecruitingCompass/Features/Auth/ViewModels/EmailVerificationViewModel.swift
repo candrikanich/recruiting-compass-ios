@@ -33,11 +33,12 @@ class EmailVerificationViewModel: ObservableObject {
 
   private var pollingTask: Task<Void, Never>?
   private var cooldownTask: Task<Void, Never>?
-  private var currentInterval: TimeInterval
+  private(set) var currentInterval: TimeInterval
   private let initialInterval: TimeInterval
   private let maxInterval: TimeInterval
   private let maxConsecutiveErrors: Int
-  private var consecutiveErrors: Int = 0
+  private(set) var consecutiveErrors: Int = 0
+  private let cooldownDuration: Int
 
   private let authManager: any AuthManaging
 
@@ -45,6 +46,7 @@ class EmailVerificationViewModel: ObservableObject {
 
   var userEmail: String? { authManager.user?.email }
   var isVerified: Bool { authManager.user?.emailConfirmedAt != nil }
+  var isPolling: Bool { pollingTask != nil }
 
   // MARK: - Initialization
 
@@ -52,13 +54,15 @@ class EmailVerificationViewModel: ObservableObject {
     authManager: (any AuthManaging)? = nil,
     initialPollingInterval: TimeInterval = 2.0,
     maxPollingInterval: TimeInterval = 10.0,
-    maxConsecutiveErrors: Int = 3
+    maxConsecutiveErrors: Int = 3,
+    cooldownDuration: Int = 60
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.initialInterval = initialPollingInterval
     self.currentInterval = initialPollingInterval
     self.maxInterval = maxPollingInterval
     self.maxConsecutiveErrors = maxConsecutiveErrors
+    self.cooldownDuration = cooldownDuration
 
     // Check initial verification state
     if isVerified {
@@ -162,7 +166,7 @@ class EmailVerificationViewModel: ObservableObject {
 
   private func startResendCooldown() {
     canResendEmail = false
-    resendCooldownSeconds = 60
+    resendCooldownSeconds = cooldownDuration
     cooldownTask?.cancel()
 
     cooldownTask = Task {
