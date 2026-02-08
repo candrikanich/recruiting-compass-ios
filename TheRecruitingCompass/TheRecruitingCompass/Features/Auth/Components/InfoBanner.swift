@@ -1,14 +1,13 @@
 import SwiftUI
 
 struct InfoBanner: View {
-  let state: BannerState
-  @State private var isVisible = true
+  let state: VerificationState
+  let email: String?
   @Environment(\.sizeCategory) var sizeCategory
 
-  enum BannerState {
-    case pending(email: String)
-    case checking
-    case verified
+  init(state: VerificationState, email: String? = nil) {
+    self.state = state
+    self.email = email
   }
 
   private var iconSize: CGFloat {
@@ -16,7 +15,7 @@ struct InfoBanner: View {
   }
 
   var body: some View {
-    if isVisible {
+    if !isErrorState {
       VStack(alignment: .leading, spacing: 8) {
         HStack(spacing: 12) {
           icon
@@ -26,7 +25,7 @@ struct InfoBanner: View {
               .font(.footnote.weight(.semibold))
             Text(subtitle)
               .font(.caption)
-              .foregroundColor(subtitleColor)
+              .foregroundColor(Color.secondaryText)
           }
           Spacer()
         }
@@ -44,21 +43,28 @@ struct InfoBanner: View {
 
   // MARK: - Private Properties
 
+  private var isErrorState: Bool {
+    if case .error = state { return true }
+    return false
+  }
+
   private var icon: some View {
     Group {
       switch state {
       case .pending:
         Image(systemName: "envelope.fill")
           .font(.system(size: iconSize))
-          .foregroundColor(Color(red: 0.855, green: 0.620, blue: 0.118))
+          .foregroundColor(Color.amberGold)
       case .checking:
         ProgressView()
-          .tint(Color(red: 0.149, green: 0.388, blue: 0.931))
+          .tint(Color.accentBlue)
           .accessibilityLabel("Checking verification")
       case .verified:
         Image(systemName: "checkmark.circle.fill")
           .font(.system(size: iconSize))
-          .foregroundColor(Color(red: 0.2, green: 0.62, blue: 0.4))
+          .foregroundColor(Color.successGreen)
+      case .error:
+        EmptyView()
       }
     }
   }
@@ -71,62 +77,46 @@ struct InfoBanner: View {
       return "Checking verification..."
     case .verified:
       return "Email verified!"
+    case .error:
+      return ""
     }
   }
 
   private var subtitle: String {
     switch state {
-    case .pending(let email):
-      return "Check \(email) for verification link"
+    case .pending:
+      if let email {
+        return "Check \(email) for verification link"
+      }
+      return "Check your email for a verification link"
     case .checking:
       return "Polling for verification status..."
     case .verified:
       return "You can now access the app"
+    case .error:
+      return ""
     }
   }
 
   private var backgroundColor: Color {
     switch state {
     case .pending:
-      return Color(red: 0.855, green: 0.620, blue: 0.118).opacity(0.1)
+      return Color.amberGold.opacity(0.1)
     case .checking:
-      return Color(red: 0.149, green: 0.388, blue: 0.931).opacity(0.1)
+      return Color.accentBlue.opacity(0.1)
     case .verified:
-      return Color(red: 0.2, green: 0.62, blue: 0.4).opacity(0.1)
+      return Color.successGreen.opacity(0.1)
+    case .error:
+      return Color.clear
     }
-  }
-
-  private var subtitleColor: Color {
-    switch state {
-    case .pending:
-      return Color(red: 0.427, green: 0.467, blue: 0.514)
-    case .checking:
-      return Color(red: 0.427, green: 0.467, blue: 0.514)
-    case .verified:
-      return Color(red: 0.427, green: 0.467, blue: 0.514)
-    }
-  }
-
-  // MARK: - Static Factories
-
-  static func pending(email: String) -> InfoBanner {
-    InfoBanner(state: .pending(email: email))
-  }
-
-  static func checking() -> InfoBanner {
-    InfoBanner(state: .checking)
-  }
-
-  static func verified() -> InfoBanner {
-    InfoBanner(state: .verified)
   }
 }
 
 #Preview {
   VStack(spacing: 16) {
-    InfoBanner.pending(email: "test@example.com")
-    InfoBanner.checking()
-    InfoBanner.verified()
+    InfoBanner(state: .pending, email: "test@example.com")
+    InfoBanner(state: .checking)
+    InfoBanner(state: .verified)
   }
   .padding(16)
 }

@@ -90,6 +90,26 @@ final class AuthManager: ObservableObject, AuthManaging {
     }
   }
 
+  func resetPasswordForEmail(email: String) async throws {
+    do {
+      try await SupabaseManager.shared.resetPasswordForEmail(email: email)
+      self.errorMessage = nil
+    } catch {
+      self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      throw error
+    }
+  }
+
+  func updatePassword(newPassword: String) async throws {
+    do {
+      try await SupabaseManager.shared.updatePassword(newPassword: newPassword)
+      self.errorMessage = nil
+    } catch {
+      self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      throw error
+    }
+  }
+
   func logout() async throws {
     do {
       try await SupabaseManager.shared.signOut()

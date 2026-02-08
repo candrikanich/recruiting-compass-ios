@@ -1,0 +1,109 @@
+import SwiftUI
+
+struct AthleteSelector: View {
+  let athletes: [FamilyMember]
+  let selectedAthleteId: String?
+  let onSelect: (String) -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Select Athlete")
+        .font(.headline)
+
+      Divider()
+
+      if athletes.isEmpty {
+        Text("No linked athletes found")
+          .font(.caption)
+          .foregroundColor(Color.secondaryText)
+          .padding(.vertical)
+      } else {
+        VStack(spacing: 8) {
+          ForEach(athletes) { athlete in
+            AthleteRow(
+              athlete: athlete,
+              isSelected: athlete.id == selectedAthleteId,
+              onSelect: { onSelect(athlete.id) }
+            )
+          }
+        }
+      }
+    }
+    .padding()
+    .background(Color(.systemBackground))
+    .cornerRadius(12)
+    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+  }
+}
+
+struct AthleteRow: View {
+  let athlete: FamilyMember
+  let isSelected: Bool
+  let onSelect: () -> Void
+
+  var body: some View {
+    Button(action: onSelect) {
+      HStack(spacing: 12) {
+        Image(systemName: "person.circle.fill")
+          .font(.title2)
+          .foregroundColor(isSelected ? Color.primaryGreen : Color.iconGray)
+
+        VStack(alignment: .leading, spacing: 2) {
+          Text(athlete.fullName)
+            .font(.subheadline)
+            .fontWeight(.semibold)
+            .foregroundColor(Color.darkSlate)
+
+          Text(athlete.email)
+            .font(.caption)
+            .foregroundColor(Color.secondaryText)
+        }
+
+        Spacer()
+
+        if isSelected {
+          Image(systemName: "checkmark.circle.fill")
+            .foregroundColor(Color.primaryGreen)
+        }
+      }
+      .padding(12)
+      .background(isSelected ? Color.primaryGreen.opacity(0.1) : Color(.secondarySystemBackground))
+      .cornerRadius(8)
+    }
+    .buttonStyle(PlainButtonStyle())
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(athlete.fullName), \(athlete.email)")
+    .accessibilityValue(isSelected ? "Selected" : "Not selected")
+    .accessibilityHint("Double tap to select this athlete")
+  }
+}
+
+#Preview {
+  AthleteSelector(
+    athletes: [
+      FamilyMember(
+        id: "1",
+        userId: "user-1",
+        familyUnitId: "family-1",
+        role: "athlete",
+        firstName: "John",
+        lastName: "Smith",
+        email: "john.smith@example.com",
+        createdAt: "2026-01-01T12:00:00Z"
+      ),
+      FamilyMember(
+        id: "2",
+        userId: "user-2",
+        familyUnitId: "family-1",
+        role: "athlete",
+        firstName: "Jane",
+        lastName: "Smith",
+        email: "jane.smith@example.com",
+        createdAt: "2026-01-01T12:00:00Z"
+      )
+    ],
+    selectedAthleteId: "1",
+    onSelect: { _ in }
+  )
+  .padding()
+}

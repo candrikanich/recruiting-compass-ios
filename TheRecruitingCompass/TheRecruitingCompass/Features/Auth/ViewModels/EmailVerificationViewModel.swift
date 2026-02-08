@@ -7,17 +7,6 @@ enum VerificationState: Equatable {
   case checking
   case verified
   case error(message: String)
-
-  static func == (lhs: VerificationState, rhs: VerificationState) -> Bool {
-    switch (lhs, rhs) {
-    case (.pending, .pending), (.checking, .checking), (.verified, .verified):
-      return true
-    case (.error(let lhsMsg), .error(let rhsMsg)):
-      return lhsMsg == rhsMsg
-    default:
-      return false
-    }
-  }
 }
 
 @MainActor
@@ -33,9 +22,12 @@ class EmailVerificationViewModel: ObservableObject {
 
   private var pollingTask: Task<Void, Never>?
   private var cooldownTask: Task<Void, Never>?
-  private var currentInterval: TimeInterval = 2.0
-  private let maxInterval: TimeInterval = 10.0
-  private var consecutiveErrors: Int = 0
+  private(set) var currentInterval: TimeInterval
+  private let initialInterval: TimeInterval
+  private let maxInterval: TimeInterval
+  private let maxConsecutiveErrors: Int
+  private(set) var consecutiveErrors: Int = 0
+  private let cooldownDuration: Int
 
   private let authManager: any AuthManaging
 
@@ -43,15 +35,86 @@ class EmailVerificationViewModel: ObservableObject {
 
   var userEmail: String? { authManager.user?.email }
   var isVerified: Bool { authManager.user?.emailConfirmedAt != nil }
+  var isPolling: Bool { pollingTask != nil }
+
+  var headlineText: String {
+    switch verificationState {
+    case .pending, .checking:
+      return "Verify Your Email"
+    case .verified:
+      return "Verified!"
+    case .error:
+      return "Verification Issue"
+    }
+  }
+
+  var subtitleText: String {
+    switch verificationState {
+    case .pending:
+      return "We've sent a verification link to your email. Click it to verify your account."
+    case .checking:
+      return "Checking your email verification status..."
+    case .verified:
+      return "Your email has been verified successfully! You can now access the app."
+    case .error:
+      return "We encountered an issue verifying your email. Please try again."
+    }
+  }
+
+  var actionButtonText: String {
+    if isVerified {
+      return "Continue to Dashboard"
+    } else if !canResendEmail {
+      return "Resend Email (Cooldown)"
+    } else {
+      return "Resend Verification Email"
+    }
+  }
+
+  var isButtonDisabled: Bool {
+    if isVerified { return false }
+    return !canResendEmail || verificationState == .checking
+  }
+
+  var accessibilityLabelForButton: String {
+    if isVerified {
+      return "Continue to dashboard"
+    } else if verificationState == .checking {
+      return "Checking verification status"
+    } else {
+      return "Resend verification email"
+    }
+  }
+
+  var accessibilityHintForButton: String {
+    if isVerified {
+      return "Navigate to dashboard"
+    } else if !canResendEmail {
+      return "Wait \(resendCooldownSeconds) seconds before resending"
+    } else {
+      return "Send another verification email"
+    }
+  }
+
+  var shouldShowCooldownText: Bool {
+    !canResendEmail && !isVerified
+  }
 
   // MARK: - Initialization
 
-  init(authManager: (any AuthManaging)? = nil) {
-    if let authManager = authManager {
-      self.authManager = authManager
-    } else {
-      self.authManager = AuthManager.shared
-    }
+  init(
+    authManager: (any AuthManaging)? = nil,
+    initialPollingInterval: TimeInterval = 2.0,
+    maxPollingInterval: TimeInterval = 10.0,
+    maxConsecutiveErrors: Int = 3,
+    cooldownDuration: Int = 60
+  ) {
+    self.authManager = authManager ?? AuthManager.shared
+    self.initialInterval = initialPollingInterval
+    self.currentInterval = initialPollingInterval
+    self.maxInterval = maxPollingInterval
+    self.maxConsecutiveErrors = maxConsecutiveErrors
+    self.cooldownDuration = cooldownDuration
 
     // Check initial verification state
     if isVerified {
@@ -134,7 +197,7 @@ class EmailVerificationViewModel: ObservableObject {
   private func handlePollingError(_ error: Error) {
     consecutiveErrors += 1
 
-    if consecutiveErrors <= 3 {
+    if consecutiveErrors <= maxConsecutiveErrors {
       applyExponentialBackoff()
       verificationState = .pending
     } else {
@@ -149,13 +212,13 @@ class EmailVerificationViewModel: ObservableObject {
   }
 
   private func resetBackoff() {
-    currentInterval = 2.0
+    currentInterval = initialInterval
     consecutiveErrors = 0
   }
 
   private func startResendCooldown() {
     canResendEmail = false
-    resendCooldownSeconds = 60
+    resendCooldownSeconds = cooldownDuration
     cooldownTask?.cancel()
 
     cooldownTask = Task {

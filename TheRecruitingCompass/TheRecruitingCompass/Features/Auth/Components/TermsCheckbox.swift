@@ -17,8 +17,8 @@ struct TermsCheckbox: View {
             .font(.system(size: checkboxSize))
             .foregroundColor(
               isChecked
-                ? Color(red: 0.149, green: 0.388, blue: 0.931)
-                : Color(red: 0.627, green: 0.655, blue: 0.686)
+                ? Color.accentBlue
+                : Color.iconGray
             )
             .accessibilityHidden(true)
         }
@@ -30,13 +30,13 @@ struct TermsCheckbox: View {
         HStack(spacing: 4) {
           Text("I agree to the")
             .font(.footnote)
-            .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
+            .foregroundColor(Color.tertiaryText)
             .accessibilityHidden(true)
 
           Button(action: onTermsPressed) {
             Text("Terms of Service")
               .font(.footnote.weight(.semibold))
-              .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
+              .foregroundColor(Color.accentBlue)
               .underline()
           }
           .accessibilityLabel("Read Terms of Service")
@@ -44,13 +44,13 @@ struct TermsCheckbox: View {
 
           Text("and")
             .font(.footnote)
-            .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
+            .foregroundColor(Color.tertiaryText)
             .accessibilityHidden(true)
 
           Button(action: onTermsPressed) {
             Text("Privacy Policy")
               .font(.footnote.weight(.semibold))
-              .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
+              .foregroundColor(Color.accentBlue)
               .underline()
           }
           .accessibilityLabel("Read Privacy Policy")

@@ -6,6 +6,26 @@ import SwiftUI
 final class EmailVerificationViewTests: XCTestCase {
   var mockAuthManager: MockAuthManager!
 
+  private let unverifiedUser = User(
+    id: "test-id",
+    email: "test@example.com",
+    emailConfirmedAt: nil,
+    phone: nil,
+    userMetadata: nil,
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z"
+  )
+
+  private let verifiedUser = User(
+    id: "test-id",
+    email: "test@example.com",
+    emailConfirmedAt: "2024-01-01T12:00:00Z",
+    phone: nil,
+    userMetadata: nil,
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T12:00:00Z"
+  )
+
   override func setUp() {
     super.setUp()
     mockAuthManager = MockAuthManager()
@@ -16,126 +36,186 @@ final class EmailVerificationViewTests: XCTestCase {
     super.tearDown()
   }
 
-  func testViewRendersWithUnverifiedUser() {
-    let user = User(
-      id: "test-id",
-      email: "test@example.com",
-      emailConfirmedAt: nil,
-      phone: nil,
-      userMetadata: nil,
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
-    )
-    mockAuthManager.setMockUser(user)
+  // MARK: - View Instantiation
 
+  func testViewRendersWithUnverifiedUser() {
+    mockAuthManager.setMockUser(unverifiedUser)
     let view = EmailVerificationView(authManager: mockAuthManager)
     XCTAssertNotNil(view)
   }
 
   func testViewRendersWithVerifiedUser() {
-    let user = User(
-      id: "test-id",
-      email: "test@example.com",
-      emailConfirmedAt: "2024-01-01T12:00:00Z",
-      phone: nil,
-      userMetadata: nil,
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T12:00:00Z"
-    )
-    mockAuthManager.setMockUser(user)
-
+    mockAuthManager.setMockUser(verifiedUser)
     let view = EmailVerificationView(authManager: mockAuthManager)
     XCTAssertNotNil(view)
   }
 
-  func testViewHasBackButton() {
-    let user = User(
-      id: "test-id",
-      email: "test@example.com",
-      emailConfirmedAt: nil,
-      phone: nil,
-      userMetadata: nil,
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
-    )
-    mockAuthManager.setMockUser(user)
-
+  func testViewRendersWithNoUser() {
     let view = EmailVerificationView(authManager: mockAuthManager)
-    let anyView = AnyView(view)
-
-    XCTAssertNotNil(anyView)
+    XCTAssertNotNil(view)
   }
 
-  func testViewHasScrollableContent() {
-    let user = User(
-      id: "test-id",
-      email: "test@example.com",
-      emailConfirmedAt: nil,
-      phone: nil,
-      userMetadata: nil,
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
-    )
-    mockAuthManager.setMockUser(user)
+  // MARK: - Headline Text
 
-    let view = EmailVerificationView(authManager: mockAuthManager)
-    let anyView = AnyView(view)
+  func testHeadlineTextForPendingState() {
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    XCTAssertNotNil(anyView)
+    XCTAssertEqual(vm.headlineText, "Verify Your Email")
   }
 
-  func testViewShowsGradientBackground() {
-    let user = User(
-      id: "test-id",
-      email: "test@example.com",
-      emailConfirmedAt: nil,
-      phone: nil,
-      userMetadata: nil,
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
-    )
-    mockAuthManager.setMockUser(user)
+  func testHeadlineTextForVerifiedState() {
+    mockAuthManager.setMockUser(verifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    let view = EmailVerificationView(authManager: mockAuthManager)
-    let anyView = AnyView(view)
-
-    // The view should render with the gradient background
-    XCTAssertNotNil(anyView)
+    XCTAssertEqual(vm.headlineText, "Verified!")
   }
 
-  func testViewShowsVerifiedState() {
-    let user = User(
-      id: "test-id",
-      email: "test@example.com",
-      emailConfirmedAt: "2024-01-01T12:00:00Z",
-      phone: nil,
-      userMetadata: nil,
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T12:00:00Z"
+  func testHeadlineTextForErrorState() async {
+    mockAuthManager.setMockUser(unverifiedUser)
+    mockAuthManager.shouldThrowRefreshError = true
+    mockAuthManager.mockErrorToThrow = .networkError("fail")
+    let vm = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      initialPollingInterval: 0.02,
+      maxPollingInterval: 0.04,
+      maxConsecutiveErrors: 0
     )
-    mockAuthManager.setMockUser(user)
 
-    let view = EmailVerificationView(authManager: mockAuthManager)
-    let anyView = AnyView(view)
+    vm.startPolling()
+    try? await Task.sleep(nanoseconds: 300_000_000)
+    vm.stopPolling()
 
-    XCTAssertNotNil(anyView)
+    XCTAssertEqual(vm.headlineText, "Verification Issue")
   }
 
-  func testViewShowsPendingState() {
-    let user = User(
-      id: "test-id",
-      email: "test@example.com",
-      emailConfirmedAt: nil,
-      phone: nil,
-      userMetadata: nil,
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
-    )
-    mockAuthManager.setMockUser(user)
+  // MARK: - Subtitle Text
 
-    let view = EmailVerificationView(authManager: mockAuthManager)
-    let anyView = AnyView(view)
+  func testSubtitleTextForPendingState() {
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    XCTAssertNotNil(anyView)
+    XCTAssertEqual(vm.subtitleText, "We've sent a verification link to your email. Click it to verify your account.")
+  }
+
+  func testSubtitleTextForVerifiedState() {
+    mockAuthManager.setMockUser(verifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertEqual(vm.subtitleText, "Your email has been verified successfully! You can now access the app.")
+  }
+
+  // MARK: - Action Button Text
+
+  func testActionButtonTextWhenVerified() {
+    mockAuthManager.setMockUser(verifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertEqual(vm.actionButtonText, "Continue to Dashboard")
+  }
+
+  func testActionButtonTextWhenCanResend() {
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertEqual(vm.actionButtonText, "Resend Verification Email")
+  }
+
+  func testActionButtonTextDuringCooldown() async {
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 5)
+
+    await vm.resendVerificationEmail()
+
+    XCTAssertEqual(vm.actionButtonText, "Resend Email (Cooldown)")
+  }
+
+  // MARK: - Button Disabled State
+
+  func testButtonNotDisabledWhenVerified() {
+    mockAuthManager.setMockUser(verifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertFalse(vm.isButtonDisabled)
+  }
+
+  func testButtonNotDisabledWhenCanResend() {
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertFalse(vm.isButtonDisabled)
+  }
+
+  func testButtonDisabledDuringCooldown() async {
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 5)
+
+    await vm.resendVerificationEmail()
+
+    XCTAssertTrue(vm.isButtonDisabled)
+  }
+
+  // MARK: - Accessibility Labels
+
+  func testAccessibilityLabelWhenVerified() {
+    mockAuthManager.setMockUser(verifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertEqual(vm.accessibilityLabelForButton, "Continue to dashboard")
+  }
+
+  func testAccessibilityLabelWhenPending() {
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertEqual(vm.accessibilityLabelForButton, "Resend verification email")
+  }
+
+  func testAccessibilityHintWhenVerified() {
+    mockAuthManager.setMockUser(verifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertEqual(vm.accessibilityHintForButton, "Navigate to dashboard")
+  }
+
+  func testAccessibilityHintDuringCooldown() async {
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 30)
+
+    await vm.resendVerificationEmail()
+
+    XCTAssertTrue(vm.accessibilityHintForButton.contains("seconds before resending"))
+  }
+
+  func testAccessibilityHintWhenCanResend() {
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertEqual(vm.accessibilityHintForButton, "Send another verification email")
+  }
+
+  // MARK: - Cooldown Text Visibility
+
+  func testShouldShowCooldownTextDuringCooldown() async {
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 5)
+
+    await vm.resendVerificationEmail()
+
+    XCTAssertTrue(vm.shouldShowCooldownText)
+  }
+
+  func testShouldNotShowCooldownTextWhenVerified() {
+    mockAuthManager.setMockUser(verifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertFalse(vm.shouldShowCooldownText)
+  }
+
+  func testShouldNotShowCooldownTextWhenCanResend() {
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertFalse(vm.shouldShowCooldownText)
   }
 }

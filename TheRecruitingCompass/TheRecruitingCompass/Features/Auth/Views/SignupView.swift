@@ -1,40 +1,22 @@
 import SwiftUI
 
 struct SignupView: View {
-  @StateObject private var viewModel = SignupViewModel()
+  @StateObject private var viewModel: SignupViewModel
   @EnvironmentObject var authManager: AuthManager
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
+  init(authManager: AuthManager = .shared) {
+    _viewModel = StateObject(wrappedValue: SignupViewModel(authManager: authManager))
+  }
+
   var body: some View {
     ZStack {
-      LinearGradient(
-        gradient: Gradient(colors: [
-          Color(red: 0.024, green: 0.588, blue: 0.412),
-          Color(red: 0.016, green: 0.522, blue: 0.373)
-        ]),
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
+      LinearGradient.primaryBackground
       .ignoresSafeArea()
 
       VStack(spacing: 0) {
-        HStack {
-          Button(action: { dismiss() }) {
-            HStack(spacing: 4) {
-              Image(systemName: "arrow.left")
-                .font(.footnote.weight(.semibold))
-                .accessibilityHidden(true)
-              Text("Back")
-                .font(.footnote.weight(.semibold))
-            }
-            .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
-          }
-          .accessibilityLabel("Back to welcome screen")
-          Spacer()
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        backButton
 
         ScrollView {
           if !viewModel.showForm {
@@ -57,13 +39,34 @@ struct SignupView: View {
     }
   }
 
+  // MARK: - Back Button
+
+  private var backButton: some View {
+    HStack {
+      Button(action: { dismiss() }) {
+        HStack(spacing: 4) {
+          Image(systemName: "arrow.left")
+            .font(.footnote.weight(.semibold))
+            .accessibilityHidden(true)
+          Text("Back")
+            .font(.footnote.weight(.semibold))
+        }
+        .foregroundColor(Color.darkSlate)
+      }
+      .accessibilityLabel("Back to welcome screen")
+      Spacer()
+    }
+    .padding(.horizontal, 24)
+    .padding(.vertical, 16)
+  }
+
   // MARK: - Role Selection Step
 
   private var roleSelectionContent: some View {
     VStack(spacing: 24) {
       Image(systemName: "compass.drawing")
         .font(.system(size: 48))
-        .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
+        .foregroundColor(Color.primaryGreen)
         .padding(.vertical, 12)
         .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
         .accessibilityHidden(true)
@@ -71,11 +74,11 @@ struct SignupView: View {
       VStack(alignment: .leading, spacing: 12) {
         Text("Select Your Role")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color(red: 0.216, green: 0.263, blue: 0.322))
+          .foregroundColor(Color.darkSlate)
 
         Text("Choose the account type that best fits your needs")
           .font(.footnote)
-          .foregroundColor(Color(red: 0.427, green: 0.467, blue: 0.514))
+          .foregroundColor(Color.secondaryText)
       }
 
       ForEach(UserRole.allCases, id: \.self) { role in
@@ -93,185 +96,198 @@ struct SignupView: View {
 
   private var signupFormContent: some View {
     VStack(spacing: 24) {
-      VStack(alignment: .leading, spacing: 12) {
-        HStack {
-          Button(action: { viewModel.backToRoleSelection() }) {
-            HStack(spacing: 4) {
-              Image(systemName: "arrow.left")
-                .font(.caption.weight(.semibold))
-                .accessibilityHidden(true)
-              Text("Change Role")
-                .font(.caption)
-            }
-            .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
-          }
-          .accessibilityLabel("Change role selection")
-          .accessibilityHint("Return to role selection screen")
-
-          Spacer()
-
-          if let role = viewModel.selectedRole {
-            HStack(spacing: 6) {
-              Image(systemName: role.icon)
-                .font(.footnote)
-                .accessibilityHidden(true)
-              Text(role.displayName)
-                .font(.footnote.weight(.semibold))
-            }
-            .foregroundColor(Color(red: 0.024, green: 0.588, blue: 0.412))
-          }
-        }
-        .frame(minHeight: 44)
-      }
-
-      if let error = viewModel.errorMessage {
-        ErrorBanner(
-          message: error,
-          onDismiss: viewModel.dismissError
-        )
-        .transition(.opacity)
-      }
-
-      LoginFormField(
-        label: "Full Name",
-        placeholder: "John Doe",
-        icon: "person",
-        text: $viewModel.fullName,
-        error: Binding(
-          get: { viewModel.fieldErrors["fullName"] },
-          set: { viewModel.fieldErrors["fullName"] = $0 }
-        ),
-        isSecure: false,
-        keyboardType: .default,
-        onBlur: viewModel.validateFullName
-      )
-
-      LoginFormField(
-        label: "Email",
-        placeholder: "your.email@example.com",
-        icon: "envelope",
-        text: $viewModel.email,
-        error: Binding(
-          get: { viewModel.fieldErrors["email"] },
-          set: { viewModel.fieldErrors["email"] = $0 }
-        ),
-        isSecure: false,
-        keyboardType: .emailAddress,
-        onBlur: viewModel.validateEmail
-      )
-
-      VStack(alignment: .leading, spacing: 4) {
-        LoginFormField(
-          label: "Password",
-          placeholder: "Create a strong password",
-          icon: "lock",
-          text: $viewModel.password,
-          error: Binding(
-            get: { viewModel.fieldErrors["password"] },
-            set: { viewModel.fieldErrors["password"] = $0 }
-          ),
-          isSecure: true,
-          keyboardType: .default,
-          onBlur: viewModel.validatePassword
-        )
-
-        PasswordStrengthIndicator(password: viewModel.password)
-          .padding(.horizontal, 16)
-          .padding(.top, 8)
-      }
-
-      LoginFormField(
-        label: "Confirm Password",
-        placeholder: "Re-enter your password",
-        icon: "lock.fill",
-        text: $viewModel.confirmPassword,
-        error: Binding(
-          get: { viewModel.fieldErrors["confirmPassword"] },
-          set: { viewModel.fieldErrors["confirmPassword"] = $0 }
-        ),
-        isSecure: true,
-        keyboardType: .default,
-        onBlur: viewModel.validateConfirmPassword
-      )
-
-      if viewModel.selectedRole?.requiresFamilyCode == true {
-        LoginFormField(
-          label: "Family Code (Optional)",
-          placeholder: "FAM-XXXXXXXX",
-          icon: "person.2",
-          text: $viewModel.familyCode,
-          error: Binding(
-            get: { viewModel.fieldErrors["familyCode"] },
-            set: { viewModel.fieldErrors["familyCode"] = $0 }
-          ),
-          isSecure: false,
-          keyboardType: .default,
-          onBlur: viewModel.validateFamilyCode
-        )
-      }
-
-      TermsCheckbox(
-        isChecked: $viewModel.termsAccepted,
-        onTermsPressed: {}
-      )
-
-      Button(action: {
-        Task {
-          await viewModel.signup()
-        }
-      }) {
-        HStack {
-          Text(viewModel.isLoading ? "Creating Account..." : "Create Account")
-            .font(.callout.weight(.semibold))
-
-          if viewModel.isLoading {
-            ProgressView()
-              .tint(.white)
-              .accessibilityLabel("Creating account")
-          }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 48)
-        .foregroundColor(.white)
-        .background(
-          LinearGradient(
-            gradient: Gradient(colors: [
-              Color(red: 0, green: 0.4, blue: 1),
-              Color(red: 0, green: 0.32, blue: 0.8)
-            ]),
-            startPoint: .leading,
-            endPoint: .trailing
-          )
-        )
-        .cornerRadius(8)
-        .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
-        .disabled(viewModel.isButtonDisabled)
-      }
-      .accessibilityLabel(viewModel.isLoading ? "Creating account, please wait" : "Create account")
-      .accessibilityHint("Double tap to create your account")
-
-      HStack {
-        Text("Already have an account?")
-          .font(.footnote)
-          .foregroundColor(Color(red: 0.282, green: 0.337, blue: 0.431))
-
-        NavigationLink(value: "login") {
-          HStack(spacing: 4) {
-            Text("Sign In")
-              .font(.footnote.weight(.semibold))
-            Image(systemName: "arrow.right")
-              .font(.caption.weight(.semibold))
-              .accessibilityHidden(true)
-          }
-          .foregroundColor(Color(red: 0.149, green: 0.388, blue: 0.931))
-          .frame(minHeight: 44)
-          .contentShape(Rectangle())
-        }
-        .accessibilityLabel("Sign in to existing account")
-        .accessibilityHint("Navigate to login screen")
-      }
+      roleHeader
+      errorBannerSection
+      fullNameField
+      emailField
+      passwordSection
+      confirmPasswordField
+      familyCodeField
+      termsSection
+      createAccountButton
+      signInSection
     }
     .padding(32)
+  }
+
+  // MARK: - Form Sub-views
+
+  private var roleHeader: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack {
+        Button(action: { viewModel.backToRoleSelection() }) {
+          HStack(spacing: 4) {
+            Image(systemName: "arrow.left")
+              .font(.caption.weight(.semibold))
+              .accessibilityHidden(true)
+            Text("Change Role")
+              .font(.caption)
+          }
+          .foregroundColor(Color.accentBlue)
+        }
+        .accessibilityLabel("Change role selection")
+        .accessibilityHint("Return to role selection screen")
+
+        Spacer()
+
+        if let role = viewModel.selectedRole {
+          HStack(spacing: 6) {
+            Image(systemName: role.icon)
+              .font(.footnote)
+              .accessibilityHidden(true)
+            Text(role.displayName)
+              .font(.footnote.weight(.semibold))
+          }
+          .foregroundColor(Color.primaryGreen)
+        }
+      }
+      .frame(minHeight: 44)
+    }
+  }
+
+  @ViewBuilder
+  private var errorBannerSection: some View {
+    if let error = viewModel.errorMessage {
+      ErrorBanner(
+        message: error,
+        onDismiss: viewModel.dismissError
+      )
+      .transition(.opacity)
+    }
+  }
+
+  private var fullNameField: some View {
+    LoginFormField(
+      label: "Full Name",
+      placeholder: "John Doe",
+      icon: "person",
+      text: $viewModel.fullName,
+      error: viewModel.errorBinding(for: .fullName),
+      isSecure: false,
+      keyboardType: .default,
+      onBlur: viewModel.validateFullName
+    )
+  }
+
+  private var emailField: some View {
+    LoginFormField(
+      label: "Email",
+      placeholder: "your.email@example.com",
+      icon: "envelope",
+      text: $viewModel.email,
+      error: viewModel.errorBinding(for: .email),
+      isSecure: false,
+      keyboardType: .emailAddress,
+      onBlur: viewModel.validateEmail
+    )
+  }
+
+  private var passwordSection: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      LoginFormField(
+        label: "Password",
+        placeholder: "Create a strong password",
+        icon: "lock",
+        text: $viewModel.password,
+        error: viewModel.errorBinding(for: .password),
+        isSecure: true,
+        keyboardType: .default,
+        onBlur: viewModel.validatePassword
+      )
+
+      PasswordStrengthIndicator(password: viewModel.password)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+    }
+  }
+
+  private var confirmPasswordField: some View {
+    LoginFormField(
+      label: "Confirm Password",
+      placeholder: "Re-enter your password",
+      icon: "lock.fill",
+      text: $viewModel.confirmPassword,
+      error: viewModel.errorBinding(for: .confirmPassword),
+      isSecure: true,
+      keyboardType: .default,
+      onBlur: viewModel.validateConfirmPassword
+    )
+  }
+
+  @ViewBuilder
+  private var familyCodeField: some View {
+    if viewModel.selectedRole?.requiresFamilyCode == true {
+      LoginFormField(
+        label: "Family Code (Optional)",
+        placeholder: "FAM-XXXXXXXX",
+        icon: "person.2",
+        text: $viewModel.familyCode,
+        error: viewModel.errorBinding(for: .familyCode),
+        isSecure: false,
+        keyboardType: .default,
+        onBlur: viewModel.validateFamilyCode
+      )
+    }
+  }
+
+  private var termsSection: some View {
+    TermsCheckbox(
+      isChecked: $viewModel.termsAccepted,
+      onTermsPressed: {}
+    )
+  }
+
+  private var createAccountButton: some View {
+    Button(action: {
+      Task {
+        await viewModel.signup()
+      }
+    }) {
+      HStack {
+        Text(viewModel.isLoading ? "Creating Account..." : "Create Account")
+          .font(.callout.weight(.semibold))
+
+        if viewModel.isLoading {
+          ProgressView()
+            .tint(.white)
+            .accessibilityLabel("Creating account")
+        }
+      }
+      .frame(maxWidth: .infinity)
+      .frame(height: 48)
+      .foregroundColor(.white)
+      .background(
+        LinearGradient.primaryButton
+      )
+      .cornerRadius(8)
+      .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
+      .disabled(viewModel.isButtonDisabled)
+    }
+    .accessibilityLabel(viewModel.isLoading ? "Creating account, please wait" : "Create account")
+    .accessibilityHint("Double tap to create your account")
+  }
+
+  private var signInSection: some View {
+    HStack {
+      Text("Already have an account?")
+        .font(.footnote)
+        .foregroundColor(Color.tertiaryText)
+
+      NavigationLink(value: "login") {
+        HStack(spacing: 4) {
+          Text("Sign In")
+            .font(.footnote.weight(.semibold))
+          Image(systemName: "arrow.right")
+            .font(.caption.weight(.semibold))
+            .accessibilityHidden(true)
+        }
+        .foregroundColor(Color.accentBlue)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+      }
+      .accessibilityLabel("Sign in to existing account")
+      .accessibilityHint("Navigate to login screen")
+    }
   }
 }
 

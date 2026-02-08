@@ -4,6 +4,7 @@ struct VerificationStatusIcon: View {
   let state: VerificationState
   @State private var isAnimating = false
   @Environment(\.sizeCategory) var sizeCategory
+  @Environment(\.accessibilityReduceMotion) var reduceMotion
 
   private var backgroundSize: CGFloat {
     sizeCategory >= .extraLarge ? 88 : 80
@@ -40,21 +41,24 @@ struct VerificationStatusIcon: View {
         case .pending:
           Image(systemName: "envelope.fill")
             .font(.system(size: iconSize))
-            .foregroundColor(Color(red: 0.855, green: 0.620, blue: 0.118))
+            .foregroundColor(Color.amberGold)
             .accessibilityHidden(true)
 
         case .checking:
           ProgressView()
-            .tint(Color(red: 0.149, green: 0.388, blue: 0.931))
+            .tint(Color.accentBlue)
             .scaleEffect(1.5)
             .accessibilityLabel("Checking verification status")
 
         case .verified:
           Image(systemName: "checkmark.circle.fill")
             .font(.system(size: iconSize))
-            .foregroundColor(Color(red: 0.2, green: 0.62, blue: 0.4))
-            .scaleEffect(isAnimating ? 1.1 : 1.0)
-            .animation(.spring(response: 0.6, dampingFraction: 0.7), value: isAnimating)
+            .foregroundColor(Color.successGreen)
+            .scaleEffect(isAnimating && !reduceMotion ? 1.1 : 1.0)
+            .animation(
+              reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.7),
+              value: isAnimating
+            )
             .accessibilityHidden(true)
 
         case .error:
@@ -77,11 +81,11 @@ struct VerificationStatusIcon: View {
   private var backgroundColor: Color {
     switch state {
     case .pending:
-      return Color(red: 0.855, green: 0.620, blue: 0.118).opacity(0.15)
+      return Color.amberGold.opacity(0.15)
     case .checking:
-      return Color(red: 0.149, green: 0.388, blue: 0.931).opacity(0.15)
+      return Color.accentBlue.opacity(0.15)
     case .verified:
-      return Color(red: 0.2, green: 0.62, blue: 0.4).opacity(0.15)
+      return Color.successGreen.opacity(0.15)
     case .error:
       return Color.red.opacity(0.15)
     }

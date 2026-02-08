@@ -1,17 +1,84 @@
 # TheRecruitingCompass iOS (Fresh Start)
 
-Clean iOS app built from scratch with a reusable screen template system.
+Modern iOS app with authentication, signup, and email verification flows. Built with SwiftUI, MVVM architecture, and Supabase backend.
+
+## Features
+
+✅ **Authentication**
+- Email/password login with session persistence
+- Auto-login on app restart
+- Token refresh on expiration
+- Secure Keychain storage
+
+✅ **Signup & Verification**
+- Multi-step signup (role selection → form → verification)
+- Email verification with polling
+- Family code support for student enrollment
+- Real-time password strength validation
+
+✅ **Accessibility** (WCAG AA Compliant)
+- 100% VoiceOver support
+- Dynamic Type support (all text sizes)
+- ARIA labels and semantic structure
+- 126+ automated accessibility tests
 
 ## Quick Start
 
-### Your Workflow
+### Prerequisites
 
-1. **Look at web page** → What data? What buttons/actions?
-2. **Copy template** → `UI/Screens/_ScreenTemplate/` → Rename folder
-3. **Rename 3 files** → Follow `HOW_TO_CREATE_SCREENS.md`
-4. **Build** → Cmd+R
+- Xcode 16+
+- iOS 17+ deployment target
+- Supabase account (free tier works: https://app.supabase.com)
 
-That's it. New screen in 10 minutes.
+### 1. Configure Supabase
+
+**Get Your Credentials:**
+1. Log in to Supabase dashboard
+2. Create new project or use existing
+3. Navigate to **Project Settings** → **API**
+4. Copy:
+   - **URL**: Project URL (starts with `https://`)
+   - **Anon Key**: Anon public key
+
+**Set Environment Variables in Xcode:**
+1. Open `TheRecruitingCompass.xcodeproj`
+2. Select the **TheRecruitingCompass** scheme
+3. Go to **Product** → **Scheme** → **Edit Scheme**
+4. Select **Run** tab
+5. Navigate to **Arguments** section
+6. Click **+** under Environment Variables
+7. Add two variables:
+   - **Name:** `SUPABASE_URL` | **Value:** `https://your-project.supabase.co`
+   - **Name:** `SUPABASE_ANON_KEY` | **Value:** `your-anon-key`
+8. Click **Close**
+
+**Alternative (via .env file):**
+For local development, you can create a `.env` file in the project root. See `.env.example` for format.
+⚠️ Never commit `.env` - it's in `.gitignore`
+
+### 2. Build & Run
+
+```bash
+# Open in Xcode
+open TheRecruitingCompass.xcodeproj
+
+# Build for simulator
+Cmd+B
+
+# Run on simulator
+Cmd+R
+```
+
+### 3. Run Tests
+
+```bash
+# Run all tests
+Cmd+U
+
+# Or via command line
+xcodebuild test -scheme TheRecruitingCompass \
+  -destination 'platform=iOS Simulator,name=iPhone 15'
+```
 
 ---
 

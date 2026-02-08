@@ -55,46 +55,46 @@ final class LoginViewModelTests: XCTestCase {
     sut.email = "user@example.com"
     sut.validateEmail()
 
-    XCTAssertNil(sut.fieldErrors["email"])
+    XCTAssertNil(sut.fieldErrors[.email])
   }
 
   func testValidateEmailOnBlurWithInvalidEmail() {
     sut.email = "invalid-email"
     sut.validateEmail()
 
-    XCTAssertNotNil(sut.fieldErrors["email"])
-    XCTAssertEqual(sut.fieldErrors["email"], "Invalid email address")
+    XCTAssertNotNil(sut.fieldErrors[.email])
+    XCTAssertEqual(sut.fieldErrors[.email], "Invalid email address")
   }
 
   func testValidateEmailOnBlurWithEmptyEmail() {
     sut.email = ""
     sut.validateEmail()
 
-    XCTAssertNotNil(sut.fieldErrors["email"])
-    XCTAssertEqual(sut.fieldErrors["email"], "Email is required")
+    XCTAssertNotNil(sut.fieldErrors[.email])
+    XCTAssertEqual(sut.fieldErrors[.email], "Email is required")
   }
 
   func testValidatePasswordOnBlurWithValidPassword() {
     sut.password = "ValidPassword123"
     sut.validatePassword()
 
-    XCTAssertNil(sut.fieldErrors["password"])
+    XCTAssertNil(sut.fieldErrors[.password])
   }
 
   func testValidatePasswordOnBlurWithShortPassword() {
     sut.password = "short"
     sut.validatePassword()
 
-    XCTAssertNotNil(sut.fieldErrors["password"])
-    XCTAssertEqual(sut.fieldErrors["password"], "Password must be at least 8 characters")
+    XCTAssertNotNil(sut.fieldErrors[.password])
+    XCTAssertEqual(sut.fieldErrors[.password], "Password must be at least 8 characters")
   }
 
   func testValidatePasswordOnBlurWithEmptyPassword() {
     sut.password = ""
     sut.validatePassword()
 
-    XCTAssertNotNil(sut.fieldErrors["password"])
-    XCTAssertEqual(sut.fieldErrors["password"], "Password is required")
+    XCTAssertNotNil(sut.fieldErrors[.password])
+    XCTAssertEqual(sut.fieldErrors[.password], "Password is required")
   }
 
   func testSignInButtonDisabledWhenFormInvalid() {
@@ -262,8 +262,8 @@ final class LoginViewModelTests: XCTestCase {
 
     await sut.login()
 
-    XCTAssertNotNil(sut.fieldErrors["email"])
-    XCTAssertNotNil(sut.fieldErrors["password"])
+    XCTAssertNotNil(sut.fieldErrors[.email])
+    XCTAssertNotNil(sut.fieldErrors[.password])
   }
 
   // MARK: - Edge Case Tests
@@ -282,7 +282,7 @@ final class LoginViewModelTests: XCTestCase {
     sut.password = longPassword
     sut.validatePassword()
 
-    XCTAssertNil(sut.fieldErrors["password"])
+    XCTAssertNil(sut.fieldErrors[.password])
     XCTAssertGreaterThan(sut.password.count, 100)
   }
 
@@ -293,29 +293,29 @@ final class LoginViewModelTests: XCTestCase {
     sut.validateEmail()
     sut.validateEmail()
 
-    XCTAssertNil(sut.fieldErrors["email"])
+    XCTAssertNil(sut.fieldErrors[.email])
   }
 
   func testFieldErrorsIndependentValidation() {
     sut.email = "invalid-email"
     sut.validateEmail()
 
-    XCTAssertNotNil(sut.fieldErrors["email"])
-    XCTAssertNil(sut.fieldErrors["password"])
+    XCTAssertNotNil(sut.fieldErrors[.email])
+    XCTAssertNil(sut.fieldErrors[.password])
   }
 
   func testWhitespaceOnlyEmailIsInvalid() {
     sut.email = "   "
     sut.validateEmail()
 
-    XCTAssertNotNil(sut.fieldErrors["email"])
+    XCTAssertNotNil(sut.fieldErrors[.email])
   }
 
   func testWhitespaceEmailIsTrimmedBeforeValidation() {
     sut.email = "  user@example.com  "
     sut.validateEmail()
 
-    XCTAssertNil(sut.fieldErrors["email"])
+    XCTAssertNil(sut.fieldErrors[.email])
   }
 
   // MARK: - Performance Tests
@@ -349,12 +349,12 @@ final class LoginViewModelTests: XCTestCase {
   func testFieldErrorsResetOnNewInput() {
     sut.email = "invalid"
     sut.validateEmail()
-    XCTAssertNotNil(sut.fieldErrors["email"])
+    XCTAssertNotNil(sut.fieldErrors[.email])
 
     sut.email = "user@example.com"
     sut.validateEmail()
 
-    XCTAssertNil(sut.fieldErrors["email"])
+    XCTAssertNil(sut.fieldErrors[.email])
   }
 
   func testErrorMessageClearedOnNewLogin() async {
@@ -512,8 +512,8 @@ final class LoginViewModelTests: XCTestCase {
 
     await sut.login()
 
-    XCTAssertNotNil(sut.fieldErrors["email"])
-    XCTAssertNotNil(sut.fieldErrors["password"])
+    XCTAssertNotNil(sut.fieldErrors[.email])
+    XCTAssertNotNil(sut.fieldErrors[.password])
   }
 
   func testCompleteLoginFlowWithAuthError() async {

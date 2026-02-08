@@ -1,0 +1,22 @@
+{
+  "name": "recruiting-compass-e2e-api-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "E2E API integration tests for TheRecruitingCompass Supabase backend",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:signup": "npx playwright test tests/signup-api.spec.ts",
+    "test:verification": "npx playwright test tests/email-verification-api.spec.ts",
+    "test:session": "npx playwright test tests/session-management-api.spec.ts",
+    "test:family": "npx playwright test tests/family-code-api.spec.ts",
+    "test:report": "npx playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@supabase/supabase-js": "^2.49.0",
+    "typescript": "^5.8.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.4"
+  }
+}
