@@ -3,17 +3,40 @@ import Combine
 
 @MainActor
 class ForgotPasswordViewModel: ObservableObject {
+  @Published var state: ForgotPasswordState = .form
   @Published var email = ""
-  @Published var isLoading = false
-  @Published var emailSent = false
-  @Published var submittedEmail = ""
-  @Published var errorMessage: String?
   @Published var fieldErrors: [FormFieldKey: String] = [:]
-  @Published var canResendEmail = true
   @Published var resendCooldownSeconds = 0
+  @Published var canResendEmail = true
 
   private let authManager: any AuthManaging
+  private let config: PasswordResetConfig
   private var cooldownTimer: AnyCancellable?
+
+  var submittedEmail: String {
+    if case .emailSent(let email) = state {
+      return email
+    }
+    return ""
+  }
+
+  var emailSent: Bool {
+    if case .emailSent = state {
+      return true
+    }
+    return false
+  }
+
+  var errorMessage: String? {
+    if case .error(let message) = state {
+      return message
+    }
+    return nil
+  }
+
+  var isLoading: Bool {
+    state == .sending
+  }
 
   var isFormValid: Bool {
     !email.trimmingCharacters(in: .whitespaces).isEmpty && fieldErrors.isEmpty
@@ -23,81 +46,96 @@ class ForgotPasswordViewModel: ObservableObject {
     isLoading || !isFormValid
   }
 
-  init(authManager: any AuthManaging = AuthManager.shared) {
+  init(
+    authManager: any AuthManaging = AuthManager.shared,
+    config: PasswordResetConfig = .default
+  ) {
     self.authManager = authManager
+    self.config = config
   }
 
   func validateEmail() {
-    if let error = FormValidator.validateEmail(email) {
-      fieldErrors[.email] = error
-    } else {
-      fieldErrors[.email] = nil
-    }
+    updateFieldValidation(
+      FieldValidationInput(
+        field: .email,
+        value: email,
+        validator: FormValidator.validateEmail(_:)
+      ),
+      &fieldErrors
+    )
   }
 
   func sendResetLink() async {
-    isLoading = true
-    errorMessage = nil
-    defer { isLoading = false }
+    guard validateAndPrepareForm() else { return }
 
-    validateEmail()
-    guard isFormValid else { return }
+    state = .sending
 
     do {
-      try await authManager.resetPasswordForEmail(email: email)
-      submittedEmail = email
-      emailSent = true
+      try await executeSendReset(for: email)
+      handleSendResetSuccess(for: email)
     } catch {
-      errorMessage = mapError(error)
+      handleSendResetError(error)
     }
   }
 
   func resendResetLink() async {
     guard canResendEmail else { return }
 
-    isLoading = true
-    errorMessage = nil
-    defer { isLoading = false }
+    state = .sending
 
     do {
-      try await authManager.resetPasswordForEmail(email: submittedEmail)
+      try await executeSendReset(for: submittedEmail)
       startResendCooldown()
     } catch {
-      errorMessage = mapError(error)
+      handleSendResetError(error)
     }
   }
 
   func resetForm() {
-    emailSent = false
-    submittedEmail = ""
-    errorMessage = nil
+    state = .form
     fieldErrors = [:]
   }
 
   func dismissError() {
-    errorMessage = nil
+    state = .form
+  }
+
+  // MARK: - Private Helpers
+
+  private func validateAndPrepareForm() -> Bool {
+    validateEmail()
+    return isFormValid
+  }
+
+  private func executeSendReset(for email: String) async throws {
+    try await authManager.resetPasswordForEmail(email: email)
+  }
+
+  private func handleSendResetSuccess(for email: String) {
+    state = .emailSent(submittedEmail: email)
+  }
+
+  private func handleSendResetError(_ error: Error) {
+    let errorInfo = mapAuthError(error)
+    state = .error(message: errorInfo.userMessage)
   }
 
   private func startResendCooldown() {
     canResendEmail = false
-    resendCooldownSeconds = 60
+    resendCooldownSeconds = config.resendCooldownDuration
 
-    cooldownTimer = Timer.publish(every: 1, on: .main, in: .common)
-      .autoconnect()
-      .sink { [weak self] _ in
-        guard let self else { return }
-        self.resendCooldownSeconds -= 1
-        if self.resendCooldownSeconds <= 0 {
-          self.canResendEmail = true
-          self.cooldownTimer?.cancel()
+    cooldownTimer = startCountdownTimer(
+      config: CountdownTimerConfig(
+        initialValue: config.resendCooldownDuration,
+        interval: config.timerInterval,
+        onTick: { [weak self] remaining in
+          self?.resendCooldownSeconds = remaining
+        },
+        onCompletion: { [weak self] in
+          self?.canResendEmail = true
+          self?.cooldownTimer?.cancel()
         }
-      }
-  }
-
-  private func mapError(_ error: Error) -> String {
-    if let authError = error as? AuthError {
-      return authError.errorDescription ?? "An error occurred"
-    }
-    return "An error occurred. Please try again."
+      )
+    )
   }
 }

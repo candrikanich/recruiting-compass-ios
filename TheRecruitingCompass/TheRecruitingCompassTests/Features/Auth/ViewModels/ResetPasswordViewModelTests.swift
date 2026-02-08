@@ -222,4 +222,164 @@ final class ResetPasswordViewModelTests: XCTestCase {
     sut.state = .success
     XCTAssertFalse(sut.isLoading)
   }
+
+  // MARK: - Timer Behavior
+
+  func testSuccessCountdownTimerCountsDown() async {
+    sut.state = .success
+    sut.startSuccessCountdown()
+
+    XCTAssertEqual(sut.successCountdown, 3)
+    XCTAssertFalse(sut.shouldNavigateToLogin)
+
+    let expectation = expectation(description: "Timer counts down")
+
+    Task {
+      try? await Task.sleep(nanoseconds: 2_100_000_000)
+      expectation.fulfill()
+    }
+
+    await fulfillment(of: [expectation], timeout: 3.0)
+
+    XCTAssertLessThan(sut.successCountdown, 3)
+    XCTAssertGreaterThanOrEqual(sut.successCountdown, 0)
+  }
+
+  func testSuccessCountdownTimerCompletesAndTriggersNavigation() async {
+    sut.state = .success
+    sut.startSuccessCountdown()
+
+    let expectation = expectation(description: "Timer completes and triggers navigation")
+
+    Task {
+      try? await Task.sleep(nanoseconds: 3_500_000_000)
+      expectation.fulfill()
+    }
+
+    await fulfillment(of: [expectation], timeout: 4.5)
+
+    XCTAssertEqual(sut.successCountdown, 0)
+    XCTAssertTrue(sut.shouldNavigateToLogin)
+  }
+
+  func testResetPasswordSuccessStartsCountdown() async {
+    sut.newPassword = "StrongPass1"
+    sut.confirmPassword = "StrongPass1"
+
+    await sut.resetPassword()
+
+    XCTAssertEqual(sut.state, .success)
+    XCTAssertEqual(sut.successCountdown, 3)
+  }
+
+  // MARK: - Password Visibility
+
+  func testTogglePasswordVisibility() {
+    XCTAssertFalse(sut.isPasswordVisible)
+
+    sut.isPasswordVisible = true
+    XCTAssertTrue(sut.isPasswordVisible)
+
+    sut.isPasswordVisible = false
+    XCTAssertFalse(sut.isPasswordVisible)
+  }
+
+  // MARK: - State Transitions
+
+  func testStateTransitionFormToSuccess() async {
+    XCTAssertEqual(sut.state, .form)
+
+    sut.newPassword = "StrongPass1"
+    sut.confirmPassword = "StrongPass1"
+
+    await sut.resetPassword()
+
+    XCTAssertEqual(sut.state, .success)
+  }
+
+  func testStateTransitionFormToError() async {
+    mockAuthManager.shouldThrowUpdatePasswordError = true
+    mockAuthManager.mockErrorToThrow = .invalidResetToken
+
+    XCTAssertEqual(sut.state, .form)
+
+    sut.newPassword = "StrongPass1"
+    sut.confirmPassword = "StrongPass1"
+
+    await sut.resetPassword()
+
+    if case .error(let message) = sut.state {
+      XCTAssertFalse(message.isEmpty)
+    } else {
+      XCTFail("Expected error state")
+    }
+  }
+
+  func testStateTransitionErrorToForm() {
+    sut.state = .error(message: "Test error")
+    sut.fieldErrors[.newPassword] = "Error"
+
+    sut.returnToForm()
+
+    XCTAssertEqual(sut.state, .form)
+    XCTAssertTrue(sut.fieldErrors.isEmpty)
+  }
+
+  // MARK: - Edge Cases
+
+  func testPasswordFieldsRemainValidAfterReset() async {
+    sut.newPassword = "StrongPass1"
+    sut.confirmPassword = "StrongPass1"
+
+    await sut.resetPassword()
+
+    XCTAssertEqual(mockAuthManager.updatePasswordCallCount, 1)
+    XCTAssertEqual(sut.state, .success)
+  }
+
+  func testMultipleSequentialResetAttempts() async {
+    sut.newPassword = "StrongPass1"
+    sut.confirmPassword = "StrongPass1"
+
+    await sut.resetPassword()
+    XCTAssertEqual(sut.state, .success)
+
+    sut.returnToForm()
+    sut.newPassword = "NewStrongPass1"
+    sut.confirmPassword = "NewStrongPass1"
+
+    await sut.resetPassword()
+
+    XCTAssertEqual(mockAuthManager.updatePasswordCallCount, 2)
+    XCTAssertEqual(sut.state, .success)
+  }
+
+  // MARK: - Error Messages
+
+  func testErrorMessageContentForDifferentErrors() async {
+    let authErrors: [AuthError] = [
+      .invalidResetToken,
+      .networkError("Network issue"),
+      .passwordTooWeak,
+      .userNotFound
+    ]
+
+    for authError in authErrors {
+      mockAuthManager.shouldThrowUpdatePasswordError = true
+      mockAuthManager.mockErrorToThrow = authError
+      sut.newPassword = "StrongPass1"
+      sut.confirmPassword = "StrongPass1"
+
+      await sut.resetPassword()
+
+      if case .error(let message) = sut.state {
+        XCTAssertFalse(message.isEmpty)
+      } else {
+        XCTFail("Expected error state")
+      }
+
+      sut.state = .form
+      mockAuthManager.updatePasswordCallCount = 0
+    }
+  }
 }

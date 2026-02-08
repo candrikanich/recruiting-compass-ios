@@ -19,6 +19,7 @@ class ResetPasswordViewModel: ObservableObject {
   @Published var shouldNavigateToLogin = false
 
   private let authManager: any AuthManaging
+  private let config: PasswordResetConfig
   private var countdownTimer: AnyCancellable?
 
   var passwordStrength: (isValid: Bool, errors: [String]) {
@@ -41,8 +42,12 @@ class ResetPasswordViewModel: ObservableObject {
     isLoading || !isFormValid
   }
 
-  init(authManager: any AuthManaging = AuthManager.shared) {
+  init(
+    authManager: any AuthManaging = AuthManager.shared,
+    config: PasswordResetConfig = .default
+  ) {
     self.authManager = authManager
+    self.config = config
   }
 
   func validateNewPassword() {
@@ -59,52 +64,78 @@ class ResetPasswordViewModel: ObservableObject {
   }
 
   func validateConfirmPassword() {
-    if let error = FormValidator.validatePasswordMatch(newPassword, confirmPassword) {
-      fieldErrors[.confirmPassword] = error
-    } else {
-      fieldErrors[.confirmPassword] = nil
-    }
+    updateFieldValidation(
+      FieldValidationInput(
+        field: .confirmPassword,
+        value: confirmPassword,
+        validator: { [weak self] value in
+          guard let self = self else { return nil }
+          return FormValidator.validatePasswordMatch(self.newPassword, value)
+        }
+      ),
+      &fieldErrors
+    )
   }
 
   func resetPassword() async {
-    state = .resetting
-    fieldErrors = [:]
-
-    validateNewPassword()
-    validateConfirmPassword()
-
-    guard isFormValid else {
+    guard validateAndPrepareForm() else {
       state = .form
       return
     }
 
+    state = .resetting
+
     do {
-      try await authManager.updatePassword(newPassword: newPassword)
-      state = .success
-      startSuccessCountdown()
+      try await executePasswordReset()
+      handleResetSuccess()
     } catch {
-      let message = (error as? AuthError)?.errorDescription ?? "Failed to reset password. Please try again."
-      state = .error(message: message)
+      handleResetError(error)
     }
   }
 
   func startSuccessCountdown() {
-    successCountdown = 3
+    successCountdown = config.successCountdownDuration
 
-    countdownTimer = Timer.publish(every: 1, on: .main, in: .common)
-      .autoconnect()
-      .sink { [weak self] _ in
-        guard let self else { return }
-        self.successCountdown -= 1
-        if self.successCountdown <= 0 {
-          self.shouldNavigateToLogin = true
-          self.countdownTimer?.cancel()
+    countdownTimer = startCountdownTimer(
+      config: CountdownTimerConfig(
+        initialValue: config.successCountdownDuration,
+        interval: config.timerInterval,
+        onTick: { [weak self] remaining in
+          self?.successCountdown = remaining
+        },
+        onCompletion: { [weak self] in
+          self?.shouldNavigateToLogin = true
+          self?.countdownTimer?.cancel()
         }
-      }
+      )
+    )
   }
 
   func returnToForm() {
     state = .form
     fieldErrors = [:]
+  }
+
+  // MARK: - Private Helpers
+
+  private func validateAndPrepareForm() -> Bool {
+    fieldErrors = [:]
+    validateNewPassword()
+    validateConfirmPassword()
+    return isFormValid
+  }
+
+  private func executePasswordReset() async throws {
+    try await authManager.updatePassword(newPassword: newPassword)
+  }
+
+  private func handleResetSuccess() {
+    state = .success
+    startSuccessCountdown()
+  }
+
+  private func handleResetError(_ error: Error) {
+    let errorInfo = mapAuthError(error)
+    state = .error(message: errorInfo.userMessage)
   }
 }
