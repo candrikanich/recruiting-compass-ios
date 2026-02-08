@@ -11,6 +11,7 @@ import Supabase
 @main
 struct TheRecruitingCompassApp: App {
   @StateObject var authManager = AuthManager.shared
+  @StateObject var familyManager = FamilyManager.shared
   @State private var showResetPassword = false
   @Environment(\.accessibilityReduceMotion) var reduceMotion
 
@@ -20,8 +21,9 @@ struct TheRecruitingCompassApp: App {
         if authManager.isCheckingSession {
           sessionLoadingView
         } else if authManager.isAuthenticated {
-          DashboardView(authManager: authManager)
+          DashboardView()
             .environmentObject(authManager)
+            .environmentObject(familyManager)
         } else {
           NavigationStack {
             LandingView()

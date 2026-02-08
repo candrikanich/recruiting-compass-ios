@@ -6,7 +6,7 @@ import Helpers
 class SupabaseManager {
   static let shared = SupabaseManager()
 
-  private let client: SupabaseClient
+  let client: SupabaseClient
 
   private init() {
     self.client = SupabaseClient(
