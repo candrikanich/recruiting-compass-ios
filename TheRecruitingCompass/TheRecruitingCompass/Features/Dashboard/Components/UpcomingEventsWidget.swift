@@ -3,14 +3,21 @@ import SwiftUI
 struct UpcomingEventsWidget: View {
   let events: [Event]
 
+  @State private var isShowingAll = false
+
   private var sortedEvents: [Event] {
     events.sorted { $0.eventDate < $1.eventDate }
+  }
+
+  private var visibleEvents: [Event] {
+    isShowingAll ? sortedEvents : Array(sortedEvents.prefix(3))
   }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Upcoming Events")
         .font(.headline)
+        .accessibilityAddTraits(.isHeader)
 
       Divider()
 
@@ -21,16 +28,30 @@ struct UpcomingEventsWidget: View {
           .padding(.vertical)
       } else {
         VStack(spacing: 12) {
-          ForEach(sortedEvents.prefix(3)) { event in
+          ForEach(visibleEvents) { event in
             EventRow(event: event)
           }
         }
 
         if sortedEvents.count > 3 {
-          Button("Show \(sortedEvents.count - 3) more events") {
+          Button(action: { isShowingAll.toggle() }) {
+            HStack(spacing: 4) {
+              Text(isShowingAll
+                ? "Show less"
+                : "Show \(sortedEvents.count - 3) more events")
+                .font(.caption)
+              Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
+                .font(.caption2)
+                .accessibilityHidden(true)
+            }
+            .foregroundColor(Color.accentBlue)
           }
-          .font(.caption)
-          .foregroundColor(Color.accentBlue)
+          .accessibilityLabel(isShowingAll
+            ? "Show fewer events"
+            : "Show all \(sortedEvents.count) events")
+          .accessibilityHint(isShowingAll
+            ? "Collapses the list to show only 3 events"
+            : "Expands the list to show all events")
         }
       }
     }
@@ -91,11 +112,12 @@ struct EventRow: View {
       Spacer()
     }
     .padding(12)
+    .frame(minHeight: 44)
     .background(Color(.secondarySystemBackground))
     .cornerRadius(8)
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(event.eventType): \(event.title)")
-    .accessibilityValue("\(eventDateFormatted)")
+    .accessibilityValue(eventDateFormatted)
   }
 }
 

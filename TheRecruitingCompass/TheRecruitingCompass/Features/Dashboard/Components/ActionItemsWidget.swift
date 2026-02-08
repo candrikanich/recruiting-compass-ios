@@ -9,6 +9,7 @@ struct ActionItemsWidget: View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Action Items")
         .font(.headline)
+        .accessibilityAddTraits(.isHeader)
 
       Divider()
 
@@ -30,11 +31,18 @@ struct ActionItemsWidget: View {
 
         if suggestions.count > 3 {
           NavigationLink(value: DashboardDestination.suggestions) {
-            Text("Show \(suggestions.count - 3) more")
-              .font(.caption)
-              .foregroundColor(Color.accentBlue)
+            HStack(spacing: 4) {
+              Text("Show \(suggestions.count - 3) more")
+                .font(.caption)
+              Image(systemName: "chevron.right")
+                .font(.caption2)
+                .accessibilityHidden(true)
+            }
+            .foregroundColor(Color.accentBlue)
           }
           .buttonStyle(PlainButtonStyle())
+          .accessibilityLabel("View all action items")
+          .accessibilityHint("Opens a complete list of \(suggestions.count) suggested actions")
         }
       }
     }
@@ -59,9 +67,20 @@ struct ActionItemCard: View {
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
-        Text(suggestion.title)
-          .font(.subheadline)
-          .fontWeight(.semibold)
+        HStack(spacing: 6) {
+          Text(suggestion.title)
+            .font(.subheadline)
+            .fontWeight(.semibold)
+
+          Text(suggestion.urgency.rawValue.capitalized)
+            .font(.caption2)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(suggestion.urgency.color.opacity(0.15))
+            .foregroundColor(suggestion.urgency.color)
+            .cornerRadius(4)
+            .accessibilityHidden(true)
+        }
 
         Text(suggestion.description)
           .font(.caption)
@@ -71,27 +90,33 @@ struct ActionItemCard: View {
 
       Spacer()
 
-      Button(action: onComplete) {
-        Image(systemName: "checkmark.circle.fill")
-          .foregroundColor(Color.accentBlue)
-          .font(.title3)
-      }
-      .buttonStyle(PlainButtonStyle())
-      .accessibilityLabel("Complete suggestion")
+      VStack(spacing: 4) {
+        Button(action: onComplete) {
+          Image(systemName: "checkmark.circle.fill")
+            .foregroundColor(Color.accentBlue)
+            .font(.title3)
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("Complete: \(suggestion.title)")
+        .accessibilityHint("Mark this suggestion as done")
 
-      Button(action: onDismiss) {
-        Image(systemName: "xmark.circle.fill")
-          .foregroundColor(Color.gray)
-          .font(.title3)
+        Button(action: onDismiss) {
+          Image(systemName: "xmark.circle.fill")
+            .foregroundColor(Color.gray)
+            .font(.title3)
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("Dismiss: \(suggestion.title)")
+        .accessibilityHint("Hide this suggestion without completing it")
       }
-      .buttonStyle(PlainButtonStyle())
-      .accessibilityLabel("Dismiss suggestion")
     }
     .padding(12)
     .background(Color(.secondarySystemBackground))
     .cornerRadius(8)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(suggestion.urgency.rawValue) priority: \(suggestion.title). \(suggestion.description)")
   }
 }
 

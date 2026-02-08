@@ -15,6 +15,7 @@ struct QuickTaskWidget: View {
       HStack {
         Text("Quick Tasks")
           .font(.headline)
+          .accessibilityAddTraits(.isHeader)
 
         Spacer()
 
@@ -24,6 +25,8 @@ struct QuickTaskWidget: View {
           }
           .font(.caption)
           .foregroundColor(Color.accentBlue)
+          .accessibilityLabel("Clear completed tasks")
+          .accessibilityHint("Removes all completed tasks from the list")
         }
       }
 
@@ -33,6 +36,8 @@ struct QuickTaskWidget: View {
         TextField("Add a task...", text: $newTaskText)
           .focused($isInputFocused)
           .textFieldStyle(RoundedBorderTextFieldStyle())
+          .accessibilityLabel("New task")
+          .accessibilityHint("Type a task name, then press return or tap Add")
           .onSubmit {
             submitTask()
           }
@@ -41,6 +46,8 @@ struct QuickTaskWidget: View {
           submitTask()
         }
         .disabled(newTaskText.isEmpty)
+        .accessibilityLabel("Add task")
+        .accessibilityHint("Adds the typed task to your list")
       }
 
       Divider()
@@ -89,25 +96,31 @@ struct QuickTaskRow: View {
       Button(action: onToggle) {
         Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
           .foregroundColor(task.isCompleted ? Color.successGreen : Color.gray)
+          .frame(minWidth: 44, minHeight: 44)
+          .contentShape(Rectangle())
       }
       .buttonStyle(PlainButtonStyle())
+      .accessibilityLabel("Task: \(task.text)")
+      .accessibilityValue(task.isCompleted ? "Completed" : "Not completed")
+      .accessibilityHint("Double tap to toggle completion")
 
       Text(task.text)
         .strikethrough(task.isCompleted)
         .foregroundColor(task.isCompleted ? Color.secondaryText : Color.primary)
+        .accessibilityHidden(true)
 
       Spacer()
 
       Button(action: onDelete) {
         Image(systemName: "trash")
           .foregroundColor(Color.errorRed)
+          .frame(minWidth: 44, minHeight: 44)
+          .contentShape(Rectangle())
       }
       .buttonStyle(PlainButtonStyle())
+      .accessibilityLabel("Delete task: \(task.text)")
+      .accessibilityHint("Permanently removes this task")
     }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(task.text)
-    .accessibilityValue(task.isCompleted ? "Completed" : "Not completed")
-    .accessibilityHint("Double tap to toggle completion")
   }
 }
 

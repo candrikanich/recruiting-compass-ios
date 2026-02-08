@@ -9,6 +9,7 @@ struct AthleteSelector: View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Select Athlete")
         .font(.headline)
+        .accessibilityAddTraits(.isHeader)
 
       Divider()
 
@@ -17,6 +18,7 @@ struct AthleteSelector: View {
           .font(.caption)
           .foregroundColor(Color.secondaryText)
           .padding(.vertical)
+          .accessibilityHint("Add family members to your account to select them here")
       } else {
         VStack(spacing: 8) {
           ForEach(athletes) { athlete in

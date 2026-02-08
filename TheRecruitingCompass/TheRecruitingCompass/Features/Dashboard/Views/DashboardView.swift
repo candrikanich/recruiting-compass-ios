@@ -60,6 +60,21 @@ struct DashboardView: View {
         }
       }
       .navigationTitle("Dashboard")
+      .toolbar {
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button(action: {
+            Task {
+              await viewModel.refresh()
+            }
+          }) {
+            Image(systemName: "arrow.clockwise")
+              .frame(minWidth: 44, minHeight: 44)
+              .contentShape(Rectangle())
+          }
+          .accessibilityLabel("Refresh dashboard")
+          .accessibilityHint("Fetches the latest dashboard data")
+        }
+      }
       .navigationDestination(for: DashboardDestination.self) { destination in
         destinationView(for: destination)
       }
@@ -75,10 +90,12 @@ struct DashboardView: View {
         Text("\(viewModel.selectedAthleteName)'s Dashboard")
           .font(.title2)
           .fontWeight(.bold)
+          .accessibilityAddTraits(.isHeader)
       } else {
         Text("Welcome back, \(viewModel.userFirstName)!")
           .font(.title2)
           .fontWeight(.bold)
+          .accessibilityAddTraits(.isHeader)
       }
 
       if let lastUpdated = viewModel.lastUpdated {
@@ -122,6 +139,8 @@ struct DashboardView: View {
             destination: .coaches
           )
         }
+        .accessibilityLabel("View all coaches, \(stats.coachCount) total")
+        .accessibilityHint("Opens your coaches list")
         .buttonStyle(PlainButtonStyle())
 
         NavigationLink(value: DashboardDestination.schools) {
@@ -135,6 +154,8 @@ struct DashboardView: View {
             destination: .schools
           )
         }
+        .accessibilityLabel("View all schools, \(stats.schoolCount) total")
+        .accessibilityHint("Opens your schools list")
         .buttonStyle(PlainButtonStyle())
 
         NavigationLink(value: DashboardDestination.interactions) {
@@ -148,6 +169,8 @@ struct DashboardView: View {
             destination: .interactions
           )
         }
+        .accessibilityLabel("View all interactions, \(stats.interactionCount) total")
+        .accessibilityHint("Opens your interactions list")
         .buttonStyle(PlainButtonStyle())
 
         NavigationLink(value: DashboardDestination.offers) {
@@ -161,6 +184,8 @@ struct DashboardView: View {
             destination: .offers
           )
         }
+        .accessibilityLabel("View all offers, \(stats.totalOffers) total")
+        .accessibilityHint("Opens your offers list")
         .buttonStyle(PlainButtonStyle())
 
         NavigationLink(value: DashboardDestination.accepted) {
@@ -174,6 +199,8 @@ struct DashboardView: View {
             destination: .accepted
           )
         }
+        .accessibilityLabel("View accepted offers, \(stats.acceptedOffers) total")
+        .accessibilityHint("Opens your accepted offers list")
         .buttonStyle(PlainButtonStyle())
 
         NavigationLink(value: DashboardDestination.aTier) {
@@ -187,6 +214,8 @@ struct DashboardView: View {
             destination: .aTier
           )
         }
+        .accessibilityLabel("View A-Tier schools, \(stats.aTierSchoolCount) total")
+        .accessibilityHint("Opens your top-tier schools list")
         .buttonStyle(PlainButtonStyle())
       }
     }
@@ -196,6 +225,7 @@ struct DashboardView: View {
     ErrorBanner(message: message, onDismiss: {
       viewModel.errorMessage = nil
     })
+    .accessibilityAddTraits(.updatesFrequently)
   }
 
   private var widgetsSection: some View {
@@ -262,6 +292,7 @@ struct DashboardView: View {
     }) {
       HStack {
         Image(systemName: "rectangle.portrait.and.arrow.right")
+          .accessibilityHidden(true)
         Text(viewModel.isLoggingOut ? "Logging out..." : "Log Out")
           .font(.callout.weight(.semibold))
       }
@@ -274,6 +305,8 @@ struct DashboardView: View {
     .disabled(viewModel.isLoggingOut)
     .opacity(viewModel.isLoggingOut ? 0.6 : 1)
     .padding(.horizontal)
+    .accessibilityLabel(viewModel.isLoggingOut ? "Logging out" : "Log out")
+    .accessibilityHint("Ends your session and returns to the login screen")
   }
 
   @ViewBuilder
@@ -288,9 +321,9 @@ struct DashboardView: View {
     case .offers:
       OffersListView()
     case .accepted:
-      OffersListView() // Reuse OffersListView, will filter by status later
+      OffersListView()
     case .aTier:
-      SchoolsListView() // Reuse SchoolsListView, will filter by tier later
+      SchoolsListView()
     case .suggestions:
       SuggestionsListView(viewModel: viewModel)
     }

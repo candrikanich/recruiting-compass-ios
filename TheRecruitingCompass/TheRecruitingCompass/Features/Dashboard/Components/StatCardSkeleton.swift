@@ -26,6 +26,9 @@ struct StatCardSkeleton: View {
     .opacity(isAnimating ? 0.5 : 1.0)
     .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isAnimating)
     .onAppear { isAnimating = true }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("Loading statistics")
+    .accessibilityAddTraits(.updatesFrequently)
   }
 }
 

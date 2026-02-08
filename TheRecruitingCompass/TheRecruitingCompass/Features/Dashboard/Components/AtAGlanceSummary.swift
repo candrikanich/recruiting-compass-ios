@@ -11,6 +11,7 @@ struct AtAGlanceSummary: View {
     VStack(alignment: .leading, spacing: 12) {
       Text("At a Glance")
         .font(.headline)
+        .accessibilityAddTraits(.isHeader)
 
       Divider()
 
@@ -81,6 +82,22 @@ struct MetricCard: View {
     .cornerRadius(8)
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(title): \(value)")
+    .accessibilityHint(metricHint)
+  }
+
+  private var metricHint: String {
+    switch title {
+    case "Avg Coach Responsiveness":
+      return "Higher percentages indicate coaches respond faster"
+    case "Days Until Graduation":
+      return "Number of days remaining until graduation"
+    case "Schools with Offers":
+      return "Percentage of schools that have extended offers"
+    case "Interactions This Month":
+      return "Total number of interactions logged this month"
+    default:
+      return ""
+    }
   }
 }
 

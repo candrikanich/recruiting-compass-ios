@@ -11,6 +11,7 @@ struct EmptyDashboardState: View {
       Text("Start Your Recruiting Journey")
         .font(.title2)
         .fontWeight(.bold)
+        .accessibilityAddTraits(.isHeader)
 
       Text("Add your first school or log an interaction to get started")
         .font(.body)

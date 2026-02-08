@@ -3,14 +3,21 @@ import SwiftUI
 struct PerformanceMetricsWidget: View {
   let metrics: [PerformanceMetric]
 
+  @State private var isShowingAll = false
+
   private var recentMetrics: [PerformanceMetric] {
-    metrics.sorted { $0.recordedDate > $1.recordedDate }.prefix(4).map { $0 }
+    metrics.sorted { $0.recordedDate > $1.recordedDate }
+  }
+
+  private var visibleMetrics: [PerformanceMetric] {
+    isShowingAll ? recentMetrics : Array(recentMetrics.prefix(4))
   }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Performance Metrics")
         .font(.headline)
+        .accessibilityAddTraits(.isHeader)
 
       Divider()
 
@@ -21,16 +28,30 @@ struct PerformanceMetricsWidget: View {
           .padding(.vertical)
       } else {
         VStack(spacing: 12) {
-          ForEach(recentMetrics) { metric in
+          ForEach(visibleMetrics) { metric in
             MetricRow(metric: metric)
           }
         }
 
         if metrics.count > 4 {
-          Button("Show \(metrics.count - 4) more metrics") {
+          Button(action: { isShowingAll.toggle() }) {
+            HStack(spacing: 4) {
+              Text(isShowingAll
+                ? "Show less"
+                : "Show \(metrics.count - 4) more metrics")
+                .font(.caption)
+              Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
+                .font(.caption2)
+                .accessibilityHidden(true)
+            }
+            .foregroundColor(Color.accentBlue)
           }
-          .font(.caption)
-          .foregroundColor(Color.accentBlue)
+          .accessibilityLabel(isShowingAll
+            ? "Show fewer metrics"
+            : "Show all \(metrics.count) metrics")
+          .accessibilityHint(isShowingAll
+            ? "Collapses the list to show only 4 metrics"
+            : "Expands the list to show all metrics")
         }
       }
     }
@@ -68,6 +89,14 @@ struct MetricRow: View {
     }
   }
 
+  private var formattedValue: String {
+    let valueText = String(format: "%.2f", metric.value)
+    if let unit = metric.unit {
+      return "\(valueText) \(unit)"
+    }
+    return valueText
+  }
+
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: metricIcon)
@@ -81,17 +110,9 @@ struct MetricRow: View {
           .font(.subheadline)
           .fontWeight(.semibold)
 
-        HStack {
-          Text(String(format: "%.2f", metric.value))
-            .font(.body)
-            .foregroundColor(Color.darkSlate)
-
-          if let unit = metric.unit {
-            Text(unit)
-              .font(.caption)
-              .foregroundColor(Color.secondaryText)
-          }
-        }
+        Text(formattedValue)
+          .font(.body)
+          .foregroundColor(Color.darkSlate)
 
         Text(dateFormatted)
           .font(.caption)
@@ -101,10 +122,11 @@ struct MetricRow: View {
       Spacer()
     }
     .padding(12)
+    .frame(minHeight: 44)
     .background(Color(.secondarySystemBackground))
     .cornerRadius(8)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(metric.displayName): \(metric.value) \(metric.unit ?? "")")
+    .accessibilityLabel("\(metric.displayName): \(formattedValue)")
     .accessibilityValue("Recorded \(dateFormatted)")
   }
 }
