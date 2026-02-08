@@ -25,7 +25,7 @@ class SignupViewModel: ObservableObject {
   @Published var fieldErrors: [FormFieldKey: String] = [:]
   @Published var shouldNavigateToVerifyEmail = false
 
-  private let authManager: AuthManager
+  private let authManager: any AuthManaging
   private let formValidator = FormValidator.self
 
   var isFormValid: Bool {
@@ -60,7 +60,7 @@ class SignupViewModel: ObservableObject {
     isLoading || !isFormValid
   }
 
-  init(authManager: AuthManager = .shared) {
+  init(authManager: any AuthManaging = AuthManager.shared) {
     self.authManager = authManager
   }
 

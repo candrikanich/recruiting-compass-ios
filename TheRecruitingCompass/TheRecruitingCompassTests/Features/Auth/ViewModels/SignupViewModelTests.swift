@@ -4,16 +4,30 @@ import XCTest
 @MainActor
 final class SignupViewModelTests: XCTestCase {
   var sut: SignupViewModel!
+  var mockAuthManager: MockAuthManager!
 
   @MainActor
   override func setUp() {
     super.setUp()
-    sut = SignupViewModel()
+    mockAuthManager = MockAuthManager()
+    sut = SignupViewModel(authManager: mockAuthManager)
   }
 
   override func tearDown() {
     sut = nil
+    mockAuthManager = nil
     super.tearDown()
+  }
+
+  // MARK: - Helpers
+
+  private func fillValidForm(role: UserRole = .parent) {
+    sut.selectRole(role)
+    sut.fullName = "John Doe"
+    sut.email = "john@example.com"
+    sut.password = "StrongPass123"
+    sut.confirmPassword = "StrongPass123"
+    sut.termsAccepted = true
   }
 
   // MARK: - Initialization Tests
@@ -161,57 +175,34 @@ final class SignupViewModelTests: XCTestCase {
   // MARK: - Form Validity Tests
 
   func testIsFormValidForParentRole() {
-    sut.selectedRole = .parent
-    sut.fullName = "John Doe"
-    sut.email = "john@example.com"
-    sut.password = "StrongPass123"
-    sut.confirmPassword = "StrongPass123"
-    sut.termsAccepted = true
+    fillValidForm(role: .parent)
 
     XCTAssertTrue(sut.isFormValid)
   }
 
   func testIsFormValidForStudentRoleWithoutFamilyCode() {
-    sut.selectedRole = .student
-    sut.fullName = "Jane Doe"
-    sut.email = "jane@example.com"
-    sut.password = "StrongPass123"
-    sut.confirmPassword = "StrongPass123"
+    fillValidForm(role: .student)
     sut.familyCode = ""
-    sut.termsAccepted = true
 
     XCTAssertTrue(sut.isFormValid)
   }
 
   func testIsFormValidForStudentRoleWithFamilyCode() {
-    sut.selectedRole = .student
-    sut.fullName = "Jane Doe"
-    sut.email = "jane@example.com"
-    sut.password = "StrongPass123"
-    sut.confirmPassword = "StrongPass123"
+    fillValidForm(role: .student)
     sut.familyCode = "FAM-ABC12345"
-    sut.termsAccepted = true
 
     XCTAssertTrue(sut.isFormValid)
   }
 
   func testIsFormInvalidWhenPasswordsDoNotMatch() {
-    sut.selectedRole = .parent
-    sut.fullName = "John Doe"
-    sut.email = "john@example.com"
-    sut.password = "StrongPass123"
+    fillValidForm(role: .parent)
     sut.confirmPassword = "DifferentPass123"
-    sut.termsAccepted = true
 
     XCTAssertFalse(sut.isFormValid)
   }
 
   func testIsFormInvalidWhenTermsNotAccepted() {
-    sut.selectedRole = .parent
-    sut.fullName = "John Doe"
-    sut.email = "john@example.com"
-    sut.password = "StrongPass123"
-    sut.confirmPassword = "StrongPass123"
+    fillValidForm(role: .parent)
     sut.termsAccepted = false
 
     XCTAssertFalse(sut.isFormValid)
@@ -229,15 +220,31 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testIsFormInvalidWhenFieldErrors() {
-    sut.selectedRole = .parent
-    sut.fullName = "John Doe"
-    sut.email = "john@example.com"
-    sut.password = "StrongPass123"
-    sut.confirmPassword = "StrongPass123"
-    sut.termsAccepted = true
+    fillValidForm(role: .parent)
     sut.fieldErrors[.email] = "Invalid email"
 
     XCTAssertFalse(sut.isFormValid)
+  }
+
+  // MARK: - isButtonDisabled Tests
+
+  func testIsButtonDisabledWhenFormInvalid() {
+    sut.selectedRole = nil
+
+    XCTAssertTrue(sut.isButtonDisabled)
+  }
+
+  func testIsButtonDisabledWhenLoading() {
+    fillValidForm()
+    sut.isLoading = true
+
+    XCTAssertTrue(sut.isButtonDisabled)
+  }
+
+  func testIsButtonEnabledWhenFormValidAndNotLoading() {
+    fillValidForm()
+
+    XCTAssertFalse(sut.isButtonDisabled)
   }
 
   // MARK: - Error Handling Tests
@@ -247,5 +254,250 @@ final class SignupViewModelTests: XCTestCase {
     sut.dismissError()
 
     XCTAssertNil(sut.errorMessage)
+  }
+
+  // MARK: - Signup Happy Path Tests
+
+  func testSignupSuccessNavigatesToEmailVerification() async {
+    fillValidForm(role: .parent)
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  func testSignupSuccessResetsLoadingState() async {
+    fillValidForm(role: .parent)
+
+    await sut.signup()
+
+    XCTAssertFalse(sut.isLoading)
+  }
+
+  func testSignupSuccessForStudentRole() async {
+    fillValidForm(role: .student)
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testSignupSuccessForPlayerRole() async {
+    fillValidForm(role: .player)
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+  }
+
+  // MARK: - Signup Validation Guard Tests
+
+  func testSignupWithInvalidFormDoesNotCallAuthManager() async {
+    sut.selectRole(.parent)
+    sut.fullName = ""
+    sut.email = ""
+    sut.password = ""
+    sut.confirmPassword = ""
+    sut.termsAccepted = false
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 0)
+    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testSignupWithInvalidFormSetsErrorMessage() async {
+    sut.selectRole(.parent)
+    sut.fullName = ""
+    sut.email = "invalid"
+    sut.password = "weak"
+    sut.confirmPassword = "different"
+    sut.termsAccepted = false
+
+    await sut.signup()
+
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertEqual(mockAuthManager.signupCallCount, 0)
+  }
+
+  func testSignupWithNoRoleSelectedSetsErrorMessage() async {
+    sut.selectedRole = nil
+    sut.fullName = "John Doe"
+    sut.email = "john@example.com"
+    sut.password = "StrongPass123"
+    sut.confirmPassword = "StrongPass123"
+    sut.termsAccepted = true
+
+    await sut.signup()
+
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertEqual(mockAuthManager.signupCallCount, 0)
+  }
+
+  func testSignupWithUnacceptedTermsDoesNotCallAuthManager() async {
+    fillValidForm(role: .parent)
+    sut.termsAccepted = false
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 0)
+  }
+
+  func testSignupRunsAllValidationsBeforeApiCall() async {
+    sut.selectRole(.parent)
+    sut.fullName = "J"
+    sut.email = "bad"
+    sut.password = "x"
+    sut.confirmPassword = "y"
+    sut.termsAccepted = false
+
+    await sut.signup()
+
+    XCTAssertNotNil(sut.fieldErrors[.fullName])
+    XCTAssertNotNil(sut.fieldErrors[.email])
+    XCTAssertNotNil(sut.fieldErrors[.password])
+    XCTAssertNotNil(sut.fieldErrors[.confirmPassword])
+    XCTAssertEqual(mockAuthManager.signupCallCount, 0)
+  }
+
+  // MARK: - Signup Error Handling Tests
+
+  func testSignupWithAuthErrorDisplaysErrorDescription() async {
+    fillValidForm(role: .parent)
+    mockAuthManager.shouldThrowSignupError = true
+    mockAuthManager.mockErrorToThrow = .emailAlreadyRegistered
+
+    await sut.signup()
+
+    XCTAssertEqual(sut.errorMessage, "An account with this email already exists")
+    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testSignupWithNetworkErrorDisplaysMessage() async {
+    fillValidForm(role: .parent)
+    mockAuthManager.shouldThrowSignupError = true
+    mockAuthManager.mockErrorToThrow = .networkError("No internet connection")
+
+    await sut.signup()
+
+    XCTAssertEqual(sut.errorMessage, "No internet connection")
+    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testSignupWithServerErrorDisplaysMessage() async {
+    fillValidForm(role: .parent)
+    mockAuthManager.shouldThrowSignupError = true
+    mockAuthManager.mockErrorToThrow = .serverError("Internal server error")
+
+    await sut.signup()
+
+    XCTAssertEqual(sut.errorMessage, "Server error. Please try again later.")
+    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testSignupWithPasswordTooWeakErrorDisplaysMessage() async {
+    fillValidForm(role: .parent)
+    mockAuthManager.shouldThrowSignupError = true
+    mockAuthManager.mockErrorToThrow = .passwordTooWeak
+
+    await sut.signup()
+
+    XCTAssertEqual(sut.errorMessage, "Password does not meet strength requirements")
+    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testSignupErrorResetsLoadingState() async {
+    fillValidForm(role: .parent)
+    mockAuthManager.shouldThrowSignupError = true
+    mockAuthManager.mockErrorToThrow = .networkError("Timeout")
+
+    await sut.signup()
+
+    XCTAssertFalse(sut.isLoading)
+  }
+
+  func testSignupClearsErrorMessageBeforeAttempt() async {
+    fillValidForm(role: .parent)
+    sut.errorMessage = "Previous error"
+
+    await sut.signup()
+
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  // MARK: - Signup Family Code Logic Tests
+
+  func testSignupSendsFamilyCodeForStudentRole() async {
+    fillValidForm(role: .student)
+    sut.familyCode = "FAM-ABC12345"
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testSignupSendsNilFamilyCodeForParentRole() async {
+    fillValidForm(role: .parent)
+    sut.familyCode = "FAM-SHOULDBEIGNORED"
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testSignupSendsNilFamilyCodeWhenEmptyForStudentRole() async {
+    fillValidForm(role: .student)
+    sut.familyCode = ""
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testSignupTrimsWhitespaceFamilyCode() async {
+    fillValidForm(role: .student)
+    sut.familyCode = "   "
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+  }
+
+  // MARK: - Signup Integration / State Transition Tests
+
+  func testSignupRetryAfterErrorDismissal() async {
+    fillValidForm(role: .parent)
+    mockAuthManager.shouldThrowSignupError = true
+    mockAuthManager.mockErrorToThrow = .networkError("Timeout")
+
+    await sut.signup()
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
+
+    sut.dismissError()
+    mockAuthManager.shouldThrowSignupError = false
+
+    await sut.signup()
+    XCTAssertNil(sut.errorMessage)
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+    XCTAssertEqual(mockAuthManager.signupCallCount, 2)
+  }
+
+  func testSignupWithInvalidFamilyCodeFormatDoesNotCallAuthManager() async {
+    fillValidForm(role: .student)
+    sut.familyCode = "INVALID"
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 0)
+    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
   }
 }
