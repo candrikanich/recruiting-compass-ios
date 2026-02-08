@@ -116,6 +116,13 @@ class SignupViewModel: ObservableObject {
     validate(.familyCode) { formValidator.validateFamilyCode(familyCode) }
   }
 
+  func errorBinding(for key: FormFieldKey) -> Binding<String?> {
+    Binding(
+      get: { self.fieldErrors[key] },
+      set: { self.fieldErrors[key] = $0 }
+    )
+  }
+
   func validateTerms() {
     if !termsAccepted {
       errorMessage = "You must accept the terms and conditions"
