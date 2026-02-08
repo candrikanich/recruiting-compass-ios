@@ -23,9 +23,11 @@ class MockAuthManager: AuthManaging {
   var shouldThrowSignupError = false
   var shouldThrowResetEmailError = false
   var shouldThrowUpdatePasswordError = false
+  var shouldThrowLogoutError = false
 
   var resetEmailCallCount = 0
   var updatePasswordCallCount = 0
+  var logoutCallCount = 0
 
   var mockUserToReturn: User?
   var mockSessionToReturn: Session?
@@ -141,6 +143,12 @@ class MockAuthManager: AuthManaging {
   }
 
   func logout() async throws {
+    logoutCallCount += 1
+
+    if shouldThrowLogoutError {
+      throw mockErrorToThrow
+    }
+
     self.user = nil
     self.session = nil
     self.isAuthenticated = false
@@ -172,8 +180,10 @@ class MockAuthManager: AuthManaging {
     shouldThrowSignupError = false
     shouldThrowResetEmailError = false
     shouldThrowUpdatePasswordError = false
+    shouldThrowLogoutError = false
     resetEmailCallCount = 0
     updatePasswordCallCount = 0
+    logoutCallCount = 0
 
     user = nil
     mockUserToReturn = nil
