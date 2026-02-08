@@ -172,7 +172,7 @@ class SignupViewModel: ObservableObject {
       )
       shouldNavigateToVerifyEmail = true
     } catch {
-      errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      errorMessage = mapAuthError(error).userMessage
     }
   }
 

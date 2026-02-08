@@ -2,8 +2,7 @@ import Foundation
 import Supabase
 import Helpers
 
-@MainActor
-class SupabaseManager {
+final class SupabaseManager: @unchecked Sendable {
   static let shared = SupabaseManager()
 
   let client: SupabaseClient

@@ -1,6 +1,9 @@
 import Foundation
+import OSLog
 import SwiftUI
 import Combine
+
+private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "DashboardViewModel")
 
 @MainActor
 final class DashboardViewModel: ObservableObject {
@@ -40,8 +43,6 @@ final class DashboardViewModel: ObservableObject {
 
   var schoolsWithOffers: Int {
     guard let stats = stats else { return 0 }
-    // Count unique school IDs from offers (need to add schoolId to Offer model in future)
-    // For now, approximate: if offers > 0 and schools > 0, assume at least 1 school has offers
     return stats.totalOffers > 0 && stats.schoolCount > 0 ? min(stats.totalOffers, stats.schoolCount) : 0
   }
 
@@ -53,8 +54,6 @@ final class DashboardViewModel: ObservableObject {
 
   var avgCoachResponsiveness: Double {
     // TODO: Calculate based on interaction response times
-    // For now, return a placeholder value
-    // This requires response_time field on interactions or similar logic
     return stats != nil && stats!.interactionCount > 0 ? 0.75 : 0.0
   }
 
@@ -85,7 +84,6 @@ final class DashboardViewModel: ObservableObject {
 
   var daysUntilGraduation: Int? {
     // TODO: Requires user.graduationDate field in User model
-    // For now, return placeholder if we have any data
     return stats != nil ? 365 : nil
   }
 
@@ -156,7 +154,7 @@ final class DashboardViewModel: ObservableObject {
       errorMessage = "Failed to load dashboard: \(error.localizedDescription)"
 
       #if DEBUG
-      print("⚠️ [Dashboard] Using empty stats for development")
+      logger.warning("Using empty stats for development")
       stats = DashboardStats(
         coachCount: 0,
         schoolCount: 0,
@@ -229,6 +227,7 @@ final class DashboardViewModel: ObservableObject {
     do {
       suggestions = try await dashboardService.fetchSuggestions(location: "dashboard")
     } catch {
+      logger.warning("Failed to load suggestions: \(error.localizedDescription)")
     }
   }
 
@@ -255,6 +254,7 @@ final class DashboardViewModel: ObservableObject {
     do {
       events = try await dashboardService.fetchEvents(userId: userId, limit: 10)
     } catch {
+      logger.warning("Failed to load events: \(error.localizedDescription)")
     }
   }
 
@@ -263,6 +263,7 @@ final class DashboardViewModel: ObservableObject {
     do {
       activities = try await dashboardService.fetchRecentActivity(userId: userId, limit: 10)
     } catch {
+      logger.warning("Failed to load activities: \(error.localizedDescription)")
     }
   }
 
@@ -271,6 +272,7 @@ final class DashboardViewModel: ObservableObject {
     do {
       metrics = try await dashboardService.fetchMetrics(userId: userId, limit: 10)
     } catch {
+      logger.warning("Failed to load metrics: \(error.localizedDescription)")
     }
   }
 
@@ -279,12 +281,13 @@ final class DashboardViewModel: ObservableObject {
     do {
       let interactions = try await dashboardService.fetchInteractions(userId: userId, limit: 30)
       let groupedByDate = Dictionary(grouping: interactions) { interaction -> String in
-        String(interaction.interactionDate.prefix(10))
+        String((interaction.interactionDate ?? interaction.createdAt).prefix(10))
       }
       interactionTrends = groupedByDate.map { date, interactions in
         InteractionTrend(id: date, date: "\(date)T00:00:00Z", count: interactions.count)
       }.sorted { $0.date < $1.date }
     } catch {
+      logger.warning("Failed to load interaction trends: \(error.localizedDescription)")
     }
   }
 

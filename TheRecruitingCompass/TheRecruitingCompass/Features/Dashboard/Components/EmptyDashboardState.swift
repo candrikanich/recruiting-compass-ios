@@ -3,7 +3,7 @@ import SwiftUI
 struct EmptyDashboardState: View {
   var body: some View {
     VStack(spacing: 16) {
-      Image(systemName: "compass.fill")
+      Image(systemName: "location.fill")
         .font(.system(size: 60))
         .foregroundColor(Color.primaryGreen)
         .accessibilityHidden(true)

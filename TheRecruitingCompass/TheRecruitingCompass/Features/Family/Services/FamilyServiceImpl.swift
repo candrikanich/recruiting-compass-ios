@@ -8,7 +8,6 @@ final class FamilyServiceImpl: FamilyManaging, @unchecked Sendable {
     self.supabaseManager = supabaseManager
   }
 
-  @MainActor
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember] {
     let response: [FamilyMember] = try await supabaseManager.client
       .from("family_members")
@@ -19,7 +18,6 @@ final class FamilyServiceImpl: FamilyManaging, @unchecked Sendable {
     return response
   }
 
-  @MainActor
   func getCurrentMember(userId: String) async throws -> FamilyMember? {
     let response: [FamilyMember] = try await supabaseManager.client
       .from("family_members")

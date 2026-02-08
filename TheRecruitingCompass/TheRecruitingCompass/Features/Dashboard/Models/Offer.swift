@@ -4,7 +4,7 @@ struct Offer: Codable, Identifiable, Sendable {
   let id: String
   let schoolId: String
   let amount: Double?
-  let type: String
+  let type: String?
   let status: String
   let offerDate: String
   let userId: String

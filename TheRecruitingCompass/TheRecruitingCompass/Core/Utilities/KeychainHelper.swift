@@ -9,8 +9,7 @@ enum KeychainError: Error {
   case unknown(Error)
 }
 
-@MainActor
-final class KeychainHelper {
+final class KeychainHelper: @unchecked Sendable {
   static let shared = KeychainHelper()
 
   private let service = "com.chrisandrikanich.TheRecruitingCompass"
