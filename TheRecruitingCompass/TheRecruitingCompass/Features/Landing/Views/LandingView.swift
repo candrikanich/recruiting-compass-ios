@@ -33,7 +33,7 @@ struct LandingView: View {
 
   private var logoSection: some View {
     VStack {
-      Image(systemName: "compass.fill")
+      Image(systemName: "location.fill")
         .font(.system(size: logoSize))
         .foregroundColor(.white)
         .shadow(radius: 10)
