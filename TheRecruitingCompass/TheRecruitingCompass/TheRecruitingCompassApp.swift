@@ -46,7 +46,7 @@ struct TheRecruitingCompassApp: App {
       .ignoresSafeArea()
 
       VStack(spacing: 16) {
-        Image(systemName: "compass.fill")
+        Image(systemName: "location.fill")
           .font(.system(size: 64))
           .foregroundColor(.white)
 
