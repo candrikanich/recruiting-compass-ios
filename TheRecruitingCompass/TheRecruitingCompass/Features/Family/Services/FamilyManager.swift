@@ -1,6 +1,9 @@
 import Foundation
+import OSLog
 import SwiftUI
 import Combine
+
+private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "FamilyManager")
 
 @MainActor
 final class FamilyManager: ObservableObject {
@@ -49,7 +52,7 @@ final class FamilyManager: ObservableObject {
         }
       }
     } catch {
-      print("Failed to load family data: \(error)")
+      logger.error("Failed to load family data: \(error.localizedDescription)")
     }
   }
 

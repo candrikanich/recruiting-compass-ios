@@ -5,7 +5,7 @@ struct Interaction: Codable, Identifiable, Sendable {
   let type: String
   let direction: String
   let notes: String?
-  let interactionDate: String
+  let interactionDate: String?
   let coachId: String?
   let schoolId: String?
   let loggedBy: String

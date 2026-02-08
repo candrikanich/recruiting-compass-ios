@@ -4,18 +4,31 @@ import Charts
 struct InteractionTrendsChart: View {
   let trends: [InteractionTrend]
 
+  private var totalInteractions: Int {
+    trends.map(\.count).reduce(0, +)
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Interaction Trends")
         .font(.headline)
+        .accessibilityAddTraits(.isHeader)
 
       Divider()
 
       if trends.isEmpty {
-        Text("No interaction data yet")
-          .font(.caption)
-          .foregroundColor(Color.secondaryText)
-          .padding(.vertical)
+        VStack(spacing: 8) {
+          Image(systemName: "chart.bar.xaxis")
+            .font(.system(size: 32))
+            .foregroundColor(Color.secondaryText)
+            .accessibilityHidden(true)
+
+          Text("No interaction data yet")
+            .font(.body)
+            .foregroundColor(Color.secondaryText)
+        }
+        .padding(.vertical, 24)
+        .frame(maxWidth: .infinity)
       } else {
         Chart(trends) { trend in
           BarMark(
@@ -26,7 +39,7 @@ struct InteractionTrendsChart: View {
         }
         .frame(height: 200)
         .chartXAxis {
-          AxisMarks(values: .stride(by: .day)) { value in
+          AxisMarks(values: .stride(by: .day)) { _ in
             AxisGridLine()
             AxisValueLabel(format: .dateTime.month(.abbreviated).day())
           }
@@ -34,6 +47,14 @@ struct InteractionTrendsChart: View {
         .chartYAxis {
           AxisMarks(position: .leading)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Bar chart showing interaction trends over \(trends.count) days")
+        .accessibilityValue("\(totalInteractions) total interactions, latest: \(trends.last?.count ?? 0)")
+
+        Text("\(totalInteractions) total interactions over \(trends.count) days")
+          .font(.caption)
+          .foregroundColor(Color.secondaryText)
+          .accessibilityHidden(true)
       }
     }
     .padding()

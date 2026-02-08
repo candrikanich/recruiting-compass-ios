@@ -33,9 +33,12 @@ struct ParentPreviewBanner: View {
         Image(systemName: "xmark.circle.fill")
           .font(.system(size: fontSize + 2))
           .foregroundColor(.white.opacity(0.9))
+          .frame(minWidth: 44, minHeight: 44)
+          .contentShape(Rectangle())
       }
       .buttonStyle(PlainButtonStyle())
       .accessibilityLabel("Exit preview mode")
+      .accessibilityHint("Returns to your athlete selection view")
     }
     .padding()
     .background(
@@ -45,9 +48,8 @@ struct ParentPreviewBanner: View {
         endPoint: .trailing
       )
     )
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("Parent preview mode. Viewing \(athleteName)'s dashboard")
-    .accessibilityHint("Tap X to exit preview mode")
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel("Parent preview mode active, viewing \(athleteName)'s dashboard")
   }
 }
 

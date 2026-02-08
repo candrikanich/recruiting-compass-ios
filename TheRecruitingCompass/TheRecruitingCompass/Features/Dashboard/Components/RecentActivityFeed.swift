@@ -3,14 +3,21 @@ import SwiftUI
 struct RecentActivityFeed: View {
   let activities: [Activity]
 
+  @State private var isShowingAll = false
+
   private var sortedActivities: [Activity] {
     activities.sorted { $0.timestamp > $1.timestamp }
+  }
+
+  private var visibleActivities: [Activity] {
+    isShowingAll ? sortedActivities : Array(sortedActivities.prefix(5))
   }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Recent Activity")
         .font(.headline)
+        .accessibilityAddTraits(.isHeader)
 
       Divider()
 
@@ -21,16 +28,30 @@ struct RecentActivityFeed: View {
           .padding(.vertical)
       } else {
         VStack(spacing: 12) {
-          ForEach(sortedActivities.prefix(5)) { activity in
+          ForEach(visibleActivities) { activity in
             ActivityRow(activity: activity)
           }
         }
 
         if sortedActivities.count > 5 {
-          Button("Show \(sortedActivities.count - 5) more activities") {
+          Button(action: { isShowingAll.toggle() }) {
+            HStack(spacing: 4) {
+              Text(isShowingAll
+                ? "Show less"
+                : "Show \(sortedActivities.count - 5) more activities")
+                .font(.caption)
+              Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
+                .font(.caption2)
+                .accessibilityHidden(true)
+            }
+            .foregroundColor(Color.accentBlue)
           }
-          .font(.caption)
-          .foregroundColor(Color.accentBlue)
+          .accessibilityLabel(isShowingAll
+            ? "Show fewer activities"
+            : "Show all \(sortedActivities.count) activities")
+          .accessibilityHint(isShowingAll
+            ? "Collapses the list to show only 5 activities"
+            : "Expands the list to show all activities")
         }
       }
     }
@@ -93,6 +114,7 @@ struct ActivityRow: View {
       Spacer()
     }
     .padding(.vertical, 8)
+    .frame(minHeight: 44)
     .accessibilityElement(children: .combine)
     .accessibilityLabel(activity.description)
     .accessibilityValue(timestampFormatted)

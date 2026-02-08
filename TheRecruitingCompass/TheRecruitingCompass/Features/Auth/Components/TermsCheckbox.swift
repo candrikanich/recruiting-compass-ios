@@ -70,9 +70,7 @@ struct TermsCheckbox: View {
   return VStack {
     TermsCheckbox(
       isChecked: $isChecked,
-      onTermsPressed: {
-        print("Terms pressed")
-      }
+      onTermsPressed: { }
     )
 
     Spacer()

@@ -3,7 +3,7 @@ import SwiftUI
 struct EmptyDashboardState: View {
   var body: some View {
     VStack(spacing: 16) {
-      Image(systemName: "compass.fill")
+      Image(systemName: "location.fill")
         .font(.system(size: 60))
         .foregroundColor(Color.primaryGreen)
         .accessibilityHidden(true)
@@ -11,6 +11,7 @@ struct EmptyDashboardState: View {
       Text("Start Your Recruiting Journey")
         .font(.title2)
         .fontWeight(.bold)
+        .accessibilityAddTraits(.isHeader)
 
       Text("Add your first school or log an interaction to get started")
         .font(.body)
