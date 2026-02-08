@@ -4,6 +4,7 @@ struct VerificationStatusIcon: View {
   let state: VerificationState
   @State private var isAnimating = false
   @Environment(\.sizeCategory) var sizeCategory
+  @Environment(\.accessibilityReduceMotion) var reduceMotion
 
   private var backgroundSize: CGFloat {
     sizeCategory >= .extraLarge ? 88 : 80
@@ -53,8 +54,11 @@ struct VerificationStatusIcon: View {
           Image(systemName: "checkmark.circle.fill")
             .font(.system(size: iconSize))
             .foregroundColor(Color.successGreen)
-            .scaleEffect(isAnimating ? 1.1 : 1.0)
-            .animation(.spring(response: 0.6, dampingFraction: 0.7), value: isAnimating)
+            .scaleEffect(isAnimating && !reduceMotion ? 1.1 : 1.0)
+            .animation(
+              reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.7),
+              value: isAnimating
+            )
             .accessibilityHidden(true)
 
         case .error:

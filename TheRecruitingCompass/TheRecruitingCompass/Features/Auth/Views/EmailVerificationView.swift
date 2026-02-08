@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct EmailVerificationView: View {
   @StateObject private var viewModel: EmailVerificationViewModel
@@ -30,6 +31,21 @@ struct EmailVerificationView: View {
         viewModel.stopPolling()
       }
     }
+    .onChange(of: viewModel.verificationState) { _, newState in
+      if case .verified = newState {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+          UIAccessibility.post(
+            notification: .announcement,
+            argument: "Email verified! You can now access the app."
+          )
+        }
+      } else if case .error(let message) = newState {
+        UIAccessibility.post(
+          notification: .announcement,
+          argument: "Email verification failed. \(message)"
+        )
+      }
+    }
   }
 
   // MARK: - Sub-views
@@ -40,6 +56,8 @@ struct EmailVerificationView: View {
         Text("← Back to Welcome")
           .font(.footnote.weight(.semibold))
           .foregroundColor(Color.darkSlate)
+          .frame(minHeight: 44)
+          .contentShape(Rectangle())
       }
       .accessibilityLabel("Back to welcome screen")
       Spacer()

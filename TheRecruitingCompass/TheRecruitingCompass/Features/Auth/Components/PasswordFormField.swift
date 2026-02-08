@@ -29,14 +29,14 @@ struct PasswordFormField: View {
         if isPasswordVisible {
           TextField(placeholder, text: $text)
             .accessibilityLabel(label)
-            .accessibilityHint(error ?? "")
+            .accessibilityValue(error.map { "Error: \($0)" } ?? "")
             .autocorrectionDisabled()
             .textInputAutocapitalization(.never)
             .onSubmit(onBlur)
         } else {
           SecureField(placeholder, text: $text)
             .accessibilityLabel(label)
-            .accessibilityHint(error ?? "")
+            .accessibilityValue(error.map { "Error: \($0)" } ?? "")
             .autocorrectionDisabled()
             .textInputAutocapitalization(.never)
             .onSubmit(onBlur)
@@ -50,7 +50,7 @@ struct PasswordFormField: View {
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
         .accessibilityLabel(isPasswordVisible ? "Hide password" : "Show password")
-        .accessibilityHint("Double tap to \(isPasswordVisible ? "hide" : "show") password text")
+        .accessibilityHint("Toggle to \(isPasswordVisible ? "hide" : "show") password characters")
       }
       .padding(12)
       .background(Color.white)

@@ -25,6 +25,8 @@ struct ResetPasswordView: View {
                 .font(.footnote.weight(.semibold))
             }
             .foregroundColor(Color.darkSlate)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
           }
           .accessibilityLabel("Back to previous screen")
           Spacer()

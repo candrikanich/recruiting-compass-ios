@@ -27,7 +27,7 @@ struct LoginFormField: View {
       }
     }
     .accessibilityLabel(label)
-    .accessibilityHint(error ?? "")
+    .accessibilityValue(error.map { "Error: \($0)" } ?? "")
     .autocorrectionDisabled()
     .textInputAutocapitalization(.never)
     .onSubmit(onBlur)

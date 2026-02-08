@@ -12,6 +12,7 @@ import Supabase
 struct TheRecruitingCompassApp: App {
   @StateObject var authManager = AuthManager.shared
   @State private var showResetPassword = false
+  @Environment(\.accessibilityReduceMotion) var reduceMotion
 
   var body: some Scene {
     WindowGroup {
@@ -28,8 +29,14 @@ struct TheRecruitingCompassApp: App {
           }
         }
       }
-      .animation(.easeInOut(duration: 0.3), value: authManager.isAuthenticated)
-      .animation(.easeInOut(duration: 0.2), value: authManager.isCheckingSession)
+      .animation(
+        reduceMotion ? nil : .easeInOut(duration: 0.3),
+        value: authManager.isAuthenticated
+      )
+      .animation(
+        reduceMotion ? nil : .easeInOut(duration: 0.2),
+        value: authManager.isCheckingSession
+      )
       .onOpenURL { url in
         handleDeepLink(url)
       }

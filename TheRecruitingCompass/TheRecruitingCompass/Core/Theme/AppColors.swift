@@ -7,7 +7,7 @@ extension Color {
     static let emeraldGradientEnd = Color(red: 0.05, green: 0.5, blue: 0.35)
 
     static let darkSlate = Color(red: 0.216, green: 0.263, blue: 0.322)
-    static let secondaryText = Color(red: 0.427, green: 0.467, blue: 0.514)
+    static let secondaryText = Color(red: 0.35, green: 0.40, blue: 0.48)
     static let tertiaryText = Color(red: 0.282, green: 0.337, blue: 0.431)
     static let nearBlack = Color(red: 0.05, green: 0.05, blue: 0.1)
 
@@ -24,7 +24,7 @@ extension Color {
     static let warningBorder = Color(red: 0.996, green: 0.891, blue: 0.658)
     static let strengthOrange = Color(red: 1, green: 0.647, blue: 0)
 
-    static let amberGold = Color(red: 0.855, green: 0.620, blue: 0.118)
+    static let amberGold = Color(red: 0.77, green: 0.56, blue: 0)
     static let successGreen = Color(red: 0.2, green: 0.62, blue: 0.4)
 
     static let iconGray = Color(red: 0.627, green: 0.655, blue: 0.686)

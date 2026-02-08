@@ -171,8 +171,11 @@ struct ForgotPasswordView: View {
         .frame(maxWidth: .infinity)
         .frame(height: 48)
         .foregroundColor(Color.accentBlue)
-        .background(Color.accentBlue.opacity(0.1))
-        .cornerRadius(8)
+        .background(Color.clear)
+        .overlay(
+          RoundedRectangle(cornerRadius: 8)
+            .stroke(Color.accentBlue, lineWidth: 1.5)
+        )
         .opacity(viewModel.canResendEmail ? 1 : 0.5)
       }
       .disabled(!viewModel.canResendEmail || viewModel.isLoading)
