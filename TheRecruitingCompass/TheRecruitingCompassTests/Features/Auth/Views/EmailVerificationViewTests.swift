@@ -55,266 +55,167 @@ final class EmailVerificationViewTests: XCTestCase {
     XCTAssertNotNil(view)
   }
 
-  // MARK: - Headline Text (via ViewModel state-driven logic)
+  // MARK: - Headline Text
 
   func testHeadlineTextForPendingState() {
     mockAuthManager.setMockUser(unverifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    XCTAssertEqual(viewModel.verificationState, .pending)
-    // View shows "Verify Your Email" for .pending and .checking
-    let expectedHeadline = "Verify Your Email"
-    XCTAssertEqual(headlineText(for: viewModel.verificationState), expectedHeadline)
-  }
-
-  func testHeadlineTextForCheckingState() {
-    let expectedHeadline = "Verify Your Email"
-    XCTAssertEqual(headlineText(for: .checking), expectedHeadline)
+    XCTAssertEqual(vm.headlineText, "Verify Your Email")
   }
 
   func testHeadlineTextForVerifiedState() {
-    let expectedHeadline = "Verified!"
-    XCTAssertEqual(headlineText(for: .verified), expectedHeadline)
+    mockAuthManager.setMockUser(verifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertEqual(vm.headlineText, "Verified!")
   }
 
-  func testHeadlineTextForErrorState() {
-    let expectedHeadline = "Verification Issue"
-    XCTAssertEqual(headlineText(for: .error(message: "Network error")), expectedHeadline)
+  func testHeadlineTextForErrorState() async {
+    mockAuthManager.setMockUser(unverifiedUser)
+    mockAuthManager.shouldThrowRefreshError = true
+    mockAuthManager.mockErrorToThrow = .networkError("fail")
+    let vm = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      initialPollingInterval: 0.02,
+      maxPollingInterval: 0.04,
+      maxConsecutiveErrors: 0
+    )
+
+    vm.startPolling()
+    try? await Task.sleep(nanoseconds: 300_000_000)
+    vm.stopPolling()
+
+    XCTAssertEqual(vm.headlineText, "Verification Issue")
   }
 
   // MARK: - Subtitle Text
 
   func testSubtitleTextForPendingState() {
-    let expected = "We've sent a verification link to your email. Click it to verify your account."
-    XCTAssertEqual(subtitleText(for: .pending), expected)
-  }
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-  func testSubtitleTextForCheckingState() {
-    let expected = "Checking your email verification status..."
-    XCTAssertEqual(subtitleText(for: .checking), expected)
+    XCTAssertEqual(vm.subtitleText, "We've sent a verification link to your email. Click it to verify your account.")
   }
 
   func testSubtitleTextForVerifiedState() {
-    let expected = "Your email has been verified successfully! You can now access the app."
-    XCTAssertEqual(subtitleText(for: .verified), expected)
-  }
+    mockAuthManager.setMockUser(verifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-  func testSubtitleTextForErrorState() {
-    let expected = "We encountered an issue verifying your email. Please try again."
-    XCTAssertEqual(subtitleText(for: .error(message: "err")), expected)
+    XCTAssertEqual(vm.subtitleText, "Your email has been verified successfully! You can now access the app.")
   }
 
   // MARK: - Action Button Text
 
   func testActionButtonTextWhenVerified() {
     mockAuthManager.setMockUser(verifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    XCTAssertEqual(actionButtonText(for: viewModel), "Continue to Dashboard")
+    XCTAssertEqual(vm.actionButtonText, "Continue to Dashboard")
   }
 
   func testActionButtonTextWhenCanResend() {
     mockAuthManager.setMockUser(unverifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    XCTAssertTrue(viewModel.canResendEmail)
-    XCTAssertEqual(actionButtonText(for: viewModel), "Resend Verification Email")
+    XCTAssertEqual(vm.actionButtonText, "Resend Verification Email")
   }
 
   func testActionButtonTextDuringCooldown() async {
     mockAuthManager.setMockUser(unverifiedUser)
-    let viewModel = EmailVerificationViewModel(
-      authManager: mockAuthManager,
-      cooldownDuration: 5
-    )
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 5)
 
-    await viewModel.resendVerificationEmail()
+    await vm.resendVerificationEmail()
 
-    XCTAssertFalse(viewModel.canResendEmail)
-    XCTAssertEqual(actionButtonText(for: viewModel), "Resend Email (Cooldown)")
+    XCTAssertEqual(vm.actionButtonText, "Resend Email (Cooldown)")
   }
 
   // MARK: - Button Disabled State
 
   func testButtonNotDisabledWhenVerified() {
     mockAuthManager.setMockUser(verifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    XCTAssertFalse(isButtonDisabled(for: viewModel))
+    XCTAssertFalse(vm.isButtonDisabled)
   }
 
   func testButtonNotDisabledWhenCanResend() {
     mockAuthManager.setMockUser(unverifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    XCTAssertFalse(isButtonDisabled(for: viewModel))
+    XCTAssertFalse(vm.isButtonDisabled)
   }
 
   func testButtonDisabledDuringCooldown() async {
     mockAuthManager.setMockUser(unverifiedUser)
-    let viewModel = EmailVerificationViewModel(
-      authManager: mockAuthManager,
-      cooldownDuration: 5
-    )
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 5)
 
-    await viewModel.resendVerificationEmail()
+    await vm.resendVerificationEmail()
 
-    XCTAssertTrue(isButtonDisabled(for: viewModel))
+    XCTAssertTrue(vm.isButtonDisabled)
   }
 
   // MARK: - Accessibility Labels
 
   func testAccessibilityLabelWhenVerified() {
     mockAuthManager.setMockUser(verifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    XCTAssertEqual(accessibilityLabelForButton(for: viewModel), "Continue to dashboard")
-  }
-
-  func testAccessibilityLabelWhenChecking() {
-    XCTAssertEqual(
-      accessibilityLabelForButton(state: .checking, isVerified: false),
-      "Checking verification status"
-    )
+    XCTAssertEqual(vm.accessibilityLabelForButton, "Continue to dashboard")
   }
 
   func testAccessibilityLabelWhenPending() {
-    XCTAssertEqual(
-      accessibilityLabelForButton(state: .pending, isVerified: false),
-      "Resend verification email"
-    )
+    mockAuthManager.setMockUser(unverifiedUser)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
+
+    XCTAssertEqual(vm.accessibilityLabelForButton, "Resend verification email")
   }
 
   func testAccessibilityHintWhenVerified() {
     mockAuthManager.setMockUser(verifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    XCTAssertEqual(accessibilityHintForButton(for: viewModel), "Navigate to dashboard")
+    XCTAssertEqual(vm.accessibilityHintForButton, "Navigate to dashboard")
   }
 
   func testAccessibilityHintDuringCooldown() async {
     mockAuthManager.setMockUser(unverifiedUser)
-    let viewModel = EmailVerificationViewModel(
-      authManager: mockAuthManager,
-      cooldownDuration: 30
-    )
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 30)
 
-    await viewModel.resendVerificationEmail()
+    await vm.resendVerificationEmail()
 
-    let hint = accessibilityHintForButton(for: viewModel)
-    XCTAssertTrue(hint.contains("seconds before resending"),
-      "Hint should mention cooldown seconds, got: \(hint)")
+    XCTAssertTrue(vm.accessibilityHintForButton.contains("seconds before resending"))
   }
 
   func testAccessibilityHintWhenCanResend() {
     mockAuthManager.setMockUser(unverifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    XCTAssertEqual(accessibilityHintForButton(for: viewModel), "Send another verification email")
+    XCTAssertEqual(vm.accessibilityHintForButton, "Send another verification email")
   }
 
   // MARK: - Cooldown Text Visibility
 
-  func testCooldownTextVisibleDuringCooldown() async {
+  func testShouldShowCooldownTextDuringCooldown() async {
     mockAuthManager.setMockUser(unverifiedUser)
-    let viewModel = EmailVerificationViewModel(
-      authManager: mockAuthManager,
-      cooldownDuration: 5
-    )
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 5)
 
-    await viewModel.resendVerificationEmail()
+    await vm.resendVerificationEmail()
 
-    let shouldShowCooldown = !viewModel.canResendEmail && !viewModel.isVerified
-    XCTAssertTrue(shouldShowCooldown)
-    XCTAssertGreaterThan(viewModel.resendCooldownSeconds, 0)
+    XCTAssertTrue(vm.shouldShowCooldownText)
   }
 
-  func testCooldownTextHiddenWhenVerified() {
+  func testShouldNotShowCooldownTextWhenVerified() {
     mockAuthManager.setMockUser(verifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    let shouldShowCooldown = !viewModel.canResendEmail && !viewModel.isVerified
-    XCTAssertFalse(shouldShowCooldown)
+    XCTAssertFalse(vm.shouldShowCooldownText)
   }
 
-  func testCooldownTextHiddenWhenCanResend() {
+  func testShouldNotShowCooldownTextWhenCanResend() {
     mockAuthManager.setMockUser(unverifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let vm = EmailVerificationViewModel(authManager: mockAuthManager)
 
-    let shouldShowCooldown = !viewModel.canResendEmail && !viewModel.isVerified
-    XCTAssertFalse(shouldShowCooldown)
-  }
-
-  // MARK: - Helpers (mirror view's computed properties)
-
-  private func headlineText(for state: VerificationState) -> String {
-    switch state {
-    case .pending, .checking:
-      return "Verify Your Email"
-    case .verified:
-      return "Verified!"
-    case .error:
-      return "Verification Issue"
-    }
-  }
-
-  private func subtitleText(for state: VerificationState) -> String {
-    switch state {
-    case .pending:
-      return "We've sent a verification link to your email. Click it to verify your account."
-    case .checking:
-      return "Checking your email verification status..."
-    case .verified:
-      return "Your email has been verified successfully! You can now access the app."
-    case .error:
-      return "We encountered an issue verifying your email. Please try again."
-    }
-  }
-
-  private func actionButtonText(for viewModel: EmailVerificationViewModel) -> String {
-    if viewModel.isVerified {
-      return "Continue to Dashboard"
-    } else if !viewModel.canResendEmail {
-      return "Resend Email (Cooldown)"
-    } else {
-      return "Resend Verification Email"
-    }
-  }
-
-  private func isButtonDisabled(for viewModel: EmailVerificationViewModel) -> Bool {
-    if viewModel.isVerified {
-      return false
-    }
-    return !viewModel.canResendEmail || viewModel.verificationState == .checking
-  }
-
-  private func accessibilityLabelForButton(for viewModel: EmailVerificationViewModel) -> String {
-    accessibilityLabelForButton(
-      state: viewModel.verificationState,
-      isVerified: viewModel.isVerified
-    )
-  }
-
-  private func accessibilityLabelForButton(
-    state: VerificationState,
-    isVerified: Bool
-  ) -> String {
-    if isVerified {
-      return "Continue to dashboard"
-    } else if state == .checking {
-      return "Checking verification status"
-    } else {
-      return "Resend verification email"
-    }
-  }
-
-  private func accessibilityHintForButton(for viewModel: EmailVerificationViewModel) -> String {
-    if viewModel.isVerified {
-      return "Navigate to dashboard"
-    } else if !viewModel.canResendEmail {
-      return "Wait \(viewModel.resendCooldownSeconds) seconds before resending"
-    } else {
-      return "Send another verification email"
-    }
+    XCTAssertFalse(vm.shouldShowCooldownText)
   }
 }

@@ -153,7 +153,7 @@ struct ForgotPasswordView: View {
         .transition(.opacity)
       }
 
-      InfoBanner(state: .pending(email: viewModel.submittedEmail))
+      InfoBanner(state: .pending, email: viewModel.submittedEmail)
 
       Button(action: {
         Task {

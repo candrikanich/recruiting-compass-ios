@@ -7,17 +7,6 @@ enum VerificationState: Equatable {
   case checking
   case verified
   case error(message: String)
-
-  static func == (lhs: VerificationState, rhs: VerificationState) -> Bool {
-    switch (lhs, rhs) {
-    case (.pending, .pending), (.checking, .checking), (.verified, .verified):
-      return true
-    case (.error(let lhsMsg), .error(let rhsMsg)):
-      return lhsMsg == rhsMsg
-    default:
-      return false
-    }
-  }
 }
 
 @MainActor
@@ -47,6 +36,69 @@ class EmailVerificationViewModel: ObservableObject {
   var userEmail: String? { authManager.user?.email }
   var isVerified: Bool { authManager.user?.emailConfirmedAt != nil }
   var isPolling: Bool { pollingTask != nil }
+
+  var headlineText: String {
+    switch verificationState {
+    case .pending, .checking:
+      return "Verify Your Email"
+    case .verified:
+      return "Verified!"
+    case .error:
+      return "Verification Issue"
+    }
+  }
+
+  var subtitleText: String {
+    switch verificationState {
+    case .pending:
+      return "We've sent a verification link to your email. Click it to verify your account."
+    case .checking:
+      return "Checking your email verification status..."
+    case .verified:
+      return "Your email has been verified successfully! You can now access the app."
+    case .error:
+      return "We encountered an issue verifying your email. Please try again."
+    }
+  }
+
+  var actionButtonText: String {
+    if isVerified {
+      return "Continue to Dashboard"
+    } else if !canResendEmail {
+      return "Resend Email (Cooldown)"
+    } else {
+      return "Resend Verification Email"
+    }
+  }
+
+  var isButtonDisabled: Bool {
+    if isVerified { return false }
+    return !canResendEmail || verificationState == .checking
+  }
+
+  var accessibilityLabelForButton: String {
+    if isVerified {
+      return "Continue to dashboard"
+    } else if verificationState == .checking {
+      return "Checking verification status"
+    } else {
+      return "Resend verification email"
+    }
+  }
+
+  var accessibilityHintForButton: String {
+    if isVerified {
+      return "Navigate to dashboard"
+    } else if !canResendEmail {
+      return "Wait \(resendCooldownSeconds) seconds before resending"
+    } else {
+      return "Send another verification email"
+    }
+  }
+
+  var shouldShowCooldownText: Bool {
+    !canResendEmail && !isVerified
+  }
 
   // MARK: - Initialization
 
