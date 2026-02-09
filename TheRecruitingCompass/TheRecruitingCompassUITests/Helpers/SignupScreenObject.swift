@@ -90,25 +90,27 @@ final class SignupScreenObject {
   // MARK: - Error Elements
 
   func errorBanner(containing text: String) -> XCUIElement {
-    app.staticTexts.matching(
+    // Use descendants(matching: .any) to find combined accessibility elements
+    app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS[cd] %@", text)
     ).firstMatch
   }
 
   var passwordStrengthWeak: XCUIElement {
-    app.staticTexts.matching(
+    // Password strength is a combined accessibility element, not a static text
+    app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS 'Password strength: Weak'")
     ).firstMatch
   }
 
   var passwordStrengthFair: XCUIElement {
-    app.staticTexts.matching(
+    app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS 'Password strength: Fair'")
     ).firstMatch
   }
 
   var passwordStrengthStrong: XCUIElement {
-    app.staticTexts.matching(
+    app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS 'Password strength: Strong'")
     ).firstMatch
   }
@@ -116,13 +118,14 @@ final class SignupScreenObject {
   // MARK: - Email Verification Screen Elements
 
   var verifyYourEmailHeadline: XCUIElement {
-    app.staticTexts.matching(
+    // Headlines may be combined with subtitles using .accessibilityElement(children: .combine)
+    app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS 'Verify Your Email'")
     ).firstMatch
   }
 
   var verifiedHeadline: XCUIElement {
-    app.staticTexts.matching(
+    app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS 'Verified!'")
     ).firstMatch
   }
@@ -136,7 +139,7 @@ final class SignupScreenObject {
   }
 
   var resendCooldownText: XCUIElement {
-    app.staticTexts.matching(
+    app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS 'Resend available in'")
     ).firstMatch
   }
@@ -144,7 +147,10 @@ final class SignupScreenObject {
   // MARK: - Dashboard Elements
 
   var dashboardWelcomeText: XCUIElement {
-    app.staticTexts["Welcome!"]
+    // Dashboard text may also be combined elements
+    app.descendants(matching: .any).matching(
+      NSPredicate(format: "label == 'Welcome!'")
+    ).firstMatch
   }
 
   var logoutButton: XCUIElement {

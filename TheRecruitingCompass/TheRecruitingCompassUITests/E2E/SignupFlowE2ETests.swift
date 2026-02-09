@@ -160,7 +160,8 @@ final class SignupFlowE2ETests: XCTestCase {
     } else {
       add(app.takeScreenshot(name: "13-signup-error"))
       // If we get an error (e.g., SUPABASE not configured), capture it
-      let errorExists = app.staticTexts.matching(
+      // Use descendants(matching: .any) to find combined accessibility elements
+      let errorExists = app.descendants(matching: .any).matching(
         NSPredicate(format: "label CONTAINS[cd] 'error' OR label CONTAINS[cd] 'failed'")
       ).firstMatch.exists
 

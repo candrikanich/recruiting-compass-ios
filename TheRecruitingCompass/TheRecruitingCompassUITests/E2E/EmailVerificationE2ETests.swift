@@ -36,7 +36,8 @@ final class EmailVerificationE2ETests: XCTestCase {
     add(app.takeScreenshot(name: "verify-01-pending-state"))
 
     // Verify the subtitle text indicates we sent an email
-    let sentEmailText = app.staticTexts.matching(
+    // Use descendants(matching: .any) to find combined accessibility elements
+    let sentEmailText = app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS[cd] 'verification link'")
     ).firstMatch
     XCTAssertTrue(sentEmailText.exists, "Should show text about verification link being sent")
@@ -111,7 +112,8 @@ final class EmailVerificationE2ETests: XCTestCase {
 
     // The polling starts automatically on appear with a 2s interval
     // Wait for the checking state to appear (ProgressView with "Checking verification")
-    let checkingLabel = app.staticTexts.matching(
+    // Use descendants(matching: .any) to find combined accessibility elements
+    let checkingLabel = app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS[cd] 'Checking'")
     ).firstMatch
 
