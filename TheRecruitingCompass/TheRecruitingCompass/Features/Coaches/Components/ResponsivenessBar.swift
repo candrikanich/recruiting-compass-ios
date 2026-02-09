@@ -46,6 +46,7 @@ struct ResponsivenessBar: View {
     .accessibilityElement(children: .combine)
     .accessibilityLabel("Responsiveness")
     .accessibilityValue(accessibilityLabel)
+    .accessibilityAddTraits(.updatesFrequently)
   }
 }
 

@@ -52,17 +52,17 @@ struct ActiveFilterChips: View {
         Image(systemName: "xmark")
           .font(.caption2)
           .fontWeight(.bold)
+          .frame(minWidth: 24, minHeight: 24)
+          .contentShape(Rectangle())
       }
+      .accessibilityLabel("Remove \(label) filter")
     }
     .padding(.horizontal, 10)
     .padding(.vertical, 6)
     .background(Color.accentBlue.opacity(0.12))
     .foregroundStyle(Color.accentBlue)
     .clipShape(Capsule())
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(label) filter active")
-    .accessibilityHint("Double tap to remove this filter")
-    .accessibilityAddTraits(.isButton)
+    .accessibilityElement(children: .contain)
   }
 }
 

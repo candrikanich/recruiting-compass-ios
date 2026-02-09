@@ -16,7 +16,10 @@ struct CoachesListView: View {
       }
     }
     .navigationTitle("Coaches")
-    .searchable(text: $viewModel.filters.searchText, prompt: "Search coaches...")
+    .searchable(
+      text: $viewModel.filters.searchText,
+      prompt: "Search coaches..."
+    )
     .refreshable { await viewModel.loadCoaches() }
     .task { await viewModel.loadCoaches() }
     .confirmationDialog(
@@ -85,6 +88,7 @@ struct CoachesListView: View {
       Text("Loading coaches...")
         .font(.subheadline)
         .foregroundStyle(.secondary)
+        .accessibilityHidden(true)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
@@ -136,6 +140,8 @@ struct CoachesListView: View {
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 4)
+    .accessibilityElement(children: .combine)
+    .accessibilityAddTraits(.isHeader)
   }
 
   private var coachCards: some View {

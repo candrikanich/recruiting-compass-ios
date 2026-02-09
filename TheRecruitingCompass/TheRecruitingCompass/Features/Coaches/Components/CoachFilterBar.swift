@@ -131,6 +131,7 @@ struct CoachFilterBar: View {
     }
     .padding(.horizontal, 12)
     .padding(.vertical, 8)
+    .frame(minHeight: 44)
     .background(isActive ? Color.accentBlue.opacity(0.12) : Color(.secondarySystemBackground))
     .foregroundStyle(isActive ? Color.accentBlue : Color.primary)
     .clipShape(Capsule())
