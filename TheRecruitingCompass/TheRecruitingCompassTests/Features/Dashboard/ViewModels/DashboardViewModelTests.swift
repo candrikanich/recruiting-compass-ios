@@ -83,14 +83,19 @@ final class DashboardViewModelTests: XCTestCase {
   private func makeInteraction(id: String, date: String) -> Interaction {
     Interaction(
       id: id,
-      type: "email",
-      direction: "outbound",
-      notes: nil,
-      interactionDate: date,
-      coachId: nil,
+      type: .email,
+      direction: .outbound,
       schoolId: nil,
+      coachId: nil,
+      subject: nil,
+      content: nil,
+      sentiment: nil,
+      occurredAt: date,
       loggedBy: "test-user-id",
-      createdAt: "2024-01-01T00:00:00Z"
+      attachments: nil,
+      familyUnitId: "family1",
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2024-01-01T00:00:00Z"
     )
   }
 

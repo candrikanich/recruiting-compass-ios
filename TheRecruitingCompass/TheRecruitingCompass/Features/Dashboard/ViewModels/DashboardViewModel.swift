@@ -281,7 +281,7 @@ final class DashboardViewModel: ObservableObject {
     do {
       let interactions = try await dashboardService.fetchInteractions(userId: userId, limit: 30)
       let groupedByDate = Dictionary(grouping: interactions) { interaction -> String in
-        String((interaction.interactionDate ?? interaction.createdAt).prefix(10))
+        String((interaction.occurredAt ?? interaction.createdAt).prefix(10))
       }
       interactionTrends = groupedByDate.map { date, interactions in
         InteractionTrend(id: date, date: "\(date)T00:00:00Z", count: interactions.count)
