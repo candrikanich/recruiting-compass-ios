@@ -165,9 +165,9 @@ final class SchoolsListViewModelTests: XCTestCase {
 
   func testSearch_ByName() {
     sut.allSchools = [
-      makeSchool(id: "1", name: "Stanford University"),
-      makeSchool(id: "2", name: "Harvard University"),
-      makeSchool(id: "3", name: "MIT")
+      makeSchool(id: "1", name: "Stanford University", location: "Stanford, CA", city: "Stanford", state: "CA"),
+      makeSchool(id: "2", name: "Harvard University", location: "Cambridge, MA", city: "Cambridge", state: "MA"),
+      makeSchool(id: "3", name: "MIT", location: "Cambridge, MA", city: "Cambridge", state: "MA")
     ]
 
     sut.filters.searchText = "stanford"
@@ -202,8 +202,8 @@ final class SchoolsListViewModelTests: XCTestCase {
 
   func testSearch_ByState() {
     sut.allSchools = [
-      makeSchool(id: "1", state: "CA"),
-      makeSchool(id: "2", state: "MA")
+      makeSchool(id: "1", name: "School A", location: "San Diego, CA", city: "San Diego", state: "CA"),
+      makeSchool(id: "2", name: "School B", location: "Boston, MA", city: "Boston", state: "MA")
     ]
 
     sut.filters.searchText = "ca"
