@@ -47,7 +47,7 @@ final class DashboardServiceImpl: DashboardManaging, @unchecked Sendable {
       let interactionCount = interactionList.count
       let totalOffers = offerList.count
       let acceptedOffers = offerList.filter { $0.status == "accepted" }.count
-      let aTierSchoolCount = schoolList.filter { $0.tier == "A" }.count
+      let aTierSchoolCount = schoolList.filter { $0.priorityTier == "A" }.count
       let acceptanceRate = totalOffers > 0 ? Double(acceptedOffers) / Double(totalOffers) : nil
 
       logger.info("fetchStats SUCCESS - schools: \(schoolCount), coaches: \(coachCount), interactions: \(interactionCount), offers: \(totalOffers)")
