@@ -68,24 +68,12 @@ struct CoachesListView: View {
     .sheet(isPresented: $showAddCoach) {
       AddCoachView()
     }
-    .overlay(alignment: .top) {
-      if viewModel.showSuccessToast, let message = viewModel.successMessage {
-        Toast(message: message, type: .success) {
-          viewModel.showSuccessToast = false
-          viewModel.successMessage = nil
-        }
-        .padding(.top, 8)
-        .transition(.move(edge: .top).combined(with: .opacity))
-        .onAppear {
-          DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            withAnimation {
-              viewModel.showSuccessToast = false
-              viewModel.successMessage = nil
-            }
-          }
-        }
-      }
-    }
+    .toast(
+      isShowing: $viewModel.showSuccessToast,
+      message: $viewModel.successMessage,
+      type: .success,
+      duration: 3.0
+    )
   }
 
   // MARK: - Loading

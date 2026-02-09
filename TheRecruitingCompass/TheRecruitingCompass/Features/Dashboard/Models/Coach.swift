@@ -31,9 +31,11 @@ struct Coach: Codable, Identifiable, Sendable {
     return CoachRole(rawValue: position.lowercased()) ?? .assistant
   }
 
+  private static let iso8601Formatter = ISO8601DateFormatter()
+
   var lastContactDateParsed: Date? {
     guard let lastContactDate else { return nil }
-    return ISO8601DateFormatter().date(from: lastContactDate)
+    return Self.iso8601Formatter.date(from: lastContactDate)
   }
 
   enum CodingKeys: String, CodingKey {

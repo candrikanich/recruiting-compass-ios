@@ -1,5 +1,7 @@
 import SwiftUI
 
+// MARK: - Toast View
+
 struct Toast: View {
   let message: String
   let type: ToastType
@@ -69,6 +71,56 @@ enum ToastType {
     }
   }
 }
+
+// MARK: - Toast Modifier
+
+struct ToastModifier: ViewModifier {
+  @Binding var isShowing: Bool
+  @Binding var message: String?
+  let type: ToastType
+  let duration: TimeInterval
+
+  func body(content: Content) -> some View {
+    content.overlay(alignment: .top) {
+      if isShowing, let message {
+        Toast(message: message, type: type) {
+          withAnimation {
+            isShowing = false
+            self.message = nil
+          }
+        }
+        .padding(.top, 8)
+        .transition(.move(edge: .top).combined(with: .opacity))
+        .onAppear {
+          DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            withAnimation {
+              isShowing = false
+              self.message = nil
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+extension View {
+  func toast(
+    isShowing: Binding<Bool>,
+    message: Binding<String?>,
+    type: ToastType = .success,
+    duration: TimeInterval = 3.0
+  ) -> some View {
+    modifier(ToastModifier(
+      isShowing: isShowing,
+      message: message,
+      type: type,
+      duration: duration
+    ))
+  }
+}
+
+// MARK: - Previews
 
 #Preview {
   VStack(spacing: 16) {
