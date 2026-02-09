@@ -3,6 +3,7 @@ import SwiftUI
 struct CoachesListView: View {
   @StateObject private var viewModel = CoachesListViewModel()
   @EnvironmentObject private var familyManager: FamilyManager
+  @State private var showAddCoach = false
 
   var body: some View {
     Group {
@@ -37,6 +38,52 @@ struct CoachesListView: View {
     } message: {
       if let error = viewModel.deleteErrorMessage {
         Text(error)
+      }
+    }
+    .toolbar {
+      ToolbarItem(placement: .navigationBarTrailing) {
+        Button {
+          showAddCoach = true
+        } label: {
+          Image(systemName: "plus")
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .accessibilityLabel("Add new coach")
+        .accessibilityHint("Opens form to add a new coach")
+      }
+    }
+    .navigationDestination(for: CoachDestination.self) { destination in
+      switch destination {
+      case .detail(let coachId):
+        CoachDetailView(
+          coachId: coachId,
+          allCoaches: viewModel.allCoaches,
+          allSchools: viewModel.allSchools
+        )
+      case .add:
+        AddCoachView()
+      }
+    }
+    .sheet(isPresented: $showAddCoach) {
+      AddCoachView()
+    }
+    .overlay(alignment: .top) {
+      if viewModel.showSuccessToast, let message = viewModel.successMessage {
+        Toast(message: message, type: .success) {
+          viewModel.showSuccessToast = false
+          viewModel.successMessage = nil
+        }
+        .padding(.top, 8)
+        .transition(.move(edge: .top).combined(with: .opacity))
+        .onAppear {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            withAnimation {
+              viewModel.showSuccessToast = false
+              viewModel.successMessage = nil
+            }
+          }
+        }
       }
     }
   }
@@ -105,13 +152,23 @@ struct CoachesListView: View {
 
   private var coachCards: some View {
     ForEach(viewModel.filteredCoaches) { coach in
-      CoachCardView(
-        coach: coach,
-        schoolName: viewModel.schoolName(for: coach.schoolId),
-        onDelete: { viewModel.confirmDelete(coach) }
-      )
-      .padding(.horizontal, 16)
-      .padding(.vertical, 4)
+      NavigationLink(value: CoachDestination.detail(coach.id)) {
+        CoachCardView(
+          coach: coach,
+          schoolName: viewModel.schoolName(for: coach.schoolId),
+          onDelete: { viewModel.confirmDelete(coach) }
+        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 4)
+      }
+      .buttonStyle(PlainButtonStyle())
+      .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+        Button(role: .destructive) {
+          viewModel.confirmDelete(coach)
+        } label: {
+          Label("Delete", systemImage: "trash")
+        }
+      }
     }
   }
 }

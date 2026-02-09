@@ -1,0 +1,80 @@
+import SwiftUI
+
+struct Toast: View {
+  let message: String
+  let type: ToastType
+  let onDismiss: () -> Void
+
+  @Environment(\.sizeCategory) private var sizeCategory
+
+  var body: some View {
+    HStack(spacing: 12) {
+      Image(systemName: type.iconName)
+        .font(.body)
+        .foregroundStyle(type.iconColor)
+        .accessibilityHidden(true)
+
+      Text(message)
+        .font(.subheadline)
+        .foregroundStyle(.primary)
+        .multilineTextAlignment(.leading)
+
+      Spacer()
+
+      Button {
+        onDismiss()
+      } label: {
+        Image(systemName: "xmark")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .frame(minWidth: 44, minHeight: 44)
+          .contentShape(Rectangle())
+      }
+      .accessibilityLabel("Dismiss notification")
+    }
+    .padding(16)
+    .background(
+      RoundedRectangle(cornerRadius: 12)
+        .fill(Color(.systemBackground))
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+    )
+    .padding(.horizontal, 16)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(message)
+    .accessibilityAddTraits(.updatesFrequently)
+  }
+}
+
+enum ToastType {
+  case success
+  case error
+  case info
+  case warning
+
+  var iconName: String {
+    switch self {
+    case .success: return "checkmark.circle.fill"
+    case .error: return "exclamationmark.circle.fill"
+    case .info: return "info.circle.fill"
+    case .warning: return "exclamationmark.triangle.fill"
+    }
+  }
+
+  var iconColor: Color {
+    switch self {
+    case .success: return .successGreen
+    case .error: return .errorRed
+    case .info: return .accentBlue
+    case .warning: return Color(hex: "F59E0B") // Amber
+    }
+  }
+}
+
+#Preview {
+  VStack(spacing: 16) {
+    Toast(message: "Coach deleted successfully", type: .success) {}
+    Toast(message: "Coach and 3 interactions deleted", type: .success) {}
+    Toast(message: "Failed to delete coach", type: .error) {}
+    Toast(message: "New coach added", type: .info) {}
+  }
+}

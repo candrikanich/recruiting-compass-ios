@@ -15,6 +15,8 @@ final class CoachesListViewModel: ObservableObject {
   @Published var coachToDelete: Coach?
   @Published var isDeleting = false
   @Published var deleteErrorMessage: String?
+  @Published var successMessage: String?
+  @Published var showSuccessToast = false
 
   private let coachesService: any CoachesManaging
   private let familyManager: FamilyManager
@@ -108,9 +110,11 @@ final class CoachesListViewModel: ObservableObject {
 
   func deleteCoach() async {
     guard let coach = coachToDelete else { return }
+    let coachName = coach.fullName
 
     isDeleting = true
     deleteErrorMessage = nil
+    successMessage = nil
     defer {
       isDeleting = false
       coachToDelete = nil
@@ -120,13 +124,24 @@ final class CoachesListViewModel: ObservableObject {
     do {
       try await coachesService.deleteCoach(id: coach.id)
       allCoaches.removeAll { $0.id == coach.id }
-      logger.info("Deleted coach: \(coach.fullName)")
+      logger.info("Deleted coach: \(coachName)")
+      successMessage = "Coach deleted"
+      showSuccessToast = true
     } catch {
       logger.warning("Simple delete failed, attempting cascade: \(error.localizedDescription)")
       do {
-        _ = try await coachesService.cascadeDeleteCoach(id: coach.id)
+        let result = try await coachesService.cascadeDeleteCoach(id: coach.id)
         allCoaches.removeAll { $0.id == coach.id }
-        logger.info("Cascade deleted coach: \(coach.fullName)")
+        logger.info("Cascade deleted coach: \(coachName)")
+
+        // Build detailed success message
+        let totalDeleted = result.deletedInteractions + result.deletedNotes
+        if totalDeleted > 0 {
+          successMessage = "Coach and \(totalDeleted) related record\(totalDeleted == 1 ? "" : "s") deleted"
+        } else {
+          successMessage = "Coach deleted"
+        }
+        showSuccessToast = true
       } catch {
         logger.error("Cascade delete failed: \(error.localizedDescription)")
         deleteErrorMessage = "Failed to delete coach. Please try again."

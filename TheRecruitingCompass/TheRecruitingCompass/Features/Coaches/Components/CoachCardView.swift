@@ -27,6 +27,7 @@ struct CoachCardView: View {
     .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     .accessibilityElement(children: .contain)
     .accessibilityLabel("\(coach.fullName), \(coach.role.displayName) at \(schoolName), responsiveness \(Int(coach.responsivenessScore))%")
+    .accessibilityHint("Double tap to view coach details")
   }
 
   // MARK: - Header
@@ -146,11 +147,6 @@ struct CoachCardView: View {
       }
       .accessibilityLabel("Delete coach")
       .accessibilityHint("Shows delete confirmation")
-
-      Image(systemName: "chevron.right")
-        .font(.caption)
-        .foregroundStyle(.secondary)
-        .accessibilityHidden(true)
     }
   }
 
