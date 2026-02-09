@@ -36,6 +36,8 @@ struct InteractionFilterBar: View {
             style: .rounded
           )
         }
+        .accessibilityLabel(typeFilterAccessibilityLabel)
+        .accessibilityHint("Opens menu to filter by interaction type")
 
         // Direction filter
         Menu {
@@ -64,6 +66,8 @@ struct InteractionFilterBar: View {
             style: .rounded
           )
         }
+        .accessibilityLabel(directionFilterAccessibilityLabel)
+        .accessibilityHint("Opens menu to filter by interaction direction")
 
         // Sentiment filter
         Menu {
@@ -92,6 +96,8 @@ struct InteractionFilterBar: View {
             style: .rounded
           )
         }
+        .accessibilityLabel(sentimentFilterAccessibilityLabel)
+        .accessibilityHint("Opens menu to filter by interaction sentiment")
 
         // Time period filter
         Menu {
@@ -120,6 +126,8 @@ struct InteractionFilterBar: View {
             style: .rounded
           )
         }
+        .accessibilityLabel(timePeriodFilterAccessibilityLabel)
+        .accessibilityHint("Opens menu to filter by time period")
 
         // Logged By filter (parents only)
         if showLoggedByFilter {
@@ -164,6 +172,8 @@ struct InteractionFilterBar: View {
               style: .rounded
             )
           }
+          .accessibilityLabel(loggedByFilterAccessibilityLabel)
+          .accessibilityHint("Opens menu to filter by who logged the interaction")
         }
       }
       .padding(.horizontal, 16)
@@ -187,6 +197,43 @@ struct InteractionFilterBar: View {
     }
 
     return "Logged By"
+  }
+
+  private var typeFilterAccessibilityLabel: String {
+    if let type = filters.type {
+      return "Filter by type: \(type.displayName) selected"
+    }
+    return "Filter by type"
+  }
+
+  private var directionFilterAccessibilityLabel: String {
+    if let direction = filters.direction {
+      return "Filter by direction: \(direction.displayName) selected"
+    }
+    return "Filter by direction"
+  }
+
+  private var sentimentFilterAccessibilityLabel: String {
+    if let sentiment = filters.sentiment {
+      return "Filter by sentiment: \(sentiment.displayName) selected"
+    }
+    return "Filter by sentiment"
+  }
+
+  private var timePeriodFilterAccessibilityLabel: String {
+    if let period = filters.timePeriod {
+      return "Filter by time period: \(period.displayName) selected"
+    }
+    return "Filter by time period"
+  }
+
+  private var loggedByFilterAccessibilityLabel: String {
+    if let loggedBy = filters.loggedBy {
+      let name = loggedBy == currentUserId ? "Me" :
+        linkedAthletes.first(where: { $0.userId == loggedBy })?.fullName ?? "Unknown"
+      return "Filter by logged by: \(name) selected"
+    }
+    return "Filter by logged by"
   }
 }
 

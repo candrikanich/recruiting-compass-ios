@@ -28,6 +28,7 @@ struct FilterMenuButton: View {
 
       Image(systemName: "chevron.down")
         .font(style == .capsule ? .caption2 : .caption)
+        .accessibilityHidden(true)
     }
     .foregroundStyle(foregroundColor)
     .padding(.horizontal, 12)
@@ -35,6 +36,9 @@ struct FilterMenuButton: View {
     .frame(minHeight: 44)
     .background(backgroundColor)
     .modifier(ShapeModifier(style: style))
+    .accessibilityElement(children: .combine)
+    .accessibilityAddTraits(.isButton)
+    .accessibilityLabel(accessibilityLabel)
   }
 
   private var foregroundColor: Color {
@@ -53,6 +57,13 @@ struct FilterMenuButton: View {
     case .rounded:
       return isActive ? Color.blue : Color(.systemGray6)
     }
+  }
+
+  private var accessibilityLabel: String {
+    if isActive {
+      return "\(label), active"
+    }
+    return label
   }
 }
 

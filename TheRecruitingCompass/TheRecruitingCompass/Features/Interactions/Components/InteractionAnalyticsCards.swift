@@ -81,7 +81,7 @@ struct AnalyticsCard: View {
     .background(backgroundColor)
     .cornerRadius(12)
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel("\(title): \(value)")
+    .accessibilityLabel(accessibilityLabel)
   }
 
   // MARK: - Computed Properties
@@ -96,6 +96,23 @@ struct AnalyticsCard: View {
 
   private var cardHeight: CGFloat {
     sizeCategory.isAccessibilityCategory ? 100 : 80
+  }
+
+  private var accessibilityLabel: String {
+    let interactionWord = value == 1 ? "interaction" : "interactions"
+
+    switch title {
+    case "Total":
+      return "\(value) total \(interactionWord)"
+    case "Outbound":
+      return "\(value) outbound \(interactionWord)"
+    case "Inbound":
+      return "\(value) inbound \(interactionWord)"
+    case "This Week":
+      return "\(value) \(interactionWord) this week"
+    default:
+      return "\(value) \(title.lowercased()) \(interactionWord)"
+    }
   }
 }
 
