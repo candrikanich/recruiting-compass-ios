@@ -31,18 +31,29 @@ xcodebuild test -scheme TheRecruitingCompass \
 ### Environment Configuration
 Supabase credentials must be configured before running:
 
-**Option 1: Xcode Scheme Environment Variables (Recommended)**
-1. Product → Scheme → Edit Scheme
-2. Run tab → Arguments → Environment Variables
-3. Add:
-   - `SUPABASE_URL`: Your project URL
-   - `SUPABASE_ANON_KEY`: Your anon key
+**⚠️ IMPORTANT: The shared Xcode scheme has EMPTY environment variable values for security. You MUST configure them locally.**
 
-**Option 2: .env file (Local Development)**
+**Setup Steps (First Time):**
+1. **Product → Scheme → Manage Schemes**
+2. **Uncheck "Shared"** for TheRecruitingCompass (creates local user scheme)
+3. Click **Close**
+4. **Product → Scheme → Edit Scheme**
+5. **Run** tab → **Arguments** → **Environment Variables**
+6. Update the empty values with your real Supabase credentials:
+   - `SUPABASE_URL`: `https://your-project.supabase.co`
+   - `SUPABASE_ANON_KEY`: `your-anon-key-here`
+
+**Why this approach?**
+- ✅ Shared scheme (in git) has empty placeholders
+- ✅ Your local user scheme (NOT in git) has real credentials
+- ✅ No secrets in version control
+- ✅ Easy onboarding for new developers
+
+**Alternative: .env file (Not Recommended)**
 ```bash
-# Copy example and fill in values
+# iOS doesn't automatically load .env files
+# Would require custom build script
 cp .env.example .env
-# NEVER commit .env - already in .gitignore
 ```
 
 ---

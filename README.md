@@ -41,19 +41,27 @@ Modern iOS app with authentication, signup, and email verification flows. Built 
    - **Anon Key**: Anon public key
 
 **Set Environment Variables in Xcode:**
+
+⚠️ **IMPORTANT:** The shared scheme has empty environment variable values for security. Follow these steps to configure them locally:
+
 1. Open `TheRecruitingCompass.xcodeproj`
-2. Select the **TheRecruitingCompass** scheme
-3. Go to **Product** → **Scheme** → **Edit Scheme**
-4. Select **Run** tab
-5. Navigate to **Arguments** section
-6. Click **+** under Environment Variables
-7. Add two variables:
-   - **Name:** `SUPABASE_URL` | **Value:** `https://your-project.supabase.co`
-   - **Name:** `SUPABASE_ANON_KEY` | **Value:** `your-anon-key`
+2. **Product** → **Scheme** → **Manage Schemes**
+3. **Uncheck "Shared"** for TheRecruitingCompass (creates local user scheme - NOT in git)
+4. Click **Close**
+5. **Product** → **Scheme** → **Edit Scheme**
+6. Select **Run** tab → **Arguments** section
+7. Update the empty environment variables with your real credentials:
+   - `SUPABASE_URL`: `https://your-project.supabase.co`
+   - `SUPABASE_ANON_KEY`: `your-anon-key`
 8. Click **Close**
 
-**Alternative (via .env file):**
-For local development, you can create a `.env` file in the project root. See `.env.example` for format.
+**Why this approach?**
+- ✅ Shared scheme (in git) keeps empty placeholders
+- ✅ Your local user scheme (NOT in git) has real credentials
+- ✅ No secrets in version control
+
+**Alternative (via .env file - Not Recommended):**
+iOS doesn't automatically load `.env` files. See `.env.example` for format.
 ⚠️ Never commit `.env` - it's in `.gitignore`
 
 ### 2. Build & Run
