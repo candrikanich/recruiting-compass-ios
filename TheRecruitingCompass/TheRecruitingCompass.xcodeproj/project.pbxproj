@@ -46,22 +46,16 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		988EFDAC2F35489B009C60F5 /* TheRecruitingCompass */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = TheRecruitingCompass;
 			sourceTree = "<group>";
 		};
 		988EFDBA2F35489C009C60F5 /* TheRecruitingCompassTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = TheRecruitingCompassTests;
 			sourceTree = "<group>";
 		};
 		988EFDC42F35489C009C60F5 /* TheRecruitingCompassUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = TheRecruitingCompassUITests;
 			sourceTree = "<group>";
 		};
