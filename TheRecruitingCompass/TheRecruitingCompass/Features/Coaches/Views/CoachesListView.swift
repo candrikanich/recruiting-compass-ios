@@ -8,7 +8,7 @@ struct CoachesListView: View {
   var body: some View {
     Group {
       if viewModel.isLoading && viewModel.allCoaches.isEmpty {
-        loadingView
+        LoadingStateView(message: "Loading coaches...")
       } else if viewModel.allCoaches.isEmpty {
         CoachEmptyState(isFilteredEmpty: false, onClearFilters: nil)
       } else {
@@ -79,20 +79,6 @@ struct CoachesListView: View {
     )
   }
 
-  // MARK: - Loading
-
-  private var loadingView: some View {
-    VStack(spacing: 12) {
-      ProgressView()
-        .accessibilityLabel("Loading coaches")
-      Text("Loading coaches...")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-        .accessibilityHidden(true)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-  }
-
   // MARK: - List Content
 
   private var coachListContent: some View {
@@ -125,23 +111,13 @@ struct CoachesListView: View {
   }
 
   private var resultsHeader: some View {
-    HStack {
-      Text("\(viewModel.resultCount) coach\(viewModel.resultCount == 1 ? "" : "es")")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-
-      if viewModel.activeFilterCount > 0 {
-        Text("(\(viewModel.activeFilterCount) filter\(viewModel.activeFilterCount == 1 ? "" : "s") active)")
-          .font(.caption)
-          .foregroundStyle(Color.accentBlue)
-      }
-
-      Spacer()
-    }
+    FilteredResultsHeader(
+      resultCount: viewModel.resultCount,
+      itemName: "coach",
+      activeFilterCount: viewModel.activeFilterCount
+    )
     .padding(.horizontal, 16)
     .padding(.vertical, 4)
-    .accessibilityElement(children: .combine)
-    .accessibilityAddTraits(.isHeader)
   }
 
   private var coachCards: some View {

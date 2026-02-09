@@ -8,7 +8,7 @@ struct SchoolsListView: View {
   var body: some View {
     Group {
       if viewModel.isLoading && viewModel.allSchools.isEmpty {
-        loadingView
+        LoadingStateView(message: "Loading schools...")
       } else if viewModel.allSchools.isEmpty {
         SchoolEmptyState(isFiltered: false, onClearFilters: {})
       } else {
@@ -75,20 +75,6 @@ struct SchoolsListView: View {
     )
   }
 
-  // MARK: - Loading
-
-  private var loadingView: some View {
-    VStack(spacing: 12) {
-      ProgressView()
-        .accessibilityLabel("Loading schools")
-      Text("Loading schools...")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-        .accessibilityHidden(true)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-  }
-
   // MARK: - List Content
 
   private var schoolListContent: some View {
@@ -110,14 +96,21 @@ struct SchoolsListView: View {
         }
 
         if viewModel.showWarningBanner {
-          warningBanner
-            .padding(.horizontal)
-            .padding(.bottom, 8)
+          WarningBanner(
+            title: "Large School List",
+            message: "You're tracking \(viewModel.allSchools.count) schools. Consider using filters to focus on your top choices."
+          )
+          .padding(.horizontal)
+          .padding(.bottom, 8)
         }
 
-        resultsHeader
-          .padding(.horizontal)
-          .padding(.bottom, 12)
+        FilteredResultsHeader(
+          resultCount: viewModel.resultCount,
+          itemName: "school",
+          activeFilterCount: viewModel.activeFilterCount
+        )
+        .padding(.horizontal)
+        .padding(.bottom, 12)
 
         if viewModel.filteredSchools.isEmpty {
           SchoolEmptyState(
@@ -129,54 +122,6 @@ struct SchoolsListView: View {
         }
       }
     }
-  }
-
-  // MARK: - Warning Banner
-
-  private var warningBanner: some View {
-    HStack(spacing: 12) {
-      Image(systemName: "exclamationmark.triangle.fill")
-        .foregroundColor(.orange)
-        .accessibilityHidden(true)
-
-      VStack(alignment: .leading, spacing: 4) {
-        Text("Large School List")
-          .font(.subheadline)
-          .fontWeight(.semibold)
-
-        Text("You're tracking \(viewModel.allSchools.count) schools. Consider using filters to focus on your top choices.")
-          .font(.caption)
-          .foregroundColor(.secondary)
-      }
-
-      Spacer()
-    }
-    .padding(12)
-    .background(Color.orange.opacity(0.1))
-    .clipShape(RoundedRectangle(cornerRadius: 8))
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("Warning: You're tracking \(viewModel.allSchools.count) schools. Consider using filters.")
-  }
-
-  // MARK: - Results Header
-
-  private var resultsHeader: some View {
-    HStack {
-      Text("\(viewModel.resultCount) \(viewModel.resultCount == 1 ? "school" : "schools")")
-        .font(.subheadline)
-        .fontWeight(.semibold)
-        .foregroundColor(.secondary)
-
-      if viewModel.activeFilterCount > 0 {
-        Text("(\(viewModel.activeFilterCount) \(viewModel.activeFilterCount == 1 ? "filter" : "filters") active)")
-          .font(.caption)
-          .foregroundColor(.secondary)
-      }
-
-      Spacer()
-    }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(viewModel.resultCount) schools, \(viewModel.activeFilterCount) filters active")
   }
 
   // MARK: - School Cards
