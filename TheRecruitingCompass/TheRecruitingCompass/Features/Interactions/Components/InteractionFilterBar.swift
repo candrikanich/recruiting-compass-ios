@@ -30,9 +30,10 @@ struct InteractionFilterBar: View {
             }
           }
         } label: {
-          FilterButton(
-            title: filters.type?.displayName ?? "Type",
-            isActive: filters.type != nil
+          FilterMenuButton(
+            label: filters.type?.displayName ?? "Type",
+            isActive: filters.type != nil,
+            style: .rounded
           )
         }
 
@@ -57,9 +58,10 @@ struct InteractionFilterBar: View {
             }
           }
         } label: {
-          FilterButton(
-            title: filters.direction?.displayName ?? "Direction",
-            isActive: filters.direction != nil
+          FilterMenuButton(
+            label: filters.direction?.displayName ?? "Direction",
+            isActive: filters.direction != nil,
+            style: .rounded
           )
         }
 
@@ -84,9 +86,10 @@ struct InteractionFilterBar: View {
             }
           }
         } label: {
-          FilterButton(
-            title: filters.sentiment?.displayName ?? "Sentiment",
-            isActive: filters.sentiment != nil
+          FilterMenuButton(
+            label: filters.sentiment?.displayName ?? "Sentiment",
+            isActive: filters.sentiment != nil,
+            style: .rounded
           )
         }
 
@@ -111,9 +114,10 @@ struct InteractionFilterBar: View {
             }
           }
         } label: {
-          FilterButton(
-            title: filters.timePeriod?.displayName ?? "Time Period",
-            isActive: filters.timePeriod != nil
+          FilterMenuButton(
+            label: filters.timePeriod?.displayName ?? "Time Period",
+            isActive: filters.timePeriod != nil,
+            style: .rounded
           )
         }
 
@@ -154,9 +158,10 @@ struct InteractionFilterBar: View {
               }
             }
           } label: {
-            FilterButton(
-              title: loggedByTitle,
-              isActive: filters.loggedBy != nil
+            FilterMenuButton(
+              label: loggedByTitle,
+              isActive: filters.loggedBy != nil,
+              style: .rounded
             )
           }
         }
@@ -182,28 +187,6 @@ struct InteractionFilterBar: View {
     }
 
     return "Logged By"
-  }
-}
-
-struct FilterButton: View {
-  let title: String
-  let isActive: Bool
-
-  var body: some View {
-    HStack(spacing: 6) {
-      Text(title)
-        .font(.subheadline)
-        .fontWeight(isActive ? .semibold : .regular)
-
-      Image(systemName: "chevron.down")
-        .font(.caption)
-    }
-    .foregroundColor(isActive ? .white : .primary)
-    .padding(.horizontal, 12)
-    .padding(.vertical, 8)
-    .frame(minHeight: 44)
-    .background(isActive ? Color.blue : Color(.systemGray6))
-    .cornerRadius(8)
   }
 }
 

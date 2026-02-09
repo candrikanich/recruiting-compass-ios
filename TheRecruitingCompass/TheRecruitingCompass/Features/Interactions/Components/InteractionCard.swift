@@ -93,7 +93,7 @@ struct InteractionCard: View {
           .foregroundColor(.secondary)
           .accessibilityHidden(true)
 
-        Text(formatDate(interaction.displayDate))
+        Text(DateFormatting.mediumDateShortTime(interaction.displayDate))
           .font(.caption)
           .foregroundColor(.secondary)
       }
@@ -141,19 +141,11 @@ struct InteractionCard: View {
       parts.append(sentiment.displayName)
     }
 
-    parts.append(formatDate(interaction.displayDate))
+    parts.append(DateFormatting.mediumDateShortTime(interaction.displayDate))
 
     return parts.joined(separator: ", ")
   }
 
-  // MARK: - Helpers
-
-  private func formatDate(_ date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .medium
-    formatter.timeStyle = .short
-    return formatter.string(from: date)
-  }
 }
 
 // MARK: - Supporting Views

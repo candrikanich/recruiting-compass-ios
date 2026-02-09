@@ -57,7 +57,7 @@ final class CoachesListViewModel: ObservableObject {
   }
 
   var schoolNameMap: [String: String] {
-    Dictionary(uniqueKeysWithValues: allSchools.map { ($0.id, $0.name) })
+    EntityNameLookup.schoolNameMap(from: allSchools)
   }
 
   var activeFilterCount: Int {
@@ -154,7 +154,7 @@ final class CoachesListViewModel: ObservableObject {
   }
 
   func schoolName(for schoolId: String) -> String {
-    schoolNameMap[schoolId] ?? "Unknown School"
+    EntityNameLookup.schoolName(for: schoolId, in: schoolNameMap)
   }
 
   // MARK: - Private

@@ -52,9 +52,10 @@ struct SchoolFilterBar: View {
         }
       }
     } label: {
-      filterChip(
+      FilterMenuButton(
         label: filters.division?.displayName ?? "Division",
-        isActive: filters.division != nil
+        isActive: filters.division != nil,
+        style: .capsule
       )
     }
     .accessibilityLabel("Division filter")
@@ -74,9 +75,10 @@ struct SchoolFilterBar: View {
         }
       }
     } label: {
-      filterChip(
+      FilterMenuButton(
         label: filters.status?.displayName ?? "Status",
-        isActive: filters.status != nil
+        isActive: filters.status != nil,
+        style: .capsule
       )
     }
     .accessibilityLabel("Status filter")
@@ -96,9 +98,10 @@ struct SchoolFilterBar: View {
         }
       }
     } label: {
-      filterChip(
+      FilterMenuButton(
         label: filters.state ?? "State",
-        isActive: filters.state != nil
+        isActive: filters.state != nil,
+        style: .capsule
       )
     }
     .accessibilityLabel("State filter")
@@ -151,9 +154,10 @@ struct SchoolFilterBar: View {
         }
       }
     } label: {
-      filterChip(
+      FilterMenuButton(
         label: filters.priorityTier?.displayName ?? "Tier",
-        isActive: filters.priorityTier != nil
+        isActive: filters.priorityTier != nil,
+        style: .capsule
       )
     }
     .accessibilityLabel("Priority tier filter")
@@ -169,9 +173,10 @@ struct SchoolFilterBar: View {
         }
       }
     } label: {
-      filterChip(
+      FilterMenuButton(
         label: "Sort: \(filters.sortBy.displayName)",
-        isActive: true
+        isActive: true,
+        style: .capsule
       )
     }
     .accessibilityLabel("Sort order")
@@ -285,19 +290,6 @@ struct SchoolFilterBar: View {
     .accessibilityHint("Set home location in settings to enable distance filtering")
   }
 
-  // MARK: - Helper
-
-  private func filterChip(label: String, isActive: Bool) -> some View {
-    Text(label)
-      .font(.subheadline)
-      .fontWeight(.medium)
-      .foregroundColor(isActive ? .white : .primary)
-      .padding(.horizontal, 12)
-      .padding(.vertical, 8)
-      .frame(minHeight: chipHeight)
-      .background(isActive ? Color.blue : Color(.systemGray5))
-      .clipShape(Capsule())
-  }
 }
 
 #Preview {

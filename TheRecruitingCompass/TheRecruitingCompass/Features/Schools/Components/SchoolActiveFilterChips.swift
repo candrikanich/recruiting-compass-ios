@@ -4,27 +4,19 @@ struct SchoolActiveFilterChips: View {
   @Binding var filters: SchoolFilters
   let onClearAll: () -> Void
 
-  @Environment(\.sizeCategory) private var sizeCategory
-
-  private var chipHeight: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 44 : 36
-  }
-
   var body: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 8) {
+    if !activeFilters.isEmpty {
+      FilterChipContainer(
+        hasFilters: !activeFilters.isEmpty,
+        style: .filled,
+        onClearAll: onClearAll
+      ) {
         ForEach(activeFilters, id: \.label) { filter in
-          activeChip(label: filter.label, onRemove: filter.onRemove)
-        }
-
-        if !activeFilters.isEmpty {
-          clearAllButton
+          FilterChip(label: filter.label, style: .filled, onRemove: filter.onRemove)
         }
       }
-      .padding(.horizontal)
-      .padding(.vertical, 8)
+      .background(Color(.systemGroupedBackground))
     }
-    .background(Color(.systemGroupedBackground))
   }
 
   private var activeFilters: [(label: String, onRemove: () -> Void)] {
@@ -68,45 +60,6 @@ struct SchoolActiveFilterChips: View {
     }
 
     return result
-  }
-
-  private func activeChip(label: String, onRemove: @escaping () -> Void) -> some View {
-    HStack(spacing: 4) {
-      Text(label)
-        .font(.subheadline)
-        .fontWeight(.medium)
-
-      Button(action: onRemove) {
-        Image(systemName: "xmark.circle.fill")
-          .font(.caption)
-          .accessibilityHidden(true)
-      }
-      .accessibilityLabel("Remove \(label) filter")
-      .accessibilityHint("Double tap to remove this filter")
-    }
-    .foregroundColor(.white)
-    .padding(.horizontal, 12)
-    .padding(.vertical, 6)
-    .frame(minHeight: chipHeight)
-    .background(Color.blue)
-    .clipShape(Capsule())
-    .accessibilityElement(children: .combine)
-  }
-
-  private var clearAllButton: some View {
-    Button(action: onClearAll) {
-      Text("Clear all")
-        .font(.subheadline)
-        .fontWeight(.semibold)
-    }
-    .foregroundColor(.red)
-    .padding(.horizontal, 12)
-    .padding(.vertical, 6)
-    .frame(minHeight: chipHeight)
-    .background(Color(.systemGray6))
-    .clipShape(Capsule())
-    .accessibilityLabel("Clear all filters")
-    .accessibilityHint("Double tap to remove all active filters")
   }
 }
 

@@ -80,11 +80,11 @@ final class InteractionsListViewModel: ObservableObject {
   }
 
   var schoolNameMap: [String: String] {
-    Dictionary(uniqueKeysWithValues: allSchools.map { ($0.id, $0.name) })
+    EntityNameLookup.schoolNameMap(from: allSchools)
   }
 
   var coachNameMap: [String: String] {
-    Dictionary(uniqueKeysWithValues: allCoaches.map { ($0.id, $0.fullName) })
+    EntityNameLookup.coachNameMap(from: allCoaches)
   }
 
   var activeFilterCount: Int {
@@ -210,11 +210,11 @@ final class InteractionsListViewModel: ObservableObject {
 
   func schoolName(for schoolId: String?) -> String? {
     guard let schoolId else { return nil }
-    return schoolNameMap[schoolId] ?? "Unknown School"
+    return EntityNameLookup.schoolName(for: schoolId, in: schoolNameMap)
   }
 
   func coachName(for coachId: String?) -> String? {
     guard let coachId else { return nil }
-    return coachNameMap[coachId] ?? "Unknown Coach"
+    return EntityNameLookup.coachName(for: coachId, in: coachNameMap)
   }
 }

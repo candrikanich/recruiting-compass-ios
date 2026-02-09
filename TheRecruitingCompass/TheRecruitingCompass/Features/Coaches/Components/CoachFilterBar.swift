@@ -29,9 +29,10 @@ struct CoachFilterBar: View {
         }
       }
     } label: {
-      filterChip(
+      FilterMenuButton(
         label: filters.role?.displayName ?? "Role",
-        isActive: filters.role != nil
+        isActive: filters.role != nil,
+        style: .capsule
       )
     }
     .accessibilityLabel("Filter by role")
@@ -53,9 +54,10 @@ struct CoachFilterBar: View {
         }
       }
     } label: {
-      filterChip(
+      FilterMenuButton(
         label: lastContactLabel,
-        isActive: filters.lastContactDays != nil
+        isActive: filters.lastContactDays != nil,
+        style: .capsule
       )
     }
     .accessibilityLabel("Filter by last contact")
@@ -82,9 +84,10 @@ struct CoachFilterBar: View {
         }
       }
     } label: {
-      filterChip(
+      FilterMenuButton(
         label: filters.responsivenessLevel?.displayName ?? "Responsiveness",
-        isActive: filters.responsivenessLevel != nil
+        isActive: filters.responsivenessLevel != nil,
+        style: .capsule
       )
     }
     .accessibilityLabel("Filter by responsiveness")
@@ -109,9 +112,10 @@ struct CoachFilterBar: View {
         }
       }
     } label: {
-      filterChip(
+      FilterMenuButton(
         label: "Sort: \(filters.sortBy.displayName)",
-        isActive: false
+        isActive: false,
+        style: .capsule
       )
     }
     .accessibilityLabel("Sort coaches")
@@ -119,23 +123,6 @@ struct CoachFilterBar: View {
     .accessibilityValue("Sorted by \(filters.sortBy.displayName)")
   }
 
-  // MARK: - Chip
-
-  private func filterChip(label: String, isActive: Bool) -> some View {
-    HStack(spacing: 4) {
-      Text(label)
-        .font(.subheadline)
-
-      Image(systemName: "chevron.down")
-        .font(.caption2)
-    }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 8)
-    .frame(minHeight: 44)
-    .background(isActive ? Color.accentBlue.opacity(0.12) : Color(.secondarySystemBackground))
-    .foregroundStyle(isActive ? Color.accentBlue : Color.primary)
-    .clipShape(Capsule())
-  }
 }
 
 #Preview {
