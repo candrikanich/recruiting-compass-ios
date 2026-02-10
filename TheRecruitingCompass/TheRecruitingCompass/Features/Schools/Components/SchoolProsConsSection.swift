@@ -38,6 +38,7 @@ struct SchoolProsConsSection: View {
               .onSubmit {
                 Task { await onAddPro() }
               }
+              .accessibilityIdentifier("pro-text-field")
               .accessibilityLabel("Add pro input")
 
             Button {
@@ -53,6 +54,7 @@ struct SchoolProsConsSection: View {
                   .font(.title2)
               }
             }
+            .accessibilityIdentifier("add-pro-button")
             .frame(width: 44, height: 44)
             .disabled(newPro.trimmingCharacters(in: .whitespaces).isEmpty || isAddingPro)
             .accessibilityLabel("Add pro")
@@ -79,6 +81,7 @@ struct SchoolProsConsSection: View {
               .onSubmit {
                 Task { await onAddCon() }
               }
+              .accessibilityIdentifier("con-text-field")
               .accessibilityLabel("Add con input")
 
             Button {
@@ -94,6 +97,7 @@ struct SchoolProsConsSection: View {
                   .font(.title2)
               }
             }
+            .accessibilityIdentifier("add-con-button")
             .frame(width: 44, height: 44)
             .disabled(newCon.trimmingCharacters(in: .whitespaces).isEmpty || isAddingCon)
             .accessibilityLabel("Add con")

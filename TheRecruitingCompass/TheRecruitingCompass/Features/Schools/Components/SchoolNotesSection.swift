@@ -22,6 +22,7 @@ struct SchoolNotesSection: View {
 
         if !isEditing {
           Button("Edit", action: onEdit)
+            .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-edit-button")
             .accessibilityLabel("Edit \(title.lowercased())")
         }
       }
@@ -40,10 +41,12 @@ struct SchoolNotesSection: View {
             .padding(8)
             .background(Color(.systemGray6))
             .cornerRadius(8)
+            .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-text-editor")
             .accessibilityLabel("\(title) editor")
 
           HStack {
             Button("Cancel", action: onCancel)
+              .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-cancel-button")
               .disabled(isSaving)
 
             Spacer()
@@ -59,6 +62,7 @@ struct SchoolNotesSection: View {
                 Text("Save")
               }
             }
+            .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-save-button")
             .buttonStyle(.borderedProminent)
             .disabled(isSaving)
           }

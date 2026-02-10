@@ -252,6 +252,7 @@ struct SchoolDetailView: View {
             .foregroundStyle(.red)
             .cornerRadius(12)
         }
+        .accessibilityIdentifier("delete-school-button")
         .padding(.horizontal)
         .padding(.bottom, 24)
         .accessibilityLabel("Delete school")

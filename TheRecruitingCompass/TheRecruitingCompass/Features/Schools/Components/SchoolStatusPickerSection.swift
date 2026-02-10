@@ -43,6 +43,7 @@ struct SchoolStatusPickerSection: View {
           .background(Color(.systemGray6))
           .cornerRadius(8)
         }
+        .accessibilityIdentifier("status-picker-button")
         .disabled(isUpdating)
 
         if isUpdating {

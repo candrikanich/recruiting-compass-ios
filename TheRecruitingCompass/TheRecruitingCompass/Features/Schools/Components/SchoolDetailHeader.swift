@@ -66,6 +66,7 @@ struct SchoolDetailHeader: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
+        .accessibilityIdentifier("favorite-button")
         .accessibilityLabel(school.isFavorite ? "Unfavorite" : "Favorite")
         .accessibilityHint(school.isFavorite ? "Remove from favorites" : "Add to favorites")
       }
