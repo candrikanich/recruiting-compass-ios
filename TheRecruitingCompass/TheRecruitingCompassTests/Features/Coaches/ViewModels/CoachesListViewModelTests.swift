@@ -109,6 +109,7 @@ final class CoachesListViewModelTests: XCTestCase {
       statusChangedAt: nil,
       priorityTier: "A",
       notes: nil,
+      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,

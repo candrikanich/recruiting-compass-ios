@@ -143,7 +143,6 @@ final class CoachDetailComponentsTests: XCTestCase {
       twitterHandle: nil, // No Twitter
       instagramHandle: nil, // No Instagram
       notes: nil,
-          privateNotes: nil,
       privateNotes: nil,
       responsivenessScore: 70,
       lastContactDate: nil,

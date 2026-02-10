@@ -16,10 +16,14 @@ final class SchoolDetailViewModelPhase3Tests: XCTestCase {
     // Set up FamilyManager.shared with test data
     FamilyManager.shared.familyUnit = FamilyUnit(
       id: "test-family-id",
-      name: "Test Family",
-      createdBy: "user-1",
+      playerUserId: "user-1",
+      familyName: "Test Family",
+      familyCode: nil,
+      codeGeneratedAt: nil,
       createdAt: "2025-01-01T00:00:00Z",
-      updatedAt: "2025-01-01T00:00:00Z"
+      updatedAt: "2025-01-01T00:00:00Z",
+      homeLatitude: nil,
+      homeLongitude: nil
     )
 
     viewModel = SchoolDetailViewModel(

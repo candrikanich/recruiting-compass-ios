@@ -30,10 +30,13 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
 
   // Phase 2 tracking
   var lastUpdatedNotes: String?
+  var lastPrivateNote: String? // Alias for lastUpdatedPrivateNote
   var lastUpdatedPrivateNote: String?
   var lastPrivateNoteUserId: String?
   var lastAddedPro: String?
+  var lastProIndex: Int? // Alias for lastRemovedProIndex
   var lastRemovedProIndex: Int?
+  var lastConIndex: Int? // Alias for lastRemovedConIndex
   var lastAddedCon: String?
   var lastRemovedConIndex: Int?
   var lastUpdatedBasicInfo: EditableBasicInfo?
@@ -83,6 +86,9 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
 
   func fetchSchool(id: String, familyUnitId: String) async throws -> School {
     fetchSchoolCallCount += 1
+    if delayDuration > 0 {
+      try await Task.sleep(nanoseconds: UInt64(delayDuration * 1_000_000_000))
+    }
     if shouldThrowError {
       throw errorToThrow
     }
@@ -99,6 +105,9 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     userId: String
   ) async throws -> School {
     updateStatusCallCount += 1
+    if delayDuration > 0 {
+      try await Task.sleep(nanoseconds: UInt64(delayDuration * 1_000_000_000))
+    }
     if shouldThrowError {
       throw errorToThrow
     }
@@ -123,6 +132,9 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
   func updateNotes(id: String, notes: String) async throws -> School {
     updateNotesCallCount += 1
     lastUpdatedNotes = notes
+    if delayDuration > 0 {
+      try await Task.sleep(nanoseconds: UInt64(delayDuration * 1_000_000_000))
+    }
     if shouldThrowError {
       throw errorToThrow
     }
@@ -135,6 +147,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
 
   func updatePrivateNotes(id: String, familyUnitId: String, userId: String, note: String?) async throws -> School {
     updatePrivateNotesCallCount += 1
+    lastPrivateNote = note
     lastUpdatedPrivateNote = note
     lastPrivateNoteUserId = userId
     if shouldThrowError {
@@ -170,6 +183,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
 
   func removePro(id: String, familyUnitId: String, index: Int) async throws -> School {
     removeProCallCount += 1
+    lastProIndex = index
     lastRemovedProIndex = index
     if shouldThrowError {
       throw errorToThrow
@@ -203,6 +217,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
 
   func removeCon(id: String, familyUnitId: String, index: Int) async throws -> School {
     removeConCallCount += 1
+    lastConIndex = index
     lastRemovedConIndex = index
     if shouldThrowError {
       throw errorToThrow
@@ -311,12 +326,51 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
       throw errorToThrow
     }
 
-    guard let school = stubbedSchool else {
+    guard var school = stubbedSchool else {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
 
     // Update school with new priority tier
-    stubbedSchool = school.with(priorityTier: tier?.rawValue)
+    // Create a new school instance with updated priority tier
+    stubbedSchool = School(
+      id: school.id,
+      userId: school.userId,
+      name: school.name,
+      location: school.location,
+      city: school.city,
+      state: school.state,
+      division: school.division,
+      conference: school.conference,
+      ranking: school.ranking,
+      isFavorite: school.isFavorite,
+      website: school.website,
+      faviconUrl: school.faviconUrl,
+      twitterHandle: school.twitterHandle,
+      instagramHandle: school.instagramHandle,
+      ncaaId: school.ncaaId,
+      status: school.status,
+      statusChangedAt: school.statusChangedAt,
+      priorityTier: tier?.rawValue,
+      notes: school.notes,
+      privateNotes: school.privateNotes,
+      pros: school.pros,
+      cons: school.cons,
+      offerDetails: school.offerDetails,
+      academicInfo: school.academicInfo,
+      amenities: school.amenities,
+      coachingPhilosophy: school.coachingPhilosophy,
+      coachingStyle: school.coachingStyle,
+      recruitingApproach: school.recruitingApproach,
+      communicationStyle: school.communicationStyle,
+      successMetrics: school.successMetrics,
+      fitScore: school.fitScore,
+      fitTier: school.fitTier,
+      familyUnitId: school.familyUnitId,
+      createdBy: school.createdBy,
+      updatedBy: school.updatedBy,
+      createdAt: school.createdAt,
+      updatedAt: school.updatedAt
+    )
     return stubbedSchool!
   }
 }

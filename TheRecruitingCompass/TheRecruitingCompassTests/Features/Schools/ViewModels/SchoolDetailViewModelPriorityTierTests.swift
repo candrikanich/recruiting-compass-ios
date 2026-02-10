@@ -147,11 +147,13 @@ final class SchoolDetailViewModelPriorityTierTests: XCTestCase {
       recruitingApproach: nil,
       communicationStyle: nil,
       successMetrics: nil,
+      fitScore: nil,
+      fitTier: nil,
       familyUnitId: "test-family-id",
       createdBy: "test-user-id",
-      createdAt: "2024-01-01T00:00:00Z",
       updatedBy: nil,
-      updatedAt: nil
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2024-01-01T00:00:00Z"
     )
   }
 }

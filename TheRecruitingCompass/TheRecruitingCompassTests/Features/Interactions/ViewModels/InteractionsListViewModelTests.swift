@@ -663,6 +663,7 @@ final class InteractionsListViewModelTests: XCTestCase {
       statusChangedAt: nil,
       priorityTier: nil,
       notes: nil,
+      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,
