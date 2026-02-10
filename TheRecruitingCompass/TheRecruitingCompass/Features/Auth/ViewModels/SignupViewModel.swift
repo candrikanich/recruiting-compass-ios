@@ -60,7 +60,7 @@ class SignupViewModel: ObservableObject {
     isLoading || !isFormValid
   }
 
-  init(authManager: any AuthManaging = AuthManager.shared) {
+  nonisolated init(authManager: any AuthManaging = AuthManager.shared) {
     self.authManager = authManager
   }
 

@@ -63,7 +63,7 @@ struct RoleSelectionCard: View {
 }
 
 #Preview {
-  @State var selectedRole: UserRole? = .parent
+  @Previewable @State var selectedRole: UserRole? = .parent
 
   return VStack(spacing: 12) {
     RoleSelectionCard(

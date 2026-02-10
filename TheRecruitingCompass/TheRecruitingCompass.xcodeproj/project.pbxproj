@@ -7,12 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		24F40AC02F9EF7EBECD559D7 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = D16172F76D1A1F431067D7F6 /* Toast.swift */; };
-		4A2A9156EA33693759FD64F3 /* AddCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5561067FE566F1D60C429942 /* AddCoachView.swift */; };
-		6A659D1EF102182F6C5A3592 /* CoachDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 342097F173481BD2E81C6178 /* CoachDetailViewModel.swift */; };
-		819403585396034B9EB4F65F /* CoachDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E304BE404F734B5A6A86F734 /* CoachDetailView.swift */; };
 		988EFDDF2F3549A1009C60F5 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 988EFDDE2F3549A1009C60F5 /* Supabase */; };
-		BA093A64C6872758D853E45A /* CoachDestination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 357741CB1F7E9FB153271A75 /* CoachDestination.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,14 +28,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		342097F173481BD2E81C6178 /* CoachDetailViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoachDetailViewModel.swift; path = TheRecruitingCompass/Features/Coaches/ViewModels/CoachDetailViewModel.swift; sourceTree = "<group>"; };
-		357741CB1F7E9FB153271A75 /* CoachDestination.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoachDestination.swift; path = TheRecruitingCompass/Features/Coaches/Models/CoachDestination.swift; sourceTree = "<group>"; };
-		5561067FE566F1D60C429942 /* AddCoachView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AddCoachView.swift; path = TheRecruitingCompass/Features/Coaches/Views/AddCoachView.swift; sourceTree = "<group>"; };
 		988EFDAA2F35489B009C60F5 /* TheRecruitingCompass.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TheRecruitingCompass.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		988EFDB72F35489C009C60F5 /* TheRecruitingCompassTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TheRecruitingCompassTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		988EFDC12F35489C009C60F5 /* TheRecruitingCompassUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TheRecruitingCompassUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D16172F76D1A1F431067D7F6 /* Toast.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Toast.swift; path = TheRecruitingCompass/Shared/Components/Toast.swift; sourceTree = "<group>"; };
-		E304BE404F734B5A6A86F734 /* CoachDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoachDetailView.swift; path = TheRecruitingCompass/Features/Coaches/Views/CoachDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -312,11 +302,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BA093A64C6872758D853E45A /* CoachDestination.swift in Sources */,
-				819403585396034B9EB4F65F /* CoachDetailView.swift in Sources */,
-				4A2A9156EA33693759FD64F3 /* AddCoachView.swift in Sources */,
-				6A659D1EF102182F6C5A3592 /* CoachDetailViewModel.swift in Sources */,
-				24F40AC02F9EF7EBECD559D7 /* Toast.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

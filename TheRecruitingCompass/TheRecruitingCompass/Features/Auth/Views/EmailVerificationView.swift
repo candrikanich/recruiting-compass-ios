@@ -24,7 +24,7 @@ struct EmailVerificationView: View {
     .navigationBarBackButtonHidden(true)
     .onAppear { viewModel.onAppear() }
     .onDisappear { viewModel.onDisappear() }
-    .onChange(of: scenePhase) { newPhase in
+    .onChange(of: scenePhase) { _, newPhase in
       if newPhase == .active && !viewModel.isVerified {
         viewModel.startPolling()
       } else if newPhase == .background {

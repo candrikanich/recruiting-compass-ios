@@ -65,7 +65,7 @@ struct TermsCheckbox: View {
 }
 
 #Preview {
-  @State var isChecked = false
+  @Previewable @State var isChecked = false
 
   return VStack {
     TermsCheckbox(

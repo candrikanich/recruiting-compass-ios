@@ -84,9 +84,8 @@ struct CoachDetailView: View {
       await viewModel.loadDetails()
     }
     .task {
-      async let coach = viewModel.loadCoach()
-      async let details = viewModel.loadDetails()
-      await (coach, details)
+      await viewModel.loadCoach()
+      await viewModel.loadDetails()
     }
   }
 

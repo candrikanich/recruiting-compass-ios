@@ -65,8 +65,8 @@ struct LoginFormField: View {
 }
 
 #Preview {
-  @State var text = ""
-  @State var error: String? = nil
+  @Previewable @State var text = ""
+  @Previewable @State var error: String? = nil
 
   return LoginFormField(
     label: "Email",

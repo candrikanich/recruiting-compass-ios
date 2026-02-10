@@ -42,7 +42,7 @@ class ResetPasswordViewModel: ObservableObject {
     isLoading || !isFormValid
   }
 
-  init(
+  nonisolated init(
     authManager: any AuthManaging = AuthManager.shared,
     config: PasswordResetConfig = .default
   ) {

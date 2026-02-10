@@ -19,7 +19,7 @@ struct FitScoreBadge: View {
   }
 
   var body: some View {
-    if let score = score {
+    if score != nil {
       BadgeView(
         text: "Fit: \(displayScore)",
         color: color,
