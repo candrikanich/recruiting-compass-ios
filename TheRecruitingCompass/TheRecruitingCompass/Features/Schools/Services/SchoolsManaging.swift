@@ -26,4 +26,7 @@ protocol SchoolsManaging: Sendable {
 
   // MARK: - Phase 3 Methods (College Data)
   func mergeCollegeData(id: String, data: CollegeDataResult) async throws -> School
+
+  // MARK: - Phase 4 Methods (Coaching Philosophy)
+  func updateCoachingPhilosophy(id: String, philosophy: EditableCoachingPhilosophy) async throws -> School
 }

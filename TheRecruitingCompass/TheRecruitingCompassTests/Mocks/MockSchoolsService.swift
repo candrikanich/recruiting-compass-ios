@@ -38,6 +38,12 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
   var lastRemovedConIndex: Int?
   var lastUpdatedBasicInfo: EditableBasicInfo?
 
+  // Phase 4 tracking
+  var updateCoachingPhilosophyCallCount = 0
+  var lastUpdatedPhilosophy: EditableCoachingPhilosophy?
+  var shouldSucceed = true
+  var simpleDeleteShouldFail = false
+
   func fetchSchools(familyUnitId: String) async throws -> [School] {
     fetchSchoolsCallCount += 1
     if shouldThrowError {
@@ -48,7 +54,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
 
   func deleteSchool(id: String) async throws {
     deleteSchoolCallCount += 1
-    if shouldThrowError {
+    if shouldThrowError || simpleDeleteShouldFail {
       throw errorToThrow
     }
   }
@@ -229,28 +235,62 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     guard let school = stubbedSchool else {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
-    // Merge college data into academic info
-    let updatedInfo = AcademicInfo(
-      gpaRequirement: school.academicInfo?.gpaRequirement,
-      satRequirement: school.academicInfo?.satRequirement,
-      actRequirement: school.academicInfo?.actRequirement,
-      additionalRequirements: school.academicInfo?.additionalRequirements,
-      address: data.address ?? school.academicInfo?.address,
-      city: data.city ?? school.academicInfo?.city,
-      state: data.state ?? school.academicInfo?.state,
-      latitude: data.latitude ?? school.academicInfo?.latitude,
-      longitude: data.longitude ?? school.academicInfo?.longitude,
-      studentSize: data.studentSize ?? school.academicInfo?.studentSize,
-      baseballFacilityAddress: school.academicInfo?.baseballFacilityAddress,
-      mascot: school.academicInfo?.mascot,
-      undergradSize: data.carnegieSize ?? school.academicInfo?.undergradSize,
-      carnegieSize: data.carnegieSize ?? school.academicInfo?.carnegieSize,
-      tuitionInState: data.tuitionInState ?? school.academicInfo?.tuitionInState,
-      tuitionOutOfState: data.tuitionOutOfState ?? school.academicInfo?.tuitionOutOfState,
-      admissionRate: data.admissionRate ?? school.academicInfo?.admissionRate,
-      distanceFromHome: school.academicInfo?.distanceFromHome
+    // For mock purposes, just return the school unchanged
+    // Real implementation would merge college data
+    return school
+  }
+
+  // MARK: - Phase 4 Methods
+
+  func updateCoachingPhilosophy(id: String, philosophy: EditableCoachingPhilosophy) async throws -> School {
+    updateCoachingPhilosophyCallCount += 1
+    lastUpdatedPhilosophy = philosophy
+    if shouldThrowError || !shouldSucceed {
+      throw errorToThrow
+    }
+    guard let school = stubbedSchool else {
+      throw NSError(domain: "MockSchoolsService", code: -1)
+    }
+    // Create a new school with updated coaching philosophy fields
+    stubbedSchool = School(
+      id: school.id,
+      userId: school.userId,
+      name: school.name,
+      location: school.location,
+      city: school.city,
+      state: school.state,
+      division: school.division,
+      conference: school.conference,
+      ranking: school.ranking,
+      isFavorite: school.isFavorite,
+      website: school.website,
+      faviconUrl: school.faviconUrl,
+      twitterHandle: school.twitterHandle,
+      instagramHandle: school.instagramHandle,
+      ncaaId: school.ncaaId,
+      status: school.status,
+      statusChangedAt: school.statusChangedAt,
+      priorityTier: school.priorityTier,
+      notes: school.notes,
+      privateNotes: school.privateNotes,
+      pros: school.pros,
+      cons: school.cons,
+      offerDetails: school.offerDetails,
+      academicInfo: school.academicInfo,
+      amenities: school.amenities,
+      coachingPhilosophy: philosophy.coachingPhilosophy.isEmpty ? nil : philosophy.coachingPhilosophy,
+      coachingStyle: philosophy.coachingStyle.isEmpty ? nil : philosophy.coachingStyle,
+      recruitingApproach: philosophy.recruitingApproach.isEmpty ? nil : philosophy.recruitingApproach,
+      communicationStyle: philosophy.communicationStyle.isEmpty ? nil : philosophy.communicationStyle,
+      successMetrics: philosophy.successMetrics.isEmpty ? nil : philosophy.successMetrics,
+      fitScore: school.fitScore,
+      fitTier: school.fitTier,
+      familyUnitId: school.familyUnitId,
+      createdBy: school.createdBy,
+      updatedBy: school.updatedBy,
+      createdAt: school.createdAt,
+      updatedAt: school.updatedAt
     )
-    stubbedSchool = school.with(academicInfo: updatedInfo)
     return stubbedSchool!
   }
 }

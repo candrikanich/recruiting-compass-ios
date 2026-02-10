@@ -43,6 +43,17 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
     deletedNotes: 1
   )
 
+  // Convenience aliases for tests
+  var mockCoaches: [Coach] {
+    get { stubbedCoaches }
+    set { stubbedCoaches = newValue }
+  }
+
+  var shouldSucceed: Bool {
+    get { !shouldThrowFetchCoaches }
+    set { shouldThrowFetchCoaches = !newValue }
+  }
+
   // MARK: - CoachesManaging
 
   func fetchSchools(familyUnitId: String) async throws -> [School] {

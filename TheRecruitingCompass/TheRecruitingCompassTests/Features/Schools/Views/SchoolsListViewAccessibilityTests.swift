@@ -271,6 +271,7 @@ final class SchoolsListViewAccessibilityTests: XCTestCase {
       statusChangedAt: nil,
       priorityTier: "A",
       notes: notes,
+      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,

@@ -390,4 +390,29 @@ final class SchoolsServiceImpl: SchoolsManaging, @unchecked Sendable {
     logger.info("College data merged for school: \(id)")
     return updated
   }
+
+  // MARK: - Phase 4: Coaching Philosophy
+
+  func updateCoachingPhilosophy(id: String, philosophy: EditableCoachingPhilosophy) async throws -> School {
+    logger.debug("Updating coaching philosophy for school: \(id)")
+
+    var updates: [String: String?] = [:]
+    updates["coaching_philosophy"] = philosophy.coachingPhilosophy.isEmpty ? nil : philosophy.coachingPhilosophy
+    updates["coaching_style"] = philosophy.coachingStyle.isEmpty ? nil : philosophy.coachingStyle
+    updates["recruiting_approach"] = philosophy.recruitingApproach.isEmpty ? nil : philosophy.recruitingApproach
+    updates["communication_style"] = philosophy.communicationStyle.isEmpty ? nil : philosophy.communicationStyle
+    updates["success_metrics"] = philosophy.successMetrics.isEmpty ? nil : philosophy.successMetrics
+
+    let updated: School = try await supabaseManager.client
+      .from("schools")
+      .update(updates)
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Coaching philosophy updated for school: \(id)")
+    return updated
+  }
 }

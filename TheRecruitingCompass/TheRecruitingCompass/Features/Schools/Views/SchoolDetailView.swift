@@ -145,8 +145,100 @@ struct SchoolDetailView: View {
           onLookup: { await viewModel.lookupCollegeData() }
         )
         .padding(.horizontal)
+
+        // MARK: - Phase 4 Sections
+
+        // Coaches Panel
+        SchoolCoachesPanel(
+          coaches: viewModel.coaches,
+          isLoading: viewModel.isLoadingCoaches,
+          onSeeAll: {
+            // TODO: Navigate to coaches list filtered by school
+          }
+        )
+        .padding(.horizontal)
+
+        // Quick Actions
+        SchoolQuickActions(
+          onLogInteraction: {
+            // TODO: Navigate to add interaction
+          },
+          onSendEmail: {
+            // TODO: Show email composer or alert
+          },
+          onManageCoaches: {
+            // TODO: Navigate to coaches list
+          }
+        )
+        .padding(.horizontal)
+
+        // Coaching Philosophy
+        SchoolCoachingPhilosophySection(
+          philosophy: EditableCoachingPhilosophy.from(school: school),
+          onEdit: { viewModel.startEditingCoachingPhilosophy() }
+        )
+        .padding(.horizontal)
+
+        // Documents
+        SchoolDocumentsSection()
+          .padding(.horizontal)
+
+        // Attribution
+        SchoolAttributionSection(
+          createdBy: school.createdBy,
+          createdAt: school.createdAt,
+          updatedBy: school.updatedBy,
+          updatedAt: school.updatedAt
+        )
+
+        // Delete Button
+        Button(role: .destructive) {
+          viewModel.confirmDelete()
+        } label: {
+          Label("Delete School", systemImage: "trash")
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.red.opacity(0.1))
+            .foregroundStyle(.red)
+            .cornerRadius(12)
+        }
+        .padding(.horizontal)
+        .padding(.bottom, 24)
+        .accessibilityLabel("Delete school")
+        .accessibilityHint("Permanently remove this school and all related data")
       }
       .padding(.vertical)
+    }
+    .sheet(isPresented: $viewModel.isEditingCoachingPhilosophy) {
+      SchoolCoachingPhilosophySheet(
+        philosophy: $viewModel.editedCoachingPhilosophy,
+        onSave: { await viewModel.saveCoachingPhilosophy() },
+        onCancel: { viewModel.cancelEditingCoachingPhilosophy() },
+        isSaving: viewModel.isSavingCoachingPhilosophy
+      )
+    }
+    .confirmationDialog(
+      "Delete School?",
+      isPresented: $viewModel.showDeleteConfirmation,
+      titleVisibility: .visible
+    ) {
+      Button("Delete", role: .destructive) {
+        Task {
+          await viewModel.deleteSchool {
+            dismiss()
+          }
+        }
+      }
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      Text("This will permanently delete the school and all related data. This action cannot be undone.")
+    }
+    .alert("Delete Failed", isPresented: .constant(viewModel.deleteErrorMessage != nil)) {
+      Button("OK") { viewModel.deleteErrorMessage = nil }
+    } message: {
+      if let error = viewModel.deleteErrorMessage {
+        Text(error)
+      }
     }
   }
 

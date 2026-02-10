@@ -45,6 +45,20 @@ final class SchoolDetailViewModel: ObservableObject {
   @Published var isLookingUpCollegeData = false
   @Published var collegeDataError: String?
 
+  // MARK: - Phase 4: Coaches
+  @Published var coaches: [Coach] = []
+  @Published var isLoadingCoaches = false
+
+  // MARK: - Phase 4: Coaching Philosophy
+  @Published var isEditingCoachingPhilosophy = false
+  @Published var editedCoachingPhilosophy = EditableCoachingPhilosophy()
+  @Published var isSavingCoachingPhilosophy = false
+
+  // MARK: - Phase 4: Delete
+  @Published var showDeleteConfirmation = false
+  @Published var isDeleting = false
+  @Published var deleteErrorMessage: String?
+
   // Dependencies
   private let schoolId: String
   private let schoolsService: any SchoolsManaging
@@ -52,6 +66,7 @@ final class SchoolDetailViewModel: ObservableObject {
   private let familyManager: FamilyManager
   private let fitScoreService: any FitScoreManaging
   private let collegeService: any CollegeScorecardManaging
+  private let coachesService: any CoachesManaging
 
   nonisolated init(
     schoolId: String,
@@ -59,7 +74,8 @@ final class SchoolDetailViewModel: ObservableObject {
     authManager: any AuthManaging = AuthManager.shared,
     familyManager: FamilyManager = .shared,
     fitScoreService: any FitScoreManaging = FitScoreService(),
-    collegeService: any CollegeScorecardManaging = CollegeScorecardService()
+    collegeService: any CollegeScorecardManaging = CollegeScorecardService(),
+    coachesService: any CoachesManaging = CoachesServiceImpl(supabaseManager: .shared)
   ) {
     self.schoolId = schoolId
     self.schoolsService = schoolsService
@@ -67,6 +83,7 @@ final class SchoolDetailViewModel: ObservableObject {
     self.familyManager = familyManager
     self.fitScoreService = fitScoreService
     self.collegeService = collegeService
+    self.coachesService = coachesService
   }
 
   // MARK: - Computed Properties
@@ -102,8 +119,9 @@ final class SchoolDetailViewModel: ObservableObject {
 
       logger.info("Loaded school: \(self.school?.name ?? "unknown")")
 
-      // Load fit score in parallel (non-critical, don't block on failure)
+      // Load fit score and coaches in parallel (non-critical, don't block on failure)
       await loadFitScore()
+      await loadCoaches()
 
     } catch {
       errorMessage = "Failed to load school: \(error.localizedDescription)"
@@ -388,6 +406,86 @@ final class SchoolDetailViewModel: ObservableObject {
     } catch {
       collegeDataError = "Failed to lookup college data"
       logger.error("Failed to lookup college data: \(error.localizedDescription)")
+    }
+  }
+
+  // MARK: - Phase 4: Coaches
+
+  func loadCoaches() async {
+    isLoadingCoaches = true
+    defer { isLoadingCoaches = false }
+
+    do {
+      self.coaches = try await coachesService.fetchCoaches(schoolIds: [schoolId])
+      logger.info("Loaded \(self.coaches.count) coaches for school")
+    } catch {
+      // Non-critical - just show empty state
+      logger.error("Failed to load coaches: \(error.localizedDescription)")
+    }
+  }
+
+  // MARK: - Phase 4: Coaching Philosophy
+
+  func startEditingCoachingPhilosophy() {
+    guard let school else { return }
+    editedCoachingPhilosophy = EditableCoachingPhilosophy.from(school: school)
+    isEditingCoachingPhilosophy = true
+  }
+
+  func cancelEditingCoachingPhilosophy() {
+    editedCoachingPhilosophy = EditableCoachingPhilosophy()
+    isEditingCoachingPhilosophy = false
+  }
+
+  func saveCoachingPhilosophy() async {
+    isSavingCoachingPhilosophy = true
+    defer { isSavingCoachingPhilosophy = false }
+
+    do {
+      let updated = try await schoolsService.updateCoachingPhilosophy(
+        id: schoolId,
+        philosophy: editedCoachingPhilosophy
+      )
+      school = updated
+      isEditingCoachingPhilosophy = false
+      logger.info("Coaching philosophy saved successfully")
+    } catch {
+      errorMessage = "Failed to save coaching philosophy"
+      logger.error("Failed to save coaching philosophy: \(error.localizedDescription)")
+    }
+  }
+
+  // MARK: - Phase 4: Delete
+
+  func confirmDelete() {
+    showDeleteConfirmation = true
+  }
+
+  func deleteSchool(onSuccess: @escaping () -> Void) async {
+    isDeleting = true
+    deleteErrorMessage = nil
+    defer {
+      isDeleting = false
+      showDeleteConfirmation = false
+    }
+
+    do {
+      // Try simple delete first
+      do {
+        try await schoolsService.deleteSchool(id: schoolId)
+        logger.info("School deleted successfully (simple delete)")
+        onSuccess()
+      } catch {
+        // Fallback to cascade delete
+        logger.warning("Simple delete failed, attempting cascade delete: \(error.localizedDescription)")
+        let result = try await schoolsService.cascadeDeleteSchool(id: schoolId)
+        let totalDeleted = result.deletedInteractions + result.deletedNotes
+        logger.info("School deleted successfully (cascade delete: \(totalDeleted) related items)")
+        onSuccess()
+      }
+    } catch {
+      deleteErrorMessage = "Failed to delete school. Please try again."
+      logger.error("Delete failed: \(error.localizedDescription)")
     }
   }
 }
