@@ -8,6 +8,8 @@ struct FamilyUnit: Codable, Identifiable, Sendable {
   let codeGeneratedAt: String?
   let createdAt: String?
   let updatedAt: String?
+  let homeLatitude: Double?
+  let homeLongitude: Double?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -17,5 +19,7 @@ struct FamilyUnit: Codable, Identifiable, Sendable {
     case codeGeneratedAt = "code_generated_at"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
+    case homeLatitude = "home_latitude"
+    case homeLongitude = "home_longitude"
   }
 }

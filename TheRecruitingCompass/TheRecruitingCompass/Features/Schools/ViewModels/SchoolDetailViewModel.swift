@@ -36,22 +36,37 @@ final class SchoolDetailViewModel: ObservableObject {
   @Published var editedBasicInfo = EditableBasicInfo()
   @Published var isSavingBasicInfo = false
 
+  // MARK: - Phase 3: Fit Score
+  @Published var fitScore: FitScoreResult?
+  @Published var divisionRecommendation: DivisionRecommendation?
+  @Published var isLoadingFitScore = false
+
+  // MARK: - Phase 3: College Scorecard
+  @Published var isLookingUpCollegeData = false
+  @Published var collegeDataError: String?
+
   // Dependencies
   private let schoolId: String
   private let schoolsService: any SchoolsManaging
   private let authManager: any AuthManaging
   private let familyManager: FamilyManager
+  private let fitScoreService: any FitScoreManaging
+  private let collegeService: any CollegeScorecardManaging
 
   nonisolated init(
     schoolId: String,
     schoolsService: any SchoolsManaging = SchoolsServiceImpl(supabaseManager: .shared),
     authManager: any AuthManaging = AuthManager.shared,
-    familyManager: FamilyManager = .shared
+    familyManager: FamilyManager = .shared,
+    fitScoreService: any FitScoreManaging = FitScoreService(),
+    collegeService: any CollegeScorecardManaging = CollegeScorecardService()
   ) {
     self.schoolId = schoolId
     self.schoolsService = schoolsService
     self.authManager = authManager
     self.familyManager = familyManager
+    self.fitScoreService = fitScoreService
+    self.collegeService = collegeService
   }
 
   // MARK: - Computed Properties
@@ -86,6 +101,10 @@ final class SchoolDetailViewModel: ObservableObject {
       statusHistory = try await historyData
 
       logger.info("Loaded school: \(self.school?.name ?? "unknown")")
+
+      // Load fit score in parallel (non-critical, don't block on failure)
+      await loadFitScore()
+
     } catch {
       errorMessage = "Failed to load school: \(error.localizedDescription)"
       logger.error("Failed to load school: \(error.localizedDescription)")
@@ -313,6 +332,62 @@ final class SchoolDetailViewModel: ObservableObject {
     } catch {
       errorMessage = "Failed to save information"
       logger.error("Failed to save basic info: \(error.localizedDescription)")
+    }
+  }
+
+  // MARK: - Phase 3: Fit Score
+
+  func loadFitScore() async {
+    isLoadingFitScore = true
+    defer { isLoadingFitScore = false }
+
+    do {
+      let result = try await fitScoreService.calculateFitScore(schoolId: schoolId)
+      self.fitScore = result
+
+      self.divisionRecommendation = fitScoreService.getDivisionRecommendations(
+        division: school?.division,
+        fitScore: result.score
+      )
+
+      logger.info("Fit score loaded: \(result.score)")
+    } catch {
+      // Non-critical - just hide section if calculation fails
+      logger.error("Failed to load fit score: \(error.localizedDescription)")
+    }
+  }
+
+  // MARK: - Phase 3: College Scorecard Lookup
+
+  func lookupCollegeData() async {
+    guard let schoolName = school?.name else { return }
+
+    isLookingUpCollegeData = true
+    collegeDataError = nil
+    defer { isLookingUpCollegeData = false }
+
+    do {
+      guard let data = try await collegeService.lookupCollege(name: schoolName) else {
+        collegeDataError = "School not found in database"
+        logger.warning("College not found: \(schoolName)")
+        return
+      }
+
+      logger.info("Found college data: \(data.name)")
+
+      // Merge data into school's academic_info
+      let updated = try await schoolsService.mergeCollegeData(id: schoolId, data: data)
+      self.school = updated
+
+      collegeDataError = nil
+      logger.info("College data merged successfully")
+
+    } catch let error as CollegeDataError {
+      collegeDataError = error.errorDescription
+      logger.error("College data error: \(error.errorDescription ?? "unknown")")
+    } catch {
+      collegeDataError = "Failed to lookup college data"
+      logger.error("Failed to lookup college data: \(error.localizedDescription)")
     }
   }
 }

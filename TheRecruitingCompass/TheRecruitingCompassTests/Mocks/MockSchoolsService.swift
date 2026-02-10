@@ -221,4 +221,36 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     stubbedSchool = school.with(website: info.website)
     return stubbedSchool!
   }
+
+  func mergeCollegeData(id: String, data: CollegeDataResult) async throws -> School {
+    if shouldThrowError {
+      throw errorToThrow
+    }
+    guard let school = stubbedSchool else {
+      throw NSError(domain: "MockSchoolsService", code: -1)
+    }
+    // Merge college data into academic info
+    let updatedInfo = AcademicInfo(
+      gpaRequirement: school.academicInfo?.gpaRequirement,
+      satRequirement: school.academicInfo?.satRequirement,
+      actRequirement: school.academicInfo?.actRequirement,
+      additionalRequirements: school.academicInfo?.additionalRequirements,
+      address: data.address ?? school.academicInfo?.address,
+      city: data.city ?? school.academicInfo?.city,
+      state: data.state ?? school.academicInfo?.state,
+      latitude: data.latitude ?? school.academicInfo?.latitude,
+      longitude: data.longitude ?? school.academicInfo?.longitude,
+      studentSize: data.studentSize ?? school.academicInfo?.studentSize,
+      baseballFacilityAddress: school.academicInfo?.baseballFacilityAddress,
+      mascot: school.academicInfo?.mascot,
+      undergradSize: data.carnegieSize ?? school.academicInfo?.undergradSize,
+      carnegieSize: data.carnegieSize ?? school.academicInfo?.carnegieSize,
+      tuitionInState: data.tuitionInState ?? school.academicInfo?.tuitionInState,
+      tuitionOutOfState: data.tuitionOutOfState ?? school.academicInfo?.tuitionOutOfState,
+      admissionRate: data.admissionRate ?? school.academicInfo?.admissionRate,
+      distanceFromHome: school.academicInfo?.distanceFromHome
+    )
+    stubbedSchool = school.with(academicInfo: updatedInfo)
+    return stubbedSchool!
+  }
 }

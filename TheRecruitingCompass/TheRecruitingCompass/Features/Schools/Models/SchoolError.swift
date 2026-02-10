@@ -4,6 +4,7 @@ enum SchoolError: LocalizedError {
   case invalidIndex
   case schoolNotFound
   case invalidStatus
+  case invalidData
   case updateFailed(String)
   case deleteFailed(String)
   case unknown(Error)
@@ -16,6 +17,8 @@ enum SchoolError: LocalizedError {
       return "School not found."
     case .invalidStatus:
       return "Invalid status value."
+    case .invalidData:
+      return "Invalid data format."
     case .updateFailed(let message):
       return "Failed to update school: \(message)"
     case .deleteFailed(let message):
@@ -33,6 +36,8 @@ enum SchoolError: LocalizedError {
       return "Refresh the list and try again."
     case .invalidStatus:
       return "Please select a valid status."
+    case .invalidData:
+      return "Please check the data and try again."
     case .updateFailed, .deleteFailed:
       return "Check your internet connection and try again."
     case .unknown:

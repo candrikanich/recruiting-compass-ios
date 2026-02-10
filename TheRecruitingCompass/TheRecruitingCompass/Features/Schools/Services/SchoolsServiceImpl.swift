@@ -328,4 +328,66 @@ final class SchoolsServiceImpl: SchoolsManaging, @unchecked Sendable {
     logger.info("Basic info updated for school: \(id)")
     return updated
   }
+
+  // MARK: - Phase 3: College Data Merge
+
+  func mergeCollegeData(id: String, data: CollegeDataResult) async throws -> School {
+    logger.debug("Merging college data for school: \(id)")
+
+    // Build academic_info update from college data
+    var academicInfo: [String: Any] = [:]
+
+    if let city = data.city {
+      academicInfo["city"] = city
+    }
+    if let state = data.state {
+      academicInfo["state"] = state
+    }
+    if let address = data.address {
+      academicInfo["address"] = address
+    }
+    if let lat = data.latitude {
+      academicInfo["latitude"] = lat
+    }
+    if let lon = data.longitude {
+      academicInfo["longitude"] = lon
+    }
+    if let studentSize = data.studentSize {
+      academicInfo["student_size"] = studentSize
+    }
+    if let carnegieSize = data.carnegieSize {
+      academicInfo["carnegie_size"] = carnegieSize
+    }
+    if let undergradSize = data.studentSize {
+      // Convert Int to String for undergrad_size field
+      academicInfo["undergrad_size"] = String(undergradSize)
+    }
+    if let tuitionIn = data.tuitionInState {
+      academicInfo["tuition_in_state"] = tuitionIn
+    }
+    if let tuitionOut = data.tuitionOutOfState {
+      academicInfo["tuition_out_of_state"] = tuitionOut
+    }
+    if let admissionRate = data.admissionRate {
+      academicInfo["admission_rate"] = admissionRate
+    }
+
+    // Convert to JSON string for Supabase
+    guard let jsonData = try? JSONSerialization.data(withJSONObject: academicInfo),
+          let jsonString = String(data: jsonData, encoding: .utf8) else {
+      throw SchoolError.invalidData
+    }
+
+    let updated: School = try await supabaseManager.client
+      .from("schools")
+      .update(["academic_info": jsonString])
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("College data merged for school: \(id)")
+    return updated
+  }
 }

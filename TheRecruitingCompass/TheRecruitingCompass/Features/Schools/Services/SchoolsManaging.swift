@@ -23,4 +23,7 @@ protocol SchoolsManaging: Sendable {
   func addCon(id: String, familyUnitId: String, text: String) async throws -> School
   func removeCon(id: String, familyUnitId: String, index: Int) async throws -> School
   func updateBasicInfo(id: String, info: EditableBasicInfo) async throws -> School
+
+  // MARK: - Phase 3 Methods (College Data)
+  func mergeCollegeData(id: String, data: CollegeDataResult) async throws -> School
 }

@@ -1,9 +1,11 @@
 import SwiftUI
+import CoreLocation
 
 struct SchoolDetailView: View {
   let schoolId: String
 
   @StateObject private var viewModel: SchoolDetailViewModel
+  @EnvironmentObject private var familyManager: FamilyManager
   @Environment(\.dismiss) private var dismiss
 
   init(schoolId: String) {
@@ -38,6 +40,14 @@ struct SchoolDetailView: View {
         Text(error)
       }
     }
+  }
+
+  private var homeLocation: CLLocationCoordinate2D? {
+    guard let lat = familyManager.familyUnit?.homeLatitude,
+          let lon = familyManager.familyUnit?.homeLongitude else {
+      return nil
+    }
+    return CLLocationCoordinate2D(latitude: lat, longitude: lon)
   }
 
   @ViewBuilder
@@ -101,6 +111,40 @@ struct SchoolDetailView: View {
         .padding(.horizontal)
 
         basicInfoSection(school: school)
+
+        // MARK: - Phase 3 Sections
+
+        // Fit Score Section
+        if let fitScore = viewModel.fitScore {
+          FitScoreSection(fitScore: fitScore)
+            .padding(.horizontal)
+        } else if viewModel.isLoadingFitScore {
+          ProgressView("Calculating fit score...")
+            .padding()
+            .accessibilityLabel("Calculating fit score")
+        }
+
+        // Division Recommendation Banner
+        if let recommendation = viewModel.divisionRecommendation {
+          DivisionRecommendationBanner(recommendation: recommendation)
+            .padding(.horizontal)
+        }
+
+        // Map View
+        SchoolMapView(
+          school: school,
+          homeLocation: homeLocation
+        )
+        .padding(.horizontal)
+
+        // College Data Section
+        CollegeDataSection(
+          school: school,
+          isLookingUp: viewModel.isLookingUpCollegeData,
+          lookupError: viewModel.collegeDataError,
+          onLookup: { await viewModel.lookupCollegeData() }
+        )
+        .padding(.horizontal)
       }
       .padding(.vertical)
     }

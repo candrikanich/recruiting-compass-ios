@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 @testable import TheRecruitingCompass
 
 final class MockFamilyService: FamilyManaging, @unchecked Sendable {
@@ -45,4 +46,30 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     }
     return stubbedFamilyUnit
   }
+}
+
+@MainActor
+final class MockFamilyManager: ObservableObject {
+  @Published var currentMember: FamilyMember?
+  @Published var familyMembers: [FamilyMember] = []
+  @Published var selectedAthleteId: String?
+  @Published var familyUnit: FamilyUnit?
+
+  var familyUnitId: String?
+
+  var isParentViewingAthlete: Bool {
+    guard let current = currentMember else { return false }
+    return current.isParent && selectedAthleteId != nil
+  }
+
+  var selectedAthlete: FamilyMember? {
+    guard let athleteId = selectedAthleteId else { return nil }
+    return familyMembers.first { $0.id == athleteId }
+  }
+
+  var athletes: [FamilyMember] {
+    familyMembers.filter { $0.isAthlete }
+  }
+
+  init() {}
 }
