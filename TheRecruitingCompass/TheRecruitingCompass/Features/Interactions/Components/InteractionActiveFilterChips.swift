@@ -57,7 +57,7 @@ struct InteractionActiveFilterChips: View {
     }
 
     if let athlete = linkedAthletes.first(where: { $0.userId == userId }) {
-      return athlete.fullName
+      return "\(athlete.role.capitalized) (\(athlete.userId.prefix(8)))"
     }
 
     return "Unknown"

@@ -6,16 +6,19 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
 
   var fetchFamilyMembersCallCount = 0
   var getCurrentMemberCallCount = 0
+  var getFamilyUnitCallCount = 0
 
   // MARK: - Error Flags
 
   var shouldThrowFetchMembers = false
   var shouldThrowGetCurrentMember = false
+  var shouldThrowGetFamilyUnit = false
 
   // MARK: - Configurable Return Values
 
   var stubbedCurrentMember: FamilyMember?
   var stubbedFamilyMembers: [FamilyMember] = []
+  var stubbedFamilyUnit: FamilyUnit?
 
   // MARK: - FamilyManaging
 
@@ -33,5 +36,13 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
       throw NSError(domain: "MockFamily", code: 2, userInfo: [NSLocalizedDescriptionKey: "Mock get current member error"])
     }
     return stubbedCurrentMember
+  }
+
+  func getFamilyUnit(forPlayerUserId userId: String) async throws -> FamilyUnit? {
+    getFamilyUnitCallCount += 1
+    if shouldThrowGetFamilyUnit {
+      throw NSError(domain: "MockFamily", code: 3, userInfo: [NSLocalizedDescriptionKey: "Mock get family unit error"])
+    }
+    return stubbedFamilyUnit
   }
 }

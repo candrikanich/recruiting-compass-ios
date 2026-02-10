@@ -5,17 +5,7 @@ struct FamilyMember: Codable, Identifiable, Sendable {
   let userId: String
   let familyUnitId: String
   let role: String
-  let firstName: String?
-  let lastName: String?
-  let email: String
-  let createdAt: String
-
-  var fullName: String {
-    if let first = firstName, let last = lastName {
-      return "\(first) \(last)"
-    }
-    return email.components(separatedBy: "@").first?.capitalized ?? "Unknown"
-  }
+  let addedAt: String?
 
   var isAthlete: Bool {
     role == "athlete"
@@ -30,9 +20,6 @@ struct FamilyMember: Codable, Identifiable, Sendable {
     case userId = "user_id"
     case familyUnitId = "family_unit_id"
     case role
-    case firstName = "first_name"
-    case lastName = "last_name"
-    case email
-    case createdAt = "created_at"
+    case addedAt = "added_at"
   }
 }

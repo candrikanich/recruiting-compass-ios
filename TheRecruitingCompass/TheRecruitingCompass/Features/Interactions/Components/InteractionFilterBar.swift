@@ -161,7 +161,7 @@ struct InteractionFilterBar: View {
                   if filters.loggedBy == athlete.userId {
                     Image(systemName: "checkmark")
                   }
-                  Text(athlete.fullName)
+                  Text("\(athlete.role.capitalized) (\(athlete.userId.prefix(8)))")
                 }
               }
             }
@@ -193,7 +193,7 @@ struct InteractionFilterBar: View {
     }
 
     if let athlete = linkedAthletes.first(where: { $0.userId == loggedBy }) {
-      return athlete.fullName
+      return "\(athlete.role.capitalized) (\(athlete.userId.prefix(8)))"
     }
 
     return "Logged By"
@@ -229,8 +229,14 @@ struct InteractionFilterBar: View {
 
   private var loggedByFilterAccessibilityLabel: String {
     if let loggedBy = filters.loggedBy {
-      let name = loggedBy == currentUserId ? "Me" :
-        linkedAthletes.first(where: { $0.userId == loggedBy })?.fullName ?? "Unknown"
+      let name: String
+      if loggedBy == currentUserId {
+        name = "Me"
+      } else if let athlete = linkedAthletes.first(where: { $0.userId == loggedBy }) {
+        name = "\(athlete.role.capitalized) (\(athlete.userId.prefix(8)))"
+      } else {
+        name = "Unknown"
+      }
       return "Filter by logged by: \(name) selected"
     }
     return "Filter by logged by"

@@ -97,7 +97,10 @@ final class DashboardViewModel: ObservableObject {
   }
 
   var selectedAthleteName: String {
-    familyManager.selectedAthlete?.fullName ?? "Athlete"
+    if let athlete = familyManager.selectedAthlete {
+      return "\(athlete.role.capitalized) (ID: \(athlete.userId.prefix(8)))"
+    }
+    return "Athlete"
   }
 
   var truncatedSessionToken: String {
@@ -129,7 +132,27 @@ final class DashboardViewModel: ObservableObject {
     await familyManager.loadFamilyData()
 
     let targetUserId = familyManager.selectedAthleteId ?? userId
-    let familyUnitId = familyManager.currentMember?.familyUnitId ?? userId
+
+    guard let familyUnitId = familyManager.familyUnitId else {
+      errorMessage = "No family unit found. Please contact support."
+      logger.error("No family unit ID found for user \(userId)")
+      #if DEBUG
+      logger.warning("Using empty stats for development")
+      stats = DashboardStats(
+        coachCount: 0,
+        schoolCount: 0,
+        interactionCount: 0,
+        totalOffers: 0,
+        acceptedOffers: 0,
+        aTierSchoolCount: 0,
+        acceptanceRate: nil
+      )
+      lastUpdated = Date()
+      #endif
+      return
+    }
+
+    logger.debug("fetchDashboardData - familyUnitId: \(familyUnitId), targetUserId: \(targetUserId)")
 
     isLoading = true
     errorMessage = nil

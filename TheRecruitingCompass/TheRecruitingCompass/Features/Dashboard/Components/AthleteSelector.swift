@@ -51,12 +51,12 @@ struct AthleteRow: View {
           .foregroundColor(isSelected ? Color.primaryGreen : Color.iconGray)
 
         VStack(alignment: .leading, spacing: 2) {
-          Text(athlete.fullName)
+          Text(athlete.role.capitalized)
             .font(.subheadline)
             .fontWeight(.semibold)
             .foregroundColor(Color.darkSlate)
 
-          Text(athlete.email)
+          Text("ID: \(athlete.userId.prefix(8))...")
             .font(.caption)
             .foregroundColor(Color.secondaryText)
         }
@@ -74,7 +74,7 @@ struct AthleteRow: View {
     }
     .buttonStyle(PlainButtonStyle())
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(athlete.fullName), \(athlete.email)")
+    .accessibilityLabel("\(athlete.role.capitalized) - ID: \(athlete.userId.prefix(8))")
     .accessibilityValue(isSelected ? "Selected" : "Not selected")
     .accessibilityHint("Double tap to select this athlete")
   }
@@ -88,20 +88,14 @@ struct AthleteRow: View {
         userId: "user-1",
         familyUnitId: "family-1",
         role: "athlete",
-        firstName: "John",
-        lastName: "Smith",
-        email: "john.smith@example.com",
-        createdAt: "2026-01-01T12:00:00Z"
+        addedAt: "2026-01-01T12:00:00Z"
       ),
       FamilyMember(
         id: "2",
         userId: "user-2",
         familyUnitId: "family-1",
         role: "athlete",
-        firstName: "Jane",
-        lastName: "Smith",
-        email: "jane.smith@example.com",
-        createdAt: "2026-01-01T12:00:00Z"
+        addedAt: "2026-01-01T12:00:00Z"
       )
     ],
     selectedAthleteId: "1",

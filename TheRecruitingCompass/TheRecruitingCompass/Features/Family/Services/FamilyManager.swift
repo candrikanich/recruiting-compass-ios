@@ -12,6 +12,7 @@ final class FamilyManager: ObservableObject {
   @Published var currentMember: FamilyMember?
   @Published var familyMembers: [FamilyMember] = []
   @Published var selectedAthleteId: String?
+  @Published var familyUnit: FamilyUnit?
 
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
@@ -30,6 +31,15 @@ final class FamilyManager: ObservableObject {
     familyMembers.filter { $0.isAthlete }
   }
 
+  var familyUnitId: String? {
+    // First try family_members table (works for all users)
+    if let familyUnitId = currentMember?.familyUnitId {
+      return familyUnitId
+    }
+    // Fallback to family_units table (for players who might not be in family_members yet)
+    return familyUnit?.id
+  }
+
   nonisolated init(
     familyService: any FamilyManaging = FamilyServiceImpl(supabaseManager: .shared),
     authManager: any AuthManaging = AuthManager.shared
@@ -42,14 +52,21 @@ final class FamilyManager: ObservableObject {
     guard let userId = authManager.user?.id else { return }
 
     do {
+      // Try to get family member record (works for all family members)
       currentMember = try await familyService.getCurrentMember(userId: userId)
 
-      if let familyUnitId = currentMember?.familyUnitId {
+      // Also fetch family unit directly (ensures we have the family unit ID for players)
+      familyUnit = try await familyService.getFamilyUnit(forPlayerUserId: userId)
+      logger.debug("Fetched family unit: \(self.familyUnit?.id ?? "none")")
+
+      if let familyUnitId = self.familyUnitId {
         familyMembers = try await familyService.fetchFamilyMembers(familyUnitId: familyUnitId)
 
         if currentMember?.isAthlete == true {
           selectedAthleteId = currentMember?.id
         }
+      } else {
+        logger.warning("No family unit ID found for user \(userId)")
       }
     } catch {
       logger.error("Failed to load family data: \(error.localizedDescription)")
