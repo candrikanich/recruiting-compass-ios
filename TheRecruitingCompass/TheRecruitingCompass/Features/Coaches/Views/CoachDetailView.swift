@@ -127,6 +127,7 @@ struct CoachDetailView: View {
             if interaction.id != viewModel.recentInteractions.last?.id {
               Divider()
                 .padding(.vertical, 4)
+                .accessibilityHidden(true)
             }
           }
         }

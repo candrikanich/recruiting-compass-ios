@@ -34,10 +34,7 @@ final class CoachesListViewModelTests: XCTestCase {
       userId: "user-1",
       familyUnitId: "family-1",
       role: "athlete",
-      firstName: "Test",
-      lastName: "User",
-      email: "test@test.com",
-      createdAt: "2024-01-01T00:00:00Z"
+      addedAt: "2024-01-01T00:00:00Z"
     )
 
     sut = CoachesListViewModel(

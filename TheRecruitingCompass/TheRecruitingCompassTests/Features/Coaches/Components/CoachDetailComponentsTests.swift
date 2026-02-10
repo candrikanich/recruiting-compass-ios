@@ -222,7 +222,7 @@ final class CoachDetailComponentsTests: XCTestCase {
   }
 
   func testRecentInteractionRow_rendersAllInteractionTypes() {
-    let types: [InteractionType] = [.email, .phoneCall, .text, .inPersonVisit, .campVisit, .showcase, .zoom, .other]
+    let types: [InteractionType] = [.email, .phoneCall, .text, .inPersonVisit, .virtualMeeting, .camp, .showcase, .tweet, .directMessage]
 
     for type in types {
       let interaction = makeInteraction(id: UUID().uuidString, type: type)

@@ -105,10 +105,7 @@ final class DashboardViewModelTests: XCTestCase {
       userId: "test-user-id",
       familyUnitId: "family-unit-1",
       role: "parent",
-      firstName: "Jane",
-      lastName: "Doe",
-      email: "jane@example.com",
-      createdAt: "2024-01-01T00:00:00Z"
+      addedAt: "2024-01-01T00:00:00Z"
     )
   }
 
@@ -121,10 +118,7 @@ final class DashboardViewModelTests: XCTestCase {
       userId: userId,
       familyUnitId: "family-unit-1",
       role: "athlete",
-      firstName: "Alex",
-      lastName: "Doe",
-      email: "alex@example.com",
-      createdAt: "2024-01-01T00:00:00Z"
+      addedAt: "2024-01-01T00:00:00Z"
     )
   }
 

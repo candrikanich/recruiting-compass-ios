@@ -598,10 +598,7 @@ final class InteractionsListViewModelTests: XCTestCase {
       userId: userId,
       familyUnitId: "family1",
       role: role,
-      firstName: "Test",
-      lastName: "User",
-      email: "test@test.com",
-      createdAt: ISO8601DateFormatter().string(from: Date())
+      addedAt: ISO8601DateFormatter().string(from: Date())
     )
   }
 
