@@ -1,9 +1,15 @@
 import SwiftUI
 
 struct CoachesListView: View {
+  let prefilterSchoolId: String?
+
   @StateObject private var viewModel = CoachesListViewModel()
   @EnvironmentObject private var familyManager: FamilyManager
   @State private var showAddCoach = false
+
+  init(prefilterSchoolId: String? = nil) {
+    self.prefilterSchoolId = prefilterSchoolId
+  }
 
   var body: some View {
     Group {
@@ -21,7 +27,12 @@ struct CoachesListView: View {
       prompt: "Search coaches..."
     )
     .refreshable { await viewModel.loadCoaches() }
-    .task { await viewModel.loadCoaches() }
+    .task {
+      await viewModel.loadCoaches()
+      if let schoolId = prefilterSchoolId {
+        viewModel.filters.schoolId = schoolId
+      }
+    }
     .confirmationDialog(
       "Delete Coach",
       isPresented: $viewModel.showDeleteConfirmation,
@@ -66,6 +77,8 @@ struct CoachesListView: View {
         )
       case .add:
         AddCoachView()
+      case .filteredBySchool(let schoolId):
+        CoachesListView(prefilterSchoolId: schoolId)
       }
     }
     .sheet(isPresented: $showAddCoach) {

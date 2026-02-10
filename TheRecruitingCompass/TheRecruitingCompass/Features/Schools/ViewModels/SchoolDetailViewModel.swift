@@ -59,6 +59,9 @@ final class SchoolDetailViewModel: ObservableObject {
   @Published var isDeleting = false
   @Published var deleteErrorMessage: String?
 
+  // MARK: - Phase 4: Priority Tier
+  @Published var isUpdatingPriorityTier = false
+
   // Dependencies
   private let schoolId: String
   private let schoolsService: any SchoolsManaging
@@ -486,6 +489,22 @@ final class SchoolDetailViewModel: ObservableObject {
     } catch {
       deleteErrorMessage = "Failed to delete school. Please try again."
       logger.error("Delete failed: \(error.localizedDescription)")
+    }
+  }
+
+  // MARK: - Priority Tier Update
+
+  func updatePriorityTier(_ tier: PriorityTier?) async {
+    isUpdatingPriorityTier = true
+    defer { isUpdatingPriorityTier = false }
+
+    do {
+      let updated = try await schoolsService.updatePriorityTier(id: schoolId, tier: tier)
+      school = updated
+      logger.info("Priority tier updated to \(tier?.rawValue ?? "none")")
+    } catch {
+      errorMessage = "Failed to update priority tier"
+      logger.error("Failed to update priority tier: \(error.localizedDescription)")
     }
   }
 }

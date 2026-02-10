@@ -31,6 +31,7 @@ struct CommunicationButton: View {
 enum CommunicationType: Sendable {
   case email(String)
   case phone(String)
+  case call(String)
   case twitter(String)
   case instagram(String)
 
@@ -38,6 +39,7 @@ enum CommunicationType: Sendable {
     switch self {
     case .email: return "envelope.fill"
     case .phone: return "message.fill"
+    case .call: return "phone.fill"
     case .twitter: return "at"
     case .instagram: return "camera.fill"
     }
@@ -47,6 +49,7 @@ enum CommunicationType: Sendable {
     switch self {
     case .email: return .accentBlue
     case .phone: return .successGreen
+    case .call: return .successGreen
     case .twitter: return Color(hex: "1DA1F2")
     case .instagram: return Color(hex: "E4405F")
     }
@@ -56,6 +59,7 @@ enum CommunicationType: Sendable {
     switch self {
     case .email: return "Email coach"
     case .phone: return "Text coach"
+    case .call: return "Call coach"
     case .twitter: return "View Twitter profile"
     case .instagram: return "View Instagram profile"
     }
@@ -65,6 +69,7 @@ enum CommunicationType: Sendable {
     switch self {
     case .email: return "Mail"
     case .phone: return "Messages"
+    case .call: return "Phone"
     case .twitter: return "Twitter"
     case .instagram: return "Instagram"
     }
@@ -80,6 +85,8 @@ enum CommunicationType: Sendable {
       return URL(string: "mailto:\(trimmed)")
     case .phone:
       return URL(string: "sms:\(trimmed)")
+    case .call:
+      return URL(string: "tel:\(trimmed)")
     case .twitter:
       let handle = trimmed.hasPrefix("@") ? String(trimmed.dropFirst()) : trimmed
       return URL(string: "https://twitter.com/\(handle)")
@@ -94,6 +101,7 @@ enum CommunicationType: Sendable {
   HStack(spacing: 8) {
     CommunicationButton(type: .email("test@example.com"), value: "test@example.com")
     CommunicationButton(type: .phone("555-1234"), value: "555-1234")
+    CommunicationButton(type: .call("555-1234"), value: "555-1234")
     CommunicationButton(type: .twitter("@coach"), value: "@coach")
     CommunicationButton(type: .instagram("@coach"), value: "@coach")
   }

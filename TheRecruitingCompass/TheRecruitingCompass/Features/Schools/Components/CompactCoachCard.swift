@@ -47,6 +47,7 @@ struct CompactCoachCard: View {
 
         if let phone = coach.phone {
           CommunicationButton(type: .phone(phone), value: phone)
+          CommunicationButton(type: .call(phone), value: phone)
         }
 
         if let twitter = coach.twitterHandle {

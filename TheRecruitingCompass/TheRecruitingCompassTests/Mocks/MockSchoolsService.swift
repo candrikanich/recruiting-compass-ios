@@ -44,6 +44,11 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
   var shouldSucceed = true
   var simpleDeleteShouldFail = false
 
+  // Priority tier tracking
+  var updatePriorityTierCallCount = 0
+  var lastPriorityTier: PriorityTier?
+  var delayDuration: TimeInterval = 0
+
   func fetchSchools(familyUnitId: String) async throws -> [School] {
     fetchSchoolsCallCount += 1
     if shouldThrowError {
@@ -291,6 +296,27 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
       createdAt: school.createdAt,
       updatedAt: school.updatedAt
     )
+    return stubbedSchool!
+  }
+
+  func updatePriorityTier(id: String, tier: PriorityTier?) async throws -> School {
+    updatePriorityTierCallCount += 1
+    lastPriorityTier = tier
+
+    if delayDuration > 0 {
+      try await Task.sleep(nanoseconds: UInt64(delayDuration * 1_000_000_000))
+    }
+
+    if shouldThrowError || !shouldSucceed {
+      throw errorToThrow
+    }
+
+    guard let school = stubbedSchool else {
+      throw NSError(domain: "MockSchoolsService", code: -1)
+    }
+
+    // Update school with new priority tier
+    stubbedSchool = school.with(priorityTier: tier?.rawValue)
     return stubbedSchool!
   }
 }

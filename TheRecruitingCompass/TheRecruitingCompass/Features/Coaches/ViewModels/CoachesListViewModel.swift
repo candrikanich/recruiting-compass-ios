@@ -53,6 +53,10 @@ final class CoachesListViewModel: ObservableObject {
       result = result.filter { level.matches(score: $0.responsivenessScore) }
     }
 
+    if let schoolId = filters.schoolId {
+      result = result.filter { $0.schoolId == schoolId }
+    }
+
     return sorted(result)
   }
 

@@ -7,10 +7,17 @@ struct SchoolDetailView: View {
   @StateObject private var viewModel: SchoolDetailViewModel
   @EnvironmentObject private var familyManager: FamilyManager
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.openURL) private var openURL
+  @State private var navigationDestination: NavigationDestination?
 
   init(schoolId: String) {
     self.schoolId = schoolId
     _viewModel = StateObject(wrappedValue: SchoolDetailViewModel(schoolId: schoolId))
+  }
+
+  private enum NavigationDestination: Hashable {
+    case coaches(schoolId: String)
+    case addInteraction(schoolId: String)
   }
 
   var body: some View {
@@ -64,6 +71,14 @@ struct SchoolDetailView: View {
 
       VStack(spacing: 24) {
         statusPickerSection(school: school)
+
+        PriorityTierSelector(
+          selectedTier: school.priorityTier.flatMap { PriorityTier(rawValue: $0) },
+          isUpdating: viewModel.isUpdatingPriorityTier,
+          onSelect: { tier in
+            await viewModel.updatePriorityTier(tier)
+          }
+        )
 
         SchoolStatusHistorySection(history: viewModel.statusHistory)
           .padding(.horizontal)
@@ -153,7 +168,7 @@ struct SchoolDetailView: View {
           coaches: viewModel.coaches,
           isLoading: viewModel.isLoadingCoaches,
           onSeeAll: {
-            // TODO: Navigate to coaches list filtered by school
+            navigationDestination = .coaches(schoolId: schoolId)
           }
         )
         .padding(.horizontal)
@@ -161,13 +176,17 @@ struct SchoolDetailView: View {
         // Quick Actions
         SchoolQuickActions(
           onLogInteraction: {
-            // TODO: Navigate to add interaction
+            navigationDestination = .addInteraction(schoolId: schoolId)
           },
           onSendEmail: {
-            // TODO: Show email composer or alert
+            if let firstCoach = viewModel.coaches.first,
+               let email = firstCoach.email,
+               let url = URL(string: "mailto:\(email)") {
+              openURL(url)
+            }
           },
           onManageCoaches: {
-            // TODO: Navigate to coaches list
+            navigationDestination = .coaches(schoolId: schoolId)
           }
         )
         .padding(.horizontal)
@@ -238,6 +257,14 @@ struct SchoolDetailView: View {
     } message: {
       if let error = viewModel.deleteErrorMessage {
         Text(error)
+      }
+    }
+    .navigationDestination(item: $navigationDestination) { destination in
+      switch destination {
+      case .coaches(let schoolId):
+        CoachesListView(prefilterSchoolId: schoolId)
+      case .addInteraction(let schoolId):
+        Text("Add Interaction for School: \(schoolId)")
       }
     }
   }

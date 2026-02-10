@@ -415,4 +415,24 @@ final class SchoolsServiceImpl: SchoolsManaging, @unchecked Sendable {
     logger.info("Coaching philosophy updated for school: \(id)")
     return updated
   }
+
+  // MARK: - Phase 4: Priority Tier
+
+  func updatePriorityTier(id: String, tier: PriorityTier?) async throws -> School {
+    logger.debug("Updating priority tier for school: \(id) to \(tier?.rawValue ?? "none")")
+
+    let tierValue: String? = tier?.rawValue
+
+    let updated: School = try await supabaseManager.client
+      .from("schools")
+      .update(["priority_tier": tierValue])
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Priority tier updated for school: \(id)")
+    return updated
+  }
 }
