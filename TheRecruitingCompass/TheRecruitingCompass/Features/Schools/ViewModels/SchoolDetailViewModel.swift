@@ -10,6 +10,7 @@ final class SchoolDetailViewModel: ObservableObject {
   @Published var school: School?
   @Published var isLoading = false
   @Published var errorMessage: String?
+  @Published var activeAlert: AlertType?
 
   // Status management
   @Published var statusHistory: [SchoolStatusHistory] = []
@@ -89,6 +90,32 @@ final class SchoolDetailViewModel: ObservableObject {
     self.coachesService = coachesService
   }
 
+  // MARK: - Helper Methods
+
+  /// Consolidated error handling
+  private func handleError(
+    _ error: Error,
+    userMessage: String,
+    file: String = #file,
+    function: String = #function
+  ) {
+    errorMessage = userMessage
+    activeAlert = .error(userMessage)
+    let fileName = (file as NSString).lastPathComponent
+    logger.error("[\(fileName):\(function)] \(error.localizedDescription)")
+  }
+
+  /// Execute async operation with loading state management
+  @discardableResult
+  private func withLoading<T>(
+    setting flag: ReferenceWritableKeyPath<SchoolDetailViewModel, Bool>,
+    operation: () async throws -> T
+  ) async rethrows -> T {
+    self[keyPath: flag] = true
+    defer { self[keyPath: flag] = false }
+    return try await operation()
+  }
+
   // MARK: - Computed Properties
 
   var currentUserId: String {
@@ -98,6 +125,21 @@ final class SchoolDetailViewModel: ObservableObject {
   var privateNoteForCurrentUser: String {
     guard !currentUserId.isEmpty else { return "" }
     return school?.privateNote(for: currentUserId) ?? ""
+  }
+
+  var hasCoaches: Bool {
+    !coaches.isEmpty
+  }
+
+  var canLookupCollegeData: Bool {
+    school != nil && !isLookingUpCollegeData
+  }
+
+  var isEditingAnything: Bool {
+    isEditingNotes ||
+    isEditingPrivateNotes ||
+    isEditingBasicInfo ||
+    isEditingCoachingPhilosophy
   }
 
   // MARK: - Loading
@@ -197,17 +239,15 @@ final class SchoolDetailViewModel: ObservableObject {
   func saveNotes() async {
     guard !editedNotes.isEmpty else { return }
 
-    isSavingNotes = true
-    defer { isSavingNotes = false }
-
-    do {
-      let updated = try await schoolsService.updateNotes(id: schoolId, notes: editedNotes)
-      school = updated
-      isEditingNotes = false
-      logger.info("Notes saved successfully")
-    } catch {
-      errorMessage = "Failed to save notes"
-      logger.error("Failed to save notes: \(error.localizedDescription)")
+    await withLoading(setting: \.isSavingNotes) {
+      do {
+        let updated = try await schoolsService.updateNotes(id: schoolId, notes: editedNotes)
+        school = updated
+        isEditingNotes = false
+        logger.info("Notes saved successfully")
+      } catch {
+        handleError(error, userMessage: "Failed to save notes")
+      }
     }
   }
 
@@ -258,17 +298,15 @@ final class SchoolDetailViewModel: ObservableObject {
       return
     }
 
-    isAddingPro = true
-    defer { isAddingPro = false }
-
-    do {
-      let updated = try await schoolsService.addPro(id: schoolId, familyUnitId: familyId, text: newPro)
-      school = updated
-      newPro = ""
-      logger.info("Pro added successfully")
-    } catch {
-      errorMessage = "Failed to add pro"
-      logger.error("Failed to add pro: \(error.localizedDescription)")
+    await withLoading(setting: \.isAddingPro) {
+      do {
+        let updated = try await schoolsService.addPro(id: schoolId, familyUnitId: familyId, text: newPro)
+        school = updated
+        newPro = ""
+        logger.info("Pro added successfully")
+      } catch {
+        handleError(error, userMessage: "Failed to add pro")
+      }
     }
   }
 
@@ -462,6 +500,7 @@ final class SchoolDetailViewModel: ObservableObject {
 
   func confirmDelete() {
     showDeleteConfirmation = true
+    activeAlert = .deleteConfirmation
   }
 
   func deleteSchool(onSuccess: @escaping () -> Void) async {
@@ -487,7 +526,9 @@ final class SchoolDetailViewModel: ObservableObject {
         onSuccess()
       }
     } catch {
-      deleteErrorMessage = "Failed to delete school. Please try again."
+      let errorMsg = "Failed to delete school. Please try again."
+      deleteErrorMessage = errorMsg
+      activeAlert = .deleteError(errorMsg)
       logger.error("Delete failed: \(error.localizedDescription)")
     }
   }

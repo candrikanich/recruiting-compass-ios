@@ -40,11 +40,33 @@ struct SchoolDetailView: View {
     .task {
       await viewModel.loadSchool()
     }
-    .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
-      Button("OK") { viewModel.errorMessage = nil }
-    } message: {
-      if let error = viewModel.errorMessage {
-        Text(error)
+    .alert(item: $viewModel.activeAlert) { alert in
+      switch alert {
+      case .error(let message):
+        return Alert(
+          title: Text("Error"),
+          message: Text(message),
+          dismissButton: .default(Text("OK"))
+        )
+      case .deleteError(let message):
+        return Alert(
+          title: Text("Delete Failed"),
+          message: Text(message),
+          dismissButton: .default(Text("OK"))
+        )
+      case .deleteConfirmation:
+        return Alert(
+          title: Text("Delete School?"),
+          message: Text("This will permanently delete the school and all related data. This action cannot be undone."),
+          primaryButton: .destructive(Text("Delete")) {
+            Task {
+              await viewModel.deleteSchool {
+                dismiss()
+              }
+            }
+          },
+          secondaryButton: .cancel()
+        )
       }
     }
   }
@@ -70,7 +92,13 @@ struct SchoolDetailView: View {
       Divider()
 
       VStack(spacing: 24) {
-        statusPickerSection(school: school)
+        SchoolStatusPickerSection(
+          currentStatus: SchoolStatus(rawValue: school.status) ?? .interested,
+          isUpdating: viewModel.isUpdatingStatus,
+          onStatusChange: { newStatus in
+            await viewModel.updateStatus(to: newStatus)
+          }
+        )
 
         PriorityTierSelector(
           selectedTier: school.priorityTier.flatMap { PriorityTier(rawValue: $0) },
@@ -125,7 +153,10 @@ struct SchoolDetailView: View {
         )
         .padding(.horizontal)
 
-        basicInfoSection(school: school)
+        SchoolBasicInfoDisplaySection(
+          school: school,
+          onEdit: { viewModel.startEditingBasicInfo() }
+        )
 
         // MARK: - Phase 3 Sections
 
@@ -236,29 +267,6 @@ struct SchoolDetailView: View {
         isSaving: viewModel.isSavingCoachingPhilosophy
       )
     }
-    .confirmationDialog(
-      "Delete School?",
-      isPresented: $viewModel.showDeleteConfirmation,
-      titleVisibility: .visible
-    ) {
-      Button("Delete", role: .destructive) {
-        Task {
-          await viewModel.deleteSchool {
-            dismiss()
-          }
-        }
-      }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      Text("This will permanently delete the school and all related data. This action cannot be undone.")
-    }
-    .alert("Delete Failed", isPresented: .constant(viewModel.deleteErrorMessage != nil)) {
-      Button("OK") { viewModel.deleteErrorMessage = nil }
-    } message: {
-      if let error = viewModel.deleteErrorMessage {
-        Text(error)
-      }
-    }
     .navigationDestination(item: $navigationDestination) { destination in
       switch destination {
       case .coaches(let schoolId):
@@ -267,54 +275,6 @@ struct SchoolDetailView: View {
         Text("Add Interaction for School: \(schoolId)")
       }
     }
-  }
-
-  @ViewBuilder
-  private func basicInfoSection(school: School) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack {
-        Text("Information")
-          .font(.headline)
-          .accessibilityAddTraits(.isHeader)
-
-        Spacer()
-
-        Button("Edit") {
-          viewModel.startEditingBasicInfo()
-        }
-        .accessibilityLabel("Edit school information")
-      }
-
-      if let info = school.academicInfo {
-        VStack(alignment: .leading, spacing: 8) {
-          if let address = info.address {
-            InfoRow(label: "Campus Address", value: address)
-          }
-
-          if let facility = info.baseballFacilityAddress {
-            InfoRow(label: "Baseball Facility", value: facility)
-          }
-
-          if let mascot = info.mascot {
-            InfoRow(label: "Mascot", value: mascot)
-          }
-
-          if let size = info.undergradSize {
-            InfoRow(label: "Undergrad Size", value: size)
-          }
-        }
-      }
-
-      if let website = school.website {
-        Link(destination: URL(string: "https://\(website)")!) {
-          Label("Visit Website", systemImage: "safari")
-        }
-      }
-    }
-    .padding()
-    .background(Color(.systemGray6))
-    .cornerRadius(12)
-    .padding(.horizontal)
     .sheet(isPresented: $viewModel.isEditingBasicInfo) {
       SchoolBasicInfoSheet(
         info: $viewModel.editedBasicInfo,
@@ -322,76 +282,6 @@ struct SchoolDetailView: View {
         onCancel: { viewModel.cancelEditingBasicInfo() },
         isSaving: viewModel.isSavingBasicInfo
       )
-    }
-  }
-
-  @ViewBuilder
-  private func statusPickerSection(school: School) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("Recruiting Status")
-        .font(.headline)
-        .accessibilityAddTraits(.isHeader)
-
-      HStack {
-        Menu {
-          ForEach(SchoolStatus.allCases, id: \.self) { status in
-            Button {
-              Task { await viewModel.updateStatus(to: status) }
-            } label: {
-              HStack {
-                Text(status.displayName)
-                if status.rawValue == school.status {
-                  Image(systemName: "checkmark")
-                }
-              }
-            }
-          }
-        } label: {
-          HStack {
-            Text((SchoolStatus(rawValue: school.status) ?? .interested).displayName)
-              .foregroundStyle(.primary)
-
-            Spacer()
-
-            Image(systemName: "chevron.up.chevron.down")
-              .font(.caption)
-              .foregroundStyle(.secondary)
-          }
-          .padding(.horizontal, 12)
-          .padding(.vertical, 10)
-          .background(Color(.systemGray6))
-          .cornerRadius(8)
-        }
-        .disabled(viewModel.isUpdatingStatus)
-
-        if viewModel.isUpdatingStatus {
-          ProgressView()
-            .accessibilityLabel("Updating status")
-        }
-      }
-    }
-    .padding(.horizontal)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("Recruiting status: \((SchoolStatus(rawValue: school.status) ?? .interested).displayName)")
-    .accessibilityHint("Double tap to change status")
-  }
-}
-
-struct InfoRow: View {
-  let label: String
-  let value: String
-
-  var body: some View {
-    HStack(alignment: .top) {
-      Text(label + ":")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-
-      Spacer()
-
-      Text(value)
-        .font(.subheadline)
-        .multilineTextAlignment(.trailing)
     }
   }
 }
