@@ -368,4 +368,175 @@ final class CoachDetailViewModelTests: XCTestCase {
     XCTAssertEqual(mockService.cascadeDeleteCoachCallCount, 1)
     XCTAssertNotNil(sut.errorMessage)
   }
+
+  // MARK: - Error Handling Tests
+
+  func testSaveChanges_ServiceError_SetsErrorMessage() async {
+    sut.coach = testCoach
+    sut.startEditing()
+    sut.editedCoach?.firstName = "Jane"
+
+    mockService.shouldThrowUpdateCoach = true
+
+    await sut.saveChanges()
+
+    XCTAssertEqual(mockService.updateCoachCallCount, 1)
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertEqual(sut.errorMessage, "Failed to save changes")
+  }
+
+  func testSaveSharedNotes_ServiceError_SetsErrorMessage() async {
+    sut.coach = testCoach
+    sut.startEditingSharedNotes()
+    sut.editedSharedNotes = "New notes"
+
+    mockService.shouldThrowUpdateCoach = true
+
+    await sut.saveSharedNotes()
+
+    XCTAssertEqual(mockService.updateCoachCallCount, 1)
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertEqual(sut.errorMessage, "Failed to save notes")
+  }
+
+  func testSavePrivateNotes_ServiceError_SetsErrorMessage() async {
+    sut.coach = testCoach
+    sut.startEditingPrivateNotes()
+    sut.editedPrivateNotes = "Private note"
+
+    mockService.shouldThrowUpdateCoach = true
+
+    await sut.savePrivateNotes()
+
+    XCTAssertEqual(mockService.updateCoachCallCount, 1)
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertEqual(sut.errorMessage, "Failed to save private notes")
+  }
+
+  // MARK: - Edge Case Tests
+
+  func testLoadDetails_EmptyInteractions_SetsEmptyArray() async {
+    await sut.loadCoach()
+
+    mockService.stubbedInteractions = []
+
+    await sut.loadDetails()
+
+    XCTAssertEqual(sut.recentInteractions.count, 0)
+    XCTAssertNotNil(sut.stats)
+    XCTAssertEqual(sut.stats?.totalInteractions, 0)
+  }
+
+  func testComputeStats_NoLastContact_DaysSinceContactNil() async {
+    testCoach = makeCoach(id: "coach-1", lastContactDate: nil)
+    sut = CoachDetailViewModel(
+      coachId: "coach-1",
+      allCoaches: [testCoach],
+      allSchools: [testSchool],
+      coachesService: mockService,
+      authManager: mockAuthManager
+    )
+
+    await sut.loadCoach()
+    mockService.stubbedInteractions = [makeInteraction(id: "1")]
+    await sut.loadDetails()
+
+    XCTAssertNil(sut.stats?.daysSinceContact)
+    XCTAssertNil(sut.stats?.contactStatusText)
+  }
+
+  func testComputeStats_NoInteractions_PreferredMethodNil() async {
+    await sut.loadCoach()
+
+    mockService.stubbedInteractions = []
+
+    await sut.loadDetails()
+
+    XCTAssertNil(sut.stats?.preferredMethod)
+  }
+
+  func testValidateEdits_NotesExactly5000Chars_Valid() async {
+    sut.coach = testCoach
+    sut.startEditing()
+    sut.editedCoach?.notes = String(repeating: "a", count: 5000)
+
+    let updatedCoach = makeCoach(id: "coach-1", notes: String(repeating: "a", count: 5000))
+    mockService.stubbedUpdatedCoach = updatedCoach
+
+    await sut.saveChanges()
+
+    XCTAssertTrue(sut.validationErrors.isEmpty)
+    XCTAssertEqual(mockService.updateCoachCallCount, 1)
+  }
+
+  func testValidateEdits_NotesOver5000Chars_Invalid() async {
+    sut.coach = testCoach
+    sut.startEditing()
+    sut.editedCoach?.notes = String(repeating: "a", count: 5001)
+
+    await sut.saveChanges()
+
+    XCTAssertFalse(sut.validationErrors.isEmpty)
+    XCTAssertNotNil(sut.validationErrors["notes"])
+    XCTAssertEqual(mockService.updateCoachCallCount, 0)
+  }
+
+  func testValidateEdits_EmptyEmail_Valid() async {
+    sut.coach = testCoach
+    sut.startEditing()
+    sut.editedCoach?.email = ""
+
+    let updatedCoach = makeCoach(id: "coach-1")
+    mockService.stubbedUpdatedCoach = updatedCoach
+
+    await sut.saveChanges()
+
+    XCTAssertTrue(sut.validationErrors.isEmpty)
+    XCTAssertEqual(mockService.updateCoachCallCount, 1)
+  }
+
+  func testEditableCoachBinding_CoachNil_ReturnsEmpty() {
+    sut.coach = nil
+    sut.editedCoach = nil
+
+    let binding = sut.editableCoachBinding
+    let value = binding.wrappedValue
+
+    XCTAssertEqual(value.firstName, "")
+    XCTAssertEqual(value.lastName, "")
+  }
+
+  func testEditableCoachBinding_UsesEditedCoachWhenPresent() {
+    sut.coach = testCoach
+    sut.startEditing()
+    sut.editedCoach?.firstName = "Modified"
+
+    let binding = sut.editableCoachBinding
+    let value = binding.wrappedValue
+
+    XCTAssertEqual(value.firstName, "Modified")
+  }
+
+  func testCancelEditingSharedNotes_ResetsState() {
+    sut.coach = makeCoach(id: "coach-1", notes: "Original notes")
+    sut.startEditingSharedNotes()
+    sut.editedSharedNotes = "Modified notes"
+
+    sut.cancelEditingSharedNotes()
+
+    XCTAssertFalse(sut.isEditingSharedNotes)
+    XCTAssertEqual(sut.editedSharedNotes, "")
+  }
+
+  func testCancelEditingPrivateNotes_ResetsState() {
+    testCoach = makeCoach(id: "coach-1", privateNotes: ["user-1": "Original note"])
+    sut.coach = testCoach
+    sut.startEditingPrivateNotes()
+    sut.editedPrivateNotes = "Modified note"
+
+    sut.cancelEditingPrivateNotes()
+
+    XCTAssertFalse(sut.isEditingPrivateNotes)
+    XCTAssertEqual(sut.editedPrivateNotes, "")
+  }
 }
