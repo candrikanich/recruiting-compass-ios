@@ -63,6 +63,24 @@ final class CoachDetailViewModel: ObservableObject {
     coach?.privateNote(for: currentUserId)
   }
 
+  var editableCoachBinding: Binding<EditableCoach> {
+    Binding(
+      get: { [weak self] in
+        guard let self else { return .empty }
+        if let editedCoach = self.editedCoach {
+          return editedCoach
+        }
+        if let coach = self.coach {
+          return EditableCoach(from: coach)
+        }
+        return .empty
+      },
+      set: { [weak self] newValue in
+        self?.editedCoach = newValue
+      }
+    )
+  }
+
   // MARK: - Loading
 
   func loadCoach() async {

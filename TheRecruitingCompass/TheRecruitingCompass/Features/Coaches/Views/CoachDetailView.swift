@@ -23,11 +23,13 @@ struct CoachDetailView: View {
   var body: some View {
     ScrollView {
       if viewModel.isLoading {
-        loadingView
+        LoadingStateView(message: "Loading coach details")
+          .padding(.top, 100)
       } else if let coach = viewModel.coach {
         detailContent(coach: coach)
       } else if let error = viewModel.errorMessage {
-        errorView(message: error)
+        ErrorStateView(message: error)
+          .padding(.top, 100)
       }
     }
     .navigationTitle("Coach Details")
@@ -57,15 +59,7 @@ struct CoachDetailView: View {
     .sheet(isPresented: $viewModel.isEditing) {
       if viewModel.editedCoach != nil {
         CoachEditForm(
-          editedCoach: Binding(
-            get: { viewModel.editedCoach ?? EditableCoach(from: viewModel.coach ?? Coach(
-              id: "", firstName: "", lastName: "", email: nil, phone: nil,
-              position: nil, schoolId: "", twitterHandle: nil, instagramHandle: nil,
-              notes: nil, privateNotes: nil, responsivenessScore: 0, lastContactDate: nil,
-              createdAt: "", updatedAt: ""
-            )) },
-            set: { viewModel.editedCoach = $0 }
-          ),
+          editedCoach: viewModel.editableCoachBinding,
           validationErrors: viewModel.validationErrors,
           isSaving: viewModel.isSaving,
           onSave: { await viewModel.saveChanges() },
@@ -90,37 +84,24 @@ struct CoachDetailView: View {
       await viewModel.loadDetails()
     }
     .task {
-      await viewModel.loadCoach()
-      await viewModel.loadDetails()
+      async let coach = viewModel.loadCoach()
+      async let details = viewModel.loadDetails()
+      await (coach, details)
     }
-  }
-
-  // MARK: - Loading
-
-  private var loadingView: some View {
-    VStack(spacing: 12) {
-      ProgressView()
-        .accessibilityLabel("Loading coach details")
-      Text("Loading...")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .padding(.top, 100)
   }
 
   // MARK: - Content
 
   private func detailContent(coach: Coach) -> some View {
     VStack(alignment: .leading, spacing: 24) {
-      headerSection(coach: coach)
-      contactInfoSection(coach: coach)
+      CoachDetailHeader(coach: coach, school: viewModel.school)
+      ContactInfoSection(coach: coach)
 
       if let stats = viewModel.stats {
         CoachStatsGrid(stats: stats)
       }
 
-      statisticsSection(coach: coach)
+      CoachStatisticsSection(coach: coach)
       recentInteractionsSection
       sharedNotesSection
       privateNotesSection
@@ -128,103 +109,10 @@ struct CoachDetailView: View {
     .padding()
   }
 
-  private func headerSection(coach: Coach) -> some View {
-    VStack(spacing: 16) {
-      // Large initials circle
-      Text(coach.initials)
-        .font(.system(size: sizeCategory.isAccessibilityCategory ? 40 : 48).bold())
-        .foregroundStyle(.white)
-        .frame(width: sizeCategory.isAccessibilityCategory ? 120 : 100,
-               height: sizeCategory.isAccessibilityCategory ? 120 : 100)
-        .background(
-          LinearGradient(
-            colors: [.blueGradientStart, Color(hex: "7C3AED")],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-          )
-        )
-        .clipShape(Circle())
-        .accessibilityHidden(true)
-
-      Text(coach.fullName)
-        .font(.title2.bold())
-        .accessibilityAddTraits(.isHeader)
-
-      HStack(spacing: 8) {
-        Text(coach.role.displayName)
-          .font(.subheadline)
-          .fontWeight(.medium)
-          .foregroundStyle(.white)
-          .padding(.horizontal, 12)
-          .padding(.vertical, 6)
-          .background(coach.role.badgeColor)
-          .clipShape(Capsule())
-          .accessibilityLabel("Role: \(coach.role.displayName)")
-
-        if let school = viewModel.school {
-          Text(school.name)
-            .font(.subheadline)
-            .foregroundStyle(Color.accentBlue)
-        }
-      }
-    }
-    .frame(maxWidth: .infinity)
-  }
-
-  private func contactInfoSection(coach: Coach) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      sectionHeader(title: "Contact Information")
-
-      if let email = coach.email {
-        contactRow(icon: "envelope", label: "Email", value: email, type: .email(email))
-      }
-
-      if let phone = coach.phone {
-        contactRow(icon: "phone", label: "Phone", value: phone, type: .phone(phone))
-      }
-
-      if let twitter = coach.twitterHandle {
-        contactRow(icon: "at", label: "Twitter", value: twitter, type: .twitter(twitter))
-      }
-
-      if let instagram = coach.instagramHandle {
-        contactRow(icon: "camera", label: "Instagram", value: instagram, type: .instagram(instagram))
-      }
-    }
-  }
-
-  private func statisticsSection(coach: Coach) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      sectionHeader(title: "Statistics")
-
-      ResponsivenessBar(score: coach.responsivenessScore)
-        .padding(.vertical, 4)
-
-      if let lastContact = coach.lastContactDateParsed {
-        HStack(spacing: 8) {
-          Image(systemName: "clock")
-            .foregroundStyle(.secondary)
-            .accessibilityHidden(true)
-          Text("Last contacted \(lastContact, style: .relative) ago")
-            .font(.subheadline)
-        }
-      } else {
-        HStack(spacing: 8) {
-          Image(systemName: "clock")
-            .foregroundStyle(.secondary)
-            .accessibilityHidden(true)
-          Text("Never contacted")
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .italic()
-        }
-      }
-    }
-  }
 
   private var recentInteractionsSection: some View {
     VStack(alignment: .leading, spacing: 12) {
-      sectionHeader(title: "Recent Interactions")
+      SectionHeader(title: "Recent Interactions")
 
       if viewModel.recentInteractions.isEmpty {
         Text("No interactions yet")
@@ -274,78 +162,6 @@ struct CoachDetailView: View {
     )
   }
 
-  // MARK: - Helpers
-
-  private func sectionHeader(title: String) -> some View {
-    Text(title)
-      .font(.headline)
-      .foregroundStyle(.primary)
-      .accessibilityAddTraits(.isHeader)
-  }
-
-  @ViewBuilder
-  private func contactRow(icon: String, label: String, value: String, type: CommunicationType) -> some View {
-    if let url = type.url(for: value) {
-      Link(destination: url) {
-        HStack(spacing: 12) {
-          Image(systemName: icon)
-            .font(.body)
-            .foregroundStyle(type.iconColor)
-            .frame(width: 24)
-            .accessibilityHidden(true)
-
-          VStack(alignment: .leading, spacing: 2) {
-            Text(label)
-              .font(.caption)
-              .foregroundStyle(.secondary)
-            Text(value)
-              .font(.body)
-              .foregroundStyle(.primary)
-          }
-
-          Spacer()
-
-          Image(systemName: "arrow.up.right")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .accessibilityHidden(true)
-        }
-      }
-      .accessibilityLabel("\(label): \(value)")
-      .accessibilityHint("Opens \(type.appName)")
-    } else {
-      HStack(spacing: 12) {
-        Image(systemName: icon)
-          .font(.body)
-          .foregroundStyle(.secondary)
-          .frame(width: 24)
-          .accessibilityHidden(true)
-
-        VStack(alignment: .leading, spacing: 2) {
-          Text(label)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-          Text(value)
-            .font(.body)
-        }
-      }
-    }
-  }
-
-  private func errorView(message: String) -> some View {
-    VStack(spacing: 16) {
-      Image(systemName: "exclamationmark.triangle")
-        .font(.largeTitle)
-        .foregroundStyle(Color.errorRed)
-        .accessibilityHidden(true)
-      Text(message)
-        .font(.body)
-        .foregroundStyle(.secondary)
-        .multilineTextAlignment(.center)
-    }
-    .padding()
-    .padding(.top, 100)
-  }
 }
 
 #Preview {
