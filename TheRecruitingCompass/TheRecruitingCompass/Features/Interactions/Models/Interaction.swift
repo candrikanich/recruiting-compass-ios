@@ -15,7 +15,7 @@ struct Interaction: Identifiable, Codable, Sendable {
   let attachments: [String]?
   let familyUnitId: String
   let createdAt: String
-  let updatedAt: String
+  let updatedAt: String?
 
   var displayDate: Date {
     if let occurredAt {
