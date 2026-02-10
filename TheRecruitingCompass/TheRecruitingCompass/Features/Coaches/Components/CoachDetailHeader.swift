@@ -100,6 +100,7 @@ struct CoachDetailHeader: View {
         statusChangedAt: nil,
         priorityTier: "A",
         notes: nil,
+        privateNotes: nil,
         pros: [],
         cons: [],
         offerDetails: nil,

@@ -190,6 +190,7 @@ struct SchoolCardView: View {
     statusChangedAt: nil,
     priorityTier: "A",
     notes: "Great academic program",
+    privateNotes: nil,
     pros: [],
     cons: [],
     offerDetails: nil,

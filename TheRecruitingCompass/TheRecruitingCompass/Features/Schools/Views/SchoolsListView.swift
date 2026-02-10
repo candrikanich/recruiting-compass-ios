@@ -59,7 +59,7 @@ struct SchoolsListView: View {
     .navigationDestination(for: SchoolDestination.self) { destination in
       switch destination {
       case .detail(let schoolId):
-        Text("School Detail: \(schoolId)")
+        SchoolDetailView(schoolId: schoolId)
       case .add:
         Text("Add School")
       }

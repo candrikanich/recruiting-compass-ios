@@ -14,6 +14,14 @@ struct AcademicInfo: Codable, Sendable {
   let latitude: Double?
   let longitude: Double?
   let studentSize: Int?
+  let baseballFacilityAddress: String?
+  let mascot: String?
+  let undergradSize: String?
+  let carnegieSize: String?
+  let tuitionInState: Double?
+  let tuitionOutOfState: Double?
+  let admissionRate: Double?
+  let distanceFromHome: Double?
 
   enum CodingKeys: String, CodingKey {
     case gpaRequirement = "gpa_requirement"
@@ -22,6 +30,14 @@ struct AcademicInfo: Codable, Sendable {
     case additionalRequirements = "additional_requirements"
     case address, city, state, latitude, longitude
     case studentSize = "student_size"
+    case baseballFacilityAddress = "baseball_facility_address"
+    case mascot
+    case undergradSize = "undergrad_size"
+    case carnegieSize = "carnegie_size"
+    case tuitionInState = "tuition_in_state"
+    case tuitionOutOfState = "tuition_out_of_state"
+    case admissionRate = "admission_rate"
+    case distanceFromHome = "distance_from_home"
   }
 }
 
@@ -76,6 +92,7 @@ struct School: Codable, Identifiable, Sendable {
   let statusChangedAt: String?
   let priorityTier: String?
   let notes: String?
+  let privateNotes: [String: String]?
   let pros: [String]
   let cons: [String]
   let offerDetails: OfferDetails?
@@ -107,7 +124,9 @@ struct School: Codable, Identifiable, Sendable {
     case status
     case statusChangedAt = "status_changed_at"
     case priorityTier = "priority_tier"
-    case notes, pros, cons
+    case notes
+    case privateNotes = "private_notes"
+    case pros, cons
     case offerDetails = "offer_details"
     case academicInfo = "academic_info"
     case amenities
@@ -157,6 +176,10 @@ struct School: Codable, Identifiable, Sendable {
     return distanceInMiles
   }
 
+  func privateNote(for userId: String) -> String? {
+    privateNotes?[userId]
+  }
+
   // MARK: - Mutability Helper
 
   func with(isFavorite: Bool) -> School {
@@ -180,6 +203,7 @@ struct School: Codable, Identifiable, Sendable {
       statusChangedAt: statusChangedAt,
       priorityTier: priorityTier,
       notes: notes,
+      privateNotes: privateNotes,
       pros: pros,
       cons: cons,
       offerDetails: offerDetails,
