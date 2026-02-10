@@ -70,7 +70,8 @@ private struct CoachesEmptyState: View {
   var body: some View {
     VStack(spacing: 12) {
       Image(systemName: "person.crop.circle.badge.questionmark")
-        .font(.system(size: 48))
+        .font(.largeTitle)
+        .imageScale(.large)
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
@@ -86,7 +87,8 @@ private struct CoachesEmptyState: View {
     .frame(maxWidth: .infinity)
     .padding(.vertical, 32)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("No coaches added. Add coaches to track your recruiting contacts")
+    .accessibilityLabel("No coaches added")
+    .accessibilityHint("Use the manage coaches button to add recruiting contacts")
   }
 }
 

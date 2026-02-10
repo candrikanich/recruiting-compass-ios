@@ -42,7 +42,9 @@ struct SchoolNotesSection: View {
             .background(Color(.systemGray6))
             .cornerRadius(8)
             .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-text-editor")
-            .accessibilityLabel("\(title) editor")
+            .accessibilityLabel("\(title) text editor")
+            .accessibilityHint("Enter your \(title.lowercased())")
+            .accessibilityValue(editedNotes.isEmpty ? "Empty" : editedNotes)
 
           HStack {
             Button("Cancel", action: onCancel)
@@ -58,11 +60,13 @@ struct SchoolNotesSection: View {
                 ProgressView()
                   .progressViewStyle(.circular)
                   .scaleEffect(0.8)
+                  .accessibilityLabel("Saving \(title.lowercased())")
               } else {
                 Text("Save")
               }
             }
             .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-save-button")
+            .accessibilityLabel(isSaving ? "Saving \(title.lowercased())" : "Save \(title.lowercased())")
             .buttonStyle(.borderedProminent)
             .disabled(isSaving)
           }

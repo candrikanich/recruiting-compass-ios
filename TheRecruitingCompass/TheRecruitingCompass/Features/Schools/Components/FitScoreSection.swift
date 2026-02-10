@@ -19,13 +19,16 @@ struct FitScoreSection: View {
         // Large score display
         VStack(spacing: 4) {
           Text("\(Int(fitScore.score))")
-            .font(.system(size: 48, weight: .bold))
+            .font(.largeTitle)
+            .fontWeight(.bold)
             .foregroundStyle(fitScoreColor(fitScore.score))
+            .accessibilityLabel("Fit score: \(Int(fitScore.score)) out of 100")
 
           Text("Fit Score")
             .font(.caption)
             .foregroundStyle(.secondary)
         }
+        .accessibilityElement(children: .combine)
 
         VStack(alignment: .leading, spacing: 8) {
           // Tier badge

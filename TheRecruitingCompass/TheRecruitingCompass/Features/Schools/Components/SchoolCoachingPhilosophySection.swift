@@ -140,7 +140,8 @@ private struct PhilosophyEmptyState: View {
   var body: some View {
     VStack(spacing: 12) {
       Image(systemName: "quote.bubble")
-        .font(.system(size: 48))
+        .font(.largeTitle)
+        .imageScale(.large)
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
@@ -156,7 +157,8 @@ private struct PhilosophyEmptyState: View {
     .frame(maxWidth: .infinity)
     .padding(.vertical, 32)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("No coaching philosophy added. Add coaching philosophy to capture the program's values")
+    .accessibilityLabel("No coaching philosophy added")
+    .accessibilityHint("Use the edit button to add coaching philosophy details")
   }
 }
 

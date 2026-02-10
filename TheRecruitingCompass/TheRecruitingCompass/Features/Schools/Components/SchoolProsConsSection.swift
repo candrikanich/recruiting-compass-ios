@@ -48,16 +48,18 @@ struct SchoolProsConsSection: View {
                 ProgressView()
                   .progressViewStyle(.circular)
                   .scaleEffect(0.8)
+                  .accessibilityLabel("Adding pro")
               } else {
                 Image(systemName: "plus.circle.fill")
                   .foregroundStyle(.green)
                   .font(.title2)
+                  .accessibilityHidden(true)
               }
             }
             .accessibilityIdentifier("add-pro-button")
-            .frame(width: 44, height: 44)
+            .frame(minWidth: 44, minHeight: 44)
             .disabled(newPro.trimmingCharacters(in: .whitespaces).isEmpty || isAddingPro)
-            .accessibilityLabel("Add pro")
+            .accessibilityLabel(isAddingPro ? "Adding pro" : "Add pro")
           }
         }
         .frame(maxWidth: .infinity)
@@ -91,16 +93,18 @@ struct SchoolProsConsSection: View {
                 ProgressView()
                   .progressViewStyle(.circular)
                   .scaleEffect(0.8)
+                  .accessibilityLabel("Adding con")
               } else {
                 Image(systemName: "plus.circle.fill")
                   .foregroundStyle(.red)
                   .font(.title2)
+                  .accessibilityHidden(true)
               }
             }
             .accessibilityIdentifier("add-con-button")
-            .frame(width: 44, height: 44)
+            .frame(minWidth: 44, minHeight: 44)
             .disabled(newCon.trimmingCharacters(in: .whitespaces).isEmpty || isAddingCon)
-            .accessibilityLabel("Add con")
+            .accessibilityLabel(isAddingCon ? "Adding con" : "Add con")
           }
         }
         .frame(maxWidth: .infinity)
@@ -161,9 +165,11 @@ struct ConItem: View {
         Image(systemName: "xmark.circle.fill")
           .foregroundStyle(.secondary)
           .font(.caption)
+          .accessibilityHidden(true)
       }
-      .frame(width: 30, height: 30)
-      .accessibilityLabel("Remove \(text)")
+      .frame(minWidth: 44, minHeight: 44)
+      .accessibilityLabel("Remove con: \(text)")
+      .accessibilityHint("Double tap to remove this con")
     }
     .padding(.horizontal, 12)
     .padding(.vertical, 8)

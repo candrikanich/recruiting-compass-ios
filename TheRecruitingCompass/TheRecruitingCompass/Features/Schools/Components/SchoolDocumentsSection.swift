@@ -43,7 +43,8 @@ private struct DocumentsEmptyState: View {
   var body: some View {
     VStack(spacing: 12) {
       Image(systemName: "doc.text")
-        .font(.system(size: 48))
+        .font(.largeTitle)
+        .imageScale(.large)
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
@@ -59,7 +60,8 @@ private struct DocumentsEmptyState: View {
     .frame(maxWidth: .infinity)
     .padding(.vertical, 32)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("No documents. Document upload feature coming soon")
+    .accessibilityLabel("No documents")
+    .accessibilityHint("Document upload feature is coming soon")
   }
 }
 

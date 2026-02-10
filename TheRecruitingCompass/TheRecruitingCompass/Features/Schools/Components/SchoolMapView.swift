@@ -17,6 +17,8 @@ struct SchoolMapView: View {
         .frame(height: 200)
         .cornerRadius(12)
         .accessibilityLabel("Map showing \(school.name) location")
+        .accessibilityAddTraits(.allowsDirectInteraction)
+        .accessibilityHint("Use two fingers to pan and pinch to zoom the map")
 
         // Distance from home
         if let distance = calculateDistance() {

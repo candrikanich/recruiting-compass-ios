@@ -165,9 +165,13 @@ struct SchoolDetailView: View {
           FitScoreSection(fitScore: fitScore)
             .padding(.horizontal)
         } else if viewModel.isLoadingFitScore {
-          ProgressView("Calculating fit score...")
-            .padding()
-            .accessibilityLabel("Calculating fit score")
+          HStack {
+            Spacer()
+            ProgressView("Calculating fit score...")
+              .padding()
+              .accessibilityLabel("Calculating fit score, please wait")
+            Spacer()
+          }
         }
 
         // Division Recommendation Banner

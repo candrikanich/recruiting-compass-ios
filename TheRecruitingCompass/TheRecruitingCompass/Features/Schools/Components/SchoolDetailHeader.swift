@@ -94,6 +94,9 @@ struct SchoolDetailHeader: View {
           }
         }
       }
+      .accessibilityElement(children: .contain)
+      .accessibilityLabel("School details badges")
+      .accessibilityHint("Swipe to navigate through school attributes")
     }
     .padding()
     .background(Color(.systemBackground))
