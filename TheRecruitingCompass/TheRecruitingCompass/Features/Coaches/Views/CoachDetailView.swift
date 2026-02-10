@@ -7,6 +7,7 @@ struct CoachDetailView: View {
 
   @StateObject private var viewModel: CoachDetailViewModel
   @Environment(\.sizeCategory) private var sizeCategory
+  @Environment(\.dismiss) private var dismiss
 
   init(coachId: String, allCoaches: [Coach] = [], allSchools: [School] = []) {
     self.coachId = coachId
@@ -31,8 +32,66 @@ struct CoachDetailView: View {
     }
     .navigationTitle("Coach Details")
     .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      ToolbarItem(placement: .primaryAction) {
+        Menu {
+          Button {
+            viewModel.startEditing()
+          } label: {
+            Label("Edit", systemImage: "pencil")
+          }
+          .disabled(viewModel.isLoading || viewModel.isSaving)
+
+          Button(role: .destructive) {
+            viewModel.confirmDelete()
+          } label: {
+            Label("Delete", systemImage: "trash")
+          }
+          .disabled(viewModel.isLoading || viewModel.isDeleting)
+        } label: {
+          Image(systemName: "ellipsis.circle")
+            .accessibilityLabel("Coach actions menu")
+        }
+      }
+    }
+    .sheet(isPresented: $viewModel.isEditing) {
+      if viewModel.editedCoach != nil {
+        CoachEditForm(
+          editedCoach: Binding(
+            get: { viewModel.editedCoach ?? EditableCoach(from: viewModel.coach ?? Coach(
+              id: "", firstName: "", lastName: "", email: nil, phone: nil,
+              position: nil, schoolId: "", twitterHandle: nil, instagramHandle: nil,
+              notes: nil, privateNotes: nil, responsivenessScore: 0, lastContactDate: nil,
+              createdAt: "", updatedAt: ""
+            )) },
+            set: { viewModel.editedCoach = $0 }
+          ),
+          validationErrors: viewModel.validationErrors,
+          isSaving: viewModel.isSaving,
+          onSave: { await viewModel.saveChanges() },
+          onCancel: { viewModel.cancelEditing() }
+        )
+      }
+    }
+    .confirmationDialog("Delete Coach", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
+      Button("Delete", role: .destructive) {
+        Task {
+          await viewModel.deleteCoach()
+          if viewModel.deleteSuccessMessage != nil {
+            dismiss()
+          }
+        }
+      }
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      Text("Are you sure you want to delete this coach? This action cannot be undone.")
+    }
+    .refreshable {
+      await viewModel.loadDetails()
+    }
     .task {
       await viewModel.loadCoach()
+      await viewModel.loadDetails()
     }
   }
 
@@ -56,8 +115,15 @@ struct CoachDetailView: View {
     VStack(alignment: .leading, spacing: 24) {
       headerSection(coach: coach)
       contactInfoSection(coach: coach)
+
+      if let stats = viewModel.stats {
+        CoachStatsGrid(stats: stats)
+      }
+
       statisticsSection(coach: coach)
-      notesSection(coach: coach)
+      recentInteractionsSection
+      sharedNotesSection
+      privateNotesSection
     }
     .padding()
   }
@@ -156,21 +222,56 @@ struct CoachDetailView: View {
     }
   }
 
-  private func notesSection(coach: Coach) -> some View {
+  private var recentInteractionsSection: some View {
     VStack(alignment: .leading, spacing: 12) {
-      sectionHeader(title: "Notes")
+      sectionHeader(title: "Recent Interactions")
 
-      if let notes = coach.notes, !notes.isEmpty {
-        Text(notes)
-          .font(.body)
-          .foregroundStyle(.primary)
-      } else {
-        Text("No notes")
+      if viewModel.recentInteractions.isEmpty {
+        Text("No interactions yet")
           .font(.body)
           .foregroundStyle(.secondary)
           .italic()
+          .padding(.vertical, 8)
+      } else {
+        VStack(spacing: 0) {
+          ForEach(viewModel.recentInteractions) { interaction in
+            RecentInteractionRow(interaction: interaction)
+            if interaction.id != viewModel.recentInteractions.last?.id {
+              Divider()
+                .padding(.vertical, 4)
+            }
+          }
+        }
       }
     }
+  }
+
+  private var sharedNotesSection: some View {
+    NotesSection(
+      title: "Shared Notes",
+      notes: viewModel.coach?.notes ?? "",
+      isEditing: viewModel.isEditingSharedNotes,
+      editedNotes: $viewModel.editedSharedNotes,
+      onEdit: { viewModel.startEditingSharedNotes() },
+      onSave: { await viewModel.saveSharedNotes() },
+      onCancel: { viewModel.cancelEditingSharedNotes() },
+      isPrivate: false,
+      isSaving: viewModel.isSaving
+    )
+  }
+
+  private var privateNotesSection: some View {
+    NotesSection(
+      title: "Private Notes",
+      notes: viewModel.privateNoteForCurrentUser ?? "",
+      isEditing: viewModel.isEditingPrivateNotes,
+      editedNotes: $viewModel.editedPrivateNotes,
+      onEdit: { viewModel.startEditingPrivateNotes() },
+      onSave: { await viewModel.savePrivateNotes() },
+      onCancel: { viewModel.cancelEditingPrivateNotes() },
+      isPrivate: true,
+      isSaving: viewModel.isSaving
+    )
   }
 
   // MARK: - Helpers
@@ -263,6 +364,7 @@ struct CoachDetailView: View {
           twitterHandle: "@coachsmith",
           instagramHandle: "@coachsmith",
           notes: "Great recruiter, very responsive",
+          privateNotes: nil,
           responsivenessScore: 85,
           lastContactDate: "2026-01-15T10:00:00Z",
           createdAt: "2025-01-01T00:00:00Z",

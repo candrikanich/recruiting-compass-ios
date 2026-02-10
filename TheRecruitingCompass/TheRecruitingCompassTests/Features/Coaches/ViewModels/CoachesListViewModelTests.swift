@@ -68,6 +68,7 @@ final class CoachesListViewModelTests: XCTestCase {
     twitterHandle: String? = nil,
     instagramHandle: String? = nil,
     notes: String? = nil,
+    privateNotes: [String: String]? = nil,
     responsivenessScore: Double = 80,
     lastContactDate: String? = "2026-02-01T10:00:00Z"
   ) -> Coach {
@@ -82,6 +83,7 @@ final class CoachesListViewModelTests: XCTestCase {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       notes: notes,
+      privateNotes: privateNotes,
       responsivenessScore: responsivenessScore,
       lastContactDate: lastContactDate,
       createdAt: "2025-01-01T00:00:00Z",

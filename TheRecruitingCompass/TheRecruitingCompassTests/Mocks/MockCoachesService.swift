@@ -6,6 +6,8 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
 
   var fetchSchoolsCallCount = 0
   var fetchCoachesCallCount = 0
+  var updateCoachCallCount = 0
+  var fetchInteractionsCallCount = 0
   var deleteCoachCallCount = 0
   var cascadeDeleteCoachCallCount = 0
 
@@ -13,6 +15,10 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
 
   var lastFetchSchoolsFamilyUnitId: String?
   var lastFetchCoachesSchoolIds: [String]?
+  var lastUpdateCoachId: String?
+  var lastUpdateCoachUpdates: CoachUpdateRequest?
+  var lastFetchInteractionsCoachId: String?
+  var lastFetchInteractionsLimit: Int?
   var lastDeletedCoachId: String?
   var lastCascadeDeletedCoachId: String?
 
@@ -20,6 +26,8 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
 
   var shouldThrowFetchSchools = false
   var shouldThrowFetchCoaches = false
+  var shouldThrowUpdateCoach = false
+  var shouldThrowFetchInteractions = false
   var shouldThrowDeleteCoach = false
   var shouldThrowCascadeDelete = false
 
@@ -27,6 +35,8 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
 
   var stubbedSchools: [School] = []
   var stubbedCoaches: [Coach] = []
+  var stubbedUpdatedCoach: Coach?
+  var stubbedInteractions: [Interaction] = []
   var stubbedDeleteResult = DeleteResult(
     isCascadeUsed: true,
     deletedInteractions: 3,
@@ -68,5 +78,28 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
       throw NSError(domain: "MockCoaches", code: 4, userInfo: [NSLocalizedDescriptionKey: "Mock cascade delete error"])
     }
     return stubbedDeleteResult
+  }
+
+  func updateCoach(id: String, updates: CoachUpdateRequest) async throws -> Coach {
+    updateCoachCallCount += 1
+    lastUpdateCoachId = id
+    lastUpdateCoachUpdates = updates
+    if shouldThrowUpdateCoach {
+      throw NSError(domain: "MockCoaches", code: 5, userInfo: [NSLocalizedDescriptionKey: "Mock update coach error"])
+    }
+    guard let coach = stubbedUpdatedCoach else {
+      throw NSError(domain: "MockCoaches", code: 6, userInfo: [NSLocalizedDescriptionKey: "No stubbed coach configured"])
+    }
+    return coach
+  }
+
+  func fetchInteractions(coachId: String, limit: Int) async throws -> [Interaction] {
+    fetchInteractionsCallCount += 1
+    lastFetchInteractionsCoachId = coachId
+    lastFetchInteractionsLimit = limit
+    if shouldThrowFetchInteractions {
+      throw NSError(domain: "MockCoaches", code: 7, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
+    }
+    return stubbedInteractions
   }
 }

@@ -70,6 +70,7 @@ final class CoachesListViewTests: XCTestCase {
       twitterHandle: nil,
       instagramHandle: nil,
       notes: nil,
+      privateNotes: nil,
       responsivenessScore: responsivenessScore,
       lastContactDate: lastContactDate,
       createdAt: "2025-01-01T00:00:00Z",

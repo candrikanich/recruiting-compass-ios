@@ -1,5 +1,8 @@
 import Foundation
 
+// Import CoachRole from Coaches feature
+import SwiftUI
+
 struct Coach: Codable, Identifiable, Sendable {
   let id: String
   let firstName: String
@@ -11,6 +14,7 @@ struct Coach: Codable, Identifiable, Sendable {
   let twitterHandle: String?
   let instagramHandle: String?
   let notes: String?
+  let privateNotes: [String: String]?
   let responsivenessScore: Double
   let lastContactDate: String?
   let createdAt: String
@@ -49,9 +53,14 @@ struct Coach: Codable, Identifiable, Sendable {
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
     case notes
+    case privateNotes = "private_notes"
     case responsivenessScore = "responsiveness_score"
     case lastContactDate = "last_contact_date"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
+  }
+
+  func privateNote(for userId: String) -> String? {
+    privateNotes?[userId]
   }
 }

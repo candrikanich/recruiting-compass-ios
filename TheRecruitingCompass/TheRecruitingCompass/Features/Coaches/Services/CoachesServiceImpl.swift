@@ -76,4 +76,33 @@ final class CoachesServiceImpl: CoachesManaging, @unchecked Sendable {
     logger.info("Cascade delete complete for coach: \(id)")
     return result
   }
+
+  func updateCoach(id: String, updates: CoachUpdateRequest) async throws -> Coach {
+    logger.debug("Updating coach: \(id)")
+
+    let result: Coach = try await supabaseManager.client
+      .from("coaches")
+      .update(updates)
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Coach updated: \(id)")
+    return result
+  }
+
+  func fetchInteractions(coachId: String, limit: Int) async throws -> [Interaction] {
+    try await fetch("interactions for coach \(coachId)") {
+      try await supabaseManager.client
+        .from("interactions")
+        .select()
+        .eq("coach_id", value: coachId)
+        .order("occurred_at", ascending: false)
+        .limit(limit)
+        .execute()
+        .value
+    }
+  }
 }

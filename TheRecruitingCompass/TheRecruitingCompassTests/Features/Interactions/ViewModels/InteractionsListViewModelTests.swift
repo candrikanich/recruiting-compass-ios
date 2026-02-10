@@ -704,6 +704,7 @@ final class InteractionsListViewModelTests: XCTestCase {
       twitterHandle: nil,
       instagramHandle: nil,
       notes: nil,
+      privateNotes: nil,
       responsivenessScore: 0.0,
       lastContactDate: nil,
       createdAt: "",

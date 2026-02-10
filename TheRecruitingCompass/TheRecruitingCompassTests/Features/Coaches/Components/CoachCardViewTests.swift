@@ -30,6 +30,7 @@ final class CoachCardViewTests: XCTestCase {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       notes: nil,
+      privateNotes: nil,
       responsivenessScore: responsivenessScore,
       lastContactDate: lastContactDate,
       createdAt: "2025-01-01T00:00:00Z",
