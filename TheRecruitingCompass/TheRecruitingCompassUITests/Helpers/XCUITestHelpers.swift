@@ -93,3 +93,91 @@ extension XCUIElement {
     }
   }
 }
+
+// MARK: - Authentication Helpers
+
+extension XCUIApplication {
+
+  /// Logs in as a parent user with the provided credentials
+  /// Assumes app is on landing screen
+  /// - Parameters:
+  ///   - email: Parent email
+  ///   - password: Parent password
+  func loginAsParent(email: String, password: String) {
+    // Tap "Sign In" button on landing
+    let signInButton = buttons["Sign in to your account"]
+    if signInButton.waitForExistence(timeout: 5) {
+      signInButton.tap()
+    }
+
+    // Fill in email and password
+    let emailField = textFields["Email"]
+    if emailField.waitForExistence(timeout: 5) {
+      emailField.tap()
+      emailField.typeText(email)
+    }
+
+    let passwordField = secureTextFields["Password"]
+    if passwordField.exists {
+      passwordField.tap()
+      passwordField.typeText(password)
+    }
+
+    // Tap Sign In button
+    let submitButton = buttons["Sign in"]
+    if submitButton.exists {
+      submitButton.tap()
+    }
+
+    // Wait for dashboard to appear
+    let dashboardTitle = navigationBars["Dashboard"]
+    _ = dashboardTitle.waitForExistence(timeout: 10)
+  }
+
+  /// Logs in as a student user with the provided credentials
+  /// - Parameters:
+  ///   - email: Student email
+  ///   - password: Student password
+  func loginAsStudent(email: String, password: String) {
+    // Same flow as parent (login UI is the same)
+    loginAsParent(email: email, password: password)
+  }
+
+  /// Logs in with test user data
+  /// - Parameter userData: Test user data including email and password
+  func login(with userData: TestUserData) {
+    loginAsParent(email: userData.email, password: userData.password)
+  }
+
+  /// Logs out the current user
+  /// Assumes user is logged in and can access profile/settings
+  func logout() {
+    // Navigate to profile/settings tab
+    if tabBars.buttons["Profile"].exists {
+      tabBars.buttons["Profile"].tap()
+    }
+
+    // Tap logout button (adjust selector based on actual UI)
+    let logoutButton = buttons["Log out"]
+    if logoutButton.waitForExistence(timeout: 5) {
+      logoutButton.tap()
+    }
+
+    // Confirm logout if there's a confirmation dialog
+    if alerts.buttons["Log out"].exists {
+      alerts.buttons["Log out"].tap()
+    }
+
+    // Wait for landing screen to appear
+    let createAccountButton = buttons["Create a new account"]
+    _ = createAccountButton.waitForExistence(timeout: 10)
+  }
+
+  /// Waits for the user to be logged in (dashboard visible)
+  /// - Parameter timeout: Timeout in seconds
+  /// - Returns: True if dashboard appeared, false otherwise
+  func waitForLogin(timeout: TimeInterval = 10) -> Bool {
+    let dashboardTitle = navigationBars["Dashboard"]
+    return dashboardTitle.waitForExistence(timeout: timeout)
+  }
+}
