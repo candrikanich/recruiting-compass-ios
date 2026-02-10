@@ -143,4 +143,189 @@ final class SchoolsServiceImpl: SchoolsManaging, @unchecked Sendable {
         .value
     }
   }
+
+  // MARK: - Phase 2 Methods (Editing & Notes)
+
+  func updateNotes(id: String, notes: String) async throws -> School {
+    logger.debug("Updating notes for school: \(id)")
+
+    let updated: School = try await supabaseManager.client
+      .from("schools")
+      .update(["notes": notes])
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Notes updated for school: \(id)")
+    return updated
+  }
+
+  func updatePrivateNotes(id: String, familyUnitId: String, userId: String, note: String?) async throws -> School {
+    logger.debug("Updating private notes for school: \(id), user: \(userId)")
+
+    // CRITICAL: Fetch current school to merge private notes
+    let current = try await fetchSchool(id: id, familyUnitId: familyUnitId)
+    var privateNotes = current.privateNotes ?? [:]
+
+    if let note = note, !note.isEmpty {
+      privateNotes[userId] = note
+    } else {
+      privateNotes.removeValue(forKey: userId)
+    }
+
+    let updated: School = try await supabaseManager.client
+      .from("schools")
+      .update(["private_notes": privateNotes])
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Private notes updated for school: \(id)")
+    return updated
+  }
+
+  func addPro(id: String, familyUnitId: String, text: String) async throws -> School {
+    logger.debug("Adding pro to school: \(id)")
+
+    // Fetch current school to append to array
+    let current = try await fetchSchool(id: id, familyUnitId: familyUnitId)
+    var pros = current.pros
+    pros.append(text)
+
+    let updated: School = try await supabaseManager.client
+      .from("schools")
+      .update(["pros": pros])
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Pro added to school: \(id)")
+    return updated
+  }
+
+  func removePro(id: String, familyUnitId: String, index: Int) async throws -> School {
+    logger.debug("Removing pro at index \(index) from school: \(id)")
+
+    let current = try await fetchSchool(id: id, familyUnitId: familyUnitId)
+    var pros = current.pros
+    guard index < pros.count else {
+      logger.error("Invalid pro index: \(index) for school: \(id)")
+      throw SchoolError.invalidIndex
+    }
+    pros.remove(at: index)
+
+    let updated: School = try await supabaseManager.client
+      .from("schools")
+      .update(["pros": pros])
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Pro removed from school: \(id)")
+    return updated
+  }
+
+  func addCon(id: String, familyUnitId: String, text: String) async throws -> School {
+    logger.debug("Adding con to school: \(id)")
+
+    let current = try await fetchSchool(id: id, familyUnitId: familyUnitId)
+    var cons = current.cons
+    cons.append(text)
+
+    let updated: School = try await supabaseManager.client
+      .from("schools")
+      .update(["cons": cons])
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Con added to school: \(id)")
+    return updated
+  }
+
+  func removeCon(id: String, familyUnitId: String, index: Int) async throws -> School {
+    logger.debug("Removing con at index \(index) from school: \(id)")
+
+    let current = try await fetchSchool(id: id, familyUnitId: familyUnitId)
+    var cons = current.cons
+    guard index < cons.count else {
+      logger.error("Invalid con index: \(index) for school: \(id)")
+      throw SchoolError.invalidIndex
+    }
+    cons.remove(at: index)
+
+    let updated: School = try await supabaseManager.client
+      .from("schools")
+      .update(["cons": cons])
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Con removed from school: \(id)")
+    return updated
+  }
+
+  func updateBasicInfo(id: String, info: EditableBasicInfo) async throws -> School {
+    logger.debug("Updating basic info for school: \(id)")
+
+    // Build update dictionary with non-empty values only
+    var update: [String: String] = [:]
+
+    if !info.website.isEmpty {
+      update["website"] = info.website
+    }
+    if !info.twitterHandle.isEmpty {
+      update["twitter_handle"] = info.twitterHandle
+    }
+    if !info.instagramHandle.isEmpty {
+      update["instagram_handle"] = info.instagramHandle
+    }
+
+    // For academic_info nested fields, build a JSON object
+    var academicInfo: [String: String] = [:]
+    if !info.address.isEmpty {
+      academicInfo["address"] = info.address
+    }
+    if !info.baseballFacilityAddress.isEmpty {
+      academicInfo["baseball_facility_address"] = info.baseballFacilityAddress
+    }
+    if !info.mascot.isEmpty {
+      academicInfo["mascot"] = info.mascot
+    }
+    if !info.undergradSize.isEmpty {
+      academicInfo["undergrad_size"] = info.undergradSize
+    }
+
+    // Add academic_info as JSON if there are updates
+    if !academicInfo.isEmpty {
+      if let jsonData = try? JSONSerialization.data(withJSONObject: academicInfo),
+         let jsonString = String(data: jsonData, encoding: .utf8) {
+        update["academic_info"] = jsonString
+      }
+    }
+
+    let updated: School = try await supabaseManager.client
+      .from("schools")
+      .update(update)
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Basic info updated for school: \(id)")
+    return updated
+  }
 }

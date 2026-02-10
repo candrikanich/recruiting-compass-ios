@@ -58,9 +58,107 @@ struct SchoolDetailView: View {
         SchoolStatusHistorySection(history: viewModel.statusHistory)
           .padding(.horizontal)
 
-        // TODO: Add more sections in Phase 2-4
+        // MARK: - Phase 2 Sections
+
+        SchoolNotesSection(
+          title: "Notes",
+          notes: school.notes ?? "",
+          isPrivate: false,
+          isEditing: viewModel.isEditingNotes,
+          editedNotes: $viewModel.editedNotes,
+          onEdit: { viewModel.startEditingNotes() },
+          onSave: { await viewModel.saveNotes() },
+          onCancel: { viewModel.cancelEditingNotes() },
+          isSaving: viewModel.isSavingNotes
+        )
+        .padding(.horizontal)
+
+        SchoolNotesSection(
+          title: "Private Notes",
+          notes: viewModel.privateNoteForCurrentUser,
+          isPrivate: true,
+          isEditing: viewModel.isEditingPrivateNotes,
+          editedNotes: $viewModel.editedPrivateNotes,
+          onEdit: { viewModel.startEditingPrivateNotes() },
+          onSave: { await viewModel.savePrivateNotes() },
+          onCancel: { viewModel.cancelEditingPrivateNotes() },
+          isSaving: viewModel.isSavingPrivateNotes
+        )
+        .padding(.horizontal)
+
+        SchoolProsConsSection(
+          pros: school.pros,
+          cons: school.cons,
+          newPro: $viewModel.newPro,
+          newCon: $viewModel.newCon,
+          onAddPro: { await viewModel.addPro() },
+          onRemovePro: { index in await viewModel.removePro(at: index) },
+          onAddCon: { await viewModel.addCon() },
+          onRemoveCon: { index in await viewModel.removeCon(at: index) },
+          isAddingPro: viewModel.isAddingPro,
+          isAddingCon: viewModel.isAddingCon
+        )
+        .padding(.horizontal)
+
+        basicInfoSection(school: school)
       }
       .padding(.vertical)
+    }
+  }
+
+  @ViewBuilder
+  private func basicInfoSection(school: School) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack {
+        Text("Information")
+          .font(.headline)
+          .accessibilityAddTraits(.isHeader)
+
+        Spacer()
+
+        Button("Edit") {
+          viewModel.startEditingBasicInfo()
+        }
+        .accessibilityLabel("Edit school information")
+      }
+
+      if let info = school.academicInfo {
+        VStack(alignment: .leading, spacing: 8) {
+          if let address = info.address {
+            InfoRow(label: "Campus Address", value: address)
+          }
+
+          if let facility = info.baseballFacilityAddress {
+            InfoRow(label: "Baseball Facility", value: facility)
+          }
+
+          if let mascot = info.mascot {
+            InfoRow(label: "Mascot", value: mascot)
+          }
+
+          if let size = info.undergradSize {
+            InfoRow(label: "Undergrad Size", value: size)
+          }
+        }
+      }
+
+      if let website = school.website {
+        Link(destination: URL(string: "https://\(website)")!) {
+          Label("Visit Website", systemImage: "safari")
+        }
+      }
+    }
+    .padding()
+    .background(Color(.systemGray6))
+    .cornerRadius(12)
+    .padding(.horizontal)
+    .sheet(isPresented: $viewModel.isEditingBasicInfo) {
+      SchoolBasicInfoSheet(
+        info: $viewModel.editedBasicInfo,
+        onSave: { await viewModel.saveBasicInfo() },
+        onCancel: { viewModel.cancelEditingBasicInfo() },
+        isSaving: viewModel.isSavingBasicInfo
+      )
     }
   }
 
@@ -113,6 +211,25 @@ struct SchoolDetailView: View {
     .accessibilityElement(children: .combine)
     .accessibilityLabel("Recruiting status: \((SchoolStatus(rawValue: school.status) ?? .interested).displayName)")
     .accessibilityHint("Double tap to change status")
+  }
+}
+
+struct InfoRow: View {
+  let label: String
+  let value: String
+
+  var body: some View {
+    HStack(alignment: .top) {
+      Text(label + ":")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+
+      Spacer()
+
+      Text(value)
+        .font(.subheadline)
+        .multilineTextAlignment(.trailing)
+    }
   }
 }
 
