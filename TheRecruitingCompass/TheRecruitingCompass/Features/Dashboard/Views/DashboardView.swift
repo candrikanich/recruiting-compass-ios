@@ -6,8 +6,8 @@ struct DashboardView: View {
   @EnvironmentObject var authManager: AuthManager
   @EnvironmentObject var familyManager: FamilyManager
 
-  init(viewModel: DashboardViewModel = DashboardViewModel()) {
-    _viewModel = StateObject(wrappedValue: viewModel)
+  init(viewModel: DashboardViewModel? = nil) {
+    _viewModel = StateObject(wrappedValue: viewModel ?? DashboardViewModel())
   }
 
   var body: some View {

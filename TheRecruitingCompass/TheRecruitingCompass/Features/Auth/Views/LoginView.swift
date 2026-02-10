@@ -7,8 +7,9 @@ struct LoginView: View {
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
-  init(timeoutReason: String? = nil, authManager: AuthManager = .shared) {
-    _viewModel = StateObject(wrappedValue: LoginViewModel(authManager: authManager, timeoutReason: timeoutReason))
+  init(timeoutReason: String? = nil, authManager: AuthManager? = nil) {
+    let manager = authManager ?? .shared
+    _viewModel = StateObject(wrappedValue: LoginViewModel(authManager: manager, timeoutReason: timeoutReason))
   }
 
   var body: some View {

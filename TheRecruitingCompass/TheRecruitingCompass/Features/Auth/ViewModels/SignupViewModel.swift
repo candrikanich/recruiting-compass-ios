@@ -60,8 +60,8 @@ class SignupViewModel: ObservableObject {
     isLoading || !isFormValid
   }
 
-  nonisolated init(authManager: any AuthManaging = AuthManager.shared) {
-    self.authManager = authManager
+  init(authManager: (any AuthManaging)? = nil) {
+    self.authManager = authManager ?? AuthManager.shared
   }
 
   // MARK: - Two-Step Flow

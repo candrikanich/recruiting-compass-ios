@@ -6,8 +6,9 @@ struct EmailVerificationView: View {
   @Environment(\.dismiss) var dismiss
   @Environment(\.scenePhase) var scenePhase
 
-  init(authManager: any AuthManaging = AuthManager.shared) {
-    _viewModel = StateObject(wrappedValue: EmailVerificationViewModel(authManager: authManager))
+  init(authManager: (any AuthManaging)? = nil) {
+    let manager = authManager ?? AuthManager.shared
+    _viewModel = StateObject(wrappedValue: EmailVerificationViewModel(authManager: manager))
   }
 
   var body: some View {

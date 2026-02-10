@@ -42,12 +42,12 @@ class ResetPasswordViewModel: ObservableObject {
     isLoading || !isFormValid
   }
 
-  nonisolated init(
-    authManager: any AuthManaging = AuthManager.shared,
-    config: PasswordResetConfig = .default
+  init(
+    authManager: (any AuthManaging)? = nil,
+    config: PasswordResetConfig? = nil
   ) {
-    self.authManager = authManager
-    self.config = config
+    self.authManager = authManager ?? AuthManager.shared
+    self.config = config ?? .default
   }
 
   func validateNewPassword() {

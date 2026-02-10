@@ -105,14 +105,14 @@ final class InteractionsListViewModel: ObservableObject {
 
   // MARK: - Initialization
 
-  nonisolated init(
-    interactionsService: any InteractionsManaging = InteractionsServiceImpl(supabaseManager: .shared),
-    familyManager: FamilyManager = .shared,
-    authManager: any AuthManaging = AuthManager.shared
+  init(
+    interactionsService: (any InteractionsManaging)? = nil,
+    familyManager: FamilyManager? = nil,
+    authManager: (any AuthManaging)? = nil
   ) {
-    self.interactionsService = interactionsService
-    self.familyManager = familyManager
-    self.authManager = authManager
+    self.interactionsService = interactionsService ?? InteractionsServiceImpl(supabaseManager: .shared)
+    self.familyManager = familyManager ?? .shared
+    self.authManager = authManager ?? AuthManager.shared
   }
 
   // MARK: - Data Loading

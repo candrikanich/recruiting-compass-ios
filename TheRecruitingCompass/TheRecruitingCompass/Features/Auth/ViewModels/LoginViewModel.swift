@@ -27,8 +27,8 @@ class LoginViewModel: ObservableObject {
     isLoading || !isFormValid
   }
 
-  init(authManager: any AuthManaging = AuthManager.shared, timeoutReason: String? = nil) {
-    self.authManager = authManager
+  init(authManager: (any AuthManaging)? = nil, timeoutReason: String? = nil) {
+    self.authManager = authManager ?? AuthManager.shared
     checkTimeoutReason(timeoutReason)
     loadCachedEmail()
   }

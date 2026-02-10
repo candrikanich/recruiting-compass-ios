@@ -39,18 +39,18 @@ final class CoachDetailViewModel: ObservableObject {
   private let allCoaches: [Coach]
   private let allSchools: [School]
 
-  nonisolated init(
+  init(
     coachId: String,
     allCoaches: [Coach] = [],
     allSchools: [School] = [],
-    coachesService: any CoachesManaging = CoachesServiceImpl(supabaseManager: .shared),
-    authManager: any AuthManaging = AuthManager.shared
+    coachesService: (any CoachesManaging)? = nil,
+    authManager: (any AuthManaging)? = nil
   ) {
     self.coachId = coachId
     self.allCoaches = allCoaches
     self.allSchools = allSchools
-    self.coachesService = coachesService
-    self.authManager = authManager
+    self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
+    self.authManager = authManager ?? AuthManager.shared
   }
 
   // MARK: - Computed Properties

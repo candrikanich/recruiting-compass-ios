@@ -5,8 +5,9 @@ struct ResetPasswordView: View {
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
-  init(authManager: AuthManager = .shared) {
-    _viewModel = StateObject(wrappedValue: ResetPasswordViewModel(authManager: authManager))
+  init(authManager: AuthManager? = nil) {
+    let manager = authManager ?? .shared
+    _viewModel = StateObject(wrappedValue: ResetPasswordViewModel(authManager: manager))
   }
 
   var body: some View {

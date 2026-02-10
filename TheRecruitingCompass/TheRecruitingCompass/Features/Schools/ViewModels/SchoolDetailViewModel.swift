@@ -72,22 +72,22 @@ final class SchoolDetailViewModel: ObservableObject {
   private let collegeService: any CollegeScorecardManaging
   private let coachesService: any CoachesManaging
 
-  nonisolated init(
+  init(
     schoolId: String,
-    schoolsService: any SchoolsManaging = SchoolsServiceImpl(supabaseManager: .shared),
-    authManager: any AuthManaging = AuthManager.shared,
-    familyManager: FamilyManager = .shared,
-    fitScoreService: any FitScoreManaging = FitScoreService(),
-    collegeService: any CollegeScorecardManaging = CollegeScorecardService(),
-    coachesService: any CoachesManaging = CoachesServiceImpl(supabaseManager: .shared)
+    schoolsService: (any SchoolsManaging)? = nil,
+    authManager: (any AuthManaging)? = nil,
+    familyManager: FamilyManager? = nil,
+    fitScoreService: (any FitScoreManaging)? = nil,
+    collegeService: (any CollegeScorecardManaging)? = nil,
+    coachesService: (any CoachesManaging)? = nil
   ) {
     self.schoolId = schoolId
-    self.schoolsService = schoolsService
-    self.authManager = authManager
-    self.familyManager = familyManager
-    self.fitScoreService = fitScoreService
-    self.collegeService = collegeService
-    self.coachesService = coachesService
+    self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
+    self.authManager = authManager ?? AuthManager.shared
+    self.familyManager = familyManager ?? .shared
+    self.fitScoreService = fitScoreService ?? FitScoreService()
+    self.collegeService = collegeService ?? CollegeScorecardService()
+    self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
   }
 
   // MARK: - Helper Methods

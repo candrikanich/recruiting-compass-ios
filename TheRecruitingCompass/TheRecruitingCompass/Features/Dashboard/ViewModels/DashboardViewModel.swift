@@ -111,16 +111,16 @@ final class DashboardViewModel: ObservableObject {
     return String(token.prefix(truncationLength)) + "..."
   }
 
-  nonisolated init(
-    authManager: any AuthManaging = AuthManager.shared,
-    dashboardService: any DashboardManaging = DashboardServiceImpl(supabaseManager: .shared),
-    taskStorage: QuickTaskStorage = UserDefaultsTaskStorage(),
-    familyManager: FamilyManager = .shared
+  init(
+    authManager: (any AuthManaging)? = nil,
+    dashboardService: (any DashboardManaging)? = nil,
+    taskStorage: QuickTaskStorage? = nil,
+    familyManager: FamilyManager? = nil
   ) {
-    self.authManager = authManager
-    self.dashboardService = dashboardService
-    self.taskStorage = taskStorage
-    self.familyManager = familyManager
+    self.authManager = authManager ?? AuthManager.shared
+    self.dashboardService = dashboardService ?? DashboardServiceImpl(supabaseManager: .shared)
+    self.taskStorage = taskStorage ?? UserDefaultsTaskStorage()
+    self.familyManager = familyManager ?? .shared
   }
 
   func fetchDashboardData() async {

@@ -72,14 +72,14 @@ final class CoachesListViewModel: ObservableObject {
     filteredCoaches.count
   }
 
-  nonisolated init(
-    coachesService: any CoachesManaging = CoachesServiceImpl(supabaseManager: .shared),
-    familyManager: FamilyManager = .shared,
-    authManager: any AuthManaging = AuthManager.shared
+  init(
+    coachesService: (any CoachesManaging)? = nil,
+    familyManager: FamilyManager? = nil,
+    authManager: (any AuthManaging)? = nil
   ) {
-    self.coachesService = coachesService
-    self.familyManager = familyManager
-    self.authManager = authManager
+    self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
+    self.familyManager = familyManager ?? .shared
+    self.authManager = authManager ?? AuthManager.shared
   }
 
   func loadCoaches() async {

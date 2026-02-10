@@ -40,12 +40,12 @@ final class FamilyManager: ObservableObject {
     return familyUnit?.id
   }
 
-  nonisolated init(
-    familyService: any FamilyManaging = FamilyServiceImpl(supabaseManager: .shared),
-    authManager: any AuthManaging = AuthManager.shared
+  init(
+    familyService: (any FamilyManaging)? = nil,
+    authManager: (any AuthManaging)? = nil
   ) {
-    self.familyService = familyService
-    self.authManager = authManager
+    self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
+    self.authManager = authManager ?? AuthManager.shared
   }
 
   func loadFamilyData() async {

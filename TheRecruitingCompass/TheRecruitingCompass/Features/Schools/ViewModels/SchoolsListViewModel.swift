@@ -94,14 +94,14 @@ final class SchoolsListViewModel: ObservableObject {
     allSchools.count >= 30
   }
 
-  nonisolated init(
-    schoolsService: any SchoolsManaging = SchoolsServiceImpl(supabaseManager: .shared),
-    familyManager: FamilyManager = .shared,
-    authManager: any AuthManaging = AuthManager.shared
+  init(
+    schoolsService: (any SchoolsManaging)? = nil,
+    familyManager: FamilyManager? = nil,
+    authManager: (any AuthManaging)? = nil
   ) {
-    self.schoolsService = schoolsService
-    self.familyManager = familyManager
-    self.authManager = authManager
+    self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
+    self.familyManager = familyManager ?? .shared
+    self.authManager = authManager ?? AuthManager.shared
   }
 
   func loadSchools() async {
