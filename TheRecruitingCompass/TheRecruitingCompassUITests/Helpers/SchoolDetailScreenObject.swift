@@ -277,11 +277,34 @@ final class SchoolDetailScreenObject {
 
   // MARK: - Navigation Helpers
 
+  func navigateToSchoolDetailFromDashboard(schoolName: String) {
+    // 1. Wait for dashboard to load
+    let dashboard = app.navigationBars["Dashboard"]
+    _ = dashboard.waitForExistence(timeout: 10)
+
+    // 2. Tap "Schools" stat card
+    let schoolsCard = app.buttons.matching(NSPredicate(format: "label CONTAINS 'View all schools'")).firstMatch
+    if schoolsCard.waitForExistence(timeout: 5) {
+      schoolsCard.tap()
+    }
+
+    // 3. Wait for Schools List to appear
+    let schoolsList = app.navigationBars["Schools"]
+    _ = schoolsList.waitForExistence(timeout: 5)
+
+    // 4. Tap on school card by name
+    navigateToSchoolDetailFromList(schoolName: schoolName)
+  }
+
   func navigateToSchoolDetailFromList(schoolName: String) {
-    // Assumes we're on Schools List
+    // Find school card by name
+    // School cards have accessibility labels with school name
     let schoolCard = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", schoolName)).firstMatch
-    schoolCard.tap()
-    _ = waitForSchoolToLoad()
+
+    if schoolCard.waitForExistence(timeout: 5) {
+      schoolCard.tap()
+      _ = waitForSchoolToLoad()
+    }
   }
 
   func tapBackButton() {

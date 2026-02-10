@@ -3,62 +3,88 @@ import XCTest
 final class SchoolDetailNavigationE2ETests: XCTestCase {
   private var app: XCUIApplication!
   private var screen: SchoolDetailScreenObject!
+  private var testUserSetup: TestUserSetup!
+  private var testDataHelper: SchoolTestDataHelper!
+  private var testUser: TestUser?
+  private var testSchoolId: String?
 
   override func setUpWithError() throws {
     continueAfterFailure = false
 
     app = XCUIApplication()
     app.launchArguments = ["--uitesting"]
+    let supabaseURL = ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? ""
+    let supabaseKey = ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] ?? ""
     app.launchEnvironment = [
-      "SUPABASE_URL": ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? "",
-      "SUPABASE_ANON_KEY": ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] ?? ""
+      "SUPABASE_URL": supabaseURL,
+      "SUPABASE_ANON_KEY": supabaseKey
     ]
     app.launch()
 
     screen = SchoolDetailScreenObject(app: app)
-
-    // TODO: Add helper to login and navigate to Schools tab
-    // For now, assumes we can navigate to a school detail
+    testUserSetup = TestUserSetup(supabaseURL: supabaseURL, supabaseKey: supabaseKey)
+    testDataHelper = SchoolTestDataHelper(supabaseURL: supabaseURL, supabaseKey: supabaseKey)
   }
 
   override func tearDownWithError() throws {
+    // Cleanup test data
+    Task {
+      if let schoolId = testSchoolId {
+        try? await testDataHelper?.deleteSchool(schoolId: schoolId)
+      }
+      if let userId = testUser?.id {
+        try? await testUserSetup?.deleteTestUser(userId: userId)
+      }
+    }
+
     app = nil
     screen = nil
+    testUserSetup = nil
+    testDataHelper = nil
+    testUser = nil
+    testSchoolId = nil
   }
 
   // MARK: - Navigation Tests
 
   @MainActor
-  func testNavigateToSchoolDetailFromList() throws {
-    // TODO: This test requires integration with Schools List
-    // For now, it's a placeholder showing the expected flow
+  func testNavigateToSchoolDetailFromList() async throws {
+    // Setup: Create test user and school
+    testUser = try await testUserSetup.createTestParent()
+    testSchoolId = try await testDataHelper.createSchool(
+      name: "Test University",
+      userId: testUser!.id,
+      familyUnitId: testUser!.familyUnitId
+    )
 
-    // 1. Navigate to Schools tab
-    // app.tabBars.buttons["Schools"].tap()
+    // 1. Login as parent
+    app.loginAsParent(email: testUser!.email, password: testUser!.password)
+    XCTAssertTrue(app.waitForLogin(timeout: 10), "Should login successfully")
 
-    // 2. Tap on a school card
-    // screen.navigateToSchoolDetailFromList(schoolName: "Test University")
+    add(app.takeScreenshot(name: "01-dashboard"))
+
+    // 2. Navigate to Schools List and tap on school
+    screen.navigateToSchoolDetailFromDashboard(schoolName: "Test University")
 
     // 3. Verify School Detail screen appears
-    // XCTAssertTrue(screen.waitForSchoolToLoad(timeout: 10),
-    //               "School Detail should load successfully")
+    XCTAssertTrue(screen.waitForSchoolToLoad(timeout: 10),
+                  "School Detail should load successfully")
+
+    add(app.takeScreenshot(name: "02-school-detail-loaded"))
 
     // 4. Verify navigation title
-    // XCTAssertTrue(screen.navigationTitle.exists,
-    //               "Navigation title 'School Details' should be visible")
+    XCTAssertTrue(screen.navigationTitle.exists,
+                  "Navigation title 'School Details' should be visible")
 
     // 5. Verify favorite button visible
-    // XCTAssertTrue(screen.favoriteButton.exists,
-    //               "Favorite button should be visible")
+    XCTAssertTrue(screen.favoriteButton.exists,
+                  "Favorite button should be visible")
 
     // 6. Verify status picker visible
-    // XCTAssertTrue(screen.statusPickerButton.exists,
-    //               "Status picker button should be visible")
+    XCTAssertTrue(screen.statusPickerButton.exists,
+                  "Status picker button should be visible")
 
-    // add(app.takeScreenshot(name: "01-school-detail-loaded"))
-
-    // PLACEHOLDER: Mark as skip until Schools List navigation is implemented
-    throw XCTSkip("Requires Schools List navigation integration")
+    add(app.takeScreenshot(name: "03-school-detail-elements-verified"))
   }
 
   @MainActor
