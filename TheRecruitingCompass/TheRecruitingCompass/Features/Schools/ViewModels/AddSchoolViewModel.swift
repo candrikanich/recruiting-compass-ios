@@ -50,7 +50,7 @@ final class AddSchoolViewModel: ObservableObject {
   internal let ncaaDatabase: NcaaDatabaseManaging
   internal let familyUnitId: String
   internal let userId: String
-  internal let announcer: AccessibilityAnnouncing
+  nonisolated(unsafe) internal let announcer: AccessibilityAnnouncing
 
   // MARK: - Computed Properties
 
@@ -64,13 +64,13 @@ final class AddSchoolViewModel: ObservableObject {
 
   // MARK: - Init
 
-  init(
+  nonisolated init(
     schoolsService: SchoolsManaging,
-    collegeScorecardService: CollegeScorecardManaging = CollegeScorecardService(),
-    ncaaDatabase: NcaaDatabaseManaging = NcaaDatabase.shared,
+    collegeScorecardService: CollegeScorecardManaging,
+    ncaaDatabase: NcaaDatabaseManaging,
     familyUnitId: String,
     userId: String,
-    announcer: AccessibilityAnnouncing = UIAccessibilityAnnouncer()
+    announcer: AccessibilityAnnouncing
   ) {
     self.schoolsService = schoolsService
     self.collegeScorecardService = collegeScorecardService
@@ -78,6 +78,22 @@ final class AddSchoolViewModel: ObservableObject {
     self.familyUnitId = familyUnitId
     self.userId = userId
     self.announcer = announcer
+  }
+
+  /// Convenience initializer with default dependencies
+  convenience init(
+    schoolsService: SchoolsManaging,
+    familyUnitId: String,
+    userId: String
+  ) {
+    self.init(
+      schoolsService: schoolsService,
+      collegeScorecardService: CollegeScorecardService(),
+      ncaaDatabase: NcaaDatabase.shared,
+      familyUnitId: familyUnitId,
+      userId: userId,
+      announcer: UIAccessibilityAnnouncer()
+    )
   }
 
   // MARK: - Validation Lookup Table

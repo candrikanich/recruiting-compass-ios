@@ -135,7 +135,7 @@ struct SchoolAutocompleteDropdown: View {
 
 // MARK: - Preview
 
-#Preview("Loading") {
+#Preview("Loading", traits: .sizeThatFitsLayout) {
   SchoolAutocompleteDropdown(
     results: [],
     isLoading: true,
@@ -143,10 +143,9 @@ struct SchoolAutocompleteDropdown: View {
     onSelect: { _ in }
   )
   .padding()
-  .previewLayout(.sizeThatFits)
 }
 
-#Preview("Results") {
+#Preview("Results", traits: .sizeThatFitsLayout) {
   SchoolAutocompleteDropdown(
     results: [
       CollegeSearchResult(id: "1", name: "University of Florida", city: "Gainesville", state: "FL", website: "https://ufl.edu"),
@@ -160,10 +159,9 @@ struct SchoolAutocompleteDropdown: View {
     }
   )
   .padding()
-  .previewLayout(.sizeThatFits)
 }
 
-#Preview("Error") {
+#Preview("Error", traits: .sizeThatFitsLayout) {
   SchoolAutocompleteDropdown(
     results: [],
     isLoading: false,
@@ -171,10 +169,9 @@ struct SchoolAutocompleteDropdown: View {
     onSelect: { _ in }
   )
   .padding()
-  .previewLayout(.sizeThatFits)
 }
 
-#Preview("Empty") {
+#Preview("Empty", traits: .sizeThatFitsLayout) {
   SchoolAutocompleteDropdown(
     results: [],
     isLoading: false,
@@ -182,5 +179,4 @@ struct SchoolAutocompleteDropdown: View {
     onSelect: { _ in }
   )
   .padding()
-  .previewLayout(.sizeThatFits)
 }

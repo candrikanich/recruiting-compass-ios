@@ -33,7 +33,7 @@ final class AddCoachViewModel: ObservableObject {
   private let coachesService: CoachesManaging
   private let familyUnitId: String
   private let userId: String
-  private let announcer: AccessibilityAnnouncing
+  nonisolated(unsafe) private let announcer: AccessibilityAnnouncing
 
   // MARK: - Computed Properties
 
@@ -51,16 +51,30 @@ final class AddCoachViewModel: ObservableObject {
 
   // MARK: - Init
 
-  init(
+  nonisolated init(
     coachesService: CoachesManaging,
     familyUnitId: String,
     userId: String,
-    announcer: AccessibilityAnnouncing = UIAccessibilityAnnouncer()
+    announcer: AccessibilityAnnouncing
   ) {
     self.coachesService = coachesService
     self.familyUnitId = familyUnitId
     self.userId = userId
     self.announcer = announcer
+  }
+
+  /// Convenience initializer with default announcer
+  convenience init(
+    coachesService: CoachesManaging,
+    familyUnitId: String,
+    userId: String
+  ) {
+    self.init(
+      coachesService: coachesService,
+      familyUnitId: familyUnitId,
+      userId: userId,
+      announcer: UIAccessibilityAnnouncer()
+    )
   }
 
   // MARK: - Validation Lookup Table

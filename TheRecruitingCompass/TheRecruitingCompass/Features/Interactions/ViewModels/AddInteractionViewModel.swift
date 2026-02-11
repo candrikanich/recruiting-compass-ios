@@ -220,7 +220,7 @@ final class AddInteractionViewModel: ObservableObject {
 
     do {
       // Build final content with interest level if calibrated
-      var finalContent = formState.content ?? ""
+      var finalContent = formState.content
       if formState.showsInterestCalibration && formState.interestLevel != .notSet {
         let calibrationNote = "\n\n[Coach Interest Level: \(formState.interestLevel.rawValue.uppercased())]"
         finalContent = finalContent + calibrationNote

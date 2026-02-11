@@ -84,7 +84,7 @@ struct SelectedCollegeCard: View {
 
 // MARK: - Preview
 
-#Preview("Loading") {
+#Preview("Loading", traits: .sizeThatFitsLayout) {
   SelectedCollegeCard(
     college: CollegeSearchResult(
       id: "1",
@@ -97,10 +97,9 @@ struct SelectedCollegeCard: View {
     onClear: { }
   )
   .padding()
-  .previewLayout(.sizeThatFits)
 }
 
-#Preview("Loaded") {
+#Preview("Loaded", traits: .sizeThatFitsLayout) {
   SelectedCollegeCard(
     college: CollegeSearchResult(
       id: "1",
@@ -113,5 +112,4 @@ struct SelectedCollegeCard: View {
     onClear: { }
   )
   .padding()
-  .previewLayout(.sizeThatFits)
 }
