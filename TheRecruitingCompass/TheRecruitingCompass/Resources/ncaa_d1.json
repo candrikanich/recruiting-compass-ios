@@ -1,0 +1,82 @@
+[
+  {
+    "name": "University of Florida",
+    "conference": "SEC"
+  },
+  {
+    "name": "Florida State University",
+    "conference": "ACC"
+  },
+  {
+    "name": "University of Central Florida",
+    "conference": "Big 12"
+  },
+  {
+    "name": "University of Miami",
+    "conference": "ACC"
+  },
+  {
+    "name": "University of South Florida",
+    "conference": "American Athletic"
+  },
+  {
+    "name": "Harvard University",
+    "conference": "Ivy League"
+  },
+  {
+    "name": "Yale University",
+    "conference": "Ivy League"
+  },
+  {
+    "name": "Stanford University",
+    "conference": "ACC"
+  },
+  {
+    "name": "University of California Berkeley",
+    "conference": "ACC"
+  },
+  {
+    "name": "University of Michigan",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Ohio State University",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "University of Texas",
+    "conference": "SEC"
+  },
+  {
+    "name": "University of Southern California",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Duke University",
+    "conference": "ACC"
+  },
+  {
+    "name": "University of North Carolina",
+    "conference": "ACC"
+  },
+  {
+    "name": "Vanderbilt University",
+    "conference": "SEC"
+  },
+  {
+    "name": "Louisiana State University",
+    "conference": "SEC"
+  },
+  {
+    "name": "University of Alabama",
+    "conference": "SEC"
+  },
+  {
+    "name": "Auburn University",
+    "conference": "SEC"
+  },
+  {
+    "name": "University of Georgia",
+    "conference": "SEC"
+  }
+]

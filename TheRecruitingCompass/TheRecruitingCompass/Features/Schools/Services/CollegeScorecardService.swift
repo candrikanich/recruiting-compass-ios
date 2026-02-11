@@ -5,6 +5,7 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 
 protocol CollegeScorecardManaging: Sendable {
   func lookupCollege(name: String) async throws -> CollegeDataResult?
+  func searchColleges(query: String) async throws -> [CollegeSearchResult]
 }
 
 final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendable {
@@ -111,9 +112,107 @@ final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendab
       throw CollegeDataError.networkError(error)
     }
   }
+
+  // MARK: - Autocomplete Search (Phase 2)
+
+  /// Search colleges for autocomplete dropdown
+  /// - Parameter query: Search query (minimum 3 characters)
+  /// - Returns: Array of college search results (max 10)
+  func searchColleges(query: String) async throws -> [CollegeSearchResult] {
+    guard !apiKey.isEmpty else {
+      throw CollegeDataError.apiKeyMissing
+    }
+
+    guard query.count >= 3 else {
+      throw CollegeDataError.nameTooShort
+    }
+
+    logger.debug("Searching colleges: \(query)")
+
+    // Build URL with query parameters
+    var components = URLComponents(string: "https://api.data.gov/ed/collegescorecard/v1/schools")!
+
+    // Minimal fields for autocomplete
+    let fields = [
+      "id",
+      "school.name",
+      "school.city",
+      "school.state",
+      "school.school_url"
+    ].joined(separator: ",")
+
+    components.queryItems = [
+      URLQueryItem(name: "api_key", value: apiKey),
+      URLQueryItem(name: "school.name", value: query),
+      URLQueryItem(name: "fields", value: fields),
+      URLQueryItem(name: "per_page", value: "10")
+    ]
+
+    guard let url = components.url else {
+      throw CollegeDataError.invalidResponse
+    }
+
+    logger.debug("Autocomplete URL: \(url.absoluteString)")
+
+    // Make request
+    do {
+      let (data, response) = try await URLSession.shared.data(from: url)
+
+      guard let httpResponse = response as? HTTPURLResponse else {
+        throw CollegeDataError.invalidResponse
+      }
+
+      logger.debug("Autocomplete response status: \(httpResponse.statusCode)")
+
+      switch httpResponse.statusCode {
+      case 200:
+        // Success - parse response
+        let decoder = JSONDecoder()
+        let apiResponse = try decoder.decode(AutocompleteAPIResponse.self, from: data)
+
+        let results = apiResponse.results.compactMap { result -> CollegeSearchResult? in
+          guard let id = result.id,
+                let name = result.name,
+                let city = result.city,
+                let state = result.state else {
+            return nil
+          }
+
+          return CollegeSearchResult(
+            id: String(id),
+            name: name,
+            city: city,
+            state: state,
+            website: result.website
+          )
+        }
+
+        logger.info("Found \(results.count) colleges for query: \(query)")
+        return results
+
+      case 401, 403:
+        throw CollegeDataError.invalidApiKey
+
+      case 429:
+        throw CollegeDataError.rateLimited
+
+      case 500...599:
+        throw CollegeDataError.serverError(httpResponse.statusCode)
+
+      default:
+        throw CollegeDataError.invalidResponse
+      }
+
+    } catch let error as CollegeDataError {
+      throw error
+    } catch {
+      logger.error("Autocomplete network error: \(error.localizedDescription)")
+      throw CollegeDataError.networkError(error)
+    }
+  }
 }
 
-// MARK: - API Response Model
+// MARK: - API Response Models
 
 private struct CollegeScorecardAPIResponse: Codable {
   let metadata: Metadata
@@ -128,6 +227,41 @@ private struct CollegeScorecardAPIResponse: Codable {
       case total
       case page
       case perPage = "per_page"
+    }
+  }
+}
+
+// MARK: - Autocomplete API Response (Phase 2)
+
+private struct AutocompleteAPIResponse: Codable {
+  let metadata: Metadata
+  let results: [AutocompleteResult]
+
+  struct Metadata: Codable {
+    let total: Int
+    let page: Int
+    let perPage: Int
+
+    enum CodingKeys: String, CodingKey {
+      case total
+      case page
+      case perPage = "per_page"
+    }
+  }
+
+  struct AutocompleteResult: Codable {
+    let id: Int?
+    let name: String?
+    let city: String?
+    let state: String?
+    let website: String?
+
+    enum CodingKeys: String, CodingKey {
+      case id
+      case name = "school.name"
+      case city = "school.city"
+      case state = "school.state"
+      case website = "school.school_url"
     }
   }
 }

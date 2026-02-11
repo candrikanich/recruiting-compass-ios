@@ -1,0 +1,169 @@
+//
+//  CollegeScorecardDataDisplay.swift
+//  TheRecruitingCompass
+//
+//  Created on 2026-02-11
+//  Phase 3: Display College Scorecard academic data
+//
+
+import SwiftUI
+
+struct CollegeScorecardDataDisplay: View {
+  let data: CollegeDataResult
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      // Section Header
+      HStack {
+        Image(systemName: "chart.bar.fill")
+          .foregroundStyle(.blue)
+          .accessibilityHidden(true)
+
+        Text("College Scorecard Data")
+          .font(.headline)
+          .foregroundStyle(.primary)
+      }
+
+      // Data Grid
+      LazyVGrid(
+        columns: [
+          GridItem(.flexible(), spacing: 12),
+          GridItem(.flexible(), spacing: 12)
+        ],
+        spacing: 12
+      ) {
+        // Student Size
+        if let studentSize = data.studentSize {
+          dataItem(
+            label: "Student Size",
+            value: formatNumber(studentSize),
+            icon: "person.3.fill"
+          )
+        }
+
+        // Size Category
+        if let sizeCategory = data.carnegieSize {
+          dataItem(
+            label: "Size Category",
+            value: sizeCategory,
+            icon: "chart.pie.fill"
+          )
+        }
+
+        // Admission Rate
+        if let admissionRate = data.admissionRate {
+          dataItem(
+            label: "Admission Rate",
+            value: formatPercentage(admissionRate),
+            icon: "checkmark.seal.fill"
+          )
+        }
+
+        // Tuition In-State
+        if let tuition = data.tuitionInState {
+          dataItem(
+            label: "Tuition (In-State)",
+            value: formatCurrency(Int(tuition)),
+            icon: "dollarsign.circle.fill"
+          )
+        }
+
+        // Tuition Out-of-State
+        if let tuition = data.tuitionOutOfState {
+          dataItem(
+            label: "Tuition (Out-of-State)",
+            value: formatCurrency(Int(tuition)),
+            icon: "dollarsign.circle.fill"
+          )
+        }
+
+        // Map Coordinates
+        if data.latitude != nil && data.longitude != nil {
+          dataItem(
+            label: "Location",
+            value: "✓ Map coordinates available",
+            icon: "map.fill"
+          )
+        }
+      }
+    }
+    .padding()
+    .background(Color.blue.opacity(0.05))
+    .cornerRadius(8)
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel("College Scorecard academic data")
+  }
+
+  // MARK: - Data Item
+
+  private func dataItem(label: String, value: String, icon: String) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
+      HStack(spacing: 4) {
+        Image(systemName: icon)
+          .font(.caption)
+          .foregroundStyle(.blue)
+          .accessibilityHidden(true)
+
+        Text(label)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+
+      Text(value)
+        .font(.subheadline)
+        .fontWeight(.medium)
+        .foregroundStyle(.primary)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(12)
+    .background(Color(UIColor.systemBackground))
+    .cornerRadius(6)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(label): \(value)")
+  }
+
+  // MARK: - Formatters
+
+  private func formatNumber(_ number: Int) -> String {
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .decimal
+    return formatter.string(from: NSNumber(value: number)) ?? "\(number)"
+  }
+
+  private func formatPercentage(_ decimal: Double) -> String {
+    let percentage = decimal * 100
+    return String(format: "%.1f%%", percentage)
+  }
+
+  private func formatCurrency(_ amount: Int) -> String {
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .currency
+    formatter.maximumFractionDigits = 0
+    return formatter.string(from: NSNumber(value: amount)) ?? "$\(amount)"
+  }
+}
+
+// MARK: - Preview
+
+#Preview {
+  ScrollView {
+    CollegeScorecardDataDisplay(
+      data: CollegeDataResult(
+        id: "134130",
+        name: "University of Florida",
+        website: "https://ufl.edu",
+        address: "Gainesville, FL",
+        city: "Gainesville",
+        state: "FL",
+        studentSize: 52218,
+        carnegieSize: "Large",
+        admissionRate: 0.296,
+        tuitionInState: 6381.0,
+        tuitionOutOfState: 28658.0,
+        latitude: 29.6516,
+        longitude: -82.3248
+      )
+    )
+    .padding()
+  }
+}

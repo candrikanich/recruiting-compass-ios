@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Massachusetts Institute of Technology",
+    "conference": "NEWMAC"
+  },
+  {
+    "name": "California Institute of Technology",
+    "conference": "SCIAC"
+  },
+  {
+    "name": "University of Chicago",
+    "conference": "UAA"
+  },
+  {
+    "name": "Johns Hopkins University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Emory University",
+    "conference": "UAA"
+  },
+  {
+    "name": "Carnegie Mellon University",
+    "conference": "UAA"
+  },
+  {
+    "name": "Washington University in St Louis",
+    "conference": "UAA"
+  },
+  {
+    "name": "Tufts University",
+    "conference": "NESCAC"
+  },
+  {
+    "name": "Amherst College",
+    "conference": "NESCAC"
+  },
+  {
+    "name": "Williams College",
+    "conference": "NESCAC"
+  }
+]

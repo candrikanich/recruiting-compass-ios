@@ -13,6 +13,7 @@ struct SchoolFormView: View {
   @Binding var formErrors: SchoolFormErrors
   let isDisabled: Bool
   let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+  let onNcaaLookup: ((String) -> Void)? // Phase 1: Trigger NCAA lookup
 
   @FocusState private var focusedField: Field?
 
@@ -58,6 +59,14 @@ struct SchoolFormView: View {
         .focused($focusedField, equals: .name)
         .onSubmit {
           onValidateField(\.name, formState.name)
+          // Phase 1: Trigger NCAA lookup after validation
+          onNcaaLookup?(formState.name)
+        }
+        .onChange(of: focusedField) { oldValue, newValue in
+          // Trigger NCAA lookup when name field loses focus
+          if oldValue == .name && newValue != .name && !formState.name.isEmpty {
+            onNcaaLookup?(formState.name)
+          }
         }
         .accessibilityLabel("School name, required")
         .accessibilityHint("Enter the school's full name")
@@ -269,7 +278,10 @@ struct SchoolFormView: View {
       formState: $formState,
       formErrors: $formErrors,
       isDisabled: false,
-      onValidateField: { _, _ in }
+      onValidateField: { _, _ in },
+      onNcaaLookup: { schoolName in
+        print("NCAA lookup for: \(schoolName)")
+      }
     )
     .padding()
   }

@@ -18,12 +18,11 @@ struct SchoolFormState: Sendable {
   var status: SchoolStatus
   var isAutocompleteEnabled: Bool
 
+  // Phase 1: Track which fields were auto-filled (NCAA or College Scorecard)
+  var autoFilledFields: Set<AutoFillableField>
+
   var isSubmittable: Bool {
     name.trimmingCharacters(in: .whitespacesAndNewlines).count >= Self.nameMinimumLength
-  }
-
-  var autoFilledFields: Set<AutoFillableField> {
-    []
   }
 
   init(
@@ -38,7 +37,8 @@ struct SchoolFormState: Sendable {
     instagramHandle: String = "",
     notes: String = "",
     status: SchoolStatus = .interested,
-    isAutocompleteEnabled: Bool = true
+    isAutocompleteEnabled: Bool = true,
+    autoFilledFields: Set<AutoFillableField> = []
   ) {
     self.name = name
     self.location = location
@@ -52,5 +52,6 @@ struct SchoolFormState: Sendable {
     self.notes = notes
     self.status = status
     self.isAutocompleteEnabled = isAutocompleteEnabled
+    self.autoFilledFields = autoFilledFields
   }
 }
