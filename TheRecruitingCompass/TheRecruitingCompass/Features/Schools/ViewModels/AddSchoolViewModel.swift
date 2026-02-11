@@ -31,7 +31,7 @@ final class AddSchoolViewModel: ObservableObject {
   private let schoolsService: SchoolsManaging
   private let familyUnitId: String
   private let userId: String
-  private let announcer: AccessibilityAnnouncing
+  internal let announcer: AccessibilityAnnouncing
 
   // MARK: - Computed Properties
 
@@ -116,7 +116,7 @@ final class AddSchoolViewModel: ObservableObject {
     // 2. Prepare data with sanitization
     let request = SchoolCreateRequest.from(
       form: formState,
-      scorecardData: nil, // MVP: no College Scorecard data
+      scorecardData: scorecardData, // Phase 3: Include College Scorecard data if available
       userId: userId,
       familyUnitId: familyUnitId
     )
