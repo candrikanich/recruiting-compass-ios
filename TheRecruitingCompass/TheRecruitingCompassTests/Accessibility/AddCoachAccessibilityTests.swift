@@ -13,42 +13,9 @@ import SwiftUI
 @MainActor
 final class AddCoachAccessibilityTests: XCTestCase {
 
-  // MARK: - VoiceOver Label Tests
+  // MARK: - ViewModel Accessibility Tests
 
-  func testSchoolPicker_hasRequiredInLabel() {
-    // Given
-    let picker = SchoolPicker(
-      selectedSchoolId: .constant(nil),
-      schools: [],
-      isDisabled: false
-    )
-
-    // Then: Should have "required" in accessibility label
-    // Note: This is a conceptual test - actual implementation would use ViewInspector
-    // or similar testing library to verify accessibility properties
-    XCTAssertTrue(true, "SchoolPicker should have 'required' in accessibility label")
-  }
-
-  func testFormFields_requiredFieldsHaveRequiredLabel() {
-    // Test that required fields announce "required" for VoiceOver
-    // - School picker: "School, required"
-    // - Role picker: "Role, required"
-    // - First name: "First name, required"
-    // - Last name: "Last name, required"
-    XCTAssertTrue(true, "Required fields should announce 'required' for VoiceOver")
-  }
-
-  func testFormFields_optionalFieldsHaveOptionalLabel() {
-    // Test that optional fields announce "optional" for VoiceOver
-    // - Email: "Email, optional"
-    // - Phone: "Phone, optional"
-    // - Twitter: "Twitter handle, optional"
-    // - Instagram: "Instagram handle, optional"
-    // - Notes: "Notes, optional"
-    XCTAssertTrue(true, "Optional fields should announce 'optional' for VoiceOver")
-  }
-
-  func testSubmitButton_labelReflectsLoadingState() async {
+  func testSubmitButton_titleReflectsState() {
     // Given
     let mockService = MockCoachesService()
     let viewModel = AddCoachViewModel(
@@ -58,55 +25,13 @@ final class AddCoachAccessibilityTests: XCTestCase {
     )
 
     // When: Not submitting
-    XCTAssertEqual(viewModel.submitButtonTitle, "Add Coach")
-
-    // When: Trigger submission (which sets isSubmitting internally)
-    // We can't directly set isSubmitting, so we test the button title reflects state
-    // by verifying it changes during an actual submit operation
-
-    // Set up for submission failure to test "Adding..." state
-    mockService.shouldThrowError = true
-    viewModel.formState.selectedSchoolId = "school-1"
-    viewModel.formState.role = .head
-    viewModel.formState.firstName = "John"
-    viewModel.formState.lastName = "Smith"
-
-    // Note: Testing the loading state during submission is complex
-    // For now, verify the computed property works correctly
     XCTAssertEqual(viewModel.submitButtonTitle, "Add Coach", "Button title should be 'Add Coach' when not submitting")
+
+    // Note: isSubmitting is internal to async operation
+    // Actual loading state is tested in integration tests
   }
 
-  func testCancelButton_hasDescriptiveLabel() {
-    // Verify cancel button has label "Cancel adding coach"
-    // and hint "Return to coaches list without saving"
-    XCTAssertTrue(true, "Cancel button should have descriptive label and hint")
-  }
-
-  func testBackButton_hasDescriptiveLabel() {
-    // Verify back button has label "Back to coaches list"
-    XCTAssertTrue(true, "Back button should have descriptive label")
-  }
-
-  func testErrorSummary_hasAccessibleValue() {
-    // Verify FormErrorSummary announces error count and list
-    // Example: "Form errors. 3 errors: First name is required, Last name is required, Email invalid"
-    XCTAssertTrue(true, "Error summary should have accessible value with count and list")
-  }
-
-  func testFieldErrors_havePrefixedLabel() {
-    // Verify FieldError components have "Error:" prefix for screen readers
-    // Example: "Error: First name is required"
-    XCTAssertTrue(true, "Field errors should have 'Error:' prefix")
-  }
-
-  // MARK: - VoiceOver Hint Tests
-
-  func testSchoolPicker_hasHint() {
-    // Verify hint: "Select a school to add a coach to"
-    XCTAssertTrue(true, "School picker should have descriptive hint")
-  }
-
-  func testSubmitButton_hintWhenDisabled() async {
+  func testSubmitButton_disabledWhenNoSchoolSelected() {
     // Given
     let mockService = MockCoachesService()
     let viewModel = AddCoachViewModel(
@@ -115,18 +40,14 @@ final class AddCoachAccessibilityTests: XCTestCase {
       userId: "test-user"
     )
 
-    // When: Form invalid (no school selected)
+    // When: No school selected
     viewModel.formState.selectedSchoolId = nil
 
     // Then: Submit button should be disabled
     XCTAssertTrue(viewModel.isSubmitDisabled, "Submit button should be disabled when school not selected")
-
-    // Note: In the actual AddCoachView, the accessibility hint is:
-    // .accessibilityHint(viewModel.isSubmitDisabled ? "Fill all required fields to enable" : "Create new coach")
-    // This test verifies the condition that determines which hint is shown
   }
 
-  func testSubmitButton_hintWhenEnabled() async {
+  func testSubmitButton_disabledWhenRequiredFieldsMissing() {
     // Given
     let mockService = MockCoachesService()
     let viewModel = AddCoachViewModel(
@@ -135,7 +56,26 @@ final class AddCoachAccessibilityTests: XCTestCase {
       userId: "test-user"
     )
 
-    // When: Form valid (all required fields filled)
+    // When: School selected but required fields empty
+    viewModel.formState.selectedSchoolId = "school-1"
+    viewModel.formState.role = nil
+    viewModel.formState.firstName = ""
+    viewModel.formState.lastName = ""
+
+    // Then: Submit button should be disabled
+    XCTAssertTrue(viewModel.isSubmitDisabled, "Submit button should be disabled when required fields are empty")
+  }
+
+  func testSubmitButton_enabledWhenAllRequiredFieldsFilled() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: All required fields filled
     viewModel.formState.selectedSchoolId = "school-1"
     viewModel.formState.role = .head
     viewModel.formState.firstName = "John"
@@ -143,76 +83,11 @@ final class AddCoachAccessibilityTests: XCTestCase {
 
     // Then: Submit button should be enabled
     XCTAssertFalse(viewModel.isSubmitDisabled, "Submit button should be enabled when all required fields are filled")
-
-    // Note: In the actual AddCoachView, the accessibility hint is:
-    // .accessibilityHint(viewModel.isSubmitDisabled ? "Fill all required fields to enable" : "Create new coach")
-    // This test verifies the condition that determines which hint is shown
   }
 
-  func testEmptyStateButton_hasHint() {
-    // Verify "Add School" button has hint: "Navigate to add school page"
-    XCTAssertTrue(true, "Empty state button should have navigation hint")
-  }
+  // MARK: - Form Validation Tests
 
-  // MARK: - Dynamic Type Support Tests
-
-  func testFormScalesWithLargeText() {
-    // Verify form layout adapts to large text sizes
-    // All text should scale proportionally
-    // No truncation at extra large sizes
-    XCTAssertTrue(true, "Form should scale with Dynamic Type")
-  }
-
-  func testButtonsRemainTappableAtLargeSizes() {
-    // Verify buttons maintain minimum 44x44pt hit target at all text sizes
-    // Submit button: minimum 44pt height
-    // Cancel button: minimum 44pt height
-    // Back button: minimum 44pt
-    XCTAssertTrue(true, "Buttons should maintain 44x44pt minimum at all sizes")
-  }
-
-  func testLabelsDoNotTruncateAtExtraLargeSizes() {
-    // Verify field labels wrap instead of truncate
-    // Error messages wrap to multiple lines if needed
-    XCTAssertTrue(true, "Labels should wrap, not truncate, at large sizes")
-  }
-
-  func testSectionHeadersScaleCorrectly() async {
-    // Verify section headers ("School", "Coach Details", etc.) scale
-    XCTAssertTrue(true, "Section headers should scale with Dynamic Type")
-  }
-
-  func testErrorMessagesScaleCorrectly() {
-    // Verify inline error messages scale
-    // Error summary banner scales
-    XCTAssertTrue(true, "Error messages should scale with Dynamic Type")
-  }
-
-  // MARK: - Touch Target Tests
-
-  func testSubmitButton_meetsMinimumTouchTarget() {
-    // Verify submit button >= 44x44pt
-    XCTAssertTrue(true, "Submit button should be at least 44x44pt")
-  }
-
-  func testCancelButton_meetsMinimumTouchTarget() {
-    // Verify cancel button >= 44x44pt
-    XCTAssertTrue(true, "Cancel button should be at least 44x44pt")
-  }
-
-  func testSchoolPicker_meetsMinimumTouchTarget() {
-    // Verify school picker >= 44pt height
-    XCTAssertTrue(true, "School picker should be at least 44pt tall")
-  }
-
-  func testRolePicker_meetsMinimumTouchTarget() {
-    // Verify role picker >= 44pt height
-    XCTAssertTrue(true, "Role picker should be at least 44pt tall")
-  }
-
-  // MARK: - Error Announcement Tests
-
-  func testValidationErrors_announced() async {
+  func testValidationErrors_reported() async {
     // Given
     let mockService = MockCoachesService()
     let viewModel = AddCoachViewModel(
@@ -221,71 +96,281 @@ final class AddCoachAccessibilityTests: XCTestCase {
       userId: "test-user"
     )
 
-    // Given: Form with errors
+    // When: Form with errors
     viewModel.formState.selectedSchoolId = "school-1"
     viewModel.formState.role = .head
     viewModel.formState.firstName = ""  // Invalid
     viewModel.formState.lastName = ""  // Invalid
 
-    // When: Submit (triggers error announcement)
+    // When: Submit
     _ = await viewModel.submitCoach()
 
-    // Then: Errors should be announced
-    // "Form has 2 errors: First name is required, Last name is required"
+    // Then: Errors should be reported
+    XCTAssertTrue(viewModel.formErrors.hasErrors, "Form errors should be present")
+    XCTAssertEqual(viewModel.formErrors.allErrors.count, 2, "Should have 2 validation errors")
+    XCTAssertNotNil(viewModel.formErrors.firstName, "Should have first name error")
+    XCTAssertNotNil(viewModel.formErrors.lastName, "Should have last name error")
+  }
+
+  func testValidationErrors_cleared() async {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Set errors manually (simulate validation failure)
+    viewModel.formState.selectedSchoolId = "school-1"
+    viewModel.formState.role = .head
+    viewModel.formState.firstName = ""
+    viewModel.formState.lastName = ""
+    _ = await viewModel.submitCoach()
+
+    // Verify errors exist
     XCTAssertTrue(viewModel.formErrors.hasErrors)
-    XCTAssertEqual(viewModel.formErrors.allErrors.count, 2)
+
+    // When: Clear errors
+    viewModel.clearErrors()
+
+    // Then: Errors should be cleared
+    XCTAssertFalse(viewModel.formErrors.hasErrors, "Errors should be cleared")
+    XCTAssertEqual(viewModel.formErrors.allErrors.count, 0, "Should have no errors")
   }
 
-  func testSuccessCreation_announced() async {
-    // Verify success announcement after coach creation
-    // "Coach John Smith added successfully"
-    XCTAssertTrue(true, "Success should be announced after coach creation")
+  func testErrorMessages_descriptive() async {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Submit with empty required fields
+    viewModel.formState.selectedSchoolId = "school-1"
+    viewModel.formState.role = .head
+    viewModel.formState.firstName = ""
+    viewModel.formState.lastName = ""
+
+    _ = await viewModel.submitCoach()
+
+    // Then: Error messages should be descriptive
+    XCTAssertEqual(viewModel.formErrors.firstName, "First name is required")
+    XCTAssertEqual(viewModel.formErrors.lastName, "Last name is required")
   }
 
-  func testErrorCreation_announced() async {
-    // Verify error announcement after failed creation
-    // "Failed to create coach. [error message]"
-    XCTAssertTrue(true, "Error should be announced after failed creation")
+  func testEmailValidation_invalidFormat() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Invalid email
+    viewModel.formState.email = "invalid-email"
+    viewModel.validateField(\.email, value: "invalid-email")
+
+    // Then: Error should be set
+    XCTAssertEqual(viewModel.formErrors.email, "Please enter a valid email address")
   }
 
-  func testSchoolSelection_announced() {
-    // Verify announcement when school selected
-    // "School selected. [School Name]. Coach form now available."
-    XCTAssertTrue(true, "School selection should be announced")
+  func testEmailValidation_validFormat() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Valid email
+    viewModel.formState.email = "john@example.com"
+    viewModel.validateField(\.email, value: "john@example.com")
+
+    // Then: No error
+    XCTAssertNil(viewModel.formErrors.email)
   }
 
-  // MARK: - Form Element Grouping Tests
+  func testPhoneValidation_invalidFormat() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
 
-  func testFieldsGroupedWithLabels() {
-    // Verify fields and labels are grouped for VoiceOver
-    // Using .accessibilityElement(children: .combine)
-    XCTAssertTrue(true, "Fields should be grouped with their labels")
+    // When: Invalid phone
+    viewModel.formState.phone = "123"
+    viewModel.validateField(\.phone, value: "123")
+
+    // Then: Error should be set
+    XCTAssertEqual(viewModel.formErrors.phone, "Phone number must be at least 10 digits")
   }
 
-  func testErrorSummaryGrouped() {
-    // Verify error summary groups header + error list
-    XCTAssertTrue(true, "Error summary should group header and error list")
+  func testPhoneValidation_validFormat() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Valid phone
+    viewModel.formState.phone = "(555) 123-4567"
+    viewModel.validateField(\.phone, value: "(555) 123-4567")
+
+    // Then: No error
+    XCTAssertNil(viewModel.formErrors.phone)
   }
 
-  func testEmptyStateGrouped() {
-    // Verify empty state groups icon + text + button
-    XCTAssertTrue(true, "Empty state should group all elements")
+  func testTwitterHandleValidation_invalidFormat() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Invalid twitter handle (missing @)
+    viewModel.formState.twitterHandle = "handle"
+    viewModel.validateField(\.twitterHandle, value: "handle")
+
+    // Then: Error should be set
+    XCTAssertEqual(viewModel.formErrors.twitterHandle, "Twitter handle must start with @")
   }
 
-  // MARK: - Integration: Full Accessibility Flow
+  func testTwitterHandleValidation_validFormat() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
 
-  func testFullAccessibilityFlow() async {
-    // Test complete flow with VoiceOver-like interaction:
-    // 1. Navigate to Add Coach
-    // 2. Hear "Add Coach" title
-    // 3. Hear "School, required" picker
-    // 4. Select school, hear announcement
-    // 5. Hear form fields in order
-    // 6. Fill required fields
-    // 7. Submit button enabled, hear hint
-    // 8. Tap submit
-    // 9. Hear success announcement
+    // When: Valid twitter handle
+    viewModel.formState.twitterHandle = "@handle"
+    viewModel.validateField(\.twitterHandle, value: "@handle")
 
+    // Then: No error
+    XCTAssertNil(viewModel.formErrors.twitterHandle)
+  }
+
+  func testInstagramHandleValidation_invalidFormat() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Invalid instagram handle (missing @)
+    viewModel.formState.instagramHandle = "handle"
+    viewModel.validateField(\.instagramHandle, value: "handle")
+
+    // Then: Error should be set
+    XCTAssertEqual(viewModel.formErrors.instagramHandle, "Instagram handle must start with @")
+  }
+
+  func testInstagramHandleValidation_validFormat() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Valid instagram handle
+    viewModel.formState.instagramHandle = "@handle"
+    viewModel.validateField(\.instagramHandle, value: "@handle")
+
+    // Then: No error
+    XCTAssertNil(viewModel.formErrors.instagramHandle)
+  }
+
+  func testNotesValidation_withinLimit() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Notes within limit
+    let notes = String(repeating: "a", count: CoachFormState.notesCharacterLimit)
+    viewModel.formState.notes = notes
+    viewModel.validateField(\.notes, value: notes)
+
+    // Then: No error
+    XCTAssertNil(viewModel.formErrors.notes)
+  }
+
+  func testNotesValidation_exceedsLimit() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Notes exceed limit
+    let notes = String(repeating: "a", count: CoachFormState.notesCharacterLimit + 1)
+    viewModel.formState.notes = notes
+    viewModel.validateField(\.notes, value: notes)
+
+    // Then: Error should be set
+    XCTAssertEqual(viewModel.formErrors.notes, "Notes must be \(CoachFormState.notesCharacterLimit) characters or less")
+  }
+
+  func testRoleValidation_required() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: No role selected
+    viewModel.formState.role = nil
+    viewModel.validateRole(nil)
+
+    // Then: Error should be set
+    XCTAssertEqual(viewModel.formErrors.role, "Role is required")
+  }
+
+  func testRoleValidation_valid() {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Role selected
+    viewModel.formState.role = .head
+    viewModel.validateRole(.head)
+
+    // Then: No error
+    XCTAssertNil(viewModel.formErrors.role)
+  }
+
+  // MARK: - Integration: Full Flow
+
+  func testFullAccessibilityFlow_success() async {
+    // Given
     let mockService = MockCoachesService()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
@@ -297,11 +382,13 @@ final class AddCoachAccessibilityTests: XCTestCase {
     mockService.mockSchools = [School.mock(id: "1", name: "Test University")]
     await viewModel.loadSchools()
 
-    // Fill form
+    // When: Fill valid form
     viewModel.formState.selectedSchoolId = "1"
     viewModel.formState.role = .head
     viewModel.formState.firstName = "John"
     viewModel.formState.lastName = "Smith"
+    viewModel.formState.email = "john@test.edu"
+    viewModel.formState.phone = "(555) 123-4567"
 
     // Submit
     mockService.mockCreatedCoach = Coach.mock(
@@ -311,8 +398,63 @@ final class AddCoachAccessibilityTests: XCTestCase {
     )
     let result = await viewModel.submitCoach()
 
-    // Verify success
-    XCTAssertNotNil(result)
-    XCTAssertFalse(viewModel.isSubmitting)
+    // Then: Success
+    XCTAssertNotNil(result, "Should create coach successfully")
+    XCTAssertFalse(viewModel.isSubmitting, "Should not be submitting after completion")
+    XCTAssertFalse(viewModel.formErrors.hasErrors, "Should have no errors")
+    XCTAssertNil(viewModel.submitError, "Should have no submit error")
+  }
+
+  func testFullAccessibilityFlow_validationFailure() async {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // When: Fill invalid form
+    viewModel.formState.selectedSchoolId = "1"
+    viewModel.formState.role = .head
+    viewModel.formState.firstName = ""  // Invalid
+    viewModel.formState.lastName = ""   // Invalid
+    viewModel.formState.email = "invalid-email"  // Invalid
+
+    // Submit
+    let result = await viewModel.submitCoach()
+
+    // Then: Validation failure
+    XCTAssertNil(result, "Should not create coach with validation errors")
+    XCTAssertTrue(viewModel.formErrors.hasErrors, "Should have validation errors")
+    XCTAssertGreaterThan(viewModel.formErrors.allErrors.count, 0, "Should have multiple errors")
+  }
+
+  func testFullAccessibilityFlow_serviceFailure() async {
+    // Given
+    let mockService = MockCoachesService()
+    let viewModel = AddCoachViewModel(
+      coachesService: mockService,
+      familyUnitId: "test-family",
+      userId: "test-user"
+    )
+
+    // Load schools
+    mockService.mockSchools = [School.mock(id: "1", name: "Test University")]
+    await viewModel.loadSchools()
+
+    // When: Fill valid form but service fails
+    viewModel.formState.selectedSchoolId = "1"
+    viewModel.formState.role = .head
+    viewModel.formState.firstName = "John"
+    viewModel.formState.lastName = "Smith"
+
+    mockService.shouldThrowError = true
+    let result = await viewModel.submitCoach()
+
+    // Then: Service failure
+    XCTAssertNil(result, "Should not create coach when service fails")
+    XCTAssertNotNil(viewModel.submitError, "Should have submit error")
+    XCTAssertFalse(viewModel.isSubmitting, "Should not be submitting after error")
   }
 }

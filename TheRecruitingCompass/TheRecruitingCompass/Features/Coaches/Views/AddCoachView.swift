@@ -175,6 +175,7 @@ struct AddCoachView: View {
 
         Spacer()
       }
+      .frame(minHeight: 44)
     }
     .disabled(viewModel.isSubmitDisabled)
     .accessibilityLabel(viewModel.submitButtonTitle)
@@ -191,6 +192,7 @@ struct AddCoachView: View {
     Button("Cancel", role: .cancel) {
       dismiss()
     }
+    .frame(minHeight: 44)
     .accessibilityLabel("Cancel adding coach")
     .accessibilityHint("Return to coaches list without saving")
   }

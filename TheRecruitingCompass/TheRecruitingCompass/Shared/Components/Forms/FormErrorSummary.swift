@@ -24,6 +24,7 @@ struct FormErrorSummary: View {
             .font(.subheadline)
             .fontWeight(.semibold)
             .foregroundStyle(.white)
+            .fixedSize(horizontal: false, vertical: true)
 
           Spacer()
 
@@ -32,6 +33,7 @@ struct FormErrorSummary: View {
           } label: {
             Image(systemName: "xmark.circle.fill")
               .foregroundStyle(.white.opacity(0.7))
+              .frame(minWidth: 44, minHeight: 44)
           }
           .accessibilityLabel("Dismiss error summary")
         }
@@ -46,6 +48,7 @@ struct FormErrorSummary: View {
               Text(error)
                 .font(.caption)
                 .foregroundStyle(.white)
+                .fixedSize(horizontal: false, vertical: true)
             }
           }
         }

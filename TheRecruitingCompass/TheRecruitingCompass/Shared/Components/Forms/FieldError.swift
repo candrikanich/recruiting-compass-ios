@@ -22,6 +22,7 @@ struct FieldError: View {
         Text(error)
           .font(.caption)
           .foregroundStyle(.red)
+          .fixedSize(horizontal: false, vertical: true)
       }
       .accessibilityElement(children: .combine)
       .accessibilityLabel("Error: \(error)")

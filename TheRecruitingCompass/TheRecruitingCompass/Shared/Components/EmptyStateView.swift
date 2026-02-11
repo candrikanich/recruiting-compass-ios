@@ -46,11 +46,13 @@ struct EmptyStateView: View {
         Text(title)
           .font(.headline)
           .foregroundStyle(.primary)
+          .fixedSize(horizontal: false, vertical: true)
 
         Text(message)
           .font(.subheadline)
           .foregroundStyle(.secondary)
           .multilineTextAlignment(.center)
+          .fixedSize(horizontal: false, vertical: true)
       }
 
       if let actionTitle, let action {
@@ -60,6 +62,7 @@ struct EmptyStateView: View {
           Label(actionTitle, systemImage: "plus.circle.fill")
         }
         .buttonStyle(.borderedProminent)
+        .frame(minHeight: 44)
         .accessibilityLabel(actionTitle)
       }
     }
