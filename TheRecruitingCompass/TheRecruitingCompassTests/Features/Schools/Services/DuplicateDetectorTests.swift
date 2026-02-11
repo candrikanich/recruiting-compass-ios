@@ -160,12 +160,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_domainMatch_returnsDomainMatch() {
     // Given - different name, same domain
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "UF", // Different name
-      website: "https://www.ufl.edu", // Same domain
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+      website: "https://www.ufl.edu" // Same domain
     )
 
     // When
@@ -179,12 +176,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_domainMatchIgnoresWWW_returnsDomainMatch() {
     // Given - domain with www vs without www
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "Different School",
-      website: "https://stanford.edu", // No www
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+      website: "https://stanford.edu" // No www
     )
 
     // When
@@ -214,12 +208,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_domainMatchWithHTTP_returnsDomainMatch() {
     // Given - HTTP vs HTTPS shouldn't matter
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "Different School",
-      website: "http://www.ufl.edu", // HTTP
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+      website: "http://www.ufl.edu" // HTTP
     )
 
     // When
@@ -249,12 +240,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_domainMatchWithSubdomain_noMatch() {
     // Given - subdomain should be considered part of the domain
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "Different School",
-      website: "https://athletics.ufl.edu", // Different subdomain
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+      website: "https://athletics.ufl.edu" // Different subdomain
     )
 
     // When
@@ -286,12 +274,10 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_ncaaIdMatch_returnsNcaaIdMatch() {
     // Given - different name and domain, same NCAA ID
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "Different School",
       website: "https://different-site.com",
-      ncaaId: "134130", // Same NCAA ID as UF
-      userId: "user",
-      familyUnitId: "family"
+      ncaaId: "134130" // Same NCAA ID as UF
     )
 
     // When
@@ -306,12 +292,9 @@ final class DuplicateDetectorTests: XCTestCase {
   func testFindDuplicate_ncaaIdMatchCaseSensitive_noMatch() {
     // Given - NCAA IDs are case-sensitive (numeric typically)
     // This test assumes NCAA IDs are case-sensitive; if they're not, update detector logic
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "Different School",
-      website: nil,
-      ncaaId: "134130", // Exact match needed
-      userId: "user",
-      familyUnitId: "family"
+      ncaaId: "134130" // Exact match needed
     )
 
     // When
@@ -324,12 +307,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_emptyNcaaId_noMatch() {
     // Given
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "Different School",
-      website: nil,
-      ncaaId: "", // Empty string
-      userId: "user",
-      familyUnitId: "family"
+      ncaaId: "" // Empty string
     )
 
     // When
@@ -548,31 +528,42 @@ extension School {
   ) -> School {
     School(
       id: id,
+      userId: "user",
       name: name,
       location: nil,
       city: nil,
       state: nil,
       division: nil,
       conference: nil,
+      ranking: nil,
+      isFavorite: false,
       website: website,
+      faviconUrl: nil,
       twitterHandle: nil,
       instagramHandle: nil,
+      ncaaId: ncaaId,
+      status: "interested",
+      statusChangedAt: nil,
+      priorityTier: "tier3",
       notes: nil,
-      status: .interested,
-      isFavorite: false,
+      privateNotes: nil,
       pros: [],
       cons: [],
+      offerDetails: nil,
       academicInfo: nil,
-      ncaaId: ncaaId,
-      priorityTier: .tier3,
-      userFitScore: nil,
-      statusHistory: [],
-      userId: "user",
+      amenities: nil,
+      coachingPhilosophy: nil,
+      coachingStyle: nil,
+      recruitingApproach: nil,
+      communicationStyle: nil,
+      successMetrics: nil,
+      fitScore: nil,
+      fitTier: nil,
       familyUnitId: "family",
       createdBy: "user",
       updatedBy: "user",
-      createdAt: Date(),
-      updatedAt: Date()
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2024-01-01T00:00:00Z"
     )
   }
 }

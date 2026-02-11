@@ -105,7 +105,8 @@ final class DashboardViewModelTests: XCTestCase {
       userId: "test-user-id",
       familyUnitId: "family-unit-1",
       role: "parent",
-      addedAt: "2024-01-01T00:00:00Z"
+      addedAt: "2024-01-01T00:00:00Z",
+      user: nil
     )
   }
 
@@ -118,7 +119,8 @@ final class DashboardViewModelTests: XCTestCase {
       userId: userId,
       familyUnitId: "family-unit-1",
       role: "athlete",
-      addedAt: "2024-01-01T00:00:00Z"
+      addedAt: "2024-01-01T00:00:00Z",
+      user: nil
     )
   }
 
@@ -141,7 +143,8 @@ final class DashboardViewModelTests: XCTestCase {
       userId: userId,
       familyUnitId: "family-unit-1",
       role: role,
-      addedAt: "2024-01-01T00:00:00Z"
+      addedAt: "2024-01-01T00:00:00Z",
+      user: nil
     )
     mockFamilyService.stubbedCurrentMember = currentMember
   }

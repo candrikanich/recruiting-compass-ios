@@ -598,7 +598,8 @@ final class InteractionsListViewModelTests: XCTestCase {
       userId: userId,
       familyUnitId: "family1",
       role: role,
-      addedAt: ISO8601DateFormatter().string(from: Date())
+      addedAt: ISO8601DateFormatter().string(from: Date()),
+      user: nil
     )
   }
 

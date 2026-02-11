@@ -69,7 +69,7 @@ final class InteractionModelTests: XCTestCase {
 
   func testDisplaySubject_ReturnsSubject_WhenProvided() {
     // Given
-    let interaction = createInteraction(subject: "Custom Subject", type: .email)
+    let interaction = createInteraction(type: .email, subject: "Custom Subject")
 
     // Then
     XCTAssertEqual(interaction.displaySubject, "Custom Subject")
@@ -77,7 +77,7 @@ final class InteractionModelTests: XCTestCase {
 
   func testDisplaySubject_ReturnsTypeName_WhenSubjectNil() {
     // Given
-    let interaction = createInteraction(subject: nil, type: .phoneCall)
+    let interaction = createInteraction(type: .phoneCall, subject: nil)
 
     // Then
     XCTAssertEqual(interaction.displaySubject, "Phone Call")

@@ -6,6 +6,7 @@ struct FamilyMember: Codable, Identifiable, Sendable {
   let familyUnitId: String
   let role: String
   let addedAt: String?
+  let user: FamilyMemberUser?
 
   var isAthlete: Bool {
     role == "athlete"
@@ -21,5 +22,6 @@ struct FamilyMember: Codable, Identifiable, Sendable {
     case familyUnitId = "family_unit_id"
     case role
     case addedAt = "added_at"
+    case user
   }
 }

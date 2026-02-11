@@ -35,7 +35,8 @@ final class SchoolsListViewModelTests: XCTestCase {
       userId: "user-1",
       familyUnitId: "family-1",
       role: "athlete",
-      addedAt: "2024-01-01T00:00:00Z"
+      addedAt: "2024-01-01T00:00:00Z",
+      user: nil
     )
 
     sut = SchoolsListViewModel(

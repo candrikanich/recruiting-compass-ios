@@ -18,6 +18,15 @@ struct User: Codable, Identifiable {
     case createdAt = "created_at"
     case updatedAt = "updated_at"
   }
+
+  var role: UserRole? {
+    guard let metadata = userMetadata,
+          let roleData = metadata["role"],
+          case let roleString as String = roleData.value else {
+      return nil
+    }
+    return UserRole(rawValue: roleString)
+  }
 }
 
 // Support for nested JSON objects in metadata

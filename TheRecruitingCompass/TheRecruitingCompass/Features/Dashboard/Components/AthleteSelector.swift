@@ -88,14 +88,16 @@ struct AthleteRow: View {
         userId: "user-1",
         familyUnitId: "family-1",
         role: "athlete",
-        addedAt: "2026-01-01T12:00:00Z"
+        addedAt: "2026-01-01T12:00:00Z",
+        user: nil
       ),
       FamilyMember(
         id: "2",
         userId: "user-2",
         familyUnitId: "family-1",
         role: "athlete",
-        addedAt: "2026-01-01T12:00:00Z"
+        addedAt: "2026-01-01T12:00:00Z",
+        user: nil
       )
     ],
     selectedAthleteId: "1",
