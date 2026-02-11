@@ -3,6 +3,7 @@ import Foundation
 
 final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
   // Call counters
+  var createSchoolCallCount = 0
   var fetchSchoolsCallCount = 0
   var fetchSchoolCallCount = 0
   var deleteSchoolCallCount = 0
@@ -21,6 +22,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
   var updateBasicInfoCallCount = 0
 
   // Stubbed data
+  var stubbedCreatedSchool: School?
   var stubbedSchools: [School] = []
   var stubbedSchool: School?
   var stubbedStatusHistory: [SchoolStatusHistory] = []
@@ -51,6 +53,21 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
   var updatePriorityTierCallCount = 0
   var lastPriorityTier: PriorityTier?
   var delayDuration: TimeInterval = 0
+
+  // MARK: - Create
+
+  func createSchool(request: SchoolCreateRequest) async throws -> School {
+    createSchoolCallCount += 1
+    if shouldThrowError {
+      throw errorToThrow
+    }
+    guard let school = stubbedCreatedSchool else {
+      fatalError("stubbedCreatedSchool must be set for createSchool tests")
+    }
+    return school
+  }
+
+  // MARK: - Fetch
 
   func fetchSchools(familyUnitId: String) async throws -> [School] {
     fetchSchoolsCallCount += 1

@@ -11,6 +11,25 @@ final class SchoolsServiceImpl: SchoolsManaging, @unchecked Sendable {
     self.supabaseManager = supabaseManager
   }
 
+  // MARK: - Create
+
+  func createSchool(request: SchoolCreateRequest) async throws -> School {
+    logger.debug("Creating school: \(request.name)")
+
+    let result: School = try await supabaseManager.client
+      .from("schools")
+      .insert(request)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("School created: \(result.id)")
+    return result
+  }
+
+  // MARK: - Private Helpers
+
   private func fetch<T: Decodable>(
     _ label: String,
     query: () async throws -> [T]

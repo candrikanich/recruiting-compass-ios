@@ -1,6 +1,9 @@
 import Foundation
 
 protocol SchoolsManaging: Sendable {
+  // MARK: - Phase 0 Methods (Create)
+  func createSchool(request: SchoolCreateRequest) async throws -> School
+
   // MARK: - Phase 1 Methods
   func fetchSchools(familyUnitId: String) async throws -> [School]
   func fetchSchool(id: String, familyUnitId: String) async throws -> School
