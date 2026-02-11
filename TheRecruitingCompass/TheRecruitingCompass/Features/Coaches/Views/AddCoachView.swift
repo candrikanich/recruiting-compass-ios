@@ -27,63 +27,27 @@ struct AddCoachView: View {
     _navigationPath = navigationPath
   }
 
+  // MARK: - Computed Properties
+
+  private var isShowingError: Binding<Bool> {
+    Binding(
+      get: { viewModel.submitError != nil },
+      set: { if !$0 { viewModel.submitError = nil } }
+    )
+  }
+
   var body: some View {
     Form {
-      Form {
-        // MARK: - Section 1: School Selection (Step 1)
-        Section {
-          if viewModel.isLoadingSchools {
-            loadingSchoolsView
-          } else if viewModel.schools.isEmpty {
-            emptySchoolsView
-          } else {
-            SchoolPicker(
-              selectedSchoolId: $viewModel.formState.selectedSchoolId,
-              schools: viewModel.schools,
-              isDisabled: viewModel.isSubmitting
-            )
-            .onChange(of: viewModel.formState.selectedSchoolId) {
-              announceSchoolSelection()
-            }
-          }
-        }
+      schoolSelectionSection
 
-        // MARK: - Section 2: Coach Form (Step 2 - Conditional)
-        if viewModel.isFormVisible {
-          Section {
-            // Error summary banner
-            if viewModel.formErrors.hasErrors {
-              FormErrorSummary(
-                errors: viewModel.formErrors.allErrors,
-                onDismiss: {
-                  viewModel.clearErrors()
-                }
-              )
-            }
-
-            // All form fields
-            CoachFormView(
-              formState: $viewModel.formState,
-              formErrors: $viewModel.formErrors,
-              isDisabled: viewModel.isSubmitting,
-              onValidateField: viewModel.validateField,
-              onValidateRole: viewModel.validateRole
-            )
-          }
-
-          // MARK: - Section 3: Actions
-          Section {
-            submitButton
-            cancelButton
-          }
-        } else {
-          // Prompt to select school
-          Section {
-            infoPrompt
-          }
-        }
+      if viewModel.isFormVisible {
+        coachFormSection
+        actionsSection
+      } else {
+        infoPromptSection
       }
-      .navigationTitle("Add Coach")
+    }
+    .navigationTitle("Add Coach")
       .navigationBarTitleDisplayMode(.large)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
@@ -96,63 +60,78 @@ struct AddCoachView: View {
       .task {
         await viewModel.loadSchools()
       }
-      .alert("Error", isPresented: .constant(viewModel.submitError != nil)) {
-        Button("OK") {
-          viewModel.submitError = nil
-        }
+      .alert("Error", isPresented: isShowingError) {
+        Button("OK", role: .cancel) { }
       } message: {
         if let error = viewModel.submitError {
           Text(error)
         }
       }
+  }
+
+  // MARK: - Sections
+
+  private var schoolSelectionSection: some View {
+    Section {
+      if viewModel.isLoadingSchools {
+        LoadingStateView(message: "Loading schools...")
+      } else if viewModel.schools.isEmpty {
+        EmptyStateView(
+          icon: "building.2.fill",
+          title: "No Schools Found",
+          message: "You need to add a school before adding a coach",
+          actionTitle: "Add School"
+        ) {
+          // TODO: Navigate to Add School
+          // This will be implemented in Phase 6 (Integration & Navigation)
+        }
+      } else {
+        SchoolPicker(
+          selectedSchoolId: $viewModel.formState.selectedSchoolId,
+          schools: viewModel.schools,
+          isDisabled: viewModel.isSubmitting
+        )
+        .onChange(of: viewModel.formState.selectedSchoolId) {
+          announceSchoolSelection()
+        }
+      }
     }
   }
 
-  // MARK: - Loading Schools View
+  private var coachFormSection: some View {
+    Section {
+      // Error summary banner
+      if viewModel.formErrors.hasErrors {
+        FormErrorSummary(
+          errors: viewModel.formErrors.allErrors,
+          onDismiss: {
+            viewModel.clearErrors()
+          }
+        )
+      }
 
-  private var loadingSchoolsView: some View {
-    HStack {
-      ProgressView()
-        .accessibilityLabel("Loading schools")
-
-      Text("Loading schools...")
-        .foregroundStyle(.secondary)
+      // All form fields
+      CoachFormView(
+        formState: $viewModel.formState,
+        formErrors: $viewModel.formErrors,
+        isDisabled: viewModel.isSubmitting,
+        onValidateField: viewModel.validateField,
+        onValidateRole: viewModel.validateRole
+      )
     }
   }
 
-  // MARK: - Empty Schools View
-
-  private var emptySchoolsView: some View {
-    VStack(spacing: 16) {
-      Image(systemName: "building.2.fill")
-        .font(.system(size: 48))
-        .foregroundStyle(.secondary)
-        .accessibilityHidden(true)
-
-      VStack(spacing: 4) {
-        Text("No Schools Found")
-          .font(.headline)
-          .foregroundStyle(.primary)
-
-        Text("You need to add a school before adding a coach")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-          .multilineTextAlignment(.center)
-      }
-
-      Button {
-        // TODO: Navigate to Add School
-        // This will be implemented in Phase 6 (Integration & Navigation)
-      } label: {
-        Label("Add School", systemImage: "plus.circle.fill")
-      }
-      .buttonStyle(.borderedProminent)
-      .accessibilityLabel("Add a school")
-      .accessibilityHint("Navigate to add school page")
+  private var actionsSection: some View {
+    Section {
+      submitButton
+      cancelButton
     }
-    .padding()
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("No schools found. Add a school first.")
+  }
+
+  private var infoPromptSection: some View {
+    Section {
+      infoPrompt
+    }
   }
 
   // MARK: - Info Prompt (Select School)

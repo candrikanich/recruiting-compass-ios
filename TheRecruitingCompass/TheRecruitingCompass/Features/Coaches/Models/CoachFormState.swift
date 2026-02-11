@@ -2,6 +2,8 @@ import Foundation
 
 /// State model for the coach form
 struct CoachFormState: Sendable {
+  static let notesCharacterLimit = 5000
+
   var selectedSchoolId: String?
   var role: CoachRole?
   var firstName: String

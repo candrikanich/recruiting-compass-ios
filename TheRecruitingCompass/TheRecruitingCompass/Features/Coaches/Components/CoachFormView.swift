@@ -44,21 +44,7 @@ struct CoachFormView: View {
   // MARK: - Role Picker
 
   private var rolePicker: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      HStack {
-        Text("Role")
-          .font(.subheadline)
-          .fontWeight(.medium)
-          .foregroundStyle(.secondary)
-
-        Text("*")
-          .font(.subheadline)
-          .foregroundStyle(.red)
-          .accessibilityHidden(true)
-
-        Spacer()
-      }
-
+    FormFieldWrapper(label: "Role", isRequired: true, error: formErrors.role) {
       Picker("Role", selection: $formState.role) {
         Text("Select Role")
           .tag(nil as CoachRole?)
@@ -75,42 +61,20 @@ struct CoachFormView: View {
       }
       .accessibilityLabel("Role, required")
       .accessibilityHint("Select the coach's role")
-
-      FieldError(error: formErrors.role)
     }
   }
 
   // MARK: - Name Fields
 
-  @ViewBuilder
   private var nameFields: some View {
-    ViewThatFits {
-      HStack(spacing: 16) {
-        firstNameField
-        lastNameField
-      }
-
-      VStack(spacing: 16) {
-        firstNameField
-        lastNameField
-      }
+    AdaptiveHStackVStack {
+      firstNameField
+      lastNameField
     }
   }
 
   private var firstNameField: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      HStack {
-        Text("First Name")
-          .font(.subheadline)
-          .fontWeight(.medium)
-          .foregroundStyle(.secondary)
-
-        Text("*")
-          .font(.subheadline)
-          .foregroundStyle(.red)
-          .accessibilityHidden(true)
-      }
-
+    FormFieldWrapper(label: "First Name", isRequired: true, error: formErrors.firstName) {
       TextField("e.g., John", text: $formState.firstName)
         .textFieldStyle(.roundedBorder)
         .textContentType(.givenName)
@@ -122,25 +86,11 @@ struct CoachFormView: View {
         }
         .accessibilityLabel("First name, required")
         .accessibilityHint("Enter coach's first name")
-
-      FieldError(error: formErrors.firstName)
     }
   }
 
   private var lastNameField: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      HStack {
-        Text("Last Name")
-          .font(.subheadline)
-          .fontWeight(.medium)
-          .foregroundStyle(.secondary)
-
-        Text("*")
-          .font(.subheadline)
-          .foregroundStyle(.red)
-          .accessibilityHidden(true)
-      }
-
+    FormFieldWrapper(label: "Last Name", isRequired: true, error: formErrors.lastName) {
       TextField("e.g., Smith", text: $formState.lastName)
         .textFieldStyle(.roundedBorder)
         .textContentType(.familyName)
@@ -152,20 +102,13 @@ struct CoachFormView: View {
         }
         .accessibilityLabel("Last name, required")
         .accessibilityHint("Enter coach's last name")
-
-      FieldError(error: formErrors.lastName)
     }
   }
 
   // MARK: - Contact Info
 
   private var emailField: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Email")
-        .font(.subheadline)
-        .fontWeight(.medium)
-        .foregroundStyle(.secondary)
-
+    FormFieldWrapper(label: "Email", error: formErrors.email) {
       TextField("john.smith@university.edu", text: $formState.email)
         .textFieldStyle(.roundedBorder)
         .keyboardType(.emailAddress)
@@ -178,18 +121,11 @@ struct CoachFormView: View {
         }
         .accessibilityLabel("Email, optional")
         .accessibilityHint("Enter coach's email address")
-
-      FieldError(error: formErrors.email)
     }
   }
 
   private var phoneField: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Phone")
-        .font(.subheadline)
-        .fontWeight(.medium)
-        .foregroundStyle(.secondary)
-
+    FormFieldWrapper(label: "Phone", error: formErrors.phone) {
       TextField("(555) 123-4567", text: $formState.phone)
         .textFieldStyle(.roundedBorder)
         .keyboardType(.phonePad)
@@ -203,35 +139,20 @@ struct CoachFormView: View {
         }
         .accessibilityLabel("Phone, optional")
         .accessibilityHint("Enter coach's phone number")
-
-      FieldError(error: formErrors.phone)
     }
   }
 
   // MARK: - Social Media
 
-  @ViewBuilder
   private var socialMediaFields: some View {
-    ViewThatFits {
-      HStack(spacing: 16) {
-        twitterField
-        instagramField
-      }
-
-      VStack(spacing: 16) {
-        twitterField
-        instagramField
-      }
+    AdaptiveHStackVStack {
+      twitterField
+      instagramField
     }
   }
 
   private var twitterField: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Twitter Handle")
-        .font(.subheadline)
-        .fontWeight(.medium)
-        .foregroundStyle(.secondary)
-
+    FormFieldWrapper(label: "Twitter Handle", error: formErrors.twitterHandle) {
       TextField("@handle", text: $formState.twitterHandle)
         .textFieldStyle(.roundedBorder)
         .autocapitalization(.none)
@@ -242,18 +163,11 @@ struct CoachFormView: View {
         }
         .accessibilityLabel("Twitter handle, optional")
         .accessibilityHint("Enter coach's Twitter handle")
-
-      FieldError(error: formErrors.twitterHandle)
     }
   }
 
   private var instagramField: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Instagram Handle")
-        .font(.subheadline)
-        .fontWeight(.medium)
-        .foregroundStyle(.secondary)
-
+    FormFieldWrapper(label: "Instagram Handle", error: formErrors.instagramHandle) {
       TextField("@handle", text: $formState.instagramHandle)
         .textFieldStyle(.roundedBorder)
         .autocapitalization(.none)
@@ -264,53 +178,46 @@ struct CoachFormView: View {
         }
         .accessibilityLabel("Instagram handle, optional")
         .accessibilityHint("Enter coach's Instagram handle")
-
-      FieldError(error: formErrors.instagramHandle)
     }
   }
 
   // MARK: - Notes
 
   private var notesField: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Notes")
-        .font(.subheadline)
-        .fontWeight(.medium)
-        .foregroundStyle(.secondary)
-
-      ZStack(alignment: .topLeading) {
-        if formState.notes.isEmpty {
-          Text("Any notes about this coach...")
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 4)
-            .padding(.vertical, 8)
-        }
-
-        TextEditor(text: $formState.notes)
-          .frame(minHeight: 100)
-          .disabled(isDisabled)
-          .focused($focusedField, equals: .notes)
-          .onChange(of: focusedField) { _, newFocus in
-            if newFocus != .notes && !formState.notes.isEmpty {
-              onValidateField(\.notes, formState.notes)
-            }
+    FormFieldWrapper(label: "Notes", error: formErrors.notes) {
+      VStack(spacing: 4) {
+        ZStack(alignment: .topLeading) {
+          if formState.notes.isEmpty {
+            Text("Any notes about this coach...")
+              .foregroundStyle(.secondary)
+              .padding(.horizontal, 4)
+              .padding(.vertical, 8)
           }
-      }
-      .overlay {
-        RoundedRectangle(cornerRadius: 8)
-          .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-      }
-      .accessibilityLabel("Notes, optional")
-      .accessibilityHint("Enter any notes about this coach")
 
-      HStack {
-        Spacer()
-        Text("\(formState.notes.count) / 5000")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
+          TextEditor(text: $formState.notes)
+            .frame(minHeight: 100)
+            .disabled(isDisabled)
+            .focused($focusedField, equals: .notes)
+            .onChange(of: focusedField) { _, newFocus in
+              if newFocus != .notes && !formState.notes.isEmpty {
+                onValidateField(\.notes, formState.notes)
+              }
+            }
+        }
+        .overlay {
+          RoundedRectangle(cornerRadius: 8)
+            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+        }
+        .accessibilityLabel("Notes, optional")
+        .accessibilityHint("Enter any notes about this coach")
 
-      FieldError(error: formErrors.notes)
+        HStack {
+          Spacer()
+          Text("\(formState.notes.count) / \(CoachFormState.notesCharacterLimit)")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+      }
     }
   }
 }

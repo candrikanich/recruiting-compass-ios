@@ -33,6 +33,7 @@ final class AddCoachViewModel: ObservableObject {
   private let coachesService: CoachesManaging
   private let familyUnitId: String
   private let userId: String
+  private let announcer: AccessibilityAnnouncing
 
   // MARK: - Computed Properties
 
@@ -53,12 +54,32 @@ final class AddCoachViewModel: ObservableObject {
   init(
     coachesService: CoachesManaging,
     familyUnitId: String,
-    userId: String
+    userId: String,
+    announcer: AccessibilityAnnouncing = UIAccessibilityAnnouncer()
   ) {
     self.coachesService = coachesService
     self.familyUnitId = familyUnitId
     self.userId = userId
+    self.announcer = announcer
   }
+
+  // MARK: - Validation Lookup Table
+
+  private typealias FieldValidation = (String) -> String?
+  private typealias ErrorSetter = (inout CoachFormErrors, String?) -> Void
+
+  private lazy var fieldValidators: [PartialKeyPath<CoachFormState>: (
+    validator: FieldValidation,
+    setError: ErrorSetter
+  )] = [
+    \CoachFormState.firstName: (FieldValidator.validateFirstName, { $0.firstName = $1 }),
+    \CoachFormState.lastName: (FieldValidator.validateLastName, { $0.lastName = $1 }),
+    \CoachFormState.email: (FieldValidator.validateEmail, { $0.email = $1 }),
+    \CoachFormState.phone: (FieldValidator.validatePhone, { $0.phone = $1 }),
+    \CoachFormState.twitterHandle: (FieldValidator.validateTwitterHandle, { $0.twitterHandle = $1 }),
+    \CoachFormState.instagramHandle: (FieldValidator.validateInstagramHandle, { $0.instagramHandle = $1 }),
+    \CoachFormState.notes: (FieldValidator.validateNotes, { $0.notes = $1 })
+  ]
 
   // MARK: - Actions
 
@@ -94,35 +115,15 @@ final class AddCoachViewModel: ObservableObject {
   func validateField(_ field: KeyPath<CoachFormState, String>, value: String) {
     logger.debug("Validating field: \(String(describing: field))")
 
-    switch field {
-    case \.firstName:
-      formErrors.firstName = FieldValidator.validateFirstName(value)
-
-    case \.lastName:
-      formErrors.lastName = FieldValidator.validateLastName(value)
-
-    case \.email:
-      formErrors.email = FieldValidator.validateEmail(value)
-
-    case \.phone:
-      formErrors.phone = FieldValidator.validatePhone(value)
-
-    case \.twitterHandle:
-      formErrors.twitterHandle = FieldValidator.validateTwitterHandle(value)
-
-    case \.instagramHandle:
-      formErrors.instagramHandle = FieldValidator.validateInstagramHandle(value)
-
-    case \.notes:
-      formErrors.notes = FieldValidator.validateNotes(value)
-
-    default:
+    guard let (validator, setError) = fieldValidators[field] else {
       logger.warning("Unhandled field validation: \(String(describing: field))")
+      return
     }
 
-    if let error = formErrors.firstName ?? formErrors.lastName ?? formErrors.email ??
-                    formErrors.phone ?? formErrors.twitterHandle ??
-                    formErrors.instagramHandle ?? formErrors.notes {
+    let error = validator(value)
+    setError(&formErrors, error)
+
+    if let error {
       logger.debug("Field validation failed: \(error)")
     }
   }
@@ -173,13 +174,9 @@ final class AddCoachViewModel: ObservableObject {
       let newCoach = try await coachesService.createCoach(request: request)
       logger.info("Coach created successfully: \(newCoach.id)")
 
-      // Success haptic feedback
-      let generator = UINotificationFeedbackGenerator()
-      generator.notificationOccurred(.success)
-
-      // Success announcement for VoiceOver
+      // Success announcement with haptic feedback
       let announcement = "Coach \(newCoach.firstName) \(newCoach.lastName) added successfully"
-      UIAccessibility.post(notification: .announcement, argument: announcement)
+      announcer.announceWithFeedback(announcement, success: true)
 
       return newCoach
 
@@ -187,14 +184,10 @@ final class AddCoachViewModel: ObservableObject {
       logger.error("Failed to create coach: \(error.localizedDescription)")
       submitError = "Failed to create coach. Please try again."
 
-      // Error haptic feedback
-      let generator = UINotificationFeedbackGenerator()
-      generator.notificationOccurred(.error)
-
-      // Error announcement for VoiceOver
-      UIAccessibility.post(
-        notification: .announcement,
-        argument: "Failed to create coach. \(error.localizedDescription)"
+      // Error announcement with haptic feedback
+      announcer.announceWithFeedback(
+        "Failed to create coach. \(error.localizedDescription)",
+        success: false
       )
 
       return nil
@@ -225,7 +218,7 @@ final class AddCoachViewModel: ObservableObject {
     let announcement = "Form has \(errorCount) error\(errorCount == 1 ? "" : "s"): \(errorList)"
 
     logger.debug("Announcing errors: \(announcement)")
-    UIAccessibility.post(notification: .announcement, argument: announcement)
+    announcer.announce(announcement)
   }
 
   // MARK: - Public Helpers
