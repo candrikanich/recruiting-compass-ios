@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		988EFDDF2F3549A1009C60F5 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 988EFDDE2F3549A1009C60F5 /* Supabase */; };
+		98AA1B602F3C1746000E4755 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 98AA1B5F2F3C1746000E4755 /* Supabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				98AA1B602F3C1746000E4755 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,8 +82,6 @@
 		0F3CBACB4DEDCB6732DEBAA7 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				E304BE404F734B5A6A86F734 /* CoachDetailView.swift */,
-				5561067FE566F1D60C429942 /* AddCoachView.swift */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -89,7 +89,6 @@
 		81F0FB943A33E3D0B3C302A8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				357741CB1F7E9FB153271A75 /* CoachDestination.swift */,
 			);
 			name = Models;
 			sourceTree = "<group>";
@@ -111,6 +110,7 @@
 				988EFDAB2F35489B009C60F5 /* Products */,
 				93D0D1ABA787F2444D850255 /* Features */,
 				A070F1818337D3A4B88609FC /* Shared */,
+				98AA1B5E2F3C1746000E4755 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -124,10 +124,16 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		98AA1B5E2F3C1746000E4755 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		9C48C82FFE11856DAFAA93F3 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				342097F173481BD2E81C6178 /* CoachDetailViewModel.swift */,
 			);
 			name = ViewModels;
 			sourceTree = "<group>";
@@ -153,7 +159,6 @@
 		E95A5310F6B2E9B070034E7E /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				D16172F76D1A1F431067D7F6 /* Toast.swift */,
 			);
 			name = Components;
 			sourceTree = "<group>";
@@ -658,6 +663,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		988EFDDE2F3549A1009C60F5 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 988EFDDD2F3549A1009C60F5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		98AA1B5F2F3C1746000E4755 /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 988EFDDD2F3549A1009C60F5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;

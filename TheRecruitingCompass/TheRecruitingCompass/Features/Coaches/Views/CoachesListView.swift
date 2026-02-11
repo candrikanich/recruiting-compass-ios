@@ -5,13 +5,75 @@ struct CoachesListView: View {
 
   @StateObject private var viewModel = CoachesListViewModel()
   @EnvironmentObject private var familyManager: FamilyManager
-  @State private var showAddCoach = false
+  @EnvironmentObject private var authManager: AuthManager
+  @State private var navigationPath = NavigationPath()
 
   init(prefilterSchoolId: String? = nil) {
     self.prefilterSchoolId = prefilterSchoolId
   }
 
   var body: some View {
+    contentView
+      .navigationTitle("Coaches")
+      .searchable(
+        text: $viewModel.filters.searchText,
+        prompt: "Search coaches..."
+      )
+      .refreshable { await viewModel.loadCoaches() }
+      .task {
+        await viewModel.loadCoaches()
+        if let schoolId = prefilterSchoolId {
+          viewModel.filters.schoolId = schoolId
+        }
+      }
+      .confirmationDialog(
+        "Delete Coach",
+        isPresented: $viewModel.showDeleteConfirmation,
+        titleVisibility: .visible
+      ) {
+        Button("Delete", role: .destructive) {
+          Task { await viewModel.deleteCoach() }
+        }
+        Button("Cancel", role: .cancel) {}
+      } message: {
+        if let coach = viewModel.coachToDelete {
+          Text("Are you sure you want to delete \(coach.fullName)? This action cannot be undone.")
+        }
+      }
+      .alert("Error", isPresented: .constant(viewModel.deleteErrorMessage != nil)) {
+        Button("OK") { viewModel.deleteErrorMessage = nil }
+      } message: {
+        if let error = viewModel.deleteErrorMessage {
+          Text(error)
+        }
+      }
+      .toolbar {
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button {
+            navigationPath.append(CoachDestination.add)
+          } label: {
+            Image(systemName: "plus")
+              .frame(minWidth: 44, minHeight: 44)
+              .contentShape(Rectangle())
+          }
+          .accessibilityLabel("Add new coach")
+          .accessibilityHint("Opens form to add a new coach")
+        }
+      }
+      .navigationDestination(for: CoachDestination.self) { destination in
+        destinationView(for: destination)
+      }
+      .toast(
+        isShowing: $viewModel.showSuccessToast,
+        message: $viewModel.successMessage,
+        type: .success,
+        duration: 3.0
+      )
+  }
+
+  // MARK: - Content View
+
+  private var contentView: some View {
     Group {
       if viewModel.isLoading && viewModel.allCoaches.isEmpty {
         LoadingStateView(message: "Loading coaches...")
@@ -21,75 +83,29 @@ struct CoachesListView: View {
         coachListContent
       }
     }
-    .navigationTitle("Coaches")
-    .searchable(
-      text: $viewModel.filters.searchText,
-      prompt: "Search coaches..."
-    )
-    .refreshable { await viewModel.loadCoaches() }
-    .task {
-      await viewModel.loadCoaches()
-      if let schoolId = prefilterSchoolId {
-        viewModel.filters.schoolId = schoolId
-      }
+  }
+
+  // MARK: - Destination View
+
+  @ViewBuilder
+  private func destinationView(for destination: CoachDestination) -> some View {
+    switch destination {
+    case .detail(let coachId):
+      CoachDetailView(
+        coachId: coachId,
+        allCoaches: viewModel.allCoaches,
+        allSchools: viewModel.allSchools
+      )
+    case .add:
+      AddCoachView(
+        coachesService: viewModel.coachesService,
+        familyUnitId: familyManager.familyUnitId ?? "",
+        userId: authManager.user?.id ?? "",
+        navigationPath: $navigationPath
+      )
+    case .filteredBySchool(let schoolId):
+      CoachesListView(prefilterSchoolId: schoolId)
     }
-    .confirmationDialog(
-      "Delete Coach",
-      isPresented: $viewModel.showDeleteConfirmation,
-      titleVisibility: .visible
-    ) {
-      Button("Delete", role: .destructive) {
-        Task { await viewModel.deleteCoach() }
-      }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      if let coach = viewModel.coachToDelete {
-        Text("Are you sure you want to delete \(coach.fullName)? This action cannot be undone.")
-      }
-    }
-    .alert("Error", isPresented: .constant(viewModel.deleteErrorMessage != nil)) {
-      Button("OK") { viewModel.deleteErrorMessage = nil }
-    } message: {
-      if let error = viewModel.deleteErrorMessage {
-        Text(error)
-      }
-    }
-    .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
-        Button {
-          showAddCoach = true
-        } label: {
-          Image(systemName: "plus")
-            .frame(minWidth: 44, minHeight: 44)
-            .contentShape(Rectangle())
-        }
-        .accessibilityLabel("Add new coach")
-        .accessibilityHint("Opens form to add a new coach")
-      }
-    }
-    .navigationDestination(for: CoachDestination.self) { destination in
-      switch destination {
-      case .detail(let coachId):
-        CoachDetailView(
-          coachId: coachId,
-          allCoaches: viewModel.allCoaches,
-          allSchools: viewModel.allSchools
-        )
-      case .add:
-        AddCoachView()
-      case .filteredBySchool(let schoolId):
-        CoachesListView(prefilterSchoolId: schoolId)
-      }
-    }
-    .sheet(isPresented: $showAddCoach) {
-      AddCoachView()
-    }
-    .toast(
-      isShowing: $viewModel.showSuccessToast,
-      message: $viewModel.successMessage,
-      type: .success,
-      duration: 3.0
-    )
   }
 
   // MARK: - List Content

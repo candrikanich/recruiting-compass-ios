@@ -6,6 +6,7 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
 
   var fetchSchoolsCallCount = 0
   var fetchCoachesCallCount = 0
+  var createCoachCallCount = 0
   var updateCoachCallCount = 0
   var fetchInteractionsCallCount = 0
   var deleteCoachCallCount = 0
@@ -15,6 +16,7 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
 
   var lastFetchSchoolsFamilyUnitId: String?
   var lastFetchCoachesSchoolIds: [String]?
+  var lastCreateCoachRequest: CoachCreateRequest?
   var lastUpdateCoachId: String?
   var lastUpdateCoachUpdates: CoachUpdateRequest?
   var lastFetchInteractionsCoachId: String?
@@ -26,6 +28,7 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
 
   var shouldThrowFetchSchools = false
   var shouldThrowFetchCoaches = false
+  var shouldThrowCreateCoach = false
   var shouldThrowUpdateCoach = false
   var shouldThrowFetchInteractions = false
   var shouldThrowDeleteCoach = false
@@ -35,6 +38,7 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
 
   var stubbedSchools: [School] = []
   var stubbedCoaches: [Coach] = []
+  var stubbedCreatedCoach: Coach?
   var stubbedUpdatedCoach: Coach?
   var stubbedInteractions: [Interaction] = []
   var stubbedDeleteResult = DeleteResult(
@@ -49,9 +53,27 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
     set { stubbedCoaches = newValue }
   }
 
+  var mockSchools: [School] {
+    get { stubbedSchools }
+    set { stubbedSchools = newValue }
+  }
+
+  var mockCreatedCoach: Coach? {
+    get { stubbedCreatedCoach }
+    set { stubbedCreatedCoach = newValue }
+  }
+
   var shouldSucceed: Bool {
     get { !shouldThrowFetchCoaches }
     set { shouldThrowFetchCoaches = !newValue }
+  }
+
+  var shouldThrowError: Bool {
+    get { shouldThrowFetchSchools || shouldThrowCreateCoach }
+    set {
+      shouldThrowFetchSchools = newValue
+      shouldThrowCreateCoach = newValue
+    }
   }
 
   // MARK: - CoachesManaging
@@ -72,6 +94,18 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
       throw NSError(domain: "MockCoaches", code: 2, userInfo: [NSLocalizedDescriptionKey: "Mock fetch coaches error"])
     }
     return stubbedCoaches
+  }
+
+  func createCoach(request: CoachCreateRequest) async throws -> Coach {
+    createCoachCallCount += 1
+    lastCreateCoachRequest = request
+    if shouldThrowCreateCoach {
+      throw NSError(domain: "MockCoaches", code: 8, userInfo: [NSLocalizedDescriptionKey: "Mock create coach error"])
+    }
+    guard let coach = stubbedCreatedCoach else {
+      throw NSError(domain: "MockCoaches", code: 9, userInfo: [NSLocalizedDescriptionKey: "No stubbed created coach configured"])
+    }
+    return coach
   }
 
   func deleteCoach(id: String) async throws {
