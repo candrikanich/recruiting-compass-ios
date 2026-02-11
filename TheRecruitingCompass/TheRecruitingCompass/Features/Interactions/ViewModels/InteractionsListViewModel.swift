@@ -133,8 +133,7 @@ final class InteractionsListViewModel: ObservableObject {
       let schools = try await interactionsService.fetchSchools(familyUnitId: familyUnitId)
       allSchools = schools
 
-      let schoolIds = schools.map(\.id)
-      allCoaches = try await interactionsService.fetchCoaches(schoolIds: schoolIds)
+      allCoaches = try await interactionsService.fetchCoaches(familyUnitId: familyUnitId)
 
       // Load interactions based on role
       if isAthlete, let userId = authManager.user?.id {

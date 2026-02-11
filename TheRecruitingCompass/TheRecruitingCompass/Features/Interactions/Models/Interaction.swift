@@ -37,6 +37,10 @@ struct Interaction: Identifiable, Codable, Sendable {
     (attachments ?? []).count
   }
 
+  var displaySubject: String {
+    subject ?? type.displayName
+  }
+
   static let iso8601Formatter = ISO8601DateFormatter()
 
   enum CodingKeys: String, CodingKey {
@@ -122,9 +126,16 @@ enum Direction: String, Codable, CaseIterable, Sendable {
     }
   }
 
+  var subtitle: String {
+    switch self {
+    case .outbound: return "We initiated"
+    case .inbound: return "They initiated"
+    }
+  }
+
   var badgeColor: Color {
     switch self {
-    case .outbound: return .blue
+    case .outbound: return .purple
     case .inbound: return .green
     }
   }
@@ -152,6 +163,10 @@ enum Sentiment: String, Codable, CaseIterable, Sendable {
     case .neutral: return .gray
     case .negative: return .red
     }
+  }
+
+  var isPositive: Bool {
+    self == .veryPositive || self == .positive
   }
 }
 

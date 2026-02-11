@@ -1,0 +1,277 @@
+import Foundation
+import SwiftUI
+import Combine
+import OSLog
+
+private let logger = Logger(
+  subsystem: "com.chrisandrikanich.TheRecruitingCompass",
+  category: "AddInteractionViewModel"
+)
+
+@MainActor
+final class AddInteractionViewModel: ObservableObject {
+
+  // MARK: - Published State
+
+  @Published var formState = InteractionFormState()
+  @Published var calibration = InterestCalibration()
+  @Published var schools: [School] = []
+  @Published var allCoaches: [Coach] = []
+  @Published var isLoading = false
+  @Published var isSubmitting = false
+  @Published var errorMessage: String?
+  @Published var showAddCoachSheet = false
+  @Published var showOtherCoachSheet = false
+  @Published var newCoachForm = NewCoachFormState()
+  @Published var otherCoachName: String = ""
+
+  // MARK: - Dependencies
+
+  private let interactionsService: InteractionsManaging
+  private let familyUnitId: String
+  private let userId: String
+
+  // MARK: - Computed Properties
+
+  var schoolCoaches: [Coach] {
+    guard !formState.schoolId.isEmpty else { return [] }
+    return allCoaches.filter { $0.schoolId == formState.schoolId }
+  }
+
+  var canSubmit: Bool {
+    formState.isValid && !isSubmitting
+  }
+
+  var pageTitle: String {
+    "Log Interaction"
+  }
+
+  var submitButtonTitle: String {
+    isSubmitting ? "Logging..." : "Log Interaction"
+  }
+
+  // MARK: - Init
+
+  init(
+    interactionsService: InteractionsManaging,
+    familyUnitId: String,
+    userId: String
+  ) {
+    self.interactionsService = interactionsService
+    self.familyUnitId = familyUnitId
+    self.userId = userId
+  }
+
+  // MARK: - Data Loading
+
+  func loadFormData() async {
+    guard !isLoading else {
+      logger.debug("Already loading, skipping duplicate request")
+      return
+    }
+
+    logger.debug("Loading form data")
+    isLoading = true
+    errorMessage = nil
+    defer { isLoading = false }
+
+    do {
+      async let schoolsTask = interactionsService.fetchSchools(familyUnitId: familyUnitId)
+      async let coachesTask = interactionsService.fetchCoaches(familyUnitId: familyUnitId)
+
+      schools = try await schoolsTask
+      allCoaches = try await coachesTask
+
+      logger.info("Loaded \(self.schools.count) schools and \(self.allCoaches.count) coaches")
+    } catch {
+      logger.error("Failed to load form data: \(error.localizedDescription)")
+      errorMessage = "Failed to load schools and coaches. Please try again."
+    }
+  }
+
+  // MARK: - Form Validation
+
+  func validateForm() -> [String: String] {
+    var errors: [String: String] = [:]
+
+    if formState.schoolId.isEmpty {
+      errors["school"] = "Please select a school"
+    }
+
+    if formState.type == nil {
+      errors["type"] = "Please select an interaction type"
+    }
+
+    if formState.subject.count > 500 {
+      errors["subject"] = "Subject must be 500 characters or less"
+    }
+
+    if formState.content.count > 10000 {
+      errors["content"] = "Content must be 10,000 characters or less"
+    }
+
+    return errors
+  }
+
+  // MARK: - Coach Management
+
+  func createNewCoach() async -> Bool {
+    guard newCoachForm.isValid else {
+      logger.warning("New coach form is invalid")
+      return false
+    }
+
+    guard !formState.schoolId.isEmpty else {
+      logger.warning("No school selected for new coach")
+      errorMessage = "Please select a school first"
+      return false
+    }
+
+    logger.debug("Creating new coach: \(self.newCoachForm.fullName)")
+
+    do {
+      let request = CoachCreateRequest(
+        schoolId: formState.schoolId,
+        userId: userId,
+        familyUnitId: familyUnitId,
+        role: newCoachForm.role.rawValue,
+        firstName: newCoachForm.trimmedFirstName,
+        lastName: newCoachForm.trimmedLastName,
+        email: nil,
+        phone: nil,
+        twitterHandle: nil,
+        instagramHandle: nil,
+        notes: nil
+      )
+
+      let newCoach = try await interactionsService.createCoach(request)
+      logger.info("Created coach: \(newCoach.id)")
+
+      // Add to local coach list and select
+      allCoaches.append(newCoach)
+      formState.coachId = newCoach.id
+
+      // Reset form
+      newCoachForm.reset()
+
+      return true
+    } catch {
+      logger.error("Failed to create coach: \(error.localizedDescription)")
+      errorMessage = "Failed to create coach. Please try again."
+      return false
+    }
+  }
+
+  func handleOtherCoach() {
+    guard !otherCoachName.isEmpty else {
+      logger.warning("Other coach name is empty")
+      return
+    }
+
+    logger.debug("Using other coach: \(self.otherCoachName)")
+    // Store coach name in content or metadata (spec allows null coach_id)
+    formState.coachId = nil
+    showOtherCoachSheet = false
+  }
+
+  // MARK: - School Selection
+
+  func onSchoolChange() {
+    // Clear coach selection when school changes
+    formState.coachId = nil
+    logger.debug("School changed, coach selection cleared")
+  }
+
+  // MARK: - Interest Calibration
+
+  func onDirectionOrSentimentChange() {
+    // Reset calibration if conditions no longer met
+    if !formState.showsInterestCalibration {
+      calibration.reset()
+      formState.interestLevel = .notSet
+      logger.debug("Calibration conditions not met, reset calibration")
+    }
+  }
+
+  func onCalibrationAnswerChange() {
+    formState.interestLevel = calibration.interestLevel
+    logger.debug("Interest level updated: \(self.formState.interestLevel.rawValue)")
+  }
+
+  // MARK: - Submission
+
+  func submitInteraction() async -> Bool {
+    guard formState.isValid else {
+      logger.warning("Form is invalid, cannot submit")
+      return false
+    }
+
+    let validationErrors = validateForm()
+    guard validationErrors.isEmpty else {
+      logger.warning("Form validation failed: \(validationErrors.count) errors")
+      errorMessage = validationErrors.values.first
+      return false
+    }
+
+    logger.debug("Submitting interaction")
+    isSubmitting = true
+    errorMessage = nil
+    defer { isSubmitting = false }
+
+    do {
+      // Build final content with interest level if calibrated
+      var finalContent = formState.content ?? ""
+      if formState.showsInterestCalibration && formState.interestLevel != .notSet {
+        let calibrationNote = "\n\n[Coach Interest Level: \(formState.interestLevel.rawValue.uppercased())]"
+        finalContent = finalContent + calibrationNote
+      }
+
+      // Append other coach name if used
+      if formState.coachId == nil && !otherCoachName.isEmpty {
+        let otherCoachNote = "\n\n[Coach: \(otherCoachName)]"
+        finalContent = finalContent + otherCoachNote
+      }
+
+      // Create request
+      let request = InteractionCreateRequest(
+        schoolId: formState.schoolId.isEmpty ? nil : formState.schoolId,
+        coachId: formState.coachId,
+        eventId: nil,
+        type: formState.type!,
+        direction: formState.direction,
+        occurredAt: formState.occurredAt,
+        subject: formState.subject.isEmpty ? nil : formState.subject,
+        content: finalContent.isEmpty ? nil : finalContent,
+        sentiment: formState.sentiment,
+        loggedBy: userId,
+        familyUnitId: familyUnitId
+      )
+
+      let interaction = try await interactionsService.createInteraction(request)
+      logger.info("Created interaction: \(interaction.id)")
+
+      // Upload attachments if any (Phase 4 - defer for MVP)
+      // if !formState.attachedFiles.isEmpty { ... }
+
+      // Create inbound alert if direction is inbound (Phase 4)
+      // if formState.direction == .inbound { ... }
+
+      return true
+    } catch {
+      logger.error("Failed to submit interaction: \(error.localizedDescription)")
+      errorMessage = "Failed to create interaction. Please try again."
+      return false
+    }
+  }
+
+  // MARK: - Reset
+
+  func reset() {
+    formState.reset()
+    calibration.reset()
+    newCoachForm.reset()
+    otherCoachName = ""
+    errorMessage = nil
+    logger.debug("Form reset")
+  }
+}

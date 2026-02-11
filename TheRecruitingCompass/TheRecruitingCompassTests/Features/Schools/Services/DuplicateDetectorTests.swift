@@ -50,16 +50,39 @@ final class DuplicateDetectorTests: XCTestCase {
     super.tearDown()
   }
 
+  // MARK: - Helper Methods
+
+  private func makeRequest(
+    name: String,
+    website: String? = nil,
+    ncaaId: String? = nil
+  ) -> SchoolCreateRequest {
+    SchoolCreateRequest(
+      userId: "user",
+      familyUnitId: "family",
+      name: name,
+      location: nil,
+      city: nil,
+      state: nil,
+      division: nil,
+      conference: nil,
+      website: website,
+      twitterHandle: nil,
+      instagramHandle: nil,
+      ncaaId: ncaaId,
+      notes: nil,
+      status: "interested",
+      academicInfo: nil
+    )
+  }
+
   // MARK: - Name Match Tests (Priority 1)
 
   func testFindDuplicate_exactNameMatch_returnsNameMatch() {
     // Given
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "University of Florida",
-      website: "https://different-site.com",
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+      website: "https://different-site.com"
     )
 
     // When
@@ -73,12 +96,8 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_nameMatchCaseInsensitive_returnsNameMatch() {
     // Given
-    let input = SchoolCreateRequest(
-      name: "university of florida",
-      website: nil,
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+    let input = makeRequest(
+      name: "university of florida"
     )
 
     // When
@@ -92,12 +111,8 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_nameMatchWithWhitespace_returnsNameMatch() {
     // Given
-    let input = SchoolCreateRequest(
-      name: "  University of Florida  ",
-      website: nil,
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+    let input = makeRequest(
+      name: "  University of Florida  "
     )
 
     // When
@@ -111,12 +126,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_nameMatchTakesPriorityOverDomain() {
     // Given - input matches BOTH name and domain
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "University of Florida",
-      website: "https://www.ufl.edu",
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+      website: "https://www.ufl.edu"
     )
 
     // When
@@ -130,12 +142,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_nameMatchTakesPriorityOverNcaaId() {
     // Given - input matches BOTH name and NCAA ID
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "University of Florida",
-      website: nil,
-      ncaaId: "134130",
-      userId: "user",
-      familyUnitId: "family"
+      ncaaId: "134130"
     )
 
     // When
@@ -189,12 +198,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_domainMatchCaseInsensitive_returnsDomainMatch() {
     // Given
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "Different School",
-      website: "https://WWW.UFL.EDU",
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+      website: "https://WWW.UFL.EDU"
     )
 
     // When
@@ -227,12 +233,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_domainMatchWithPath_returnsDomainMatch() {
     // Given - URL path shouldn't affect domain matching
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "Different School",
-      website: "https://www.ufl.edu/athletics/baseball",
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+      website: "https://www.ufl.edu/athletics/baseball"
     )
 
     // When
@@ -264,12 +267,10 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_domainMatchTakesPriorityOverNcaaId() {
     // Given - input matches BOTH domain and NCAA ID (but not name)
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "Different School",
       website: "https://www.ufl.edu",
-      ncaaId: "134130",
-      userId: "user",
-      familyUnitId: "family"
+      ncaaId: "134130"
     )
 
     // When
@@ -342,12 +343,10 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_noMatch_returnsNil() {
     // Given - completely unique school
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "New Unique School",
       website: "https://unique-school.edu",
-      ncaaId: "999999",
-      userId: "user",
-      familyUnitId: "family"
+      ncaaId: "999999"
     )
 
     // When
@@ -361,12 +360,8 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_emptySchoolsList_returnsNil() {
     // Given
-    let input = SchoolCreateRequest(
-      name: "Any School",
-      website: nil,
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+    let input = makeRequest(
+      name: "Any School"
     )
 
     // When
@@ -379,12 +374,8 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_noWebsiteInInput_skipsDomainCheck() {
     // Given - no website provided in input
-    let input = SchoolCreateRequest(
-      name: "Different School",
-      website: nil,
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+    let input = makeRequest(
+      name: "Different School"
     )
 
     // When
@@ -396,12 +387,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_noWebsiteInExisting_skipsDomainCheck() {
     // Given - Harvard has no website
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "Different School",
-      website: "https://harvard.edu",
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+      website: "https://harvard.edu"
     )
 
     // When
@@ -413,12 +401,8 @@ final class DuplicateDetectorTests: XCTestCase {
 
   func testFindDuplicate_noNcaaIdInInput_skipsNcaaIdCheck() {
     // Given
-    let input = SchoolCreateRequest(
-      name: "Different School",
-      website: nil,
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+    let input = makeRequest(
+      name: "Different School"
     )
 
     // When
@@ -521,12 +505,9 @@ final class DuplicateDetectorTests: XCTestCase {
       School.mock(id: "2", name: "School B", website: "https://same.edu", ncaaId: nil)
     ]
 
-    let input = SchoolCreateRequest(
+    let input = makeRequest(
       name: "Different School",
-      website: "https://same.edu",
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+      website: "https://same.edu"
     )
 
     // When
@@ -543,12 +524,8 @@ final class DuplicateDetectorTests: XCTestCase {
       School.mock(id: "1", name: "St. Mary's College", website: nil, ncaaId: nil)
     ]
 
-    let input = SchoolCreateRequest(
-      name: "St. Mary's College",
-      website: nil,
-      ncaaId: nil,
-      userId: "user",
-      familyUnitId: "family"
+    let input = makeRequest(
+      name: "St. Mary's College"
     )
 
     // When

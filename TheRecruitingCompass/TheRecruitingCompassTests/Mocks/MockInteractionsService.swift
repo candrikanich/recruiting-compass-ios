@@ -6,10 +6,16 @@ final class MockInteractionsService: InteractionsManaging {
   var mockInteractions: [Interaction] = []
   var mockSchools: [School] = []
   var mockCoaches: [Coach] = []
+  var mockCreatedInteraction: Interaction?
+  var mockCreatedCoach: Coach?
   var deleteCallCount = 0
   var cascadeDeleteCallCount = 0
+  var createInteractionCallCount = 0
+  var createCoachCallCount = 0
   var lastDeletedId: String?
   var lastCascadeDeletedId: String?
+  var lastCreatedInteractionRequest: InteractionCreateRequest?
+  var lastCreatedCoachRequest: CoachCreateRequest?
 
   func fetchInteractions(familyUnitId: String) async throws -> [Interaction] {
     if !shouldSucceed { throw NSError(domain: "test", code: -1) }
@@ -21,14 +27,89 @@ final class MockInteractionsService: InteractionsManaging {
     return mockInteractions.filter { $0.loggedBy == userId }
   }
 
+  func fetchInteraction(id: String) async throws -> Interaction {
+    if !shouldSucceed { throw NSError(domain: "test", code: -1) }
+    guard let interaction = mockInteractions.first(where: { $0.id == id }) else {
+      throw NSError(domain: "test", code: 404, userInfo: [NSLocalizedDescriptionKey: "Not found"])
+    }
+    return interaction
+  }
+
+  func fetchLoggedByUserName(userId: String) async throws -> String {
+    if !shouldSucceed { throw NSError(domain: "test", code: -1) }
+    return "Test User"
+  }
+
   func fetchSchools(familyUnitId: String) async throws -> [School] {
     if !shouldSucceed { throw NSError(domain: "test", code: -1) }
     return mockSchools
   }
 
-  func fetchCoaches(schoolIds: [String]) async throws -> [Coach] {
+  func fetchCoaches(familyUnitId: String) async throws -> [Coach] {
     if !shouldSucceed { throw NSError(domain: "test", code: -1) }
-    return mockCoaches.filter { schoolIds.contains($0.schoolId) }
+    return mockCoaches
+  }
+
+  func createInteraction(_ interaction: InteractionCreateRequest) async throws -> Interaction {
+    if !shouldSucceed { throw NSError(domain: "test", code: -1) }
+    createInteractionCallCount += 1
+    lastCreatedInteractionRequest = interaction
+
+    if let mock = mockCreatedInteraction {
+      return mock
+    }
+
+    // Create default interaction
+    return Interaction(
+      id: UUID().uuidString,
+      type: InteractionType(rawValue: interaction.type) ?? .email,
+      direction: Direction(rawValue: interaction.direction) ?? .outbound,
+      schoolId: interaction.schoolId,
+      coachId: interaction.coachId,
+      subject: interaction.subject,
+      content: interaction.content,
+      sentiment: interaction.sentiment.flatMap { Sentiment(rawValue: $0) },
+      occurredAt: interaction.occurredAt,
+      loggedBy: interaction.loggedBy,
+      attachments: nil,
+      familyUnitId: interaction.familyUnitId,
+      createdAt: ISO8601DateFormatter().string(from: Date()),
+      updatedAt: nil
+    )
+  }
+
+  func createCoach(_ coach: CoachCreateRequest) async throws -> Coach {
+    if !shouldSucceed { throw NSError(domain: "test", code: -1) }
+    createCoachCallCount += 1
+    lastCreatedCoachRequest = coach
+
+    if let mock = mockCreatedCoach {
+      return mock
+    }
+
+    // Create default coach
+    return Coach(
+      id: UUID().uuidString,
+      firstName: coach.firstName,
+      lastName: coach.lastName,
+      email: coach.email,
+      phone: coach.phone,
+      position: coach.role,
+      schoolId: coach.schoolId,
+      twitterHandle: coach.twitterHandle,
+      instagramHandle: coach.instagramHandle,
+      notes: coach.notes,
+      privateNotes: nil,
+      responsivenessScore: 0.0,
+      lastContactDate: nil,
+      createdAt: ISO8601DateFormatter().string(from: Date()),
+      updatedAt: ""
+    )
+  }
+
+  func uploadAttachment(interactionId: String, fileName: String, fileData: Data) async throws -> String {
+    if !shouldSucceed { throw NSError(domain: "test", code: -1) }
+    return "https://test.url/\(fileName)"
   }
 
   func deleteInteraction(id: String) async throws {
@@ -51,9 +132,15 @@ final class MockInteractionsService: InteractionsManaging {
     mockInteractions = []
     mockSchools = []
     mockCoaches = []
+    mockCreatedInteraction = nil
+    mockCreatedCoach = nil
     deleteCallCount = 0
     cascadeDeleteCallCount = 0
+    createInteractionCallCount = 0
+    createCoachCallCount = 0
     lastDeletedId = nil
     lastCascadeDeletedId = nil
+    lastCreatedInteractionRequest = nil
+    lastCreatedCoachRequest = nil
   }
 }
