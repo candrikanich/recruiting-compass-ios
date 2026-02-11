@@ -44,86 +44,24 @@ final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendab
 
     logger.debug("Looking up college: \(name)")
 
-    // Build URL with query parameters
-    var components = URLComponents(string: "https://api.data.gov/ed/collegescorecard/v1/schools")!
-
-    // Fields to request from API
-    let fields = [
-      "id",
-      "school.name",
-      "school.school_url",
-      "school.address",
-      "school.city",
-      "school.state",
-      "latest.student.size",
-      "school.carnegie_size_setting",
-      "latest.admissions.admission_rate.overall",
-      "latest.cost.tuition.in_state",
-      "latest.cost.tuition.out_of_state",
-      "location.lat",
-      "location.lon"
-    ].joined(separator: ",")
-
-    components.queryItems = [
-      URLQueryItem(name: "api_key", value: apiKey),
-      URLQueryItem(name: "school.name", value: name),
-      URLQueryItem(name: "fields", value: fields),
-      URLQueryItem(name: "per_page", value: "1")
-    ]
-
-    guard let url = components.url else {
-      throw CollegeDataError.invalidResponse
-    }
-
+    // Build request URL
+    let url = try self.buildLookupURL(for: name)
     logger.debug("Request URL: \(url.absoluteString)")
 
-    // Make request
-    do {
-      let (data, response) = try await urlSession.data(from: url)
+    // Perform API request
+    let apiResponse: CollegeScorecardAPIResponse = try await self.performAPIRequest(url: url)
 
-      guard let httpResponse = response as? HTTPURLResponse else {
-        throw CollegeDataError.invalidResponse
-      }
-
-      logger.debug("Response status: \(httpResponse.statusCode)")
-
-      switch httpResponse.statusCode {
-      case 200:
-        // Success - parse response
-        let decoder = JSONDecoder()
-        let apiResponse = try decoder.decode(CollegeScorecardAPIResponse.self, from: data)
-
-        guard let firstResult = apiResponse.results.first else {
-          logger.info("No results found for: \(name)")
-          // Cache nil result to avoid repeated lookups
-          await cache.setLookup(for: name, result: nil)
-          return nil
-        }
-
-        logger.info("Found college: \(firstResult.name)")
-        // Cache successful result
-        await cache.setLookup(for: name, result: firstResult)
-        return firstResult
-
-      case 401, 403:
-        throw CollegeDataError.invalidApiKey
-
-      case 429:
-        throw CollegeDataError.rateLimited
-
-      case 500...599:
-        throw CollegeDataError.serverError(httpResponse.statusCode)
-
-      default:
-        throw CollegeDataError.invalidResponse
-      }
-
-    } catch let error as CollegeDataError {
-      throw error
-    } catch {
-      logger.error("Network error: \(error.localizedDescription)")
-      throw CollegeDataError.networkError(error)
+    // Extract first result
+    guard let firstResult = apiResponse.results.first else {
+      logger.info("No results found for: \(name)")
+      await cache.setLookup(for: name, result: nil)
+      return nil
     }
+
+    // Cache and return result
+    logger.info("Found college: \(firstResult.name)")
+    await cache.setLookup(for: name, result: firstResult)
+    return firstResult
   }
 
   // MARK: - Autocomplete Search (Phase 2)
@@ -148,88 +86,20 @@ final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendab
 
     logger.debug("Searching colleges: \(query)")
 
-    // Build URL with query parameters
-    var components = URLComponents(string: "https://api.data.gov/ed/collegescorecard/v1/schools")!
-
-    // Minimal fields for autocomplete
-    let fields = [
-      "id",
-      "school.name",
-      "school.city",
-      "school.state",
-      "school.school_url"
-    ].joined(separator: ",")
-
-    components.queryItems = [
-      URLQueryItem(name: "api_key", value: apiKey),
-      URLQueryItem(name: "school.name", value: query),
-      URLQueryItem(name: "fields", value: fields),
-      URLQueryItem(name: "per_page", value: "10")
-    ]
-
-    guard let url = components.url else {
-      throw CollegeDataError.invalidResponse
-    }
-
+    // Build request URL
+    let url = try self.buildSearchURL(for: query)
     logger.debug("Autocomplete URL: \(url.absoluteString)")
 
-    // Make request
-    do {
-      let (data, response) = try await urlSession.data(from: url)
+    // Perform API request
+    let apiResponse: AutocompleteAPIResponse = try await self.performAPIRequest(url: url)
 
-      guard let httpResponse = response as? HTTPURLResponse else {
-        throw CollegeDataError.invalidResponse
-      }
+    // Transform results
+    let results = self.transformAutocompleteResults(apiResponse.results)
 
-      logger.debug("Autocomplete response status: \(httpResponse.statusCode)")
-
-      switch httpResponse.statusCode {
-      case 200:
-        // Success - parse response
-        let decoder = JSONDecoder()
-        let apiResponse = try decoder.decode(AutocompleteAPIResponse.self, from: data)
-
-        let results = apiResponse.results.compactMap { result -> CollegeSearchResult? in
-          guard let id = result.id,
-                let name = result.name,
-                let city = result.city,
-                let state = result.state else {
-            return nil
-          }
-
-          return CollegeSearchResult(
-            id: String(id),
-            name: name,
-            city: city,
-            state: state,
-            website: result.website
-          )
-        }
-
-        logger.info("Found \(results.count) colleges for query: \(query)")
-        // Cache search results
-        await cache.setSearch(for: query, results: results)
-        return results
-
-      case 401, 403:
-        throw CollegeDataError.invalidApiKey
-
-      case 429:
-        throw CollegeDataError.rateLimited
-
-      case 500...599:
-        throw CollegeDataError.serverError(httpResponse.statusCode)
-
-      default:
-        throw CollegeDataError.invalidResponse
-      }
-
-    } catch let error as CollegeDataError {
-      throw error
-    } catch {
-      logger.error("Autocomplete network error: \(error.localizedDescription)")
-      throw CollegeDataError.networkError(error)
-    }
+    // Cache and return results
+    logger.info("Found \(results.count) colleges for query: \(query)")
+    await cache.setSearch(for: query, results: results)
+    return results
   }
 }
 
@@ -298,7 +168,7 @@ private actor CollegeScorecardCache {
 
   private var lookupCache: [String: CachedEntry<CollegeDataResult?>] = [:]
   private var searchCache: [String: CachedEntry<[CollegeSearchResult]>] = [:]
-  private let ttl: TimeInterval = 600 // 10 minutes
+  private let cacheTimeToLive: TimeInterval = 600 // 10 minutes
 
   func getLookup(for name: String) -> CollegeDataResult?? {
     guard let entry = lookupCache[name.lowercased()], entry.expiry > Date() else {
@@ -311,7 +181,7 @@ private actor CollegeScorecardCache {
   func setLookup(for name: String, result: CollegeDataResult?) {
     lookupCache[name.lowercased()] = CachedEntry(
       value: result,
-      expiry: Date().addingTimeInterval(ttl)
+      expiry: Date().addingTimeInterval(cacheTimeToLive)
     )
   }
 
@@ -326,7 +196,7 @@ private actor CollegeScorecardCache {
   func setSearch(for query: String, results: [CollegeSearchResult]) {
     searchCache[query.lowercased()] = CachedEntry(
       value: results,
-      expiry: Date().addingTimeInterval(ttl)
+      expiry: Date().addingTimeInterval(cacheTimeToLive)
     )
   }
 
@@ -334,5 +204,138 @@ private actor CollegeScorecardCache {
     let now = Date()
     lookupCache = lookupCache.filter { $0.value.expiry > now }
     searchCache = searchCache.filter { $0.value.expiry > now }
+  }
+}
+
+// MARK: - CollegeScorecardService Private Helpers
+
+extension CollegeScorecardService {
+
+  /// Build URL for college lookup request
+  private func buildLookupURL(for name: String) throws -> URL {
+    let fields = [
+      "id",
+      "school.name",
+      "school.school_url",
+      "school.address",
+      "school.city",
+      "school.state",
+      "latest.student.size",
+      "school.carnegie_size_setting",
+      "latest.admissions.admission_rate.overall",
+      "latest.cost.tuition.in_state",
+      "latest.cost.tuition.out_of_state",
+      "location.lat",
+      "location.lon"
+    ].joined(separator: ",")
+
+    return try buildAPIURL(
+      query: name,
+      fields: fields,
+      perPage: "1"
+    )
+  }
+
+  /// Build URL for college search request
+  private func buildSearchURL(for query: String) throws -> URL {
+    let fields = [
+      "id",
+      "school.name",
+      "school.city",
+      "school.state",
+      "school.school_url"
+    ].joined(separator: ",")
+
+    return try buildAPIURL(
+      query: query,
+      fields: fields,
+      perPage: "10"
+    )
+  }
+
+  /// Build API URL with query parameters
+  private func buildAPIURL(
+    query: String,
+    fields: String,
+    perPage: String
+  ) throws -> URL {
+    var components = URLComponents(string: "https://api.data.gov/ed/collegescorecard/v1/schools")!
+
+    components.queryItems = [
+      URLQueryItem(name: "api_key", value: apiKey),
+      URLQueryItem(name: "school.name", value: query),
+      URLQueryItem(name: "fields", value: fields),
+      URLQueryItem(name: "per_page", value: perPage)
+    ]
+
+    guard let url = components.url else {
+      throw CollegeDataError.invalidResponse
+    }
+
+    return url
+  }
+
+  /// Perform API request and decode response
+  private func performAPIRequest<T: Decodable>(url: URL) async throws -> T {
+    do {
+      let (data, response) = try await urlSession.data(from: url)
+
+      guard let httpResponse = response as? HTTPURLResponse else {
+        throw CollegeDataError.invalidResponse
+      }
+
+      logger.debug("Response status: \(httpResponse.statusCode)")
+
+      // Check for error status codes
+      try validateHTTPStatusCode(httpResponse.statusCode)
+
+      // Decode success response
+      let decoder = JSONDecoder()
+      return try decoder.decode(T.self, from: data)
+
+    } catch let error as CollegeDataError {
+      throw error
+    } catch {
+      logger.error("Network error: \(error.localizedDescription)")
+      throw CollegeDataError.networkError(error)
+    }
+  }
+
+  /// Validate HTTP status code and throw appropriate error
+  private func validateHTTPStatusCode(_ statusCode: Int) throws {
+    switch statusCode {
+    case 200:
+      return // Success
+    case 401, 403:
+      throw CollegeDataError.invalidApiKey
+    case 429:
+      throw CollegeDataError.rateLimited
+    case 500...599:
+      throw CollegeDataError.serverError(statusCode)
+    default:
+      throw CollegeDataError.invalidResponse
+    }
+  }
+
+  /// Transform autocomplete API results to domain models
+  private func transformAutocompleteResults(
+    _ results: [AutocompleteAPIResponse.AutocompleteResult]
+  ) -> [CollegeSearchResult] {
+    results.compactMap { result -> CollegeSearchResult? in
+      guard let id = result.id,
+            let name = result.name,
+            let city = result.city,
+            let state = result.state else {
+        return nil
+      }
+
+      return CollegeSearchResult(
+        id: String(id),
+        name: name,
+        city: city,
+        state: state,
+        website: result.website
+      )
+    }
   }
 }

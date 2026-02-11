@@ -51,15 +51,15 @@ final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
     var index: [String: (division: Division, school: NcaaSchoolInfo)] = [:]
 
     for school in d1Schools {
-      let normalized = Self.normalizeSchoolNameStatic(school.name)
+      let normalized = Self.normalize(school.name)
       index[normalized] = (.d1, school)
     }
     for school in d2Schools {
-      let normalized = Self.normalizeSchoolNameStatic(school.name)
+      let normalized = Self.normalize(school.name)
       index[normalized] = (.d2, school)
     }
     for school in d3Schools {
-      let normalized = Self.normalizeSchoolNameStatic(school.name)
+      let normalized = Self.normalize(school.name)
       index[normalized] = (.d3, school)
     }
 
@@ -160,7 +160,8 @@ final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
 
     // Priority 3: Fuzzy match (Levenshtein distance <= 2)
     if let school = schools.first(where: {
-      levenshteinDistance(normalizedName, normalizeSchoolName($0.name)) <= 2
+      let schoolNormalized = normalizeSchoolName($0.name)
+      return normalizedName.levenshteinDistance(to: schoolNormalized) <= 2
     }) {
       logger.debug("NCAA fuzzy match: \(school.name) (\(division.rawValue))")
       return NcaaLookupResult(division: division, conference: school.conference, logo: school.logo)
@@ -175,65 +176,41 @@ final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
   /// - Remove punctuation
   /// - Trim whitespace
   private func normalizeSchoolName(_ name: String) -> String {
-    Self.normalizeSchoolNameStatic(name)
+    Self.normalize(name)
   }
 
-  /// Static version of normalizeSchoolName for use during initialization
-  private static func normalizeSchoolNameStatic(_ name: String) -> String {
-    var normalized = name.lowercased()
+  /// Static normalization for use during initialization and externally
+  private static func normalize(_ name: String) -> String {
+    let lowercased = name.lowercased()
+    let withoutPrefixes = removePrefixes(from: lowercased)
+    let withoutPunctuation = removePunctuation(from: withoutPrefixes)
+    return normalizeWhitespace(in: withoutPunctuation)
+  }
 
-    // Remove common prefixes
+  /// Remove common institutional prefixes
+  private static func removePrefixes(from text: String) -> String {
     let prefixes = ["university of ", "college of ", "the ", "university ", "college "]
+
     for prefix in prefixes {
-      if normalized.hasPrefix(prefix) {
-        normalized = String(normalized.dropFirst(prefix.count))
+      if text.hasPrefix(prefix) {
+        return String(text.dropFirst(prefix.count))
       }
     }
 
-    // Remove punctuation
-    normalized = normalized.components(separatedBy: CharacterSet.punctuationCharacters).joined()
+    return text
+  }
 
-    // Remove extra whitespace
-    normalized = normalized.components(separatedBy: .whitespaces)
+  /// Remove punctuation characters
+  private static func removePunctuation(from text: String) -> String {
+    text.components(separatedBy: CharacterSet.punctuationCharacters).joined()
+  }
+
+  /// Normalize whitespace (collapse and trim)
+  private static func normalizeWhitespace(in text: String) -> String {
+    text.components(separatedBy: .whitespaces)
       .filter { !$0.isEmpty }
       .joined(separator: " ")
-
-    return normalized.trimmingCharacters(in: .whitespacesAndNewlines)
-  }
-
-  /// Calculate Levenshtein distance between two strings
-  /// Used for fuzzy matching (distance <= 2 is considered a match)
-  private func levenshteinDistance(_ s1: String, _ s2: String) -> Int {
-    let s1Array = Array(s1)
-    let s2Array = Array(s2)
-    let m = s1Array.count
-    let n = s2Array.count
-
-    if m == 0 { return n }
-    if n == 0 { return m }
-
-    var matrix = Array(repeating: Array(repeating: 0, count: n + 1), count: m + 1)
-
-    for i in 0...m {
-      matrix[i][0] = i
-    }
-
-    for j in 0...n {
-      matrix[0][j] = j
-    }
-
-    for i in 1...m {
-      for j in 1...n {
-        let cost = s1Array[i - 1] == s2Array[j - 1] ? 0 : 1
-        matrix[i][j] = min(
-          matrix[i - 1][j] + 1,      // deletion
-          matrix[i][j - 1] + 1,      // insertion
-          matrix[i - 1][j - 1] + cost // substitution
-        )
-      }
-    }
-
-    return matrix[m][n]
+      .trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
   // MARK: - Cache Helpers

@@ -50,9 +50,12 @@ final class DuplicateDetectorTests: XCTestCase {
       division: nil,
       conference: nil,
       website: website,
+      twitterHandle: nil,
+      instagramHandle: nil,
       ncaaId: ncaaId,
+      notes: nil,
       status: "active",
-      notes: nil
+      academicInfo: nil
     )
   }
 
