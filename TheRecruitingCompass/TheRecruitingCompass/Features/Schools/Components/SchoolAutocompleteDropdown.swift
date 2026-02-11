@@ -111,7 +111,7 @@ struct SchoolAutocompleteDropdown: View {
               .foregroundStyle(.secondary)
               .accessibilityHidden(true)
           }
-          .padding(.vertical, 12)
+          .padding(.vertical, 16)
           .padding(.horizontal, 16)
           .contentShape(Rectangle())
         }
@@ -129,6 +129,7 @@ struct SchoolAutocompleteDropdown: View {
     }
     .accessibilityElement(children: .contain)
     .accessibilityLabel("\(results.count) college\(results.count == 1 ? "" : "s") found")
+    // TODO: Add live region announcement when search results change (requires custom implementation)
   }
 }
 

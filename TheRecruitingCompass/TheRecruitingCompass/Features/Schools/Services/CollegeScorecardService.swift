@@ -10,8 +10,10 @@ protocol CollegeScorecardManaging: Sendable {
 
 final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendable {
   private let apiKey: String
+  private let urlSession: URLSession
+  private let cache = CollegeScorecardCache()
 
-  init(apiKey: String? = nil) {
+  init(apiKey: String? = nil, urlSession: URLSession = .shared) {
     // Try to get API key from environment or use placeholder
     if let key = apiKey {
       self.apiKey = key
@@ -22,6 +24,7 @@ final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendab
       self.apiKey = ""
       logger.warning("College Scorecard API key not configured")
     }
+    self.urlSession = urlSession
   }
 
   func lookupCollege(name: String) async throws -> CollegeDataResult? {
@@ -31,6 +34,12 @@ final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendab
 
     guard name.count >= 3 else {
       throw CollegeDataError.nameTooShort
+    }
+
+    // Check cache first
+    if let cached = await cache.getLookup(for: name) {
+      logger.debug("Cache hit for lookup: \(name)")
+      return cached
     }
 
     logger.debug("Looking up college: \(name)")
@@ -70,7 +79,7 @@ final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendab
 
     // Make request
     do {
-      let (data, response) = try await URLSession.shared.data(from: url)
+      let (data, response) = try await urlSession.data(from: url)
 
       guard let httpResponse = response as? HTTPURLResponse else {
         throw CollegeDataError.invalidResponse
@@ -86,10 +95,14 @@ final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendab
 
         guard let firstResult = apiResponse.results.first else {
           logger.info("No results found for: \(name)")
+          // Cache nil result to avoid repeated lookups
+          await cache.setLookup(for: name, result: nil)
           return nil
         }
 
         logger.info("Found college: \(firstResult.name)")
+        // Cache successful result
+        await cache.setLookup(for: name, result: firstResult)
         return firstResult
 
       case 401, 403:
@@ -127,6 +140,12 @@ final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendab
       throw CollegeDataError.nameTooShort
     }
 
+    // Check cache first
+    if let cached = await cache.getSearch(for: query) {
+      logger.debug("Cache hit for search: \(query)")
+      return cached
+    }
+
     logger.debug("Searching colleges: \(query)")
 
     // Build URL with query parameters
@@ -156,7 +175,7 @@ final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendab
 
     // Make request
     do {
-      let (data, response) = try await URLSession.shared.data(from: url)
+      let (data, response) = try await urlSession.data(from: url)
 
       guard let httpResponse = response as? HTTPURLResponse else {
         throw CollegeDataError.invalidResponse
@@ -188,6 +207,8 @@ final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendab
         }
 
         logger.info("Found \(results.count) colleges for query: \(query)")
+        // Cache search results
+        await cache.setSearch(for: query, results: results)
         return results
 
       case 401, 403:
@@ -263,5 +284,55 @@ private struct AutocompleteAPIResponse: Codable {
       case state = "school.state"
       case website = "school.school_url"
     }
+  }
+}
+
+// MARK: - Cache Implementation
+
+/// Thread-safe cache for College Scorecard API responses with TTL
+private actor CollegeScorecardCache {
+  private struct CachedEntry<T> {
+    let value: T
+    let expiry: Date
+  }
+
+  private var lookupCache: [String: CachedEntry<CollegeDataResult?>] = [:]
+  private var searchCache: [String: CachedEntry<[CollegeSearchResult]>] = [:]
+  private let ttl: TimeInterval = 600 // 10 minutes
+
+  func getLookup(for name: String) -> CollegeDataResult?? {
+    guard let entry = lookupCache[name.lowercased()], entry.expiry > Date() else {
+      lookupCache.removeValue(forKey: name.lowercased())
+      return nil
+    }
+    return entry.value
+  }
+
+  func setLookup(for name: String, result: CollegeDataResult?) {
+    lookupCache[name.lowercased()] = CachedEntry(
+      value: result,
+      expiry: Date().addingTimeInterval(ttl)
+    )
+  }
+
+  func getSearch(for query: String) -> [CollegeSearchResult]? {
+    guard let entry = searchCache[query.lowercased()], entry.expiry > Date() else {
+      searchCache.removeValue(forKey: query.lowercased())
+      return nil
+    }
+    return entry.value
+  }
+
+  func setSearch(for query: String, results: [CollegeSearchResult]) {
+    searchCache[query.lowercased()] = CachedEntry(
+      value: results,
+      expiry: Date().addingTimeInterval(ttl)
+    )
+  }
+
+  func clearExpired() {
+    let now = Date()
+    lookupCache = lookupCache.filter { $0.value.expiry > now }
+    searchCache = searchCache.filter { $0.value.expiry > now }
   }
 }

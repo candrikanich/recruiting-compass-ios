@@ -51,6 +51,26 @@ struct FormFieldWrapper<Content: View>: View {
       // Error display
       FieldError(error: error)
     }
+    // ✅ Accessibility: Semantic grouping for screen readers
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(buildAccessibilityLabel())
+  }
+
+  // MARK: - Helper Methods
+
+  /// Builds an accessible label combining field name, required status, and error
+  private func buildAccessibilityLabel() -> String {
+    var accessibleLabel = label
+
+    if isRequired {
+      accessibleLabel += ", required"
+    }
+
+    if let error = error {
+      accessibleLabel += ", error: \(error)"
+    }
+
+    return accessibleLabel
   }
 }
 

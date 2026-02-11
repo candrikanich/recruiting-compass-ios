@@ -14,6 +14,7 @@ struct SchoolFormView: View {
   let isDisabled: Bool
   let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
   let onNcaaLookup: ((String) -> Void)? // Phase 1: Trigger NCAA lookup
+  let onCharacterCountChange: ((Int) -> Void)? // Accessibility: Announce character count milestones
 
   @FocusState private var focusedField: Field?
 
@@ -129,7 +130,8 @@ struct SchoolFormView: View {
       }
       .pickerStyle(.menu)
       .disabled(isDisabled)
-      .accessibilityLabel("Division, optional")
+      // ✅ Accessibility: Hide visual label (FormFieldWrapper provides semantic label)
+      .labelsHidden()
       .accessibilityHint("Select the school's NCAA division")
     }
   }
@@ -226,6 +228,10 @@ struct SchoolFormView: View {
             .frame(minHeight: 100)
             .disabled(isDisabled)
             .focused($focusedField, equals: .notes)
+            .onChange(of: formState.notes) { _, newValue in
+              // Accessibility: Announce character count milestones
+              onCharacterCountChange?(newValue.count)
+            }
             .onChange(of: focusedField) { _, newFocus in
               if newFocus != .notes && !formState.notes.isEmpty {
                 onValidateField(\.notes, formState.notes)
@@ -263,7 +269,8 @@ struct SchoolFormView: View {
       }
       .pickerStyle(.menu)
       .disabled(isDisabled)
-      .accessibilityLabel("Status, required")
+      // ✅ Accessibility: Hide visual label (FormFieldWrapper provides semantic label)
+      .labelsHidden()
       .accessibilityHint("Select the recruiting status for this school")
     }
   }
@@ -281,6 +288,9 @@ struct SchoolFormView: View {
       onValidateField: { _, _ in },
       onNcaaLookup: { schoolName in
         print("NCAA lookup for: \(schoolName)")
+      },
+      onCharacterCountChange: { count in
+        print("Character count: \(count)")
       }
     )
     .padding()

@@ -38,7 +38,6 @@ extension AddSchoolViewModel {
     ncaaLogger.debug("Performing NCAA lookup for: \(schoolName)")
 
     // Perform lookup (synchronous, local database)
-    let ncaaDatabase = NcaaDatabase.shared
     if let result = ncaaDatabase.lookup(schoolName: schoolName) {
       ncaaLogger.info("NCAA match found: \(result.division.rawValue) - \(result.conference)")
 
@@ -46,9 +45,9 @@ extension AddSchoolViewModel {
       formState.division = result.division
       formState.conference = result.conference
 
-      // Announce for accessibility (using UIAccessibility directly)
+      // Announce for accessibility
       let announcement = "Auto-filled: \(result.division.displayName), \(result.conference)"
-      UIAccessibility.post(notification: .announcement, argument: announcement)
+      announcer.announce(announcement)
 
     } else {
       ncaaLogger.debug("No NCAA match found for: \(schoolName)")

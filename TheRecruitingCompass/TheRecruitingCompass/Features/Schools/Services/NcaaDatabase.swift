@@ -31,6 +31,9 @@ final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
   private let d2Schools: [NcaaSchoolInfo]
   private let d3Schools: [NcaaSchoolInfo]
 
+  // Indexed lookup for O(1) exact matches
+  private let schoolIndex: [String: (division: Division, school: NcaaSchoolInfo)]
+
   // Session cache for lookup results
   private var lookupCache: [String: NcaaLookupResult] = [:]
   private let cacheQueue = DispatchQueue(label: "com.recruitingcompass.ncaa.cache")
@@ -44,7 +47,25 @@ final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
     d2Schools = Self.loadSchools(from: "ncaa_d2")
     d3Schools = Self.loadSchools(from: "ncaa_d3")
 
-    logger.info("NCAA database loaded: D1=\(self.d1Schools.count), D2=\(self.d2Schools.count), D3=\(self.d3Schools.count)")
+    // Build index for O(1) exact lookups
+    var index: [String: (division: Division, school: NcaaSchoolInfo)] = [:]
+
+    for school in d1Schools {
+      let normalized = Self.normalizeSchoolNameStatic(school.name)
+      index[normalized] = (.d1, school)
+    }
+    for school in d2Schools {
+      let normalized = Self.normalizeSchoolNameStatic(school.name)
+      index[normalized] = (.d2, school)
+    }
+    for school in d3Schools {
+      let normalized = Self.normalizeSchoolNameStatic(school.name)
+      index[normalized] = (.d3, school)
+    }
+
+    schoolIndex = index
+
+    logger.info("NCAA database loaded: D1=\(self.d1Schools.count), D2=\(self.d2Schools.count), D3=\(self.d3Schools.count), Indexed=\(self.schoolIndex.count)")
   }
 
   // MARK: - Public API
@@ -120,9 +141,9 @@ final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
     in schools: [NcaaSchoolInfo],
     division: Division
   ) -> NcaaLookupResult? {
-    // Priority 1: Exact match
-    if let school = schools.first(where: { normalizeSchoolName($0.name) == normalizedName }) {
-      logger.debug("NCAA exact match: \(school.name) (\(division.rawValue))")
+    // Priority 1: Exact match (O(1) index lookup)
+    if let (indexDivision, school) = schoolIndex[normalizedName], indexDivision == division {
+      logger.debug("NCAA exact match (indexed): \(school.name) (\(division.rawValue))")
       return NcaaLookupResult(division: division, conference: school.conference, logo: school.logo)
     }
 
@@ -154,6 +175,11 @@ final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
   /// - Remove punctuation
   /// - Trim whitespace
   private func normalizeSchoolName(_ name: String) -> String {
+    Self.normalizeSchoolNameStatic(name)
+  }
+
+  /// Static version of normalizeSchoolName for use during initialization
+  private static func normalizeSchoolNameStatic(_ name: String) -> String {
     var normalized = name.lowercased()
 
     // Remove common prefixes

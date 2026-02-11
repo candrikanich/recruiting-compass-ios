@@ -20,25 +20,8 @@ private let enrichmentLogger = Logger(
 
 extension AddSchoolViewModel {
 
-  // MARK: - Enrichment State (stored in associated object pattern)
-
-  /// College Scorecard enrichment data
-  var scorecardData: CollegeDataResult? {
-    get { enrichmentState.scorecardData }
-    set { enrichmentState.scorecardData = newValue }
-  }
-
-  /// Loading state for enrichment
-  var isEnrichmentLoading: Bool {
-    get { enrichmentState.isEnrichmentLoading }
-    set { enrichmentState.isEnrichmentLoading = newValue }
-  }
-
-  /// Enrichment error message (silent failures)
-  var enrichmentError: String? {
-    get { enrichmentState.enrichmentError }
-    set { enrichmentState.enrichmentError = newValue }
-  }
+  // Note: Enrichment state properties (scorecardData, isEnrichmentLoading, enrichmentError)
+  // are now defined directly in AddSchoolViewModel as @Published properties
 
   // MARK: - Enrichment Actions
 
@@ -56,17 +39,12 @@ extension AddSchoolViewModel {
     defer { isEnrichmentLoading = false }
 
     do {
-      let service = CollegeScorecardService()
-
-      if let data = try await service.lookupCollege(name: collegeName) {
+      if let data = try await collegeScorecardService.lookupCollege(name: collegeName) {
         scorecardData = data
         enrichmentLogger.info("Enrichment successful: \(data.name)")
 
         // Announce for accessibility
-        UIAccessibility.post(
-          notification: .announcement,
-          argument: "College data loaded"
-        )
+        announcer.announce("College data loaded")
       } else {
         enrichmentLogger.info("No College Scorecard data found for: \(collegeName)")
         scorecardData = nil
@@ -110,28 +88,5 @@ extension AddSchoolViewModel {
   }
 }
 
-// MARK: - Enrichment State Storage
-
-/// Internal state storage for enrichment (since we can't add @Published to extensions)
-@MainActor
-private final class EnrichmentState: ObservableObject {
-  @Published var scorecardData: CollegeDataResult? = nil
-  @Published var isEnrichmentLoading: Bool = false
-  @Published var enrichmentError: String? = nil
-}
-
-/// Associated object key for enrichment state
-private var enrichmentStateKey: UInt8 = 0
-
-extension AddSchoolViewModel {
-  /// Get or create enrichment state
-  private var enrichmentState: EnrichmentState {
-    if let state = objc_getAssociatedObject(self, &enrichmentStateKey) as? EnrichmentState {
-      return state
-    }
-
-    let state = EnrichmentState()
-    objc_setAssociatedObject(self, &enrichmentStateKey, state, .OBJC_ASSOCIATION_RETAIN)
-    return state
-  }
-}
+// Note: Enrichment state now lives directly in AddSchoolViewModel as @Published properties
+// This ensures proper SwiftUI observation and eliminates the need for associated objects

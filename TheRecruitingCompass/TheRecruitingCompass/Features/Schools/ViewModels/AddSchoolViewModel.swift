@@ -26,9 +26,28 @@ final class AddSchoolViewModel: ObservableObject {
   @Published var isSubmitting = false
   @Published var submitError: String?
 
+  // Autocomplete state (moved from extension)
+  @Published var searchQuery: String = ""
+  @Published var searchResults: [CollegeSearchResult] = []
+  @Published var isSearching: Bool = false
+  @Published var selectedCollege: CollegeSearchResult? = nil
+  @Published var searchError: String? = nil
+
+  // Enrichment state (moved from extension)
+  @Published var scorecardData: CollegeDataResult? = nil
+  @Published var isEnrichmentLoading: Bool = false
+  @Published var enrichmentError: String? = nil
+
+  // Duplicate detection state (moved from extension)
+  @Published var showDuplicateDialog = false
+  @Published var duplicateResult: DuplicateResult? = nil
+  @Published var isCheckingDuplicates = false
+
   // MARK: - Dependencies
 
   internal let schoolsService: SchoolsManaging
+  internal let collegeScorecardService: CollegeScorecardManaging
+  internal let ncaaDatabase: NcaaDatabaseManaging
   internal let familyUnitId: String
   internal let userId: String
   internal let announcer: AccessibilityAnnouncing
@@ -47,11 +66,15 @@ final class AddSchoolViewModel: ObservableObject {
 
   init(
     schoolsService: SchoolsManaging,
+    collegeScorecardService: CollegeScorecardManaging = CollegeScorecardService(),
+    ncaaDatabase: NcaaDatabaseManaging = NcaaDatabase.shared,
     familyUnitId: String,
     userId: String,
     announcer: AccessibilityAnnouncing = UIAccessibilityAnnouncer()
   ) {
     self.schoolsService = schoolsService
+    self.collegeScorecardService = collegeScorecardService
+    self.ncaaDatabase = ncaaDatabase
     self.familyUnitId = familyUnitId
     self.userId = userId
     self.announcer = announcer
@@ -62,7 +85,7 @@ final class AddSchoolViewModel: ObservableObject {
   private typealias FieldValidation = (String) -> String?
   private typealias ErrorSetter = (inout SchoolFormErrors, String?) -> Void
 
-  private lazy var fieldValidators: [PartialKeyPath<SchoolFormState>: (
+  private static let fieldValidators: [PartialKeyPath<SchoolFormState>: (
     validator: FieldValidation,
     setError: ErrorSetter
   )] = [
@@ -86,7 +109,7 @@ final class AddSchoolViewModel: ObservableObject {
   func validateField(_ field: KeyPath<SchoolFormState, String>, value: String) {
     logger.debug("Validating field: \(String(describing: field))")
 
-    guard let (validator, setError) = fieldValidators[field] else {
+    guard let (validator, setError) = Self.fieldValidators[field] else {
       logger.warning("Unhandled field validation: \(String(describing: field))")
       return
     }
@@ -181,5 +204,48 @@ final class AddSchoolViewModel: ObservableObject {
     formState = SchoolFormState()
     formErrors = SchoolFormErrors.empty
     submitError = nil
+  }
+
+  /// Announces character count milestones for accessibility
+  /// Called when notes field changes - announces at 90% and when limit exceeded
+  /// - Parameter count: Current character count
+  func announceCharacterCountIfNeeded(count: Int) {
+    let limit = SchoolFormState.notesCharacterLimit
+    let threshold90 = Int(Double(limit) * 0.9) // 4500 for 5000 limit
+
+    // Announce at 90% threshold
+    if count == threshold90 {
+      let remaining = limit - count
+      announcer.announce("\(remaining) characters remaining")
+    }
+
+    // Announce when limit exceeded
+    if count == limit + 1 {
+      announcer.announce("Character limit exceeded")
+    }
+  }
+
+  // MARK: - Error Mapping
+
+  /// Maps CollegeDataError to user-friendly error message
+  /// - Parameter error: The CollegeDataError to map
+  /// - Returns: User-friendly error message, or nil for silent failures
+  func mapCollegeDataError(_ error: CollegeDataError) -> String? {
+    switch error {
+    case .apiKeyMissing:
+      return "College search is not configured. Please enter the school manually."
+    case .nameTooShort:
+      return nil // Silent
+    case .rateLimited:
+      return "Too many requests. Please try again in a moment."
+    case .invalidApiKey:
+      return "College search is not configured correctly."
+    case .networkError:
+      return "Unable to search colleges. Check your internet connection."
+    case .serverError:
+      return "College search service is temporarily unavailable."
+    default:
+      return "Unable to search colleges. Please try again."
+    }
   }
 }

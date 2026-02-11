@@ -14,45 +14,21 @@ private let duplicateLogger = Logger(
   category: "AddSchoolViewModel.DuplicateDetection"
 )
 
-// MARK: - Duplicate Detection State
-
-@MainActor
-final class DuplicateDetectionState: ObservableObject {
-  @Published var showDuplicateDialog = false
-  @Published var duplicateResult: DuplicateResult? = nil
-  @Published var isCheckingDuplicates = false
-
-  func reset() {
-    showDuplicateDialog = false
-    duplicateResult = nil
-    isCheckingDuplicates = false
-  }
-}
+// Note: Duplicate detection state now lives directly in AddSchoolViewModel as @Published properties
+// This ensures proper SwiftUI observation and eliminates the need for associated objects
 
 // MARK: - ViewModel Extension
 
 extension AddSchoolViewModel {
 
-  // Associated object pattern (same as Enrichment/Autocomplete)
-  private static var duplicateStateKey: UInt8 = 0
+  // Note: Duplicate state properties (showDuplicateDialog, duplicateResult, isCheckingDuplicates)
+  // are now defined directly in AddSchoolViewModel as @Published properties
 
-  var duplicateState: DuplicateDetectionState {
-    if let state = objc_getAssociatedObject(self, &Self.duplicateStateKey) as? DuplicateDetectionState {
-      return state
-    }
-    let state = DuplicateDetectionState()
-    objc_setAssociatedObject(self, &Self.duplicateStateKey, state, .OBJC_ASSOCIATION_RETAIN)
-    return state
-  }
-
-  var showDuplicateDialog: Bool {
-    get { duplicateState.showDuplicateDialog }
-    set { duplicateState.showDuplicateDialog = newValue }
-  }
-
-  var duplicateResult: DuplicateResult? {
-    get { duplicateState.duplicateResult }
-    set { duplicateState.duplicateResult = newValue }
+  // Helper to reset duplicate detection state
+  func resetDuplicateState() {
+    showDuplicateDialog = false
+    duplicateResult = nil
+    isCheckingDuplicates = false
   }
 
   // MARK: - Duplicate Detection Logic
@@ -60,8 +36,8 @@ extension AddSchoolViewModel {
   /// Check for duplicate schools before creating
   func checkForDuplicates(request: SchoolCreateRequest) async -> DuplicateResult {
     duplicateLogger.debug("Checking for duplicate schools")
-    duplicateState.isCheckingDuplicates = true
-    defer { duplicateState.isCheckingDuplicates = false }
+    isCheckingDuplicates = true
+    defer { isCheckingDuplicates = false }
 
     do {
       // Fetch all schools for this family unit
@@ -90,7 +66,7 @@ extension AddSchoolViewModel {
   /// Cancel duplicate dialog
   func cancelDuplicate() {
     duplicateLogger.debug("User cancelled duplicate creation")
-    duplicateState.reset()
+    resetDuplicateState()
     announcer.announce("Cancelled")
   }
 
@@ -103,7 +79,7 @@ extension AddSchoolViewModel {
       return nil
     }
 
-    duplicateState.reset()
+    resetDuplicateState()
     return await createSchoolInternal(request: request)
   }
 

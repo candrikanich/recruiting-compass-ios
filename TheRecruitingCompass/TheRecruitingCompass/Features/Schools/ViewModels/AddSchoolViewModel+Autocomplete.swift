@@ -20,37 +20,8 @@ private let autocompleteLogger = Logger(
 
 extension AddSchoolViewModel {
 
-  // MARK: - Autocomplete State (stored in associated object pattern)
-
-  /// Search query for college autocomplete
-  var searchQuery: String {
-    get { autocompleteState.searchQuery }
-    set { autocompleteState.searchQuery = newValue }
-  }
-
-  /// Search results from College Scorecard API
-  var searchResults: [CollegeSearchResult] {
-    get { autocompleteState.searchResults }
-    set { autocompleteState.searchResults = newValue }
-  }
-
-  /// Loading state for search
-  var isSearching: Bool {
-    get { autocompleteState.isSearching }
-    set { autocompleteState.isSearching = newValue }
-  }
-
-  /// Selected college from autocomplete
-  var selectedCollege: CollegeSearchResult? {
-    get { autocompleteState.selectedCollege }
-    set { autocompleteState.selectedCollege = newValue }
-  }
-
-  /// Search error message
-  var searchError: String? {
-    get { autocompleteState.searchError }
-    set { autocompleteState.searchError = newValue }
-  }
+  // Note: Autocomplete state properties (searchQuery, searchResults, isSearching, etc.)
+  // are now defined directly in AddSchoolViewModel as @Published properties
 
   // MARK: - Autocomplete Actions
 
@@ -69,32 +40,19 @@ extension AddSchoolViewModel {
     defer { isSearching = false }
 
     do {
-      let service = CollegeScorecardService()
-      let results = try await service.searchColleges(query: query)
+      let results = try await collegeScorecardService.searchColleges(query: query)
 
       searchResults = results
       autocompleteLogger.info("Found \(results.count) colleges for query: \(query)")
 
+      // Announce results for accessibility
+      let resultCount = results.count
+      let announcement = "\(resultCount) college\(resultCount == 1 ? "" : "s") found"
+      announcer.announce(announcement)
+
     } catch let error as CollegeDataError {
       autocompleteLogger.error("Autocomplete search failed: \(error.localizedDescription)")
-
-      switch error {
-      case .apiKeyMissing:
-        searchError = "College search is not configured. Please enter the school manually."
-      case .nameTooShort:
-        searchError = nil // Silent - just clear results
-      case .rateLimited:
-        searchError = "Too many requests. Please try again in a moment."
-      case .invalidApiKey:
-        searchError = "College search is not configured correctly."
-      case .networkError:
-        searchError = "Unable to search colleges. Check your internet connection."
-      case .serverError:
-        searchError = "College search service is temporarily unavailable."
-      default:
-        searchError = "Unable to search colleges. Please try again."
-      }
-
+      searchError = mapCollegeDataError(error)
       searchResults = []
 
     } catch {
@@ -125,7 +83,7 @@ extension AddSchoolViewModel {
 
     // Announce for accessibility
     let announcement = "Selected: \(college.name), \(college.location)"
-    UIAccessibility.post(notification: .announcement, argument: announcement)
+    announcer.announce(announcement)
 
     // Trigger NCAA lookup for division/conference
     performNcaaLookup(for: college.name)
@@ -156,33 +114,9 @@ extension AddSchoolViewModel {
     clearEnrichment()
 
     // Announce for accessibility
-    UIAccessibility.post(notification: .announcement, argument: "Selection cleared")
+    announcer.announce("Selection cleared")
   }
 }
 
-// MARK: - Autocomplete State Storage
-
-/// Internal state storage for autocomplete (since we can't add @Published to extensions)
-private class AutocompleteState: ObservableObject {
-  @Published var searchQuery: String = ""
-  @Published var searchResults: [CollegeSearchResult] = []
-  @Published var isSearching: Bool = false
-  @Published var selectedCollege: CollegeSearchResult? = nil
-  @Published var searchError: String? = nil
-}
-
-/// Associated object key for autocomplete state
-private var autocompleteStateKey: UInt8 = 0
-
-extension AddSchoolViewModel {
-  /// Get or create autocomplete state
-  private var autocompleteState: AutocompleteState {
-    if let state = objc_getAssociatedObject(self, &autocompleteStateKey) as? AutocompleteState {
-      return state
-    }
-
-    let state = AutocompleteState()
-    objc_setAssociatedObject(self, &autocompleteStateKey, state, .OBJC_ASSOCIATION_RETAIN)
-    return state
-  }
-}
+// Note: Autocomplete state now lives directly in AddSchoolViewModel as @Published properties
+// This ensures proper SwiftUI observation and eliminates the need for associated objects

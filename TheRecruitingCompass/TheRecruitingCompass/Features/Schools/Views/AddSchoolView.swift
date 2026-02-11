@@ -82,22 +82,8 @@ struct AddSchoolView: View {
       if let result = viewModel.duplicateResult,
          let duplicate = result.duplicate,
          let matchType = result.matchType {
-        VStack(alignment: .leading, spacing: 8) {
-          Text("A school already exists that matches your entry:")
-            .font(.body)
-
-          Text(duplicate.name)
-            .font(.headline)
-
-          Text("Match Type: \(matchType.displayLabel)")
-            .font(.subheadline)
-            .foregroundStyle(matchType.badgeColor)
-
-          if let location = duplicate.location {
-            Text("Location: \(location)")
-              .font(.subheadline)
-          }
-        }
+        // ✅ Accessibility: Plain text for proper VoiceOver announcement
+        Text(buildDuplicateMessage(duplicate: duplicate, matchType: matchType))
       }
     }
   }
@@ -148,6 +134,13 @@ struct AddSchoolView: View {
                 }
               }
 
+            // Show character count hint if user has started typing but hasn't reached minimum
+            if viewModel.searchQuery.count > 0 && viewModel.searchQuery.count < 3 {
+              Text("\(3 - viewModel.searchQuery.count) more character\(viewModel.searchQuery.count == 2 ? "" : "s") needed")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+
             // Show autocomplete dropdown if there are results or loading/error
             if viewModel.isSearching || !viewModel.searchResults.isEmpty || viewModel.searchError != nil {
               SchoolAutocompleteDropdown(
@@ -195,7 +188,8 @@ struct AddSchoolView: View {
         formErrors: $viewModel.formErrors,
         isDisabled: viewModel.isSubmitting,
         onValidateField: viewModel.validateField,
-        onNcaaLookup: nil // NCAA lookup triggered via .onChange below
+        onNcaaLookup: nil, // NCAA lookup triggered via .onChange below
+        onCharacterCountChange: viewModel.announceCharacterCountIfNeeded
       )
     }
     .onChange(of: viewModel.formState.name) { _, newName in
@@ -257,6 +251,21 @@ struct AddSchoolView: View {
     .frame(minHeight: 44)
     .accessibilityLabel("Cancel adding school")
     .accessibilityHint("Return to schools list without saving")
+  }
+
+  // MARK: - Helper Methods
+
+  /// Builds an accessible message for the duplicate school dialog
+  private func buildDuplicateMessage(duplicate: School, matchType: DuplicateMatchType) -> String {
+    var message = "A school already exists that matches your entry:\n\n"
+    message += "\(duplicate.name)\n\n"
+    message += "Match Type: \(matchType.displayLabel)\n"
+
+    if let location = duplicate.location {
+      message += "Location: \(location)"
+    }
+
+    return message
   }
 }
 
