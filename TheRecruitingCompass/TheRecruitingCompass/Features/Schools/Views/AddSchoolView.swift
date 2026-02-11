@@ -13,6 +13,9 @@ struct AddSchoolView: View {
   @Environment(\.dismiss) private var dismiss
   @Binding var navigationPath: NavigationPath
 
+  // Phase 2: Search debounce
+  @State private var searchTask: Task<Void, Never>?
+
   init(
     schoolsService: SchoolsManaging,
     familyUnitId: String,
@@ -59,27 +62,118 @@ struct AddSchoolView: View {
         Text(error)
       }
     }
+    .confirmationDialog(
+      "Duplicate School Detected",
+      isPresented: $viewModel.showDuplicateDialog,
+      titleVisibility: .visible
+    ) {
+      Button("Cancel", role: .cancel) {
+        viewModel.cancelDuplicate()
+      }
+
+      Button("Proceed Anyway") {
+        Task {
+          if let newSchool = await viewModel.proceedDespiteDuplicate() {
+            navigationPath.append(SchoolDestination.detail(newSchool.id))
+          }
+        }
+      }
+    } message: {
+      if let result = viewModel.duplicateResult,
+         let duplicate = result.duplicate,
+         let matchType = result.matchType {
+        VStack(alignment: .leading, spacing: 8) {
+          Text("A school already exists that matches your entry:")
+            .font(.body)
+
+          Text(duplicate.name)
+            .font(.headline)
+
+          Text("Match Type: \(matchType.displayLabel)")
+            .font(.subheadline)
+            .foregroundStyle(matchType.badgeColor)
+
+          if let location = duplicate.location {
+            Text("Location: \(location)")
+              .font(.subheadline)
+          }
+        }
+      }
+    }
   }
 
   // MARK: - Sections
 
   private var autocompleteToggleSection: some View {
     Section {
+      // Phase 2: Enable toggle (was disabled in MVP)
       Toggle("Search college database", isOn: $viewModel.formState.isAutocompleteEnabled)
-        .disabled(true) // MVP: Disabled, scaffolded for fast-follow
         .accessibilityLabel("Search college database toggle")
-        .accessibilityHint("Enable to search and auto-fill from college database. Currently disabled in this version.")
+        .accessibilityHint("Enable to search and auto-fill from college database")
         .accessibilityAddTraits(.isButton)
 
+      // Phase 2: Autocomplete search and selected college card
       if viewModel.formState.isAutocompleteEnabled {
-        // Fast-follow: College Scorecard autocomplete will go here
-        EmptyView()
+        if let selectedCollege = viewModel.selectedCollege {
+          // Phase 3: Show selected college card with enrichment loading
+          SelectedCollegeCard(
+            college: selectedCollege,
+            isEnrichmentLoading: viewModel.isEnrichmentLoading,
+            onClear: {
+              viewModel.clearSelection()
+            }
+          )
+
+          // Phase 3: Show College Scorecard data if available
+          if let scorecardData = viewModel.scorecardData {
+            CollegeScorecardDataDisplay(data: scorecardData)
+          }
+        } else {
+          // Show search field
+          VStack(spacing: 8) {
+            TextField("Search for college...", text: $viewModel.searchQuery)
+              .textFieldStyle(.roundedBorder)
+              .textContentType(.organizationName)
+              .autocapitalization(.words)
+              .accessibilityLabel("College search")
+              .accessibilityHint("Type at least 3 characters to search")
+              .onChange(of: viewModel.searchQuery) { oldValue, newValue in
+                // Debounce search (300ms)
+                searchTask?.cancel()
+                searchTask = Task {
+                  try? await Task.sleep(nanoseconds: 300_000_000) // 300ms
+                  if !Task.isCancelled {
+                    await viewModel.performAutocompleteSearch(query: newValue)
+                  }
+                }
+              }
+
+            // Show autocomplete dropdown if there are results or loading/error
+            if viewModel.isSearching || !viewModel.searchResults.isEmpty || viewModel.searchError != nil {
+              SchoolAutocompleteDropdown(
+                results: viewModel.searchResults,
+                isLoading: viewModel.isSearching,
+                error: viewModel.searchError,
+                onSelect: { college in
+                  Task {
+                    await viewModel.selectCollege(college)
+                  }
+                }
+              )
+            }
+          }
+        }
       }
     } header: {
       Text("College Information")
     } footer: {
-      Text("Enable database search to auto-fill school information (coming soon)")
-        .accessibilityLabel("Database search feature coming soon")
+      if viewModel.formState.isAutocompleteEnabled {
+        Text("Search by college name to auto-fill school information")
+          .accessibilityLabel("Search by college name to auto-fill")
+      } else {
+        Text("Enable database search to auto-fill school information")
+          .accessibilityLabel("Enable database search to auto-fill")
+      }
     }
   }
 
@@ -100,8 +194,15 @@ struct AddSchoolView: View {
         formState: $viewModel.formState,
         formErrors: $viewModel.formErrors,
         isDisabled: viewModel.isSubmitting,
-        onValidateField: viewModel.validateField
+        onValidateField: viewModel.validateField,
+        onNcaaLookup: nil // NCAA lookup triggered via .onChange below
       )
+    }
+    .onChange(of: viewModel.formState.name) { _, newName in
+      // Phase 1: Trigger NCAA lookup when school name changes
+      if !newName.isEmpty && viewModel.formState.division == nil {
+        viewModel.performNcaaLookup(for: newName)
+      }
     }
   }
 

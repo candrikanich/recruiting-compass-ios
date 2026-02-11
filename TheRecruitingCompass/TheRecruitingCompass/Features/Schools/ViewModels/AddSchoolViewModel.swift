@@ -28,9 +28,9 @@ final class AddSchoolViewModel: ObservableObject {
 
   // MARK: - Dependencies
 
-  private let schoolsService: SchoolsManaging
-  private let familyUnitId: String
-  private let userId: String
+  internal let schoolsService: SchoolsManaging
+  internal let familyUnitId: String
+  internal let userId: String
   internal let announcer: AccessibilityAnnouncing
 
   // MARK: - Computed Properties
@@ -123,33 +123,17 @@ final class AddSchoolViewModel: ObservableObject {
 
     logger.debug("Prepared request: \(request.name) (\(request.status))")
 
-    // 3. Submit to API
-    isSubmitting = true
-    submitError = nil
-    defer { isSubmitting = false }
+    // 3. Duplicate check
+    let duplicateCheck = await checkForDuplicates(request: request)
 
-    do {
-      let newSchool = try await schoolsService.createSchool(request: request)
-      logger.info("School created successfully: \(newSchool.id)")
-
-      // Success announcement with haptic feedback
-      let announcement = "School \(newSchool.name) added successfully"
-      announcer.announceWithFeedback(announcement, success: true)
-
-      return newSchool
-
-    } catch {
-      logger.error("Failed to create school: \(error.localizedDescription)")
-      submitError = "Failed to create school. Please try again."
-
-      // Error announcement with haptic feedback
-      announcer.announceWithFeedback(
-        "Failed to create school. \(error.localizedDescription)",
-        success: false
-      )
-
-      return nil
+    if duplicateCheck.isDuplicate {
+      duplicateResult = duplicateCheck
+      showDuplicateDialog = true
+      return nil  // Wait for user decision
     }
+
+    // 4. Submit to API (extracted to createSchoolInternal for reuse)
+    return await createSchoolInternal(request: request)
   }
 
   // MARK: - Private Helpers
