@@ -11,6 +11,68 @@ struct TestUser {
   let familyUnitId: String
 }
 
+/// Encodable struct for inserting family unit data
+private struct FamilyUnitInsert: Encodable {
+  let id: String
+  let playerUserId: String
+  let familyCode: String
+  let createdAt: String
+  let updatedAt: String
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case playerUserId = "player_user_id"
+    case familyCode = "family_code"
+    case createdAt = "created_at"
+    case updatedAt = "updated_at"
+  }
+}
+
+/// Decodable struct for family unit ID responses
+private struct FamilyUnitResponse: Decodable {
+  let id: String
+}
+
+/// Decodable struct for user's family unit ID
+private struct UserFamilyUnitResponse: Decodable {
+  let familyUnitId: String
+
+  enum CodingKeys: String, CodingKey {
+    case familyUnitId = "family_unit_id"
+  }
+}
+
+/// Decodable struct for user ID only
+private struct UserIdResponse: Decodable {
+  let id: String
+}
+
+/// Decodable struct for user data responses
+private struct UserDataResponse: Decodable {
+  let id: String
+  let email: String
+  let fullName: String
+  let role: String
+  let familyUnitId: String
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case email
+    case fullName = "full_name"
+    case role
+    case familyUnitId = "family_unit_id"
+  }
+}
+
+/// Encodable struct for user updates
+private struct UserUpdate: Encodable {
+  let familyUnitId: String
+
+  enum CodingKeys: String, CodingKey {
+    case familyUnitId = "family_unit_id"
+  }
+}
+
 /// Helper class for creating and managing test users via Supabase API
 /// Creates users with proper family unit setup for E2E testing
 final class TestUserSetup {
@@ -59,13 +121,13 @@ final class TestUserSetup {
     let familyUnitId = UUID().uuidString
     let now = ISO8601DateFormatter().string(from: Date())
 
-    let familyData: [String: Any] = [
-      "id": familyUnitId,
-      "created_by": userId,
-      "family_code": "FAM-\(timestamp)",
-      "created_at": now,
-      "updated_at": now
-    ]
+    let familyData = FamilyUnitInsert(
+      id: familyUnitId,
+      playerUserId: userId,
+      familyCode: "FAM-\(timestamp)",
+      createdAt: now,
+      updatedAt: now
+    )
 
     try await client
       .from("family_units")
@@ -73,9 +135,10 @@ final class TestUserSetup {
       .execute()
 
     // Link user to family unit
+    let userUpdate = UserUpdate(familyUnitId: familyUnitId)
     try await client
       .from("users")
-      .update(["family_unit_id": familyUnitId])
+      .update(userUpdate)
       .eq("id", value: userId)
       .execute()
 
@@ -112,22 +175,21 @@ final class TestUserSetup {
     let userId = authResponse.user.id.uuidString
 
     // Get family unit ID from family code
-    let familyResponse = try await client
+    let familyResponse: FamilyUnitResponse = try await client
       .from("family_units")
       .select("id")
       .eq("family_code", value: parentFamilyCode)
       .single()
       .execute()
+      .value
 
-    guard let familyData = familyResponse.value as? [String: Any],
-          let familyUnitId = familyData["id"] as? String else {
-      throw TestSetupError.familyNotFound
-    }
+    let familyUnitId = familyResponse.id
 
     // Link user to family unit
+    let userUpdate = UserUpdate(familyUnitId: familyUnitId)
     try await client
       .from("users")
-      .update(["family_unit_id": familyUnitId])
+      .update(userUpdate)
       .eq("id", value: userId)
       .execute()
 
@@ -156,27 +218,21 @@ final class TestUserSetup {
     let userId = authResponse.user.id.uuidString
 
     // Get user data from database
-    let userResponse = try await client
+    let userResponse: UserDataResponse = try await client
       .from("users")
       .select("id, email, full_name, role, family_unit_id")
       .eq("id", value: userId)
       .single()
       .execute()
-
-    guard let userData = userResponse.value as? [String: Any],
-          let familyUnitId = userData["family_unit_id"] as? String,
-          let fullName = userData["full_name"] as? String,
-          let role = userData["role"] as? String else {
-      return nil
-    }
+      .value
 
     return TestUser(
       id: userId,
       email: email,
       password: "StrongPass1!",
-      fullName: fullName,
-      role: role,
-      familyUnitId: familyUnitId
+      fullName: userResponse.fullName,
+      role: userResponse.role,
+      familyUnitId: userResponse.familyUnitId
     )
   }
 
@@ -186,31 +242,29 @@ final class TestUserSetup {
   /// - Parameter userId: User ID to delete
   func deleteTestUser(userId: String) async throws {
     // Get family unit ID
-    let userResponse = try await client
-      .from("users")
-      .select("family_unit_id")
-      .eq("id", value: userId)
-      .single()
-      .execute()
+    do {
+      let userResponse: UserFamilyUnitResponse = try await client
+        .from("users")
+        .select("family_unit_id")
+        .eq("id", value: userId)
+        .single()
+        .execute()
+        .value
 
-    if let userData = userResponse.value as? [String: Any],
-       let familyUnitId = userData["family_unit_id"] as? String {
       // Delete family unit (cascade will delete user)
       try await client
         .from("family_units")
         .delete()
-        .eq("id", value: familyUnitId)
+        .eq("id", value: userResponse.familyUnitId)
+        .execute()
+    } catch {
+      // If user doesn't have a family unit, just delete the user
+      try await client
+        .from("users")
+        .delete()
+        .eq("id", value: userId)
         .execute()
     }
-
-    // Delete auth user
-    // Note: This requires admin privileges, may need to use service role key
-    // For now, we'll just delete from users table
-    try await client
-      .from("users")
-      .delete()
-      .eq("id", value: userId)
-      .execute()
   }
 
   /// Deletes all test users created in the last hour (cleanup helper)
@@ -219,20 +273,17 @@ final class TestUserSetup {
     let timestamp = ISO8601DateFormatter().string(from: oneHourAgo)
 
     // Find test users by email pattern
-    let usersResponse = try await client
+    let usersData: [UserIdResponse] = try await client
       .from("users")
       .select("id")
       .like("email", pattern: "%testparent%")
       .or("email.like.%teststudent%")
       .gte("created_at", value: timestamp)
       .execute()
+      .value
 
-    if let usersData = usersResponse.value as? [[String: Any]] {
-      for userData in usersData {
-        if let userId = userData["id"] as? String {
-          try? await deleteTestUser(userId: userId)
-        }
-      }
+    for userData in usersData {
+      try? await deleteTestUser(userId: userData.id)
     }
   }
 }

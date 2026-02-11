@@ -142,7 +142,7 @@ final class FieldValidatorTests: XCTestCase {
 
   func testValidateEmail_whenTooLong_returnsError() {
     // Given
-    let longEmail = String(repeating: "a", count: 240) + "@example.com"
+    let longEmail = String(repeating: "a", count: 244) + "@example.com"  // 244 + 12 = 256 chars
 
     // When
     let error = FieldValidator.validateEmail(longEmail)

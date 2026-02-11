@@ -10,7 +10,7 @@ final class CommunicationButtonTests: XCTestCase {
     let url = type.url(for: "555-1234")
 
     XCTAssertNotNil(url)
-    XCTAssertEqual(url?.absoluteString, "tel:555-1234")
+    XCTAssertEqual(url?.absoluteString, "tel:5551234")
   }
 
   func testCallType_IconName() {
@@ -54,7 +54,7 @@ final class CommunicationButtonTests: XCTestCase {
     let url = type.url(for: "555 123 4567")
 
     XCTAssertNotNil(url)
-    XCTAssertEqual(url?.absoluteString, "tel:555 123 4567")
+    XCTAssertEqual(url?.absoluteString, "tel:5551234567")
   }
 
   func testCallType_PhoneNumberWithDashes() {
@@ -62,7 +62,7 @@ final class CommunicationButtonTests: XCTestCase {
     let url = type.url(for: "555-123-4567")
 
     XCTAssertNotNil(url)
-    XCTAssertEqual(url?.absoluteString, "tel:555-123-4567")
+    XCTAssertEqual(url?.absoluteString, "tel:5551234567")
   }
 
   func testCallType_PhoneNumberWithParentheses() {
@@ -70,7 +70,7 @@ final class CommunicationButtonTests: XCTestCase {
     let url = type.url(for: "(555) 123-4567")
 
     XCTAssertNotNil(url)
-    XCTAssertEqual(url?.absoluteString, "tel:(555) 123-4567")
+    XCTAssertEqual(url?.absoluteString, "tel:5551234567")
   }
 
   // MARK: - SMS Type Comparison (Ensure no regression)

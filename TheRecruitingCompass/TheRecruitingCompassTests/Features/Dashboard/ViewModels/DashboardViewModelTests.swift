@@ -122,6 +122,30 @@ final class DashboardViewModelTests: XCTestCase {
     )
   }
 
+  private func setupFamilyContext(userId: String = "test-user-id", role: String = "parent") {
+    let familyUnit = FamilyUnit(
+      id: "family-unit-1",
+      playerUserId: userId,
+      familyName: "Test Family",
+      familyCode: "FAM-123",
+      codeGeneratedAt: "2024-01-01T00:00:00Z",
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2024-01-01T00:00:00Z",
+      homeLatitude: nil,
+      homeLongitude: nil
+    )
+    mockFamilyService.stubbedFamilyUnit = familyUnit
+
+    let currentMember = FamilyMember(
+      id: "\(role)-member-id",
+      userId: userId,
+      familyUnitId: "family-unit-1",
+      role: role,
+      addedAt: "2024-01-01T00:00:00Z"
+    )
+    mockFamilyService.stubbedCurrentMember = currentMember
+  }
+
   // MARK: - Initialization Tests
 
   func testInitialState() {
@@ -219,6 +243,7 @@ final class DashboardViewModelTests: XCTestCase {
 
   func testFetchDashboardDataSuccess() async {
     authenticateUser()
+    setupFamilyContext()
 
     await sut.fetchDashboardData()
 
@@ -233,6 +258,7 @@ final class DashboardViewModelTests: XCTestCase {
 
   func testFetchDashboardDataSetsErrorOnFailure() async {
     authenticateUser()
+    setupFamilyContext()
     mockDashboardService.shouldThrowFetchStats = true
 
     await sut.fetchDashboardData()
@@ -491,6 +517,7 @@ final class DashboardViewModelTests: XCTestCase {
   func testSchoolsWithOffersPercentageCalculatesCorrectly() async {
     // Given: stats with schools and offers
     authenticateUser()
+    setupFamilyContext()
     let stats = DashboardStats(
       coachCount: 5,
       schoolCount: 10,
@@ -536,6 +563,7 @@ final class DashboardViewModelTests: XCTestCase {
   func testAvgCoachResponsivenessColorLogicGreen() async {
     // Given: stats with data (default 75% responsiveness)
     authenticateUser()
+    setupFamilyContext()
     let stats = DashboardStats(
       coachCount: 5,
       schoolCount: 10,
@@ -558,6 +586,7 @@ final class DashboardViewModelTests: XCTestCase {
   func testAvgCoachResponsivenessFormattedValue() async {
     // Given: stats with data
     authenticateUser()
+    setupFamilyContext()
     let stats = DashboardStats(
       coachCount: 5,
       schoolCount: 10,
@@ -610,6 +639,7 @@ final class DashboardViewModelTests: XCTestCase {
   func testInteractionsThisMonthFiltersCorrectly() async {
     // Given: activities from different months
     authenticateUser()
+    setupFamilyContext()
     let now = Date()
     let calendar = Calendar.current
     let formatter = ISO8601DateFormatter()

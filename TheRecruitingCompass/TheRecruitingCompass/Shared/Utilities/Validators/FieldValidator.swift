@@ -12,7 +12,8 @@ enum FieldValidator {
 
   // MARK: - Regex Patterns
 
-  private static let emailPattern = "^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$"
+  // Email regex that prevents consecutive dots
+  private static let emailPattern = "^[A-Za-z0-9_%+\\-]+(\\.[A-Za-z0-9_%+\\-]+)*@[A-Za-z0-9\\-]+(\\.[A-Za-z0-9\\-]+)*\\.[A-Za-z]{2,}$"
   private static let phonePattern = "^\\(?([0-9]{3})\\)?[\\-. ]?([0-9]{3})[\\-. ]?([0-9]{4})$"
   private static let twitterPattern = "^[A-Za-z0-9_]{1,15}$"
   private static let instagramPattern = "^[A-Za-z0-9_.]{1,30}$"

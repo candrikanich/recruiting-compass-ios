@@ -18,7 +18,7 @@ final class CoachesListViewModel: ObservableObject {
   @Published var successMessage: String?
   @Published var showSuccessToast = false
 
-  private let coachesService: any CoachesManaging
+  let coachesService: any CoachesManaging
   private let familyManager: FamilyManager
   private let authManager: any AuthManaging
 

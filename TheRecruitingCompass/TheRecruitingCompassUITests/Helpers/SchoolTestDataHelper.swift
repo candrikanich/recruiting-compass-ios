@@ -1,6 +1,122 @@
 import Foundation
 import Supabase
 
+// MARK: - Type-Safe Data Structures
+
+/// Basic school insert data
+private struct SchoolInsert: Encodable {
+  let id: String
+  let userId: String
+  let name: String
+  let status: String
+  let isFavorite: Bool
+  let familyUnitId: String
+  let pros: [String]
+  let cons: [String]
+  let createdAt: String
+  let updatedAt: String
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case userId = "user_id"
+    case name
+    case status
+    case isFavorite = "is_favorite"
+    case familyUnitId = "family_unit_id"
+    case pros
+    case cons
+    case createdAt = "created_at"
+    case updatedAt = "updated_at"
+  }
+}
+
+/// Detailed school insert data with optional fields
+private struct SchoolDetailInsert: Encodable {
+  let id: String
+  let userId: String
+  let name: String
+  let status: String
+  let isFavorite: Bool
+  let familyUnitId: String
+  let pros: [String]
+  let cons: [String]
+  let createdAt: String
+  let updatedAt: String
+  let notes: String?
+  let privateNotes: [String: String]?
+  let priorityTier: String?
+  let location: String?
+  let division: String?
+  let conference: String?
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case userId = "user_id"
+    case name
+    case status
+    case isFavorite = "is_favorite"
+    case familyUnitId = "family_unit_id"
+    case pros
+    case cons
+    case createdAt = "created_at"
+    case updatedAt = "updated_at"
+    case notes
+    case privateNotes = "private_notes"
+    case priorityTier = "priority_tier"
+    case location
+    case division
+    case conference
+  }
+}
+
+/// School status update data
+private struct SchoolStatusUpdate: Encodable {
+  let status: String
+  let statusChangedAt: String
+  let updatedAt: String
+  let updatedBy: String
+
+  enum CodingKeys: String, CodingKey {
+    case status
+    case statusChangedAt = "status_changed_at"
+    case updatedAt = "updated_at"
+    case updatedBy = "updated_by"
+  }
+}
+
+/// School status history insert data
+private struct SchoolStatusHistoryInsert: Encodable {
+  let id: String
+  let schoolId: String
+  let status: String
+  let changedBy: String
+  let changedAt: String
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case schoolId = "school_id"
+    case status
+    case changedBy = "changed_by"
+    case changedAt = "changed_at"
+  }
+}
+
+/// School pros/cons response
+private struct SchoolListResponse: Decodable {
+  let pros: [String]
+  let cons: [String]
+}
+
+/// School pros update
+private struct SchoolProsUpdate: Encodable {
+  let pros: [String]
+}
+
+/// School cons update
+private struct SchoolConsUpdate: Encodable {
+  let cons: [String]
+}
+
 /// Helper class for creating and managing test school data via Supabase API
 /// Used in E2E tests to set up test scenarios
 final class SchoolTestDataHelper {
@@ -46,18 +162,18 @@ final class SchoolTestDataHelper {
     let schoolName = name ?? "Test School \(timestamp)"
     let now = ISO8601DateFormatter().string(from: Date())
 
-    let schoolData: [String: Any] = [
-      "id": schoolId,
-      "user_id": userId,
-      "name": schoolName,
-      "status": status,
-      "is_favorite": isFavorite,
-      "family_unit_id": familyUnitId,
-      "pros": [],
-      "cons": [],
-      "created_at": now,
-      "updated_at": now
-    ]
+    let schoolData = SchoolInsert(
+      id: schoolId,
+      userId: userId,
+      name: schoolName,
+      status: status,
+      isFavorite: isFavorite,
+      familyUnitId: familyUnitId,
+      pros: [],
+      cons: [],
+      createdAt: now,
+      updatedAt: now
+    )
 
     try await client
       .from("schools")
@@ -104,38 +220,24 @@ final class SchoolTestDataHelper {
     let schoolName = name ?? "Test School \(timestamp)"
     let now = ISO8601DateFormatter().string(from: Date())
 
-    var schoolData: [String: Any] = [
-      "id": schoolId,
-      "user_id": userId,
-      "name": schoolName,
-      "status": status,
-      "is_favorite": isFavorite,
-      "family_unit_id": familyUnitId,
-      "pros": pros,
-      "cons": cons,
-      "created_at": now,
-      "updated_at": now
-    ]
-
-    // Add optional fields if provided
-    if let notes = notes {
-      schoolData["notes"] = notes
-    }
-    if let privateNotes = privateNotes {
-      schoolData["private_notes"] = privateNotes
-    }
-    if let priorityTier = priorityTier {
-      schoolData["priority_tier"] = priorityTier
-    }
-    if let location = location {
-      schoolData["location"] = location
-    }
-    if let division = division {
-      schoolData["division"] = division
-    }
-    if let conference = conference {
-      schoolData["conference"] = conference
-    }
+    let schoolData = SchoolDetailInsert(
+      id: schoolId,
+      userId: userId,
+      name: schoolName,
+      status: status,
+      isFavorite: isFavorite,
+      familyUnitId: familyUnitId,
+      pros: pros,
+      cons: cons,
+      createdAt: now,
+      updatedAt: now,
+      notes: notes,
+      privateNotes: privateNotes,
+      priorityTier: priorityTier,
+      location: location,
+      division: division,
+      conference: conference
+    )
 
     try await client
       .from("schools")
@@ -160,70 +262,76 @@ final class SchoolTestDataHelper {
     let now = ISO8601DateFormatter().string(from: Date())
 
     // Update school status
+    let statusUpdate = SchoolStatusUpdate(
+      status: status,
+      statusChangedAt: now,
+      updatedAt: now,
+      updatedBy: userId
+    )
+
     try await client
       .from("schools")
-      .update([
-        "status": status,
-        "status_changed_at": now,
-        "updated_at": now,
-        "updated_by": userId
-      ])
+      .update(statusUpdate)
       .eq("id", value: schoolId)
       .execute()
 
     // Create status history entry
+    let historyEntry = SchoolStatusHistoryInsert(
+      id: UUID().uuidString,
+      schoolId: schoolId,
+      status: status,
+      changedBy: userId,
+      changedAt: now
+    )
+
     try await client
       .from("school_status_history")
-      .insert([
-        "id": UUID().uuidString,
-        "school_id": schoolId,
-        "status": status,
-        "changed_by": userId,
-        "changed_at": now
-      ])
+      .insert(historyEntry)
       .execute()
   }
 
   /// Adds a pro to a school
   func addPro(schoolId: String, pro: String) async throws {
-    // Fetch current pros
-    let response = try await client
+    // Fetch current pros and cons
+    let response: SchoolListResponse = try await client
       .from("schools")
-      .select("pros")
+      .select("pros, cons")
       .eq("id", value: schoolId)
       .single()
       .execute()
+      .value
 
-    let currentPros = (response.value as? [String: Any])?["pros"] as? [String] ?? []
-    var updatedPros = currentPros
+    var updatedPros = response.pros
     updatedPros.append(pro)
 
     // Update with new pros list
+    let prosUpdate = SchoolProsUpdate(pros: updatedPros)
     try await client
       .from("schools")
-      .update(["pros": updatedPros])
+      .update(prosUpdate)
       .eq("id", value: schoolId)
       .execute()
   }
 
   /// Adds a con to a school
   func addCon(schoolId: String, con: String) async throws {
-    // Fetch current cons
-    let response = try await client
+    // Fetch current pros and cons
+    let response: SchoolListResponse = try await client
       .from("schools")
-      .select("cons")
+      .select("pros, cons")
       .eq("id", value: schoolId)
       .single()
       .execute()
+      .value
 
-    let currentCons = (response.value as? [String: Any])?["cons"] as? [String] ?? []
-    var updatedCons = currentCons
+    var updatedCons = response.cons
     updatedCons.append(con)
 
     // Update with new cons list
+    let consUpdate = SchoolConsUpdate(cons: updatedCons)
     try await client
       .from("schools")
-      .update(["cons": updatedCons])
+      .update(consUpdate)
       .eq("id", value: schoolId)
       .execute()
   }

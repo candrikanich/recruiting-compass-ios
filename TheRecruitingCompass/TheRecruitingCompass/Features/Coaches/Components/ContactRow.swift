@@ -17,6 +17,7 @@ struct ContactRow: View {
         .accessibilityHint("Opens \(type.appName)")
       } else {
         rowContent
+          .accessibilityLabel("\(label): \(value)")
       }
     }
   }

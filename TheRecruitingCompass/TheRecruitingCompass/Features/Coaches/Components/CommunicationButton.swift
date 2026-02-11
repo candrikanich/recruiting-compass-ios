@@ -84,9 +84,11 @@ enum CommunicationType: Sendable {
       guard trimmed.contains("@") else { return nil }
       return URL(string: "mailto:\(trimmed)")
     case .phone:
-      return URL(string: "sms:\(trimmed)")
+      let cleaned = cleanPhoneNumber(trimmed)
+      return URL(string: "sms:\(cleaned)")
     case .call:
-      return URL(string: "tel:\(trimmed)")
+      let cleaned = cleanPhoneNumber(trimmed)
+      return URL(string: "tel:\(cleaned)")
     case .twitter:
       let handle = trimmed.hasPrefix("@") ? String(trimmed.dropFirst()) : trimmed
       return URL(string: "https://twitter.com/\(handle)")
@@ -94,6 +96,12 @@ enum CommunicationType: Sendable {
       let handle = trimmed.hasPrefix("@") ? String(trimmed.dropFirst()) : trimmed
       return URL(string: "https://instagram.com/\(handle)")
     }
+  }
+
+  /// Removes formatting characters from phone numbers (spaces, parentheses, dashes)
+  /// Keeps only digits and + for country code
+  private func cleanPhoneNumber(_ phone: String) -> String {
+    phone.filter { $0.isNumber || $0 == "+" }
   }
 }
 

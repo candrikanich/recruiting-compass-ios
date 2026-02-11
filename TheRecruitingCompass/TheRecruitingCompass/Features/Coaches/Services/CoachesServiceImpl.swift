@@ -57,6 +57,21 @@ final class CoachesServiceImpl: CoachesManaging, @unchecked Sendable {
     }
   }
 
+  func createCoach(request: CoachCreateRequest) async throws -> Coach {
+    logger.debug("Creating coach: \(request.firstName) \(request.lastName)")
+
+    let result: Coach = try await supabaseManager.client
+      .from("coaches")
+      .insert(request)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Coach created: \(result.id)")
+    return result
+  }
+
   func deleteCoach(id: String) async throws {
     logger.debug("Deleting coach: \(id)")
     try await supabaseManager.client

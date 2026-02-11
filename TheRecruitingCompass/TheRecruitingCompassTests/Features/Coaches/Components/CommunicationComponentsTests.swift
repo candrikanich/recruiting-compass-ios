@@ -106,7 +106,7 @@ final class CommunicationComponentsTests: XCTestCase {
   func testCommunicationType_phoneURL_withFormatting() {
     let url = CommunicationType.phone("(555) 123-4567").url(for: "(555) 123-4567")
     XCTAssertNotNil(url)
-    XCTAssertEqual(url?.absoluteString, "sms:(555) 123-4567")
+    XCTAssertEqual(url?.absoluteString, "sms:5551234567")
   }
 
   func testCommunicationType_phoneURL_empty() {
