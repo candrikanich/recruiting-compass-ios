@@ -21,7 +21,7 @@ struct TheRecruitingCompassApp: App {
         if authManager.isCheckingSession {
           sessionLoadingView
         } else if authManager.isAuthenticated {
-          DashboardView()
+          MainTabView()
             .environmentObject(authManager)
             .environmentObject(familyManager)
         } else {
