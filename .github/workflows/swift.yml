@@ -1,7 +1,7 @@
-# This workflow will build a Swift project
+# This workflow will build an iOS Xcode project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
 
-name: Swift
+name: iOS CI
 
 on:
   push:
@@ -10,13 +10,35 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  build-and-test:
     runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Show Xcode version
+      run: xcodebuild -version
+
+    - name: Show available schemes
+      working-directory: TheRecruitingCompass
+      run: xcodebuild -list
+
     - name: Build
-      run: swift build -v
+      working-directory: TheRecruitingCompass
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      run: |
+        xcodebuild build \
+          -scheme TheRecruitingCompass \
+          -destination 'platform=iOS Simulator,name=iPhone 15'
+
     - name: Run tests
-      run: swift test -v
+      working-directory: TheRecruitingCompass
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      run: |
+        xcodebuild test \
+          -scheme TheRecruitingCompass \
+          -destination 'platform=iOS Simulator,name=iPhone 15'
