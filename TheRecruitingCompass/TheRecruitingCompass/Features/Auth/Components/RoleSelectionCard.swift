@@ -65,17 +65,11 @@ struct RoleSelectionCard: View {
 #Preview {
   @Previewable @State var selectedRole: UserRole? = .parent
 
-  return VStack(spacing: 12) {
+  VStack(spacing: 12) {
     RoleSelectionCard(
       role: .parent,
       isSelected: selectedRole == .parent,
       action: { selectedRole = .parent }
-    )
-
-    RoleSelectionCard(
-      role: .student,
-      isSelected: selectedRole == .student,
-      action: { selectedRole = .student }
     )
 
     RoleSelectionCard(

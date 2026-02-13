@@ -48,7 +48,7 @@ final class SignupFlowE2ETests: XCTestCase {
 
     XCTAssertTrue(screen.parentRoleCard.waitForExistence(timeout: 5),
                   "Parent role card should be visible")
-    XCTAssertTrue(screen.studentRoleCard.exists,
+    XCTAssertTrue(screen.playerRoleCard.exists,
                   "Student role card should be visible")
     XCTAssertTrue(screen.playerRoleCard.exists,
                   "Player role card should be visible")
@@ -77,7 +77,7 @@ final class SignupFlowE2ETests: XCTestCase {
   @MainActor
   func testSelectStudentRoleShowsFamilyCodeField() throws {
     screen.navigateToSignup()
-    screen.selectRole(.student)
+    screen.selectRole(.player)
 
     XCTAssertTrue(screen.fullNameField.waitForExistence(timeout: 5),
                   "Full Name field should appear after selecting Student role")
@@ -180,7 +180,7 @@ final class SignupFlowE2ETests: XCTestCase {
     let userData = TestUserData.uniqueStudent(familyCode: "FAM-ABCD1234")
 
     screen.navigateToSignup()
-    screen.selectRole(.student)
+    screen.selectRole(.player)
 
     XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5),
                   "Family Code field should be visible for Student role")

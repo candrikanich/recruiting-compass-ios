@@ -33,6 +33,10 @@ struct User: Codable, Identifiable {
 struct AnyCodable: Codable {
   let value: Any
 
+  init(value: Any) {
+    self.value = value
+  }
+
   init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
     if let intVal = try? container.decode(Int.self) {

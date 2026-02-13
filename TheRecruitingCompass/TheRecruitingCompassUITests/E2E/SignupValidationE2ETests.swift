@@ -156,7 +156,7 @@ final class SignupValidationE2ETests: XCTestCase {
     screen.changeRoleButton.tap()
     XCTAssertTrue(screen.selectYourRoleText.waitForExistence(timeout: 5))
 
-    screen.selectRole(.student)
+    screen.selectRole(.player)
     XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5))
 
     screen.familyCodeField.tap()
@@ -178,7 +178,7 @@ final class SignupValidationE2ETests: XCTestCase {
     screen.changeRoleButton.tap()
     XCTAssertTrue(screen.selectYourRoleText.waitForExistence(timeout: 5))
 
-    screen.selectRole(.student)
+    screen.selectRole(.player)
     XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5))
 
     screen.familyCodeField.tap()
@@ -201,7 +201,7 @@ final class SignupValidationE2ETests: XCTestCase {
     screen.changeRoleButton.tap()
     XCTAssertTrue(screen.selectYourRoleText.waitForExistence(timeout: 5))
 
-    screen.selectRole(.student)
+    screen.selectRole(.player)
     XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5))
 
     // Leave family code empty and fill everything else

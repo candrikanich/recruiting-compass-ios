@@ -2,7 +2,6 @@ import XCTest
 
 enum TestUserRole: String {
   case parent = "Parent"
-  case student = "Student"
   case player = "Player"
 }
 
@@ -24,13 +23,13 @@ struct TestUserData {
     )
   }
 
-  static func uniqueStudent(familyCode: String? = nil) -> TestUserData {
+  static func uniquePlayer(familyCode: String? = nil) -> TestUserData {
     let timestamp = Int(Date().timeIntervalSince1970)
     return TestUserData(
-      fullName: "Test Student",
-      email: "teststudent+\(timestamp)@example.com",
+      fullName: "Test Player",
+      email: "testplayer+\(timestamp)@example.com",
       password: "StrongPass1",
-      role: .student,
+      role: .player,
       familyCode: familyCode
     )
   }
@@ -134,11 +133,11 @@ extension XCUIApplication {
     _ = dashboardTitle.waitForExistence(timeout: 10)
   }
 
-  /// Logs in as a student user with the provided credentials
+  /// Logs in as a player user with the provided credentials
   /// - Parameters:
-  ///   - email: Student email
-  ///   - password: Student password
-  func loginAsStudent(email: String, password: String) {
+  ///   - email: Player email
+  ///   - password: Player password
+  func loginAsPlayer(email: String, password: String) {
     // Same flow as parent (login UI is the same)
     loginAsParent(email: email, password: password)
   }

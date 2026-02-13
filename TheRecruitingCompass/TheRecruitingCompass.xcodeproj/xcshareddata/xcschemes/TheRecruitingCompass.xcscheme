@@ -77,12 +77,12 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "SUPABASE_URL"
-            value = ""
+            value = "https://xpxzhqghxecsjhvklsqg.supabase.co"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "SUPABASE_ANON_KEY"
-            value = ""
+            value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhweHpocWdoeGVjc2podmtsc3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NzI1ODQsImV4cCI6MjA4MDM0ODU4NH0.WNlq1neCdjY-hDCvJRLplntd9w2HKqahwpHa7rB_Zro"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

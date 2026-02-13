@@ -13,16 +13,6 @@ final class RoleSelectionCardTests: XCTestCase {
     XCTAssertNotNil(card)
   }
 
-  func testRoleSelectionCardDisplaysStudentRole() {
-    let card = RoleSelectionCard(
-      role: .student,
-      isSelected: false,
-      action: {}
-    )
-
-    XCTAssertNotNil(card)
-  }
-
   func testRoleSelectionCardDisplaysPlayerRole() {
     let card = RoleSelectionCard(
       role: .player,
@@ -45,25 +35,21 @@ final class RoleSelectionCardTests: XCTestCase {
 
   func testUserRoleDisplayNames() {
     XCTAssertEqual(UserRole.parent.displayName, "Parent")
-    XCTAssertEqual(UserRole.student.displayName, "Student")
     XCTAssertEqual(UserRole.player.displayName, "Player")
   }
 
   func testUserRoleIcons() {
     XCTAssertNotNil(UserRole.parent.icon)
-    XCTAssertNotNil(UserRole.student.icon)
     XCTAssertNotNil(UserRole.player.icon)
   }
 
   func testUserRoleDescriptions() {
     XCTAssertFalse(UserRole.parent.description.isEmpty)
-    XCTAssertFalse(UserRole.student.description.isEmpty)
     XCTAssertFalse(UserRole.player.description.isEmpty)
   }
 
   func testUserRoleRequiresFamilyCode() {
     XCTAssertFalse(UserRole.parent.requiresFamilyCode)
-    XCTAssertTrue(UserRole.student.requiresFamilyCode)
     XCTAssertTrue(UserRole.player.requiresFamilyCode)
   }
 }

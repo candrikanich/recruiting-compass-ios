@@ -169,7 +169,7 @@ final class SignupScreenObject {
     switch role {
     case .parent:
       parentRoleCard.waitAndTap()
-    case .student:
+    case .player:
       studentRoleCard.waitAndTap()
     case .player:
       playerRoleCard.waitAndTap()

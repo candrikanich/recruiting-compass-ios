@@ -35,7 +35,7 @@ final class RoleSelectionCardAccessibilityTests: XCTestCase {
 
   func testRoleSelectionCard_UnselectedState_CorrectValue() {
     let card = RoleSelectionCard(
-      role: .student,
+      role: .player,
       isSelected: false,
       action: {}
     )
@@ -73,7 +73,7 @@ final class RoleSelectionCardAccessibilityTests: XCTestCase {
 
   func testRoleSelectionCard_DecorativeIconsHidden() {
     let card = RoleSelectionCard(
-      role: .student,
+      role: .player,
       isSelected: true,
       action: {}
     )

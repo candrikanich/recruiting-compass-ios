@@ -125,12 +125,17 @@ final class SupabaseManager: @unchecked Sendable {
   // MARK: - Private Helpers
 
   private func mapToUser(_ authUser: Supabase.User) -> User {
-    User(
+    // Map userMetadata from Supabase auth user
+    let metadata: [String: AnyCodable]? = authUser.userMetadata.isEmpty ? nil : authUser.userMetadata.mapValues { value in
+      AnyCodable(value: value)
+    }
+
+    return User(
       id: authUser.id.uuidString,
       email: authUser.email ?? "",
       emailConfirmedAt: authUser.emailConfirmedAt?.ISO8601Format(),
       phone: authUser.phone,
-      userMetadata: nil,
+      userMetadata: metadata,
       createdAt: authUser.createdAt.ISO8601Format(),
       updatedAt: authUser.updatedAt.ISO8601Format()
     )

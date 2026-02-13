@@ -61,6 +61,19 @@ struct DashboardView: View {
       }
       .navigationTitle("Dashboard")
       .toolbar {
+        ToolbarItem(placement: .navigationBarLeading) {
+          NavigationLink {
+            SettingsView()
+              .environmentObject(authManager)
+          } label: {
+            Image(systemName: "gearshape.fill")
+              .frame(minWidth: 44, minHeight: 44)
+              .contentShape(Rectangle())
+          }
+          .accessibilityLabel("Settings")
+          .accessibilityHint("Opens app settings and preferences")
+        }
+
         ToolbarItem(placement: .navigationBarTrailing) {
           Button(action: {
             Task {
