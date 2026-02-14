@@ -10,14 +10,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 cd TheRecruitingCompass
 xcodebuild build -scheme TheRecruitingCompass \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
 ### Run Tests
 ```bash
 cd TheRecruitingCompass
 xcodebuild test -scheme TheRecruitingCompass \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+  -destination 'platform=iOS Simulator,name=iPhone 16'
 ```
 
 ### Environment Configuration

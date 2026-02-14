@@ -85,7 +85,7 @@ Cmd+U
 
 # Or via command line
 xcodebuild test -scheme TheRecruitingCompass \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
 ---
