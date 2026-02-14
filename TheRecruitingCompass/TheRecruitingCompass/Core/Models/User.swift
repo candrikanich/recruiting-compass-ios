@@ -5,27 +5,18 @@ struct User: Codable, Identifiable {
   let email: String
   let emailConfirmedAt: String?
   let phone: String?
-  let userMetadata: [String: AnyCodable]?
   let createdAt: String
   let updatedAt: String
+  let role: UserRole?
 
   enum CodingKeys: String, CodingKey {
     case id
     case email
     case emailConfirmedAt = "email_confirmed_at"
     case phone
-    case userMetadata = "user_metadata"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
-  }
-
-  var role: UserRole? {
-    guard let metadata = userMetadata,
-          let roleData = metadata["role"],
-          case let roleString as String = roleData.value else {
-      return nil
-    }
-    return UserRole(rawValue: roleString)
+    case role
   }
 }
 
