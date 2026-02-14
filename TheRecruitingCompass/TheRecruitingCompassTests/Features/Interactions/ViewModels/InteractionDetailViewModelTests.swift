@@ -458,9 +458,9 @@ final class InteractionDetailViewModelTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "",
-      updatedAt: ""
+      updatedAt: "",
+      role: nil
     )
   }
 
@@ -553,7 +553,8 @@ final class InteractionDetailViewModelTests: XCTestCase {
       responsivenessScore: 0.0,
       lastContactDate: nil,
       createdAt: ISO8601DateFormatter().string(from: Date()),
-      updatedAt: ISO8601DateFormatter().string(from: Date())
+      updatedAt: ISO8601DateFormatter().string(from: Date()
+    )
     )
   }
 }

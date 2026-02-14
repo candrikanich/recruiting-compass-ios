@@ -38,9 +38,9 @@ final class InteractionsListViewModelTests: XCTestCase {
       email: "athlete@test.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "",
-      updatedAt: ""
+      updatedAt: "",
+      role: nil
     )
 
     let interactions = createMockInteractions(count: 5, loggedBy: "athlete1")
@@ -68,9 +68,9 @@ final class InteractionsListViewModelTests: XCTestCase {
       email: "parent@test.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "",
-      updatedAt: ""
+      updatedAt: "",
+      role: nil
     )
 
     let interactions = createMockInteractions(count: 10, loggedBy: "various")
@@ -107,9 +107,9 @@ final class InteractionsListViewModelTests: XCTestCase {
       email: "test@test.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "",
-      updatedAt: ""
+      updatedAt: "",
+      role: nil
     )
     mockService.shouldSucceed = false
 
@@ -131,9 +131,9 @@ final class InteractionsListViewModelTests: XCTestCase {
       email: "test@test.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "",
-      updatedAt: ""
+      updatedAt: "",
+      role: nil
     )
     mockService.mockSchools = []
     mockService.mockCoaches = []

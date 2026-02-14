@@ -19,9 +19,9 @@ final class CoachDetailViewTests: XCTestCase {
       email: "test@test.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     ))
 
     testCoach = makeCoach(id: "coach-1", firstName: "John", lastName: "Smith")

@@ -205,7 +205,7 @@ final class SignupValidationE2ETests: XCTestCase {
     XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5))
 
     // Leave family code empty and fill everything else
-    let userData = TestUserData.uniqueStudent()
+    let userData = TestUserData.uniquePlayer()
 
     screen.fullNameField.tap()
     screen.fullNameField.typeText(userData.fullName)

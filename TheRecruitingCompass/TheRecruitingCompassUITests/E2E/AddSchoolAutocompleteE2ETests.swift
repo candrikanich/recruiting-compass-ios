@@ -355,7 +355,7 @@ final class AddSchoolAutocompleteE2ETests: XCTestCase {
 
       // Verify expected fields are present
       let expectedFields = [
-        screen.playerSizeLabel,
+        screen.studentSizeLabel,
         screen.admissionRateLabel,
         screen.tuitionInStateLabel
       ]

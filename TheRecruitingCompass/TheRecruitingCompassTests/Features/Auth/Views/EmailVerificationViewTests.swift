@@ -11,20 +11,20 @@ final class EmailVerificationViewTests: XCTestCase {
     email: "test@example.com",
     emailConfirmedAt: nil,
     phone: nil,
-    userMetadata: nil,
-    createdAt: "2024-01-01T00:00:00Z",
-    updatedAt: "2024-01-01T00:00:00Z"
-  )
+      createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
+    )
 
   private let verifiedUser = User(
     id: "test-id",
     email: "test@example.com",
     emailConfirmedAt: "2024-01-01T12:00:00Z",
     phone: nil,
-    userMetadata: nil,
-    createdAt: "2024-01-01T00:00:00Z",
-    updatedAt: "2024-01-01T12:00:00Z"
-  )
+      createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T12:00:00Z",
+      role: nil
+    )
 
   override func setUp() {
     super.setUp()
