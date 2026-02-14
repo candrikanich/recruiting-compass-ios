@@ -9,7 +9,6 @@ final class UserTests: XCTestCase {
       "email": "user@example.com",
       "email_confirmed_at": "2024-01-15T10:30:00Z",
       "phone": null,
-      "user_metadata": null,
       "created_at": "2024-01-15T10:30:00Z",
       "updated_at": "2024-01-20T14:25:00Z"
     }
