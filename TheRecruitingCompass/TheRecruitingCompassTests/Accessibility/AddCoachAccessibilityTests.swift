@@ -15,13 +15,15 @@ final class AddCoachAccessibilityTests: XCTestCase {
 
   // MARK: - ViewModel Accessibility Tests
 
-  func testSubmitButton_titleReflectsState() {
+  func testSubmitButton_titleReflectsState() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Not submitting
@@ -31,13 +33,15 @@ final class AddCoachAccessibilityTests: XCTestCase {
     // Actual loading state is tested in integration tests
   }
 
-  func testSubmitButton_disabledWhenNoSchoolSelected() {
+  func testSubmitButton_disabledWhenNoSchoolSelected() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: No school selected
@@ -47,13 +51,15 @@ final class AddCoachAccessibilityTests: XCTestCase {
     XCTAssertTrue(viewModel.isSubmitDisabled, "Submit button should be disabled when school not selected")
   }
 
-  func testSubmitButton_disabledWhenRequiredFieldsMissing() {
+  func testSubmitButton_disabledWhenRequiredFieldsMissing() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: School selected but required fields empty
@@ -66,13 +72,15 @@ final class AddCoachAccessibilityTests: XCTestCase {
     XCTAssertTrue(viewModel.isSubmitDisabled, "Submit button should be disabled when required fields are empty")
   }
 
-  func testSubmitButton_enabledWhenAllRequiredFieldsFilled() {
+  func testSubmitButton_enabledWhenAllRequiredFieldsFilled() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: All required fields filled
@@ -90,10 +98,12 @@ final class AddCoachAccessibilityTests: XCTestCase {
   func testValidationErrors_reported() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Form with errors
@@ -115,10 +125,12 @@ final class AddCoachAccessibilityTests: XCTestCase {
   func testValidationErrors_cleared() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Set errors manually (simulate validation failure)
@@ -142,10 +154,12 @@ final class AddCoachAccessibilityTests: XCTestCase {
   func testErrorMessages_descriptive() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Submit with empty required fields
@@ -161,13 +175,15 @@ final class AddCoachAccessibilityTests: XCTestCase {
     XCTAssertEqual(viewModel.formErrors.lastName, "Last name is required")
   }
 
-  func testEmailValidation_invalidFormat() {
+  func testEmailValidation_invalidFormat() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Invalid email
@@ -178,13 +194,15 @@ final class AddCoachAccessibilityTests: XCTestCase {
     XCTAssertEqual(viewModel.formErrors.email, "Please enter a valid email address")
   }
 
-  func testEmailValidation_validFormat() {
+  func testEmailValidation_validFormat() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Valid email
@@ -195,13 +213,15 @@ final class AddCoachAccessibilityTests: XCTestCase {
     XCTAssertNil(viewModel.formErrors.email)
   }
 
-  func testPhoneValidation_invalidFormat() {
+  func testPhoneValidation_invalidFormat() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Invalid phone
@@ -209,16 +229,18 @@ final class AddCoachAccessibilityTests: XCTestCase {
     viewModel.validateField(\.phone, value: "123")
 
     // Then: Error should be set
-    XCTAssertEqual(viewModel.formErrors.phone, "Phone number must be at least 10 digits")
+    XCTAssertEqual(viewModel.formErrors.phone, "Please enter a valid phone number")
   }
 
-  func testPhoneValidation_validFormat() {
+  func testPhoneValidation_validFormat() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Valid phone
@@ -229,30 +251,34 @@ final class AddCoachAccessibilityTests: XCTestCase {
     XCTAssertNil(viewModel.formErrors.phone)
   }
 
-  func testTwitterHandleValidation_invalidFormat() {
+  func testTwitterHandleValidation_invalidFormat() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
-    // When: Invalid twitter handle (missing @)
-    viewModel.formState.twitterHandle = "handle"
-    viewModel.validateField(\.twitterHandle, value: "handle")
+    // When: Invalid twitter handle (contains invalid characters)
+    viewModel.formState.twitterHandle = "handle-with-dash"
+    viewModel.validateField(\.twitterHandle, value: "handle-with-dash")
 
     // Then: Error should be set
-    XCTAssertEqual(viewModel.formErrors.twitterHandle, "Twitter handle must start with @")
+    XCTAssertEqual(viewModel.formErrors.twitterHandle, "Invalid Twitter handle (1-15 characters, letters/numbers/underscore)")
   }
 
-  func testTwitterHandleValidation_validFormat() {
+  func testTwitterHandleValidation_validFormat() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Valid twitter handle
@@ -263,30 +289,34 @@ final class AddCoachAccessibilityTests: XCTestCase {
     XCTAssertNil(viewModel.formErrors.twitterHandle)
   }
 
-  func testInstagramHandleValidation_invalidFormat() {
+  func testInstagramHandleValidation_invalidFormat() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
-    // When: Invalid instagram handle (missing @)
-    viewModel.formState.instagramHandle = "handle"
-    viewModel.validateField(\.instagramHandle, value: "handle")
+    // When: Invalid instagram handle (contains invalid characters)
+    viewModel.formState.instagramHandle = "handle-with-dash"
+    viewModel.validateField(\.instagramHandle, value: "handle-with-dash")
 
     // Then: Error should be set
-    XCTAssertEqual(viewModel.formErrors.instagramHandle, "Instagram handle must start with @")
+    XCTAssertEqual(viewModel.formErrors.instagramHandle, "Invalid Instagram handle (1-30 characters, letters/numbers/dots/underscore)")
   }
 
-  func testInstagramHandleValidation_validFormat() {
+  func testInstagramHandleValidation_validFormat() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Valid instagram handle
@@ -297,13 +327,15 @@ final class AddCoachAccessibilityTests: XCTestCase {
     XCTAssertNil(viewModel.formErrors.instagramHandle)
   }
 
-  func testNotesValidation_withinLimit() {
+  func testNotesValidation_withinLimit() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Notes within limit
@@ -315,13 +347,15 @@ final class AddCoachAccessibilityTests: XCTestCase {
     XCTAssertNil(viewModel.formErrors.notes)
   }
 
-  func testNotesValidation_exceedsLimit() {
+  func testNotesValidation_exceedsLimit() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Notes exceed limit
@@ -330,16 +364,18 @@ final class AddCoachAccessibilityTests: XCTestCase {
     viewModel.validateField(\.notes, value: notes)
 
     // Then: Error should be set
-    XCTAssertEqual(viewModel.formErrors.notes, "Notes must be \(CoachFormState.notesCharacterLimit) characters or less")
+    XCTAssertEqual(viewModel.formErrors.notes, "Notes must not exceed 5000 characters")
   }
 
-  func testRoleValidation_required() {
+  func testRoleValidation_required() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: No role selected
@@ -347,16 +383,18 @@ final class AddCoachAccessibilityTests: XCTestCase {
     viewModel.validateRole(nil)
 
     // Then: Error should be set
-    XCTAssertEqual(viewModel.formErrors.role, "Role is required")
+    XCTAssertEqual(viewModel.formErrors.role, "Please select a role")
   }
 
-  func testRoleValidation_valid() {
+  func testRoleValidation_valid() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Role selected
@@ -372,10 +410,12 @@ final class AddCoachAccessibilityTests: XCTestCase {
   func testFullAccessibilityFlow_success() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // Load schools
@@ -408,10 +448,12 @@ final class AddCoachAccessibilityTests: XCTestCase {
   func testFullAccessibilityFlow_validationFailure() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // When: Fill invalid form
@@ -433,10 +475,12 @@ final class AddCoachAccessibilityTests: XCTestCase {
   func testFullAccessibilityFlow_serviceFailure() async {
     // Given
     let mockService = MockCoachesService()
+    let mockAnnouncer = MockAccessibilityAnnouncer()
     let viewModel = AddCoachViewModel(
       coachesService: mockService,
       familyUnitId: "test-family",
-      userId: "test-user"
+      userId: "test-user",
+      announcer: mockAnnouncer
     )
 
     // Load schools

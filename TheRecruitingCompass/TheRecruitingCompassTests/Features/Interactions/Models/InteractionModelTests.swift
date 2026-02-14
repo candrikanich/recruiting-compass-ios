@@ -5,7 +5,7 @@ final class InteractionModelTests: XCTestCase {
 
   // MARK: - Display Date Tests
 
-  func testDisplayDate_UsesOccurredAt_WhenProvided() {
+  func testDisplayDate_UsesOccurredAt_WhenProvided() async {
     // Given
     let occurredAt = "2025-01-15T10:30:00.000Z"
     let createdAt = "2025-01-16T10:30:00.000Z"
@@ -17,7 +17,7 @@ final class InteractionModelTests: XCTestCase {
     XCTAssertEqual(interaction.displayDate.timeIntervalSince1970, expectedDate.timeIntervalSince1970, accuracy: 1.0)
   }
 
-  func testDisplayDate_FallsBackToCreatedAt_WhenOccurredAtNil() {
+  func testDisplayDate_FallsBackToCreatedAt_WhenOccurredAtNil() async {
     // Given
     let createdAt = "2025-01-16T10:30:00.000Z"
     let interaction = createInteraction(id: "1", occurredAt: nil, createdAt: createdAt)

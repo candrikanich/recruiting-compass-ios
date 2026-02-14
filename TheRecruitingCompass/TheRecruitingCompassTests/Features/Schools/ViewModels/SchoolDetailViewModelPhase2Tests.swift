@@ -489,7 +489,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
     XCTAssertEqual(userId, "user-1")
   }
 
-  func testCurrentUserId_NoUser_ReturnsEmpty() {
+  func testCurrentUserId_NoUser_ReturnsEmpty() async {
     // Given
     mockAuthManager.user = nil
     let newViewModel = SchoolDetailViewModel(

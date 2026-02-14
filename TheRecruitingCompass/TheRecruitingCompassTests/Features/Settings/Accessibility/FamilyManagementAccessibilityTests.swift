@@ -125,7 +125,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
 
   // MARK: - FamilyManagementPlayerView Tests
 
-  func testPlayerView_FamilyCodeHasVoiceOverFriendlyLabel() {
+  func testPlayerView_FamilyCodeHasVoiceOverFriendlyLabel() async {
     let viewModel = makeMockViewModel(role: .player, familyCode: "FAM-123456")
     let view = FamilyManagementPlayerView(viewModel: viewModel)
 
@@ -137,7 +137,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
                   "Family code should be formatted for VoiceOver")
   }
 
-  func testPlayerView_CopyButtonHasDescriptiveLabel() {
+  func testPlayerView_CopyButtonHasDescriptiveLabel() async {
     let viewModel = makeMockViewModel(role: .player, familyCode: "FAM-123456")
     let view = FamilyManagementPlayerView(viewModel: viewModel)
 
@@ -149,7 +149,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
                   "Copy button should have descriptive label")
   }
 
-  func testPlayerView_ShareButtonHasDescriptiveLabel() {
+  func testPlayerView_ShareButtonHasDescriptiveLabel() async {
     let viewModel = makeMockViewModel(role: .player, familyCode: "FAM-123456")
     let view = FamilyManagementPlayerView(viewModel: viewModel)
 
@@ -161,7 +161,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
                   "Share button should have descriptive label")
   }
 
-  func testPlayerView_RegenerateButtonHasLabelAndHint() {
+  func testPlayerView_RegenerateButtonHasLabelAndHint() async {
     let viewModel = makeMockViewModel(role: .player, familyCode: "FAM-123456")
     let view = FamilyManagementPlayerView(viewModel: viewModel)
 
@@ -177,7 +177,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
                   "Regenerate button should have hint about consequences")
   }
 
-  func testPlayerView_EmptyStateIconIsDecorativelyHidden() {
+  func testPlayerView_EmptyStateIconIsDecorativelyHidden() async {
     let viewModel = makeMockViewModel(role: .player, familyMembers: [])
     let view = FamilyManagementPlayerView(viewModel: viewModel)
 
@@ -190,7 +190,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
                   "Empty state message should be accessible")
   }
 
-  func testPlayerView_LoadingIndicatorHasLabel() {
+  func testPlayerView_LoadingIndicatorHasLabel() async {
     let viewModel = makeMockViewModel(role: .player, isLoading: true)
     let view = FamilyManagementPlayerView(viewModel: viewModel)
 
@@ -296,7 +296,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
 
   // MARK: - FamilyManagementParentView Tests
 
-  func testParentView_CodeInputHasLabelAndHint() {
+  func testParentView_CodeInputHasLabelAndHint() async {
     let viewModel = makeMockViewModel(role: .parent)
     let view = FamilyManagementParentView(viewModel: viewModel)
 
@@ -312,7 +312,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
                   "Code input should have hint about format")
   }
 
-  func testParentView_JoinButtonHasDescriptiveLabel() {
+  func testParentView_JoinButtonHasDescriptiveLabel() async {
     let viewModel = makeMockViewModel(role: .parent)
     let view = FamilyManagementParentView(viewModel: viewModel)
 
@@ -324,7 +324,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
                   "Join button should have descriptive label")
   }
 
-  func testParentView_JoinButtonDisabledStateAnnounced() {
+  func testParentView_JoinButtonDisabledStateAnnounced() async {
     let viewModel = makeMockViewModel(role: .parent)
     viewModel.codeInput = "INVALID"
     let view = FamilyManagementParentView(viewModel: viewModel)
@@ -337,7 +337,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
     XCTAssertNotNil(uiView)
   }
 
-  func testParentView_EmptyFamiliesIconIsDecorativelyHidden() {
+  func testParentView_EmptyFamiliesIconIsDecorativelyHidden() async {
     let viewModel = makeMockViewModel(role: .parent, parentFamilies: [])
     let view = FamilyManagementParentView(viewModel: viewModel)
 
@@ -350,7 +350,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
                   "Empty state should have accessible text")
   }
 
-  func testParentView_LoadingIndicatorHasLabel() {
+  func testParentView_LoadingIndicatorHasLabel() async {
     let viewModel = makeMockViewModel(role: .parent, isLoading: true)
     let view = FamilyManagementParentView(viewModel: viewModel)
 
@@ -482,7 +482,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
     XCTAssertEqual(toast.type.iconName, "checkmark.circle.fill")
   }
 
-  func testToast_ErrorTypeHasAccessibleIcon() {
+  func testToast_ErrorTypeHasAccessibleIcon() async {
     let toast = ToastModifier(
       isShowing: .constant(true),
       message: .constant("Error!"),
@@ -534,19 +534,19 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
 
   // MARK: - Button State Tests
 
-  func testJoinButton_DisabledWhenCodeInvalid() {
+  func testJoinButton_DisabledWhenCodeInvalid() async {
     let viewModel = makeMockViewModel(role: .parent)
     viewModel.codeInput = "INVALID"
     XCTAssertFalse(viewModel.isCodeInputValid)
   }
 
-  func testJoinButton_EnabledWhenCodeValid() {
+  func testJoinButton_EnabledWhenCodeValid() async {
     let viewModel = makeMockViewModel(role: .parent)
     viewModel.codeInput = "FAM-123456"
     XCTAssertTrue(viewModel.isCodeInputValid)
   }
 
-  func testJoinButton_DisabledDuringLoading() {
+  func testJoinButton_DisabledDuringLoading() async {
     let viewModel = makeMockViewModel(role: .parent)
     viewModel.codeInput = "FAM-123456"
     viewModel.isLoading = true
