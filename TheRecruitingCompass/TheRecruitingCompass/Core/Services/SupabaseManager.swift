@@ -156,7 +156,14 @@ final class SupabaseManager: @unchecked Sendable {
         return nil
       }
 
-      let user = mapToUser(authSession.user)
+      guard let user = await fetchUserProfileWithRetry(
+        userId: authSession.user.id.uuidString,
+        email: authSession.user.email ?? "",
+        fallbackMetadata: authSession.user.userMetadata
+      ) else {
+        throw AuthError.serverError("Failed to fetch user profile")
+      }
+
       return mapToSession(authSession, user: user)
     } catch {
       throw AuthError.unknown(error)
@@ -284,33 +291,6 @@ final class SupabaseManager: @unchecked Sendable {
       phone: nil,
       createdAt: ISO8601DateFormatter().string(from: Date()),
       updatedAt: ISO8601DateFormatter().string(from: Date()),
-      role: role
-    )
-  }
-
-  private func mapToUser(_ authUser: Supabase.User) -> User {
-    // Map userMetadata from Supabase auth user
-    let metadata: [String: AnyCodable]? = authUser.userMetadata.isEmpty ? nil : authUser.userMetadata.mapValues { value in
-      AnyCodable(value: value)
-    }
-
-    // Temporary: Extract role from metadata until database fetch is implemented
-    let role: UserRole? = {
-      guard let metadata = metadata,
-            let roleData = metadata["role"],
-            case let roleString as String = roleData.value else {
-        return nil
-      }
-      return UserRole(rawValue: roleString)
-    }()
-
-    return User(
-      id: authUser.id.uuidString,
-      email: authUser.email ?? "",
-      emailConfirmedAt: authUser.emailConfirmedAt?.ISO8601Format(),
-      phone: authUser.phone,
-      createdAt: authUser.createdAt.ISO8601Format(),
-      updatedAt: authUser.updatedAt.ISO8601Format(),
       role: role
     )
   }
