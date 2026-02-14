@@ -89,7 +89,15 @@ final class SupabaseManager: @unchecked Sendable {
       password: password
     )
 
-    let user = mapToUser(response.user)
+    // Fetch user profile from database with retry
+    guard let user = await fetchUserProfileWithRetry(
+      userId: response.user.id.uuidString,
+      email: response.user.email ?? email,
+      fallbackMetadata: response.user.userMetadata
+    ) else {
+      throw AuthError.serverError("Failed to fetch user profile")
+    }
+
     let session = mapToSession(response, user: user)
 
     return (user, session)
