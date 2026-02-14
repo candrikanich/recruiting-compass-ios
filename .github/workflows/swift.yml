@@ -19,6 +19,9 @@ jobs:
     - name: Show Xcode version
       run: xcodebuild -version
 
+    - name: List available simulators
+      run: xcrun simctl list devices available | grep "iPhone"
+
     - name: Show available schemes
       working-directory: TheRecruitingCompass
       run: xcodebuild -list
@@ -31,7 +34,7 @@ jobs:
       run: |
         xcodebuild build \
           -scheme TheRecruitingCompass \
-          -destination 'platform=iOS Simulator,name=iPhone 17'
+          -destination 'platform=iOS Simulator,name=iPhone 15'
 
     - name: Run tests
       working-directory: TheRecruitingCompass
@@ -41,4 +44,4 @@ jobs:
       run: |
         xcodebuild test \
           -scheme TheRecruitingCompass \
-          -destination 'platform=iOS Simulator,name=iPhone 17'
+          -destination 'platform=iOS Simulator,name=iPhone 15'
