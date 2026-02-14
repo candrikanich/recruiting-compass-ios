@@ -138,13 +138,7 @@ final class AuthManager: ObservableObject, AuthManaging {
       // Check if session is expired
       let now = Int(Date().timeIntervalSince1970)
       if savedSession.expiresAt > now {
-        // Session is still valid
-        self.session = savedSession
-        self.user = savedSession.user
-        self.isAuthenticated = true
-        self.errorMessage = nil
-      } else {
-        // Session expired, try to refresh
+        // Session is still valid - refresh to get latest user data
         do {
           let updatedUser = try await SupabaseManager.shared.refreshSession()
           // If refresh succeeds, get the new session
@@ -156,6 +150,28 @@ final class AuthManager: ObservableObject, AuthManaging {
             try keychain.save(newSession, forKey: sessionKey)
           } else {
             // No session after refresh, clear everything
+            self.session = nil
+            self.user = nil
+            self.isAuthenticated = false
+            try keychain.delete(forKey: sessionKey)
+          }
+        } catch {
+          // Refresh failed, but session is still valid - use cached data
+          self.session = savedSession
+          self.user = savedSession.user
+          self.isAuthenticated = true
+        }
+      } else {
+        // Session expired, try to refresh
+        do {
+          let updatedUser = try await SupabaseManager.shared.refreshSession()
+          if let newSession = try await SupabaseManager.shared.getCurrentSession() {
+            self.session = newSession
+            self.user = updatedUser
+            self.isAuthenticated = true
+            self.errorMessage = nil
+            try keychain.save(newSession, forKey: sessionKey)
+          } else {
             self.session = nil
             self.user = nil
             self.isAuthenticated = false
