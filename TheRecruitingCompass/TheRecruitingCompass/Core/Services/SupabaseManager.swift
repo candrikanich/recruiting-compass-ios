@@ -125,7 +125,21 @@ final class SupabaseManager: @unchecked Sendable {
       data: metadata
     )
 
-    let user = mapToUser(response.user)
+    // Try to fetch from database, fall back to metadata for new users
+    let user = await fetchUserProfileWithRetry(
+      userId: response.user.id.uuidString,
+      email: response.user.email ?? email,
+      fallbackMetadata: response.user.userMetadata
+    ) ?? User(
+      id: response.user.id.uuidString,
+      email: response.user.email ?? email,
+      emailConfirmedAt: nil,
+      phone: nil,
+      createdAt: ISO8601DateFormatter().string(from: Date()),
+      updatedAt: ISO8601DateFormatter().string(from: Date()),
+      role: role
+    )
+
     let session = response.session.map { mapToSession($0, user: user) }
 
     return (user, session)
