@@ -187,6 +187,28 @@ final class SupabaseManager: @unchecked Sendable {
     }
   }
 
+  // MARK: - User Profile
+
+  func fetchUserProfile(userId: String) async throws -> User {
+    let dbUser: DatabaseUser = try await client
+      .from("users")
+      .select()
+      .eq("id", value: userId)
+      .single()
+      .execute()
+      .value
+
+    return User(
+      id: dbUser.id,
+      email: dbUser.email,
+      emailConfirmedAt: nil,
+      phone: nil,
+      createdAt: dbUser.created_at,
+      updatedAt: dbUser.updated_at,
+      role: UserRole(rawValue: dbUser.role)
+    )
+  }
+
   // MARK: - Private Helpers
 
   private func mapToUser(_ authUser: Supabase.User) -> User {
