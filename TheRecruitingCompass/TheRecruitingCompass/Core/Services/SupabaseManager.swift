@@ -164,13 +164,17 @@ final class SupabaseManager: @unchecked Sendable {
   }
 
   func refreshSession() async throws -> User {
-    do {
-      let authSession = try await client.auth.session
-      let user = mapToUser(authSession.user)
-      return user
-    } catch {
-      throw AuthError.unknown(error)
+    let authSession = try await client.auth.session
+
+    guard let user = await fetchUserProfileWithRetry(
+      userId: authSession.user.id.uuidString,
+      email: authSession.user.email ?? "",
+      fallbackMetadata: authSession.user.userMetadata
+    ) else {
+      throw AuthError.serverError("Failed to fetch user profile")
     }
+
+    return user
   }
 
   func resendVerificationEmail(email: String) async throws {
