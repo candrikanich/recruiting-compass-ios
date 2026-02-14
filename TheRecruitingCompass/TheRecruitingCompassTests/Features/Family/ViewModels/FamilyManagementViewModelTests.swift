@@ -26,21 +26,14 @@ final class FamilyManagementViewModelTests: XCTestCase {
   // MARK: - Test Helpers
 
   private func makeUser(id: String = "user-1", role: UserRole = .player) -> User {
-    // Create metadata with role - encode/decode to get proper AnyCodable
-    var metadata: [String: AnyCodable]?
-    if let data = try? JSONEncoder().encode(["role": role.rawValue]),
-       let decoded = try? JSONDecoder().decode([String: AnyCodable].self, from: data) {
-      metadata = decoded
-    }
-
     return User(
       id: id,
       email: "test@test.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
       phone: nil,
-      userMetadata: metadata,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: role
     )
   }
 
