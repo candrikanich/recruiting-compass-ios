@@ -211,7 +211,56 @@ final class SupabaseManager: @unchecked Sendable {
     )
   }
 
+  func fetchUserProfileWithRetry(
+    userId: String,
+    email: String,
+    fallbackMetadata: [String: AnyJSON]?
+  ) async -> User? {
+    let maxRetries = 3
+    let retryDelays: [UInt64] = [500_000_000, 1_000_000_000, 2_000_000_000]
+
+    for attempt in 0..<maxRetries {
+      do {
+        let user = try await fetchUserProfile(userId: userId)
+        logger.info("Successfully fetched user profile for \(userId)")
+        return user
+      } catch {
+        logger.warning("Attempt \(attempt + 1)/\(maxRetries) failed: \(error.localizedDescription)")
+        if attempt < maxRetries - 1 {
+          try? await Task.sleep(nanoseconds: retryDelays[attempt])
+        }
+      }
+    }
+
+    // Fallback to metadata if all retries failed
+    logger.error("All retries failed for user \(userId), falling back to metadata")
+    return createUserFromMetadata(userId: userId, email: email, metadata: fallbackMetadata)
+  }
+
   // MARK: - Private Helpers
+
+  private func createUserFromMetadata(
+    userId: String,
+    email: String,
+    metadata: [String: AnyJSON]?
+  ) -> User? {
+    guard let metadata = metadata,
+          let roleData = metadata["role"],
+          case let roleString as String = roleData.value,
+          let role = UserRole(rawValue: roleString) else {
+      return nil
+    }
+
+    return User(
+      id: userId,
+      email: email,
+      emailConfirmedAt: nil,
+      phone: nil,
+      createdAt: ISO8601DateFormatter().string(from: Date()),
+      updatedAt: ISO8601DateFormatter().string(from: Date()),
+      role: role
+    )
+  }
 
   private func mapToUser(_ authUser: Supabase.User) -> User {
     // Map userMetadata from Supabase auth user
