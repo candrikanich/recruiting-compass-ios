@@ -1,6 +1,12 @@
 import Foundation
 import Supabase
 import Helpers
+import OSLog
+
+private let logger = Logger(
+  subsystem: "com.chrisandrikanich.TheRecruitingCompass",
+  category: "UserProfile"
+)
 
 // Support for nested JSON objects in metadata
 struct AnyCodable: Codable {
@@ -54,6 +60,17 @@ final class SupabaseManager: @unchecked Sendable {
   static let shared = SupabaseManager()
 
   let client: SupabaseClient
+
+  // MARK: - Database Models
+
+  private struct DatabaseUser: Codable {
+    let id: String
+    let email: String
+    let full_name: String?
+    let role: String
+    let created_at: String
+    let updated_at: String
+  }
 
   private init() {
     self.client = SupabaseClient(
