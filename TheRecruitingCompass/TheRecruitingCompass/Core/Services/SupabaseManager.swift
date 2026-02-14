@@ -66,6 +66,8 @@ final class SupabaseManager: @unchecked Sendable {
   private struct DatabaseUser: Codable {
     let id: String
     let email: String
+    let email_confirmed_at: String?
+    let phone: String?
     let full_name: String?
     let role: String
     let created_at: String
@@ -201,8 +203,8 @@ final class SupabaseManager: @unchecked Sendable {
     return User(
       id: dbUser.id,
       email: dbUser.email,
-      emailConfirmedAt: nil,
-      phone: nil,
+      emailConfirmedAt: dbUser.email_confirmed_at,
+      phone: dbUser.phone,
       createdAt: dbUser.created_at,
       updatedAt: dbUser.updated_at,
       role: UserRole(rawValue: dbUser.role)
