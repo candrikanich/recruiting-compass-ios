@@ -10,8 +10,7 @@ struct SettingsView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      List {
+    List {
         // Profile & Player Info Section
         Section {
           NavigationLink {
@@ -108,7 +107,6 @@ struct SettingsView: View {
       }
       .navigationTitle("Settings")
       .navigationBarTitleDisplayMode(.large)
-    }
   }
 }
 

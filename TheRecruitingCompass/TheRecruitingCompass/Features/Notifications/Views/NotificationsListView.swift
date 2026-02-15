@@ -8,8 +8,7 @@ struct NotificationsListView: View {
   @State private var pendingDeleteId: String?
 
   var body: some View {
-    NavigationStack {
-      VStack(spacing: 0) {
+    VStack(spacing: 0) {
         NotificationBulkActions(
           hasUnread: viewModel.hasUnread,
           hasRead: viewModel.hasRead,
@@ -88,6 +87,5 @@ struct NotificationsListView: View {
       } message: {
         Text("Are you sure you want to remove all read notifications?")
       }
-    }
   }
 }

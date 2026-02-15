@@ -46,12 +46,14 @@ struct MainTabView: View {
       }
       .accessibilityLabel("Interactions")
 
-      NotificationsListView(viewModel: notificationsViewModel)
-        .tabItem {
-          Label("Notifications", systemImage: "bell.fill")
-        }
-        .badge(notificationsViewModel.unreadCount > 0 ? notificationsViewModel.unreadCount : 0)
-        .accessibilityLabel("Notifications")
+      NavigationStack {
+        NotificationsListView(viewModel: notificationsViewModel)
+      }
+      .tabItem {
+        Label("Notifications", systemImage: "bell.fill")
+      }
+      .badge(notificationsViewModel.unreadCount > 0 ? notificationsViewModel.unreadCount : 0)
+      .accessibilityLabel("Notifications")
 
       NavigationStack {
         FamilyManagementView()
@@ -61,11 +63,13 @@ struct MainTabView: View {
       }
       .accessibilityLabel("Family")
 
-      SettingsView()
-        .tabItem {
-          Label("Settings", systemImage: "gearshape.fill")
-        }
-        .accessibilityLabel("Settings")
+      NavigationStack {
+        SettingsView()
+      }
+      .tabItem {
+        Label("Settings", systemImage: "gearshape.fill")
+      }
+      .accessibilityLabel("Settings")
     }
   }
 }

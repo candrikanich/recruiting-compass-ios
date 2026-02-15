@@ -11,8 +11,7 @@ struct DashboardView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      VStack(spacing: 0) {
+    VStack(spacing: 0) {
         if viewModel.isParentPreviewMode {
           ParentPreviewBanner(
             athleteName: viewModel.selectedAthleteName,
@@ -81,7 +80,6 @@ struct DashboardView: View {
       .task {
         await viewModel.fetchDashboardData()
       }
-    }
   }
 
   private var headerSection: some View {
