@@ -2,6 +2,7 @@ import SwiftUI
 
 struct NotificationsListView: View {
   @ObservedObject var viewModel: NotificationsListViewModel
+  @EnvironmentObject var familyManager: FamilyManager
 
   @State private var showDeleteAlert = false
   @State private var showClearReadAlert = false
@@ -63,6 +64,9 @@ struct NotificationsListView: View {
       }
       .navigationTitle("Notifications")
       .navigationBarTitleDisplayMode(.large)
+      .navigationDestination(item: $viewModel.selectedDestination) { destination in
+        destinationView(for: destination)
+      }
       .task {
         await viewModel.fetchNotifications()
       }
@@ -87,5 +91,38 @@ struct NotificationsListView: View {
       } message: {
         Text("Are you sure you want to remove all read notifications?")
       }
+  }
+
+  @ViewBuilder
+  private func destinationView(for destination: NotificationDestination) -> some View {
+    switch destination {
+    case .coachDetail(let id):
+      CoachDetailView(coachId: id)
+
+    case .schoolDetail(let id):
+      SchoolDetailView(schoolId: id)
+
+    case .interactionDetail(let id):
+      if let familyUnitId = familyManager.familyUnitId {
+        InteractionDetailView(interactionId: id, familyUnitId: familyUnitId)
+      } else {
+        Text("Unable to load interaction details")
+          .foregroundColor(.secondary)
+      }
+
+    case .offerDetail:
+      Text("Offer details coming soon")
+        .font(.headline)
+        .foregroundColor(.secondary)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .navigationTitle("Offer")
+
+    case .eventDetail:
+      Text("Event details coming soon")
+        .font(.headline)
+        .foregroundColor(.secondary)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .navigationTitle("Event")
+    }
   }
 }
