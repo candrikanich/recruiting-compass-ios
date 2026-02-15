@@ -41,7 +41,11 @@ struct Interaction: Identifiable, Codable, Sendable {
     subject ?? type.displayName
   }
 
-  static let iso8601Formatter = ISO8601DateFormatter()
+  static let iso8601Formatter: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter
+  }()
 
   enum CodingKeys: String, CodingKey {
     case id

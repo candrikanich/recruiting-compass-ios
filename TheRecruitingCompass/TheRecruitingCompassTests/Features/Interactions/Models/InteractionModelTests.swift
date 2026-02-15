@@ -218,7 +218,7 @@ final class InteractionModelTests: XCTestCase {
       subject: subject,
       content: content,
       sentiment: sentiment,
-      occurredAt: occurredAt ?? ISO8601DateFormatter().string(from: Date()),
+      occurredAt: occurredAt,
       loggedBy: "user1",
       attachments: attachments,
       familyUnitId: "family1",
