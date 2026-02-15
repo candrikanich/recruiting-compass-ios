@@ -47,9 +47,9 @@ class MockAuthManager: AuthManaging {
       email: email,
       emailConfirmedAt: "2024-01-01T00:00:00Z",
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
 
     let session = mockSessionToReturn ?? Session(
@@ -85,9 +85,9 @@ class MockAuthManager: AuthManaging {
       email: email,
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: role
     )
 
     let session = mockSessionToReturn ?? Session(

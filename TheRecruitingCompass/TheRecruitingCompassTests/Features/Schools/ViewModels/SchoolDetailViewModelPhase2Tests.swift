@@ -19,9 +19,9 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
 
     // Set up family unit
@@ -265,8 +265,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
 
   func testAddPro_Success_ClearsInput() async {
     // Given
-    let updatedSchool = createMockSchool(pros: ["Great facilities"])
-    mockSchoolsService.stubbedSchool = updatedSchool
+    mockSchoolsService.stubbedSchool = createMockSchool(pros: [])
     viewModel.newPro = "Great facilities"
 
     // When
@@ -340,8 +339,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
 
   func testAddCon_Success_ClearsInput() async {
     // Given
-    let updatedSchool = createMockSchool(cons: ["Far from home"])
-    mockSchoolsService.stubbedSchool = updatedSchool
+    mockSchoolsService.stubbedSchool = createMockSchool(cons: [])
     viewModel.newCon = "Far from home"
 
     // When
@@ -489,7 +487,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
     XCTAssertEqual(userId, "user-1")
   }
 
-  func testCurrentUserId_NoUser_ReturnsEmpty() {
+  func testCurrentUserId_NoUser_ReturnsEmpty() async {
     // Given
     mockAuthManager.user = nil
     let newViewModel = SchoolDetailViewModel(

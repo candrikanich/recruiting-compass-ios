@@ -23,9 +23,9 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
 
     // Set up family unit
@@ -365,7 +365,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     // Given
     let school = createMockSchool(isFavorite: false)
     viewModel.school = school
-    mockSchoolsService.shouldSucceed = false
+    mockSchoolsService.shouldThrowError = true
 
     // When
     await viewModel.toggleFavorite()

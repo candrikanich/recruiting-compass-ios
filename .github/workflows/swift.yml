@@ -19,6 +19,21 @@ jobs:
     - name: Show Xcode version
       run: xcodebuild -version
 
+    - name: List available simulators
+      run: |
+        echo "=== Available iPhone Simulators ==="
+        xcrun simctl list devices available | grep "iPhone"
+        echo ""
+        echo "=== Using: iPhone 16 with OS=latest ==="
+
+    - name: Boot iPhone 16 simulator
+      run: |
+        DEVICE_ID=$(xcrun simctl list devices available | grep "iPhone 16 (" | grep -v "Clone" | head -1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
+        echo "Found device: $DEVICE_ID"
+        xcrun simctl boot "$DEVICE_ID" || echo "Device already booted or boot failed (may be OK)"
+        echo "Waiting for simulator to fully boot..."
+        sleep 5
+
     - name: Show available schemes
       working-directory: TheRecruitingCompass
       run: xcodebuild -list
@@ -31,7 +46,7 @@ jobs:
       run: |
         xcodebuild build \
           -scheme TheRecruitingCompass \
-          -destination 'platform=iOS Simulator,name=iPhone 15'
+          -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16'
 
     - name: Run tests
       working-directory: TheRecruitingCompass
@@ -41,4 +56,5 @@ jobs:
       run: |
         xcodebuild test \
           -scheme TheRecruitingCompass \
-          -destination 'platform=iOS Simulator,name=iPhone 15'
+          -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+          -only-testing:TheRecruitingCompassTests

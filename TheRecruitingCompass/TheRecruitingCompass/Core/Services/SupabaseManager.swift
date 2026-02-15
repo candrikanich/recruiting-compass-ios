@@ -1,11 +1,78 @@
 import Foundation
 import Supabase
 import Helpers
+import OSLog
+
+private let logger = Logger(
+  subsystem: "com.chrisandrikanich.TheRecruitingCompass",
+  category: "UserProfile"
+)
+
+// Support for nested JSON objects in metadata
+struct AnyCodable: Codable {
+  let value: Any
+
+  init(value: Any) {
+    self.value = value
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    if let intVal = try? container.decode(Int.self) {
+      value = intVal
+    } else if let doubleVal = try? container.decode(Double.self) {
+      value = doubleVal
+    } else if let boolVal = try? container.decode(Bool.self) {
+      value = boolVal
+    } else if let stringVal = try? container.decode(String.self) {
+      value = stringVal
+    } else if let arrayVal = try? container.decode([AnyCodable].self) {
+      value = arrayVal
+    } else if let dictVal = try? container.decode([String: AnyCodable].self) {
+      value = dictVal
+    } else {
+      value = NSNull()
+    }
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch value {
+    case let val as Int:
+      try container.encode(val)
+    case let val as Double:
+      try container.encode(val)
+    case let val as Bool:
+      try container.encode(val)
+    case let val as String:
+      try container.encode(val)
+    case let val as [AnyCodable]:
+      try container.encode(val)
+    case let val as [String: AnyCodable]:
+      try container.encode(val)
+    default:
+      try container.encodeNil()
+    }
+  }
+}
 
 final class SupabaseManager: @unchecked Sendable {
   static let shared = SupabaseManager()
 
   let client: SupabaseClient
+
+  // MARK: - Database Models
+
+  private struct DatabaseUser: Codable {
+    let id: String
+    let email: String
+    let email_confirmed_at: String?
+    let phone: String?
+    let full_name: String?
+    let role: String
+    let created_at: String
+    let updated_at: String
+  }
 
   private init() {
     self.client = SupabaseClient(
@@ -22,7 +89,15 @@ final class SupabaseManager: @unchecked Sendable {
       password: password
     )
 
-    let user = mapToUser(response.user)
+    // Fetch user profile from database with retry
+    guard let user = await fetchUserProfileWithRetry(
+      userId: response.user.id.uuidString,
+      email: response.user.email ?? email,
+      fallbackMetadata: response.user.userMetadata
+    ) else {
+      throw AuthError.serverError("Failed to fetch user profile")
+    }
+
     let session = mapToSession(response, user: user)
 
     return (user, session)
@@ -50,7 +125,21 @@ final class SupabaseManager: @unchecked Sendable {
       data: metadata
     )
 
-    let user = mapToUser(response.user)
+    // Try to fetch from database, fall back to metadata for new users
+    let user = await fetchUserProfileWithRetry(
+      userId: response.user.id.uuidString,
+      email: response.user.email ?? email,
+      fallbackMetadata: response.user.userMetadata
+    ) ?? User(
+      id: response.user.id.uuidString,
+      email: response.user.email ?? email,
+      emailConfirmedAt: nil,
+      phone: nil,
+      createdAt: ISO8601DateFormatter().string(from: Date()),
+      updatedAt: ISO8601DateFormatter().string(from: Date()),
+      role: role
+    )
+
     let session = response.session.map { mapToSession($0, user: user) }
 
     return (user, session)
@@ -67,7 +156,14 @@ final class SupabaseManager: @unchecked Sendable {
         return nil
       }
 
-      let user = mapToUser(authSession.user)
+      guard let user = await fetchUserProfileWithRetry(
+        userId: authSession.user.id.uuidString,
+        email: authSession.user.email ?? "",
+        fallbackMetadata: authSession.user.userMetadata
+      ) else {
+        throw AuthError.serverError("Failed to fetch user profile")
+      }
+
       return mapToSession(authSession, user: user)
     } catch {
       throw AuthError.unknown(error)
@@ -75,13 +171,17 @@ final class SupabaseManager: @unchecked Sendable {
   }
 
   func refreshSession() async throws -> User {
-    do {
-      let authSession = try await client.auth.session
-      let user = mapToUser(authSession.user)
-      return user
-    } catch {
-      throw AuthError.unknown(error)
+    let authSession = try await client.auth.session
+
+    guard let user = await fetchUserProfileWithRetry(
+      userId: authSession.user.id.uuidString,
+      email: authSession.user.email ?? "",
+      fallbackMetadata: authSession.user.userMetadata
+    ) else {
+      throw AuthError.serverError("Failed to fetch user profile")
     }
+
+    return user
   }
 
   func resendVerificationEmail(email: String) async throws {
@@ -122,22 +222,76 @@ final class SupabaseManager: @unchecked Sendable {
     }
   }
 
+  // MARK: - User Profile
+
+  func fetchUserProfile(userId: String) async throws -> User {
+    let dbUser: DatabaseUser = try await client
+      .from("users")
+      .select()
+      .eq("id", value: userId)
+      .single()
+      .execute()
+      .value
+
+    return User(
+      id: dbUser.id,
+      email: dbUser.email,
+      emailConfirmedAt: dbUser.email_confirmed_at,
+      phone: dbUser.phone,
+      createdAt: dbUser.created_at,
+      updatedAt: dbUser.updated_at,
+      role: UserRole(rawValue: dbUser.role)
+    )
+  }
+
+  func fetchUserProfileWithRetry(
+    userId: String,
+    email: String,
+    fallbackMetadata: [String: AnyJSON]?
+  ) async -> User? {
+    let maxRetries = 3
+    let retryDelays: [UInt64] = [500_000_000, 1_000_000_000, 2_000_000_000]
+
+    for attempt in 0..<maxRetries {
+      do {
+        let user = try await fetchUserProfile(userId: userId)
+        logger.info("Successfully fetched user profile for \(userId)")
+        return user
+      } catch {
+        logger.warning("Attempt \(attempt + 1)/\(maxRetries) failed: \(error.localizedDescription)")
+        if attempt < maxRetries - 1 {
+          try? await Task.sleep(nanoseconds: retryDelays[attempt])
+        }
+      }
+    }
+
+    // Fallback to metadata if all retries failed
+    logger.error("All retries failed for user \(userId), falling back to metadata")
+    return createUserFromMetadata(userId: userId, email: email, metadata: fallbackMetadata)
+  }
+
   // MARK: - Private Helpers
 
-  private func mapToUser(_ authUser: Supabase.User) -> User {
-    // Map userMetadata from Supabase auth user
-    let metadata: [String: AnyCodable]? = authUser.userMetadata.isEmpty ? nil : authUser.userMetadata.mapValues { value in
-      AnyCodable(value: value)
+  private func createUserFromMetadata(
+    userId: String,
+    email: String,
+    metadata: [String: AnyJSON]?
+  ) -> User? {
+    guard let metadata = metadata,
+          let roleData = metadata["role"],
+          case let roleString as String = roleData.value,
+          let role = UserRole(rawValue: roleString) else {
+      return nil
     }
 
     return User(
-      id: authUser.id.uuidString,
-      email: authUser.email ?? "",
-      emailConfirmedAt: authUser.emailConfirmedAt?.ISO8601Format(),
-      phone: authUser.phone,
-      userMetadata: metadata,
-      createdAt: authUser.createdAt.ISO8601Format(),
-      updatedAt: authUser.updatedAt.ISO8601Format()
+      id: userId,
+      email: email,
+      emailConfirmedAt: nil,
+      phone: nil,
+      createdAt: ISO8601DateFormatter().string(from: Date()),
+      updatedAt: ISO8601DateFormatter().string(from: Date()),
+      role: role
     )
   }
 

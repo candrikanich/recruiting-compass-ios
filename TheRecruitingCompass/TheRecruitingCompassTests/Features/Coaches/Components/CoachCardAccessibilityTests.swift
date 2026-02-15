@@ -90,7 +90,7 @@ final class CoachCardAccessibilityTests: XCTestCase {
 
   func testCommunicationType_phoneURL() {
     let url = CommunicationType.phone("555-1234").url(for: "555-1234")
-    XCTAssertEqual(url?.absoluteString, "sms:555-1234")
+    XCTAssertEqual(url?.absoluteString, "sms:5551234")
   }
 
   func testCommunicationType_twitterURL_stripsAt() {

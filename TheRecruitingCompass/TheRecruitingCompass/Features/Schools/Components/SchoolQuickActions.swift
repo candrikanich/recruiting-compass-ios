@@ -99,9 +99,9 @@ private struct QuickActionButton: View {
 
 #Preview {
   SchoolQuickActions(
-    onLogInteraction: { print("Log Interaction") },
-    onSendEmail: { print("Send Email") },
-    onManageCoaches: { print("Manage Coaches") }
+    onLogInteraction: {},
+    onSendEmail: {},
+    onManageCoaches: {}
   )
   .padding()
 }

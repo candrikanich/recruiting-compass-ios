@@ -23,18 +23,18 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
     let verifiedUser = User(
       id: "test-id",
       email: "test@example.com",
       emailConfirmedAt: "2024-01-01T12:00:00Z",
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T12:00:00Z"
+      updatedAt: "2024-01-01T12:00:00Z",
+      role: nil
     )
 
     mockAuthManager.setMockUser(unverifiedUser)
@@ -64,18 +64,18 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
     let verifiedUser = User(
       id: "test-id",
       email: "test@example.com",
       emailConfirmedAt: "2024-01-01T12:00:00Z",
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T12:00:00Z"
+      updatedAt: "2024-01-01T12:00:00Z",
+      role: nil
     )
 
     mockAuthManager.setMockUser(unverifiedUser)
@@ -100,9 +100,9 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
     mockAuthManager.setMockUser(user)
     let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
@@ -128,9 +128,9 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
     mockAuthManager.setMockUser(user)
     let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
@@ -152,9 +152,9 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
     mockAuthManager.setMockUser(user)
     mockAuthManager.shouldThrowRefreshError = true
@@ -181,9 +181,9 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
     mockAuthManager.setMockUser(user)
     let viewModel = EmailVerificationViewModel(
@@ -214,9 +214,9 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
     mockAuthManager.setMockUser(user)
     let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
@@ -235,9 +235,9 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: "2024-01-01T12:00:00Z",
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T12:00:00Z"
+      updatedAt: "2024-01-01T12:00:00Z",
+      role: nil
     )
     mockAuthManager.setMockUser(user)
     let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
@@ -254,9 +254,9 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
     mockAuthManager.setMockUser(user)
 
@@ -277,9 +277,9 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
     mockAuthManager.setMockUser(user)
     mockAuthManager.shouldThrowRefreshError = true
@@ -305,9 +305,9 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     )
     mockAuthManager.setMockUser(user)
     let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)

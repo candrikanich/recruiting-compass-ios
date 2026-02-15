@@ -56,7 +56,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testBackToRoleSelectionResetsState() {
-    sut.selectRole(.student)
+    sut.selectRole(.player)
     sut.fullName = "John Doe"
     sut.email = "john@example.com"
     sut.password = "StrongPass123"
@@ -135,7 +135,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testValidateFamilyCodeForStudentRole() {
-    sut.selectedRole = .student
+    sut.selectedRole = .player
     sut.familyCode = "FAM-ABC12345"
     sut.validateFamilyCode()
 
@@ -143,7 +143,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testValidateFamilyCodeOptionalForStudentRole() {
-    sut.selectedRole = .student
+    sut.selectedRole = .player
     sut.familyCode = ""
     sut.validateFamilyCode()
 
@@ -181,14 +181,14 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testIsFormValidForStudentRoleWithoutFamilyCode() {
-    fillValidForm(role: .student)
+    fillValidForm(role: .player)
     sut.familyCode = ""
 
     XCTAssertTrue(sut.isFormValid)
   }
 
   func testIsFormValidForStudentRoleWithFamilyCode() {
-    fillValidForm(role: .student)
+    fillValidForm(role: .player)
     sut.familyCode = "FAM-ABC12345"
 
     XCTAssertTrue(sut.isFormValid)
@@ -277,7 +277,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupSuccessForStudentRole() async {
-    fillValidForm(role: .student)
+    fillValidForm(role: .player)
 
     await sut.signup()
 
@@ -432,7 +432,7 @@ final class SignupViewModelTests: XCTestCase {
   // MARK: - Signup Family Code Logic Tests
 
   func testSignupSendsFamilyCodeForStudentRole() async {
-    fillValidForm(role: .student)
+    fillValidForm(role: .player)
     sut.familyCode = "FAM-ABC12345"
 
     await sut.signup()
@@ -452,7 +452,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupSendsNilFamilyCodeWhenEmptyForStudentRole() async {
-    fillValidForm(role: .student)
+    fillValidForm(role: .player)
     sut.familyCode = ""
 
     await sut.signup()
@@ -462,7 +462,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupTrimsWhitespaceFamilyCode() async {
-    fillValidForm(role: .student)
+    fillValidForm(role: .player)
     sut.familyCode = "   "
 
     await sut.signup()
@@ -492,7 +492,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupWithInvalidFamilyCodeFormatDoesNotCallAuthManager() async {
-    fillValidForm(role: .student)
+    fillValidForm(role: .player)
     sut.familyCode = "INVALID"
 
     await sut.signup()

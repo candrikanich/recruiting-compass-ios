@@ -61,14 +61,10 @@ struct FilterChipContainer<Content: View>: View {
   FilterChipContainer(
     hasFilters: true,
     style: .outlined,
-    onClearAll: { print("Clear all") }
+    onClearAll: {}
   ) {
-    FilterChip(label: "Role: Head Coach", style: .outlined) {
-      print("Remove role")
-    }
-    FilterChip(label: "Last 30 days", style: .outlined) {
-      print("Remove last contact")
-    }
+    FilterChip(label: "Role: Head Coach", style: .outlined) {}
+    FilterChip(label: "Last 30 days", style: .outlined) {}
   }
 }
 
@@ -76,14 +72,10 @@ struct FilterChipContainer<Content: View>: View {
   FilterChipContainer(
     hasFilters: true,
     style: .filled,
-    onClearAll: { print("Clear all") }
+    onClearAll: {}
   ) {
-    FilterChip(label: "Division: D1", style: .filled) {
-      print("Remove division")
-    }
-    FilterChip(label: "Status: Interested", style: .filled) {
-      print("Remove status")
-    }
+    FilterChip(label: "Division: D1", style: .filled) {}
+    FilterChip(label: "Status: Interested", style: .filled) {}
   }
 }
 
@@ -91,10 +83,8 @@ struct FilterChipContainer<Content: View>: View {
   FilterChipContainer(
     hasFilters: false,
     style: .outlined,
-    onClearAll: { print("Clear all") }
+    onClearAll: {}
   ) {
-    FilterChip(label: "Should not show", style: .outlined) {
-      print("Remove")
-    }
+    FilterChip(label: "Should not show", style: .outlined) {}
   }
 }

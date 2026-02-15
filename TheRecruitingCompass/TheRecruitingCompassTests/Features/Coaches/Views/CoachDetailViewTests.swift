@@ -19,9 +19,9 @@ final class CoachDetailViewTests: XCTestCase {
       email: "test@test.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     ))
 
     testCoach = makeCoach(id: "coach-1", firstName: "John", lastName: "Smith")
@@ -189,7 +189,7 @@ final class CoachDetailViewTests: XCTestCase {
 
   // MARK: - Edit Flow Tests
 
-  func testEditFlow_startEditingSetsState() {
+  func testEditFlow_startEditingSetsState() async {
     let viewModel = CoachDetailViewModel(
       coachId: "coach-1",
       allCoaches: [testCoach],
@@ -207,7 +207,7 @@ final class CoachDetailViewTests: XCTestCase {
     XCTAssertTrue(viewModel.validationErrors.isEmpty)
   }
 
-  func testEditFlow_cancelEditingResetsState() {
+  func testEditFlow_cancelEditingResetsState() async {
     let viewModel = CoachDetailViewModel(
       coachId: "coach-1",
       allCoaches: [testCoach],
@@ -272,7 +272,7 @@ final class CoachDetailViewTests: XCTestCase {
 
   // MARK: - Delete Flow Tests
 
-  func testDeleteFlow_confirmDeleteShowsDialog() {
+  func testDeleteFlow_confirmDeleteShowsDialog() async {
     let viewModel = CoachDetailViewModel(
       coachId: "coach-1",
       allCoaches: [testCoach],

@@ -83,9 +83,9 @@ Cmd+R
 # Run all tests
 Cmd+U
 
-# Or via command line
+# Or via command line (use any available iPhone simulator)
 xcodebuild test -scheme TheRecruitingCompass \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
 ---

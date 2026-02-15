@@ -98,7 +98,7 @@ final class DashboardViewModel: ObservableObject {
 
   var selectedAthleteName: String {
     if let athlete = familyManager.selectedAthlete {
-      return "\(athlete.role.capitalized) (ID: \(athlete.userId.prefix(8)))"
+      return athlete.user?.fullName ?? "Athlete"
     }
     return "Athlete"
   }

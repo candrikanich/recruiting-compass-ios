@@ -115,15 +115,11 @@ extension ContentSizeCategory {
 }
 
 #Preview("Outlined Style") {
-  FilterChip(label: "Filter Name", style: .outlined) {
-    print("Remove tapped")
-  }
+  FilterChip(label: "Filter Name", style: .outlined) {}
   .padding()
 }
 
 #Preview("Filled Style") {
-  FilterChip(label: "Filter Name", style: .filled) {
-    print("Remove tapped")
-  }
+  FilterChip(label: "Filter Name", style: .filled) {}
   .padding()
 }

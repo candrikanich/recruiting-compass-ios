@@ -10,15 +10,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 cd TheRecruitingCompass
 xcodebuild build -scheme TheRecruitingCompass \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
 ### Run Tests
 ```bash
 cd TheRecruitingCompass
 xcodebuild test -scheme TheRecruitingCompass \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
+
+**Note:**
+- Local development uses iPhone 17 (available in Xcode 16.4+)
+- CI/CD uses `platform=iOS Simulator,OS=latest,name=iPhone 16` with explicit boot
+- The `OS=latest` parameter prevents xcodebuild from selecting unstable simulator clones
+- Use whatever iPhone simulator you have available locally
 
 ### Environment Configuration
 Supabase credentials must be configured before running:

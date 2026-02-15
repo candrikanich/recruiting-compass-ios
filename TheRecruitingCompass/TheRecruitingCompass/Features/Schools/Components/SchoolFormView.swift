@@ -286,12 +286,8 @@ struct SchoolFormView: View {
       formErrors: $formErrors,
       isDisabled: false,
       onValidateField: { _, _ in },
-      onNcaaLookup: { schoolName in
-        print("NCAA lookup for: \(schoolName)")
-      },
-      onCharacterCountChange: { count in
-        print("Character count: \(count)")
-      }
+      onNcaaLookup: { _ in },
+      onCharacterCountChange: { _ in }
     )
     .padding()
   }

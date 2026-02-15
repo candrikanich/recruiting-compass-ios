@@ -25,9 +25,9 @@ final class SchoolsListViewModelTests: XCTestCase {
       email: "test@test.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
       phone: nil,
-      userMetadata: nil,
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil
     ))
 
     mockFamilyManager.currentMember = FamilyMember(
@@ -449,7 +449,7 @@ final class SchoolsListViewModelTests: XCTestCase {
   func testDelete_CascadeFallback() async {
     let school = makeSchool(id: "school-1")
     sut.allSchools = [school]
-    mockService.shouldThrowError = true
+    mockService.simpleDeleteShouldFail = true
     sut.confirmDelete(school: school)
 
     await sut.deleteSchool()

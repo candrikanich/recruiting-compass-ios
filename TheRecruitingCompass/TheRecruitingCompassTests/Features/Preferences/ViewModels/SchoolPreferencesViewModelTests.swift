@@ -128,7 +128,17 @@ final class SchoolPreferencesViewModelTests: XCTestCase {
   }
 
   func testCancelTemplateApplication_ClearsWarning() {
-    // Given
+    // Given - Need existing preferences to trigger the warning path
+    viewModel.preferences.preferences = [
+      SchoolPreference(
+        id: "1",
+        category: .location,
+        type: "max_distance_miles",
+        value: .int(100),
+        priority: 1,
+        isDealbreaker: false
+      )
+    ]
     viewModel.requestTemplateApplication("D1 Power Conference")
     XCTAssertTrue(viewModel.showingTemplateWarning)
 

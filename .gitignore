@@ -13,6 +13,7 @@ DerivedData/
 *.xcworkspace/xcuserdata/
 xcuserdata/
 *.xcodeproj/xcuserdata/
+*.xcuserstate
 .DS_Store
 
 # CocoaPods
@@ -32,3 +33,6 @@ Package.resolved
 # macOS
 .DS_Store
 **/.DS_Store
+
+# Supabase
+supabase/.temp/

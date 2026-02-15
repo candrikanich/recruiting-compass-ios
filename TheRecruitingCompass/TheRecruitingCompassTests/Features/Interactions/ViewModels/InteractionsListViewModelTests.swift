@@ -38,9 +38,9 @@ final class InteractionsListViewModelTests: XCTestCase {
       email: "athlete@test.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "",
-      updatedAt: ""
+      updatedAt: "",
+      role: nil
     )
 
     let interactions = createMockInteractions(count: 5, loggedBy: "athlete1")
@@ -68,9 +68,9 @@ final class InteractionsListViewModelTests: XCTestCase {
       email: "parent@test.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "",
-      updatedAt: ""
+      updatedAt: "",
+      role: nil
     )
 
     let interactions = createMockInteractions(count: 10, loggedBy: "various")
@@ -107,9 +107,9 @@ final class InteractionsListViewModelTests: XCTestCase {
       email: "test@test.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "",
-      updatedAt: ""
+      updatedAt: "",
+      role: nil
     )
     mockService.shouldSucceed = false
 
@@ -131,9 +131,9 @@ final class InteractionsListViewModelTests: XCTestCase {
       email: "test@test.com",
       emailConfirmedAt: nil,
       phone: nil,
-      userMetadata: nil,
       createdAt: "",
-      updatedAt: ""
+      updatedAt: "",
+      role: nil
     )
     mockService.mockSchools = []
     mockService.mockCoaches = []
@@ -250,9 +250,9 @@ final class InteractionsListViewModelTests: XCTestCase {
     let fiveDaysAgo = Calendar.current.date(byAdding: .day, value: -5, to: now)!
 
     viewModel.allInteractions = [
-      createInteraction(id: "1", occurredAt: ISO8601DateFormatter().string(from: now)),
-      createInteraction(id: "2", occurredAt: ISO8601DateFormatter().string(from: tenDaysAgo)),
-      createInteraction(id: "3", occurredAt: ISO8601DateFormatter().string(from: fiveDaysAgo))
+      createInteraction(id: "1", occurredAt: Interaction.iso8601Formatter.string(from: now)),
+      createInteraction(id: "2", occurredAt: Interaction.iso8601Formatter.string(from: tenDaysAgo)),
+      createInteraction(id: "3", occurredAt: Interaction.iso8601Formatter.string(from: fiveDaysAgo))
     ]
 
     // When
@@ -305,7 +305,7 @@ final class InteractionsListViewModelTests: XCTestCase {
         direction: .outbound,
         subject: "Follow-up",
         sentiment: .veryPositive,
-        occurredAt: ISO8601DateFormatter().string(from: now),
+        occurredAt: Interaction.iso8601Formatter.string(from: now),
         loggedBy: "user1"
       ),
       createInteraction(id: "2", type: .phoneCall, direction: .inbound)
@@ -399,9 +399,9 @@ final class InteractionsListViewModelTests: XCTestCase {
     let tenDaysAgo = Calendar.current.date(byAdding: .day, value: -10, to: now)!
 
     viewModel.allInteractions = [
-      createInteraction(id: "1", occurredAt: ISO8601DateFormatter().string(from: now)),
-      createInteraction(id: "2", occurredAt: ISO8601DateFormatter().string(from: fiveDaysAgo)),
-      createInteraction(id: "3", occurredAt: ISO8601DateFormatter().string(from: tenDaysAgo))
+      createInteraction(id: "1", occurredAt: Interaction.iso8601Formatter.string(from: now)),
+      createInteraction(id: "2", occurredAt: Interaction.iso8601Formatter.string(from: fiveDaysAgo)),
+      createInteraction(id: "3", occurredAt: Interaction.iso8601Formatter.string(from: tenDaysAgo))
     ]
 
     // Then
@@ -461,7 +461,7 @@ final class InteractionsListViewModelTests: XCTestCase {
     let interaction = createInteraction(id: "1")
     viewModel.allInteractions = [interaction]
     viewModel.interactionToDelete = interaction
-    mockService.shouldSucceed = false // First attempt fails
+    mockService.simpleDeleteShouldFail = true // Simple delete fails, cascade succeeds
 
     // When
     await viewModel.deleteInteraction()
@@ -626,8 +626,8 @@ final class InteractionsListViewModelTests: XCTestCase {
       loggedBy: loggedBy,
       attachments: nil,
       familyUnitId: "family1",
-      createdAt: ISO8601DateFormatter().string(from: Date()),
-      updatedAt: ISO8601DateFormatter().string(from: Date())
+      createdAt: Interaction.iso8601Formatter.string(from: Date()),
+      updatedAt: Interaction.iso8601Formatter.string(from: Date())
     )
   }
 

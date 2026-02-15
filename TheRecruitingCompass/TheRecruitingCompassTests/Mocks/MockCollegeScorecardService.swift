@@ -21,29 +21,27 @@ final class MockCollegeScorecardService: CollegeScorecardManaging {
   // MARK: - CollegeScorecardManaging
 
   nonisolated func lookupCollege(name: String) async throws -> CollegeDataResult? {
-    await MainActor.run {
+    let (shouldThrow, error, result) = await MainActor.run {
       lookupCollegeCallCount += 1
       lastLookupName = name
-
-      if shouldThrowError {
-        // Store error in a captured variable for throwing
-      }
-
-      return stubbedResult
+      return (shouldThrowError, errorToThrow, stubbedResult)
     }
+    if shouldThrow {
+      throw error
+    }
+    return result
   }
 
   nonisolated func searchColleges(query: String) async throws -> [CollegeSearchResult] {
-    await MainActor.run {
+    let (shouldThrow, error, results) = await MainActor.run {
       searchCollegesCallCount += 1
       lastSearchQuery = query
-
-      if shouldThrowError {
-        // Store error in a captured variable for throwing
-      }
-
-      return stubbedSearchResults
+      return (shouldThrowError, errorToThrow, stubbedSearchResults)
     }
+    if shouldThrow {
+      throw error
+    }
+    return results
   }
 
   // MARK: - Test Helpers

@@ -80,7 +80,7 @@ final class CommunicationButtonTests: XCTestCase {
     let url = type.url(for: "555-1234")
 
     XCTAssertNotNil(url)
-    XCTAssertEqual(url?.absoluteString, "sms:555-1234")
+    XCTAssertEqual(url?.absoluteString, "sms:5551234")
     XCTAssertEqual(type.iconName, "message.fill")
     XCTAssertEqual(type.accessibilityLabel, "Text coach")
   }

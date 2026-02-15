@@ -177,7 +177,7 @@ final class SignupFlowE2ETests: XCTestCase {
 
   @MainActor
   func testStudentSignupWithFamilyCode() throws {
-    let userData = TestUserData.uniqueStudent(familyCode: "FAM-ABCD1234")
+    let userData = TestUserData.uniquePlayer(familyCode: "FAM-ABCD1234")
 
     screen.navigateToSignup()
     screen.selectRole(.player)
