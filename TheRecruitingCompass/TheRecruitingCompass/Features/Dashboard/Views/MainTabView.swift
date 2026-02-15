@@ -61,13 +61,11 @@ struct MainTabView: View {
       }
       .accessibilityLabel("Family")
 
-      NavigationStack {
-        SettingsView()
-      }
-      .tabItem {
-        Label("Settings", systemImage: "gearshape.fill")
-      }
-      .accessibilityLabel("Settings")
+      SettingsView()
+        .tabItem {
+          Label("Settings", systemImage: "gearshape.fill")
+        }
+        .accessibilityLabel("Settings")
     }
   }
 }
