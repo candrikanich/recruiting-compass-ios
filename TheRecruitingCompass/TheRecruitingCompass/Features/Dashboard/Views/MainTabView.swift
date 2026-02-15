@@ -60,6 +60,14 @@ struct MainTabView: View {
         Label("Family", systemImage: "person.3.fill")
       }
       .accessibilityLabel("Family")
+
+      NavigationStack {
+        SettingsView()
+      }
+      .tabItem {
+        Label("Settings", systemImage: "gearshape.fill")
+      }
+      .accessibilityLabel("Settings")
     }
   }
 }
