@@ -510,7 +510,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
       duration: 3.0
     )
     XCTAssertEqual(toast.type, .error)
-    XCTAssertEqual(toast.type.iconName, "xmark.circle.fill")
+    XCTAssertEqual(toast.type.iconName, "exclamationmark.circle.fill")
   }
 
   func testToast_InfoTypeHasAccessibleIcon() {
