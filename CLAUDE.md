@@ -20,7 +20,7 @@ xcodebuild test -scheme TheRecruitingCompass \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
-**Note:** Local development uses iPhone 17 (available in Xcode 16.4+), while CI/CD uses iPhone 15 (available on GitHub Actions macos-latest). Use whatever iPhone simulator you have available locally.
+**Note:** Local development uses iPhone 17 (available in Xcode 16.4+), while CI/CD uses iPhone 16 (available on GitHub Actions macos-latest). Use whatever iPhone simulator you have available locally.
 
 ### Environment Configuration
 Supabase credentials must be configured before running:
