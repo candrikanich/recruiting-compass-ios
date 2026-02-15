@@ -1,5 +1,5 @@
-import Combine
 import Foundation
+import Observation
 import OSLog
 
 private let logger = Logger(
@@ -7,22 +7,23 @@ private let logger = Logger(
   category: "NotificationsListViewModel"
 )
 
+@Observable
 @MainActor
-final class NotificationsListViewModel: ObservableObject {
-  // MARK: - Published State
+final class NotificationsListViewModel {
+  // MARK: - State
 
-  @Published var notifications: [AppNotification] = []
-  @Published private(set) var isLoading = false
-  @Published var errorMessage: String?
+  var notifications: [AppNotification] = []
+  private(set) var isLoading = false
+  var errorMessage: String?
 
   // MARK: - Filters & Search
 
-  @Published var selectedTypeFilter: NotificationType?
-  @Published var searchText: String = ""
+  var selectedTypeFilter: NotificationType?
+  var searchText: String = ""
 
   // MARK: - Navigation
 
-  @Published var selectedDestination: NotificationDestination?
+  var selectedDestination: NotificationDestination?
 
   // MARK: - Computed Properties
 
@@ -52,38 +53,12 @@ final class NotificationsListViewModel: ObservableObject {
     unreadCount > 0
   }
 
-  var hasUnreadNotifications: Bool { hasUnread }
-
   var hasRead: Bool {
     notifications.contains { $0.isRead }
   }
 
-  var hasReadNotifications: Bool { hasRead }
-
   var isEmpty: Bool {
     notifications.isEmpty
-  }
-
-  // MARK: - Aliases for compatibility
-
-  var activeFilter: NotificationType? {
-    get { selectedTypeFilter }
-    set { selectedTypeFilter = newValue }
-  }
-
-  var searchQuery: String {
-    get { searchText }
-    set { searchText = newValue }
-  }
-
-  var navigationPath: [NotificationDestination] {
-    get {
-      if let dest = selectedDestination { return [dest] }
-      return []
-    }
-    set {
-      selectedDestination = newValue.last
-    }
   }
 
   var activeFilterCount: Int {
@@ -134,10 +109,6 @@ final class NotificationsListViewModel: ObservableObject {
       errorMessage = error.localizedDescription
       logger.error("Failed to fetch notifications: \(error.localizedDescription)")
     }
-  }
-
-  func markAsRead(_ id: String) async {
-    await markAsRead(id: id)
   }
 
   func markAsRead(id: String) async {

@@ -10,7 +10,7 @@ import SwiftUI
 struct MainTabView: View {
   @EnvironmentObject var authManager: AuthManager
   @EnvironmentObject var familyManager: FamilyManager
-  @StateObject private var notificationsViewModel = NotificationsListViewModel()
+  @State private var notificationsViewModel = NotificationsListViewModel()
 
   var body: some View {
     TabView {

@@ -1,12 +1,16 @@
 import SwiftUI
 
 struct NotificationsListView: View {
-  @ObservedObject var viewModel: NotificationsListViewModel
+  @State private var viewModel: NotificationsListViewModel
   @EnvironmentObject var familyManager: FamilyManager
 
   @State private var showDeleteAlert = false
   @State private var showClearReadAlert = false
   @State private var pendingDeleteId: String?
+
+  init(viewModel: NotificationsListViewModel) {
+    self._viewModel = State(initialValue: viewModel)
+  }
 
   var body: some View {
     VStack(spacing: 0) {
