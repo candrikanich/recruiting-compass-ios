@@ -45,6 +45,12 @@ struct MainTabView: View {
       }
       .accessibilityLabel("Interactions")
 
+      NotificationsListView()
+        .tabItem {
+          Label("Notifications", systemImage: "bell.fill")
+        }
+        .accessibilityLabel("Notifications")
+
       NavigationStack {
         FamilyManagementView()
       }
