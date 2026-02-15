@@ -154,9 +154,7 @@ struct SchoolAutocompleteDropdown: View {
     ],
     isLoading: false,
     error: nil,
-    onSelect: { college in
-      print("Selected: \(college.name)")
-    }
+    onSelect: { _ in }
   )
   .padding()
 }

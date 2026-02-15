@@ -14,7 +14,6 @@ final class FamilyServiceImpl: FamilyManaging, @unchecked Sendable {
   // MARK: - Existing Methods
 
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember] {
-    print("🔍 [FamilyService] fetchFamilyMembers called for familyUnitId: \(familyUnitId)")
     logger.debug("Fetching family members for family unit: \(familyUnitId)")
 
     // IMPORTANT: Fetch family_members and users separately to avoid join issues

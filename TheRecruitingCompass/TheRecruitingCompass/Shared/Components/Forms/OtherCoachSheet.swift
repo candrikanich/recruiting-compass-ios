@@ -46,9 +46,7 @@ struct OtherCoachSheet: View {
     var body: some View {
       OtherCoachSheet(
         coachName: $coachName,
-        onContinue: {
-          print("Continue with: \(coachName)")
-        }
+        onContinue: {}
       )
     }
   }

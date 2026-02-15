@@ -71,6 +71,6 @@ struct InteractionEmptyState: View {
 #Preview("Filtered Empty") {
   InteractionEmptyState(
     isFilteredEmpty: true,
-    onClearFilters: { print("Clear filters") }
+    onClearFilters: {}
   )
 }

@@ -79,9 +79,7 @@ struct EmptyStateView: View {
     title: "No Schools Found",
     message: "You need to add a school before adding a coach",
     actionTitle: "Add School"
-  ) {
-    print("Add school tapped")
-  }
+  ) {}
 }
 
 #Preview("No Coaches") {
