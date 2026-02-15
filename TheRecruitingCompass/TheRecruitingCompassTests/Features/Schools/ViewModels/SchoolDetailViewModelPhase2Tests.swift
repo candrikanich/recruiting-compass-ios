@@ -265,8 +265,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
 
   func testAddPro_Success_ClearsInput() async {
     // Given
-    let updatedSchool = createMockSchool(pros: ["Great facilities"])
-    mockSchoolsService.stubbedSchool = updatedSchool
+    mockSchoolsService.stubbedSchool = createMockSchool(pros: [])
     viewModel.newPro = "Great facilities"
 
     // When
@@ -340,8 +339,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
 
   func testAddCon_Success_ClearsInput() async {
     // Given
-    let updatedSchool = createMockSchool(cons: ["Far from home"])
-    mockSchoolsService.stubbedSchool = updatedSchool
+    mockSchoolsService.stubbedSchool = createMockSchool(cons: [])
     viewModel.newCon = "Far from home"
 
     // When

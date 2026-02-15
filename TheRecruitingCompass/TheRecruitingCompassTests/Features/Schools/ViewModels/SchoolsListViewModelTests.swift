@@ -449,7 +449,7 @@ final class SchoolsListViewModelTests: XCTestCase {
   func testDelete_CascadeFallback() async {
     let school = makeSchool(id: "school-1")
     sut.allSchools = [school]
-    mockService.shouldThrowError = true
+    mockService.simpleDeleteShouldFail = true
     sut.confirmDelete(school: school)
 
     await sut.deleteSchool()

@@ -284,8 +284,8 @@ final class CoachesListViewTests: XCTestCase {
     let mockService = MockCoachesService()
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
-      makeCoach(id: "1", firstName: "John", lastName: "Smith"),
-      makeCoach(id: "2", firstName: "Jane", lastName: "Doe"),
+      makeCoach(id: "1", firstName: "John", lastName: "Smith", email: "john@school.edu"),
+      makeCoach(id: "2", firstName: "Jane", lastName: "Doe", email: "jane@school.edu"),
     ]
 
     let viewModel = CoachesListViewModel(
@@ -523,8 +523,8 @@ final class CoachesListViewTests: XCTestCase {
     let mockService = MockCoachesService()
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
-      makeCoach(id: "1", firstName: "John"),
-      makeCoach(id: "2", firstName: "Jane"),
+      makeCoach(id: "1", firstName: "John", email: "john@school.edu"),
+      makeCoach(id: "2", firstName: "Jane", email: "jane@school.edu"),
     ]
 
     let viewModel = CoachesListViewModel(

@@ -402,15 +402,17 @@ final class InteractionDetailViewModelTests: XCTestCase {
     mockService.mockInteractions = [interaction]
     await viewModel.loadInteraction()
 
-    // Simulate FK constraint error
+    // Simulate FK constraint error on simple delete, cascade also fails
+    mockService.simpleDeleteShouldFail = true
     mockService.shouldSucceed = false
 
     // When
     let success = await viewModel.deleteInteraction()
 
-    // Then
-    XCTAssertFalse(success) // Fails because cascade also fails with shouldSucceed = false
+    // Then - both simple and cascade fail
+    XCTAssertFalse(success)
     XCTAssertEqual(mockService.deleteCallCount, 1)
+    XCTAssertEqual(mockService.cascadeDeleteCallCount, 1)
   }
 
   func testDeleteInteraction_CascadeSuccess() async {
@@ -419,16 +421,16 @@ final class InteractionDetailViewModelTests: XCTestCase {
     mockService.mockInteractions = [interaction]
     await viewModel.loadInteraction()
 
-    // Simulate FK constraint error on first attempt only
-    var firstCall = true
-    mockService.shouldSucceed = false
+    // Simple delete fails with FK error, but cascade succeeds
+    mockService.simpleDeleteShouldFail = true
 
     // When
     let success = await viewModel.deleteInteraction()
 
-    // Then (cascade is called but also fails with shouldSucceed=false)
-    XCTAssertFalse(success)
+    // Then - cascade succeeds
+    XCTAssertTrue(success)
     XCTAssertEqual(mockService.deleteCallCount, 1)
+    XCTAssertEqual(mockService.cascadeDeleteCallCount, 1)
   }
 
   func testConfirmDelete_SetsShowDeleteConfirmation() {

@@ -365,7 +365,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     // Given
     let school = createMockSchool(isFavorite: false)
     viewModel.school = school
-    mockSchoolsService.shouldSucceed = false
+    mockSchoolsService.shouldThrowError = true
 
     // When
     await viewModel.toggleFavorite()

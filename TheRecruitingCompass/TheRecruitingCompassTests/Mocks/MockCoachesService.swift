@@ -32,6 +32,7 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
   var shouldThrowUpdateCoach = false
   var shouldThrowFetchInteractions = false
   var shouldThrowDeleteCoach = false
+  var simpleDeleteShouldFail = false
   var shouldThrowCascadeDelete = false
 
   // MARK: - Configurable Return Values
@@ -111,8 +112,8 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
   func deleteCoach(id: String) async throws {
     deleteCoachCallCount += 1
     lastDeletedCoachId = id
-    if shouldThrowDeleteCoach {
-      throw NSError(domain: "MockCoaches", code: 3, userInfo: [NSLocalizedDescriptionKey: "Mock delete coach error"])
+    if simpleDeleteShouldFail || shouldThrowDeleteCoach {
+      throw NSError(domain: "MockCoaches", code: 3, userInfo: [NSLocalizedDescriptionKey: "Mock foreign key constraint error"])
     }
   }
 

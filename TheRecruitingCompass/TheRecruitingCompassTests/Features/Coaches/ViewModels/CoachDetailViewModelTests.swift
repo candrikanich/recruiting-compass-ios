@@ -444,7 +444,7 @@ final class CoachDetailViewModelTests: XCTestCase {
     await sut.loadDetails()
 
     XCTAssertNil(sut.stats?.daysSinceContact)
-    XCTAssertNil(sut.stats?.contactStatusText)
+    XCTAssertEqual(sut.stats?.contactStatusText, "Never")
   }
 
   func testComputeStats_NoInteractions_PreferredMethodNil() async {

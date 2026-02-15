@@ -120,7 +120,7 @@ final class DashboardViewModelTests: XCTestCase {
       familyUnitId: "family-unit-1",
       role: "athlete",
       addedAt: "2024-01-01T00:00:00Z",
-      user: nil
+      user: FamilyMemberUser(id: userId, email: "alex@example.com", fullName: "Alex Doe", role: "athlete")
     )
   }
 

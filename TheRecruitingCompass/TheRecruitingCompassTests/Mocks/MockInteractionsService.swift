@@ -3,6 +3,7 @@ import Foundation
 
 final class MockInteractionsService: InteractionsManaging {
   var shouldSucceed = true
+  var simpleDeleteShouldFail = false
   var mockInteractions: [Interaction] = []
   var mockSchools: [School] = []
   var mockCoaches: [Coach] = []
@@ -113,22 +114,25 @@ final class MockInteractionsService: InteractionsManaging {
   }
 
   func deleteInteraction(id: String) async throws {
-    if !shouldSucceed { throw NSError(domain: "test", code: -1) }
     deleteCallCount += 1
     lastDeletedId = id
+    if simpleDeleteShouldFail || !shouldSucceed {
+      throw NSError(domain: "test", code: -1, userInfo: [NSLocalizedDescriptionKey: "violates foreign key constraint"])
+    }
     mockInteractions.removeAll { $0.id == id }
   }
 
   func cascadeDeleteInteraction(id: String) async throws -> CascadeDeleteResult {
-    if !shouldSucceed { throw NSError(domain: "test", code: -1) }
     cascadeDeleteCallCount += 1
     lastCascadeDeletedId = id
+    if !shouldSucceed { throw NSError(domain: "test", code: -1) }
     mockInteractions.removeAll { $0.id == id }
     return CascadeDeleteResult(deletedInteractions: 1, deletedNotes: 2)
   }
 
   func reset() {
     shouldSucceed = true
+    simpleDeleteShouldFail = false
     mockInteractions = []
     mockSchools = []
     mockCoaches = []
