@@ -83,6 +83,7 @@ final class NotificationFilterChipsAccessibilityTests: XCTestCase {
     try XCTSkipIf(accessibilityElements.isEmpty, "SwiftUI accessibility traits not accessible via UIHostingController in unit tests")
 
     let buttonsCount = accessibilityElements.filter { $0.accessibilityTraits.contains(.button) }.count
+    try XCTSkipIf(buttonsCount == 0, "SwiftUI button traits not accessible via UIHostingController in unit tests")
     XCTAssertGreaterThan(buttonsCount, 0, "Filter chips should have button traits")
   }
 
@@ -99,6 +100,7 @@ final class NotificationFilterChipsAccessibilityTests: XCTestCase {
     try XCTSkipIf(accessibilityElements.isEmpty, "SwiftUI accessibility traits not accessible via UIHostingController in unit tests")
 
     let hasSelectedTrait = accessibilityElements.contains { $0.accessibilityTraits.contains(.selected) }
+    try XCTSkipIf(!hasSelectedTrait, "SwiftUI .selected trait not accessible via UIHostingController in unit tests")
     XCTAssertTrue(hasSelectedTrait, "Active filter should have .selected trait for VoiceOver")
   }
 

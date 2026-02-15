@@ -13,6 +13,7 @@ struct NotificationSearchBar: View {
       TextField("Search notifications", text: $searchText)
         .textFieldStyle(.plain)
         .autocorrectionDisabled()
+        .accessibilityIdentifier("Search notifications")
         .onChange(of: searchText) { _, newValue in
           onSearchChanged(newValue)
         }

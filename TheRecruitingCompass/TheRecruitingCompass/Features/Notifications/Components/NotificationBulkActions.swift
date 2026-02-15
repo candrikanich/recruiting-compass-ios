@@ -13,6 +13,7 @@ struct NotificationBulkActions: View {
           .font(.subheadline.weight(.medium))
       }
       .disabled(!hasUnread)
+      .accessibilityIdentifier("Mark all as read")
       .accessibilityLabel("Mark all as read")
 
       Spacer()
@@ -22,6 +23,7 @@ struct NotificationBulkActions: View {
           .font(.subheadline.weight(.medium))
       }
       .disabled(!hasRead)
+      .accessibilityIdentifier("Clear read notifications")
       .accessibilityLabel("Clear read notifications")
     }
     .padding(.horizontal)

@@ -1,7 +1,11 @@
 import SwiftUI
 
 struct NotificationsListView: View {
-  @StateObject private var viewModel = NotificationsListViewModel()
+  @ObservedObject var viewModel: NotificationsListViewModel
+
+  @State private var showDeleteAlert = false
+  @State private var showClearReadAlert = false
+  @State private var pendingDeleteId: String?
 
   var body: some View {
     NavigationStack {
@@ -13,7 +17,7 @@ struct NotificationsListView: View {
             Task { await viewModel.markAllAsRead() }
           },
           onClearRead: {
-            Task { await viewModel.deleteAllRead() }
+            showClearReadAlert = true
           }
         )
 
@@ -45,7 +49,8 @@ struct NotificationsListView: View {
                     Task { await viewModel.markAsRead(id: notification.id) }
                   },
                   onDelete: {
-                    Task { await viewModel.deleteNotification(id: notification.id) }
+                    pendingDeleteId = notification.id
+                    showDeleteAlert = true
                   }
                 )
               }
@@ -61,6 +66,27 @@ struct NotificationsListView: View {
       .navigationBarTitleDisplayMode(.large)
       .task {
         await viewModel.fetchNotifications()
+      }
+      .alert("Delete Notification", isPresented: $showDeleteAlert) {
+        Button("Cancel", role: .cancel) {
+          pendingDeleteId = nil
+        }
+        Button("Delete", role: .destructive) {
+          if let id = pendingDeleteId {
+            Task { await viewModel.deleteNotification(id: id) }
+            pendingDeleteId = nil
+          }
+        }
+      } message: {
+        Text("Are you sure you want to delete this notification?")
+      }
+      .alert("Clear Read Notifications", isPresented: $showClearReadAlert) {
+        Button("Cancel", role: .cancel) {}
+        Button("Clear", role: .destructive) {
+          Task { await viewModel.deleteAllRead() }
+        }
+      } message: {
+        Text("Are you sure you want to remove all read notifications?")
       }
     }
   }

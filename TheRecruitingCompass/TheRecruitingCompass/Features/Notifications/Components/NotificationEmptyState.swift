@@ -17,6 +17,7 @@ struct NotificationEmptyState: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .accessibilityElement(children: .combine)
+    .accessibilityIdentifier("No notifications")
     .accessibilityLabel("No notifications. You're all caught up!")
   }
 }

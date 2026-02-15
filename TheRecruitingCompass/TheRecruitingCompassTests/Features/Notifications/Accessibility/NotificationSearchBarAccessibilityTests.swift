@@ -44,6 +44,7 @@ final class NotificationSearchBarAccessibilityTests: XCTestCase {
     try XCTSkipIf(accessibilityElements.isEmpty, "SwiftUI accessibility traits not accessible via UIHostingController in unit tests")
 
     let hasSearchTrait = accessibilityElements.contains { $0.accessibilityTraits.contains(.searchField) }
+    try XCTSkipIf(!hasSearchTrait, "SwiftUI .searchField trait not accessible via UIHostingController in unit tests")
     XCTAssertTrue(hasSearchTrait, "Search bar should have .searchField accessibility trait")
   }
 

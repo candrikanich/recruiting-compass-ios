@@ -10,6 +10,7 @@ import SwiftUI
 struct MainTabView: View {
   @EnvironmentObject var authManager: AuthManager
   @EnvironmentObject var familyManager: FamilyManager
+  @StateObject private var notificationsViewModel = NotificationsListViewModel()
 
   var body: some View {
     TabView {
@@ -45,10 +46,11 @@ struct MainTabView: View {
       }
       .accessibilityLabel("Interactions")
 
-      NotificationsListView()
+      NotificationsListView(viewModel: notificationsViewModel)
         .tabItem {
           Label("Notifications", systemImage: "bell.fill")
         }
+        .badge(notificationsViewModel.unreadCount > 0 ? notificationsViewModel.unreadCount : 0)
         .accessibilityLabel("Notifications")
 
       NavigationStack {

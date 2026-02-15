@@ -27,6 +27,7 @@ struct NotificationFilterChips: View {
       }
       .padding(.horizontal)
     }
+    .accessibilityIdentifier("Filter notifications")
     .frame(minHeight: 44)
   }
 }
