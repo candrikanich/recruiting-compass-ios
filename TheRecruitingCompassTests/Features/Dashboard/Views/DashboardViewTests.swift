@@ -32,8 +32,8 @@ final class DashboardViewTests: XCTestCase {
   func testDashboardView_CanBeInstantiated() throws {
     // Given/When
     let sut = DashboardView(viewModel: viewModel)
-      .environmentObject(authManager)
-      .environmentObject(familyManager)
+      .environment(authManager)
+      .environment(familyManager)
 
     // Then - should not crash
     XCTAssertNotNil(sut, "DashboardView should be instantiable")
@@ -45,8 +45,8 @@ final class DashboardViewTests: XCTestCase {
   func testDashboardView_ToolbarState_ManualVerification() throws {
     // Given
     let sut = DashboardView(viewModel: viewModel)
-      .environmentObject(authManager)
-      .environmentObject(familyManager)
+      .environment(authManager)
+      .environment(familyManager)
 
     // When/Then
     // This test verifies the view instantiates correctly.

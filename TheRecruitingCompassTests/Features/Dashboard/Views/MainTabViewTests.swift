@@ -29,8 +29,8 @@ final class MainTabViewTests: XCTestCase {
   func testMainTabView_CanBeInstantiated() throws {
     // Given/When
     let sut = MainTabView()
-      .environmentObject(authManager)
-      .environmentObject(familyManager)
+      .environment(authManager)
+      .environment(familyManager)
 
     // Then - should not crash
     XCTAssertNotNil(sut, "MainTabView should be instantiable")

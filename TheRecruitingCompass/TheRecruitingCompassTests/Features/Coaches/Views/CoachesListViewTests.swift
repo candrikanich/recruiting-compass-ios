@@ -125,7 +125,7 @@ final class CoachesListViewTests: XCTestCase {
 
   func testCoachesListView_rendersWithoutCrashing() {
     let view = CoachesListView()
-      .environmentObject(mockFamilyManager)
+      .environment(mockFamilyManager)
 
     XCTAssertNotNil(view)
   }

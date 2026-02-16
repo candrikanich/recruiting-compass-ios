@@ -28,42 +28,42 @@ final class LoginViewTests: XCTestCase {
 
   func testLoginViewRendersEmailField() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLoginViewRendersPasswordField() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLoginViewRendersSignInButton() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLoginViewRendersRememberMeCheckbox() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLoginViewRendersNavigationLinks() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLoginViewRendersBackButton() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -72,14 +72,14 @@ final class LoginViewTests: XCTestCase {
 
   func testErrorBannerDisplaysWhenErrorMessagePresent() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testErrorBannerHiddenWhenNoErrorMessage() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -88,14 +88,14 @@ final class LoginViewTests: XCTestCase {
 
   func testTimeoutBannerDisplaysWhenShown() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testTimeoutBannerHiddenWhenNotShown() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -104,14 +104,14 @@ final class LoginViewTests: XCTestCase {
 
   func testEmailFieldShowsErrorWhenInvalid() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testPasswordFieldShowsErrorWhenInvalid() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -120,21 +120,21 @@ final class LoginViewTests: XCTestCase {
 
   func testSignInButtonDisabledWhenFormInvalid() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testSignInButtonEnabledWhenFormValid() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testSignInButtonShowsLoadingStateWhenProcessing() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -143,21 +143,21 @@ final class LoginViewTests: XCTestCase {
 
   func testSignUpLinkPresent() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testForgotPasswordLinkPresent() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testBackButtonPresent() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -166,21 +166,21 @@ final class LoginViewTests: XCTestCase {
 
   func testEmailTextFieldAcceptsInput() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testPasswordTextFieldMasksInput() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testEmailFieldUsesCorrectKeyboardType() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -189,14 +189,14 @@ final class LoginViewTests: XCTestCase {
 
   func testRememberMeCheckboxCanToggle() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testRememberMeCheckboxShowsCorrectState() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -205,21 +205,21 @@ final class LoginViewTests: XCTestCase {
 
   func testEmailFieldHasAccessibilityLabel() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testPasswordFieldHasAccessibilityLabel() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testSignInButtonHasAccessibilityLabel() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -228,14 +228,14 @@ final class LoginViewTests: XCTestCase {
 
   func testViewRespondsToKeyboardAppearance() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testScrollViewPresentsAllContent() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -244,7 +244,7 @@ final class LoginViewTests: XCTestCase {
 
   func testPreviewRendersSuccessfully() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -254,7 +254,7 @@ final class LoginViewTests: XCTestCase {
   func testCompleteViewHierarchy() {
     let view = NavigationStack {
       LoginView()
-        .environmentObject(AuthManager.shared)
+        .environment(AuthManager.shared)
     }
 
     XCTAssertNotNil(view)
@@ -262,7 +262,7 @@ final class LoginViewTests: XCTestCase {
 
   func testViewWithEnvironmentObject() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -271,21 +271,21 @@ final class LoginViewTests: XCTestCase {
 
   func testViewRespondsToViewModelChanges() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testViewUpdatesWhenErrorMessageChanges() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testViewUpdatesWhenLoadingStateChanges() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -294,21 +294,21 @@ final class LoginViewTests: XCTestCase {
 
   func testErrorBannerIntegration() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testTimeoutBannerIntegration() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testLoginFormFieldIntegration() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -317,21 +317,21 @@ final class LoginViewTests: XCTestCase {
 
   func testProgressViewShowsWhenLoading() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testSignInTextChangesWhenLoading() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testButtonOpacityChangesWhenDisabled() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -340,21 +340,21 @@ final class LoginViewTests: XCTestCase {
 
   func testBackgroundGradientApplies() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testCardCornerRadiusApplies() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testButtonGradientApplies() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -363,21 +363,21 @@ final class LoginViewTests: XCTestCase {
 
   func testEmailLabelFontApplies() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testPasswordLabelFontApplies() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testSignInButtonTextFontApplies() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -386,21 +386,21 @@ final class LoginViewTests: XCTestCase {
 
   func testViewHandlesVeryLongEmailInput() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testViewHandlesVeryLongPasswordInput() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testViewHandlesMultipleErrorMessages() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -409,14 +409,14 @@ final class LoginViewTests: XCTestCase {
 
   func testViewRespectsSafeArea() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testGradientIgnoresSafeArea() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
@@ -425,14 +425,14 @@ final class LoginViewTests: XCTestCase {
 
   func testBackButtonHidesDefaultNavigationBar() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
 
   func testCustomBackButtonProvided() {
     let view = LoginView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
 
     XCTAssertNotNil(view)
   }
