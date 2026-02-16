@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SuggestionsListView: View {
-  @ObservedObject var viewModel: DashboardViewModel
+  var viewModel: DashboardViewModel
 
   var body: some View {
     List {

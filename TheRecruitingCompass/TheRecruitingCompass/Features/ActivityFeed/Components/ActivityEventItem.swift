@@ -1,0 +1,153 @@
+import SwiftUI
+
+struct ActivityEventItem: View {
+  let event: ActivityEvent
+  let compact: Bool
+
+  @Environment(\.sizeCategory) private var sizeCategory
+
+  init(event: ActivityEvent, compact: Bool = false) {
+    self.event = event
+    self.compact = compact
+  }
+
+  var body: some View {
+    HStack(alignment: .top, spacing: 12) {
+      ZStack {
+        Circle()
+          .fill(iconBackgroundColor.opacity(0.15))
+          .frame(width: iconSize, height: iconSize)
+
+        Image(systemName: event.icon)
+          .font(compact ? .caption : .body)
+          .foregroundColor(iconBackgroundColor)
+      }
+      .accessibilityHidden(true)
+
+      // Content
+      VStack(alignment: .leading, spacing: compact ? 2 : 4) {
+        Text(event.title)
+          .font(compact ? .subheadline : .headline)
+          .fontWeight(.medium)
+          .foregroundColor(.primary)
+          .lineLimit(1)
+
+        if !event.description.isEmpty {
+          Text(event.description)
+            .font(compact ? .caption : .subheadline)
+            .foregroundColor(.secondary)
+            .lineLimit(2)
+        }
+      }
+
+      Spacer()
+
+      // Time + chevron
+      VStack(alignment: .trailing, spacing: 4) {
+        Text(RelativeTimeFormatter.format(event.timestamp))
+          .font(.caption)
+          .foregroundColor(.tertiaryText)
+
+        if event.isClickable {
+          Image(systemName: "chevron.right")
+            .font(.caption2)
+            .foregroundColor(.iconGray)
+            .accessibilityHidden(true)
+        }
+      }
+    }
+    .padding(compact ? 12 : 16)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Color(.systemBackground))
+    .cornerRadius(12)
+    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+    .frame(minHeight: 44)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(accessibilityLabel)
+    .accessibilityAddTraits(event.isClickable ? .isButton : [])
+    .accessibilityHint(event.isClickable ? "Tap to view details" : "")
+    .accessibilityIdentifier("activity-event-\(event.id)")
+  }
+
+  // MARK: - Private
+
+  private var iconSize: CGFloat {
+    if compact {
+      return sizeCategory.isAccessibilityCategory ? 36 : 32
+    }
+    return sizeCategory.isAccessibilityCategory ? 48 : 40
+  }
+
+  private var iconBackgroundColor: Color {
+    switch event.type {
+    case .interaction: return .accentBlue
+    case .schoolStatusChange: return .primaryGreen
+    case .documentUpload: return .amberGold
+    }
+  }
+
+  private var accessibilityLabel: String {
+    var parts: [String] = []
+    parts.append(event.type.label)
+    parts.append(event.title)
+    if !event.description.isEmpty {
+      parts.append(event.description)
+    }
+    parts.append(RelativeTimeFormatter.format(event.timestamp))
+    return parts.joined(separator: ", ")
+  }
+}
+
+#Preview {
+  VStack(spacing: 12) {
+    ActivityEventItem(
+      event: ActivityEvent(
+        id: "interaction-1",
+        type: .interaction,
+        timestamp: Date().addingTimeInterval(-7200),
+        title: "Email with Arizona State",
+        description: "Discussed camp schedule and upcoming visit dates",
+        icon: "envelope.fill",
+        entityType: "school",
+        entityId: "school1",
+        entityName: "Arizona State",
+        isClickable: true,
+        clickUrl: "/schools/school1"
+      )
+    )
+
+    ActivityEventItem(
+      event: ActivityEvent(
+        id: "status-1",
+        type: .schoolStatusChange,
+        timestamp: Date().addingTimeInterval(-86400),
+        title: "Stanford - Interested",
+        description: "Status changed to Interested",
+        icon: "mappin.circle.fill",
+        entityType: "school",
+        entityId: "school2",
+        entityName: "Stanford",
+        isClickable: true,
+        clickUrl: "/schools/school2"
+      )
+    )
+
+    ActivityEventItem(
+      event: ActivityEvent(
+        id: "doc-1",
+        type: .documentUpload,
+        timestamp: Date().addingTimeInterval(-172800),
+        title: "Uploaded: Transcript",
+        description: "New document uploaded",
+        icon: "doc.fill",
+        entityType: "document",
+        entityId: "doc1",
+        entityName: "Transcript",
+        isClickable: false,
+        clickUrl: nil
+      ),
+      compact: true
+    )
+  }
+  .padding()
+}
