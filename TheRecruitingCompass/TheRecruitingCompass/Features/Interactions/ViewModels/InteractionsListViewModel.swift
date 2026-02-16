@@ -1,23 +1,24 @@
-import Combine
 import Foundation
+import Observation
 import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "InteractionsListViewModel")
 
+@Observable
 @MainActor
-final class InteractionsListViewModel: ObservableObject {
-  @Published var allInteractions: [Interaction] = []
-  @Published var allSchools: [School] = []
-  @Published var allCoaches: [Coach] = []
-  @Published var isLoading = false
-  @Published var errorMessage: String?
-  @Published var filters = InteractionFilters()
-  @Published var showDeleteConfirmation = false
-  @Published var interactionToDelete: Interaction?
-  @Published var isDeleting = false
-  @Published var deleteErrorMessage: String?
-  @Published var successMessage: String?
-  @Published var showSuccessToast = false
+final class InteractionsListViewModel {
+  var allInteractions: [Interaction] = []
+  var allSchools: [School] = []
+  var allCoaches: [Coach] = []
+  var isLoading = false
+  var errorMessage: String?
+  var filters = InteractionFilters()
+  var showDeleteConfirmation = false
+  var interactionToDelete: Interaction?
+  var isDeleting = false
+  var deleteErrorMessage: String?
+  var successMessage: String?
+  var showSuccessToast = false
 
   private let interactionsService: any InteractionsManaging
   private let familyManager: FamilyManager

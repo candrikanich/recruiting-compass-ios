@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SchoolsListView: View {
-  @StateObject private var viewModel = SchoolsListViewModel()
+  @State private var viewModel = SchoolsListViewModel()
   @EnvironmentObject private var familyManager: FamilyManager
   @State private var showAddSchool = false
 

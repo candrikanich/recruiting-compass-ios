@@ -1,23 +1,24 @@
-import Combine
 import CoreLocation
 import Foundation
+import Observation
 import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "SchoolsListViewModel")
 
+@Observable
 @MainActor
-final class SchoolsListViewModel: ObservableObject {
-  @Published var allSchools: [School] = []
-  @Published var isLoading = false
-  @Published var errorMessage: String?
-  @Published var filters = SchoolFilters()
-  @Published var showDeleteConfirmation = false
-  @Published var schoolToDelete: School?
-  @Published var isDeleting = false
-  @Published var deleteErrorMessage: String?
-  @Published var successMessage: String?
-  @Published var showSuccessToast = false
-  @Published var homeLocation: CLLocationCoordinate2D?
+final class SchoolsListViewModel {
+  var allSchools: [School] = []
+  var isLoading = false
+  var errorMessage: String?
+  var filters = SchoolFilters()
+  var showDeleteConfirmation = false
+  var schoolToDelete: School?
+  var isDeleting = false
+  var deleteErrorMessage: String?
+  var successMessage: String?
+  var showSuccessToast = false
+  var homeLocation: CLLocationCoordinate2D?
 
   private let schoolsService: any SchoolsManaging
   private let familyManager: FamilyManager

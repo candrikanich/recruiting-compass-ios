@@ -3,7 +3,7 @@ import SwiftUI
 struct CoachesListView: View {
   let prefilterSchoolId: String?
 
-  @StateObject private var viewModel = CoachesListViewModel()
+  @State private var viewModel = CoachesListViewModel()
   @EnvironmentObject private var familyManager: FamilyManager
   @EnvironmentObject private var authManager: AuthManager
   @State private var navigationPath = NavigationPath()

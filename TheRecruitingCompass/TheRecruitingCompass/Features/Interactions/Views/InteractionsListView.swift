@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct InteractionsListView: View {
-  @StateObject private var viewModel = InteractionsListViewModel()
+  @State private var viewModel = InteractionsListViewModel()
   @EnvironmentObject private var familyManager: FamilyManager
 
   var body: some View {

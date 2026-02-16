@@ -1,22 +1,23 @@
-import Combine
 import Foundation
+import Observation
 import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "CoachesListViewModel")
 
+@Observable
 @MainActor
-final class CoachesListViewModel: ObservableObject {
-  @Published var allCoaches: [Coach] = []
-  @Published var allSchools: [School] = []
-  @Published var isLoading = false
-  @Published var errorMessage: String?
-  @Published var filters = CoachFilters()
-  @Published var showDeleteConfirmation = false
-  @Published var coachToDelete: Coach?
-  @Published var isDeleting = false
-  @Published var deleteErrorMessage: String?
-  @Published var successMessage: String?
-  @Published var showSuccessToast = false
+final class CoachesListViewModel {
+  var allCoaches: [Coach] = []
+  var allSchools: [School] = []
+  var isLoading = false
+  var errorMessage: String?
+  var filters = CoachFilters()
+  var showDeleteConfirmation = false
+  var coachToDelete: Coach?
+  var isDeleting = false
+  var deleteErrorMessage: String?
+  var successMessage: String?
+  var showSuccessToast = false
 
   let coachesService: any CoachesManaging
   private let familyManager: FamilyManager
