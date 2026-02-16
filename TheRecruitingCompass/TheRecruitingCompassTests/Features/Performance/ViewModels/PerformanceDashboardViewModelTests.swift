@@ -835,39 +835,9 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
   @MainActor
   func testGeneratePDF_ReturnsValidPDFData() async {
     // Given
-    let mockService = MockPerformanceService()
-    let mockAuth = MockAuthManager()
-    mockAuth.user = User(
-      id: "user1",
-      email: "test@example.com",
-      emailConfirmedAt: nil,
-      phone: nil,
-      createdAt: "",
-      updatedAt: "",
-      role: nil
-    )
-
-    let viewModel = PerformanceDashboardViewModel(
-      performanceService: mockService,
-      authManager: mockAuth
-    )
-
     mockService.mockMetrics = [
-      PerformanceMetric(
-        id: "1",
-        userId: "user1",
-        metricType: .velocity,
-        value: 85.5,
-        unit: "mph",
-        recordedDate: Date(),
-        eventId: nil,
-        verified: false,
-        notes: nil,
-        createdAt: Date(),
-        updatedAt: Date()
-      )
+      mockService.createTestMetric(id: "1", metricType: .velocity, value: 85.5)
     ]
-
     await viewModel.loadMetrics()
 
     // When
