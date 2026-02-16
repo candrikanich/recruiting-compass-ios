@@ -49,7 +49,7 @@ struct PlayerDetailsView: View {
           .disabled(viewModel.isReadOnly)
           .accessibilityLabel("Choose profile photo from library")
           .accessibilityHint(viewModel.isReadOnly ? "Profile editing is disabled" : "Opens photo library")
-          .onChange(of: selectedPhotoItem) { newValue in
+          .onChange(of: selectedPhotoItem) { _, newValue in
             Task {
               if let data = try? await newValue?.loadTransferable(type: Data.self),
                  let image = UIImage(data: data) {

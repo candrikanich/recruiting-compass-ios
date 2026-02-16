@@ -639,52 +639,6 @@ final class DashboardViewModelTests: XCTestCase {
     XCTAssertEqual(formatted, "365")
   }
 
-  func testInteractionsThisMonthFiltersCorrectly() async {
-    // Given: activities from different months
-    authenticateUser()
-    setupFamilyContext()
-    let now = Date()
-    let calendar = Calendar.current
-    let formatter = ISO8601DateFormatter()
-
-    // Activity from this month
-    let thisMonth = formatter.string(from: now)
-
-    // Activity from last month
-    let lastMonthDate = calendar.date(byAdding: .month, value: -1, to: now)!
-    let lastMonth = formatter.string(from: lastMonthDate)
-
-    mockDashboardService.stubbedActivities = [
-      Activity(
-        id: "a1",
-        activityType: "interaction",
-        description: "This month",
-        timestamp: thisMonth,
-        userId: "test-user-id",
-        relatedEntityId: nil
-      ),
-      Activity(
-        id: "a2",
-        activityType: "interaction",
-        description: "This month 2",
-        timestamp: thisMonth,
-        userId: "test-user-id",
-        relatedEntityId: nil
-      ),
-      Activity(
-        id: "a3",
-        activityType: "interaction",
-        description: "Last month",
-        timestamp: lastMonth,
-        userId: "test-user-id",
-        relatedEntityId: nil
-      ),
-    ]
-
-    // When
-    await sut.fetchDashboardData()
-
-    // Then: should only count activities from this month
-    XCTAssertEqual(sut.interactionsThisMonth, 2)
-  }
+  // Note: testInteractionsThisMonthFiltersCorrectly removed - tested deprecated Activity type
+  // Now using ActivityFeedViewModel with ActivityEvent instead
 }

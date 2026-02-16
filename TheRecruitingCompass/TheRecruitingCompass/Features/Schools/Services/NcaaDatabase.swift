@@ -10,7 +10,7 @@ import Foundation
 import SwiftUI
 import OSLog
 
-private let logger = Logger(
+nonisolated private let logger = Logger(
   subsystem: "com.chrisandrikanich.TheRecruitingCompass",
   category: "NcaaDatabase"
 )

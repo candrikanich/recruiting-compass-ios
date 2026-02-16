@@ -2,10 +2,21 @@ import Foundation
 import OSLog
 import Supabase
 
-private let logger = Logger(
+nonisolated private let logger = Logger(
   subsystem: "com.chrisandrikanich.TheRecruitingCompass",
   category: "ActivityRealtimeService"
 )
+
+enum ActivityRealtimeError: LocalizedError {
+  case subscriptionFailed
+
+  var errorDescription: String? {
+    switch self {
+    case .subscriptionFailed:
+      return "Failed to subscribe to realtime updates"
+    }
+  }
+}
 
 /// Real-time activity feed service using Supabase Realtime subscriptions
 actor ActivityRealtimeService: ActivityRealtimeManaging {
@@ -37,7 +48,7 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
       .realtimeV2
       .channel("activity-interactions-\(userId)")
 
-    interactionsChannel
+    _ = interactionsChannel
       .onPostgresChange(
         InsertAction.self,
         schema: "public",
@@ -50,15 +61,20 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
         }
       }
 
-    await interactionsChannel.subscribe()
-    self.interactionsChannel = interactionsChannel
+    do {
+      try await interactionsChannel.subscribeWithError()
+      self.interactionsChannel = interactionsChannel
+    } catch {
+      logger.error("Failed to subscribe to interactions: \(error.localizedDescription)")
+      throw ActivityRealtimeError.subscriptionFailed
+    }
 
     // Subscribe to school_status_history table
     let statusChangesChannel = supabaseManager.client
       .realtimeV2
       .channel("activity-status-\(userId)")
 
-    statusChangesChannel
+    _ = statusChangesChannel
       .onPostgresChange(
         InsertAction.self,
         schema: "public",
@@ -71,15 +87,20 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
         }
       }
 
-    await statusChangesChannel.subscribe()
-    self.statusChangesChannel = statusChangesChannel
+    do {
+      try await statusChangesChannel.subscribeWithError()
+      self.statusChangesChannel = statusChangesChannel
+    } catch {
+      logger.error("Failed to subscribe to status changes: \(error.localizedDescription)")
+      throw ActivityRealtimeError.subscriptionFailed
+    }
 
     // Subscribe to documents table
     let documentsChannel = supabaseManager.client
       .realtimeV2
       .channel("activity-documents-\(userId)")
 
-    documentsChannel
+    _ = documentsChannel
       .onPostgresChange(
         InsertAction.self,
         schema: "public",
@@ -92,8 +113,13 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
         }
       }
 
-    await documentsChannel.subscribe()
-    self.documentsChannel = documentsChannel
+    do {
+      try await documentsChannel.subscribeWithError()
+      self.documentsChannel = documentsChannel
+    } catch {
+      logger.error("Failed to subscribe to documents: \(error.localizedDescription)")
+      throw ActivityRealtimeError.subscriptionFailed
+    }
 
     logger.info("Successfully subscribed to all activity channels")
   }

@@ -11,7 +11,6 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   var fetchOffersCallCount = 0
   var fetchEventsCallCount = 0
   var fetchMetricsCallCount = 0
-  var fetchRecentActivityCallCount = 0
   var fetchSuggestionsCallCount = 0
   var dismissSuggestionCallCount = 0
   var completeSuggestionCallCount = 0
@@ -28,7 +27,6 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   var shouldThrowFetchStats = false
   var shouldThrowFetchSuggestions = false
   var shouldThrowFetchEvents = false
-  var shouldThrowFetchActivities = false
   var shouldThrowFetchMetrics = false
   var shouldThrowFetchInteractions = false
   var shouldThrowDismissSuggestion = false
@@ -51,7 +49,6 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   var stubbedOffers: [Offer] = []
   var stubbedEvents: [Event] = []
   var stubbedMetrics: [PerformanceMetric] = []
-  var stubbedActivities: [Activity] = []
   var stubbedSuggestions: [Suggestion] = []
 
   // MARK: - DashboardManaging
@@ -103,14 +100,6 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
       throw NSError(domain: "MockDashboard", code: 4, userInfo: [NSLocalizedDescriptionKey: "Mock fetch metrics error"])
     }
     return stubbedMetrics
-  }
-
-  func fetchRecentActivity(userId: String, limit: Int) async throws -> [Activity] {
-    fetchRecentActivityCallCount += 1
-    if shouldThrowFetchActivities {
-      throw NSError(domain: "MockDashboard", code: 5, userInfo: [NSLocalizedDescriptionKey: "Mock fetch activities error"])
-    }
-    return stubbedActivities
   }
 
   func fetchSuggestions(location: String) async throws -> [Suggestion] {

@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "CollegeScorecardService")
+nonisolated private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "CollegeScorecardService")
 
 protocol CollegeScorecardManaging: Sendable {
   func lookupCollege(name: String) async throws -> CollegeDataResult?

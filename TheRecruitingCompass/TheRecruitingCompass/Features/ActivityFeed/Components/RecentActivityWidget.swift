@@ -86,12 +86,12 @@ struct RecentActivityWidget: View {
         realtimeService = nil
       }
     }
-    .onChange(of: scenePhase) {
-      if scenePhase == .active {
+    .onChange(of: scenePhase) { _, newValue in
+      if newValue == .active {
         Task {
           await loadAndSubscribe()
         }
-      } else if scenePhase == .background {
+      } else if newValue == .background {
         Task {
           await realtimeService?.unsubscribe()
         }

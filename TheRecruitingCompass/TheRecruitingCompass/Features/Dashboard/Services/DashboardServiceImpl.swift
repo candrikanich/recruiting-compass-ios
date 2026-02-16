@@ -158,19 +158,6 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
   }
 
   @available(*, deprecated, message: "Use ActivityFeedService instead")
-  func fetchRecentActivity(userId: String, limit: Int) async throws -> [Activity] {
-    try await fetch("recent activity") {
-      try await supabaseManager.client
-        .from("activity_log")
-        .select()
-        .eq("user_id", value: userId)
-        .order("timestamp", ascending: false)
-        .limit(limit)
-        .execute()
-        .value
-    }
-  }
-
   func fetchSuggestions(location: String) async throws -> [Suggestion] {
     try await fetch("suggestions") {
       try await supabaseManager.client

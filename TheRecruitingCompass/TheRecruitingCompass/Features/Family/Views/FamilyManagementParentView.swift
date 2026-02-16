@@ -32,7 +32,7 @@ struct FamilyManagementParentView: View {
           .textInputAutocapitalization(.characters)
           .autocorrectionDisabled(true)
           .font(.system(.body, design: .monospaced))
-          .onChange(of: viewModel.codeInput) { _ in
+          .onChange(of: viewModel.codeInput) { _, _ in
             viewModel.formatCodeInput()
           }
           .accessibilityLabel("Enter family code")
