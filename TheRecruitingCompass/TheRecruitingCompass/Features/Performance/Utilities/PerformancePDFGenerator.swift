@@ -7,7 +7,7 @@ final class PerformancePDFGenerator {
   private let pageHeight: CGFloat = 792.0 // 11 inches at 72 DPI
   private let margin: CGFloat = 50.0
 
-  private static let dateFormatter: DateFormatter = {
+  private let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateStyle = .long
     formatter.locale = Locale(identifier: "en_US")
@@ -26,22 +26,22 @@ final class PerformancePDFGenerator {
     let pageRect = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
     let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
 
-    let data = renderer.pdfData { context in
+    let data = renderer.pdfData { [self] context in
       context.beginPage()
 
-      var currentY: CGFloat = margin
+      var currentY: CGFloat = self.margin
 
       // Title
-      currentY = drawTitle(y: currentY)
+      currentY = self.drawTitle(y: currentY)
 
       // Metadata
-      currentY = drawMetadata(y: currentY, userName: userName)
+      currentY = self.drawMetadata(y: currentY, userName: userName)
 
       // Summary Stats
-      currentY = drawSummaryStats(y: currentY, metrics: metrics)
+      currentY = self.drawSummaryStats(y: currentY, metrics: metrics)
 
       // Metric History Table
-      drawMetricHistory(in: context.cgContext, y: currentY, metrics: metrics)
+      self.drawMetricHistory(in: context.cgContext, y: currentY, metrics: metrics)
     }
 
     return data
@@ -79,7 +79,7 @@ final class PerformancePDFGenerator {
       currentY += 20
     }
 
-    let dateText = "Generated: \(Self.dateFormatter.string(from: Date()))"
+    let dateText = "Generated: \(dateFormatter.string(from: Date()))"
     dateText.draw(at: CGPoint(x: margin, y: currentY), withAttributes: attributes)
 
     return currentY + 30

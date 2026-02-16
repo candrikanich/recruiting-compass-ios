@@ -56,6 +56,14 @@ struct MainTabView: View {
       .accessibilityLabel("Performance")
 
       NavigationStack {
+        AnalyticsDashboardView()
+      }
+      .tabItem {
+        Label("Analytics", systemImage: "chart.pie.fill")
+      }
+      .accessibilityLabel("Analytics")
+
+      NavigationStack {
         ActivityFeedView()
           .activityNavigation()
       }
