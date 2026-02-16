@@ -2,7 +2,7 @@ import SwiftUI
 
 struct InteractionsListView: View {
   @State private var viewModel = InteractionsListViewModel()
-  @EnvironmentObject private var familyManager: FamilyManager
+  @Environment(FamilyManager.self) private var familyManager
 
   var body: some View {
     Group {
@@ -160,6 +160,6 @@ struct InteractionsListView: View {
 #Preview {
   NavigationStack {
     InteractionsListView()
-      .environmentObject(FamilyManager.shared)
   }
+  .environment(FamilyManager.shared)
 }

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct NotificationsListView: View {
   @State private var viewModel: NotificationsListViewModel
-  @EnvironmentObject var familyManager: FamilyManager
+  @Environment(FamilyManager.self) private var familyManager
 
   @State private var showDeleteAlert = false
   @State private var showClearReadAlert = false

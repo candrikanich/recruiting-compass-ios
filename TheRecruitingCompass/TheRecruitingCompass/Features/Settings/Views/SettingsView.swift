@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
 
   private let preferenceService: PreferenceManaging
 
@@ -150,7 +150,7 @@ private struct SettingsRow: View {
 struct SettingsView_Previews: PreviewProvider {
   static var previews: some View {
     SettingsView()
-      .environmentObject(AuthManager.shared)
+      .environment(AuthManager.shared)
   }
 }
 #endif

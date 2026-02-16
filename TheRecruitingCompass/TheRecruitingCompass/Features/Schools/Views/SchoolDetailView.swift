@@ -5,7 +5,7 @@ struct SchoolDetailView: View {
   let schoolId: String
 
   @State private var viewModel: SchoolDetailViewModel
-  @EnvironmentObject private var familyManager: FamilyManager
+  @Environment(FamilyManager.self) private var familyManager
   @Environment(\.dismiss) private var dismiss
   @Environment(\.openURL) private var openURL
   @State private var navigationDestination: NavigationDestination?

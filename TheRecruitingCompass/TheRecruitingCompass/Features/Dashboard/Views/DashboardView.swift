@@ -1,13 +1,13 @@
 import SwiftUI
-import Combine
 
 struct DashboardView: View {
-  @State private var viewModel: DashboardViewModel
-  @EnvironmentObject var authManager: AuthManager
-  @EnvironmentObject var familyManager: FamilyManager
+  @State private var viewModel = DashboardViewModel()
+  @Environment(FamilyManager.self) private var familyManager
 
   init(viewModel: DashboardViewModel? = nil) {
-    _viewModel = State(initialValue: viewModel ?? DashboardViewModel())
+    if let viewModel = viewModel {
+      _viewModel = State(initialValue: viewModel)
+    }
   }
 
   var body: some View {
@@ -328,5 +328,5 @@ struct DashboardView: View {
 
 #Preview {
   DashboardView()
-    .environmentObject(AuthManager.shared)
+    .environment(AuthManager.shared)
 }

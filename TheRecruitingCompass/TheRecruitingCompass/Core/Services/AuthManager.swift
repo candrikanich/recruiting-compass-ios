@@ -1,16 +1,17 @@
 import Foundation
 import SwiftUI
-import Combine
+import Observation
 
+@Observable
 @MainActor
-final class AuthManager: ObservableObject, AuthManaging {
+final class AuthManager: AuthManaging {
   static let shared = AuthManager()
 
-  @Published var isAuthenticated = false
-  @Published var isCheckingSession = true
-  @Published var user: User?
-  @Published var session: Session?
-  @Published var errorMessage: String?
+  var isAuthenticated = false
+  var isCheckingSession = true
+  var user: User?
+  var session: Session?
+  var errorMessage: String?
 
   private let keychain = KeychainHelper.shared
   private let sessionKey = "savedSession"

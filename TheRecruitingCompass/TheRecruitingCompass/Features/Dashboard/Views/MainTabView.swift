@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct MainTabView: View {
-  @EnvironmentObject var authManager: AuthManager
-  @EnvironmentObject var familyManager: FamilyManager
+  @Environment(AuthManager.self) private var authManager
+  @Environment(FamilyManager.self) private var familyManager
   @State private var notificationsViewModel = NotificationsListViewModel()
 
   var body: some View {
@@ -86,6 +86,6 @@ struct MainTabView: View {
 
 #Preview {
   MainTabView()
-    .environmentObject(AuthManager.shared)
-    .environmentObject(FamilyManager.shared)
+    .environment(AuthManager.shared)
+    .environment(FamilyManager.shared)
 }

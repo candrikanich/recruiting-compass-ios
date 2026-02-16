@@ -2,7 +2,7 @@ import SwiftUI
 
 struct FamilyManagementView: View {
   @State private var viewModel = FamilyManagementViewModel()
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
 
   var body: some View {
     contentView
@@ -74,8 +74,8 @@ struct FamilyManagementView_Previews: PreviewProvider {
   static var previews: some View {
     NavigationStack {
       FamilyManagementView()
-        .environmentObject(AuthManager.shared)
     }
+    .environment(AuthManager.shared)
   }
 }
 #endif

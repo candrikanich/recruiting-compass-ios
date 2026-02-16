@@ -1,18 +1,19 @@
 import Foundation
 import OSLog
 import SwiftUI
-import Combine
+import Observation
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "FamilyManager")
 
+@Observable
 @MainActor
-final class FamilyManager: ObservableObject {
+final class FamilyManager {
   static let shared = FamilyManager()
 
-  @Published var currentMember: FamilyMember?
-  @Published var familyMembers: [FamilyMember] = []
-  @Published var selectedAthleteId: String?
-  @Published var familyUnit: FamilyUnit?
+  var currentMember: FamilyMember?
+  var familyMembers: [FamilyMember] = []
+  var selectedAthleteId: String?
+  var familyUnit: FamilyUnit?
 
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging

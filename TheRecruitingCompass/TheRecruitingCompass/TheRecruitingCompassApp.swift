@@ -10,8 +10,8 @@ import Supabase
 
 @main
 struct TheRecruitingCompassApp: App {
-  @StateObject var authManager = AuthManager.shared
-  @StateObject var familyManager = FamilyManager.shared
+  @State private var authManager = AuthManager.shared
+  @State private var familyManager = FamilyManager.shared
   @State private var showResetPassword = false
   @Environment(\.accessibilityReduceMotion) var reduceMotion
 
@@ -22,12 +22,9 @@ struct TheRecruitingCompassApp: App {
           sessionLoadingView
         } else if authManager.isAuthenticated {
           MainTabView()
-            .environmentObject(authManager)
-            .environmentObject(familyManager)
         } else {
           NavigationStack {
             LandingView()
-              .environmentObject(authManager)
           }
         }
       }
@@ -47,8 +44,9 @@ struct TheRecruitingCompassApp: App {
           ResetPasswordView(authManager: authManager)
         }
       }
+      .environment(authManager)
+      .environment(familyManager)
     }
-    .environmentObject(authManager)
   }
 
   private func handleDeepLink(_ url: URL) {

@@ -3,13 +3,11 @@ import Combine
 
 struct LoginView: View {
   @State private var viewModel: LoginViewModel
-  @EnvironmentObject var authManager: AuthManager
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
-  init(timeoutReason: String? = nil, authManager: AuthManager? = nil) {
-    let manager = authManager ?? .shared
-    _viewModel = State(initialValue: LoginViewModel(authManager: manager, timeoutReason: timeoutReason))
+  init(timeoutReason: String? = nil) {
+    _viewModel = State(initialValue: LoginViewModel(timeoutReason: timeoutReason))
   }
 
   var body: some View {
@@ -237,6 +235,6 @@ struct LoginView: View {
 #Preview {
   NavigationStack {
     LoginView()
-      .environmentObject(AuthManager.shared)
   }
+  .environment(AuthManager.shared)
 }

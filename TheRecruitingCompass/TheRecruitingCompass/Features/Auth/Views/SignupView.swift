@@ -1,15 +1,9 @@
 import SwiftUI
 
 struct SignupView: View {
-  @State private var viewModel: SignupViewModel
-  @EnvironmentObject var authManager: AuthManager
+  @State private var viewModel = SignupViewModel()
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
-
-  init(authManager: AuthManager? = nil) {
-    let manager = authManager ?? .shared
-    _viewModel = State(initialValue: SignupViewModel(authManager: manager))
-  }
 
   var body: some View {
     ZStack {
@@ -36,7 +30,6 @@ struct SignupView: View {
     .navigationBarBackButtonHidden(true)
     .navigationDestination(isPresented: $viewModel.shouldNavigateToVerifyEmail) {
       EmailVerificationView()
-        .environmentObject(authManager)
     }
   }
 
@@ -295,6 +288,6 @@ struct SignupView: View {
 #Preview {
   NavigationStack {
     SignupView()
-      .environmentObject(AuthManager.shared)
   }
+  .environment(AuthManager.shared)
 }

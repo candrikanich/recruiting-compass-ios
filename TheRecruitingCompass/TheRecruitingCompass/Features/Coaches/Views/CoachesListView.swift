@@ -4,8 +4,8 @@ struct CoachesListView: View {
   let prefilterSchoolId: String?
 
   @State private var viewModel = CoachesListViewModel()
-  @EnvironmentObject private var familyManager: FamilyManager
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(FamilyManager.self) private var familyManager
+  @Environment(AuthManager.self) private var authManager
   @State private var navigationPath = NavigationPath()
 
   init(prefilterSchoolId: String? = nil) {
@@ -175,6 +175,7 @@ struct CoachesListView: View {
 #Preview {
   NavigationStack {
     CoachesListView()
-      .environmentObject(FamilyManager.shared)
   }
+  .environment(FamilyManager.shared)
+  .environment(AuthManager.shared)
 }

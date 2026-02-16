@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SchoolsListView: View {
   @State private var viewModel = SchoolsListViewModel()
-  @EnvironmentObject private var familyManager: FamilyManager
+  @Environment(FamilyManager.self) private var familyManager
   @State private var showAddSchool = false
 
   var body: some View {
@@ -157,6 +157,6 @@ struct SchoolsListView: View {
 #Preview {
   NavigationStack {
     SchoolsListView()
-      .environmentObject(FamilyManager.shared)
   }
+  .environment(FamilyManager.shared)
 }
