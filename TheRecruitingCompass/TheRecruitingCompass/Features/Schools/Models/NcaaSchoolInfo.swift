@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import SwiftUI
 
 /// NCAA school information for division/conference lookup
 struct NcaaSchoolInfo: Codable, Sendable {
@@ -28,7 +27,7 @@ struct NcaaLookupResult: Sendable {
   let conference: String
   let logo: String?
 
-  init(division: Division, conference: String, logo: String? = nil) {
+  nonisolated init(division: Division, conference: String, logo: String? = nil) {
     self.division = division
     self.conference = conference
     self.logo = logo

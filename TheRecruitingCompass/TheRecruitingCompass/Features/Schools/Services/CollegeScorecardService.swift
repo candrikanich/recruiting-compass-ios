@@ -105,11 +105,11 @@ actor CollegeScorecardService: CollegeScorecardManaging {
 
 // MARK: - API Response Models
 
-private struct CollegeScorecardAPIResponse: Codable {
+private struct CollegeScorecardAPIResponse: Codable, @unchecked Sendable {
   let metadata: Metadata
   let results: [CollegeDataResult]
 
-  struct Metadata: Codable {
+  struct Metadata: Codable, @unchecked Sendable {
     let total: Int
     let page: Int
     let perPage: Int
@@ -124,11 +124,11 @@ private struct CollegeScorecardAPIResponse: Codable {
 
 // MARK: - Autocomplete API Response (Phase 2)
 
-private struct AutocompleteAPIResponse: Codable {
+private struct AutocompleteAPIResponse: Codable, @unchecked Sendable {
   let metadata: Metadata
   let results: [AutocompleteResult]
 
-  struct Metadata: Codable {
+  struct Metadata: Codable, @unchecked Sendable {
     let total: Int
     let page: Int
     let perPage: Int
@@ -140,7 +140,7 @@ private struct AutocompleteAPIResponse: Codable {
     }
   }
 
-  struct AutocompleteResult: Codable {
+  struct AutocompleteResult: Codable, @unchecked Sendable {
     let id: Int?
     let name: String?
     let city: String?

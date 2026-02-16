@@ -22,7 +22,7 @@ extension String {
   ///   ```
   ///   "kitten".levenshteinDistance(to: "sitting") // Returns 3
   ///   ```
-  func levenshteinDistance(to other: String) -> Int {
+  nonisolated func levenshteinDistance(to other: String) -> Int {
     let s1Array = Array(self)
     let s2Array = Array(other)
     let m = s1Array.count

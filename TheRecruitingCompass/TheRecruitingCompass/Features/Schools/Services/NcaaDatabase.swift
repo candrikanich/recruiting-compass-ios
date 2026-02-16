@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import SwiftUI
 import OSLog
 
 nonisolated private let logger = Logger(
@@ -23,7 +22,7 @@ protocol NcaaDatabaseManaging: Sendable {
 /// NCAA Division database singleton
 /// Loads D1, D2, D3 schools from bundled JSON resources
 actor NcaaDatabase: NcaaDatabaseManaging {
-  nonisolated static let shared = NcaaDatabase()
+  static let shared = NcaaDatabase()
 
   // MARK: - Properties
 
@@ -114,7 +113,7 @@ actor NcaaDatabase: NcaaDatabaseManaging {
   // MARK: - Private Helpers
 
   /// Load schools from bundled JSON resource
-  private static func loadSchools(from filename: String) -> [NcaaSchoolInfo] {
+  nonisolated private static func loadSchools(from filename: String) -> [NcaaSchoolInfo] {
     guard let url = Bundle.main.url(forResource: filename, withExtension: "json") else {
       logger.warning("NCAA database file not found: \(filename).json")
       return []
@@ -177,7 +176,7 @@ actor NcaaDatabase: NcaaDatabaseManaging {
   }
 
   /// Static normalization for use during initialization and externally
-  private static func normalize(_ name: String) -> String {
+  nonisolated private static func normalize(_ name: String) -> String {
     let lowercased = name.lowercased()
     let withoutPrefixes = removePrefixes(from: lowercased)
     let withoutPunctuation = removePunctuation(from: withoutPrefixes)
@@ -185,7 +184,7 @@ actor NcaaDatabase: NcaaDatabaseManaging {
   }
 
   /// Remove common institutional prefixes
-  private static func removePrefixes(from text: String) -> String {
+  nonisolated private static func removePrefixes(from text: String) -> String {
     let prefixes = ["university of ", "college of ", "the ", "university ", "college "]
 
     for prefix in prefixes {
@@ -198,12 +197,12 @@ actor NcaaDatabase: NcaaDatabaseManaging {
   }
 
   /// Remove punctuation characters
-  private static func removePunctuation(from text: String) -> String {
+  nonisolated private static func removePunctuation(from text: String) -> String {
     text.components(separatedBy: CharacterSet.punctuationCharacters).joined()
   }
 
   /// Normalize whitespace (collapse and trim)
-  private static func normalizeWhitespace(in text: String) -> String {
+  nonisolated private static func normalizeWhitespace(in text: String) -> String {
     text.components(separatedBy: .whitespaces)
       .filter { !$0.isEmpty }
       .joined(separator: " ")
