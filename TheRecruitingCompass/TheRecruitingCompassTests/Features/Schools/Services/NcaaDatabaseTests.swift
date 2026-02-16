@@ -47,9 +47,9 @@ final class NcaaDatabaseTests: XCTestCase {
 
   // MARK: - Exact Match Tests
 
-  func testLookup_exactMatch_d1School_returnsResult() {
+  func testLookup_exactMatch_d1School_returnsResult() async {
     // When
-    let result = database.lookup(schoolName: "University of Florida")
+    let result = await database.lookup(schoolName: "University of Florida")
 
     // Then
     XCTAssertNotNil(result)
@@ -57,9 +57,9 @@ final class NcaaDatabaseTests: XCTestCase {
     XCTAssertEqual(result?.conference, "SEC")
   }
 
-  func testLookup_exactMatch_d2School_returnsResult() {
+  func testLookup_exactMatch_d2School_returnsResult() async {
     // When
-    let result = database.lookup(schoolName: "UC San Diego")
+    let result = await database.lookup(schoolName: "UC San Diego")
 
     // Then
     XCTAssertNotNil(result)
@@ -67,9 +67,9 @@ final class NcaaDatabaseTests: XCTestCase {
     XCTAssertEqual(result?.conference, "CCAA")
   }
 
-  func testLookup_exactMatch_d3School_returnsResult() {
+  func testLookup_exactMatch_d3School_returnsResult() async {
     // When
-    let result = database.lookup(schoolName: "MIT")
+    let result = await database.lookup(schoolName: "MIT")
 
     // Then
     XCTAssertNotNil(result)
@@ -77,11 +77,11 @@ final class NcaaDatabaseTests: XCTestCase {
     XCTAssertEqual(result?.conference, "NEWMAC")
   }
 
-  func testLookup_exactMatch_caseInsensitive_returnsResult() {
+  func testLookup_exactMatch_caseInsensitive_returnsResult() async {
     // When
-    let result1 = database.lookup(schoolName: "university of florida")
-    let result2 = database.lookup(schoolName: "UNIVERSITY OF FLORIDA")
-    let result3 = database.lookup(schoolName: "UnIvErSiTy Of FlOrIdA")
+    let result1 = await database.lookup(schoolName: "university of florida")
+    let result2 = await database.lookup(schoolName: "UNIVERSITY OF FLORIDA")
+    let result3 = await database.lookup(schoolName: "UnIvErSiTy Of FlOrIdA")
 
     // Then
     XCTAssertNotNil(result1)
@@ -94,9 +94,9 @@ final class NcaaDatabaseTests: XCTestCase {
     XCTAssertEqual(result3?.division, .d1)
   }
 
-  func testLookup_exactMatch_withoutUniversityPrefix_returnsResult() {
+  func testLookup_exactMatch_withoutUniversityPrefix_returnsResult() async {
     // When
-    let result = database.lookup(schoolName: "Florida")
+    let result = await database.lookup(schoolName: "Florida")
 
     // Then
     XCTAssertNotNil(result)
@@ -104,14 +104,14 @@ final class NcaaDatabaseTests: XCTestCase {
     XCTAssertEqual(result?.conference, "SEC")
   }
 
-  func testLookup_exactMatch_prioritizesD1OverD2() {
+  func testLookup_exactMatch_prioritizesD1OverD2() async {
     // Given - add school to both D1 and D2
     let d1 = [NcaaSchoolInfo(name: "Test University", conference: "D1 Conference", logo: nil)]
     let d2 = [NcaaSchoolInfo(name: "Test University", conference: "D2 Conference", logo: nil)]
     let testDb = TestableNcaaDatabase(d1Schools: d1, d2Schools: d2, d3Schools: [])
 
     // When
-    let result = testDb.lookup(schoolName: "Test University")
+    let result = await testDb.lookup(schoolName: "Test University")
 
     // Then
     XCTAssertEqual(result?.division, .d1) // D1 should win
@@ -120,10 +120,10 @@ final class NcaaDatabaseTests: XCTestCase {
 
   // MARK: - Partial Match Tests (>8 chars)
 
-  func testLookup_partialMatch_longName_returnsResult() {
+  func testLookup_partialMatch_longName_returnsResult() async {
     // When - "Vanderbilt" normalizes to "vanderbilt" (10 chars > 8), triggers partial match
     // DB has "Vanderbilt University" -> "vanderbilt university" which contains "vanderbilt"
-    let result = database.lookup(schoolName: "Vanderbilt")
+    let result = await database.lookup(schoolName: "Vanderbilt")
 
     // Then
     XCTAssertNotNil(result)
@@ -131,9 +131,9 @@ final class NcaaDatabaseTests: XCTestCase {
     XCTAssertEqual(result?.conference, "SEC")
   }
 
-  func testLookup_partialMatch_subset_returnsResult() {
+  func testLookup_partialMatch_subset_returnsResult() async {
     // When
-    let result = database.lookup(schoolName: "Johns Hopkins")
+    let result = await database.lookup(schoolName: "Johns Hopkins")
 
     // Then
     XCTAssertNotNil(result)
@@ -141,7 +141,7 @@ final class NcaaDatabaseTests: XCTestCase {
     XCTAssertEqual(result?.conference, "Centennial")
   }
 
-  func testLookup_partialMatch_ignoresShortNames() {
+  func testLookup_partialMatch_ignoresShortNames() async {
     // Given - short name (8 chars or less)
     let shortDb = TestableNcaaDatabase(
       d1Schools: [NcaaSchoolInfo(name: "University of Test", conference: "Test", logo: nil)],
@@ -150,13 +150,13 @@ final class NcaaDatabaseTests: XCTestCase {
     )
 
     // When - search with 8 chars (should not trigger partial match)
-    let result = shortDb.lookup(schoolName: "12345678")
+    let result = await shortDb.lookup(schoolName: "12345678")
 
     // Then - should return nil (no exact or fuzzy match)
     XCTAssertNil(result)
   }
 
-  func testLookup_partialMatch_moreThan8Chars_triggers() {
+  func testLookup_partialMatch_moreThan8Chars_triggers() async {
     // Given - custom DB with "California Institute" -> "california institute"
     let db = TestableNcaaDatabase(
       d1Schools: [NcaaSchoolInfo(name: "California Institute", conference: "Test", logo: nil)],
@@ -166,7 +166,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
     // When - "California" normalizes to "california" (10 chars > 8), triggers partial match
     // "california institute" contains "california" -> partial match
-    let result = db.lookup(schoolName: "California")
+    let result = await db.lookup(schoolName: "California")
 
     // Then - should find partial match
     XCTAssertNotNil(result)
@@ -176,7 +176,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   // MARK: - Fuzzy Match Tests (Levenshtein Distance <= 2)
 
-  func testLookup_fuzzyMatch_oneCharDifference_returnsResult() {
+  func testLookup_fuzzyMatch_oneCharDifference_returnsResult() async {
     // Given
     let db = TestableNcaaDatabase(
       d1Schools: [NcaaSchoolInfo(name: "Florida State", conference: "ACC", logo: nil)],
@@ -185,14 +185,14 @@ final class NcaaDatabaseTests: XCTestCase {
     )
 
     // When - "florida stat" (missing 'e', distance = 1)
-    let result = db.lookup(schoolName: "florida stat")
+    let result = await db.lookup(schoolName: "florida stat")
 
     // Then
     XCTAssertNotNil(result)
     XCTAssertEqual(result?.division, .d1)
   }
 
-  func testLookup_fuzzyMatch_twoCharDifference_returnsResult() {
+  func testLookup_fuzzyMatch_twoCharDifference_returnsResult() async {
     // Given
     let db = TestableNcaaDatabase(
       d1Schools: [NcaaSchoolInfo(name: "Stanford", conference: "Pac-12", logo: nil)],
@@ -201,14 +201,14 @@ final class NcaaDatabaseTests: XCTestCase {
     )
 
     // When - "stanfrd" (missing 'o', distance = 1)
-    let result = db.lookup(schoolName: "stanfrd")
+    let result = await db.lookup(schoolName: "stanfrd")
 
     // Then
     XCTAssertNotNil(result)
     XCTAssertEqual(result?.division, .d1)
   }
 
-  func testLookup_fuzzyMatch_threeCharDifference_returnsNil() {
+  func testLookup_fuzzyMatch_threeCharDifference_returnsNil() async {
     // Given
     let db = TestableNcaaDatabase(
       d1Schools: [NcaaSchoolInfo(name: "Stanford", conference: "Pac-12", logo: nil)],
@@ -217,7 +217,7 @@ final class NcaaDatabaseTests: XCTestCase {
     )
 
     // When - "stanxx" (3+ char difference)
-    let result = db.lookup(schoolName: "stanxx")
+    let result = await db.lookup(schoolName: "stanxx")
 
     // Then - should not match (distance > 2)
     XCTAssertNil(result)
@@ -225,25 +225,25 @@ final class NcaaDatabaseTests: XCTestCase {
 
   // MARK: - No Match Tests
 
-  func testLookup_noMatch_returnsNil() {
+  func testLookup_noMatch_returnsNil() async {
     // When
-    let result = database.lookup(schoolName: "Nonexistent University")
+    let result = await database.lookup(schoolName: "Nonexistent University")
 
     // Then
     XCTAssertNil(result)
   }
 
-  func testLookup_emptyString_returnsNil() {
+  func testLookup_emptyString_returnsNil() async {
     // When
-    let result = database.lookup(schoolName: "")
+    let result = await database.lookup(schoolName: "")
 
     // Then
     XCTAssertNil(result)
   }
 
-  func testLookup_whitespaceOnly_returnsNil() {
+  func testLookup_whitespaceOnly_returnsNil() async {
     // When
-    let result = database.lookup(schoolName: "   ")
+    let result = await database.lookup(schoolName: "   ")
 
     // Then
     // After normalization, becomes empty string
@@ -396,12 +396,12 @@ final class NcaaDatabaseTests: XCTestCase {
 
   // MARK: - Cache Tests
 
-  func testLookup_cachesResult_afterFirstLookup() {
+  func testLookup_cachesResult_afterFirstLookup() async {
     // Given
-    _ = database.lookup(schoolName: "Stanford University")
+    _ = await database.lookup(schoolName: "Stanford University")
 
     // When - lookup again
-    let result = database.lookup(schoolName: "Stanford University")
+    let result = await database.lookup(schoolName: "Stanford University")
 
     // Then - should still return correct result
     XCTAssertNotNil(result)
@@ -411,46 +411,46 @@ final class NcaaDatabaseTests: XCTestCase {
     // Cache hit is logged (verified in implementation)
   }
 
-  func testLookup_cacheIsNormalized_usesNormalizedKey() {
+  func testLookup_cacheIsNormalized_usesNormalizedKey() async {
     // Given
-    _ = database.lookup(schoolName: "University of Florida")
+    _ = await database.lookup(schoolName: "University of Florida")
 
     // When - lookup with different casing
-    let result = database.lookup(schoolName: "UNIVERSITY OF FLORIDA")
+    let result = await database.lookup(schoolName: "UNIVERSITY OF FLORIDA")
 
     // Then - should hit cache (same normalized key)
     XCTAssertNotNil(result)
     XCTAssertEqual(result?.division, .d1)
   }
 
-  func testClearCache_removesAllCachedResults() {
+  func testClearCache_removesAllCachedResults() async {
     // Given - populate cache with names that produce exact matches
-    _ = database.lookup(schoolName: "University of Florida")
-    _ = database.lookup(schoolName: "MIT")
+    _ = await database.lookup(schoolName: "University of Florida")
+    _ = await database.lookup(schoolName: "MIT")
 
     // When
     database.clearCache()
 
     // Then - subsequent lookups still work (re-search from database)
-    let result = database.lookup(schoolName: "University of Florida")
+    let result = await database.lookup(schoolName: "University of Florida")
     XCTAssertNotNil(result)
     XCTAssertEqual(result?.division, .d1)
   }
 
   // MARK: - Edge Case Tests
 
-  func testLookup_veryLongSchoolName_handlesGracefully() {
+  func testLookup_veryLongSchoolName_handlesGracefully() async {
     // Given
     let longName = String(repeating: "University ", count: 100)
 
     // When
-    let result = database.lookup(schoolName: longName)
+    let result = await database.lookup(schoolName: longName)
 
     // Then - should not crash, returns nil
     XCTAssertNil(result)
   }
 
-  func testLookup_schoolNameWithNumbers_handlesCorrectly() {
+  func testLookup_schoolNameWithNumbers_handlesCorrectly() async {
     // Given - "Miami (FL)" normalizes to "miami fl" (punctuation removed)
     let db = TestableNcaaDatabase(
       d1Schools: [NcaaSchoolInfo(name: "Miami (FL)", conference: "ACC", logo: nil)],
@@ -459,14 +459,14 @@ final class NcaaDatabaseTests: XCTestCase {
     )
 
     // When - exact match with same parenthetical
-    let result = db.lookup(schoolName: "Miami (FL)")
+    let result = await db.lookup(schoolName: "Miami (FL)")
 
     // Then
     XCTAssertNotNil(result)
     XCTAssertEqual(result?.division, .d1)
   }
 
-  func testLookup_unicodeCharacters_handlesCorrectly() {
+  func testLookup_unicodeCharacters_handlesCorrectly() async {
     // Given
     let db = TestableNcaaDatabase(
       d1Schools: [NcaaSchoolInfo(name: "São Paulo University", conference: "Test", logo: nil)],
@@ -475,7 +475,7 @@ final class NcaaDatabaseTests: XCTestCase {
     )
 
     // When
-    let result = db.lookup(schoolName: "São Paulo University")
+    let result = await db.lookup(schoolName: "São Paulo University")
 
     // Then
     XCTAssertNotNil(result)
@@ -484,12 +484,12 @@ final class NcaaDatabaseTests: XCTestCase {
 
   // MARK: - Realistic NCAA Database Tests
 
-  func testLookup_realData_stanfordUniversity() {
+  func testLookup_realData_stanfordUniversity() async {
     // Using actual NCAA database
     let realDatabase = NcaaDatabase.shared
 
     // When
-    let result = realDatabase.lookup(schoolName: "Stanford University")
+    let result = await realDatabase.lookup(schoolName: "Stanford University")
 
     // Then - Stanford should be D1
     // Note: This test depends on NCAA database JSON files being present
@@ -521,7 +521,7 @@ final class TestableNcaaDatabase: NcaaDatabaseManaging {
     self.d3Schools = d3Schools
   }
 
-  func lookup(schoolName: String) -> NcaaLookupResult? {
+  func lookup(schoolName: String) async -> NcaaLookupResult? {
     guard !schoolName.isEmpty else { return nil }
 
     let normalized = normalizeSchoolName(schoolName)

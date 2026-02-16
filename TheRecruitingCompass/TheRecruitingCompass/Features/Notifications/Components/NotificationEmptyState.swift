@@ -1,10 +1,16 @@
 import SwiftUI
 
 struct NotificationEmptyState: View {
+  @Environment(\.sizeCategory) private var sizeCategory
+
+  private var iconSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 56 : 48
+  }
+
   var body: some View {
     VStack(spacing: 16) {
       Image(systemName: "bell.badge.slash")
-        .font(.system(size: 48))
+        .font(.system(size: iconSize))
         .foregroundColor(.secondary)
         .accessibilityHidden(true)
 

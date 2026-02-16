@@ -1,10 +1,16 @@
 import SwiftUI
 
 struct EmptyDashboardState: View {
+  @Environment(\.sizeCategory) private var sizeCategory
+
+  private var iconSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 72 : 60
+  }
+
   var body: some View {
     VStack(spacing: 16) {
       Image(systemName: "location.fill")
-        .font(.system(size: 60))
+        .font(.system(size: iconSize))
         .foregroundColor(Color.primaryGreen)
         .accessibilityHidden(true)
 

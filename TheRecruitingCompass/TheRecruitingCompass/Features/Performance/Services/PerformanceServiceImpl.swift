@@ -7,7 +7,8 @@ private let logger = Logger(
   category: "PerformanceService"
 )
 
-final class PerformanceServiceImpl: PerformanceManaging, @unchecked Sendable {
+/// Sendable: Stateless service with no mutable properties
+final class PerformanceServiceImpl: PerformanceManaging, Sendable {
   private let supabaseManager: SupabaseManager
 
   init(supabaseManager: SupabaseManager) {

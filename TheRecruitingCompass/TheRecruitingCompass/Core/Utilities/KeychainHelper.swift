@@ -9,6 +9,10 @@ enum KeychainError: Error {
   case unknown(Error)
 }
 
+/// @unchecked Sendable: Wraps Apple's Security framework Keychain APIs,
+/// which are C-based and not Sendable. The Security framework is thread-safe
+/// and all operations are synchronous atomic operations at the OS level.
+/// This is safe because Keychain operations are stateless and atomic.
 final class KeychainHelper: @unchecked Sendable {
   static let shared = KeychainHelper()
 

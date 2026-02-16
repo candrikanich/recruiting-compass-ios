@@ -8,7 +8,7 @@ private let logger = Logger(
 )
 
 /// Real-time activity feed service using Supabase Realtime subscriptions
-final class ActivityRealtimeService: ActivityRealtimeManaging, @unchecked Sendable {
+actor ActivityRealtimeService: ActivityRealtimeManaging {
   private let supabaseManager: SupabaseManager
   private let activityService: any ActivityFeedManaging
 

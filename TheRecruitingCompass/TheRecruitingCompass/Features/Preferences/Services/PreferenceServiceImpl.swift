@@ -124,7 +124,8 @@ private enum JSONValue: Codable, Equatable {
   }
 }
 
-final class PreferenceServiceImpl: PreferenceManaging, @unchecked Sendable {
+/// Sendable: Stateless service with no mutable properties
+final class PreferenceServiceImpl: PreferenceManaging, Sendable {
   private let supabaseManager: SupabaseManager
 
   init(supabaseManager: SupabaseManager) {

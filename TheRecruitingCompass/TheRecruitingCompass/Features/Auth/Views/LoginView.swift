@@ -63,9 +63,13 @@ struct LoginView: View {
     .padding(.vertical, 16)
   }
 
+  private var iconSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 56 : 48
+  }
+
   private var compassIcon: some View {
     Image(systemName: "compass.drawing")
-      .font(.system(size: 48))
+      .font(.system(size: iconSize))
       .foregroundColor(Color.primaryGreen)
       .padding(.vertical, 12)
       .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)

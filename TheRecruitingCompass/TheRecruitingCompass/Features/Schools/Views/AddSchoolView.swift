@@ -195,7 +195,9 @@ struct AddSchoolView: View {
     .onChange(of: viewModel.formState.name) { _, newName in
       // Phase 1: Trigger NCAA lookup when school name changes
       if !newName.isEmpty && viewModel.formState.division == nil {
-        viewModel.performNcaaLookup(for: newName)
+        Task {
+          await viewModel.performNcaaLookup(for: newName)
+        }
       }
     }
   }

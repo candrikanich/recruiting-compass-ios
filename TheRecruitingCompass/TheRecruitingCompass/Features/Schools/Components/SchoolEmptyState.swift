@@ -4,10 +4,16 @@ struct SchoolEmptyState: View {
   let isFiltered: Bool
   let onClearFilters: () -> Void
 
+  @Environment(\.sizeCategory) private var sizeCategory
+
+  private var iconSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 72 : 64
+  }
+
   var body: some View {
     VStack(spacing: 16) {
       Image(systemName: isFiltered ? "line.3.horizontal.decrease.circle" : "building.2")
-        .font(.system(size: 64))
+        .font(.system(size: iconSize))
         .foregroundColor(.secondary)
         .accessibilityHidden(true)
 

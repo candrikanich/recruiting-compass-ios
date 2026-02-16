@@ -17,13 +17,13 @@ private let logger = Logger(
 
 /// Protocol for NCAA database lookups (enables testing)
 protocol NcaaDatabaseManaging: Sendable {
-  func lookup(schoolName: String) -> NcaaLookupResult?
+  func lookup(schoolName: String) async -> NcaaLookupResult?
 }
 
 /// NCAA Division database singleton
 /// Loads D1, D2, D3 schools from bundled JSON resources
-final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
-  static let shared = NcaaDatabase()
+actor NcaaDatabase: NcaaDatabaseManaging {
+  nonisolated static let shared = NcaaDatabase()
 
   // MARK: - Properties
 
@@ -34,9 +34,8 @@ final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
   // Indexed lookup for O(1) exact matches
   private let schoolIndex: [String: (division: Division, school: NcaaSchoolInfo)]
 
-  // Session cache for lookup results
+  // Session cache for lookup results (actor provides isolation)
   private var lookupCache: [String: NcaaLookupResult] = [:]
-  private let cacheQueue = DispatchQueue(label: "com.recruitingcompass.ncaa.cache")
 
   // MARK: - Init
 
@@ -73,7 +72,7 @@ final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
   /// Look up division and conference for a school name
   /// - Parameter schoolName: The school name to search for
   /// - Returns: NcaaLookupResult if found, nil otherwise
-  func lookup(schoolName: String) -> NcaaLookupResult? {
+  func lookup(schoolName: String) async -> NcaaLookupResult? {
     guard !schoolName.isEmpty else { return nil }
 
     let normalized = normalizeSchoolName(schoolName)
@@ -108,9 +107,7 @@ final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
 
   /// Clear the session cache
   func clearCache() {
-    cacheQueue.sync {
-      lookupCache.removeAll()
-    }
+    lookupCache.removeAll()
     logger.debug("NCAA cache cleared")
   }
 
@@ -213,17 +210,13 @@ final class NcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
       .trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
-  // MARK: - Cache Helpers
+  // MARK: - Cache Helpers (actor-isolated)
 
   private func getCachedResult(for normalizedName: String) -> NcaaLookupResult? {
-    cacheQueue.sync {
-      lookupCache[normalizedName]
-    }
+    lookupCache[normalizedName]
   }
 
   private func setCachedResult(_ result: NcaaLookupResult, for normalizedName: String) {
-    cacheQueue.sync {
-      lookupCache[normalizedName] = result
-    }
+    lookupCache[normalizedName] = result
   }
 }

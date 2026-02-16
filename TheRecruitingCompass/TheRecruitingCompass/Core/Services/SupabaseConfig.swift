@@ -1,4 +1,7 @@
 import Foundation
+import OSLog
+
+private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "SupabaseConfig")
 
 struct SupabaseConfig {
   static let url: URL = {
@@ -8,7 +11,7 @@ struct SupabaseConfig {
     }
 
     // Fallback for missing env vars (useful for previews/tests)
-    print("⚠️ SUPABASE_URL not configured - using placeholder")
+    logger.warning("SUPABASE_URL not configured - using placeholder")
     return URL(string: "https://placeholder.supabase.co")!
   }()
 
@@ -18,7 +21,7 @@ struct SupabaseConfig {
     }
 
     // Fallback for missing env vars (useful for previews/tests)
-    print("⚠️ SUPABASE_ANON_KEY not configured - using placeholder")
+    logger.warning("SUPABASE_ANON_KEY not configured - using placeholder")
     return "placeholder-key"
   }()
 }

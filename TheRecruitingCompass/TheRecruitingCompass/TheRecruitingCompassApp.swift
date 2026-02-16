@@ -14,6 +14,7 @@ struct TheRecruitingCompassApp: App {
   @State private var familyManager = FamilyManager.shared
   @State private var showResetPassword = false
   @Environment(\.accessibilityReduceMotion) var reduceMotion
+  @Environment(\.sizeCategory) var sizeCategory
 
   var body: some Scene {
     WindowGroup {
@@ -59,6 +60,10 @@ struct TheRecruitingCompassApp: App {
     }
   }
 
+  private var splashIconSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 72 : 64
+  }
+
   private var sessionLoadingView: some View {
     ZStack {
       LinearGradient.landingBackground
@@ -66,7 +71,7 @@ struct TheRecruitingCompassApp: App {
 
       VStack(spacing: 16) {
         Image(systemName: "location.fill")
-          .font(.system(size: 64))
+          .font(.system(size: splashIconSize))
           .foregroundColor(.white)
 
         ProgressView()

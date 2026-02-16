@@ -56,6 +56,11 @@ struct AnyCodable: Codable {
   }
 }
 
+/// @unchecked Sendable: Wraps the Supabase Swift SDK's SupabaseClient,
+/// which is not Sendable but is designed for concurrent use. All operations
+/// delegate to the underlying client which handles its own thread safety.
+/// This is a standard pattern when wrapping non-Sendable SDK types that
+/// are documented as thread-safe by the vendor.
 final class SupabaseManager: @unchecked Sendable {
   static let shared = SupabaseManager()
 

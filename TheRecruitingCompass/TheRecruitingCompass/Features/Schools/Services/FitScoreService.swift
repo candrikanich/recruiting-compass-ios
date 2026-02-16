@@ -8,7 +8,8 @@ protocol FitScoreManaging: Sendable {
   func getDivisionRecommendations(division: String?, fitScore: Double?) -> DivisionRecommendation
 }
 
-final class FitScoreService: FitScoreManaging, @unchecked Sendable {
+/// Sendable: Stateless service with no mutable properties
+final class FitScoreService: FitScoreManaging, Sendable {
 
   /// Calculate fit score for a school
   /// NOTE: This is a simplified client-side calculation

@@ -4,10 +4,16 @@ struct InteractionEmptyState: View {
   let isFilteredEmpty: Bool
   let onClearFilters: (() -> Void)?
 
+  @Environment(\.sizeCategory) private var sizeCategory
+
+  private var iconSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 72 : 60
+  }
+
   var body: some View {
     VStack(spacing: 20) {
       Image(systemName: icon)
-        .font(.system(size: 60))
+        .font(.system(size: iconSize))
         .foregroundColor(.gray.opacity(0.5))
         .accessibilityHidden(true)
 

@@ -7,7 +7,8 @@ private let logger = Logger(
   category: "ActivityFeedService"
 )
 
-final class ActivityFeedServiceImpl: ActivityFeedManaging, @unchecked Sendable {
+/// Sendable: Stateless service with no mutable properties
+final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
   private let supabaseManager: SupabaseManager
 
   init(supabaseManager: SupabaseManager) {

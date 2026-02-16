@@ -22,7 +22,7 @@ extension AddSchoolViewModel {
   /// Performs NCAA database lookup to auto-fill division and conference
   /// Triggered when user enters school name (only if division is not already set)
   /// - Parameter schoolName: The school name to search for
-  func performNcaaLookup(for schoolName: String) {
+  func performNcaaLookup(for schoolName: String) async {
     // Only perform lookup if:
     // 1. School name is not empty
     // 2. Division is not already manually set
@@ -37,8 +37,8 @@ extension AddSchoolViewModel {
 
     ncaaLogger.debug("Performing NCAA lookup for: \(schoolName)")
 
-    // Perform lookup (synchronous, local database)
-    if let result = ncaaDatabase.lookup(schoolName: schoolName) {
+    // Perform lookup (actor-isolated)
+    if let result = await ncaaDatabase.lookup(schoolName: schoolName) {
       ncaaLogger.info("NCAA match found: \(result.division.rawValue) - \(result.conference)")
 
       // Auto-fill division and conference

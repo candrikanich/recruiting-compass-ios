@@ -25,15 +25,20 @@ struct ExportFormatSheet: View {
   let csvData: Data
   let pdfData: Data
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.sizeCategory) private var sizeCategory
   @State private var selectedFormat: ExportFormat = .csv
   @State private var showShareSheet = false
+
+  private var iconSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 56 : 48
+  }
 
   var body: some View {
     NavigationStack {
       VStack(spacing: 24) {
         // Icon
         Image(systemName: "square.and.arrow.up")
-          .font(.system(size: 48))
+          .font(.system(size: iconSize))
           .foregroundStyle(Color.accentBlue)
           .padding(.top)
 

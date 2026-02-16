@@ -4,7 +4,8 @@ import Supabase
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "SchoolsService")
 
-final class SchoolsServiceImpl: SchoolsManaging, @unchecked Sendable {
+/// Sendable: Stateless service with no mutable properties
+final class SchoolsServiceImpl: SchoolsManaging, Sendable {
   private let supabaseManager: SupabaseManager
 
   init(supabaseManager: SupabaseManager) {

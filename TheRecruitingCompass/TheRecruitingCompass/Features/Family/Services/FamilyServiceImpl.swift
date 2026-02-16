@@ -4,7 +4,8 @@ import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "FamilyService")
 
-final class FamilyServiceImpl: FamilyManaging, @unchecked Sendable {
+/// Sendable: Stateless service with no mutable properties
+final class FamilyServiceImpl: FamilyManaging, Sendable {
   private let supabaseManager: SupabaseManager
 
   init(supabaseManager: SupabaseManager) {

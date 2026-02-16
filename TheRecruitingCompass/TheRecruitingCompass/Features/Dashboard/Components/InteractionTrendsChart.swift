@@ -4,8 +4,14 @@ import Charts
 struct InteractionTrendsChart: View {
   let trends: [InteractionTrend]
 
+  @Environment(\.sizeCategory) private var sizeCategory
+
   private var totalInteractions: Int {
     trends.map(\.count).reduce(0, +)
+  }
+
+  private var iconSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 40 : 32
   }
 
   var body: some View {
@@ -19,7 +25,7 @@ struct InteractionTrendsChart: View {
       if trends.isEmpty {
         VStack(spacing: 8) {
           Image(systemName: "chart.bar.xaxis")
-            .font(.system(size: 32))
+            .font(.system(size: iconSize))
             .foregroundColor(Color.secondaryText)
             .accessibilityHidden(true)
 

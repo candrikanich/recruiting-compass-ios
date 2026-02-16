@@ -53,10 +53,14 @@ struct ForgotPasswordView: View {
 
   // MARK: - Form State
 
+  private var iconSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 56 : 48
+  }
+
   private var formContent: some View {
     VStack(spacing: 24) {
       Image(systemName: "lock.rotation")
-        .font(.system(size: 48))
+        .font(.system(size: iconSize))
         .foregroundColor(Color.primaryGreen)
         .padding(.vertical, 12)
         .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)

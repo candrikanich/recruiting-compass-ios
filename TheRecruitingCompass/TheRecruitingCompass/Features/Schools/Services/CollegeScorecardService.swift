@@ -8,7 +8,7 @@ protocol CollegeScorecardManaging: Sendable {
   func searchColleges(query: String) async throws -> [CollegeSearchResult]
 }
 
-final class CollegeScorecardService: CollegeScorecardManaging, @unchecked Sendable {
+actor CollegeScorecardService: CollegeScorecardManaging {
   private let apiKey: String
   private let urlSession: URLSession
   private let cache = CollegeScorecardCache()

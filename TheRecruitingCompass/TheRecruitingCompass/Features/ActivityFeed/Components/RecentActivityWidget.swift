@@ -1,4 +1,7 @@
 import SwiftUI
+import OSLog
+
+private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "ActivityFeed")
 
 struct RecentActivityWidget: View {
   @State private var viewModel = ActivityFeedViewModel()
@@ -114,7 +117,7 @@ struct RecentActivityWidget: View {
       }
     } catch {
       // Log error but don't fail - widget still works without realtime
-      print("Failed to subscribe to realtime updates: \(error.localizedDescription)")
+      logger.error("Failed to subscribe to realtime updates: \(error.localizedDescription)")
     }
   }
 }

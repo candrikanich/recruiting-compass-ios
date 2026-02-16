@@ -7,7 +7,8 @@ private let logger = Logger(
   category: "NotificationsService"
 )
 
-final class NotificationsServiceImpl: NotificationsManaging, @unchecked Sendable {
+/// Sendable: Stateless service with no mutable properties
+final class NotificationsServiceImpl: NotificationsManaging, Sendable {
   private let supabaseManager: SupabaseManager
 
   init(supabaseManager: SupabaseManager) {

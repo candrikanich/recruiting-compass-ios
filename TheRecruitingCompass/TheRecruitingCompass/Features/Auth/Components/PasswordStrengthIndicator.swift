@@ -77,7 +77,7 @@ struct PasswordStrengthIndicator: View {
           ForEach(strengthResult.errors, id: \.self) { error in
             HStack(spacing: 6) {
               Image(systemName: "circle.fill")
-                .font(.system(size: 6))
+                .font(.caption2)
                 .foregroundColor(Color.secondaryText)
                 .accessibilityHidden(true)
 
@@ -98,25 +98,25 @@ struct PasswordStrengthIndicator: View {
   VStack(spacing: 20) {
     VStack(alignment: .leading) {
       Text("No password")
-        .font(.system(size: 12, weight: .semibold))
+        .font(.caption.weight(.semibold))
       PasswordStrengthIndicator(password: "")
     }
 
     VStack(alignment: .leading) {
       Text("Weak password")
-        .font(.system(size: 12, weight: .semibold))
+        .font(.caption.weight(.semibold))
       PasswordStrengthIndicator(password: "weak")
     }
 
     VStack(alignment: .leading) {
       Text("Fair password")
-        .font(.system(size: 12, weight: .semibold))
+        .font(.caption.weight(.semibold))
       PasswordStrengthIndicator(password: "Password12")
     }
 
     VStack(alignment: .leading) {
       Text("Strong password")
-        .font(.system(size: 12, weight: .semibold))
+        .font(.caption.weight(.semibold))
       PasswordStrengthIndicator(password: "StrongPass123")
     }
 

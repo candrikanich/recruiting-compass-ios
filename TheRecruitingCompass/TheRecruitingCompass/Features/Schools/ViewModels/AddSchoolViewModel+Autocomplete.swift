@@ -86,7 +86,7 @@ extension AddSchoolViewModel {
     announcer.announce(announcement)
 
     // Trigger NCAA lookup for division/conference
-    performNcaaLookup(for: college.name)
+    await performNcaaLookup(for: college.name)
 
     // Phase 3: Trigger College Scorecard enrichment
     await performScorecardEnrichment(collegeName: college.name)
