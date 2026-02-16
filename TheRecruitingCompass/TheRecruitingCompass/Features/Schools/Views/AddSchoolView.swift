@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct AddSchoolView: View {
-  @StateObject private var viewModel: AddSchoolViewModel
+  @State private var viewModel: AddSchoolViewModel
   @Environment(\.dismiss) private var dismiss
   @Binding var navigationPath: NavigationPath
 
@@ -22,7 +22,7 @@ struct AddSchoolView: View {
     userId: String,
     navigationPath: Binding<NavigationPath>
   ) {
-    _viewModel = StateObject(wrappedValue: AddSchoolViewModel(
+    _viewModel = State(initialValue: AddSchoolViewModel(
       schoolsService: schoolsService,
       familyUnitId: familyUnitId,
       userId: userId

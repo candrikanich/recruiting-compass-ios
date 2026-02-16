@@ -7,26 +7,27 @@
 //
 
 import Foundation
-import SwiftUI
-import Combine
+import Observation
 import OSLog
+import SwiftUI
 
 private let logger = Logger(
   subsystem: "com.chrisandrikanich.TheRecruitingCompass",
   category: "AddCoachViewModel"
 )
 
+@Observable
 @MainActor
-final class AddCoachViewModel: ObservableObject {
+final class AddCoachViewModel {
 
-  // MARK: - Published State
+  // MARK: - State
 
-  @Published var formState = CoachFormState()
-  @Published var formErrors = CoachFormErrors.empty
-  @Published var schools: [School] = []
-  @Published var isLoadingSchools = false
-  @Published var isSubmitting = false
-  @Published var submitError: String?
+  var formState = CoachFormState()
+  var formErrors = CoachFormErrors.empty
+  var schools: [School] = []
+  var isLoadingSchools = false
+  var isSubmitting = false
+  var submitError: String?
 
   // MARK: - Dependencies
 
@@ -82,7 +83,7 @@ final class AddCoachViewModel: ObservableObject {
   private typealias FieldValidation = (String) -> String?
   private typealias ErrorSetter = (inout CoachFormErrors, String?) -> Void
 
-  private lazy var fieldValidators: [PartialKeyPath<CoachFormState>: (
+  private let fieldValidators: [PartialKeyPath<CoachFormState>: (
     validator: FieldValidation,
     setError: ErrorSetter
   )] = [

@@ -1,29 +1,30 @@
 import Foundation
-import SwiftUI
-import Combine
+import Observation
 import OSLog
+import SwiftUI
 
 private let logger = Logger(
   subsystem: "com.chrisandrikanich.TheRecruitingCompass",
   category: "AddInteractionViewModel"
 )
 
+@Observable
 @MainActor
-final class AddInteractionViewModel: ObservableObject {
+final class AddInteractionViewModel {
 
-  // MARK: - Published State
+  // MARK: - State
 
-  @Published var formState = InteractionFormState()
-  @Published var calibration = InterestCalibration()
-  @Published var schools: [School] = []
-  @Published var allCoaches: [Coach] = []
-  @Published var isLoading = false
-  @Published var isSubmitting = false
-  @Published var errorMessage: String?
-  @Published var showAddCoachSheet = false
-  @Published var showOtherCoachSheet = false
-  @Published var newCoachForm = NewCoachFormState()
-  @Published var otherCoachName: String = ""
+  var formState = InteractionFormState()
+  var calibration = InterestCalibration()
+  var schools: [School] = []
+  var allCoaches: [Coach] = []
+  var isLoading = false
+  var isSubmitting = false
+  var errorMessage: String?
+  var showAddCoachSheet = false
+  var showOtherCoachSheet = false
+  var newCoachForm = NewCoachFormState()
+  var otherCoachName: String = ""
 
   // MARK: - Dependencies
 

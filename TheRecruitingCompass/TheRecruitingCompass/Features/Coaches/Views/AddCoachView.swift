@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct AddCoachView: View {
-  @StateObject private var viewModel: AddCoachViewModel
+  @State private var viewModel: AddCoachViewModel
   @Environment(\.dismiss) private var dismiss
   @Binding var navigationPath: NavigationPath
 
@@ -19,7 +19,7 @@ struct AddCoachView: View {
     userId: String,
     navigationPath: Binding<NavigationPath>
   ) {
-    _viewModel = StateObject(wrappedValue: AddCoachViewModel(
+    _viewModel = State(initialValue: AddCoachViewModel(
       coachesService: coachesService,
       familyUnitId: familyUnitId,
       userId: userId

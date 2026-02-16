@@ -7,41 +7,42 @@
 //
 
 import Foundation
-import SwiftUI
-import Combine
+import Observation
 import OSLog
+import SwiftUI
 
 private let logger = Logger(
   subsystem: "com.chrisandrikanich.TheRecruitingCompass",
   category: "AddSchoolViewModel"
 )
 
+@Observable
 @MainActor
-final class AddSchoolViewModel: ObservableObject {
+final class AddSchoolViewModel {
 
-  // MARK: - Published State
+  // MARK: - State
 
-  @Published var formState = SchoolFormState()
-  @Published var formErrors = SchoolFormErrors.empty
-  @Published var isSubmitting = false
-  @Published var submitError: String?
+  var formState = SchoolFormState()
+  var formErrors = SchoolFormErrors.empty
+  var isSubmitting = false
+  var submitError: String?
 
   // Autocomplete state (moved from extension)
-  @Published var searchQuery: String = ""
-  @Published var searchResults: [CollegeSearchResult] = []
-  @Published var isSearching: Bool = false
-  @Published var selectedCollege: CollegeSearchResult? = nil
-  @Published var searchError: String? = nil
+  var searchQuery: String = ""
+  var searchResults: [CollegeSearchResult] = []
+  var isSearching: Bool = false
+  var selectedCollege: CollegeSearchResult? = nil
+  var searchError: String? = nil
 
   // Enrichment state (moved from extension)
-  @Published var scorecardData: CollegeDataResult? = nil
-  @Published var isEnrichmentLoading: Bool = false
-  @Published var enrichmentError: String? = nil
+  var scorecardData: CollegeDataResult? = nil
+  var isEnrichmentLoading: Bool = false
+  var enrichmentError: String? = nil
 
   // Duplicate detection state (moved from extension)
-  @Published var showDuplicateDialog = false
-  @Published var duplicateResult: DuplicateResult? = nil
-  @Published var isCheckingDuplicates = false
+  var showDuplicateDialog = false
+  var duplicateResult: DuplicateResult? = nil
+  var isCheckingDuplicates = false
 
   // MARK: - Dependencies
 

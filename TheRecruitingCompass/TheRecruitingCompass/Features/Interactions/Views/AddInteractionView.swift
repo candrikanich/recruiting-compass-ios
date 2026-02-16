@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AddInteractionView: View {
-  @StateObject private var viewModel: AddInteractionViewModel
+  @State private var viewModel: AddInteractionViewModel
   @Environment(\.dismiss) private var dismiss
 
   init(
@@ -9,7 +9,7 @@ struct AddInteractionView: View {
     familyUnitId: String,
     userId: String
   ) {
-    _viewModel = StateObject(wrappedValue: AddInteractionViewModel(
+    _viewModel = State(initialValue: AddInteractionViewModel(
       interactionsService: interactionsService,
       familyUnitId: familyUnitId,
       userId: userId
