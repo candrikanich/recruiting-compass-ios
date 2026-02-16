@@ -7,6 +7,13 @@ final class PerformancePDFGenerator {
   private let pageHeight: CGFloat = 792.0 // 11 inches at 72 DPI
   private let margin: CGFloat = 50.0
 
+  private static let dateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateStyle = .long
+    formatter.locale = Locale(identifier: "en_US")
+    return formatter
+  }()
+
   func generate(metrics: [PerformanceMetric], userName: String?) -> Data {
     let pdfMetaData = [
       kCGPDFContextTitle: "Performance Metrics Report",
@@ -25,13 +32,13 @@ final class PerformancePDFGenerator {
       var currentY: CGFloat = margin
 
       // Title
-      currentY = drawTitle(in: context.cgContext, y: currentY)
+      currentY = drawTitle(y: currentY)
 
       // Metadata
-      currentY = drawMetadata(in: context.cgContext, y: currentY, userName: userName)
+      currentY = drawMetadata(y: currentY, userName: userName)
 
       // Summary Stats
-      currentY = drawSummaryStats(in: context.cgContext, y: currentY, metrics: metrics)
+      currentY = drawSummaryStats(y: currentY, metrics: metrics)
 
       // Metric History Table
       drawMetricHistory(in: context.cgContext, y: currentY, metrics: metrics)
@@ -42,7 +49,7 @@ final class PerformancePDFGenerator {
 
   // MARK: - Drawing Methods
 
-  private func drawTitle(in context: CGContext, y: CGFloat) -> CGFloat {
+  private func drawTitle(y: CGFloat) -> CGFloat {
     let title = "Performance Metrics Report"
     let titleFont = UIFont.systemFont(ofSize: 24, weight: .bold)
     let titleAttributes: [NSAttributedString.Key: Any] = [
@@ -58,10 +65,7 @@ final class PerformancePDFGenerator {
     return y + titleSize.height + 20
   }
 
-  private func drawMetadata(in context: CGContext, y: CGFloat, userName: String?) -> CGFloat {
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateStyle = .long
-
+  private func drawMetadata(y: CGFloat, userName: String?) -> CGFloat {
     var currentY = y
     let font = UIFont.systemFont(ofSize: 12)
     let attributes: [NSAttributedString.Key: Any] = [
@@ -75,13 +79,13 @@ final class PerformancePDFGenerator {
       currentY += 20
     }
 
-    let dateText = "Generated: \(dateFormatter.string(from: Date()))"
+    let dateText = "Generated: \(Self.dateFormatter.string(from: Date()))"
     dateText.draw(at: CGPoint(x: margin, y: currentY), withAttributes: attributes)
 
     return currentY + 30
   }
 
-  private func drawSummaryStats(in context: CGContext, y: CGFloat, metrics: [PerformanceMetric]) -> CGFloat {
+  private func drawSummaryStats(y: CGFloat, metrics: [PerformanceMetric]) -> CGFloat {
     var currentY = y
 
     let sectionTitle = "Summary"
@@ -140,13 +144,30 @@ final class PerformancePDFGenerator {
 
     // Draw table rows
     let sortedMetrics = metrics.sorted { $0.recordedDate > $1.recordedDate }
-    for metric in sortedMetrics.prefix(50) {
-      currentY = drawTableRow(in: context, y: currentY, metric: metric)
+    let maxMetrics = min(sortedMetrics.count, 50)
+    var drawnCount = 0
 
-      // Check if we need a new page
-      if currentY > pageHeight - margin - 20 {
+    for metric in sortedMetrics.prefix(maxMetrics) {
+      // Check if we have room for another row + potential truncation message
+      if currentY > pageHeight - margin - 40 {
         break
       }
+
+      currentY = drawTableRow(in: context, y: currentY, metric: metric)
+      drawnCount += 1
+    }
+
+    // Add truncation indicator if we didn't draw all metrics
+    let remainingCount = maxMetrics - drawnCount
+    if remainingCount > 0 {
+      currentY += 10
+      let truncationText = "... and \(remainingCount) more metric\(remainingCount == 1 ? "" : "s")"
+      let font = UIFont.systemFont(ofSize: 10, weight: .medium)
+      let attributes: [NSAttributedString.Key: Any] = [
+        .font: font,
+        .foregroundColor: UIColor.darkGray
+      ]
+      truncationText.draw(at: CGPoint(x: margin, y: currentY), withAttributes: attributes)
     }
   }
 
