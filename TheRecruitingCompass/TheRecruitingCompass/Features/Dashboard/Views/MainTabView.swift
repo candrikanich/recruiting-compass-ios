@@ -48,6 +48,14 @@ struct MainTabView: View {
       .accessibilityLabel("Interactions")
 
       NavigationStack {
+        PerformanceDashboardView()
+      }
+      .tabItem {
+        Label("Performance", systemImage: "chart.xyaxis.line")
+      }
+      .accessibilityLabel("Performance")
+
+      NavigationStack {
         ActivityFeedView()
           .activityNavigation()
       }

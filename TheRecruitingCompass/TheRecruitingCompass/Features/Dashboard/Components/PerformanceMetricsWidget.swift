@@ -6,7 +6,7 @@ struct PerformanceMetricsWidget: View {
   @State private var isShowingAll = false
 
   private var recentMetrics: [PerformanceMetric] {
-    metrics.sorted { $0.recordedDate > $1.recordedDate }
+    metrics.sorted(by: { $0.recordedDate > $1.recordedDate })
   }
 
   private var visibleMetrics: [PerformanceMetric] {
@@ -66,35 +66,23 @@ struct MetricRow: View {
   let metric: PerformanceMetric
 
   private var dateFormatted: String {
-    guard let date = ISO8601DateFormatter().date(from: metric.recordedDate) else {
-      return metric.recordedDate
-    }
-    let formatter = DateFormatter()
-    formatter.dateStyle = .medium
-    return formatter.string(from: date)
+    metric.formattedDate
   }
 
   private var metricIcon: String {
-    let type = metric.metricType.lowercased()
-    if type.contains("40") || type.contains("dash") || type.contains("sprint") {
-      return "timer"
-    } else if type.contains("gpa") || type.contains("sat") || type.contains("act") {
-      return "book"
-    } else if type.contains("bench") || type.contains("squat") || type.contains("press") {
-      return "figure.strengthtraining.traditional"
-    } else if type.contains("vertical") || type.contains("jump") {
-      return "arrow.up"
-    } else {
-      return "chart.bar"
+    switch metric.metricType {
+    case .velocity, .exitVelo: return "flame"
+    case .sixtyTime: return "timer"
+    case .popTime: return "stopwatch"
+    case .battingAvg: return "baseball"
+    case .era: return "chart.bar"
+    case .strikeouts: return "figure.strengthtraining.traditional"
+    case .other: return "chart.bar"
     }
   }
 
   private var formattedValue: String {
-    let valueText = String(format: "%.2f", metric.value)
-    if let unit = metric.unit {
-      return "\(valueText) \(unit)"
-    }
-    return valueText
+    metric.formattedValue
   }
 
   var body: some View {
@@ -136,30 +124,42 @@ struct MetricRow: View {
     metrics: [
       PerformanceMetric(
         id: "1",
-        metricType: "40_yard_dash",
-        value: 4.5,
-        unit: "seconds",
-        recordedDate: "2026-02-01T12:00:00Z",
         userId: "user-1",
-        createdAt: "2026-02-01T12:00:00Z"
+        metricType: .sixtyTime,
+        value: 4.5,
+        unit: "sec",
+        recordedDate: Date(),
+        eventId: nil,
+        verified: false,
+        notes: nil,
+        createdAt: Date(),
+        updatedAt: Date()
       ),
       PerformanceMetric(
         id: "2",
-        metricType: "gpa",
-        value: 3.8,
-        unit: nil,
-        recordedDate: "2026-01-15T12:00:00Z",
         userId: "user-1",
-        createdAt: "2026-01-15T12:00:00Z"
+        metricType: .velocity,
+        value: 85.0,
+        unit: "mph",
+        recordedDate: Date().addingTimeInterval(-86400 * 15),
+        eventId: nil,
+        verified: true,
+        notes: nil,
+        createdAt: Date(),
+        updatedAt: Date()
       ),
       PerformanceMetric(
         id: "3",
-        metricType: "bench_press",
-        value: 225,
-        unit: "lbs",
-        recordedDate: "2026-01-10T12:00:00Z",
         userId: "user-1",
-        createdAt: "2026-01-10T12:00:00Z"
+        metricType: .exitVelo,
+        value: 92.5,
+        unit: "mph",
+        recordedDate: Date().addingTimeInterval(-86400 * 20),
+        eventId: nil,
+        verified: false,
+        notes: nil,
+        createdAt: Date(),
+        updatedAt: Date()
       )
     ]
   )

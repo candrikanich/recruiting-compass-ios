@@ -149,6 +149,78 @@ White:            (255, 255, 255) - #FFFFFF
 
 ---
 
+## Performance Dashboard Accessibility Audit
+
+**Date:** February 16, 2026
+**Standard:** WCAG 2.1 Level AA
+**Status:** COMPLIANT (after remediation)
+
+### Components Audited
+
+| Component | Status | Issues Found | Issues Fixed |
+|-----------|--------|-------------|-------------|
+| PerformanceDashboardView | PASS | 4 | 4 |
+| MetricHistoryCard | PASS | 3 | 3 |
+| MetricFormView | PASS | 5 | 5 |
+| PerformanceChartView | PASS | 3 | 3 |
+| MetricTypeFilterBar | PASS | 3 | 3 |
+| LatestMetricCard | PASS | 1 | 1 |
+| TrendCard | PASS | 0 | 0 |
+| TrendIndicator | PASS | 0 | 0 |
+| MiniBarChart | PASS | 0 | 0 |
+| SuccessToast | PASS | 1 | 1 |
+| ExportMetricsSheet | PASS | 2 | 2 |
+
+### Issues Found and Remediated
+
+**Critical (Blocks Access):**
+1. MetricHistoryCard used `.accessibilityElement(children: .combine)` which swallowed Edit and Delete buttons -- screen reader users could not interact with individual actions. **Fixed:** Changed to `.contain` with proper labels on each button.
+
+**High Priority:**
+2. MetricHistoryCard Edit/Delete buttons lacked 44x44pt touch targets. **Fixed:** Added `.frame(minWidth: 44, minHeight: 44)` and `.contentShape(Rectangle())`.
+3. MetricHistoryCard buttons had no descriptive accessibility labels. **Fixed:** Added contextual labels: "Edit [metric name] metric" and "Delete [metric name] metric".
+4. PerformanceChartView lacked `.accessibilityElement(children: .ignore)` -- screen readers would attempt to navigate individual chart marks. **Fixed:** Added `.ignore` with comprehensive label and value.
+5. MetricFormView form fields lacked "required" indicators for screen readers. **Fixed:** Added ", required" to metric type and value labels.
+
+**Medium Priority:**
+6. Section headers in PerformanceDashboardView ("Performance Trends", "Metric Trends", "Latest Metrics", "Metric History") lacked `.isHeader` trait for semantic navigation. **Fixed.**
+7. MetricFormView title lacked `.isHeader` trait. **Fixed.**
+8. MetricTypeFilterBar buttons lacked accessibility hints. **Fixed:** Added contextual hints for selected/unselected states.
+9. MetricTypeFilterBar buttons did not meet 44pt minimum height. **Fixed:** Added `.frame(minHeight: 44)`.
+10. LatestMetricCard did not include verified status in accessibility label. **Fixed.**
+11. MetricFormView submit button did not differentiate between saving and idle states for screen readers. **Fixed:** Added contextual labels and hints based on form validity.
+12. ExportMetricsSheet icon used hardcoded `.system(size: 48)` instead of semantic font. **Fixed:** Changed to `.largeTitle`.
+
+**Low Priority:**
+13. ExportMetricsSheet decorative icon was not hidden from accessibility tree. **Fixed:** Added `.accessibilityHidden(true)`.
+14. SuccessToast lacked `.updatesFrequently` trait. **Fixed.**
+15. PerformanceChartView animation did not respect Reduce Motion preference. **Fixed:** Added `@Environment(\.accessibilityReduceMotion)` check.
+16. SuccessToast used `.move` transition (vestibular trigger). **Fixed:** Changed to `.opacity` only.
+
+### Compliant Patterns (Already Well-Implemented)
+
+- TrendCard: Excellent combined label including trend direction, count, average, and unit
+- TrendIndicator: Uses both color AND icons for trend direction (WCAG 1.4.1)
+- MiniBarChart: Correctly hidden as decorative via `.accessibilityHidden(true)`
+- All text uses semantic fonts (.headline, .title3, .caption, .subheadline)
+- MetricTypeFilterBar: `.isSelected` trait on active filter
+
+### Accessibility Test Coverage
+
+Three test files created (52 tests total):
+- `PerformanceViewAccessibilityTests.swift` -- Dashboard view, loading state, empty state, toolbar, toast
+- `AddMetricFormAccessibilityTests.swift` -- All form fields, required indicators, hints, submit states
+- `MetricChartAccessibilityTests.swift` -- Chart, filter bar, trend cards, metric cards, history cards, hit targets
+
+### Recommendations
+
+1. Test with real VoiceOver users to validate the announcement flow through the dashboard
+2. Consider adding `.accessibilityAction(.magicTap)` to MetricHistoryCard for quick edit
+3. When adding metric entry validation errors, ensure they use `.accessibilityAnnouncement` for immediate screen reader notification
+4. Monitor TrendIndicator colors against dark mode backgrounds for contrast compliance
+
+---
+
 ## Next Phase
 
 Proceed to **Phase 3: Dynamic Type & Multi-Device Testing** to verify accessibility across all text sizes and device configurations.
