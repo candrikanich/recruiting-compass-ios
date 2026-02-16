@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DashboardCustomizationView: View {
-  @StateObject private var viewModel: DashboardCustomizationViewModel
+  @State private var viewModel: DashboardCustomizationViewModel
 
   private let columns = [
     GridItem(.flexible()),
@@ -9,7 +9,7 @@ struct DashboardCustomizationView: View {
   ]
 
   init(preferenceService: PreferenceManaging) {
-    _viewModel = StateObject(wrappedValue: DashboardCustomizationViewModel(preferenceService: preferenceService))
+    _viewModel = State(initialValue: DashboardCustomizationViewModel(preferenceService: preferenceService))
   }
 
   var body: some View {

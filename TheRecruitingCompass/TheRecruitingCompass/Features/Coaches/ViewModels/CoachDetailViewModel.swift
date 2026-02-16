@@ -1,37 +1,38 @@
-import Combine
+import Observation
 import Foundation
 import OSLog
 import SwiftUI
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "CoachDetailViewModel")
 
+@Observable
 @MainActor
-final class CoachDetailViewModel: ObservableObject {
-  @Published var coach: Coach?
-  @Published var school: School?
-  @Published var isLoading = false
-  @Published var errorMessage: String?
+final class CoachDetailViewModel {
+  var coach: Coach?
+  var school: School?
+  var isLoading = false
+  var errorMessage: String?
 
   // Interactions and stats
-  @Published var recentInteractions: [Interaction] = []
-  @Published var stats: CoachStats?
+  var recentInteractions: [Interaction] = []
+  var stats: CoachStats?
 
   // Editing state
-  @Published var isEditing = false
-  @Published var editedCoach: EditableCoach?
-  @Published var isSaving = false
-  @Published var validationErrors: [String: String] = [:]
+  var isEditing = false
+  var editedCoach: EditableCoach?
+  var isSaving = false
+  var validationErrors: [String: String] = [:]
 
   // Delete state
-  @Published var showDeleteConfirmation = false
-  @Published var isDeleting = false
-  @Published var deleteSuccessMessage: String?
+  var showDeleteConfirmation = false
+  var isDeleting = false
+  var deleteSuccessMessage: String?
 
   // Notes editing
-  @Published var isEditingSharedNotes = false
-  @Published var editedSharedNotes = ""
-  @Published var isEditingPrivateNotes = false
-  @Published var editedPrivateNotes = ""
+  var isEditingSharedNotes = false
+  var editedSharedNotes = ""
+  var isEditingPrivateNotes = false
+  var editedPrivateNotes = ""
 
   private let coachId: String
   private let coachesService: any CoachesManaging

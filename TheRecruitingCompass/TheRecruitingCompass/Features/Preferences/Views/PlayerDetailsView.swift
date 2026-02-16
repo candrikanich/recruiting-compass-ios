@@ -2,11 +2,11 @@ import SwiftUI
 import PhotosUI
 
 struct PlayerDetailsView: View {
-  @StateObject private var viewModel: PlayerDetailsViewModel
+  @State private var viewModel: PlayerDetailsViewModel
   @State private var selectedPhotoItem: PhotosPickerItem?
 
   init(preferenceService: PreferenceManaging, userRole: UserRole) {
-    _viewModel = StateObject(wrappedValue: PlayerDetailsViewModel(
+    _viewModel = State(initialValue: PlayerDetailsViewModel(
       preferenceService: preferenceService,
       userRole: userRole
     ))

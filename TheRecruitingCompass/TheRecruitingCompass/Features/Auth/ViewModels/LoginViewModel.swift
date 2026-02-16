@@ -1,17 +1,18 @@
 import Foundation
 import SwiftUI
-import Combine
+import Observation
 
+@Observable
 @MainActor
-class LoginViewModel: ObservableObject {
-  @Published var email = ""
-  @Published var password = ""
-  @Published var rememberMe = false
-  @Published var isLoading = false
-  @Published var isValidating = false
-  @Published var errorMessage: String?
-  @Published var fieldErrors: [FormFieldKey: String] = [:]
-  @Published var showTimeoutBanner = false
+class LoginViewModel {
+  var email = ""
+  var password = ""
+  var rememberMe = false
+  var isLoading = false
+  var isValidating = false
+  var errorMessage: String?
+  var fieldErrors: [FormFieldKey: String] = [:]
+  var showTimeoutBanner = false
 
   private let authManager: any AuthManaging
   private let formValidator = FormValidator.self

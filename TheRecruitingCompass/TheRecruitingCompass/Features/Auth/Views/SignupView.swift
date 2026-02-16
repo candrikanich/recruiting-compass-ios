@@ -1,14 +1,14 @@
 import SwiftUI
 
 struct SignupView: View {
-  @StateObject private var viewModel: SignupViewModel
+  @State private var viewModel: SignupViewModel
   @EnvironmentObject var authManager: AuthManager
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
   init(authManager: AuthManager? = nil) {
     let manager = authManager ?? .shared
-    _viewModel = StateObject(wrappedValue: SignupViewModel(authManager: manager))
+    _viewModel = State(initialValue: SignupViewModel(authManager: manager))
   }
 
   var body: some View {

@@ -1,5 +1,5 @@
 import Foundation
-import Combine
+import Observation
 
 enum ResetPasswordState: Equatable {
   case form
@@ -8,15 +8,16 @@ enum ResetPasswordState: Equatable {
   case error(message: String)
 }
 
+@Observable
 @MainActor
-class ResetPasswordViewModel: ObservableObject {
-  @Published var state: ResetPasswordState = .form
-  @Published var newPassword = ""
-  @Published var confirmPassword = ""
-  @Published var isPasswordVisible = false
-  @Published var fieldErrors: [FormFieldKey: String] = [:]
-  @Published var successCountdown = 3
-  @Published var shouldNavigateToLogin = false
+class ResetPasswordViewModel {
+  var state: ResetPasswordState = .form
+  var newPassword = ""
+  var confirmPassword = ""
+  var isPasswordVisible = false
+  var fieldErrors: [FormFieldKey: String] = [:]
+  var successCountdown = 3
+  var shouldNavigateToLogin = false
 
   private let authManager: any AuthManaging
   private let config: PasswordResetConfig

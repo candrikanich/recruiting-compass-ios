@@ -1,24 +1,25 @@
 import Foundation
 import OSLog
 import SwiftUI
-import Combine
+import Observation
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "DashboardViewModel")
 
+@Observable
 @MainActor
-final class DashboardViewModel: ObservableObject {
-  @Published var stats: DashboardStats?
-  @Published var quickTasks: [QuickTask] = []
-  @Published var suggestions: [Suggestion] = []
-  @Published var events: [Event] = []
-  @Published var activities: [Activity] = []
-  @Published var metrics: [PerformanceMetric] = []
-  @Published var interactionTrends: [InteractionTrend] = []
-  @Published var isLoading = false
-  @Published var isLoggingOut = false
-  @Published var errorMessage: String?
-  @Published var logoutErrorMessage: String?
-  @Published var lastUpdated: Date?
+final class DashboardViewModel {
+  var stats: DashboardStats?
+  var quickTasks: [QuickTask] = []
+  var suggestions: [Suggestion] = []
+  var events: [Event] = []
+  var activities: [Activity] = []
+  var metrics: [PerformanceMetric] = []
+  var interactionTrends: [InteractionTrend] = []
+  var isLoading = false
+  var isLoggingOut = false
+  var errorMessage: String?
+  var logoutErrorMessage: String?
+  var lastUpdated: Date?
 
   private let authManager: any AuthManaging
   private let dashboardService: any DashboardManaging

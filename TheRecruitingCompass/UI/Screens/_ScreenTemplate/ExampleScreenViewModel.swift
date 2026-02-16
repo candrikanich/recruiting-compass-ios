@@ -1,14 +1,15 @@
 import Foundation
-import Combine
+import Observation
 
 /// Template ViewModel - copy this and customize
 /// Usage: Rename ExampleScreen to your feature (e.g., SchoolsList, CoachDetail)
+@Observable
 @MainActor
-final class ExampleScreenViewModel: ObservableObject {
+final class ExampleScreenViewModel {
     // MARK: - Published Properties (UI State)
-    @Published var data: [String] = []
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    var data: [String] = []
+    var isLoading = false
+    var errorMessage: String?
 
     // MARK: - Private Properties
     private let exampleService = ExampleService()

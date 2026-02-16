@@ -5,7 +5,7 @@ struct CoachDetailView: View {
   let allCoaches: [Coach]
   let allSchools: [School]
 
-  @StateObject private var viewModel: CoachDetailViewModel
+  @State private var viewModel: CoachDetailViewModel
   @Environment(\.sizeCategory) private var sizeCategory
   @Environment(\.dismiss) private var dismiss
 
@@ -13,7 +13,7 @@ struct CoachDetailView: View {
     self.coachId = coachId
     self.allCoaches = allCoaches
     self.allSchools = allSchools
-    _viewModel = StateObject(wrappedValue: CoachDetailViewModel(
+    _viewModel = State(initialValue: CoachDetailViewModel(
       coachId: coachId,
       allCoaches: allCoaches,
       allSchools: allSchools

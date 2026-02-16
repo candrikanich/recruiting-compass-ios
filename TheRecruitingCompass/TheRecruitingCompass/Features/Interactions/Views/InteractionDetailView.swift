@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct InteractionDetailView: View {
-  @StateObject private var viewModel: InteractionDetailViewModel
+  @State private var viewModel: InteractionDetailViewModel
   @Environment(\.dismiss) private var dismiss
 
   init(
@@ -13,7 +13,7 @@ struct InteractionDetailView: View {
     let service = interactionsService ?? InteractionsServiceImpl(supabaseManager: SupabaseManager.shared)
     let auth = authManager ?? AuthManager.shared
 
-    _viewModel = StateObject(wrappedValue: InteractionDetailViewModel(
+    _viewModel = State(initialValue: InteractionDetailViewModel(
       interactionId: interactionId,
       familyUnitId: familyUnitId,
       interactionsService: service,

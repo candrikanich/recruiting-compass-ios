@@ -1,21 +1,22 @@
 import Foundation
 import SwiftUI
-import Combine
+import Observation
 import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "SchoolPreferencesViewModel")
 
+@Observable
 @MainActor
-final class SchoolPreferencesViewModel: ObservableObject {
-  @Published var preferences: SchoolPreferences = .default
-  @Published var isLoading = false
-  @Published var isSaving = false
-  @Published var errorMessage: String?
-  @Published var successMessage: String?
-  @Published var hasUnsavedChanges = false
-  @Published var showingAddSheet = false
-  @Published var showingTemplateWarning = false
-  @Published var pendingTemplate: String?
+final class SchoolPreferencesViewModel {
+  var preferences: SchoolPreferences = .default
+  var isLoading = false
+  var isSaving = false
+  var errorMessage: String?
+  var successMessage: String?
+  var hasUnsavedChanges = false
+  var showingAddSheet = false
+  var showingTemplateWarning = false
+  var pendingTemplate: String?
 
   private let preferenceService: PreferenceManaging
 

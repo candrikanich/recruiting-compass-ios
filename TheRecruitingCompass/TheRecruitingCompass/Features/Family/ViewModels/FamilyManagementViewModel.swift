@@ -1,32 +1,33 @@
-import Combine
+import Observation
 import Foundation
 import OSLog
 import UIKit
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "FamilyManagementViewModel")
 
+@Observable
 @MainActor
-final class FamilyManagementViewModel: ObservableObject {
+final class FamilyManagementViewModel {
   // MARK: - Player State
-  @Published var familyCode: String?
-  @Published var familyId: String?
-  @Published var familyName: String?
-  @Published var codeGeneratedAt: String?
-  @Published var familyMembers: [FamilyMember] = []
+  var familyCode: String?
+  var familyId: String?
+  var familyName: String?
+  var codeGeneratedAt: String?
+  var familyMembers: [FamilyMember] = []
 
   // MARK: - Parent State
-  @Published var parentFamilies: [ParentFamilyData] = []
-  @Published var codeInput: String = ""
+  var parentFamilies: [ParentFamilyData] = []
+  var codeInput: String = ""
 
   // MARK: - Shared State
-  @Published var isLoading = false
-  @Published var loadingMembers = false
-  @Published var errorMessage: String?
-  @Published var successMessage: String?
-  @Published var showSuccessToast = false
-  @Published var showDeleteConfirmation = false
-  @Published var memberToRemove: FamilyMember?
-  @Published var showRegenerateConfirmation = false
+  var isLoading = false
+  var loadingMembers = false
+  var errorMessage: String?
+  var successMessage: String?
+  var showSuccessToast = false
+  var showDeleteConfirmation = false
+  var memberToRemove: FamilyMember?
+  var showRegenerateConfirmation = false
 
   // MARK: - Dependencies
   private let familyService: any FamilyManaging

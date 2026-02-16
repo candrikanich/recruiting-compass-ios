@@ -1,67 +1,68 @@
-import Combine
+import Observation
 import Foundation
 import OSLog
 import SwiftUI
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "SchoolDetailViewModel")
 
+@Observable
 @MainActor
-final class SchoolDetailViewModel: ObservableObject {
-  @Published var school: School?
-  @Published var isLoading = false
-  @Published var errorMessage: String?
-  @Published var activeAlert: AlertType?
+final class SchoolDetailViewModel {
+  var school: School?
+  var isLoading = false
+  var errorMessage: String?
+  var activeAlert: AlertType?
 
   // Status management
-  @Published var statusHistory: [SchoolStatusHistory] = []
-  @Published var isUpdatingStatus = false
+  var statusHistory: [SchoolStatusHistory] = []
+  var isUpdatingStatus = false
 
   // MARK: - Phase 2: Notes Editing
-  @Published var isEditingNotes = false
-  @Published var editedNotes = ""
-  @Published var isSavingNotes = false
+  var isEditingNotes = false
+  var editedNotes = ""
+  var isSavingNotes = false
 
   // MARK: - Phase 2: Private Notes Editing
-  @Published var isEditingPrivateNotes = false
-  @Published var editedPrivateNotes = ""
-  @Published var isSavingPrivateNotes = false
+  var isEditingPrivateNotes = false
+  var editedPrivateNotes = ""
+  var isSavingPrivateNotes = false
 
   // MARK: - Phase 2: Pros & Cons
-  @Published var newPro = ""
-  @Published var newCon = ""
-  @Published var isAddingPro = false
-  @Published var isAddingCon = false
+  var newPro = ""
+  var newCon = ""
+  var isAddingPro = false
+  var isAddingCon = false
 
   // MARK: - Phase 2: Basic Info Editing
-  @Published var isEditingBasicInfo = false
-  @Published var editedBasicInfo = EditableBasicInfo()
-  @Published var isSavingBasicInfo = false
+  var isEditingBasicInfo = false
+  var editedBasicInfo = EditableBasicInfo()
+  var isSavingBasicInfo = false
 
   // MARK: - Phase 3: Fit Score
-  @Published var fitScore: FitScoreResult?
-  @Published var divisionRecommendation: DivisionRecommendation?
-  @Published var isLoadingFitScore = false
+  var fitScore: FitScoreResult?
+  var divisionRecommendation: DivisionRecommendation?
+  var isLoadingFitScore = false
 
   // MARK: - Phase 3: College Scorecard
-  @Published var isLookingUpCollegeData = false
-  @Published var collegeDataError: String?
+  var isLookingUpCollegeData = false
+  var collegeDataError: String?
 
   // MARK: - Phase 4: Coaches
-  @Published var coaches: [Coach] = []
-  @Published var isLoadingCoaches = false
+  var coaches: [Coach] = []
+  var isLoadingCoaches = false
 
   // MARK: - Phase 4: Coaching Philosophy
-  @Published var isEditingCoachingPhilosophy = false
-  @Published var editedCoachingPhilosophy = EditableCoachingPhilosophy()
-  @Published var isSavingCoachingPhilosophy = false
+  var isEditingCoachingPhilosophy = false
+  var editedCoachingPhilosophy = EditableCoachingPhilosophy()
+  var isSavingCoachingPhilosophy = false
 
   // MARK: - Phase 4: Delete
-  @Published var showDeleteConfirmation = false
-  @Published var isDeleting = false
-  @Published var deleteErrorMessage: String?
+  var showDeleteConfirmation = false
+  var isDeleting = false
+  var deleteErrorMessage: String?
 
   // MARK: - Phase 4: Priority Tier
-  @Published var isUpdatingPriorityTier = false
+  var isUpdatingPriorityTier = false
 
   // Dependencies
   private let schoolId: String

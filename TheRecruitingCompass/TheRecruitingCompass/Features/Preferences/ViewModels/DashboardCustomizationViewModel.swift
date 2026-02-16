@@ -1,17 +1,18 @@
 import Foundation
-import Combine
+import Observation
 import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "DashboardCustomizationViewModel")
 
+@Observable
 @MainActor
-final class DashboardCustomizationViewModel: ObservableObject {
-  @Published var visibility: DashboardWidgetVisibility = .default
-  @Published var isLoading = false
-  @Published var isSaving = false
-  @Published var errorMessage: String?
-  @Published var successMessage: String?
-  @Published var hasUnsavedChanges = false
+final class DashboardCustomizationViewModel {
+  var visibility: DashboardWidgetVisibility = .default
+  var isLoading = false
+  var isSaving = false
+  var errorMessage: String?
+  var successMessage: String?
+  var hasUnsavedChanges = false
 
   private let preferenceService: PreferenceManaging
 

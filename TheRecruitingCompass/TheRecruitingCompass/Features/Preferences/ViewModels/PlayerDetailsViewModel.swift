@@ -1,23 +1,24 @@
 import Foundation
 import SwiftUI
-import Combine
+import Observation
 import PhotosUI
 import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "PlayerDetailsViewModel")
 
+@Observable
 @MainActor
-final class PlayerDetailsViewModel: ObservableObject {
-  @Published var details: PlayerDetails = .default
-  @Published var isLoading = false
-  @Published var isSaving = false
-  @Published var isUploadingPhoto = false
-  @Published var errorMessage: String?
-  @Published var successMessage: String?
-  @Published var hasUnsavedChanges = false
-  @Published var profileImage: UIImage?
-  @Published var isReadOnly = false
-  @Published var showDeletePhotoConfirmation = false
+final class PlayerDetailsViewModel {
+  var details: PlayerDetails = .default
+  var isLoading = false
+  var isSaving = false
+  var isUploadingPhoto = false
+  var errorMessage: String?
+  var successMessage: String?
+  var hasUnsavedChanges = false
+  var profileImage: UIImage?
+  var isReadOnly = false
+  var showDeletePhotoConfirmation = false
 
   private let preferenceService: PreferenceManaging
   private let userRole: UserRole

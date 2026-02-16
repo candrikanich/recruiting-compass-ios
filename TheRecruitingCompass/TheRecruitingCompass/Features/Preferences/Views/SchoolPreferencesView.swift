@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct SchoolPreferencesView: View {
-  @StateObject private var viewModel: SchoolPreferencesViewModel
+  @State private var viewModel: SchoolPreferencesViewModel
   @Environment(\.editMode) private var editMode
 
   init(preferenceService: PreferenceManaging) {
-    _viewModel = StateObject(wrappedValue: SchoolPreferencesViewModel(preferenceService: preferenceService))
+    _viewModel = State(initialValue: SchoolPreferencesViewModel(preferenceService: preferenceService))
   }
 
   var body: some View {

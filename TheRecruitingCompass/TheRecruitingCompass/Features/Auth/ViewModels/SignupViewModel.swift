@@ -1,29 +1,30 @@
 import Foundation
 import SwiftUI
-import Combine
+import Observation
 
+@Observable
 @MainActor
-class SignupViewModel: ObservableObject {
+class SignupViewModel {
   // MARK: - Two-Step State
 
-  @Published var selectedRole: UserRole?
-  @Published var showForm = false
+  var selectedRole: UserRole?
+  var showForm = false
 
   // MARK: - Form Fields
 
-  @Published var fullName = ""
-  @Published var email = ""
-  @Published var password = ""
-  @Published var confirmPassword = ""
-  @Published var familyCode = ""
-  @Published var termsAccepted = false
+  var fullName = ""
+  var email = ""
+  var password = ""
+  var confirmPassword = ""
+  var familyCode = ""
+  var termsAccepted = false
 
   // MARK: - UI State
 
-  @Published var isLoading = false
-  @Published var errorMessage: String?
-  @Published var fieldErrors: [FormFieldKey: String] = [:]
-  @Published var shouldNavigateToVerifyEmail = false
+  var isLoading = false
+  var errorMessage: String?
+  var fieldErrors: [FormFieldKey: String] = [:]
+  var shouldNavigateToVerifyEmail = false
 
   private let authManager: any AuthManaging
   private let formValidator = FormValidator.self

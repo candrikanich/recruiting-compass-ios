@@ -2,12 +2,12 @@ import SwiftUI
 import Combine
 
 struct DashboardView: View {
-  @StateObject private var viewModel: DashboardViewModel
+  @State private var viewModel: DashboardViewModel
   @EnvironmentObject var authManager: AuthManager
   @EnvironmentObject var familyManager: FamilyManager
 
   init(viewModel: DashboardViewModel? = nil) {
-    _viewModel = StateObject(wrappedValue: viewModel ?? DashboardViewModel())
+    _viewModel = State(initialValue: viewModel ?? DashboardViewModel())
   }
 
   var body: some View {

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct FamilyManagementView: View {
-  @StateObject private var viewModel = FamilyManagementViewModel()
+  @State private var viewModel = FamilyManagementViewModel()
   @EnvironmentObject private var authManager: AuthManager
 
   var body: some View {

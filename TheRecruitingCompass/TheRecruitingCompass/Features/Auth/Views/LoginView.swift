@@ -2,14 +2,14 @@ import SwiftUI
 import Combine
 
 struct LoginView: View {
-  @StateObject private var viewModel: LoginViewModel
+  @State private var viewModel: LoginViewModel
   @EnvironmentObject var authManager: AuthManager
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
   init(timeoutReason: String? = nil, authManager: AuthManager? = nil) {
     let manager = authManager ?? .shared
-    _viewModel = StateObject(wrappedValue: LoginViewModel(authManager: manager, timeoutReason: timeoutReason))
+    _viewModel = State(initialValue: LoginViewModel(authManager: manager, timeoutReason: timeoutReason))
   }
 
   var body: some View {

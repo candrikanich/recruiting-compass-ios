@@ -4,7 +4,7 @@ import CoreLocation
 struct SchoolDetailView: View {
   let schoolId: String
 
-  @StateObject private var viewModel: SchoolDetailViewModel
+  @State private var viewModel: SchoolDetailViewModel
   @EnvironmentObject private var familyManager: FamilyManager
   @Environment(\.dismiss) private var dismiss
   @Environment(\.openURL) private var openURL
@@ -12,7 +12,7 @@ struct SchoolDetailView: View {
 
   init(schoolId: String) {
     self.schoolId = schoolId
-    _viewModel = StateObject(wrappedValue: SchoolDetailViewModel(schoolId: schoolId))
+    _viewModel = State(initialValue: SchoolDetailViewModel(schoolId: schoolId))
   }
 
   private enum NavigationDestination: Hashable {

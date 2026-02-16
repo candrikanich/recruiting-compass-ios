@@ -1,4 +1,4 @@
-import Combine
+import Observation
 import Foundation
 import OSLog
 import SwiftUI
@@ -8,21 +8,22 @@ private let logger = Logger(
   category: "InteractionDetailViewModel"
 )
 
+@Observable
 @MainActor
-final class InteractionDetailViewModel: ObservableObject {
+final class InteractionDetailViewModel {
 
   // MARK: - Published State
 
-  @Published var interaction: Interaction?
-  @Published var school: School?
-  @Published var coach: Coach?
-  @Published var loggedByName: String = "Unknown"
-  @Published var isLoading = false
-  @Published var errorMessage: String?
+  var interaction: Interaction?
+  var school: School?
+  var coach: Coach?
+  var loggedByName: String = "Unknown"
+  var isLoading = false
+  var errorMessage: String?
 
   // Delete state
-  @Published var showDeleteConfirmation = false
-  @Published var isDeleting = false
+  var showDeleteConfirmation = false
+  var isDeleting = false
 
   // MARK: - Dependencies
 
