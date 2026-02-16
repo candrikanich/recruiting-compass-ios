@@ -1,5 +1,9 @@
 import SwiftUI
 
+// DEPRECATED: This component is replaced by RecentActivityWidget
+// which uses the new ActivityEvent model from Features/ActivityFeed
+// TODO: Remove this file after confirming no usages remain
+@available(*, deprecated, message: "Use RecentActivityWidget from Features/ActivityFeed/Components instead")
 struct RecentActivityFeed: View {
   let activities: [Activity]
 

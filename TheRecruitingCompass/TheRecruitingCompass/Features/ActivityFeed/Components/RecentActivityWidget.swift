@@ -2,6 +2,8 @@ import SwiftUI
 
 struct RecentActivityWidget: View {
   @State private var viewModel = ActivityFeedViewModel()
+  @State private var realtimeService: ActivityRealtimeService?
+  @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -72,7 +74,48 @@ struct RecentActivityWidget: View {
     .cornerRadius(12)
     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     .accessibilityIdentifier("recent-activity-widget")
-    .task { await viewModel.loadActivities() }
+    .task {
+      await loadAndSubscribe()
+    }
+    .onDisappear {
+      Task {
+        await realtimeService?.unsubscribe()
+        realtimeService = nil
+      }
+    }
+    .onChange(of: scenePhase) {
+      if scenePhase == .active {
+        Task {
+          await loadAndSubscribe()
+        }
+      } else if scenePhase == .background {
+        Task {
+          await realtimeService?.unsubscribe()
+        }
+      }
+    }
+  }
+
+  // MARK: - Private Methods
+
+  private func loadAndSubscribe() async {
+    // Load initial activities
+    await viewModel.loadActivities()
+
+    // Subscribe to realtime updates
+    guard let userId = viewModel.userId else { return }
+
+    let service = ActivityRealtimeService()
+    realtimeService = service
+
+    do {
+      try await service.subscribe(userId: userId) { [viewModel] newEvent in
+        viewModel.addRealtimeEvent(newEvent)
+      }
+    } catch {
+      // Log error but don't fail - widget still works without realtime
+      print("Failed to subscribe to realtime updates: \(error.localizedDescription)")
+    }
   }
 }
 

@@ -262,9 +262,7 @@ struct DashboardView: View {
         UpcomingEventsWidget(events: viewModel.events)
       }
 
-      if !viewModel.activities.isEmpty {
-        RecentActivityFeed(activities: viewModel.activities)
-      }
+      RecentActivityWidget()
 
       if !viewModel.metrics.isEmpty {
         PerformanceMetricsWidget(metrics: viewModel.metrics)

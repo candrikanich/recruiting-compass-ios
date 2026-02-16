@@ -12,7 +12,6 @@ final class DashboardViewModel {
   var quickTasks: [QuickTask] = []
   var suggestions: [Suggestion] = []
   var events: [Event] = []
-  var activities: [Activity] = []
   var metrics: [PerformanceMetric] = []
   var interactionTrends: [InteractionTrend] = []
   var isLoading = false
@@ -73,14 +72,9 @@ final class DashboardViewModel {
   }
 
   var interactionsThisMonth: Int {
-    let calendar = Calendar.current
-    let now = Date()
-    return activities.filter { activity in
-      guard let date = ISO8601DateFormatter().date(from: activity.timestamp) else {
-        return false
-      }
-      return calendar.isDate(date, equalTo: now, toGranularity: .month)
-    }.count
+    // TODO: Query actual interactions for current month from ActivityFeedService
+    // For now, using total interaction count as placeholder
+    return stats?.interactionCount ?? 0
   }
 
   var daysUntilGraduation: Int? {
@@ -171,7 +165,6 @@ final class DashboardViewModel {
       loadQuickTasks()
       await fetchSuggestions()
       await fetchEvents()
-      await fetchActivities()
       await fetchMetrics()
       await fetchInteractionTrends()
     } catch {
@@ -279,15 +272,6 @@ final class DashboardViewModel {
       events = try await dashboardService.fetchEvents(userId: userId, limit: 10)
     } catch {
       logger.warning("Failed to load events: \(error.localizedDescription)")
-    }
-  }
-
-  func fetchActivities() async {
-    guard let userId = authManager.user?.id else { return }
-    do {
-      activities = try await dashboardService.fetchRecentActivity(userId: userId, limit: 10)
-    } catch {
-      logger.warning("Failed to load activities: \(error.localizedDescription)")
     }
   }
 

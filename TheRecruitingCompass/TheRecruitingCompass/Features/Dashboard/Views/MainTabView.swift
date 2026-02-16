@@ -16,6 +16,7 @@ struct MainTabView: View {
     TabView {
       NavigationStack {
         DashboardView()
+          .activityNavigation()
       }
       .tabItem {
         Label("Dashboard", systemImage: "house.fill")
@@ -45,6 +46,15 @@ struct MainTabView: View {
         Label("Interactions", systemImage: "bubble.left.and.bubble.right.fill")
       }
       .accessibilityLabel("Interactions")
+
+      NavigationStack {
+        ActivityFeedView()
+          .activityNavigation()
+      }
+      .tabItem {
+        Label("Activity", systemImage: "clock.fill")
+      }
+      .accessibilityLabel("Activity History")
 
       NavigationStack {
         NotificationsListView(viewModel: notificationsViewModel)

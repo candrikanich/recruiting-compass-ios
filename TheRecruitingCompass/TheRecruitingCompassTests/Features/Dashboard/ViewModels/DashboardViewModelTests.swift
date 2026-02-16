@@ -156,7 +156,7 @@ final class DashboardViewModelTests: XCTestCase {
     XCTAssertTrue(sut.quickTasks.isEmpty)
     XCTAssertTrue(sut.suggestions.isEmpty)
     XCTAssertTrue(sut.events.isEmpty)
-    XCTAssertTrue(sut.activities.isEmpty)
+    // Note: activities property removed - now using RecentActivityWidget with ActivityFeedViewModel
     XCTAssertTrue(sut.metrics.isEmpty)
     XCTAssertTrue(sut.interactionTrends.isEmpty)
     XCTAssertFalse(sut.isLoading)

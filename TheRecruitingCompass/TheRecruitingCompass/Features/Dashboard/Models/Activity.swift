@@ -1,5 +1,9 @@
 import Foundation
 
+// DEPRECATED: This model is replaced by ActivityEvent in Features/ActivityFeed/Models/
+// Use RecentActivityWidget instead of RecentActivityFeed
+// TODO: Remove this file after confirming all dependencies are migrated
+@available(*, deprecated, message: "Use ActivityEvent from Features/ActivityFeed/Models instead")
 struct Activity: Codable, Identifiable, Sendable {
   let id: String
   let activityType: String

@@ -28,6 +28,10 @@ final class ActivityFeedViewModel {
   private let activityService: any ActivityFeedManaging
   private let authManager: any AuthManaging
 
+  var userId: String? {
+    authManager.user?.id
+  }
+
   // MARK: - Computed Properties
 
   var filteredActivities: [ActivityEvent] {
@@ -167,5 +171,17 @@ final class ActivityFeedViewModel {
     selectedType = nil
     selectedDateRange = .all
     searchQuery = ""
+  }
+
+  // MARK: - Realtime Updates
+
+  /// Add a new activity event from realtime update (deduplicates by ID)
+  func addRealtimeEvent(_ event: ActivityEvent) {
+    if !activities.contains(where: { $0.id == event.id }) {
+      activities.insert(event, at: 0)
+      logger.debug("Added realtime event: \(event.id)")
+    } else {
+      logger.debug("Skipped duplicate realtime event: \(event.id)")
+    }
   }
 }
