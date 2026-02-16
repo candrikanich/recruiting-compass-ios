@@ -22,7 +22,7 @@ final class PlayerDetailsViewModel {
 
   private let preferenceService: PreferenceManaging
   private let userRole: UserRole
-  private var cancellables = Set<AnyCancellable>()
+  nonisolated(unsafe) private var saveTask: Task<Void, Never>?
 
   init(preferenceService: PreferenceManaging, userRole: UserRole) {
     self.preferenceService = preferenceService
@@ -32,7 +32,7 @@ final class PlayerDetailsViewModel {
   }
 
   deinit {
-    cancellables.removeAll()
+    saveTask?.cancel()
   }
 
   // MARK: - Load/Save
@@ -199,16 +199,17 @@ final class PlayerDetailsViewModel {
 
   private func setupAutoSave() {
     // Debounce auto-save (500ms)
-    $details
-      .dropFirst()
-      .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
-      .sink { [weak self] _ in
-        guard let self = self, self.hasUnsavedChanges, !self.isReadOnly else { return }
-        Task {
-          await self.saveDetails()
-        }
+    // Auto-save is now handled by triggerAutoSave() called from update methods
+  }
+
+  private func triggerAutoSave() {
+    saveTask?.cancel()
+    saveTask = Task { @MainActor in
+      try? await Task.sleep(nanoseconds: 500_000_000) // 500ms
+      if hasUnsavedChanges && !isReadOnly {
+        await saveDetails()
       }
-      .store(in: &cancellables)
+    }
   }
 }
 

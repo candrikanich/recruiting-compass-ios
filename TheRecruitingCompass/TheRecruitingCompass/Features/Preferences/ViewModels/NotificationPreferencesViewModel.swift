@@ -1,20 +1,21 @@
 import Foundation
-import Combine
+import Observation
 import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "NotificationPreferencesViewModel")
 
+@Observable
 @MainActor
-final class NotificationPreferencesViewModel: ObservableObject {
-  @Published var settings: NotificationSettings = .default
-  @Published var isLoading = false
-  @Published var isSaving = false
-  @Published var errorMessage: String?
-  @Published var successMessage: String?
-  @Published var hasUnsavedChanges = false
+final class NotificationPreferencesViewModel {
+  var settings: NotificationSettings = .default
+  var isLoading = false
+  var isSaving = false
+  var errorMessage: String?
+  var successMessage: String?
+  var hasUnsavedChanges = false
 
   private let preferenceService: PreferenceManaging
-  private var saveTask: Task<Void, Never>?
+  nonisolated(unsafe) private var saveTask: Task<Void, Never>?
 
   init(preferenceService: PreferenceManaging) {
     self.preferenceService = preferenceService

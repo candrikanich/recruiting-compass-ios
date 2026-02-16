@@ -21,7 +21,7 @@ class ResetPasswordViewModel {
 
   private let authManager: any AuthManaging
   private let config: PasswordResetConfig
-  private var countdownTimer: AnyCancellable?
+  private var countdownTask: Task<Void, Never>?
 
   var passwordStrength: (isValid: Bool, errors: [String]) {
     FormValidator.validatePasswordStrength(newPassword)
@@ -97,19 +97,16 @@ class ResetPasswordViewModel {
   func startSuccessCountdown() {
     successCountdown = config.successCountdownDuration
 
-    countdownTimer = startCountdownTimer(
-      config: CountdownTimerConfig(
-        initialValue: config.successCountdownDuration,
-        interval: config.timerInterval,
-        onTick: { [weak self] remaining in
-          self?.successCountdown = remaining
-        },
-        onCompletion: { [weak self] in
-          self?.shouldNavigateToLogin = true
-          self?.countdownTimer?.cancel()
+    countdownTask?.cancel()
+    countdownTask = Task { @MainActor in
+      for remaining in stride(from: config.successCountdownDuration, through: 0, by: -1) {
+        successCountdown = remaining
+        if remaining > 0 {
+          try? await Task.sleep(nanoseconds: UInt64(config.timerInterval * 1_000_000_000))
         }
-      )
-    )
+      }
+      shouldNavigateToLogin = true
+    }
   }
 
   func returnToForm() {

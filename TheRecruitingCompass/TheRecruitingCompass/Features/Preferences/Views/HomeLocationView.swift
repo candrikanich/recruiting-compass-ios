@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct HomeLocationView: View {
-  @StateObject private var viewModel: HomeLocationViewModel
+  @State private var viewModel: HomeLocationViewModel
 
   init(preferenceService: PreferenceManaging) {
-    _viewModel = StateObject(wrappedValue: HomeLocationViewModel(preferenceService: preferenceService))
+    _viewModel = State(initialValue: HomeLocationViewModel(preferenceService: preferenceService))
   }
 
   var body: some View {

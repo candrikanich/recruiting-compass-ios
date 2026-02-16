@@ -1,13 +1,13 @@
 import SwiftUI
 
 struct ForgotPasswordView: View {
-  @StateObject private var viewModel: ForgotPasswordViewModel
+  @State private var viewModel: ForgotPasswordViewModel
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
   init(authManager: AuthManager? = nil) {
     let manager = authManager ?? .shared
-    _viewModel = StateObject(wrappedValue: ForgotPasswordViewModel(authManager: manager))
+    _viewModel = State(initialValue: ForgotPasswordViewModel(authManager: manager))
   }
 
   var body: some View {

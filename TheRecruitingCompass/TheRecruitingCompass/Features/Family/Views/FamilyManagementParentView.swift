@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct FamilyManagementParentView: View {
-  @ObservedObject var viewModel: FamilyManagementViewModel
+  @Bindable var viewModel: FamilyManagementViewModel
 
   var body: some View {
     ScrollView {

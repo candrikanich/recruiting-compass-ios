@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct NotificationPreferencesView: View {
-  @StateObject private var viewModel: NotificationPreferencesViewModel
+  @State private var viewModel: NotificationPreferencesViewModel
 
   init(preferenceService: PreferenceManaging) {
-    _viewModel = StateObject(wrappedValue: NotificationPreferencesViewModel(preferenceService: preferenceService))
+    _viewModel = State(initialValue: NotificationPreferencesViewModel(preferenceService: preferenceService))
   }
 
   var body: some View {

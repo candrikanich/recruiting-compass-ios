@@ -1,6 +1,6 @@
 import Foundation
+import Observation
 import SwiftUI
-import Combine
 
 enum VerificationState: Equatable {
   case pending
@@ -9,19 +9,20 @@ enum VerificationState: Equatable {
   case error(message: String)
 }
 
+@Observable
 @MainActor
-class EmailVerificationViewModel: ObservableObject {
-  // MARK: - Published State
+class EmailVerificationViewModel {
+  // MARK: - State
 
-  @Published var verificationState: VerificationState = .pending
-  @Published var errorMessage: String?
-  @Published var resendCooldownSeconds: Int = 0
-  @Published var canResendEmail: Bool = true
+  var verificationState: VerificationState = .pending
+  var errorMessage: String?
+  var resendCooldownSeconds: Int = 0
+  var canResendEmail: Bool = true
 
   // MARK: - Private State
 
-  private var pollingTask: Task<Void, Never>?
-  private var cooldownTask: Task<Void, Never>?
+  nonisolated(unsafe) private var pollingTask: Task<Void, Never>?
+  nonisolated(unsafe) private var cooldownTask: Task<Void, Never>?
   private(set) var currentInterval: TimeInterval
   private let initialInterval: TimeInterval
   private let maxInterval: TimeInterval

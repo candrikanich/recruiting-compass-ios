@@ -1,17 +1,18 @@
 import Foundation
-import Combine
+import Observation
 
+@Observable
 @MainActor
-class ForgotPasswordViewModel: ObservableObject {
-  @Published var state: ForgotPasswordState = .form
-  @Published var email = ""
-  @Published var fieldErrors: [FormFieldKey: String] = [:]
-  @Published var resendCooldownSeconds = 0
-  @Published var canResendEmail = true
+class ForgotPasswordViewModel {
+  var state: ForgotPasswordState = .form
+  var email = ""
+  var fieldErrors: [FormFieldKey: String] = [:]
+  var resendCooldownSeconds = 0
+  var canResendEmail = true
 
   private let authManager: any AuthManaging
   private let config: PasswordResetConfig
-  private var cooldownTimer: AnyCancellable?
+  private var cooldownTask: Task<Void, Never>?
 
   var submittedEmail: String {
     if case .emailSent(let email) = state {
@@ -124,18 +125,15 @@ class ForgotPasswordViewModel: ObservableObject {
     canResendEmail = false
     resendCooldownSeconds = config.resendCooldownDuration
 
-    cooldownTimer = startCountdownTimer(
-      config: CountdownTimerConfig(
-        initialValue: config.resendCooldownDuration,
-        interval: config.timerInterval,
-        onTick: { [weak self] remaining in
-          self?.resendCooldownSeconds = remaining
-        },
-        onCompletion: { [weak self] in
-          self?.canResendEmail = true
-          self?.cooldownTimer?.cancel()
+    cooldownTask?.cancel()
+    cooldownTask = Task { @MainActor in
+      for remaining in stride(from: config.resendCooldownDuration, through: 0, by: -1) {
+        resendCooldownSeconds = remaining
+        if remaining > 0 {
+          try? await Task.sleep(nanoseconds: UInt64(config.timerInterval * 1_000_000_000))
         }
-      )
-    )
+      }
+      canResendEmail = true
+    }
   }
 }

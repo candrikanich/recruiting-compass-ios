@@ -2,13 +2,13 @@ import SwiftUI
 import UIKit
 
 struct EmailVerificationView: View {
-  @StateObject private var viewModel: EmailVerificationViewModel
+  @State private var viewModel: EmailVerificationViewModel
   @Environment(\.dismiss) var dismiss
   @Environment(\.scenePhase) var scenePhase
 
   init(authManager: (any AuthManaging)? = nil) {
     let manager = authManager ?? AuthManager.shared
-    _viewModel = StateObject(wrappedValue: EmailVerificationViewModel(authManager: manager))
+    _viewModel = State(initialValue: EmailVerificationViewModel(authManager: manager))
   }
 
   var body: some View {

@@ -1,34 +1,32 @@
-import Foundation
-import Combine
 import CoreLocation
+import Foundation
+import Observation
 import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "HomeLocationViewModel")
 
+@Observable
 @MainActor
-final class HomeLocationViewModel: ObservableObject {
-  @Published var location: HomeLocation = .default
-  @Published var isLoading = false
-  @Published var isSaving = false
-  @Published var isGeocoding = false
-  @Published var errorMessage: String?
-  @Published var successMessage: String?
-  @Published var hasUnsavedChanges = false
+final class HomeLocationViewModel {
+  var location: HomeLocation = .default
+  var isLoading = false
+  var isSaving = false
+  var isGeocoding = false
+  var errorMessage: String?
+  var successMessage: String?
+  var hasUnsavedChanges = false
 
   private let preferenceService: PreferenceManaging
   private let geocoder: CLGeocoder
-  private var saveTask: Task<Void, Never>?
-  private var cancellables = Set<AnyCancellable>()
+  nonisolated(unsafe) private var saveTask: Task<Void, Never>?
 
   init(preferenceService: PreferenceManaging, geocoder: CLGeocoder = CLGeocoder()) {
     self.preferenceService = preferenceService
     self.geocoder = geocoder
-    setupAutoSave()
   }
 
   deinit {
     saveTask?.cancel()
-    cancellables.removeAll()
   }
 
   // MARK: - Load/Save
@@ -151,22 +149,15 @@ final class HomeLocationViewModel: ObservableObject {
     hasUnsavedChanges = true
   }
 
-  private func setupAutoSave() {
-    // Debounce auto-save on ZIP changes (500ms)
-    $location
-      .dropFirst() // Ignore initial value
-      .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
-      .sink { [weak self] _ in
-        guard let self = self, self.hasUnsavedChanges else { return }
-        Task {
-          await self.saveLocation()
-        }
-      }
-      .store(in: &cancellables)
-  }
-
   private func triggerAutoSave() {
-    // Auto-save is handled by the debounced publisher
+    // Debounce auto-save with Task (500ms delay)
+    saveTask?.cancel()
+    saveTask = Task { @MainActor in
+      try? await Task.sleep(nanoseconds: 500_000_000) // 500ms
+      if hasUnsavedChanges {
+        await saveLocation()
+      }
+    }
   }
 
   var hasValidAddress: Bool {
