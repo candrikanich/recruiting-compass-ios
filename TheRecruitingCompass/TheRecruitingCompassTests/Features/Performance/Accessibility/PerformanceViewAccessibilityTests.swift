@@ -110,17 +110,21 @@ final class PerformanceViewAccessibilityTests: XCTestCase {
     XCTAssertNotNil(toast)
   }
 
-  // MARK: - ExportMetricsSheet Accessibility Tests
+  // MARK: - ExportFormatSheet Accessibility Tests
 
-  func testExportMetricsSheet_iconIsHidden() {
-    let sheet = ExportMetricsSheet(csvContent: "header\ndata")
+  func testExportFormatSheet_iconIsHidden() {
+    let csvData = "header\ndata".data(using: .utf8)!
+    let pdfData = Data()
+    let sheet = ExportFormatSheet(csvData: csvData, pdfData: pdfData)
 
     // Decorative doc.text icon should be hidden from accessibility tree
     XCTAssertNotNil(sheet)
   }
 
-  func testExportMetricsSheet_headerHasHeaderTrait() {
-    let sheet = ExportMetricsSheet(csvContent: "header\ndata")
+  func testExportFormatSheet_headerHasHeaderTrait() {
+    let csvData = "header\ndata".data(using: .utf8)!
+    let pdfData = Data()
+    let sheet = ExportFormatSheet(csvData: csvData, pdfData: pdfData)
 
     // "Export Metrics" should have .isHeader trait
     XCTAssertNotNil(sheet)
