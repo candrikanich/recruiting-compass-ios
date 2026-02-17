@@ -4,7 +4,7 @@ import Observation
 
 @Observable
 @MainActor
-class LoginViewModel {
+final class LoginViewModel {
   var email = ""
   var password = ""
   var rememberMe = false
@@ -115,7 +115,7 @@ class LoginViewModel {
     ("network", "Network error. Please check your connection and try again.")
   ]
 
-  func mapError(_ error: Error) -> String {
+  private func mapError(_ error: Error) -> String {
     if let authError = error as? AuthError {
       return authError.errorDescription ?? "An error occurred"
     }

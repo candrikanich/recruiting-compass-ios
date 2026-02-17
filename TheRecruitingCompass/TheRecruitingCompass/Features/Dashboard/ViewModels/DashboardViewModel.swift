@@ -53,8 +53,8 @@ final class DashboardViewModel {
   }
 
   var avgCoachResponsiveness: Double {
-    // TODO: Calculate based on interaction response times
-    return stats != nil && stats!.interactionCount > 0 ? 0.75 : 0.0
+    // TODO: Calculate from actual interaction response-time tracking data
+    return 0.0
   }
 
   var avgCoachResponsivenessFormatted: String {
@@ -72,14 +72,13 @@ final class DashboardViewModel {
   }
 
   var interactionsThisMonth: Int {
-    // TODO: Query actual interactions for current month from ActivityFeedService
-    // For now, using total interaction count as placeholder
+    // TODO: Filter by current month once ActivityFeedService supports date-range queries
     return stats?.interactionCount ?? 0
   }
 
   var daysUntilGraduation: Int? {
-    // TODO: Requires user.graduationDate field in User model
-    return stats != nil ? 365 : nil
+    // TODO: Requires graduationDate field on User model
+    return nil
   }
 
   var daysUntilGraduationFormatted: String {
@@ -98,6 +97,7 @@ final class DashboardViewModel {
     return "Athlete"
   }
 
+  #if DEBUG
   var truncatedSessionToken: String {
     guard let token = authManager.session?.accessToken else {
       return "No session"
@@ -105,6 +105,7 @@ final class DashboardViewModel {
     let truncationLength = min(20, token.count)
     return String(token.prefix(truncationLength)) + "..."
   }
+  #endif
 
   init(
     authManager: (any AuthManaging)? = nil,
@@ -291,8 +292,9 @@ final class DashboardViewModel {
       let groupedByDate = Dictionary(grouping: interactions) { interaction -> String in
         String((interaction.occurredAt ?? interaction.createdAt).prefix(10))
       }
-      interactionTrends = groupedByDate.map { date, interactions in
-        InteractionTrend(id: date, date: "\(date)T00:00:00Z", count: interactions.count)
+      interactionTrends = groupedByDate.map { datePrefix, interactions in
+        // datePrefix is "YYYY-MM-DD" extracted from ISO8601 timestamp
+        InteractionTrend(id: datePrefix, date: datePrefix + "T00:00:00Z", count: interactions.count)
       }.sorted { $0.date < $1.date }
     } catch {
       logger.warning("Failed to load interaction trends: \(error.localizedDescription)")
