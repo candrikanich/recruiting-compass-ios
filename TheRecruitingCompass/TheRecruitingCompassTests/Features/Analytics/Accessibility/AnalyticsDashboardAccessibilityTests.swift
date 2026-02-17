@@ -104,8 +104,10 @@ final class AnalyticsDashboardAccessibilityTests: XCTestCase {
     XCTAssertNotNil(view)
   }
 
-  func testDashboard_applyButtonHasHint() {
+  func testDashboard_applyButtonHasHint() async {
     let vm = makeViewModel()
+    // Pre-load data to avoid triggering .task in test
+    await vm.loadAllData()
     let view = AnalyticsDashboardView(viewModel: vm)
     // Apply button has .accessibilityHint("Applies the selected date range and refreshes analytics")
     XCTAssertNotNil(view)

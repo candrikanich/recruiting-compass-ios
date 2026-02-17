@@ -174,7 +174,7 @@ final class PerformanceViewAccessibilityTests: XCTestCase {
 
   // MARK: - Integration Tests
 
-  func testIntegration_fullDashboardAccessibility() {
+  func testIntegration_fullDashboardAccessibility() async {
     let metrics = [
       makeMetric(id: "1", metricType: .velocity, value: 90, unit: "mph", verified: true),
       makeMetric(id: "2", metricType: .velocity, value: 92, unit: "mph"),
@@ -182,6 +182,8 @@ final class PerformanceViewAccessibilityTests: XCTestCase {
       makeMetric(id: "4", metricType: .sixtyTime, value: 6.8, unit: "sec")
     ]
     let vm = makeViewModel(metrics: metrics)
+    // Pre-load metrics to avoid triggering .task in test
+    await vm.loadMetrics()
     let view = PerformanceDashboardView(viewModel: vm)
 
     // Full dashboard should have:

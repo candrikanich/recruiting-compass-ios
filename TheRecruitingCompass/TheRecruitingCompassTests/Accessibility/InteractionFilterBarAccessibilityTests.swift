@@ -8,7 +8,7 @@ final class InteractionFilterBarAccessibilityTests: XCTestCase {
   // MARK: - Type Filter
 
   func testTypeFilter_HasCorrectAccessibilityLabel_NoSelection() throws {
-    var filters = InteractionFilters()
+    let filters = InteractionFilters()
 
     let filterBar = InteractionFilterBar(
       filters: .constant(filters),
@@ -47,7 +47,7 @@ final class InteractionFilterBarAccessibilityTests: XCTestCase {
   }
 
   func testTypeFilter_HasCorrectAccessibilityHint() throws {
-    var filters = InteractionFilters()
+    let filters = InteractionFilters()
 
     let filterBar = InteractionFilterBar(
       filters: .constant(filters),
@@ -68,7 +68,7 @@ final class InteractionFilterBarAccessibilityTests: XCTestCase {
   // MARK: - Direction Filter
 
   func testDirectionFilter_HasCorrectAccessibilityLabel_NoSelection() throws {
-    var filters = InteractionFilters()
+    let filters = InteractionFilters()
 
     let filterBar = InteractionFilterBar(
       filters: .constant(filters),
@@ -107,7 +107,7 @@ final class InteractionFilterBarAccessibilityTests: XCTestCase {
   // MARK: - Sentiment Filter
 
   func testSentimentFilter_HasCorrectAccessibilityLabel_NoSelection() throws {
-    var filters = InteractionFilters()
+    let filters = InteractionFilters()
 
     let filterBar = InteractionFilterBar(
       filters: .constant(filters),
@@ -146,7 +146,7 @@ final class InteractionFilterBarAccessibilityTests: XCTestCase {
   // MARK: - Time Period Filter
 
   func testTimePeriodFilter_HasCorrectAccessibilityLabel_NoSelection() throws {
-    var filters = InteractionFilters()
+    let filters = InteractionFilters()
 
     let filterBar = InteractionFilterBar(
       filters: .constant(filters),
@@ -185,7 +185,7 @@ final class InteractionFilterBarAccessibilityTests: XCTestCase {
   // MARK: - Logged By Filter (Parents Only)
 
   func testLoggedByFilter_NotShownForAthletes() throws {
-    var filters = InteractionFilters()
+    let filters = InteractionFilters()
 
     let filterBar = InteractionFilterBar(
       filters: .constant(filters),
@@ -203,7 +203,7 @@ final class InteractionFilterBarAccessibilityTests: XCTestCase {
   }
 
   func testLoggedByFilter_HasCorrectAccessibilityLabel_NoSelection() throws {
-    var filters = InteractionFilters()
+    let filters = InteractionFilters()
 
     let filterBar = InteractionFilterBar(
       filters: .constant(filters),

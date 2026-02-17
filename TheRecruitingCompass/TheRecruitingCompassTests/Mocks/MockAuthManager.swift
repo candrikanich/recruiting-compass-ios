@@ -1,6 +1,8 @@
 import Foundation
+import Observation
 @testable import TheRecruitingCompass
 
+@Observable
 @MainActor
 class MockAuthManager: AuthManaging {
   // MARK: - Published Properties
