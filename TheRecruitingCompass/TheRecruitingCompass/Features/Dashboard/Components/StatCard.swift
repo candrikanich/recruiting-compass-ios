@@ -15,10 +15,6 @@ struct StatCard: View {
     sizeCategory >= .extraLarge ? 36 : 32
   }
 
-  private var countFontSize: CGFloat {
-    sizeCategory >= .extraLarge ? 40 : 32
-  }
-
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
@@ -32,7 +28,7 @@ struct StatCard: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text("\(count)")
-          .font(.system(size: countFontSize, weight: .bold))
+          .font(.largeTitle.weight(.bold))
           .foregroundColor(.white)
 
         Text(title)

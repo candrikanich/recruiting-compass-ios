@@ -14,7 +14,10 @@ struct FamilyManagementView: View {
       .refreshable {
         await viewModel.loadData()
       }
-      .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+      .alert("Error", isPresented: Binding(
+        get: { viewModel.errorMessage != nil },
+        set: { if !$0 { viewModel.clearError() } }
+      )) {
         Button("OK") { viewModel.clearError() }
       } message: {
         if let error = viewModel.errorMessage {

@@ -34,7 +34,10 @@ struct OffersListView: View {
         Text("Are you sure you want to delete this offer from \(viewModel.schoolName(for: offer.schoolId))? This action cannot be undone.")
       }
     }
-    .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+    .alert("Error", isPresented: Binding(
+      get: { viewModel.errorMessage != nil },
+      set: { if !$0 { viewModel.errorMessage = nil } }
+    )) {
       Button("Retry") {
         viewModel.errorMessage = nil
         Task { await viewModel.loadOffers() }

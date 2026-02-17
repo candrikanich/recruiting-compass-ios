@@ -8,8 +8,6 @@ struct CoachDetailHeader: View {
   @Environment(\.sizeCategory) private var sizeCategory
 
   private enum Layout {
-    static let initialsSize: CGFloat = 48
-    static let initialsAccessibilitySize: CGFloat = 40
     static let initialsCircleSize: CGFloat = 100
     static let initialsCircleAccessibilitySize: CGFloat = 120
   }
@@ -18,7 +16,7 @@ struct CoachDetailHeader: View {
     VStack(spacing: 16) {
       // Large initials circle
       Text(coach.initials)
-        .font(.system(size: sizeCategory.isAccessibilityCategory ? Layout.initialsAccessibilitySize : Layout.initialsSize).bold())
+        .font(.largeTitle.bold())
         .foregroundStyle(.white)
         .frame(
           width: sizeCategory.isAccessibilityCategory ? Layout.initialsCircleAccessibilitySize : Layout.initialsCircleSize,

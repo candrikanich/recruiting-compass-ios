@@ -16,7 +16,7 @@ struct CompactCoachCard: View {
         .frame(width: avatarSize, height: avatarSize)
         .overlay {
           Text(coach.initials)
-            .font(.system(size: avatarSize * 0.4, weight: .semibold))
+            .font(.headline.weight(.semibold))
             .foregroundStyle(coach.role.badgeColor)
         }
         .accessibilityHidden(true)

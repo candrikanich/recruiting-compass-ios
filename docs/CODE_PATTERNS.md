@@ -2,14 +2,19 @@
 
 ## ViewModel Pattern
 
-```swift
-@MainActor
-final class SchoolsListViewModel: ObservableObject {
-  @Published var schools: [School] = []
-  @Published var isLoading = false
-  @Published var errorMessage: String?
+Use `@Observable` (iOS 17+) and `@MainActor` for view models. Do not use `ObservableObject` / `@Published` for new code.
 
-  private let schoolsService = SchoolsService()
+```swift
+import Observation
+
+@Observable
+@MainActor
+final class SchoolsListViewModel {
+  var schools: [School] = []
+  var isLoading = false
+  var errorMessage: String?
+
+  private let schoolsService: any SchoolsManaging
 
   func loadSchools() async {
     isLoading = true
@@ -29,9 +34,11 @@ final class SchoolsListViewModel: ObservableObject {
 
 ## View Pattern
 
+For views that **own** the view model, use `@State private var viewModel`. Do not use `@StateObject` or `@ObservedObject` with `@Observable` types.
+
 ```swift
 struct SchoolsListView: View {
-  @StateObject var viewModel = SchoolsListViewModel()
+  @State private var viewModel = SchoolsListViewModel()
 
   var body: some View {
     List(viewModel.schools) { school in
@@ -115,6 +122,44 @@ final class MockSchoolsService: SchoolsManaging {
   }
 }
 ```
+
+---
+
+## Error Alert Binding
+
+Use a **derived `Binding`** for `.alert(isPresented:)` so SwiftUI can dismiss the alert by setting the binding to `false`. Never use `.constant(...)` for alert presentation.
+
+```swift
+.alert("Error", isPresented: Binding(
+  get: { viewModel.errorMessage != nil },
+  set: { if !$0 { viewModel.errorMessage = nil } }
+)) {
+  Button("Retry") {
+    viewModel.errorMessage = nil
+    Task { await viewModel.load() }
+  }
+  Button("Dismiss", role: .cancel) { viewModel.errorMessage = nil }
+} message: {
+  if let error = viewModel.errorMessage {
+    Text(error)
+  }
+}
+```
+
+---
+
+## Typography
+
+Use **semantic fonts** for all user-facing text so Dynamic Type and accessibility work correctly. Do not use `.font(.system(size: N))` for body text or labels.
+
+| Use case | Font |
+|----------|------|
+| Large numbers / stats | `.largeTitle.weight(.bold)` or `.title.weight(.bold)` |
+| Section titles | `.headline`, `.title2.bold()` |
+| Body / labels | `.body`, `.subheadline`, `.callout` |
+| Secondary / captions | `.caption`, `.footnote` |
+
+**Exception:** For **icons** (SF Symbols) only, use `.font(.system(size: iconSize))` where `iconSize` is derived from `@Environment(\.sizeCategory)` so icon size scales with accessibility.
 
 ---
 

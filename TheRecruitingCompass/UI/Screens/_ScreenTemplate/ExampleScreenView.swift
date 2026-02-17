@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Template View - copy this and customize
 struct ExampleScreenView: View {
-    @State var viewModel = ExampleScreenViewModel()
+    @State private var viewModel = ExampleScreenViewModel()
 
     var body: some View {
         VStack(spacing: 16) {

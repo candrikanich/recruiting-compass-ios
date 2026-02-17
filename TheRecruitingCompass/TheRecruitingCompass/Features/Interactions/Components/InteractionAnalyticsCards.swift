@@ -68,7 +68,7 @@ struct AnalyticsCard: View {
         Spacer()
 
         Text("\(value)")
-          .font(.system(size: valueSize, weight: .bold))
+          .font(.title.weight(.bold))
           .foregroundColor(.primary)
       }
 
@@ -88,10 +88,6 @@ struct AnalyticsCard: View {
 
   private var iconSize: CGFloat {
     sizeCategory.isAccessibilityCategory ? 26 : 22
-  }
-
-  private var valueSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 32 : 28
   }
 
   private var cardHeight: CGFloat {

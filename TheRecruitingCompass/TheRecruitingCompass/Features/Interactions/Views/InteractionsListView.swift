@@ -36,7 +36,10 @@ struct InteractionsListView: View {
         Text("Are you sure you want to delete \"\(subject)\"? This action cannot be undone.")
       }
     }
-    .alert("Error", isPresented: .constant(viewModel.deleteErrorMessage != nil)) {
+    .alert("Error", isPresented: Binding(
+      get: { viewModel.deleteErrorMessage != nil },
+      set: { if !$0 { viewModel.deleteErrorMessage = nil } }
+    )) {
       Button("OK") { viewModel.deleteErrorMessage = nil }
     } message: {
       if let error = viewModel.deleteErrorMessage {

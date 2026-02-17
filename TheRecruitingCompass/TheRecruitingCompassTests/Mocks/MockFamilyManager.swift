@@ -1,5 +1,5 @@
 import Foundation
-import Combine
+import Observation
 @testable import TheRecruitingCompass
 
 final class MockFamilyService: FamilyManaging, @unchecked Sendable {
@@ -166,12 +166,13 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   }
 }
 
+@Observable
 @MainActor
-final class MockFamilyManager: ObservableObject {
-  @Published var currentMember: FamilyMember?
-  @Published var familyMembers: [FamilyMember] = []
-  @Published var selectedAthleteId: String?
-  @Published var familyUnit: FamilyUnit?
+final class MockFamilyManager {
+  var currentMember: FamilyMember?
+  var familyMembers: [FamilyMember] = []
+  var selectedAthleteId: String?
+  var familyUnit: FamilyUnit?
 
   var familyUnitId: String? {
     // First try family_members table (works for all users)

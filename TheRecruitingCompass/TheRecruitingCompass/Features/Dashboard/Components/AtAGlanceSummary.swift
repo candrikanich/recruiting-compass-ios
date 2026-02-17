@@ -56,16 +56,10 @@ struct MetricCard: View {
   let value: String
   let color: Color
 
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var valueFontSize: CGFloat {
-    sizeCategory >= .extraLarge ? 36 : 28
-  }
-
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(value)
-        .font(.system(size: valueFontSize, weight: .bold))
+        .font(.title.weight(.bold))
         .foregroundColor(color)
         .lineLimit(1)
         .minimumScaleFactor(0.7)
