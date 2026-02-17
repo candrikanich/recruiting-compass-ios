@@ -1,13 +1,16 @@
 import SwiftUI
 
 /// A reusable error state component with an icon and message.
+/// Optionally show a Retry button that invokes `onRetry` when provided.
 struct ErrorStateView: View {
   let message: String
   let icon: String
+  let onRetry: (() -> Void)?
 
-  init(message: String, icon: String = "exclamationmark.triangle") {
+  init(message: String, icon: String = "exclamationmark.triangle", onRetry: (() -> Void)? = nil) {
     self.message = message
     self.icon = icon
+    self.onRetry = onRetry
   }
 
   var body: some View {
@@ -21,6 +24,14 @@ struct ErrorStateView: View {
         .font(.body)
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
+
+      if let onRetry {
+        Button("Retry", action: onRetry)
+          .buttonStyle(.borderedProminent)
+          .frame(minHeight: 44)
+          .accessibilityLabel("Retry")
+          .accessibilityHint("Attempts to load again")
+      }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .padding()

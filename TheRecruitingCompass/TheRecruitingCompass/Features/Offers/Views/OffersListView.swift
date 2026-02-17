@@ -84,6 +84,12 @@ struct OffersListView: View {
       type: .success,
       duration: 3.0
     )
+    .navigationDestination(for: OfferDestination.self) { destination in
+      switch destination {
+      case .detail(let offerId):
+        OfferDetailView(offerId: offerId)
+      }
+    }
     .accessibilityIdentifier("offers_list")
   }
 
@@ -141,13 +147,16 @@ struct OffersListView: View {
 
   private var offerCards: some View {
     ForEach(viewModel.filteredOffers) { offer in
-      OfferCard(
-        offer: offer,
-        schoolName: viewModel.schoolName(for: offer.schoolId),
-        isSelected: viewModel.selectedOfferIds.contains(offer.id),
-        onToggleSelection: { viewModel.toggleSelection(offer.id) },
-        onDelete: { viewModel.confirmDelete(offer) }
-      )
+      NavigationLink(value: OfferDestination.detail(offer.id)) {
+        OfferCard(
+          offer: offer,
+          schoolName: viewModel.schoolName(for: offer.schoolId),
+          isSelected: viewModel.selectedOfferIds.contains(offer.id),
+          onToggleSelection: { viewModel.toggleSelection(offer.id) },
+          onDelete: { viewModel.confirmDelete(offer) }
+        )
+      }
+      .buttonStyle(.plain)
       .padding(.horizontal, 16)
       .padding(.vertical, 4)
     }

@@ -17,8 +17,11 @@ struct OfferDetailView: View {
         LoadingStateView(message: "Loading offer...")
           .padding(.top, 100)
       } else if viewModel.offer == nil, let error = viewModel.errorMessage {
-        ErrorStateView(message: error)
-          .padding(.top, 100)
+        ErrorStateView(
+          message: error,
+          onRetry: { Task { await viewModel.loadOffer() } }
+        )
+        .padding(.top, 100)
       } else if viewModel.offer == nil {
         notFoundView
       } else {
