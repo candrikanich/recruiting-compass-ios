@@ -62,6 +62,7 @@ final class AddCoachViewModelTests: XCTestCase {
 
   func testLoadSchools_success_populatesSchoolsArray() async {
     // Given
+    mockService.shouldThrowFetchSchools = false
     let mockSchools = [
       School.mock(id: "1", name: "School A"),
       School.mock(id: "2", name: "School B")
@@ -70,6 +71,7 @@ final class AddCoachViewModelTests: XCTestCase {
 
     // When
     await viewModel.loadSchools()
+    await Task.yield()  // Allow MainActor / Observation to commit before asserting
 
     // Then
     XCTAssertEqual(viewModel.schools.count, 2)

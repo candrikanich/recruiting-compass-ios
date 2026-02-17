@@ -15,7 +15,7 @@ final class DeadlineUrgencyTests: XCTestCase {
   }
 
   func testColor_Urgent_ReturnsAmber() {
-    XCTAssertEqual(DeadlineUrgency.urgent.color, Color(hex: "F59E0B"))
+    XCTAssertEqual(DeadlineUrgency.urgent.color, .amberGold)
   }
 
   func testColor_Normal_ReturnsSecondary() {

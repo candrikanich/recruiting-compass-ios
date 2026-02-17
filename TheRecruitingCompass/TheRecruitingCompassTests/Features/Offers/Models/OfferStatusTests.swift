@@ -26,19 +26,19 @@ final class OfferStatusTests: XCTestCase {
   // MARK: - statusColor Tests
 
   func testStatusColor_Accepted() {
-    XCTAssertEqual(OfferStatus.accepted.statusColor, Color(hex: "10b981"))
+    XCTAssertEqual(OfferStatus.accepted.statusColor, .successGreen)
   }
 
   func testStatusColor_Pending() {
-    XCTAssertEqual(OfferStatus.pending.statusColor, Color(hex: "3b82f6"))
+    XCTAssertEqual(OfferStatus.pending.statusColor, .accentBlue)
   }
 
   func testStatusColor_Declined() {
-    XCTAssertEqual(OfferStatus.declined.statusColor, Color(hex: "ef4444"))
+    XCTAssertEqual(OfferStatus.declined.statusColor, .errorRed)
   }
 
   func testStatusColor_Expired() {
-    XCTAssertEqual(OfferStatus.expired.statusColor, Color(hex: "6b7280"))
+    XCTAssertEqual(OfferStatus.expired.statusColor, .iconGray)
   }
 
   // MARK: - CaseIterable Tests
