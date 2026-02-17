@@ -50,14 +50,14 @@ Supabase credentials must be configured before running:
 ```
 Feature/
 ├── Models/              # Data structures (Codable, Identifiable)
-├── ViewModels/          # Business logic (@MainActor, @ObservableObject)
+├── ViewModels/          # Business logic (@MainActor, @Observable)
 ├── Views/               # SwiftUI views (presentation only)
 └── Components/          # Reusable UI components
 ```
 
 **Rules:**
 - **Service** = Data fetching only (no UI state, no @Published)
-- **ViewModel** = State management (@Published properties, async methods)
+- **ViewModel** = State management (@Observable, plain properties, async methods)
 - **View** = Display state + call ViewModel methods (no business logic)
 - **@MainActor** = Required on all ViewModels for thread-safe UI updates
 - **Protocol-based DI** = All services have protocol interfaces for testing

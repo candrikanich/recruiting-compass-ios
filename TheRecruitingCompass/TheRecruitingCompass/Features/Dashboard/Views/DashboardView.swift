@@ -33,8 +33,8 @@ struct DashboardView: View {
               loadingSection
             } else if viewModel.isEmpty {
               EmptyDashboardState()
-            } else {
-              statsCardsSection
+            } else if let stats = viewModel.stats {
+              DashboardStatsCardsSection(stats: stats)
             }
 
             if let error = viewModel.errorMessage {
@@ -42,9 +42,28 @@ struct DashboardView: View {
             }
 
             if !viewModel.isEmpty {
-              widgetsSection
+              DashboardWidgetsSection(
+                suggestions: viewModel.suggestions,
+                quickTasks: $viewModel.quickTasks,
+                onDismissSuggestion: { id in Task { await viewModel.dismissSuggestion(id) } },
+                onCompleteSuggestion: { id in Task { await viewModel.completeSuggestion(id) } },
+                onAddTask: viewModel.addTask,
+                onToggleTask: viewModel.toggleTaskCompletion,
+                onDeleteTask: viewModel.deleteTask,
+                onClearCompleted: viewModel.clearCompletedTasks
+              )
 
-              chartsAndDataSection
+              DashboardChartsAndDataSection(
+                interactionTrends: viewModel.interactionTrends,
+                events: viewModel.events,
+                metrics: viewModel.metrics,
+                schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
+                avgCoachResponsivenessFormatted: viewModel.avgCoachResponsivenessFormatted,
+                avgCoachResponsivenessColor: viewModel.avgCoachResponsivenessColor,
+                interactionsThisMonth: viewModel.interactionsThisMonth,
+                daysUntilGraduationFormatted: viewModel.daysUntilGraduationFormatted,
+                isEmpty: viewModel.isEmpty
+              )
             }
 
             Spacer()
@@ -123,161 +142,11 @@ struct DashboardView: View {
     }
   }
 
-  private var statsCardsSection: some View {
-    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-      if let stats = viewModel.stats {
-        NavigationLink(value: DashboardDestination.coaches) {
-          StatCard(
-            title: "Coaches",
-            count: stats.coachCount,
-            subtitle: nil,
-            icon: "person.2.fill",
-            gradientColors: [Color(hex: "#3B82F6"), Color(hex: "#2563EB")],
-            isEnabled: true,
-            destination: .coaches
-          )
-        }
-        .accessibilityLabel("View all coaches, \(stats.coachCount) total")
-        .accessibilityHint("Opens your coaches list")
-        .buttonStyle(PlainButtonStyle())
-
-        NavigationLink(value: DashboardDestination.schools) {
-          StatCard(
-            title: "Schools",
-            count: stats.schoolCount,
-            subtitle: nil,
-            icon: "building.2.fill",
-            gradientColors: [Color(hex: "#8B5CF6"), Color(hex: "#7C3AED")],
-            isEnabled: true,
-            destination: .schools
-          )
-        }
-        .accessibilityLabel("View all schools, \(stats.schoolCount) total")
-        .accessibilityHint("Opens your schools list")
-        .buttonStyle(PlainButtonStyle())
-
-        NavigationLink(value: DashboardDestination.interactions) {
-          StatCard(
-            title: "Interactions",
-            count: stats.interactionCount,
-            subtitle: nil,
-            icon: "bubble.left.and.bubble.right.fill",
-            gradientColors: [Color(hex: "#10B981"), Color(hex: "#059669")],
-            isEnabled: true,
-            destination: .interactions
-          )
-        }
-        .accessibilityLabel("View all interactions, \(stats.interactionCount) total")
-        .accessibilityHint("Opens your interactions list")
-        .buttonStyle(PlainButtonStyle())
-
-        NavigationLink(value: DashboardDestination.offers) {
-          StatCard(
-            title: "Offers",
-            count: stats.totalOffers,
-            subtitle: nil,
-            icon: "gift.fill",
-            gradientColors: [Color(hex: "#F97316"), Color(hex: "#EA580C")],
-            isEnabled: true,
-            destination: .offers
-          )
-        }
-        .accessibilityLabel("View all offers, \(stats.totalOffers) total")
-        .accessibilityHint("Opens your offers list")
-        .buttonStyle(PlainButtonStyle())
-
-        NavigationLink(value: DashboardDestination.accepted) {
-          StatCard(
-            title: "Accepted",
-            count: stats.acceptedOffers,
-            subtitle: stats.acceptanceRateFormatted,
-            icon: "checkmark.circle.fill",
-            gradientColors: [Color(hex: "#EF4444"), Color(hex: "#DC2626")],
-            isEnabled: true,
-            destination: .accepted
-          )
-        }
-        .accessibilityLabel("View accepted offers, \(stats.acceptedOffers) total")
-        .accessibilityHint("Opens your accepted offers list")
-        .buttonStyle(PlainButtonStyle())
-
-        NavigationLink(value: DashboardDestination.aTier) {
-          StatCard(
-            title: "A-Tier",
-            count: stats.aTierSchoolCount,
-            subtitle: nil,
-            icon: "star.fill",
-            gradientColors: [Color(hex: "#6366F1"), Color(hex: "#4F46E5")],
-            isEnabled: true,
-            destination: .aTier
-          )
-        }
-        .accessibilityLabel("View A-Tier schools, \(stats.aTierSchoolCount) total")
-        .accessibilityHint("Opens your top-tier schools list")
-        .buttonStyle(PlainButtonStyle())
-      }
-    }
-  }
-
   private func errorSection(_ message: String) -> some View {
     ErrorBanner(message: message, onDismiss: {
       viewModel.errorMessage = nil
     })
     .accessibilityAddTraits(.updatesFrequently)
-  }
-
-  private var widgetsSection: some View {
-    VStack(spacing: 16) {
-      ActionItemsWidget(
-        suggestions: viewModel.suggestions,
-        onDismiss: { id in
-          Task {
-            await viewModel.dismissSuggestion(id)
-          }
-        },
-        onComplete: { id in
-          Task {
-            await viewModel.completeSuggestion(id)
-          }
-        }
-      )
-
-      QuickTaskWidget(
-        tasks: $viewModel.quickTasks,
-        onAddTask: viewModel.addTask,
-        onToggleTask: viewModel.toggleTaskCompletion,
-        onDeleteTask: viewModel.deleteTask,
-        onClearCompleted: viewModel.clearCompletedTasks
-      )
-    }
-  }
-
-  private var chartsAndDataSection: some View {
-    VStack(spacing: 16) {
-      if !viewModel.interactionTrends.isEmpty {
-        InteractionTrendsChart(trends: viewModel.interactionTrends)
-      }
-
-      if !viewModel.events.isEmpty {
-        UpcomingEventsWidget(events: viewModel.events)
-      }
-
-      RecentActivityWidget()
-
-      if !viewModel.metrics.isEmpty {
-        PerformanceMetricsWidget(metrics: viewModel.metrics)
-      }
-
-      if !viewModel.isEmpty {
-        AtAGlanceSummary(
-          schoolsWithOffers: viewModel.schoolsWithOffersPercentage,
-          avgCoachResponsiveness: viewModel.avgCoachResponsivenessFormatted,
-          avgResponsivenessColor: viewModel.avgCoachResponsivenessColor,
-          interactionsThisMonth: viewModel.interactionsThisMonth,
-          daysUntilGraduation: viewModel.daysUntilGraduationFormatted
-        )
-      }
-    }
   }
 
   private var logoutButton: some View {

@@ -8,6 +8,12 @@ struct TaskCard: View {
   let onCheckboxTap: () -> Void
   let onLockedCheckboxTap: (() -> Void)?
 
+  @Environment(\.sizeCategory) private var sizeCategory
+
+  private var checkboxIconSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 26 : 22
+  }
+
   private var checkboxAccessibilityLabel: String {
     if task.isLocked {
       let prereqs = task.prerequisiteTasks.map(\.title).joined(separator: ", ")
@@ -34,7 +40,7 @@ struct TaskCard: View {
           }
         } label: {
           Image(systemName: task.effectiveStatus == .completed ? "checkmark.circle.fill" : "circle")
-            .font(.system(size: 22))
+            .font(.system(size: checkboxIconSize))
             .foregroundStyle(task.effectiveStatus == .completed ? Color.successGreen : .secondary)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
