@@ -1,0 +1,356 @@
+import XCTest
+@testable import TheRecruitingCompass
+
+@MainActor
+final class CommunicationTemplatesViewModelTests: XCTestCase {
+  var viewModel: CommunicationTemplatesViewModel!
+  var mockService: MockCommunicationTemplatesService!
+
+  override func setUp() async throws {
+    mockService = MockCommunicationTemplatesService()
+    viewModel = CommunicationTemplatesViewModel(service: mockService)
+  }
+
+  override func tearDown() {
+    viewModel = nil
+    mockService = nil
+  }
+
+  // MARK: - Initial State
+
+  func testInitialState() {
+    XCTAssertTrue(viewModel.templates.isEmpty)
+    XCTAssertFalse(viewModel.isLoading)
+    XCTAssertNil(viewModel.errorMessage)
+    XCTAssertEqual(viewModel.activeTab, .list)
+    XCTAssertNil(viewModel.filterType)
+    XCTAssertNil(viewModel.editingTemplate)
+    XCTAssertFalse(viewModel.formData.isValid)
+    XCTAssertFalse(viewModel.showDeleteConfirmation)
+    XCTAssertNil(viewModel.templateToDeleteId)
+  }
+
+  // MARK: - loadTemplates Tests
+
+  func testLoadTemplates_Success_PopulatesTemplates() async {
+    mockService.mockTemplates = makeTemplates(count: 3)
+
+    await viewModel.loadTemplates()
+
+    XCTAssertEqual(viewModel.templates.count, 3)
+    XCTAssertFalse(viewModel.isLoading)
+    XCTAssertNil(viewModel.errorMessage)
+    XCTAssertEqual(mockService.fetchTemplatesCallCount, 1)
+  }
+
+  func testLoadTemplates_Error_SetsErrorMessage() async {
+    mockService.shouldThrowOnFetch = true
+
+    await viewModel.loadTemplates()
+
+    XCTAssertTrue(viewModel.templates.isEmpty)
+    XCTAssertFalse(viewModel.isLoading)
+    XCTAssertNotNil(viewModel.errorMessage)
+  }
+
+  func testLoadTemplates_Empty_SetsEmptyArray() async {
+    mockService.mockTemplates = []
+
+    await viewModel.loadTemplates()
+
+    XCTAssertTrue(viewModel.templates.isEmpty)
+    XCTAssertFalse(viewModel.isLoading)
+    XCTAssertNil(viewModel.errorMessage)
+  }
+
+  // MARK: - filteredTemplates Tests
+
+  func testFilteredTemplates_NoFilter_ReturnsAll() async {
+    mockService.mockTemplates = makeTemplates(count: 5)
+    await viewModel.loadTemplates()
+    viewModel.filterType = nil
+
+    XCTAssertEqual(viewModel.filteredTemplates.count, 5)
+  }
+
+  func testFilteredTemplates_EmailFilter_ReturnsOnlyEmail() async {
+    mockService.mockTemplates = [
+      makeTemplate(id: "1", type: .email),
+      makeTemplate(id: "2", type: .text),
+      makeTemplate(id: "3", type: .email),
+      makeTemplate(id: "4", type: .twitter),
+    ]
+    await viewModel.loadTemplates()
+
+    viewModel.filterType = .email
+
+    XCTAssertEqual(viewModel.filteredTemplates.count, 2)
+    XCTAssertTrue(viewModel.filteredTemplates.allSatisfy { $0.type == .email })
+  }
+
+  func testFilteredTemplates_TextFilter_ReturnsOnlyText() async {
+    mockService.mockTemplates = [
+      makeTemplate(id: "1", type: .email),
+      makeTemplate(id: "2", type: .text),
+      makeTemplate(id: "3", type: .text),
+    ]
+    await viewModel.loadTemplates()
+
+    viewModel.filterType = .text
+
+    XCTAssertEqual(viewModel.filteredTemplates.count, 2)
+    XCTAssertTrue(viewModel.filteredTemplates.allSatisfy { $0.type == .text })
+  }
+
+  func testFilteredTemplates_TwitterFilter_ReturnsOnlyTwitter() async {
+    mockService.mockTemplates = [
+      makeTemplate(id: "1", type: .twitter),
+      makeTemplate(id: "2", type: .email),
+      makeTemplate(id: "3", type: .twitter),
+    ]
+    await viewModel.loadTemplates()
+
+    viewModel.filterType = .twitter
+
+    XCTAssertEqual(viewModel.filteredTemplates.count, 2)
+    XCTAssertTrue(viewModel.filteredTemplates.allSatisfy { $0.type == .twitter })
+  }
+
+  func testFilteredTemplates_FilterWithNoMatches_ReturnsEmpty() async {
+    mockService.mockTemplates = [
+      makeTemplate(id: "1", type: .email),
+      makeTemplate(id: "2", type: .email),
+    ]
+    await viewModel.loadTemplates()
+
+    viewModel.filterType = .twitter
+
+    XCTAssertTrue(viewModel.filteredTemplates.isEmpty)
+  }
+
+  // MARK: - typeCounts Tests
+
+  func testTypeCounts_CalculatesCorrectly() async {
+    mockService.mockTemplates = [
+      makeTemplate(id: "1", type: .email),
+      makeTemplate(id: "2", type: .email),
+      makeTemplate(id: "3", type: .text),
+      makeTemplate(id: "4", type: .twitter),
+    ]
+    await viewModel.loadTemplates()
+
+    let counts = viewModel.typeCounts
+    XCTAssertEqual(counts[nil], 4)
+    XCTAssertEqual(counts[.email], 2)
+    XCTAssertEqual(counts[.text], 1)
+    XCTAssertEqual(counts[.twitter], 1)
+  }
+
+  // MARK: - saveTemplate Tests
+
+  func testSaveTemplate_Create_WhenValid_CallsCreateOnService() async {
+    viewModel.formData.name = "New Template"
+    viewModel.formData.type = .email
+    viewModel.formData.body = "Hello {{coach_name}}"
+    viewModel.editingTemplate = nil
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(mockService.createTemplateCallCount, 1)
+    XCTAssertEqual(mockService.updateTemplateCallCount, 0)
+    XCTAssertEqual(mockService.lastCreateFormData?.name, "New Template")
+    XCTAssertEqual(viewModel.templates.count, 1)
+    XCTAssertEqual(viewModel.activeTab, .list)
+  }
+
+  func testSaveTemplate_Update_WhenEditing_CallsUpdateOnService() async {
+    let existing = makeTemplate(id: "edit-1", name: "Old Name")
+    mockService.mockTemplates = [existing]
+    await viewModel.loadTemplates()
+
+    viewModel.startEditing(template: existing)
+    viewModel.formData.name = "Updated Name"
+    viewModel.formData.body = "Updated body content"
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(mockService.updateTemplateCallCount, 1)
+    XCTAssertEqual(mockService.createTemplateCallCount, 0)
+    XCTAssertEqual(mockService.lastUpdateId, "edit-1")
+    XCTAssertEqual(viewModel.activeTab, .list)
+    XCTAssertNil(viewModel.editingTemplate)
+  }
+
+  func testSaveTemplate_InvalidFormData_DoesNotCallService() async {
+    viewModel.formData.name = ""
+    viewModel.formData.body = ""
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(mockService.createTemplateCallCount, 0)
+    XCTAssertEqual(mockService.updateTemplateCallCount, 0)
+  }
+
+  func testSaveTemplate_Create_Error_SetsErrorMessage() async {
+    viewModel.formData.name = "Template"
+    viewModel.formData.body = "Body text"
+    mockService.shouldThrowOnCreate = true
+
+    await viewModel.saveTemplate()
+
+    XCTAssertNotNil(viewModel.errorMessage)
+    XCTAssertTrue(viewModel.templates.isEmpty)
+  }
+
+  func testSaveTemplate_Create_InsertsAtFront() async {
+    let existing = makeTemplate(id: "old-1", name: "Old")
+    mockService.mockTemplates = [existing]
+    await viewModel.loadTemplates()
+
+    viewModel.formData.name = "Newest"
+    viewModel.formData.body = "New body"
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(viewModel.templates.count, 2)
+    XCTAssertEqual(viewModel.templates[0].id, "new-template")
+  }
+
+  func testSaveTemplate_Update_ReplacesInPlace() async {
+    let existing = makeTemplate(id: "edit-1", name: "Original")
+    mockService.mockTemplates = [existing]
+    await viewModel.loadTemplates()
+
+    let updatedReturn = makeTemplate(id: "edit-1", name: "Updated")
+    mockService.mockUpdatedTemplate = updatedReturn
+
+    viewModel.startEditing(template: existing)
+    viewModel.formData.name = "Updated"
+    viewModel.formData.body = "Updated body"
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(viewModel.templates.count, 1)
+    XCTAssertEqual(viewModel.templates[0].name, "Updated")
+  }
+
+  // MARK: - startEditing Tests
+
+  func testStartEditing_PopulatesFormData() {
+    let template = makeTemplate(
+      id: "t-1",
+      name: "Intro Email",
+      type: .text,
+      body: "Hi there"
+    )
+
+    viewModel.startEditing(template: template)
+
+    XCTAssertEqual(viewModel.formData.name, "Intro Email")
+    XCTAssertEqual(viewModel.formData.type, .text)
+    XCTAssertEqual(viewModel.formData.body, "Hi there")
+    XCTAssertEqual(viewModel.editingTemplate?.id, "t-1")
+    XCTAssertEqual(viewModel.activeTab, .create)
+  }
+
+  // MARK: - cancelEdit Tests
+
+  func testCancelEdit_ResetsFormAndSwitchesToList() {
+    let template = makeTemplate(id: "t-1", name: "Editing")
+    viewModel.startEditing(template: template)
+    XCTAssertEqual(viewModel.activeTab, .create)
+    XCTAssertNotNil(viewModel.editingTemplate)
+
+    viewModel.cancelEdit()
+
+    XCTAssertEqual(viewModel.formData.name, "")
+    XCTAssertEqual(viewModel.formData.body, "")
+    XCTAssertNil(viewModel.editingTemplate)
+    XCTAssertEqual(viewModel.activeTab, .list)
+  }
+
+  // MARK: - confirmDelete / executeDelete Tests
+
+  func testConfirmDelete_SetsDeleteState() {
+    viewModel.confirmDelete(id: "del-1")
+
+    XCTAssertEqual(viewModel.templateToDeleteId, "del-1")
+    XCTAssertTrue(viewModel.showDeleteConfirmation)
+  }
+
+  func testExecuteDelete_Success_RemovesTemplate() async {
+    mockService.mockTemplates = [
+      makeTemplate(id: "1"),
+      makeTemplate(id: "2"),
+      makeTemplate(id: "3"),
+    ]
+    await viewModel.loadTemplates()
+
+    viewModel.confirmDelete(id: "2")
+    await viewModel.executeDelete()
+
+    XCTAssertEqual(mockService.deleteTemplateCallCount, 1)
+    XCTAssertEqual(mockService.lastDeleteId, "2")
+    XCTAssertEqual(viewModel.templates.count, 2)
+    XCTAssertFalse(viewModel.templates.contains { $0.id == "2" })
+    XCTAssertFalse(viewModel.showDeleteConfirmation)
+    XCTAssertNil(viewModel.templateToDeleteId)
+    XCTAssertEqual(viewModel.activeTab, .list)
+  }
+
+  func testExecuteDelete_Error_KeepsTemplate() async {
+    mockService.mockTemplates = [makeTemplate(id: "1")]
+    await viewModel.loadTemplates()
+    mockService.shouldThrowOnDelete = true
+
+    viewModel.confirmDelete(id: "1")
+    await viewModel.executeDelete()
+
+    XCTAssertEqual(viewModel.templates.count, 1)
+    XCTAssertNotNil(viewModel.errorMessage)
+  }
+
+  func testExecuteDelete_NoTemplateToDeleteId_DoesNothing() async {
+    viewModel.templateToDeleteId = nil
+
+    await viewModel.executeDelete()
+
+    XCTAssertEqual(mockService.deleteTemplateCallCount, 0)
+  }
+
+  // MARK: - selectFilter Tests
+
+  func testSelectFilter_SetsFilterType() {
+    viewModel.selectFilter(.email)
+    XCTAssertEqual(viewModel.filterType, .email)
+
+    viewModel.selectFilter(nil)
+    XCTAssertNil(viewModel.filterType)
+  }
+
+  // MARK: - Helpers
+
+  private func makeTemplates(count: Int) -> [CommunicationTemplate] {
+    (0..<count).map { index in
+      makeTemplate(id: "\(index)")
+    }
+  }
+
+  private func makeTemplate(
+    id: String = "template-1",
+    name: String = "Test Template",
+    type: TemplateType = .email,
+    body: String = "Test body content for template"
+  ) -> CommunicationTemplate {
+    CommunicationTemplate(
+      id: id,
+      userId: "user-1",
+      name: name,
+      type: type,
+      body: body,
+      variables: nil,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
+  }
+}

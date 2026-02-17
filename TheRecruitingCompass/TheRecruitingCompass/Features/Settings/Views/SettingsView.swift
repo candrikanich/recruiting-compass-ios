@@ -85,6 +85,17 @@ struct SettingsView: View {
               color: .orange
             )
           }
+
+          NavigationLink {
+            CommunicationTemplatesView()
+          } label: {
+            SettingsRow(
+              icon: "doc.text.fill",
+              title: "Communication Templates",
+              description: "Create and manage email, text, and social media templates",
+              color: .accentBlue
+            )
+          }
         } header: {
           Text("Communication & Social")
         }
