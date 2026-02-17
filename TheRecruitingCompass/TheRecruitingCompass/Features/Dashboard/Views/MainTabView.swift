@@ -48,6 +48,14 @@ struct MainTabView: View {
       .accessibilityLabel("Interactions")
 
       NavigationStack {
+        OffersListView()
+      }
+      .tabItem {
+        Label("Offers", systemImage: "gift.fill")
+      }
+      .accessibilityLabel("Offers")
+
+      NavigationStack {
         PerformanceDashboardView()
       }
       .tabItem {
