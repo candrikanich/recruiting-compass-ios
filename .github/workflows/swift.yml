@@ -23,13 +23,18 @@ jobs:
       id: simulator
       run: |
         echo "=== Available iPhone Simulators ==="
-        xcrun simctl list devices available | grep "iPhone" || true
-        LINE=$(xcrun simctl list devices available | grep "iPhone" | grep -v "Clone" | head -1)
+        xcrun simctl list devices available | grep " iPhone " || true
+        LINE=$(xcrun simctl list devices available | grep " iPhone " | grep -v "Clone" | head -1)
         if [ -z "$LINE" ]; then
           echo "::error::No iPhone simulator found"
           exit 1
         fi
-        DEVICE_ID=$(echo "$LINE" | grep -oE '\([0-9A-Fa-f-]{36}\)' | head -1 | tr -d '()')
+        # Extract UUID only (avoids matching "(Booted)" or "(Shutdown)")
+        DEVICE_ID=$(echo "$LINE" | grep -oE '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}' | head -1)
+        if [ -z "$DEVICE_ID" ]; then
+          echo "::error::Could not parse simulator UUID from: $LINE"
+          exit 1
+        fi
         echo "device_id=$DEVICE_ID" >> $GITHUB_OUTPUT
         echo "Using device: $DEVICE_ID"
 
