@@ -270,23 +270,21 @@ final class SchoolDetailViewModel {
       return
     }
 
-    isSavingPrivateNotes = true
-    defer { isSavingPrivateNotes = false }
-
-    do {
-      let note = editedPrivateNotes.isEmpty ? nil : editedPrivateNotes
-      let updated = try await schoolsService.updatePrivateNotes(
-        id: schoolId,
-        familyUnitId: familyId,
-        userId: currentUserId,
-        note: note
-      )
-      school = updated
-      isEditingPrivateNotes = false
-      logger.info("Private notes saved successfully")
-    } catch {
-      errorMessage = "Failed to save private notes"
-      logger.error("Failed to save private notes: \(error.localizedDescription)")
+    await withLoading(setting: \.isSavingPrivateNotes) {
+      do {
+        let note = editedPrivateNotes.isEmpty ? nil : editedPrivateNotes
+        let updated = try await schoolsService.updatePrivateNotes(
+          id: schoolId,
+          familyUnitId: familyId,
+          userId: currentUserId,
+          note: note
+        )
+        school = updated
+        isEditingPrivateNotes = false
+        logger.info("Private notes saved successfully")
+      } catch {
+        handleError(error, userMessage: "Failed to save private notes")
+      }
     }
   }
 
@@ -334,17 +332,15 @@ final class SchoolDetailViewModel {
       return
     }
 
-    isAddingCon = true
-    defer { isAddingCon = false }
-
-    do {
-      let updated = try await schoolsService.addCon(id: schoolId, familyUnitId: familyId, text: newCon)
-      school = updated
-      newCon = ""
-      logger.info("Con added successfully")
-    } catch {
-      errorMessage = "Failed to add con"
-      logger.error("Failed to add con: \(error.localizedDescription)")
+    await withLoading(setting: \.isAddingCon) {
+      do {
+        let updated = try await schoolsService.addCon(id: schoolId, familyUnitId: familyId, text: newCon)
+        school = updated
+        newCon = ""
+        logger.info("Con added successfully")
+      } catch {
+        handleError(error, userMessage: "Failed to add con")
+      }
     }
   }
 
@@ -378,20 +374,18 @@ final class SchoolDetailViewModel {
   }
 
   func saveBasicInfo() async {
-    isSavingBasicInfo = true
-    defer { isSavingBasicInfo = false }
-
-    do {
-      let updated = try await schoolsService.updateBasicInfo(
-        id: schoolId,
-        info: editedBasicInfo
-      )
-      school = updated
-      isEditingBasicInfo = false
-      logger.info("Basic info saved successfully")
-    } catch {
-      errorMessage = "Failed to save information"
-      logger.error("Failed to save basic info: \(error.localizedDescription)")
+    await withLoading(setting: \.isSavingBasicInfo) {
+      do {
+        let updated = try await schoolsService.updateBasicInfo(
+          id: schoolId,
+          info: editedBasicInfo
+        )
+        school = updated
+        isEditingBasicInfo = false
+        logger.info("Basic info saved successfully")
+      } catch {
+        handleError(error, userMessage: "Failed to save information")
+      }
     }
   }
 
@@ -480,20 +474,18 @@ final class SchoolDetailViewModel {
   }
 
   func saveCoachingPhilosophy() async {
-    isSavingCoachingPhilosophy = true
-    defer { isSavingCoachingPhilosophy = false }
-
-    do {
-      let updated = try await schoolsService.updateCoachingPhilosophy(
-        id: schoolId,
-        philosophy: editedCoachingPhilosophy
-      )
-      school = updated
-      isEditingCoachingPhilosophy = false
-      logger.info("Coaching philosophy saved successfully")
-    } catch {
-      errorMessage = "Failed to save coaching philosophy"
-      logger.error("Failed to save coaching philosophy: \(error.localizedDescription)")
+    await withLoading(setting: \.isSavingCoachingPhilosophy) {
+      do {
+        let updated = try await schoolsService.updateCoachingPhilosophy(
+          id: schoolId,
+          philosophy: editedCoachingPhilosophy
+        )
+        school = updated
+        isEditingCoachingPhilosophy = false
+        logger.info("Coaching philosophy saved successfully")
+      } catch {
+        handleError(error, userMessage: "Failed to save coaching philosophy")
+      }
     }
   }
 
@@ -513,19 +505,8 @@ final class SchoolDetailViewModel {
     }
 
     do {
-      // Try simple delete first
-      do {
-        try await schoolsService.deleteSchool(id: schoolId)
-        logger.info("School deleted successfully (simple delete)")
-        onSuccess()
-      } catch {
-        // Fallback to cascade delete
-        logger.warning("Simple delete failed, attempting cascade delete: \(error.localizedDescription)")
-        let result = try await schoolsService.cascadeDeleteSchool(id: schoolId)
-        let totalDeleted = result.deletedInteractions + result.deletedNotes
-        logger.info("School deleted successfully (cascade delete: \(totalDeleted) related items)")
-        onSuccess()
-      }
+      try await performDelete()
+      onSuccess()
     } catch {
       let errorMsg = "Failed to delete school. Please try again."
       deleteErrorMessage = errorMsg
@@ -534,19 +515,29 @@ final class SchoolDetailViewModel {
     }
   }
 
+  private func performDelete() async throws {
+    do {
+      try await schoolsService.deleteSchool(id: schoolId)
+      logger.info("School deleted successfully (simple delete)")
+    } catch {
+      logger.warning("Simple delete failed, attempting cascade delete: \(error.localizedDescription)")
+      let result = try await schoolsService.cascadeDeleteSchool(id: schoolId)
+      let totalDeleted = result.deletedInteractions + result.deletedNotes
+      logger.info("School deleted successfully (cascade delete: \(totalDeleted) related items)")
+    }
+  }
+
   // MARK: - Priority Tier Update
 
   func updatePriorityTier(_ tier: PriorityTier?) async {
-    isUpdatingPriorityTier = true
-    defer { isUpdatingPriorityTier = false }
-
-    do {
-      let updated = try await schoolsService.updatePriorityTier(id: schoolId, tier: tier)
-      school = updated
-      logger.info("Priority tier updated to \(tier?.rawValue ?? "none")")
-    } catch {
-      errorMessage = "Failed to update priority tier"
-      logger.error("Failed to update priority tier: \(error.localizedDescription)")
+    await withLoading(setting: \.isUpdatingPriorityTier) {
+      do {
+        let updated = try await schoolsService.updatePriorityTier(id: schoolId, tier: tier)
+        school = updated
+        logger.info("Priority tier updated to \(tier?.rawValue ?? "none")")
+      } catch {
+        handleError(error, userMessage: "Failed to update priority tier")
+      }
     }
   }
 }
