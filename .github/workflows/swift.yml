@@ -19,19 +19,23 @@ jobs:
     - name: Show Xcode version
       run: xcodebuild -version
 
-    - name: List available simulators
+    - name: Select iOS simulator
+      id: simulator
       run: |
         echo "=== Available iPhone Simulators ==="
-        xcrun simctl list devices available | grep "iPhone"
-        echo ""
-        echo "=== Using: iPhone 16 with OS=latest ==="
+        xcrun simctl list devices available | grep "iPhone" || true
+        LINE=$(xcrun simctl list devices available | grep "iPhone" | grep -v "Clone" | head -1)
+        if [ -z "$LINE" ]; then
+          echo "::error::No iPhone simulator found"
+          exit 1
+        fi
+        DEVICE_ID=$(echo "$LINE" | grep -oE '\([0-9A-Fa-f-]{36}\)' | head -1 | tr -d '()')
+        echo "device_id=$DEVICE_ID" >> $GITHUB_OUTPUT
+        echo "Using device: $DEVICE_ID"
 
-    - name: Boot iPhone 16 simulator
+    - name: Boot simulator
       run: |
-        DEVICE_ID=$(xcrun simctl list devices available | grep "iPhone 16 (" | grep -v "Clone" | head -1 | grep -oE '\([A-Z0-9-]+\)' | tr -d '()')
-        echo "Found device: $DEVICE_ID"
-        xcrun simctl boot "$DEVICE_ID" || echo "Device already booted or boot failed (may be OK)"
-        echo "Waiting for simulator to fully boot..."
+        xcrun simctl boot "${{ steps.simulator.outputs.device_id }}" || true
         sleep 5
 
     - name: Show available schemes
@@ -43,18 +47,20 @@ jobs:
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        DESTINATION: platform=iOS Simulator,id=${{ steps.simulator.outputs.device_id }}
       run: |
         xcodebuild build \
           -scheme TheRecruitingCompass \
-          -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16'
+          -destination "$DESTINATION"
 
     - name: Run tests
       working-directory: TheRecruitingCompass
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        DESTINATION: platform=iOS Simulator,id=${{ steps.simulator.outputs.device_id }}
       run: |
         xcodebuild test \
           -scheme TheRecruitingCompass \
-          -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+          -destination "$DESTINATION" \
           -only-testing:TheRecruitingCompassTests
