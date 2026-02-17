@@ -17,10 +17,10 @@ enum OfferStatus: String, Codable, CaseIterable, Sendable {
 
   var statusColor: Color {
     switch self {
-    case .accepted: return Color(hex: "10b981")
-    case .pending: return Color(hex: "3b82f6")
-    case .declined: return Color(hex: "ef4444")
-    case .expired: return Color(hex: "6b7280")
+    case .accepted: return .successGreen
+    case .pending: return .accentBlue
+    case .declined: return .errorRed
+    case .expired: return .iconGray
     }
   }
 }

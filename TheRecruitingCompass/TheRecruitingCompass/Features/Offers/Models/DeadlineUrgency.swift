@@ -10,7 +10,7 @@ enum DeadlineUrgency: Sendable {
   var color: Color {
     switch self {
     case .overdue, .critical: return .errorRed
-    case .urgent: return Color(hex: "F59E0B")
+    case .urgent: return .amberGold
     case .normal, .none: return .secondary
     }
   }

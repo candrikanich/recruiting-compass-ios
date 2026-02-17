@@ -1,0 +1,187 @@
+import SwiftUI
+
+struct OfferDetailView: View {
+  let offerId: String
+
+  @State private var viewModel: OfferDetailViewModel
+  @Environment(\.dismiss) private var dismiss
+
+  init(offerId: String) {
+    self.offerId = offerId
+    _viewModel = State(initialValue: OfferDetailViewModel(offerId: offerId))
+  }
+
+  var body: some View {
+    ScrollView {
+      if viewModel.isLoading && viewModel.offer == nil {
+        LoadingStateView(message: "Loading offer...")
+          .padding(.top, 100)
+      } else if viewModel.offer == nil, let error = viewModel.errorMessage {
+        ErrorStateView(message: error)
+          .padding(.top, 100)
+      } else if viewModel.offer == nil {
+        notFoundView
+      } else {
+        offerContent
+      }
+    }
+    .navigationTitle("Offer Details")
+    .navigationBarTitleDisplayMode(.inline)
+    .refreshable {
+      await viewModel.loadOffer()
+    }
+    .task {
+      await viewModel.loadOffer()
+    }
+    .alert(item: $viewModel.activeAlert) { alert in
+      alertForType(alert)
+    }
+  }
+
+  // MARK: - Not Found
+
+  private var notFoundView: some View {
+    VStack(spacing: 16) {
+      Image(systemName: "doc.questionmark")
+        .font(.largeTitle)
+        .foregroundStyle(.secondary)
+        .accessibilityHidden(true)
+
+      Text("Offer not found")
+        .font(.headline)
+        .foregroundStyle(.secondary)
+
+      Button("Return to Offers") {
+        dismiss()
+      }
+      .buttonStyle(.bordered)
+    }
+    .padding(.top, 100)
+  }
+
+  // MARK: - Offer Content
+
+  @ViewBuilder
+  private var offerContent: some View {
+    if let offer = viewModel.offer {
+      VStack(spacing: 20) {
+        OfferHeaderView(
+          status: offer.status,
+          schoolName: viewModel.schoolName,
+          offerType: offer.offerType
+        )
+
+        OfferFinancialSummary(
+          formattedAmount: offer.formattedAmount,
+          formattedPercentage: offer.formattedPercentage,
+          deadlineText: viewModel.deadlineDisplayText,
+          deadlineUrgency: offer.deadlineUrgency,
+          formattedDeadlineDate: viewModel.formattedDeadlineDate
+        )
+
+        if !viewModel.isEditing {
+          OfferDetailsGrid(
+            offerDate: viewModel.formattedOfferDate,
+            deadlineDate: viewModel.formattedDeadlineDate,
+            conditions: offer.conditions,
+            notes: offer.notes
+          )
+        }
+
+        ScholarshipCalculatorView(
+          initialAmount: offer.scholarshipAmount,
+          initialPercentage: offer.scholarshipPercentage,
+          onSaveToOffer: { amount, pct in
+            viewModel.applyCalculatorValues(amount: amount, percentage: pct)
+          }
+        )
+
+        if viewModel.isEditing {
+          OfferEditForm(
+            editData: $viewModel.editData,
+            isUpdating: viewModel.isUpdating,
+            onSave: { await viewModel.saveChanges() },
+            onCancel: { viewModel.cancelEditing() }
+          )
+        }
+
+        actionButtons
+      }
+      .padding(.bottom, 24)
+    }
+  }
+
+  // MARK: - Action Buttons
+
+  private var actionButtons: some View {
+    Group {
+      if !viewModel.isEditing {
+        HStack(spacing: 12) {
+          Button {
+            viewModel.startEditing()
+          } label: {
+            Label("Edit", systemImage: "pencil")
+              .frame(maxWidth: .infinity, minHeight: 44)
+              .padding(.vertical, 8)
+          }
+          .buttonStyle(.borderedProminent)
+          .accessibilityIdentifier("offer-edit-button")
+          .accessibilityLabel("Edit offer")
+          .accessibilityHint("Opens edit form for this offer")
+
+          Button(role: .destructive) {
+            viewModel.confirmDelete()
+          } label: {
+            Label("Delete", systemImage: "trash")
+              .frame(maxWidth: .infinity, minHeight: 44)
+              .padding(.vertical, 8)
+          }
+          .buttonStyle(.bordered)
+          .tint(.red)
+          .accessibilityIdentifier("offer-delete-button")
+          .accessibilityLabel("Delete offer")
+          .accessibilityHint("Permanently removes this offer")
+        }
+        .padding(.horizontal)
+      }
+    }
+  }
+
+  // MARK: - Alerts
+
+  private func alertForType(_ alert: OfferAlertType) -> Alert {
+    switch alert {
+    case .error(let message):
+      Alert(
+        title: Text("Error"),
+        message: Text(message),
+        dismissButton: .default(Text("OK"))
+      )
+    case .deleteConfirmation:
+      Alert(
+        title: Text("Delete Offer?"),
+        message: Text("This will permanently delete this offer. This action cannot be undone."),
+        primaryButton: .destructive(Text("Delete")) {
+          Task {
+            await viewModel.deleteOffer {
+              dismiss()
+            }
+          }
+        },
+        secondaryButton: .cancel()
+      )
+    case .deleteError(let message):
+      Alert(
+        title: Text("Delete Failed"),
+        message: Text(message),
+        dismissButton: .default(Text("OK"))
+      )
+    }
+  }
+}
+
+#Preview {
+  NavigationStack {
+    OfferDetailView(offerId: "preview-offer-1")
+  }
+}

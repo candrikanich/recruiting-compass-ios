@@ -26,6 +26,21 @@ final class OffersServiceImpl: OffersManaging, Sendable {
     return offers
   }
 
+  func fetchOffer(id: String) async throws -> Offer {
+    logger.info("Fetching offer: \(id)")
+
+    let offer: Offer = try await supabaseManager.client
+      .from("offers")
+      .select()
+      .eq("id", value: id)
+      .single()
+      .execute()
+      .value
+
+    logger.info("Fetched offer: \(offer.id)")
+    return offer
+  }
+
   func fetchSchools(familyUnitId: String) async throws -> [School] {
     logger.info("Fetching schools for family: \(familyUnitId)")
 
@@ -40,6 +55,21 @@ final class OffersServiceImpl: OffersManaging, Sendable {
     return schools
   }
 
+  func fetchSchool(id: String) async throws -> School {
+    logger.info("Fetching school: \(id)")
+
+    let school: School = try await supabaseManager.client
+      .from("schools")
+      .select()
+      .eq("id", value: id)
+      .single()
+      .execute()
+      .value
+
+    logger.info("Fetched school: \(school.name)")
+    return school
+  }
+
   func createOffer(_ request: OfferCreateRequest) async throws -> Offer {
     logger.info("Creating offer")
 
@@ -52,6 +82,22 @@ final class OffersServiceImpl: OffersManaging, Sendable {
       .value
 
     logger.info("Created offer: \(result.id)")
+    return result
+  }
+
+  func updateOffer(id: String, data: OfferUpdateRequest) async throws -> Offer {
+    logger.info("Updating offer: \(id)")
+
+    let result: Offer = try await supabaseManager.client
+      .from("offers")
+      .update(data)
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Updated offer: \(result.id)")
     return result
   }
 
