@@ -115,7 +115,7 @@ final class LoginViewModel {
     ("network", "Network error. Please check your connection and try again.")
   ]
 
-  private func mapError(_ error: Error) -> String {
+  func mapError(_ error: Error) -> String {
     if let authError = error as? AuthError {
       return authError.errorDescription ?? "An error occurred"
     }

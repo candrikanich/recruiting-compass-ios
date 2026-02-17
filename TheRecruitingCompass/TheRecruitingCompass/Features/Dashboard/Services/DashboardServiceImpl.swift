@@ -131,7 +131,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
         .from("events")
         .select()
         .eq("user_id", value: userId)
-        .order("event_date", ascending: true)
+        .order("start_date", ascending: true)
 
       if let limit = limit {
         query = query.limit(limit)

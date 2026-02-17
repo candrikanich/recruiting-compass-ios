@@ -6,7 +6,7 @@ struct UpcomingEventsWidget: View {
   @State private var isShowingAll = false
 
   private var sortedEvents: [Event] {
-    events.sorted { $0.eventDate < $1.eventDate }
+    events.sorted { $0.startDate < $1.startDate }
   }
 
   private var visibleEvents: [Event] {
@@ -66,8 +66,16 @@ struct EventRow: View {
   let event: Event
 
   private var eventDateFormatted: String {
-    guard let date = ISO8601DateFormatter().date(from: event.eventDate) else {
-      return event.eventDate
+    guard let date = ISO8601DateFormatter().date(from: event.startDate) else {
+      let dateOnly = DateFormatter()
+      dateOnly.dateFormat = "yyyy-MM-dd"
+      if let d = dateOnly.date(from: event.startDate) {
+        let display = DateFormatter()
+        display.dateStyle = .medium
+        display.timeStyle = .none
+        return display.string(from: d)
+      }
+      return event.startDate
     }
     let formatter = DateFormatter()
     formatter.dateStyle = .medium
@@ -76,8 +84,8 @@ struct EventRow: View {
   }
 
   private var eventTypeIcon: String {
-    switch event.eventType {
-    case "visit": return "building.2"
+    switch event.type {
+    case "visit", "official_visit", "unofficial_visit": return "building.2"
     case "camp": return "figure.run"
     case "showcase": return "star.circle"
     case "game": return "sportscourt"
@@ -94,7 +102,7 @@ struct EventRow: View {
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
-        Text(event.title)
+        Text(event.name)
           .font(.subheadline)
           .fontWeight(.semibold)
 
@@ -116,7 +124,7 @@ struct EventRow: View {
     .background(Color(.secondarySystemBackground))
     .cornerRadius(8)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(event.eventType): \(event.title)")
+    .accessibilityLabel("\(event.type): \(event.name)")
     .accessibilityValue(eventDateFormatted)
   }
 }
@@ -124,27 +132,55 @@ struct EventRow: View {
 #Preview {
   UpcomingEventsWidget(
     events: [
-      Event(
+      FullEvent(
         id: "1",
-        title: "Campus Visit - State University",
-        description: "Official campus tour",
-        eventDate: "2026-02-15T10:00:00Z",
-        eventType: "visit",
-        location: "State University, City",
+        name: "Campus Visit - State University",
+        type: "official_visit",
         schoolId: "school-1",
+        location: "State University, City",
+        address: nil,
+        city: nil,
+        state: nil,
+        startDate: "2026-02-15",
+        startTime: "10:00",
+        endDate: nil,
+        endTime: nil,
+        checkinTime: nil,
+        url: nil,
+        description: "Official campus tour",
+        eventSource: nil,
+        cost: nil,
+        registered: false,
+        attended: false,
+        performanceNotes: nil,
         userId: "user-1",
-        createdAt: "2026-02-01T12:00:00Z"
+        createdAt: "2026-02-01T12:00:00Z",
+        updatedAt: "2026-02-01T12:00:00Z"
       ),
-      Event(
+      FullEvent(
         id: "2",
-        title: "Summer Basketball Camp",
-        description: "Elite skills camp",
-        eventDate: "2026-06-20T09:00:00Z",
-        eventType: "camp",
-        location: "Tech College",
+        name: "Summer Basketball Camp",
+        type: "camp",
         schoolId: "school-2",
+        location: "Tech College",
+        address: nil,
+        city: nil,
+        state: nil,
+        startDate: "2026-06-20",
+        startTime: "09:00",
+        endDate: nil,
+        endTime: nil,
+        checkinTime: nil,
+        url: nil,
+        description: "Elite skills camp",
+        eventSource: nil,
+        cost: nil,
+        registered: false,
+        attended: false,
+        performanceNotes: nil,
         userId: "user-1",
-        createdAt: "2026-02-01T12:00:00Z"
+        createdAt: "2026-02-01T12:00:00Z",
+        updatedAt: "2026-02-01T12:00:00Z"
       )
     ]
   )
