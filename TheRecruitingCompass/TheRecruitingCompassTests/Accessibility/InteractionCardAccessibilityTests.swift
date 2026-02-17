@@ -178,7 +178,7 @@ final class InteractionCardAccessibilityTests: XCTestCase {
     // Verify accessibility hint exists in hierarchy
     // Note: SwiftUI may nest hints deeply, so we verify any hint exists
     // The actual hint "Tap to view details" is set in InteractionCard.swift line 109
-    let hints = findAccessibilityHints(in: view)
+    _ = findAccessibilityHints(in: view)
 
     // InteractionCard should have an accessibility hint
     // Even if we can't find it in unit tests, verify the component is configured
@@ -435,8 +435,8 @@ final class InteractionCardAccessibilityTests: XCTestCase {
     var elements: [NSObject] = []
 
     // Check if view itself is an accessibility element
-    if view.isAccessibilityElement, let element = view as? NSObject {
-      elements.append(element)
+    if view.isAccessibilityElement {
+      elements.append(view)
     }
 
     // Check accessibility elements if available

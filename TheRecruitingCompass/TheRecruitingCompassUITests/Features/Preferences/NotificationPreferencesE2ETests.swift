@@ -339,7 +339,7 @@ final class NotificationPreferencesE2ETests: XCTestCase {
     add(app.takeScreenshot(name: "25-reset-complete"))
 
     // Then: Follow-up reminders should be ON (default is true)
-    let followUpValue = screen.followUpRemindersToggle.value as? String
+    _ = screen.followUpRemindersToggle.value as? String
 
     // Note: Defaults may vary, just verify reset action completes
     XCTAssertFalse(

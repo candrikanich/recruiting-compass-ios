@@ -141,7 +141,7 @@ final class ActivityFeedScreenObject {
   func widgetActivityRows() -> [XCUIElement] {
     // Widget items are within the dashboard scroll view
     // They use .accessibilityElement(children: .combine) with .accessibilityLabel(activity.description)
-    var rows: [XCUIElement] = []
+    let rows: [XCUIElement] = []
     let elements = app.otherElements.allElementsBoundByIndex
     for element in elements {
       // ActivityRow has accessibility label = activity.description and value = timestamp

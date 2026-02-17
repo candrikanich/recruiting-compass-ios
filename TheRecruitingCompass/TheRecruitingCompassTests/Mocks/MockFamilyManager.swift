@@ -173,7 +173,14 @@ final class MockFamilyManager: ObservableObject {
   @Published var selectedAthleteId: String?
   @Published var familyUnit: FamilyUnit?
 
-  var familyUnitId: String?
+  var familyUnitId: String? {
+    // First try family_members table (works for all users)
+    if let familyUnitId = currentMember?.familyUnitId {
+      return familyUnitId
+    }
+    // Fallback to family_units table (for players who might not be in family_members yet)
+    return familyUnit?.id
+  }
 
   var isParentViewingAthlete: Bool {
     guard let current = currentMember else { return false }

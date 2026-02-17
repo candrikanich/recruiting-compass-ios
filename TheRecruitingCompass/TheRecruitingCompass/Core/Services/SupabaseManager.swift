@@ -62,7 +62,7 @@ struct AnyCodable: Codable {
 /// This is a standard pattern when wrapping non-Sendable SDK types that
 /// are documented as thread-safe by the vendor.
 final class SupabaseManager: @unchecked Sendable {
-  nonisolated(unsafe) static let shared = SupabaseManager()
+  static let shared = SupabaseManager()
 
   let client: SupabaseClient
 

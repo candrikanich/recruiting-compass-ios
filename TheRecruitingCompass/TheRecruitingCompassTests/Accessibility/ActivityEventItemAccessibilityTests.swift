@@ -332,8 +332,8 @@ final class ActivityEventItemAccessibilityTests: XCTestCase {
 
   private func findAccessibilityElements(in view: UIView) -> [NSObject] {
     var elements: [NSObject] = []
-    if view.isAccessibilityElement, let element = view as? NSObject {
-      elements.append(element)
+    if view.isAccessibilityElement {
+      elements.append(view)
     }
     if let accessibilityElements = view.accessibilityElements as? [NSObject] {
       elements.append(contentsOf: accessibilityElements)

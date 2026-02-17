@@ -105,7 +105,7 @@ actor CollegeScorecardService: CollegeScorecardManaging {
 
 // MARK: - API Response Models
 
-private struct CollegeScorecardAPIResponse: Codable, @unchecked Sendable {
+@preconcurrency private struct CollegeScorecardAPIResponse: Codable, @unchecked Sendable {
   let metadata: Metadata
   let results: [CollegeDataResult]
 
@@ -124,7 +124,7 @@ private struct CollegeScorecardAPIResponse: Codable, @unchecked Sendable {
 
 // MARK: - Autocomplete API Response (Phase 2)
 
-private struct AutocompleteAPIResponse: Codable, @unchecked Sendable {
+@preconcurrency private struct AutocompleteAPIResponse: Codable, @unchecked Sendable {
   let metadata: Metadata
   let results: [AutocompleteResult]
 

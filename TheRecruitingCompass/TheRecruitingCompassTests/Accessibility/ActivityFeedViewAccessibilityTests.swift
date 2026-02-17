@@ -37,7 +37,7 @@ final class ActivityFeedViewAccessibilityTests: XCTestCase {
 
     // In initial state, search field may not be visible (requires loaded activities)
     // This test verifies the identifier is set when the view renders with content
-    let identifiers = findAccessibilityIdentifiers(in: hostView)
+    _ = findAccessibilityIdentifiers(in: hostView)
 
     // Search field is only rendered when activities exist and list content is shown
     // We verify the identifier pattern exists in our source code review
@@ -146,8 +146,8 @@ final class ActivityFeedViewAccessibilityTests: XCTestCase {
 
   private func findAccessibilityElements(in view: UIView) -> [NSObject] {
     var elements: [NSObject] = []
-    if view.isAccessibilityElement, let element = view as? NSObject {
-      elements.append(element)
+    if view.isAccessibilityElement {
+      elements.append(view)
     }
     if let accessibilityElements = view.accessibilityElements as? [NSObject] {
       elements.append(contentsOf: accessibilityElements)

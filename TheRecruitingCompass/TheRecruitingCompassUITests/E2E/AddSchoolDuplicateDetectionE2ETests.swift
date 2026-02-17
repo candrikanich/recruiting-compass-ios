@@ -212,7 +212,7 @@ final class AddSchoolDuplicateDetectionE2ETests: XCTestCase {
     screen.toggleAutocomplete(enabled: false)
 
     // Use a timestamped name to avoid actual duplicates
-    let timestamp = Int(Date().timeIntervalSince1970)
+    _ = Int(Date().timeIntervalSince1970)
     screen.fillSchoolName("Test School 1") // If this exists, we'll get dialog
 
     screen.fillLocation("Test City")
