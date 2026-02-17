@@ -108,7 +108,7 @@ struct RecentActivityWidget: View {
     // Subscribe to realtime updates
     guard let userId = viewModel.userId else { return }
 
-    let service = ActivityRealtimeService()
+    let service = ActivityRealtimeService(supabaseManager: .shared)
     realtimeService = service
 
     do {

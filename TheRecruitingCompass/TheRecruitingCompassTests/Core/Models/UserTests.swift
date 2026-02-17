@@ -1,6 +1,7 @@
 import XCTest
 @testable import TheRecruitingCompass
 
+@MainActor
 final class UserTests: XCTestCase {
   func testUserDecodingFromSupabaseResponse() throws {
     let json = """

@@ -1,6 +1,7 @@
 import XCTest
 @testable import TheRecruitingCompass
 
+@MainActor
 final class AnalyticsServiceTests: XCTestCase {
 
   // MARK: - Service Initialization

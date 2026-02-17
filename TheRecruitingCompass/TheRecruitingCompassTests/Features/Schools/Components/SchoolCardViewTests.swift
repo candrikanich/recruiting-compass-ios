@@ -141,6 +141,7 @@ final class SchoolCardViewTests: XCTestCase {
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNotNil(mirror)
+    _ = callbackCalled
   }
 
   // MARK: - Content Tests
@@ -200,6 +201,7 @@ final class SchoolCardViewTests: XCTestCase {
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNotNil(mirror)
+    _ = callbackCalled
   }
 
   // MARK: - Test Helpers

@@ -413,7 +413,7 @@ final class AddSchoolViewModelTests: XCTestCase {
 
     // When
     let submitTask = Task {
-      await viewModel.submitSchool()
+      _ = await viewModel.submitSchool()
     }
 
     // Then: Check loading state (might already be done, so check call was made)

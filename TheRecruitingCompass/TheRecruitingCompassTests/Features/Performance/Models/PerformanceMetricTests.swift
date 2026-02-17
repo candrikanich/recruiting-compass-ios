@@ -1,6 +1,7 @@
 import XCTest
 @testable import TheRecruitingCompass
 
+@MainActor
 final class PerformanceMetricTests: XCTestCase {
 
   // MARK: - Initialization Tests

@@ -228,7 +228,7 @@ final class CoachCardViewTests: XCTestCase {
 
   func testCoachCard_deleteCallbackIsExecutable() {
     var deleteCallCount = 0
-    let coach = makeCoach()
+    _ = makeCoach()
     let onDelete = { deleteCallCount += 1 }
 
     onDelete()

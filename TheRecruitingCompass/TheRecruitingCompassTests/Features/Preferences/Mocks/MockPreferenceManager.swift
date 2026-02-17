@@ -1,7 +1,7 @@
 import Foundation
 @testable import TheRecruitingCompass
 
-final class MockPreferenceManager: PreferenceManaging {
+final class MockPreferenceManager: PreferenceManaging, @unchecked Sendable {
   var fetchPreferencesResult: Result<Any?, Error> = .success(nil)
   var savePreferencesResult: Result<Any, Error>?
   var deletePreferencesCalled = false

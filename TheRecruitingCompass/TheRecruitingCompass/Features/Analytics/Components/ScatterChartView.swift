@@ -31,6 +31,7 @@ struct ScatterChartView: View {
         Text(title)
           .font(.headline)
           .foregroundStyle(Color.darkSlate)
+          .accessibilityAddTraits(.isHeader)
 
         Text(dataSet.label)
           .font(.subheadline)

@@ -28,7 +28,7 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
   private var documentsChannel: RealtimeChannelV2?
 
   init(
-    supabaseManager: SupabaseManager = .shared,
+    supabaseManager: SupabaseManager,
     activityService: (any ActivityFeedManaging)? = nil
   ) {
     self.supabaseManager = supabaseManager

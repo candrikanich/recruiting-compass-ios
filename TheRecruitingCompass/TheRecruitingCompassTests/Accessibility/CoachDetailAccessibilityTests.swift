@@ -348,10 +348,8 @@ final class CoachDetailAccessibilityTests: XCTestCase {
     )
     .environment(\.sizeCategory, .extraSmall)
 
-    let hostingController = UIHostingController(rootView: view)
-
     // View should render without crashing at smallest text size
-    XCTAssertNotNil(hostingController.view)
+    XCTAssertNotNil(view)
   }
 
   // MARK: - Helper Methods

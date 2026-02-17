@@ -13,6 +13,7 @@ struct FunnelChartView: View {
       Text(title)
         .font(.headline)
         .foregroundStyle(Color.darkSlate)
+        .accessibilityAddTraits(.isHeader)
 
       if stages.isEmpty {
         emptyState

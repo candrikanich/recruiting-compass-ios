@@ -77,7 +77,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
 
   func testCoachCardView_roleBadgeHasLabel() {
     let coach = makeCoach(position: "head")
-    let view = CoachCardView(
+    _ = CoachCardView(
       coach: coach,
       schoolName: "State University",
       onDelete: {}
@@ -301,28 +301,28 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
   // MARK: - CommunicationButton Accessibility Tests
 
   func testCommunicationButton_emailHasLabel() {
-    let view = CommunicationButton(type: .email("test@test.com"), value: "test@test.com")
+    _ = CommunicationButton(type: .email("test@test.com"), value: "test@test.com")
 
     // Should have "Email coach" label
     XCTAssertEqual(CommunicationType.email("").accessibilityLabel, "Email coach")
   }
 
   func testCommunicationButton_phoneHasLabel() {
-    let view = CommunicationButton(type: .phone("555-1234"), value: "555-1234")
+    _ = CommunicationButton(type: .phone("555-1234"), value: "555-1234")
 
     // Should have "Text coach" label
     XCTAssertEqual(CommunicationType.phone("").accessibilityLabel, "Text coach")
   }
 
   func testCommunicationButton_twitterHasLabel() {
-    let view = CommunicationButton(type: .twitter("@coach"), value: "@coach")
+    _ = CommunicationButton(type: .twitter("@coach"), value: "@coach")
 
     // Should have "View Twitter profile" label
     XCTAssertEqual(CommunicationType.twitter("").accessibilityLabel, "View Twitter profile")
   }
 
   func testCommunicationButton_instagramHasLabel() {
-    let view = CommunicationButton(type: .instagram("@coach"), value: "@coach")
+    _ = CommunicationButton(type: .instagram("@coach"), value: "@coach")
 
     // Should have "View Instagram profile" label
     XCTAssertEqual(CommunicationType.instagram("").accessibilityLabel, "View Instagram profile")
@@ -452,6 +452,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     // Empty state should show clear filters button
     // Button should have proper accessibility
     XCTAssertNotNil(emptyState)
+    _ = clearedFilters
   }
 
   // MARK: - Dynamic Type Tests

@@ -83,8 +83,9 @@ final class AnalyticsDashboardAccessibilityTests: XCTestCase {
 
   // MARK: - Date Range Toolbar Tests
 
-  func testDashboard_dateRangeToolbarIsAccessible() {
+  func testDashboard_dateRangeToolbarIsAccessible() async {
     let vm = makeViewModel()
+    await vm.loadAllData()
     let view = AnalyticsDashboardView(viewModel: vm)
     // DateRangeToolbar has:
     // - Container label "Date range filters"

@@ -2,6 +2,7 @@ import XCTest
 import SwiftUI
 @testable import TheRecruitingCompass
 
+@MainActor
 final class AnalyticsChartDataTests: XCTestCase {
 
   // MARK: - PieChartSegment Tests

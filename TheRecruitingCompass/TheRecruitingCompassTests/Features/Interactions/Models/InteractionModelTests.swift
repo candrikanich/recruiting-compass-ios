@@ -1,6 +1,7 @@
 import XCTest
 @testable import TheRecruitingCompass
 
+@MainActor
 final class InteractionModelTests: XCTestCase {
 
   // MARK: - Display Date Tests

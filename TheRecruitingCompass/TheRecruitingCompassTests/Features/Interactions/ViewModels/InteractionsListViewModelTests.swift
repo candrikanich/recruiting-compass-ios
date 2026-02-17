@@ -481,7 +481,7 @@ final class InteractionsListViewModelTests: XCTestCase {
     mockService.shouldSucceed = false
 
     // Prevent cascade from succeeding
-    let originalCascade = mockService.cascadeDeleteCallCount
+    _ = mockService.cascadeDeleteCallCount
     mockService.shouldSucceed = false
 
     // When

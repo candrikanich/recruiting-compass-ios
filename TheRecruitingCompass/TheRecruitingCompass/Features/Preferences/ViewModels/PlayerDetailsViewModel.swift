@@ -22,7 +22,7 @@ final class PlayerDetailsViewModel {
 
   private let preferenceService: PreferenceManaging
   private let userRole: UserRole
-  nonisolated(unsafe) private var saveTask: Task<Void, Never>?
+  @ObservationIgnored nonisolated(unsafe) private var saveTask: Task<Void, Never>?
 
   init(preferenceService: PreferenceManaging, userRole: UserRole) {
     self.preferenceService = preferenceService

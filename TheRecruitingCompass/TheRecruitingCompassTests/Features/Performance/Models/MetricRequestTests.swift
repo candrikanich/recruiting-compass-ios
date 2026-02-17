@@ -1,6 +1,7 @@
 import XCTest
 @testable import TheRecruitingCompass
 
+@MainActor
 final class MetricRequestTests: XCTestCase {
 
   // MARK: - MetricCreateRequest Tests

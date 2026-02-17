@@ -533,16 +533,51 @@ final class AnalyticsDashboardViewModelTests: XCTestCase {
     XCTAssertTrue(url?.lastPathComponent.hasSuffix(".csv") ?? false)
   }
 
-  func testExportFileURL_Excel_ReturnsNil() {
+  func testExportFileURL_Excel_ReturnsURL() async {
+    configureMockWithFullData()
+    await viewModel.loadAllData()
+
     let url = viewModel.exportFileURL(format: .excel)
 
-    XCTAssertNil(url)
+    XCTAssertNotNil(url)
+    XCTAssertTrue(url?.lastPathComponent.hasSuffix(".xlsx") ?? false)
   }
 
-  func testExportFileURL_PDF_ReturnsNil() {
+  func testExportFileURL_Excel_ContainsCSVContent() async {
+    configureMockWithFullData()
+    await viewModel.loadAllData()
+
+    let url = viewModel.exportFileURL(format: .excel)
+
+    XCTAssertNotNil(url)
+    if let url = url, let content = try? String(contentsOf: url, encoding: .utf8) {
+      XCTAssertTrue(content.contains("Analytics Dashboard Export"))
+      XCTAssertTrue(content.contains("Total Schools,24"))
+    }
+  }
+
+  func testExportFileURL_PDF_ReturnsURL() async {
+    configureMockWithFullData()
+    await viewModel.loadAllData()
+
     let url = viewModel.exportFileURL(format: .pdf)
 
-    XCTAssertNil(url)
+    XCTAssertNotNil(url)
+    XCTAssertTrue(url?.lastPathComponent.hasSuffix(".pdf") ?? false)
+  }
+
+  func testExportFileURL_PDF_ContainsValidPDFData() async {
+    configureMockWithFullData()
+    await viewModel.loadAllData()
+
+    let url = viewModel.exportFileURL(format: .pdf)
+
+    XCTAssertNotNil(url)
+    if let url = url, let data = try? Data(contentsOf: url) {
+      XCTAssertGreaterThan(data.count, 0)
+      let pdfHeader = String(data: data.prefix(5), encoding: .ascii)
+      XCTAssertEqual(pdfHeader, "%PDF-")
+    }
   }
 
   // MARK: - Error Recovery Tests

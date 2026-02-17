@@ -18,7 +18,7 @@ final class HomeLocationViewModel {
 
   private let preferenceService: PreferenceManaging
   private let geocoder: CLGeocoder
-  nonisolated(unsafe) private var saveTask: Task<Void, Never>?
+  @ObservationIgnored nonisolated(unsafe) private var saveTask: Task<Void, Never>?
 
   init(preferenceService: PreferenceManaging, geocoder: CLGeocoder = CLGeocoder()) {
     self.preferenceService = preferenceService

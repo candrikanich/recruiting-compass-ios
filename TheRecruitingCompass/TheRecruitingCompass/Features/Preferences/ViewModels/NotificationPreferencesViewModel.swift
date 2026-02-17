@@ -15,14 +15,8 @@ final class NotificationPreferencesViewModel {
   var hasUnsavedChanges = false
 
   private let preferenceService: PreferenceManaging
-  nonisolated(unsafe) private var saveTask: Task<Void, Never>?
-
   init(preferenceService: PreferenceManaging) {
     self.preferenceService = preferenceService
-  }
-
-  deinit {
-    saveTask?.cancel()
   }
 
   // MARK: - Load Preferences

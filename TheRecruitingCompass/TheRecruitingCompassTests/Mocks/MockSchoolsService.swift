@@ -128,7 +128,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     if shouldThrowError {
       throw errorToThrow
     }
-    guard var school = stubbedSchool else {
+    guard let school = stubbedSchool else {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
     // Update the school's status
@@ -155,7 +155,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     if shouldThrowError {
       throw errorToThrow
     }
-    guard var school = stubbedSchool else {
+    guard let school = stubbedSchool else {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
     stubbedSchool = school.with(notes: notes)
@@ -170,7 +170,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     if shouldThrowError {
       throw errorToThrow
     }
-    guard var school = stubbedSchool else {
+    guard let school = stubbedSchool else {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
     var privateNotes = school.privateNotes ?? [:]
@@ -189,7 +189,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     if shouldThrowError {
       throw errorToThrow
     }
-    guard var school = stubbedSchool else {
+    guard let school = stubbedSchool else {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
     var pros = school.pros
@@ -205,7 +205,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     if shouldThrowError {
       throw errorToThrow
     }
-    guard var school = stubbedSchool else {
+    guard let school = stubbedSchool else {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
     var pros = school.pros
@@ -223,7 +223,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     if shouldThrowError {
       throw errorToThrow
     }
-    guard var school = stubbedSchool else {
+    guard let school = stubbedSchool else {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
     var cons = school.cons
@@ -239,7 +239,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     if shouldThrowError {
       throw errorToThrow
     }
-    guard var school = stubbedSchool else {
+    guard let school = stubbedSchool else {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
     var cons = school.cons
@@ -257,7 +257,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     if shouldThrowError {
       throw errorToThrow
     }
-    guard var school = stubbedSchool else {
+    guard let school = stubbedSchool else {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
     // Update school with basic info
@@ -343,7 +343,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
       throw errorToThrow
     }
 
-    guard var school = stubbedSchool else {
+    guard let school = stubbedSchool else {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
 

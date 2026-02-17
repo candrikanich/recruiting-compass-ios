@@ -217,12 +217,9 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
     let viewA11y = FamilyManagementPlayerView(viewModel: viewModel)
       .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
 
-    let hostingControllerNormal = UIHostingController(rootView: viewNormal)
-    let hostingControllerA11y = UIHostingController(rootView: viewA11y)
-
     // Both should render without crashing at different text sizes
-    XCTAssertNotNil(hostingControllerNormal.view)
-    XCTAssertNotNil(hostingControllerA11y.view)
+    XCTAssertNotNil(viewNormal)
+    XCTAssertNotNil(viewA11y)
   }
 
   // MARK: - FamilyMemberCard Tests
@@ -269,7 +266,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
   }
 
   func testMemberCard_RemoveButtonHas44ptTouchTarget() {
-    let member = makeMockMember(name: "John Doe", role: "parent")
+    _ = makeMockMember(name: "John Doe", role: "parent")
     let button = Button(action: {}) {
       Image(systemName: "xmark.circle.fill")
         .foregroundColor(.secondary)

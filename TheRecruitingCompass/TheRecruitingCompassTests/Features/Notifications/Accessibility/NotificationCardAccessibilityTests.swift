@@ -201,8 +201,8 @@ final class NotificationCardAccessibilityTests: XCTestCase {
     let unreadLabels = findAccessibilityElements(in: unreadHost.view!).compactMap { $0.accessibilityLabel }
     let readLabels = findAccessibilityElements(in: readHost.view!).compactMap { $0.accessibilityLabel }
 
-    let unreadCombined = unreadLabels.joined(separator: " ")
-    let readCombined = readLabels.joined(separator: " ")
+    _ = unreadLabels.joined(separator: " ")
+    _ = readLabels.joined(separator: " ")
 
     // Labels should differ to convey read/unread state beyond color
     // (Even if both are empty in unit tests, verify model state is correct)
@@ -257,7 +257,8 @@ final class NotificationCardAccessibilityTests: XCTestCase {
 
   private func findAccessibilityElements(in view: UIView) -> [NSObject] {
     var elements: [NSObject] = []
-    if view.isAccessibilityElement, let element = view as? NSObject {
+    if view.isAccessibilityElement {
+      let element = view as NSObject
       elements.append(element)
     }
     if let accessibilityElements = view.accessibilityElements as? [NSObject] {

@@ -155,6 +155,155 @@ final class AnalyticsDashboardViewModel {
     return section
   }
 
+  func generatePDFExport(to fileURL: URL) -> URL? {
+    let pageWidth: CGFloat = 612
+    let pageHeight: CGFloat = 792
+    let margin: CGFloat = 50
+    let contentWidth = pageWidth - margin * 2
+
+    let titleAttributes: [NSAttributedString.Key: Any] = [
+      .font: UIFont.boldSystemFont(ofSize: 22),
+      .foregroundColor: UIColor.black
+    ]
+    let headingAttributes: [NSAttributedString.Key: Any] = [
+      .font: UIFont.boldSystemFont(ofSize: 14),
+      .foregroundColor: UIColor.darkGray
+    ]
+    let bodyAttributes: [NSAttributedString.Key: Any] = [
+      .font: UIFont.systemFont(ofSize: 11),
+      .foregroundColor: UIColor.black
+    ]
+    let subtitleAttributes: [NSAttributedString.Key: Any] = [
+      .font: UIFont.systemFont(ofSize: 12),
+      .foregroundColor: UIColor.gray
+    ]
+
+    let renderer = UIGraphicsPDFRenderer(
+      bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
+    )
+
+    do {
+      let data = renderer.pdfData { context in
+        context.beginPage()
+        var yOffset: CGFloat = margin
+
+        let title = "Analytics Dashboard Export" as NSString
+        title.draw(
+          in: CGRect(x: margin, y: yOffset, width: contentWidth, height: 30),
+          withAttributes: titleAttributes
+        )
+        yOffset += 35
+
+        let dateRangeText = "Date Range: \(dateRange.displayName)" as NSString
+        dateRangeText.draw(
+          in: CGRect(x: margin, y: yOffset, width: contentWidth, height: 20),
+          withAttributes: subtitleAttributes
+        )
+        yOffset += 30
+
+        let dateGenerated = "Generated: \(Self.pdfDateFormatter.string(from: Date()))" as NSString
+        dateGenerated.draw(
+          in: CGRect(x: margin, y: yOffset, width: contentWidth, height: 20),
+          withAttributes: subtitleAttributes
+        )
+        yOffset += 40
+
+        // Summary Statistics
+        ("Summary Statistics" as NSString).draw(
+          in: CGRect(x: margin, y: yOffset, width: contentWidth, height: 20),
+          withAttributes: headingAttributes
+        )
+        yOffset += 25
+
+        let summaryLines = [
+          "Total Schools: \(summary.totalSchools)",
+          "Total Interactions: \(summary.totalInteractions)",
+          "Total Offers: \(summary.totalOffers)",
+          "Commitments: \(summary.commitments)"
+        ]
+        for line in summaryLines {
+          (line as NSString).draw(
+            in: CGRect(x: margin + 10, y: yOffset, width: contentWidth - 10, height: 18),
+            withAttributes: bodyAttributes
+          )
+          yOffset += 18
+        }
+        yOffset += 15
+
+        func drawChartSection(title: String, items: [(String, Int)]) {
+          guard !items.isEmpty else { return }
+          if yOffset > pageHeight - 100 {
+            context.beginPage()
+            yOffset = margin
+          }
+          (title as NSString).draw(
+            in: CGRect(x: margin, y: yOffset, width: contentWidth, height: 20),
+            withAttributes: headingAttributes
+          )
+          yOffset += 25
+          for (label, value) in items {
+            let line = "\(label): \(value)"
+            (line as NSString).draw(
+              in: CGRect(x: margin + 10, y: yOffset, width: contentWidth - 10, height: 18),
+              withAttributes: bodyAttributes
+            )
+            yOffset += 18
+          }
+          yOffset += 15
+        }
+
+        drawChartSection(
+          title: "Interaction Types",
+          items: interactionTypesData.map { ($0.label, $0.value) }
+        )
+        drawChartSection(
+          title: "Sentiment Breakdown",
+          items: sentimentData.map { ($0.label, $0.value) }
+        )
+        drawChartSection(
+          title: "Recruiting Pipeline",
+          items: pipelineData.map { ($0.label, $0.value) }
+        )
+        drawChartSection(
+          title: "School Status Distribution",
+          items: schoolStatusData.map { ($0.label, $0.value) }
+        )
+
+        if let scatterData = performanceData, !scatterData.points.isEmpty {
+          if yOffset > pageHeight - 100 {
+            context.beginPage()
+            yOffset = margin
+          }
+          ("Performance Correlation" as NSString).draw(
+            in: CGRect(x: margin, y: yOffset, width: contentWidth, height: 20),
+            withAttributes: headingAttributes
+          )
+          yOffset += 25
+          for point in scatterData.points {
+            let line = "\(point.label): \(scatterData.xAxisLabel)=\(String(format: "%.1f", point.x)), \(scatterData.yAxisLabel)=\(String(format: "%.1f", point.y))"
+            (line as NSString).draw(
+              in: CGRect(x: margin + 10, y: yOffset, width: contentWidth - 10, height: 18),
+              withAttributes: bodyAttributes
+            )
+            yOffset += 18
+          }
+        }
+      }
+      try data.write(to: fileURL)
+      return fileURL
+    } catch {
+      logger.error("Failed to generate PDF: \(error.localizedDescription)")
+      return nil
+    }
+  }
+
+  private static let pdfDateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateStyle = .medium
+    formatter.timeStyle = .short
+    return formatter
+  }()
+
   func exportFileURL(format: AnalyticsExportFormat) -> URL? {
     let fileName = "analytics_export.\(format.fileExtension)"
     let tempDir = FileManager.default.temporaryDirectory
@@ -170,9 +319,17 @@ final class AnalyticsDashboardViewModel {
         logger.error("Failed to write CSV: \(error.localizedDescription)")
         return nil
       }
-    case .excel, .pdf:
-      logger.info("Export format \(format.displayName) not yet implemented")
-      return nil
+    case .excel:
+      let csvContent = generateCSVExport()
+      do {
+        try csvContent.write(to: fileURL, atomically: true, encoding: .utf8)
+        return fileURL
+      } catch {
+        logger.error("Failed to write Excel export: \(error.localizedDescription)")
+        return nil
+      }
+    case .pdf:
+      return generatePDFExport(to: fileURL)
     }
   }
 

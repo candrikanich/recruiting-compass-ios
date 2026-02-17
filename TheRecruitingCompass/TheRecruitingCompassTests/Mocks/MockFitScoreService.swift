@@ -1,7 +1,7 @@
 import Foundation
 @testable import TheRecruitingCompass
 
-final class MockFitScoreService: FitScoreManaging {
+final class MockFitScoreService: FitScoreManaging, @unchecked Sendable {
   var stubbedFitScore: FitScoreResult?
   var stubbedRecommendation: DivisionRecommendation?
   var shouldThrowError = false

@@ -129,7 +129,8 @@ final class NotificationEmptyStateAccessibilityTests: XCTestCase {
 
   private func findAccessibilityElements(in view: UIView) -> [NSObject] {
     var elements: [NSObject] = []
-    if view.isAccessibilityElement, let element = view as? NSObject {
+    if view.isAccessibilityElement {
+      let element = view as NSObject
       elements.append(element)
     }
     if let accessibilityElements = view.accessibilityElements as? [NSObject] {

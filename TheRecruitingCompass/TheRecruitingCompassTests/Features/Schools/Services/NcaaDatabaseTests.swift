@@ -9,6 +9,7 @@
 import XCTest
 @testable import TheRecruitingCompass
 
+@MainActor
 final class NcaaDatabaseTests: XCTestCase {
 
   var database: TestableNcaaDatabase!
@@ -501,7 +502,7 @@ final class NcaaDatabaseTests: XCTestCase {
 // MARK: - Testable NCAA Database
 
 /// Testable version of NcaaDatabase that allows injecting mock school data
-final class TestableNcaaDatabase: NcaaDatabaseManaging {
+final class TestableNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
 
   private let d1Schools: [NcaaSchoolInfo]
   private let d2Schools: [NcaaSchoolInfo]

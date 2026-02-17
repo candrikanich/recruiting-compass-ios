@@ -21,8 +21,8 @@ class EmailVerificationViewModel {
 
   // MARK: - Private State
 
-  nonisolated(unsafe) private var pollingTask: Task<Void, Never>?
-  nonisolated(unsafe) private var cooldownTask: Task<Void, Never>?
+  @ObservationIgnored nonisolated(unsafe) private var pollingTask: Task<Void, Never>?
+  @ObservationIgnored nonisolated(unsafe) private var cooldownTask: Task<Void, Never>?
   private(set) var currentInterval: TimeInterval
   private let initialInterval: TimeInterval
   private let maxInterval: TimeInterval

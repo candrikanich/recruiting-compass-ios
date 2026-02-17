@@ -13,6 +13,7 @@ struct PieChartView: View {
       Text(title)
         .font(.headline)
         .foregroundStyle(Color.darkSlate)
+        .accessibilityAddTraits(.isHeader)
 
       if segments.isEmpty {
         emptyState

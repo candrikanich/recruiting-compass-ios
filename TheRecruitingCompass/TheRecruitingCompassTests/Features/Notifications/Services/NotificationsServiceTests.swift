@@ -1,6 +1,7 @@
 import XCTest
 @testable import TheRecruitingCompass
 
+@MainActor
 final class NotificationsServiceTests: XCTestCase {
 
   // MARK: - Service Initialization

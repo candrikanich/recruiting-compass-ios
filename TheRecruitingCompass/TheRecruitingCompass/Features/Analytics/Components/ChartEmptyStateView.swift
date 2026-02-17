@@ -17,6 +17,7 @@ struct ChartEmptyStateView: View {
           .foregroundStyle(Color.secondaryText)
       }
       .padding(.vertical, 24)
+      .accessibilityElement(children: .combine)
       Spacer()
     }
   }

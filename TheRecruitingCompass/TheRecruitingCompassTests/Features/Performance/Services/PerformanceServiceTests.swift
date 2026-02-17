@@ -1,6 +1,7 @@
 import XCTest
 @testable import TheRecruitingCompass
 
+@MainActor
 final class PerformanceServiceTests: XCTestCase {
   var mockService: MockPerformanceService!
 

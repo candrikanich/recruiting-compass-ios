@@ -1,7 +1,7 @@
 import Foundation
 @testable import TheRecruitingCompass
 
-final class MockInteractionsService: InteractionsManaging {
+final class MockInteractionsService: InteractionsManaging, @unchecked Sendable {
   var shouldSucceed = true
   var simpleDeleteShouldFail = false
   var mockInteractions: [Interaction] = []

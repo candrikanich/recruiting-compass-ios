@@ -1,7 +1,7 @@
 import Foundation
 @testable import TheRecruitingCompass
 
-final class MockNotificationsService: NotificationsManaging {
+final class MockNotificationsService: NotificationsManaging, @unchecked Sendable {
   var shouldSucceed = true
   var mockNotifications: [AppNotification] = []
   var markAsReadCallCount = 0

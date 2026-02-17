@@ -9,6 +9,7 @@
 import XCTest
 @testable import TheRecruitingCompass
 
+@MainActor
 final class CollegeScorecardServiceTests: XCTestCase {
 
   var service: CollegeScorecardService!

@@ -265,7 +265,7 @@ final class MockGeocoder: CLGeocoder {
       return []
     }
 
-    let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+    _ = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
     let placemark = MKPlacemark(coordinate: coordinate)
 
     // Create a mock CLPlacemark with the location
