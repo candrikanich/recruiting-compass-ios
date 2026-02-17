@@ -84,8 +84,10 @@ final class PerformanceViewAccessibilityTests: XCTestCase {
     XCTAssertFalse(vm.metrics.isEmpty)
   }
 
-  func testPerformanceDashboardView_deleteConfirmationAccessible() {
+  func testPerformanceDashboardView_deleteConfirmationAccessible() async {
     let vm = makeViewModel(metrics: [makeMetric()])
+    // Pre-load data to avoid triggering .task in test
+    await vm.loadMetrics()
     let metric = vm.metrics[0]
     vm.confirmDelete(metric)
 

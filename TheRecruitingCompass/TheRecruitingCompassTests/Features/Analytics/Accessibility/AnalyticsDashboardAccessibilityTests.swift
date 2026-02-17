@@ -96,8 +96,10 @@ final class AnalyticsDashboardAccessibilityTests: XCTestCase {
 
   // MARK: - Custom Date Picker Tests
 
-  func testDashboard_customDatePickerFieldsHaveLabels() {
+  func testDashboard_customDatePickerFieldsHaveLabels() async {
     let vm = makeViewModel()
+    // Pre-load data to avoid triggering .task in test
+    await vm.loadAllData()
     let view = AnalyticsDashboardView(viewModel: vm)
     // Start date: .accessibilityLabel("Start date for custom range")
     // End date: .accessibilityLabel("End date for custom range")
