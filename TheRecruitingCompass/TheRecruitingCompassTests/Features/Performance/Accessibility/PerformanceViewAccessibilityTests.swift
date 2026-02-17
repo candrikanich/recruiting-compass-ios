@@ -49,8 +49,8 @@ final class PerformanceViewAccessibilityTests: XCTestCase {
       makeMetric(id: "2", metricType: .velocity, value: 92)
     ]
     let vm = makeViewModel(metrics: metrics)
+    XCTAssertEqual(vm.metrics.count, 2)
     let view = PerformanceDashboardView(viewModel: vm)
-
     // All section headers should have .isHeader trait via .accessibilityAddTraits
     // Sections: Performance Trends, Metric Trends, Latest Metrics, Metric History
     XCTAssertNotNil(view)
@@ -59,29 +59,27 @@ final class PerformanceViewAccessibilityTests: XCTestCase {
   func testPerformanceDashboardView_loadingStateAccessible() {
     let vm = makeViewModel()
     vm.isLoading = true
+    XCTAssertTrue(vm.isLoading, "Precondition: loading state set before view creation")
     let view = PerformanceDashboardView(viewModel: vm)
-
-    // Loading view should announce "Loading performance metrics"
+    // Loading view should announce "Loading performance metrics". Do not assert vm.isLoading
+    // after view creation—the view's .task may run and call loadMetrics(), which clears loading.
     XCTAssertNotNil(view)
-    XCTAssertTrue(vm.isLoading)
   }
 
   func testPerformanceDashboardView_emptyStateAccessible() {
     let vm = makeViewModel()
+    XCTAssertTrue(vm.metrics.isEmpty, "Precondition: empty metrics before view creation")
     let view = PerformanceDashboardView(viewModel: vm)
-
     // Empty state should provide "Log your first metric" button
-    XCTAssertTrue(vm.metrics.isEmpty)
     XCTAssertNotNil(view)
   }
 
   func testPerformanceDashboardView_toolbarButtonsAccessible() {
     let vm = makeViewModel(metrics: [makeMetric()])
+    XCTAssertFalse(vm.metrics.isEmpty, "Precondition: has metrics so toolbar shows Export + Log")
     let view = PerformanceDashboardView(viewModel: vm)
-
     // "Log new metric" and "Export metrics" buttons should have accessibility labels
     XCTAssertNotNil(view)
-    XCTAssertFalse(vm.metrics.isEmpty)
   }
 
   func testPerformanceDashboardView_deleteConfirmationAccessible() async {
