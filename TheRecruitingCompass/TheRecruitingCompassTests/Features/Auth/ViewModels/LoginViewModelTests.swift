@@ -424,42 +424,72 @@ final class LoginViewModelTests: XCTestCase {
     XCTAssertTrue(viewModelWithCache.rememberMe)
   }
 
-  // MARK: - Error Mapping Tests
+  // MARK: - Error Mapping Tests (via public login API so we don't depend on mapError visibility)
 
-  func testMapErrorHandlesAuthError() {
-    let authError = AuthError.invalidCredentials
-    let mappedError = sut.mapError(authError)
-    XCTAssertEqual(mappedError, "Invalid email or password")
+  func testMapErrorHandlesAuthError() async {
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+    mockAuthManager.shouldThrowLoginError = true
+    mockAuthManager.mockErrorToThrow = .invalidCredentials
+
+    await sut.login()
+
+    XCTAssertEqual(sut.errorMessage, "Invalid email or password")
   }
 
-  func testMapErrorHandlesUserNotFound() {
-    let authError = AuthError.userNotFound
-    let mappedError = sut.mapError(authError)
-    XCTAssertEqual(mappedError, "Email not found. Please sign up first.")
+  func testMapErrorHandlesUserNotFound() async {
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+    mockAuthManager.shouldThrowLoginError = true
+    mockAuthManager.mockErrorToThrow = .userNotFound
+
+    await sut.login()
+
+    XCTAssertEqual(sut.errorMessage, "Email not found. Please sign up first.")
   }
 
-  func testMapErrorHandlesEmailNotVerified() {
-    let authError = AuthError.emailNotVerified
-    let mappedError = sut.mapError(authError)
-    XCTAssertEqual(mappedError, "Please verify your email. Check your inbox for a verification link.")
+  func testMapErrorHandlesEmailNotVerified() async {
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+    mockAuthManager.shouldThrowLoginError = true
+    mockAuthManager.mockErrorToThrow = .emailNotVerified
+
+    await sut.login()
+
+    XCTAssertEqual(sut.errorMessage, "Please verify your email. Check your inbox for a verification link.")
   }
 
-  func testMapErrorHandlesTooManyAttempts() {
-    let authError = AuthError.tooManyAttempts(retryAfter: nil)
-    let mappedError = sut.mapError(authError)
-    XCTAssertEqual(mappedError, "Too many login attempts. Please try again later.")
+  func testMapErrorHandlesTooManyAttempts() async {
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+    mockAuthManager.shouldThrowLoginError = true
+    mockAuthManager.mockErrorToThrow = .tooManyAttempts(retryAfter: nil)
+
+    await sut.login()
+
+    XCTAssertEqual(sut.errorMessage, "Too many login attempts. Please try again later.")
   }
 
-  func testMapErrorHandlesNetworkError() {
-    let authError = AuthError.networkError("Connection failed")
-    let mappedError = sut.mapError(authError)
-    XCTAssertEqual(mappedError, "Connection failed")
+  func testMapErrorHandlesNetworkError() async {
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+    mockAuthManager.shouldThrowLoginError = true
+    mockAuthManager.mockErrorToThrow = .networkError("Connection failed")
+
+    await sut.login()
+
+    XCTAssertEqual(sut.errorMessage, "Connection failed")
   }
 
-  func testMapErrorHandlesServerError() {
-    let authError = AuthError.serverError("Internal error")
-    let mappedError = sut.mapError(authError)
-    XCTAssertEqual(mappedError, "Server error. Please try again later.")
+  func testMapErrorHandlesServerError() async {
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+    mockAuthManager.shouldThrowLoginError = true
+    mockAuthManager.mockErrorToThrow = .serverError("Internal error")
+
+    await sut.login()
+
+    XCTAssertEqual(sut.errorMessage, "Server error. Please try again later.")
   }
 
   // MARK: - Validation State Tests
