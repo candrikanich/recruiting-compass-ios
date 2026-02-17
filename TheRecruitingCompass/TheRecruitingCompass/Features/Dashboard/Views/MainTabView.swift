@@ -56,6 +56,14 @@ struct MainTabView: View {
       .accessibilityLabel("Offers")
 
       NavigationStack {
+        TasksListView()
+      }
+      .tabItem {
+        Label("Tasks", systemImage: "checklist")
+      }
+      .accessibilityLabel("Tasks")
+
+      NavigationStack {
         PerformanceDashboardView()
       }
       .tabItem {
