@@ -21,6 +21,7 @@ struct TasksListView: View {
           .font(.title2.weight(.semibold))
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.horizontal)
+        athleteSwitcherIfNeeded
         mainContent
       }
       .padding(.vertical, 16)
@@ -56,6 +57,21 @@ struct TasksListView: View {
         athleteName: familyManager.selectedAthlete?.user?.fullName ?? "Athlete",
         onDismiss: { familyManager.clearAthleteSelection() }
       )
+    }
+  }
+
+  @ViewBuilder
+  private var athleteSwitcherIfNeeded: some View {
+    if viewModel.isViewingAsParent, !familyManager.athletes.isEmpty {
+      AthleteSelector(
+        athletes: familyManager.athletes,
+        selectedAthleteId: familyManager.selectedAthleteId,
+        onSelect: { athleteId in
+          familyManager.selectAthlete(athleteId)
+          Task { await viewModel.loadTasks() }
+        }
+      )
+      .padding(.horizontal)
     }
   }
 

@@ -28,6 +28,11 @@ final class TasksListScreenObject {
     app.buttons.matching(NSPredicate(format: "label == 'Filter by urgency'")).firstMatch
   }
 
+  /// "Select Athlete" header shown when in parent mode (athlete switcher).
+  var selectAthleteHeader: XCUIElement {
+    app.staticTexts["Select Athlete"]
+  }
+
   func progressCard(containing completed: Int, total: Int) -> XCUIElement {
     app.otherElements.matching(NSPredicate(
       format: "label CONTAINS 'Completed \(completed) of \(total) tasks'"

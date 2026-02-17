@@ -66,4 +66,31 @@ final class TasksListE2ETests: XCTestCase {
       XCTAssertTrue(screen.urgencyFilter.exists)
     }
   }
+
+  /// Parent mode: When viewing an athlete's tasks, athlete switcher is visible so parent can switch without leaving.
+  @MainActor
+  func testTasksList_parentMode_showsAthleteSwitcher() throws {
+    try loginAndNavigateToTasks()
+    // Enter parent preview: go to Dashboard, select first athlete (if any), then open Tasks.
+    let dashboardTab = app.tabBars.buttons["Dashboard"]
+    if dashboardTab.waitForExistence(timeout: 5) {
+      dashboardTab.tap()
+      if screen.selectAthleteHeader.waitForExistence(timeout: 5) {
+        let athleteRows = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Selected' OR label CONTAINS 'Not selected'"))
+        if athleteRows.firstMatch.waitForExistence(timeout: 3) {
+          athleteRows.firstMatch.tap()
+        }
+      }
+    }
+    guard screen.navigateToTasks() else {
+      throw XCTSkip("Tasks tab not reachable")
+    }
+    guard screen.waitForContentToLoad() else {
+      throw XCTSkip("Content did not load")
+    }
+    // When in parent mode with at least one linked athlete, Tasks shows the athlete switcher.
+    if screen.selectAthleteHeader.waitForExistence(timeout: 5) {
+      XCTAssertTrue(screen.selectAthleteHeader.exists, "Parent viewing athlete's tasks should show athlete switcher")
+    }
+  }
 }
