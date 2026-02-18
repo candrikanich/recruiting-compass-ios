@@ -67,14 +67,14 @@ struct EventDetailView: View {
     } message: {
       Text("Are you sure you want to delete this event? This action cannot be undone.")
     }
-    .alert("Error", isPresented: Binding(
+    .alert("Error", isPresented: .init(
       get: { viewModel.error != nil && viewModel.event != nil },
       set: { if !$0 { viewModel.error = nil } }
-    )) {
+    ), presenting: viewModel.error) { _ in
       Button("Retry") { Task { await viewModel.loadAll() } }
       Button("OK", role: .cancel) { viewModel.error = nil }
-    } message: {
-      Text(viewModel.error ?? "")
+    } message: { error in
+      Text(error)
     }
     .onChange(of: viewModel.shouldDismiss) { _, shouldDismiss in
       if shouldDismiss { dismiss() }

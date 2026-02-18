@@ -17,51 +17,51 @@ final class SchoolDetailViewModel {
   var statusHistory: [SchoolStatusHistory] = []
   var isUpdatingStatus = false
 
-  // MARK: - Phase 2: Notes Editing
+  // MARK: - Notes
   var isEditingNotes = false
   var editedNotes = ""
   var isSavingNotes = false
 
-  // MARK: - Phase 2: Private Notes Editing
+  // MARK: - Private Notes
   var isEditingPrivateNotes = false
   var editedPrivateNotes = ""
   var isSavingPrivateNotes = false
 
-  // MARK: - Phase 2: Pros & Cons
+  // MARK: - Pros & Cons
   var newPro = ""
   var newCon = ""
   var isAddingPro = false
   var isAddingCon = false
 
-  // MARK: - Phase 2: Basic Info Editing
+  // MARK: - Basic Info
   var isEditingBasicInfo = false
   var editedBasicInfo = EditableBasicInfo()
   var isSavingBasicInfo = false
 
-  // MARK: - Phase 3: Fit Score
+  // MARK: - Fit Score
   var fitScore: FitScoreResult?
   var divisionRecommendation: DivisionRecommendation?
   var isLoadingFitScore = false
 
-  // MARK: - Phase 3: College Scorecard
+  // MARK: - College Scorecard
   var isLookingUpCollegeData = false
   var collegeDataError: String?
 
-  // MARK: - Phase 4: Coaches
+  // MARK: - Coaches
   var coaches: [Coach] = []
   var isLoadingCoaches = false
 
-  // MARK: - Phase 4: Coaching Philosophy
+  // MARK: - Coaching Philosophy
   var isEditingCoachingPhilosophy = false
   var editedCoachingPhilosophy = EditableCoachingPhilosophy()
   var isSavingCoachingPhilosophy = false
 
-  // MARK: - Phase 4: Delete
+  // MARK: - Delete
   var showDeleteConfirmation = false
   var isDeleting = false
   var deleteErrorMessage: String?
 
-  // MARK: - Phase 4: Priority Tier
+  // MARK: - Priority Tier
   var isUpdatingPriorityTier = false
 
   // Dependencies
@@ -73,22 +73,22 @@ final class SchoolDetailViewModel {
   private let collegeService: any CollegeScorecardManaging
   private let coachesService: any CoachesManaging
 
-  init(
+  nonisolated init(
     schoolId: String,
-    schoolsService: (any SchoolsManaging)? = nil,
-    authManager: (any AuthManaging)? = nil,
-    familyManager: FamilyManager? = nil,
-    fitScoreService: (any FitScoreManaging)? = nil,
-    collegeService: (any CollegeScorecardManaging)? = nil,
-    coachesService: (any CoachesManaging)? = nil
+    schoolsService: any SchoolsManaging = SchoolsServiceImpl(supabaseManager: .shared),
+    authManager: any AuthManaging = AuthManager.shared,
+    familyManager: FamilyManager = .shared,
+    fitScoreService: any FitScoreManaging = FitScoreService(),
+    collegeService: any CollegeScorecardManaging = CollegeScorecardService(),
+    coachesService: any CoachesManaging = CoachesServiceImpl(supabaseManager: .shared)
   ) {
     self.schoolId = schoolId
-    self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
-    self.authManager = authManager ?? AuthManager.shared
-    self.familyManager = familyManager ?? .shared
-    self.fitScoreService = fitScoreService ?? FitScoreService()
-    self.collegeService = collegeService ?? CollegeScorecardService()
-    self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
+    self.schoolsService = schoolsService
+    self.authManager = authManager
+    self.familyManager = familyManager
+    self.fitScoreService = fitScoreService
+    self.collegeService = collegeService
+    self.coachesService = coachesService
   }
 
   // MARK: - Helper Methods
@@ -119,13 +119,13 @@ final class SchoolDetailViewModel {
 
   // MARK: - Computed Properties
 
-  var currentUserId: String {
-    authManager.user?.id ?? ""
+  var currentUserId: String? {
+    authManager.user?.id
   }
 
   var privateNoteForCurrentUser: String {
-    guard !currentUserId.isEmpty else { return "" }
-    return school?.privateNote(for: currentUserId) ?? ""
+    guard let userId = currentUserId else { return "" }
+    return school?.privateNote(for: userId) ?? ""
   }
 
   var hasCoaches: Bool {
@@ -178,7 +178,7 @@ final class SchoolDetailViewModel {
   // MARK: - Status Update
 
   func updateStatus(to newStatus: SchoolStatus) async {
-    guard let school, !currentUserId.isEmpty else { return }
+    guard let school, let currentUserId else { return }
 
     let previousStatus = SchoolStatus(rawValue: school.status) ?? .interested
     guard newStatus != previousStatus else { return }
@@ -269,6 +269,10 @@ final class SchoolDetailViewModel {
       errorMessage = "No active family"
       return
     }
+    guard let userId = currentUserId else {
+      errorMessage = "You must be signed in"
+      return
+    }
 
     await withLoading(setting: \.isSavingPrivateNotes) {
       do {
@@ -276,7 +280,7 @@ final class SchoolDetailViewModel {
         let updated = try await schoolsService.updatePrivateNotes(
           id: schoolId,
           familyUnitId: familyId,
-          userId: currentUserId,
+          userId: userId,
           note: note
         )
         school = updated
@@ -389,7 +393,7 @@ final class SchoolDetailViewModel {
     }
   }
 
-  // MARK: - Phase 3: Fit Score
+  // MARK: - Fit Score
 
   func loadFitScore() async {
     isLoadingFitScore = true
@@ -411,7 +415,7 @@ final class SchoolDetailViewModel {
     }
   }
 
-  // MARK: - Phase 3: College Scorecard Lookup
+  // MARK: - College Scorecard Lookup
 
   func lookupCollegeData() async {
     guard let schoolName = school?.name else { return }
@@ -445,7 +449,7 @@ final class SchoolDetailViewModel {
     }
   }
 
-  // MARK: - Phase 4: Coaches
+  // MARK: - Coaches
 
   func loadCoaches() async {
     isLoadingCoaches = true
@@ -460,7 +464,7 @@ final class SchoolDetailViewModel {
     }
   }
 
-  // MARK: - Phase 4: Coaching Philosophy
+  // MARK: - Coaching Philosophy
 
   func startEditingCoachingPhilosophy() {
     guard let school else { return }
@@ -489,11 +493,10 @@ final class SchoolDetailViewModel {
     }
   }
 
-  // MARK: - Phase 4: Delete
+  // MARK: - Delete
 
   func confirmDelete() {
     showDeleteConfirmation = true
-    activeAlert = .deleteConfirmation
   }
 
   func deleteSchool(onSuccess: @escaping () -> Void) async {

@@ -1,10 +1,14 @@
 import SwiftUI
 
 struct EventsListView: View {
+  private enum Destination: Hashable {
+    case createEvent
+    case createdEventDetail(eventId: String)
+  }
+
+  @Environment(AuthManager.self) private var authManager
   @State private var viewModel = EventsListViewModel()
-  @State private var showCreateEvent = false
-  @State private var isShowingCreatedDetail = false
-  @State private var createdEventIdForDetail: String = ""
+  @State private var navigationDestination: Destination? = nil
   @State private var eventToDelete: FullEvent? = nil
 
   var body: some View {
@@ -20,9 +24,9 @@ struct EventsListView: View {
     .navigationTitle("Events")
     .searchable(text: $viewModel.searchText, prompt: "Search events...")
     .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
+      ToolbarItem(placement: .topBarTrailing) {
         Button {
-          showCreateEvent = true
+          navigationDestination = .createEvent
         } label: {
           Image(systemName: "plus")
             .frame(minWidth: 44, minHeight: 44)
@@ -32,11 +36,13 @@ struct EventsListView: View {
         .accessibilityHint("Opens form to create a new event")
       }
     }
-    .navigationDestination(isPresented: $showCreateEvent) {
-      createEventDestination
-    }
-    .navigationDestination(isPresented: $isShowingCreatedDetail) {
-      EventDetailView(eventId: createdEventIdForDetail)
+    .navigationDestination(item: $navigationDestination) { destination in
+      switch destination {
+      case .createEvent:
+        createEventDestination
+      case .createdEventDetail(let eventId):
+        EventDetailView(eventId: eventId)
+      }
     }
     .navigationDestination(for: String.self) { eventId in
       EventDetailView(eventId: eventId)
@@ -47,14 +53,14 @@ struct EventsListView: View {
     .refreshable {
       await viewModel.loadEvents()
     }
-    .alert("Error", isPresented: Binding(
+    .alert("Error", isPresented: .init(
       get: { viewModel.error != nil },
       set: { if !$0 { viewModel.error = nil } }
-    )) {
+    ), presenting: viewModel.error) { _ in
       Button("Retry") { Task { await viewModel.loadEvents() } }
       Button("OK", role: .cancel) { viewModel.error = nil }
-    } message: {
-      Text(viewModel.error ?? "")
+    } message: { error in
+      Text(error)
     }
     .confirmationDialog(
       "Delete \(eventToDelete?.name ?? "event")?",
@@ -66,7 +72,7 @@ struct EventsListView: View {
     ) {
       Button("Delete", role: .destructive) {
         if let event = eventToDelete {
-          UINotificationFeedbackGenerator().notificationOccurred(.warning)
+          HapticFeedbackManager.shared.warning()
           Task { await viewModel.deleteEvent(id: event.id) }
           eventToDelete = nil
         }
@@ -80,14 +86,17 @@ struct EventsListView: View {
   // MARK: - Create Event Destination
 
   private var createEventDestination: some View {
-    CreateEventViewWrapper(
-      onEventCreated: { eventId in
-        createdEventIdForDetail = eventId
-        showCreateEvent = false
-        isShowingCreatedDetail = true
-        Task { await viewModel.loadEvents() }
+    Group {
+      if let userId = authManager.user?.id {
+        CreateEventViewWrapper(
+          userId: userId,
+          onEventCreated: { eventId in
+            navigationDestination = .createdEventDetail(eventId: eventId)
+            Task { await viewModel.loadEvents() }
+          }
+        )
       }
-    )
+    }
   }
 
   // MARK: - Content
@@ -216,7 +225,7 @@ struct EventsListView: View {
     .accessibilityLabel(rowAccessibilityLabel(event))
     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
       Button(role: .destructive) {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        HapticFeedbackManager.shared.lightImpact()
         eventToDelete = event
       } label: {
         Label("Delete", systemImage: "trash")
@@ -239,7 +248,7 @@ struct EventsListView: View {
       Text("Create your first event to track camps, showcases, visits, and games.")
     } actions: {
       Button("Add Event") {
-        showCreateEvent = true
+        navigationDestination = .createEvent
       }
       .buttonStyle(.borderedProminent)
     }
@@ -359,23 +368,7 @@ private struct EventRowView: View {
   }
 
   private var formattedDate: String {
-    let components = event.startDate.split(separator: "-").compactMap { Int($0) }
-    guard components.count == 3 else { return event.startDate }
-    let date = DateComponents(
-      calendar: .current,
-      year: components[0],
-      month: components[1],
-      day: components[2]
-    ).date
-    let formatted = date?.formatted(.dateTime.month(.abbreviated).day().year()) ?? event.startDate
-    if let endDate = event.endDate, endDate != event.startDate {
-      let endComponents = endDate.split(separator: "-").compactMap { Int($0) }
-      if endComponents.count == 3,
-         let end = DateComponents(calendar: .current, year: endComponents[0], month: endComponents[1], day: endComponents[2]).date {
-        return "\(formatted) – \(end.formatted(.dateTime.month(.abbreviated).day()))"
-      }
-    }
-    return formatted
+    DateFormatting.isoDateRangeString(from: event.startDate, to: event.endDate)
   }
 
   private var locationLine: String? {
@@ -388,18 +381,16 @@ private struct EventRowView: View {
 
 // MARK: - CreateEventViewWrapper
 
-/// Wraps CreateEventView to inject dependencies from the environment
+/// Wraps CreateEventView with an already-resolved userId
 private struct CreateEventViewWrapper: View {
-  @Environment(AuthManager.self) private var authManager
+  let userId: String
   let onEventCreated: (String) -> Void
 
   var body: some View {
-    if let userId = authManager.user?.id {
-      CreateEventView(
-        eventsService: EventsServiceImpl(),
-        userId: userId,
-        onEventCreated: onEventCreated
-      )
-    }
+    CreateEventView(
+      eventsService: EventsServiceImpl(),
+      userId: userId,
+      onEventCreated: onEventCreated
+    )
   }
 }

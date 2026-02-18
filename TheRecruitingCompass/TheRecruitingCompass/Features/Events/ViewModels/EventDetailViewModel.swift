@@ -2,13 +2,6 @@ import Foundation
 import Observation
 import OSLog
 
-private let metricDateFormatter: DateFormatter = {
-  let formatter = DateFormatter()
-  formatter.locale = Locale(identifier: "en_US_POSIX")
-  formatter.dateFormat = "yyyy-MM-dd"
-  return formatter
-}()
-
 private let logger = Logger(
   subsystem: "com.chrisandrikanich.TheRecruitingCompass",
   category: "EventDetailViewModel"
@@ -74,6 +67,7 @@ final class EventDetailViewModel {
   private let eventsService: EventsManaging
   private let authManager: any AuthManaging
   private let haptics = HapticFeedbackManager.shared
+  private let exportService = MetricsExportService()
   let eventId: String
 
   // MARK: - Computed
@@ -84,9 +78,7 @@ final class EventDetailViewModel {
 
   var formattedDateRange: String {
     guard let event else { return "" }
-    let start = formatDate(event.startDate)
-    guard let endDate = event.endDate, endDate != event.startDate else { return start }
-    return "\(start) – \(formatDate(endDate))"
+    return DateFormatting.isoDateRangeString(from: event.startDate, to: event.endDate)
   }
 
   var formattedLocation: String? {
@@ -137,6 +129,18 @@ final class EventDetailViewModel {
     self.eventsService = eventsService
     self.authManager = authManager
     self.eventId = eventId
+  }
+
+  // MARK: - Loading Helper
+
+  @discardableResult
+  private func withLoading<T>(
+    setting flag: ReferenceWritableKeyPath<EventDetailViewModel, Bool>,
+    operation: () async throws -> T
+  ) async rethrows -> T {
+    self[keyPath: flag] = true
+    defer { self[keyPath: flag] = false }
+    return try await operation()
   }
 
   // MARK: - Load
@@ -209,27 +213,20 @@ final class EventDetailViewModel {
 
   func markAsAttended() async {
     guard event?.attended != true else { return }
-    isSaving = true
-    defer { isSaving = false }
-
-    do {
-      let request = EventUpdateRequest(
-        name: nil, type: nil, startDate: nil, endDate: nil,
-        startTime: nil, endTime: nil, checkinTime: nil, schoolId: nil,
-        location: nil, address: nil, city: nil, state: nil,
-        url: nil, description: nil, eventSource: nil, cost: nil,
-        registered: nil, attended: true, performanceNotes: nil, coachesPresent: nil
-      )
-      let updated = try await eventsService.updateEvent(id: eventId, request: request)
-      event = updated
-      haptics.success()
-      showSuccess("Marked as attended")
-      showQuickLogSheet = true
-      logger.info("Event marked as attended: \(self.eventId)")
-    } catch {
-      logger.error("Failed to mark attended: \(error.localizedDescription)")
-      self.error = "Failed to update event. Please try again."
-      haptics.error()
+    await withLoading(setting: \.isSaving) {
+      do {
+        let request = EventUpdateRequest(attended: true)
+        let updated = try await eventsService.updateEvent(id: eventId, request: request)
+        event = updated
+        haptics.success()
+        showSuccess("Marked as attended")
+        showQuickLogSheet = true
+        logger.info("Event marked as attended: \(self.eventId)")
+      } catch {
+        logger.error("Failed to mark attended: \(error.localizedDescription)")
+        self.error = "Failed to update event. Please try again."
+        haptics.error()
+      }
     }
   }
 
@@ -242,21 +239,20 @@ final class EventDetailViewModel {
   }
 
   func updateEvent() async {
-    isSaving = true
-    defer { isSaving = false }
-
-    do {
-      let request = editData.toUpdateRequest()
-      let updated = try await eventsService.updateEvent(id: eventId, request: request)
-      event = updated
-      showEditSheet = false
-      haptics.success()
-      showSuccess("Event updated")
-      logger.info("Event updated: \(self.eventId)")
-    } catch {
-      logger.error("Failed to update event: \(error.localizedDescription)")
-      self.error = "Failed to update event. Please try again."
-      haptics.error()
+    await withLoading(setting: \.isSaving) {
+      do {
+        let request = editData.toUpdateRequest()
+        let updated = try await eventsService.updateEvent(id: eventId, request: request)
+        event = updated
+        showEditSheet = false
+        haptics.success()
+        showSuccess("Event updated")
+        logger.info("Event updated: \(self.eventId)")
+      } catch {
+        logger.error("Failed to update event: \(error.localizedDescription)")
+        self.error = "Failed to update event. Please try again."
+        haptics.error()
+      }
     }
   }
 
@@ -268,18 +264,17 @@ final class EventDetailViewModel {
   }
 
   func deleteEvent() async {
-    isDeleting = true
-    defer { isDeleting = false }
-
-    do {
-      try await eventsService.deleteEvent(id: eventId)
-      haptics.success()
-      shouldDismiss = true
-      logger.info("Event deleted: \(self.eventId)")
-    } catch {
-      logger.error("Failed to delete event: \(error.localizedDescription)")
-      self.error = "Failed to delete event. Please try again."
-      haptics.error()
+    await withLoading(setting: \.isDeleting) {
+      do {
+        try await eventsService.deleteEvent(id: eventId)
+        haptics.success()
+        shouldDismiss = true
+        logger.info("Event deleted: \(self.eventId)")
+      } catch {
+        logger.error("Failed to delete event: \(error.localizedDescription)")
+        self.error = "Failed to delete event. Please try again."
+        haptics.error()
+      }
     }
   }
 
@@ -292,32 +287,29 @@ final class EventDetailViewModel {
 
   func logInteraction() async {
     guard let userId else { return }
-    isLoggingInteraction = true
-    defer { isLoggingInteraction = false }
-
-    do {
-      let request = CreateInteractionRequest(
-        userId: userId,
-        eventId: eventId,
-        coachId: interactionData.coachId,
-        type: interactionData.type.rawValue,
-        direction: interactionData.direction.rawValue,
-        sentiment: interactionData.sentiment.rawValue,
-        notes: interactionData.notes.isEmpty ? nil : interactionData.notes
-      )
-      try await eventsService.createInteraction(request)
-      showQuickLogSheet = false
-      haptics.success()
-      showSuccess("Interaction logged")
-      logger.info("Interaction logged for event: \(self.eventId)")
-    } catch {
-      logger.error("Failed to log interaction: \(error.localizedDescription)")
-      self.error = "Failed to log interaction. Please try again."
-      haptics.error()
+    await withLoading(setting: \.isLoggingInteraction) {
+      do {
+        let request = CreateInteractionRequest(
+          userId: userId,
+          eventId: eventId,
+          coachId: interactionData.coachId,
+          type: interactionData.type.rawValue,
+          direction: interactionData.direction.rawValue,
+          sentiment: interactionData.sentiment.rawValue,
+          notes: interactionData.notes.isEmpty ? nil : interactionData.notes
+        )
+        try await eventsService.createInteraction(request)
+        showQuickLogSheet = false
+        haptics.success()
+        showSuccess("Interaction logged")
+        logger.info("Interaction logged for event: \(self.eventId)")
+      } catch {
+        logger.error("Failed to log interaction: \(error.localizedDescription)")
+        self.error = "Failed to log interaction. Please try again."
+        haptics.error()
+      }
     }
   }
-
-  // MARK: - Metrics
 
   // MARK: - Coach Management
 
@@ -336,14 +328,7 @@ final class EventDetailViewModel {
     currentCoaches.append(selectedCoachId)
 
     do {
-      let request = EventUpdateRequest(
-        name: nil, type: nil, startDate: nil, endDate: nil,
-        startTime: nil, endTime: nil, checkinTime: nil, schoolId: nil,
-        location: nil, address: nil, city: nil, state: nil,
-        url: nil, description: nil, eventSource: nil, cost: nil,
-        registered: nil, attended: nil, performanceNotes: nil,
-        coachesPresent: currentCoaches
-      )
+      let request = EventUpdateRequest(coachesPresent: currentCoaches)
       let updated = try await eventsService.updateEvent(id: eventId, request: request)
       self.event = updated
       haptics.success()
@@ -360,27 +345,19 @@ final class EventDetailViewModel {
     guard let event else { return }
     let currentCoaches = (event.coachesPresent ?? []).filter { $0 != coachId }
 
-    isUpdatingCoaches = true
-    defer { isUpdatingCoaches = false }
-
-    do {
-      let request = EventUpdateRequest(
-        name: nil, type: nil, startDate: nil, endDate: nil,
-        startTime: nil, endTime: nil, checkinTime: nil, schoolId: nil,
-        location: nil, address: nil, city: nil, state: nil,
-        url: nil, description: nil, eventSource: nil, cost: nil,
-        registered: nil, attended: nil, performanceNotes: nil,
-        coachesPresent: currentCoaches
-      )
-      let updated = try await eventsService.updateEvent(id: eventId, request: request)
-      self.event = updated
-      haptics.success()
-      showSuccess("Coach removed")
-      logger.info("Coach removed from event: \(self.eventId)")
-    } catch {
-      logger.error("Failed to remove coach: \(error.localizedDescription)")
-      self.error = "Failed to remove coach. Please try again."
-      haptics.error()
+    await withLoading(setting: \.isUpdatingCoaches) {
+      do {
+        let request = EventUpdateRequest(coachesPresent: currentCoaches)
+        let updated = try await eventsService.updateEvent(id: eventId, request: request)
+        self.event = updated
+        haptics.success()
+        showSuccess("Coach removed")
+        logger.info("Coach removed from event: \(self.eventId)")
+      } catch {
+        logger.error("Failed to remove coach: \(error.localizedDescription)")
+        self.error = "Failed to remove coach. Please try again."
+        haptics.error()
+      }
     }
   }
 
@@ -398,31 +375,30 @@ final class EventDetailViewModel {
 
   func addMetric() async {
     guard let userId, let value = newMetricData.parsedValue else { return }
-    isSavingMetric = true
-    defer { isSavingMetric = false }
-
-    do {
-      let request = CreateMetricRequest(
-        userId: userId,
-        metricType: newMetricData.metricType.rawValue,
-        value: value,
-        unit: newMetricData.unit.isEmpty ? newMetricData.metricType.defaultUnit : newMetricData.unit,
-        recordedDate: metricDateFormatter.string(from: Date()),
-        eventId: eventId,
-        verified: false,
-        notes: newMetricData.notes.isEmpty ? nil : newMetricData.notes
-      )
-      let metric = try await eventsService.createMetric(request)
-      metrics.append(metric)
-      showMetricForm = false
-      newMetricData = NewMetricData()
-      haptics.success()
-      showSuccess("Metric recorded")
-      logger.info("Metric created: \(metric.id)")
-    } catch {
-      logger.error("Failed to save metric: \(error.localizedDescription)")
-      self.error = "Failed to save metric. Please try again."
-      haptics.error()
+    await withLoading(setting: \.isSavingMetric) {
+      do {
+        let request = CreateMetricRequest(
+          userId: userId,
+          metricType: newMetricData.metricType.rawValue,
+          value: value,
+          unit: newMetricData.unit.isEmpty ? newMetricData.metricType.defaultUnit : newMetricData.unit,
+          recordedDate: DateFormatting.isoExportFormatter.string(from: Date()),
+          eventId: eventId,
+          verified: false,
+          notes: newMetricData.notes.isEmpty ? nil : newMetricData.notes
+        )
+        let metric = try await eventsService.createMetric(request)
+        metrics.append(metric)
+        showMetricForm = false
+        newMetricData = NewMetricData()
+        haptics.success()
+        showSuccess("Metric recorded")
+        logger.info("Metric created: \(metric.id)")
+      } catch {
+        logger.error("Failed to save metric: \(error.localizedDescription)")
+        self.error = "Failed to save metric. Please try again."
+        haptics.error()
+      }
     }
   }
 
@@ -444,25 +420,8 @@ final class EventDetailViewModel {
 
   func prepareCSVExport() {
     guard let event, !metrics.isEmpty else { return }
-    let dateFormatter = DateFormatter()
-    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-    dateFormatter.dateFormat = "yyyy-MM-dd"
-    var rows: [String] = ["Metric Type,Value,Unit,Recorded Date,Verified,Notes"]
-    for m in metrics {
-      let notesEscaped = (m.notes ?? "").replacingOccurrences(of: "\"", with: "\"\"")
-      let notes = notesEscaped.isEmpty ? "" : "\"\(notesEscaped)\""
-      let dateStr = dateFormatter.string(from: m.recordedDate)
-      rows.append("\(m.displayName),\(m.value),\(m.unit),\(dateStr),\(m.verified),\(notes)")
-    }
-    let csv = rows.joined(separator: "\n")
-    let fileName = "event-metrics-\(event.name.filter { $0.isLetter || $0.isNumber }).csv"
-      .replacingOccurrences(of: " ", with: "-")
-    let tempDir = FileManager.default.temporaryDirectory
-    let fileURL = tempDir.appendingPathComponent(fileName)
     do {
-      try csv.write(to: fileURL, atomically: true, encoding: .utf8)
-      exportFileURL = fileURL
-      logger.info("CSV export prepared: \(fileName)")
+      exportFileURL = try exportService.prepareCSV(metrics: metrics, eventName: event.name)
     } catch {
       logger.error("Failed to write CSV: \(error.localizedDescription)")
       self.error = "Failed to prepare export."
@@ -471,7 +430,7 @@ final class EventDetailViewModel {
 
   func clearExport() {
     if let url = exportFileURL {
-      try? FileManager.default.removeItem(at: url)
+      exportService.cleanup(url: url)
     }
     exportFileURL = nil
   }
@@ -494,18 +453,6 @@ final class EventDetailViewModel {
   }
 
   // MARK: - Private Helpers
-
-  private func formatDate(_ isoDate: String) -> String {
-    let components = isoDate.split(separator: "-").compactMap { Int($0) }
-    guard components.count == 3 else { return isoDate }
-    let date = DateComponents(
-      calendar: .current,
-      year: components[0],
-      month: components[1],
-      day: components[2]
-    ).date
-    return date?.formatted(.dateTime.month(.abbreviated).day().year()) ?? isoDate
-  }
 
   private func showSuccess(_ message: String) {
     successMessage = message
