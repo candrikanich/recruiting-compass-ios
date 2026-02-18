@@ -9,6 +9,13 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   var fetchEventsCallCount = 0
   var fetchSchoolsCallCount = 0
   var createSchoolCallCount = 0
+  var updateEventCallCount = 0
+  var deleteEventCallCount = 0
+  var fetchCoachesCallCount = 0
+  var fetchMetricsCallCount = 0
+  var createMetricCallCount = 0
+  var deleteMetricCallCount = 0
+  var createInteractionCallCount = 0
 
   // MARK: - Captured Arguments
 
@@ -19,6 +26,14 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   var lastCreateSchoolName: String?
   var lastCreateSchoolLocation: String?
   var lastCreateSchoolUserId: String?
+  var lastUpdateEventId: String?
+  var lastUpdateEventRequest: EventUpdateRequest?
+  var lastDeleteEventId: String?
+  var lastFetchCoachesSchoolId: String?
+  var lastFetchMetricsEventId: String?
+  var lastCreateMetricRequest: CreateMetricRequest?
+  var lastDeleteMetricId: String?
+  var lastCreateInteractionRequest: CreateInteractionRequest?
 
   // MARK: - Error Flags
 
@@ -27,6 +42,13 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   var shouldThrowFetchEvents = false
   var shouldThrowFetchSchools = false
   var shouldThrowCreateSchool = false
+  var shouldThrowUpdateEvent = false
+  var shouldThrowDeleteEvent = false
+  var shouldThrowFetchCoaches = false
+  var shouldThrowFetchMetrics = false
+  var shouldThrowCreateMetric = false
+  var shouldThrowDeleteMetric = false
+  var shouldThrowCreateInteraction = false
 
   var shouldThrowError: Bool {
     get { shouldThrowCreateEvent }
@@ -36,6 +58,13 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
       shouldThrowFetchEvents = newValue
       shouldThrowFetchSchools = newValue
       shouldThrowCreateSchool = newValue
+      shouldThrowUpdateEvent = newValue
+      shouldThrowDeleteEvent = newValue
+      shouldThrowFetchCoaches = newValue
+      shouldThrowFetchMetrics = newValue
+      shouldThrowCreateMetric = newValue
+      shouldThrowDeleteMetric = newValue
+      shouldThrowCreateInteraction = newValue
     }
   }
 
@@ -43,9 +72,13 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
 
   var stubbedCreatedEvent = FullEvent.mock()
   var stubbedFetchedEvent = FullEvent.mock()
+  var stubbedUpdatedEvent = FullEvent.mock()
   var stubbedEvents: [FullEvent] = []
   var stubbedSchools: [SchoolSummary] = []
   var stubbedCreatedSchool = SchoolSummary(id: "new-school-1", name: "New School", location: nil)
+  var stubbedCoaches: [Coach] = []
+  var stubbedMetrics: [PerformanceMetric] = []
+  var stubbedCreatedMetric: PerformanceMetric?
 
   // MARK: - EventsManaging
 
@@ -114,6 +147,95 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
       )
     }
     return stubbedCreatedSchool
+  }
+
+  func updateEvent(id: String, request: EventUpdateRequest) async throws -> FullEvent {
+    updateEventCallCount += 1
+    lastUpdateEventId = id
+    lastUpdateEventRequest = request
+    if shouldThrowUpdateEvent {
+      throw NSError(
+        domain: "MockEventsService",
+        code: 6,
+        userInfo: [NSLocalizedDescriptionKey: "Mock update event error"]
+      )
+    }
+    return stubbedUpdatedEvent
+  }
+
+  func deleteEvent(id: String) async throws {
+    deleteEventCallCount += 1
+    lastDeleteEventId = id
+    if shouldThrowDeleteEvent {
+      throw NSError(
+        domain: "MockEventsService",
+        code: 7,
+        userInfo: [NSLocalizedDescriptionKey: "Mock delete event error"]
+      )
+    }
+  }
+
+  func fetchCoaches(schoolId: String, userId: String) async throws -> [Coach] {
+    fetchCoachesCallCount += 1
+    lastFetchCoachesSchoolId = schoolId
+    if shouldThrowFetchCoaches {
+      throw NSError(
+        domain: "MockEventsService",
+        code: 8,
+        userInfo: [NSLocalizedDescriptionKey: "Mock fetch coaches error"]
+      )
+    }
+    return stubbedCoaches
+  }
+
+  func fetchMetrics(eventId: String, userId: String) async throws -> [PerformanceMetric] {
+    fetchMetricsCallCount += 1
+    lastFetchMetricsEventId = eventId
+    if shouldThrowFetchMetrics {
+      throw NSError(
+        domain: "MockEventsService",
+        code: 9,
+        userInfo: [NSLocalizedDescriptionKey: "Mock fetch metrics error"]
+      )
+    }
+    return stubbedMetrics
+  }
+
+  func createMetric(_ request: CreateMetricRequest) async throws -> PerformanceMetric {
+    createMetricCallCount += 1
+    lastCreateMetricRequest = request
+    if shouldThrowCreateMetric {
+      throw NSError(
+        domain: "MockEventsService",
+        code: 10,
+        userInfo: [NSLocalizedDescriptionKey: "Mock create metric error"]
+      )
+    }
+    return stubbedCreatedMetric!
+  }
+
+  func deleteMetric(id: String) async throws {
+    deleteMetricCallCount += 1
+    lastDeleteMetricId = id
+    if shouldThrowDeleteMetric {
+      throw NSError(
+        domain: "MockEventsService",
+        code: 12,
+        userInfo: [NSLocalizedDescriptionKey: "Mock delete metric error"]
+      )
+    }
+  }
+
+  func createInteraction(_ request: CreateInteractionRequest) async throws {
+    createInteractionCallCount += 1
+    lastCreateInteractionRequest = request
+    if shouldThrowCreateInteraction {
+      throw NSError(
+        domain: "MockEventsService",
+        code: 11,
+        userInfo: [NSLocalizedDescriptionKey: "Mock create interaction error"]
+      )
+    }
   }
 }
 

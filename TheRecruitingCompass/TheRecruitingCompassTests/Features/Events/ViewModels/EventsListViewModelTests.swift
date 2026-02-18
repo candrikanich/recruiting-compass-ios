@@ -227,7 +227,7 @@ final class EventsListViewModelTests: XCTestCase {
       startDate: startDate, startTime: nil, endDate: nil, endTime: nil, checkinTime: nil,
       url: nil, description: nil, eventSource: nil, cost: nil,
       registered: registered, attended: attended, performanceNotes: nil,
-      userId: "user-1", createdAt: "2026-02-17T00:00:00Z", updatedAt: "2026-02-17T00:00:00Z"
+      userId: "user-1", createdAt: "2026-02-17T00:00:00Z", coachesPresent: nil, updatedAt: "2026-02-17T00:00:00Z"
     )
   }
 }
