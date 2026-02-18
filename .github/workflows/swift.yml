@@ -1,13 +1,13 @@
-# This workflow will build an iOS Xcode project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
+# Build and test iOS app. Uses fixed destination (iPhone 16 on macos-latest).
+# See: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
 
 name: iOS CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   build-and-test:
@@ -16,60 +16,27 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Select Xcode version
-      uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: 'latest-stable'
-
-    - name: Show Xcode version
-      run: xcodebuild -version
-
-    - name: Resolve simulator destination
-      id: dest
-      run: |
-        echo "=== Available iPhone Simulators ==="
-        xcrun simctl list devices available | grep " iPhone " | grep -v "Clone" | head -5 || true
-        # Use first available iPhone by name + OS=latest (no UUID parsing)
-        LINE=$(xcrun simctl list devices available | grep " iPhone " | grep -v "Clone" | head -1)
-        if [ -z "$LINE" ]; then
-          LINE=$(xcrun simctl list devices | grep " iPhone " | grep -v "Clone" | head -1)
-        fi
-        if [ -z "$LINE" ]; then
-          echo "::error::No iPhone simulator found"
-          exit 1
-        fi
-        # "    iPhone 15 (UUID) (Shutdown)" -> "iPhone 15"
-        NAME=$(echo "$LINE" | sed 's/ *(.*//' | xargs)
-        if [ -z "$NAME" ]; then
-          echo "::error::Could not parse device name from: $LINE"
-          exit 1
-        fi
-        echo "destination=platform=iOS Simulator,name=$NAME,OS=latest" >> $GITHUB_OUTPUT
-        echo "Using destination: name=$NAME,OS=latest"
-
-    - name: Show available schemes
-      working-directory: TheRecruitingCompass
-      run: xcodebuild -list
+    - name: List simulators
+      run: xcrun simctl list devices available | grep -E "iPhone|iPad" | head -15 || true
 
     - name: Build
       working-directory: TheRecruitingCompass
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        DESTINATION: ${{ steps.dest.outputs.destination }}
       run: |
+        xcodebuild -version
         xcodebuild build \
           -scheme TheRecruitingCompass \
-          -destination "$DESTINATION"
+          -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'
 
     - name: Run tests
       working-directory: TheRecruitingCompass
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        DESTINATION: ${{ steps.dest.outputs.destination }}
       run: |
         xcodebuild test \
           -scheme TheRecruitingCompass \
-          -destination "$DESTINATION" \
+          -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
           -only-testing:TheRecruitingCompassTests
