@@ -317,8 +317,6 @@ final class EventDetailViewModel {
     }
   }
 
-  // MARK: - Metrics
-
   // MARK: - Coach Management
 
   func addCoach() async {

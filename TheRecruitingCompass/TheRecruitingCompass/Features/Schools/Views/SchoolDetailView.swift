@@ -254,7 +254,7 @@ struct SchoolDetailView: View {
             .padding()
             .background(Color.red.opacity(0.1))
             .foregroundStyle(.red)
-            .cornerRadius(12)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .accessibilityIdentifier("delete-school-button")
         .padding(.horizontal)

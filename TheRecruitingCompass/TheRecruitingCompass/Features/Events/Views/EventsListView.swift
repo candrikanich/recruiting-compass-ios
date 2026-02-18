@@ -20,7 +20,7 @@ struct EventsListView: View {
     .navigationTitle("Events")
     .searchable(text: $viewModel.searchText, prompt: "Search events...")
     .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
+      ToolbarItem(placement: .topBarTrailing) {
         Button {
           showCreateEvent = true
         } label: {
