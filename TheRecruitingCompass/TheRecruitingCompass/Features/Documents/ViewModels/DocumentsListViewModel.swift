@@ -52,6 +52,7 @@ final class DocumentsListViewModel {
   var isUploadFormPresented = false
   var isFilterSheetPresented = false
   var uploadProgress: Double = 0
+  var documentToView: Document?
 
   var searchQuery = ""
   var selectedTypes: Set<DocumentType> = []
@@ -358,5 +359,11 @@ final class DocumentsListViewModel {
   func schoolName(for schoolId: String?) -> String {
     guard let id = schoolId else { return "General" }
     return schools.first { $0.id == id }?.name ?? "Unknown"
+  }
+
+  // MARK: - Document Viewer
+
+  func presentViewer(for document: Document) {
+    documentToView = document
   }
 }

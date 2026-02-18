@@ -54,6 +54,15 @@ struct DocumentsListView: View {
     } message: {
       Text(viewModel.error ?? "")
     }
+    .fullScreenCover(item: Binding(
+      get: { viewModel.documentToView },
+      set: { viewModel.documentToView = $0 }
+    )) { document in
+      let docs = viewModel.sortedDocuments
+      let idx = docs.firstIndex(where: { $0.id == document.id }) ?? 0
+      let collection = DocumentCollection(documents: docs, currentIndex: idx)
+      DocumentViewerView(viewModel: DocumentViewerViewModel(document: document, collection: collection))
+    }
     .confirmationDialog("Delete Document", isPresented: Binding(
       get: { documentToDelete != nil },
       set: { if !$0 { documentToDelete = nil } }
@@ -152,15 +161,12 @@ struct DocumentsListView: View {
         GridItem(.flexible(), spacing: 12)
       ], spacing: 12) {
         ForEach(viewModel.sortedDocuments) { doc in
-          NavigationLink(value: doc.id) {
-            DocumentCardView(
-              document: doc,
-              schoolName: viewModel.schoolName(for: doc.schoolId),
-              onTap: {},
-              onDelete: { documentToDelete = doc }
-            )
-          }
-          .buttonStyle(.plain)
+          DocumentCardView(
+            document: doc,
+            schoolName: viewModel.schoolName(for: doc.schoolId),
+            onTap: { viewModel.presentViewer(for: doc) },
+            onDelete: { documentToDelete = doc }
+          )
           .contextMenu {
             Button(role: .destructive) {
               documentToDelete = doc
@@ -173,15 +179,12 @@ struct DocumentsListView: View {
     } else {
       LazyVStack(spacing: 0) {
         ForEach(viewModel.sortedDocuments) { doc in
-          NavigationLink(value: doc.id) {
-            DocumentListViewRow(
-              document: doc,
-              schoolName: viewModel.schoolName(for: doc.schoolId),
-              onTap: {},
-              onDelete: { documentToDelete = doc }
-            )
-          }
-          .buttonStyle(.plain)
+          DocumentListViewRow(
+            document: doc,
+            schoolName: viewModel.schoolName(for: doc.schoolId),
+            onTap: { viewModel.presentViewer(for: doc) },
+            onDelete: { documentToDelete = doc }
+          )
         }
       }
     }
