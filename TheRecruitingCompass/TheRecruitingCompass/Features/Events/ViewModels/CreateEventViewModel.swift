@@ -165,6 +165,14 @@ final class CreateEventViewModel {
       validationErrors["endDate"] = "End date must be after start date"
     }
 
+    if !formData.url.isEmpty {
+      let trimmed = formData.url.trimmingCharacters(in: .whitespaces)
+      let hasValidScheme = trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://")
+      if !hasValidScheme || URL(string: trimmed) == nil {
+        validationErrors["url"] = "Please enter a valid URL (e.g., https://...)"
+      }
+    }
+
     return validationErrors.isEmpty
   }
 

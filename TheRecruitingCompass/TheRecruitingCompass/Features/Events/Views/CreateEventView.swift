@@ -109,12 +109,14 @@ struct CreateEventView: View {
         }
       }
       .accessibilityLabel("Event type, required field")
+      .accessibilityIdentifier("event-type-picker")
       .overlay(alignment: .bottom) {
         validationMessage(for: "type")
       }
 
       TextField("Event Name *", text: $viewModel.formData.name)
         .accessibilityLabel("Event name, required field")
+        .accessibilityIdentifier("event-name-field")
         .overlay(alignment: .bottom) {
           validationMessage(for: "name")
         }
@@ -163,6 +165,7 @@ struct CreateEventView: View {
       Text("+ Add new school").tag("add_new")
     }
     .accessibilityLabel("School, optional")
+    .accessibilityIdentifier("school-picker")
   }
 
   // MARK: - Section 2: Date & Time
@@ -171,6 +174,7 @@ struct CreateEventView: View {
     Section {
       TextField("Start Date * (YYYY-MM-DD)", text: $viewModel.formData.startDate)
         .accessibilityLabel("Start date, required field")
+        .accessibilityIdentifier("start-date-picker")
         .onChange(of: viewModel.formData.startDate) {
           viewModel.onStartDateChanged()
         }
@@ -180,18 +184,21 @@ struct CreateEventView: View {
 
       TextField("Start Time (HH:MM)", text: $viewModel.formData.startTime)
         .accessibilityLabel("Start time, optional")
+        .accessibilityIdentifier("start-time-picker")
         .onChange(of: viewModel.formData.startTime) {
           viewModel.onStartTimeChanged()
         }
 
       TextField("End Date (YYYY-MM-DD)", text: $viewModel.formData.endDate)
         .accessibilityLabel("End date, optional")
+        .accessibilityIdentifier("end-date-picker")
         .overlay(alignment: .bottom) {
           validationMessage(for: "endDate")
         }
 
       TextField("End Time (HH:MM)", text: $viewModel.formData.endTime)
         .accessibilityLabel("End time, optional")
+        .accessibilityIdentifier("end-time-picker")
 
       TextField("Check-in Time (HH:MM)", text: $viewModel.formData.checkinTime)
         .accessibilityLabel("Check-in time, optional")
@@ -229,6 +236,7 @@ struct CreateEventView: View {
         }
         .accessibilityLabel("Get directions to event location")
         .accessibilityHint("Opens Apple Maps with the event address")
+        .accessibilityIdentifier("get-directions-button")
       }
     } header: {
       Text("Location")
@@ -295,6 +303,7 @@ struct CreateEventView: View {
       .disabled(viewModel.isSubmitDisabled)
       .accessibilityLabel(viewModel.isSaving ? "Creating event" : "Create event")
       .accessibilityHint(viewModel.isSubmitDisabled ? "Complete all required fields first" : "Saves the event")
+      .accessibilityIdentifier("create-event-button")
 
       Button {
         if hasUnsavedChanges {
@@ -309,6 +318,7 @@ struct CreateEventView: View {
       }
       .buttonStyle(.bordered)
       .accessibilityLabel("Cancel and return to events")
+      .accessibilityIdentifier("cancel-button")
     }
     .padding()
     .background(.bar)

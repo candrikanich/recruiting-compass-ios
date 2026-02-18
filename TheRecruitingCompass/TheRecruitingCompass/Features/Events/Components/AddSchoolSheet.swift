@@ -37,11 +37,13 @@ struct AddSchoolSheet: View {
           } else {
             Button("Save School", action: onSave)
               .disabled(isSaveDisabled)
+              .accessibilityIdentifier("save-school-button")
           }
         }
       }
     }
     .presentationDetents([.medium])
     .interactiveDismissDisabled(isSaving)
+    .accessibilityIdentifier("add-school-modal")
   }
 }

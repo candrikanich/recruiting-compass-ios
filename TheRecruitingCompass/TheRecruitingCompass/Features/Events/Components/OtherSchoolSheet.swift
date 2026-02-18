@@ -28,5 +28,6 @@ struct OtherSchoolSheet: View {
       }
     }
     .presentationDetents([.medium])
+    .accessibilityIdentifier("other-school-modal")
   }
 }

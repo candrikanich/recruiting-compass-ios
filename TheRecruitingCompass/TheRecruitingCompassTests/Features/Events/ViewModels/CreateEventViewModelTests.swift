@@ -122,6 +122,66 @@ final class CreateEventViewModelTests: XCTestCase {
     XCTAssertTrue(isValid)
   }
 
+  func testValidateForm_validURL_passes() {
+    sut.formData.type = .showcase
+    sut.formData.name = "Spring Showcase"
+    sut.formData.startDate = "2026-04-15"
+    sut.formData.url = "https://example.com/event"
+
+    let isValid = sut.validateForm()
+
+    XCTAssertTrue(isValid)
+    XCTAssertNil(sut.validationErrors["url"])
+  }
+
+  func testValidateForm_httpURL_passes() {
+    sut.formData.type = .showcase
+    sut.formData.name = "Spring Showcase"
+    sut.formData.startDate = "2026-04-15"
+    sut.formData.url = "http://example.com"
+
+    let isValid = sut.validateForm()
+
+    XCTAssertTrue(isValid)
+    XCTAssertNil(sut.validationErrors["url"])
+  }
+
+  func testValidateForm_invalidURL_noScheme_failsWithError() {
+    sut.formData.type = .showcase
+    sut.formData.name = "Spring Showcase"
+    sut.formData.startDate = "2026-04-15"
+    sut.formData.url = "not-a-url"
+
+    let isValid = sut.validateForm()
+
+    XCTAssertFalse(isValid)
+    XCTAssertNotNil(sut.validationErrors["url"])
+  }
+
+  func testValidateForm_invalidURL_missingScheme_failsWithError() {
+    sut.formData.type = .showcase
+    sut.formData.name = "Spring Showcase"
+    sut.formData.startDate = "2026-04-15"
+    sut.formData.url = "example.com"
+
+    let isValid = sut.validateForm()
+
+    XCTAssertFalse(isValid)
+    XCTAssertNotNil(sut.validationErrors["url"])
+  }
+
+  func testValidateForm_emptyURL_passes() {
+    sut.formData.type = .showcase
+    sut.formData.name = "Spring Showcase"
+    sut.formData.startDate = "2026-04-15"
+    sut.formData.url = ""
+
+    let isValid = sut.validateForm()
+
+    XCTAssertTrue(isValid)
+    XCTAssertNil(sut.validationErrors["url"])
+  }
+
   func testValidateForm_multipleErrors_reportsAll() {
     sut.formData.type = nil
     sut.formData.name = ""

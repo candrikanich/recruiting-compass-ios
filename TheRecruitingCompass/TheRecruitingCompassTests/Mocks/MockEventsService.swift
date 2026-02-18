@@ -5,12 +5,16 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   // MARK: - Call Counts
 
   var createEventCallCount = 0
+  var fetchEventCallCount = 0
+  var fetchEventsCallCount = 0
   var fetchSchoolsCallCount = 0
   var createSchoolCallCount = 0
 
   // MARK: - Captured Arguments
 
   var lastCreateEventRequest: CreateEventRequest?
+  var lastFetchEventId: String?
+  var lastFetchEventsUserId: String?
   var lastFetchSchoolsUserId: String?
   var lastCreateSchoolName: String?
   var lastCreateSchoolLocation: String?
@@ -19,6 +23,8 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   // MARK: - Error Flags
 
   var shouldThrowCreateEvent = false
+  var shouldThrowFetchEvent = false
+  var shouldThrowFetchEvents = false
   var shouldThrowFetchSchools = false
   var shouldThrowCreateSchool = false
 
@@ -26,6 +32,8 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
     get { shouldThrowCreateEvent }
     set {
       shouldThrowCreateEvent = newValue
+      shouldThrowFetchEvent = newValue
+      shouldThrowFetchEvents = newValue
       shouldThrowFetchSchools = newValue
       shouldThrowCreateSchool = newValue
     }
@@ -34,6 +42,8 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   // MARK: - Stubbed Results
 
   var stubbedCreatedEvent = FullEvent.mock()
+  var stubbedFetchedEvent = FullEvent.mock()
+  var stubbedEvents: [FullEvent] = []
   var stubbedSchools: [SchoolSummary] = []
   var stubbedCreatedSchool = SchoolSummary(id: "new-school-1", name: "New School", location: nil)
 
@@ -50,6 +60,32 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
       )
     }
     return stubbedCreatedEvent
+  }
+
+  func fetchEvent(id: String) async throws -> FullEvent {
+    fetchEventCallCount += 1
+    lastFetchEventId = id
+    if shouldThrowFetchEvent {
+      throw NSError(
+        domain: "MockEventsService",
+        code: 4,
+        userInfo: [NSLocalizedDescriptionKey: "Mock fetch event error"]
+      )
+    }
+    return stubbedFetchedEvent
+  }
+
+  func fetchEvents(userId: String) async throws -> [FullEvent] {
+    fetchEventsCallCount += 1
+    lastFetchEventsUserId = userId
+    if shouldThrowFetchEvents {
+      throw NSError(
+        domain: "MockEventsService",
+        code: 5,
+        userInfo: [NSLocalizedDescriptionKey: "Mock fetch events error"]
+      )
+    }
+    return stubbedEvents
   }
 
   func fetchSchools(userId: String) async throws -> [SchoolSummary] {

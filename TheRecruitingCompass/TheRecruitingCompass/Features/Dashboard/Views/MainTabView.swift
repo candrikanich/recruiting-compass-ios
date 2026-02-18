@@ -40,6 +40,14 @@ struct MainTabView: View {
       .accessibilityLabel("Schools")
 
       NavigationStack {
+        EventsListView()
+      }
+      .tabItem {
+        Label("Events", systemImage: "calendar")
+      }
+      .accessibilityLabel("Events")
+
+      NavigationStack {
         InteractionsListView()
       }
       .tabItem {
