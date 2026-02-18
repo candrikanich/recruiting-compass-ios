@@ -19,33 +19,10 @@ jobs:
     - name: Show Xcode version
       run: xcodebuild -version
 
-    - name: Select iOS simulator
-      id: simulator
+    - name: List simulators (diagnostics)
       run: |
-        echo "=== Available iPhone Simulators ==="
-        xcrun simctl list devices available | grep " iPhone " || true
-        LINE=$(xcrun simctl list devices available | grep " iPhone " | grep -v "Clone" | head -1)
-        if [ -z "$LINE" ]; then
-          echo "No 'available' iPhones; trying full list..."
-          LINE=$(xcrun simctl list devices | grep " iPhone " | grep -v "Clone" | head -1)
-        fi
-        if [ -z "$LINE" ]; then
-          echo "::error::No iPhone simulator found"
-          exit 1
-        fi
-        # Extract UUID (allow lowercase for CI; avoids matching "(Booted)" or "(Shutdown)")
-        DEVICE_ID=$(echo "$LINE" | grep -oE '[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}' | head -1)
-        if [ -z "$DEVICE_ID" ]; then
-          echo "::error::Could not parse simulator UUID from: $LINE"
-          exit 1
-        fi
-        echo "device_id=$DEVICE_ID" >> $GITHUB_OUTPUT
-        echo "Using device: $DEVICE_ID"
-
-    - name: Boot simulator
-      run: |
-        xcrun simctl boot "${{ steps.simulator.outputs.device_id }}" || true
-        sleep 5
+        echo "=== Available iOS Simulators ==="
+        xcrun simctl list devices available | grep -E "iPhone|iPad" | head -20 || true
 
     - name: Show available schemes
       working-directory: TheRecruitingCompass
@@ -56,20 +33,18 @@ jobs:
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        DESTINATION: platform=iOS Simulator,id=${{ steps.simulator.outputs.device_id }}
       run: |
         xcodebuild build \
           -scheme TheRecruitingCompass \
-          -destination "$DESTINATION"
+          -destination 'generic/platform=iOS Simulator'
 
     - name: Run tests
       working-directory: TheRecruitingCompass
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        DESTINATION: platform=iOS Simulator,id=${{ steps.simulator.outputs.device_id }}
       run: |
         xcodebuild test \
           -scheme TheRecruitingCompass \
-          -destination "$DESTINATION" \
+          -destination 'generic/platform=iOS Simulator' \
           -only-testing:TheRecruitingCompassTests
