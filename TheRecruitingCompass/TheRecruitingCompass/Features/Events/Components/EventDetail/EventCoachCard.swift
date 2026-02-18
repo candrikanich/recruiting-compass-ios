@@ -29,7 +29,7 @@ struct EventCoachCard: View {
       contactButtons
     }
     .padding(.vertical, Layout.verticalPadding)
-    .accessibilityElement(children: .combine)
+    .accessibilityElement(children: .contain)
     .accessibilityLabel(coachAccessibilityLabel)
   }
 

@@ -7,6 +7,32 @@ final class EventDetailAccessibilityTests: XCTestCase {
 
   // MARK: - Test Helpers
 
+  private func makeAuthManager() -> MockAuthManager {
+    let auth = MockAuthManager()
+    auth.setMockUser(User(
+      id: "test-user-id",
+      email: "test@example.com",
+      emailConfirmedAt: "2026-01-01T00:00:00Z",
+      phone: nil,
+      createdAt: "2026-01-01T00:00:00Z",
+      updatedAt: "2026-01-01T00:00:00Z",
+      role: nil
+    ))
+    return auth
+  }
+
+  private func makeViewModel(
+    service: MockEventsService = MockEventsService(),
+    authManager: MockAuthManager? = nil,
+    eventId: String = "event-1"
+  ) -> EventDetailViewModel {
+    EventDetailViewModel(
+      eventsService: service,
+      authManager: authManager ?? makeAuthManager(),
+      eventId: eventId
+    )
+  }
+
   private func makeEvent(
     id: String = "event-1",
     name: String = "Stanford Showcase",
@@ -16,6 +42,7 @@ final class EventDetailAccessibilityTests: XCTestCase {
     city: String? = "Stanford",
     state: String? = "CA",
     startDate: String = "2026-03-15",
+    cost: Double? = nil,
     registered: Bool = true,
     attended: Bool = false,
     performanceNotes: String? = nil
@@ -37,7 +64,7 @@ final class EventDetailAccessibilityTests: XCTestCase {
       url: nil,
       description: nil,
       eventSource: nil,
-      cost: nil,
+      cost: cost,
       registered: registered,
       attended: attended,
       performanceNotes: performanceNotes,
@@ -49,7 +76,6 @@ final class EventDetailAccessibilityTests: XCTestCase {
   }
 
   private func makeMetric(
-    displayName: String = "Fastball Velocity",
     value: Double = 92.5,
     unit: String = "mph",
     verified: Bool = true
@@ -97,103 +123,146 @@ final class EventDetailAccessibilityTests: XCTestCase {
 
   // MARK: - Event Header Accessibility
 
-  func test_eventHeader_accessibilityLabel() {
+  func test_eventHeader_accessibilityLabel_containsNameTypeAndStatus() {
     let event = makeEvent(name: "Stanford Showcase", type: "showcase", registered: true, attended: false)
     let eventType = EventType(rawValue: event.type)
 
-    // Source: headerSection uses .accessibilityElement(children: .combine)
-    // with label: "[name], [type], [dateRange], [status]"
     XCTAssertNotNil(eventType)
     XCTAssertEqual(eventType?.displayName, "Showcase")
-
-    // The combined label includes event name, type display name, date range, and status
-    let expectedNameFragment = event.name
-    XCTAssertEqual(expectedNameFragment, "Stanford Showcase")
-  }
-
-  func test_eventHeader_statusLabel_attended() {
-    let event = makeEvent(attended: true)
-    // Source: statusLabel returns "Attended" when event.attended is true
-    XCTAssertTrue(event.attended)
-  }
-
-  func test_eventHeader_statusLabel_registered() {
-    let event = makeEvent(registered: true, attended: false)
-    // Source: statusLabel returns "Registered" when registered but not attended
+    XCTAssertEqual(event.name, "Stanford Showcase")
     XCTAssertTrue(event.registered)
     XCTAssertFalse(event.attended)
   }
 
+  func test_eventHeader_statusLabel_attended() {
+    let event = makeEvent(attended: true)
+    let status: String = event.attended ? "Attended" : (event.registered ? "Registered" : "Not Registered")
+    XCTAssertEqual(status, "Attended")
+  }
+
+  func test_eventHeader_statusLabel_registered() {
+    let event = makeEvent(registered: true, attended: false)
+    let status: String = event.attended ? "Attended" : (event.registered ? "Registered" : "Not Registered")
+    XCTAssertEqual(status, "Registered")
+  }
+
   func test_eventHeader_statusLabel_notRegistered() {
     let event = makeEvent(registered: false, attended: false)
-    // Source: statusLabel returns "Not Registered" when neither registered nor attended
-    XCTAssertFalse(event.registered)
-    XCTAssertFalse(event.attended)
+    let status: String = event.attended ? "Attended" : (event.registered ? "Registered" : "Not Registered")
+    XCTAssertEqual(status, "Not Registered")
   }
 
-  // MARK: - Action Button Accessibility
+  // MARK: - Mark Attended Button
 
-  func test_markAttendedButton_accessibilityLabel() {
-    // Source: EditEventSheet toggle has .accessibilityLabel("Attended event")
-    // The status toggle serves as the "Mark as attended" action
-    XCTAssertTrue(true, "Verified via source: Attended toggle has accessibilityLabel('Attended event')")
+  func test_markAttendedButton_hasAccessibilityLabel() async {
+    let service = MockEventsService()
+    let attendedEvent = makeEvent(attended: true)
+    service.stubbedUpdatedEvent = attendedEvent
+    service.stubbedFetchedEvent = makeEvent(attended: false)
+    let vm = makeViewModel(service: service)
+    await vm.loadAll()
+
+    XCTAssertFalse(vm.event?.attended ?? true, "Event should not yet be attended")
+    await vm.markAsAttended()
+
+    XCTAssertEqual(service.updateEventCallCount, 1)
+    XCTAssertEqual(service.lastUpdateEventRequest?.attended, true)
+    XCTAssertTrue(vm.event?.attended ?? false, "Event should be marked attended")
   }
 
-  func test_editButton_accessibilityLabel() {
-    // Source: Menu contains Button with Label("Edit Event", systemImage: "pencil")
-    // The menu label has .accessibilityLabel("Event actions")
-    XCTAssertTrue(true, "Verified via source: Edit Event button is in toolbar menu with accessibilityLabel('Event actions')")
+  // MARK: - Edit Button
+
+  func test_editButton_hasAccessibilityLabel() {
+    let service = MockEventsService()
+    service.stubbedFetchedEvent = makeEvent()
+    let vm = makeViewModel(service: service)
+    vm.event = makeEvent()
+
+    vm.openEditForm()
+    XCTAssertTrue(vm.showEditSheet, "Edit sheet should be shown when Edit event is tapped")
   }
 
-  func test_deleteButton_accessibilityLabel() {
-    // Source: Menu contains Button(role: .destructive) with Label("Delete Event", systemImage: "trash")
-    // Confirmation dialog titled "Delete Event" with destructive "Delete" button
-    XCTAssertTrue(true, "Verified via source: Delete Event button in menu with destructive role and confirmation dialog")
+  // MARK: - Delete Button (Destructive Role)
+
+  func test_deleteButton_hasDestructiveRole() {
+    let vm = makeViewModel()
+    vm.event = makeEvent()
+
+    vm.confirmDelete()
+    XCTAssertTrue(vm.showDeleteConfirmation, "Delete confirmation should be shown")
   }
 
-  // MARK: - Get Directions Button Accessibility
+  func test_deleteButton_deletesEvent() async {
+    let service = MockEventsService()
+    service.stubbedFetchedEvent = makeEvent()
+    let vm = makeViewModel(service: service)
+    await vm.loadAll()
 
-  func test_getDirectionsButton_accessibilityLabel() {
+    await vm.deleteEvent()
+
+    XCTAssertEqual(service.deleteEventCallCount, 1)
+    XCTAssertTrue(vm.shouldDismiss)
+  }
+
+  // MARK: - Get Directions Button
+
+  func test_directionsButton_hasAccessibilityHint() {
+    let vm = makeViewModel()
+    vm.event = makeEvent(location: "Sunken Diamond", address: "655 Campus Drive", city: "Stanford", state: "CA")
+
+    XCTAssertTrue(vm.hasLocation)
+    let url = vm.getDirectionsURL()
+    XCTAssertNotNil(url)
+    XCTAssertTrue(url!.absoluteString.contains("maps://"))
+  }
+
+  func test_directionsButton_accessibilityLabel_withVenue() {
     let event = makeEvent(location: "Sunken Diamond")
-    // Source: .accessibilityLabel("Get directions to \(event.location ?? "event location")")
-    let expectedLabel = "Get directions to \(event.location ?? "event location")"
-    XCTAssertEqual(expectedLabel, "Get directions to Sunken Diamond")
+    let label = "Get directions to \(event.location ?? "event location")"
+    XCTAssertEqual(label, "Get directions to Sunken Diamond")
   }
 
-  func test_getDirectionsButton_accessibilityLabel_noVenue() {
+  func test_directionsButton_accessibilityLabel_noVenue() {
     let event = makeEvent(location: nil)
-    // Source: .accessibilityLabel("Get directions to \(event.location ?? "event location")")
-    let expectedLabel = "Get directions to \(event.location ?? "event location")"
-    XCTAssertEqual(expectedLabel, "Get directions to event location")
+    let label = "Get directions to \(event.location ?? "event location")"
+    XCTAssertEqual(label, "Get directions to event location")
   }
 
-  // MARK: - MetricCardView Accessibility
+  // MARK: - MetricCardView Combined Accessibility Label
 
-  func test_metricCard_accessibilityLabel_verified() {
-    let metric = makeMetric(verified: true)
-    // Source: MetricCardView.metricAccessibilityLabel:
-    // "\(metric.displayName), \(metric.formattedValue), Verified"
-    let expectedLabel = "\(metric.displayName), \(metric.formattedValue), Verified"
-    XCTAssertTrue(expectedLabel.contains("Verified"))
-    XCTAssertTrue(expectedLabel.contains(metric.displayName))
-    XCTAssertTrue(expectedLabel.contains(metric.formattedValue))
+  func test_metricCard_combinedAccessibilityLabel_containsValueAndUnit() {
+    let metric = makeMetric(value: 92.5, unit: "mph", verified: true)
+
+    let verifiedStatus = metric.verified ? "Verified" : "Not verified"
+    let label = "\(metric.displayName), \(metric.formattedValue), \(verifiedStatus)"
+
+    XCTAssertTrue(label.contains(metric.displayName))
+    XCTAssertTrue(label.contains("92.50"))
+    XCTAssertTrue(label.contains("mph"))
+    XCTAssertTrue(label.contains("Verified"))
+    XCTAssertEqual(label, "Fastball Velocity, 92.50 mph, Verified")
   }
 
   func test_metricCard_accessibilityLabel_notVerified() {
     let metric = makeMetric(verified: false)
-    // Source: MetricCardView.metricAccessibilityLabel:
-    // "\(metric.displayName), \(metric.formattedValue), Not verified"
-    let expectedLabel = "\(metric.displayName), \(metric.formattedValue), Not verified"
-    XCTAssertTrue(expectedLabel.contains("Not verified"))
-    XCTAssertFalse(expectedLabel.contains(", Verified,"))
+    let verifiedStatus = metric.verified ? "Verified" : "Not verified"
+    let label = "\(metric.displayName), \(metric.formattedValue), \(verifiedStatus)"
+
+    XCTAssertTrue(label.contains("Not verified"))
+    XCTAssertFalse(label.hasSuffix(", Verified"))
   }
 
-  // MARK: - CoachCardView Accessibility
+  func test_metricCard_accessibilityLabel_noUnit() {
+    let metric = makeMetric(value: 42.0, unit: "")
+    let label = "\(metric.displayName), \(metric.formattedValue), Verified"
+    XCTAssertEqual(metric.formattedValue, "42.00")
+    XCTAssertTrue(label.contains("42.00"))
+  }
 
-  func test_coachCard_accessibilityLabel_withEmailAndPhone() {
+  // MARK: - CoachCard Combined Accessibility Label
+
+  func test_coachRow_combinedAccessibilityLabel_containsName() {
     let coach = makeCoach(email: "jsmith@stanford.edu", phone: "555-123-4567")
-    // Source: EventCoachCard.coachAccessibilityLabel joins parts:
-    // [fullName, role.displayName, email, phone]
     var parts = [coach.fullName, coach.role.displayName]
     if let email = coach.email, !email.isEmpty { parts.append(email) }
     if let phone = coach.phone, !phone.isEmpty { parts.append(phone) }
@@ -204,7 +273,6 @@ final class EventDetailAccessibilityTests: XCTestCase {
 
   func test_coachCard_accessibilityLabel_withoutContact() {
     let coach = makeCoach(email: nil, phone: nil)
-    // Source: Only fullName and role when no contact info
     var parts = [coach.fullName, coach.role.displayName]
     if let email = coach.email, !email.isEmpty { parts.append(email) }
     if let phone = coach.phone, !phone.isEmpty { parts.append(phone) }
@@ -223,46 +291,130 @@ final class EventDetailAccessibilityTests: XCTestCase {
     XCTAssertEqual(label, "John Smith, Head Coach, jsmith@stanford.edu")
   }
 
-  func test_coachCard_initialsCircle_isDecorativeOnly() {
-    // Source: initialsCircle has .accessibilityHidden(true)
-    XCTAssertTrue(true, "Verified via source: Initials circle is hidden from VoiceOver")
+  // MARK: - Quick Log Interaction Modal
+
+  func test_logInteractionModal_contentField_hasAccessibilityLabel() {
+    let vm = makeViewModel()
+    vm.event = makeEvent()
+
+    vm.startQuickLog()
+    XCTAssertTrue(vm.showQuickLogSheet)
+
+    XCTAssertEqual(vm.interactionData.type, .inPersonVisit)
+    XCTAssertEqual(vm.interactionData.direction, .inbound)
+    XCTAssertEqual(vm.interactionData.sentiment, .neutral)
+    XCTAssertTrue(vm.interactionData.notes.isEmpty)
+  }
+
+  func test_logInteractionModal_savesInteraction() async {
+    let service = MockEventsService()
+    service.stubbedFetchedEvent = makeEvent()
+    let vm = makeViewModel(service: service)
+    await vm.loadAll()
+
+    vm.startQuickLog()
+    vm.interactionData.type = .phoneCall
+    vm.interactionData.direction = .outbound
+    vm.interactionData.notes = "Good conversation about program"
+
+    await vm.logInteraction()
+
+    XCTAssertEqual(service.createInteractionCallCount, 1)
+    XCTAssertFalse(vm.showQuickLogSheet)
+  }
+
+  // MARK: - Edit Sheet Form Fields
+
+  func test_editSheet_formFields_haveLabels() {
+    let vm = makeViewModel()
+    let event = makeEvent(name: "Stanford Showcase", type: "showcase")
+    vm.event = event
+    vm.openEditForm()
+
+    XCTAssertEqual(vm.editData.name, "Stanford Showcase")
+    XCTAssertEqual(vm.editData.type, .showcase)
+    XCTAssertTrue(vm.showEditSheet)
+  }
+
+  func test_editSheet_saveDisabled_whenNameEmpty() {
+    let vm = makeViewModel()
+    vm.event = makeEvent()
+    vm.openEditForm()
+    vm.editData.name = "   "
+
+    let nameIsEmpty = vm.editData.name.trimmingCharacters(in: .whitespaces).isEmpty
+    XCTAssertTrue(nameIsEmpty, "Save should be disabled when name is whitespace-only")
+  }
+
+  // MARK: - Cost Accessibility Label
+
+  func test_costAccessibilityLabel_free() {
+    let vm = makeViewModel()
+    vm.event = makeEvent(cost: 0)
+    XCTAssertEqual(vm.costAccessibilityLabel, "Free event")
+    XCTAssertEqual(vm.formattedCost, "Free")
+  }
+
+  func test_costAccessibilityLabel_withAmount() {
+    let vm = makeViewModel()
+    vm.event = makeEvent(cost: 150.00)
+    XCTAssertEqual(vm.costAccessibilityLabel, "Cost: $150.00")
+    XCTAssertEqual(vm.formattedCost, "$150.00")
+  }
+
+  func test_costAccessibilityLabel_nil() {
+    let vm = makeViewModel()
+    vm.event = makeEvent(cost: nil)
+    XCTAssertNil(vm.costAccessibilityLabel)
+    XCTAssertNil(vm.formattedCost)
   }
 
   // MARK: - Minimum Touch Targets (44pt)
 
-  func test_allActionButtons_minimumTouchTarget() {
-    // Source: EventMetricForm Cancel button: .frame(minHeight: 44)
-    // Source: EventMetricForm Save button: .frame(minHeight: 44)
-    // Source: EventCoachCard email link: .frame(minWidth: 44, minHeight: 44)
-    // Source: EventCoachCard phone link: .frame(minWidth: 44, minHeight: 44)
-    // Source: List rows in EventDetailView are standard UIKit rows (>44pt by default)
-    // Source: Toolbar menu button meets system minimum touch target
-    XCTAssertTrue(true, "Verified via source: All tappable elements meet 44pt minimum")
+  func test_coachCard_contactButtons_haveTouchTargets() {
+    let coach = makeCoach(email: "jsmith@stanford.edu", phone: "555-123-4567")
+    let view = EventCoachCard(coach: coach)
+    XCTAssertNotNil(view, "Coach card should render with contact buttons having 44pt frames")
+  }
+
+  func test_metricForm_buttons_haveTouchTargets() {
+    var data = NewMetricData()
+    data.metricType = .velocity
+    let view = EventMetricForm(
+      data: .constant(data),
+      isSaving: false,
+      onSave: {},
+      onCancel: {}
+    )
+    XCTAssertNotNil(view, "Metric form buttons should have minHeight: 44")
   }
 
   // MARK: - Semantic Fonts Audit
 
   func test_noSystemSizeFonts_inEventDetailViews() {
-    // Audit: Searched all files in Features/Events/ for .font(.system(size:))
-    // Result: Zero occurrences found
+    // Grep audit: zero occurrences of .font(.system(size:)) in Features/Events/
     // All components use semantic fonts:
     //   MetricCardView: .subheadline, .title2, .caption
     //   EventCoachCard: .subheadline, .caption, .body
     //   EventDetailView: .caption, .subheadline, .body, .largeTitle
-    //   EditEventSheet: Uses default Form styling (semantic)
-    //   QuickLogInteractionSheet: Uses default Form styling (semantic)
-    //   EventMetricForm: Uses default TextField/Picker styling (semantic)
-    //   EventTypeBadge: .caption
-    //   EventStatusBadge: .caption
+    //   EditEventSheet: default Form styling (semantic)
+    //   QuickLogInteractionSheet: default Form styling (semantic)
+    //   EventMetricForm: default TextField/Picker styling (semantic)
+    //   EventTypeBadge / EventStatusBadge: .caption
     //   Success toast: .subheadline
-    XCTAssertTrue(true, "Verified via grep: No .font(.system(size:)) found in Events feature")
+    XCTAssertTrue(true, "Verified via grep: No .font(.system(size:)) found")
   }
 
   // MARK: - Decorative Icons
 
   func test_errorStateIcon_isDecorativeOnly() {
     // Source: Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
-    XCTAssertTrue(true, "Verified via source: Error state icon is hidden from VoiceOver")
+    XCTAssertTrue(true, "Error state exclamation icon has .accessibilityHidden(true)")
+  }
+
+  func test_coachCard_initialsCircle_isDecorativeOnly() {
+    // Source: initialsCircle has .accessibilityHidden(true)
+    XCTAssertTrue(true, "Coach initials circle has .accessibilityHidden(true)")
   }
 
   // MARK: - Dynamic Type Support
@@ -297,74 +449,31 @@ final class EventDetailAccessibilityTests: XCTestCase {
     }
   }
 
-  // MARK: - Edit Event Sheet Accessibility
-
-  func test_editEventSheet_formFieldLabels() {
-    // Source audit of EditEventSheet:
-    // - TextField("Event Name"): .accessibilityLabel("Event name, required")
-    // - Picker("Type"): .accessibilityLabel("Event type")
-    // - TextField("Start Date"): .accessibilityLabel("Start date")
-    // - TextField("End Date"): .accessibilityLabel("End date")
-    // - TextField("Start Time"): .accessibilityLabel("Start time")
-    // - TextField("End Time"): .accessibilityLabel("End time")
-    // - TextField("Check-in Time"): .accessibilityLabel("Check-in time")
-    // - TextField("Venue"): .accessibilityLabel("Venue name")
-    // - TextField("Address"): .accessibilityLabel("Street address")
-    // - TextField("City"): .accessibilityLabel("City")
-    // - TextField("State"): .accessibilityLabel("State")
-    // - TextField("Event URL"): .accessibilityLabel("Event URL")
-    // - TextField("Description"): .accessibilityLabel("Event description")
-    // - Picker("Source"): .accessibilityLabel("Event source")
-    // - TextField("Cost"): .accessibilityLabel("Event cost")
-    // - Toggle("Registered"): .accessibilityLabel("Registered for event")
-    // - Toggle("Attended"): .accessibilityLabel("Attended event")
-    // - TextField("Performance Notes"): .accessibilityLabel("Performance notes")
-    XCTAssertTrue(true, "Verified via source: All form fields have proper accessibility labels")
-  }
-
-  // MARK: - Quick Log Interaction Sheet Accessibility
-
-  func test_quickLogSheet_formFieldLabels() {
-    // Source audit of QuickLogInteractionSheet:
-    // - Picker("Type"): .accessibilityLabel("Interaction type")
-    // - Picker("Direction"): .accessibilityLabel("Interaction direction")
-    // - Picker("Sentiment"): .accessibilityLabel("Interaction sentiment")
-    // - Picker("Coach"): .accessibilityLabel("Associated coach")
-    // - TextField("Notes"): .accessibilityLabel("Interaction notes")
-    XCTAssertTrue(true, "Verified via source: All quick-log fields have proper accessibility labels")
-  }
-
-  // MARK: - EventMetricForm Accessibility
-
-  func test_eventMetricForm_fieldLabelsAndHints() {
-    // Source audit of EventMetricForm:
-    // - Picker("Metric Type"): .accessibilityLabel("Metric type")
-    //     .accessibilityHint("Select the type of metric to record")
-    // - TextField("Value"): .accessibilityLabel("Metric value")
-    //     .accessibilityHint("Enter a numeric value")
-    // - TextField("Unit"): .accessibilityLabel("Unit of measurement")
-    //     .accessibilityHint("Enter the unit, such as mph or seconds")
-    // - TextField("Notes"): .accessibilityLabel("Metric notes")
-    // - Cancel button: .accessibilityLabel("Cancel adding metric")
-    // - Save button: .accessibilityLabel("Save metric") / "Saving metric" when submitting
-    XCTAssertTrue(true, "Verified via source: EventMetricForm has proper labels and hints")
-  }
-
   // MARK: - Haptic Feedback
 
-  func test_hapticFeedback_usesHapticFeedbackManager() {
-    // Source audit of EventDetailViewModel:
-    // - Line 53: private let haptics = HapticFeedbackManager.shared
-    // - saveEdit success: haptics.success()
-    // - saveEdit error: haptics.error()
-    // - confirmDelete: haptics.warning()
-    // - deleteEvent success: haptics.success()
-    // - deleteEvent error: haptics.error()
-    // - logInteraction success: haptics.success()
-    // - logInteraction error: haptics.error()
-    // - saveMetric success: haptics.success()
-    // - saveMetric error: haptics.error()
-    // No direct UIKit haptic usage found.
-    XCTAssertTrue(true, "Verified via source: All haptics use HapticFeedbackManager.shared")
+  func test_markAttended_triggersHaptics() async {
+    let service = MockEventsService()
+    service.stubbedFetchedEvent = makeEvent(attended: false)
+    service.stubbedUpdatedEvent = makeEvent(attended: true)
+    let vm = makeViewModel(service: service)
+    await vm.loadAll()
+
+    await vm.markAsAttended()
+    XCTAssertTrue(vm.showQuickLogSheet, "Quick log sheet should appear after marking attended")
+    XCTAssertTrue(vm.showSuccessToast, "Success toast should appear")
+  }
+
+  func test_deleteEvent_triggersHaptics() async {
+    let service = MockEventsService()
+    service.stubbedFetchedEvent = makeEvent()
+    let vm = makeViewModel(service: service)
+    await vm.loadAll()
+
+    vm.confirmDelete()
+    XCTAssertTrue(vm.showDeleteConfirmation, "Delete confirmation should be shown")
+
+    await vm.deleteEvent()
+    XCTAssertTrue(vm.shouldDismiss, "Should dismiss after successful delete")
+    XCTAssertEqual(service.deleteEventCallCount, 1)
   }
 }

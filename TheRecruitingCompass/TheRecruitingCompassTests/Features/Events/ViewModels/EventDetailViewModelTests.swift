@@ -722,6 +722,229 @@ final class EventDetailViewModelTests: XCTestCase {
     XCTAssertNil(sut.formattedCost)
   }
 
+  // MARK: - Mark as Attended (isSaving)
+
+  func testMarkAsAttended_clearsIsSavingAfterSuccess() async {
+    mockService.stubbedFetchedEvent = .mock(attended: false)
+    await sut.loadAll()
+    mockService.stubbedUpdatedEvent = .mock(attended: true)
+
+    await sut.markAsAttended()
+
+    XCTAssertFalse(sut.isSaving)
+  }
+
+  func testMarkAsAttended_clearsIsSavingAfterFailure() async {
+    mockService.stubbedFetchedEvent = .mock(attended: false)
+    await sut.loadAll()
+    mockService.shouldThrowUpdateEvent = true
+
+    await sut.markAsAttended()
+
+    XCTAssertFalse(sut.isSaving)
+  }
+
+  // MARK: - Update Event (service args)
+
+  func testUpdateEvent_callsServiceWithCorrectId() async {
+    mockService.stubbedFetchedEvent = .mock()
+    await sut.loadAll()
+    sut.openEditForm()
+    mockService.stubbedUpdatedEvent = .mock()
+
+    await sut.updateEvent()
+
+    XCTAssertEqual(mockService.lastUpdateEventId, "test-event-id")
+  }
+
+  func testUpdateEvent_doesNotCloseSheet_onFailure() async {
+    mockService.stubbedFetchedEvent = .mock()
+    await sut.loadAll()
+    sut.openEditForm()
+    XCTAssertTrue(sut.showEditSheet)
+    mockService.shouldThrowUpdateEvent = true
+
+    await sut.updateEvent()
+
+    XCTAssertTrue(sut.showEditSheet)
+  }
+
+  // MARK: - Delete Event (edge cases)
+
+  func testDeleteEvent_failure_doesNotSetShouldDismiss() async {
+    mockService.shouldThrowDeleteEvent = true
+
+    await sut.deleteEvent()
+
+    XCTAssertFalse(sut.shouldDismiss)
+    XCTAssertFalse(sut.isDeleting)
+  }
+
+  // MARK: - Add Coach (edge cases)
+
+  func testAddCoach_noSelectedCoachId_doesNotCallService() async {
+    mockService.stubbedFetchedEvent = .mock(schoolId: "school-1", coachesPresent: [])
+    await sut.loadAll()
+    sut.selectedCoachId = nil
+
+    await sut.addCoach()
+
+    XCTAssertEqual(mockService.updateEventCallCount, 0)
+  }
+
+  func testAddCoach_duplicateCoach_doesNotCallService() async {
+    mockService.stubbedFetchedEvent = .mock(schoolId: "school-1", coachesPresent: ["c1"])
+    mockService.stubbedCoaches = [makeTestCoach(id: "c1")]
+    await sut.loadAll()
+    sut.selectedCoachId = "c1"
+
+    await sut.addCoach()
+
+    XCTAssertEqual(mockService.updateEventCallCount, 0)
+  }
+
+  func testAddCoach_failure_setsError() async {
+    mockService.stubbedFetchedEvent = .mock(schoolId: "school-1", coachesPresent: [])
+    mockService.stubbedCoaches = [makeTestCoach(id: "c1")]
+    await sut.loadAll()
+    sut.selectedCoachId = "c1"
+    mockService.shouldThrowUpdateEvent = true
+
+    await sut.addCoach()
+
+    XCTAssertNotNil(sut.error)
+    XCTAssertTrue(sut.error!.contains("Failed to add coach"))
+    XCTAssertFalse(sut.isUpdatingCoaches)
+  }
+
+  func testAddCoach_clearsSelectedCoachIdAfterSuccess() async {
+    mockService.stubbedFetchedEvent = .mock(schoolId: "school-1", coachesPresent: [])
+    mockService.stubbedCoaches = [makeTestCoach(id: "c1")]
+    await sut.loadAll()
+    sut.selectedCoachId = "c1"
+    mockService.stubbedUpdatedEvent = .mock(schoolId: "school-1", coachesPresent: ["c1"])
+
+    await sut.addCoach()
+
+    XCTAssertNil(sut.selectedCoachId)
+    XCTAssertFalse(sut.showAddCoach)
+  }
+
+  // MARK: - Remove Coach (edge cases)
+
+  func testRemoveCoach_failure_setsError() async {
+    mockService.stubbedFetchedEvent = .mock(schoolId: "school-1", coachesPresent: ["c1"])
+    mockService.stubbedCoaches = [makeTestCoach(id: "c1")]
+    await sut.loadAll()
+    mockService.shouldThrowUpdateEvent = true
+
+    await sut.removeCoach(id: "c1")
+
+    XCTAssertNotNil(sut.error)
+    XCTAssertTrue(sut.error!.contains("Failed to remove coach"))
+    XCTAssertFalse(sut.isUpdatingCoaches)
+  }
+
+  func testRemoveCoach_noEvent_doesNotCallService() async {
+    await sut.removeCoach(id: "c1")
+
+    XCTAssertEqual(mockService.updateEventCallCount, 0)
+  }
+
+  // MARK: - Delete Metric (edge cases)
+
+  func testDeleteMetric_failure_setsError() async {
+    mockService.stubbedFetchedEvent = .mock()
+    mockService.stubbedMetrics = [makeTestMetric(id: "m1")]
+    await sut.loadAll()
+    mockService.shouldThrowDeleteMetric = true
+
+    await sut.deleteMetric(id: "m1")
+
+    XCTAssertNotNil(sut.error)
+    XCTAssertTrue(sut.error!.contains("Failed to delete metric"))
+    XCTAssertEqual(sut.metrics.count, 1, "Metric should not be removed on failure")
+  }
+
+  // MARK: - Clear Metric Form
+
+  func testClearMetricForm_resetsDataAndHidesForm() {
+    sut.newMetricData.valueText = "92.5"
+    sut.newMetricData.unit = "mph"
+    sut.showMetricForm = true
+
+    sut.clearMetricForm()
+
+    XCTAssertFalse(sut.showMetricForm)
+    XCTAssertTrue(sut.newMetricData.valueText.isEmpty)
+    XCTAssertTrue(sut.newMetricData.unit.isEmpty)
+  }
+
+  // MARK: - costAccessibilityLabel
+
+  func testCostAccessibilityLabel_withCost_returnsLabel() async {
+    mockService.stubbedFetchedEvent = FullEvent(
+      id: "e1", name: "Test", type: "showcase",
+      schoolId: nil, location: nil, address: nil, city: nil, state: nil,
+      startDate: "2026-04-15", startTime: nil, endDate: nil,
+      endTime: nil, checkinTime: nil,
+      url: nil, description: nil, eventSource: nil, cost: 75.0,
+      registered: false, attended: false, performanceNotes: nil,
+      userId: "u1", createdAt: "2026-02-17T00:00:00Z",
+      coachesPresent: nil, updatedAt: "2026-02-17T00:00:00Z"
+    )
+    await sut.loadAll()
+
+    XCTAssertEqual(sut.costAccessibilityLabel, "Cost: $75.00")
+  }
+
+  func testCostAccessibilityLabel_zeroCost_returnsFreeEvent() async {
+    mockService.stubbedFetchedEvent = FullEvent(
+      id: "e1", name: "Test", type: "showcase",
+      schoolId: nil, location: nil, address: nil, city: nil, state: nil,
+      startDate: "2026-04-15", startTime: nil, endDate: nil,
+      endTime: nil, checkinTime: nil,
+      url: nil, description: nil, eventSource: nil, cost: 0,
+      registered: false, attended: false, performanceNotes: nil,
+      userId: "u1", createdAt: "2026-02-17T00:00:00Z",
+      coachesPresent: nil, updatedAt: "2026-02-17T00:00:00Z"
+    )
+    await sut.loadAll()
+
+    XCTAssertEqual(sut.costAccessibilityLabel, "Free event")
+  }
+
+  func testCostAccessibilityLabel_noCost_returnsNil() async {
+    mockService.stubbedFetchedEvent = .mock()
+    await sut.loadAll()
+
+    XCTAssertNil(sut.costAccessibilityLabel)
+  }
+
+  // MARK: - Load Related Data (silent failures)
+
+  func testLoadAll_coachesFetchFails_doesNotSetError() async {
+    mockService.stubbedFetchedEvent = .mock(schoolId: "school-1")
+    mockService.shouldThrowFetchCoaches = true
+
+    await sut.loadAll()
+
+    XCTAssertNotNil(sut.event)
+    XCTAssertNil(sut.error, "Coaches fetch failure should be silent")
+    XCTAssertTrue(sut.schoolCoaches.isEmpty)
+  }
+
+  func testLoadAll_metricsFetchFails_doesNotSetError() async {
+    mockService.stubbedFetchedEvent = .mock()
+    mockService.shouldThrowFetchMetrics = true
+
+    await sut.loadAll()
+
+    XCTAssertNotNil(sut.event)
+    XCTAssertNil(sut.error, "Metrics fetch failure should be silent")
+    XCTAssertTrue(sut.metrics.isEmpty)
+  }
+
   // MARK: - Helpers
 
   private func makeTestCoach(id: String) -> Coach {
