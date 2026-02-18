@@ -3,6 +3,8 @@ import SwiftUI
 struct EventsListView: View {
   @State private var viewModel = EventsListViewModel()
   @State private var showCreateEvent = false
+  @State private var isShowingCreatedDetail = false
+  @State private var createdEventIdForDetail: String = ""
 
   var body: some View {
     Group {
@@ -32,6 +34,9 @@ struct EventsListView: View {
     .navigationDestination(isPresented: $showCreateEvent) {
       createEventDestination
     }
+    .navigationDestination(isPresented: $isShowingCreatedDetail) {
+      EventDetailView(eventId: createdEventIdForDetail)
+    }
     .navigationDestination(for: String.self) { eventId in
       EventDetailView(eventId: eventId)
     }
@@ -56,8 +61,10 @@ struct EventsListView: View {
 
   private var createEventDestination: some View {
     CreateEventViewWrapper(
-      onEventCreated: { _ in
+      onEventCreated: { eventId in
+        createdEventIdForDetail = eventId
         showCreateEvent = false
+        isShowingCreatedDetail = true
         Task { await viewModel.loadEvents() }
       }
     )

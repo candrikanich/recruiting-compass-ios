@@ -22,6 +22,20 @@ final class CreateEventAccessibilityTests: XCTestCase {
     CreateEventViewModel(eventsService: service, userId: userId)
   }
 
+  private func date(_ string: String) -> Date {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.dateFormat = "yyyy-MM-dd"
+    return f.date(from: string)!
+  }
+
+  private func time(_ string: String) -> Date {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.dateFormat = "HH:mm"
+    return f.date(from: string)!
+  }
+
   // MARK: - Required Fields Have Accessibility Labels
 
   func testCreateEventForm_requiredFields_haveAccessibilityLabels() {
@@ -33,7 +47,7 @@ final class CreateEventAccessibilityTests: XCTestCase {
     // All required fields empty
     viewModel.formData.type = nil
     viewModel.formData.name = ""
-    viewModel.formData.startDate = ""
+    viewModel.formData.startDate = nil
 
     let isValid = viewModel.validateForm()
     XCTAssertFalse(isValid, "Form should be invalid when required fields are empty")
@@ -52,13 +66,13 @@ final class CreateEventAccessibilityTests: XCTestCase {
     // Fill only required fields
     viewModel.formData.type = .showcase
     viewModel.formData.name = "Spring Showcase"
-    viewModel.formData.startDate = "2026-04-15"
+    viewModel.formData.startDate = date("2026-04-15")
 
     // Leave all optional fields empty
-    viewModel.formData.endDate = ""
-    viewModel.formData.startTime = ""
-    viewModel.formData.endTime = ""
-    viewModel.formData.checkinTime = ""
+    viewModel.formData.endDate = nil
+    viewModel.formData.startTime = nil
+    viewModel.formData.endTime = nil
+    viewModel.formData.checkinTime = nil
     viewModel.formData.location = ""
     viewModel.formData.address = ""
     viewModel.formData.city = ""
@@ -82,7 +96,7 @@ final class CreateEventAccessibilityTests: XCTestCase {
 
     viewModel.formData.type = nil
     viewModel.formData.name = ""
-    viewModel.formData.startDate = ""
+    viewModel.formData.startDate = nil
 
     _ = viewModel.validateForm()
 
@@ -108,8 +122,8 @@ final class CreateEventAccessibilityTests: XCTestCase {
 
     viewModel.formData.type = .camp
     viewModel.formData.name = "Summer Camp"
-    viewModel.formData.startDate = "2026-06-15"
-    viewModel.formData.endDate = "2026-06-14"
+    viewModel.formData.startDate = date("2026-06-15")
+    viewModel.formData.endDate = date("2026-06-14")
 
     let isValid = viewModel.validateForm()
 
@@ -127,14 +141,14 @@ final class CreateEventAccessibilityTests: XCTestCase {
     // First: trigger errors
     viewModel.formData.type = nil
     viewModel.formData.name = ""
-    viewModel.formData.startDate = ""
+    viewModel.formData.startDate = nil
     _ = viewModel.validateForm()
     XCTAssertEqual(viewModel.validationErrors.count, 3)
 
     // Fix all fields and revalidate
     viewModel.formData.type = .showcase
     viewModel.formData.name = "Fixed Event"
-    viewModel.formData.startDate = "2026-04-15"
+    viewModel.formData.startDate = date("2026-04-15")
     let isValid = viewModel.validateForm()
 
     XCTAssertTrue(isValid, "Form should be valid after fixing errors")
@@ -177,7 +191,7 @@ final class CreateEventAccessibilityTests: XCTestCase {
     // All required fields empty
     viewModel.formData.type = nil
     viewModel.formData.name = ""
-    viewModel.formData.startDate = ""
+    viewModel.formData.startDate = nil
     XCTAssertTrue(viewModel.isSubmitDisabled, "Submit should be disabled when required fields are empty")
 
     // Fill event type only
@@ -189,7 +203,7 @@ final class CreateEventAccessibilityTests: XCTestCase {
     XCTAssertTrue(viewModel.isSubmitDisabled, "Submit should be disabled when start date is empty")
 
     // Fill all required
-    viewModel.formData.startDate = "2026-04-15"
+    viewModel.formData.startDate = date("2026-04-15")
     XCTAssertFalse(viewModel.isSubmitDisabled, "Submit should be enabled when all required fields are filled")
   }
 
@@ -198,7 +212,7 @@ final class CreateEventAccessibilityTests: XCTestCase {
 
     viewModel.formData.type = .showcase
     viewModel.formData.name = "Test Event"
-    viewModel.formData.startDate = "2026-04-15"
+    viewModel.formData.startDate = date("2026-04-15")
 
     XCTAssertFalse(viewModel.isSubmitDisabled, "Submit should be enabled before saving")
 
@@ -300,16 +314,16 @@ final class CreateEventAccessibilityTests: XCTestCase {
     // Start date = required, End date = optional
     let viewModel = makeViewModel()
 
-    // Verify start date triggers validation error when empty
+    // Verify start date triggers validation error when nil
     viewModel.formData.type = .showcase
     viewModel.formData.name = "Test"
-    viewModel.formData.startDate = ""
+    viewModel.formData.startDate = nil
     _ = viewModel.validateForm()
     XCTAssertNotNil(viewModel.validationErrors["startDate"], "Start date should be required (produces validation error)")
 
-    // Verify end date does NOT trigger validation error when empty
-    viewModel.formData.startDate = "2026-04-15"
-    viewModel.formData.endDate = ""
+    // Verify end date does NOT trigger validation error when nil
+    viewModel.formData.startDate = date("2026-04-15")
+    viewModel.formData.endDate = nil
     let isValid = viewModel.validateForm()
     XCTAssertTrue(isValid, "Form should be valid with empty end date")
     XCTAssertNil(viewModel.validationErrors["endDate"], "End date should not produce error when empty")
@@ -318,31 +332,35 @@ final class CreateEventAccessibilityTests: XCTestCase {
   func testDatePickers_startDateAutoPopulatesEndDate() {
     let viewModel = makeViewModel()
 
-    viewModel.formData.startDate = "2026-04-15"
-    viewModel.formData.endDate = ""
+    let startDate = date("2026-04-15")
+    viewModel.formData.startDate = startDate
+    viewModel.formData.endDate = nil
     viewModel.onStartDateChanged()
 
-    XCTAssertEqual(viewModel.formData.endDate, "2026-04-15", "End date should auto-populate to start date")
+    XCTAssertEqual(viewModel.formData.endDate, startDate, "End date should auto-populate to start date")
   }
 
   func testDatePickers_startDateDoesNotOverwriteExistingEndDate() {
     let viewModel = makeViewModel()
 
-    viewModel.formData.endDate = "2026-04-20"
-    viewModel.formData.startDate = "2026-04-15"
+    let endDate = date("2026-04-20")
+    viewModel.formData.endDate = endDate
+    viewModel.formData.startDate = date("2026-04-15")
     viewModel.onStartDateChanged()
 
-    XCTAssertEqual(viewModel.formData.endDate, "2026-04-20", "Should not overwrite existing end date")
+    XCTAssertEqual(viewModel.formData.endDate, endDate, "Should not overwrite existing end date")
   }
 
   func testTimePickers_startTimeAutoPopulatesEndTime() {
     let viewModel = makeViewModel()
 
-    viewModel.formData.startTime = "09:00"
-    viewModel.formData.endTime = ""
+    let startTime = time("09:00")
+    viewModel.formData.startTime = startTime
+    viewModel.formData.endTime = nil
     viewModel.onStartTimeChanged()
 
-    XCTAssertEqual(viewModel.formData.endTime, "10:00", "End time should auto-populate to start time + 1 hour")
+    let expectedEnd = Calendar.current.date(byAdding: .hour, value: 1, to: startTime)
+    XCTAssertEqual(viewModel.formData.endTime, expectedEnd, "End time should auto-populate to start time + 1 hour")
   }
 
   // MARK: - EventType Display Names for VoiceOver
@@ -400,7 +418,7 @@ final class CreateEventAccessibilityTests: XCTestCase {
     // Fill required fields
     viewModel.formData.type = .showcase
     viewModel.formData.name = "Spring Showcase 2026"
-    viewModel.formData.startDate = "2026-04-15"
+    viewModel.formData.startDate = date("2026-04-15")
 
     // Fill optional fields
     viewModel.formData.schoolId = "s1"
@@ -427,7 +445,7 @@ final class CreateEventAccessibilityTests: XCTestCase {
     // Leave all required fields empty
     viewModel.formData.type = nil
     viewModel.formData.name = ""
-    viewModel.formData.startDate = ""
+    viewModel.formData.startDate = nil
 
     let result = await viewModel.createEvent()
 
@@ -445,7 +463,7 @@ final class CreateEventAccessibilityTests: XCTestCase {
     // Fill valid form
     viewModel.formData.type = .game
     viewModel.formData.name = "Championship Game"
-    viewModel.formData.startDate = "2026-05-01"
+    viewModel.formData.startDate = date("2026-05-01")
 
     let result = await viewModel.createEvent()
 

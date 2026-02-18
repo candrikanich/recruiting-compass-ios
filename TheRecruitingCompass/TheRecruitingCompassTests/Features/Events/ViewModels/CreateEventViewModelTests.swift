@@ -19,12 +19,28 @@ final class CreateEventViewModelTests: XCTestCase {
     super.tearDown()
   }
 
+  // MARK: - Helpers
+
+  private func date(_ string: String) -> Date {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.dateFormat = "yyyy-MM-dd"
+    return f.date(from: string)!
+  }
+
+  private func time(_ string: String) -> Date {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.dateFormat = "HH:mm"
+    return f.date(from: string)!
+  }
+
   // MARK: - Validation Tests
 
   func testValidateForm_withRequiredFields_passes() {
     sut.formData.type = .showcase
     sut.formData.name = "Spring Showcase"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
 
     let isValid = sut.validateForm()
 
@@ -35,7 +51,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_missingType_failsWithError() {
     sut.formData.type = nil
     sut.formData.name = "Spring Showcase"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
 
     let isValid = sut.validateForm()
 
@@ -46,7 +62,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_emptyName_failsWithError() {
     sut.formData.type = .showcase
     sut.formData.name = ""
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
 
     let isValid = sut.validateForm()
 
@@ -57,7 +73,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_whitespaceOnlyName_failsWithError() {
     sut.formData.type = .showcase
     sut.formData.name = "   "
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
 
     let isValid = sut.validateForm()
 
@@ -68,7 +84,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_emptyStartDate_failsWithError() {
     sut.formData.type = .showcase
     sut.formData.name = "Spring Showcase"
-    sut.formData.startDate = ""
+    sut.formData.startDate = nil
 
     let isValid = sut.validateForm()
 
@@ -79,8 +95,8 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_endDateBeforeStartDate_failsWithError() {
     sut.formData.type = .showcase
     sut.formData.name = "Spring Showcase"
-    sut.formData.startDate = "2026-04-15"
-    sut.formData.endDate = "2026-04-14"
+    sut.formData.startDate = date("2026-04-15")
+    sut.formData.endDate = date("2026-04-14")
 
     let isValid = sut.validateForm()
 
@@ -91,8 +107,8 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_endDateEqualsStartDate_passes() {
     sut.formData.type = .showcase
     sut.formData.name = "Spring Showcase"
-    sut.formData.startDate = "2026-04-15"
-    sut.formData.endDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
+    sut.formData.endDate = date("2026-04-15")
 
     let isValid = sut.validateForm()
 
@@ -103,8 +119,8 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_endDateAfterStartDate_passes() {
     sut.formData.type = .camp
     sut.formData.name = "Summer Camp"
-    sut.formData.startDate = "2026-06-01"
-    sut.formData.endDate = "2026-06-05"
+    sut.formData.startDate = date("2026-06-01")
+    sut.formData.endDate = date("2026-06-05")
 
     let isValid = sut.validateForm()
 
@@ -114,8 +130,8 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_emptyEndDate_passes() {
     sut.formData.type = .showcase
     sut.formData.name = "Spring Showcase"
-    sut.formData.startDate = "2026-04-15"
-    sut.formData.endDate = ""
+    sut.formData.startDate = date("2026-04-15")
+    sut.formData.endDate = nil
 
     let isValid = sut.validateForm()
 
@@ -125,7 +141,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_validURL_passes() {
     sut.formData.type = .showcase
     sut.formData.name = "Spring Showcase"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
     sut.formData.url = "https://example.com/event"
 
     let isValid = sut.validateForm()
@@ -137,7 +153,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_httpURL_passes() {
     sut.formData.type = .showcase
     sut.formData.name = "Spring Showcase"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
     sut.formData.url = "http://example.com"
 
     let isValid = sut.validateForm()
@@ -149,7 +165,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_invalidURL_noScheme_failsWithError() {
     sut.formData.type = .showcase
     sut.formData.name = "Spring Showcase"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
     sut.formData.url = "not-a-url"
 
     let isValid = sut.validateForm()
@@ -161,7 +177,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_invalidURL_missingScheme_failsWithError() {
     sut.formData.type = .showcase
     sut.formData.name = "Spring Showcase"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
     sut.formData.url = "example.com"
 
     let isValid = sut.validateForm()
@@ -173,7 +189,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_emptyURL_passes() {
     sut.formData.type = .showcase
     sut.formData.name = "Spring Showcase"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
     sut.formData.url = ""
 
     let isValid = sut.validateForm()
@@ -185,7 +201,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testValidateForm_multipleErrors_reportsAll() {
     sut.formData.type = nil
     sut.formData.name = ""
-    sut.formData.startDate = ""
+    sut.formData.startDate = nil
 
     let isValid = sut.validateForm()
 
@@ -196,51 +212,57 @@ final class CreateEventViewModelTests: XCTestCase {
   // MARK: - Date Auto-Population Tests
 
   func testEndDateAutoPopulates_whenStartDateSet_andEndDateIsEmpty() {
-    sut.formData.endDate = ""
+    sut.formData.endDate = nil
 
-    sut.handleStartDateChanged("2026-04-15")
+    sut.handleStartDateChanged(date("2026-04-15"))
 
-    XCTAssertEqual(sut.formData.endDate, "2026-04-15")
+    XCTAssertEqual(sut.formData.endDate, date("2026-04-15"))
   }
 
   func testEndDateDoesNotOverwrite_whenEndDateAlreadySet() {
-    sut.formData.endDate = "2026-04-20"
+    sut.formData.endDate = date("2026-04-20")
 
-    sut.handleStartDateChanged("2026-04-15")
+    sut.handleStartDateChanged(date("2026-04-15"))
 
-    XCTAssertEqual(sut.formData.endDate, "2026-04-20")
+    XCTAssertEqual(sut.formData.endDate, date("2026-04-20"))
   }
 
   func testEndTimeAutoPopulates_plusOneHour_whenStartTimeSet() {
-    sut.formData.endTime = ""
+    sut.formData.endTime = nil
+    let startTime = time("09:00")
 
-    sut.handleStartTimeChanged("09:00")
+    sut.handleStartTimeChanged(startTime)
 
-    XCTAssertEqual(sut.formData.endTime, "10:00")
+    let expectedEnd = Calendar.current.date(byAdding: .hour, value: 1, to: startTime)
+    XCTAssertEqual(sut.formData.endTime, expectedEnd)
   }
 
   func testEndTimeAutoPopulates_handlesEndOfDay_wraps() {
-    sut.formData.endTime = ""
+    sut.formData.endTime = nil
+    let startTime = time("23:30")
 
-    sut.handleStartTimeChanged("23:30")
+    sut.handleStartTimeChanged(startTime)
 
-    XCTAssertEqual(sut.formData.endTime, "00:30")
+    let expectedEnd = Calendar.current.date(byAdding: .hour, value: 1, to: startTime)
+    XCTAssertEqual(sut.formData.endTime, expectedEnd)
   }
 
   func testEndTimeDoesNotOverwrite_whenEndTimeAlreadySet() {
-    sut.formData.endTime = "17:00"
+    sut.formData.endTime = time("17:00")
 
-    sut.handleStartTimeChanged("09:00")
+    sut.handleStartTimeChanged(time("09:00"))
 
-    XCTAssertEqual(sut.formData.endTime, "17:00")
+    XCTAssertEqual(sut.formData.endTime, time("17:00"))
   }
 
   func testEndTimeAutoPopulates_preservesMinutes() {
-    sut.formData.endTime = ""
+    sut.formData.endTime = nil
+    let startTime = time("14:45")
 
-    sut.handleStartTimeChanged("14:45")
+    sut.handleStartTimeChanged(startTime)
 
-    XCTAssertEqual(sut.formData.endTime, "15:45")
+    let expectedEnd = Calendar.current.date(byAdding: .hour, value: 1, to: startTime)
+    XCTAssertEqual(sut.formData.endTime, expectedEnd)
   }
 
   // MARK: - School Selection Modal Tests
@@ -307,7 +329,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testCreateEvent_callsService_withCorrectData() async {
     sut.formData.type = .showcase
     sut.formData.name = "Spring Showcase 2026"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
     sut.formData.city = "Atlanta"
     sut.formData.state = "ga"
 
@@ -324,7 +346,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testCreateEvent_onSuccess_returnsEventId() async {
     sut.formData.type = .camp
     sut.formData.name = "Summer Camp"
-    sut.formData.startDate = "2026-06-01"
+    sut.formData.startDate = date("2026-06-01")
     mockService.stubbedCreatedEvent = .mock(id: "new-event-123")
 
     let eventId = await sut.createEvent()
@@ -336,7 +358,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testCreateEvent_onFailure_setsError() async {
     sut.formData.type = .showcase
     sut.formData.name = "Test Event"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
     mockService.shouldThrowCreateEvent = true
 
     let eventId = await sut.createEvent()
@@ -348,7 +370,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testCreateEvent_preventsDuplicateSubmission() async {
     sut.formData.type = .showcase
     sut.formData.name = "Test Event"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
     sut.isSaving = true
 
     let eventId = await sut.createEvent()
@@ -360,7 +382,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testCreateEvent_setsLoadingDuringSubmission() async {
     sut.formData.type = .showcase
     sut.formData.name = "Test"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
 
     _ = await sut.createEvent()
 
@@ -371,7 +393,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testCreateEvent_withInvalidForm_doesNotCallService() async {
     sut.formData.type = nil
     sut.formData.name = ""
-    sut.formData.startDate = ""
+    sut.formData.startDate = nil
 
     let eventId = await sut.createEvent()
 
@@ -382,7 +404,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testCreateEvent_convertsCostToDouble() async {
     sut.formData.type = .showcase
     sut.formData.name = "Test Event"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
     sut.formData.cost = "150.50"
 
     _ = await sut.createEvent()
@@ -393,7 +415,7 @@ final class CreateEventViewModelTests: XCTestCase {
   func testCreateEvent_emptyOptionalFields_sendsNil() async {
     sut.formData.type = .showcase
     sut.formData.name = "Minimal Event"
-    sut.formData.startDate = "2026-04-15"
+    sut.formData.startDate = date("2026-04-15")
     sut.formData.location = ""
     sut.formData.address = ""
     sut.formData.city = ""
@@ -502,12 +524,22 @@ final class CreateEventViewModelTests: XCTestCase {
     XCTAssertEqual(mockService.createSchoolCallCount, 0)
   }
 
+  func testSaveNewSchool_setsIsSavingSchool_duringCall() async {
+    sut.newSchoolName = "Clemson"
+    mockService.stubbedCreatedSchool = SchoolSummary(id: "new-1", name: "Clemson", location: nil)
+
+    await sut.saveNewSchool()
+
+    XCTAssertFalse(sut.isSavingSchool)
+    XCTAssertEqual(mockService.createSchoolCallCount, 1)
+  }
+
   // MARK: - Initial State Tests
 
   func testInitialState_formDataIsEmpty() {
     XCTAssertNil(sut.formData.type)
     XCTAssertEqual(sut.formData.name, "")
-    XCTAssertEqual(sut.formData.startDate, "")
+    XCTAssertNil(sut.formData.startDate)
     XCTAssertFalse(sut.formData.registered)
     XCTAssertFalse(sut.formData.attended)
   }
@@ -521,5 +553,9 @@ final class CreateEventViewModelTests: XCTestCase {
   func testInitialState_modalsAreClosed() {
     XCTAssertFalse(sut.showOtherSchoolModal)
     XCTAssertFalse(sut.showAddSchoolModal)
+  }
+
+  func testInitialState_isSavingSchool_isFalse() {
+    XCTAssertFalse(sut.isSavingSchool)
   }
 }

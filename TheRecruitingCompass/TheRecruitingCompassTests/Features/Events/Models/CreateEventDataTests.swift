@@ -3,6 +3,22 @@ import XCTest
 
 final class CreateEventDataTests: XCTestCase {
 
+  // MARK: - Helpers
+
+  private func date(_ string: String) -> Date {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.dateFormat = "yyyy-MM-dd"
+    return f.date(from: string)!
+  }
+
+  private func time(_ string: String) -> Date {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.dateFormat = "HH:mm"
+    return f.date(from: string)!
+  }
+
   // MARK: - Default Values
 
   func testDefaultValues_allFieldsAreEmpty() {
@@ -10,11 +26,11 @@ final class CreateEventDataTests: XCTestCase {
 
     XCTAssertNil(data.type)
     XCTAssertEqual(data.name, "")
-    XCTAssertEqual(data.startDate, "")
-    XCTAssertEqual(data.endDate, "")
-    XCTAssertEqual(data.startTime, "")
-    XCTAssertEqual(data.endTime, "")
-    XCTAssertEqual(data.checkinTime, "")
+    XCTAssertNil(data.startDate)
+    XCTAssertNil(data.endDate)
+    XCTAssertNil(data.startTime)
+    XCTAssertNil(data.endTime)
+    XCTAssertNil(data.checkinTime)
     XCTAssertNil(data.schoolId)
     XCTAssertEqual(data.location, "")
     XCTAssertEqual(data.address, "")
@@ -35,11 +51,11 @@ final class CreateEventDataTests: XCTestCase {
     var data = CreateEventData()
     data.type = .showcase
     data.name = "  Spring Showcase  "
-    data.startDate = "2026-04-15"
-    data.endDate = "2026-04-16"
-    data.startTime = "09:00"
-    data.endTime = "17:00"
-    data.checkinTime = "08:30"
+    data.startDate = date("2026-04-15")
+    data.endDate = date("2026-04-16")
+    data.startTime = time("09:00")
+    data.endTime = time("17:00")
+    data.checkinTime = time("08:30")
     data.schoolId = "school-1"
     data.location = "Main Stadium"
     data.address = "123 Main St"
@@ -81,7 +97,7 @@ final class CreateEventDataTests: XCTestCase {
     var data = CreateEventData()
     data.type = .camp
     data.name = "Test"
-    data.startDate = "2026-06-01"
+    data.startDate = date("2026-06-01")
 
     let request = CreateEventRequest.from(formData: data, userId: "user-1")
 
@@ -105,7 +121,7 @@ final class CreateEventDataTests: XCTestCase {
     var data = CreateEventData()
     data.type = .game
     data.name = "  Game Day  "
-    data.startDate = "2026-09-01"
+    data.startDate = date("2026-09-01")
 
     let request = CreateEventRequest.from(formData: data, userId: "user-1")
 
@@ -116,7 +132,7 @@ final class CreateEventDataTests: XCTestCase {
     var data = CreateEventData()
     data.type = .showcase
     data.name = "Test"
-    data.startDate = "2026-04-15"
+    data.startDate = date("2026-04-15")
     data.state = "ga"
 
     let request = CreateEventRequest.from(formData: data, userId: "user-1")
@@ -128,7 +144,7 @@ final class CreateEventDataTests: XCTestCase {
     var data = CreateEventData()
     data.type = .showcase
     data.name = "Test"
-    data.startDate = "2026-04-15"
+    data.startDate = date("2026-04-15")
     data.cost = "not-a-number"
 
     let request = CreateEventRequest.from(formData: data, userId: "user-1")
@@ -140,7 +156,7 @@ final class CreateEventDataTests: XCTestCase {
     var data = CreateEventData()
     data.type = .showcase
     data.name = "Free Event"
-    data.startDate = "2026-04-15"
+    data.startDate = date("2026-04-15")
     data.cost = "0"
 
     let request = CreateEventRequest.from(formData: data, userId: "user-1")

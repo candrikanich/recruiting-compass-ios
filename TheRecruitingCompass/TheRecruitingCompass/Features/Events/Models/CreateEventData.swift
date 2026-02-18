@@ -3,11 +3,11 @@ import Foundation
 struct CreateEventData {
   var type: EventType?
   var name: String = ""
-  var startDate: String = ""
-  var endDate: String = ""
-  var startTime: String = ""
-  var endTime: String = ""
-  var checkinTime: String = ""
+  var startDate: Date?
+  var endDate: Date?
+  var startTime: Date?
+  var endTime: Date?
+  var checkinTime: Date?
   var schoolId: String?
   var location: String = ""
   var address: String = ""
@@ -61,11 +61,11 @@ struct CreateEventRequest: Encodable, Sendable {
     CreateEventRequest(
       type: formData.type?.rawValue ?? "",
       name: formData.name.trimmingCharacters(in: .whitespaces),
-      startDate: formData.startDate,
-      endDate: formData.endDate.isEmpty ? nil : formData.endDate,
-      startTime: formData.startTime.isEmpty ? nil : formData.startTime,
-      endTime: formData.endTime.isEmpty ? nil : formData.endTime,
-      checkinTime: formData.checkinTime.isEmpty ? nil : formData.checkinTime,
+      startDate: formData.startDate.map(dateString) ?? "",
+      endDate: formData.endDate.map(dateString),
+      startTime: formData.startTime.map(timeString),
+      endTime: formData.endTime.map(timeString),
+      checkinTime: formData.checkinTime.map(timeString),
       schoolId: formData.schoolId,
       location: formData.location.isEmpty ? nil : formData.location,
       address: formData.address.isEmpty ? nil : formData.address,
@@ -80,5 +80,19 @@ struct CreateEventRequest: Encodable, Sendable {
       performanceNotes: formData.performanceNotes.isEmpty ? nil : formData.performanceNotes,
       userId: userId
     )
+  }
+
+  private static func dateString(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.dateFormat = "yyyy-MM-dd"
+    return formatter.string(from: date)
+  }
+
+  private static func timeString(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.dateFormat = "HH:mm"
+    return formatter.string(from: date)
   }
 }

@@ -17,6 +17,7 @@ final class CreateEventViewModel {
   var schools: [SchoolSummary] = []
   var isLoading = false
   var isSaving = false
+  var isSavingSchool = false
   var error: String?
   var validationErrors: [String: String] = [:]
 
@@ -35,7 +36,7 @@ final class CreateEventViewModel {
   // MARK: - Computed Properties
 
   var isSubmitDisabled: Bool {
-    isSaving || formData.type == nil || formData.name.trimmingCharacters(in: .whitespaces).isEmpty || formData.startDate.isEmpty
+    isSaving || formData.type == nil || formData.name.trimmingCharacters(in: .whitespaces).isEmpty || formData.startDate == nil
   }
 
   var showGetDirections: Bool {
@@ -100,6 +101,9 @@ final class CreateEventViewModel {
     logger.debug("Creating new school: \(trimmedName)")
     let location = newSchoolLocation.trimmingCharacters(in: .whitespaces)
 
+    isSavingSchool = true
+    defer { isSavingSchool = false }
+
     do {
       let school = try await eventsService.createSchool(
         name: trimmedName,
@@ -122,23 +126,23 @@ final class CreateEventViewModel {
   // MARK: - Auto-populate Helpers
 
   func onStartDateChanged() {
-    if formData.endDate.isEmpty {
+    if formData.endDate == nil {
       formData.endDate = formData.startDate
     }
   }
 
-  func handleStartDateChanged(_ date: String) {
+  func handleStartDateChanged(_ date: Date) {
     formData.startDate = date
     onStartDateChanged()
   }
 
   func onStartTimeChanged() {
-    if formData.endTime.isEmpty, !formData.startTime.isEmpty {
-      formData.endTime = addOneHour(to: formData.startTime)
+    if formData.endTime == nil, let startTime = formData.startTime {
+      formData.endTime = Calendar.current.date(byAdding: .hour, value: 1, to: startTime)
     }
   }
 
-  func handleStartTimeChanged(_ time: String) {
+  func handleStartTimeChanged(_ time: Date) {
     formData.startTime = time
     onStartTimeChanged()
   }
@@ -156,12 +160,12 @@ final class CreateEventViewModel {
       validationErrors["name"] = "Event name is required"
     }
 
-    if formData.startDate.isEmpty {
+    if formData.startDate == nil {
       validationErrors["startDate"] = "Start date is required"
     }
 
-    if !formData.endDate.isEmpty, !formData.startDate.isEmpty,
-       formData.endDate < formData.startDate {
+    if let endDate = formData.endDate, let startDate = formData.startDate,
+       endDate < startDate {
       validationErrors["endDate"] = "End date must be after start date"
     }
 
@@ -214,19 +218,6 @@ final class CreateEventViewModel {
     }
 
     return URL(string: "maps://?q=\(encoded)")
-  }
-
-  // MARK: - Private Helpers
-
-  private func addOneHour(to time: String) -> String {
-    let components = time.split(separator: ":")
-    guard components.count == 2,
-          let hours = Int(components[0]),
-          let minutes = Int(components[1]) else {
-      return time
-    }
-    let endHour = (hours + 1) % 24
-    return String(format: "%02d:%02d", endHour, minutes)
   }
 }
 

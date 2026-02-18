@@ -27,7 +27,7 @@ struct CreateEventView: View {
   private var hasUnsavedChanges: Bool {
     viewModel.formData.type != nil ||
     !viewModel.formData.name.isEmpty ||
-    !viewModel.formData.startDate.isEmpty
+    viewModel.formData.startDate != nil
   }
 
   // MARK: - Body
@@ -83,7 +83,7 @@ struct CreateEventView: View {
       AddSchoolSheet(
         schoolName: $viewModel.newSchoolName,
         schoolLocation: $viewModel.newSchoolLocation,
-        isSaving: viewModel.isLoading,
+        isSaving: viewModel.isSavingSchool,
         onSave: { Task { await viewModel.saveNewSchool() } },
         onCancel: {
           viewModel.showAddSchoolModal = false
@@ -144,6 +144,9 @@ struct CreateEventView: View {
         .textInputAutocapitalization(.never)
         .autocorrectionDisabled()
         .accessibilityLabel("Event URL")
+        .overlay(alignment: .bottom) {
+          validationMessage(for: "url")
+        }
     } header: {
       Text("Event Info")
     }
@@ -172,36 +175,94 @@ struct CreateEventView: View {
 
   private var dateTimeSection: some View {
     Section {
-      TextField("Start Date * (YYYY-MM-DD)", text: $viewModel.formData.startDate)
-        .accessibilityLabel("Start date, required field")
-        .accessibilityIdentifier("start-date-picker")
-        .onChange(of: viewModel.formData.startDate) {
-          viewModel.onStartDateChanged()
-        }
-        .overlay(alignment: .bottom) {
-          validationMessage(for: "startDate")
-        }
+      DatePicker(
+        "Start Date *",
+        selection: Binding(
+          get: { viewModel.formData.startDate ?? Date() },
+          set: { viewModel.handleStartDateChanged($0) }
+        ),
+        displayedComponents: .date
+      )
+      .accessibilityLabel("Start date, required field")
+      .accessibilityIdentifier("start-date-picker")
+      .overlay(alignment: .bottom) {
+        validationMessage(for: "startDate")
+      }
 
-      TextField("Start Time (HH:MM)", text: $viewModel.formData.startTime)
-        .accessibilityLabel("Start time, optional")
+      Toggle("Start Time", isOn: Binding(
+        get: { viewModel.formData.startTime != nil },
+        set: { viewModel.formData.startTime = $0 ? Date() : nil }
+      ))
+
+      if viewModel.formData.startTime != nil {
+        DatePicker(
+          "",
+          selection: Binding(
+            get: { viewModel.formData.startTime ?? Date() },
+            set: { viewModel.handleStartTimeChanged($0) }
+          ),
+          displayedComponents: .hourAndMinute
+        )
+        .labelsHidden()
         .accessibilityIdentifier("start-time-picker")
-        .onChange(of: viewModel.formData.startTime) {
-          viewModel.onStartTimeChanged()
-        }
+      }
 
-      TextField("End Date (YYYY-MM-DD)", text: $viewModel.formData.endDate)
-        .accessibilityLabel("End date, optional")
+      Toggle("End Date", isOn: Binding(
+        get: { viewModel.formData.endDate != nil },
+        set: { viewModel.formData.endDate = $0 ? (viewModel.formData.startDate ?? Date()) : nil }
+      ))
+
+      if viewModel.formData.endDate != nil {
+        DatePicker(
+          "",
+          selection: Binding(
+            get: { viewModel.formData.endDate ?? Date() },
+            set: { viewModel.formData.endDate = $0 }
+          ),
+          displayedComponents: .date
+        )
+        .labelsHidden()
         .accessibilityIdentifier("end-date-picker")
         .overlay(alignment: .bottom) {
           validationMessage(for: "endDate")
         }
+      }
 
-      TextField("End Time (HH:MM)", text: $viewModel.formData.endTime)
-        .accessibilityLabel("End time, optional")
+      Toggle("End Time", isOn: Binding(
+        get: { viewModel.formData.endTime != nil },
+        set: { viewModel.formData.endTime = $0 ? Date() : nil }
+      ))
+
+      if viewModel.formData.endTime != nil {
+        DatePicker(
+          "",
+          selection: Binding(
+            get: { viewModel.formData.endTime ?? Date() },
+            set: { viewModel.formData.endTime = $0 }
+          ),
+          displayedComponents: .hourAndMinute
+        )
+        .labelsHidden()
         .accessibilityIdentifier("end-time-picker")
+      }
 
-      TextField("Check-in Time (HH:MM)", text: $viewModel.formData.checkinTime)
-        .accessibilityLabel("Check-in time, optional")
+      Toggle("Check-in Time", isOn: Binding(
+        get: { viewModel.formData.checkinTime != nil },
+        set: { viewModel.formData.checkinTime = $0 ? Date() : nil }
+      ))
+
+      if viewModel.formData.checkinTime != nil {
+        DatePicker(
+          "",
+          selection: Binding(
+            get: { viewModel.formData.checkinTime ?? Date() },
+            set: { viewModel.formData.checkinTime = $0 }
+          ),
+          displayedComponents: .hourAndMinute
+        )
+        .labelsHidden()
+        .accessibilityIdentifier("checkin-time-picker")
+      }
     } header: {
       Text("Date & Time")
     }
