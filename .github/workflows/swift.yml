@@ -1,6 +1,4 @@
-# Build and test iOS app. Uses fixed destination (iPhone 16 on macos-latest).
-# See: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
-
+# Build and test iOS app. Discovers simulator and runs build+test in one script.
 name: iOS CI
 
 on:
@@ -16,27 +14,29 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: List simulators
-      run: xcrun simctl list devices available | grep -E "iPhone|iPad" | head -15 || true
-
-    - name: Build
+    - name: Build and test
       working-directory: TheRecruitingCompass
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       run: |
+        set -e
+        echo "== Xcode =="
         xcodebuild -version
-        xcodebuild build \
-          -scheme TheRecruitingCompass \
-          -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'
-
-    - name: Run tests
-      working-directory: TheRecruitingCompass
-      env:
-        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-      run: |
-        xcodebuild test \
-          -scheme TheRecruitingCompass \
-          -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-          -only-testing:TheRecruitingCompassTests
+        echo ""
+        echo "== Available iPhones =="
+        xcrun simctl list devices available | grep " iPhone " | grep -v Clone || true
+        echo ""
+        # Try fixed names first (order matters on different runner images)
+        for name in "iPhone 16" "iPhone 17" "iPhone 15" "iPhone SE (3rd generation)"; do
+          if xcrun simctl list devices available | grep -q " $name "; then
+            DEST="platform=iOS Simulator,name=$name,OS=latest"
+            echo "Using destination: $DEST"
+            xcodebuild build -scheme TheRecruitingCompass -destination "$DEST"
+            xcodebuild test -scheme TheRecruitingCompass -destination "$DEST" -only-testing:TheRecruitingCompassTests
+            exit 0
+          fi
+        done
+        echo "::error::No supported iPhone simulator found. Available devices:"
+        xcrun simctl list devices available
+        exit 1
