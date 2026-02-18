@@ -125,13 +125,16 @@ extension FullEvent {
     name: String = "Spring Showcase 2026",
     type: String = "showcase",
     startDate: String = "2026-04-15",
-    userId: String = "test-user-id"
+    userId: String = "test-user-id",
+    schoolId: String? = nil,
+    attended: Bool = false,
+    coachesPresent: [String]? = nil
   ) -> FullEvent {
     FullEvent(
       id: id,
       name: name,
       type: type,
-      schoolId: nil,
+      schoolId: schoolId,
       location: nil,
       address: nil,
       city: nil,
@@ -146,10 +149,11 @@ extension FullEvent {
       eventSource: nil,
       cost: nil,
       registered: false,
-      attended: false,
+      attended: attended,
       performanceNotes: nil,
       userId: userId,
       createdAt: "2026-02-17T00:00:00Z",
+      coachesPresent: coachesPresent,
       updatedAt: "2026-02-17T00:00:00Z"
     )
   }
