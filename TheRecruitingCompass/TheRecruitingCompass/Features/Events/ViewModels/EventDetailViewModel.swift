@@ -2,13 +2,6 @@ import Foundation
 import Observation
 import OSLog
 
-private let metricDateFormatter: DateFormatter = {
-  let formatter = DateFormatter()
-  formatter.locale = Locale(identifier: "en_US_POSIX")
-  formatter.dateFormat = "yyyy-MM-dd"
-  return formatter
-}()
-
 private let logger = Logger(
   subsystem: "com.chrisandrikanich.TheRecruitingCompass",
   category: "EventDetailViewModel"
@@ -84,9 +77,7 @@ final class EventDetailViewModel {
 
   var formattedDateRange: String {
     guard let event else { return "" }
-    let start = formatDate(event.startDate)
-    guard let endDate = event.endDate, endDate != event.startDate else { return start }
-    return "\(start) – \(formatDate(endDate))"
+    return DateFormatting.isoDateRangeString(from: event.startDate, to: event.endDate)
   }
 
   var formattedLocation: String? {
@@ -385,7 +376,7 @@ final class EventDetailViewModel {
         metricType: newMetricData.metricType.rawValue,
         value: value,
         unit: newMetricData.unit.isEmpty ? newMetricData.metricType.defaultUnit : newMetricData.unit,
-        recordedDate: metricDateFormatter.string(from: Date()),
+        recordedDate: DateFormatting.isoExportFormatter.string(from: Date()),
         eventId: eventId,
         verified: false,
         notes: newMetricData.notes.isEmpty ? nil : newMetricData.notes
@@ -422,14 +413,11 @@ final class EventDetailViewModel {
 
   func prepareCSVExport() {
     guard let event, !metrics.isEmpty else { return }
-    let dateFormatter = DateFormatter()
-    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-    dateFormatter.dateFormat = "yyyy-MM-dd"
     var rows: [String] = ["Metric Type,Value,Unit,Recorded Date,Verified,Notes"]
     for m in metrics {
       let notesEscaped = (m.notes ?? "").replacingOccurrences(of: "\"", with: "\"\"")
       let notes = notesEscaped.isEmpty ? "" : "\"\(notesEscaped)\""
-      let dateStr = dateFormatter.string(from: m.recordedDate)
+      let dateStr = DateFormatting.isoExportFormatter.string(from: m.recordedDate)
       rows.append("\(m.displayName),\(m.value),\(m.unit),\(dateStr),\(m.verified),\(notes)")
     }
     let csv = rows.joined(separator: "\n")
@@ -472,18 +460,6 @@ final class EventDetailViewModel {
   }
 
   // MARK: - Private Helpers
-
-  private func formatDate(_ isoDate: String) -> String {
-    let components = isoDate.split(separator: "-").compactMap { Int($0) }
-    guard components.count == 3 else { return isoDate }
-    let date = DateComponents(
-      calendar: .current,
-      year: components[0],
-      month: components[1],
-      day: components[2]
-    ).date
-    return date?.formatted(.dateTime.month(.abbreviated).day().year()) ?? isoDate
-  }
 
   private func showSuccess(_ message: String) {
     successMessage = message

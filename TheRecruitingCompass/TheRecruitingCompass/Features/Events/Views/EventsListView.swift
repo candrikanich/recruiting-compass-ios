@@ -359,23 +359,7 @@ private struct EventRowView: View {
   }
 
   private var formattedDate: String {
-    let components = event.startDate.split(separator: "-").compactMap { Int($0) }
-    guard components.count == 3 else { return event.startDate }
-    let date = DateComponents(
-      calendar: .current,
-      year: components[0],
-      month: components[1],
-      day: components[2]
-    ).date
-    let formatted = date?.formatted(.dateTime.month(.abbreviated).day().year()) ?? event.startDate
-    if let endDate = event.endDate, endDate != event.startDate {
-      let endComponents = endDate.split(separator: "-").compactMap { Int($0) }
-      if endComponents.count == 3,
-         let end = DateComponents(calendar: .current, year: endComponents[0], month: endComponents[1], day: endComponents[2]).date {
-        return "\(formatted) – \(end.formatted(.dateTime.month(.abbreviated).day()))"
-      }
-    }
-    return formatted
+    DateFormatting.isoDateRangeString(from: event.startDate, to: event.endDate)
   }
 
   private var locationLine: String? {
