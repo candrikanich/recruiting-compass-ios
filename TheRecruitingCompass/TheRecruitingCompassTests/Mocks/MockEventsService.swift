@@ -9,6 +9,7 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   var fetchEventsCallCount = 0
   var fetchSchoolsCallCount = 0
   var createSchoolCallCount = 0
+  var deleteEventCallCount = 0
 
   // MARK: - Captured Arguments
 
@@ -19,6 +20,7 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   var lastCreateSchoolName: String?
   var lastCreateSchoolLocation: String?
   var lastCreateSchoolUserId: String?
+  var lastDeleteEventId: String?
 
   // MARK: - Error Flags
 
@@ -27,6 +29,7 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   var shouldThrowFetchEvents = false
   var shouldThrowFetchSchools = false
   var shouldThrowCreateSchool = false
+  var shouldThrowDeleteEvent = false
 
   var shouldThrowError: Bool {
     get { shouldThrowCreateEvent }
@@ -36,6 +39,7 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
       shouldThrowFetchEvents = newValue
       shouldThrowFetchSchools = newValue
       shouldThrowCreateSchool = newValue
+      shouldThrowDeleteEvent = newValue
     }
   }
 
@@ -115,10 +119,6 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
     }
     return stubbedCreatedSchool
   }
-
-  var deleteEventCallCount = 0
-  var lastDeleteEventId: String?
-  var shouldThrowDeleteEvent = false
 
   func deleteEvent(id: String) async throws {
     deleteEventCallCount += 1

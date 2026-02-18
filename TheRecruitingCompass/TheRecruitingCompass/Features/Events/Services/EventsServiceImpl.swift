@@ -103,7 +103,14 @@ final class EventsServiceImpl: EventsManaging, Sendable {
   }
 
   func deleteEvent(id: String) async throws {
-    let client = SupabaseManager.shared.client
-    try await client.from("events").delete().eq("id", value: id).execute()
+    logger.debug("Deleting event: \(id)")
+
+    try await supabaseManager.client
+      .from("events")
+      .delete()
+      .eq("id", value: id)
+      .execute()
+
+    logger.info("Event deleted: \(id)")
   }
 }
