@@ -47,14 +47,14 @@ struct EventsListView: View {
     .refreshable {
       await viewModel.loadEvents()
     }
-    .alert("Error", isPresented: Binding(
+    .alert("Error", isPresented: .init(
       get: { viewModel.error != nil },
       set: { if !$0 { viewModel.error = nil } }
-    )) {
+    ), presenting: viewModel.error) { _ in
       Button("Retry") { Task { await viewModel.loadEvents() } }
       Button("OK", role: .cancel) { viewModel.error = nil }
-    } message: {
-      Text(viewModel.error ?? "")
+    } message: { error in
+      Text(error)
     }
     .confirmationDialog(
       "Delete \(eventToDelete?.name ?? "event")?",
