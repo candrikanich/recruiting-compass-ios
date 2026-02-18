@@ -121,7 +121,7 @@ final class EventDetailViewModel {
 
   // MARK: - Init
 
-  nonisolated init(
+  init(
     eventsService: EventsManaging = EventsServiceImpl(),
     authManager: any AuthManaging = AuthManager.shared,
     eventId: String

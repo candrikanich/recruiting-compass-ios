@@ -78,7 +78,7 @@ final class DocumentDetailViewModel {
 
   // MARK: - Init
 
-  nonisolated init(
+  init(
     documentId: String,
     documentsService: (any DocumentsManaging)? = nil,
     schoolsService: (any SchoolsManaging)? = nil,
