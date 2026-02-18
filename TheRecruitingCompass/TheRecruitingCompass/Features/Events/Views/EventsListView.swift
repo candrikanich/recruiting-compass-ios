@@ -66,6 +66,7 @@ struct EventsListView: View {
     ) {
       Button("Delete", role: .destructive) {
         if let event = eventToDelete {
+          UINotificationFeedbackGenerator().notificationOccurred(.warning)
           Task { await viewModel.deleteEvent(id: event.id) }
           eventToDelete = nil
         }
@@ -215,6 +216,7 @@ struct EventsListView: View {
     .accessibilityLabel(rowAccessibilityLabel(event))
     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
       Button(role: .destructive) {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         eventToDelete = event
       } label: {
         Label("Delete", systemImage: "trash")
@@ -264,8 +266,8 @@ struct EventsListView: View {
 
   private func rowAccessibilityLabel(_ event: FullEvent) -> String {
     let type = EventType(rawValue: event.type)?.displayName ?? event.type
-    let date = event.startDate
-    return "\(type): \(event.name), \(date)"
+    let status = event.attended ? "Attended" : event.registered ? "Registered" : "Not Registered"
+    return "\(type): \(event.name), \(event.startDate), \(status)"
   }
 }
 

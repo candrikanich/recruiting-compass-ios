@@ -16,6 +16,7 @@ final class EventsListViewModelTests: XCTestCase {
   }
 
   override func tearDown() {
+    UserDefaults.standard.removeObject(forKey: "eventsSortBy")
     sut = nil
     mockService = nil
     mockAuth = nil
@@ -280,6 +281,20 @@ final class EventsListViewModelTests: XCTestCase {
     XCTAssertEqual(sut.filteredEvents.last?.name, "Zebra Camp")
   }
 
+  func testSortBy_persistsAcrossViewModelRecreation() {
+    sut.sortBy = .name
+
+    let sut2 = EventsListViewModel(eventsService: mockService, authManager: mockAuth)
+
+    XCTAssertEqual(sut2.sortBy, .name)
+  }
+
+  func testSortBy_defaultsToDateDescOnFirstLaunch() {
+    UserDefaults.standard.removeObject(forKey: "eventsSortBy")
+    let freshSut = EventsListViewModel(eventsService: mockService, authManager: mockAuth)
+    XCTAssertEqual(freshSut.sortBy, .dateDesc)
+  }
+
   // MARK: - Delete
 
   func testDeleteEvent_removesEventFromList() async {
@@ -394,6 +409,28 @@ final class EventsListViewModelTests: XCTestCase {
     let result = sut.eventsForDate(date)
     XCTAssertEqual(result.count, 1)
     XCTAssertEqual(result.first?.name, "June Event")
+  }
+
+  func testNavigateToPreviousMonth_stopsAtTwoYearsBack() {
+    for _ in 0..<25 {
+      sut.navigateToPreviousMonth()
+    }
+    let twoYearsAgo = Calendar.current.date(byAdding: .year, value: -2, to: Date())!
+    let limit = Calendar.current.dateComponents([.year, .month], from: twoYearsAgo)
+    let current = Calendar.current.dateComponents([.year, .month], from: sut.currentMonth)
+    XCTAssertEqual(current.year, limit.year)
+    XCTAssertEqual(current.month, limit.month)
+  }
+
+  func testNavigateToNextMonth_stopsAtTwoYearsAhead() {
+    for _ in 0..<25 {
+      sut.navigateToNextMonth()
+    }
+    let twoYearsAhead = Calendar.current.date(byAdding: .year, value: 2, to: Date())!
+    let limit = Calendar.current.dateComponents([.year, .month], from: twoYearsAhead)
+    let current = Calendar.current.dateComponents([.year, .month], from: sut.currentMonth)
+    XCTAssertEqual(current.year, limit.year)
+    XCTAssertEqual(current.month, limit.month)
   }
 
   // MARK: - Helpers

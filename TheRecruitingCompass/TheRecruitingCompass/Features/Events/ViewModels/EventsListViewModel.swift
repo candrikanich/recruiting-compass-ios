@@ -7,6 +7,8 @@ private let logger = Logger(
   category: "EventsListViewModel"
 )
 
+private let eventsSortByKey = "eventsSortBy"
+
 @Observable
 @MainActor
 final class EventsListViewModel {
@@ -20,7 +22,14 @@ final class EventsListViewModel {
   var typeFilter: EventType?
   var statusFilter: StatusFilter = .all
   var dateRangeFilter: DateRangeFilter = .all
-  var sortBy: SortOption = .dateDesc
+  private var _sortBy: SortOption
+  var sortBy: SortOption {
+    get { _sortBy }
+    set {
+      _sortBy = newValue
+      UserDefaults.standard.set(newValue.rawValue, forKey: eventsSortByKey)
+    }
+  }
   var currentMonth: Date = {
     let calendar = Calendar.current
     let components = calendar.dateComponents([.year, .month], from: Date())
@@ -140,6 +149,8 @@ final class EventsListViewModel {
   ) {
     self.eventsService = eventsService ?? EventsServiceImpl()
     self.authManager = authManager ?? AuthManager.shared
+    let raw = UserDefaults.standard.string(forKey: eventsSortByKey)
+    self._sortBy = SortOption(rawValue: raw ?? "") ?? .dateDesc
   }
 
   // MARK: - Load
@@ -182,11 +193,17 @@ final class EventsListViewModel {
   }
 
   func navigateToPreviousMonth() {
-    currentMonth = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
+    let limit = Calendar.current.date(byAdding: .year, value: -2, to: referenceDate()) ?? currentMonth
+    if currentMonth > limit {
+      currentMonth = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
+    }
   }
 
   func navigateToNextMonth() {
-    currentMonth = Calendar.current.date(byAdding: .month, value: 1, to: currentMonth) ?? currentMonth
+    let limit = Calendar.current.date(byAdding: .year, value: 2, to: referenceDate()) ?? currentMonth
+    if currentMonth < limit {
+      currentMonth = Calendar.current.date(byAdding: .month, value: 1, to: currentMonth) ?? currentMonth
+    }
   }
 
   // MARK: - Private Helpers
@@ -204,6 +221,12 @@ final class EventsListViewModel {
       return ""
     }
     return formatter.string(from: nextMonth)
+  }
+
+  /// First day of the current calendar month (for ±2 year limit).
+  private func referenceDate() -> Date {
+    let components = Calendar.current.dateComponents([.year, .month], from: Date())
+    return Calendar.current.date(from: components) ?? Date()
   }
 }
 
