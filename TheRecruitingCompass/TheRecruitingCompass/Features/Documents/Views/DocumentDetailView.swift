@@ -89,8 +89,11 @@ struct DocumentDetailView: View {
       switch result {
       case .success(let urls):
         if let url = urls.first {
-          _ = url.startAccessingSecurityScopedResource()
-          Task { await viewModel.uploadNewVersion(file: url) }
+          let started = url.startAccessingSecurityScopedResource()
+          Task {
+            defer { if started { url.stopAccessingSecurityScopedResource() } }
+            await viewModel.uploadNewVersion(file: url)
+          }
         }
       case .failure:
         viewModel.error = "Failed to select file."
