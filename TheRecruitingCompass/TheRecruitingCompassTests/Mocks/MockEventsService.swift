@@ -115,6 +115,16 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
     }
     return stubbedCreatedSchool
   }
+
+  var deleteEventCallCount = 0
+  var lastDeleteEventId: String?
+  var shouldThrowDeleteEvent = false
+
+  func deleteEvent(id: String) async throws {
+    deleteEventCallCount += 1
+    lastDeleteEventId = id
+    if shouldThrowDeleteEvent { throw URLError(.badServerResponse) }
+  }
 }
 
 // MARK: - Test Helpers

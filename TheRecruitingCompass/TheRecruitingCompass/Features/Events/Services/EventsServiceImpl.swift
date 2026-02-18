@@ -101,4 +101,9 @@ final class EventsServiceImpl: EventsManaging, Sendable {
     logger.info("School created: \(result.id)")
     return result
   }
+
+  func deleteEvent(id: String) async throws {
+    let client = SupabaseManager.shared.client
+    try await client.from("events").delete().eq("id", value: id).execute()
+  }
 }

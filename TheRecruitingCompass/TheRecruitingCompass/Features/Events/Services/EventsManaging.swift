@@ -12,4 +12,5 @@ protocol EventsManaging: Sendable {
   func fetchEvents(userId: String) async throws -> [FullEvent]
   func fetchSchools(userId: String) async throws -> [SchoolSummary]
   func createSchool(name: String, location: String?, userId: String) async throws -> SchoolSummary
+  func deleteEvent(id: String) async throws
 }
