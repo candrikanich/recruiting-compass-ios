@@ -164,227 +164,31 @@ struct DocumentDetailView: View {
   private func documentContent(_ document: Document) -> some View {
     ScrollView {
       VStack(alignment: .leading, spacing: Layout.cardSpacing) {
-        if viewModel.error != nil {
-          errorBanner
+        if let error = viewModel.error {
+          DocumentErrorBanner(error: error) {
+            Task { await viewModel.loadDocument() }
+          }
         }
-        documentHeaderCard(document)
-        metadataGrid(document)
-        previewCard(document)
-        versionHistoryCard(document)
+        DocumentHeaderCard(
+          document: document,
+          onEdit: { viewModel.openEditForm() },
+          onShare: { viewModel.presentShareModal() },
+          onDelete: { viewModel.confirmDelete() }
+        )
+        DocumentMetadataGrid(
+          document: document,
+          schoolName: viewModel.schoolName(for: document.schoolId)
+        )
+        DocumentPreviewCard(document: document)
+        DocumentVersionHistoryCard(
+          versions: viewModel.versions,
+          isUploadingNewVersion: viewModel.isUploadingNewVersion,
+          uploadProgress: viewModel.uploadProgress,
+          onUploadTap: { showFileImporter = true },
+          onRestore: { viewModel.confirmRestore(version: $0) }
+        )
       }
       .padding()
     }
-  }
-
-  private var errorBanner: some View {
-    HStack {
-      Text(viewModel.error ?? "")
-        .font(.caption)
-        .foregroundStyle(.white)
-      Spacer()
-      Button("Retry") { Task { await viewModel.loadDocument() } }
-        .font(.caption)
-        .foregroundStyle(.white)
-    }
-    .padding()
-    .background(Color.errorRed)
-    .cornerRadius(8)
-  }
-
-  private func documentHeaderCard(_ document: Document) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack(alignment: .top) {
-        VStack(alignment: .leading, spacing: 8) {
-          Text("\(document.typeEmoji) \(document.typeLabel)")
-            .font(.caption)
-            .fontWeight(.semibold)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(Color.accentBlue.opacity(0.2))
-            .foregroundStyle(.primary)
-            .cornerRadius(6)
-          Text(document.title)
-            .font(.title2)
-            .fontWeight(.bold)
-            .lineLimit(2)
-            .truncationMode(.tail)
-          if let desc = document.description, !desc.isEmpty {
-            Text(desc)
-              .font(.subheadline)
-              .foregroundStyle(.secondary)
-          }
-        }
-        Spacer()
-      }
-      HStack(spacing: 12) {
-        Button {
-          viewModel.openEditForm()
-        } label: {
-          Label("Edit", systemImage: "pencil")
-            .font(.subheadline.weight(.medium))
-            .frame(minWidth: 88, minHeight: 44)
-        }
-        .buttonStyle(.borderedProminent)
-        .tint(.accentBlue)
-        .accessibilityLabel("Edit document metadata")
-
-        Button {
-          viewModel.presentShareModal()
-        } label: {
-          Label("Share", systemImage: "square.and.arrow.up")
-            .font(.subheadline.weight(.medium))
-            .frame(minWidth: 88, minHeight: 44)
-        }
-        .buttonStyle(.borderedProminent)
-        .tint(.primaryGreen)
-        .accessibilityLabel("Share document with schools")
-
-        Button(role: .destructive) {
-          viewModel.confirmDelete()
-        } label: {
-          Label("Delete", systemImage: "trash")
-            .font(.subheadline.weight(.medium))
-            .frame(minWidth: 88, minHeight: 44)
-        }
-        .buttonStyle(.borderedProminent)
-        .tint(.errorRed)
-        .accessibilityLabel("Delete document")
-        .accessibilityHint("This action cannot be undone")
-      }
-    }
-    .padding()
-    .background(Color(.secondarySystemGroupedBackground))
-    .cornerRadius(12)
-  }
-
-  private func metadataGrid(_ document: Document) -> some View {
-    LazyVGrid(columns: [
-      GridItem(.flexible()),
-      GridItem(.flexible())
-    ], spacing: 12) {
-      metadataItem(label: "Version", value: "v\(document.version)")
-      metadataItem(label: "School", value: viewModel.schoolName(for: document.schoolId))
-      metadataItem(label: "Uploaded", value: document.displayDate)
-      metadataItem(label: "File Type", value: document.fileType ?? "Unknown")
-    }
-    .padding()
-    .background(Color(.secondarySystemGroupedBackground))
-    .cornerRadius(12)
-  }
-
-  private func metadataItem(label: String, value: String) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(label)
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      Text(value)
-        .font(.subheadline)
-        .fontWeight(.medium)
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-  }
-
-  private func previewCard(_ document: Document) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("Preview")
-        .font(.headline)
-      DocumentPreviewView(document: document)
-    }
-    .padding()
-    .background(Color(.secondarySystemGroupedBackground))
-    .cornerRadius(12)
-  }
-
-  private func versionHistoryCard(_ document: Document) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("Version History")
-        .font(.headline)
-      if viewModel.versions.isEmpty {
-        Text("No previous versions")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-          .frame(maxWidth: .infinity)
-          .padding()
-      } else {
-        ForEach(viewModel.versions) { version in
-          versionRow(version)
-        }
-      }
-      Button {
-        showFileImporter = true
-      } label: {
-        Label("Upload New Version", systemImage: "plus")
-          .font(.subheadline.weight(.medium))
-          .frame(maxWidth: .infinity, minHeight: 44)
-      }
-      .accessibilityLabel("Upload New Version")
-      .accessibilityHint("Select a file to add a new version")
-      .buttonStyle(.borderedProminent)
-      .disabled(viewModel.isUploadingNewVersion)
-      .overlay {
-        if viewModel.isUploadingNewVersion {
-          VStack(spacing: 8) {
-            ProgressView(value: viewModel.uploadProgress)
-              .progressViewStyle(.linear)
-              .tint(.white)
-            Text("\(Int(viewModel.uploadProgress * 100))%")
-              .font(.caption)
-              .foregroundStyle(.white)
-          }
-          .padding()
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .background(Color.black.opacity(0.6))
-        }
-      }
-    }
-    .padding()
-    .background(Color(.secondarySystemGroupedBackground))
-    .cornerRadius(12)
-  }
-
-  private func versionRow(_ version: DocumentVersion) -> some View {
-    HStack {
-      VStack(alignment: .leading, spacing: 4) {
-        HStack(spacing: 8) {
-          Text("v\(version.version)")
-            .font(.subheadline)
-            .fontWeight(.semibold)
-          if version.isCurrent {
-            Text("Current")
-              .font(.caption2)
-              .fontWeight(.semibold)
-              .padding(.horizontal, 6)
-              .padding(.vertical, 2)
-              .background(Color.accentBlue.opacity(0.2))
-              .cornerRadius(4)
-          }
-        }
-        Text(version.displayDate)
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
-      Spacer()
-      HStack(spacing: 8) {
-        if let url = URL(string: version.fileUrl) {
-          Link(destination: url) {
-            Text("View")
-              .font(.caption)
-          }
-          .buttonStyle(.bordered)
-        }
-        if !version.isCurrent {
-          Button("Restore") {
-            viewModel.confirmRestore(version: version)
-          }
-          .font(.caption)
-          .buttonStyle(.bordered)
-          .frame(minHeight: 44)
-          .contentShape(Rectangle())
-          .accessibilityLabel("Restore version \(version.version)")
-          .accessibilityHint("Restores this version as the current document")
-        }
-      }
-    }
-    .padding(.vertical, 8)
   }
 }

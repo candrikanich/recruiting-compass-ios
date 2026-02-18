@@ -295,7 +295,7 @@ final class DocumentDetailViewModel {
 
     do {
       try await documentsService.updateDocumentIsCurrent(id: version.id, isCurrent: true)
-      document = try? await documentsService.fetchDocument(id: version.id)
+      document = try? await documentsService.fetchDocument(id: self.documentId)
       await fetchVersions()
       logger.info("Restored version \(version.version)")
     } catch {

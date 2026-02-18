@@ -15,6 +15,7 @@ struct DocumentShareSheet: View {
                 Task { await viewModel.removeShare(schoolId: schoolId) }
               }
               .font(.caption)
+              .accessibilityLabel("Remove \(viewModel.schoolName(for: schoolId))")
             }
           }
         }
@@ -24,23 +25,15 @@ struct DocumentShareSheet: View {
 
   private var addSchoolsSection: some View {
     Section("Add Schools") {
-      ScrollView {
-        LazyVStack(spacing: 0) {
-          ForEach(availableSchools, id: \.id) { school in
-            addSchoolRow(school)
-          }
-          if viewModel.availableSchoolsForShare.isEmpty {
-            Text("No other schools to add")
-              .font(.subheadline)
-              .foregroundStyle(.secondary)
-              .frame(maxWidth: .infinity)
-              .padding()
-          }
-        }
+      ForEach(availableSchools, id: \.id) { school in
+        addSchoolRow(school)
       }
-      .frame(maxHeight: 200)
-      .listRowInsets(EdgeInsets())
-      .listRowSeparator(.hidden)
+      if viewModel.availableSchoolsForShare.isEmpty {
+        Text("No other schools to add")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+          .frame(maxWidth: .infinity)
+      }
     }
   }
 
@@ -60,7 +53,11 @@ struct DocumentShareSheet: View {
             .foregroundStyle(Color.accentBlue)
         }
       }
+      .frame(minHeight: 44)
+      .contentShape(Rectangle())
     }
+    .accessibilityLabel(school.name)
+    .accessibilityHint(viewModel.selectedSchoolIds.contains(school.id) ? "Selected. Double tap to deselect." : "Double tap to add")
   }
 
   var body: some View {

@@ -6,6 +6,12 @@ struct DocumentCardView: View {
   let onTap: () -> Void
   let onDelete: () -> Void
 
+  @Environment(\.sizeCategory) private var sizeCategory
+
+  private var iconSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 48 : 40
+  }
+
   var body: some View {
     Button(action: onTap) {
       VStack(alignment: .leading, spacing: 8) {
@@ -39,7 +45,7 @@ struct DocumentCardView: View {
         .aspectRatio(16/9, contentMode: .fit)
 
       Image(systemName: iconName)
-        .font(.system(size: 40))
+        .font(.system(size: iconSize))
         .foregroundStyle(.secondary)
     }
   }

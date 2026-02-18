@@ -3,6 +3,26 @@ import AVFoundation
 import AVKit
 import PDFKit
 
+// MARK: - Shared Preview Unavailable
+
+struct PreviewUnavailableView: View {
+  let icon: String
+  let message: String
+
+  var body: some View {
+    VStack(spacing: 8) {
+      Image(systemName: icon)
+        .font(.largeTitle)
+        .foregroundStyle(.secondary)
+      Text(message)
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+    }
+    .frame(maxWidth: .infinity)
+    .padding(32)
+  }
+}
+
 struct DocumentPreviewView: View {
   let document: Document
 
@@ -32,21 +52,8 @@ struct VideoPreviewView: View {
         .aspectRatio(16/9, contentMode: .fit)
         .cornerRadius(8)
     } else {
-      previewUnavailable
+      PreviewUnavailableView(icon: "video.slash", message: "Preview unavailable")
     }
-  }
-
-  private var previewUnavailable: some View {
-    VStack(spacing: 8) {
-      Image(systemName: "video.slash")
-        .font(.largeTitle)
-        .foregroundStyle(.secondary)
-      Text("Preview unavailable")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity)
-    .padding(32)
   }
 }
 
@@ -94,6 +101,11 @@ struct VideoPlayerViewControllerRepresentable: UIViewControllerRepresentable {
       _isBuffering = isBuffering
     }
 
+    deinit {
+      statusObservation?.invalidate()
+      statusObservation = nil
+    }
+
     func observeStatus(player: AVPlayer) {
       let binding = _isBuffering
       statusObservation = player.currentItem?.observe(\.status, options: [.new]) { _, change in
@@ -119,21 +131,8 @@ struct ImagePreviewView: View {
       ZoomableImageView(url: imageURL)
         .cornerRadius(8)
     } else {
-      imagePreviewUnavailable
+      PreviewUnavailableView(icon: "photo", message: "Preview unavailable")
     }
-  }
-
-  private var imagePreviewUnavailable: some View {
-    VStack(spacing: 8) {
-      Image(systemName: "photo")
-        .font(.largeTitle)
-        .foregroundStyle(.secondary)
-      Text("Preview unavailable")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity)
-    .padding(32)
   }
 }
 
@@ -192,28 +191,15 @@ struct ZoomableImageView: View {
             }
           }
       case .failure:
-        imagePreviewUnavailablePlaceholder
+        PreviewUnavailableView(icon: "photo", message: "Preview unavailable")
       case .empty:
         ProgressView()
           .frame(maxWidth: .infinity)
           .padding(32)
       @unknown default:
-        imagePreviewUnavailablePlaceholder
+        PreviewUnavailableView(icon: "photo", message: "Preview unavailable")
       }
     }
-  }
-
-  private var imagePreviewUnavailablePlaceholder: some View {
-    VStack(spacing: 8) {
-      Image(systemName: "photo")
-        .font(.largeTitle)
-        .foregroundStyle(.secondary)
-      Text("Preview unavailable")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity)
-    .padding(32)
   }
 }
 
@@ -228,21 +214,8 @@ struct PDFPreviewView: View {
         .frame(minHeight: 400)
         .cornerRadius(8)
     } else {
-      previewUnavailable
+      PreviewUnavailableView(icon: "doc", message: "Preview unavailable")
     }
-  }
-
-  private var previewUnavailable: some View {
-    VStack(spacing: 8) {
-      Image(systemName: "doc")
-        .font(.largeTitle)
-        .foregroundStyle(.secondary)
-      Text("Preview unavailable")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity)
-    .padding(32)
   }
 }
 

@@ -121,8 +121,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
     let rows: [VersionRow] = try await supabaseManager.client
       .from("documents")
       .select("id, version, file_url, is_current, created_at")
-      .eq("title", value: document.title)
-      .eq("type", value: document.type.rawValue)
+      .eq("document_id", value: documentId)
       .eq("user_id", value: userId)
       .order("version", ascending: false)
       .execute()
