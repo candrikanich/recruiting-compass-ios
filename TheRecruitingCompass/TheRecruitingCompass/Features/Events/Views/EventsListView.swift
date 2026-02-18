@@ -66,7 +66,7 @@ struct EventsListView: View {
     ) {
       Button("Delete", role: .destructive) {
         if let event = eventToDelete {
-          UINotificationFeedbackGenerator().notificationOccurred(.warning)
+          HapticFeedbackManager.shared.warning()
           Task { await viewModel.deleteEvent(id: event.id) }
           eventToDelete = nil
         }
@@ -216,7 +216,7 @@ struct EventsListView: View {
     .accessibilityLabel(rowAccessibilityLabel(event))
     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
       Button(role: .destructive) {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        HapticFeedbackManager.shared.lightImpact()
         eventToDelete = event
       } label: {
         Label("Delete", systemImage: "trash")
