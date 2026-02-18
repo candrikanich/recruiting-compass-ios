@@ -1,0 +1,212 @@
+import SwiftUI
+
+struct DocumentsListView: View {
+  @State private var viewModel = DocumentsListViewModel()
+  @State private var documentToDelete: Document?
+
+  var body: some View {
+    NavigationStack {
+    Group {
+      if viewModel.isLoading && viewModel.documents.isEmpty {
+        loadingState
+      } else {
+        mainContent
+      }
+    }
+    .navigationTitle("Documents")
+    .refreshable {
+      await viewModel.loadDocuments()
+    }
+    .task {
+      await viewModel.loadDocuments()
+      await viewModel.loadSchools()
+    }
+    .toolbar {
+      ToolbarItem(placement: .principal) {
+        Text("\(viewModel.sortedDocuments.count) of \(viewModel.documents.count) total")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+      ToolbarItem(placement: .navigationBarTrailing) {
+        Button {
+          viewModel.presentUploadForm()
+        } label: {
+          Image(systemName: "plus")
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .accessibilityLabel("Upload new document")
+        .accessibilityHint("Opens form to upload a document")
+      }
+    }
+    .sheet(isPresented: $viewModel.isUploadFormPresented) {
+      DocumentUploadSheet(viewModel: viewModel)
+    }
+    .sheet(isPresented: $viewModel.isFilterSheetPresented) {
+      DocumentFilterSheet(viewModel: viewModel)
+    }
+    .alert("Error", isPresented: Binding(
+      get: { viewModel.error != nil },
+      set: { if !$0 { viewModel.error = nil } }
+    )) {
+      Button("Retry") { Task { await viewModel.loadDocuments() } }
+      Button("OK", role: .cancel) { viewModel.error = nil }
+    } message: {
+      Text(viewModel.error ?? "")
+    }
+    .confirmationDialog("Delete Document", isPresented: Binding(
+      get: { documentToDelete != nil },
+      set: { if !$0 { documentToDelete = nil } }
+    ), titleVisibility: .visible) {
+      Button("Delete", role: .destructive) {
+        if let doc = documentToDelete {
+          Task { await viewModel.deleteDocument(id: doc.id) }
+          documentToDelete = nil
+        }
+      }
+      Button("Cancel", role: .cancel) { documentToDelete = nil }
+    } message: {
+      if let doc = documentToDelete {
+        Text("Are you sure you want to delete \"\(doc.title)\"? This action cannot be undone.")
+      }
+    }
+    .navigationDestination(for: String.self) { documentId in
+      DocumentDetailPlaceholderView(documentId: documentId)
+    }
+    .onOpenURL { _ in }  // Required for navigationDestination with String
+    }
+  }
+
+  private var loadingState: some View {
+    ContentUnavailableView {
+      ProgressView()
+    } description: {
+      Text("Loading documents...")
+    }
+  }
+
+  private var mainContent: some View {
+    ScrollView {
+      VStack(spacing: 16) {
+        DocumentStatisticsCardsRow(statistics: viewModel.statistics)
+          .padding(.vertical, 8)
+
+        DocumentFilterBar(
+          searchQuery: $viewModel.searchQuery,
+          sortBy: $viewModel.sortBy,
+          viewMode: $viewModel.viewMode,
+          hasActiveFilters: viewModel.hasActiveFilters,
+          activeFilterCount: viewModel.activeFilterCount,
+          onFilterTapped: { viewModel.isFilterSheetPresented = true },
+          onClearFilters: { viewModel.clearFilters() }
+        )
+
+        if viewModel.documents.isEmpty {
+          emptyState
+        } else if viewModel.sortedDocuments.isEmpty {
+          noResultsState
+        } else {
+          documentsContent
+        }
+      }
+      .padding()
+      .padding(.bottom, 80)
+    }
+    .overlay(alignment: .bottomTrailing) {
+      uploadFAB
+    }
+    .overlay(alignment: .top) {
+      if viewModel.error != nil {
+        errorBanner
+      }
+    }
+  }
+
+  private var emptyState: some View {
+    ContentUnavailableView {
+      Label("No documents yet", systemImage: "doc")
+    } description: {
+      Text("Upload videos, transcripts, and other documents to share with coaches")
+    } actions: {
+      Button("+ Upload Document") {
+        viewModel.presentUploadForm()
+      }
+      .accessibilityLabel("Upload new document")
+    }
+  }
+
+  private var noResultsState: some View {
+    ContentUnavailableView.search(text: viewModel.searchQuery)
+  }
+
+  @ViewBuilder
+  private var documentsContent: some View {
+    if viewModel.viewMode == .grid {
+      LazyVGrid(columns: [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+      ], spacing: 12) {
+        ForEach(viewModel.sortedDocuments) { doc in
+          NavigationLink(value: doc.id) {
+            DocumentCardView(
+              document: doc,
+              schoolName: viewModel.schoolName(for: doc.schoolId),
+              onTap: {},
+              onDelete: { documentToDelete = doc }
+            )
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    } else {
+      LazyVStack(spacing: 0) {
+        ForEach(viewModel.sortedDocuments) { doc in
+          NavigationLink(value: doc.id) {
+            DocumentListViewRow(
+              document: doc,
+              schoolName: viewModel.schoolName(for: doc.schoolId),
+              onTap: {},
+              onDelete: { documentToDelete = doc }
+            )
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    }
+  }
+
+  private var uploadFAB: some View {
+    Button {
+      viewModel.presentUploadForm()
+    } label: {
+      Image(systemName: "plus")
+        .font(.title2)
+        .fontWeight(.semibold)
+        .foregroundStyle(.white)
+        .frame(width: 56, height: 56)
+        .background(Color.blue)
+        .clipShape(Circle())
+        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+    }
+    .accessibilityLabel("Upload new document")
+    .accessibilityHint("Opens upload form")
+  }
+
+  private var errorBanner: some View {
+    HStack {
+      Text(viewModel.error ?? "")
+        .font(.caption)
+        .foregroundStyle(.white)
+      Spacer()
+      Button("Retry") {
+        Task { await viewModel.loadDocuments() }
+      }
+      .font(.caption)
+      .foregroundStyle(.white)
+    }
+    .padding()
+    .background(Color.red)
+    .cornerRadius(8)
+    .padding()
+  }
+}

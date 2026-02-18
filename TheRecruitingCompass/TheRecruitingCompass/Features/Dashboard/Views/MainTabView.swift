@@ -48,6 +48,14 @@ struct MainTabView: View {
       .accessibilityLabel("Events")
 
       NavigationStack {
+        DocumentsListView()
+      }
+      .tabItem {
+        Label("Documents", systemImage: "doc.fill")
+      }
+      .accessibilityLabel("Documents")
+
+      NavigationStack {
         InteractionsListView()
       }
       .tabItem {
