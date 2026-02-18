@@ -13,6 +13,7 @@ struct MetricsSectionView: View {
   let onSaveMetric: () async -> Void
   let onStartAdd: () -> Void
   let onCancelAdd: () -> Void
+  var onExport: (() -> Void)?
 
   var body: some View {
     Section {
@@ -48,8 +49,18 @@ struct MetricsSectionView: View {
       }
     } header: {
       HStack {
-        Text("Performance Metrics")
+        Text("Metrics Recorded at This Event")
         Spacer()
+        if !metrics.isEmpty, let onExport {
+          Button {
+            onExport()
+          } label: {
+            Image(systemName: "square.and.arrow.up")
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel("Export metrics")
+          .accessibilityHint("Exports metrics as CSV file")
+        }
         Text("\(metrics.count)")
           .font(.caption)
           .foregroundStyle(.secondary)

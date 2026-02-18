@@ -21,6 +21,7 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
 
   var lastCreateEventRequest: CreateEventRequest?
   var lastFetchEventId: String?
+  var lastFetchEventUserId: String?
   var lastFetchEventsUserId: String?
   var lastFetchSchoolsUserId: String?
   var lastCreateSchoolName: String?
@@ -39,6 +40,8 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
 
   var shouldThrowCreateEvent = false
   var shouldThrowFetchEvent = false
+  /// When shouldThrowFetchEvent is true, use this code (404 = not found, others = generic error).
+  var fetchEventErrorCode = 404
   var shouldThrowFetchEvents = false
   var shouldThrowFetchSchools = false
   var shouldThrowCreateSchool = false
@@ -95,14 +98,16 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
     return stubbedCreatedEvent
   }
 
-  func fetchEvent(id: String) async throws -> FullEvent {
+  func fetchEvent(id: String, userId: String) async throws -> FullEvent {
     fetchEventCallCount += 1
     lastFetchEventId = id
+    lastFetchEventUserId = userId
     if shouldThrowFetchEvent {
+      let message = fetchEventErrorCode == 404 ? "Event not found" : "Mock fetch event error"
       throw NSError(
         domain: "MockEventsService",
-        code: 4,
-        userInfo: [NSLocalizedDescriptionKey: "Mock fetch event error"]
+        code: fetchEventErrorCode,
+        userInfo: [NSLocalizedDescriptionKey: message]
       )
     }
     return stubbedFetchedEvent

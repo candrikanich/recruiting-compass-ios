@@ -40,6 +40,7 @@ final class EventDetailViewModelTests: XCTestCase {
     XCTAssertFalse(sut.isLoading)
     XCTAssertNil(sut.event)
     XCTAssertNil(sut.error)
+    XCTAssertFalse(sut.isNotFound)
     XCTAssertTrue(sut.schoolCoaches.isEmpty)
     XCTAssertTrue(sut.metrics.isEmpty)
     XCTAssertFalse(sut.showEditSheet)
@@ -73,31 +74,47 @@ final class EventDetailViewModelTests: XCTestCase {
     XCTAssertFalse(sut.isLoading)
     XCTAssertEqual(mockService.fetchEventCallCount, 1)
     XCTAssertEqual(mockService.lastFetchEventId, "test-event-id")
+    XCTAssertEqual(mockService.lastFetchEventUserId, "test-user-id")
     XCTAssertEqual(mockService.fetchCoachesCallCount, 1)
     XCTAssertEqual(mockService.fetchMetricsCallCount, 1)
   }
 
-  func testLoadAll_eventNotFound_setsError() async {
+  func testLoadAll_eventNotFound_setsIsNotFound() async {
     mockService.shouldThrowFetchEvent = true
+    mockService.fetchEventErrorCode = 404
 
     await sut.loadAll()
 
     XCTAssertNil(sut.event)
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to load event"))
+    XCTAssertTrue(sut.isNotFound)
+    XCTAssertNil(sut.error)
     XCTAssertFalse(sut.isLoading)
   }
 
   func testLoadAll_networkError_setsError() async {
     mockService.shouldThrowFetchEvent = true
+    mockService.fetchEventErrorCode = 500
+
+    await sut.loadAll()
+
+    XCTAssertNil(sut.event)
+    XCTAssertFalse(sut.isNotFound)
+    XCTAssertNotNil(sut.error)
+    XCTAssertTrue(sut.error!.contains("Failed to load event"))
+    XCTAssertFalse(sut.isLoading)
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 0)
+    XCTAssertEqual(mockService.fetchMetricsCallCount, 0)
+  }
+
+  func testLoadAll_noUserId_setsErrorAndDoesNotCallFetch() async {
+    mockAuthManager.reset()
 
     await sut.loadAll()
 
     XCTAssertNil(sut.event)
     XCTAssertNotNil(sut.error)
-    XCTAssertFalse(sut.isLoading)
-    XCTAssertEqual(mockService.fetchCoachesCallCount, 0)
-    XCTAssertEqual(mockService.fetchMetricsCallCount, 0)
+    XCTAssertTrue(sut.error!.contains("signed in"))
+    XCTAssertEqual(mockService.fetchEventCallCount, 0)
   }
 
   func testLoadAll_noSchoolId_skipsCoachesFetch() async {
@@ -111,6 +128,7 @@ final class EventDetailViewModelTests: XCTestCase {
 
   func testLoadAll_clearsErrorOnRetry() async {
     mockService.shouldThrowFetchEvent = true
+    mockService.fetchEventErrorCode = 500
     await sut.loadAll()
     XCTAssertNotNil(sut.error)
 
@@ -129,6 +147,7 @@ final class EventDetailViewModelTests: XCTestCase {
 
   func testLoadAll_clearsLoadingAfterFailure() async {
     mockService.shouldThrowFetchEvent = true
+    mockService.fetchEventErrorCode = 500
     await sut.loadAll()
     XCTAssertFalse(sut.isLoading)
   }
@@ -867,6 +886,28 @@ final class EventDetailViewModelTests: XCTestCase {
   }
 
   // MARK: - Clear Metric Form
+
+  func testPrepareCSVExport_withMetrics_setsExportFileURL() async {
+    mockService.stubbedFetchedEvent = .mock(name: "Showcase")
+    mockService.stubbedMetrics = [makeTestMetric(id: "m1")]
+    await sut.loadAll()
+
+    sut.prepareCSVExport()
+
+    XCTAssertNotNil(sut.exportFileURL)
+    XCTAssertTrue(FileManager.default.fileExists(atPath: sut.exportFileURL!.path))
+    sut.clearExport()
+    XCTAssertNil(sut.exportFileURL)
+  }
+
+  func testPrepareCSVExport_withNoMetrics_doesNotSetExportFileURL() async {
+    await sut.loadAll()
+    XCTAssertTrue(sut.metrics.isEmpty)
+
+    sut.prepareCSVExport()
+
+    XCTAssertNil(sut.exportFileURL)
+  }
 
   func testClearMetricForm_resetsDataAndHidesForm() {
     sut.newMetricData.valueText = "92.5"

@@ -25,6 +25,7 @@ final class EventDetailViewModel {
   var metrics: [PerformanceMetric] = []
   var isLoading = false
   var error: String?
+  var isNotFound = false
   var shouldDismiss = false
 
   // MARK: - Sheet State
@@ -63,6 +64,10 @@ final class EventDetailViewModel {
 
   var successMessage: String?
   var showSuccessToast = false
+
+  // MARK: - Export
+
+  var exportFileURL: URL?
 
   // MARK: - Dependencies
 
@@ -140,17 +145,35 @@ final class EventDetailViewModel {
     logger.debug("Loading event: \(self.eventId)")
     isLoading = true
     error = nil
+    isNotFound = false
     defer { isLoading = false }
 
+    guard let userId else {
+      self.error = "You must be signed in to view this event."
+      return
+    }
+
     do {
-      event = try await eventsService.fetchEvent(id: eventId)
+      event = try await eventsService.fetchEvent(id: eventId, userId: userId)
       logger.info("Loaded event: \(self.eventId)")
 
       await loadRelatedData()
     } catch {
       logger.error("Failed to load event: \(error.localizedDescription)")
-      self.error = "Failed to load event. Please try again."
+      if Self.isEventNotFound(error) {
+        isNotFound = true
+        self.error = nil
+      } else {
+        self.error = "Failed to load event. Please try again."
+      }
     }
+  }
+
+  private static func isEventNotFound(_ error: Error) -> Bool {
+    let ns = error as NSError
+    if ns.code == 404 { return true }
+    let msg = error.localizedDescription.lowercased()
+    return msg.contains("not found") || msg.contains("404") || msg.contains("pgrst116")
   }
 
   private func loadRelatedData() async {
@@ -414,6 +437,42 @@ final class EventDetailViewModel {
       self.error = "Failed to delete metric. Please try again."
       haptics.error()
     }
+  }
+
+  // MARK: - Export Metrics
+
+  func prepareCSVExport() {
+    guard let event, !metrics.isEmpty else { return }
+    let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+    dateFormatter.dateFormat = "yyyy-MM-dd"
+    var rows: [String] = ["Metric Type,Value,Unit,Recorded Date,Verified,Notes"]
+    for m in metrics {
+      let notesEscaped = (m.notes ?? "").replacingOccurrences(of: "\"", with: "\"\"")
+      let notes = notesEscaped.isEmpty ? "" : "\"\(notesEscaped)\""
+      let dateStr = dateFormatter.string(from: m.recordedDate)
+      rows.append("\(m.displayName),\(m.value),\(m.unit),\(dateStr),\(m.verified),\(notes)")
+    }
+    let csv = rows.joined(separator: "\n")
+    let fileName = "event-metrics-\(event.name.filter { $0.isLetter || $0.isNumber }).csv"
+      .replacingOccurrences(of: " ", with: "-")
+    let tempDir = FileManager.default.temporaryDirectory
+    let fileURL = tempDir.appendingPathComponent(fileName)
+    do {
+      try csv.write(to: fileURL, atomically: true, encoding: .utf8)
+      exportFileURL = fileURL
+      logger.info("CSV export prepared: \(fileName)")
+    } catch {
+      logger.error("Failed to write CSV: \(error.localizedDescription)")
+      self.error = "Failed to prepare export."
+    }
+  }
+
+  func clearExport() {
+    if let url = exportFileURL {
+      try? FileManager.default.removeItem(at: url)
+    }
+    exportFileURL = nil
   }
 
   // MARK: - Directions

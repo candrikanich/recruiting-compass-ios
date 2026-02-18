@@ -32,6 +32,8 @@ struct EventDetailView: View {
       if viewModel.isLoading && viewModel.event == nil {
         ProgressView("Loading event...")
           .accessibilityLabel("Loading event details")
+      } else if viewModel.event == nil && viewModel.isNotFound {
+        notFoundView
       } else if let errorMessage = viewModel.error, viewModel.event == nil {
         errorState(message: errorMessage)
       } else if let event = viewModel.event {
@@ -82,6 +84,36 @@ struct EventDetailView: View {
         successToast(message)
       }
     }
+    .sheet(isPresented: Binding(
+      get: { viewModel.exportFileURL != nil },
+      set: { if !$0 { viewModel.clearExport() } }
+    )) {
+      if let url = viewModel.exportFileURL {
+        EventMetricsShareSheet(activityItems: [url])
+      }
+    }
+  }
+
+  // MARK: - Not Found
+
+  private var notFoundView: some View {
+    VStack(spacing: Layout.errorSpacing) {
+      Image(systemName: "calendar.badge.exclamationmark")
+        .font(.largeTitle)
+        .foregroundStyle(.secondary)
+        .accessibilityHidden(true)
+      Text("Event not found")
+        .font(.headline)
+        .foregroundStyle(.secondary)
+      Button("Return to Events") {
+        dismiss()
+      }
+      .buttonStyle(.bordered)
+      .accessibilityLabel("Return to Events")
+      .accessibilityHint("Dismisses this screen and returns to the events list")
+    }
+    .padding()
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
   // MARK: - Toolbar
@@ -139,27 +171,25 @@ struct EventDetailView: View {
       if event.description != nil || event.url != nil {
         EventDetailsSection(event: event)
       }
-      if !viewModel.coachesAtEvent.isEmpty || !viewModel.availableCoaches.isEmpty {
-        CoachesPresentSection(
-          coachesAtEvent: viewModel.coachesAtEvent,
-          availableCoaches: viewModel.availableCoaches,
-          selectedCoachId: $viewModel.selectedCoachId,
-          onRemoveCoach: { id in await viewModel.removeCoach(id: id) },
-          onAddCoach: { await viewModel.addCoach() }
-        )
-      }
-      if !viewModel.metrics.isEmpty || viewModel.showMetricForm {
-        MetricsSectionView(
-          metrics: viewModel.metrics,
-          showMetricForm: viewModel.showMetricForm,
-          newMetricData: $viewModel.newMetricData,
-          isSavingMetric: viewModel.isSavingMetric,
-          onDeleteMetric: { id in await viewModel.deleteMetric(id: id) },
-          onSaveMetric: { await viewModel.addMetric() },
-          onStartAdd: { viewModel.startAddMetric() },
-          onCancelAdd: { viewModel.clearMetricForm() }
-        )
-      }
+      CoachesPresentSection(
+        schoolId: event.schoolId,
+        coachesAtEvent: viewModel.coachesAtEvent,
+        availableCoaches: viewModel.availableCoaches,
+        selectedCoachId: $viewModel.selectedCoachId,
+        onRemoveCoach: { id in await viewModel.removeCoach(id: id) },
+        onAddCoach: { await viewModel.addCoach() }
+      )
+      MetricsSectionView(
+        metrics: viewModel.metrics,
+        showMetricForm: viewModel.showMetricForm,
+        newMetricData: $viewModel.newMetricData,
+        isSavingMetric: viewModel.isSavingMetric,
+        onDeleteMetric: { id in await viewModel.deleteMetric(id: id) },
+        onSaveMetric: { await viewModel.addMetric() },
+        onStartAdd: { viewModel.startAddMetric() },
+        onCancelAdd: { viewModel.clearMetricForm() },
+        onExport: { viewModel.prepareCSVExport() }
+      )
       if event.performanceNotes != nil {
         EventPerformanceSection(event: event)
       }
@@ -196,5 +226,17 @@ struct EventDetailView: View {
       }
       .accessibilityLabel(message)
   }
-
 }
+
+// MARK: - Share Sheet
+
+struct EventMetricsShareSheet: UIViewControllerRepresentable {
+  let activityItems: [Any]
+
+  func makeUIViewController(context: Context) -> UIActivityViewController {
+    UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+  }
+
+  func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+

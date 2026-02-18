@@ -8,7 +8,7 @@ struct SchoolSummary: Codable, Identifiable, Sendable {
 
 protocol EventsManaging: Sendable {
   func createEvent(_ request: CreateEventRequest) async throws -> FullEvent
-  func fetchEvent(id: String) async throws -> FullEvent
+  func fetchEvent(id: String, userId: String) async throws -> FullEvent
   func fetchEvents(userId: String) async throws -> [FullEvent]
   func updateEvent(id: String, request: EventUpdateRequest) async throws -> FullEvent
   func deleteEvent(id: String) async throws

@@ -29,13 +29,14 @@ final class EventsServiceImpl: EventsManaging, Sendable {
     return result
   }
 
-  func fetchEvent(id: String) async throws -> FullEvent {
+  func fetchEvent(id: String, userId: String) async throws -> FullEvent {
     logger.debug("Fetching event: \(id)")
 
     let result: FullEvent = try await supabaseManager.client
       .from("events")
       .select()
       .eq("id", value: id)
+      .eq("user_id", value: userId)
       .single()
       .execute()
       .value
