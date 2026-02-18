@@ -24,14 +24,23 @@ struct DocumentShareSheet: View {
 
   private var addSchoolsSection: some View {
     Section("Add Schools") {
-      ForEach(availableSchools, id: \.id) { school in
-        addSchoolRow(school)
+      ScrollView {
+        LazyVStack(spacing: 0) {
+          ForEach(availableSchools, id: \.id) { school in
+            addSchoolRow(school)
+          }
+          if viewModel.availableSchoolsForShare.isEmpty {
+            Text("No other schools to add")
+              .font(.subheadline)
+              .foregroundStyle(.secondary)
+              .frame(maxWidth: .infinity)
+              .padding()
+          }
+        }
       }
-      if viewModel.availableSchoolsForShare.isEmpty {
-        Text("No other schools to add")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-      }
+      .frame(maxHeight: 200)
+      .listRowInsets(EdgeInsets())
+      .listRowSeparator(.hidden)
     }
   }
 
@@ -73,6 +82,7 @@ struct DocumentShareSheet: View {
             Task { await viewModel.saveShare() }
           }
           .disabled(viewModel.selectedSchoolIds.isEmpty)
+          .tint(Color.primaryGreen)
         }
       }
     }

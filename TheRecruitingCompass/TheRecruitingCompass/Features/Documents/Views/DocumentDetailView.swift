@@ -151,7 +151,7 @@ struct DocumentDetailView: View {
   @ToolbarContentBuilder
   private var toolbarContent: some ToolbarContent {
     ToolbarItem(placement: .cancellationAction) {
-      Button("Back") { dismiss() }
+      Button("Back to Documents") { dismiss() }
         .accessibilityLabel("Back to Documents")
     }
   }
@@ -203,6 +203,8 @@ struct DocumentDetailView: View {
           Text(document.title)
             .font(.title2)
             .fontWeight(.bold)
+            .lineLimit(2)
+            .truncationMode(.tail)
           if let desc = document.description, !desc.isEmpty {
             Text(desc)
               .font(.subheadline)
@@ -318,7 +320,17 @@ struct DocumentDetailView: View {
       .disabled(viewModel.isUploadingNewVersion)
       .overlay {
         if viewModel.isUploadingNewVersion {
-          ProgressView()
+          VStack(spacing: 8) {
+            ProgressView(value: viewModel.uploadProgress)
+              .progressViewStyle(.linear)
+              .tint(.white)
+            Text("\(Int(viewModel.uploadProgress * 100))%")
+              .font(.caption)
+              .foregroundStyle(.white)
+          }
+          .padding()
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+          .background(Color.black.opacity(0.6))
         }
       }
     }

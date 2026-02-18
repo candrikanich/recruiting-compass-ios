@@ -116,6 +116,8 @@ final class DocumentDetailViewModel {
         document = nil
         isNotFound = true
         self.error = nil
+      } else if Self.isUnauthorized(error) {
+        await handleAuthErrorIfNeeded(error)
       } else {
         self.error = "Unable to load document details. Check your connection."
       }
@@ -127,6 +129,24 @@ final class DocumentDetailViewModel {
     if ns.code == 404 { return true }
     let msg = error.localizedDescription.lowercased()
     return msg.contains("not found") || msg.contains("404") || msg.contains("pgrst116")
+  }
+
+  private static func isUnauthorized(_ error: Error) -> Bool {
+    let ns = error as NSError
+    if ns.code == 401 { return true }
+    let msg = error.localizedDescription.lowercased()
+    return msg.contains("401") || msg.contains("unauthorized") || msg.contains("jwt") || msg.contains("session expired")
+  }
+
+  private func handleAuthErrorIfNeeded(_ error: Error) async {
+    guard Self.isUnauthorized(error) else { return }
+    logger.warning("Unauthorized error - signing out")
+    do {
+      try await authManager.logout()
+    } catch {
+      logger.error("Logout failed: \(error.localizedDescription)")
+    }
+    self.error = "Your session has expired. Please sign in again."
   }
 
   func loadSchools() async {
@@ -169,7 +189,11 @@ final class DocumentDetailViewModel {
       logger.info("Updated document: \(self.documentId)")
     } catch {
       logger.error("Failed to save: \(error.localizedDescription)")
-      self.error = "Failed to save changes. Please try again."
+      if Self.isUnauthorized(error) {
+        await handleAuthErrorIfNeeded(error)
+      } else {
+        self.error = "Failed to save changes. Please try again."
+      }
     }
   }
 
@@ -196,7 +220,11 @@ final class DocumentDetailViewModel {
         try await documentsService.shareDocument(documentId: self.documentId, schoolId: schoolId)
       } catch {
         logger.error("Failed to share: \(error.localizedDescription)")
-        self.error = "Failed to share document. Check your connection."
+        if Self.isUnauthorized(error) {
+          await handleAuthErrorIfNeeded(error)
+        } else {
+          self.error = "Failed to share document. Check your connection."
+        }
         return
       }
     }
@@ -214,7 +242,11 @@ final class DocumentDetailViewModel {
       logger.info("Removed share for document: \(self.documentId)")
     } catch {
       logger.error("Failed to remove share: \(error.localizedDescription)")
-      self.error = "Failed to remove school access."
+      if Self.isUnauthorized(error) {
+        await handleAuthErrorIfNeeded(error)
+      } else {
+        self.error = "Failed to remove school access."
+      }
     }
   }
 
@@ -252,7 +284,11 @@ final class DocumentDetailViewModel {
         try await documentsService.updateDocumentIsCurrent(id: currentId, isCurrent: false)
       } catch {
         logger.error("Failed to unmark current: \(error.localizedDescription)")
-        self.error = "Failed to restore version. Please try again."
+        if Self.isUnauthorized(error) {
+          await handleAuthErrorIfNeeded(error)
+        } else {
+          self.error = "Failed to restore version. Please try again."
+        }
         return
       }
     }
@@ -264,7 +300,11 @@ final class DocumentDetailViewModel {
       logger.info("Restored version \(version.version)")
     } catch {
       logger.error("Failed to restore: \(error.localizedDescription)")
-      self.error = "Failed to restore version. Please try again."
+      if Self.isUnauthorized(error) {
+        await handleAuthErrorIfNeeded(error)
+      } else {
+        self.error = "Failed to restore version. Please try again."
+      }
     }
   }
 
@@ -313,7 +353,11 @@ final class DocumentDetailViewModel {
       logger.info("Uploaded new version for document: \(self.documentId)")
     } catch {
       logger.error("Upload failed: \(error.localizedDescription)")
-      self.error = "Upload failed: \(error.localizedDescription)"
+      if Self.isUnauthorized(error) {
+        await handleAuthErrorIfNeeded(error)
+      } else {
+        self.error = "Upload failed: \(error.localizedDescription)"
+      }
     }
   }
 
@@ -352,7 +396,11 @@ final class DocumentDetailViewModel {
       logger.info("Deleted document: \(self.documentId)")
     } catch {
       logger.error("Delete failed: \(error.localizedDescription)")
-      self.error = "Failed to delete document. Please try again."
+      if Self.isUnauthorized(error) {
+        await handleAuthErrorIfNeeded(error)
+      } else {
+        self.error = "Failed to delete document. Please try again."
+      }
     }
   }
 
