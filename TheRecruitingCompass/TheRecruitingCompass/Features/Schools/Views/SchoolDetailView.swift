@@ -40,34 +40,25 @@ struct SchoolDetailView: View {
     .task {
       await viewModel.loadSchool()
     }
-    .alert(item: $viewModel.activeAlert) { alert in
-      switch alert {
-      case .error(let message):
-        return Alert(
-          title: Text("Error"),
-          message: Text(message),
-          dismissButton: .default(Text("OK"))
-        )
-      case .deleteError(let message):
-        return Alert(
-          title: Text("Delete Failed"),
-          message: Text(message),
-          dismissButton: .default(Text("OK"))
-        )
-      case .deleteConfirmation:
-        return Alert(
-          title: Text("Delete School?"),
-          message: Text("This will permanently delete the school and all related data. This action cannot be undone."),
-          primaryButton: .destructive(Text("Delete")) {
-            Task {
-              await viewModel.deleteSchool {
-                dismiss()
-              }
-            }
-          },
-          secondaryButton: .cancel()
-        )
+    .alert("Error", isPresented: Binding(
+      get: { viewModel.errorMessage != nil && !viewModel.showDeleteConfirmation },
+      set: { if !$0 { viewModel.errorMessage = nil; viewModel.activeAlert = nil } }
+    ), presenting: viewModel.errorMessage) { _ in
+      Button("OK") { viewModel.errorMessage = nil; viewModel.activeAlert = nil }
+    } message: { message in
+      Text(message)
+    }
+    .confirmationDialog(
+      "Delete School?",
+      isPresented: $viewModel.showDeleteConfirmation,
+      titleVisibility: .visible
+    ) {
+      Button("Delete", role: .destructive) {
+        Task { await viewModel.deleteSchool { dismiss() } }
       }
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      Text("This will permanently delete the school and all related data. This action cannot be undone.")
     }
   }
 
@@ -276,8 +267,16 @@ struct SchoolDetailView: View {
       switch destination {
       case .coaches(let schoolId):
         CoachesListView(prefilterSchoolId: schoolId)
-      case .addInteraction(let schoolId):
-        Text("Add Interaction for School: \(schoolId)")
+      case .addInteraction:
+        if let familyUnitId = familyManager.familyUnitId, let userId = viewModel.currentUserId {
+          AddInteractionView(
+            interactionsService: InteractionsServiceImpl(supabaseManager: .shared),
+            familyUnitId: familyUnitId,
+            userId: userId
+          )
+        } else {
+          ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
+        }
       }
     }
     .sheet(isPresented: $viewModel.isEditingBasicInfo) {

@@ -497,7 +497,6 @@ final class SchoolDetailViewModel {
 
   func confirmDelete() {
     showDeleteConfirmation = true
-    activeAlert = .deleteConfirmation
   }
 
   func deleteSchool(onSuccess: @escaping () -> Void) async {
