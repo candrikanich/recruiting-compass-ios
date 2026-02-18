@@ -67,6 +67,7 @@ final class EventDetailViewModel {
   private let eventsService: EventsManaging
   private let authManager: any AuthManaging
   private let haptics = HapticFeedbackManager.shared
+  private let exportService = MetricsExportService()
   let eventId: String
 
   // MARK: - Computed
@@ -413,22 +414,8 @@ final class EventDetailViewModel {
 
   func prepareCSVExport() {
     guard let event, !metrics.isEmpty else { return }
-    var rows: [String] = ["Metric Type,Value,Unit,Recorded Date,Verified,Notes"]
-    for m in metrics {
-      let notesEscaped = (m.notes ?? "").replacingOccurrences(of: "\"", with: "\"\"")
-      let notes = notesEscaped.isEmpty ? "" : "\"\(notesEscaped)\""
-      let dateStr = DateFormatting.isoExportFormatter.string(from: m.recordedDate)
-      rows.append("\(m.displayName),\(m.value),\(m.unit),\(dateStr),\(m.verified),\(notes)")
-    }
-    let csv = rows.joined(separator: "\n")
-    let fileName = "event-metrics-\(event.name.filter { $0.isLetter || $0.isNumber }).csv"
-      .replacingOccurrences(of: " ", with: "-")
-    let tempDir = FileManager.default.temporaryDirectory
-    let fileURL = tempDir.appendingPathComponent(fileName)
     do {
-      try csv.write(to: fileURL, atomically: true, encoding: .utf8)
-      exportFileURL = fileURL
-      logger.info("CSV export prepared: \(fileName)")
+      exportFileURL = try exportService.prepareCSV(metrics: metrics, eventName: event.name)
     } catch {
       logger.error("Failed to write CSV: \(error.localizedDescription)")
       self.error = "Failed to prepare export."
@@ -437,7 +424,7 @@ final class EventDetailViewModel {
 
   func clearExport() {
     if let url = exportFileURL {
-      try? FileManager.default.removeItem(at: url)
+      exportService.cleanup(url: url)
     }
     exportFileURL = nil
   }
