@@ -320,6 +320,82 @@ final class EventsListViewModelTests: XCTestCase {
     XCTAssertEqual(mockService.lastDeleteEventId, "abc-123")
   }
 
+  // MARK: - Calendar
+
+  func testCalendarDays_returns42Days() {
+    XCTAssertEqual(sut.calendarDays.count, 42)
+  }
+
+  func testCalendarDays_firstDayIsSunday() {
+    let calendar = Calendar.current
+    let firstDay = sut.calendarDays.first!
+    XCTAssertEqual(calendar.component(.weekday, from: firstDay), 1) // 1 = Sunday
+  }
+
+  func testCurrentMonthTitle_formatsCorrectly() {
+    XCTAssertFalse(sut.currentMonthTitle.isEmpty)
+    XCTAssertTrue(sut.currentMonthTitle.contains(String(Calendar.current.component(.year, from: Date()))))
+  }
+
+  func testHasEvent_returnsTrueWhenEventOnDate() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [fullEventMock(id: "e1", startDate: "2099-06-15")]
+    await sut.loadEvents()
+
+    var components = DateComponents()
+    components.year = 2099; components.month = 6; components.day = 15
+    let date = Calendar.current.date(from: components)!
+
+    XCTAssertTrue(sut.hasEvent(on: date))
+  }
+
+  func testHasEvent_returnsFalseWhenNoEventOnDate() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [fullEventMock(id: "e1", startDate: "2099-06-15")]
+    await sut.loadEvents()
+
+    var components = DateComponents()
+    components.year = 2099; components.month = 6; components.day = 16
+    let date = Calendar.current.date(from: components)!
+
+    XCTAssertFalse(sut.hasEvent(on: date))
+  }
+
+  func testNavigateToPreviousMonth_decrementsMonth() {
+    let initial = sut.currentMonth
+    sut.navigateToPreviousMonth()
+    let previous = sut.currentMonth
+    XCTAssertEqual(
+      Calendar.current.dateComponents([.month], from: previous, to: initial).month, 1
+    )
+  }
+
+  func testNavigateToNextMonth_incrementsMonth() {
+    let initial = sut.currentMonth
+    sut.navigateToNextMonth()
+    let next = sut.currentMonth
+    XCTAssertEqual(
+      Calendar.current.dateComponents([.month], from: initial, to: next).month, 1
+    )
+  }
+
+  func testEventsForDate_returnsMatchingEvents() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [
+      fullEventMock(id: "e1", name: "June Event", startDate: "2099-06-15"),
+      fullEventMock(id: "e2", name: "July Event", startDate: "2099-07-01")
+    ]
+    await sut.loadEvents()
+
+    var components = DateComponents()
+    components.year = 2099; components.month = 6; components.day = 15
+    let date = Calendar.current.date(from: components)!
+
+    let result = sut.eventsForDate(date)
+    XCTAssertEqual(result.count, 1)
+    XCTAssertEqual(result.first?.name, "June Event")
+  }
+
   // MARK: - Helpers
 
   private func userMock(id: String) -> User {
