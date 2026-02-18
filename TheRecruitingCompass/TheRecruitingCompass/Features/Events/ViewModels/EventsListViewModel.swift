@@ -21,6 +21,12 @@ final class EventsListViewModel {
   var statusFilter: StatusFilter = .all
   var dateRangeFilter: DateRangeFilter = .all
   var sortBy: SortOption = .dateDesc
+  var currentMonth: Date = {
+    let calendar = Calendar.current
+    let components = calendar.dateComponents([.year, .month], from: Date())
+    return calendar.date(from: components) ?? Date()
+  }()
+  var selectedCalendarDate: Date? = nil
 
   // MARK: - Computed
 
@@ -85,6 +91,42 @@ final class EventsListViewModel {
     !searchText.isEmpty || typeFilter != nil || statusFilter != .all || dateRangeFilter != .all
   }
 
+  var currentMonthTitle: String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMMM yyyy"
+    return formatter.string(from: currentMonth)
+  }
+
+  var calendarDays: [Date] {
+    let calendar = Calendar.current
+    guard let firstOfMonth = calendar.date(
+      from: calendar.dateComponents([.year, .month], from: currentMonth)
+    ) else { return [] }
+    let weekday = calendar.component(.weekday, from: firstOfMonth)
+    let startOffset = -(weekday - 1)
+    return (0..<42).compactMap {
+      calendar.date(byAdding: .day, value: startOffset + $0, to: firstOfMonth)
+    }
+  }
+
+  func hasEvent(on date: Date) -> Bool {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    let prefix = formatter.string(from: date)
+    return events.contains { $0.startDate == prefix }
+  }
+
+  func isCurrentMonth(_ date: Date) -> Bool {
+    Calendar.current.isDate(date, equalTo: currentMonth, toGranularity: .month)
+  }
+
+  func eventsForDate(_ date: Date) -> [FullEvent] {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    let prefix = formatter.string(from: date)
+    return filteredEvents.filter { $0.startDate == prefix }
+  }
+
   // MARK: - Dependencies
 
   private let eventsService: EventsManaging
@@ -137,6 +179,14 @@ final class EventsListViewModel {
       logger.error("Failed to delete event \(id): \(error.localizedDescription)")
       self.error = "Failed to delete event. Please try again."
     }
+  }
+
+  func navigateToPreviousMonth() {
+    currentMonth = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
+  }
+
+  func navigateToNextMonth() {
+    currentMonth = Calendar.current.date(byAdding: .month, value: 1, to: currentMonth) ?? currentMonth
   }
 
   // MARK: - Private Helpers

@@ -94,6 +94,7 @@ struct EventsListView: View {
   private var eventsContent: some View {
     ScrollViewReader { proxy in
       List {
+        calendarSection
         filterBar
         sortResultsBar
 
@@ -120,6 +121,31 @@ struct EventsListView: View {
         }
       }
       .listStyle(.insetGrouped)
+      .onChange(of: viewModel.selectedCalendarDate) { _, date in
+        guard let date else { return }
+        if let id = viewModel.eventsForDate(date).first?.id {
+          withAnimation { proxy.scrollTo(id, anchor: .top) }
+        }
+      }
+    }
+  }
+
+  // MARK: - Calendar Section
+
+  private var calendarSection: some View {
+    Section {
+      EventsCalendarView(
+        title: viewModel.currentMonthTitle,
+        days: viewModel.calendarDays,
+        hasEvent: viewModel.hasEvent(on:),
+        isCurrentMonth: viewModel.isCurrentMonth(_:),
+        selectedDate: viewModel.selectedCalendarDate,
+        onSelectDate: { date in viewModel.selectedCalendarDate = date },
+        onPreviousMonth: { viewModel.navigateToPreviousMonth() },
+        onNextMonth: { viewModel.navigateToNextMonth() }
+      )
+      .listRowInsets(EdgeInsets())
+      .listRowBackground(Color.clear)
     }
   }
 
