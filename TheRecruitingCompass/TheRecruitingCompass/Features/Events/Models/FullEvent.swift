@@ -23,11 +23,13 @@ struct FullEvent: Codable, Identifiable, Sendable {
   let performanceNotes: String?
   let userId: String
   let createdAt: String
+  let coachesPresent: [String]?
   let updatedAt: String
 
   enum CodingKeys: String, CodingKey {
     case id, name, type, location, address, city, state, url, description, cost, registered, attended
     case schoolId = "school_id"
+    case coachesPresent = "coaches_present"
     case startDate = "start_date"
     case startTime = "start_time"
     case endDate = "end_date"

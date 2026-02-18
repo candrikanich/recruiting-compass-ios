@@ -155,6 +155,7 @@ struct EventRow: View {
         performanceNotes: nil,
         userId: "user-1",
         createdAt: "2026-02-01T12:00:00Z",
+        coachesPresent: nil,
         updatedAt: "2026-02-01T12:00:00Z"
       ),
       FullEvent(
@@ -180,6 +181,7 @@ struct EventRow: View {
         performanceNotes: nil,
         userId: "user-1",
         createdAt: "2026-02-01T12:00:00Z",
+        coachesPresent: nil,
         updatedAt: "2026-02-01T12:00:00Z"
       )
     ]

@@ -74,6 +74,102 @@ final class EventsServiceImpl: EventsManaging, Sendable {
     return results
   }
 
+  func updateEvent(id: String, request: EventUpdateRequest) async throws -> FullEvent {
+    logger.debug("Updating event: \(id)")
+
+    let result: FullEvent = try await supabaseManager.client
+      .from("events")
+      .update(request)
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Event updated: \(result.id)")
+    return result
+  }
+
+  func deleteEvent(id: String) async throws {
+    logger.debug("Deleting event: \(id)")
+
+    try await supabaseManager.client
+      .from("events")
+      .delete()
+      .eq("id", value: id)
+      .execute()
+
+    logger.info("Event deleted: \(id)")
+  }
+
+  func fetchCoaches(schoolId: String, userId: String) async throws -> [Coach] {
+    logger.debug("Fetching coaches for school: \(schoolId)")
+
+    let results: [Coach] = try await supabaseManager.client
+      .from("coaches")
+      .select("id,first_name,last_name,position,email,phone,school_id,twitter_handle,instagram_handle,notes,private_notes,responsiveness_score,last_contact_date,created_at,updated_at")
+      .eq("school_id", value: schoolId)
+      .eq("user_id", value: userId)
+      .execute()
+      .value
+
+    logger.info("Fetched \(results.count) coaches")
+    return results
+  }
+
+  func fetchMetrics(eventId: String, userId: String) async throws -> [PerformanceMetric] {
+    logger.debug("Fetching metrics for event: \(eventId)")
+
+    let results: [PerformanceMetric] = try await supabaseManager.client
+      .from("performance_metrics")
+      .select()
+      .eq("event_id", value: eventId)
+      .eq("user_id", value: userId)
+      .execute()
+      .value
+
+    logger.info("Fetched \(results.count) metrics")
+    return results
+  }
+
+  func createMetric(_ request: CreateMetricRequest) async throws -> PerformanceMetric {
+    logger.debug("Creating metric: \(request.metricType)")
+
+    let result: PerformanceMetric = try await supabaseManager.client
+      .from("performance_metrics")
+      .insert(request)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Metric created: \(result.id)")
+    return result
+  }
+
+  func deleteMetric(id: String) async throws {
+    logger.debug("Deleting metric: \(id)")
+
+    try await supabaseManager.client
+      .from("performance_metrics")
+      .delete()
+      .eq("id", value: id)
+      .execute()
+
+    logger.info("Metric deleted: \(id)")
+  }
+
+  func createInteraction(_ request: CreateInteractionRequest) async throws {
+    logger.debug("Creating interaction for event: \(request.eventId)")
+
+    try await supabaseManager.client
+      .from("interactions")
+      .insert(request)
+      .execute()
+
+    logger.info("Interaction created for event: \(request.eventId)")
+  }
+
   func createSchool(name: String, location: String?, userId: String) async throws -> SchoolSummary {
     logger.debug("Creating school: \(name)")
 

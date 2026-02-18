@@ -1,11 +1,26 @@
 import SwiftUI
 
 struct EventDetailView: View {
-  @State private var viewModel: EventDetailViewModel
+  private enum Layout {
+    static let toastHorizontalPadding: CGFloat = 16
+    static let toastVerticalPadding: CGFloat = 10
+    static let toastBottomPadding: CGFloat = 20
+    static let toastShadowRadius: CGFloat = 4
+    static let toastDismissDelay: Duration = .seconds(2)
+    static let errorSpacing: CGFloat = 16
+  }
 
-  init(eventId: String, eventsService: EventsManaging = EventsServiceImpl()) {
+  @State private var viewModel: EventDetailViewModel
+  @Environment(\.dismiss) private var dismiss
+
+  init(
+    eventId: String,
+    eventsService: EventsManaging = EventsServiceImpl(),
+    authManager: any AuthManaging = AuthManager.shared
+  ) {
     _viewModel = State(initialValue: EventDetailViewModel(
       eventsService: eventsService,
+      authManager: authManager,
       eventId: eventId
     ))
   }
@@ -25,17 +40,81 @@ struct EventDetailView: View {
     }
     .navigationTitle(viewModel.event?.name ?? "Event")
     .navigationBarTitleDisplayMode(.large)
-    .task {
-      await viewModel.loadEvent()
+    .toolbar { toolbarMenu }
+    .task { await viewModel.loadAll() }
+    .sheet(isPresented: $viewModel.showEditSheet) {
+      EditEventSheet(
+        editData: $viewModel.editData,
+        isSaving: viewModel.isSaving,
+        onSave: { Task { await viewModel.updateEvent() } },
+        onCancel: { viewModel.showEditSheet = false }
+      )
+    }
+    .sheet(isPresented: $viewModel.showQuickLogSheet) {
+      QuickLogInteractionSheet(
+        data: $viewModel.interactionData,
+        coaches: viewModel.schoolCoaches,
+        isSubmitting: viewModel.isLoggingInteraction,
+        onSave: { Task { await viewModel.logInteraction() } },
+        onCancel: { viewModel.showQuickLogSheet = false }
+      )
+    }
+    .confirmationDialog("Delete Event", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
+      Button("Delete", role: .destructive) { Task { await viewModel.deleteEvent() } }
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      Text("Are you sure you want to delete this event? This action cannot be undone.")
     }
     .alert("Error", isPresented: Binding(
       get: { viewModel.error != nil && viewModel.event != nil },
       set: { if !$0 { viewModel.error = nil } }
     )) {
-      Button("Retry") { Task { await viewModel.loadEvent() } }
+      Button("Retry") { Task { await viewModel.loadAll() } }
       Button("OK", role: .cancel) { viewModel.error = nil }
     } message: {
       Text(viewModel.error ?? "")
+    }
+    .onChange(of: viewModel.shouldDismiss) { _, shouldDismiss in
+      if shouldDismiss { dismiss() }
+    }
+    .overlay(alignment: .bottom) {
+      if viewModel.showSuccessToast, let message = viewModel.successMessage {
+        successToast(message)
+      }
+    }
+  }
+
+  // MARK: - Toolbar
+
+  @ToolbarContentBuilder
+  private var toolbarMenu: some ToolbarContent {
+    if viewModel.event != nil {
+      ToolbarItemGroup(placement: .primaryAction) {
+        Menu {
+          if viewModel.event?.attended != true {
+            Button(action: { Task { await viewModel.markAsAttended() } }) {
+              Label("Mark as attended", systemImage: "checkmark.circle")
+            }
+          }
+          Button(action: { viewModel.openEditForm() }) {
+            Label("Edit event", systemImage: "pencil")
+          }
+          Button(action: { viewModel.startQuickLog() }) {
+            Label("Log Interaction", systemImage: "bubble.left.and.text.bubble.right")
+          }
+          Button(action: { viewModel.startAddMetric() }) {
+            Label("Add Metric", systemImage: "chart.bar")
+          }
+          Divider()
+          Button(role: .destructive, action: { viewModel.confirmDelete() }) {
+            Label("Delete event", systemImage: "trash")
+          }
+          .accessibilityHint("Permanently deletes this event")
+        } label: {
+          Image(systemName: "ellipsis.circle")
+            .accessibilityLabel("Event actions")
+        }
+      }
     }
   }
 
@@ -43,215 +122,79 @@ struct EventDetailView: View {
 
   private func eventContent(_ event: FullEvent) -> some View {
     List {
-      headerSection(event)
+      EventHeaderSection(
+        event: event,
+        formattedDateRange: viewModel.formattedDateRange,
+        formattedCost: viewModel.formattedCost,
+        costAccessibilityLabel: viewModel.costAccessibilityLabel
+      )
       if event.address != nil || event.city != nil || event.location != nil {
-        locationSection(event)
+        EventLocationSection(
+          event: event,
+          formattedLocation: viewModel.formattedLocation,
+          hasLocation: viewModel.hasLocation,
+          getDirectionsURL: viewModel.getDirectionsURL
+        )
       }
       if event.description != nil || event.url != nil {
-        detailsSection(event)
+        EventDetailsSection(event: event)
+      }
+      if !viewModel.coachesAtEvent.isEmpty || !viewModel.availableCoaches.isEmpty {
+        CoachesPresentSection(
+          coachesAtEvent: viewModel.coachesAtEvent,
+          availableCoaches: viewModel.availableCoaches,
+          selectedCoachId: $viewModel.selectedCoachId,
+          onRemoveCoach: { id in await viewModel.removeCoach(id: id) },
+          onAddCoach: { await viewModel.addCoach() }
+        )
+      }
+      if !viewModel.metrics.isEmpty || viewModel.showMetricForm {
+        MetricsSectionView(
+          metrics: viewModel.metrics,
+          showMetricForm: viewModel.showMetricForm,
+          newMetricData: $viewModel.newMetricData,
+          isSavingMetric: viewModel.isSavingMetric,
+          onDeleteMetric: { id in await viewModel.deleteMetric(id: id) },
+          onSaveMetric: { await viewModel.addMetric() },
+          onStartAdd: { viewModel.startAddMetric() },
+          onCancelAdd: { viewModel.clearMetricForm() }
+        )
       }
       if event.performanceNotes != nil {
-        performanceSection(event)
+        EventPerformanceSection(event: event)
       }
     }
     .listStyle(.insetGrouped)
+    .refreshable { await viewModel.loadAll() }
   }
 
-  // MARK: - Header Section
-
-  private func headerSection(_ event: FullEvent) -> some View {
-    Section {
-      HStack {
-        EventTypeBadge(type: event.type)
-        Spacer()
-        EventStatusBadge(registered: event.registered, attended: event.attended)
-      }
-      .accessibilityElement(children: .combine)
-      .accessibilityLabel("\(EventType(rawValue: event.type)?.displayName ?? event.type), \(statusLabel(event))")
-
-      Label(viewModel.formattedDateRange, systemImage: "calendar")
-        .accessibilityLabel("Date: \(viewModel.formattedDateRange)")
-
-      if let startTime = event.startTime, !startTime.isEmpty {
-        Label(timeRange(start: startTime, end: event.endTime), systemImage: "clock")
-          .accessibilityLabel("Time: \(timeRange(start: startTime, end: event.endTime))")
-      }
-
-      if let checkinTime = event.checkinTime, !checkinTime.isEmpty {
-        Label("Check-in: \(checkinTime)", systemImage: "checkmark.circle")
-          .accessibilityLabel("Check-in time: \(checkinTime)")
-      }
-
-      if let cost = event.cost {
-        Label(cost == 0 ? "Free" : String(format: "$%.2f", cost), systemImage: "dollarsign.circle")
-          .accessibilityLabel(cost == 0 ? "Free event" : String(format: "Cost: $%.2f", cost))
-      }
-
-      if let source = event.eventSource, !source.isEmpty {
-        Label(EventSource(rawValue: source)?.displayName ?? source, systemImage: "pin")
-          .foregroundStyle(.secondary)
-          .accessibilityLabel("Source: \(EventSource(rawValue: source)?.displayName ?? source)")
-      }
-    } header: {
-      Text("Event Info")
-    }
-  }
-
-  // MARK: - Location Section
-
-  private func locationSection(_ event: FullEvent) -> some View {
-    Section {
-      if let address = event.address, !address.isEmpty {
-        Label(address, systemImage: "mappin")
-          .accessibilityLabel("Address: \(address)")
-      }
-      if let locationLine = viewModel.formattedLocation {
-        Label(locationLine, systemImage: "location")
-          .accessibilityLabel("Location: \(locationLine)")
-      }
-      if let venueName = event.location, !venueName.isEmpty {
-        Label(venueName, systemImage: "building.2")
-          .accessibilityLabel("Venue: \(venueName)")
-      }
-      if viewModel.hasLocation {
-        Button {
-          if let url = viewModel.getDirectionsURL() {
-            UIApplication.shared.open(url)
-          }
-        } label: {
-          Label("Get Directions", systemImage: "map")
-        }
-        .accessibilityLabel("Get directions to event location")
-        .accessibilityHint("Opens Apple Maps")
-      }
-    } header: {
-      Text("Location")
-    }
-  }
-
-  // MARK: - Details Section
-
-  private func detailsSection(_ event: FullEvent) -> some View {
-    Section {
-      if let description = event.description, !description.isEmpty {
-        VStack(alignment: .leading, spacing: 4) {
-          Text("Description")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-          Text(description)
-            .font(.body)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Description: \(description)")
-      }
-      if let url = event.url, !url.isEmpty {
-        Link(url, destination: URL(string: url) ?? URL(string: "https://example.com")!)
-          .accessibilityLabel("Event link: \(url)")
-      }
-    } header: {
-      Text("Details")
-    }
-  }
-
-  // MARK: - Performance Section
-
-  private func performanceSection(_ event: FullEvent) -> some View {
-    Section {
-      if let notes = event.performanceNotes, !notes.isEmpty {
-        Text(notes)
-          .accessibilityLabel("Performance notes: \(notes)")
-      }
-    } header: {
-      Text("Performance Notes")
-    }
-  }
-
-  // MARK: - Error State
+  // MARK: - Supporting Views
 
   private func errorState(message: String) -> some View {
-    VStack(spacing: 16) {
+    VStack(spacing: Layout.errorSpacing) {
       Image(systemName: "exclamationmark.triangle")
-        .font(.largeTitle)
-        .foregroundStyle(.secondary)
-        .accessibilityHidden(true)
-      Text(message)
-        .multilineTextAlignment(.center)
-      Button("Retry") {
-        Task { await viewModel.loadEvent() }
-      }
-      .buttonStyle(.bordered)
+        .font(.largeTitle).foregroundStyle(.secondary).accessibilityHidden(true)
+      Text(message).multilineTextAlignment(.center)
+      Button("Retry") { Task { await viewModel.loadAll() } }.buttonStyle(.bordered)
     }
     .padding()
   }
 
-  // MARK: - Helpers
-
-  private func statusLabel(_ event: FullEvent) -> String {
-    if event.attended { return "Attended" }
-    if event.registered { return "Registered" }
-    return "Not Registered"
+  private func successToast(_ message: String) -> some View {
+    Text(message)
+      .font(.subheadline).fontWeight(.medium).foregroundStyle(.white)
+      .padding(.horizontal, Layout.toastHorizontalPadding)
+      .padding(.vertical, Layout.toastVerticalPadding)
+      .background(.green.gradient, in: Capsule())
+      .shadow(radius: Layout.toastShadowRadius)
+      .padding(.bottom, Layout.toastBottomPadding)
+      .accessibilityAddTraits(.updatesFrequently)
+      .transition(.opacity)
+      .task {
+        try? await Task.sleep(for: Layout.toastDismissDelay)
+        withAnimation { viewModel.showSuccessToast = false }
+      }
+      .accessibilityLabel(message)
   }
 
-  private func timeRange(start: String, end: String?) -> String {
-    guard let end, !end.isEmpty else { return start }
-    return "\(start) – \(end)"
-  }
-}
-
-// MARK: - Supporting Views
-
-private struct EventTypeBadge: View {
-  let type: String
-
-  private var eventType: EventType? { EventType(rawValue: type) }
-
-  var body: some View {
-    Text(eventType?.displayName ?? type)
-      .font(.caption)
-      .fontWeight(.semibold)
-      .padding(.horizontal, 10)
-      .padding(.vertical, 4)
-      .background(badgeColor.opacity(0.15))
-      .foregroundStyle(badgeColor)
-      .clipShape(Capsule())
-  }
-
-  private var badgeColor: Color {
-    switch eventType {
-    case .showcase: return .purple
-    case .camp: return .green
-    case .officialVisit: return .blue
-    case .unofficialVisit: return .cyan
-    case .game: return .orange
-    case nil: return .gray
-    }
-  }
-}
-
-private struct EventStatusBadge: View {
-  let registered: Bool
-  let attended: Bool
-
-  var body: some View {
-    Text(label)
-      .font(.caption)
-      .fontWeight(.semibold)
-      .padding(.horizontal, 10)
-      .padding(.vertical, 4)
-      .background(color.opacity(0.15))
-      .foregroundStyle(color)
-      .clipShape(Capsule())
-  }
-
-  private var label: String {
-    if attended { return "Attended" }
-    if registered { return "Registered" }
-    return "Not Registered"
-  }
-
-  private var color: Color {
-    if attended { return .green }
-    if registered { return .blue }
-    return .gray
-  }
 }
