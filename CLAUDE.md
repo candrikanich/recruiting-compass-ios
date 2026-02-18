@@ -135,6 +135,8 @@ class MockAuthManager: AuthManaging { /* ... */ }
 
 ## Creating New Screens
 
+**Xcode project:** This repo uses `PBXFileSystemSynchronizedRootGroup`; new .swift files are included automatically. Do **not** run `scripts/add_files_to_xcode.rb` — it corrupts the project file.
+
 **Template:** `TheRecruitingCompass/UI/Screens/_ScreenTemplate/`
 
 **Quick Workflow:**
