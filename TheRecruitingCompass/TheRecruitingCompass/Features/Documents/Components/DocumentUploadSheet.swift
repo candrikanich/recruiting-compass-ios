@@ -72,9 +72,17 @@ struct DocumentUploadSheet: View {
           }
 
           if viewModel.isUploading {
-            HStack {
-              ProgressView()
-              Text("Uploading...")
+            VStack(alignment: .leading, spacing: 8) {
+              if viewModel.uploadProgress > 0 && viewModel.uploadProgress < 1 {
+                ProgressView(value: viewModel.uploadProgress)
+                  .tint(.blue)
+              } else {
+                ProgressView()
+              }
+              Text(viewModel.uploadProgress > 0 && viewModel.uploadProgress < 1
+                ? "\(Int(viewModel.uploadProgress * 100))%"
+                : "Uploading...")
+                .font(.caption)
                 .foregroundStyle(.secondary)
             }
           }

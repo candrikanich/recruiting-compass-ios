@@ -265,6 +265,12 @@ final class DocumentsListViewModel {
       return
     }
 
+    let maxBytes = 100 * 1024 * 1024  // 100MB
+    if let fileSize = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize, fileSize > maxBytes {
+      uploadError = "File exceeds 100MB limit. Please compress or choose a smaller file."
+      return
+    }
+
     let ext = "." + (fileURL.pathExtension.lowercased())
     guard type.allowedExtensions.contains(ext) else {
       uploadError = "Invalid file type. \(type.label) requires \(type.allowedExtensions.joined(separator: ", "))."
@@ -277,6 +283,7 @@ final class DocumentsListViewModel {
 
       isUploading = true
       uploadError = nil
+      uploadProgress = 0.5  // Show progress during upload; set to 1 on success
 
       let doc = try await documentsService.uploadDocument(
         userId: userId,
@@ -290,6 +297,7 @@ final class DocumentsListViewModel {
         version: uploadVersion
       )
 
+      uploadProgress = 1
       documents.insert(doc, at: 0)
       dismissUploadForm()
     } catch {
@@ -297,6 +305,7 @@ final class DocumentsListViewModel {
       uploadError = "Upload failed: \(error.localizedDescription)"
     }
     isUploading = false
+    uploadProgress = 0
   }
 
   private func mimeTypeForExtension(_ ext: String) -> String {

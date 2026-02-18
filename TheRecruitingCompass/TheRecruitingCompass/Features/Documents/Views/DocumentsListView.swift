@@ -101,6 +101,11 @@ struct DocumentsListView: View {
           onClearFilters: { viewModel.clearFilters() }
         )
 
+        if viewModel.hasActiveFilters {
+          DocumentActiveFilterChips(viewModel: viewModel)
+            .padding(.vertical, 8)
+        }
+
         if viewModel.documents.isEmpty {
           emptyState
         } else if viewModel.sortedDocuments.isEmpty {
@@ -156,6 +161,13 @@ struct DocumentsListView: View {
             )
           }
           .buttonStyle(.plain)
+          .contextMenu {
+            Button(role: .destructive) {
+              documentToDelete = doc
+            } label: {
+              Label("Delete", systemImage: "trash")
+            }
+          }
         }
       }
     } else {
@@ -183,7 +195,7 @@ struct DocumentsListView: View {
         .font(.title2)
         .fontWeight(.semibold)
         .foregroundStyle(.white)
-        .frame(width: 56, height: 56)
+        .frame(width: 64, height: 64)
         .background(Color.blue)
         .clipShape(Circle())
         .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
