@@ -1,10 +1,14 @@
 import SwiftUI
 
 struct EventsListView: View {
+  private enum Destination: Hashable {
+    case createEvent
+    case createdEventDetail(eventId: String)
+  }
+
+  @Environment(AuthManager.self) private var authManager
   @State private var viewModel = EventsListViewModel()
-  @State private var showCreateEvent = false
-  @State private var isShowingCreatedDetail = false
-  @State private var createdEventIdForDetail: String = ""
+  @State private var navigationDestination: Destination? = nil
   @State private var eventToDelete: FullEvent? = nil
 
   var body: some View {
@@ -22,7 +26,7 @@ struct EventsListView: View {
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button {
-          showCreateEvent = true
+          navigationDestination = .createEvent
         } label: {
           Image(systemName: "plus")
             .frame(minWidth: 44, minHeight: 44)
@@ -32,11 +36,13 @@ struct EventsListView: View {
         .accessibilityHint("Opens form to create a new event")
       }
     }
-    .navigationDestination(isPresented: $showCreateEvent) {
-      createEventDestination
-    }
-    .navigationDestination(isPresented: $isShowingCreatedDetail) {
-      EventDetailView(eventId: createdEventIdForDetail)
+    .navigationDestination(item: $navigationDestination) { destination in
+      switch destination {
+      case .createEvent:
+        createEventDestination
+      case .createdEventDetail(let eventId):
+        EventDetailView(eventId: eventId)
+      }
     }
     .navigationDestination(for: String.self) { eventId in
       EventDetailView(eventId: eventId)
@@ -80,14 +86,17 @@ struct EventsListView: View {
   // MARK: - Create Event Destination
 
   private var createEventDestination: some View {
-    CreateEventViewWrapper(
-      onEventCreated: { eventId in
-        createdEventIdForDetail = eventId
-        showCreateEvent = false
-        isShowingCreatedDetail = true
-        Task { await viewModel.loadEvents() }
+    Group {
+      if let userId = authManager.user?.id {
+        CreateEventViewWrapper(
+          userId: userId,
+          onEventCreated: { eventId in
+            navigationDestination = .createdEventDetail(eventId: eventId)
+            Task { await viewModel.loadEvents() }
+          }
+        )
       }
-    )
+    }
   }
 
   // MARK: - Content
@@ -239,7 +248,7 @@ struct EventsListView: View {
       Text("Create your first event to track camps, showcases, visits, and games.")
     } actions: {
       Button("Add Event") {
-        showCreateEvent = true
+        navigationDestination = .createEvent
       }
       .buttonStyle(.borderedProminent)
     }
@@ -372,18 +381,16 @@ private struct EventRowView: View {
 
 // MARK: - CreateEventViewWrapper
 
-/// Wraps CreateEventView to inject dependencies from the environment
+/// Wraps CreateEventView with an already-resolved userId
 private struct CreateEventViewWrapper: View {
-  @Environment(AuthManager.self) private var authManager
+  let userId: String
   let onEventCreated: (String) -> Void
 
   var body: some View {
-    if let userId = authManager.user?.id {
-      CreateEventView(
-        eventsService: EventsServiceImpl(),
-        userId: userId,
-        onEventCreated: onEventCreated
-      )
-    }
+    CreateEventView(
+      eventsService: EventsServiceImpl(),
+      userId: userId,
+      onEventCreated: onEventCreated
+    )
   }
 }
