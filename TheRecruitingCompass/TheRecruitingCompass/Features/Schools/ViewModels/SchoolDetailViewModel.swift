@@ -73,22 +73,22 @@ final class SchoolDetailViewModel {
   private let collegeService: any CollegeScorecardManaging
   private let coachesService: any CoachesManaging
 
-  init(
+  nonisolated init(
     schoolId: String,
-    schoolsService: (any SchoolsManaging)? = nil,
-    authManager: (any AuthManaging)? = nil,
-    familyManager: FamilyManager? = nil,
-    fitScoreService: (any FitScoreManaging)? = nil,
-    collegeService: (any CollegeScorecardManaging)? = nil,
-    coachesService: (any CoachesManaging)? = nil
+    schoolsService: any SchoolsManaging = SchoolsServiceImpl(supabaseManager: .shared),
+    authManager: any AuthManaging = AuthManager.shared,
+    familyManager: FamilyManager = .shared,
+    fitScoreService: any FitScoreManaging = FitScoreService(),
+    collegeService: any CollegeScorecardManaging = CollegeScorecardService(),
+    coachesService: any CoachesManaging = CoachesServiceImpl(supabaseManager: .shared)
   ) {
     self.schoolId = schoolId
-    self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
-    self.authManager = authManager ?? AuthManager.shared
-    self.familyManager = familyManager ?? .shared
-    self.fitScoreService = fitScoreService ?? FitScoreService()
-    self.collegeService = collegeService ?? CollegeScorecardService()
-    self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
+    self.schoolsService = schoolsService
+    self.authManager = authManager
+    self.familyManager = familyManager
+    self.fitScoreService = fitScoreService
+    self.collegeService = collegeService
+    self.coachesService = coachesService
   }
 
   // MARK: - Helper Methods
@@ -119,13 +119,13 @@ final class SchoolDetailViewModel {
 
   // MARK: - Computed Properties
 
-  var currentUserId: String {
-    authManager.user?.id ?? ""
+  var currentUserId: String? {
+    authManager.user?.id
   }
 
   var privateNoteForCurrentUser: String {
-    guard !currentUserId.isEmpty else { return "" }
-    return school?.privateNote(for: currentUserId) ?? ""
+    guard let userId = currentUserId else { return "" }
+    return school?.privateNote(for: userId) ?? ""
   }
 
   var hasCoaches: Bool {
@@ -178,7 +178,7 @@ final class SchoolDetailViewModel {
   // MARK: - Status Update
 
   func updateStatus(to newStatus: SchoolStatus) async {
-    guard let school, !currentUserId.isEmpty else { return }
+    guard let school, let currentUserId else { return }
 
     let previousStatus = SchoolStatus(rawValue: school.status) ?? .interested
     guard newStatus != previousStatus else { return }
@@ -269,6 +269,10 @@ final class SchoolDetailViewModel {
       errorMessage = "No active family"
       return
     }
+    guard let userId = currentUserId else {
+      errorMessage = "You must be signed in"
+      return
+    }
 
     await withLoading(setting: \.isSavingPrivateNotes) {
       do {
@@ -276,7 +280,7 @@ final class SchoolDetailViewModel {
         let updated = try await schoolsService.updatePrivateNotes(
           id: schoolId,
           familyUnitId: familyId,
-          userId: currentUserId,
+          userId: userId,
           note: note
         )
         school = updated
