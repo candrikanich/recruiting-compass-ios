@@ -192,6 +192,8 @@ final class EventsListViewModel {
     }
   }
 
+  /// Allowed range: [ref − 2 years, ref + 2 years]. Use strict inequality so we can land on
+  /// the boundary month but never navigate past it (e.g. > limit, not >=, for previous).
   func navigateToPreviousMonth() {
     let limit = Calendar.current.date(byAdding: .year, value: -2, to: referenceDate()) ?? currentMonth
     if currentMonth > limit {
