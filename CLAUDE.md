@@ -8,16 +8,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Build
 ```bash
+make build
+# Or directly:
 cd TheRecruitingCompass
 xcodebuild build -scheme TheRecruitingCompass \
-  -destination 'platform=iOS Simulator,name=iPhone 17'
+ -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
 ### Run Tests
 ```bash
+make test              # Full suite (unit + UI)
+make test-unit         # Unit tests only (faster, skip UI tests)
+make test-unit-fast    # Unit tests with parallel execution (fastest)
+
+# Or directly:
 cd TheRecruitingCompass
 xcodebuild test -scheme TheRecruitingCompass \
-  -destination 'platform=iOS Simulator,name=iPhone 17'
+ -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
 **Note:**

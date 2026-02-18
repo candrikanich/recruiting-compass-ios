@@ -345,25 +345,28 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
 
   // MARK: - CoachesListView Accessibility Tests
 
-  func testCoachesListView_addButtonAccessible() {
-    let view = CoachesListView()
+  private func coachesListViewWithEnvironments() -> some View {
+    CoachesListView()
       .environment(FamilyManager.shared)
+      .environment(AuthManager.shared)
+  }
+
+  func testCoachesListView_addButtonAccessible() {
+    let view = coachesListViewWithEnvironments()
 
     // Add button should have "Add new coach" label and hint
     XCTAssertNotNil(view)
   }
 
   func testCoachesListView_addButtonMeetsHitTarget() {
-    let view = CoachesListView()
-      .environment(FamilyManager.shared)
+    let view = coachesListViewWithEnvironments()
 
     // Add button should have minWidth/minHeight: 44
     XCTAssertNotNil(view)
   }
 
   func testCoachesListView_loadingViewAccessible() {
-    let view = CoachesListView()
-      .environment(FamilyManager.shared)
+    let view = coachesListViewWithEnvironments()
 
     // ProgressView should have "Loading coaches" label
     // Redundant text should be hidden
@@ -371,32 +374,28 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
   }
 
   func testCoachesListView_resultsHeaderHasHeaderTrait() {
-    let view = CoachesListView()
-      .environment(FamilyManager.shared)
+    let view = coachesListViewWithEnvironments()
 
     // Results header should have .isHeader trait for semantic navigation
     XCTAssertNotNil(view)
   }
 
   func testCoachesListView_searchFieldAccessible() {
-    let view = CoachesListView()
-      .environment(FamilyManager.shared)
+    let view = coachesListViewWithEnvironments()
 
     // Search field should have proper accessibility
     XCTAssertNotNil(view)
   }
 
   func testCoachesListView_deleteConfirmationAccessible() {
-    let view = CoachesListView()
-      .environment(FamilyManager.shared)
+    let view = coachesListViewWithEnvironments()
 
     // Delete confirmation dialog should be accessible
     XCTAssertNotNil(view)
   }
 
   func testCoachesListView_swipeActionsAccessible() {
-    let view = CoachesListView()
-      .environment(FamilyManager.shared)
+    let view = coachesListViewWithEnvironments()
 
     // Swipe to delete should have proper labels
     XCTAssertNotNil(view)
