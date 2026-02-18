@@ -18,10 +18,16 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
   var shouldThrowUploadDocument = false
   var shouldThrowDeleteDocument = false
   var shouldThrowFetchDocument = false
+  var fetchDocumentErrorCode: Int = 8
   var shouldThrowUpdateDocument = false
   var shouldThrowFetchVersionHistory = false
   var shouldThrowShareDocument = false
   var shouldThrowRevokeShare = false
+  var shouldThrowUpdateDocumentIsCurrent = false
+
+  var updateDocumentIsCurrentCallCount = 0
+  var lastUpdateDocumentIsCurrentId: String?
+  var lastUpdateDocumentIsCurrentValue: Bool?
 
   var stubbedDocuments: [Document] = []
   var stubbedUploadedDocument: Document?
@@ -63,7 +69,7 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
 
   func fetchDocument(id: String) async throws -> Document {
     if shouldThrowFetchDocument {
-      throw NSError(domain: "MockDocumentsService", code: 8, userInfo: [NSLocalizedDescriptionKey: "Mock fetch document error"])
+      throw NSError(domain: "MockDocumentsService", code: fetchDocumentErrorCode, userInfo: [NSLocalizedDescriptionKey: "Document not found"])
     }
     if let doc = stubbedDocument { return doc }
     return stubbedDocuments.first { $0.id == id } ?? Document.mock(id: id, title: "Test", type: .highlightVideo)
@@ -100,6 +106,12 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
   }
 
   func updateDocumentIsCurrent(id: String, isCurrent: Bool) async throws {
+    updateDocumentIsCurrentCallCount += 1
+    lastUpdateDocumentIsCurrentId = id
+    lastUpdateDocumentIsCurrentValue = isCurrent
+    if shouldThrowUpdateDocumentIsCurrent {
+      throw NSError(domain: "MockDocumentsService", code: 13, userInfo: [NSLocalizedDescriptionKey: "Mock restore error"])
+    }
   }
 
   func shareDocument(documentId: String, schoolId: String) async throws {

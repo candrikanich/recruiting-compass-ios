@@ -2,6 +2,11 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct DocumentDetailView: View {
+  private enum Layout {
+    static let cardSpacing: CGFloat = 16
+    static let errorSpacing: CGFloat = 16
+  }
+
   @State private var viewModel: DocumentDetailViewModel
   @State private var showFileImporter = false
   @Environment(\.dismiss) private var dismiss
@@ -126,7 +131,7 @@ struct DocumentDetailView: View {
   }
 
   private func errorState(message: String) -> some View {
-    VStack(spacing: 16) {
+    VStack(spacing: Layout.errorSpacing) {
       Image(systemName: "exclamationmark.triangle")
         .font(.largeTitle)
         .foregroundStyle(.secondary)
@@ -136,6 +141,7 @@ struct DocumentDetailView: View {
         .multilineTextAlignment(.center)
       Button("Retry") { Task { await viewModel.loadDocument() } }
         .buttonStyle(.bordered)
+        .accessibilityLabel("Retry loading document")
     }
     .padding()
   }
@@ -154,7 +160,7 @@ struct DocumentDetailView: View {
 
   private func documentContent(_ document: Document) -> some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 16) {
+      VStack(alignment: .leading, spacing: Layout.cardSpacing) {
         if viewModel.error != nil {
           errorBanner
         }
@@ -306,6 +312,8 @@ struct DocumentDetailView: View {
           .font(.subheadline.weight(.medium))
           .frame(maxWidth: .infinity, minHeight: 44)
       }
+      .accessibilityLabel("Upload New Version")
+      .accessibilityHint("Select a file to add a new version")
       .buttonStyle(.borderedProminent)
       .disabled(viewModel.isUploadingNewVersion)
       .overlay {
@@ -355,6 +363,10 @@ struct DocumentDetailView: View {
           }
           .font(.caption)
           .buttonStyle(.bordered)
+          .frame(minHeight: 44)
+          .contentShape(Rectangle())
+          .accessibilityLabel("Restore version \(version.version)")
+          .accessibilityHint("Restores this version as the current document")
         }
       }
     }
