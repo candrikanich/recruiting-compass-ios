@@ -161,6 +161,7 @@ final class EventDetailViewModel {
     } catch {
       logger.error("Failed to load event: \(error.localizedDescription)")
       if Self.isEventNotFound(error) {
+        event = nil
         isNotFound = true
         self.error = nil
       } else {
