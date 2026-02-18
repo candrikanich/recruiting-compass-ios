@@ -13,13 +13,24 @@ import SwiftUI
 @MainActor
 final class CreateEventAccessibilityTests: XCTestCase {
 
+  // Explicit tearDown avoids deallocating @Observable @MainActor ViewModels at scope exit,
+  // which can trigger malloc corruption on some SDK versions (FB: CreateEventViewModel deinit crash).
+  private var viewModelUnderTest: (any Any)?
+
+  override func tearDown() {
+    viewModelUnderTest = nil
+    super.tearDown()
+  }
+
   // MARK: - Test Helpers
 
   private func makeViewModel(
     service: MockEventsService = MockEventsService(),
     userId: String = "test-user"
   ) -> CreateEventViewModel {
-    CreateEventViewModel(eventsService: service, userId: userId)
+    let vm = CreateEventViewModel(eventsService: service, userId: userId)
+    viewModelUnderTest = vm  // Hold reference until tearDown to avoid deinit-at-scope-exit crash
+    return vm
   }
 
   private func date(_ string: String) -> Date {

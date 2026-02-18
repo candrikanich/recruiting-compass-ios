@@ -4,6 +4,17 @@ import Supabase
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "DocumentsService")
 
+private struct DocumentUpdatePayload: Encodable {
+  let title: String?
+  let description: String?
+  let schoolId: String?
+
+  enum CodingKeys: String, CodingKey {
+    case title, description
+    case schoolId = "school_id"
+  }
+}
+
 private struct DocumentInsertPayload: Encodable {
   let userId: String
   let uploadedBy: String
@@ -50,6 +61,127 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
 
     logger.info("Fetched \(documents.count) documents")
     return documents
+  }
+
+  func fetchDocument(id: String) async throws -> Document {
+    logger.debug("Fetching document: \(id)")
+
+    let document: Document = try await supabaseManager.client
+      .from("documents")
+      .select()
+      .eq("id", value: id)
+      .single()
+      .execute()
+      .value
+
+    logger.info("Fetched document: \(id)")
+    return document
+  }
+
+  func updateDocument(id: String, title: String?, description: String?, schoolId: String?) async throws -> Document {
+    logger.debug("Updating document: \(id)")
+
+    let payload = DocumentUpdatePayload(title: title, description: description, schoolId: schoolId)
+
+    let document: Document = try await supabaseManager.client
+      .from("documents")
+      .update(payload)
+      .eq("id", value: id)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Updated document: \(id)")
+    return document
+  }
+
+  func fetchVersionHistory(documentId: String, document: Document) async throws -> [DocumentVersion] {
+    logger.debug("Fetching version history for document: \(documentId)")
+
+    guard let userId = document.userId, !userId.isEmpty else {
+      logger.warning("No userId for version history")
+      return []
+    }
+
+    struct VersionRow: Decodable {
+      let id: String
+      let version: Int
+      let fileUrl: String
+      let isCurrent: Bool
+      let createdAt: String
+
+      enum CodingKeys: String, CodingKey {
+        case id, version, isCurrent
+        case fileUrl = "file_url"
+        case createdAt = "created_at"
+      }
+    }
+
+    let rows: [VersionRow] = try await supabaseManager.client
+      .from("documents")
+      .select("id, version, file_url, is_current, created_at")
+      .eq("title", value: document.title)
+      .eq("type", value: document.type.rawValue)
+      .eq("user_id", value: userId)
+      .order("version", ascending: false)
+      .execute()
+      .value
+
+    return rows.map { DocumentVersion(
+      id: $0.id,
+      version: $0.version,
+      fileUrl: $0.fileUrl,
+      isCurrent: $0.isCurrent,
+      createdAt: $0.createdAt
+    ) }
+  }
+
+  func updateDocumentIsCurrent(id: String, isCurrent: Bool) async throws {
+    logger.debug("Updating document is_current: \(id) -> \(isCurrent)")
+
+    try await supabaseManager.client
+      .from("documents")
+      .update(["is_current": isCurrent])
+      .eq("id", value: id)
+      .execute()
+
+    logger.info("Updated is_current for document: \(id)")
+  }
+
+  func shareDocument(documentId: String, schoolId: String) async throws {
+    logger.debug("Sharing document: \(documentId) with school: \(schoolId)")
+
+    let document: Document = try await fetchDocument(id: documentId)
+    let currentShared = document.sharedWithSchools
+    guard !currentShared.contains(schoolId) else {
+      logger.info("Document already shared with school")
+      return
+    }
+    let newShared = currentShared + [schoolId]
+
+    try await supabaseManager.client
+      .from("documents")
+      .update(["shared_with_schools": newShared])
+      .eq("id", value: documentId)
+      .execute()
+
+    logger.info("Document shared with school")
+  }
+
+  func revokeShare(documentId: String, schoolId: String) async throws {
+    logger.debug("Revoking share for document: \(documentId) from school: \(schoolId)")
+
+    let document: Document = try await fetchDocument(id: documentId)
+    let newShared = document.sharedWithSchools.filter { $0 != schoolId }
+
+    try await supabaseManager.client
+      .from("documents")
+      .update(["shared_with_schools": newShared])
+      .eq("id", value: documentId)
+      .execute()
+
+    logger.info("Share revoked")
   }
 
   func uploadDocument(

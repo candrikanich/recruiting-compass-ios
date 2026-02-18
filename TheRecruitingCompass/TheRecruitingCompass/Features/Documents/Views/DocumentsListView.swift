@@ -71,7 +71,7 @@ struct DocumentsListView: View {
       }
     }
     .navigationDestination(for: String.self) { documentId in
-      DocumentDetailPlaceholderView(documentId: documentId)
+      DocumentDetailView(documentId: documentId)
     }
     .onOpenURL { _ in }  // Required for navigationDestination with String
     }

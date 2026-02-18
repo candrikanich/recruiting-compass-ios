@@ -17,9 +17,16 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
   var shouldThrowFetchDocuments = false
   var shouldThrowUploadDocument = false
   var shouldThrowDeleteDocument = false
+  var shouldThrowFetchDocument = false
+  var shouldThrowUpdateDocument = false
+  var shouldThrowFetchVersionHistory = false
+  var shouldThrowShareDocument = false
+  var shouldThrowRevokeShare = false
 
   var stubbedDocuments: [Document] = []
   var stubbedUploadedDocument: Document?
+  var stubbedDocument: Document?
+  var stubbedVersions: [DocumentVersion] = []
 
   func fetchDocuments(userId: String) async throws -> [Document] {
     fetchDocumentsCallCount += 1
@@ -52,6 +59,59 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
       return Document.mock(id: "uploaded-1", title: title, type: type)
     }
     return doc
+  }
+
+  func fetchDocument(id: String) async throws -> Document {
+    if shouldThrowFetchDocument {
+      throw NSError(domain: "MockDocumentsService", code: 8, userInfo: [NSLocalizedDescriptionKey: "Mock fetch document error"])
+    }
+    if let doc = stubbedDocument { return doc }
+    return stubbedDocuments.first { $0.id == id } ?? Document.mock(id: id, title: "Test", type: .highlightVideo)
+  }
+
+  func updateDocument(id: String, title: String?, description: String?, schoolId: String?) async throws -> Document {
+    if shouldThrowUpdateDocument {
+      throw NSError(domain: "MockDocumentsService", code: 9, userInfo: [NSLocalizedDescriptionKey: "Mock update error"])
+    }
+    let base = stubbedDocument ?? stubbedDocuments.first { $0.id == id } ?? Document.mock(id: id)
+    return Document(
+      id: base.id,
+      userId: base.userId,
+      type: base.type,
+      title: title ?? base.title,
+      description: description ?? base.description,
+      fileUrl: base.fileUrl,
+      fileType: base.fileType,
+      version: base.version,
+      schoolId: schoolId ?? base.schoolId,
+      isCurrent: base.isCurrent,
+      sharedWithSchools: base.sharedWithSchools,
+      uploadedBy: base.uploadedBy,
+      createdAt: base.createdAt,
+      updatedAt: base.updatedAt
+    )
+  }
+
+  func fetchVersionHistory(documentId: String, document: Document) async throws -> [DocumentVersion] {
+    if shouldThrowFetchVersionHistory {
+      throw NSError(domain: "MockDocumentsService", code: 10, userInfo: [NSLocalizedDescriptionKey: "Mock version history error"])
+    }
+    return stubbedVersions
+  }
+
+  func updateDocumentIsCurrent(id: String, isCurrent: Bool) async throws {
+  }
+
+  func shareDocument(documentId: String, schoolId: String) async throws {
+    if shouldThrowShareDocument {
+      throw NSError(domain: "MockDocumentsService", code: 11, userInfo: [NSLocalizedDescriptionKey: "Mock share error"])
+    }
+  }
+
+  func revokeShare(documentId: String, schoolId: String) async throws {
+    if shouldThrowRevokeShare {
+      throw NSError(domain: "MockDocumentsService", code: 12, userInfo: [NSLocalizedDescriptionKey: "Mock revoke error"])
+    }
   }
 
   func deleteDocument(id: String, userId: String) async throws {

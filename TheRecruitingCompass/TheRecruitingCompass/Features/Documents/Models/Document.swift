@@ -55,4 +55,24 @@ struct Document: Codable, Identifiable, Sendable {
     }
     return "Unknown"
   }
+
+  var typeLabel: String {
+    type.label
+  }
+
+  var isVideo: Bool {
+    type == .highlightVideo || (fileType?.lowercased().contains("video") == true)
+  }
+
+  var isImage: Bool {
+    fileType?.lowercased().contains("image") == true
+  }
+
+  var isPDF: Bool {
+    fileType?.lowercased() == "application/pdf"
+  }
+
+  var canPreview: Bool {
+    isVideo || isImage || isPDF
+  }
 }
