@@ -1,4 +1,5 @@
-# Build and test iOS app. Discovers simulator and runs build+test in one script.
+# Build and test iOS app.
+# Workaround for runner simulator issues: https://github.com/actions/runner-images/issues/12777
 name: iOS CI
 
 on:
@@ -14,6 +15,18 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # Pin Xcode 16.4 and ensure iOS platform is available (fixes "No matching device" on newer images)
+    - name: Set up Xcode 16.4
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: "16.4"
+
+    - name: Ensure iOS simulator platform
+      run: |
+        sudo xcodebuild -license accept || true
+        sudo xcodebuild -downloadPlatform iOS || true
+        xcrun simctl list devices available | grep -E "iPhone|iPad" | head -15 || true
+
     - name: Build and test
       working-directory: TheRecruitingCompass
       env:
@@ -27,7 +40,6 @@ jobs:
         echo "== Available iPhones =="
         xcrun simctl list devices available | grep " iPhone " | grep -v Clone || true
         echo ""
-        # Try fixed names first (order matters on different runner images)
         for name in "iPhone 16" "iPhone 17" "iPhone 15" "iPhone SE (3rd generation)"; do
           if xcrun simctl list devices available | grep -q " $name "; then
             DEST="platform=iOS Simulator,name=$name,OS=latest"
