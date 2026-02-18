@@ -163,6 +163,21 @@ Use **semantic fonts** for all user-facing text so Dynamic Type and accessibilit
 
 ---
 
+## SwiftUI View Tests and @MainActor Teardown
+
+When testing SwiftUI views that contain `@MainActor` ViewModels, wrap the view in `UIHostingController` to get proper UIKit teardown context. This avoids the `swift_task_deinitOnExecutorMainActorBackDeploy` crash that can occur when ViewModels are deallocated during XCTest teardown.
+
+```swift
+let view = MyDetailView(id: "x", items: testItems)
+  .environment(\.sizeCategory, .extraSmall)
+let hosting = UIHostingController(rootView: view)
+XCTAssertNotNil(hosting.view)  // Force view load
+```
+
+**Targeted tests:** Run only the tests for the feature you're changing (e.g. `-only-testing:TheRecruitingCompassTests/EventsListViewModelTests`) to avoid unrelated failures derailing work.
+
+---
+
 ## Accessibility Patterns
 
 ```swift

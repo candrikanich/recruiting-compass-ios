@@ -40,16 +40,16 @@ The Events List spec has been **largely implemented**. The following are in plac
 | §8 | Delete confirmation | Confirmation dialog before delete |
 | Navigation | Events in app | `MainTabView` — Events tab shows `EventsListView()` |
 
-### Gaps (Not Yet Implemented)
+### Gaps
 
-| # | Gap | Spec Reference | Effort |
+| # | Gap | Spec Reference | Status |
 |---|-----|----------------|--------|
-| 1 | **Sort order not persisted** | §5 "Selected sort order persists in UserDefaults" | Small |
-| 2 | **Calendar navigation unbounded** | §8 "Limit to ±2 years from current month" | Small |
-| 3 | **Event row VoiceOver omits status** | §6 "Event card: [Event name], [Type], [Date], **[Status]**" | Tiny |
-| 4 | **No haptic on delete** | §6 "Light impact on button tap, notification on delete" | Small |
-| 5 | **No Events List accessibility tests** | §9 "VoiceOver announces all elements correctly" | Moderate |
-| 6 | **Timeline Status Snippet** | §6 Layout "[Header] Timeline Status Snippet (Phase indicator)" | Deferred* |
+| 1 | Sort order persisted in UserDefaults | §5 | ✅ Done — `_sortBy` + getter/setter |
+| 2 | Calendar ±2-year navigation limit | §8 | ✅ Done — `referenceDate()` + bounds check |
+| 3 | Event row VoiceOver includes status | §6 | ✅ Done — `rowAccessibilityLabel` |
+| 4 | Haptic feedback on delete | §6 | ✅ Done — impact + notification |
+| 5 | Events List accessibility tests | §9 | ✅ Done — `EventsListAccessibilityTests.swift` |
+| 6 | **Timeline Status Snippet** | §6 Layout | Deferred* |
 
 \* No Timeline/Phase indicator component exists elsewhere in the app; defer until the component and data source exist.
 
@@ -77,7 +77,7 @@ Below is a single consolidated plan; each task can be executed independently.
 **Steps:**
 
 1. Add unit tests: (1) set `sortBy = .name`, recreate ViewModel, assert `sortBy == .name`; (2) clear UserDefaults key, create fresh ViewModel, assert `sortBy == .dateDesc`.
-2. Persist sort: Use `@AppStorage("eventsSortBy")` for `sortBy` if supported with `@Observable`; otherwise sync `sortBy` to `UserDefaults.standard` in `didSet` (and read in init). Ensure `SortOption` is RawRepresentable (String) for storage.
+2. Persist sort: **Do NOT use `@AppStorage`** — it does not work in `@Observable` classes (requires SwiftUI View). Use a backing var + getter/setter that writes to `UserDefaults.standard` in the setter, and read the saved value in init.
 3. In test teardown (or in the default test), clear `UserDefaults.standard.removeObject(forKey: "eventsSortBy")` so other tests are not affected.
 4. Run `EventsListViewModelTests` and full test suite.
 
@@ -173,6 +173,6 @@ Below is a single consolidated plan; each task can be executed independently.
 
 ## 4. Sign-Off
 
-- **Spec fully implemented?** No — six items above (five to implement, one deferred).
-- **Implementation plan:** Yes — Tasks 1–5 are scoped and aligned with existing patterns; Task 6 deferred with clear trigger.
-- **Build/test:** After each task, run `make build` and `make test-unit` (or equivalent xcodebuild) from repo root per CLAUDE.md.
+- **Spec fully implemented?** Yes — Tasks 1–5 implemented; Task 6 deferred.
+- **Implementation plan:** Tasks 1–5 complete; Task 6 deferred until Timeline/Phase component exists.
+- **Build/test:** Run `make build` and `make test-unit` from repo root per CLAUDE.md. For Events-only: `-only-testing:TheRecruitingCompassTests/EventsListViewModelTests -only-testing:TheRecruitingCompassTests/EventsListAccessibilityTests`.
