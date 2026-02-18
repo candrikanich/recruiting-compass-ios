@@ -213,13 +213,7 @@ final class EventDetailViewModel {
     defer { isSaving = false }
 
     do {
-      let request = EventUpdateRequest(
-        name: nil, type: nil, startDate: nil, endDate: nil,
-        startTime: nil, endTime: nil, checkinTime: nil, schoolId: nil,
-        location: nil, address: nil, city: nil, state: nil,
-        url: nil, description: nil, eventSource: nil, cost: nil,
-        registered: nil, attended: true, performanceNotes: nil, coachesPresent: nil
-      )
+      let request = EventUpdateRequest(attended: true)
       let updated = try await eventsService.updateEvent(id: eventId, request: request)
       event = updated
       haptics.success()
@@ -334,14 +328,7 @@ final class EventDetailViewModel {
     currentCoaches.append(selectedCoachId)
 
     do {
-      let request = EventUpdateRequest(
-        name: nil, type: nil, startDate: nil, endDate: nil,
-        startTime: nil, endTime: nil, checkinTime: nil, schoolId: nil,
-        location: nil, address: nil, city: nil, state: nil,
-        url: nil, description: nil, eventSource: nil, cost: nil,
-        registered: nil, attended: nil, performanceNotes: nil,
-        coachesPresent: currentCoaches
-      )
+      let request = EventUpdateRequest(coachesPresent: currentCoaches)
       let updated = try await eventsService.updateEvent(id: eventId, request: request)
       self.event = updated
       haptics.success()
@@ -362,14 +349,7 @@ final class EventDetailViewModel {
     defer { isUpdatingCoaches = false }
 
     do {
-      let request = EventUpdateRequest(
-        name: nil, type: nil, startDate: nil, endDate: nil,
-        startTime: nil, endTime: nil, checkinTime: nil, schoolId: nil,
-        location: nil, address: nil, city: nil, state: nil,
-        url: nil, description: nil, eventSource: nil, cost: nil,
-        registered: nil, attended: nil, performanceNotes: nil,
-        coachesPresent: currentCoaches
-      )
+      let request = EventUpdateRequest(coachesPresent: currentCoaches)
       let updated = try await eventsService.updateEvent(id: eventId, request: request)
       self.event = updated
       haptics.success()

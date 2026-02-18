@@ -22,6 +22,50 @@ struct EventUpdateRequest: Encodable, Sendable {
   let performanceNotes: String?
   let coachesPresent: [String]?
 
+  init(
+    name: String? = nil,
+    type: String? = nil,
+    startDate: String? = nil,
+    endDate: String? = nil,
+    startTime: String? = nil,
+    endTime: String? = nil,
+    checkinTime: String? = nil,
+    schoolId: String? = nil,
+    location: String? = nil,
+    address: String? = nil,
+    city: String? = nil,
+    state: String? = nil,
+    url: String? = nil,
+    description: String? = nil,
+    eventSource: String? = nil,
+    cost: Double? = nil,
+    registered: Bool? = nil,
+    attended: Bool? = nil,
+    performanceNotes: String? = nil,
+    coachesPresent: [String]? = nil
+  ) {
+    self.name = name
+    self.type = type
+    self.startDate = startDate
+    self.endDate = endDate
+    self.startTime = startTime
+    self.endTime = endTime
+    self.checkinTime = checkinTime
+    self.schoolId = schoolId
+    self.location = location
+    self.address = address
+    self.city = city
+    self.state = state
+    self.url = url
+    self.description = description
+    self.eventSource = eventSource
+    self.cost = cost
+    self.registered = registered
+    self.attended = attended
+    self.performanceNotes = performanceNotes
+    self.coachesPresent = coachesPresent
+  }
+
   enum CodingKeys: String, CodingKey {
     case name, type, location, address, city, state, url, description, cost, registered, attended
     case startDate = "start_date"
