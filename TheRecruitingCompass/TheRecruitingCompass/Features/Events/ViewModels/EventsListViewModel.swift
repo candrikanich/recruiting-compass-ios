@@ -19,6 +19,14 @@ final class EventsListViewModel {
   var searchText = ""
   var typeFilter: EventType?
   var statusFilter: StatusFilter = .all
+  var dateRangeFilter: DateRangeFilter = .all
+  var sortBy: SortOption = .dateDesc
+  var currentMonth: Date = {
+    let calendar = Calendar.current
+    let components = calendar.dateComponents([.year, .month], from: Date())
+    return calendar.date(from: components) ?? Date()
+  }()
+  var selectedCalendarDate: Date? = nil
 
   // MARK: - Computed
 
@@ -30,6 +38,7 @@ final class EventsListViewModel {
       result = result.filter {
         $0.name.lowercased().contains(query)
         || ($0.city?.lowercased().contains(query) ?? false)
+        || ($0.description?.lowercased().contains(query) ?? false)
         || ($0.address?.lowercased().contains(query) ?? false)
       }
     }
@@ -45,7 +54,27 @@ final class EventsListViewModel {
     case .notRegistered: result = result.filter { !$0.registered && !$0.attended }
     }
 
-    return result
+    let today = isoToday()
+    switch dateRangeFilter {
+    case .all: break
+    case .upcoming: result = result.filter { $0.startDate >= today }
+    case .past: result = result.filter { $0.startDate < today }
+    case .thisMonth:
+      let prefix = String(today.prefix(7))
+      result = result.filter { $0.startDate.hasPrefix(prefix) }
+    case .nextMonth:
+      let nextMonthPrefix = isoNextMonthPrefix()
+      result = result.filter { $0.startDate.hasPrefix(nextMonthPrefix) }
+    }
+
+    return result.sorted { a, b in
+      switch sortBy {
+      case .dateAsc: return a.startDate < b.startDate
+      case .dateDesc: return a.startDate > b.startDate
+      case .name: return a.name.localizedCompare(b.name) == .orderedAscending
+      case .type: return a.type < b.type
+      }
+    }
   }
 
   var upcomingEvents: [FullEvent] {
@@ -59,7 +88,43 @@ final class EventsListViewModel {
   }
 
   var hasActiveFilters: Bool {
-    !searchText.isEmpty || typeFilter != nil || statusFilter != .all
+    !searchText.isEmpty || typeFilter != nil || statusFilter != .all || dateRangeFilter != .all
+  }
+
+  var currentMonthTitle: String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMMM yyyy"
+    return formatter.string(from: currentMonth)
+  }
+
+  var calendarDays: [Date] {
+    let calendar = Calendar.current
+    guard let firstOfMonth = calendar.date(
+      from: calendar.dateComponents([.year, .month], from: currentMonth)
+    ) else { return [] }
+    let weekday = calendar.component(.weekday, from: firstOfMonth)
+    let startOffset = -(weekday - 1)
+    return (0..<42).compactMap {
+      calendar.date(byAdding: .day, value: startOffset + $0, to: firstOfMonth)
+    }
+  }
+
+  func hasEvent(on date: Date) -> Bool {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    let prefix = formatter.string(from: date)
+    return events.contains { $0.startDate == prefix }
+  }
+
+  func isCurrentMonth(_ date: Date) -> Bool {
+    Calendar.current.isDate(date, equalTo: currentMonth, toGranularity: .month)
+  }
+
+  func eventsForDate(_ date: Date) -> [FullEvent] {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    let prefix = formatter.string(from: date)
+    return filteredEvents.filter { $0.startDate == prefix }
   }
 
   // MARK: - Dependencies
@@ -103,6 +168,25 @@ final class EventsListViewModel {
     searchText = ""
     typeFilter = nil
     statusFilter = .all
+    dateRangeFilter = .all
+  }
+
+  func deleteEvent(id: String) async {
+    do {
+      try await eventsService.deleteEvent(id: id)
+      events.removeAll { $0.id == id }
+    } catch {
+      logger.error("Failed to delete event \(id): \(error.localizedDescription)")
+      self.error = "Failed to delete event. Please try again."
+    }
+  }
+
+  func navigateToPreviousMonth() {
+    currentMonth = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
+  }
+
+  func navigateToNextMonth() {
+    currentMonth = Calendar.current.date(byAdding: .month, value: 1, to: currentMonth) ?? currentMonth
   }
 
   // MARK: - Private Helpers
@@ -111,6 +195,15 @@ final class EventsListViewModel {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
     return formatter.string(from: Date())
+  }
+
+  private func isoNextMonthPrefix() -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM"
+    guard let nextMonth = Calendar.current.date(byAdding: .month, value: 1, to: Date()) else {
+      return ""
+    }
+    return formatter.string(from: nextMonth)
   }
 }
 
@@ -121,4 +214,23 @@ enum StatusFilter: String, CaseIterable {
   case attended = "Attended"
   case registered = "Registered"
   case notRegistered = "Not Registered"
+}
+
+// MARK: - DateRangeFilter
+
+enum DateRangeFilter: String, CaseIterable {
+  case all = "All Dates"
+  case upcoming = "Upcoming"
+  case past = "Past"
+  case thisMonth = "This Month"
+  case nextMonth = "Next Month"
+}
+
+// MARK: - SortOption
+
+enum SortOption: String, CaseIterable {
+  case dateDesc = "Date (Newest First)"
+  case dateAsc = "Date (Oldest First)"
+  case name = "Name"
+  case type = "Type"
 }

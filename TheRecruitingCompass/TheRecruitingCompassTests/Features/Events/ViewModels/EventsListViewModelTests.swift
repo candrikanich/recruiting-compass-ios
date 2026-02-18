@@ -199,6 +199,203 @@ final class EventsListViewModelTests: XCTestCase {
     XCTAssertEqual(sut.pastEvents.first?.name, "Past")
   }
 
+  // MARK: - Date Range Filter
+
+  func testFilteredEvents_byUpcoming_returnsOnlyFutureEvents() async {
+    mockAuth.user = userMock(id: "user-1")
+    let future = fullEventMock(id: "e1", name: "Future", startDate: "2099-01-01")
+    let past = fullEventMock(id: "e2", name: "Past", startDate: "2020-01-01")
+    mockService.stubbedEvents = [future, past]
+    await sut.loadEvents()
+
+    sut.dateRangeFilter = .upcoming
+
+    XCTAssertEqual(sut.filteredEvents.count, 1)
+    XCTAssertEqual(sut.filteredEvents.first?.name, "Future")
+  }
+
+  func testFilteredEvents_byPast_returnsOnlyPastEvents() async {
+    mockAuth.user = userMock(id: "user-1")
+    let future = fullEventMock(id: "e1", name: "Future", startDate: "2099-01-01")
+    let past = fullEventMock(id: "e2", name: "Past", startDate: "2020-01-01")
+    mockService.stubbedEvents = [future, past]
+    await sut.loadEvents()
+
+    sut.dateRangeFilter = .past
+
+    XCTAssertEqual(sut.filteredEvents.count, 1)
+    XCTAssertEqual(sut.filteredEvents.first?.name, "Past")
+  }
+
+  func testFilteredEvents_allDateRange_returnsAll() async {
+    mockAuth.user = userMock(id: "user-1")
+    let future = fullEventMock(id: "e1", startDate: "2099-01-01")
+    let past = fullEventMock(id: "e2", startDate: "2020-01-01")
+    mockService.stubbedEvents = [future, past]
+    await sut.loadEvents()
+
+    sut.dateRangeFilter = .all
+
+    XCTAssertEqual(sut.filteredEvents.count, 2)
+  }
+
+  func testHasActiveFilters_withDateRangeFilter_returnsTrue() {
+    sut.dateRangeFilter = .upcoming
+    XCTAssertTrue(sut.hasActiveFilters)
+  }
+
+  func testClearFilters_resetsDateRangeFilter() {
+    sut.dateRangeFilter = .upcoming
+    sut.clearFilters()
+    XCTAssertEqual(sut.dateRangeFilter, .all)
+  }
+
+  // MARK: - Sort
+
+  func testFilteredEvents_sortByDateAsc_sortsOldestFirst() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [
+      fullEventMock(id: "e1", name: "Later", startDate: "2026-06-01"),
+      fullEventMock(id: "e2", name: "Earlier", startDate: "2026-03-01")
+    ]
+    await sut.loadEvents()
+
+    sut.sortBy = .dateAsc
+
+    XCTAssertEqual(sut.filteredEvents.first?.name, "Earlier")
+    XCTAssertEqual(sut.filteredEvents.last?.name, "Later")
+  }
+
+  func testFilteredEvents_sortByName_sortsAlphabetically() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [
+      fullEventMock(id: "e1", name: "Zebra Camp"),
+      fullEventMock(id: "e2", name: "Alpha Showcase")
+    ]
+    await sut.loadEvents()
+
+    sut.sortBy = .name
+
+    XCTAssertEqual(sut.filteredEvents.first?.name, "Alpha Showcase")
+    XCTAssertEqual(sut.filteredEvents.last?.name, "Zebra Camp")
+  }
+
+  // MARK: - Delete
+
+  func testDeleteEvent_removesEventFromList() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [
+      .mock(id: "e1", name: "Keep"),
+      .mock(id: "e2", name: "Delete Me")
+    ]
+    await sut.loadEvents()
+
+    await sut.deleteEvent(id: "e2")
+
+    XCTAssertEqual(sut.events.count, 1)
+    XCTAssertEqual(sut.events.first?.name, "Keep")
+    XCTAssertEqual(mockService.deleteEventCallCount, 1)
+    XCTAssertEqual(mockService.lastDeleteEventId, "e2")
+  }
+
+  func testDeleteEvent_onFailure_setsError() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [.mock(id: "e1", name: "Event")]
+    await sut.loadEvents()
+    mockService.shouldThrowDeleteEvent = true
+
+    await sut.deleteEvent(id: "e1")
+
+    XCTAssertEqual(sut.events.count, 1) // not removed on failure
+    XCTAssertNotNil(sut.error)
+  }
+
+  func testDeleteEvent_callsServiceWithCorrectId() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [.mock(id: "abc-123", name: "Event")]
+    await sut.loadEvents()
+
+    await sut.deleteEvent(id: "abc-123")
+
+    XCTAssertEqual(mockService.lastDeleteEventId, "abc-123")
+  }
+
+  // MARK: - Calendar
+
+  func testCalendarDays_returns42Days() {
+    XCTAssertEqual(sut.calendarDays.count, 42)
+  }
+
+  func testCalendarDays_firstDayIsSunday() {
+    let calendar = Calendar.current
+    let firstDay = sut.calendarDays.first!
+    XCTAssertEqual(calendar.component(.weekday, from: firstDay), 1) // 1 = Sunday
+  }
+
+  func testCurrentMonthTitle_formatsCorrectly() {
+    XCTAssertFalse(sut.currentMonthTitle.isEmpty)
+    XCTAssertTrue(sut.currentMonthTitle.contains(String(Calendar.current.component(.year, from: Date()))))
+  }
+
+  func testHasEvent_returnsTrueWhenEventOnDate() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [fullEventMock(id: "e1", startDate: "2099-06-15")]
+    await sut.loadEvents()
+
+    var components = DateComponents()
+    components.year = 2099; components.month = 6; components.day = 15
+    let date = Calendar.current.date(from: components)!
+
+    XCTAssertTrue(sut.hasEvent(on: date))
+  }
+
+  func testHasEvent_returnsFalseWhenNoEventOnDate() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [fullEventMock(id: "e1", startDate: "2099-06-15")]
+    await sut.loadEvents()
+
+    var components = DateComponents()
+    components.year = 2099; components.month = 6; components.day = 16
+    let date = Calendar.current.date(from: components)!
+
+    XCTAssertFalse(sut.hasEvent(on: date))
+  }
+
+  func testNavigateToPreviousMonth_decrementsMonth() {
+    let initial = sut.currentMonth
+    sut.navigateToPreviousMonth()
+    let previous = sut.currentMonth
+    XCTAssertEqual(
+      Calendar.current.dateComponents([.month], from: previous, to: initial).month, 1
+    )
+  }
+
+  func testNavigateToNextMonth_incrementsMonth() {
+    let initial = sut.currentMonth
+    sut.navigateToNextMonth()
+    let next = sut.currentMonth
+    XCTAssertEqual(
+      Calendar.current.dateComponents([.month], from: initial, to: next).month, 1
+    )
+  }
+
+  func testEventsForDate_returnsMatchingEvents() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [
+      fullEventMock(id: "e1", name: "June Event", startDate: "2099-06-15"),
+      fullEventMock(id: "e2", name: "July Event", startDate: "2099-07-01")
+    ]
+    await sut.loadEvents()
+
+    var components = DateComponents()
+    components.year = 2099; components.month = 6; components.day = 15
+    let date = Calendar.current.date(from: components)!
+
+    let result = sut.eventsForDate(date)
+    XCTAssertEqual(result.count, 1)
+    XCTAssertEqual(result.first?.name, "June Event")
+  }
+
   // MARK: - Helpers
 
   private func userMock(id: String) -> User {

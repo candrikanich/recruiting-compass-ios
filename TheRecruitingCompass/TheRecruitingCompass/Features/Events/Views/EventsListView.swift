@@ -5,6 +5,7 @@ struct EventsListView: View {
   @State private var showCreateEvent = false
   @State private var isShowingCreatedDetail = false
   @State private var createdEventIdForDetail: String = ""
+  @State private var eventToDelete: FullEvent? = nil
 
   var body: some View {
     Group {
@@ -55,6 +56,24 @@ struct EventsListView: View {
     } message: {
       Text(viewModel.error ?? "")
     }
+    .confirmationDialog(
+      "Delete \(eventToDelete?.name ?? "event")?",
+      isPresented: Binding(
+        get: { eventToDelete != nil },
+        set: { if !$0 { eventToDelete = nil } }
+      ),
+      titleVisibility: .visible
+    ) {
+      Button("Delete", role: .destructive) {
+        if let event = eventToDelete {
+          Task { await viewModel.deleteEvent(id: event.id) }
+          eventToDelete = nil
+        }
+      }
+      Button("Cancel", role: .cancel) { eventToDelete = nil }
+    } message: {
+      Text("This action cannot be undone.")
+    }
   }
 
   // MARK: - Create Event Destination
@@ -73,30 +92,61 @@ struct EventsListView: View {
   // MARK: - Content
 
   private var eventsContent: some View {
-    List {
-      filterBar
+    ScrollViewReader { proxy in
+      List {
+        calendarSection
+        filterBar
+        sortResultsBar
 
-      if viewModel.filteredEvents.isEmpty {
-        noResultsState
-      } else {
-        if !viewModel.upcomingEvents.isEmpty {
-          Section("Upcoming") {
-            ForEach(viewModel.upcomingEvents) { event in
-              eventRow(event)
+        if viewModel.filteredEvents.isEmpty {
+          noResultsState
+        } else {
+          if !viewModel.upcomingEvents.isEmpty {
+            Section("Upcoming") {
+              ForEach(viewModel.upcomingEvents) { event in
+                eventRow(event)
+                  .id(event.id)
+              }
             }
           }
-        }
 
-        if !viewModel.pastEvents.isEmpty {
-          Section("Past") {
-            ForEach(viewModel.pastEvents) { event in
-              eventRow(event)
+          if !viewModel.pastEvents.isEmpty {
+            Section("Past") {
+              ForEach(viewModel.pastEvents) { event in
+                eventRow(event)
+                  .id(event.id)
+              }
             }
           }
         }
       }
+      .listStyle(.insetGrouped)
+      .onChange(of: viewModel.selectedCalendarDate) { _, date in
+        guard let date else { return }
+        if let id = viewModel.eventsForDate(date).first?.id {
+          withAnimation { proxy.scrollTo(id, anchor: .top) }
+        }
+      }
     }
-    .listStyle(.insetGrouped)
+  }
+
+  // MARK: - Calendar Section
+
+  private var calendarSection: some View {
+    Section {
+      EventsCalendarView(
+        title: viewModel.currentMonthTitle,
+        days: viewModel.calendarDays,
+        hasEvent: viewModel.hasEvent(on:),
+        isCurrentMonth: viewModel.isCurrentMonth(_:),
+        selectedDate: viewModel.selectedCalendarDate,
+        onSelectDate: { date in viewModel.selectedCalendarDate = date },
+        onPreviousMonth: { viewModel.navigateToPreviousMonth() },
+        onNextMonth: { viewModel.navigateToNextMonth() }
+      )
+      .listRowInsets(EdgeInsets())
+      .listRowBackground(Color.clear)
+    }
   }
 
   // MARK: - Filter Bar
@@ -118,6 +168,13 @@ struct EventsListView: View {
       }
       .accessibilityLabel("Filter by registration status")
 
+      Picker("Date Range", selection: $viewModel.dateRangeFilter) {
+        ForEach(DateRangeFilter.allCases, id: \.self) { range in
+          Text(range.rawValue).tag(range)
+        }
+      }
+      .accessibilityLabel("Filter by date range")
+
       if viewModel.hasActiveFilters {
         Button("Clear Filters", role: .destructive) {
           viewModel.clearFilters()
@@ -129,6 +186,26 @@ struct EventsListView: View {
     }
   }
 
+  // MARK: - Sort Results Bar
+
+  private var sortResultsBar: some View {
+    Section {
+      HStack {
+        Text("\(viewModel.filteredEvents.count) result\(viewModel.filteredEvents.count == 1 ? "" : "s")")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+        Spacer()
+        Picker("Sort", selection: $viewModel.sortBy) {
+          ForEach(SortOption.allCases, id: \.self) { option in
+            Text(option.rawValue).tag(option)
+          }
+        }
+        .pickerStyle(.menu)
+        .accessibilityLabel("Sort events")
+      }
+    }
+  }
+
   // MARK: - Event Row
 
   private func eventRow(_ event: FullEvent) -> some View {
@@ -136,6 +213,13 @@ struct EventsListView: View {
       EventRowView(event: event)
     }
     .accessibilityLabel(rowAccessibilityLabel(event))
+    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+      Button(role: .destructive) {
+        eventToDelete = event
+      } label: {
+        Label("Delete", systemImage: "trash")
+      }
+    }
   }
 
   // MARK: - States
@@ -161,7 +245,18 @@ struct EventsListView: View {
 
   private var noResultsState: some View {
     Section {
-      ContentUnavailableView.search(text: viewModel.searchText)
+      if viewModel.hasActiveFilters && viewModel.searchText.isEmpty {
+        ContentUnavailableView {
+          Label("No Matching Events", systemImage: "line.3.horizontal.decrease.circle")
+        } description: {
+          Text("No events match your current filters.")
+        } actions: {
+          Button("Clear Filters") { viewModel.clearFilters() }
+            .buttonStyle(.bordered)
+        }
+      } else {
+        ContentUnavailableView.search(text: viewModel.searchText)
+      }
     }
   }
 
@@ -189,17 +284,37 @@ private struct EventRowView: View {
 
       Text(event.name)
         .font(.headline)
-        .lineLimit(1)
+        .lineLimit(2)
 
       Label(formattedDate, systemImage: "calendar")
         .font(.subheadline)
         .foregroundStyle(.secondary)
+
+      if let time = event.startTime, !time.isEmpty {
+        Label(time, systemImage: "clock")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+      }
 
       if let location = locationLine {
         Label(location, systemImage: "mappin")
           .font(.subheadline)
           .foregroundStyle(.secondary)
           .lineLimit(1)
+      }
+
+      if let cost = event.cost, cost > 0 {
+        Label(cost.formatted(.currency(code: "USD")), systemImage: "dollarsign.circle")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+      }
+
+      if let notes = event.performanceNotes, !notes.isEmpty {
+        Text(notes)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .lineLimit(2)
+          .padding(.top, 2)
       }
     }
     .padding(.vertical, 4)
