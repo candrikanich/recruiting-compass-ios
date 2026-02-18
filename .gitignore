@@ -28,6 +28,9 @@ Package.resolved
 .vscode/
 .idea/
 *.swp
+
+# Git worktrees
+.worktrees/
 *.swo
 
 # macOS
