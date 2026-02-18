@@ -11,7 +11,7 @@ final class DashboardViewModel {
   var stats: DashboardStats?
   var quickTasks: [QuickTask] = []
   var suggestions: [Suggestion] = []
-  var events: [Event] = []
+  var events: [FullEvent] = []
   var metrics: [PerformanceMetric] = []
   var interactionTrends: [InteractionTrend] = []
   var isLoading = false

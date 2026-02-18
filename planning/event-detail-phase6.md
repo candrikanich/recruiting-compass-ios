@@ -5,6 +5,16 @@
 **Spec:** `/planning/iOS_SPEC_Phase6_EventDetail.md` (in recruiting-compass-web)
 **Status:** In progress
 
+## ⚠️ Critical Project Note
+
+**This project uses `PBXFileSystemSynchronizedRootGroup` (Xcode 16 feature).**
+- New .swift files placed on disk are **automatically included** in the build target
+- Do NOT run `add_files_to_xcode.rb` — it corrupts the project file
+- SourceKit "Cannot find type in scope" errors during active builds are **false positives** (build DB lock)
+- Verify real errors with `xcodebuild build` only
+
+**Git worktrees:** Always work in `.worktrees/event-detail-phase6/`, never in the main checkout.
+
 ---
 
 ## Codebase Context

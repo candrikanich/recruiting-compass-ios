@@ -4,7 +4,7 @@ import SwiftUI
 /// this body when only other view model state (e.g. stats, quick tasks) changes.
 struct DashboardChartsAndDataSection: View {
   let interactionTrends: [InteractionTrend]
-  let events: [Event]
+  let events: [FullEvent]
   let metrics: [PerformanceMetric]
   let schoolsWithOffersPercentage: String
   let avgCoachResponsivenessFormatted: String
@@ -50,7 +50,7 @@ struct DashboardChartsAndDataSection: View {
       metrics: [],
       schoolsWithOffersPercentage: "25%",
       avgCoachResponsivenessFormatted: "75%",
-      avgCoachResponsivenessColor: .green,
+      avgCoachResponsivenessColor: Color.green,
       interactionsThisMonth: 4,
       daysUntilGraduationFormatted: "365",
       isEmpty: false

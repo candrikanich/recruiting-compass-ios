@@ -125,7 +125,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
   }
 
-  func fetchEvents(userId: String, limit: Int?) async throws -> [Event] {
+  func fetchEvents(userId: String, limit: Int?) async throws -> [FullEvent] {
     try await fetch("events") {
       var query = supabaseManager.client
         .from("events")

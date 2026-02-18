@@ -1,15 +1,15 @@
 import SwiftUI
 
 struct UpcomingEventsWidget: View {
-  let events: [Event]
+  let events: [FullEvent]
 
   @State private var isShowingAll = false
 
-  private var sortedEvents: [Event] {
+  private var sortedEvents: [FullEvent] {
     events.sorted { $0.startDate < $1.startDate }
   }
 
-  private var visibleEvents: [Event] {
+  private var visibleEvents: [FullEvent] {
     isShowingAll ? sortedEvents : Array(sortedEvents.prefix(3))
   }
 
@@ -63,7 +63,7 @@ struct UpcomingEventsWidget: View {
 }
 
 struct EventRow: View {
-  let event: Event
+  let event: FullEvent
 
   private var eventDateFormatted: String {
     guard let date = ISO8601DateFormatter().date(from: event.startDate) else {

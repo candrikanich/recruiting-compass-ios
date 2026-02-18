@@ -47,7 +47,7 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   var stubbedCoaches: [Coach] = []
   var stubbedInteractions: [Interaction] = []
   var stubbedOffers: [Offer] = []
-  var stubbedEvents: [Event] = []
+  var stubbedEvents: [FullEvent] = []
   var stubbedMetrics: [PerformanceMetric] = []
   var stubbedSuggestions: [Suggestion] = []
 
@@ -86,7 +86,7 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
     return stubbedOffers
   }
 
-  func fetchEvents(userId: String, limit: Int?) async throws -> [Event] {
+  func fetchEvents(userId: String, limit: Int?) async throws -> [FullEvent] {
     fetchEventsCallCount += 1
     if shouldThrowFetchEvents {
       throw NSError(domain: "MockDashboard", code: 3, userInfo: [NSLocalizedDescriptionKey: "Mock fetch events error"])

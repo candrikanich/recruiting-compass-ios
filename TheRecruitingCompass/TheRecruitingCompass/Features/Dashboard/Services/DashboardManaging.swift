@@ -6,7 +6,7 @@ protocol DashboardManaging: Sendable {
   func fetchCoaches(schoolIds: [String]) async throws -> [Coach]
   func fetchInteractions(userId: String, limit: Int?) async throws -> [Interaction]
   func fetchOffers(userId: String) async throws -> [Offer]
-  func fetchEvents(userId: String, limit: Int?) async throws -> [Event]
+  func fetchEvents(userId: String, limit: Int?) async throws -> [FullEvent]
   func fetchMetrics(userId: String, limit: Int?) async throws -> [PerformanceMetric]
   func fetchSuggestions(location: String) async throws -> [Suggestion]
   func dismissSuggestion(id: String) async throws
