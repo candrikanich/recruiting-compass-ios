@@ -1,5 +1,6 @@
 import XCTest
 import SwiftUI
+import UIKit
 @testable import TheRecruitingCompass
 
 @MainActor
@@ -90,13 +91,16 @@ final class CoachDetailViewTests: XCTestCase {
   // MARK: - View Rendering Tests
 
   func testCoachDetailView_rendersWithoutCrashing() {
+    // Host in UIHostingController so @MainActor CoachDetailViewModel tears down in a proper
+    // UIKit context and we avoid the Swift runtime deinit crash (malloc "pointer being freed
+    // was not allocated" in swift_task_deinitOnExecutorMainActorBackDeploy).
     let view = CoachDetailView(
       coachId: "coach-1",
       allCoaches: [testCoach],
       allSchools: [testSchool]
     )
-
-    XCTAssertNotNil(view)
+    let hosting = UIHostingController(rootView: view)
+    XCTAssertNotNil(hosting.view)
   }
 
   func testCoachDetailView_rendersWithEmptyCoaches() {
@@ -105,8 +109,8 @@ final class CoachDetailViewTests: XCTestCase {
       allCoaches: [],
       allSchools: []
     )
-
-    XCTAssertNotNil(view)
+    let hosting = UIHostingController(rootView: view)
+    XCTAssertNotNil(hosting.view)
   }
 
   // MARK: - ViewModel Integration Tests
