@@ -4,6 +4,7 @@ struct StatCard: View {
   let title: String
   let count: Int
   let subtitle: String?
+  let description: String?
   let icon: String
   let gradientColors: [Color]
   let isEnabled: Bool
@@ -12,7 +13,7 @@ struct StatCard: View {
   @Environment(\.sizeCategory) var sizeCategory
 
   private var iconSize: CGFloat {
-    sizeCategory >= .extraLarge ? 36 : 32
+    sizeCategory >= .extraLarge ? 28 : 24
   }
 
   var body: some View {
@@ -21,6 +22,9 @@ struct StatCard: View {
         Image(systemName: icon)
           .font(.system(size: iconSize))
           .foregroundColor(.white)
+          .padding(8)
+          .background(Color.white.opacity(0.25))
+          .cornerRadius(8)
           .accessibilityHidden(true)
 
         Spacer()
@@ -32,7 +36,7 @@ struct StatCard: View {
           .foregroundColor(.white)
 
         Text(title)
-          .font(.subheadline)
+          .font(.subheadline.weight(.bold))
           .foregroundColor(.white.opacity(0.9))
 
         if let subtitle = subtitle {
@@ -40,10 +44,18 @@ struct StatCard: View {
             .font(.caption)
             .foregroundColor(.white.opacity(0.7))
         }
+
+        if let description = description {
+          Text(description)
+            .font(.caption)
+            .foregroundColor(.white.opacity(0.85))
+        }
       }
     }
-    .padding()
-    .frame(maxWidth: .infinity, minHeight: 120)
+    .padding(.horizontal, 16)
+    .padding(.top, 20)
+    .padding(.bottom, 20)
+    .frame(maxWidth: .infinity, minHeight: 180, maxHeight: 180)
     .background(
       LinearGradient(
         gradient: Gradient(colors: gradientColors),
@@ -56,7 +68,7 @@ struct StatCard: View {
     .opacity(isEnabled ? 1.0 : 0.7)
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(title): \(count)")
-    .accessibilityValue(subtitle ?? "")
+    .accessibilityValue([subtitle, description].compactMap { $0 }.joined(separator: ". "))
     .accessibilityAddTraits(isEnabled ? [.isButton] : [])
     .accessibilityHint(isEnabled ? "Tap to view \(title.lowercased())" : "")
   }
@@ -67,7 +79,8 @@ struct StatCard: View {
     title: "Coaches",
     count: 12,
     subtitle: nil,
-    icon: "person.2.fill",
+    description: "View all coaches",
+    icon: "person.2",
     gradientColors: [Color(hex: "#3B82F6"), Color(hex: "#2563EB")],
     isEnabled: true,
     destination: .coaches
