@@ -10,7 +10,8 @@ final class TermsCheckboxAccessibilityTests: XCTestCase {
 
     let checkbox = TermsCheckbox(
       isChecked: $isChecked,
-      onTermsPressed: {}
+      onTermsPressed: { },
+      onPrivacyPressed: { }
     )
 
     let view = checkbox as any View
@@ -22,7 +23,8 @@ final class TermsCheckboxAccessibilityTests: XCTestCase {
 
     let checkbox = TermsCheckbox(
       isChecked: $isChecked,
-      onTermsPressed: {}
+      onTermsPressed: { },
+      onPrivacyPressed: { }
     )
 
     // Verify "Checked" value is accessible
@@ -35,7 +37,8 @@ final class TermsCheckboxAccessibilityTests: XCTestCase {
 
     let checkbox = TermsCheckbox(
       isChecked: $isChecked,
-      onTermsPressed: {}
+      onTermsPressed: { },
+      onPrivacyPressed: { }
     )
 
     // Verify "Unchecked" value is accessible
@@ -48,7 +51,8 @@ final class TermsCheckboxAccessibilityTests: XCTestCase {
 
     let checkbox = TermsCheckbox(
       isChecked: $isChecked,
-      onTermsPressed: {}
+      onTermsPressed: { },
+      onPrivacyPressed: { }
     )
 
     // Verify Terms of Service link is accessible
@@ -61,7 +65,8 @@ final class TermsCheckboxAccessibilityTests: XCTestCase {
 
     let checkbox = TermsCheckbox(
       isChecked: $isChecked,
-      onTermsPressed: {}
+      onTermsPressed: { },
+      onPrivacyPressed: { }
     )
 
     // Verify Privacy Policy link is accessible
@@ -74,7 +79,8 @@ final class TermsCheckboxAccessibilityTests: XCTestCase {
 
     let checkbox = TermsCheckbox(
       isChecked: $isChecked,
-      onTermsPressed: {}
+      onTermsPressed: { },
+      onPrivacyPressed: { }
     )
 
     // Verify "I agree to the" and "and" are marked hidden

@@ -3,6 +3,7 @@ import SwiftUI
 struct TermsCheckbox: View {
   @Binding var isChecked: Bool
   let onTermsPressed: () -> Void
+  let onPrivacyPressed: () -> Void
   @Environment(\.sizeCategory) var sizeCategory
 
   private var checkboxSize: CGFloat {
@@ -47,7 +48,7 @@ struct TermsCheckbox: View {
             .foregroundColor(Color.tertiaryText)
             .accessibilityHidden(true)
 
-          Button(action: onTermsPressed) {
+          Button(action: onPrivacyPressed) {
             Text("Privacy Policy")
               .font(.footnote.weight(.semibold))
               .foregroundColor(Color.accentBlue)
@@ -70,7 +71,8 @@ struct TermsCheckbox: View {
   return VStack {
     TermsCheckbox(
       isChecked: $isChecked,
-      onTermsPressed: { }
+      onTermsPressed: { },
+      onPrivacyPressed: { }
     )
 
     Spacer()

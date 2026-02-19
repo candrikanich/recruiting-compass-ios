@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SignupView: View {
   @State private var viewModel = SignupViewModel()
+  @State private var showPrivacyPolicy = false
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
@@ -30,6 +31,9 @@ struct SignupView: View {
     .navigationBarBackButtonHidden(true)
     .navigationDestination(isPresented: $viewModel.shouldNavigateToVerifyEmail) {
       EmailVerificationView()
+    }
+    .sheet(isPresented: $showPrivacyPolicy) {
+      PrivacyPolicyView()
     }
   }
 
@@ -231,7 +235,8 @@ struct SignupView: View {
   private var termsSection: some View {
     TermsCheckbox(
       isChecked: $viewModel.termsAccepted,
-      onTermsPressed: {}
+      onTermsPressed: { },
+      onPrivacyPressed: { showPrivacyPolicy = true }
     )
   }
 
