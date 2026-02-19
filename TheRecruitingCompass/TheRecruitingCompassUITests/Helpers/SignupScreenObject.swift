@@ -67,6 +67,16 @@ final class SignupScreenObject {
     ).firstMatch
   }
 
+  /// Tappable "Terms of Service" link that opens the Terms sheet
+  var termsOfServiceLink: XCUIElement {
+    app.buttons["Read Terms of Service"]
+  }
+
+  /// "Privacy Policy" link that opens the Privacy Policy sheet
+  var privacyPolicyLink: XCUIElement {
+    app.buttons["Read Privacy Policy"]
+  }
+
   var createAccountButton: XCUIElement {
     app.buttons.matching(
       NSPredicate(format: "label == 'Create account'")

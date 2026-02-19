@@ -3,6 +3,7 @@ import SwiftUI
 struct SignupView: View {
   @State private var viewModel = SignupViewModel()
   @State private var showPrivacyPolicy = false
+  @State private var showTermsOfService = false
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
@@ -34,6 +35,9 @@ struct SignupView: View {
     }
     .sheet(isPresented: $showPrivacyPolicy) {
       PrivacyPolicyView()
+    }
+    .sheet(isPresented: $showTermsOfService) {
+      TermsOfServiceView()
     }
   }
 
@@ -235,7 +239,7 @@ struct SignupView: View {
   private var termsSection: some View {
     TermsCheckbox(
       isChecked: $viewModel.termsAccepted,
-      onTermsPressed: { },
+      onTermsPressed: { showTermsOfService = true },
       onPrivacyPressed: { showPrivacyPolicy = true }
     )
   }

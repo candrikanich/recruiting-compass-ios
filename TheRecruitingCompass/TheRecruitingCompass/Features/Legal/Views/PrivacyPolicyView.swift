@@ -74,14 +74,14 @@ struct PrivacyPolicyView: View {
 
   private var section1Introduction: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("1. Introduction")
+      LegalSectionHeader(text: "1. Introduction")
 
-      bodyText(
+      LegalBodyText(text:
         "Recruiting Compass (\"we,\" \"us,\" \"our,\" or \"Company\") is committed to protecting your privacy. " +
           "This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you " +
           "visit our website and use our services."
       )
-      bodyText(
+      LegalBodyText(text:
         "Please read this privacy policy carefully. If you do not agree with our policies and practices, please do not use our Service."
       )
     }
@@ -91,20 +91,20 @@ struct PrivacyPolicyView: View {
 
   private var section2InformationWeCollect: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("2. Information We Collect")
+      LegalSectionHeader(text: "2. Information We Collect")
 
-      bodyText("We may collect information about you in a variety of ways:")
+      LegalBodyText(text:"We may collect information about you in a variety of ways:")
 
-      subsectionHeader("Information You Provide")
-      bulletList([
+      LegalSubsectionHeader(text: "Information You Provide")
+      LegalBulletList(items: [
         "Registration Information: Name, email address, password, phone number, and role (parent or player)",
         "Profile Information: Profile photo, biographical information, preferences, and school-related data",
         "Communication Data: Messages, notes, and communications you create or store within the Service",
         "Preference Data: School preferences, location preferences, and other customization settings",
       ])
 
-      subsectionHeader("Automatically Collected Information")
-      bulletList([
+      LegalSubsectionHeader(text: "Automatically Collected Information")
+      LegalBulletList(items: [
         "Log Data: IP address, browser type, pages visited, and time and date stamps",
         "Device Information: Device type, operating system, and unique device identifiers",
         "Usage Analytics: How you interact with our Service, features you use, and actions you take",
@@ -117,9 +117,9 @@ struct PrivacyPolicyView: View {
 
   private var section3HowWeUse: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("3. How We Use Your Information")
-      bodyText("We use the information we collect for various purposes:")
-      bulletList([
+      LegalSectionHeader(text: "3. How We Use Your Information")
+      LegalBodyText(text:"We use the information we collect for various purposes:")
+      LegalBulletList(items: [
         "To create and maintain your account",
         "To provide, maintain, and improve the Service",
         "To send administrative information and updates",
@@ -136,11 +136,11 @@ struct PrivacyPolicyView: View {
 
   private var section4Sharing: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("4. Sharing Your Information")
-      bodyText(
+      LegalSectionHeader(text: "4. Sharing Your Information")
+      LegalBodyText(text:
         "We do not sell, trade, or rent your personal information to third parties. We may share information in the following circumstances:"
       )
-      bulletList([
+      LegalBulletList(items: [
         "Service Providers: Third-party vendors who assist in operating our Service, subject to confidentiality agreements",
         "Legal Requirements: When required by law, court order, or government request",
         "Business Transfers: In connection with a merger, acquisition, or sale of assets",
@@ -153,8 +153,8 @@ struct PrivacyPolicyView: View {
 
   private var section5DataSecurity: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("5. Data Security")
-      bodyText(
+      LegalSectionHeader(text: "5. Data Security")
+      LegalBodyText(text:
         "We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the Internet or electronic storage is completely secure. We cannot guarantee absolute security of your information."
       )
     }
@@ -164,8 +164,8 @@ struct PrivacyPolicyView: View {
 
   private var section6Retention: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("6. Retention of Information")
-      bodyText(
+      LegalSectionHeader(text: "6. Retention of Information")
+      LegalBodyText(text:
         "We retain your personal information for as long as necessary to provide the Service and fulfill the purposes outlined in this Privacy Policy. You may request deletion of your account and associated data at any time, subject to legal retention requirements."
       )
     }
@@ -175,9 +175,9 @@ struct PrivacyPolicyView: View {
 
   private var section7PrivacyRights: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("7. Your Privacy Rights")
-      bodyText("Depending on your location, you may have the right to:")
-      bulletList([
+      LegalSectionHeader(text: "7. Your Privacy Rights")
+      LegalBodyText(text:"Depending on your location, you may have the right to:")
+      LegalBulletList(items: [
         "Access the personal information we hold about you",
         "Correct inaccurate or incomplete information",
         "Request deletion of your information",
@@ -185,7 +185,7 @@ struct PrivacyPolicyView: View {
         "Request a portable copy of your data",
         "Withdraw consent at any time",
       ])
-      bodyText("To exercise these rights, please contact us at privacy@recruitingcompass.com.")
+      LegalBodyText(text:"To exercise these rights, please contact us at privacy@recruitingcompass.com.")
     }
   }
 
@@ -193,8 +193,8 @@ struct PrivacyPolicyView: View {
 
   private var section8Cookies: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("8. Cookies and Tracking Technologies")
-      bodyText(
+      LegalSectionHeader(text: "8. Cookies and Tracking Technologies")
+      LegalBodyText(text:
         "We use cookies and similar tracking technologies to enhance your experience. Most web browsers allow you to control cookies through their settings. Disabling cookies may affect the functionality of our Service."
       )
     }
@@ -204,8 +204,8 @@ struct PrivacyPolicyView: View {
 
   private var section9ThirdPartyLinks: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("9. Third-Party Links")
-      bodyText(
+      LegalSectionHeader(text: "9. Third-Party Links")
+      LegalBodyText(text:
         "Our Service may contain links to third-party websites. We are not responsible for the privacy practices of those sites. We encourage you to review the privacy policies of any third-party sites before providing your information."
       )
     }
@@ -215,8 +215,8 @@ struct PrivacyPolicyView: View {
 
   private var section10ChildrenPrivacy: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("10. Children's Privacy")
-      bodyText(
+      LegalSectionHeader(text: "10. Children's Privacy")
+      LegalBodyText(text:
         "Our Service is not intended for children under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected information from a child under 13, we will take steps to delete such information promptly."
       )
     }
@@ -226,8 +226,8 @@ struct PrivacyPolicyView: View {
 
   private var section11Changes: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("11. Changes to This Privacy Policy")
-      bodyText(
+      LegalSectionHeader(text: "11. Changes to This Privacy Policy")
+      LegalBodyText(text:
         "We may update this Privacy Policy from time to time to reflect changes in our practices or for other operational, legal, or regulatory reasons. We will notify you of material changes by updating the \"Last Updated\" date and, in some cases, by providing additional notice."
       )
     }
@@ -237,8 +237,8 @@ struct PrivacyPolicyView: View {
 
   private var section12ContactUs: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      sectionHeader("12. Contact Us")
-      bodyText(
+      LegalSectionHeader(text: "12. Contact Us")
+      LegalBodyText(text:
         "If you have questions about this Privacy Policy or our privacy practices, please contact us at:"
       )
 
@@ -251,14 +251,14 @@ struct PrivacyPolicyView: View {
           Text("Email:")
             .font(.body)
             .foregroundColor(Color.secondaryText)
-          emailLink("privacy@recruitingcompass.com")
+          LegalEmailLink(email: "privacy@recruitingcompass.com")
         }
 
         HStack(spacing: 4) {
           Text("Support:")
             .font(.body)
             .foregroundColor(Color.secondaryText)
-          emailLink("support@recruitingcompass.com")
+          LegalEmailLink(email: "support@recruitingcompass.com")
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
@@ -268,61 +268,6 @@ struct PrivacyPolicyView: View {
     }
   }
 
-  // MARK: - Helpers
-
-  private func sectionHeader(_ text: String) -> some View {
-    Text(text)
-      .font(.headline)
-      .foregroundColor(Color.darkSlate)
-      .accessibilityAddTraits(.isHeader)
-  }
-
-  private func subsectionHeader(_ text: String) -> some View {
-    Text(text)
-      .font(.subheadline.weight(.semibold))
-      .foregroundColor(Color.darkSlate)
-      .accessibilityAddTraits(.isHeader)
-  }
-
-  private func bodyText(_ text: String) -> some View {
-    Text(text)
-      .font(.body)
-      .foregroundColor(Color.secondaryText)
-      .fixedSize(horizontal: false, vertical: true)
-  }
-
-  private func bulletList(_ items: [String]) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
-      ForEach(items, id: \.self) { item in
-        HStack(alignment: .top, spacing: 8) {
-          Text("•")
-            .font(.body)
-            .foregroundColor(Color.secondaryText)
-          Text(item)
-            .font(.body)
-            .foregroundColor(Color.secondaryText)
-            .fixedSize(horizontal: false, vertical: true)
-        }
-      }
-    }
-  }
-
-  @ViewBuilder
-  private func emailLink(_ email: String) -> some View {
-    if let url = URL(string: "mailto:\(email)") {
-      Link(email, destination: url)
-        .font(.body.weight(.medium))
-        .foregroundColor(Color.accentBlue)
-        .frame(minHeight: 44)
-        .contentShape(Rectangle())
-        .accessibilityLabel("Email \(email.replacingOccurrences(of: "@", with: " at ").replacingOccurrences(of: ".", with: " dot "))")
-        .accessibilityHint("Opens Mail app")
-    } else {
-      Text(email)
-        .font(.body)
-        .foregroundColor(Color.accentBlue)
-    }
-  }
 }
 
 #Preview {
