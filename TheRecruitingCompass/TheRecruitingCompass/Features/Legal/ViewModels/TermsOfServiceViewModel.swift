@@ -16,19 +16,10 @@ final class TermsOfServiceViewModel: LegalDocumentLoading {
     defer { isLoading = false }
 
     do {
-      lastUpdated = try Self.loadBundledLastUpdated()
+      lastUpdated = try LegalDocumentLoader.loadLastUpdated(formattedDate: TermsOfService.bundled.formattedDate)
     } catch {
       errorMessage = error.localizedDescription
     }
-  }
-
-  /// Loads the bundled terms' "last updated" string. Throws if the formatted date is empty (e.g. locale/formatting edge case).
-  private static func loadBundledLastUpdated() throws -> String {
-    let formatted = TermsOfService.bundled.formattedDate
-    guard !formatted.isEmpty else {
-      throw NSError(domain: "TermsOfServiceViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load terms date."])
-    }
-    return formatted
   }
 
   func retry() async {

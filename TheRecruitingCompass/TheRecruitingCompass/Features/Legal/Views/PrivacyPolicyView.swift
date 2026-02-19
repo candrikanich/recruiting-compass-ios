@@ -36,19 +36,12 @@ struct PrivacyPolicyView: View {
   }
 
   private var loadingView: some View {
-    VStack(spacing: 12) {
-      ProgressView()
-      Text("Loading Privacy Policy...")
-        .font(.subheadline)
-        .foregroundColor(Color.secondaryText)
-    }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("Loading Privacy Policy")
+    LoadingStateView(message: "Loading Privacy Policy...")
   }
 
   private func errorView(message: String) -> some View {
     ErrorStateView(
-      message: "Unable to load Privacy Policy\n\nPlease check your connection",
+      message: "Unable to load Privacy Policy.\n\n\(message)",
       icon: "exclamationmark.triangle",
       onRetry: { Task { await viewModel.retry() } },
       retryAccessibilityHint: "Retries loading Privacy Policy"

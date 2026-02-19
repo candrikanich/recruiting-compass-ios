@@ -36,19 +36,12 @@ struct TermsOfServiceView: View {
   }
 
   private var loadingView: some View {
-    VStack(spacing: 12) {
-      ProgressView()
-      Text("Loading Terms...")
-        .font(.subheadline)
-        .foregroundColor(Color.secondaryText)
-    }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("Loading Terms")
+    LoadingStateView(message: "Loading Terms...")
   }
 
   private func errorView(message: String) -> some View {
     ErrorStateView(
-      message: "Unable to load Terms of Service\n\nPlease check your connection",
+      message: "Unable to load Terms of Service.\n\n\(message)",
       icon: "exclamationmark.triangle",
       onRetry: { Task { await viewModel.retry() } },
       retryAccessibilityHint: "Retries loading Terms of Service"

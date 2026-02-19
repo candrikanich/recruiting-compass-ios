@@ -72,6 +72,10 @@ final class SchoolDetailViewModel {
   private let fitScoreService: any FitScoreManaging
   private let collegeService: any CollegeScorecardManaging
   private let coachesService: any CoachesManaging
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached school and status history (seconds).
+  private static let schoolCacheTTL: TimeInterval = 60
 
   nonisolated init(
     schoolId: String,
@@ -80,7 +84,8 @@ final class SchoolDetailViewModel {
     familyManager: FamilyManager = .shared,
     fitScoreService: any FitScoreManaging = FitScoreService(),
     collegeService: any CollegeScorecardManaging = CollegeScorecardService(),
-    coachesService: any CoachesManaging = CoachesServiceImpl(supabaseManager: .shared)
+    coachesService: any CoachesManaging = CoachesServiceImpl(supabaseManager: .shared),
+    cache: (any CacheManaging)? = nil
   ) {
     self.schoolId = schoolId
     self.schoolsService = schoolsService
@@ -89,6 +94,7 @@ final class SchoolDetailViewModel {
     self.fitScoreService = fitScoreService
     self.collegeService = collegeService
     self.coachesService = coachesService
+    self.cache = cache
   }
 
   // MARK: - Helper Methods
@@ -156,16 +162,34 @@ final class SchoolDetailViewModel {
       return
     }
 
+    let cacheKey = "school:\(schoolId)"
+    let historyKey = "school:\(schoolId):history"
+    let cacheToUse = cache ?? InMemoryCache.shared
+
+    // Try cache first
+    if let cachedSchool = await cacheToUse.get(School.self, forKey: cacheKey),
+       let cachedHistory = await cacheToUse.get([SchoolStatusHistory].self, forKey: historyKey) {
+      school = cachedSchool
+      statusHistory = cachedHistory
+      logger.info("Loaded school from cache: \(cachedSchool.name)")
+      await loadFitScore()
+      await loadCoaches()
+      return
+    }
+
     do {
       async let schoolData = schoolsService.fetchSchool(id: schoolId, familyUnitId: familyId)
       async let historyData = schoolsService.fetchStatusHistory(schoolId: schoolId)
 
-      school = try await schoolData
-      statusHistory = try await historyData
+      let loadedSchool = try await schoolData
+      let loadedHistory = try await historyData
+      school = loadedSchool
+      statusHistory = loadedHistory
 
-      logger.info("Loaded school: \(self.school?.name ?? "unknown")")
+      await cacheToUse.set(loadedSchool, forKey: cacheKey, ttlSeconds: Self.schoolCacheTTL)
+      await cacheToUse.set(loadedHistory, forKey: historyKey, ttlSeconds: Self.schoolCacheTTL)
 
-      // Load fit score and coaches in parallel (non-critical, don't block on failure)
+      logger.info("Loaded school: \(loadedSchool.name)")
       await loadFitScore()
       await loadCoaches()
 
@@ -173,6 +197,15 @@ final class SchoolDetailViewModel {
       errorMessage = "Failed to load school: \(error.localizedDescription)"
       logger.error("Failed to load school: \(error.localizedDescription)")
     }
+  }
+
+  /// Invalidates cached school and history so the next load refetches. Call after any mutation.
+  private func invalidateSchoolCache() async {
+    let cacheKey = "school:\(schoolId)"
+    let historyKey = "school:\(schoolId):history"
+    let cacheToUse = cache ?? InMemoryCache.shared
+    await cacheToUse.remove(forKey: cacheKey)
+    await cacheToUse.remove(forKey: historyKey)
   }
 
   // MARK: - Status Update
@@ -197,6 +230,7 @@ final class SchoolDetailViewModel {
 
       // Refresh history
       statusHistory = try await schoolsService.fetchStatusHistory(schoolId: schoolId)
+      await invalidateSchoolCache()
       logger.info("Status updated to \(newStatus.displayName)")
     } catch {
       errorMessage = "Failed to update status"
@@ -216,6 +250,7 @@ final class SchoolDetailViewModel {
 
     do {
       try await schoolsService.toggleFavorite(id: schoolId, isFavorite: newValue)
+      await invalidateSchoolCache()
       logger.info("Favorite toggled to \(newValue)")
     } catch {
       // Revert on error
@@ -245,6 +280,7 @@ final class SchoolDetailViewModel {
         let updated = try await schoolsService.updateNotes(id: schoolId, notes: editedNotes)
         school = updated
         isEditingNotes = false
+        await invalidateSchoolCache()
         logger.info("Notes saved successfully")
       } catch {
         handleError(error, userMessage: "Failed to save notes")
@@ -285,6 +321,7 @@ final class SchoolDetailViewModel {
         )
         school = updated
         isEditingPrivateNotes = false
+        await invalidateSchoolCache()
         logger.info("Private notes saved successfully")
       } catch {
         handleError(error, userMessage: "Failed to save private notes")
@@ -306,6 +343,7 @@ final class SchoolDetailViewModel {
         let updated = try await schoolsService.addPro(id: schoolId, familyUnitId: familyId, text: newPro)
         school = updated
         newPro = ""
+        await invalidateSchoolCache()
         logger.info("Pro added successfully")
       } catch {
         handleError(error, userMessage: "Failed to add pro")
@@ -322,6 +360,7 @@ final class SchoolDetailViewModel {
     do {
       let updated = try await schoolsService.removePro(id: schoolId, familyUnitId: familyId, index: index)
       school = updated
+      await invalidateSchoolCache()
       logger.info("Pro removed successfully")
     } catch {
       errorMessage = "Failed to remove pro"
@@ -341,6 +380,7 @@ final class SchoolDetailViewModel {
         let updated = try await schoolsService.addCon(id: schoolId, familyUnitId: familyId, text: newCon)
         school = updated
         newCon = ""
+        await invalidateSchoolCache()
         logger.info("Con added successfully")
       } catch {
         handleError(error, userMessage: "Failed to add con")
@@ -357,6 +397,7 @@ final class SchoolDetailViewModel {
     do {
       let updated = try await schoolsService.removeCon(id: schoolId, familyUnitId: familyId, index: index)
       school = updated
+      await invalidateSchoolCache()
       logger.info("Con removed successfully")
     } catch {
       errorMessage = "Failed to remove con"
@@ -386,6 +427,7 @@ final class SchoolDetailViewModel {
         )
         school = updated
         isEditingBasicInfo = false
+        await invalidateSchoolCache()
         logger.info("Basic info saved successfully")
       } catch {
         handleError(error, userMessage: "Failed to save information")
@@ -436,7 +478,7 @@ final class SchoolDetailViewModel {
       // Merge data into school's academic_info
       let updated = try await schoolsService.mergeCollegeData(id: schoolId, data: data)
       self.school = updated
-
+      await invalidateSchoolCache()
       collegeDataError = nil
       logger.info("College data merged successfully")
 
@@ -486,6 +528,7 @@ final class SchoolDetailViewModel {
         )
         school = updated
         isEditingCoachingPhilosophy = false
+        await invalidateSchoolCache()
         logger.info("Coaching philosophy saved successfully")
       } catch {
         handleError(error, userMessage: "Failed to save coaching philosophy")
@@ -521,10 +564,12 @@ final class SchoolDetailViewModel {
   private func performDelete() async throws {
     do {
       try await schoolsService.deleteSchool(id: schoolId)
+      await invalidateSchoolCache()
       logger.info("School deleted successfully (simple delete)")
     } catch {
       logger.warning("Simple delete failed, attempting cascade delete: \(error.localizedDescription)")
       let result = try await schoolsService.cascadeDeleteSchool(id: schoolId)
+      await invalidateSchoolCache()
       let totalDeleted = result.deletedInteractions + result.deletedNotes
       logger.info("School deleted successfully (cascade delete: \(totalDeleted) related items)")
     }
@@ -537,6 +582,7 @@ final class SchoolDetailViewModel {
       do {
         let updated = try await schoolsService.updatePriorityTier(id: schoolId, tier: tier)
         school = updated
+        await invalidateSchoolCache()
         logger.info("Priority tier updated to \(tier?.rawValue ?? "none")")
       } catch {
         handleError(error, userMessage: "Failed to update priority tier")

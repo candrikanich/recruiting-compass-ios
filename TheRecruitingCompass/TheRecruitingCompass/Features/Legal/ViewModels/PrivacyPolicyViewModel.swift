@@ -16,19 +16,10 @@ final class PrivacyPolicyViewModel: LegalDocumentLoading {
     defer { isLoading = false }
 
     do {
-      lastUpdated = try Self.loadBundledLastUpdated()
+      lastUpdated = try LegalDocumentLoader.loadLastUpdated(formattedDate: PrivacyPolicy.bundled.formattedDate)
     } catch {
       errorMessage = error.localizedDescription
     }
-  }
-
-  /// Loads the bundled policy's "last updated" string. Throws if the formatted date is empty (e.g. locale/formatting edge case).
-  private static func loadBundledLastUpdated() throws -> String {
-    let formatted = PrivacyPolicy.bundled.formattedDate
-    guard !formatted.isEmpty else {
-      throw NSError(domain: "PrivacyPolicyViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load policy date."])
-    }
-    return formatted
   }
 
   func retry() async {

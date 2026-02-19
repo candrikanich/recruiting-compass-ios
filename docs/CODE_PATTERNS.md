@@ -180,6 +180,27 @@ XCTAssertNotNil(hosting.view)
 
 ---
 
+## nonisolated deinit for @MainActor ViewModels
+
+**When to use:** Add `nonisolated deinit {}` to an `@MainActor` ViewModel when that ViewModel is presented in a sheet or tested via `UIHostingController` and you see teardown crashes (e.g. `swift_task_deinitOnExecutorMainActorBackDeploy`). The compiler-synthesized deinit for @MainActor classes can run when the object is deallocated outside a MainActor task (e.g. when the sheet or hosting controller is torn down), which triggers a runtime crash.
+
+**Pattern:**
+
+```swift
+@Observable
+@MainActor
+final class MySheetViewModel {
+  // ...
+
+  // Prevents main-actor-isolated deinit from running on wrong executor (e.g. sheet/hosting teardown).
+  nonisolated deinit {}
+}
+```
+
+**References:** `ActivityFeedViewModel`, `PrivacyPolicyViewModel`, `TermsOfServiceViewModel`. Only add where you actually observe teardown crashes; not every @MainActor ViewModel needs it.
+
+---
+
 ## Accessibility Patterns
 
 ```swift
@@ -225,6 +246,15 @@ struct FormValidator {
   }
 }
 ```
+
+---
+
+## Security & validation checklist
+
+- **Sanitize user text** before storing or displaying: use `DataSanitizer.stripHtmlTags(_:)` for any rich text or notes that could contain HTML (XSS mitigation); use `DataSanitizer.nilIfEmpty` / trim for optional fields.
+- **Validate inputs** at the boundary (forms, API payloads) using `FormValidator`, `SchoolFieldValidator`, or feature-specific validators; show user-facing error messages, never raw exceptions.
+- **Never log secrets** (tokens, passwords, keys); use `ProcessInfo.processInfo.environment` for config and keep credentials out of the shared scheme (see CLAUDE.md).
+- **Production config:** Release builds require real `SUPABASE_URL` and `SUPABASE_ANON_KEY`; placeholder values trigger a fatalError. Use Scheme → Run → Environment Variables for local runs.
 
 ---
 

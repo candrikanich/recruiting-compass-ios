@@ -60,6 +60,8 @@ Modern iOS app with authentication, signup, and email verification flows. Built 
 - ✅ Your local user scheme (NOT in git) has real credentials
 - ✅ No secrets in version control
 
+**Release builds:** Production and Archive builds **must** have real `SUPABASE_URL` and `SUPABASE_ANON_KEY` set (e.g. in the Run scheme or CI). If they are missing or still the placeholders, the app will crash at launch. See CLAUDE.md for details.
+
 **Alternative (via .env file - Not Recommended):**
 iOS doesn't automatically load `.env` files. See `.env.example` for format.
 ⚠️ Never commit `.env` - it's in `.gitignore`

@@ -47,6 +47,8 @@ Supabase credentials must be configured before running:
 
 **Why:** Shared scheme (in git) has empty placeholders. Your local user scheme (NOT in git) has real credentials.
 
+**Production:** Release builds **require** real `SUPABASE_URL` and `SUPABASE_ANON_KEY`. If either is missing or set to the placeholder values, the app will fatalError at launch. Configure the same environment variables in your Release scheme or CI so production never uses placeholders.
+
 ---
 
 ## Architecture Overview
