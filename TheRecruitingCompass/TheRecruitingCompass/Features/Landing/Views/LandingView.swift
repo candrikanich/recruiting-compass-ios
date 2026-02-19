@@ -33,20 +33,21 @@ struct LandingView: View {
 
   private var logoSection: some View {
     VStack {
-      Image(systemName: "location.fill")
-        .font(.system(size: logoSize))
-        .foregroundColor(.white)
+      Image("AppLogo")
+        .resizable()
+        .scaledToFit()
+        .frame(width: logoSize, height: logoSize)
         .shadow(radius: 10)
         .accessibilityHidden(true)
 
-      Text("Recruiting Compass")
+      Text("The Recruiting Compass")
         .font(.title)
         .fontWeight(.bold)
         .foregroundColor(.white)
     }
     .padding(.bottom, 12)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Recruiting Compass")
+    .accessibilityLabel("The Recruiting Compass")
   }
 
   private var ctaButtons: some View {

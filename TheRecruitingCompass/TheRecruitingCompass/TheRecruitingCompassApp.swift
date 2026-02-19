@@ -16,7 +16,6 @@ struct TheRecruitingCompassApp: App {
   @State private var showResetPassword = false
   @State private var pendingResetPasswordFromDeepLink = false
   @Environment(\.accessibilityReduceMotion) var reduceMotion
-  @ScaledMetric(relativeTo: .largeTitle) private var splashIconSize: CGFloat = 64
 
   var body: some Scene {
     WindowGroup {
@@ -78,19 +77,21 @@ struct TheRecruitingCompassApp: App {
   }
 
   private var sessionLoadingView: some View {
-    ZStack {
-      LinearGradient.landingBackground
-      .ignoresSafeArea()
+    GeometryReader { geometry in
+      ZStack {
+        LinearGradient.landingBackground
+        .ignoresSafeArea()
 
-      VStack(spacing: 16) {
-        Image("AppLogo")
-          .resizable()
-          .scaledToFit()
-          .frame(width: splashIconSize, height: splashIconSize)
+        VStack(spacing: 16) {
+          Image("AppLogo")
+            .resizable()
+            .scaledToFit()
+            .frame(width: geometry.size.width * 0.5)
 
         ProgressView()
           .tint(.white)
           .scaleEffect(1.2)
+        }
       }
     }
   }

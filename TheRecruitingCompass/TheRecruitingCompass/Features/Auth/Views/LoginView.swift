@@ -19,7 +19,7 @@ struct LoginView: View {
         backButton
 
         ScrollView {
-          VStack(spacing: 24) {
+          VStack(spacing: 20) {
             compassIcon
             bannerSection
             emailField
@@ -29,7 +29,9 @@ struct LoginView: View {
             dividerSection
             signUpSection
           }
-          .padding(32)
+          .padding(.horizontal, 32)
+          .padding(.top, 16)
+          .padding(.bottom, 32)
         }
         .background(Color.white.opacity(0.95))
         .cornerRadius(16)
@@ -63,15 +65,14 @@ struct LoginView: View {
     .padding(.vertical, 16)
   }
 
-  private var iconSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 56 : 48
-  }
-
   private var compassIcon: some View {
-    Image(systemName: "compass.drawing")
-      .font(.system(size: iconSize))
-      .foregroundColor(Color.primaryGreen)
-      .padding(.vertical, 12)
+    Image("LogoStacked")
+      .resizable()
+      .scaledToFit()
+      .aspectRatio(3.0 / 2.0, contentMode: .fit)
+      .frame(maxWidth: .infinity)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 8)
       .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
       .accessibilityHidden(true)
   }
