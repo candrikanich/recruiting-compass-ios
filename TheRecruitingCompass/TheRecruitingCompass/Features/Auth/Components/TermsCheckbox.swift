@@ -39,7 +39,6 @@ struct TermsCheckbox: View {
               .font(.footnote.weight(.semibold))
               .foregroundColor(Color.accentBlue)
               .underline()
-              .fixedSize(horizontal: true, vertical: false)
           }
           .accessibilityLabel("Read Terms of Service")
           .accessibilityHint("Opens Terms of Service")
@@ -54,12 +53,10 @@ struct TermsCheckbox: View {
               .font(.footnote.weight(.semibold))
               .foregroundColor(Color.accentBlue)
               .underline()
-              .fixedSize(horizontal: true, vertical: false)
           }
           .accessibilityLabel("Read Privacy Policy")
           .accessibilityHint("Opens Privacy Policy")
         }
-        .fixedSize(horizontal: true, vertical: false)
 
         Spacer()
       }

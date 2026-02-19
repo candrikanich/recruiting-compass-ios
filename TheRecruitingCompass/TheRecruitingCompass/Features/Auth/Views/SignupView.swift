@@ -14,16 +14,20 @@ struct SignupView: View {
       VStack(spacing: 0) {
         backButton
 
-        ScrollView {
-          if !viewModel.showForm {
-            roleSelectionContent
-          } else {
-            signupFormContent
+        HStack(spacing: 0) {
+          Color.clear.frame(width: 24)
+          ScrollView {
+            if !viewModel.showForm {
+              roleSelectionContent
+            } else {
+              signupFormContent
+            }
           }
+          .background(Color.white.opacity(0.95))
+          .cornerRadius(16)
+          Color.clear.frame(width: 24)
         }
-        .background(Color.white.opacity(0.95))
-        .cornerRadius(16)
-        .padding(24)
+        .padding(.vertical, 24)
 
         Spacer()
       }

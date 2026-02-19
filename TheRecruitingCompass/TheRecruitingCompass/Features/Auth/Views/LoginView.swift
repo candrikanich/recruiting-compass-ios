@@ -207,7 +207,6 @@ struct LoginView: View {
       Text("New to The Recruiting Compass?")
         .font(.footnote)
         .foregroundColor(Color.tertiaryText)
-        .fixedSize(horizontal: true, vertical: false)
 
       Rectangle()
         .frame(height: 1)
