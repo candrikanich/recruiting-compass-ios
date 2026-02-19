@@ -20,15 +20,20 @@ final class OfferDetailViewModel {
   private let offerId: String
   private let offersService: any OffersManaging
   private let authManager: any AuthManaging
+  private let cache: (any CacheManaging)?
+
+  private static let offerCacheTTL: TimeInterval = 60
 
   init(
     offerId: String,
     offersService: (any OffersManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.offerId = offerId
     self.offersService = offersService ?? OffersServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
   }
 
   // MARK: - Helper Methods
@@ -69,22 +74,54 @@ final class OfferDetailViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    let offerKey = "offer:\(offerId)"
+    let cacheToUse = cache ?? InMemoryCache.shared
+
+    if let cachedOffer = await cacheToUse.get(Offer.self, forKey: offerKey) {
+      self.offer = cachedOffer
+      if let cachedSchool = await cacheToUse.get(School.self, forKey: "school:\(cachedOffer.schoolId)") {
+        self.school = cachedSchool
+      } else {
+        await loadSchoolForOffer(cachedOffer, cache: cacheToUse)
+      }
+      logger.info("Loaded offer from cache: \(cachedOffer.id)")
+      return
+    }
+
     do {
       let fetchedOffer = try await offersService.fetchOffer(id: offerId)
       self.offer = fetchedOffer
+      await cacheToUse.set(fetchedOffer, forKey: offerKey, ttlSeconds: Self.offerCacheTTL)
       logger.info("Loaded offer: \(fetchedOffer.id)")
 
-      do {
-        let fetchedSchool = try await offersService.fetchSchool(id: fetchedOffer.schoolId)
-        self.school = fetchedSchool
-        logger.info("Loaded school: \(fetchedSchool.name)")
-      } catch {
-        logger.warning("Failed to load school for offer: \(error.localizedDescription)")
-      }
+      await loadSchoolForOffer(fetchedOffer, cache: cacheToUse)
     } catch {
       errorMessage = "Failed to load offer details"
       logger.error("Failed to load offer: \(error.localizedDescription)")
     }
+  }
+
+  private func loadSchoolForOffer(_ offer: Offer, cache cacheToUse: any CacheManaging) async {
+    let schoolKey = "school:\(offer.schoolId)"
+    if let cachedSchool = await cacheToUse.get(School.self, forKey: schoolKey) {
+      self.school = cachedSchool
+      return
+    }
+    do {
+      let fetchedSchool = try await offersService.fetchSchool(id: offer.schoolId)
+      self.school = fetchedSchool
+      await cacheToUse.set(fetchedSchool, forKey: schoolKey, ttlSeconds: Self.offerCacheTTL)
+      logger.info("Loaded school: \(fetchedSchool.name)")
+    } catch {
+      logger.warning("Failed to load school for offer: \(error.localizedDescription)")
+    }
+  }
+
+  private func invalidateOfferCache() async {
+    guard let offer else { return }
+    let cacheToUse = cache ?? InMemoryCache.shared
+    await cacheToUse.remove(forKey: "offer:\(offerId)")
+    await cacheToUse.remove(forKey: "school:\(offer.schoolId)")
   }
 
   // MARK: - Editing
@@ -106,6 +143,7 @@ final class OfferDetailViewModel {
         let request = OfferUpdateRequest(from: editData)
         let updated = try await offersService.updateOffer(id: offerId, data: request)
         self.offer = updated
+        await invalidateOfferCache()
         isEditing = false
         logger.info("Offer updated successfully")
       } catch {
@@ -124,6 +162,7 @@ final class OfferDetailViewModel {
     await ViewModelHelpers.withLoading(set: { self.isDeleting = $0 }) {
       do {
         try await offersService.deleteOffer(id: offerId)
+        await invalidateOfferCache()
         logger.info("Offer deleted successfully")
         onSuccess()
       } catch {

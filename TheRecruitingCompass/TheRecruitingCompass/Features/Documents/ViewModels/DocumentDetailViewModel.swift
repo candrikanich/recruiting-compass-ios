@@ -52,6 +52,9 @@ final class DocumentDetailViewModel {
   private let schoolsService: any SchoolsManaging
   private let authManager: any AuthManaging
   private let familyManager: FamilyManager
+  private let cache: (any CacheManaging)?
+
+  private static let documentCacheTTL: TimeInterval = 60
 
   let documentId: String
 
@@ -83,13 +86,15 @@ final class DocumentDetailViewModel {
     documentsService: (any DocumentsManaging)? = nil,
     schoolsService: (any SchoolsManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
-    familyManager: FamilyManager? = nil
+    familyManager: FamilyManager? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.documentId = documentId
     self.documentsService = documentsService ?? DocumentsServiceImpl()
     self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.familyManager = familyManager ?? FamilyManager.shared
+    self.cache = cache
   }
 
   // MARK: - Load
@@ -106,8 +111,21 @@ final class DocumentDetailViewModel {
     isNotFound = false
     defer { isLoading = false }
 
+    let cacheKey = "document:\(documentId)"
+    let cacheToUse = cache ?? InMemoryCache.shared
+
+    if let cachedDoc = await cacheToUse.get(Document.self, forKey: cacheKey) {
+      document = cachedDoc
+      logger.info("Loaded document from cache: \(self.documentId)")
+      await fetchVersions()
+      return
+    }
+
     do {
       document = try await documentsService.fetchDocument(id: self.documentId)
+      if let doc = document {
+        await cacheToUse.set(doc, forKey: cacheKey, ttlSeconds: Self.documentCacheTTL)
+      }
       logger.info("Loaded document: \(self.documentId)")
       await fetchVersions()
     } catch {
@@ -159,6 +177,11 @@ final class DocumentDetailViewModel {
     }
   }
 
+  private func invalidateDocumentCache() async {
+    let cacheToUse = cache ?? InMemoryCache.shared
+    await cacheToUse.remove(forKey: "document:\(documentId)")
+  }
+
   // MARK: - Edit
 
   func openEditForm() {
@@ -185,6 +208,7 @@ final class DocumentDetailViewModel {
         description: descOpt,
         schoolId: editSchoolId
       )
+      await invalidateDocumentCache()
       showEditSheet = false
       logger.info("Updated document: \(self.documentId)")
     } catch {
@@ -232,6 +256,7 @@ final class DocumentDetailViewModel {
     selectedSchoolIds = []
     showShareModal = false
     document = try? await documentsService.fetchDocument(id: self.documentId)
+    await invalidateDocumentCache()
     logger.info("Saved share for document: \(self.documentId)")
   }
 
@@ -239,6 +264,7 @@ final class DocumentDetailViewModel {
     do {
       try await documentsService.revokeShare(documentId: self.documentId, schoolId: schoolId)
       document = try? await documentsService.fetchDocument(id: self.documentId)
+      await invalidateDocumentCache()
       logger.info("Removed share for document: \(self.documentId)")
     } catch {
       logger.error("Failed to remove share: \(error.localizedDescription)")
@@ -296,6 +322,7 @@ final class DocumentDetailViewModel {
     do {
       try await documentsService.updateDocumentIsCurrent(id: version.id, isCurrent: true)
       document = try? await documentsService.fetchDocument(id: self.documentId)
+      await invalidateDocumentCache()
       await fetchVersions()
       logger.info("Restored version \(version.version)")
     } catch {
@@ -349,6 +376,7 @@ final class DocumentDetailViewModel {
       )
       uploadProgress = 1
       document = newDoc
+      await invalidateDocumentCache()
       await fetchVersions()
       logger.info("Uploaded new version for document: \(self.documentId)")
     } catch {
@@ -392,6 +420,7 @@ final class DocumentDetailViewModel {
 
     do {
       try await documentsService.deleteDocument(id: idToDelete, userId: userId)
+      await invalidateDocumentCache()
       shouldDismiss = true
       logger.info("Deleted document: \(self.documentId)")
     } catch {

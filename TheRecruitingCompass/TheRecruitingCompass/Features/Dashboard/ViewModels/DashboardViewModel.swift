@@ -166,10 +166,11 @@ final class DashboardViewModel {
       lastUpdated = Date()
 
       loadQuickTasks()
-      await fetchSuggestions()
-      await fetchEvents()
-      await fetchMetrics()
-      await fetchInteractionTrends()
+      async let suggestionsTask: () = fetchSuggestions()
+      async let eventsTask: () = fetchEvents()
+      async let metricsTask: () = fetchMetrics()
+      async let trendsTask: () = fetchInteractionTrends()
+      _ = await (suggestionsTask, eventsTask, metricsTask, trendsTask)
     } catch {
       errorMessage = "Failed to load dashboard: \(error.localizedDescription)"
 

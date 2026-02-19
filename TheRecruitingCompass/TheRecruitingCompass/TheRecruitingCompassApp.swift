@@ -14,6 +14,7 @@ struct TheRecruitingCompassApp: App {
   @State private var familyManager = FamilyManager.shared
   @State private var networkMonitor = NetworkMonitor()
   @State private var showResetPassword = false
+  @State private var pendingResetPasswordFromDeepLink = false
   @Environment(\.accessibilityReduceMotion) var reduceMotion
   @ScaledMetric(relativeTo: .largeTitle) private var splashIconSize: CGFloat = 64
 
@@ -46,7 +47,13 @@ struct TheRecruitingCompassApp: App {
       .onOpenURL { url in
         handleDeepLink(url)
       }
-      .sheet(isPresented: $showResetPassword) {
+      .onChange(of: authManager.isCheckingSession) { _, isChecking in
+        if !isChecking, !authManager.isAuthenticated, pendingResetPasswordFromDeepLink {
+          pendingResetPasswordFromDeepLink = false
+          showResetPassword = true
+        }
+      }
+      .sheet(isPresented: $showResetPassword, onDismiss: { pendingResetPasswordFromDeepLink = false }) {
         NavigationStack {
           ResetPasswordView(authManager: authManager)
         }
@@ -61,6 +68,7 @@ struct TheRecruitingCompassApp: App {
     let route = DeepLinkHandler.parse(url)
     switch route {
     case .resetPassword:
+      pendingResetPasswordFromDeepLink = true
       showResetPassword = true
     case .unknown:
       break
