@@ -56,6 +56,27 @@ struct SchoolsListView: View {
 
 ---
 
+## ViewModel helpers (loading and errors)
+
+Use `ViewModelHelpers.withLoading(set:operation:)` to wrap async work that should drive a loading flag (e.g. `isUpdating`, `isDeleting`). Pass a setter closure to avoid passing actor-isolated state across async boundaries. Use `ViewModelHelpers.handleError` to log and set a user-facing message (e.g. `errorMessage` or `activeAlert`).
+
+```swift
+// In a ViewModel:
+func save() async {
+  await ViewModelHelpers.withLoading(set: { self.isSaving = $0 }) {
+    do {
+      try await service.save()
+    } catch {
+      ViewModelHelpers.handleError(error, userMessage: "Failed to save", logger: logger) {
+        self.errorMessage = $0
+      }
+    }
+  }
+}
+```
+
+---
+
 ## Service Pattern (No UI State)
 
 ```swift

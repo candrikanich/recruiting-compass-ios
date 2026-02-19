@@ -33,25 +33,10 @@ final class OfferDetailViewModel {
 
   // MARK: - Helper Methods
 
-  private func handleError(
-    _ error: Error,
-    userMessage: String,
-    file: String = #file,
-    function: String = #function
-  ) {
-    activeAlert = .error(userMessage)
-    let fileName = (file as NSString).lastPathComponent
-    logger.error("[\(fileName):\(function)] \(error.localizedDescription)")
-  }
-
-  @discardableResult
-  private func withLoading<T>(
-    setting flag: ReferenceWritableKeyPath<OfferDetailViewModel, Bool>,
-    operation: () async throws -> T
-  ) async rethrows -> T {
-    self[keyPath: flag] = true
-    defer { self[keyPath: flag] = false }
-    return try await operation()
+  private func handleError(_ error: Error, userMessage: String) {
+    ViewModelHelpers.handleError(error, userMessage: userMessage, logger: logger) {
+      self.activeAlert = .error($0)
+    }
   }
 
   // MARK: - Computed Properties
@@ -116,7 +101,7 @@ final class OfferDetailViewModel {
   }
 
   func saveChanges() async {
-    await withLoading(setting: \.isUpdating) {
+    await ViewModelHelpers.withLoading(set: { self.isUpdating = $0 }) {
       do {
         let request = OfferUpdateRequest(from: editData)
         let updated = try await offersService.updateOffer(id: offerId, data: request)
@@ -136,7 +121,7 @@ final class OfferDetailViewModel {
   }
 
   func deleteOffer(onSuccess: @escaping () -> Void) async {
-    await withLoading(setting: \.isDeleting) {
+    await ViewModelHelpers.withLoading(set: { self.isDeleting = $0 }) {
       do {
         try await offersService.deleteOffer(id: offerId)
         logger.info("Offer deleted successfully")

@@ -151,9 +151,9 @@ class MockAuthManager: AuthManaging { /* ... */ }
 **Quick Workflow:**
 1. Copy `_ScreenTemplate/` → rename to feature (e.g., `Schools/`)
 2. Rename files: `ExampleScreen*` → `SchoolsList*`
-3. Update ViewModel: Add @Published properties, async methods
+3. Update ViewModel: Add observable properties, async methods
 4. Update View: Display ViewModel state, call ViewModel methods
-5. Create Service: Add API calls (pure async functions, no @Published)
+5. Create Service: Add API calls (pure async functions, no UI state)
 6. Add to navigation
 
 **See:** `TheRecruitingCompass/UI/Screens/HOW_TO_CREATE_SCREENS.md`

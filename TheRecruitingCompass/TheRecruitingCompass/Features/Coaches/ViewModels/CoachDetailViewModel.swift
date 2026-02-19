@@ -39,19 +39,25 @@ final class CoachDetailViewModel {
   private let authManager: any AuthManaging
   private let allCoaches: [Coach]
   private let allSchools: [School]
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached coach (seconds).
+  private static let coachCacheTTL: TimeInterval = 60
 
   init(
     coachId: String,
     allCoaches: [Coach] = [],
     allSchools: [School] = [],
     coachesService: (any CoachesManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.coachId = coachId
     self.allCoaches = allCoaches
     self.allSchools = allSchools
     self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
   }
 
   // MARK: - Computed Properties
@@ -89,17 +95,50 @@ final class CoachDetailViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
-    // For now, use the passed-in coaches array since we don't have fetchCoach(id:) API yet
+    let cacheKey = "coach:\(coachId)"
+    let cacheToUse = cache ?? InMemoryCache.shared
+
+    // Try cache first
+    if let cachedCoach = await cacheToUse.get(Coach.self, forKey: cacheKey) {
+      coach = cachedCoach
+      if let foundSchool = allSchools.first(where: { $0.id == cachedCoach.schoolId }) {
+        school = foundSchool
+      }
+      logger.info("Loaded coach from cache: \(cachedCoach.fullName)")
+      return
+    }
+
+    // Then try passed-in list (avoids network when navigating from list)
     if let foundCoach = allCoaches.first(where: { $0.id == coachId }) {
       coach = foundCoach
       if let foundSchool = allSchools.first(where: { $0.id == foundCoach.schoolId }) {
         school = foundSchool
       }
-      logger.info("Loaded coach from cache: \(foundCoach.fullName)")
-    } else {
-      errorMessage = "Coach not found"
-      logger.warning("Coach not found with ID: \(self.coachId)")
+      await cacheToUse.set(foundCoach, forKey: cacheKey, ttlSeconds: Self.coachCacheTTL)
+      logger.info("Loaded coach from list: \(foundCoach.fullName)")
+      return
     }
+
+    // Finally fetch by ID
+    do {
+      let fetchedCoach = try await coachesService.fetchCoach(id: coachId)
+      coach = fetchedCoach
+      if let foundSchool = allSchools.first(where: { $0.id == fetchedCoach.schoolId }) {
+        school = foundSchool
+      }
+      await cacheToUse.set(fetchedCoach, forKey: cacheKey, ttlSeconds: Self.coachCacheTTL)
+      logger.info("Loaded coach from API: \(fetchedCoach.fullName)")
+    } catch {
+      errorMessage = "Coach not found"
+      logger.warning("Coach not found with ID: \(self.coachId): \(error.localizedDescription)")
+    }
+  }
+
+  /// Invalidates cached coach so the next load refetches. Call after any mutation.
+  private func invalidateCoachCache() async {
+    let cacheKey = "coach:\(coachId)"
+    let cacheToUse = cache ?? InMemoryCache.shared
+    await cacheToUse.remove(forKey: cacheKey)
   }
 
   func loadDetails() async {
@@ -170,6 +209,7 @@ final class CoachDetailViewModel {
       let request = edited.toUpdateRequest()
       let updated = try await coachesService.updateCoach(id: coachId, updates: request)
       coach = updated
+      await invalidateCoachCache()
       isEditing = false
       editedCoach = nil
       logger.info("Coach updated successfully")
@@ -244,6 +284,7 @@ final class CoachDetailViewModel {
       )
       let updated = try await coachesService.updateCoach(id: coachId, updates: request)
       coach = updated
+      await invalidateCoachCache()
       isEditingSharedNotes = false
       logger.info("Shared notes updated successfully")
     } catch {
@@ -286,6 +327,7 @@ final class CoachDetailViewModel {
       )
       let updated = try await coachesService.updateCoach(id: coachId, updates: request)
       coach = updated
+      await invalidateCoachCache()
       isEditingPrivateNotes = false
       logger.info("Private notes updated successfully")
     } catch {
@@ -309,6 +351,7 @@ final class CoachDetailViewModel {
     do {
       // Try simple delete first (fast path)
       try await coachesService.deleteCoach(id: coach.id)
+      await invalidateCoachCache()
       deleteSuccessMessage = "Coach deleted"
       logger.info("Coach deleted successfully")
     } catch {
@@ -316,6 +359,7 @@ final class CoachDetailViewModel {
       if error.localizedDescription.contains("foreign key") {
         do {
           let result = try await coachesService.cascadeDeleteCoach(id: coach.id)
+          await invalidateCoachCache()
           deleteSuccessMessage = "Coach and \(result.deletedInteractions) interactions deleted"
           logger.info("Cascade delete successful: \(result.deletedInteractions) interactions deleted")
         } catch {

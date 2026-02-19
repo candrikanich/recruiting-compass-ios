@@ -6,6 +6,7 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
 
   var fetchSchoolsCallCount = 0
   var fetchCoachesCallCount = 0
+  var fetchCoachCallCount = 0
   var createCoachCallCount = 0
   var updateCoachCallCount = 0
   var fetchInteractionsCallCount = 0
@@ -16,6 +17,7 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
 
   var lastFetchSchoolsFamilyUnitId: String?
   var lastFetchCoachesSchoolIds: [String]?
+  var lastFetchCoachId: String?
   var lastCreateCoachRequest: CoachCreateRequest?
   var lastUpdateCoachId: String?
   var lastUpdateCoachUpdates: CoachUpdateRequest?
@@ -28,6 +30,7 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
 
   var shouldThrowFetchSchools = false
   var shouldThrowFetchCoaches = false
+  var shouldThrowFetchCoach = false
   var shouldThrowCreateCoach = false
   var shouldThrowUpdateCoach = false
   var shouldThrowFetchInteractions = false
@@ -95,6 +98,18 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
       throw NSError(domain: "MockCoaches", code: 2, userInfo: [NSLocalizedDescriptionKey: "Mock fetch coaches error"])
     }
     return stubbedCoaches
+  }
+
+  func fetchCoach(id: String) async throws -> Coach {
+    fetchCoachCallCount += 1
+    lastFetchCoachId = id
+    if shouldThrowFetchCoach {
+      throw NSError(domain: "MockCoaches", code: 10, userInfo: [NSLocalizedDescriptionKey: "Mock fetch coach error"])
+    }
+    guard let coach = stubbedCoaches.first(where: { $0.id == id }) else {
+      throw NSError(domain: "MockCoaches", code: 11, userInfo: [NSLocalizedDescriptionKey: "Coach not found"])
+    }
+    return coach
   }
 
   func createCoach(request: CoachCreateRequest) async throws -> Coach {

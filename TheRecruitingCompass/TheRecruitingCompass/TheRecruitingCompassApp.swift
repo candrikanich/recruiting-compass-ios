@@ -12,6 +12,7 @@ import Supabase
 struct TheRecruitingCompassApp: App {
   @State private var authManager = AuthManager.shared
   @State private var familyManager = FamilyManager.shared
+  @State private var networkMonitor = NetworkMonitor()
   @State private var showResetPassword = false
   @Environment(\.accessibilityReduceMotion) var reduceMotion
   @ScaledMetric(relativeTo: .largeTitle) private var splashIconSize: CGFloat = 64
@@ -22,7 +23,12 @@ struct TheRecruitingCompassApp: App {
         if authManager.isCheckingSession {
           sessionLoadingView
         } else if authManager.isAuthenticated {
-          MainTabView()
+          ZStack(alignment: .top) {
+            MainTabView()
+            if !networkMonitor.isConnected {
+              OfflineBanner()
+            }
+          }
         } else {
           NavigationStack {
             LandingView()
@@ -47,6 +53,7 @@ struct TheRecruitingCompassApp: App {
       }
       .environment(authManager)
       .environment(familyManager)
+      .environment(networkMonitor)
     }
   }
 

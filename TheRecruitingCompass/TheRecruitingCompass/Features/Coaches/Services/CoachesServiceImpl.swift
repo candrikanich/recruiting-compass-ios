@@ -58,6 +58,19 @@ final class CoachesServiceImpl: CoachesManaging, Sendable {
     }
   }
 
+  func fetchCoach(id: String) async throws -> Coach {
+    logger.debug("Fetching coach: \(id)")
+    let coach: Coach = try await supabaseManager.client
+      .from("coaches")
+      .select()
+      .eq("id", value: id)
+      .single()
+      .execute()
+      .value
+    logger.info("Fetched coach: \(coach.fullName)")
+    return coach
+  }
+
   func createCoach(request: CoachCreateRequest) async throws -> Coach {
     logger.debug("Creating coach: \(request.firstName) \(request.lastName)")
 
