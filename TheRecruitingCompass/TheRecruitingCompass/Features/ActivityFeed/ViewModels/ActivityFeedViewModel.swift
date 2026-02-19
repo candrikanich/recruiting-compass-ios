@@ -90,6 +90,11 @@ final class ActivityFeedViewModel {
     self.authManager = authManager ?? AuthManager.shared
   }
 
+  // Prevent compiler-synthesized main-actor-isolated deinit.
+  // @MainActor classes otherwise get a deinit that calls swift_task_deinitOnExecutorImpl,
+  // which crashes when ARC deallocates the object outside a task context (e.g. in tests).
+  nonisolated deinit {}
+
   // MARK: - Data Loading
 
   func loadActivities() async {

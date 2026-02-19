@@ -6,6 +6,7 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 struct RecentActivityWidget: View {
   @State private var viewModel = ActivityFeedViewModel()
   @State private var realtimeService: ActivityRealtimeService?
+  @State private var cleanupTask: Task<Void, Never>?
   @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
@@ -81,7 +82,7 @@ struct RecentActivityWidget: View {
       await loadAndSubscribe()
     }
     .onDisappear {
-      Task {
+      cleanupTask = Task {
         await realtimeService?.unsubscribe()
         realtimeService = nil
       }
@@ -92,7 +93,7 @@ struct RecentActivityWidget: View {
           await loadAndSubscribe()
         }
       } else if newValue == .background {
-        Task {
+        cleanupTask = Task {
           await realtimeService?.unsubscribe()
         }
       }
