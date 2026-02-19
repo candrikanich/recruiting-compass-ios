@@ -2,6 +2,42 @@ import Foundation
 import Observation
 import UIKit
 
+// MARK: - Download Error Mapping
+
+private func userFacingDownloadError(from error: Error) -> String {
+  if let urlError = error as? URLError {
+    switch urlError.code {
+    case .notConnectedToInternet, .networkConnectionLost:
+      return "No internet connection. Please check your connection."
+    case .timedOut:
+      return "Connection timed out. Please try again."
+    case .serverCertificateHasBadDate, .serverCertificateUntrusted, .serverCertificateHasUnknownRoot,
+         .serverCertificateNotYetValid:
+      return "Secure connection failed. Please check your connection."
+    default:
+      break
+    }
+  }
+  return "Download failed. Check your connection."
+}
+
+private func userFacingLoadError(from error: Error) -> String {
+  if let urlError = error as? URLError {
+    switch urlError.code {
+    case .notConnectedToInternet, .networkConnectionLost:
+      return "No internet connection. Please check your connection."
+    case .timedOut:
+      return "Connection timed out. Please try again."
+    default:
+      break
+    }
+  }
+  if (error as NSError).code == 404 {
+    return "Document not found"
+  }
+  return "Unable to load document. Check your connection."
+}
+
 // MARK: - DocumentViewerViewModel
 
 @Observable
@@ -16,11 +52,14 @@ final class DocumentViewerViewModel {
   var isToolbarVisible = true
   var isShareSheetPresented = false
   var downloadProgress: Double = 0
+  var isDownloading = false
 
   var collection: DocumentCollection?
   var currentIndex: Int = 0
 
   private var toolbarAutoHideTask: Task<Void, Never>?
+  private var downloadSession: URLSession?
+  private var downloadDelegate: DocumentDownloadDelegate?
 
   // MARK: - Computed
 
@@ -73,7 +112,7 @@ final class DocumentViewerViewModel {
     do {
       document = try await documentsService.fetchDocument(id: id)
     } catch {
-      self.error = "Unable to load document. Check your connection."
+      self.error = userFacingLoadError(from: error)
     }
   }
 
@@ -128,25 +167,51 @@ final class DocumentViewerViewModel {
     }
 
     downloadProgress = 0
-
-    do {
-      let (tempURL, _) = try await URLSession.shared.download(from: url)
-      let destURL = destinationURL(for: url)
-
-      if FileManager.default.fileExists(atPath: destURL.path) {
-        try FileManager.default.removeItem(at: destURL)
-      }
-      try FileManager.default.moveItem(at: tempURL, to: destURL)
-
-      downloadProgress = 1
-      downloadedFileURL = destURL
-      UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-      presentShareSheet()
-    } catch {
-      self.error = "Download failed. \(error.localizedDescription)"
+    isDownloading = true
+    defer {
+      isDownloading = false
+      downloadSession?.invalidateAndCancel()
+      downloadSession = nil
+      downloadDelegate = nil
     }
 
-    downloadProgress = 0
+    let delegate = DocumentDownloadDelegate { [weak self] progress in
+      Task { @MainActor in
+        self?.downloadProgress = progress
+      }
+    }
+    downloadDelegate = delegate
+    let config = URLSessionConfiguration.default
+    let session = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
+    downloadSession = session
+
+    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+      delegate.onComplete = { [weak self] result in
+        Task { @MainActor in
+          switch result {
+          case .success(let tempURL):
+            do {
+              let destURL = self?.destinationURL(for: url) ?? FileManager.default.temporaryDirectory
+              if FileManager.default.fileExists(atPath: destURL.path) {
+                try FileManager.default.removeItem(at: destURL)
+              }
+              try FileManager.default.moveItem(at: tempURL, to: destURL)
+              self?.downloadProgress = 1
+              self?.downloadedFileURL = destURL
+              UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+              self?.presentShareSheet()
+            } catch {
+              self?.error = userFacingDownloadError(from: error)
+            }
+          case .failure(let err):
+            self?.error = userFacingDownloadError(from: err)
+          }
+          continuation.resume()
+        }
+      }
+      let task = session.downloadTask(with: url)
+      task.resume()
+    }
   }
 
   private func destinationURL(for url: URL) -> URL {
@@ -179,5 +244,60 @@ final class DocumentViewerViewModel {
 
   var hasPrevious: Bool {
     collection != nil && currentIndex > 0
+  }
+}
+
+// MARK: - Document Download Delegate
+
+private final class DocumentDownloadDelegate: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+  private let onProgress: @Sendable (Double) -> Void
+  var onComplete: (@Sendable (Result<URL, Error>) -> Void)?
+  private let lock = NSLock()
+  private var hasCompleted = false
+
+  init(onProgress: @escaping @Sendable (Double) -> Void) {
+    self.onProgress = onProgress
+  }
+
+  private func finish(_ result: Result<URL, Error>) {
+    lock.lock()
+    defer { lock.unlock() }
+    guard !hasCompleted else { return }
+    hasCompleted = true
+    onComplete?(result)
+  }
+
+  func urlSession(
+    _ session: URLSession,
+    downloadTask: URLSessionDownloadTask,
+    didWriteData bytesWritten: Int64,
+    totalBytesWritten: Int64,
+    totalBytesExpectedToWrite: Int64
+  ) {
+    guard totalBytesExpectedToWrite > 0 else {
+      onProgress(0)
+      return
+    }
+    let progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
+    onProgress(min(max(progress, 0), 1))
+  }
+
+  func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    do {
+      if FileManager.default.fileExists(atPath: tempURL.path) {
+        try FileManager.default.removeItem(at: tempURL)
+      }
+      try FileManager.default.copyItem(at: location, to: tempURL)
+      finish(.success(tempURL))
+    } catch {
+      finish(.failure(error))
+    }
+  }
+
+  func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+    if let error {
+      finish(.failure(error))
+    }
   }
 }

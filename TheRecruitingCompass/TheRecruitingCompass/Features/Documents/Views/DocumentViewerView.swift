@@ -116,12 +116,16 @@ struct DocumentViewerView: View {
     .onChange(of: viewModel.document?.id) { _, _ in
       viewModel.cancelToolbarAutoHide()
       viewModel.isToolbarVisible = true
+      if viewModel.document?.isVideo == true {
+        viewModel.scheduleToolbarAutoHide()
+      }
     }
     .onAppear {
       if viewModel.isToolbarVisible, viewModel.document?.isVideo == true {
         viewModel.scheduleToolbarAutoHide()
       }
     }
+    .statusBarHidden(!viewModel.isToolbarVisible)
     .accessibilityIdentifier("document-viewer-view")
     .sheet(isPresented: Binding(
       get: { viewModel.isShareSheetPresented },
@@ -139,21 +143,35 @@ struct DocumentViewerView: View {
   private var contentArea: some View {
     Group {
       if let document = viewModel.document {
-        DocumentPreviewView(document: document)
+        DocumentPreviewView(document: document, isFullscreen: true)
           .offset(y: dragOffset * 0.3)
+          .contentShape(Rectangle())
+          .simultaneousGesture(collectionSwipeGesture)
       } else if viewModel.error == nil && !viewModel.isLoading {
         ContentUnavailableView {
-          Label("No document", systemImage: "doc")
+          Label("Document not found", systemImage: "doc")
         } description: {
-          Text("Unable to load document")
+          Text("The document could not be loaded")
         }
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
+  private var collectionSwipeGesture: some Gesture {
+    DragGesture(minimumDistance: 50)
+      .onEnded { value in
+        guard viewModel.collection != nil else { return }
+        if value.translation.width < -50, viewModel.hasNext {
+          viewModel.nextDocument()
+        } else if value.translation.width > 50, viewModel.hasPrevious {
+          viewModel.previousDocument()
+        }
+      }
+  }
+
   private var topToolbar: some View {
-    VStack {
+    VStack(spacing: 0) {
       HStack {
         DocumentViewerIconButton(
           systemName: "xmark.circle.fill",
@@ -185,17 +203,32 @@ struct DocumentViewerView: View {
             systemName: "arrow.down.circle",
             accessibilityLabel: "Download document to device",
             accessibilityIdentifier: "document-viewer-download",
-            isEnabled: viewModel.document != nil,
+            isEnabled: viewModel.document != nil && !viewModel.isDownloading,
             action: { Task { await viewModel.downloadDocument() } }
           )
         }
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 12)
-      .background(Color.black.opacity(DocumentViewerLayout.overlayOpacity))
+
+      if viewModel.isDownloading {
+        VStack(spacing: 4) {
+          ProgressView(value: viewModel.downloadProgress, total: 1)
+            .progressViewStyle(.linear)
+            .tint(.white)
+          if viewModel.downloadProgress > 0, viewModel.downloadProgress < 1 {
+            Text("\(Int(viewModel.downloadProgress * 100))%")
+              .font(.caption2)
+              .foregroundStyle(.white)
+          }
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
+      }
 
       Spacer()
     }
+    .background(Color.black.opacity(DocumentViewerLayout.overlayOpacity))
     .transition(.opacity)
   }
 

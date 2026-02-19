@@ -25,15 +25,16 @@ struct PreviewUnavailableView: View {
 
 struct DocumentPreviewView: View {
   let document: Document
+  var isFullscreen: Bool = false
 
   var body: some View {
     Group {
       if document.isVideo {
-        VideoPreviewView(url: document.fileUrl)
+        VideoPreviewView(url: document.fileUrl, isFullscreen: isFullscreen)
       } else if document.isImage {
-        ImagePreviewView(url: document.fileUrl)
+        ImagePreviewView(url: document.fileUrl, isFullscreen: isFullscreen)
       } else if document.isPDF {
-        PDFPreviewView(url: document.fileUrl)
+        PDFPreviewView(url: document.fileUrl, isFullscreen: isFullscreen)
       } else {
         DownloadFallbackView(url: document.fileUrl, title: document.title)
       }
@@ -45,14 +46,29 @@ struct DocumentPreviewView: View {
 
 struct VideoPreviewView: View {
   let url: String
+  var isFullscreen: Bool = false
 
   var body: some View {
     if let videoURL = URL(string: url) {
       VideoPreviewWithLoadingView(url: videoURL)
-        .aspectRatio(16/9, contentMode: .fit)
-        .cornerRadius(8)
+        .modifier(VideoPreviewLayoutModifier(isFullscreen: isFullscreen))
     } else {
       PreviewUnavailableView(icon: "video.slash", message: "Preview unavailable")
+    }
+  }
+}
+
+private struct VideoPreviewLayoutModifier: ViewModifier {
+  let isFullscreen: Bool
+
+  func body(content: Content) -> some View {
+    if isFullscreen {
+      content
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    } else {
+      content
+        .aspectRatio(16/9, contentMode: .fit)
+        .cornerRadius(8)
     }
   }
 }
@@ -125,13 +141,27 @@ struct VideoPlayerViewControllerRepresentable: UIViewControllerRepresentable {
 
 struct ImagePreviewView: View {
   let url: String
+  var isFullscreen: Bool = false
 
   var body: some View {
     if let imageURL = URL(string: url) {
       ZoomableImageView(url: imageURL)
-        .cornerRadius(8)
+        .modifier(ImagePreviewLayoutModifier(isFullscreen: isFullscreen))
     } else {
       PreviewUnavailableView(icon: "photo", message: "Preview unavailable")
+    }
+  }
+}
+
+private struct ImagePreviewLayoutModifier: ViewModifier {
+  let isFullscreen: Bool
+
+  func body(content: Content) -> some View {
+    if isFullscreen {
+      content
+    } else {
+      content
+        .cornerRadius(8)
     }
   }
 }
@@ -145,7 +175,7 @@ struct ZoomableImageView: View {
   @State private var lastOffset: CGSize = .zero
 
   private let minScale: CGFloat = 1.0
-  private let maxScale: CGFloat = 4.0
+  private let maxScale: CGFloat = 5.0
 
   var body: some View {
     AsyncImage(url: url) { phase in
@@ -207,14 +237,29 @@ struct ZoomableImageView: View {
 
 struct PDFPreviewView: View {
   let url: String
+  var isFullscreen: Bool = false
 
   var body: some View {
     if let pdfURL = URL(string: url) {
       PDFKitRepresentable(url: pdfURL)
-        .frame(minHeight: 400)
-        .cornerRadius(8)
+        .modifier(PDFPreviewLayoutModifier(isFullscreen: isFullscreen))
     } else {
       PreviewUnavailableView(icon: "doc", message: "Preview unavailable")
+    }
+  }
+}
+
+private struct PDFPreviewLayoutModifier: ViewModifier {
+  let isFullscreen: Bool
+
+  func body(content: Content) -> some View {
+    if isFullscreen {
+      content
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    } else {
+      content
+        .frame(minHeight: 400)
+        .cornerRadius(8)
     }
   }
 }
@@ -252,11 +297,11 @@ struct DownloadFallbackView: View {
         .multilineTextAlignment(.center)
       if let downloadURL = URL(string: url) {
         Link(destination: downloadURL) {
-          Label("Download \(title)", systemImage: "arrow.down")
+          Label("Download to view", systemImage: "arrow.down")
             .font(.subheadline.weight(.medium))
         }
         .buttonStyle(.borderedProminent)
-        .accessibilityLabel("Download \(title)")
+        .accessibilityLabel("Download to view")
         .accessibilityHint("Opens the file in the default app")
       }
     }

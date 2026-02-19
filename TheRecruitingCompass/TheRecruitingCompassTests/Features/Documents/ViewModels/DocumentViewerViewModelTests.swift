@@ -83,6 +83,7 @@ final class DocumentViewerViewModelTests: XCTestCase {
 
   func testLoadDocument_onFailure_setsError() async {
     mockDocuments.shouldThrowFetchDocument = true
+    mockDocuments.fetchDocumentErrorCode = 500
     sut = DocumentViewerViewModel(documentsService: mockDocuments)
 
     await sut.loadDocument(id: "doc-1")
@@ -90,6 +91,18 @@ final class DocumentViewerViewModelTests: XCTestCase {
     XCTAssertNil(sut.document)
     XCTAssertNotNil(sut.error)
     XCTAssertTrue(sut.error!.contains("Unable to load document"))
+    XCTAssertFalse(sut.isLoading)
+  }
+
+  func testLoadDocument_on404_setsDocumentNotFoundError() async {
+    mockDocuments.shouldThrowFetchDocument = true
+    mockDocuments.fetchDocumentErrorCode = 404
+    sut = DocumentViewerViewModel(documentsService: mockDocuments)
+
+    await sut.loadDocument(id: "doc-1")
+
+    XCTAssertNil(sut.document)
+    XCTAssertEqual(sut.error, "Document not found")
     XCTAssertFalse(sut.isLoading)
   }
 
