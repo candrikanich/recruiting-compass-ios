@@ -48,9 +48,9 @@ actor CollegeScorecardService: CollegeScorecardManaging {
     let url = try self.buildLookupURL(for: name)
     logger.debug("Request URL: \(url.absoluteString)")
 
-    // Perform API request (decode on MainActor for Swift 6)
+    // Perform API request
     let data = try await self.fetchData(from: url)
-    let apiResponse: CollegeScorecardAPIResponse = try await MainActor.run { try JSONDecoder().decode(CollegeScorecardAPIResponse.self, from: data) }
+    let apiResponse = try JSONDecoder().decode(CollegeScorecardAPIResponse.self, from: data)
 
     // Extract first result
     guard let firstResult = apiResponse.results.first else {
@@ -91,9 +91,9 @@ actor CollegeScorecardService: CollegeScorecardManaging {
     let url = try self.buildSearchURL(for: query)
     logger.debug("Autocomplete URL: \(url.absoluteString)")
 
-    // Perform API request (decode on MainActor for Swift 6)
+    // Perform API request
     let data = try await self.fetchData(from: url)
-    let apiResponse: AutocompleteAPIResponse = try await MainActor.run { try JSONDecoder().decode(AutocompleteAPIResponse.self, from: data) }
+    let apiResponse = try JSONDecoder().decode(AutocompleteAPIResponse.self, from: data)
 
     // Transform results
     let results = self.transformAutocompleteResults(apiResponse.results)
@@ -223,7 +223,7 @@ extension CollegeScorecardService {
     return url
   }
 
-  /// Fetch raw data from URL (caller decodes on MainActor for MainActor-isolated types)
+  /// Fetch raw data from URL
   private func fetchData(from url: URL) async throws -> Data {
     do {
       let (data, response) = try await urlSession.data(from: url)
