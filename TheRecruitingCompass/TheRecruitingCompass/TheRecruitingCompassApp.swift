@@ -83,9 +83,10 @@ struct TheRecruitingCompassApp: App {
       .ignoresSafeArea()
 
       VStack(spacing: 16) {
-        Image(systemName: "location.fill")
-          .font(.system(size: splashIconSize))
-          .foregroundColor(.white)
+        Image("AppLogo")
+          .resizable()
+          .scaledToFit()
+          .frame(width: splashIconSize, height: splashIconSize)
 
         ProgressView()
           .tint(.white)
