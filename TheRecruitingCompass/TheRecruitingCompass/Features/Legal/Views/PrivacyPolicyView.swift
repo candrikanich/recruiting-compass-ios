@@ -10,42 +10,20 @@ struct PrivacyPolicyView: View {
 
   var body: some View {
     NavigationStack {
-      Group {
-        if viewModel.isLoading {
-          loadingView
-        } else if let error = viewModel.errorMessage {
-          errorView(message: error)
-        } else {
-          contentView
+      contentView
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.white)
+        .navigationTitle("Privacy Policy")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .cancellationAction) {
+            Button("Back") { dismiss() }
+              .foregroundColor(Color.darkSlate)
+              .accessibilityLabel("Back")
+              .accessibilityHint("Dismiss Privacy Policy")
+          }
         }
-      }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(Color.white)
-      .navigationTitle("Privacy Policy")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .cancellationAction) {
-          Button("Back") { dismiss() }
-            .foregroundColor(Color.darkSlate)
-            .accessibilityLabel("Back")
-            .accessibilityHint("Dismiss Privacy Policy")
-        }
-      }
-      .task { await viewModel.load() }
     }
-  }
-
-  private var loadingView: some View {
-    LoadingStateView(message: "Loading Privacy Policy...")
-  }
-
-  private func errorView(message: String) -> some View {
-    ErrorStateView(
-      message: "Unable to load Privacy Policy.\n\n\(message)",
-      icon: "exclamationmark.triangle",
-      onRetry: { Task { await viewModel.retry() } },
-      retryAccessibilityHint: "Retries loading Privacy Policy"
-    )
   }
 
   private var contentView: some View {

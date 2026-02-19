@@ -6,7 +6,7 @@ import Observation
 @Observable
 @MainActor
 final class ExampleScreenViewModel {
-    // MARK: - Published Properties (UI State)
+    // MARK: - Observable State (UI State)
     var data: [String] = []
     var isLoading = false
     var errorMessage: String?

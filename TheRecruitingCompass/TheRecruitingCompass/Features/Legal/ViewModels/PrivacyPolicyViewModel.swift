@@ -3,27 +3,9 @@ import Observation
 
 @Observable
 @MainActor
-final class PrivacyPolicyViewModel: LegalDocumentLoading {
-  var lastUpdated: String = ""
-  var isLoading = false
-  var errorMessage: String?
+final class PrivacyPolicyViewModel {
+  /// Last updated date string from bundled Privacy Policy (synchronous; no loading).
+  var lastUpdated: String { PrivacyPolicy.bundled.formattedDate }
 
   nonisolated deinit {}
-
-  func load() async {
-    isLoading = true
-    errorMessage = nil
-    defer { isLoading = false }
-
-    do {
-      lastUpdated = try LegalDocumentLoader.loadLastUpdated(formattedDate: PrivacyPolicy.bundled.formattedDate)
-    } catch {
-      errorMessage = error.localizedDescription
-    }
-  }
-
-  func retry() async {
-    errorMessage = nil
-    await load()
-  }
 }

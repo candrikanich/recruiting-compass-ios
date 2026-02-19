@@ -27,12 +27,17 @@ mv Schools/ExampleScreenView.swift Schools/SchoolsListView.swift
 
 **File:** `Schools/SchoolsListViewModel.swift`
 
+Use `@Observable` and `@MainActor` (see [CODE_PATTERNS.md](../../docs/CODE_PATTERNS.md)).
+
 ```swift
+import Observation
+
+@Observable
 @MainActor
-final class SchoolsListViewModel: ObservableObject {
-    @Published var schools: [School] = []
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+final class SchoolsListViewModel {
+    var schools: [School] = []
+    var isLoading = false
+    var errorMessage: String?
 
     private let schoolsService = SchoolsService()
 
@@ -51,7 +56,7 @@ final class SchoolsListViewModel: ObservableObject {
 ```
 
 **What's happening:**
-- `@Published` variables update the UI automatically
+- `@Observable` properties update the UI automatically (iOS 17+)
 - `@MainActor` ensures thread-safe UI updates
 - `loadSchools()` calls the service and updates state
 
@@ -61,9 +66,11 @@ final class SchoolsListViewModel: ObservableObject {
 
 **File:** `Schools/SchoolsListView.swift`
 
+Use `@State private var viewModel` for view-owned ViewModels (see [CODE_PATTERNS.md](../../docs/CODE_PATTERNS.md)). For error alerts, use a derived `Binding` so dismissing the alert clears the message.
+
 ```swift
 struct SchoolsListView: View {
-    @StateObject var viewModel = SchoolsListViewModel()
+    @State private var viewModel = SchoolsListViewModel()
 
     var body: some View {
         VStack {
@@ -85,6 +92,15 @@ struct SchoolsListView: View {
         }
         .navigationTitle("Schools")
         .task { await viewModel.loadSchools() }
+        .alert("Error", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        )) {
+            Button("Retry") { viewModel.errorMessage = nil; Task { await viewModel.loadSchools() } }
+            Button("OK", role: .cancel) { viewModel.errorMessage = nil }
+        } message: {
+            if let error = viewModel.errorMessage { Text(error) }
+        }
     }
 }
 ```
@@ -94,7 +110,8 @@ struct SchoolsListView: View {
 - Shows error if something goes wrong
 - Shows empty state if no data
 - Shows list of schools
-- `@StateObject` creates one ViewModel instance per view
+- `@State private var viewModel` creates one ViewModel instance per view
+- Derived `Binding` for alert ensures dismissing clears `errorMessage`
 
 ---
 
@@ -120,7 +137,7 @@ final class SchoolsService {
 
 **What's happening:**
 - Pure async/await methods
-- No `@Published` or `ObservableObject`
+- No UI state or `@Observable`
 - Returns data to ViewModel
 - ViewModel handles state management
 
@@ -164,7 +181,7 @@ Data/Models/
 
 ### Search/Filter
 ```swift
-@Published var searchText = ""
+var searchText = ""  // @Observable property
 
 var filteredSchools: [School] {
     searchText.isEmpty
@@ -175,8 +192,8 @@ var filteredSchools: [School] {
 
 ### Navigation
 ```swift
-@Published var selectedSchool: School?
-@Published var showDetail = false
+var selectedSchool: School?
+var showDetail = false
 
 NavigationLink(isActive: $showDetail) {
     SchoolDetailView(school: selectedSchool!)

@@ -15,8 +15,10 @@ final class AuthManager: AuthManaging {
 
   private let keychain = KeychainHelper.shared
   private let sessionKey = "savedSession"
+  private let supabaseManager: any SupabaseManaging
 
-  init() {
+  init(supabaseManager: (any SupabaseManaging)? = nil) {
+    self.supabaseManager = supabaseManager ?? SupabaseManager.shared
     // Unstructured Task is intentional: @Observable classes cannot have async init.
     // @MainActor ensures session restoration runs on the main thread.
     Task {
@@ -26,7 +28,7 @@ final class AuthManager: AuthManaging {
 
   func login(email: String, password: String) async throws {
     do {
-      let (user, session) = try await SupabaseManager.shared.signIn(email: email, password: password)
+      let (user, session) = try await supabaseManager.signIn(email: email, password: password)
       self.user = user
       self.session = session
       self.isAuthenticated = true
@@ -49,7 +51,7 @@ final class AuthManager: AuthManaging {
     familyCode: String?
   ) async throws {
     do {
-      let (user, session) = try await SupabaseManager.shared.signUp(
+      let (user, session) = try await supabaseManager.signUp(
         email: email,
         password: password,
         fullName: fullName,
@@ -74,7 +76,7 @@ final class AuthManager: AuthManaging {
 
   func refreshSession() async throws -> User {
     do {
-      let updatedUser = try await SupabaseManager.shared.refreshSession()
+      let updatedUser = try await supabaseManager.refreshSession()
       self.user = updatedUser
       return updatedUser
     } catch {
@@ -85,7 +87,7 @@ final class AuthManager: AuthManaging {
 
   func resendVerificationEmail(email: String) async throws {
     do {
-      try await SupabaseManager.shared.resendVerificationEmail(email: email)
+      try await supabaseManager.resendVerificationEmail(email: email)
       self.errorMessage = nil
     } catch {
       self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
@@ -95,7 +97,7 @@ final class AuthManager: AuthManaging {
 
   func resetPasswordForEmail(email: String) async throws {
     do {
-      try await SupabaseManager.shared.resetPasswordForEmail(email: email)
+      try await supabaseManager.resetPasswordForEmail(email: email)
       self.errorMessage = nil
     } catch {
       self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
@@ -105,7 +107,7 @@ final class AuthManager: AuthManaging {
 
   func updatePassword(newPassword: String) async throws {
     do {
-      try await SupabaseManager.shared.updatePassword(newPassword: newPassword)
+      try await supabaseManager.updatePassword(newPassword: newPassword)
       self.errorMessage = nil
     } catch {
       self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
@@ -115,7 +117,7 @@ final class AuthManager: AuthManaging {
 
   func logout() async throws {
     do {
-      try await SupabaseManager.shared.signOut()
+      try await supabaseManager.signOut()
     } catch {
       // Log the error but continue with local cleanup
       self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
@@ -155,8 +157,8 @@ final class AuthManager: AuthManaging {
   /// - Parameter fallback: If provided and refresh fails, uses this cached session instead of clearing state.
   private func refreshAndSaveSession(fallback: Session?) async {
     do {
-      let updatedUser = try await SupabaseManager.shared.refreshSession()
-      if let newSession = try await SupabaseManager.shared.getCurrentSession() {
+      let updatedUser = try await supabaseManager.refreshSession()
+      if let newSession = try await supabaseManager.getCurrentSession() {
         self.session = newSession
         self.user = updatedUser
         self.isAuthenticated = true

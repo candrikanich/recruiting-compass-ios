@@ -12,7 +12,7 @@ private let logger = Logger(
 @MainActor
 final class InteractionDetailViewModel {
 
-  // MARK: - Published State
+  // MARK: - Observable State
 
   var interaction: Interaction?
   var school: School?

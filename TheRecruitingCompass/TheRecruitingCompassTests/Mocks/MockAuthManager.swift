@@ -5,7 +5,7 @@ import Observation
 @Observable
 @MainActor
 class MockAuthManager: AuthManaging {
-  // MARK: - Published Properties
+  // MARK: - Observable State
 
   var isAuthenticated: Bool = false
   var user: User?

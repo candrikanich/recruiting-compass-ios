@@ -260,18 +260,20 @@ struct FormValidator {
 
 ## Keychain Storage
 
+`KeychainHelper` uses a fixed service (bundle-derived); you pass a **key** (account name). Auth session is stored under the key `"savedSession"`. See [CONFIGURATION.md](CONFIGURATION.md) for key names and release notes.
+
 ```swift
 // Save to Keychain
 let session = Session(accessToken: "...", refreshToken: "...")
-try KeychainHelper.save(session, service: "auth", account: "session")
+try KeychainHelper.shared.save(session, forKey: "savedSession")
 
 // Load from Keychain
-if let session: Session = try KeychainHelper.load(service: "auth", account: "session") {
+if let session: Session = try? KeychainHelper.shared.load(Session.self, forKey: "savedSession") {
   // Restore session
 }
 
 // Delete from Keychain
-try KeychainHelper.delete(service: "auth", account: "session")
+try KeychainHelper.shared.delete(forKey: "savedSession")
 ```
 
 ---

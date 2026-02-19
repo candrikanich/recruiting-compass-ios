@@ -61,7 +61,7 @@ struct AnyCodable: Codable {
 /// delegate to the underlying client which handles its own thread safety.
 /// This is a standard pattern when wrapping non-Sendable SDK types that
 /// are documented as thread-safe by the vendor.
-final class SupabaseManager: @unchecked Sendable {
+final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
   static let shared = SupabaseManager()
 
   let client: SupabaseClient

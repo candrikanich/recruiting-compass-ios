@@ -24,6 +24,7 @@ final class SchoolsListViewModel {
   private let familyManager: FamilyManager
   private let authManager: any AuthManaging
   private var distanceCache: [String: Double] = [:]
+  private static let maxDistanceCacheEntries = 300
 
   var filteredSchools: [School] {
     var result = allSchools
@@ -202,6 +203,9 @@ final class SchoolsListViewModel {
       return nil
     }
 
+    if distanceCache.count >= Self.maxDistanceCacheEntries {
+      distanceCache.removeAll()
+    }
     distanceCache[school.id] = distance
     return distance
   }

@@ -54,9 +54,11 @@ struct InteractionCreateRequest: Codable, Sendable {
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     self.occurredAt = formatter.string(from: occurredAt)
 
-    // Sanitize text fields (basic HTML/XSS prevention)
-    self.subject = subject?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == true ? nil : subject
-    self.content = content?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == true ? nil : content
+    // Sanitize text fields (HTML/XSS prevention): trim, strip HTML, then nil if empty
+    let trimmedSubject = subject?.trimmingCharacters(in: .whitespacesAndNewlines)
+    self.subject = trimmedSubject.flatMap { DataSanitizer.nilIfEmpty(DataSanitizer.stripHtmlTags($0)) }
+    let trimmedContent = content?.trimmingCharacters(in: .whitespacesAndNewlines)
+    self.content = trimmedContent.flatMap { DataSanitizer.nilIfEmpty(DataSanitizer.stripHtmlTags($0)) }
 
     self.loggedBy = loggedBy
     self.familyUnitId = familyUnitId

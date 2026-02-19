@@ -10,42 +10,20 @@ struct TermsOfServiceView: View {
 
   var body: some View {
     NavigationStack {
-      Group {
-        if viewModel.isLoading {
-          loadingView
-        } else if let error = viewModel.errorMessage {
-          errorView(message: error)
-        } else {
-          contentView
+      contentView
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.white)
+        .navigationTitle("Terms and Conditions")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .cancellationAction) {
+            Button("Back") { dismiss() }
+              .foregroundColor(Color.darkSlate)
+              .accessibilityLabel("Back")
+              .accessibilityHint("Dismiss Terms and Conditions")
+          }
         }
-      }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(Color.white)
-      .navigationTitle("Terms and Conditions")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .cancellationAction) {
-          Button("Back") { dismiss() }
-            .foregroundColor(Color.darkSlate)
-            .accessibilityLabel("Back")
-            .accessibilityHint("Dismiss Terms and Conditions")
-        }
-      }
-      .task { await viewModel.load() }
     }
-  }
-
-  private var loadingView: some View {
-    LoadingStateView(message: "Loading Terms...")
-  }
-
-  private func errorView(message: String) -> some View {
-    ErrorStateView(
-      message: "Unable to load Terms of Service.\n\n\(message)",
-      icon: "exclamationmark.triangle",
-      onRetry: { Task { await viewModel.retry() } },
-      retryAccessibilityHint: "Retries loading Terms of Service"
-    )
   }
 
   private var contentView: some View {
