@@ -29,14 +29,16 @@
 
 ### 1. Configure Xcode Scheme with Supabase Credentials
 
+Get values from **Supabase Dashboard → Settings → API**. Never commit real credentials to git. If credentials were previously exposed, rotate the anon key in Supabase.
+
 ```bash
 # Open Xcode
 open TheRecruitingCompass/TheRecruitingCompass.xcodeproj
 
 # Product → Scheme → Edit Scheme → Run → Arguments → Environment Variables
-# Add:
-SUPABASE_URL=https://xpxzhqghxecsjhvklsqg.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhweHpocWdoeGVjc2podmtsc3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NzI1ODQsImV4cCI6MjA4MDM0ODU4NH0.WNlq1neCdjY-hDCvJRLplntd9w2HKqahwpHa7rB_Zro
+# Add (use your project's values from Supabase Dashboard → Settings → API):
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
 ### 2. Build and Run

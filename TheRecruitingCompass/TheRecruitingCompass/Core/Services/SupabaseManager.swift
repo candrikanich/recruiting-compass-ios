@@ -88,6 +88,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
 
   // MARK: - Authentication
 
+  func setSession(accessToken: String, refreshToken: String) async throws {
+    _ = try await client.auth.setSession(accessToken: accessToken, refreshToken: refreshToken)
+  }
+
   func signIn(email: String, password: String) async throws -> (user: User, session: Session) {
     let response = try await client.auth.signIn(
       email: email,

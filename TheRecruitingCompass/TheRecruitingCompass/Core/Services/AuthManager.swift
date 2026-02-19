@@ -156,6 +156,14 @@ final class AuthManager: AuthManaging {
   /// Attempts to refresh the Supabase session and persist the result to Keychain.
   /// - Parameter fallback: If provided and refresh fails, uses this cached session instead of clearing state.
   private func refreshAndSaveSession(fallback: Session?) async {
+    // Inject Keychain session into Supabase client before refresh (fixes cold-start when SDK storage is empty)
+    if let savedSession = try? keychain.load(Session.self, forKey: sessionKey) {
+      try? await supabaseManager.setSession(
+        accessToken: savedSession.accessToken,
+        refreshToken: savedSession.refreshToken
+      )
+    }
+
     do {
       let updatedUser = try await supabaseManager.refreshSession()
       if let newSession = try await supabaseManager.getCurrentSession() {

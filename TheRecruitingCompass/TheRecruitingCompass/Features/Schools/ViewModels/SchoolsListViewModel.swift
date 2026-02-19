@@ -24,6 +24,7 @@ final class SchoolsListViewModel {
   private let familyManager: FamilyManager
   private let authManager: any AuthManaging
   private var distanceCache: [String: Double] = [:]
+  private var distanceCacheOrderedKeys: [String] = []
   private static let maxDistanceCacheEntries = 300
 
   var filteredSchools: [School] {
@@ -116,6 +117,7 @@ final class SchoolsListViewModel {
     isLoading = true
     errorMessage = nil
     distanceCache.removeAll()
+    distanceCacheOrderedKeys.removeAll()
     defer { isLoading = false }
 
     do {
@@ -147,6 +149,7 @@ final class SchoolsListViewModel {
         try await schoolsService.deleteSchool(id: school.id)
         allSchools.removeAll { $0.id == school.id }
         distanceCache.removeValue(forKey: school.id)
+        distanceCacheOrderedKeys.removeAll { $0 == school.id }
         successMessage = "School deleted successfully"
         showSuccessToast = true
         logger.info("School deleted: \(school.name)")
@@ -155,6 +158,7 @@ final class SchoolsListViewModel {
         let result = try await schoolsService.cascadeDeleteSchool(id: school.id)
         allSchools.removeAll { $0.id == school.id }
         distanceCache.removeValue(forKey: school.id)
+        distanceCacheOrderedKeys.removeAll { $0 == school.id }
         let totalDeleted = result.deletedInteractions + result.deletedNotes
         successMessage = totalDeleted > 0
           ? "School and \(totalDeleted) related items deleted"
@@ -203,10 +207,12 @@ final class SchoolsListViewModel {
       return nil
     }
 
-    if distanceCache.count >= Self.maxDistanceCacheEntries, let keyToEvict = distanceCache.keys.first {
+    if distanceCacheOrderedKeys.count >= Self.maxDistanceCacheEntries, let keyToEvict = distanceCacheOrderedKeys.first {
       distanceCache.removeValue(forKey: keyToEvict)
+      distanceCacheOrderedKeys.removeFirst()
     }
     distanceCache[school.id] = distance
+    distanceCacheOrderedKeys.append(school.id)
     return distance
   }
 

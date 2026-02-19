@@ -2,6 +2,8 @@ import Foundation
 
 /// Protocol for Supabase auth operations. Enables dependency injection and testing (e.g. MockSupabaseManager).
 protocol SupabaseManaging: Sendable {
+  /// Restores the Supabase client session from stored tokens. Call before refreshSession when restoring from Keychain.
+  func setSession(accessToken: String, refreshToken: String) async throws
   func signIn(email: String, password: String) async throws -> (user: User, session: Session)
   func signUp(
     email: String,
