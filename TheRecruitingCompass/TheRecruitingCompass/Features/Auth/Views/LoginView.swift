@@ -198,43 +198,39 @@ struct LoginView: View {
   }
 
   private var dividerSection: some View {
-    HStack {
-      Rectangle()
-        .frame(height: 1)
-        .foregroundColor(Color.borderGray)
-        .accessibilityHidden(true)
-
-      Text("New to The Recruiting Compass?")
-        .font(.footnote)
-        .foregroundColor(Color.tertiaryText)
-
-      Rectangle()
-        .frame(height: 1)
-        .foregroundColor(Color.borderGray)
-        .accessibilityHidden(true)
-    }
+    Rectangle()
+      .frame(height: 1)
+      .foregroundColor(Color.borderGray)
+      .accessibilityHidden(true)
   }
 
   private var signUpSection: some View {
-    HStack(spacing: 4) {
-      Text("Don't have an account?")
+    VStack(alignment: .leading, spacing: 8) {
+      Text("New to The Recruiting Compass?")
+        .padding(.top, 12)
         .font(.footnote)
         .foregroundColor(Color.tertiaryText)
 
-      NavigationLink(destination: SignupView()) {
-        HStack(spacing: 4) {
-          Text("Create one now")
-            .font(.footnote.weight(.semibold))
-          Image(systemName: "arrow.right")
-            .font(.caption.weight(.semibold))
-            .accessibilityHidden(true)
+      HStack(spacing: 4) {
+        Text("Don't have an account?")
+          .font(.footnote)
+          .foregroundColor(Color.tertiaryText)
+
+        NavigationLink(destination: SignupView()) {
+          HStack(spacing: 4) {
+            Text("Create one now")
+              .font(.footnote.weight(.semibold))
+            Image(systemName: "arrow.right")
+              .font(.caption.weight(.semibold))
+              .accessibilityHidden(true)
+          }
+          .foregroundColor(Color.accentBlue)
+          .frame(minHeight: 44)
+          .contentShape(Rectangle())
         }
-        .foregroundColor(Color.accentBlue)
-        .frame(minHeight: 44)
-        .contentShape(Rectangle())
+        .accessibilityLabel("Create account")
+        .accessibilityHint("Opens the account creation form")
       }
-      .accessibilityLabel("Create account")
-      .accessibilityHint("Opens the account creation form")
     }
   }
 }
