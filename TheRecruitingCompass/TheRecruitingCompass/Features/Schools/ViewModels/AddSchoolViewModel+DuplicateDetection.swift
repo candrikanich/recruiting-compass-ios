@@ -14,15 +14,14 @@ private let duplicateLogger = Logger(
   category: "AddSchoolViewModel.DuplicateDetection"
 )
 
-// Note: Duplicate detection state now lives directly in AddSchoolViewModel as @Published properties
-// This ensures proper SwiftUI observation and eliminates the need for associated objects
+// Note: Duplicate detection state lives in AddSchoolViewModel as observable properties (@Observable).
 
 // MARK: - ViewModel Extension
 
 extension AddSchoolViewModel {
 
   // Note: Duplicate state properties (showDuplicateDialog, duplicateResult, isCheckingDuplicates)
-  // are now defined directly in AddSchoolViewModel as @Published properties
+  // are defined directly in AddSchoolViewModel as observable properties (@Observable).
 
   // Helper to reset duplicate detection state
   func resetDuplicateState() {

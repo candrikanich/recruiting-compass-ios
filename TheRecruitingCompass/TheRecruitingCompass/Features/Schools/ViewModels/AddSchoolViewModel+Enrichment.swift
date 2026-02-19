@@ -21,7 +21,7 @@ private let enrichmentLogger = Logger(
 extension AddSchoolViewModel {
 
   // Note: Enrichment state properties (scorecardData, isEnrichmentLoading, enrichmentError)
-  // are now defined directly in AddSchoolViewModel as @Published properties
+  // are defined directly in AddSchoolViewModel as observable properties (@Observable).
 
   // MARK: - Enrichment Actions
 
@@ -88,5 +88,4 @@ extension AddSchoolViewModel {
   }
 }
 
-// Note: Enrichment state now lives directly in AddSchoolViewModel as @Published properties
-// This ensures proper SwiftUI observation and eliminates the need for associated objects
+// Note: Enrichment state lives in AddSchoolViewModel as observable properties (@Observable).

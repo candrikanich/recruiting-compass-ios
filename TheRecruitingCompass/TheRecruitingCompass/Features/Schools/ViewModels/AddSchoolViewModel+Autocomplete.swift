@@ -21,7 +21,7 @@ private let autocompleteLogger = Logger(
 extension AddSchoolViewModel {
 
   // Note: Autocomplete state properties (searchQuery, searchResults, isSearching, etc.)
-  // are now defined directly in AddSchoolViewModel as @Published properties
+  // are defined directly in AddSchoolViewModel as observable properties (@Observable).
 
   // MARK: - Autocomplete Actions
 
@@ -118,5 +118,4 @@ extension AddSchoolViewModel {
   }
 }
 
-// Note: Autocomplete state now lives directly in AddSchoolViewModel as @Published properties
-// This ensures proper SwiftUI observation and eliminates the need for associated objects
+// Note: Autocomplete state lives in AddSchoolViewModel as observable properties (@Observable).

@@ -2,8 +2,7 @@ import SwiftUI
 
 struct SignupView: View {
   @State private var viewModel = SignupViewModel()
-  @State private var showPrivacyPolicy = false
-  @State private var showTermsOfService = false
+  @State private var presentedLegal: LegalDocument?
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
@@ -33,11 +32,8 @@ struct SignupView: View {
     .navigationDestination(isPresented: $viewModel.shouldNavigateToVerifyEmail) {
       EmailVerificationView()
     }
-    .sheet(isPresented: $showPrivacyPolicy) {
-      PrivacyPolicyView()
-    }
-    .sheet(isPresented: $showTermsOfService) {
-      TermsOfServiceView()
+    .sheet(item: $presentedLegal) { doc in
+      doc.view
     }
   }
 
@@ -239,8 +235,8 @@ struct SignupView: View {
   private var termsSection: some View {
     TermsCheckbox(
       isChecked: $viewModel.termsAccepted,
-      onTermsPressed: { showTermsOfService = true },
-      onPrivacyPressed: { showPrivacyPolicy = true }
+      onTermsPressed: { presentedLegal = .termsOfService },
+      onPrivacyPressed: { presentedLegal = .privacyPolicy }
     )
   }
 

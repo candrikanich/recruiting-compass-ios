@@ -31,7 +31,7 @@ struct TermsOfServiceView: View {
             .accessibilityHint("Dismiss Terms and Conditions")
         }
       }
-      .task { await viewModel.loadTerms() }
+      .task { await viewModel.load() }
     }
   }
 

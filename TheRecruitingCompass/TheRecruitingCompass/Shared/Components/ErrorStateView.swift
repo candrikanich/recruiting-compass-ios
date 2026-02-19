@@ -29,7 +29,7 @@ struct ErrorStateView: View {
 
       Text(message)
         .font(.body)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(Color.secondaryText)
         .multilineTextAlignment(.center)
 
       if let onRetry {

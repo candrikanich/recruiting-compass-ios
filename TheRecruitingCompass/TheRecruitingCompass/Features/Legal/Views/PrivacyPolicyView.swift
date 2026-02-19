@@ -31,7 +31,7 @@ struct PrivacyPolicyView: View {
             .accessibilityHint("Dismiss Privacy Policy")
         }
       }
-      .task { await viewModel.loadPolicy() }
+      .task { await viewModel.load() }
     }
   }
 

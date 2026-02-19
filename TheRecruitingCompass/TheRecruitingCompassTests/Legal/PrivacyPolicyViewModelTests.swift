@@ -23,31 +23,31 @@ final class PrivacyPolicyViewModelTests: XCTestCase {
     XCTAssertNil(sut.errorMessage)
   }
 
-  // MARK: - loadPolicy Tests
+  // MARK: - load Tests
 
-  func testLoadPolicySetsLastUpdated() async {
-    await sut.loadPolicy()
+  func testLoadSetsLastUpdated() async {
+    await sut.load()
 
     XCTAssertFalse(sut.lastUpdated.isEmpty)
     XCTAssertEqual(sut.lastUpdated, PrivacyPolicy.bundled.formattedDate)
   }
 
-  func testLoadPolicyResetsLoadingToFalse() async {
-    await sut.loadPolicy()
+  func testLoadResetsLoadingToFalse() async {
+    await sut.load()
 
     XCTAssertFalse(sut.isLoading)
   }
 
-  func testLoadPolicyLoadsBundledContent() async {
-    await sut.loadPolicy()
+  func testLoadLoadsBundledContent() async {
+    await sut.load()
 
     let bundled = PrivacyPolicy.bundled
     XCTAssertEqual(sut.lastUpdated, bundled.formattedDate)
   }
 
-  func testLoadPolicyClearsError() async {
+  func testLoadClearsError() async {
     sut.errorMessage = "Something failed"
-    await sut.loadPolicy()
+    await sut.load()
     XCTAssertNil(sut.errorMessage)
   }
 

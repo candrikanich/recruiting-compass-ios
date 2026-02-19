@@ -4,9 +4,7 @@ struct PrivacyPolicy {
   let lastUpdated: Date
 
   var formattedDate: String {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .long
-    return formatter.string(from: lastUpdated)
+    DateFormatter.legalDocument.string(from: lastUpdated)
   }
 
   static var bundled: PrivacyPolicy {

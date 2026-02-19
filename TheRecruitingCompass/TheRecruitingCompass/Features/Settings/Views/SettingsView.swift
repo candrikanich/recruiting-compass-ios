@@ -2,8 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
   @Environment(AuthManager.self) private var authManager
-  @State private var showTermsOfService = false
-  @State private var showPrivacyPolicy = false
+  @State private var presentedLegal: LegalDocument?
 
   private let preferenceService: PreferenceManaging
 
@@ -121,7 +120,7 @@ struct SettingsView: View {
         // Legal Section
         Section {
           Button {
-            showTermsOfService = true
+            presentedLegal = .termsOfService
           } label: {
             SettingsRow(
               icon: "doc.text",
@@ -133,7 +132,7 @@ struct SettingsView: View {
           .buttonStyle(.plain)
 
           Button {
-            showPrivacyPolicy = true
+            presentedLegal = .privacyPolicy
           } label: {
             SettingsRow(
               icon: "hand.raised",
@@ -149,11 +148,8 @@ struct SettingsView: View {
       }
       .navigationTitle("Settings")
       .navigationBarTitleDisplayMode(.large)
-      .sheet(isPresented: $showTermsOfService) {
-        TermsOfServiceView()
-      }
-      .sheet(isPresented: $showPrivacyPolicy) {
-        PrivacyPolicyView()
+      .sheet(item: $presentedLegal) { doc in
+        doc.view
       }
   }
 }

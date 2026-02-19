@@ -23,31 +23,31 @@ final class TermsOfServiceViewModelTests: XCTestCase {
     XCTAssertNil(sut.errorMessage)
   }
 
-  // MARK: - loadTerms Tests
+  // MARK: - load Tests
 
-  func testLoadTermsSetsLastUpdated() async {
-    await sut.loadTerms()
+  func testLoadSetsLastUpdated() async {
+    await sut.load()
 
     XCTAssertFalse(sut.lastUpdated.isEmpty)
     XCTAssertEqual(sut.lastUpdated, TermsOfService.bundled.formattedDate)
   }
 
-  func testLoadTermsResetsLoadingToFalse() async {
-    await sut.loadTerms()
+  func testLoadResetsLoadingToFalse() async {
+    await sut.load()
 
     XCTAssertFalse(sut.isLoading)
   }
 
-  func testLoadTermsLoadsBundledContent() async {
-    await sut.loadTerms()
+  func testLoadLoadsBundledContent() async {
+    await sut.load()
 
     let bundled = TermsOfService.bundled
     XCTAssertEqual(sut.lastUpdated, bundled.formattedDate)
   }
 
-  func testLoadTermsClearsError() async {
+  func testLoadClearsError() async {
     sut.errorMessage = "Something failed"
-    await sut.loadTerms()
+    await sut.load()
     XCTAssertNil(sut.errorMessage)
   }
 
