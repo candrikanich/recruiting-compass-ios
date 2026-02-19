@@ -203,8 +203,8 @@ final class SchoolsListViewModel {
       return nil
     }
 
-    if distanceCache.count >= Self.maxDistanceCacheEntries {
-      distanceCache.removeAll()
+    if distanceCache.count >= Self.maxDistanceCacheEntries, let keyToEvict = distanceCache.keys.first {
+      distanceCache.removeValue(forKey: keyToEvict)
     }
     distanceCache[school.id] = distance
     return distance

@@ -69,7 +69,9 @@ struct TheRecruitingCompassApp: App {
     switch route {
     case .resetPassword:
       pendingResetPasswordFromDeepLink = true
-      showResetPassword = true
+      if !authManager.isCheckingSession, !authManager.isAuthenticated {
+        showResetPassword = true
+      }
     case .unknown:
       break
     }
