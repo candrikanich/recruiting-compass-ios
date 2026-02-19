@@ -13,6 +13,8 @@ struct TermsOfServiceView: View {
       Group {
         if viewModel.isLoading {
           loadingView
+        } else if let error = viewModel.errorMessage {
+          errorView(message: error)
         } else {
           contentView
         }
@@ -44,6 +46,15 @@ struct TermsOfServiceView: View {
     .accessibilityLabel("Loading Terms")
   }
 
+  private func errorView(message: String) -> some View {
+    ErrorStateView(
+      message: "Unable to load Terms of Service\n\nPlease check your connection",
+      icon: "exclamationmark.triangle",
+      onRetry: { Task { await viewModel.retry() } },
+      retryAccessibilityHint: "Retries loading Terms of Service"
+    )
+  }
+
   private var contentView: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 24) {
@@ -51,6 +62,8 @@ struct TermsOfServiceView: View {
           Text("Last Updated: \(viewModel.lastUpdated)")
             .font(.caption)
             .foregroundColor(Color.secondaryText)
+            .frame(maxWidth: .infinity)
+            .multilineTextAlignment(.center)
         }
 
         section1AgreementToTerms

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Shared legal document content views (Terms of Service, Privacy Policy)
 
@@ -57,17 +58,30 @@ struct LegalBulletList: View {
 
 struct LegalEmailLink: View {
   let email: String
+  @State private var showMailUnavailableAlert = false
 
   var body: some View {
     Group {
       if let url = URL(string: "mailto:\(email)") {
-        Link(email, destination: url)
-          .font(.body.weight(.medium))
-          .foregroundColor(Color.accentBlue)
-          .frame(minHeight: 44)
-          .contentShape(Rectangle())
-          .accessibilityLabel("Email \(email.replacingOccurrences(of: "@", with: " at ").replacingOccurrences(of: ".", with: " dot "))")
-          .accessibilityHint("Opens Mail app")
+        Button {
+          Task { @MainActor in
+            let opened = await UIApplication.shared.open(url)
+            if !opened {
+              showMailUnavailableAlert = true
+            }
+          }
+        } label: {
+          Text(email)
+        }
+        .font(.body.weight(.medium))
+        .foregroundColor(Color.accentBlue)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+        .accessibilityLabel("Email \(email.replacingOccurrences(of: "@", with: " at ").replacingOccurrences(of: ".", with: " dot "))")
+        .accessibilityHint("Opens Mail app")
+        .alert("Email not available on this device", isPresented: $showMailUnavailableAlert) {
+          Button("OK", role: .cancel) {}
+        }
       } else {
         Text(email)
           .font(.body)

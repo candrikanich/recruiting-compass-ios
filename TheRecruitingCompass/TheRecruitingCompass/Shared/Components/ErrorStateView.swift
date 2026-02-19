@@ -6,11 +6,18 @@ struct ErrorStateView: View {
   let message: String
   let icon: String
   let onRetry: (() -> Void)?
+  let retryAccessibilityHint: String?
 
-  init(message: String, icon: String = "exclamationmark.triangle", onRetry: (() -> Void)? = nil) {
+  init(
+    message: String,
+    icon: String = "exclamationmark.triangle",
+    onRetry: (() -> Void)? = nil,
+    retryAccessibilityHint: String? = nil
+  ) {
     self.message = message
     self.icon = icon
     self.onRetry = onRetry
+    self.retryAccessibilityHint = retryAccessibilityHint
   }
 
   var body: some View {
@@ -28,9 +35,9 @@ struct ErrorStateView: View {
       if let onRetry {
         Button("Retry", action: onRetry)
           .buttonStyle(.borderedProminent)
-          .frame(minHeight: 44)
+          .frame(minWidth: 44, minHeight: 44)
           .accessibilityLabel("Retry")
-          .accessibilityHint("Attempts to load again")
+          .accessibilityHint(retryAccessibilityHint ?? "Attempts to load again")
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)

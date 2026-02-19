@@ -20,6 +20,7 @@ final class TermsOfServiceViewModelTests: XCTestCase {
   func testInitialState() {
     XCTAssertEqual(sut.lastUpdated, "")
     XCTAssertFalse(sut.isLoading)
+    XCTAssertNil(sut.errorMessage)
   }
 
   // MARK: - loadTerms Tests
@@ -42,5 +43,20 @@ final class TermsOfServiceViewModelTests: XCTestCase {
 
     let bundled = TermsOfService.bundled
     XCTAssertEqual(sut.lastUpdated, bundled.formattedDate)
+  }
+
+  func testLoadTermsClearsError() async {
+    sut.errorMessage = "Something failed"
+    await sut.loadTerms()
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  // MARK: - retry Tests
+
+  func testRetryClearsErrorAndReloads() async {
+    sut.errorMessage = "Network error"
+    await sut.retry()
+    XCTAssertNil(sut.errorMessage)
+    XCTAssertEqual(sut.lastUpdated, TermsOfService.bundled.formattedDate)
   }
 }

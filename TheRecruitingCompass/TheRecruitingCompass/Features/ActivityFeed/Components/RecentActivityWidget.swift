@@ -82,6 +82,7 @@ struct RecentActivityWidget: View {
       await loadAndSubscribe()
     }
     .onDisappear {
+      cleanupTask?.cancel()
       cleanupTask = Task {
         await realtimeService?.unsubscribe()
         realtimeService = nil
@@ -93,6 +94,7 @@ struct RecentActivityWidget: View {
           await loadAndSubscribe()
         }
       } else if newValue == .background {
+        cleanupTask?.cancel()
         cleanupTask = Task {
           await realtimeService?.unsubscribe()
         }

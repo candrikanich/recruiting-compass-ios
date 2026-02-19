@@ -2,6 +2,8 @@ import SwiftUI
 
 struct SettingsView: View {
   @Environment(AuthManager.self) private var authManager
+  @State private var showTermsOfService = false
+  @State private var showPrivacyPolicy = false
 
   private let preferenceService: PreferenceManaging
 
@@ -115,9 +117,44 @@ struct SettingsView: View {
         } header: {
           Text("Family")
         }
+
+        // Legal Section
+        Section {
+          Button {
+            showTermsOfService = true
+          } label: {
+            SettingsRow(
+              icon: "doc.text",
+              title: "Terms of Service",
+              description: "Read the terms and conditions for using the app",
+              color: .iconGray
+            )
+          }
+          .buttonStyle(.plain)
+
+          Button {
+            showPrivacyPolicy = true
+          } label: {
+            SettingsRow(
+              icon: "hand.raised",
+              title: "Privacy Policy",
+              description: "How we collect, use, and protect your data",
+              color: .iconGray
+            )
+          }
+          .buttonStyle(.plain)
+        } header: {
+          Text("Legal")
+        }
       }
       .navigationTitle("Settings")
       .navigationBarTitleDisplayMode(.large)
+      .sheet(isPresented: $showTermsOfService) {
+        TermsOfServiceView()
+      }
+      .sheet(isPresented: $showPrivacyPolicy) {
+        PrivacyPolicyView()
+      }
   }
 }
 

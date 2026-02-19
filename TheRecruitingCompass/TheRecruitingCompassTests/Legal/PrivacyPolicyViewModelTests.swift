@@ -20,6 +20,7 @@ final class PrivacyPolicyViewModelTests: XCTestCase {
   func testInitialState() {
     XCTAssertEqual(sut.lastUpdated, "")
     XCTAssertFalse(sut.isLoading)
+    XCTAssertNil(sut.errorMessage)
   }
 
   // MARK: - loadPolicy Tests
@@ -42,5 +43,20 @@ final class PrivacyPolicyViewModelTests: XCTestCase {
 
     let bundled = PrivacyPolicy.bundled
     XCTAssertEqual(sut.lastUpdated, bundled.formattedDate)
+  }
+
+  func testLoadPolicyClearsError() async {
+    sut.errorMessage = "Something failed"
+    await sut.loadPolicy()
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  // MARK: - retry Tests
+
+  func testRetryClearsErrorAndReloads() async {
+    sut.errorMessage = "Network error"
+    await sut.retry()
+    XCTAssertNil(sut.errorMessage)
+    XCTAssertEqual(sut.lastUpdated, PrivacyPolicy.bundled.formattedDate)
   }
 }
