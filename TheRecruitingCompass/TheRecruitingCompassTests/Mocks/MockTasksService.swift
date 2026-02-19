@@ -25,6 +25,13 @@ final class MockTasksService: TasksManaging, @unchecked Sendable {
     return stubbedTasks
   }
 
+  func fetchAllTasksWithStatus(athleteId: String) async throws -> [Int: [TaskWithStatus]] {
+    if shouldThrowFetchError {
+      throw NSError(domain: "MockError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Fetch failed"])
+    }
+    return [9: stubbedTasks, 10: [], 11: [], 12: []]
+  }
+
   func updateTaskStatus(taskId: String, status: TaskStatus, userId: String) async throws -> AthleteTaskStatus {
     updateTaskStatusCallCount += 1
     lastUpdateTaskId = taskId

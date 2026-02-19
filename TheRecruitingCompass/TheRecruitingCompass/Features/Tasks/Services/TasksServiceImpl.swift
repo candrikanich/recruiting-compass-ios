@@ -4,7 +4,7 @@ import Supabase
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "TasksService")
 
-/// Raw row from Supabase `tasks` table (snake_case columns).
+/// Raw row from Supabase `task` table (snake_case columns).
 private struct TaskRow: Codable {
   let id: String
   let title: String
@@ -28,16 +28,16 @@ private struct TaskRow: Codable {
   }
 }
 
-/// Payload for upserting athlete_tasks (snake_case for API).
+/// Payload for upserting athlete_task (snake_case for API).
 private struct AthleteTaskUpsert: Encodable {
   let taskId: String
-  let userId: String
+  let athleteId: String
   let status: String
   let completedAt: String?
 
   enum CodingKeys: String, CodingKey {
     case taskId = "task_id"
-    case userId = "user_id"
+    case athleteId = "athlete_id"
     case status
     case completedAt = "completed_at"
   }
@@ -62,7 +62,7 @@ final class TasksServiceImpl: TasksManaging, Sendable {
     logger.info("Fetching tasks for grade \(gradeLevel), athlete \(athleteId)")
 
     async let rowsResult: [TaskRow] = supabaseManager.client
-      .from("tasks")
+      .from("task")
       .select()
       .eq("grade_level", value: gradeLevel)
       .order("id", ascending: true)
@@ -70,9 +70,9 @@ final class TasksServiceImpl: TasksManaging, Sendable {
       .value
 
     async let athleteTasksResult: [AthleteTaskStatus] = supabaseManager.client
-      .from("athlete_tasks")
+      .from("athlete_task")
       .select()
-      .eq("user_id", value: athleteId)
+      .eq("athlete_id", value: athleteId)
       .execute()
       .value
 
@@ -115,21 +115,32 @@ final class TasksServiceImpl: TasksManaging, Sendable {
     return result
   }
 
+  func fetchAllTasksWithStatus(athleteId: String) async throws -> [Int: [TaskWithStatus]] {
+    let grades = [9, 10, 11, 12]
+    var result: [Int: [TaskWithStatus]] = [:]
+    for grade in grades {
+      let tasks = try await fetchTasksWithStatus(gradeLevel: grade, athleteId: athleteId)
+      result[grade] = tasks
+    }
+    logger.info("Fetched tasks for all grades, total: \(result.values.flatMap { $0 }.count)")
+    return result
+  }
+
   func updateTaskStatus(taskId: String, status: TaskStatus, userId: String) async throws -> AthleteTaskStatus {
     logger.info("Updating task \(taskId) status to \(status.rawValue) for user \(userId)")
 
     let completedAt: String? = status == .completed ? ISO8601DateFormatter().string(from: Date()) : nil
-    let payload = AthleteTaskUpsert(taskId: taskId, userId: userId, status: status.rawValue, completedAt: completedAt)
+    let payload = AthleteTaskUpsert(taskId: taskId, athleteId: userId, status: status.rawValue, completedAt: completedAt)
 
     let result: AthleteTaskStatus = try await supabaseManager.client
-      .from("athlete_tasks")
-      .upsert(payload, onConflict: "task_id,user_id")
+      .from("athlete_task")
+      .upsert(payload, onConflict: "athlete_id,task_id")
       .select()
       .single()
       .execute()
       .value
 
-    logger.info("Updated athlete_tasks for task \(taskId)")
+    logger.info("Updated athlete_task for task \(taskId)")
     return result
   }
 }

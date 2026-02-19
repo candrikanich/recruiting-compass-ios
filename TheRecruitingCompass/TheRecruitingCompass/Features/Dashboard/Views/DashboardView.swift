@@ -78,21 +78,6 @@ struct DashboardView: View {
         }
       }
       .navigationTitle("Dashboard")
-      .toolbar {
-        ToolbarItem(placement: .navigationBarTrailing) {
-          Button(action: {
-            Task {
-              await viewModel.refresh()
-            }
-          }) {
-            Image(systemName: "arrow.clockwise")
-              .frame(minWidth: 44, minHeight: 44)
-              .contentShape(Rectangle())
-          }
-          .accessibilityLabel("Refresh dashboard")
-          .accessibilityHint("Fetches the latest dashboard data")
-        }
-      }
       .navigationDestination(for: DashboardDestination.self) { destination in
         destinationView(for: destination)
       }
@@ -113,12 +98,6 @@ struct DashboardView: View {
           .font(.title2)
           .fontWeight(.bold)
           .accessibilityAddTraits(.isHeader)
-      }
-
-      if let lastUpdated = viewModel.lastUpdated {
-        Text("Last updated: \(lastUpdated, style: .relative)")
-          .font(.caption)
-          .foregroundColor(Color.secondaryText)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)

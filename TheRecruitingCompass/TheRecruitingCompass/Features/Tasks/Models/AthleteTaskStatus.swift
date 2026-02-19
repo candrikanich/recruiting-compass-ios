@@ -8,7 +8,7 @@ struct AthleteTaskStatus: Codable, Sendable {
 
   enum CodingKeys: String, CodingKey {
     case taskId = "task_id"
-    case userId = "user_id"
+    case userId = "athlete_id"
     case status
     case completedAt = "completed_at"
   }
