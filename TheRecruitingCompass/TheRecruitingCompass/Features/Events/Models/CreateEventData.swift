@@ -82,14 +82,14 @@ struct CreateEventRequest: Encodable, Sendable {
     )
   }
 
-  private static func dateString(_ date: Date) -> String {
+  private nonisolated static func dateString(_ date: Date) -> String {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "en_US_POSIX")
     formatter.dateFormat = "yyyy-MM-dd"
     return formatter.string(from: date)
   }
 
-  private static func timeString(_ date: Date) -> String {
+  private nonisolated static func timeString(_ date: Date) -> String {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "en_US_POSIX")
     formatter.dateFormat = "HH:mm"

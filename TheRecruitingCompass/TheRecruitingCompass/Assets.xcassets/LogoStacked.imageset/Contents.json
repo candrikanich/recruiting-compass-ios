@@ -4,6 +4,16 @@
       "filename" : "recruiting-compass-stacked.svg",
       "idiom" : "universal",
       "scale" : "1x"
+    },
+    {
+      "filename" : "recruiting-compass-stacked.svg",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "recruiting-compass-stacked.svg",
+      "idiom" : "universal",
+      "scale" : "3x"
     }
   ],
   "info" : {

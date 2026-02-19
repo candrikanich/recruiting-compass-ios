@@ -103,60 +103,6 @@ actor CollegeScorecardService: CollegeScorecardManaging {
   }
 }
 
-// MARK: - API Response Models
-
-private struct CollegeScorecardAPIResponse: Codable, Sendable {
-  let metadata: Metadata
-  let results: [CollegeDataResult]
-
-  struct Metadata: Codable, Sendable {
-    let total: Int
-    let page: Int
-    let perPage: Int
-
-    enum CodingKeys: String, CodingKey {
-      case total
-      case page
-      case perPage = "per_page"
-    }
-  }
-}
-
-// MARK: - Autocomplete API Response (Phase 2)
-
-private struct AutocompleteAPIResponse: Codable, Sendable {
-  let metadata: Metadata
-  let results: [AutocompleteResult]
-
-  struct Metadata: Codable, Sendable {
-    let total: Int
-    let page: Int
-    let perPage: Int
-
-    enum CodingKeys: String, CodingKey {
-      case total
-      case page
-      case perPage = "per_page"
-    }
-  }
-
-  struct AutocompleteResult: Codable, Sendable {
-    let id: Int?
-    let name: String?
-    let city: String?
-    let state: String?
-    let website: String?
-
-    enum CodingKeys: String, CodingKey {
-      case id
-      case name = "school.name"
-      case city = "school.city"
-      case state = "school.state"
-      case website = "school.school_url"
-    }
-  }
-}
-
 // MARK: - Cache Implementation
 
 /// Thread-safe cache for College Scorecard API responses with TTL
@@ -289,9 +235,9 @@ extension CollegeScorecardService {
       // Check for error status codes
       try validateHTTPStatusCode(httpResponse.statusCode)
 
-      // Decode success response
+      // Decode success response (MainActor hop for types with MainActor-isolated Decodable)
       let decoder = JSONDecoder()
-      return try decoder.decode(T.self, from: data)
+      return try await MainActor.run { try decoder.decode(T.self, from: data) }
 
     } catch let error as CollegeDataError {
       throw error

@@ -1,6 +1,6 @@
 import Foundation
 
-struct PlayerDetails: Codable, Equatable {
+struct PlayerDetails: Codable, Equatable, Sendable {
   // Basic Info
   var graduationYear: Int?
   var highSchool: String?

@@ -77,23 +77,23 @@ final class SchoolDetailViewModel {
   /// TTL for cached school and status history (seconds).
   private static let schoolCacheTTL: TimeInterval = 60
 
-  nonisolated init(
+  init(
     schoolId: String,
-    schoolsService: any SchoolsManaging = SchoolsServiceImpl(supabaseManager: .shared),
-    authManager: any AuthManaging = AuthManager.shared,
-    familyManager: FamilyManager = .shared,
-    fitScoreService: any FitScoreManaging = FitScoreService(),
-    collegeService: any CollegeScorecardManaging = CollegeScorecardService(),
-    coachesService: any CoachesManaging = CoachesServiceImpl(supabaseManager: .shared),
+    schoolsService: (any SchoolsManaging)? = nil,
+    authManager: (any AuthManaging)? = nil,
+    familyManager: FamilyManager? = nil,
+    fitScoreService: (any FitScoreManaging)? = nil,
+    collegeService: (any CollegeScorecardManaging)? = nil,
+    coachesService: (any CoachesManaging)? = nil,
     cache: (any CacheManaging)? = nil
   ) {
     self.schoolId = schoolId
-    self.schoolsService = schoolsService
-    self.authManager = authManager
-    self.familyManager = familyManager
-    self.fitScoreService = fitScoreService
-    self.collegeService = collegeService
-    self.coachesService = coachesService
+    self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: SupabaseManager.shared)
+    self.authManager = authManager ?? AuthManager.shared
+    self.familyManager = familyManager ?? .shared
+    self.fitScoreService = fitScoreService ?? FitScoreService()
+    self.collegeService = collegeService ?? CollegeScorecardService()
+    self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: SupabaseManager.shared)
     self.cache = cache
   }
 

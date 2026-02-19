@@ -122,12 +122,12 @@ final class EventDetailViewModel {
   // MARK: - Init
 
   init(
-    eventsService: EventsManaging = EventsServiceImpl(),
-    authManager: any AuthManaging = AuthManager.shared,
+    eventsService: EventsManaging? = nil,
+    authManager: (any AuthManaging)? = nil,
     eventId: String
   ) {
-    self.eventsService = eventsService
-    self.authManager = authManager
+    self.eventsService = eventsService ?? EventsServiceImpl()
+    self.authManager = authManager ?? AuthManager.shared
     self.eventId = eventId
   }
 

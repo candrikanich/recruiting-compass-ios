@@ -19,7 +19,7 @@ struct MainTabView: View {
           .activityNavigation()
       }
       .tabItem {
-        Label("Dashboard", systemImage: "house.fill")
+        Label("Dashboard", systemImage: "house")
       }
       .accessibilityLabel("Dashboard")
 
@@ -27,7 +27,7 @@ struct MainTabView: View {
         CoachesListView()
       }
       .tabItem {
-        Label("Coaches", systemImage: "person.2.fill")
+        Label("Coaches", systemImage: "person.2")
       }
       .accessibilityLabel("Coaches")
 
@@ -35,9 +35,25 @@ struct MainTabView: View {
         SchoolsListView()
       }
       .tabItem {
-        Label("Schools", systemImage: "building.2.fill")
+        Label("Schools", systemImage: "building.2")
       }
       .accessibilityLabel("Schools")
+
+      NavigationStack {
+        InteractionsListView()
+      }
+      .tabItem {
+        Label("Interactions", systemImage: "bubble.left.and.bubble.right")
+      }
+      .accessibilityLabel("Interactions")
+
+      NavigationStack {
+        RecruitingTimelineView()
+      }
+      .tabItem {
+        Label("Timeline", systemImage: "clock")
+      }
+      .accessibilityLabel("Recruiting Timeline")
 
       NavigationStack {
         EventsListView()
@@ -51,33 +67,17 @@ struct MainTabView: View {
         DocumentsListView()
       }
       .tabItem {
-        Label("Documents", systemImage: "doc.fill")
+        Label("Documents", systemImage: "doc")
       }
       .accessibilityLabel("Documents")
-
-      NavigationStack {
-        InteractionsListView()
-      }
-      .tabItem {
-        Label("Interactions", systemImage: "bubble.left.and.bubble.right.fill")
-      }
-      .accessibilityLabel("Interactions")
 
       NavigationStack {
         OffersListView()
       }
       .tabItem {
-        Label("Offers", systemImage: "gift.fill")
+        Label("Offers", systemImage: "gift")
       }
       .accessibilityLabel("Offers")
-
-      NavigationStack {
-        TasksListView()
-      }
-      .tabItem {
-        Label("Tasks", systemImage: "checklist")
-      }
-      .accessibilityLabel("Tasks")
 
       NavigationStack {
         PerformanceDashboardView()
@@ -91,7 +91,7 @@ struct MainTabView: View {
         AnalyticsDashboardView()
       }
       .tabItem {
-        Label("Analytics", systemImage: "chart.pie.fill")
+        Label("Analytics", systemImage: "chart.pie")
       }
       .accessibilityLabel("Analytics")
 
@@ -100,7 +100,7 @@ struct MainTabView: View {
           .activityNavigation()
       }
       .tabItem {
-        Label("Activity", systemImage: "clock.fill")
+        Label("Activity", systemImage: "list.bullet.rectangle")
       }
       .accessibilityLabel("Activity History")
 
@@ -108,7 +108,7 @@ struct MainTabView: View {
         NotificationsListView(viewModel: notificationsViewModel)
       }
       .tabItem {
-        Label("Notifications", systemImage: "bell.fill")
+        Label("Notifications", systemImage: "bell")
       }
       .badge(notificationsViewModel.unreadCount > 0 ? notificationsViewModel.unreadCount : 0)
       .accessibilityLabel("Notifications")
@@ -117,7 +117,7 @@ struct MainTabView: View {
         FamilyManagementView()
       }
       .tabItem {
-        Label("Family", systemImage: "person.3.fill")
+        Label("Family", systemImage: "person.3")
       }
       .accessibilityLabel("Family")
 
@@ -125,7 +125,7 @@ struct MainTabView: View {
         SettingsView()
       }
       .tabItem {
-        Label("Settings", systemImage: "gearshape.fill")
+        Label("Settings", systemImage: "gearshape")
       }
       .accessibilityLabel("Settings")
     }

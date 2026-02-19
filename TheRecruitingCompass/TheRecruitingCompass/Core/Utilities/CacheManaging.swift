@@ -15,15 +15,16 @@ protocol CacheManaging: Sendable {
   func removeAll() async
 }
 
-/// Simple in-memory cache with TTL and max entry cap. Thread-safe via lock; safe to use from any context.
-/// Uses an object cache to avoid re-decoding on repeated get calls for hot keys.
-final class InMemoryCache: CacheManaging, @unchecked Sendable {
-  private struct Entry: Sendable {
+/// Simple in-memory cache with TTL and max entry cap. MainActor-isolated for Swift 6 compatibility
+/// with MainActor-isolated Codable types (School, Coach, etc.).
+@MainActor
+final class InMemoryCache: CacheManaging {
+  private struct Entry {
     let data: Data
     let expiresAt: Date
   }
 
-  private struct ObjectEntry: Sendable {
+  private struct ObjectEntry {
     let value: Any
     let expiresAt: Date
   }
@@ -33,7 +34,6 @@ final class InMemoryCache: CacheManaging, @unchecked Sendable {
   private var orderedKeys: [String] = []
   private let encoder = JSONEncoder()
   private let decoder = JSONDecoder()
-  private let lock = NSLock()
 
   /// Max number of entries; oldest (first inserted) is evicted when full.
   private let maxEntries: Int
@@ -45,8 +45,6 @@ final class InMemoryCache: CacheManaging, @unchecked Sendable {
   }
 
   func get<T: Decodable>(_ type: T.Type, forKey key: String) async -> T? {
-    lock.lock()
-    defer { lock.unlock() }
     let now = Date()
     if let obj = objectCache[key], obj.expiresAt > now, let value = obj.value as? T {
       return value
@@ -54,9 +52,7 @@ final class InMemoryCache: CacheManaging, @unchecked Sendable {
     guard let entry = storage[key], entry.expiresAt > now else {
       return nil
     }
-    guard let decoded = try? decoder.decode(T.self, from: entry.data) else {
-      return nil
-    }
+    guard let decoded = try? decoder.decode(T.self, from: entry.data) else { return nil }
     objectCache[key] = ObjectEntry(value: decoded, expiresAt: entry.expiresAt)
     return decoded
   }
@@ -64,7 +60,6 @@ final class InMemoryCache: CacheManaging, @unchecked Sendable {
   func set<T: Encodable>(_ value: T, forKey key: String, ttlSeconds: TimeInterval) async {
     guard let data = try? encoder.encode(value) else { return }
     let expiresAt = Date().addingTimeInterval(ttlSeconds)
-    lock.lock()
     if let idx = orderedKeys.firstIndex(of: key) {
       orderedKeys.remove(at: idx)
     }
@@ -76,22 +71,17 @@ final class InMemoryCache: CacheManaging, @unchecked Sendable {
     storage[key] = Entry(data: data, expiresAt: expiresAt)
     objectCache[key] = ObjectEntry(value: value, expiresAt: expiresAt)
     orderedKeys.append(key)
-    lock.unlock()
   }
 
   func remove(forKey key: String) async {
-    lock.lock()
     storage.removeValue(forKey: key)
     objectCache.removeValue(forKey: key)
     orderedKeys.removeAll { $0 == key }
-    lock.unlock()
   }
 
   func removeAll() async {
-    lock.lock()
     storage.removeAll()
     objectCache.removeAll()
     orderedKeys.removeAll()
-    lock.unlock()
   }
 }

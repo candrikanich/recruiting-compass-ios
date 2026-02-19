@@ -82,7 +82,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
   private init() {
     self.client = SupabaseClient(
       supabaseURL: SupabaseConfig.url,
-      supabaseKey: SupabaseConfig.anonKey
+      supabaseKey: SupabaseConfig.anonKey,
+      options: SupabaseClientOptions(
+        auth: .init(emitLocalSessionAsInitialSession: true)
+      )
     )
   }
 

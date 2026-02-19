@@ -176,8 +176,9 @@ final class DocumentViewerViewModel {
     }
 
     let delegate = DocumentDownloadDelegate { [weak self] progress in
+      guard let this = self else { return }
       Task { @MainActor in
-        self?.downloadProgress = progress
+        this.downloadProgress = progress
       }
     }
     downloadDelegate = delegate
@@ -187,24 +188,28 @@ final class DocumentViewerViewModel {
 
     await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
       delegate.onComplete = { [weak self] result in
+        guard let this = self else {
+          continuation.resume()
+          return
+        }
         Task { @MainActor in
           switch result {
           case .success(let tempURL):
             do {
-              let destURL = self?.destinationURL(for: url) ?? FileManager.default.temporaryDirectory
+              let destURL = this.destinationURL(for: url)
               if FileManager.default.fileExists(atPath: destURL.path) {
                 try FileManager.default.removeItem(at: destURL)
               }
               try FileManager.default.moveItem(at: tempURL, to: destURL)
-              self?.downloadProgress = 1
-              self?.downloadedFileURL = destURL
+              this.downloadProgress = 1
+              this.downloadedFileURL = destURL
               UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-              self?.presentShareSheet()
+              this.presentShareSheet()
             } catch {
-              self?.error = userFacingDownloadError(from: error)
+              this.error = userFacingDownloadError(from: error)
             }
           case .failure(let err):
-            self?.error = userFacingDownloadError(from: err)
+            this.error = userFacingDownloadError(from: err)
           }
           continuation.resume()
         }

@@ -13,10 +13,11 @@ struct EventDetailView: View {
   @State private var viewModel: EventDetailViewModel
   @Environment(\.dismiss) private var dismiss
 
+  @MainActor
   init(
     eventId: String,
-    eventsService: EventsManaging = EventsServiceImpl(),
-    authManager: any AuthManaging = AuthManager.shared
+    eventsService: EventsManaging? = nil,
+    authManager: (any AuthManaging)? = nil
   ) {
     _viewModel = State(initialValue: EventDetailViewModel(
       eventsService: eventsService,

@@ -13,6 +13,72 @@ struct PerformanceMetric: Codable, Identifiable, Equatable, Sendable {
   let createdAt: Date
   let updatedAt: Date
 
+  init(
+    id: String,
+    userId: String,
+    metricType: MetricType,
+    value: Double,
+    unit: String,
+    recordedDate: Date,
+    eventId: String?,
+    verified: Bool,
+    notes: String?,
+    createdAt: Date,
+    updatedAt: Date
+  ) {
+    self.id = id
+    self.userId = userId
+    self.metricType = metricType
+    self.value = value
+    self.unit = unit
+    self.recordedDate = recordedDate
+    self.eventId = eventId
+    self.verified = verified
+    self.notes = notes
+    self.createdAt = createdAt
+    self.updatedAt = updatedAt
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    id = try container.decode(String.self, forKey: .id)
+    userId = try container.decode(String.self, forKey: .userId)
+    metricType = try container.decode(MetricType.self, forKey: .metricType)
+    value = try container.decode(Double.self, forKey: .value)
+    unit = try container.decode(String.self, forKey: .unit)
+    recordedDate = try Self.decodeFlexibleDate(container, key: .recordedDate)
+    eventId = try container.decodeIfPresent(String.self, forKey: .eventId)
+    verified = try container.decode(Bool.self, forKey: .verified)
+    notes = try container.decodeIfPresent(String.self, forKey: .notes)
+    createdAt = try Self.decodeFlexibleDate(container, key: .createdAt)
+    updatedAt = try Self.decodeFlexibleDate(container, key: .updatedAt)
+  }
+
+  private static func decodeFlexibleDate(_ container: KeyedDecodingContainer<CodingKeys>, key: CodingKeys) throws -> Date {
+    let string = try container.decode(String.self, forKey: key)
+    let iso8601 = ISO8601DateFormatter()
+    iso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    if let date = iso8601.date(from: string) {
+      return date
+    }
+    iso8601.formatOptions = [.withInternetDateTime]
+    if let date = iso8601.date(from: string) {
+      return date
+    }
+    let dateOnly = DateFormatter()
+    dateOnly.dateFormat = "yyyy-MM-dd"
+    dateOnly.locale = Locale(identifier: "en_US_POSIX")
+    dateOnly.timeZone = TimeZone(identifier: "UTC")
+    if let date = dateOnly.date(from: string) {
+      return date
+    }
+    throw DecodingError.dataCorruptedError(
+      forKey: key,
+      in: container,
+      debugDescription: "Invalid date format: \(string)"
+    )
+  }
+
   var displayName: String {
     metricType.displayName
   }
