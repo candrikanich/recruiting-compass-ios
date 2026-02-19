@@ -152,9 +152,9 @@ final class PreferenceServiceImpl: PreferenceManaging, Sendable {
         return nil
       }
 
-      // Convert JSONValue to target type
+      // Convert JSONValue to target type (MainActor hop for types with MainActor-isolated Decodable)
       let jsonData = try JSONSerialization.data(withJSONObject: response.data.anyValue)
-      let decoded = try JSONDecoder().decode(T.self, from: jsonData)
+      let decoded: T = try await MainActor.run { try JSONDecoder().decode(T.self, from: jsonData) }
 
       logger.info("Successfully fetched preferences for category: \(category.rawValue)")
       return decoded

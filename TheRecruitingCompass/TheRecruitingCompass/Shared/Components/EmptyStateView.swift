@@ -59,7 +59,7 @@ struct EmptyStateView: View {
         Button {
           action()
         } label: {
-          Label(actionTitle, systemImage: "plus.circle.fill")
+          Label(actionTitle, systemImage: "plus.circle")
         }
         .buttonStyle(.borderedProminent)
         .frame(minHeight: 44)

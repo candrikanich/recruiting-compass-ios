@@ -7,7 +7,7 @@ struct SchoolQuickActions: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Label("Quick Actions", systemImage: "bolt.fill")
+      Label("Quick Actions", systemImage: "bolt")
         .font(.headline)
         .foregroundStyle(.primary)
         .accessibilityAddTraits(.isHeader)

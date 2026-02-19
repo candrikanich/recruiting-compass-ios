@@ -51,11 +51,28 @@ struct PerformanceMetric: Codable, Identifiable, Equatable, Sendable {
     verified = try container.decode(Bool.self, forKey: .verified)
     notes = try container.decodeIfPresent(String.self, forKey: .notes)
     createdAt = try Self.decodeFlexibleDate(container, key: .createdAt)
-    updatedAt = try Self.decodeFlexibleDate(container, key: .updatedAt)
+    // updated_at may be absent in some DB rows; fall back to createdAt
+    updatedAt = Self.decodeOptionalDate(container, key: .updatedAt) ?? createdAt
+  }
+
+  private static func decodeOptionalDate(_ container: KeyedDecodingContainer<CodingKeys>, key: CodingKeys) -> Date? {
+    guard let string = try? container.decode(String.self, forKey: key) else { return nil }
+    return decodeDate(from: string)
   }
 
   private static func decodeFlexibleDate(_ container: KeyedDecodingContainer<CodingKeys>, key: CodingKeys) throws -> Date {
     let string = try container.decode(String.self, forKey: key)
+    guard let date = decodeDate(from: string) else {
+      throw DecodingError.dataCorruptedError(
+        forKey: key,
+        in: container,
+        debugDescription: "Invalid date format: \(string)"
+      )
+    }
+    return date
+  }
+
+  private static func decodeDate(from string: String) -> Date? {
     let iso8601 = ISO8601DateFormatter()
     iso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     if let date = iso8601.date(from: string) {
@@ -69,14 +86,7 @@ struct PerformanceMetric: Codable, Identifiable, Equatable, Sendable {
     dateOnly.dateFormat = "yyyy-MM-dd"
     dateOnly.locale = Locale(identifier: "en_US_POSIX")
     dateOnly.timeZone = TimeZone(identifier: "UTC")
-    if let date = dateOnly.date(from: string) {
-      return date
-    }
-    throw DecodingError.dataCorruptedError(
-      forKey: key,
-      in: container,
-      debugDescription: "Invalid date format: \(string)"
-    )
+    return dateOnly.date(from: string)
   }
 
   var displayName: String {

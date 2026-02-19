@@ -13,8 +13,11 @@ final class NetworkMonitor {
 
   init() {
     monitor.pathUpdateHandler = { [weak self] path in
+      guard let self else { return }
+      let connected = path.status == .satisfied
+      let ref = self
       Task { @MainActor in
-        self?.isConnected = path.status == .satisfied
+        ref.isConnected = connected
       }
     }
     monitor.start(queue: queue)

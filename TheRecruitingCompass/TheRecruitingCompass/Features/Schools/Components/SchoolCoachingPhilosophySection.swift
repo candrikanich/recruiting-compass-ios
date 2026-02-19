@@ -17,7 +17,7 @@ struct SchoolCoachingPhilosophySection: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
-        Label("Coaching Philosophy", systemImage: "quote.bubble.fill")
+        Label("Coaching Philosophy", systemImage: "quote.bubble")
           .font(.headline)
           .foregroundStyle(.primary)
 

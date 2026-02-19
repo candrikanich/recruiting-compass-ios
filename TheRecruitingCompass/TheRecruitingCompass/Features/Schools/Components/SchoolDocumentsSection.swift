@@ -4,7 +4,7 @@ struct SchoolDocumentsSection: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
-        Label("Documents", systemImage: "doc.fill")
+        Label("Documents", systemImage: "doc")
           .font(.headline)
           .foregroundStyle(.primary)
 

@@ -48,8 +48,9 @@ actor CollegeScorecardService: CollegeScorecardManaging {
     let url = try self.buildLookupURL(for: name)
     logger.debug("Request URL: \(url.absoluteString)")
 
-    // Perform API request
-    let apiResponse: CollegeScorecardAPIResponse = try await self.performAPIRequest(url: url)
+    // Perform API request (decode on MainActor for Swift 6)
+    let data = try await self.fetchData(from: url)
+    let apiResponse: CollegeScorecardAPIResponse = try await MainActor.run { try JSONDecoder().decode(CollegeScorecardAPIResponse.self, from: data) }
 
     // Extract first result
     guard let firstResult = apiResponse.results.first else {
@@ -90,8 +91,9 @@ actor CollegeScorecardService: CollegeScorecardManaging {
     let url = try self.buildSearchURL(for: query)
     logger.debug("Autocomplete URL: \(url.absoluteString)")
 
-    // Perform API request
-    let apiResponse: AutocompleteAPIResponse = try await self.performAPIRequest(url: url)
+    // Perform API request (decode on MainActor for Swift 6)
+    let data = try await self.fetchData(from: url)
+    let apiResponse: AutocompleteAPIResponse = try await MainActor.run { try JSONDecoder().decode(AutocompleteAPIResponse.self, from: data) }
 
     // Transform results
     let results = self.transformAutocompleteResults(apiResponse.results)
@@ -221,8 +223,8 @@ extension CollegeScorecardService {
     return url
   }
 
-  /// Perform API request and decode response
-  private func performAPIRequest<T: Decodable>(url: URL) async throws -> T {
+  /// Fetch raw data from URL (caller decodes on MainActor for MainActor-isolated types)
+  private func fetchData(from url: URL) async throws -> Data {
     do {
       let (data, response) = try await urlSession.data(from: url)
 
@@ -232,12 +234,8 @@ extension CollegeScorecardService {
 
       logger.debug("Response status: \(httpResponse.statusCode)")
 
-      // Check for error status codes
       try validateHTTPStatusCode(httpResponse.statusCode)
-
-      // Decode success response (MainActor hop for types with MainActor-isolated Decodable)
-      let decoder = JSONDecoder()
-      return try await MainActor.run { try decoder.decode(T.self, from: data) }
+      return data
 
     } catch let error as CollegeDataError {
       throw error

@@ -18,7 +18,7 @@ struct SchoolCoachesPanel: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
-        Label("Coaches", systemImage: "person.2.fill")
+        Label("Coaches", systemImage: "person.2")
           .font(.headline)
           .foregroundStyle(.primary)
 
