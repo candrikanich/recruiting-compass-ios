@@ -46,7 +46,7 @@ The TheRecruitingCompass iOS app shows **good Dynamic Type support on the Landin
 ### Small (0.88x)
 **Status:** ✅ PASS
 
-- Title text "Recruiting Compass" is clear and properly scaled
+- Title text "The Recruiting Compass" is clear and properly scaled
 - Sign In and Create Account buttons properly sized
 - All three feature cards visible and readable
 - No text clipping or truncation
@@ -107,7 +107,7 @@ The TheRecruitingCompass iOS app shows **good Dynamic Type support on the Landin
 
 ```swift
 // CORRECT - Uses semantic font styles
-Text("Recruiting Compass")
+Text("The Recruiting Compass")
   .font(.title)                    // Respects Dynamic Type ✓
   .fontWeight(.bold)
 
@@ -154,7 +154,7 @@ Text(viewModel.isLoading ? "Signing in..." : "Sign In")
   .font(.system(size: 16, weight: .semibold))    // HARDCODED ✗
 
 // Additional items
-Text("New to Recruiting Compass?")
+Text("New to The Recruiting Compass?")
   .font(.system(size: 14, weight: .regular))     // HARDCODED ✗
 
 Text("Don't have an account?")
@@ -471,7 +471,7 @@ VStack(spacing: 32) {
     Image(systemName: "compass.fill")
       .font(.system(size: 80))        // Logo - acceptable exception
 
-    Text("Recruiting Compass")
+    Text("The Recruiting Compass")
       .font(.title)                   // ✅ Semantic - scales with Dynamic Type
       .fontWeight(.bold)
   }

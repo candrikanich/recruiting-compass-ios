@@ -26,8 +26,10 @@ struct LoginView: View {
             passwordField
             rememberMeRow
             signInButton
-            dividerSection
-            signUpSection
+            VStack(spacing: 0) {
+              dividerSection
+              signUpSection
+            }
           }
           .padding(.horizontal, 32)
           .padding(.top, 16)
@@ -202,9 +204,10 @@ struct LoginView: View {
         .foregroundColor(Color.borderGray)
         .accessibilityHidden(true)
 
-      Text("New to Recruiting Compass?")
+      Text("New to The Recruiting Compass?")
         .font(.footnote)
         .foregroundColor(Color.tertiaryText)
+        .fixedSize(horizontal: true, vertical: false)
 
       Rectangle()
         .frame(height: 1)
@@ -219,7 +222,7 @@ struct LoginView: View {
         .font(.footnote)
         .foregroundColor(Color.tertiaryText)
 
-      NavigationLink(value: "signup") {
+      NavigationLink(destination: SignupView()) {
         HStack(spacing: 4) {
           Text("Create one now")
             .font(.footnote.weight(.semibold))

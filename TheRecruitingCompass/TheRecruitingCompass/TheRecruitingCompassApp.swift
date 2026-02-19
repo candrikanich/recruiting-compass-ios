@@ -77,20 +77,30 @@ struct TheRecruitingCompassApp: App {
   }
 
   private var sessionLoadingView: some View {
+    SessionLoadingView()
+  }
+}
+
+// MARK: - Session Loading (Splash) View
+private struct SessionLoadingView: View {
+  @Environment(\.sizeCategory) var sizeCategory
+
+  var body: some View {
     GeometryReader { geometry in
       ZStack {
         LinearGradient.landingBackground
-        .ignoresSafeArea()
+          .ignoresSafeArea()
 
         VStack(spacing: 16) {
           Image("AppLogo")
             .resizable()
             .scaledToFit()
             .frame(width: geometry.size.width * 0.5)
+            .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
 
-        ProgressView()
-          .tint(.white)
-          .scaleEffect(1.2)
+          ProgressView()
+            .tint(.white)
+            .scaleEffect(1.2)
         }
       }
     }

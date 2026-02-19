@@ -61,7 +61,7 @@ struct PrivacyPolicyView: View {
       LegalSectionHeader(text: "1. Introduction")
 
       LegalBodyText(text:
-        "Recruiting Compass (\"we,\" \"us,\" \"our,\" or \"Company\") is committed to protecting your privacy. " +
+        "The Recruiting Compass (\"we,\" \"us,\" \"our,\" or \"Company\") is committed to protecting your privacy. " +
           "This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you " +
           "visit our website and use our services."
       )
@@ -227,7 +227,7 @@ struct PrivacyPolicyView: View {
       )
 
       VStack(alignment: .leading, spacing: 8) {
-        Text("Recruiting Compass")
+        Text("The Recruiting Compass")
           .font(.headline)
           .foregroundColor(Color.darkSlate)
 

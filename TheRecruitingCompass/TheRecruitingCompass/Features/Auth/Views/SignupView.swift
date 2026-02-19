@@ -60,16 +60,15 @@ struct SignupView: View {
 
   // MARK: - Role Selection Step
 
-  private var iconSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 56 : 48
-  }
-
   private var roleSelectionContent: some View {
     VStack(spacing: 24) {
-      Image(systemName: "compass.drawing")
-        .font(.system(size: iconSize))
-        .foregroundColor(Color.primaryGreen)
-        .padding(.vertical, 12)
+      Image("LogoStacked")
+        .resizable()
+        .scaledToFit()
+        .aspectRatio(3.0 / 2.0, contentMode: .fit)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
         .accessibilityHidden(true)
 
@@ -276,7 +275,7 @@ struct SignupView: View {
         .font(.footnote)
         .foregroundColor(Color.tertiaryText)
 
-      NavigationLink(value: "login") {
+      NavigationLink(destination: LoginView()) {
         HStack(spacing: 4) {
           Text("Sign In")
             .font(.footnote.weight(.semibold))

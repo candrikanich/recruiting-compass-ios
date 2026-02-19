@@ -59,7 +59,7 @@ struct TermsOfServiceView: View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "1. Agreement to Terms")
       LegalBodyText(text:
-        "By accessing or using the Recruiting Compass service (\"Service\"), you agree to be bound by these Terms and Conditions. " +
+        "By accessing or using The Recruiting Compass service (\"Service\"), you agree to be bound by these Terms and Conditions. " +
           "If you do not agree to these terms, please do not use our Service."
       )
     }
@@ -70,7 +70,7 @@ struct TermsOfServiceView: View {
   private var section2UseLicense: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "2. Use License")
-      LegalBodyText(text: "Permission is granted to temporarily access the materials on Recruiting Compass for personal, non-commercial use only. " +
+      LegalBodyText(text: "Permission is granted to temporarily access the materials on The Recruiting Compass for personal, non-commercial use only. " +
         "This is the grant of a license, not a transfer of title, and under this license you may not:")
       LegalBulletList(items: [
         "Modify or copy the materials",
@@ -88,7 +88,7 @@ struct TermsOfServiceView: View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "3. Disclaimer")
       LegalBodyText(text:
-        "The materials on Recruiting Compass are provided on an \"as is\" basis. Recruiting Compass makes no warranties, expressed or implied, " +
+        "The materials on The Recruiting Compass are provided on an \"as is\" basis. The Recruiting Compass makes no warranties, expressed or implied, " +
           "and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, " +
           "fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights."
       )
@@ -101,8 +101,8 @@ struct TermsOfServiceView: View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "4. Limitations")
       LegalBodyText(text:
-        "In no event shall Recruiting Compass or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, " +
-          "or due to business interruption) arising out of the use or inability to use the materials on Recruiting Compass, even if Recruiting Compass " +
+        "In no event shall The Recruiting Compass or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, " +
+          "or due to business interruption) arising out of the use or inability to use the materials on The Recruiting Compass, even if The Recruiting Compass " +
           "or an authorized representative has been notified orally or in writing of the possibility of such damage."
       )
     }
@@ -114,9 +114,9 @@ struct TermsOfServiceView: View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "5. Accuracy of Materials")
       LegalBodyText(text:
-        "The materials appearing on Recruiting Compass could include technical, typographical, or photographic errors. " +
-          "Recruiting Compass does not warrant that any of the materials on its Service are accurate, complete, or current. " +
-          "Recruiting Compass may make changes to the materials at any time without notice."
+        "The materials appearing on The Recruiting Compass could include technical, typographical, or photographic errors. " +
+          "The Recruiting Compass does not warrant that any of the materials on its Service are accurate, complete, or current. " +
+          "The Recruiting Compass may make changes to the materials at any time without notice."
       )
     }
   }
@@ -127,8 +127,8 @@ struct TermsOfServiceView: View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "6. Links")
       LegalBodyText(text:
-        "Recruiting Compass has not reviewed all of the sites linked to its Service and is not responsible for the contents of any such linked site. " +
-          "The inclusion of any link does not imply endorsement by Recruiting Compass. Use of any such linked website is at the user's own risk."
+        "The Recruiting Compass has not reviewed all of the sites linked to its Service and is not responsible for the contents of any such linked site. " +
+          "The inclusion of any link does not imply endorsement by The Recruiting Compass. Use of any such linked website is at the user's own risk."
       )
     }
   }
@@ -139,7 +139,7 @@ struct TermsOfServiceView: View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "7. Modifications")
       LegalBodyText(text:
-        "Recruiting Compass may revise these Terms and Conditions at any time without notice. By using this Service you are agreeing to be bound by " +
+        "The Recruiting Compass may revise these Terms and Conditions at any time without notice. By using this Service you are agreeing to be bound by " +
           "the then current version of these Terms and Conditions. We will notify you of material changes by updating the \"Last Updated\" date."
       )
     }
@@ -198,7 +198,7 @@ struct TermsOfServiceView: View {
       )
 
       VStack(alignment: .leading, spacing: 8) {
-        Text("Recruiting Compass")
+        Text("The Recruiting Compass")
           .font(.headline)
           .foregroundColor(Color.darkSlate)
 

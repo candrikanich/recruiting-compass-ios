@@ -28,8 +28,8 @@ struct TermsCheckbox: View {
         .accessibilityAddTraits(.isButton)
         .accessibilityHint("Double tap to toggle agreement")
 
-        HStack(spacing: 4) {
-          Text("I agree to the")
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+          Text("I agree to the ")
             .font(.footnote)
             .foregroundColor(Color.tertiaryText)
             .accessibilityHidden(true)
@@ -39,11 +39,12 @@ struct TermsCheckbox: View {
               .font(.footnote.weight(.semibold))
               .foregroundColor(Color.accentBlue)
               .underline()
+              .fixedSize(horizontal: true, vertical: false)
           }
           .accessibilityLabel("Read Terms of Service")
           .accessibilityHint("Opens Terms of Service")
 
-          Text("and")
+          Text("and ")
             .font(.footnote)
             .foregroundColor(Color.tertiaryText)
             .accessibilityHidden(true)
@@ -53,10 +54,12 @@ struct TermsCheckbox: View {
               .font(.footnote.weight(.semibold))
               .foregroundColor(Color.accentBlue)
               .underline()
+              .fixedSize(horizontal: true, vertical: false)
           }
           .accessibilityLabel("Read Privacy Policy")
           .accessibilityHint("Opens Privacy Policy")
         }
+        .fixedSize(horizontal: true, vertical: false)
 
         Spacer()
       }
