@@ -75,7 +75,7 @@ struct LegalEmailLink: View {
         }
         .font(.body.weight(.medium))
         .foregroundColor(Color.accentBlue)
-        .frame(minHeight: 44)
+        .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
         .accessibilityLabel("Email \(email.replacingOccurrences(of: "@", with: " at ").replacingOccurrences(of: ".", with: " dot "))")
         .accessibilityHint("Opens Mail app")
