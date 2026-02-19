@@ -31,6 +31,7 @@ struct TermsCheckbox: View {
         Text("I agree to the")
           .font(.footnote)
           .foregroundColor(Color.tertiaryText)
+          .accessibilityHidden(true)
 
         HStack(spacing: 0) {
           Button(action: onTermsPressed) {
