@@ -89,7 +89,15 @@ final class DocumentViewerViewModel {
   // MARK: - Share
 
   func shareDocument() {
-    guard shareableURL != nil || downloadedFileURL != nil else { return }
+    guard canShare else { return }
+    presentShareSheet()
+  }
+
+  private var canShare: Bool {
+    shareableURL != nil || downloadedFileURL != nil
+  }
+
+  private func presentShareSheet() {
     isShareSheetPresented = true
   }
 
@@ -123,12 +131,7 @@ final class DocumentViewerViewModel {
 
     do {
       let (tempURL, _) = try await URLSession.shared.download(from: url)
-      let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-      let baseName = document?.title ?? url.deletingPathExtension().lastPathComponent
-      let ext = url.pathExtension.isEmpty ? "" : "." + url.pathExtension
-      let fileName = baseName + ext
-      let safeFileName = fileName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "document"
-      let destURL = documentsURL.appendingPathComponent(safeFileName)
+      let destURL = destinationURL(for: url)
 
       if FileManager.default.fileExists(atPath: destURL.path) {
         try FileManager.default.removeItem(at: destURL)
@@ -138,12 +141,21 @@ final class DocumentViewerViewModel {
       downloadProgress = 1
       downloadedFileURL = destURL
       UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-      isShareSheetPresented = true
+      presentShareSheet()
     } catch {
       self.error = "Download failed. \(error.localizedDescription)"
     }
 
     downloadProgress = 0
+  }
+
+  private func destinationURL(for url: URL) -> URL {
+    let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    let baseName = document?.title ?? url.deletingPathExtension().lastPathComponent
+    let ext = url.pathExtension.isEmpty ? "" : "." + url.pathExtension
+    let fileName = baseName + ext
+    let safeFileName = fileName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "document"
+    return documentsURL.appendingPathComponent(safeFileName)
   }
 
   // MARK: - Collection Navigation

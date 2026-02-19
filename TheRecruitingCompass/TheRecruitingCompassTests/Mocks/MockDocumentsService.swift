@@ -146,6 +146,7 @@ extension Document {
     description: String? = nil,
     schoolId: String? = nil,
     sharedWithSchools: [String] = [],
+    fileUrl: String = "https://example.com/file.mp4",
     createdAt: String? = "2026-02-17T00:00:00Z"
   ) -> Document {
     Document(
@@ -154,7 +155,7 @@ extension Document {
       type: type,
       title: title,
       description: description,
-      fileUrl: "https://example.com/file.mp4",
+      fileUrl: fileUrl,
       fileType: "video/mp4",
       version: 1,
       schoolId: schoolId,
