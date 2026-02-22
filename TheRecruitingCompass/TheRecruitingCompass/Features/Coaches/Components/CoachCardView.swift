@@ -3,6 +3,8 @@ import SwiftUI
 struct CoachCardView: View {
   let coach: Coach
   let schoolName: String
+  let schoolLogoUrl: String?
+  let schoolInitials: String
   let onDelete: () -> Void
 
   @Environment(\.sizeCategory) private var sizeCategory
@@ -32,7 +34,7 @@ struct CoachCardView: View {
 
   private var headerSection: some View {
     HStack(spacing: 12) {
-      initialsCircle
+      schoolLogoView
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
@@ -51,8 +53,31 @@ struct CoachCardView: View {
     }
   }
 
+  private var schoolLogoView: some View {
+    Group {
+      if let faviconUrl = schoolLogoUrl, let url = URL(string: faviconUrl) {
+        AsyncImage(url: url) { phase in
+          switch phase {
+          case .success(let image):
+            image
+              .resizable()
+              .scaledToFit()
+          case .failure, .empty:
+            initialsCircle
+          @unknown default:
+            initialsCircle
+          }
+        }
+        .frame(width: initialsSize, height: initialsSize)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+      } else {
+        initialsCircle
+      }
+    }
+  }
+
   private var initialsCircle: some View {
-    Text(coach.initials)
+    Text(schoolInitials)
       .font(initialsFont)
       .foregroundStyle(.white)
       .frame(width: initialsSize, height: initialsSize)
@@ -63,7 +88,7 @@ struct CoachCardView: View {
           endPoint: .bottomTrailing
         )
       )
-      .clipShape(Circle())
+      .clipShape(RoundedRectangle(cornerRadius: 10))
   }
 
   private var roleBadge: some View {
@@ -186,6 +211,8 @@ struct CoachCardView: View {
       updatedAt: "2026-01-15T10:00:00Z"
     ),
     schoolName: "State University",
+    schoolLogoUrl: nil,
+    schoolInitials: "SU",
     onDelete: {}
   )
   .padding()

@@ -70,7 +70,7 @@ struct SchoolCardView: View {
           }
         }
         .frame(width: initialsSize, height: initialsSize)
-        .clipShape(Circle())
+        .clipShape(RoundedRectangle(cornerRadius: 10))
       } else {
         initialsCircle
       }
@@ -89,7 +89,7 @@ struct SchoolCardView: View {
           endPoint: .bottomTrailing
         )
       )
-      .clipShape(Circle())
+      .clipShape(RoundedRectangle(cornerRadius: 10))
   }
 
   // MARK: - Badges

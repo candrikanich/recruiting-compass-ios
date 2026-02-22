@@ -11,7 +11,7 @@ struct SchoolDetailHeader: View {
       HStack(alignment: .top, spacing: 16) {
         // School logo or initials
         ZStack {
-          Circle()
+          RoundedRectangle(cornerRadius: 12)
             .fill(Color.blue.opacity(0.2))
             .frame(width: 56, height: 56)
 
@@ -27,7 +27,7 @@ struct SchoolDetailHeader: View {
                 .foregroundStyle(.blue)
             }
             .frame(width: 56, height: 56)
-            .clipShape(Circle())
+            .clipShape(RoundedRectangle(cornerRadius: 12))
           } else {
             Text(school.initials)
               .font(.title2)
