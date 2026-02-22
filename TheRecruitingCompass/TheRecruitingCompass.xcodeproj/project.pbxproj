@@ -29,7 +29,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		988EFDAA2F35489B009C60F5 /* TheRecruitingCompass.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TheRecruitingCompass.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		988EFDAA2F35489B009C60F5 /* myCompass.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myCompass.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		988EFDB72F35489C009C60F5 /* TheRecruitingCompassTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TheRecruitingCompassTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		988EFDC12F35489C009C60F5 /* TheRecruitingCompassUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TheRecruitingCompassUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -117,7 +117,7 @@
 		988EFDAB2F35489B009C60F5 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				988EFDAA2F35489B009C60F5 /* TheRecruitingCompass.app */,
+				988EFDAA2F35489B009C60F5 /* myCompass.app */,
 				988EFDB72F35489C009C60F5 /* TheRecruitingCompassTests.xctest */,
 				988EFDC12F35489C009C60F5 /* TheRecruitingCompassUITests.xctest */,
 			);
@@ -186,7 +186,7 @@
 				988EFDDE2F3549A1009C60F5 /* Supabase */,
 			);
 			productName = TheRecruitingCompass;
-			productReference = 988EFDAA2F35489B009C60F5 /* TheRecruitingCompass.app */;
+			productReference = 988EFDAA2F35489B009C60F5 /* myCompass.app */;
 			productType = "com.apple.product-type.application";
 		};
 		988EFDB62F35489C009C60F5 /* TheRecruitingCompassTests */ = {
@@ -482,7 +482,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.chrisandrikanich.TheRecruitingCompass;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = myCompass;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -514,7 +514,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.chrisandrikanich.TheRecruitingCompass;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = myCompass;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
