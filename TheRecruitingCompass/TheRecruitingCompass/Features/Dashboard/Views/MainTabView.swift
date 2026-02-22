@@ -19,7 +19,13 @@ struct MainTabView: View {
           .activityNavigation()
       }
       .tabItem {
-        Label("Dashboard", systemImage: "house")
+        Label {
+          Text("Dashboard")
+        } icon: {
+          Image(systemName: "house")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Dashboard")
 
@@ -27,7 +33,13 @@ struct MainTabView: View {
         CoachesListView()
       }
       .tabItem {
-        Label("Coaches", systemImage: "person.2")
+        Label {
+          Text("Coaches")
+        } icon: {
+          Image(systemName: "person.2")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Coaches")
 
@@ -35,7 +47,13 @@ struct MainTabView: View {
         SchoolsListView()
       }
       .tabItem {
-        Label("Schools", systemImage: "building.2")
+        Label {
+          Text("Schools")
+        } icon: {
+          Image(systemName: "building.2")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Schools")
 
@@ -43,7 +61,13 @@ struct MainTabView: View {
         InteractionsListView()
       }
       .tabItem {
-        Label("Interactions", systemImage: "bubble.left.and.bubble.right")
+        Label {
+          Text("Interactions")
+        } icon: {
+          Image(systemName: "bubble.left.and.bubble.right")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Interactions")
 
@@ -51,7 +75,13 @@ struct MainTabView: View {
         RecruitingTimelineView()
       }
       .tabItem {
-        Label("Timeline", systemImage: "clock")
+        Label {
+          Text("Timeline")
+        } icon: {
+          Image(systemName: "clock")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Recruiting Timeline")
 
@@ -59,7 +89,13 @@ struct MainTabView: View {
         EventsListView()
       }
       .tabItem {
-        Label("Events", systemImage: "calendar")
+        Label {
+          Text("Events")
+        } icon: {
+          Image(systemName: "calendar")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Events")
 
@@ -67,7 +103,13 @@ struct MainTabView: View {
         DocumentsListView()
       }
       .tabItem {
-        Label("Documents", systemImage: "doc")
+        Label {
+          Text("Documents")
+        } icon: {
+          Image(systemName: "doc")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Documents")
 
@@ -75,7 +117,13 @@ struct MainTabView: View {
         OffersListView()
       }
       .tabItem {
-        Label("Offers", systemImage: "gift")
+        Label {
+          Text("Offers")
+        } icon: {
+          Image(systemName: "gift")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Offers")
 
@@ -83,7 +131,13 @@ struct MainTabView: View {
         PerformanceDashboardView()
       }
       .tabItem {
-        Label("Performance", systemImage: "chart.xyaxis.line")
+        Label {
+          Text("Performance")
+        } icon: {
+          Image(systemName: "chart.xyaxis.line")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Performance")
 
@@ -91,7 +145,13 @@ struct MainTabView: View {
         AnalyticsDashboardView()
       }
       .tabItem {
-        Label("Analytics", systemImage: "chart.pie")
+        Label {
+          Text("Analytics")
+        } icon: {
+          Image(systemName: "chart.pie")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Analytics")
 
@@ -100,7 +160,13 @@ struct MainTabView: View {
           .activityNavigation()
       }
       .tabItem {
-        Label("Activity", systemImage: "list.bullet.rectangle")
+        Label {
+          Text("Activity")
+        } icon: {
+          Image(systemName: "list.bullet.rectangle")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Activity History")
 
@@ -108,7 +174,13 @@ struct MainTabView: View {
         NotificationsListView(viewModel: notificationsViewModel)
       }
       .tabItem {
-        Label("Notifications", systemImage: "bell")
+        Label {
+          Text("Notifications")
+        } icon: {
+          Image(systemName: "bell")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .badge(notificationsViewModel.unreadCount > 0 ? notificationsViewModel.unreadCount : 0)
       .accessibilityLabel("Notifications")
@@ -117,7 +189,13 @@ struct MainTabView: View {
         FamilyManagementView()
       }
       .tabItem {
-        Label("Family", systemImage: "person.3")
+        Label {
+          Text("Family")
+        } icon: {
+          Image(systemName: "person.3")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Family")
 
@@ -125,7 +203,13 @@ struct MainTabView: View {
         SettingsView()
       }
       .tabItem {
-        Label("Settings", systemImage: "gearshape")
+        Label {
+          Text("Settings")
+        } icon: {
+          Image(systemName: "gearshape")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Settings")
     }
