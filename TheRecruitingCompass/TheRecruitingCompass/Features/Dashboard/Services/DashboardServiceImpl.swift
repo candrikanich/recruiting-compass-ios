@@ -160,20 +160,22 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
   @available(*, deprecated, message: "Use ActivityFeedService instead")
   func fetchSuggestions(location: String) async throws -> [Suggestion] {
     do {
-      return try await fetch("suggestions") {
-        try await supabaseManager.client
-          .from("suggestions")
-          .select()
-          .eq("location", value: location)
-          .execute()
-          .value
-      }
+      logger.debug("Fetching suggestions")
+      let result: [Suggestion] = try await supabaseManager.client
+        .from("suggestions")
+        .select()
+        .eq("location", value: location)
+        .execute()
+        .value
+      logger.info("Fetched \(result.count) suggestions")
+      return result
     } catch {
       let msg = error.localizedDescription.lowercased()
       if msg.contains("could not find the table") && msg.contains("schema") {
         logger.debug("Suggestions table not found, returning empty list")
         return []
       }
+      logger.error("Failed to fetch suggestions: \(error.localizedDescription)")
       throw error
     }
   }
