@@ -83,6 +83,11 @@ struct SchoolsListView: View {
   private var schoolListContent: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
+        if !viewModel.allSchools.isEmpty {
+          SchoolAnalyticsCards(analytics: viewModel.analytics)
+            .padding(.bottom, 8)
+        }
+
         SchoolFilterBar(
           filters: $viewModel.filters,
           availableStates: viewModel.availableStates,

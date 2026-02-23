@@ -97,6 +97,19 @@ final class SchoolsListViewModel {
     allSchools.count >= 30
   }
 
+  /// Summary stats for the full school list (unfiltered), matching web app behavior.
+  var analytics: SchoolAnalytics {
+    SchoolAnalytics(
+      totalCount: allSchools.count,
+      favoritesCount: allSchools.filter(\.isFavorite).count,
+      tierACount: allSchools.filter { $0.priorityTier == "A" }.count,
+      visitedCount: allSchools.filter { school in
+        school.status == SchoolStatus.officialVisitScheduled.rawValue
+          || school.status == SchoolStatus.officialVisitInvited.rawValue
+      }.count
+    )
+  }
+
   init(
     schoolsService: (any SchoolsManaging)? = nil,
     familyManager: FamilyManager? = nil,
