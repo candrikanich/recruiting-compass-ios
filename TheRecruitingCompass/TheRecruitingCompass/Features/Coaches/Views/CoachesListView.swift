@@ -158,6 +158,8 @@ struct CoachesListView: View {
         CoachCardView(
           coach: coach,
           schoolName: viewModel.schoolName(for: coach.schoolId),
+          schoolLogoUrl: viewModel.schoolLogoUrl(for: coach.schoolId),
+          schoolInitials: viewModel.schoolInitials(for: coach.schoolId),
           onDelete: { viewModel.confirmDelete(coach) }
         )
         .padding(.horizontal, 16)

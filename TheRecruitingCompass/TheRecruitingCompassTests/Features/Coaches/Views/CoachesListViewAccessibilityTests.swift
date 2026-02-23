@@ -43,6 +43,8 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -56,6 +58,8 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -68,6 +72,8 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -80,6 +86,8 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     _ = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -92,6 +100,8 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -104,6 +114,8 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -119,6 +131,8 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -131,6 +145,8 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -143,6 +159,8 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
     .environment(\.sizeCategory, .accessibilityExtraExtraLarge)
@@ -412,6 +430,8 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -469,6 +489,8 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
       let cardView = CoachCardView(
         coach: coach,
         schoolName: "State University",
+        schoolLogoUrl: nil,
+        schoolInitials: "SU",
         onDelete: {}
       )
       .environment(\.sizeCategory, size)

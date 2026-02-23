@@ -45,6 +45,8 @@ final class CoachCardViewTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -62,6 +64,8 @@ final class CoachCardViewTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -80,6 +84,8 @@ final class CoachCardViewTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -219,6 +225,8 @@ final class CoachCardViewTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: { deleteCallCount += 1 }
     )
 
@@ -243,6 +251,8 @@ final class CoachCardViewTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -260,6 +270,8 @@ final class CoachCardViewTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -274,6 +286,8 @@ final class CoachCardViewTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
     .environment(\.sizeCategory, .accessibilityExtraExtraLarge)
@@ -286,6 +300,8 @@ final class CoachCardViewTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
     .environment(\.sizeCategory, .medium)
@@ -299,6 +315,8 @@ final class CoachCardViewTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
       onDelete: {}
     )
 
@@ -360,6 +378,8 @@ final class CoachCardViewTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "University of Testing",
+      schoolLogoUrl: nil,
+      schoolInitials: "UT",
       onDelete: {}
     )
 
@@ -371,6 +391,8 @@ final class CoachCardViewTests: XCTestCase {
     let view = CoachCardView(
       coach: coach,
       schoolName: "The University of Very Long Names and Extended Titles for Testing Purposes",
+      schoolLogoUrl: nil,
+      schoolInitials: "UV",
       onDelete: {}
     )
 

@@ -162,6 +162,17 @@ final class CoachesListViewModel {
     EntityNameLookup.schoolName(for: schoolId, in: schoolNameMap)
   }
 
+  func schoolLogoUrl(for schoolId: String) -> String? {
+    allSchools.first(where: { $0.id == schoolId })?.faviconUrl
+  }
+
+  func schoolInitials(for schoolId: String) -> String {
+    guard let school = allSchools.first(where: { $0.id == schoolId }) else {
+      return "??"
+    }
+    return school.initials
+  }
+
   // MARK: - Private
 
   private func sorted(_ coaches: [Coach]) -> [Coach] {
