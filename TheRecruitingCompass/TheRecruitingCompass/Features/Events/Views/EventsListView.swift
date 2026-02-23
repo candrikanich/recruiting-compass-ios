@@ -104,6 +104,14 @@ struct EventsListView: View {
   private var eventsContent: some View {
     ScrollViewReader { proxy in
       List {
+        if !viewModel.events.isEmpty {
+          Section {
+            EventAnalyticsCards(analytics: viewModel.analytics)
+          }
+          .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+          .listRowBackground(Color.clear)
+        }
+
         calendarSection
         filterBar
         sortResultsBar

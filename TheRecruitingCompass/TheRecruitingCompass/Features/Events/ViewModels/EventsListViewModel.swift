@@ -100,6 +100,17 @@ final class EventsListViewModel {
     !searchText.isEmpty || typeFilter != nil || statusFilter != .all || dateRangeFilter != .all
   }
 
+  /// Summary stats for the full event list (unfiltered), matching web app behavior.
+  var analytics: EventAnalytics {
+    let today = isoToday()
+    return EventAnalytics(
+      totalCount: events.count,
+      upcomingCount: events.filter { $0.startDate >= today }.count,
+      registeredCount: events.filter { $0.registered && !$0.attended }.count,
+      attendedCount: events.filter(\.attended).count
+    )
+  }
+
   var currentMonthTitle: String {
     let formatter = DateFormatter()
     formatter.dateFormat = "MMMM yyyy"
