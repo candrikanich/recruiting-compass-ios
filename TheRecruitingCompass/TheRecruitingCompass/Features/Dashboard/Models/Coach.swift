@@ -83,6 +83,7 @@ struct Coach: Codable, Identifiable, Sendable {
     case email
     case phone
     case position
+    case role
     case schoolId = "school_id"
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
@@ -101,7 +102,9 @@ struct Coach: Codable, Identifiable, Sendable {
     lastName = try container.decode(String.self, forKey: .lastName)
     email = try container.decodeIfPresent(String.self, forKey: .email)
     phone = try container.decodeIfPresent(String.self, forKey: .phone)
+    // Database may return "role" (from CoachCreateRequest) or "position" (from CoachUpdateRequest)
     position = try container.decodeIfPresent(String.self, forKey: .position)
+      ?? container.decodeIfPresent(String.self, forKey: .role)
     schoolId = try container.decode(String.self, forKey: .schoolId)
     twitterHandle = try container.decodeIfPresent(String.self, forKey: .twitterHandle)
     instagramHandle = try container.decodeIfPresent(String.self, forKey: .instagramHandle)
@@ -111,6 +114,26 @@ struct Coach: Codable, Identifiable, Sendable {
     lastContactDate = try container.decodeIfPresent(String.self, forKey: .lastContactDate)
     createdAt = try container.decode(String.self, forKey: .createdAt)
     updatedAt = try container.decode(String.self, forKey: .updatedAt)
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(id, forKey: .id)
+    try container.encode(firstName, forKey: .firstName)
+    try container.encode(lastName, forKey: .lastName)
+    try container.encodeIfPresent(email, forKey: .email)
+    try container.encodeIfPresent(phone, forKey: .phone)
+    try container.encodeIfPresent(position, forKey: .position)
+    try container.encode(schoolId, forKey: .schoolId)
+    try container.encodeIfPresent(twitterHandle, forKey: .twitterHandle)
+    try container.encodeIfPresent(instagramHandle, forKey: .instagramHandle)
+    try container.encodeIfPresent(notes, forKey: .notes)
+    try container.encodeIfPresent(privateNotes, forKey: .privateNotes)
+    try container.encode(responsivenessScore, forKey: .responsivenessScore)
+    try container.encodeIfPresent(lastContactDate, forKey: .lastContactDate)
+    try container.encode(createdAt, forKey: .createdAt)
+    try container.encode(updatedAt, forKey: .updatedAt)
+    // role is decoding-only (database may return role or position)
   }
 
   private static func decodePrivateNotes(from container: KeyedDecodingContainer<CodingKeys>) -> [String: String]? {
