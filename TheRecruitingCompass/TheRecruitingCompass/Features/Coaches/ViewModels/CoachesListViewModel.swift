@@ -73,6 +73,25 @@ final class CoachesListViewModel {
     filteredCoaches.count
   }
 
+  /// Summary stats for the full coach list (unfiltered), matching web app behavior.
+  var analytics: CoachAnalytics {
+    let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+    let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+
+    return CoachAnalytics(
+      totalCount: allCoaches.count,
+      headCoachCount: allCoaches.filter { $0.role == .head }.count,
+      recentContactsCount: allCoaches.filter { coach in
+        guard let date = coach.lastContactDateParsed else { return false }
+        return date >= sevenDaysAgo
+      }.count,
+      needFollowUpCount: allCoaches.filter { coach in
+        guard let date = coach.lastContactDateParsed else { return true }
+        return date < thirtyDaysAgo
+      }.count
+    )
+  }
+
   init(
     coachesService: (any CoachesManaging)? = nil,
     familyManager: FamilyManager? = nil,

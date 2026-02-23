@@ -54,6 +54,7 @@ struct AnalyticsCard: View {
   let icon: String
   let backgroundColor: Color
   let iconColor: Color
+  var accessibilityLabelOverride: String?
 
   @Environment(\.sizeCategory) private var sizeCategory
 
@@ -95,6 +96,9 @@ struct AnalyticsCard: View {
   }
 
   private var accessibilityLabel: String {
+    if let override = accessibilityLabelOverride {
+      return override
+    }
     let interactionWord = value == 1 ? "interaction" : "interactions"
 
     switch title {

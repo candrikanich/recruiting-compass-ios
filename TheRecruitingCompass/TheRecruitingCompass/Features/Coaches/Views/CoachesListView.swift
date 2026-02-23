@@ -116,6 +116,11 @@ struct CoachesListView: View {
   private var coachListContent: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
+        if !viewModel.allCoaches.isEmpty {
+          CoachAnalyticsCards(analytics: viewModel.analytics)
+            .padding(.bottom, 8)
+        }
+
         filterSection
 
         if viewModel.filters.hasActiveFilters {
