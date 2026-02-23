@@ -2,6 +2,8 @@ import SwiftUI
 import Combine
 
 struct LoginView: View {
+  private enum ScrollAnchor { case signInButton }
+
   @State private var viewModel: LoginViewModel
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
@@ -18,22 +20,31 @@ struct LoginView: View {
       VStack(spacing: 0) {
         backButton
 
-        ScrollView {
-          VStack(spacing: 20) {
-            compassIcon
-            bannerSection
-            emailField
-            passwordField
-            rememberMeRow
-            signInButton
-            VStack(spacing: 0) {
-              dividerSection
-              signUpSection
+        ScrollViewReader { proxy in
+          ScrollView {
+            VStack(spacing: 20) {
+              compassIcon
+              bannerSection
+              emailField
+              passwordField
+              rememberMeRow
+              signInButton
+                .id(LoginView.ScrollAnchor.signInButton)
+              VStack(spacing: 0) {
+                dividerSection
+                signUpSection
+              }
+            }
+            .padding(.horizontal, 32)
+            .padding(.top, 16)
+            .padding(.bottom, 32)
+          }
+          .scrollDismissesKeyboard(.interactively)
+          .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            withAnimation(.easeOut(duration: 0.25)) {
+              proxy.scrollTo(LoginView.ScrollAnchor.signInButton, anchor: .bottom)
             }
           }
-          .padding(.horizontal, 32)
-          .padding(.top, 16)
-          .padding(.bottom, 32)
         }
         .background(Color.white.opacity(0.95))
         .cornerRadius(16)

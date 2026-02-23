@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "988EFDA92F35489B009C60F5"
-               BuildableName = "TheRecruitingCompass.app"
+               BuildableName = "myCompass.app"
                BlueprintName = "TheRecruitingCompass"
                ReferencedContainer = "container:TheRecruitingCompass.xcodeproj">
             </BuildableReference>
@@ -69,7 +69,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "988EFDA92F35489B009C60F5"
-            BuildableName = "TheRecruitingCompass.app"
+            BuildableName = "myCompass.app"
             BlueprintName = "TheRecruitingCompass"
             ReferencedContainer = "container:TheRecruitingCompass.xcodeproj">
          </BuildableReference>
@@ -98,7 +98,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "988EFDA92F35489B009C60F5"
-            BuildableName = "TheRecruitingCompass.app"
+            BuildableName = "myCompass.app"
             BlueprintName = "TheRecruitingCompass"
             ReferencedContainer = "container:TheRecruitingCompass.xcodeproj">
          </BuildableReference>
