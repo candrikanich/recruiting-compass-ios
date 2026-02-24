@@ -25,11 +25,6 @@ struct DocumentsListView: View {
       await viewModel.loadSchools()
     }
     .toolbar {
-      ToolbarItem(placement: .principal) {
-        Text("\(viewModel.sortedDocuments.count) of \(viewModel.documents.count) total")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
       ToolbarItem(placement: .navigationBarTrailing) {
         Button {
           viewModel.presentUploadForm()

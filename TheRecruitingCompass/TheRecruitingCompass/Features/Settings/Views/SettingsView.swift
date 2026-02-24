@@ -147,7 +147,7 @@ struct SettingsView: View {
         }
       }
       .navigationTitle("Settings")
-      .navigationBarTitleDisplayMode(.large)
+      .navigationBarTitleDisplayMode(.inline)
       .sheet(item: $presentedLegal) { doc in
         doc.view
       }

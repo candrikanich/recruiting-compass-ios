@@ -4,6 +4,7 @@
 //
 //  Custom "More" menu to avoid iOS TabView overflow double nav bar.
 //  Path-based NavigationStack to avoid nested stack issues with Events.
+//  Styled like Settings with section headers and icon rows.
 //
 
 import SwiftUI
@@ -23,7 +24,6 @@ struct MoreMenuView: View {
     case analytics
     case activity
     case notifications
-    case family
     case settings
 
     var id: String { rawValue }
@@ -38,8 +38,21 @@ struct MoreMenuView: View {
       case .analytics: return "Analytics"
       case .activity: return "Activity History"
       case .notifications: return "Notifications"
-      case .family: return "Family"
       case .settings: return "Settings"
+      }
+    }
+
+    var description: String {
+      switch self {
+      case .timeline: return "Phases, milestones, and recruiting roadmap"
+      case .events: return "Camps, visits, and key dates"
+      case .documents: return "Transcripts, videos, and files"
+      case .offers: return "Scholarship and offer tracking"
+      case .performance: return "Stats, metrics, and progress"
+      case .analytics: return "Charts and recruiting insights"
+      case .activity: return "History of your recruiting activity"
+      case .notifications: return "Alerts and follow-up reminders"
+      case .settings: return "Preferences and account settings"
       }
     }
 
@@ -53,9 +66,30 @@ struct MoreMenuView: View {
       case .analytics: return "chart.pie"
       case .activity: return "list.bullet.rectangle"
       case .notifications: return "bell"
-      case .family: return "person.3"
       case .settings: return "gearshape"
       }
+    }
+
+    var color: Color {
+      switch self {
+      case .timeline: return .blue
+      case .events: return .purple
+      case .documents: return .blue
+      case .offers: return .green
+      case .performance: return .orange
+      case .analytics: return .purple
+      case .activity: return .accentBlue
+      case .notifications: return .orange
+      case .settings: return Color.iconGray
+      }
+    }
+
+    /// Sections grouped for list display (header title → items).
+    static var recruitingSections: [(header: String, items: [Section])] {
+      [
+        ("Recruiting", [.timeline, .events, .documents, .offers, .performance, .analytics, .activity]),
+        ("Account", [.notifications, .settings])
+      ]
     }
   }
 
@@ -64,35 +98,28 @@ struct MoreMenuView: View {
 
   var body: some View {
     NavigationStack(path: $path) {
-      List {
-        ForEach(Section.allCases) { section in
-          NavigationLink(value: MorePath.section(section)) {
-            Label {
-            Text(section.title)
-            if section == .notifications, notificationsViewModel.unreadCount > 0 {
-              Spacer()
-              Text("\(notificationsViewModel.unreadCount)")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundStyle(.white)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.red)
-                .clipShape(Capsule())
-            }
-            } icon: {
-              Image(systemName: section.icon)
-                .fontWeight(.thin)
-            }
-          }
-          .accessibilityLabel(section.title)
-          .accessibilityHint("Opens \(section.title)")
+      moreMenuList
+        .navigationTitle("More")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(for: MorePath.self) { morePath in
+          destinationView(for: morePath)
         }
-      }
-      .navigationTitle("More")
-      .navigationBarTitleDisplayMode(.inline)
-      .navigationDestination(for: MorePath.self) { morePath in
-        destinationView(for: morePath)
+    }
+  }
+
+  private var moreMenuList: some View {
+    List {
+      ForEach(MoreMenuView.Section.recruitingSections, id: \.header) { group in
+        SwiftUI.Section {
+          ForEach(group.items) { section in
+            MoreMenuSectionRow(
+              section: section,
+              unreadCount: notificationsViewModel.unreadCount
+            )
+          }
+        } header: {
+          Text(group.header)
+        }
       }
     }
   }
@@ -127,11 +154,76 @@ struct MoreMenuView: View {
         .activityNavigation()
     case .notifications:
       NotificationsListView(viewModel: notificationsViewModel)
-    case .family:
-      FamilyManagementView()
     case .settings:
       SettingsView()
     }
+  }
+}
+
+// MARK: - More Menu Section Row (breaks up type-checker complexity)
+private struct MoreMenuSectionRow: View {
+  let section: MoreMenuView.Section
+  let unreadCount: Int
+
+  var body: some View {
+    NavigationLink(value: MorePath.section(section)) {
+      MoreMenuRow(
+        icon: section.icon,
+        title: section.title,
+        description: section.description,
+        color: section.color,
+        badgeCount: section == .notifications && unreadCount > 0 ? unreadCount : nil
+      )
+    }
+    .accessibilityLabel(section.title)
+    .accessibilityHint("Opens \(section.title)")
+  }
+}
+
+// MARK: - More Menu Row (matches Settings row style)
+private struct MoreMenuRow: View {
+  let icon: String
+  let title: String
+  let description: String
+  let color: Color
+  var badgeCount: Int?
+
+  var body: some View {
+    HStack(spacing: 12) {
+      Image(systemName: icon)
+        .font(.title3)
+        .foregroundColor(.white)
+        .frame(width: 36, height: 36)
+        .background(color)
+        .cornerRadius(8)
+        .accessibilityHidden(true)
+
+      VStack(alignment: .leading, spacing: 4) {
+        HStack {
+          Text(title)
+            .font(.body)
+            .fontWeight(.medium)
+            .foregroundColor(.primary)
+          if let count = badgeCount {
+            Text("\(count)")
+              .font(.caption)
+              .fontWeight(.semibold)
+              .foregroundStyle(.white)
+              .padding(.horizontal, 8)
+              .padding(.vertical, 4)
+              .background(Color.red)
+              .clipShape(Capsule())
+          }
+        }
+        Text(description)
+          .font(.caption)
+          .foregroundColor(.secondary)
+          .lineLimit(2)
+      }
+    }
+    .padding(.vertical, 4)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(badgeCount.map { "\(title), \($0) unread" } ?? "\(title): \(description)")
   }
 }
 
