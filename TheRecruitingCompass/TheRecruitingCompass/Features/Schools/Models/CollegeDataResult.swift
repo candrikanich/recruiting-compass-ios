@@ -31,6 +31,96 @@ struct CollegeDataResult: Codable, Sendable {
     case latitude = "location.lat"
     case longitude = "location.lon"
   }
+
+  /// Memberwise initializer for previews and tests (Swift no longer auto-synthesizes this when custom Decodable exists).
+  init(
+    id: String,
+    name: String,
+    website: String? = nil,
+    address: String? = nil,
+    city: String? = nil,
+    state: String? = nil,
+    studentSize: Int? = nil,
+    carnegieSize: String? = nil,
+    admissionRate: Double? = nil,
+    tuitionInState: Double? = nil,
+    tuitionOutOfState: Double? = nil,
+    latitude: Double? = nil,
+    longitude: Double? = nil
+  ) {
+    self.id = id
+    self.name = name
+    self.website = website
+    self.address = address
+    self.city = city
+    self.state = state
+    self.studentSize = studentSize
+    self.carnegieSize = carnegieSize
+    self.admissionRate = admissionRate
+    self.tuitionInState = tuitionInState
+    self.tuitionOutOfState = tuitionOutOfState
+    self.latitude = latitude
+    self.longitude = longitude
+  }
+
+  init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    // API returns id as integer (IPEDS unit ID); decode as Int or String and normalize to String
+    if let intId = try? c.decode(Int.self, forKey: .id) {
+      id = String(intId)
+    } else if let stringId = try? c.decode(String.self, forKey: .id) {
+      id = stringId
+    } else {
+      throw DecodingError.typeMismatch(
+        String.self,
+        DecodingError.Context(
+          codingPath: [CodingKeys.id],
+          debugDescription: "Expected id as Int or String"
+        )
+      )
+    }
+    name = try c.decode(String.self, forKey: .name)
+    website = try c.decodeIfPresent(String.self, forKey: .website)
+    address = try c.decodeIfPresent(String.self, forKey: .address)
+    city = try c.decodeIfPresent(String.self, forKey: .city)
+    state = try c.decodeIfPresent(String.self, forKey: .state)
+    studentSize = try c.decodeIfPresent(Int.self, forKey: .studentSize)
+    // API returns school.carnegie_size_setting as integer code (e.g. 14); accept Int or String
+    if let intSize = try? c.decodeIfPresent(Int.self, forKey: .carnegieSize) {
+      carnegieSize = String(intSize)
+    } else {
+      carnegieSize = try c.decodeIfPresent(String.self, forKey: .carnegieSize)
+    }
+    admissionRate = try c.decodeIfPresent(Double.self, forKey: .admissionRate)
+    // API may return tuition as Int (e.g. 37938) or Double
+    tuitionInState = try Self.decodeDoubleOrInt(c, forKey: .tuitionInState)
+    tuitionOutOfState = try Self.decodeDoubleOrInt(c, forKey: .tuitionOutOfState)
+    latitude = try c.decodeIfPresent(Double.self, forKey: .latitude)
+    longitude = try c.decodeIfPresent(Double.self, forKey: .longitude)
+  }
+
+  private static func decodeDoubleOrInt(_ c: KeyedDecodingContainer<CollegeDataResult.CodingKeys>, forKey key: CodingKeys) throws -> Double? {
+    if let d = try? c.decodeIfPresent(Double.self, forKey: key) { return d }
+    if let i = try? c.decodeIfPresent(Int.self, forKey: key) { return Double(i) }
+    return nil
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encode(id, forKey: .id)
+    try c.encode(name, forKey: .name)
+    try c.encodeIfPresent(website, forKey: .website)
+    try c.encodeIfPresent(address, forKey: .address)
+    try c.encodeIfPresent(city, forKey: .city)
+    try c.encodeIfPresent(state, forKey: .state)
+    try c.encodeIfPresent(studentSize, forKey: .studentSize)
+    try c.encodeIfPresent(carnegieSize, forKey: .carnegieSize)
+    try c.encodeIfPresent(admissionRate, forKey: .admissionRate)
+    try c.encodeIfPresent(tuitionInState, forKey: .tuitionInState)
+    try c.encodeIfPresent(tuitionOutOfState, forKey: .tuitionOutOfState)
+    try c.encodeIfPresent(latitude, forKey: .latitude)
+    try c.encodeIfPresent(longitude, forKey: .longitude)
+  }
 }
 
 /// Errors that can occur during College Scorecard API lookup

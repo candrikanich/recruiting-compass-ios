@@ -354,53 +354,27 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
   func mergeCollegeData(id: String, data: CollegeDataResult) async throws -> School {
     logger.debug("Merging college data for school: \(id)")
 
-    // Build academic_info update from college data
-    var academicInfo: [String: Any] = [:]
-
-    if let city = data.city {
-      academicInfo["city"] = city
-    }
-    if let state = data.state {
-      academicInfo["state"] = state
-    }
-    if let address = data.address {
-      academicInfo["address"] = address
-    }
-    if let lat = data.latitude {
-      academicInfo["latitude"] = lat
-    }
-    if let lon = data.longitude {
-      academicInfo["longitude"] = lon
-    }
-    if let studentSize = data.studentSize {
-      academicInfo["student_size"] = studentSize
-    }
-    if let carnegieSize = data.carnegieSize {
-      academicInfo["carnegie_size"] = carnegieSize
-    }
-    if let undergradSize = data.studentSize {
-      // Convert Int to String for undergrad_size field
-      academicInfo["undergrad_size"] = String(undergradSize)
-    }
-    if let tuitionIn = data.tuitionInState {
-      academicInfo["tuition_in_state"] = tuitionIn
-    }
-    if let tuitionOut = data.tuitionOutOfState {
-      academicInfo["tuition_out_of_state"] = tuitionOut
-    }
-    if let admissionRate = data.admissionRate {
-      academicInfo["admission_rate"] = admissionRate
-    }
-
-    // Convert to JSON string for Supabase
-    guard let jsonData = try? JSONSerialization.data(withJSONObject: academicInfo),
-          let jsonString = String(data: jsonData, encoding: .utf8) else {
-      throw SchoolError.invalidData
-    }
+    // Send academic_info as a JSON object (not a string) so the DB stores JSONB and returns
+    // an object; otherwise decoding School.academicInfo fails ("isn't in the correct format").
+    let payload = CollegeDataMergePayload(
+      academic_info: AcademicInfoMergePayload(
+        city: data.city,
+        state: data.state,
+        address: data.address,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        student_size: data.studentSize,
+        carnegie_size: data.carnegieSize,
+        undergrad_size: data.studentSize.map { String($0) },
+        tuition_in_state: data.tuitionInState,
+        tuition_out_of_state: data.tuitionOutOfState,
+        admission_rate: data.admissionRate
+      )
+    )
 
     let updated: School = try await supabaseManager.client
       .from("schools")
-      .update(["academic_info": jsonString])
+      .update(payload)
       .eq("id", value: id)
       .select()
       .single()
@@ -454,5 +428,47 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
 
     logger.info("Priority tier updated for school: \(id)")
     return updated
+  }
+}
+
+// MARK: - College Data Merge Payloads
+
+/// Encodable payload so academic_info is sent as a JSON object (not a string); required for JSONB and for decoding the updated School.
+private struct CollegeDataMergePayload: Encodable {
+  let academic_info: AcademicInfoMergePayload
+}
+
+private struct AcademicInfoMergePayload: Encodable {
+  let city: String?
+  let state: String?
+  let address: String?
+  let latitude: Double?
+  let longitude: Double?
+  let student_size: Int?
+  let carnegie_size: String?
+  let undergrad_size: String?
+  let tuition_in_state: Double?
+  let tuition_out_of_state: Double?
+  let admission_rate: Double?
+
+  func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encodeIfPresent(city, forKey: .city)
+    try c.encodeIfPresent(state, forKey: .state)
+    try c.encodeIfPresent(address, forKey: .address)
+    try c.encodeIfPresent(latitude, forKey: .latitude)
+    try c.encodeIfPresent(longitude, forKey: .longitude)
+    try c.encodeIfPresent(student_size, forKey: .student_size)
+    try c.encodeIfPresent(carnegie_size, forKey: .carnegie_size)
+    try c.encodeIfPresent(undergrad_size, forKey: .undergrad_size)
+    try c.encodeIfPresent(tuition_in_state, forKey: .tuition_in_state)
+    try c.encodeIfPresent(tuition_out_of_state, forKey: .tuition_out_of_state)
+    try c.encodeIfPresent(admission_rate, forKey: .admission_rate)
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case city, state, address, latitude, longitude
+    case student_size, carnegie_size, undergrad_size
+    case tuition_in_state, tuition_out_of_state, admission_rate
   }
 }
