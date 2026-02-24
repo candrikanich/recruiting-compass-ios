@@ -309,12 +309,13 @@ final class EventDetailScreenObject {
   // MARK: - Navigation Helpers
 
   func navigateToEventsTab() -> Bool {
-    let eventsTab = app.tabBars.buttons["Events"]
-    if eventsTab.waitForExistence(timeout: 5) {
-      eventsTab.tap()
-      return true
-    }
-    return false
+    let moreTab = app.tabBars.buttons["More"]
+    guard moreTab.waitForExistence(timeout: 5) else { return false }
+    moreTab.tap()
+    let eventsCell = app.cells.buttons["Events"]
+    guard eventsCell.waitForExistence(timeout: 5) else { return false }
+    eventsCell.tap()
+    return app.navigationBars["Events"].waitForExistence(timeout: 5)
   }
 
   func tapFirstEvent() -> Bool {

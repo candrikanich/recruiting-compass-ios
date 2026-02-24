@@ -34,6 +34,21 @@ struct SchoolDetailView: View {
     }
     .navigationTitle("School Details")
     .navigationBarTitleDisplayMode(.inline)
+    .toolbar(.hidden, for: .tabBar)
+    .toolbar {
+      if viewModel.school != nil {
+        ToolbarItem(placement: .primaryAction) {
+          Button {
+            Task { await viewModel.toggleFavorite() }
+          } label: {
+            Image(systemName: (viewModel.school?.isFavorite ?? false) ? "star.fill" : "star")
+              .foregroundStyle((viewModel.school?.isFavorite ?? false) ? .yellow : .gray)
+          }
+          .accessibilityLabel((viewModel.school?.isFavorite ?? false) ? "Unfavorite" : "Favorite")
+          .accessibilityIdentifier("favorite-button")
+        }
+      }
+    }
     .refreshable {
       await viewModel.loadSchool()
     }

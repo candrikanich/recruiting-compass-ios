@@ -45,15 +45,18 @@ struct CreateEventView: View {
       bottomBar
     }
     .navigationTitle("Add New Event")
-    .navigationBarTitleDisplayMode(.large)
+    .navigationBarTitleDisplayMode(.inline)
+    .navigationBarBackButtonHidden(true)
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
-        Button("Back") {
+        Button {
           if hasUnsavedChanges {
             showDiscardAlert = true
           } else {
             dismiss()
           }
+        } label: {
+          Label("Back", systemImage: "chevron.left")
         }
         .accessibilityLabel("Back to events list")
       }

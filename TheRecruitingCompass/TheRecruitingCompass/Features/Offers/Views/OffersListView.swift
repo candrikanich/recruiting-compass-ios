@@ -14,6 +14,7 @@ struct OffersListView: View {
       }
     }
     .navigationTitle("Offers")
+    .navigationBarTitleDisplayMode(.inline)
     .searchable(
       text: $viewModel.filters.schoolSearch,
       prompt: "Search by school..."

@@ -180,6 +180,14 @@ final class EventsListViewModel {
     do {
       events = try await eventsService.fetchEvents(userId: userId)
       logger.info("Loaded \(self.events.count) events")
+    } catch is CancellationError {
+      logger.debug("Load events cancelled (view disappeared)")
+    } catch let error as URLError where error.code == .cancelled {
+      logger.debug("Load events cancelled (request cancelled)")
+    } catch where (error as NSError).domain == NSURLErrorDomain && (error as NSError).code == NSURLErrorCancelled {
+      logger.debug("Load events cancelled (URL cancelled)")
+    } catch where error.localizedDescription.lowercased().contains("cancelled") {
+      logger.debug("Load events cancelled: \(error.localizedDescription)")
     } catch {
       logger.error("Failed to load events: \(error.localizedDescription)")
       self.error = "Failed to load events. Please try again."

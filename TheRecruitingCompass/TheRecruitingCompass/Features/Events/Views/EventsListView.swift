@@ -1,15 +1,12 @@
 import SwiftUI
 
 struct EventsListView: View {
-  private enum Destination: Hashable {
-    case createEvent
-    case createdEventDetail(eventId: String)
-  }
+  @Binding var path: [MorePath]
 
   @Environment(AuthManager.self) private var authManager
   @State private var viewModel = EventsListViewModel()
-  @State private var navigationDestination: Destination? = nil
   @State private var eventToDelete: FullEvent? = nil
+  @State private var showCreateEvent = false
 
   var body: some View {
     Group {
@@ -22,11 +19,12 @@ struct EventsListView: View {
       }
     }
     .navigationTitle("Events")
+    .navigationBarTitleDisplayMode(.inline)
     .searchable(text: $viewModel.searchText, prompt: "Search events...")
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button {
-          navigationDestination = .createEvent
+          showCreateEvent = true
         } label: {
           Image(systemName: "plus")
             .frame(minWidth: 44, minHeight: 44)
@@ -35,17 +33,6 @@ struct EventsListView: View {
         .accessibilityLabel("Add new event")
         .accessibilityHint("Opens form to create a new event")
       }
-    }
-    .navigationDestination(item: $navigationDestination) { destination in
-      switch destination {
-      case .createEvent:
-        createEventDestination
-      case .createdEventDetail(let eventId):
-        EventDetailView(eventId: eventId)
-      }
-    }
-    .navigationDestination(for: String.self) { eventId in
-      EventDetailView(eventId: eventId)
     }
     .task {
       await viewModel.loadEvents()
@@ -61,6 +48,9 @@ struct EventsListView: View {
       Button("OK", role: .cancel) { viewModel.error = nil }
     } message: { error in
       Text(error)
+    }
+    .sheet(isPresented: $showCreateEvent) {
+      createEventSheet
     }
     .confirmationDialog(
       "Delete \(eventToDelete?.name ?? "event")?",
@@ -83,15 +73,17 @@ struct EventsListView: View {
     }
   }
 
-  // MARK: - Create Event Destination
+  // MARK: - Create Event Sheet
 
-  private var createEventDestination: some View {
-    Group {
-      if let userId = authManager.user?.id {
-        CreateEventViewWrapper(
+  @ViewBuilder
+  private var createEventSheet: some View {
+    if let userId = authManager.user?.id {
+      NavigationStack {
+        CreateEventView(
+          eventsService: EventsServiceImpl(),
           userId: userId,
-          onEventCreated: { eventId in
-            navigationDestination = .createdEventDetail(eventId: eventId)
+          onEventCreated: { _ in
+            showCreateEvent = false
             Task { await viewModel.loadEvents() }
           }
         )
@@ -227,7 +219,7 @@ struct EventsListView: View {
   // MARK: - Event Row
 
   private func eventRow(_ event: FullEvent) -> some View {
-    NavigationLink(value: event.id) {
+    NavigationLink(value: MorePath.eventDetail(eventId: event.id)) {
       EventRowView(event: event)
     }
     .accessibilityLabel(rowAccessibilityLabel(event))
@@ -256,7 +248,7 @@ struct EventsListView: View {
       Text("Create your first event to track camps, showcases, visits, and games.")
     } actions: {
       Button("Add Event") {
-        navigationDestination = .createEvent
+        showCreateEvent = true
       }
       .buttonStyle(.borderedProminent)
     }
@@ -384,21 +376,5 @@ private struct EventRowView: View {
     if let city = event.city, !city.isEmpty { parts.append(city) }
     if let state = event.state, !state.isEmpty { parts.append(state) }
     return parts.isEmpty ? nil : parts.joined(separator: ", ")
-  }
-}
-
-// MARK: - CreateEventViewWrapper
-
-/// Wraps CreateEventView with an already-resolved userId
-private struct CreateEventViewWrapper: View {
-  let userId: String
-  let onEventCreated: (String) -> Void
-
-  var body: some View {
-    CreateEventView(
-      eventsService: EventsServiceImpl(),
-      userId: userId,
-      onEventCreated: onEventCreated
-    )
   }
 }

@@ -58,17 +58,6 @@ struct SchoolDetailHeader: View {
         }
 
         Spacer()
-
-        Button(action: onToggleFavorite) {
-          Image(systemName: school.isFavorite ? "star.fill" : "star")
-            .foregroundStyle(school.isFavorite ? .yellow : .gray)
-            .font(.title2)
-            .frame(minWidth: 44, minHeight: 44)
-            .contentShape(Rectangle())
-        }
-        .accessibilityIdentifier("favorite-button")
-        .accessibilityLabel(school.isFavorite ? "Unfavorite" : "Favorite")
-        .accessibilityHint(school.isFavorite ? "Remove from favorites" : "Add to favorites")
       }
 
       // Badges row

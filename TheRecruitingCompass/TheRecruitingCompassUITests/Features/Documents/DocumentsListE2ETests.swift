@@ -25,11 +25,16 @@ final class DocumentsListE2ETests: XCTestCase {
     guard app.waitForLogin(timeout: 10) else {
       throw XCTSkip("Login failed - Supabase may not be configured")
     }
-    let documentsTab = app.tabBars.buttons["Documents"]
-    guard documentsTab.waitForExistence(timeout: 5) else {
-      throw XCTSkip("Documents tab not found")
+    let moreTab = app.tabBars.buttons["More"]
+    guard moreTab.waitForExistence(timeout: 5) else {
+      throw XCTSkip("More tab not found")
     }
-    documentsTab.tap()
+    moreTab.tap()
+    let documentsCell = app.cells.buttons["Documents"]
+    guard documentsCell.waitForExistence(timeout: 5) else {
+      throw XCTSkip("Documents section not found in More menu")
+    }
+    documentsCell.tap()
   }
 
   /// Documents screen shows title and either content or empty state

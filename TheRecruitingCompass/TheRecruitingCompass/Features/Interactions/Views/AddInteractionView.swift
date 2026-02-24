@@ -17,39 +17,40 @@ struct AddInteractionView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      Form {
-        if viewModel.isLoading {
-          LoadingStateView(message: "Loading form data...")
-        } else {
-          formSections
-        }
+    Form {
+      if viewModel.isLoading {
+        LoadingStateView(message: "Loading form data...")
+      } else {
+        formSections
       }
-      .navigationTitle(viewModel.pageTitle)
-      .navigationBarTitleDisplayMode(.large)
-      .scrollDismissesKeyboard(.interactively)
-      .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
-          Button("Cancel") {
-            dismiss()
-          }
-          .disabled(viewModel.isSubmitting)
+    }
+    .navigationTitle(viewModel.pageTitle)
+    .navigationBarTitleDisplayMode(.inline)
+    .scrollDismissesKeyboard(.interactively)
+    .navigationBarBackButtonHidden(true)
+    .toolbar {
+      ToolbarItem(placement: .navigationBarLeading) {
+        Button("Cancel") {
+          dismiss()
         }
+        .disabled(viewModel.isSubmitting)
+        .accessibilityLabel("Cancel and return to school details")
       }
-      .alert("Error", isPresented: Binding(
-        get: { viewModel.errorMessage != nil },
-        set: { if !$0 { viewModel.errorMessage = nil } }
-      )) {
-        Button("OK") {
-          viewModel.errorMessage = nil
-        }
-      } message: {
-        if let error = viewModel.errorMessage {
-          Text(error)
-        }
+    }
+    .alert("Error", isPresented: Binding(
+      get: { viewModel.errorMessage != nil },
+      set: { if !$0 { viewModel.errorMessage = nil } }
+    )) {
+      Button("OK") {
+        viewModel.errorMessage = nil
       }
-      .sheet(isPresented: $viewModel.showAddCoachSheet) {
-        AddCoachSheet(
+    } message: {
+      if let error = viewModel.errorMessage {
+        Text(error)
+      }
+    }
+    .sheet(isPresented: $viewModel.showAddCoachSheet) {
+      AddCoachSheet(
           firstName: $viewModel.newCoachForm.firstName,
           lastName: $viewModel.newCoachForm.lastName,
           role: $viewModel.newCoachForm.role,
@@ -65,17 +66,16 @@ struct AddInteractionView: View {
           }
         )
       }
-      .sheet(isPresented: $viewModel.showOtherCoachSheet) {
-        OtherCoachSheet(
-          coachName: $viewModel.otherCoachName,
-          onContinue: {
-            viewModel.handleOtherCoach()
-          }
-        )
-      }
-      .task {
-        await viewModel.loadFormData()
-      }
+    .sheet(isPresented: $viewModel.showOtherCoachSheet) {
+      OtherCoachSheet(
+        coachName: $viewModel.otherCoachName,
+        onContinue: {
+          viewModel.handleOtherCoach()
+        }
+      )
+    }
+    .task {
+      await viewModel.loadFormData()
     }
   }
 

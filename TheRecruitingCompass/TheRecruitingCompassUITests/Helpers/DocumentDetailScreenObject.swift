@@ -88,10 +88,13 @@ final class DocumentDetailScreenObject {
   // MARK: - Navigation Helpers
 
   func navigateToDocumentsTab() -> Bool {
-    let tab = app.tabBars.buttons["Documents"]
-    guard tab.waitForExistence(timeout: 5) else { return false }
-    tab.tap()
-    return true
+    let moreTab = app.tabBars.buttons["More"]
+    guard moreTab.waitForExistence(timeout: 5) else { return false }
+    moreTab.tap()
+    let documentsCell = app.cells.buttons["Documents"]
+    guard documentsCell.waitForExistence(timeout: 5) else { return false }
+    documentsCell.tap()
+    return app.navigationBars["Documents"].waitForExistence(timeout: 5)
   }
 
   func tapFirstDocument() -> Bool {

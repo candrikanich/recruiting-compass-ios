@@ -4,6 +4,9 @@
 //
 //  Created by Claude Code on 2/12/26.
 //
+//  Uses 5 tabs to avoid iOS TabView "More" overflow double nav bar.
+//  Overflow sections (Events, Documents, etc.) live in custom MoreMenuView.
+//
 
 import SwiftUI
 
@@ -71,147 +74,21 @@ struct MainTabView: View {
       }
       .accessibilityLabel("Interactions")
 
-      NavigationStack {
-        RecruitingTimelineView()
-      }
+      MoreMenuView(notificationsViewModel: notificationsViewModel)
       .tabItem {
         Label {
-          Text("Timeline")
+          Text("More")
         } icon: {
-          Image(systemName: "clock")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
-      }
-      .accessibilityLabel("Recruiting Timeline")
-
-      NavigationStack {
-        EventsListView()
-      }
-      .tabItem {
-        Label {
-          Text("Events")
-        } icon: {
-          Image(systemName: "calendar")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
-      }
-      .accessibilityLabel("Events")
-
-      NavigationStack {
-        DocumentsListView()
-      }
-      .tabItem {
-        Label {
-          Text("Documents")
-        } icon: {
-          Image(systemName: "doc")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
-      }
-      .accessibilityLabel("Documents")
-
-      NavigationStack {
-        OffersListView()
-      }
-      .tabItem {
-        Label {
-          Text("Offers")
-        } icon: {
-          Image(systemName: "gift")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
-      }
-      .accessibilityLabel("Offers")
-
-      NavigationStack {
-        PerformanceDashboardView()
-      }
-      .tabItem {
-        Label {
-          Text("Performance")
-        } icon: {
-          Image(systemName: "chart.xyaxis.line")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
-      }
-      .accessibilityLabel("Performance")
-
-      NavigationStack {
-        AnalyticsDashboardView()
-      }
-      .tabItem {
-        Label {
-          Text("Analytics")
-        } icon: {
-          Image(systemName: "chart.pie")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
-      }
-      .accessibilityLabel("Analytics")
-
-      NavigationStack {
-        ActivityFeedView()
-          .activityNavigation()
-      }
-      .tabItem {
-        Label {
-          Text("Activity")
-        } icon: {
-          Image(systemName: "list.bullet.rectangle")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
-      }
-      .accessibilityLabel("Activity History")
-
-      NavigationStack {
-        NotificationsListView(viewModel: notificationsViewModel)
-      }
-      .tabItem {
-        Label {
-          Text("Notifications")
-        } icon: {
-          Image(systemName: "bell")
+          Image(systemName: "ellipsis.circle")
             .fontWeight(.thin)
         }
         .environment(\.symbolVariants, .none)
       }
       .badge(notificationsViewModel.unreadCount > 0 ? notificationsViewModel.unreadCount : 0)
-      .accessibilityLabel("Notifications")
-
-      NavigationStack {
-        FamilyManagementView()
-      }
-      .tabItem {
-        Label {
-          Text("Family")
-        } icon: {
-          Image(systemName: "person.3")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
-      }
-      .accessibilityLabel("Family")
-
-      NavigationStack {
-        SettingsView()
-      }
-      .tabItem {
-        Label {
-          Text("Settings")
-        } icon: {
-          Image(systemName: "gearshape")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
-      }
-      .accessibilityLabel("Settings")
+      .accessibilityLabel("More")
+    }
+    .task {
+      await notificationsViewModel.fetchNotifications()
     }
   }
 }

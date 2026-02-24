@@ -42,6 +42,7 @@ struct DocumentDetailView: View {
     .navigationTitle(documentTitle)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar { toolbarContent }
+    .toolbar(.hidden, for: .tabBar)
     .task {
       await viewModel.loadDocument()
       await viewModel.loadSchools()

@@ -1,11 +1,13 @@
 import SwiftUI
 
 struct DocumentsListView: View {
+  /// When false, content is used inside a parent NavigationStack (e.g. pushed from More menu).
+  var embedInNavigationStack: Bool = true
+
   @State private var viewModel = DocumentsListViewModel()
   @State private var documentToDelete: Document?
 
-  var body: some View {
-    NavigationStack {
+  private var content: some View {
     Group {
       if viewModel.isLoading && viewModel.documents.isEmpty {
         loadingState
@@ -14,6 +16,7 @@ struct DocumentsListView: View {
       }
     }
     .navigationTitle("Documents")
+    .navigationBarTitleDisplayMode(.inline)
     .refreshable {
       await viewModel.loadDocuments()
     }
@@ -83,6 +86,15 @@ struct DocumentsListView: View {
       DocumentDetailView(documentId: documentId)
     }
     .onOpenURL { _ in }  // Required for navigationDestination with String
+  }
+
+  var body: some View {
+    if embedInNavigationStack {
+      NavigationStack {
+        content
+      }
+    } else {
+      content
     }
   }
 

@@ -48,12 +48,15 @@ struct AddCoachView: View {
       }
     }
     .navigationTitle("Add Coach")
-      .navigationBarTitleDisplayMode(.large)
+      .navigationBarTitleDisplayMode(.inline)
+      .navigationBarBackButtonHidden(true)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
-          Button("Back") {
-            dismiss()
-          }
+        Button {
+          dismiss()
+        } label: {
+          Label("Back", systemImage: "chevron.left")
+        }
           .accessibilityLabel("Back to coaches list")
         }
       }

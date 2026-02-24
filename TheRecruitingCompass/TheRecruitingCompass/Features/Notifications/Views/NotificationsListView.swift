@@ -67,7 +67,7 @@ struct NotificationsListView: View {
         }
       }
       .navigationTitle("Notifications")
-      .navigationBarTitleDisplayMode(.large)
+      .navigationBarTitleDisplayMode(.inline)
       .navigationDestination(item: $viewModel.selectedDestination) { destination in
         destinationView(for: destination)
       }

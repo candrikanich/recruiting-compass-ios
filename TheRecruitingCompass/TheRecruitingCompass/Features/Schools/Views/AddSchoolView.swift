@@ -46,11 +46,14 @@ struct AddSchoolView: View {
       actionsSection
     }
     .navigationTitle("Add School")
-    .navigationBarTitleDisplayMode(.large)
+    .navigationBarTitleDisplayMode(.inline)
+    .navigationBarBackButtonHidden(true)
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
-        Button("Back") {
+        Button {
           dismiss()
+        } label: {
+          Label("Back", systemImage: "chevron.left")
         }
         .accessibilityLabel("Back to schools list")
       }

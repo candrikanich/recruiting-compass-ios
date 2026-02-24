@@ -135,8 +135,11 @@ final class CreateEventScreenObject {
     let dashboard = app.navigationBars["Dashboard"]
     _ = dashboard.waitForExistence(timeout: 10)
 
-    if app.tabBars.buttons["Events"].exists {
-      app.tabBars.buttons["Events"].tap()
+    if app.tabBars.buttons["More"].exists {
+      app.tabBars.buttons["More"].tap()
+      if app.cells.buttons["Events"].waitForExistence(timeout: 3) {
+        app.cells.buttons["Events"].tap()
+      }
     }
 
     let eventsList = app.navigationBars["Events"]

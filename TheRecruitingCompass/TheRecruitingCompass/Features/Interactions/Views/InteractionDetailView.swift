@@ -35,6 +35,7 @@ struct InteractionDetailView: View {
     }
     .navigationTitle("Interaction")
     .navigationBarTitleDisplayMode(.inline)
+    .toolbar(.hidden, for: .tabBar)
     .toolbar {
       if viewModel.canExport || viewModel.canDelete {
         ToolbarItem(placement: .primaryAction) {

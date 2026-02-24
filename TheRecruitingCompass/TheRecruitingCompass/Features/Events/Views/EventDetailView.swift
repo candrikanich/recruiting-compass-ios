@@ -39,11 +39,14 @@ struct EventDetailView: View {
         errorState(message: errorMessage)
       } else if let event = viewModel.event {
         eventContent(event)
+      } else {
+        loadingOrEmptyState
       }
     }
     .navigationTitle(viewModel.event?.name ?? "Event")
-    .navigationBarTitleDisplayMode(.large)
+    .navigationBarTitleDisplayMode(.inline)
     .toolbar { toolbarMenu }
+    .toolbar(.hidden, for: .tabBar)
     .task { await viewModel.loadAll() }
     .sheet(isPresented: $viewModel.showEditSheet) {
       EditEventSheet(
@@ -93,6 +96,17 @@ struct EventDetailView: View {
         EventMetricsShareSheet(activityItems: [url])
       }
     }
+  }
+
+  /// Shown when event is nil but not loading/error/notFound (e.g. after task cancellation).
+  private var loadingOrEmptyState: some View {
+    VStack(spacing: Layout.errorSpacing) {
+      ProgressView("Loading event...")
+        .accessibilityLabel("Loading event details")
+      Button("Retry") { Task { await viewModel.loadAll() } }
+        .buttonStyle(.bordered)
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
   // MARK: - Not Found

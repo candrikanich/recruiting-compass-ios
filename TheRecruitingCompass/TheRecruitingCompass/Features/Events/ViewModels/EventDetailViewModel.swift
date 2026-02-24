@@ -162,6 +162,12 @@ final class EventDetailViewModel {
       logger.info("Loaded event: \(self.eventId)")
 
       await loadRelatedData()
+    } catch is CancellationError {
+      logger.debug("Load event cancelled")
+    } catch let error as URLError where error.code == .cancelled {
+      logger.debug("Load event cancelled (request cancelled)")
+    } catch where error.localizedDescription.lowercased().contains("cancelled") {
+      logger.debug("Load event cancelled: \(error.localizedDescription)")
     } catch {
       logger.error("Failed to load event: \(error.localizedDescription)")
       if Self.isEventNotFound(error) {
