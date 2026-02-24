@@ -15,6 +15,7 @@ struct SuggestionsListView: View {
         ForEach(viewModel.suggestions) { suggestion in
           ActionItemCard(
             suggestion: suggestion,
+            canDismissOrComplete: !viewModel.isParentPreviewMode,
             onDismiss: {
               Task {
                 await viewModel.dismissSuggestion(suggestion.id)

@@ -11,6 +11,8 @@ final class DashboardViewModel {
   var stats: DashboardStats?
   var quickTasks: [QuickTask] = []
   var suggestions: [Suggestion] = []
+  /// Additional suggestions queued beyond the 3 returned (for "Show N more").
+  var suggestionsPendingCount: Int = 0
   var events: [FullEvent] = []
   var metrics: [PerformanceMetric] = []
   var interactionTrends: [InteractionTrend] = []
@@ -245,26 +247,37 @@ final class DashboardViewModel {
   }
 
   func fetchSuggestions() async {
+    let token = authManager.session?.accessToken
     do {
-      suggestions = try await dashboardService.fetchSuggestions(location: "dashboard")
+      let result = try await dashboardService.fetchSuggestions(location: "dashboard", accessToken: token)
+      suggestions = result.suggestions
+      suggestionsPendingCount = result.pendingCount
     } catch {
       logger.warning("Failed to load suggestions: \(error.localizedDescription)")
     }
   }
 
   func dismissSuggestion(_ id: String) async {
+    guard !isParentPreviewMode else { return }
+    let token = authManager.session?.accessToken
     do {
-      try await dashboardService.dismissSuggestion(id: id)
+      try await dashboardService.dismissSuggestion(id: id, accessToken: token)
       suggestions.removeAll { $0.id == id }
+    } catch let err as SuggestionsAPIError {
+      errorMessage = err.errorDescription
     } catch {
       errorMessage = "Failed to dismiss suggestion"
     }
   }
 
   func completeSuggestion(_ id: String) async {
+    guard !isParentPreviewMode else { return }
+    let token = authManager.session?.accessToken
     do {
-      try await dashboardService.completeSuggestion(id: id)
+      try await dashboardService.completeSuggestion(id: id, accessToken: token)
       suggestions.removeAll { $0.id == id }
+    } catch let err as SuggestionsAPIError {
+      errorMessage = err.errorDescription
     } catch {
       errorMessage = "Failed to complete suggestion"
     }

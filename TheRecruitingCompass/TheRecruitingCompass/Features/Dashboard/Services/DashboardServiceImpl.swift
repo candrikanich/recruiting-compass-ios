@@ -157,44 +157,133 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
   }
 
-  @available(*, deprecated, message: "Use ActivityFeedService instead")
-  func fetchSuggestions(location: String) async throws -> [Suggestion] {
-    do {
-      logger.debug("Fetching suggestions")
-      let result: [Suggestion] = try await supabaseManager.client
-        .from("suggestions")
-        .select()
-        .eq("location", value: location)
-        .execute()
-        .value
-      logger.info("Fetched \(result.count) suggestions")
-      return result
-    } catch {
-      let msg = error.localizedDescription.lowercased()
-      if msg.contains("could not find the table") && msg.contains("schema") {
-        logger.debug("Suggestions table not found, returning empty list")
-        return []
-      }
-      logger.error("Failed to fetch suggestions: \(error.localizedDescription)")
-      throw error
+  func fetchSuggestions(location: String, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int) {
+    guard let baseURL = SupabaseConfig.apiBaseURL,
+          let token = accessToken, !token.isEmpty else {
+      logger.debug("Suggestions API not configured (API_BASE_URL or token missing), returning empty")
+      return ([], 0)
     }
+
+    var components = URLComponents(url: baseURL.appendingPathComponent("api/suggestions"), resolvingAgainstBaseURL: false)!
+    components.queryItems = [URLQueryItem(name: "location", value: location)]
+    guard let url = components.url else {
+      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid suggestions URL"])
+    }
+
+    var request = URLRequest(url: url)
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+    let (data, response) = try await URLSession.shared.data(for: request)
+
+    guard let http = response as? HTTPURLResponse else {
+      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
+    }
+
+    guard http.statusCode == 200 else {
+      logger.error("Suggestions API returned \(http.statusCode)")
+      throw NSError(domain: "DashboardService", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Suggestions failed (\(http.statusCode))"])
+    }
+
+    let decoder = JSONDecoder()
+    let result = try decoder.decode(SuggestionsResponse.self, from: data)
+    logger.info("Fetched \(result.suggestions.count) suggestions, pendingCount: \(result.pendingCount)")
+    return (result.suggestions, result.pendingCount)
   }
 
-  func dismissSuggestion(id: String) async throws {
-    try await supabaseManager.client
-      .from("suggestions")
-      .delete()
-      .eq("id", value: id)
-      .execute()
+  func dismissSuggestion(id: String, accessToken: String?) async throws {
+    guard let baseURL = SupabaseConfig.apiBaseURL,
+          let token = accessToken, !token.isEmpty else {
+      logger.debug("Suggestions API not configured, skipping dismiss")
+      return
+    }
+
+    let csrfToken = try await fetchCSRFToken(baseURL: baseURL)
+
+    let url = baseURL.appendingPathComponent("api/suggestions/\(id)/dismiss")
+    var request = URLRequest(url: url)
+    request.httpMethod = "PATCH"
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue(csrfToken, forHTTPHeaderField: "x-csrf-token")
+
+    let (_, response) = try await URLSession.shared.data(for: request)
+
+    guard let http = response as? HTTPURLResponse else {
+      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
+    }
+    if http.statusCode == 403 {
+      throw SuggestionsAPIError.forbidden
+    }
+    guard http.statusCode == 200 else {
+      throw NSError(domain: "DashboardService", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Dismiss failed (\(http.statusCode))"])
+    }
+    logger.info("Suggestion \(id) dismissed")
   }
 
-  func completeSuggestion(id: String) async throws {
-    logger.debug("Completing suggestion: \(id)")
-    try await supabaseManager.client
-      .from("suggestions")
-      .update(["status": "completed"])
-      .eq("id", value: id)
-      .execute()
-    logger.info("Suggestion marked as completed")
+  func completeSuggestion(id: String, accessToken: String?) async throws {
+    guard let baseURL = SupabaseConfig.apiBaseURL,
+          let token = accessToken, !token.isEmpty else {
+      logger.debug("Suggestions API not configured, skipping complete")
+      return
+    }
+
+    let csrfToken = try await fetchCSRFToken(baseURL: baseURL)
+
+    let url = baseURL.appendingPathComponent("api/suggestions/\(id)/complete")
+    var request = URLRequest(url: url)
+    request.httpMethod = "PATCH"
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue(csrfToken, forHTTPHeaderField: "x-csrf-token")
+
+    let (_, response) = try await URLSession.shared.data(for: request)
+
+    guard let http = response as? HTTPURLResponse else {
+      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
+    }
+    if http.statusCode == 403 {
+      throw SuggestionsAPIError.forbidden
+    }
+    guard http.statusCode == 200 else {
+      throw NSError(domain: "DashboardService", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Complete failed (\(http.statusCode))"])
+    }
+    logger.info("Suggestion \(id) completed")
+  }
+
+  /// Fetches CSRF token from API (GET /api/csrf-token). Server sets csrf-token cookie;
+  /// we read it and return the value so callers can send it in x-csrf-token header on mutating requests.
+  /// URLSession.shared will send the cookie automatically on subsequent requests to the same origin.
+  private func fetchCSRFToken(baseURL: URL) async throws -> String {
+    let url = baseURL.appendingPathComponent("api/csrf-token")
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+
+    let (_, response) = try await URLSession.shared.data(for: request)
+
+    guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+      logger.error("CSRF token request failed")
+      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get CSRF token"])
+    }
+
+    // Cookie may be scoped to /api; ask for cookies that would be sent to an API path
+    let apiURL = baseURL.appendingPathComponent("api")
+    guard let cookies = HTTPCookieStorage.shared.cookies(for: apiURL),
+          let csrfCookie = cookies.first(where: { $0.name == "csrf-token" }) else {
+      logger.error("No csrf-token cookie in storage after GET /api/csrf-token")
+      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "No CSRF token in response"])
+    }
+
+    return csrfCookie.value
+  }
+}
+
+enum SuggestionsAPIError: Error, LocalizedError {
+  case forbidden
+
+  var errorDescription: String? {
+    switch self {
+    case .forbidden: return "You can't dismiss or complete action items when viewing another athlete's dashboard."
+    }
   }
 }

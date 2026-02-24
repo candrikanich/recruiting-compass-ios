@@ -32,4 +32,19 @@ struct SupabaseConfig {
     fatalError("SUPABASE_ANON_KEY must be set for Release builds. Configure in Scheme → Run → Environment Variables.")
     #endif
   }()
+
+  /// Base URL for Recruiting Compass API (e.g. https://your-app.vercel.app). Used for suggestions (GET/PATCH /api/suggestions).
+  /// When set, dashboard action items use the API instead of direct Supabase. Optional in DEBUG (suggestions stay empty if unset).
+  static let apiBaseURL: URL? = {
+    let urlString = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? ""
+    guard !urlString.isEmpty, !urlString.contains("placeholder"),
+          let url = URL(string: urlString.trimmingCharacters(in: .whitespaces)) else {
+      #if DEBUG
+      return nil
+      #else
+      return nil
+      #endif
+    }
+    return url
+  }()
 }

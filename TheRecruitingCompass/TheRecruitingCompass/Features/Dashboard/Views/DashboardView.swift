@@ -44,6 +44,8 @@ struct DashboardView: View {
             if !viewModel.isEmpty {
               DashboardWidgetsSection(
                 suggestions: viewModel.suggestions,
+                pendingCount: viewModel.suggestionsPendingCount,
+                canDismissOrCompleteSuggestions: !viewModel.isParentPreviewMode,
                 quickTasks: $viewModel.quickTasks,
                 onDismissSuggestion: { id in Task { await viewModel.dismissSuggestion(id) } },
                 onCompleteSuggestion: { id in Task { await viewModel.completeSuggestion(id) } },

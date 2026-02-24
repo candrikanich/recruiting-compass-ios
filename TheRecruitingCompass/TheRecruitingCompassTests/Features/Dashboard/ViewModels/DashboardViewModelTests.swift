@@ -71,12 +71,15 @@ final class DashboardViewModelTests: XCTestCase {
   private func makeSuggestion(id: String = "suggestion-1") -> Suggestion {
     Suggestion(
       id: id,
-      title: "Test Suggestion",
-      description: "Test description",
+      ruleType: "test-rule",
+      message: "Test Suggestion",
       urgency: .medium,
-      actionUrl: nil,
-      location: "dashboard",
-      createdAt: "2024-01-01T00:00:00Z"
+      actionType: nil,
+      relatedSchoolId: nil,
+      dismissed: false,
+      completed: false,
+      pendingSurface: nil,
+      surfacedAt: "2024-01-01T00:00:00Z"
     )
   }
 
@@ -413,12 +416,15 @@ final class DashboardViewModelTests: XCTestCase {
   func testCompleteSuggestionRemovesSuggestionFromList() async {
     let suggestion = Suggestion(
       id: "test-id",
-      title: "Test",
-      description: "Description",
+      ruleType: "test",
+      message: "Test",
       urgency: .high,
-      actionUrl: nil,
-      location: "dashboard",
-      createdAt: "2026-02-01T12:00:00Z"
+      actionType: nil,
+      relatedSchoolId: nil,
+      dismissed: false,
+      completed: false,
+      pendingSurface: nil,
+      surfacedAt: "2026-02-01T12:00:00Z"
     )
     sut.suggestions = [suggestion]
 

@@ -8,7 +8,7 @@ protocol DashboardManaging: Sendable {
   func fetchOffers(userId: String) async throws -> [Offer]
   func fetchEvents(userId: String, limit: Int?) async throws -> [FullEvent]
   func fetchMetrics(userId: String, limit: Int?) async throws -> [PerformanceMetric]
-  func fetchSuggestions(location: String) async throws -> [Suggestion]
-  func dismissSuggestion(id: String) async throws
-  func completeSuggestion(id: String) async throws
+  func fetchSuggestions(location: String, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int)
+  func dismissSuggestion(id: String, accessToken: String?) async throws
+  func completeSuggestion(id: String, accessToken: String?) async throws
 }

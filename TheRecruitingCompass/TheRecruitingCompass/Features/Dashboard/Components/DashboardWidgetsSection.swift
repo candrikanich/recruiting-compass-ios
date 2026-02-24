@@ -4,6 +4,8 @@ import SwiftUI
 /// when only other view model state (e.g. stats, charts) changes.
 struct DashboardWidgetsSection: View {
   let suggestions: [Suggestion]
+  let pendingCount: Int
+  let canDismissOrCompleteSuggestions: Bool
   @Binding var quickTasks: [QuickTask]
   let onDismissSuggestion: (String) -> Void
   let onCompleteSuggestion: (String) -> Void
@@ -16,6 +18,8 @@ struct DashboardWidgetsSection: View {
     VStack(spacing: 16) {
       ActionItemsWidget(
         suggestions: suggestions,
+        pendingCount: pendingCount,
+        canDismissOrComplete: canDismissOrCompleteSuggestions,
         onDismiss: onDismissSuggestion,
         onComplete: onCompleteSuggestion
       )

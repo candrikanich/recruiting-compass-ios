@@ -44,8 +44,11 @@ Supabase credentials must be configured before running:
 5. Set values:
    - `SUPABASE_URL`: `https://your-project.supabase.co`
    - `SUPABASE_ANON_KEY`: `your-anon-key-here`
+   - `API_BASE_URL`: `https://your-app.vercel.app` (optional; required for Dashboard Action Items — see below)
 
 **Why:** Shared scheme (in git) has empty placeholders. Your local user scheme (NOT in git) has real credentials.
+
+**Action Items (Suggestions):** The dashboard Action Items widget uses the web app API (`GET /api/suggestions`, `PATCH .../dismiss`, `PATCH .../complete`). Set `API_BASE_URL` to your web app base URL (e.g. Vercel deployment). Authorization uses the Supabase session token (Bearer). If `API_BASE_URL` is unset, the widget shows "No action items at this time."
 
 **Production:** Release builds **require** real `SUPABASE_URL` and `SUPABASE_ANON_KEY`. If either is missing or set to the placeholder values, the app will fatalError at launch. Configure the same environment variables in your Release scheme or CI so production never uses placeholders.
 

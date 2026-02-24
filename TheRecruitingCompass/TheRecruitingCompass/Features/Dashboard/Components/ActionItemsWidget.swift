@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ActionItemsWidget: View {
   let suggestions: [Suggestion]
+  let pendingCount: Int
+  let canDismissOrComplete: Bool
   let onDismiss: (String) -> Void
   let onComplete: (String) -> Void
 
@@ -13,7 +15,7 @@ struct ActionItemsWidget: View {
 
       Divider()
 
-      if suggestions.isEmpty {
+      if suggestions.isEmpty && pendingCount == 0 {
         Text("No action items at this time")
           .font(.caption)
           .foregroundColor(Color.secondaryText)
@@ -23,16 +25,18 @@ struct ActionItemsWidget: View {
           ForEach(suggestions.prefix(3)) { suggestion in
             ActionItemCard(
               suggestion: suggestion,
+              canDismissOrComplete: canDismissOrComplete,
               onDismiss: { onDismiss(suggestion.id) },
               onComplete: { onComplete(suggestion.id) }
             )
           }
         }
 
-        if suggestions.count > 3 {
+        let moreCount = max(0, suggestions.count - 3) + pendingCount
+        if moreCount > 0 {
           NavigationLink(value: DashboardDestination.suggestions) {
             HStack(spacing: 4) {
-              Text("Show \(suggestions.count - 3) more")
+              Text("Show \(moreCount) more")
                 .font(.caption)
               Image(systemName: "chevron.right")
                 .font(.caption2)
@@ -42,7 +46,7 @@ struct ActionItemsWidget: View {
           }
           .buttonStyle(PlainButtonStyle())
           .accessibilityLabel("View all action items")
-          .accessibilityHint("Opens a complete list of \(suggestions.count) suggested actions")
+          .accessibilityHint("Opens a complete list of suggested actions")
         }
       }
     }
@@ -55,6 +59,7 @@ struct ActionItemsWidget: View {
 
 struct ActionItemCard: View {
   let suggestion: Suggestion
+  let canDismissOrComplete: Bool
   let onDismiss: () -> Void
   let onComplete: () -> Void
 
@@ -67,51 +72,48 @@ struct ActionItemCard: View {
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
-        HStack(spacing: 6) {
-          Text(suggestion.title)
-            .font(.subheadline)
-            .fontWeight(.semibold)
+        Text(suggestion.urgency.rawValue.capitalized)
+          .font(.caption2)
+          .padding(.horizontal, 6)
+          .padding(.vertical, 2)
+          .background(suggestion.urgency.color.opacity(0.15))
+          .foregroundColor(suggestion.urgency.color)
+          .cornerRadius(4)
+          .accessibilityHidden(true)
 
-          Text(suggestion.urgency.rawValue.capitalized)
-            .font(.caption2)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(suggestion.urgency.color.opacity(0.15))
-            .foregroundColor(suggestion.urgency.color)
-            .cornerRadius(4)
-            .accessibilityHidden(true)
-        }
-
-        Text(suggestion.description)
-          .font(.caption)
-          .foregroundColor(Color.secondaryText)
-          .lineLimit(2)
+        Text(suggestion.message)
+          .font(.subheadline)
+          .fontWeight(.medium)
+          .foregroundColor(Color.primary)
+          .lineLimit(3)
       }
 
       Spacer()
 
-      VStack(spacing: 4) {
-        Button(action: onComplete) {
-          Image(systemName: "checkmark.circle.fill")
-            .foregroundColor(Color.accentBlue)
-            .font(.title3)
-            .frame(minWidth: 44, minHeight: 44)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(PlainButtonStyle())
-        .accessibilityLabel("Complete: \(suggestion.title)")
-        .accessibilityHint("Mark this suggestion as done")
+      if canDismissOrComplete {
+        VStack(spacing: 4) {
+          Button(action: onComplete) {
+            Image(systemName: "checkmark.circle.fill")
+              .foregroundColor(Color.accentBlue)
+              .font(.title3)
+              .frame(minWidth: 44, minHeight: 44)
+              .contentShape(Rectangle())
+          }
+          .buttonStyle(PlainButtonStyle())
+          .accessibilityLabel("Complete suggestion")
+          .accessibilityHint("Mark this suggestion as done")
 
-        Button(action: onDismiss) {
-          Image(systemName: "xmark.circle.fill")
-            .foregroundColor(Color.gray)
-            .font(.title3)
-            .frame(minWidth: 44, minHeight: 44)
-            .contentShape(Rectangle())
+          Button(action: onDismiss) {
+            Image(systemName: "xmark.circle.fill")
+              .foregroundColor(Color.gray)
+              .font(.title3)
+              .frame(minWidth: 44, minHeight: 44)
+              .contentShape(Rectangle())
+          }
+          .buttonStyle(PlainButtonStyle())
+          .accessibilityLabel("Dismiss suggestion")
+          .accessibilityHint("Hide this suggestion without completing it")
         }
-        .buttonStyle(PlainButtonStyle())
-        .accessibilityLabel("Dismiss: \(suggestion.title)")
-        .accessibilityHint("Hide this suggestion without completing it")
       }
     }
     .padding(12)
@@ -125,23 +127,31 @@ struct ActionItemCard: View {
     suggestions: [
       Suggestion(
         id: "1",
-        title: "Follow up with Coach Johnson",
-        description: "It's been 2 weeks since your last contact",
+        ruleType: "interaction-gap",
+        message: "It's been 30 days since you contacted State U",
         urgency: .high,
-        actionUrl: nil,
-        location: "dashboard",
-        createdAt: "2026-02-01T12:00:00Z"
+        actionType: "log_interaction",
+        relatedSchoolId: nil,
+        dismissed: false,
+        completed: false,
+        pendingSurface: nil,
+        surfacedAt: "2026-02-01T12:00:00Z"
       ),
       Suggestion(
         id: "2",
-        title: "Update your SAT score",
-        description: "Add your recent test results",
+        ruleType: "school-list-building",
+        message: "Add your recent test results to your profile",
         urgency: .medium,
-        actionUrl: nil,
-        location: "dashboard",
-        createdAt: "2026-02-05T10:00:00Z"
+        actionType: "update_video",
+        relatedSchoolId: nil,
+        dismissed: false,
+        completed: false,
+        pendingSurface: nil,
+        surfacedAt: "2026-02-05T10:00:00Z"
       )
     ],
+    pendingCount: 1,
+    canDismissOrComplete: true,
     onDismiss: { _ in },
     onComplete: { _ in }
   )
