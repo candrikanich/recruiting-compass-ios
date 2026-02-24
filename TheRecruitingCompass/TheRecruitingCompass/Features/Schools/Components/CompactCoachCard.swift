@@ -3,43 +3,15 @@ import SwiftUI
 struct CompactCoachCard: View {
   let coach: Coach
 
-  @Environment(\.sizeCategory) private var sizeCategory
-
-  private var avatarSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 48 : 40
-  }
-
   var body: some View {
-    HStack(spacing: 12) {
-      Circle()
-        .fill(coach.role.badgeColor.opacity(0.2))
-        .frame(width: avatarSize, height: avatarSize)
-        .overlay {
-          Text(coach.initials)
-            .font(.headline.weight(.semibold))
-            .foregroundStyle(coach.role.badgeColor)
-        }
-        .accessibilityHidden(true)
+    VStack(alignment: .leading, spacing: 8) {
+      // Row 1: Coach Name – Role
+      Text("\(coach.fullName) – \(coach.role.displayName)")
+        .font(.body)
+        .fontWeight(.medium)
+        .foregroundStyle(.primary)
 
-      VStack(alignment: .leading, spacing: 4) {
-        HStack(spacing: 8) {
-          Text(coach.fullName)
-            .font(.body)
-            .fontWeight(.medium)
-
-          RoleBadge(role: coach.role)
-        }
-
-        if let email = coach.email {
-          Text(email)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-        }
-      }
-
-      Spacer()
-
+      // Row 2: Communication icons
       HStack(spacing: 4) {
         if let email = coach.email {
           CommunicationButton(type: .email(email), value: email)
@@ -58,36 +30,33 @@ struct CompactCoachCard: View {
           CommunicationButton(type: .instagram(instagram), value: instagram)
         }
       }
+
+      // Row 3: Date of last contact
+      if let lastContact = coach.lastContactDateParsed {
+        Text("Last contact: \(lastContact, format: .relative(presentation: .named))")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      } else {
+        Text("Last contact: —")
+          .font(.caption)
+          .foregroundStyle(Color.tertiaryText)
+      }
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.vertical, 8)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(coach.fullName), \(coach.role.displayName)")
-    .accessibilityHint(email: coach.email)
+    .accessibilityLabel(accessibilityLabelText)
+    .accessibilityHint("Use communication buttons to contact")
   }
-}
 
-private struct RoleBadge: View {
-  let role: CoachRole
-
-  var body: some View {
-    Text(role.displayName)
-      .font(.caption2)
-      .fontWeight(.medium)
-      .padding(.horizontal, 6)
-      .padding(.vertical, 2)
-      .background(role.badgeColor.opacity(0.15))
-      .foregroundStyle(role.badgeColor)
-      .cornerRadius(4)
-  }
-}
-
-private extension View {
-  func accessibilityHint(email: String?) -> some View {
-    if let email {
-      return self.accessibilityHint("Email: \(email). Use communication buttons to contact.")
+  private var accessibilityLabelText: String {
+    var parts = [coach.fullName, coach.role.displayName]
+    if let lastContact = coach.lastContactDateParsed {
+      parts.append("Last contacted \(lastContact.formatted(date: .abbreviated, time: .omitted))")
     } else {
-      return self.accessibilityHint("Use communication buttons to contact.")
+      parts.append("Not yet contacted")
     }
+    return parts.joined(separator: ", ")
   }
 }
 
@@ -132,6 +101,29 @@ private extension View {
       lastContactDate: nil,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z"
+    )
+  )
+  .padding()
+}
+
+#Preview("Coach With Last Contact") {
+  CompactCoachCard(
+    coach: Coach(
+      id: "3",
+      firstName: "Mike",
+      lastName: "Roberts",
+      email: "mroberts@school.edu",
+      phone: "555-9999",
+      position: "head",
+      schoolId: "school-1",
+      twitterHandle: nil,
+      instagramHandle: nil,
+      notes: nil,
+      privateNotes: nil,
+      responsivenessScore: 0.80,
+      lastContactDate: "2026-02-20T14:00:00Z",
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2026-02-20T14:00:00Z"
     )
   )
   .padding()

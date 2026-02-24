@@ -10,8 +10,13 @@ struct SchoolMapView: View {
       // Map
       if let lat = school.academicInfo?.latitude,
          let lon = school.academicInfo?.longitude {
-        Map {
-          Marker(school.name, coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lon))
+        let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        let region = MKCoordinateRegion(
+          center: coordinate,
+          span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+        )
+        Map(initialPosition: .region(region)) {
+          Marker(school.name, coordinate: coordinate)
         }
         .mapStyle(.standard)
         .frame(height: 200)

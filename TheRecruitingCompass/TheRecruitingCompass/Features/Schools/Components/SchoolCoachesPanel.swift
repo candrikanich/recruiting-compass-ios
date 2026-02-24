@@ -52,7 +52,6 @@ struct SchoolCoachesPanel: View {
 
             if coach.id != displayedCoaches.last?.id {
               Divider()
-                .padding(.leading, 52)
                 .accessibilityHidden(true)
             }
           }

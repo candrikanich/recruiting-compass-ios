@@ -98,75 +98,39 @@ struct SchoolDetailView: View {
       Divider()
 
       VStack(spacing: 24) {
-        SchoolStatusPickerSection(
+        // 1. Recruiting status & tier (one row: status + tier dropdown)
+        SchoolRecruitingStatusAndTierSection(
           currentStatus: SchoolStatus(rawValue: school.status) ?? .interested,
-          isUpdating: viewModel.isUpdatingStatus,
-          onStatusChange: { newStatus in
-            await viewModel.updateStatus(to: newStatus)
-          }
-        )
-
-        PriorityTierSelector(
           selectedTier: school.priorityTier.flatMap { PriorityTier(rawValue: $0) },
-          isUpdating: viewModel.isUpdatingPriorityTier,
-          onSelect: { tier in
-            await viewModel.updatePriorityTier(tier)
-          }
+          isUpdatingStatus: viewModel.isUpdatingStatus,
+          isUpdatingTier: viewModel.isUpdatingPriorityTier,
+          onStatusChange: { await viewModel.updateStatus(to: $0) },
+          onTierSelect: { await viewModel.updatePriorityTier($0) }
         )
 
-        SchoolStatusHistorySection(history: viewModel.statusHistory)
-          .padding(.horizontal)
-
-        // MARK: - Phase 2 Sections
-
-        SchoolNotesSection(
-          title: "Notes",
-          notes: school.notes ?? "",
-          isPrivate: false,
-          isEditing: viewModel.isEditingNotes,
-          editedNotes: $viewModel.editedNotes,
-          onEdit: { viewModel.startEditingNotes() },
-          onSave: { await viewModel.saveNotes() },
-          onCancel: { viewModel.cancelEditingNotes() },
-          isSaving: viewModel.isSavingNotes
+        // 2. Map
+        SchoolMapView(
+          school: school,
+          homeLocation: homeLocation
         )
         .padding(.horizontal)
 
-        SchoolNotesSection(
-          title: "Private Notes",
-          notes: viewModel.privateNoteForCurrentUser,
-          isPrivate: true,
-          isEditing: viewModel.isEditingPrivateNotes,
-          editedNotes: $viewModel.editedPrivateNotes,
-          onEdit: { viewModel.startEditingPrivateNotes() },
-          onSave: { await viewModel.savePrivateNotes() },
-          onCancel: { viewModel.cancelEditingPrivateNotes() },
-          isSaving: viewModel.isSavingPrivateNotes
-        )
-        .padding(.horizontal)
-
-        SchoolProsConsSection(
-          pros: school.pros,
-          cons: school.cons,
-          newPro: $viewModel.newPro,
-          newCon: $viewModel.newCon,
-          onAddPro: { await viewModel.addPro() },
-          onRemovePro: { index in await viewModel.removePro(at: index) },
-          onAddCon: { await viewModel.addCon() },
-          onRemoveCon: { index in await viewModel.removeCon(at: index) },
-          isAddingPro: viewModel.isAddingPro,
-          isAddingCon: viewModel.isAddingCon
-        )
-        .padding(.horizontal)
-
+        // 3. Information
         SchoolBasicInfoDisplaySection(
           school: school,
           onEdit: { viewModel.startEditingBasicInfo() }
         )
 
-        // MARK: - Phase 3 Sections
+        // 4. College data
+        CollegeDataSection(
+          school: school,
+          isLookingUp: viewModel.isLookingUpCollegeData,
+          lookupError: viewModel.collegeDataError,
+          onLookup: { await viewModel.lookupCollegeData() }
+        )
+        .padding(.horizontal)
 
-        // Fit Score Section
+        // 5. School Fit analysis
         if let fitScore = viewModel.fitScore {
           FitScoreSection(fitScore: fitScore)
             .padding(.horizontal)
@@ -180,41 +144,12 @@ struct SchoolDetailView: View {
           }
         }
 
-        // Division Recommendation Banner
         if let recommendation = viewModel.divisionRecommendation {
           DivisionRecommendationBanner(recommendation: recommendation)
             .padding(.horizontal)
         }
 
-        // Map View
-        SchoolMapView(
-          school: school,
-          homeLocation: homeLocation
-        )
-        .padding(.horizontal)
-
-        // College Data Section
-        CollegeDataSection(
-          school: school,
-          isLookingUp: viewModel.isLookingUpCollegeData,
-          lookupError: viewModel.collegeDataError,
-          onLookup: { await viewModel.lookupCollegeData() }
-        )
-        .padding(.horizontal)
-
-        // MARK: - Phase 4 Sections
-
-        // Coaches Panel
-        SchoolCoachesPanel(
-          coaches: viewModel.coaches,
-          isLoading: viewModel.isLoadingCoaches,
-          onSeeAll: {
-            navigationDestination = .coaches(schoolId: schoolId)
-          }
-        )
-        .padding(.horizontal)
-
-        // Quick Actions
+        // 6. Quick actions
         SchoolQuickActions(
           onLogInteraction: {
             navigationDestination = .addInteraction(schoolId: schoolId)
@@ -232,15 +167,71 @@ struct SchoolDetailView: View {
         )
         .padding(.horizontal)
 
-        // Coaching Philosophy
+        // 7. Coaches
+        SchoolCoachesPanel(
+          coaches: viewModel.coaches,
+          isLoading: viewModel.isLoadingCoaches,
+          onSeeAll: {
+            navigationDestination = .coaches(schoolId: schoolId)
+          }
+        )
+        .padding(.horizontal)
+
+        // 8. Coaching philosophy
         SchoolCoachingPhilosophySection(
           philosophy: EditableCoachingPhilosophy.from(school: school),
           onEdit: { viewModel.startEditingCoachingPhilosophy() }
         )
         .padding(.horizontal)
 
-        // Documents
+        // 9. Pros/cons
+        SchoolProsConsSection(
+          pros: school.pros,
+          cons: school.cons,
+          newPro: $viewModel.newPro,
+          newCon: $viewModel.newCon,
+          onAddPro: { await viewModel.addPro() },
+          onRemovePro: { index in await viewModel.removePro(at: index) },
+          onAddCon: { await viewModel.addCon() },
+          onRemoveCon: { index in await viewModel.removeCon(at: index) },
+          isAddingPro: viewModel.isAddingPro,
+          isAddingCon: viewModel.isAddingCon
+        )
+        .padding(.horizontal)
+
+        // 10. Notes
+        SchoolNotesSection(
+          title: "Notes",
+          notes: school.notes ?? "",
+          isPrivate: false,
+          isEditing: viewModel.isEditingNotes,
+          editedNotes: $viewModel.editedNotes,
+          onEdit: { viewModel.startEditingNotes() },
+          onSave: { await viewModel.saveNotes() },
+          onCancel: { viewModel.cancelEditingNotes() },
+          isSaving: viewModel.isSavingNotes
+        )
+        .padding(.horizontal)
+
+        // 11. Private notes
+        SchoolNotesSection(
+          title: "Private Notes",
+          notes: viewModel.privateNoteForCurrentUser,
+          isPrivate: true,
+          isEditing: viewModel.isEditingPrivateNotes,
+          editedNotes: $viewModel.editedPrivateNotes,
+          onEdit: { viewModel.startEditingPrivateNotes() },
+          onSave: { await viewModel.savePrivateNotes() },
+          onCancel: { viewModel.cancelEditingPrivateNotes() },
+          isSaving: viewModel.isSavingPrivateNotes
+        )
+        .padding(.horizontal)
+
+        // 12. Documents
         SchoolDocumentsSection()
+          .padding(.horizontal)
+
+        SchoolStatusHistorySection(history: viewModel.statusHistory)
           .padding(.horizontal)
 
         // Attribution
