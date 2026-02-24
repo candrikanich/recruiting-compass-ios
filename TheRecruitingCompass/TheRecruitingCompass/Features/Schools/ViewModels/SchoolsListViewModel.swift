@@ -18,10 +18,22 @@ final class SchoolsListViewModel {
   var deleteErrorMessage: String?
   var successMessage: String?
   var showSuccessToast = false
-  var homeLocation: CLLocationCoordinate2D?
+
+  /// Home location for distance filter and sort. Uses family unit coordinates when present, otherwise location saved in Settings (user_preferences).
+  var homeLocation: CLLocationCoordinate2D? {
+    if let lat = familyManager.familyUnit?.homeLatitude,
+       let lon = familyManager.familyUnit?.homeLongitude {
+      return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+    }
+    return homeLocationFromPreferences
+  }
+
+  /// Cached home location from user_preferences (Settings → Home Location). Loaded in loadSchools().
+  private var homeLocationFromPreferences: CLLocationCoordinate2D?
 
   private let schoolsService: any SchoolsManaging
   private let familyManager: FamilyManager
+  private let preferenceService: any PreferenceManaging
   private let authManager: any AuthManaging
   private var distanceCache: [String: Double] = [:]
   private var distanceCacheOrderedKeys: [String] = []
@@ -113,10 +125,12 @@ final class SchoolsListViewModel {
   init(
     schoolsService: (any SchoolsManaging)? = nil,
     familyManager: FamilyManager? = nil,
+    preferenceService: (any PreferenceManaging)? = nil,
     authManager: (any AuthManaging)? = nil
   ) {
     self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
+    self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
   }
 
@@ -136,6 +150,24 @@ final class SchoolsListViewModel {
     do {
       allSchools = try await schoolsService.fetchSchools(familyUnitId: familyUnitId)
       logger.info("Loaded \(self.allSchools.count) schools")
+
+      // Load home location from Settings (user_preferences) when family unit has no coordinates
+      if familyManager.familyUnit?.homeLatitude == nil || familyManager.familyUnit?.homeLongitude == nil {
+        do {
+          if let location: HomeLocation = try await preferenceService.fetchPreferences(category: .location),
+             let lat = location.latitude, let lon = location.longitude {
+            homeLocationFromPreferences = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            logger.debug("Using home location from preferences")
+          } else {
+            homeLocationFromPreferences = nil
+          }
+        } catch {
+          logger.debug("Could not load home location from preferences: \(error.localizedDescription)")
+          homeLocationFromPreferences = nil
+        }
+      } else {
+        homeLocationFromPreferences = nil
+      }
     } catch {
       logger.error("Failed to load schools: \(error.localizedDescription)")
       errorMessage = "Failed to load schools. Please try again."
