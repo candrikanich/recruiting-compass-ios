@@ -151,6 +151,7 @@ struct CoachesListView: View {
     FilteredResultsHeader(
       resultCount: viewModel.resultCount,
       itemName: "coach",
+      itemNamePlural: "coaches",
       activeFilterCount: viewModel.activeFilterCount
     )
     .padding(.horizontal, 16)

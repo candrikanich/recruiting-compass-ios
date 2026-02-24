@@ -4,16 +4,22 @@ import SwiftUI
 struct FilteredResultsHeader: View {
   let resultCount: Int
   let itemName: String
+  let itemNamePlural: String?
   let activeFilterCount: Int
 
-  init(resultCount: Int, itemName: String = "item", activeFilterCount: Int = 0) {
+  init(resultCount: Int, itemName: String = "item", itemNamePlural: String? = nil, activeFilterCount: Int = 0) {
     self.resultCount = resultCount
     self.itemName = itemName
+    self.itemNamePlural = itemNamePlural
     self.activeFilterCount = activeFilterCount
   }
 
+  private var pluralName: String {
+    itemNamePlural ?? "\(itemName)s"
+  }
+
   private var resultText: String {
-    "\(resultCount) \(resultCount == 1 ? itemName : "\(itemName)s")"
+    "\(resultCount) \(resultCount == 1 ? itemName : pluralName)"
   }
 
   private var filterText: String? {
@@ -37,7 +43,7 @@ struct FilteredResultsHeader: View {
       Spacer()
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(resultCount) \(itemName)\(resultCount == 1 ? "" : "s"), \(activeFilterCount) filters active")
+    .accessibilityLabel("\(resultCount) \(resultCount == 1 ? itemName : pluralName), \(activeFilterCount) filters active")
   }
 }
 
@@ -58,6 +64,7 @@ struct FilteredResultsHeader: View {
     FilteredResultsHeader(
       resultCount: 42,
       itemName: "coach",
+      itemNamePlural: "coaches",
       activeFilterCount: 1
     )
   }
