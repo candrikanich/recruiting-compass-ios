@@ -77,7 +77,7 @@ final class ActivityFeedViewModel {
   }
 
   var recentActivities: [ActivityEvent] {
-    Array(activities.prefix(10))
+    Array(activities.prefix(5))
   }
 
   // MARK: - Initialization

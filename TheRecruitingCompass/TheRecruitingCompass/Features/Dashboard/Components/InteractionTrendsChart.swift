@@ -45,7 +45,7 @@ struct InteractionTrendsChart: View {
         }
         .frame(height: 200)
         .chartXAxis {
-          AxisMarks(values: .stride(by: .day)) { _ in
+          AxisMarks(values: .stride(by: .day, count: 2)) { _ in
             AxisGridLine()
             AxisValueLabel(format: .dateTime.month(.abbreviated).day())
           }

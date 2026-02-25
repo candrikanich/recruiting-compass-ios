@@ -758,7 +758,7 @@ final class ActivityFeedViewModelTests: XCTestCase {
 
   // MARK: - Recent Activities Tests
 
-  func testRecentActivities_ReturnsFirst10() async {
+  func testRecentActivities_ReturnsFirst5() async {
     // Given
     authenticateUser()
     let now = Date()
@@ -772,10 +772,10 @@ final class ActivityFeedViewModelTests: XCTestCase {
     await sut.loadActivities()
 
     // Then
-    XCTAssertEqual(sut.recentActivities.count, 10)
+    XCTAssertEqual(sut.recentActivities.count, 5)
   }
 
-  func testRecentActivities_ReturnsAllWhenFewerThan10() async {
+  func testRecentActivities_ReturnsAllWhenFewerThan5() async {
     // Given
     authenticateUser()
     mockService.mockStatusChanges = [
