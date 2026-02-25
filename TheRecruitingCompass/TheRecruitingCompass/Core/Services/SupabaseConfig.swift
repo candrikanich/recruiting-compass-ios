@@ -35,15 +35,17 @@ struct SupabaseConfig {
 
   /// Base URL for Recruiting Compass API (e.g. https://your-app.vercel.app). Used for suggestions (GET/PATCH /api/suggestions).
   /// When set, dashboard action items use the API instead of direct Supabase. Optional in DEBUG (suggestions stay empty if unset).
+  /// If API_BASE_URL has no scheme, https:// is prepended (e.g. "recruiting-compass-web.vercel.app" → "https://recruiting-compass-web.vercel.app").
   static let apiBaseURL: URL? = {
-    let urlString = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? ""
-    guard !urlString.isEmpty, !urlString.contains("placeholder"),
-          let url = URL(string: urlString.trimmingCharacters(in: .whitespaces)) else {
-      #if DEBUG
+    var urlString = (ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "").trimmingCharacters(in: .whitespaces)
+    guard !urlString.isEmpty, !urlString.contains("placeholder") else {
       return nil
-      #else
+    }
+    if !urlString.contains("://") {
+      urlString = "https://" + urlString
+    }
+    guard let url = URL(string: urlString) else {
       return nil
-      #endif
     }
     return url
   }()

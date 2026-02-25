@@ -76,9 +76,14 @@ final class AuthManager: AuthManaging {
 
   func refreshSession() async throws -> User {
     do {
-      let updatedUser = try await supabaseManager.refreshSession()
-      self.user = updatedUser
-      return updatedUser
+      _ = try await supabaseManager.refreshSession()
+      guard let newSession = try await supabaseManager.getCurrentSession() else {
+        throw AuthError.serverError("No session after refresh")
+      }
+      self.session = newSession
+      self.user = newSession.user
+      try keychain.save(newSession, forKey: sessionKey)
+      return newSession.user
     } catch {
       self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
       throw error

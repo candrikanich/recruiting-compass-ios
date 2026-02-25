@@ -173,6 +173,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     var request = URLRequest(url: url)
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
+    // API expects JWT access token only; refresh_token would 401 (supabase.auth.getUser(accessToken))
 
     let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -182,6 +183,9 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
 
     guard http.statusCode == 200 else {
       logger.error("Suggestions API returned \(http.statusCode)")
+      if http.statusCode == 401 {
+        throw SuggestionsAPIError.unauthorized
+      }
       throw NSError(domain: "DashboardService", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Suggestions failed (\(http.statusCode))"])
     }
 
@@ -278,12 +282,14 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
   }
 }
 
-enum SuggestionsAPIError: Error, LocalizedError {
+enum SuggestionsAPIError: Error, LocalizedError, Equatable {
   case forbidden
+  case unauthorized
 
   var errorDescription: String? {
     switch self {
     case .forbidden: return "You can't dismiss or complete action items when viewing another athlete's dashboard."
+    case .unauthorized: return "Session expired. Pull to refresh or sign in again."
     }
   }
 }
