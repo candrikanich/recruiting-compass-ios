@@ -570,3 +570,48 @@ struct School: Codable, Identifiable, Sendable {
     )
   }
 }
+
+// MARK: - Decodable
+
+extension School {
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    id = try container.decode(String.self, forKey: .id)
+    userId = try container.decode(String.self, forKey: .userId)
+    name = try container.decode(String.self, forKey: .name)
+    location = try container.decodeIfPresent(String.self, forKey: .location)
+    city = try container.decodeIfPresent(String.self, forKey: .city)
+    state = try container.decodeIfPresent(String.self, forKey: .state)
+    division = try container.decodeIfPresent(String.self, forKey: .division)
+    conference = try container.decodeIfPresent(String.self, forKey: .conference)
+    ranking = try container.decodeIfPresent(Int.self, forKey: .ranking)
+    isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+    website = try container.decodeIfPresent(String.self, forKey: .website)
+    faviconUrl = try container.decodeIfPresent(String.self, forKey: .faviconUrl)
+    twitterHandle = try container.decodeIfPresent(String.self, forKey: .twitterHandle)
+    instagramHandle = try container.decodeIfPresent(String.self, forKey: .instagramHandle)
+    ncaaId = try container.decodeIfPresent(String.self, forKey: .ncaaId)
+    status = try container.decode(String.self, forKey: .status)
+    statusChangedAt = try container.decodeIfPresent(String.self, forKey: .statusChangedAt)
+    priorityTier = try container.decodeIfPresent(String.self, forKey: .priorityTier)
+    notes = try container.decodeIfPresent(String.self, forKey: .notes)
+    privateNotes = try container.decodeIfPresent([String: String].self, forKey: .privateNotes)
+    pros = try container.decodeIfPresent([String].self, forKey: .pros) ?? []
+    cons = try container.decodeIfPresent([String].self, forKey: .cons) ?? []
+    offerDetails = try container.decodeIfPresent(OfferDetails.self, forKey: .offerDetails)
+    academicInfo = try container.decodeIfPresent(AcademicInfo.self, forKey: .academicInfo)
+    amenities = try container.decodeIfPresent(Amenities.self, forKey: .amenities)
+    coachingPhilosophy = try container.decodeIfPresent(String.self, forKey: .coachingPhilosophy)
+    coachingStyle = try container.decodeIfPresent(String.self, forKey: .coachingStyle)
+    recruitingApproach = try container.decodeIfPresent(String.self, forKey: .recruitingApproach)
+    communicationStyle = try container.decodeIfPresent(String.self, forKey: .communicationStyle)
+    successMetrics = try container.decodeIfPresent(String.self, forKey: .successMetrics)
+    fitScore = try container.decodeIfPresent(Double.self, forKey: .fitScore)
+    fitTier = try container.decodeIfPresent(String.self, forKey: .fitTier)
+    familyUnitId = try container.decode(String.self, forKey: .familyUnitId)
+    createdBy = try container.decodeIfPresent(String.self, forKey: .createdBy)
+    updatedBy = try container.decodeIfPresent(String.self, forKey: .updatedBy)
+    createdAt = try container.decode(String.self, forKey: .createdAt)
+    updatedAt = try container.decode(String.self, forKey: .updatedAt)
+  }
+}

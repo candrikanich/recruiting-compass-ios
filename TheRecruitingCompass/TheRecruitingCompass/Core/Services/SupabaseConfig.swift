@@ -6,9 +6,36 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 private let placeholderURLString = "https://placeholder.supabase.co"
 private let placeholderKey = "placeholder-key"
 
+/// Reads Supabase URL from (1) embedded Swift file baked at build time, (2) env, (3) Info.plist, (4) SupabaseConfig.plist.
+private func supabaseURLString() -> String {
+  // Embedded values from SupabaseConfig.generated.swift — always available in built app
+  let embedded = SupabaseConfigEmbedded.urlString
+  if !embedded.isEmpty, !embedded.contains("placeholder") { return embedded }
+  let fromEnv = ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? ""
+  if !fromEnv.isEmpty { return fromEnv }
+  if let fromInfo = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String, !fromInfo.isEmpty { return fromInfo }
+  if let plistURL = Bundle.main.url(forResource: "SupabaseConfig", withExtension: "plist"),
+     let dict = NSDictionary(contentsOf: plistURL) as? [String: Any],
+     let s = dict["SUPABASE_URL"] as? String, !s.isEmpty { return s }
+  return ""
+}
+
+/// Reads Supabase anon key from (1) embedded Swift file, (2) env, (3) Info.plist, (4) SupabaseConfig.plist.
+private func supabaseAnonKey() -> String {
+  let embedded = SupabaseConfigEmbedded.anonKey
+  if !embedded.isEmpty, embedded != placeholderKey { return embedded }
+  let fromEnv = ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] ?? ""
+  if !fromEnv.isEmpty { return fromEnv }
+  if let fromInfo = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_ANON_KEY") as? String, !fromInfo.isEmpty { return fromInfo }
+  if let plistURL = Bundle.main.url(forResource: "SupabaseConfig", withExtension: "plist"),
+     let dict = NSDictionary(contentsOf: plistURL) as? [String: Any],
+     let s = dict["SUPABASE_ANON_KEY"] as? String, !s.isEmpty { return s }
+  return ""
+}
+
 struct SupabaseConfig {
   static let url: URL = {
-    let urlString = ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? ""
+    let urlString = supabaseURLString()
     if let url = URL(string: urlString), !urlString.isEmpty, !urlString.contains("placeholder") {
       return url
     }
@@ -16,12 +43,12 @@ struct SupabaseConfig {
     logger.warning("SUPABASE_URL not configured - using placeholder (DEBUG only)")
     return URL(string: placeholderURLString)!
     #else
-    fatalError("SUPABASE_URL must be set for Release builds. Configure in Scheme → Run → Environment Variables.")
+    fatalError("SUPABASE_URL must be set for Release builds. Set SUPABASE_URL and SUPABASE_ANON_KEY in Release.xcconfig (or Scheme → Run → Environment Variables for local runs). Archive/TestFlight builds do not inherit scheme env vars — use Release.xcconfig.")
     #endif
   }()
 
   static let anonKey: String = {
-    let key = ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] ?? ""
+    let key = supabaseAnonKey()
     if !key.isEmpty, key != placeholderKey {
       return key
     }
@@ -29,7 +56,7 @@ struct SupabaseConfig {
     logger.warning("SUPABASE_ANON_KEY not configured - using placeholder (DEBUG only)")
     return placeholderKey
     #else
-    fatalError("SUPABASE_ANON_KEY must be set for Release builds. Configure in Scheme → Run → Environment Variables.")
+    fatalError("SUPABASE_ANON_KEY must be set for Release builds. Set SUPABASE_URL and SUPABASE_ANON_KEY in Release.xcconfig (or Scheme → Run → Environment Variables for local runs). Archive/TestFlight builds do not inherit scheme env vars — use Release.xcconfig.")
     #endif
   }()
 

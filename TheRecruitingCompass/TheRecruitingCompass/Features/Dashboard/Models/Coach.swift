@@ -110,7 +110,7 @@ struct Coach: Codable, Identifiable, Sendable {
     instagramHandle = try container.decodeIfPresent(String.self, forKey: .instagramHandle)
     notes = try container.decodeIfPresent(String.self, forKey: .notes)
     privateNotes = Self.decodePrivateNotes(from: container)
-    responsivenessScore = try container.decode(Double.self, forKey: .responsivenessScore)
+    responsivenessScore = try container.decodeIfPresent(Double.self, forKey: .responsivenessScore) ?? 0.0
     lastContactDate = try container.decodeIfPresent(String.self, forKey: .lastContactDate)
     createdAt = try container.decode(String.self, forKey: .createdAt)
     updatedAt = try container.decode(String.self, forKey: .updatedAt)

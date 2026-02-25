@@ -8,8 +8,8 @@ struct CommunicationTemplate: Codable, Identifiable, Sendable {
   let type: TemplateType
   let body: String
   let variables: [String]?
-  let createdAt: Date
-  let updatedAt: Date
+  let createdAt: String
+  let updatedAt: String
 
   var typeDisplayName: String { type.displayName }
 
@@ -19,8 +19,23 @@ struct CommunicationTemplate: Codable, Identifiable, Sendable {
   }
 
   var formattedDate: String {
-    createdAt.formatted(date: .abbreviated, time: .omitted)
+    let parsed = Self.fractionalFormatter.date(from: createdAt)
+      ?? Self.basicFormatter.date(from: createdAt)
+    guard let date = parsed else { return createdAt }
+    return date.formatted(date: .abbreviated, time: .omitted)
   }
+
+  private static let fractionalFormatter: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return f
+  }()
+
+  private static let basicFormatter: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime]
+    return f
+  }()
 
   enum CodingKeys: String, CodingKey {
     case id, name, type, body, variables

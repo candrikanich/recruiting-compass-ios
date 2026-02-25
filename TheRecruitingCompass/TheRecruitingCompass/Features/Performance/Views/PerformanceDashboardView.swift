@@ -2,7 +2,7 @@ import SwiftUI
 import Charts
 
 struct PerformanceDashboardView: View {
-  @State var viewModel: PerformanceDashboardViewModel
+  @State private var viewModel: PerformanceDashboardViewModel
 
   init(viewModel: PerformanceDashboardViewModel? = nil) {
     _viewModel = State(initialValue: viewModel ?? PerformanceDashboardViewModel())
@@ -94,10 +94,10 @@ struct PerformanceDashboardView: View {
       if viewModel.showSuccessToast, let message = viewModel.successMessage {
         SuccessToast(message: message)
           .transition(.move(edge: .bottom).combined(with: .opacity))
-          .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-              withAnimation { viewModel.showSuccessToast = false }
-            }
+          .task(id: viewModel.showSuccessToast) {
+            guard viewModel.showSuccessToast else { return }
+            try? await Task.sleep(for: .seconds(2))
+            withAnimation { viewModel.showSuccessToast = false }
           }
       }
     }

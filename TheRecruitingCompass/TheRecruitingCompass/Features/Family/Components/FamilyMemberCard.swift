@@ -4,6 +4,18 @@ struct FamilyMemberCard: View {
   let member: FamilyMember
   let onRemove: () -> Void
 
+  private static let isoParser: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return f
+  }()
+
+  private static let isoParserFallback: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime]
+    return f
+  }()
+
   var body: some View {
     HStack(spacing: FamilyConstants.Spacing.small) {
       Circle()
@@ -32,7 +44,8 @@ struct FamilyMemberCard: View {
           }
 
           if let addedAt = member.addedAt,
-             let date = ISO8601DateFormatter().date(from: addedAt) {
+             let date = FamilyMemberCard.isoParser.date(from: addedAt)
+               ?? FamilyMemberCard.isoParserFallback.date(from: addedAt) {
             Text("Joined \(DateFormatter.memberJoinDate.string(from: date))")
               .font(.caption)
               .foregroundColor(.secondary)
@@ -80,7 +93,8 @@ struct FamilyMemberCard: View {
 
   private var formattedJoinDate: String {
     guard let addedAt = member.addedAt,
-          let date = ISO8601DateFormatter().date(from: addedAt) else {
+          let date = FamilyMemberCard.isoParser.date(from: addedAt)
+            ?? FamilyMemberCard.isoParserFallback.date(from: addedAt) else {
       return "recently"
     }
     return DateFormatter.memberJoinDate.string(from: date)

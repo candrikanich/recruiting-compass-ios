@@ -82,6 +82,13 @@ enum NotificationType: String, Codable, CaseIterable, Sendable {
   case inboundInteraction = "inbound_interaction"
   case offer
   case event
+  case unknown
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let rawValue = try container.decode(String.self)
+    self = NotificationType(rawValue: rawValue) ?? .unknown
+  }
 
   var label: String {
     switch self {
@@ -91,6 +98,7 @@ enum NotificationType: String, Codable, CaseIterable, Sendable {
     case .inboundInteraction: return "Inbound"
     case .offer: return "Offers"
     case .event: return "Events"
+    case .unknown: return "Other"
     }
   }
 
@@ -102,6 +110,7 @@ enum NotificationType: String, Codable, CaseIterable, Sendable {
     case .inboundInteraction: return "\u{1F4E7}"
     case .offer: return "\u{1F389}"
     case .event: return "\u{1F4C5}"
+    case .unknown: return "\u{2139}\u{FE0F}"
     }
   }
 }

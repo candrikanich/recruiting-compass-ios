@@ -1,7 +1,7 @@
 import Foundation
 
 struct MetricTrend: Identifiable, Equatable {
-  let id = UUID()
+  var id: String { type.rawValue }
   let type: MetricType
   let values: [Double]
   let min: Double

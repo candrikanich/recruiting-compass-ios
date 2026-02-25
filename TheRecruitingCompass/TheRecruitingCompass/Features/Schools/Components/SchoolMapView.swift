@@ -5,6 +5,8 @@ struct SchoolMapView: View {
   let school: School
   let homeLocation: CLLocationCoordinate2D?
 
+  @State private var distance: Double?
+
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       // Map
@@ -24,9 +26,12 @@ struct SchoolMapView: View {
         .accessibilityLabel("Map showing \(school.name) location")
         .accessibilityAddTraits(.allowsDirectInteraction)
         .accessibilityHint("Use two fingers to pan and pinch to zoom the map")
+        .onAppear {
+          distance = calculateDistance()
+        }
 
         // Distance from home
-        if let distance = calculateDistance() {
+        if let distance = distance {
           HStack(spacing: 6) {
             Image(systemName: "mappin.and.ellipse")
               .foregroundStyle(.secondary)

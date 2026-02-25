@@ -46,7 +46,6 @@ actor CollegeScorecardService: CollegeScorecardManaging {
 
     // Build request URL
     let url = try self.buildLookupURL(for: name)
-    logger.debug("Request URL: \(url.absoluteString)")
 
     // Perform API request
     let data = try await self.fetchData(from: url)
@@ -89,7 +88,6 @@ actor CollegeScorecardService: CollegeScorecardManaging {
 
     // Build request URL
     let url = try self.buildSearchURL(for: query)
-    logger.debug("Autocomplete URL: \(url.absoluteString)")
 
     // Perform API request
     let data = try await self.fetchData(from: url)

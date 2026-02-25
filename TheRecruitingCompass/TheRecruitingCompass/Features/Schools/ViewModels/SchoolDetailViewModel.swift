@@ -273,8 +273,6 @@ final class SchoolDetailViewModel {
   }
 
   func saveNotes() async {
-    guard !editedNotes.isEmpty else { return }
-
     await withLoading(setting: \.isSavingNotes) {
       do {
         let updated = try await schoolsService.updateNotes(id: schoolId, notes: editedNotes)

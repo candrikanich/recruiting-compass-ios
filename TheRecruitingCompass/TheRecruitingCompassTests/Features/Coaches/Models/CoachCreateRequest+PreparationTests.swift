@@ -13,7 +13,7 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
 
   // MARK: - Initialization Tests
 
-  func testFrom_withAllFields_createsRequestCorrectly() {
+  func testFrom_withAllFields_createsRequestCorrectly() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -26,12 +26,12 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.notes = "<p>Great coach</p>"
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school-123",
       userId: "user-456",
       familyUnitId: "family-789"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.schoolId, "school-123")
@@ -47,7 +47,7 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     XCTAssertEqual(request.notes, "Great coach")
   }
 
-  func testFrom_withRequiredFieldsOnly_createsRequestCorrectly() {
+  func testFrom_withRequiredFieldsOnly_createsRequestCorrectly() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .assistant
@@ -55,12 +55,12 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.lastName = "Doe"
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school-abc",
       userId: "user-xyz",
       familyUnitId: "family-123"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.schoolId, "school-abc")
@@ -76,7 +76,7 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.notes)
   }
 
-  func testFrom_withMixedRequiredAndOptional_createsRequestCorrectly() {
+  func testFrom_withMixedRequiredAndOptional_createsRequestCorrectly() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .recruiting
@@ -87,12 +87,12 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     // Leave phone, instagram, notes empty
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school-1",
       userId: "user-1",
       familyUnitId: "family-1"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.role, "recruiting")
@@ -105,9 +105,28 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.notes)
   }
 
+  func testFrom_withNilRole_returnsNil() {
+    // Given
+    var formState = CoachFormState()
+    formState.role = nil  // role not set
+    formState.firstName = "Test"
+    formState.lastName = "User"
+
+    // When
+    let request = CoachCreateRequest.from(
+      form: formState,
+      schoolId: "school",
+      userId: "user",
+      familyUnitId: "family"
+    )
+
+    // Then: nil role should return nil request
+    XCTAssertNil(request)
+  }
+
   // MARK: - Field Transformation Tests
 
-  func testFrom_emailIsLowercasedAndTrimmed() {
+  func testFrom_emailIsLowercasedAndTrimmed() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -116,18 +135,18 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.email = "   UPPERCASE@EXAMPLE.COM   "
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.email, "uppercase@example.com")
   }
 
-  func testFrom_emptyEmailConvertsToNil() {
+  func testFrom_emptyEmailConvertsToNil() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -136,18 +155,18 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.email = ""
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertNil(request.email)
   }
 
-  func testFrom_emptyPhoneConvertsToNil() {
+  func testFrom_emptyPhoneConvertsToNil() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -156,18 +175,18 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.phone = ""
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertNil(request.phone)
   }
 
-  func testFrom_twitterHandleStripsLeadingAt() {
+  func testFrom_twitterHandleStripsLeadingAt() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -176,18 +195,18 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.twitterHandle = "@testuser"
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.twitterHandle, "testuser")
   }
 
-  func testFrom_instagramHandleStripsLeadingAt() {
+  func testFrom_instagramHandleStripsLeadingAt() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -196,18 +215,18 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.instagramHandle = "@test.user"
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.instagramHandle, "test.user")
   }
 
-  func testFrom_notesHTMLTagsStripped() {
+  func testFrom_notesHTMLTagsStripped() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -216,18 +235,18 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.notes = "<p>Great <strong>coach</strong> with <em>excellent</em> skills</p>"
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.notes, "Great coach with excellent skills")
   }
 
-  func testFrom_firstNameTrimmed() {
+  func testFrom_firstNameTrimmed() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -235,18 +254,18 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.lastName = "Smith"
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.firstName, "John")
   }
 
-  func testFrom_lastNameTrimmed() {
+  func testFrom_lastNameTrimmed() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -254,18 +273,18 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.lastName = "   Smith   "
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.lastName, "Smith")
   }
 
-  func testFrom_emptyStringsConvertToNil() {
+  func testFrom_emptyStringsConvertToNil() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -278,12 +297,12 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.notes = ""
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertNil(request.email)
@@ -295,7 +314,7 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
 
   // MARK: - Edge Case Tests
 
-  func testFrom_atStrippingWhenNoAtPresent() {
+  func testFrom_atStrippingWhenNoAtPresent() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -305,19 +324,19 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.instagramHandle = "test.user"  // No @
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.twitterHandle, "testuser")
     XCTAssertEqual(request.instagramHandle, "test.user")
   }
 
-  func testFrom_atStrippingOnlyStripsLeadingAt() {
+  func testFrom_atStrippingOnlyStripsLeadingAt() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -327,19 +346,19 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.instagramHandle = "@test.@user"  // @ in middle preserved
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.twitterHandle, "user@domain")
     XCTAssertEqual(request.instagramHandle, "test.@user")
   }
 
-  func testFrom_HTMLStrippingWithNestedTags() {
+  func testFrom_HTMLStrippingWithNestedTags() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -348,18 +367,18 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.notes = "<div><p>Nested <span>tags</span> here</p></div>"
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.notes, "Nested tags here")
   }
 
-  func testFrom_HTMLStrippingWithSelfClosingTags() {
+  func testFrom_HTMLStrippingWithSelfClosingTags() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -368,12 +387,12 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.notes = "Line 1<br/>Line 2<hr/>Line 3"
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then
     XCTAssertEqual(request.notes, "Line 1Line 2Line 3")
@@ -381,7 +400,7 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
 
   // MARK: - Integration Tests
 
-  func testFrom_fullFormStateToRequestConversion() {
+  func testFrom_fullFormStateToRequestConversion() throws {
     // Given: A fully populated form
     var formState = CoachFormState()
     formState.role = .head
@@ -394,12 +413,12 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.notes = "<p>Excellent recruiter</p><ul><li>Responsive</li></ul>"
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "test-school-id",
       userId: "test-user-id",
       familyUnitId: "test-family-id"
-    )
+    ))
 
     // Then: Verify all transformations applied
     XCTAssertEqual(request.schoolId, "test-school-id")
@@ -415,7 +434,7 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     XCTAssertEqual(request.notes, "Excellent recruiterResponsive")  // HTML stripped
   }
 
-  func testFrom_minimalFormStateToRequestConversion() {
+  func testFrom_minimalFormStateToRequestConversion() throws {
     // Given: Form with only required fields
     var formState = CoachFormState()
     formState.role = .assistant
@@ -423,12 +442,12 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.lastName = "Doe"
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "min-school",
       userId: "min-user",
       familyUnitId: "min-family"
-    )
+    ))
 
     // Then: Required fields set, optional fields nil
     XCTAssertEqual(request.schoolId, "min-school")
@@ -444,7 +463,7 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.notes)
   }
 
-  func testFrom_whitespaceOnlyFieldsConvertToNil() {
+  func testFrom_whitespaceOnlyFieldsConvertToNil() throws {
     // Given
     var formState = CoachFormState()
     formState.role = .head
@@ -454,12 +473,12 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.notes = "   "  // Whitespace only
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try XCTUnwrap(CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",
       familyUnitId: "family"
-    )
+    ))
 
     // Then: Whitespace trimmed, empty string becomes nil
     XCTAssertNil(request.email)

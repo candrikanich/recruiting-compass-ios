@@ -55,9 +55,9 @@ enum AuthError: LocalizedError {
     case .expiredResetToken:
       return "This password reset link has expired."
     case .resetEmailNotFound:
-      return "No account found with this email address."
-    case .unknown(let error):
-      return error.localizedDescription
+      return "If an account exists for this email, you will receive a reset link shortly."
+    case .unknown:
+      return "An unexpected error occurred. Please try again."
     }
   }
 

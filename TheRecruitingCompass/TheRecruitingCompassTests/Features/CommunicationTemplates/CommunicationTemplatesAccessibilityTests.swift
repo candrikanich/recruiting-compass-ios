@@ -12,7 +12,7 @@ final class CommunicationTemplatesAccessibilityTests: XCTestCase {
     name: String = "Initial Contact Email",
     type: TemplateType = .email,
     body: String = "Dear {{coach_name}}, I am writing to express my interest...",
-    createdAt: Date = Date()
+    createdAt: String = "2026-01-01T00:00:00Z"
   ) -> CommunicationTemplate {
     CommunicationTemplate(
       id: id,

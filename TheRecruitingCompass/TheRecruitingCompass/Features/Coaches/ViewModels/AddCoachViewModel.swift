@@ -171,12 +171,15 @@ final class AddCoachViewModel {
     }
 
     // 2. Prepare data with sanitization
-    let request = CoachCreateRequest.from(
+    guard let request = CoachCreateRequest.from(
       form: formState,
       schoolId: schoolId,
       userId: userId,
       familyUnitId: familyUnitId
-    )
+    ) else {
+      submitError = "Failed to prepare coach data. Please check all required fields."
+      return nil
+    }
 
     logger.debug("Prepared request: \(request.firstName) \(request.lastName) (\(request.role))")
 

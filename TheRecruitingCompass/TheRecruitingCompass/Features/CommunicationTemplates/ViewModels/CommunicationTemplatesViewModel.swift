@@ -18,6 +18,7 @@ final class CommunicationTemplatesViewModel {
 
   var templates: [CommunicationTemplate] = []
   var isLoading = false
+  var isSaving = false
   var errorMessage: String?
   var activeTab: Tab = .list
   var filterType: TemplateType?
@@ -63,6 +64,8 @@ final class CommunicationTemplatesViewModel {
     guard formData.isValid else { return }
 
     errorMessage = nil
+    isSaving = true
+    defer { isSaving = false }
 
     do {
       if let editing = editingTemplate {

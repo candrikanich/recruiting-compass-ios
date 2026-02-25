@@ -15,6 +15,8 @@ enum SchoolFieldValidator {
   // URL regex pattern (http/https)
   private static let urlPattern = "^https?://[A-Za-z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]+$"
 
+  private static let urlRegex: NSRegularExpression = try! NSRegularExpression(pattern: urlPattern)
+
   // MARK: - Name Validation
 
   /// Validates school name (required, 2-255 characters)
@@ -125,10 +127,9 @@ enum SchoolFieldValidator {
     }
 
     // Validate URL format using regex
-    let regex = try! NSRegularExpression(pattern: urlPattern)
     let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
 
-    guard regex.firstMatch(in: trimmed, range: range) != nil else {
+    guard urlRegex.firstMatch(in: trimmed, range: range) != nil else {
       return "Please enter a valid URL (must start with http:// or https://)"
     }
 

@@ -164,7 +164,9 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       return ([], 0)
     }
 
-    var components = URLComponents(url: baseURL.appendingPathComponent("api/suggestions"), resolvingAgainstBaseURL: false)!
+    guard var components = URLComponents(url: baseURL.appendingPathComponent("api/suggestions"), resolvingAgainstBaseURL: false) else {
+      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid API base URL configuration"])
+    }
     components.queryItems = [URLQueryItem(name: "location", value: location)]
     guard let url = components.url else {
       throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid suggestions URL"])

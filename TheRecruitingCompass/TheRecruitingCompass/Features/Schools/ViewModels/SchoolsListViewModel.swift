@@ -21,11 +21,14 @@ final class SchoolsListViewModel {
 
   /// Home location for distance filter and sort. Uses family unit coordinates when present, otherwise location saved in Settings (user_preferences).
   var homeLocation: CLLocationCoordinate2D? {
-    if let lat = familyManager.familyUnit?.homeLatitude,
-       let lon = familyManager.familyUnit?.homeLongitude {
-      return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+    get {
+      if let lat = familyManager.familyUnit?.homeLatitude,
+         let lon = familyManager.familyUnit?.homeLongitude {
+        return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+      }
+      return homeLocationFromPreferences
     }
-    return homeLocationFromPreferences
+    set { homeLocationFromPreferences = newValue }
   }
 
   /// Cached home location from user_preferences (Settings → Home Location). Loaded in loadSchools().

@@ -154,7 +154,7 @@ final class ActivityFeedViewModel {
       logger.info("Loaded \(events.count) activity events")
     } catch {
       logger.error("Failed to load activities: \(error.localizedDescription)")
-      errorMessage = "Failed to load activities: \(error.localizedDescription)"
+      errorMessage = "Failed to load activities. Please try again."
     }
   }
 

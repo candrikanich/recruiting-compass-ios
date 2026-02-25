@@ -47,7 +47,7 @@ final class HomeLocationViewModel {
       isLoading = false
     } catch {
       logger.error("Failed to load location: \(error.localizedDescription)")
-      errorMessage = "Failed to load location: \(error.localizedDescription)"
+      errorMessage = "Failed to load location settings. Please try again."
       isLoading = false
     }
   }
@@ -77,7 +77,7 @@ final class HomeLocationViewModel {
       isSaving = false
     } catch {
       logger.error("Failed to save location: \(error.localizedDescription)")
-      errorMessage = "Failed to save location: \(error.localizedDescription)"
+      errorMessage = "Failed to save location. Please try again."
       isSaving = false
     }
   }

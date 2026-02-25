@@ -111,10 +111,26 @@ final class EventsListViewModel {
     )
   }
 
+  private static let monthTitleFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "MMMM yyyy"
+    return f
+  }()
+
+  private static let dayPrefixFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyy-MM-dd"
+    return f
+  }()
+
+  private static let monthPrefixFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyy-MM"
+    return f
+  }()
+
   var currentMonthTitle: String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "MMMM yyyy"
-    return formatter.string(from: currentMonth)
+    EventsListViewModel.monthTitleFormatter.string(from: currentMonth)
   }
 
   var calendarDays: [Date] {
@@ -130,9 +146,7 @@ final class EventsListViewModel {
   }
 
   func hasEvent(on date: Date) -> Bool {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    let prefix = formatter.string(from: date)
+    let prefix = EventsListViewModel.dayPrefixFormatter.string(from: date)
     return events.contains { $0.startDate == prefix }
   }
 
@@ -141,9 +155,7 @@ final class EventsListViewModel {
   }
 
   func eventsForDate(_ date: Date) -> [FullEvent] {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    let prefix = formatter.string(from: date)
+    let prefix = EventsListViewModel.dayPrefixFormatter.string(from: date)
     return filteredEvents.filter { $0.startDate == prefix }
   }
 
@@ -230,18 +242,14 @@ final class EventsListViewModel {
   // MARK: - Private Helpers
 
   private func isoToday() -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    return formatter.string(from: Date())
+    EventsListViewModel.dayPrefixFormatter.string(from: Date())
   }
 
   private func isoNextMonthPrefix() -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM"
     guard let nextMonth = Calendar.current.date(byAdding: .month, value: 1, to: Date()) else {
       return ""
     }
-    return formatter.string(from: nextMonth)
+    return EventsListViewModel.monthPrefixFormatter.string(from: nextMonth)
   }
 
   /// First day of the current calendar month (for ±2 year limit).

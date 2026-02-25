@@ -38,7 +38,7 @@ final class AuthManager: AuthManaging {
       try keychain.save(session, forKey: sessionKey)
     } catch {
       self.isAuthenticated = false
-      self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
       throw error
     }
   }
@@ -69,7 +69,7 @@ final class AuthManager: AuthManaging {
       }
     } catch {
       self.isAuthenticated = false
-      self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
       throw error
     }
   }
@@ -85,7 +85,7 @@ final class AuthManager: AuthManaging {
       try keychain.save(newSession, forKey: sessionKey)
       return newSession.user
     } catch {
-      self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
       throw error
     }
   }
@@ -95,7 +95,7 @@ final class AuthManager: AuthManaging {
       try await supabaseManager.resendVerificationEmail(email: email)
       self.errorMessage = nil
     } catch {
-      self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
       throw error
     }
   }
@@ -105,7 +105,7 @@ final class AuthManager: AuthManaging {
       try await supabaseManager.resetPasswordForEmail(email: email)
       self.errorMessage = nil
     } catch {
-      self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
       throw error
     }
   }
@@ -115,7 +115,7 @@ final class AuthManager: AuthManaging {
       try await supabaseManager.updatePassword(newPassword: newPassword)
       self.errorMessage = nil
     } catch {
-      self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
       throw error
     }
   }
@@ -124,8 +124,7 @@ final class AuthManager: AuthManaging {
     do {
       try await supabaseManager.signOut()
     } catch {
-      // Log the error but continue with local cleanup
-      self.errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+      // Ignore sign-out errors and continue with local cleanup
     }
 
     self.user = nil

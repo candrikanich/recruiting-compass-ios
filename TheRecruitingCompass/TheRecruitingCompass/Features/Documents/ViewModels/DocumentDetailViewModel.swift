@@ -255,7 +255,9 @@ final class DocumentDetailViewModel {
 
     selectedSchoolIds = []
     showShareModal = false
-    document = try? await documentsService.fetchDocument(id: self.documentId)
+    if let refreshed = try? await documentsService.fetchDocument(id: self.documentId) {
+      document = refreshed
+    }
     await invalidateDocumentCache()
     logger.info("Saved share for document: \(self.documentId)")
   }
@@ -263,7 +265,9 @@ final class DocumentDetailViewModel {
   func removeShare(schoolId: String) async {
     do {
       try await documentsService.revokeShare(documentId: self.documentId, schoolId: schoolId)
-      document = try? await documentsService.fetchDocument(id: self.documentId)
+      if let refreshed = try? await documentsService.fetchDocument(id: self.documentId) {
+        document = refreshed
+      }
       await invalidateDocumentCache()
       logger.info("Removed share for document: \(self.documentId)")
     } catch {
@@ -321,7 +325,9 @@ final class DocumentDetailViewModel {
 
     do {
       try await documentsService.updateDocumentIsCurrent(id: version.id, isCurrent: true)
-      document = try? await documentsService.fetchDocument(id: self.documentId)
+      if let refreshed = try? await documentsService.fetchDocument(id: self.documentId) {
+        document = refreshed
+      }
       await invalidateDocumentCache()
       await fetchVersions()
       logger.info("Restored version \(version.version)")

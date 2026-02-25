@@ -18,6 +18,11 @@ enum FieldValidator {
   private static let twitterPattern = "^[A-Za-z0-9_]{1,15}$"
   private static let instagramPattern = "^[A-Za-z0-9_.]{1,30}$"
 
+  private static let emailRegex: NSRegularExpression = try! NSRegularExpression(pattern: emailPattern)
+  private static let phoneRegex: NSRegularExpression = try! NSRegularExpression(pattern: phonePattern)
+  private static let twitterRegex: NSRegularExpression = try! NSRegularExpression(pattern: twitterPattern)
+  private static let instagramRegex: NSRegularExpression = try! NSRegularExpression(pattern: instagramPattern)
+
   // MARK: - Role Validation
 
   /// Validates that a role is selected
@@ -88,10 +93,9 @@ enum FieldValidator {
     }
 
     // Validate email format using regex
-    let regex = try! NSRegularExpression(pattern: emailPattern)
     let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
 
-    guard regex.firstMatch(in: trimmed, range: range) != nil else {
+    guard emailRegex.firstMatch(in: trimmed, range: range) != nil else {
       return "Please enter a valid email address"
     }
 
@@ -111,10 +115,9 @@ enum FieldValidator {
     }
 
     // Validate phone format using regex
-    let regex = try! NSRegularExpression(pattern: phonePattern)
     let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
 
-    guard regex.firstMatch(in: trimmed, range: range) != nil else {
+    guard phoneRegex.firstMatch(in: trimmed, range: range) != nil else {
       return "Please enter a valid phone number"
     }
 
@@ -139,10 +142,9 @@ enum FieldValidator {
     let cleaned = trimmed.hasPrefix("@") ? String(trimmed.dropFirst()) : trimmed
 
     // Validate Twitter handle format using regex
-    let regex = try! NSRegularExpression(pattern: twitterPattern)
     let range = NSRange(cleaned.startIndex..<cleaned.endIndex, in: cleaned)
 
-    guard regex.firstMatch(in: cleaned, range: range) != nil else {
+    guard twitterRegex.firstMatch(in: cleaned, range: range) != nil else {
       return "Invalid Twitter handle (1-15 characters, letters/numbers/underscore)"
     }
 
@@ -165,10 +167,9 @@ enum FieldValidator {
     let cleaned = trimmed.hasPrefix("@") ? String(trimmed.dropFirst()) : trimmed
 
     // Validate Instagram handle format using regex
-    let regex = try! NSRegularExpression(pattern: instagramPattern)
     let range = NSRange(cleaned.startIndex..<cleaned.endIndex, in: cleaned)
 
-    guard regex.firstMatch(in: cleaned, range: range) != nil else {
+    guard instagramRegex.firstMatch(in: cleaned, range: range) != nil else {
       return "Invalid Instagram handle (1-30 characters, letters/numbers/dots/underscore)"
     }
 

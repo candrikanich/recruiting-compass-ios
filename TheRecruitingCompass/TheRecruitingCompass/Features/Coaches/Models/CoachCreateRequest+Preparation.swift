@@ -17,15 +17,17 @@ extension CoachCreateRequest {
   ///   - schoolId: The selected school ID
   ///   - userId: The current user ID
   ///   - familyUnitId: The family unit ID
-  /// - Returns: CoachCreateRequest ready for API submission
+  /// - Returns: CoachCreateRequest ready for API submission, or nil if required fields are missing
   static func from(
     form: CoachFormState,
     schoolId: String,
     userId: String,
     familyUnitId: String
-  ) -> CoachCreateRequest {
-    // Required: role (already validated as non-nil)
-    let role = form.role!.rawValue
+  ) -> CoachCreateRequest? {
+    // Required: role
+    guard let role = form.role?.rawValue else {
+      return nil
+    }
 
     // Required: names (trim whitespace)
     let firstName = form.firstName.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -36,14 +36,8 @@ final class FitScoreService: FitScoreManaging, Sendable {
       personalFit: 85.0
     )
 
-    let averageScore = [
-      breakdown.athleticFit,
-      breakdown.academicFit,
-      breakdown.opportunityFit,
-      breakdown.personalFit
-    ]
-    .compactMap { $0 }
-    .reduce(0, +) / 4.0
+    let values = [breakdown.athleticFit, breakdown.academicFit, breakdown.opportunityFit, breakdown.personalFit].compactMap { $0 }
+    let averageScore = values.isEmpty ? 0.0 : values.reduce(0, +) / Double(values.count)
 
     let tier = determineFitTier(score: averageScore)
 

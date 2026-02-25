@@ -42,7 +42,7 @@ final class SchoolPreferencesViewModel {
       isLoading = false
     } catch {
       logger.error("Failed to load preferences: \(error.localizedDescription)")
-      errorMessage = "Failed to load preferences: \(error.localizedDescription)"
+      errorMessage = "Failed to load preferences. Please try again."
       isLoading = false
     }
   }
@@ -75,7 +75,7 @@ final class SchoolPreferencesViewModel {
       isSaving = false
     } catch {
       logger.error("Failed to save preferences: \(error.localizedDescription)")
-      errorMessage = "Failed to save preferences: \(error.localizedDescription)"
+      errorMessage = "Failed to save preferences. Please try again."
       isSaving = false
     }
   }

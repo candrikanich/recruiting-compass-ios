@@ -31,28 +31,35 @@ struct SchoolStatusHistory: Identifiable, Codable, Sendable {
     changedBy = try container.decode(String.self, forKey: .changedBy)
     notes = try container.decodeIfPresent(String.self, forKey: .notes)
 
-    let iso8601Formatter = ISO8601DateFormatter()
-    iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    let fractionalFormatter = ISO8601DateFormatter()
+    fractionalFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
-    if let changedAtString = try? container.decode(String.self, forKey: .changedAt),
-       let date = iso8601Formatter.date(from: changedAtString) {
+    let basicFormatter = ISO8601DateFormatter()
+    basicFormatter.formatOptions = [.withInternetDateTime]
+
+    let changedAtString = try container.decode(String.self, forKey: .changedAt)
+    if let date = fractionalFormatter.date(from: changedAtString) {
+      changedAt = date
+    } else if let date = basicFormatter.date(from: changedAtString) {
       changedAt = date
     } else {
       throw DecodingError.dataCorruptedError(
         forKey: .changedAt,
         in: container,
-        debugDescription: "Date string does not match expected format"
+        debugDescription: "Cannot decode date: \(changedAtString)"
       )
     }
 
-    if let createdAtString = try? container.decode(String.self, forKey: .createdAt),
-       let date = iso8601Formatter.date(from: createdAtString) {
+    let createdAtString = try container.decode(String.self, forKey: .createdAt)
+    if let date = fractionalFormatter.date(from: createdAtString) {
+      createdAt = date
+    } else if let date = basicFormatter.date(from: createdAtString) {
       createdAt = date
     } else {
       throw DecodingError.dataCorruptedError(
         forKey: .createdAt,
         in: container,
-        debugDescription: "Date string does not match expected format"
+        debugDescription: "Cannot decode date: \(createdAtString)"
       )
     }
   }

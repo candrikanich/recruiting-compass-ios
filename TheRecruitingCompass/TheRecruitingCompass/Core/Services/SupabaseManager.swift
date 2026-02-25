@@ -71,12 +71,23 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
   private struct DatabaseUser: Codable {
     let id: String
     let email: String
-    let email_confirmed_at: String?
+    let emailConfirmedAt: String?
     let phone: String?
-    let full_name: String?
+    let fullName: String?
     let role: String
-    let created_at: String
-    let updated_at: String
+    let createdAt: String
+    let updatedAt: String
+
+    enum CodingKeys: String, CodingKey {
+      case id
+      case email
+      case emailConfirmedAt = "email_confirmed_at"
+      case phone
+      case fullName = "full_name"
+      case role
+      case createdAt = "created_at"
+      case updatedAt = "updated_at"
+    }
   }
 
   private init() {
@@ -248,10 +259,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     return User(
       id: dbUser.id,
       email: dbUser.email,
-      emailConfirmedAt: dbUser.email_confirmed_at,
+      emailConfirmedAt: dbUser.emailConfirmedAt,
       phone: dbUser.phone,
-      createdAt: dbUser.created_at,
-      updatedAt: dbUser.updated_at,
+      createdAt: dbUser.createdAt,
+      updatedAt: dbUser.updatedAt,
       role: UserRole(rawValue: dbUser.role)
     )
   }

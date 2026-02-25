@@ -50,7 +50,7 @@ Supabase credentials must be configured before running:
 
 **Action Items (Suggestions):** The dashboard Action Items widget uses the web app API (`GET /api/suggestions`, `PATCH .../dismiss`, `PATCH .../complete`). Set `API_BASE_URL` to your web app base URL (e.g. Vercel deployment). Authorization uses the Supabase session token (Bearer). If `API_BASE_URL` is unset, the widget shows "No action items at this time."
 
-**Production:** Release builds **require** real `SUPABASE_URL` and `SUPABASE_ANON_KEY`. If either is missing or set to the placeholder values, the app will fatalError at launch. Configure the same environment variables in your Release scheme or CI so production never uses placeholders.
+**Production / TestFlight / App Store:** Release builds require real `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Scheme environment variables are **not** embedded in archived builds. Edit **`TheRecruitingCompass/Release.xcconfig`** and replace the placeholder URL and key with your real values before creating an Archive. See `docs/CONFIGURATION.md`.
 
 ---
 

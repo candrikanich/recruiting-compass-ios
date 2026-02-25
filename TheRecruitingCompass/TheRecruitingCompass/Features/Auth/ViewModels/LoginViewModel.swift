@@ -16,6 +16,7 @@ final class LoginViewModel {
 
   private let authManager: any AuthManaging
   private let formValidator = FormValidator.self
+  private let keychain = KeychainHelper.shared
   private static let cachedEmailKey = "cachedEmail"
 
   var isFormValid: Bool {
@@ -47,7 +48,7 @@ final class LoginViewModel {
   // MARK: - Remember Me & Email Caching
 
   private func loadCachedEmail() {
-    guard let cached = UserDefaults.standard.string(forKey: Self.cachedEmailKey) else {
+    guard let cached = try? keychain.load(String.self, forKey: Self.cachedEmailKey) else {
       return
     }
     email = cached
@@ -55,11 +56,11 @@ final class LoginViewModel {
   }
 
   private func cacheEmail(_ emailAddress: String) {
-    UserDefaults.standard.set(emailAddress, forKey: Self.cachedEmailKey)
+    try? keychain.save(emailAddress, forKey: Self.cachedEmailKey)
   }
 
   private func clearCachedEmail() {
-    UserDefaults.standard.removeObject(forKey: Self.cachedEmailKey)
+    try? keychain.delete(forKey: Self.cachedEmailKey)
   }
 
   // MARK: - Validation

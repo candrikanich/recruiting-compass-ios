@@ -148,7 +148,7 @@ final class InteractionsListViewModel {
       }
     } catch {
       logger.error("Failed to load interactions: \(error.localizedDescription)")
-      errorMessage = "Failed to load interactions: \(error.localizedDescription)"
+      errorMessage = "Failed to load interactions. Please try again."
     }
   }
 

@@ -214,6 +214,11 @@ final class AddInteractionViewModel {
       return false
     }
 
+    guard let interactionType = formState.type else {
+      errorMessage = "Interaction type is required"
+      return false
+    }
+
     logger.debug("Submitting interaction")
     isSubmitting = true
     errorMessage = nil
@@ -238,7 +243,7 @@ final class AddInteractionViewModel {
         schoolId: formState.schoolId.isEmpty ? nil : formState.schoolId,
         coachId: formState.coachId,
         eventId: nil,
-        type: formState.type!,
+        type: interactionType,
         direction: formState.direction,
         occurredAt: formState.occurredAt,
         subject: formState.subject.isEmpty ? nil : formState.subject,

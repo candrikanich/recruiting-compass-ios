@@ -125,7 +125,7 @@ final class OffersListViewModel {
       logger.info("Loaded \(self.allOffers.count) offers")
     } catch {
       logger.error("Failed to load offers: \(error.localizedDescription)")
-      errorMessage = "Failed to load offers: \(error.localizedDescription)"
+      errorMessage = "Failed to load offers. Please try again."
     }
   }
 
@@ -149,7 +149,7 @@ final class OffersListViewModel {
       logger.info("Created offer: \(newOffer.id)")
     } catch {
       logger.error("Failed to create offer: \(error.localizedDescription)")
-      errorMessage = "Failed to save offer: \(error.localizedDescription)"
+      errorMessage = "Failed to save offer. Please try again."
     }
   }
 

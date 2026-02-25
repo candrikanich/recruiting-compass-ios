@@ -65,22 +65,47 @@ struct UpcomingEventsWidget: View {
 struct EventRow: View {
   let event: FullEvent
 
+  private static let isoParser: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return f
+  }()
+
+  private static let isoParserFallback: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime]
+    return f
+  }()
+
+  private static let dateOnlyParser: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyy-MM-dd"
+    return f
+  }()
+
+  private static let dateOnlyDisplay: DateFormatter = {
+    let f = DateFormatter()
+    f.dateStyle = .medium
+    f.timeStyle = .none
+    return f
+  }()
+
+  private static let dateTimeDisplay: DateFormatter = {
+    let f = DateFormatter()
+    f.dateStyle = .medium
+    f.timeStyle = .short
+    return f
+  }()
+
   private var eventDateFormatted: String {
-    guard let date = ISO8601DateFormatter().date(from: event.startDate) else {
-      let dateOnly = DateFormatter()
-      dateOnly.dateFormat = "yyyy-MM-dd"
-      if let d = dateOnly.date(from: event.startDate) {
-        let display = DateFormatter()
-        display.dateStyle = .medium
-        display.timeStyle = .none
-        return display.string(from: d)
-      }
-      return event.startDate
+    if let date = EventRow.isoParser.date(from: event.startDate)
+      ?? EventRow.isoParserFallback.date(from: event.startDate) {
+      return EventRow.dateTimeDisplay.string(from: date)
     }
-    let formatter = DateFormatter()
-    formatter.dateStyle = .medium
-    formatter.timeStyle = .short
-    return formatter.string(from: date)
+    if let d = EventRow.dateOnlyParser.date(from: event.startDate) {
+      return EventRow.dateOnlyDisplay.string(from: d)
+    }
+    return event.startDate
   }
 
   private var eventTypeIcon: String {

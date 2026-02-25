@@ -53,7 +53,7 @@ final class PlayerDetailsViewModel {
       isLoading = false
     } catch {
       logger.error("Failed to load details: \(error.localizedDescription)")
-      errorMessage = "Failed to load details: \(error.localizedDescription)"
+      errorMessage = "Failed to load player details. Please try again."
       isLoading = false
     }
   }
@@ -88,7 +88,7 @@ final class PlayerDetailsViewModel {
       isSaving = false
     } catch {
       logger.error("Failed to save details: \(error.localizedDescription)")
-      errorMessage = "Failed to save details: \(error.localizedDescription)"
+      errorMessage = "Failed to save player details. Please try again."
       isSaving = false
     }
   }
@@ -122,7 +122,7 @@ final class PlayerDetailsViewModel {
       isUploadingPhoto = false
     } catch {
       logger.error("Failed to upload photo: \(error.localizedDescription)")
-      errorMessage = "Failed to upload photo: \(error.localizedDescription)"
+      errorMessage = "Failed to upload photo. Please try again."
       isUploadingPhoto = false
     }
   }

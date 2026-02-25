@@ -364,11 +364,11 @@ final class CoachDetailViewModel {
           logger.info("Cascade delete successful: \(result.deletedInteractions) interactions deleted")
         } catch {
           logger.error("Cascade delete failed: \(error.localizedDescription)")
-          errorMessage = error.localizedDescription
+          errorMessage = "Failed to delete coach. Please try again."
         }
       } else {
         logger.error("Delete failed: \(error.localizedDescription)")
-        errorMessage = error.localizedDescription
+        errorMessage = "Failed to delete coach. Please try again."
       }
     }
   }

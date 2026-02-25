@@ -106,7 +106,7 @@ final class NotificationsListViewModel {
       notifications = fetched
       logger.info("Loaded \(fetched.count) notifications")
     } catch {
-      errorMessage = error.localizedDescription
+      errorMessage = "Failed to load notifications. Please try again."
       logger.error("Failed to fetch notifications: \(error.localizedDescription)")
     }
   }

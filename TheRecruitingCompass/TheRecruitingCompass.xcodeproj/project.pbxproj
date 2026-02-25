@@ -32,6 +32,7 @@
 		988EFDAA2F35489B009C60F5 /* myCompass.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = myCompass.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		988EFDB72F35489C009C60F5 /* TheRecruitingCompassTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TheRecruitingCompassTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		988EFDC12F35489C009C60F5 /* TheRecruitingCompassUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TheRecruitingCompassUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		98A1B2C32F35489B009C60F5 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -104,6 +105,7 @@
 		988EFDA12F35489B009C60F5 = {
 			isa = PBXGroup;
 			children = (
+				98A1B2C32F35489B009C60F5 /* Release.xcconfig */,
 				988EFDAC2F35489B009C60F5 /* TheRecruitingCompass */,
 				988EFDBA2F35489C009C60F5 /* TheRecruitingCompassTests */,
 				988EFDC42F35489C009C60F5 /* TheRecruitingCompassUITests */,
@@ -170,9 +172,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 988EFDCB2F35489C009C60F5 /* Build configuration list for PBXNativeTarget "TheRecruitingCompass" */;
 			buildPhases = (
+				98B3C4D22F3A5101009C60F5 /* Generate Supabase config */,
 				988EFDA62F35489B009C60F5 /* Sources */,
 				988EFDA72F35489B009C60F5 /* Frameworks */,
 				988EFDA82F35489B009C60F5 /* Resources */,
+				98B3C4D12F3A5001009C60F5 /* Embed Supabase config in bundle */,
 			);
 			buildRules = (
 			);
@@ -302,6 +306,49 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		98B3C4D12F3A5001009C60F5 /* Embed Supabase config in bundle */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Supabase config in bundle";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "PLIST_PATH=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}/SupabaseConfig.plist\"\n# Create minimal plist then add keys from xcconfig (available in build settings)\nprintf '%s\\\\n' '<?xml version=\"1.0\" encoding=\"UTF-8\"?>' '<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">' '<plist version=\"1.0\"><dict></dict></plist>' > \"$PLIST_PATH\"\n/usr/libexec/PlistBuddy -c \"Add :SUPABASE_URL string \\\"${SUPABASE_URL}\\\"\" \"$PLIST_PATH\"\n/usr/libexec/PlistBuddy -c \"Add :SUPABASE_ANON_KEY string \\\"${SUPABASE_ANON_KEY}\\\"\" \"$PLIST_PATH\"\n";
+			showEnvVarsInLog = 0;
+		};
+		98B3C4D22F3A5101009C60F5 /* Generate Supabase config */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Generate Supabase config";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -z \"${SUPABASE_URL}\" ]; then echo \"error: SUPABASE_URL is empty during build. Ensure Release.xcconfig has SUPABASE_URL and SUPABASE_ANON_KEY.\"; exit 1; fi\nif [ -z \"${SUPABASE_ANON_KEY}\" ]; then echo \"error: SUPABASE_ANON_KEY is empty during build.\"; exit 1; fi\nOUT=\"${SRCROOT}/TheRecruitingCompass/Core/Services/SupabaseConfig.generated.swift\"\nURL_ESC=$(printf '%s' \"$SUPABASE_URL\" | sed 's/\\\\/\\\\\\\\/g; s/\"/\\\\\"/g')\nKEY_ESC=$(printf '%s' \"$SUPABASE_ANON_KEY\" | sed 's/\\\\/\\\\\\\\/g; s/\"/\\\\\"/g')\nprintf 'import Foundation\\n\\n/// Auto-generated at build time from Release.xcconfig. Do not edit manually.\\nenum SupabaseConfigEmbedded {\\n  static let urlString = \"%s\"\\n  static let anonKey = \"%s\"\\n}\\n' \"$URL_ESC\" \"$KEY_ESC\" > \"$OUT\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		988EFDA62F35489B009C60F5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -342,6 +389,7 @@
 /* Begin XCBuildConfiguration section */
 		988EFDC92F35489C009C60F5 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 98A1B2C32F35489B009C60F5 /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -399,6 +447,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				SUPABASE_URL = "https://xpxzhqghxecsjhvklsqg.supabase.co";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -406,6 +455,7 @@
 		};
 		988EFDCA2F35489C009C60F5 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 98A1B2C32F35489B009C60F5 /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -456,6 +506,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				SUPABASE_URL = "https://xpxzhqghxecsjhvklsqg.supabase.co";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -470,7 +521,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = G374A783RH;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_SUPABASE_ANON_KEY = "$(SUPABASE_ANON_KEY)";
+				INFOPLIST_KEY_SUPABASE_URL = "$(SUPABASE_URL)";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -482,6 +536,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.chrisandrikanich.TheRecruitingCompass;
+				PRODUCT_MODULE_NAME = TheRecruitingCompass;
 				PRODUCT_NAME = myCompass;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -502,7 +557,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = G374A783RH;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_SUPABASE_ANON_KEY = "$(SUPABASE_ANON_KEY)";
+				INFOPLIST_KEY_SUPABASE_URL = "$(SUPABASE_URL)";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -514,6 +572,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.chrisandrikanich.TheRecruitingCompass;
+				PRODUCT_MODULE_NAME = TheRecruitingCompass;
 				PRODUCT_NAME = myCompass;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -543,7 +602,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TheRecruitingCompass.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TheRecruitingCompass";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/myCompass.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/myCompass";
 			};
 			name = Debug;
 		};
@@ -565,7 +624,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TheRecruitingCompass.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TheRecruitingCompass";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/myCompass.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/myCompass";
 			};
 			name = Release;
 		};

@@ -6,6 +6,9 @@ enum FormValidator {
   // Family code pattern: FAM-XXXXXXXX (alphanumeric after prefix)
   private static let familyCodePattern = "^FAM-[A-Z0-9]{8}$"
 
+  private static let emailRegex: NSRegularExpression = try! NSRegularExpression(pattern: emailPattern)
+  private static let familyCodeRegex: NSRegularExpression = try! NSRegularExpression(pattern: familyCodePattern)
+
   static func validateEmail(_ email: String) -> String? {
     let trimmed = email.trimmingCharacters(in: .whitespaces)
 
@@ -13,10 +16,9 @@ enum FormValidator {
       return "Email is required"
     }
 
-    let regex = try! NSRegularExpression(pattern: emailPattern)
     let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
 
-    guard regex.firstMatch(in: trimmed, range: range) != nil else {
+    guard emailRegex.firstMatch(in: trimmed, range: range) != nil else {
       return "Invalid email address"
     }
 
@@ -35,6 +37,8 @@ enum FormValidator {
     return nil
   }
 
+  private static let nameRegex: NSRegularExpression = try! NSRegularExpression(pattern: "^[a-zA-Z\\s\\-']+$")
+
   static func validateName(_ name: String) -> String? {
     let trimmed = name.trimmingCharacters(in: .whitespaces)
 
@@ -46,11 +50,9 @@ enum FormValidator {
       return "Name must be at least 2 characters"
     }
 
-    let namePattern = "^[a-zA-Z\\s\\-']+$"
-    let regex = try! NSRegularExpression(pattern: namePattern)
     let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
 
-    guard regex.firstMatch(in: trimmed, range: range) != nil else {
+    guard nameRegex.firstMatch(in: trimmed, range: range) != nil else {
       return "Name can only contain letters, spaces, hyphens, and apostrophes"
     }
 
@@ -98,10 +100,9 @@ enum FormValidator {
       return nil // Empty is acceptable for optional field
     }
 
-    let regex = try! NSRegularExpression(pattern: familyCodePattern)
     let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
 
-    guard regex.firstMatch(in: trimmed, range: range) != nil else {
+    guard familyCodeRegex.firstMatch(in: trimmed, range: range) != nil else {
       return "Family code must be in format FAM-XXXXXXXX"
     }
 

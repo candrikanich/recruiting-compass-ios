@@ -75,8 +75,27 @@ struct NotificationCard: View {
       .joined(separator: ". ")
   }
 
+  private static let isoParser: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return f
+  }()
+
+  private static let isoParserFallback: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime]
+    return f
+  }()
+
+  private static let shortDateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "MMM d"
+    return f
+  }()
+
   private func formatRelativeDate(_ dateString: String) -> String {
-    guard let date = ISO8601DateFormatter().date(from: dateString) else {
+    guard let date = NotificationCard.isoParser.date(from: dateString)
+      ?? NotificationCard.isoParserFallback.date(from: dateString) else {
       return dateString
     }
 
@@ -87,9 +106,7 @@ struct NotificationCard: View {
     if seconds < 86400 { return "\(Int(seconds / 3600))h ago" }
     if seconds < 604800 { return "\(Int(seconds / 86400))d ago" }
 
-    let formatter = DateFormatter()
-    formatter.dateFormat = "MMM d"
-    return formatter.string(from: date)
+    return NotificationCard.shortDateFormatter.string(from: date)
   }
 }
 

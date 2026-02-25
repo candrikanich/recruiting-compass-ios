@@ -39,3 +39,9 @@ Package.resolved
 
 # Supabase
 supabase/.temp/
+
+# Release config (contains real credentials — never commit)
+TheRecruitingCompass/Release.xcconfig
+
+# Generated credential file baked from Release.xcconfig — never commit
+TheRecruitingCompass/TheRecruitingCompass/Core/Services/SupabaseConfig.generated.swift

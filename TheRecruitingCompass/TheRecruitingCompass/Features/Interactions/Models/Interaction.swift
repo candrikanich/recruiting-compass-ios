@@ -19,13 +19,11 @@ struct Interaction: Identifiable, Codable, Sendable {
 
   var displayDate: Date {
     if let occurredAt {
-      if let date = Self.iso8601Formatter.date(from: occurredAt) {
-        return date
-      }
+      if let date = Self.iso8601Formatter.date(from: occurredAt) { return date }
+      if let date = Self.iso8601FallbackFormatter.date(from: occurredAt) { return date }
     }
-    if let date = Self.iso8601Formatter.date(from: createdAt) {
-      return date
-    }
+    if let date = Self.iso8601Formatter.date(from: createdAt) { return date }
+    if let date = Self.iso8601FallbackFormatter.date(from: createdAt) { return date }
     return Date()
   }
 
@@ -44,6 +42,12 @@ struct Interaction: Identifiable, Codable, Sendable {
   static let iso8601Formatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter
+  }()
+
+  static let iso8601FallbackFormatter: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime]
     return formatter
   }()
 
@@ -75,6 +79,13 @@ enum InteractionType: String, Codable, CaseIterable, Sendable {
   case showcase
   case tweet
   case directMessage = "dm"
+  case unknown
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let rawValue = try container.decode(String.self)
+    self = InteractionType(rawValue: rawValue) ?? .unknown
+  }
 
   var displayName: String {
     switch self {
@@ -87,6 +98,7 @@ enum InteractionType: String, Codable, CaseIterable, Sendable {
     case .showcase: return "Showcase"
     case .tweet: return "Tweet"
     case .directMessage: return "Direct Message"
+    case .unknown: return "Unknown"
     }
   }
 
@@ -101,6 +113,7 @@ enum InteractionType: String, Codable, CaseIterable, Sendable {
     case .showcase: return "star.fill"
     case .tweet: return "bubble.left.fill"
     case .directMessage: return "paperplane.fill"
+    case .unknown: return "questionmark.circle.fill"
     }
   }
 
@@ -115,6 +128,7 @@ enum InteractionType: String, Codable, CaseIterable, Sendable {
     case .showcase: return .pink
     case .tweet: return .cyan
     case .directMessage: return .purple
+    case .unknown: return .gray
     }
   }
 }

@@ -65,6 +65,14 @@ final class CoachesListViewModel {
     EntityNameLookup.schoolNameMap(from: allSchools)
   }
 
+  private var schoolLogoMap: [String: String?] {
+    Dictionary(uniqueKeysWithValues: allSchools.map { ($0.id, $0.faviconUrl) })
+  }
+
+  private var schoolInitialsMap: [String: String] {
+    Dictionary(uniqueKeysWithValues: allSchools.map { ($0.id, $0.initials) })
+  }
+
   var activeFilterCount: Int {
     filters.activeFilterCount
   }
@@ -123,7 +131,7 @@ final class CoachesListViewModel {
       logger.info("Loaded \(self.allCoaches.count) coaches from \(schools.count) schools")
     } catch {
       logger.error("Failed to load coaches: \(error.localizedDescription)")
-      errorMessage = "Failed to load coaches: \(error.localizedDescription)"
+      errorMessage = "Failed to load coaches. Please try again."
     }
   }
 
@@ -182,14 +190,11 @@ final class CoachesListViewModel {
   }
 
   func schoolLogoUrl(for schoolId: String) -> String? {
-    allSchools.first(where: { $0.id == schoolId })?.faviconUrl
+    schoolLogoMap[schoolId] ?? nil
   }
 
   func schoolInitials(for schoolId: String) -> String {
-    guard let school = allSchools.first(where: { $0.id == schoolId }) else {
-      return "??"
-    }
-    return school.initials
+    schoolInitialsMap[schoolId] ?? "??"
   }
 
   // MARK: - Private

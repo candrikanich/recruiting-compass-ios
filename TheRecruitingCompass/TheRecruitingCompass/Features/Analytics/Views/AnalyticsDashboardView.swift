@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AnalyticsDashboardView: View {
-  @State var viewModel: AnalyticsDashboardViewModel
+  @State private var viewModel: AnalyticsDashboardViewModel
   @State private var exportFileURL: URL?
   @State private var showShareSheet = false
 
