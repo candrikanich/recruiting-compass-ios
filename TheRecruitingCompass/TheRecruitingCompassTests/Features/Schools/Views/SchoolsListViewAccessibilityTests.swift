@@ -146,7 +146,7 @@ final class SchoolsListViewAccessibilityTests: XCTestCase {
 
   func testSchoolCardView_LogoIsDecorativeWhenPresent() {
     let school = makeSchool(faviconUrl: "https://example.com/logo.png")
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNotNil(mirror)
@@ -154,7 +154,7 @@ final class SchoolsListViewAccessibilityTests: XCTestCase {
 
   func testSchoolCardView_InitialsCircleHidden() {
     let school = makeSchool()
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNotNil(mirror)
@@ -162,7 +162,7 @@ final class SchoolsListViewAccessibilityTests: XCTestCase {
 
   func testSchoolCardView_BadgesHaveLabels() {
     let school = makeSchool(division: "D1", status: "interested")
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNotNil(mirror)
@@ -170,7 +170,7 @@ final class SchoolsListViewAccessibilityTests: XCTestCase {
 
   func testSchoolCardView_ConferenceIcon_Decorative() {
     let school = makeSchool(conference: "Pac-12")
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNotNil(mirror)
@@ -178,15 +178,7 @@ final class SchoolsListViewAccessibilityTests: XCTestCase {
 
   func testSchoolCardView_NotesIcon_Decorative() {
     let school = makeSchool(notes: "Great program")
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
-    let mirror = Mirror(reflecting: card)
-
-    XCTAssertNotNil(mirror)
-  }
-
-  func testSchoolCardView_DeleteButton_HasLabel() {
-    let school = makeSchool()
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNotNil(mirror)
@@ -233,7 +225,7 @@ final class SchoolsListViewAccessibilityTests: XCTestCase {
 
   func testSchoolCardView_ScalesWithDynamicType() {
     let school = makeSchool()
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNotNil(mirror)

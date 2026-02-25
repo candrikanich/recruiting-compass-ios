@@ -142,8 +142,7 @@ struct InteractionsListView: View {
         InteractionCard(
           interaction: interaction,
           schoolName: viewModel.schoolName(for: interaction.schoolId),
-          coachName: viewModel.coachName(for: interaction.coachId),
-          onDelete: nil
+          coachName: viewModel.coachName(for: interaction.coachId)
         )
         .padding(.horizontal, 16)
         .padding(.vertical, 4)

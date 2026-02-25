@@ -141,9 +141,6 @@ struct SchoolsListView: View {
           school: school,
           onToggleFavorite: {
             Task { await viewModel.toggleFavorite(school: school) }
-          },
-          onDelete: {
-            viewModel.confirmDelete(school: school)
           }
         )
         .padding(.horizontal)

@@ -46,7 +46,7 @@ struct LoginView: View {
             }
           }
         }
-        .background(Color.white.opacity(0.95))
+        .background(Color(uiColor: .systemBackground))
         .cornerRadius(16)
         .padding(24)
 
@@ -159,7 +159,7 @@ struct LoginView: View {
 
           Text("Remember me")
             .font(.footnote)
-            .foregroundColor(Color.tertiaryText)
+            .foregroundStyle(Color.primary)
         }
         .frame(height: 44)
       }
@@ -172,7 +172,7 @@ struct LoginView: View {
       NavigationLink(destination: ForgotPasswordView()) {
         Text("Forgot password?")
           .font(.footnote)
-          .foregroundColor(Color.tertiaryText)
+          .foregroundStyle(Color.primary)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
       }
@@ -211,7 +211,7 @@ struct LoginView: View {
   private var dividerSection: some View {
     Rectangle()
       .frame(height: 1)
-      .foregroundColor(Color.borderGray)
+      .foregroundStyle(Color(uiColor: .separator))
       .accessibilityHidden(true)
   }
 
@@ -220,12 +220,12 @@ struct LoginView: View {
       Text("New to The Recruiting Compass?")
         .padding(.top, 12)
         .font(.footnote)
-        .foregroundColor(Color.tertiaryText)
+        .foregroundStyle(Color.secondary)
 
       HStack(spacing: 4) {
         Text("Don't have an account?")
           .font(.footnote)
-          .foregroundColor(Color.tertiaryText)
+          .foregroundStyle(Color.secondary)
 
         NavigationLink(destination: SignupView()) {
           HStack(spacing: 4) {

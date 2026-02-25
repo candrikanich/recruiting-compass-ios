@@ -4,8 +4,8 @@ struct InteractionCard: View {
   let interaction: Interaction
   let schoolName: String?
   let coachName: String?
-  let onDelete: (() -> Void)?
 
+  @Environment(\.colorScheme) private var colorScheme
   @Environment(\.sizeCategory) private var sizeCategory
 
   var body: some View {
@@ -100,9 +100,18 @@ struct InteractionCard: View {
     }
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(.systemBackground))
-    .cornerRadius(12)
-    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+    .background(Color(uiColor: .secondarySystemBackground))
+    .overlay(
+      RoundedRectangle(cornerRadius: 12)
+        .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 12))
+    .shadow(
+      color: colorScheme == .dark ? .black.opacity(0.4) : .black.opacity(0.08),
+      radius: colorScheme == .dark ? 4 : 8,
+      x: 0,
+      y: 2
+    )
     .accessibilityElement(children: .combine)
     .accessibilityLabel(accessibilityLabel)
     .accessibilityAddTraits(.isButton)
@@ -219,8 +228,7 @@ struct AttachmentIndicator: View {
   InteractionCard(
     interaction: interaction,
     schoolName: "Stanford University",
-    coachName: "Coach Smith",
-    onDelete: nil
+    coachName: "Coach Smith"
   )
   .padding()
 }

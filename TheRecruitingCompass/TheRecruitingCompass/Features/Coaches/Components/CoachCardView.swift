@@ -5,8 +5,8 @@ struct CoachCardView: View {
   let schoolName: String
   let schoolLogoUrl: String?
   let schoolInitials: String
-  let onDelete: () -> Void
 
+  @Environment(\.colorScheme) private var colorScheme
   @Environment(\.sizeCategory) private var sizeCategory
 
   private var initialsSize: CGFloat {
@@ -24,9 +24,19 @@ struct CoachCardView: View {
       actionsSection
     }
     .padding(16)
-    .background(Color(.systemBackground))
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Color(uiColor: .secondarySystemBackground))
+    .overlay(
+      RoundedRectangle(cornerRadius: 12)
+        .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
+    )
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+    .shadow(
+      color: colorScheme == .dark ? .black.opacity(0.4) : .black.opacity(0.08),
+      radius: colorScheme == .dark ? 4 : 8,
+      x: 0,
+      y: 2
+    )
     .accessibilityElement(children: .contain)
   }
 
@@ -159,18 +169,6 @@ struct CoachCardView: View {
       communicationButtons
 
       Spacer()
-
-      Button(role: .destructive) {
-        onDelete()
-      } label: {
-        Image(systemName: "trash")
-          .font(.system(size: sizeCategory.isAccessibilityCategory ? 20 : 16))
-          .foregroundStyle(Color.errorRed)
-          .frame(minWidth: 44, minHeight: 44)
-          .contentShape(Rectangle())
-      }
-      .accessibilityLabel("Delete coach")
-      .accessibilityHint("Shows delete confirmation")
     }
   }
 
@@ -212,8 +210,7 @@ struct CoachCardView: View {
     ),
     schoolName: "State University",
     schoolLogoUrl: nil,
-    schoolInitials: "SU",
-    onDelete: {}
+    schoolInitials: "SU"
   )
   .padding()
 }

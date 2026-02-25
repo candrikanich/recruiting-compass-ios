@@ -18,7 +18,7 @@ final class SchoolCardViewTests: XCTestCase {
   // MARK: - Rendering Tests
 
   func testRendersSchoolName() {
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertEqual(school.name, "Stanford University")
@@ -27,7 +27,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testRendersLocation() {
     let school = makeSchool(location: "Stanford, CA")
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertEqual(school.location, "Stanford, CA")
@@ -36,7 +36,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testHidesLocationWhenNil() {
     let school = makeSchool(location: nil)
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNil(school.location)
@@ -47,7 +47,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testDisplaysDivisionBadge() {
     let school = makeSchool(division: "D1")
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertEqual(school.division, "D1")
@@ -56,7 +56,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testDisplaysStatusBadge() {
     let school = makeSchool(status: "contacted")
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertEqual(school.status, "contacted")
@@ -65,7 +65,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testDisplaysFitScoreBadge() {
     let school = makeSchool(fitScore: 85)
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertEqual(school.fitScore, 85)
@@ -74,7 +74,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testHidesFitScoreBadgeWhenNil() {
     let school = makeSchool(fitScore: nil)
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNil(school.fitScore)
@@ -83,7 +83,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testDisplaysSizeBadge() {
     let school = makeSchool(studentSize: 17000)
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNotNil(school.size)
@@ -94,7 +94,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testUsesInitialsWhenNoLogo() {
     let school = makeSchool(faviconUrl: nil)
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNil(school.faviconUrl)
@@ -104,7 +104,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testAttemptsToLoadLogoWhenAvailable() {
     let school = makeSchool(faviconUrl: "https://example.com/logo.png")
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNotNil(school.faviconUrl)
@@ -115,7 +115,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testFavoriteStarFilled() {
     let school = makeSchool(isFavorite: true)
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertTrue(school.isFavorite)
@@ -124,7 +124,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testFavoriteStarOutline() {
     let school = makeSchool(isFavorite: false)
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertFalse(school.isFavorite)
@@ -135,8 +135,7 @@ final class SchoolCardViewTests: XCTestCase {
     var callbackCalled = false
     let card = SchoolCardView(
       school: school,
-      onToggleFavorite: { callbackCalled = true },
-      onDelete: {}
+      onToggleFavorite: { callbackCalled = true }
     )
     let mirror = Mirror(reflecting: card)
 
@@ -148,7 +147,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testDisplaysConference() {
     let school = makeSchool(conference: "Pac-12")
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertEqual(school.conference, "Pac-12")
@@ -157,7 +156,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testHidesConferenceWhenNil() {
     let school = makeSchool(conference: nil)
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertNil(school.conference)
@@ -166,7 +165,7 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testDisplaysNotes() {
     let school = makeSchool(notes: "Great academic program")
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertEqual(school.notes, "Great academic program")
@@ -175,33 +174,11 @@ final class SchoolCardViewTests: XCTestCase {
 
   func testHidesNotesWhenEmpty() {
     let school = makeSchool(notes: "")
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+    let card = SchoolCardView(school: school, onToggleFavorite: {})
     let mirror = Mirror(reflecting: card)
 
     XCTAssertTrue(school.notes?.isEmpty ?? true)
     XCTAssertNotNil(mirror)
-  }
-
-  // MARK: - Delete Tests
-
-  func testDeleteButtonPresent() {
-    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
-    let mirror = Mirror(reflecting: card)
-
-    XCTAssertNotNil(mirror)
-  }
-
-  func testDeleteCallback() {
-    var callbackCalled = false
-    let card = SchoolCardView(
-      school: school,
-      onToggleFavorite: {},
-      onDelete: { callbackCalled = true }
-    )
-    let mirror = Mirror(reflecting: card)
-
-    XCTAssertNotNil(mirror)
-    _ = callbackCalled
   }
 
   // MARK: - Test Helpers

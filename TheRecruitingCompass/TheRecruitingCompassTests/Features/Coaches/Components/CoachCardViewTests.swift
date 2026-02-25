@@ -46,8 +46,7 @@ final class CoachCardViewTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     XCTAssertNotNil(view)
@@ -65,8 +64,7 @@ final class CoachCardViewTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     XCTAssertNotNil(view)
@@ -85,8 +83,7 @@ final class CoachCardViewTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     XCTAssertNotNil(view)
@@ -237,33 +234,6 @@ final class CoachCardViewTests: XCTestCase {
     XCTAssertNil(coach.lastContactDateParsed)
   }
 
-  // MARK: - Delete Button Tests
-
-  func testCoachCard_hasDeleteButton() {
-    var deleteCallCount = 0
-    let coach = makeCoach()
-    let view = CoachCardView(
-      coach: coach,
-      schoolName: "State University",
-      schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: { deleteCallCount += 1 }
-    )
-
-    XCTAssertNotNil(view)
-    XCTAssertEqual(deleteCallCount, 0) // Not called yet
-  }
-
-  func testCoachCard_deleteCallbackIsExecutable() {
-    var deleteCallCount = 0
-    _ = makeCoach()
-    let onDelete = { deleteCallCount += 1 }
-
-    onDelete()
-
-    XCTAssertEqual(deleteCallCount, 1)
-  }
-
   // MARK: - Accessibility Tests
 
   func testAccessibility_cardHasLabel() {
@@ -272,8 +242,7 @@ final class CoachCardViewTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     // The card should have an accessibility label with coach info
@@ -291,8 +260,7 @@ final class CoachCardViewTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     // Delete button should have "Delete coach" accessibility label
@@ -307,8 +275,7 @@ final class CoachCardViewTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
     .environment(\.sizeCategory, .accessibilityExtraExtraLarge)
 
@@ -321,8 +288,7 @@ final class CoachCardViewTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
     .environment(\.sizeCategory, .medium)
 
@@ -336,8 +302,7 @@ final class CoachCardViewTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     // Standard size
@@ -399,8 +364,7 @@ final class CoachCardViewTests: XCTestCase {
       coach: coach,
       schoolName: "University of Testing",
       schoolLogoUrl: nil,
-      schoolInitials: "UT",
-      onDelete: {}
+      schoolInitials: "UT"
     )
 
     XCTAssertNotNil(view)
@@ -412,8 +376,7 @@ final class CoachCardViewTests: XCTestCase {
       coach: coach,
       schoolName: "The University of Very Long Names and Extended Titles for Testing Purposes",
       schoolLogoUrl: nil,
-      schoolInitials: "UV",
-      onDelete: {}
+      schoolInitials: "UV"
     )
 
     XCTAssertNotNil(view)

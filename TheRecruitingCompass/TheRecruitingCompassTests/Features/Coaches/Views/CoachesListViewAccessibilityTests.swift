@@ -44,8 +44,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     // CoachCardView should use .accessibilityElement(children: .contain)
@@ -59,8 +58,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     // Initials circle should be hidden (decorative)
@@ -73,8 +71,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     // Email and phone icons should be hidden (decorative)
@@ -87,40 +84,11 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     // Role badge should have "Role: Head Coach" label
     XCTAssertEqual(coach.role.displayName, "Head Coach")
-  }
-
-  func testCoachCardView_deleteButtonHasLabelAndHint() {
-    let coach = makeCoach()
-    let view = CoachCardView(
-      coach: coach,
-      schoolName: "State University",
-      schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
-    )
-
-    // Delete button should have clear label and hint
-    XCTAssertNotNil(view)
-  }
-
-  func testCoachCardView_deleteButtonMeetsHitTarget() {
-    let coach = makeCoach()
-    let view = CoachCardView(
-      coach: coach,
-      schoolName: "State University",
-      schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
-    )
-
-    // Delete button should have minWidth/minHeight: 44
-    XCTAssertNotNil(view)
   }
 
   func testCoachCardView_communicationButtonsHaveLabels() {
@@ -132,8 +100,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     // Communication buttons should have descriptive labels
@@ -146,8 +113,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     // ResponsivenessBar should have label and value
@@ -160,8 +126,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
     .environment(\.sizeCategory, .accessibilityExtraExtraLarge)
 
@@ -431,8 +396,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
       coach: coach,
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
+      schoolInitials: "SU"
     )
 
     // Full card should be accessible with proper hierarchy:
@@ -490,8 +454,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
         coach: coach,
         schoolName: "State University",
         schoolLogoUrl: nil,
-        schoolInitials: "SU",
-        onDelete: {}
+        schoolInitials: "SU"
       )
       .environment(\.sizeCategory, size)
 

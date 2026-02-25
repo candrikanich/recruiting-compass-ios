@@ -13,7 +13,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford",
       coachName: "Coach Smith",
-      onDelete: nil
     )
 
     let hostingController = UIHostingController(rootView: card)
@@ -42,7 +41,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford University",
       coachName: "Coach Smith",
-      onDelete: nil
     )
 
     let hostingController = UIHostingController(rootView: card)
@@ -76,7 +74,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: nil,
       coachName: nil,
-      onDelete: nil
     )
 
     let hostingController = UIHostingController(rootView: card)
@@ -101,7 +98,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford University",
       coachName: nil,
-      onDelete: nil
     )
 
     let hostingController = UIHostingController(rootView: card)
@@ -123,7 +119,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: nil,
       coachName: "Coach Smith",
-      onDelete: nil
     )
 
     let hostingController = UIHostingController(rootView: card)
@@ -146,7 +141,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford",
       coachName: "Coach Smith",
-      onDelete: nil
     )
 
     let hostingController = UIHostingController(rootView: card)
@@ -169,7 +163,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford",
       coachName: "Coach Smith",
-      onDelete: nil
     )
 
     let hostingController = UIHostingController(rootView: card)
@@ -203,7 +196,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford",
       coachName: "Coach Smith",
-      onDelete: nil
     )
 
     // Component exists and is properly configured (verified by code review)
@@ -220,7 +212,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford",
       coachName: "Coach Smith",
-      onDelete: nil
     )
 
     // Component exists and is properly configured (verified by code review)
@@ -234,7 +225,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford",
       coachName: "Coach Smith",
-      onDelete: nil
     )
 
     let hostingController = UIHostingController(rootView: card)
@@ -254,7 +244,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford",
       coachName: "Coach Smith",
-      onDelete: nil
     )
 
     let hostingController = UIHostingController(rootView: card)
@@ -274,7 +263,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford",
       coachName: "Coach Smith",
-      onDelete: nil
     )
     .frame(width: 350, height: 200) // Typical iPhone width minus margins
 
@@ -301,7 +289,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford University",
       coachName: "Coach Smith",
-      onDelete: nil
     )
     .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
     .frame(width: 350, height: 300)
@@ -324,7 +311,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford",
       coachName: "Coach Smith",
-      onDelete: nil
     )
     .environment(\.sizeCategory, .large)
     .frame(width: 350)
@@ -333,7 +319,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford",
       coachName: "Coach Smith",
-      onDelete: nil
     )
     .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
     .frame(width: 350)
@@ -360,7 +345,6 @@ final class InteractionCardAccessibilityTests: XCTestCase {
       interaction: interaction,
       schoolName: "Stanford University",
       coachName: "Coach Smith",
-      onDelete: nil
     )
 
     let hostingController = UIHostingController(rootView: card)

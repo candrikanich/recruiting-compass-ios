@@ -3,8 +3,8 @@ import SwiftUI
 struct SchoolCardView: View {
   let school: School
   let onToggleFavorite: () -> Void
-  let onDelete: () -> Void
 
+  @Environment(\.colorScheme) private var colorScheme
   @Environment(\.sizeCategory) private var sizeCategory
 
   private var initialsSize: CGFloat {
@@ -20,12 +20,21 @@ struct SchoolCardView: View {
       headerSection
       badgesSection
       contentSection
-      actionsSection
     }
     .padding(16)
-    .background(Color(.systemBackground))
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Color(uiColor: .secondarySystemBackground))
+    .overlay(
+      RoundedRectangle(cornerRadius: 12)
+        .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
+    )
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+    .shadow(
+      color: colorScheme == .dark ? .black.opacity(0.4) : .black.opacity(0.08),
+      radius: colorScheme == .dark ? 4 : 8,
+      x: 0,
+      y: 2
+    )
     .accessibilityElement(children: .contain)
   }
 
@@ -144,29 +153,6 @@ struct SchoolCardView: View {
       }
     }
   }
-
-  // MARK: - Actions
-
-  private var actionsSection: some View {
-    HStack {
-      Spacer()
-
-      Button(role: .destructive, action: onDelete) {
-        HStack(spacing: 4) {
-          Image(systemName: "trash")
-            .accessibilityHidden(true)
-          Text("Delete")
-        }
-        .font(.subheadline)
-        .fontWeight(.medium)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .frame(minHeight: 44)
-      }
-      .accessibilityLabel("Delete school")
-      .accessibilityHint("Double tap to delete this school")
-    }
-  }
 }
 
 #Preview {
@@ -212,8 +198,7 @@ struct SchoolCardView: View {
 
   SchoolCardView(
     school: school,
-    onToggleFavorite: {},
-    onDelete: {}
+    onToggleFavorite: {}
   )
   .padding()
 }

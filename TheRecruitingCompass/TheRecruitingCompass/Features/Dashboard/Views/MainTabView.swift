@@ -33,20 +33,6 @@ struct MainTabView: View {
       .accessibilityLabel("Dashboard")
 
       NavigationStack {
-        CoachesListView()
-      }
-      .tabItem {
-        Label {
-          Text("Coaches")
-        } icon: {
-          Image(systemName: "person.2")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
-      }
-      .accessibilityLabel("Coaches")
-
-      NavigationStack {
         SchoolsListView()
       }
       .tabItem {
@@ -59,6 +45,20 @@ struct MainTabView: View {
         .environment(\.symbolVariants, .none)
       }
       .accessibilityLabel("Schools")
+
+      NavigationStack {
+        CoachesListView()
+      }
+      .tabItem {
+        Label {
+          Text("Coaches")
+        } icon: {
+          Image(systemName: "person.2")
+            .fontWeight(.thin)
+        }
+        .environment(\.symbolVariants, .none)
+      }
+      .accessibilityLabel("Coaches")
 
       NavigationStack {
         InteractionsListView()

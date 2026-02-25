@@ -26,6 +26,7 @@ struct LoginFormField: View {
           .keyboardType(keyboardType)
       }
     }
+    .foregroundStyle(Color.primary)
     .accessibilityLabel(label)
     .accessibilityValue(error.map { "Error: \($0)" } ?? "")
     .autocorrectionDisabled()
@@ -37,20 +38,23 @@ struct LoginFormField: View {
     VStack(alignment: .leading, spacing: 4) {
       Text(label)
         .font(.footnote.weight(.semibold))
-        .foregroundColor(Color.darkSlate)
+        .foregroundStyle(Color.primary)
         .accessibilityHidden(true)
 
       HStack(spacing: 12) {
         Image(systemName: icon)
-          .foregroundColor(Color.iconGray)
+          .foregroundStyle(Color.secondary)
           .frame(width: iconWidth)
           .accessibilityHidden(true)
 
         inputField
       }
       .padding(12)
-      .background(Color.white)
-      .border(error != nil ? Color.red : Color.borderGray, width: 1)
+      .background(Color(uiColor: .secondarySystemBackground))
+      .overlay(
+        RoundedRectangle(cornerRadius: 8)
+          .strokeBorder(error != nil ? Color.red : Color(uiColor: .separator), lineWidth: 1)
+      )
       .cornerRadius(8)
 
       if let error = error {
