@@ -12,6 +12,7 @@ import SwiftUI
 enum MorePath: Hashable {
   case section(MoreMenuView.Section)
   case eventDetail(eventId: String)
+  case helpSection(slug: String)
 }
 
 struct MoreMenuView: View {
@@ -137,6 +138,9 @@ struct MoreMenuView: View {
       sectionDestination(section)
     case .eventDetail(let eventId):
       EventDetailView(eventId: eventId)
+    case .helpSection(let slug):
+      let section = HelpSection(slug: slug) ?? .gettingStarted
+      HelpSectionDetailView(section: section)
     }
   }
 

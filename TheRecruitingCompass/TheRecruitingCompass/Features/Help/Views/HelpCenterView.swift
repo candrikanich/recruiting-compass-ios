@@ -18,7 +18,7 @@ struct HelpCenterView: View {
           GridItem(.flexible(), spacing: 16)
         ], spacing: 16) {
           ForEach(HelpSection.allCases) { section in
-            NavigationLink(value: section) {
+            NavigationLink(value: MorePath.helpSection(slug: section.slug)) {
               HelpOverviewCard(section: section)
             }
             .buttonStyle(.plain)
@@ -31,9 +31,6 @@ struct HelpCenterView: View {
     }
     .navigationTitle("Help Center")
     .navigationBarTitleDisplayMode(.inline)
-    .navigationDestination(for: HelpSection.self) { section in
-      HelpSectionDetailView(section: section)
-    }
   }
 
   private var headerView: some View {

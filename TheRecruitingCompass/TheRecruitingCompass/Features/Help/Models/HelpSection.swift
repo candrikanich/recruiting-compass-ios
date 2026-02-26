@@ -24,6 +24,17 @@ enum HelpSection: String, CaseIterable, Identifiable, Hashable {
     }
   }
 
+  /// Initialize from URL path slug (e.g. "getting-started"). Returns nil for unknown slug.
+  init?(slug: String) {
+    switch slug {
+    case "getting-started": self = .gettingStarted
+    case "schools": self = .schools
+    case "phases": self = .phases
+    case "account": self = .account
+    default: return nil
+    }
+  }
+
   var title: String {
     switch self {
     case .gettingStarted: return "Getting Started"
@@ -44,7 +55,7 @@ enum HelpSection: String, CaseIterable, Identifiable, Hashable {
 
   var icon: String {
     switch self {
-    case .gettingStarted: return "rocket"
+    case .gettingStarted: return "sparkles"
     case .schools: return "building.2"
     case .phases: return "chart.bar"
     case .account: return "gearshape"
