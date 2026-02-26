@@ -13,7 +13,7 @@ final class AnalyticsDashboardAccessibilityTests: XCTestCase {
 
   // MARK: - Loading State Tests
 
-  func testDashboard_loadingState_hasAccessibilityLabel() {
+  func testDashboard_loadingState_hasAccessibilityLabel() async {
     let vm = makeViewModel()
     let view = AnalyticsDashboardView(viewModel: vm)
     // Loading state has .accessibilityLabel("Loading analytics dashboard")
@@ -22,7 +22,7 @@ final class AnalyticsDashboardAccessibilityTests: XCTestCase {
 
   // MARK: - Empty State Tests
 
-  func testDashboard_emptyState_hasAccessibilityLabel() {
+  func testDashboard_emptyState_hasAccessibilityLabel() async {
     let vm = makeViewModel()
     let view = AnalyticsDashboardView(viewModel: vm)
     // Empty state has .accessibilityLabel("No analytics data available yet")
@@ -31,7 +31,7 @@ final class AnalyticsDashboardAccessibilityTests: XCTestCase {
 
   // MARK: - Error State Tests
 
-  func testDashboard_errorState_retryButtonHasLabelAndHint() {
+  func testDashboard_errorState_retryButtonHasLabelAndHint() async {
     let vm = makeViewModel()
     let view = AnalyticsDashboardView(viewModel: vm)
     // Retry button has:
@@ -42,7 +42,7 @@ final class AnalyticsDashboardAccessibilityTests: XCTestCase {
 
   // MARK: - Header Section Tests
 
-  func testDashboard_headerHasHeaderTrait() {
+  func testDashboard_headerHasHeaderTrait() async {
     let vm = makeViewModel()
     let view = AnalyticsDashboardView(viewModel: vm)
     // Header subtitle has .accessibilityAddTraits(.isHeader) for semantic navigation
@@ -51,7 +51,7 @@ final class AnalyticsDashboardAccessibilityTests: XCTestCase {
 
   // MARK: - Summary Stats Section Tests
 
-  func testDashboard_summaryStatsHasContainerLabel() {
+  func testDashboard_summaryStatsHasContainerLabel() async {
     let vm = makeViewModel()
     let view = AnalyticsDashboardView(viewModel: vm)
     // Summary stats grid has:
@@ -60,7 +60,7 @@ final class AnalyticsDashboardAccessibilityTests: XCTestCase {
     XCTAssertNotNil(view)
   }
 
-  func testDashboard_summaryCardsAreAccessible() {
+  func testDashboard_summaryCardsAreAccessible() async {
     let vm = makeViewModel()
     let cards = vm.summaryCards
     XCTAssertEqual(cards.count, 4)
@@ -72,7 +72,7 @@ final class AnalyticsDashboardAccessibilityTests: XCTestCase {
 
   // MARK: - Export Button Tests
 
-  func testDashboard_exportButtonHasLabelAndHint() {
+  func testDashboard_exportButtonHasLabelAndHint() async {
     let vm = makeViewModel()
     let view = AnalyticsDashboardView(viewModel: vm)
     // Export button has:
@@ -118,7 +118,7 @@ final class AnalyticsDashboardAccessibilityTests: XCTestCase {
 
   // MARK: - Dynamic Type Tests
 
-  func testDashboard_supportsDynamicType() {
+  func testDashboard_supportsDynamicType() async {
     let sizes: [ContentSizeCategory] = [
       .extraSmall,
       .medium,
