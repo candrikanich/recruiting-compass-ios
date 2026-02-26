@@ -47,7 +47,8 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       authManager: mockAuthManager,
       familyManager: mockFamilyManager,
       fitScoreService: mockFitScoreService,
-      coachesService: mockCoachesService
+      coachesService: mockCoachesService,
+      cache: InMemoryCache()
     )
   }
 
@@ -159,7 +160,11 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     await viewModel.loadSchool()
 
     // Then
-    XCTAssertEqual(viewModel.statusHistory.count, 2)
+    XCTAssertEqual(viewModel.statusHistory.count, 2, "statusHistory should have 2 items from mock")
+    guard viewModel.statusHistory.count >= 2 else {
+      XCTFail("statusHistory has only \(viewModel.statusHistory.count) items; check cache isolation or mock")
+      return
+    }
     XCTAssertEqual(viewModel.statusHistory[0].id, "history-1")
     XCTAssertEqual(viewModel.statusHistory[1].id, "history-2")
   }
