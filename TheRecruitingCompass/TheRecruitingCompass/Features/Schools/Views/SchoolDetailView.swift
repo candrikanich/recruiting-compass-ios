@@ -209,7 +209,8 @@ struct SchoolDetailView: View {
           onEdit: { viewModel.startEditingNotes() },
           onSave: { await viewModel.saveNotes() },
           onCancel: { viewModel.cancelEditingNotes() },
-          isSaving: viewModel.isSavingNotes
+          isSaving: viewModel.isSavingNotes,
+          canSave: viewModel.canSaveNotes
         )
         .padding(.horizontal)
 

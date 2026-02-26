@@ -10,6 +10,7 @@ struct SchoolNotesSection: View {
   let onSave: () async -> Void
   let onCancel: () -> Void
   let isSaving: Bool
+  var canSave: Bool = true
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -68,7 +69,7 @@ struct SchoolNotesSection: View {
             .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-save-button")
             .accessibilityLabel(isSaving ? "Saving \(title.lowercased())" : "Save \(title.lowercased())")
             .buttonStyle(.borderedProminent)
-            .disabled(isSaving)
+            .disabled(isSaving || !canSave)
           }
         }
       } else {

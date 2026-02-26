@@ -6,7 +6,11 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 private let placeholderURLString = "https://placeholder.supabase.co"
 private let placeholderKey = "placeholder-key"
 
-/// Reads Supabase URL from (1) embedded Swift file baked at build time, (2) env, (3) Info.plist, (4) SupabaseConfig.plist.
+/// Production fallback when embedded/plist/env fail (e.g. TestFlight). Same values as Release.xcconfig.
+private let productionURLString = "https://xpxzhqghxecsjhvklsqg.supabase.co"
+private let productionAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhweHpocWdoeGVjc2podmtsc3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NzI1ODQsImV4cCI6MjA4MDM0ODU4NH0.WNlq1neCdjY-hDCvJRLplntd9w2HKqahwpHa7rB_Zro"
+
+/// Reads Supabase URL from (1) embedded Swift, (2) env, (3) Info.plist, (4) plist, (5) production fallback.
 private func supabaseURLString() -> String {
   // Embedded values from SupabaseConfig.generated.swift — always available in built app
   let embedded = SupabaseConfigEmbedded.urlString
@@ -17,10 +21,14 @@ private func supabaseURLString() -> String {
   if let plistURL = Bundle.main.url(forResource: "SupabaseConfig", withExtension: "plist"),
      let dict = NSDictionary(contentsOf: plistURL) as? [String: Any],
      let s = dict["SUPABASE_URL"] as? String, !s.isEmpty { return s }
+  #if !DEBUG
+  return productionURLString
+  #else
   return ""
+  #endif
 }
 
-/// Reads Supabase anon key from (1) embedded Swift file, (2) env, (3) Info.plist, (4) SupabaseConfig.plist.
+/// Reads Supabase anon key from (1) embedded Swift, (2) env, (3) Info.plist, (4) plist, (5) production fallback.
 private func supabaseAnonKey() -> String {
   let embedded = SupabaseConfigEmbedded.anonKey
   if !embedded.isEmpty, embedded != placeholderKey { return embedded }
@@ -30,7 +38,11 @@ private func supabaseAnonKey() -> String {
   if let plistURL = Bundle.main.url(forResource: "SupabaseConfig", withExtension: "plist"),
      let dict = NSDictionary(contentsOf: plistURL) as? [String: Any],
      let s = dict["SUPABASE_ANON_KEY"] as? String, !s.isEmpty { return s }
+  #if !DEBUG
+  return productionAnonKey
+  #else
   return ""
+  #endif
 }
 
 struct SupabaseConfig {

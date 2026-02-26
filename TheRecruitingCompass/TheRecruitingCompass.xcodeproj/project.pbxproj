@@ -176,7 +176,6 @@
 				988EFDA62F35489B009C60F5 /* Sources */,
 				988EFDA72F35489B009C60F5 /* Frameworks */,
 				988EFDA82F35489B009C60F5 /* Resources */,
-				98B3C4D12F3A5001009C60F5 /* Embed Supabase config in bundle */,
 			);
 			buildRules = (
 			);
@@ -307,26 +306,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		98B3C4D12F3A5001009C60F5 /* Embed Supabase config in bundle */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Embed Supabase config in bundle";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "PLIST_PATH=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}/SupabaseConfig.plist\"\n# Create minimal plist then add keys from xcconfig (available in build settings)\nprintf '%s\\\\n' '<?xml version=\"1.0\" encoding=\"UTF-8\"?>' '<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">' '<plist version=\"1.0\"><dict></dict></plist>' > \"$PLIST_PATH\"\n/usr/libexec/PlistBuddy -c \"Add :SUPABASE_URL string \\\"${SUPABASE_URL}\\\"\" \"$PLIST_PATH\"\n/usr/libexec/PlistBuddy -c \"Add :SUPABASE_ANON_KEY string \\\"${SUPABASE_ANON_KEY}\\\"\" \"$PLIST_PATH\"\n";
-			showEnvVarsInLog = 0;
-		};
 		98B3C4D22F3A5101009C60F5 /* Generate Supabase config */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -336,15 +315,17 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
+				"$(SRCROOT)/Release.xcconfig",
 			);
 			name = "Generate Supabase config";
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"$(SRCROOT)/TheRecruitingCompass/Core/Services/SupabaseConfig.generated.swift",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ -z \"${SUPABASE_URL}\" ]; then echo \"error: SUPABASE_URL is empty during build. Ensure Release.xcconfig has SUPABASE_URL and SUPABASE_ANON_KEY.\"; exit 1; fi\nif [ -z \"${SUPABASE_ANON_KEY}\" ]; then echo \"error: SUPABASE_ANON_KEY is empty during build.\"; exit 1; fi\nOUT=\"${SRCROOT}/TheRecruitingCompass/Core/Services/SupabaseConfig.generated.swift\"\nURL_ESC=$(printf '%s' \"$SUPABASE_URL\" | sed 's/\\\\/\\\\\\\\/g; s/\"/\\\\\"/g')\nKEY_ESC=$(printf '%s' \"$SUPABASE_ANON_KEY\" | sed 's/\\\\/\\\\\\\\/g; s/\"/\\\\\"/g')\nprintf 'import Foundation\\n\\n/// Auto-generated at build time from Release.xcconfig. Do not edit manually.\\nenum SupabaseConfigEmbedded {\\n  static let urlString = \"%s\"\\n  static let anonKey = \"%s\"\\n}\\n' \"$URL_ESC\" \"$KEY_ESC\" > \"$OUT\"\n";
+			shellScript = "if [ -z \"${SUPABASE_URL}\" ]; then echo \"error: SUPABASE_URL is empty during build. Ensure Release.xcconfig has SUPABASE_URL and SUPABASE_ANON_KEY.\"; exit 1; fi\nif [ -z \"${SUPABASE_ANON_KEY}\" ]; then echo \"error: SUPABASE_ANON_KEY is empty during build.\"; exit 1; fi\nOUT=\"${SRCROOT}/TheRecruitingCompass/Core/Services/SupabaseConfig.generated.swift\"\nURL_ESC=$(printf '%s' \"$SUPABASE_URL\" | sed 's/\\\\/\\\\\\\\/g; s/\"/\\\\\"/g')\nKEY_ESC=$(printf '%s' \"$SUPABASE_ANON_KEY\" | sed 's/\\\\/\\\\\\\\/g; s/\"/\\\\\"/g')\nprintf 'import Foundation\\n\\n/// Auto-generated at build time from Release.xcconfig. Do not edit manually.\\nenum SupabaseConfigEmbedded {\\n  static let urlString = \"%s\"\\n  static let anonKey = \"%s\"\\n}\\n' \"$URL_ESC\" \"$KEY_ESC\" > \"$OUT\"\necho \"Generated Supabase config: url length=${#SUPABASE_URL}\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

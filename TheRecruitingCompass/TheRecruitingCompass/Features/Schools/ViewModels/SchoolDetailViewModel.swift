@@ -134,6 +134,11 @@ final class SchoolDetailViewModel {
     return school?.privateNote(for: userId) ?? ""
   }
 
+  /// True when notes have non-whitespace content; used to enable/disable Save button and prevent empty API calls.
+  var canSaveNotes: Bool {
+    !editedNotes.trimmingCharacters(in: .whitespaces).isEmpty
+  }
+
   var hasCoaches: Bool {
     !coaches.isEmpty
   }
@@ -273,6 +278,7 @@ final class SchoolDetailViewModel {
   }
 
   func saveNotes() async {
+    guard canSaveNotes else { return }
     await withLoading(setting: \.isSavingNotes) {
       do {
         let updated = try await schoolsService.updateNotes(id: schoolId, notes: editedNotes)
