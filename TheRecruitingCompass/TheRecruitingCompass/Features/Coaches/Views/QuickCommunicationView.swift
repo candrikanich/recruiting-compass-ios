@@ -144,7 +144,7 @@ struct QuickCommunicationView: View {
 
   private var actionsSection: some View {
     VStack(alignment: .leading, spacing: 12) {
-      if let email = context.coach.email, !email.isEmpty {
+      if viewModel.mailtoURL() != nil {
         Button {
           if let url = viewModel.mailtoURL() {
             openURL(url)
@@ -157,12 +157,11 @@ struct QuickCommunicationView: View {
             .padding(.vertical, 12)
         }
         .buttonStyle(.borderedProminent)
-        .disabled(viewModel.mailtoURL() == nil)
-        .accessibilityLabel("Send email to \(email)")
+        .accessibilityLabel("Send email to \(context.coach.email ?? "")")
         .accessibilityHint("Opens Mail with recipient and optional message body")
       }
 
-      if context.coach.phone != nil {
+      if viewModel.smsURL() != nil {
         Button {
           if let url = viewModel.smsURL() {
             openURL(url)
@@ -175,7 +174,6 @@ struct QuickCommunicationView: View {
             .padding(.vertical, 12)
         }
         .buttonStyle(.bordered)
-        .disabled(viewModel.smsURL() == nil)
         .accessibilityLabel("Send text to coach")
         .accessibilityHint("Opens Messages with optional message body")
       }
