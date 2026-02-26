@@ -54,7 +54,7 @@ struct EditableCoach {
       position: position,
       twitterHandle: twitterHandle.isEmpty ? nil : twitterHandle,
       instagramHandle: instagramHandle.isEmpty ? nil : instagramHandle,
-      notes: notes.isEmpty ? nil : notes,
+      notes: DataSanitizer.nilIfEmpty(DataSanitizer.stripHtmlTags(notes)),
       privateNotes: nil  // Updated separately
     )
   }

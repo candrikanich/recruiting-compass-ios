@@ -53,7 +53,10 @@ struct SupabaseConfig {
     }
     #if DEBUG
     logger.warning("SUPABASE_URL not configured - using placeholder (DEBUG only)")
-    return URL(string: placeholderURLString)!
+    guard let placeholderURL = URL(string: placeholderURLString) else {
+      fatalError("Invalid placeholder URL in SupabaseConfig")
+    }
+    return placeholderURL
     #else
     fatalError("SUPABASE_URL must be set for Release builds. Set SUPABASE_URL and SUPABASE_ANON_KEY in Release.xcconfig (or Scheme → Run → Environment Variables for local runs). Archive/TestFlight builds do not inherit scheme env vars — use Release.xcconfig.")
     #endif

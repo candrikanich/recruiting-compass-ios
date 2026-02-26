@@ -20,7 +20,7 @@ actor CollegeScorecardService: CollegeScorecardManaging {
     } else if let envKey = ProcessInfo.processInfo.environment["COLLEGE_SCORECARD_API_KEY"] {
       self.apiKey = envKey
     } else {
-      // TODO: Replace with actual API key from secure storage
+      // Set COLLEGE_SCORECARD_API_KEY in Scheme → Run → Environment Variables, or inject via init, for production.
       self.apiKey = ""
       logger.warning("College Scorecard API key not configured")
     }

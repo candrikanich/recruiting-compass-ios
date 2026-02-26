@@ -133,16 +133,6 @@ final class EventDetailViewModel {
 
   // MARK: - Loading Helper
 
-  @discardableResult
-  private func withLoading<T>(
-    setting flag: ReferenceWritableKeyPath<EventDetailViewModel, Bool>,
-    operation: () async throws -> T
-  ) async rethrows -> T {
-    self[keyPath: flag] = true
-    defer { self[keyPath: flag] = false }
-    return try await operation()
-  }
-
   // MARK: - Load
 
   func loadAll() async {
@@ -219,7 +209,7 @@ final class EventDetailViewModel {
 
   func markAsAttended() async {
     guard event?.attended != true else { return }
-    await withLoading(setting: \.isSaving) {
+    await ViewModelHelpers.withLoading(set: { self.isSaving = $0 }) {
       do {
         let request = EventUpdateRequest(attended: true)
         let updated = try await eventsService.updateEvent(id: eventId, request: request)
@@ -229,8 +219,7 @@ final class EventDetailViewModel {
         showQuickLogSheet = true
         logger.info("Event marked as attended: \(self.eventId)")
       } catch {
-        logger.error("Failed to mark attended: \(error.localizedDescription)")
-        self.error = "Failed to update event. Please try again."
+        ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.error = $0 }
         haptics.error()
       }
     }
@@ -245,7 +234,7 @@ final class EventDetailViewModel {
   }
 
   func updateEvent() async {
-    await withLoading(setting: \.isSaving) {
+    await ViewModelHelpers.withLoading(set: { self.isSaving = $0 }) {
       do {
         let request = editData.toUpdateRequest()
         let updated = try await eventsService.updateEvent(id: eventId, request: request)
@@ -255,8 +244,7 @@ final class EventDetailViewModel {
         showSuccess("Event updated")
         logger.info("Event updated: \(self.eventId)")
       } catch {
-        logger.error("Failed to update event: \(error.localizedDescription)")
-        self.error = "Failed to update event. Please try again."
+        ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.error = $0 }
         haptics.error()
       }
     }
@@ -270,15 +258,14 @@ final class EventDetailViewModel {
   }
 
   func deleteEvent() async {
-    await withLoading(setting: \.isDeleting) {
+    await ViewModelHelpers.withLoading(set: { self.isDeleting = $0 }) {
       do {
         try await eventsService.deleteEvent(id: eventId)
         haptics.success()
         shouldDismiss = true
         logger.info("Event deleted: \(self.eventId)")
       } catch {
-        logger.error("Failed to delete event: \(error.localizedDescription)")
-        self.error = "Failed to delete event. Please try again."
+        ViewModelHelpers.handleError(error, userMessage: "Failed to delete event. Please try again.", logger: logger) { self.error = $0 }
         haptics.error()
       }
     }
@@ -293,7 +280,7 @@ final class EventDetailViewModel {
 
   func logInteraction() async {
     guard let userId else { return }
-    await withLoading(setting: \.isLoggingInteraction) {
+    await ViewModelHelpers.withLoading(set: { self.isLoggingInteraction = $0 }) {
       do {
         let request = CreateInteractionRequest(
           userId: userId,
@@ -310,8 +297,7 @@ final class EventDetailViewModel {
         showSuccess("Interaction logged")
         logger.info("Interaction logged for event: \(self.eventId)")
       } catch {
-        logger.error("Failed to log interaction: \(error.localizedDescription)")
-        self.error = "Failed to log interaction. Please try again."
+        ViewModelHelpers.handleError(error, userMessage: "Failed to log interaction. Please try again.", logger: logger) { self.error = $0 }
         haptics.error()
       }
     }
@@ -351,7 +337,7 @@ final class EventDetailViewModel {
     guard let event else { return }
     let currentCoaches = (event.coachesPresent ?? []).filter { $0 != coachId }
 
-    await withLoading(setting: \.isUpdatingCoaches) {
+    await ViewModelHelpers.withLoading(set: { self.isUpdatingCoaches = $0 }) {
       do {
         let request = EventUpdateRequest(coachesPresent: currentCoaches)
         let updated = try await eventsService.updateEvent(id: eventId, request: request)
@@ -360,8 +346,7 @@ final class EventDetailViewModel {
         showSuccess("Coach removed")
         logger.info("Coach removed from event: \(self.eventId)")
       } catch {
-        logger.error("Failed to remove coach: \(error.localizedDescription)")
-        self.error = "Failed to remove coach. Please try again."
+        ViewModelHelpers.handleError(error, userMessage: "Failed to remove coach. Please try again.", logger: logger) { self.error = $0 }
         haptics.error()
       }
     }
@@ -381,7 +366,7 @@ final class EventDetailViewModel {
 
   func addMetric() async {
     guard let userId, let value = newMetricData.parsedValue else { return }
-    await withLoading(setting: \.isSavingMetric) {
+    await ViewModelHelpers.withLoading(set: { self.isSavingMetric = $0 }) {
       do {
         let request = CreateMetricRequest(
           userId: userId,
@@ -401,8 +386,7 @@ final class EventDetailViewModel {
         showSuccess("Metric recorded")
         logger.info("Metric created: \(metric.id)")
       } catch {
-        logger.error("Failed to save metric: \(error.localizedDescription)")
-        self.error = "Failed to save metric. Please try again."
+        ViewModelHelpers.handleError(error, userMessage: "Failed to save metric. Please try again.", logger: logger) { self.error = $0 }
         haptics.error()
       }
     }

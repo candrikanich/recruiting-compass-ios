@@ -276,10 +276,11 @@ final class CoachDetailViewModel {
     defer { isSaving = false }
 
     do {
+      let sanitizedNotes = DataSanitizer.stripHtmlTags(editedSharedNotes.trimmingCharacters(in: .whitespacesAndNewlines))
       let request = CoachUpdateRequest(
         firstName: nil, lastName: nil, email: nil, phone: nil,
         position: nil, twitterHandle: nil, instagramHandle: nil,
-        notes: editedSharedNotes.isEmpty ? nil : editedSharedNotes,
+        notes: DataSanitizer.nilIfEmpty(sanitizedNotes),
         privateNotes: nil
       )
       let updated = try await coachesService.updateCoach(id: coachId, updates: request)
@@ -313,12 +314,12 @@ final class CoachDetailViewModel {
     defer { isSaving = false }
 
     do {
-      // CRITICAL: Merge with existing privateNotes to preserve other users' notes
+      let sanitized = DataSanitizer.stripHtmlTags(editedPrivateNotes.trimmingCharacters(in: .whitespacesAndNewlines))
       var privateNotes = coach?.privateNotes ?? [:]
-      if editedPrivateNotes.isEmpty {
+      if sanitized.isEmpty {
         privateNotes.removeValue(forKey: userId)
       } else {
-        privateNotes[userId] = editedPrivateNotes
+        privateNotes[userId] = sanitized
       }
 
       let request = CoachUpdateRequest(

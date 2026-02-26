@@ -99,30 +99,6 @@ final class SchoolDetailViewModel {
 
   // MARK: - Helper Methods
 
-  /// Consolidated error handling
-  private func handleError(
-    _ error: Error,
-    userMessage: String,
-    file: String = #file,
-    function: String = #function
-  ) {
-    errorMessage = userMessage
-    activeAlert = .error(userMessage)
-    let fileName = (file as NSString).lastPathComponent
-    logger.error("[\(fileName):\(function)] \(error.localizedDescription)")
-  }
-
-  /// Execute async operation with loading state management
-  @discardableResult
-  private func withLoading<T>(
-    setting flag: ReferenceWritableKeyPath<SchoolDetailViewModel, Bool>,
-    operation: () async throws -> T
-  ) async rethrows -> T {
-    self[keyPath: flag] = true
-    defer { self[keyPath: flag] = false }
-    return try await operation()
-  }
-
   // MARK: - Computed Properties
 
   var currentUserId: String? {
@@ -278,15 +254,16 @@ final class SchoolDetailViewModel {
   }
 
   func saveNotes() async {
-    await withLoading(setting: \.isSavingNotes) {
+    let sanitizedNotes = DataSanitizer.stripHtmlTags(editedNotes.trimmingCharacters(in: .whitespacesAndNewlines))
+    await ViewModelHelpers.withLoading(set: { self.isSavingNotes = $0 }) {
       do {
-        let updated = try await schoolsService.updateNotes(id: schoolId, notes: editedNotes)
+        let updated = try await schoolsService.updateNotes(id: schoolId, notes: sanitizedNotes)
         school = updated
         isEditingNotes = false
         await invalidateSchoolCache()
         logger.info("Notes saved successfully")
       } catch {
-        handleError(error, userMessage: "Failed to save notes")
+        ViewModelHelpers.handleError(error, userMessage: "Failed to save notes", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       }
     }
   }
@@ -313,9 +290,10 @@ final class SchoolDetailViewModel {
       return
     }
 
-    await withLoading(setting: \.isSavingPrivateNotes) {
+    await ViewModelHelpers.withLoading(set: { self.isSavingPrivateNotes = $0 }) {
       do {
-        let note = editedPrivateNotes.isEmpty ? nil : editedPrivateNotes
+        let sanitized = DataSanitizer.stripHtmlTags(editedPrivateNotes.trimmingCharacters(in: .whitespacesAndNewlines))
+        let note = sanitized.isEmpty ? nil : sanitized
         let updated = try await schoolsService.updatePrivateNotes(
           id: schoolId,
           familyUnitId: familyId,
@@ -327,7 +305,7 @@ final class SchoolDetailViewModel {
         await invalidateSchoolCache()
         logger.info("Private notes saved successfully")
       } catch {
-        handleError(error, userMessage: "Failed to save private notes")
+        ViewModelHelpers.handleError(error, userMessage: "Failed to save private notes", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       }
     }
   }
@@ -341,15 +319,18 @@ final class SchoolDetailViewModel {
       return
     }
 
-    await withLoading(setting: \.isAddingPro) {
+    let sanitizedText = DataSanitizer.stripHtmlTags(newPro.trimmingCharacters(in: .whitespacesAndNewlines))
+    guard !sanitizedText.isEmpty else { return }
+
+    await ViewModelHelpers.withLoading(set: { self.isAddingPro = $0 }) {
       do {
-        let updated = try await schoolsService.addPro(id: schoolId, familyUnitId: familyId, text: newPro)
+        let updated = try await schoolsService.addPro(id: schoolId, familyUnitId: familyId, text: sanitizedText)
         school = updated
         newPro = ""
         await invalidateSchoolCache()
         logger.info("Pro added successfully")
       } catch {
-        handleError(error, userMessage: "Failed to add pro")
+        ViewModelHelpers.handleError(error, userMessage: "Failed to add pro", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       }
     }
   }
@@ -378,15 +359,18 @@ final class SchoolDetailViewModel {
       return
     }
 
-    await withLoading(setting: \.isAddingCon) {
+    let sanitizedText = DataSanitizer.stripHtmlTags(newCon.trimmingCharacters(in: .whitespacesAndNewlines))
+    guard !sanitizedText.isEmpty else { return }
+
+    await ViewModelHelpers.withLoading(set: { self.isAddingCon = $0 }) {
       do {
-        let updated = try await schoolsService.addCon(id: schoolId, familyUnitId: familyId, text: newCon)
+        let updated = try await schoolsService.addCon(id: schoolId, familyUnitId: familyId, text: sanitizedText)
         school = updated
         newCon = ""
         await invalidateSchoolCache()
         logger.info("Con added successfully")
       } catch {
-        handleError(error, userMessage: "Failed to add con")
+        ViewModelHelpers.handleError(error, userMessage: "Failed to add con", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       }
     }
   }
@@ -422,7 +406,7 @@ final class SchoolDetailViewModel {
   }
 
   func saveBasicInfo() async {
-    await withLoading(setting: \.isSavingBasicInfo) {
+    await ViewModelHelpers.withLoading(set: { self.isSavingBasicInfo = $0 }) {
       do {
         let updated = try await schoolsService.updateBasicInfo(
           id: schoolId,
@@ -433,7 +417,7 @@ final class SchoolDetailViewModel {
         await invalidateSchoolCache()
         logger.info("Basic info saved successfully")
       } catch {
-        handleError(error, userMessage: "Failed to save information")
+        ViewModelHelpers.handleError(error, userMessage: "Failed to save information", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       }
     }
   }
@@ -523,7 +507,7 @@ final class SchoolDetailViewModel {
   }
 
   func saveCoachingPhilosophy() async {
-    await withLoading(setting: \.isSavingCoachingPhilosophy) {
+    await ViewModelHelpers.withLoading(set: { self.isSavingCoachingPhilosophy = $0 }) {
       do {
         let updated = try await schoolsService.updateCoachingPhilosophy(
           id: schoolId,
@@ -534,7 +518,7 @@ final class SchoolDetailViewModel {
         await invalidateSchoolCache()
         logger.info("Coaching philosophy saved successfully")
       } catch {
-        handleError(error, userMessage: "Failed to save coaching philosophy")
+        ViewModelHelpers.handleError(error, userMessage: "Failed to save coaching philosophy", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       }
     }
   }
@@ -581,14 +565,14 @@ final class SchoolDetailViewModel {
   // MARK: - Priority Tier Update
 
   func updatePriorityTier(_ tier: PriorityTier?) async {
-    await withLoading(setting: \.isUpdatingPriorityTier) {
+    await ViewModelHelpers.withLoading(set: { self.isUpdatingPriorityTier = $0 }) {
       do {
         let updated = try await schoolsService.updatePriorityTier(id: schoolId, tier: tier)
         school = updated
         await invalidateSchoolCache()
         logger.info("Priority tier updated to \(tier?.rawValue ?? "none")")
       } catch {
-        handleError(error, userMessage: "Failed to update priority tier")
+        ViewModelHelpers.handleError(error, userMessage: "Failed to update priority tier", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       }
     }
   }
