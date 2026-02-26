@@ -16,6 +16,7 @@
 2. **Mock async calls properly:** Use `Task { await ... }` in tests
 3. **UserDefaults caching:** Call `.synchronize()` after writes in tests
 4. **Simulator issues:** Reset simulator (Device → Erase All Content and Settings)
+5. **Simulator crash when hosting full-screen views:** If the simulator crashes during unit tests with "pointer being freed was not allocated" (often in `swift_task_deinitOnExecutorMainActorBackDeploy`), the cause is usually a @MainActor ViewModel (e.g. CoachDetailViewModel) being deallocated during test teardown off the Main actor. Tests that host `CoachDetailView` in `UIHostingController` should replace `rootView` with `EmptyView()` before the test end and run the main run loop once so the ViewModel is released on Main. See `CoachDetailViewTests` for the pattern. Alternatively, avoid instantiating the full view and test the ViewModel or subviews only (see `CoachDetailAccessibilityTests`).
 
 ---
 

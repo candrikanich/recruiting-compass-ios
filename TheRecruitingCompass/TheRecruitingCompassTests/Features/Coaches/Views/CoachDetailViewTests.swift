@@ -92,15 +92,18 @@ final class CoachDetailViewTests: XCTestCase {
 
   func testCoachDetailView_rendersWithoutCrashing() {
     // Host in UIHostingController so @MainActor CoachDetailViewModel tears down in a proper
-    // UIKit context and we avoid the Swift runtime deinit crash (malloc "pointer being freed
-    // was not allocated" in swift_task_deinitOnExecutorMainActorBackDeploy).
+    // UIKit context. Use AnyView so we can replace rootView before test end and release the
+    // ViewModel on Main, avoiding the Swift runtime deinit crash (malloc "pointer being
+    // freed was not allocated" in swift_task_deinitOnExecutorMainActorBackDeploy).
     let view = CoachDetailView(
       coachId: "coach-1",
       allCoaches: [testCoach],
       allSchools: [testSchool]
     )
-    let hosting = UIHostingController(rootView: view)
+    let hosting = UIHostingController(rootView: AnyView(view))
     XCTAssertNotNil(hosting.view)
+    hosting.rootView = AnyView(EmptyView())
+    RunLoop.main.run(until: Date())
   }
 
   func testCoachDetailView_rendersWithEmptyCoaches() {
@@ -109,8 +112,10 @@ final class CoachDetailViewTests: XCTestCase {
       allCoaches: [],
       allSchools: []
     )
-    let hosting = UIHostingController(rootView: view)
+    let hosting = UIHostingController(rootView: AnyView(view))
     XCTAssertNotNil(hosting.view)
+    hosting.rootView = AnyView(EmptyView())
+    RunLoop.main.run(until: Date())
   }
 
   // MARK: - ViewModel Integration Tests
