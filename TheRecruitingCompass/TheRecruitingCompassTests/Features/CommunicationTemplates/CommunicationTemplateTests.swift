@@ -136,6 +136,32 @@ final class CommunicationTemplateTests: XCTestCase {
     XCTAssertEqual(formData.body, "Hey {{coach_name}}, I am interested.")
   }
 
+  // MARK: - bodyFilled / substituteVariables Tests
+
+  func testBodyFilled_ReplacesKnownVariables() {
+    let template = makeTemplate(body: "Hi {{coach_name}}, from {{school_name}}.")
+    let values = ["coach_name": "Coach Smith", "school_name": "State U"]
+    XCTAssertEqual(template.bodyFilled(with: values), "Hi Coach Smith, from State U.")
+  }
+
+  func testBodyFilled_UnknownVariable_BecomesPlaceholder() {
+    let template = makeTemplate(body: "Hi {{coach_name}}, athlete: {{athlete_name}}.")
+    let values = ["coach_name": "Coach Smith"]
+    XCTAssertEqual(template.bodyFilled(with: values), "Hi Coach Smith, athlete: [Athlete Name].")
+  }
+
+  func testSubstituteVariables_EmptyValues_LeavesPlaceholders() {
+    let body = "Hello {{coach_name}}"
+    let result = CommunicationTemplate.substituteVariables(in: body, values: [:])
+    XCTAssertEqual(result, "Hello [Coach Name]")
+  }
+
+  func testSubstituteVariables_NoPlaceholders_ReturnsOriginal() {
+    let body = "Plain text"
+    let result = CommunicationTemplate.substituteVariables(in: body, values: ["coach_name": "X"])
+    XCTAssertEqual(result, "Plain text")
+  }
+
   // MARK: - Helpers
 
   private func makeTemplate(

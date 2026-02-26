@@ -100,3 +100,38 @@ struct TemplateFormData {
     self.body = template.body
   }
 }
+
+// MARK: - Template variable substitution (e.g. for Quick Communication)
+
+extension CommunicationTemplate {
+
+  /// Replaces `{{key}}` placeholders in `body` with values from the given dictionary.
+  /// Keys not present in the dictionary are replaced with a placeholder like `[Variable Name]` using TemplateVariable names when available.
+  func bodyFilled(with values: [String: String]) -> String {
+    Self.substituteVariables(in: body, values: values)
+  }
+
+  /// Substitutes `{{key}}` placeholders in a string. Unknown keys become `[Display Name]` when in TemplateVariable.all.
+  static func substituteVariables(in body: String, values: [String: String]) -> String {
+    let keyToDisplayName: [String: String] = Dictionary(
+      uniqueKeysWithValues: TemplateVariable.all.map { ($0.key, $0.name) }
+    )
+
+    var result = body
+    let pattern = #"\{\{(\w+)\}\}"#
+    guard let regex = try? NSRegularExpression(pattern: pattern) else { return result }
+
+    while true {
+      let range = NSRange(result.startIndex..., in: result)
+      guard let match = regex.firstMatch(in: result, options: [], range: range),
+            let keyRange = Range(match.range(at: 1), in: result) else { break }
+      let key = String(result[keyRange])
+      let replacement = values[key]
+        ?? keyToDisplayName[key].map { "[\($0)]" }
+        ?? "{{\(key)}}"
+      let placeholderRange = Range(match.range, in: result)!
+      result.replaceSubrange(placeholderRange, with: replacement)
+    }
+    return result
+  }
+}

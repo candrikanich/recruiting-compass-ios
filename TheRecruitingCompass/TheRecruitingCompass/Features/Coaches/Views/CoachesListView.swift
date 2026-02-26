@@ -4,6 +4,7 @@ struct CoachesListView: View {
   let prefilterSchoolId: String?
 
   @State private var viewModel = CoachesListViewModel()
+  @State private var quickCommunicationContext: QuickCommunicationContext?
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
   @State private var navigationPath = NavigationPath()
@@ -65,6 +66,9 @@ struct CoachesListView: View {
       }
       .navigationDestination(for: CoachDestination.self) { destination in
         destinationView(for: destination)
+      }
+      .sheet(item: $quickCommunicationContext) { context in
+        QuickCommunicationView(context: context)
       }
       .toast(
         isShowing: $viewModel.showSuccessToast,
@@ -171,6 +175,16 @@ struct CoachesListView: View {
         .padding(.vertical, 4)
       }
       .buttonStyle(PlainButtonStyle())
+      .contextMenu {
+        Button {
+          quickCommunicationContext = QuickCommunicationContext(
+            coach: coach,
+            schoolName: viewModel.schoolName(for: coach.schoolId)
+          )
+        } label: {
+          Label("Quick Communication", systemImage: "envelope.badge")
+        }
+      }
       .swipeActions(edge: .trailing, allowsFullSwipe: false) {
         Button(role: .destructive) {
           viewModel.confirmDelete(coach)

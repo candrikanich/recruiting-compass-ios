@@ -6,6 +6,7 @@ struct CoachDetailView: View {
   let allSchools: [School]
 
   @State private var viewModel: CoachDetailViewModel
+  @State private var quickCommunicationContext: QuickCommunicationContext?
   @Environment(\.sizeCategory) private var sizeCategory
   @Environment(\.dismiss) private var dismiss
 
@@ -39,6 +40,18 @@ struct CoachDetailView: View {
       ToolbarItem(placement: .primaryAction) {
         Menu {
           Button {
+            if let coach = viewModel.coach {
+              quickCommunicationContext = QuickCommunicationContext(
+                coach: coach,
+                schoolName: viewModel.school?.name
+              )
+            }
+          } label: {
+            Label("Quick Communication", systemImage: "envelope.badge")
+          }
+          .disabled(viewModel.isLoading || viewModel.coach == nil)
+
+          Button {
             viewModel.startEditing()
           } label: {
             Label("Edit", systemImage: "pencil")
@@ -67,6 +80,9 @@ struct CoachDetailView: View {
           onCancel: { viewModel.cancelEditing() }
         )
       }
+    }
+    .sheet(item: $quickCommunicationContext) { context in
+      QuickCommunicationView(context: context)
     }
     .confirmationDialog("Delete Coach", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
       Button("Delete", role: .destructive) {
