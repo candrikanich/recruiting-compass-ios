@@ -111,7 +111,15 @@ struct CoachDetailView: View {
   private func detailContent(coach: Coach) -> some View {
     VStack(alignment: .leading, spacing: 24) {
       CoachDetailHeader(coach: coach, school: viewModel.school)
-      ContactInfoSection(coach: coach)
+      ContactInfoSection(
+        coach: coach,
+        onEmailTap: {
+          quickCommunicationContext = QuickCommunicationContext(coach: coach, schoolName: viewModel.school?.name)
+        },
+        onPhoneTap: {
+          quickCommunicationContext = QuickCommunicationContext(coach: coach, schoolName: viewModel.school?.name)
+        }
+      )
 
       if let stats = viewModel.stats {
         CoachStatsGrid(stats: stats)

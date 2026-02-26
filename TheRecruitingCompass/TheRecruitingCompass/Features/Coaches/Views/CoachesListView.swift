@@ -169,7 +169,10 @@ struct CoachesListView: View {
           coach: coach,
           schoolName: viewModel.schoolName(for: coach.schoolId),
           schoolLogoUrl: viewModel.schoolLogoUrl(for: coach.schoolId),
-          schoolInitials: viewModel.schoolInitials(for: coach.schoolId)
+          schoolInitials: viewModel.schoolInitials(for: coach.schoolId),
+          onQuickCommunication: { context in
+            quickCommunicationContext = context
+          }
         )
         .padding(.horizontal, 16)
         .padding(.vertical, 4)

@@ -6,6 +6,9 @@ struct CoachCardView: View {
   let schoolLogoUrl: String?
   let schoolInitials: String
 
+  /// When set, email and phone buttons open Quick Communication sheet instead of Mail/Messages.
+  var onQuickCommunication: ((QuickCommunicationContext) -> Void)? = nil
+
   @Environment(\.colorScheme) private var colorScheme
   @Environment(\.sizeCategory) private var sizeCategory
 
@@ -175,10 +178,32 @@ struct CoachCardView: View {
   @ViewBuilder
   private var communicationButtons: some View {
     if let email = coach.email {
-      CommunicationButton(type: .email(email), value: email)
+      if let onQuickCommunication {
+        quickCommunicationTriggerButton(
+          icon: "envelope.fill",
+          color: Color.accentBlue,
+          label: "Email coach",
+          hint: "Opens Quick Communication with templates"
+        ) {
+          onQuickCommunication(QuickCommunicationContext(coach: coach, schoolName: schoolName))
+        }
+      } else {
+        CommunicationButton(type: .email(email), value: email)
+      }
     }
     if let phone = coach.phone {
-      CommunicationButton(type: .phone(phone), value: phone)
+      if let onQuickCommunication {
+        quickCommunicationTriggerButton(
+          icon: "message.fill",
+          color: .successGreen,
+          label: "Text coach",
+          hint: "Opens Quick Communication with templates"
+        ) {
+          onQuickCommunication(QuickCommunicationContext(coach: coach, schoolName: schoolName))
+        }
+      } else {
+        CommunicationButton(type: .phone(phone), value: phone)
+      }
     }
     if let twitter = coach.twitterHandle {
       CommunicationButton(type: .twitter(twitter), value: twitter)
@@ -186,6 +211,24 @@ struct CoachCardView: View {
     if let instagram = coach.instagramHandle {
       CommunicationButton(type: .instagram(instagram), value: instagram)
     }
+  }
+
+  private func quickCommunicationTriggerButton(
+    icon: String,
+    color: Color,
+    label: String,
+    hint: String,
+    action: @escaping () -> Void
+  ) -> some View {
+    Button(action: action) {
+      Image(systemName: icon)
+        .font(.system(size: sizeCategory.isAccessibilityCategory ? 24 : 18))
+        .foregroundStyle(color)
+        .frame(minWidth: 44, minHeight: 44)
+        .contentShape(Rectangle())
+    }
+    .accessibilityLabel(label)
+    .accessibilityHint(hint)
   }
 }
 

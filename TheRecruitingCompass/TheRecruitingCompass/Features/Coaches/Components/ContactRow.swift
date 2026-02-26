@@ -6,27 +6,35 @@ struct ContactRow: View {
   let label: String
   let value: String
   let type: CommunicationType
+  /// When set, row is a button that runs this action instead of opening the type's URL (e.g. to show Quick Communication).
+  var customAction: (() -> Void)? = nil
 
   var body: some View {
     Group {
-      if let url = type.url(for: value) {
+      if let customAction {
+        Button(action: customAction) {
+          rowContent(showLinkIndicator: true)
+        }
+        .accessibilityLabel("\(label): \(value)")
+        .accessibilityHint("Opens Quick Communication with templates")
+      } else if let url = type.url(for: value) {
         Link(destination: url) {
-          rowContent
+          rowContent(showLinkIndicator: true)
         }
         .accessibilityLabel("\(label): \(value)")
         .accessibilityHint("Opens \(type.appName)")
       } else {
-        rowContent
+        rowContent(showLinkIndicator: false)
           .accessibilityLabel("\(label): \(value)")
       }
     }
   }
 
-  private var rowContent: some View {
+  private func rowContent(showLinkIndicator: Bool) -> some View {
     HStack(spacing: 12) {
       Image(systemName: icon)
         .font(.body)
-        .foregroundStyle(type.url(for: value) != nil ? type.iconColor : .secondary)
+        .foregroundStyle(type.url(for: value) != nil || customAction != nil ? type.iconColor : .secondary)
         .frame(width: 24)
         .accessibilityHidden(true)
 
@@ -41,7 +49,7 @@ struct ContactRow: View {
 
       Spacer()
 
-      if type.url(for: value) != nil {
+      if showLinkIndicator {
         Image(systemName: "arrow.up.right")
           .font(.caption)
           .foregroundStyle(.secondary)
