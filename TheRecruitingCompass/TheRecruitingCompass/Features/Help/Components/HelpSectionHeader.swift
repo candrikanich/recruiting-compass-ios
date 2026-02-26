@@ -1,0 +1,37 @@
+//
+//  HelpSectionHeader.swift
+//  TheRecruitingCompass
+//
+//  Section heading for help content, with optional badge.
+//
+
+import SwiftUI
+
+struct HelpSectionHeader: View {
+  let title: String
+  var badge: HelpBadge.BadgeType? = nil
+
+  var body: some View {
+    HStack(alignment: .firstTextBaseline, spacing: 8) {
+      Text(title)
+        .font(.headline)
+        .foregroundColor(.primary)
+
+      if let badge {
+        HelpBadge(type: badge)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.bottom, 4)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(badge.map { "\(title), \($0.label) badge" } ?? title)
+  }
+}
+
+#Preview {
+  VStack(alignment: .leading, spacing: 16) {
+    HelpSectionHeader(title: "Creating your profile")
+    HelpSectionHeader(title: "Managing your school list", badge: .required)
+  }
+  .padding()
+}

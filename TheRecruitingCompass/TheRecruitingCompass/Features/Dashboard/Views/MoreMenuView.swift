@@ -23,6 +23,7 @@ struct MoreMenuView: View {
     case performance
     case analytics
     case activity
+    case helpCenter
     case notifications
     case settings
 
@@ -37,6 +38,7 @@ struct MoreMenuView: View {
       case .performance: return "Performance"
       case .analytics: return "Analytics"
       case .activity: return "Activity History"
+      case .helpCenter: return "Help Center"
       case .notifications: return "Notifications"
       case .settings: return "Settings"
       }
@@ -51,6 +53,7 @@ struct MoreMenuView: View {
       case .performance: return "Stats, metrics, and progress"
       case .analytics: return "Charts and recruiting insights"
       case .activity: return "History of your recruiting activity"
+      case .helpCenter: return "Guides and FAQs for using the app"
       case .notifications: return "Alerts and follow-up reminders"
       case .settings: return "Preferences and account settings"
       }
@@ -65,6 +68,7 @@ struct MoreMenuView: View {
       case .performance: return "chart.xyaxis.line"
       case .analytics: return "chart.pie"
       case .activity: return "list.bullet.rectangle"
+      case .helpCenter: return "questionmark.circle"
       case .notifications: return "bell"
       case .settings: return "gearshape"
       }
@@ -79,6 +83,7 @@ struct MoreMenuView: View {
       case .performance: return .orange
       case .analytics: return .purple
       case .activity: return .accentBlue
+      case .helpCenter: return .accentBlue
       case .notifications: return .orange
       case .settings: return Color.iconGray
       }
@@ -88,6 +93,7 @@ struct MoreMenuView: View {
     static var recruitingSections: [(header: String, items: [Section])] {
       [
         ("Recruiting", [.timeline, .events, .documents, .offers, .performance, .analytics, .activity]),
+        ("Support", [.helpCenter]),
         ("Account", [.notifications, .settings])
       ]
     }
@@ -152,6 +158,8 @@ struct MoreMenuView: View {
     case .activity:
       ActivityFeedView()
         .activityNavigation()
+    case .helpCenter:
+      HelpCenterView()
     case .notifications:
       NotificationsListView(viewModel: notificationsViewModel)
     case .settings:
