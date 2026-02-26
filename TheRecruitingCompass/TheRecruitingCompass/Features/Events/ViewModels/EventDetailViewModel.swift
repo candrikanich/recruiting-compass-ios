@@ -64,7 +64,7 @@ final class EventDetailViewModel {
 
   // MARK: - Dependencies
 
-  private let eventsService: EventsManaging
+  private let eventsService: any EventsManaging
   private let authManager: any AuthManaging
   private let haptics = HapticFeedbackManager.shared
   private let exportService = MetricsExportService()
@@ -122,7 +122,7 @@ final class EventDetailViewModel {
   // MARK: - Init
 
   init(
-    eventsService: EventsManaging? = nil,
+    eventsService: (any EventsManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
     eventId: String
   ) {

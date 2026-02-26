@@ -11,7 +11,7 @@ enum VerificationState: Equatable {
 
 @Observable
 @MainActor
-class EmailVerificationViewModel {
+final class EmailVerificationViewModel {
   // MARK: - State
 
   var verificationState: VerificationState = .pending

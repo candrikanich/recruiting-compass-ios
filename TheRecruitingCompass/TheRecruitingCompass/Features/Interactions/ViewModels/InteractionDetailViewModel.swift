@@ -28,8 +28,8 @@ final class InteractionDetailViewModel {
   // MARK: - Dependencies
 
   private let interactionId: String
-  private let interactionsService: InteractionsManaging
-  private let authManager: AuthManaging
+  private let interactionsService: any InteractionsManaging
+  private let authManager: any AuthManaging
   private let familyUnitId: String
 
   // MARK: - Init
@@ -37,8 +37,8 @@ final class InteractionDetailViewModel {
   init(
     interactionId: String,
     familyUnitId: String,
-    interactionsService: InteractionsManaging,
-    authManager: AuthManaging
+    interactionsService: any InteractionsManaging,
+    authManager: any AuthManaging
   ) {
     self.interactionId = interactionId
     self.familyUnitId = familyUnitId

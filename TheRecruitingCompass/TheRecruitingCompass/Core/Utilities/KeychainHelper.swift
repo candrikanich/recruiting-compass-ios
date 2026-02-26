@@ -53,7 +53,7 @@ final class KeychainHelper: @unchecked Sendable {
       kSecAttrService as String: service,
       kSecAttrAccount as String: key,
       kSecValueData as String: data,
-      kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+      kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
     ]
 
     // Try to delete existing item first

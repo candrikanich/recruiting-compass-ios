@@ -147,7 +147,7 @@ final class EventsListViewModel {
 
   func hasEvent(on date: Date) -> Bool {
     let prefix = EventsListViewModel.dayPrefixFormatter.string(from: date)
-    return events.contains { $0.startDate == prefix }
+    return events.contains { $0.startDate.hasPrefix(prefix) }
   }
 
   func isCurrentMonth(_ date: Date) -> Bool {
@@ -156,12 +156,12 @@ final class EventsListViewModel {
 
   func eventsForDate(_ date: Date) -> [FullEvent] {
     let prefix = EventsListViewModel.dayPrefixFormatter.string(from: date)
-    return filteredEvents.filter { $0.startDate == prefix }
+    return filteredEvents.filter { $0.startDate.hasPrefix(prefix) }
   }
 
   // MARK: - Dependencies
 
-  private let eventsService: EventsManaging
+  private let eventsService: any EventsManaging
   private let authManager: any AuthManaging
 
   // MARK: - Init

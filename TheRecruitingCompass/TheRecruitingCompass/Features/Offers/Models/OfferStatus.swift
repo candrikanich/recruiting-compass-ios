@@ -5,6 +5,13 @@ enum OfferStatus: String, Codable, CaseIterable, Sendable {
   case accepted
   case declined
   case expired
+  case unknown
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let rawValue = try container.decode(String.self)
+    self = OfferStatus(rawValue: rawValue) ?? .unknown
+  }
 
   var displayName: String {
     switch self {
@@ -12,6 +19,7 @@ enum OfferStatus: String, Codable, CaseIterable, Sendable {
     case .accepted: return "Accepted"
     case .declined: return "Declined"
     case .expired: return "Expired"
+    case .unknown: return "Unknown"
     }
   }
 
@@ -21,6 +29,7 @@ enum OfferStatus: String, Codable, CaseIterable, Sendable {
     case .pending: return .accentBlue
     case .declined: return .errorRed
     case .expired: return .iconGray
+    case .unknown: return .iconGray
     }
   }
 }

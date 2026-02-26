@@ -19,6 +19,10 @@ final class DashboardViewModel {
   var isLoading = false
   var isLoggingOut = false
   var errorMessage: String?
+
+  func dismissError() {
+    errorMessage = nil
+  }
   var logoutErrorMessage: String?
   var lastUpdated: Date?
 
@@ -174,7 +178,8 @@ final class DashboardViewModel {
       async let trendsTask: () = fetchInteractionTrends()
       _ = await (suggestionsTask, eventsTask, metricsTask, trendsTask)
     } catch {
-      errorMessage = "Failed to load dashboard: \(error.localizedDescription)"
+      logger.error("Failed to load dashboard data: \(error.localizedDescription)")
+      errorMessage = "Failed to load dashboard. Pull to refresh."
 
       #if DEBUG
       logger.warning("Using empty stats for development")

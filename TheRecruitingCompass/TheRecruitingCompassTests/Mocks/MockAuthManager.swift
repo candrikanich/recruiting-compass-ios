@@ -8,6 +8,7 @@ class MockAuthManager: AuthManaging {
   // MARK: - Observable State
 
   var isAuthenticated: Bool = false
+  var isCheckingSession: Bool = false
   var user: User?
   var session: Session?
   var errorMessage: String?

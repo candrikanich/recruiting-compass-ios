@@ -199,8 +199,8 @@ final class SchoolDetailViewModel {
       await loadCoaches()
 
     } catch {
-      errorMessage = "Failed to load school: \(error.localizedDescription)"
-      logger.error("Failed to load school: \(error.localizedDescription)")
+      logger.error("Failed to load school \(self.schoolId): \(error.localizedDescription)")
+      errorMessage = "Failed to load school details. Please try again."
     }
   }
 
@@ -278,7 +278,6 @@ final class SchoolDetailViewModel {
   }
 
   func saveNotes() async {
-    guard canSaveNotes else { return }
     await withLoading(setting: \.isSavingNotes) {
       do {
         let updated = try await schoolsService.updateNotes(id: schoolId, notes: editedNotes)

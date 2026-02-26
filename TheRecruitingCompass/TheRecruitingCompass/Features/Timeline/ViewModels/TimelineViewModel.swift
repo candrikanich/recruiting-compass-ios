@@ -139,7 +139,6 @@ final class TimelineViewModel {
 
   func markComplete(taskId: String) async {
     guard !isViewingAsParent else { return }
-    guard authManager.user != nil else { return }
     guard let userId = authManager.user?.id else { return }
 
     guard let task = allTasks.first(where: { $0.id == taskId }), !task.isLocked else { return }

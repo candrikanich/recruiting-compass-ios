@@ -16,7 +16,7 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
   }
 
   func fetchInteractions(userId: String) async throws -> [Interaction] {
-    logger.info("Fetching interactions for activity feed, user: \(userId)")
+    logger.info("Fetching interactions for activity feed, user: \(userId, privacy: .private)")
 
     let interactions: [Interaction] = try await supabaseManager.client
       .from("interactions")
@@ -32,7 +32,7 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
   }
 
   func fetchStatusChanges(userId: String) async throws -> [SchoolStatusHistory] {
-    logger.info("Fetching status changes for activity feed, user: \(userId)")
+    logger.info("Fetching status changes for activity feed, user: \(userId, privacy: .private)")
 
     let changes: [SchoolStatusHistory] = try await supabaseManager.client
       .from("school_status_history")
@@ -48,7 +48,7 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
   }
 
   func fetchDocuments(userId: String) async throws -> [DocumentRecord] {
-    logger.info("Fetching documents for activity feed, user: \(userId)")
+    logger.info("Fetching documents for activity feed, user: \(userId, privacy: .private)")
 
     let documents: [DocumentRecord] = try await supabaseManager.client
       .from("documents")

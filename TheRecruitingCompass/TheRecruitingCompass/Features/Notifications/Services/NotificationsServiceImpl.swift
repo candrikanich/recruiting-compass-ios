@@ -16,7 +16,7 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
   }
 
   func fetchNotifications(userId: String) async throws -> [AppNotification] {
-    logger.info("Fetching notifications for user: \(userId)")
+    logger.info("Fetching notifications for user: \(userId, privacy: .private)")
 
     let notifications: [AppNotification] = try await supabaseManager.client
       .from("notifications")
@@ -49,7 +49,7 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
   }
 
   func markAllAsRead(userId: String) async throws {
-    logger.info("Marking all notifications as read for user: \(userId)")
+    logger.info("Marking all notifications as read for user: \(userId, privacy: .private)")
 
     let now = ISO8601DateFormatter().string(from: Date())
 
@@ -76,7 +76,7 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
   }
 
   func deleteAllRead(userId: String) async throws {
-    logger.info("Deleting all read notifications for user: \(userId)")
+    logger.info("Deleting all read notifications for user: \(userId, privacy: .private)")
 
     try await supabaseManager.client
       .from("notifications")

@@ -1,6 +1,9 @@
 import Foundation
+import OSLog
 import SwiftUI
 import Observation
+
+private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "AuthManager")
 
 @Observable
 @MainActor
@@ -125,6 +128,7 @@ final class AuthManager: AuthManaging {
       try await supabaseManager.signOut()
     } catch {
       // Ignore sign-out errors and continue with local cleanup
+      logger.warning("Sign-out from Supabase failed, local session will be cleared: \(error.localizedDescription)")
     }
 
     self.user = nil

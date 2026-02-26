@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 protocol AuthManaging: AnyObject {
   var isAuthenticated: Bool { get }
+  var isCheckingSession: Bool { get }
   var user: User? { get }
   var session: Session? { get }
 

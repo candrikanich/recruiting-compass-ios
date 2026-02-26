@@ -233,17 +233,17 @@ final class NotificationsListViewModel {
       let id = extractId(from: url, pattern: "highlight=")
       return id.map { .coachDetail(id: $0) }
     } else if url.contains("/schools/") {
-      let id = url.components(separatedBy: "/").last
-      return id.map { .schoolDetail(id: $0) }
+      guard let id = url.components(separatedBy: "/").last, !id.isEmpty else { return nil }
+      return .schoolDetail(id: id)
     } else if url.contains("/offers") {
       let id = extractId(from: url, pattern: "highlight=")
       return id.map { .offerDetail(id: $0) }
     } else if url.contains("/events/") {
-      let id = url.components(separatedBy: "/").last
-      return id.map { .eventDetail(id: $0) }
+      guard let id = url.components(separatedBy: "/").last, !id.isEmpty else { return nil }
+      return .eventDetail(id: id)
     } else if url.contains("/interactions/") {
-      let id = url.components(separatedBy: "/").last
-      return id.map { .interactionDetail(id: $0) }
+      guard let id = url.components(separatedBy: "/").last, !id.isEmpty else { return nil }
+      return .interactionDetail(id: id)
     }
 
     return nil

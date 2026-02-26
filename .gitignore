@@ -5,6 +5,7 @@
 
 # Xcode
 Build/
+TheRecruitingCompass/build/
 DerivedData/
 *.pbxuser
 *.mode1v3

@@ -14,8 +14,8 @@ final class NotificationPreferencesViewModel {
   var successMessage: String?
   var hasUnsavedChanges = false
 
-  private let preferenceService: PreferenceManaging
-  init(preferenceService: PreferenceManaging) {
+  private let preferenceService: any PreferenceManaging
+  init(preferenceService: any PreferenceManaging) {
     self.preferenceService = preferenceService
   }
 
@@ -37,7 +37,7 @@ final class NotificationPreferencesViewModel {
       isLoading = false
     } catch {
       logger.error("Failed to load preferences: \(error.localizedDescription)")
-      errorMessage = "Failed to load preferences: \(error.localizedDescription)"
+      errorMessage = "Failed to load preferences. Please try again."
       isLoading = false
     }
   }
@@ -69,7 +69,7 @@ final class NotificationPreferencesViewModel {
       isSaving = false
     } catch {
       logger.error("Failed to save preferences: \(error.localizedDescription)")
-      errorMessage = "Failed to save preferences: \(error.localizedDescription)"
+      errorMessage = "Failed to save preferences. Please try again."
       isSaving = false
     }
   }

@@ -278,12 +278,14 @@ final class DocumentsListViewModel {
       return
     }
 
+    isUploading = true
+    uploadError = nil
+    defer { isUploading = false; uploadProgress = 0 }
+
     do {
       let data = try Data(contentsOf: fileURL)
       let mimeType = mimeTypeForExtension(fileURL.pathExtension)
 
-      isUploading = true
-      uploadError = nil
       uploadProgress = 0.5  // Show progress during upload; set to 1 on success
 
       let doc = try await documentsService.uploadDocument(
@@ -303,10 +305,8 @@ final class DocumentsListViewModel {
       dismissUploadForm()
     } catch {
       logger.error("Upload failed: \(error.localizedDescription)")
-      uploadError = "Upload failed: \(error.localizedDescription)"
+      uploadError = "Upload failed. Please check your connection and try again."
     }
-    isUploading = false
-    uploadProgress = 0
   }
 
   private func mimeTypeForExtension(_ ext: String) -> String {

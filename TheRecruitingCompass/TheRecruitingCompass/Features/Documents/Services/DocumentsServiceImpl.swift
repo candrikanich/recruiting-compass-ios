@@ -251,9 +251,13 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       .value
 
     if !document.fileUrl.isEmpty, let storagePath = extractStoragePath(from: document.fileUrl) {
-      _ = try? await supabaseManager.client.storage
-        .from("documents")
-        .remove(paths: [storagePath])
+      do {
+        _ = try await supabaseManager.client.storage
+          .from("documents")
+          .remove(paths: [storagePath])
+      } catch {
+        logger.error("Failed to remove storage file at path \(storagePath): \(error.localizedDescription)")
+      }
     }
 
     try await supabaseManager.client

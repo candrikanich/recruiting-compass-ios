@@ -30,7 +30,7 @@ final class CreateEventViewModel {
 
   // MARK: - Dependencies
 
-  private let eventsService: EventsManaging
+  private let eventsService: any EventsManaging
   private let userId: String
 
   // MARK: - Computed Properties
@@ -45,7 +45,7 @@ final class CreateEventViewModel {
 
   // MARK: - Init
 
-  nonisolated init(eventsService: EventsManaging, userId: String) {
+  nonisolated init(eventsService: any EventsManaging, userId: String) {
     self.eventsService = eventsService
     self.userId = userId
   }

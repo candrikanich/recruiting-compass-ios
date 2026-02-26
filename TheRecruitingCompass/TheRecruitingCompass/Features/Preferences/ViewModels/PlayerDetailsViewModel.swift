@@ -20,15 +20,14 @@ final class PlayerDetailsViewModel {
   var isReadOnly = false
   var showDeletePhotoConfirmation = false
 
-  private let preferenceService: PreferenceManaging
+  private let preferenceService: any PreferenceManaging
   private let userRole: UserRole
   @ObservationIgnored nonisolated(unsafe) private var saveTask: Task<Void, Never>?
 
-  init(preferenceService: PreferenceManaging, userRole: UserRole) {
+  init(preferenceService: any PreferenceManaging, userRole: UserRole) {
     self.preferenceService = preferenceService
     self.userRole = userRole
     self.isReadOnly = (userRole == .parent)
-    setupAutoSave()
   }
 
   deinit {
@@ -197,20 +196,7 @@ final class PlayerDetailsViewModel {
     hasUnsavedChanges = true
   }
 
-  private func setupAutoSave() {
-    // Debounce auto-save (500ms)
-    // Auto-save is now handled by triggerAutoSave() called from update methods
-  }
 
-  private func triggerAutoSave() {
-    saveTask?.cancel()
-    saveTask = Task { @MainActor in
-      try? await Task.sleep(nanoseconds: 500_000_000) // 500ms
-      if hasUnsavedChanges && !isReadOnly {
-        await saveDetails()
-      }
-    }
-  }
 }
 
 enum PhotoError: LocalizedError {

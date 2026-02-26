@@ -3,7 +3,7 @@ import Observation
 
 @Observable
 @MainActor
-class ForgotPasswordViewModel {
+final class ForgotPasswordViewModel {
   var state: ForgotPasswordState = .form
   var email = ""
   var fieldErrors: [FormFieldKey: String] = [:]
@@ -12,7 +12,7 @@ class ForgotPasswordViewModel {
 
   private let authManager: any AuthManaging
   private let config: PasswordResetConfig
-  private var cooldownTask: Task<Void, Never>?
+  @ObservationIgnored private var cooldownTask: Task<Void, Never>?
 
   var submittedEmail: String {
     if case .emailSent(let email) = state {

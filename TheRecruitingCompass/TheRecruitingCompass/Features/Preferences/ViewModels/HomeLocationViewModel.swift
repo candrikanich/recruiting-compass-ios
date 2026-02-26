@@ -16,11 +16,11 @@ final class HomeLocationViewModel {
   var successMessage: String?
   var hasUnsavedChanges = false
 
-  private let preferenceService: PreferenceManaging
+  private let preferenceService: any PreferenceManaging
   private let geocoder: CLGeocoder
   @ObservationIgnored nonisolated(unsafe) private var saveTask: Task<Void, Never>?
 
-  init(preferenceService: PreferenceManaging, geocoder: CLGeocoder = CLGeocoder()) {
+  init(preferenceService: any PreferenceManaging, geocoder: CLGeocoder = CLGeocoder()) {
     self.preferenceService = preferenceService
     self.geocoder = geocoder
   }
@@ -110,7 +110,7 @@ final class HomeLocationViewModel {
       isGeocoding = false
     } catch {
       logger.error("Geocoding failed: \(error.localizedDescription)")
-      errorMessage = "Geocoding failed: \(error.localizedDescription)"
+      errorMessage = "Unable to find that location. Please enter a more specific address."
       isGeocoding = false
     }
   }

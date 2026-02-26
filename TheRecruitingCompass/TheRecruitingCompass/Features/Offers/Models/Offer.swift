@@ -89,6 +89,8 @@ struct Offer: Codable, Identifiable, Sendable {
   private static let dateOnlyFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(identifier: "UTC")
     return formatter
   }()
 

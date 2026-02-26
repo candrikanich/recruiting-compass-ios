@@ -18,9 +18,9 @@ final class SchoolPreferencesViewModel {
   var showingTemplateWarning = false
   var pendingTemplate: String?
 
-  private let preferenceService: PreferenceManaging
+  private let preferenceService: any PreferenceManaging
 
-  init(preferenceService: PreferenceManaging) {
+  init(preferenceService: any PreferenceManaging) {
     self.preferenceService = preferenceService
   }
 

@@ -25,12 +25,15 @@ final class PerformanceDashboardViewModel {
   var addFormState = MetricFormState()
   var editFormState = MetricFormState()
   var isSubmitting = false
+  var isDeleting = false
 
   let performanceService: any PerformanceManaging
   private let authManager: any AuthManaging
   private static let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(identifier: "UTC")
     return formatter
   }()
 
@@ -207,6 +210,10 @@ final class PerformanceDashboardViewModel {
 
   func deleteMetric() async {
     guard let metric = metricToDelete else { return }
+    guard !isDeleting else { return }
+
+    isDeleting = true
+    defer { isDeleting = false }
 
     do {
       try await performanceService.deleteMetric(id: metric.id)

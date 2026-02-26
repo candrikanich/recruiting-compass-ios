@@ -4,7 +4,7 @@ import Observation
 
 @Observable
 @MainActor
-class SignupViewModel {
+final class SignupViewModel {
   // MARK: - Two-Step State
 
   var selectedRole: UserRole?

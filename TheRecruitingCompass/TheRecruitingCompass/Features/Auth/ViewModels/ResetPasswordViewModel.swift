@@ -10,7 +10,7 @@ enum ResetPasswordState: Equatable {
 
 @Observable
 @MainActor
-class ResetPasswordViewModel {
+final class ResetPasswordViewModel {
   var state: ResetPasswordState = .form
   var newPassword = ""
   var confirmPassword = ""
@@ -21,7 +21,7 @@ class ResetPasswordViewModel {
 
   private let authManager: any AuthManaging
   private let config: PasswordResetConfig
-  private var countdownTask: Task<Void, Never>?
+  @ObservationIgnored private var countdownTask: Task<Void, Never>?
 
   var passwordStrength: (isValid: Bool, errors: [String]) {
     FormValidator.validatePasswordStrength(newPassword)

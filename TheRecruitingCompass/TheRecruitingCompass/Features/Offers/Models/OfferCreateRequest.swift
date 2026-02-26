@@ -1,4 +1,10 @@
 import Foundation
+import OSLog
+
+private let logger = Logger(
+  subsystem: "com.chrisandrikanich.TheRecruitingCompass",
+  category: "OfferCreateRequest"
+)
 
 struct OfferCreateRequest: Codable, Sendable {
   let userId: String
@@ -33,7 +39,11 @@ struct OfferCreateRequest: Codable, Sendable {
 
   init(userId: String, form: NewOfferFormState) {
     self.userId = userId
-    self.schoolId = form.schoolId ?? ""
+    let resolvedSchoolId = form.schoolId ?? ""
+    if resolvedSchoolId.isEmpty {
+      logger.warning("OfferCreateRequest initialized with empty schoolId — form.schoolId was nil")
+    }
+    self.schoolId = resolvedSchoolId
     self.offerType = form.offerType
     self.scholarshipAmount = Double(form.scholarshipAmount)
     self.scholarshipPercentage = form.scholarshipPercentage > 0 ? form.scholarshipPercentage : nil

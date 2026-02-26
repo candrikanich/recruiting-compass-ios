@@ -14,9 +14,9 @@ final class DashboardCustomizationViewModel {
   var successMessage: String?
   var hasUnsavedChanges = false
 
-  private let preferenceService: PreferenceManaging
+  private let preferenceService: any PreferenceManaging
 
-  init(preferenceService: PreferenceManaging) {
+  init(preferenceService: any PreferenceManaging) {
     self.preferenceService = preferenceService
   }
 
@@ -38,7 +38,7 @@ final class DashboardCustomizationViewModel {
       isLoading = false
     } catch {
       logger.error("Failed to load visibility: \(error.localizedDescription)")
-      errorMessage = "Failed to load settings: \(error.localizedDescription)"
+      errorMessage = "Failed to load settings. Please try again."
       isLoading = false
     }
   }
@@ -68,7 +68,7 @@ final class DashboardCustomizationViewModel {
       isSaving = false
     } catch {
       logger.error("Failed to save visibility: \(error.localizedDescription)")
-      errorMessage = "Failed to save settings: \(error.localizedDescription)"
+      errorMessage = "Failed to save settings. Please try again."
       isSaving = false
     }
   }

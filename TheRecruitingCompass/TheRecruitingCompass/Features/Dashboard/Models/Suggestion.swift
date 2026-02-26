@@ -50,6 +50,6 @@ struct SuggestionsResponse: Codable, Sendable {
 
   enum CodingKeys: String, CodingKey {
     case suggestions
-    case pendingCount = "pendingCount"
+    case pendingCount = "pending_count"
   }
 }

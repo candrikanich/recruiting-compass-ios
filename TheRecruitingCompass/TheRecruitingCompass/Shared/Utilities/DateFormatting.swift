@@ -63,6 +63,6 @@ enum DateFormatting {
             calendar: .current,
             year: endComponents[0], month: endComponents[1], day: endComponents[2]
           ).date else { return "\(start) – \(isoDateString(endDate))" }
-    return "\(start) – \(end.formatted(.dateTime.month(.abbreviated).day()))"
+    return "\(start) – \(end.formatted(.dateTime.month(.abbreviated).day().year()))"
   }
 }

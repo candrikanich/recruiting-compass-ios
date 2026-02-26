@@ -61,12 +61,12 @@ final class EventsServiceImpl: EventsManaging, Sendable {
   }
 
   func fetchSchools(userId: String) async throws -> [SchoolSummary] {
-    logger.debug("Fetching schools for user: \(userId)")
+    logger.debug("Fetching schools for family unit: \(userId)")
 
     let results: [SchoolSummary] = try await supabaseManager.client
       .from("schools")
       .select("id, name, location")
-      .eq("user_id", value: userId)
+      .eq("family_unit_id", value: userId)
       .order("name")
       .execute()
       .value
@@ -110,7 +110,6 @@ final class EventsServiceImpl: EventsManaging, Sendable {
       .from("coaches")
       .select("id,first_name,last_name,position,email,phone,school_id,twitter_handle,instagram_handle,notes,private_notes,responsiveness_score,last_contact_date,created_at,updated_at")
       .eq("school_id", value: schoolId)
-      .eq("user_id", value: userId)
       .execute()
       .value
 

@@ -224,8 +224,7 @@ final class DocumentViewerViewModel {
     let baseName = document?.title ?? url.deletingPathExtension().lastPathComponent
     let ext = url.pathExtension.isEmpty ? "" : "." + url.pathExtension
     let fileName = baseName + ext
-    let safeFileName = fileName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "document"
-    return documentsURL.appendingPathComponent(safeFileName)
+    return documentsURL.appendingPathComponent(fileName)
   }
 
   // MARK: - Collection Navigation

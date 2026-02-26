@@ -35,11 +35,22 @@ struct Coach: Codable, Identifiable, Sendable {
     return CoachRole(rawValue: position.lowercased()) ?? .assistant
   }
 
-  private static let iso8601Formatter = ISO8601DateFormatter()
+  private static let iso8601WithFractional: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return f
+  }()
+
+  private static let iso8601WithoutFractional: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime]
+    return f
+  }()
 
   var lastContactDateParsed: Date? {
-    guard let lastContactDate else { return nil }
-    return Self.iso8601Formatter.date(from: lastContactDate)
+    guard let dateString = lastContactDate else { return nil }
+    return Coach.iso8601WithFractional.date(from: dateString)
+      ?? Coach.iso8601WithoutFractional.date(from: dateString)
   }
 
   init(

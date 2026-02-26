@@ -5,7 +5,7 @@ import OSLog
 
 private let logger = Logger(
   subsystem: "com.chrisandrikanich.TheRecruitingCompass",
-  category: "UserProfile"
+  category: "SupabaseManager"
 )
 
 // Support for nested JSON objects in metadata

@@ -125,7 +125,7 @@ struct DashboardView: View {
 
   private func errorSection(_ message: String) -> some View {
     ErrorBanner(message: message, onDismiss: {
-      viewModel.errorMessage = nil
+      viewModel.dismissError()
     })
     .accessibilityAddTraits(.updatesFrequently)
   }

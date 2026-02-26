@@ -208,7 +208,6 @@ extension CollegeScorecardService {
     var components = URLComponents(string: "https://api.data.gov/ed/collegescorecard/v1/schools")!
 
     components.queryItems = [
-      URLQueryItem(name: "api_key", value: apiKey),
       URLQueryItem(name: "school.name", value: query),
       URLQueryItem(name: "fields", value: fields),
       URLQueryItem(name: "per_page", value: perPage)
@@ -224,7 +223,9 @@ extension CollegeScorecardService {
   /// Fetch raw data from URL
   private func fetchData(from url: URL) async throws -> Data {
     do {
-      let (data, response) = try await urlSession.data(from: url)
+      var request = URLRequest(url: url)
+      request.setValue(apiKey, forHTTPHeaderField: "X-Api-Key")
+      let (data, response) = try await urlSession.data(for: request)
 
       guard let httpResponse = response as? HTTPURLResponse else {
         throw CollegeDataError.invalidResponse

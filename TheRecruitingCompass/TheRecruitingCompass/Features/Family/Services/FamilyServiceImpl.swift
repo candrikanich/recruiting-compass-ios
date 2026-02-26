@@ -79,7 +79,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
     logger.debug("Returning \(members.count) family members with user details")
     for member in members {
-      logger.debug("Member: id=\(member.id), role=\(member.role), userId=\(member.userId), userName=\(member.user?.fullName ?? "nil")")
+      logger.debug("Member: id=\(member.id, privacy: .private), role=\(member.role), userId=\(member.userId, privacy: .private), userName=\(member.user?.fullName ?? "nil", privacy: .private)")
     }
 
     return members

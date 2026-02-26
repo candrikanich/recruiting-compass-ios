@@ -1,0 +1,44 @@
+[2026-02-25 23:32:39] Status line triggered (cc-statusline v1.4.0)
+[2026-02-25 23:32:39] Input:
+{
+  "session_id": "2bc6739d-77b0-4add-861a-907502b97633",
+  "transcript_path": "/Users/chrisandrikanich/.claude/projects/-Volumes-AlphabetSoup-TheRecruitingCompass-code-recruiting-compass-ios/2bc6739d-77b0-4add-861a-907502b97633.jsonl",
+  "cwd": "/Volumes/AlphabetSoup/TheRecruitingCompass/code/recruiting-compass-ios/TheRecruitingCompass",
+  "model": {
+    "id": "claude-sonnet-4-6",
+    "display_name": "Sonnet 4.6"
+  },
+  "workspace": {
+    "current_dir": "/Volumes/AlphabetSoup/TheRecruitingCompass/code/recruiting-compass-ios/TheRecruitingCompass",
+    "project_dir": "/Volumes/AlphabetSoup/TheRecruitingCompass/code/recruiting-compass-ios",
+    "added_dirs": []
+  },
+  "version": "2.1.59",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 40.19907514999993,
+    "total_duration_ms": 7482241,
+    "total_api_duration_ms": 4210540,
+    "total_lines_added": 176,
+    "total_lines_removed": 103
+  },
+  "context_window": {
+    "total_input_tokens": 717690,
+    "total_output_tokens": 241076,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 1,
+      "output_tokens": 174,
+      "cache_creation_input_tokens": 190,
+      "cache_read_input_tokens": 169010
+    },
+    "used_percentage": 85,
+    "remaining_percentage": 15
+  },
+  "exceeds_200k_tokens": false
+}
+[2026-02-25 23:32:39] Using jq for JSON parsing
+---
+[2026-02-25 23:32:39] Extracted: dir=, model=, version=, git=main, context=, cost=, cost_ph=, tokens=, tpm=, session_pct=

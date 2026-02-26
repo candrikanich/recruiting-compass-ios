@@ -28,7 +28,7 @@ final class AddInteractionViewModel {
 
   // MARK: - Dependencies
 
-  private let interactionsService: InteractionsManaging
+  private let interactionsService: any InteractionsManaging
   private let familyUnitId: String
   private let userId: String
 
@@ -54,7 +54,7 @@ final class AddInteractionViewModel {
   // MARK: - Init
 
   init(
-    interactionsService: InteractionsManaging,
+    interactionsService: any InteractionsManaging,
     familyUnitId: String,
     userId: String
   ) {

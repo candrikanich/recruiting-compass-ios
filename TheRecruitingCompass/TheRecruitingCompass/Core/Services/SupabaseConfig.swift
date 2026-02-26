@@ -6,9 +6,9 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 private let placeholderURLString = "https://placeholder.supabase.co"
 private let placeholderKey = "placeholder-key"
 
-/// Production fallback when embedded/plist/env fail (e.g. TestFlight). Same values as Release.xcconfig.
-private let productionURLString = "https://xpxzhqghxecsjhvklsqg.supabase.co"
-private let productionAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhweHpocWdoeGVjc2podmtsc3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NzI1ODQsImV4cCI6MjA4MDM0ODU4NH0.WNlq1neCdjY-hDCvJRLplntd9w2HKqahwpHa7rB_Zro"
+/// Production fallback when embedded/plist/env fail (e.g. TestFlight). Set real values in Release.xcconfig (gitignored).
+private let productionURLString = ""
+private let productionAnonKey = ""
 
 /// Reads Supabase URL from (1) embedded Swift, (2) env, (3) Info.plist, (4) plist, (5) production fallback.
 private func supabaseURLString() -> String {

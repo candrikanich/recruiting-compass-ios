@@ -10,6 +10,13 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
   case offerReceived = "offer_received"
   case committed
   case notPursuing = "not_pursuing"
+  case unknown
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let rawValue = try container.decode(String.self)
+    self = SchoolStatus(rawValue: rawValue) ?? .unknown
+  }
 
   var displayName: String {
     switch self {
@@ -31,6 +38,8 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
       return "Committed"
     case .notPursuing:
       return "Not Pursuing"
+    case .unknown:
+      return "Unknown"
     }
   }
 
@@ -54,6 +63,8 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
       return Color.green
     case .notPursuing:
       return Color.red
+    case .unknown:
+      return Color.gray
     }
   }
 
@@ -77,6 +88,8 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
       return (Color(red: 0.13, green: 0.50, blue: 0.13), .white)
     case .notPursuing:
       return (Color.gray.opacity(0.3), Color(white: 0.4))
+    case .unknown:
+      return (Color.gray.opacity(0.15), Color(white: 0.4))
     }
   }
 }

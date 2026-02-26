@@ -129,7 +129,12 @@ final class TasksServiceImpl: TasksManaging, Sendable {
   func updateTaskStatus(taskId: String, status: TaskStatus, userId: String) async throws -> AthleteTaskStatus {
     logger.info("Updating task \(taskId) status to \(status.rawValue) for user \(userId)")
 
-    let completedAt: String? = status == .completed ? ISO8601DateFormatter().string(from: Date()) : nil
+    let completedAt: String? = {
+      guard status == .completed else { return nil }
+      let formatter = ISO8601DateFormatter()
+      formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+      return formatter.string(from: Date())
+    }()
     let payload = AthleteTaskUpsert(taskId: taskId, athleteId: userId, status: status.rawValue, completedAt: completedAt)
 
     let result: AthleteTaskStatus = try await supabaseManager.client

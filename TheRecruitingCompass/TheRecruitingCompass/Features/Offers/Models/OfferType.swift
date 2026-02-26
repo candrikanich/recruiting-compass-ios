@@ -6,6 +6,13 @@ enum OfferType: String, Codable, CaseIterable, Sendable {
   case scholarship
   case recruitedWalkOn = "recruited_walk_on"
   case preferredWalkOn = "preferred_walk_on"
+  case unknown
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let rawValue = try container.decode(String.self)
+    self = OfferType(rawValue: rawValue) ?? .unknown
+  }
 
   var displayName: String {
     switch self {
@@ -14,6 +21,7 @@ enum OfferType: String, Codable, CaseIterable, Sendable {
     case .scholarship: return "Scholarship"
     case .recruitedWalkOn: return "Recruited Walk-On"
     case .preferredWalkOn: return "Preferred Walk-On"
+    case .unknown: return "Unknown"
     }
   }
 }

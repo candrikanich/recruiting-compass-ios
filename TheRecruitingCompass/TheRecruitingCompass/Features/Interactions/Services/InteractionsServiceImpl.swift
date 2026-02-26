@@ -28,7 +28,7 @@ final class InteractionsServiceImpl: InteractionsManaging, Sendable {
   }
 
   func fetchInteractionsForUser(userId: String) async throws -> [Interaction] {
-    logger.info("Fetching interactions for user: \(userId)")
+    logger.info("Fetching interactions for user: \(userId, privacy: .private)")
 
     let interactions: [Interaction] = try await supabaseManager.client
       .from("interactions")
@@ -58,7 +58,7 @@ final class InteractionsServiceImpl: InteractionsManaging, Sendable {
   }
 
   func fetchLoggedByUserName(userId: String) async throws -> String {
-    logger.info("Fetching user name for: \(userId)")
+    logger.info("Fetching user name for: \(userId, privacy: .private)")
 
     struct UserResponse: Codable {
       let fullName: String?
@@ -77,7 +77,7 @@ final class InteractionsServiceImpl: InteractionsManaging, Sendable {
       .value
 
     let name = user.fullName ?? "Unknown"
-    logger.info("Fetched user name: \(name)")
+    logger.info("Fetched user name: \(name, privacy: .private)")
     return name
   }
 

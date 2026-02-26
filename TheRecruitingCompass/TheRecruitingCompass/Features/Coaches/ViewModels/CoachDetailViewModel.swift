@@ -62,12 +62,12 @@ final class CoachDetailViewModel {
 
   // MARK: - Computed Properties
 
-  var currentUserId: String {
-    authManager.user?.id ?? ""
+  var currentUserId: String? {
+    authManager.user?.id
   }
 
   var privateNoteForCurrentUser: String? {
-    coach?.privateNote(for: currentUserId)
+    currentUserId.flatMap { coach?.privateNote(for: $0) }
   }
 
   var editableCoachBinding: Binding<EditableCoach> {
@@ -307,6 +307,7 @@ final class CoachDetailViewModel {
 
   func savePrivateNotes() async {
     guard let coachId = coach?.id else { return }
+    guard let userId = currentUserId else { return }
 
     isSaving = true
     defer { isSaving = false }
@@ -315,9 +316,9 @@ final class CoachDetailViewModel {
       // CRITICAL: Merge with existing privateNotes to preserve other users' notes
       var privateNotes = coach?.privateNotes ?? [:]
       if editedPrivateNotes.isEmpty {
-        privateNotes.removeValue(forKey: currentUserId)
+        privateNotes.removeValue(forKey: userId)
       } else {
-        privateNotes[currentUserId] = editedPrivateNotes
+        privateNotes[userId] = editedPrivateNotes
       }
 
       let request = CoachUpdateRequest(

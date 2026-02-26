@@ -118,6 +118,7 @@ struct PriorityBadge: View {
     case .high: return Color(hex: "#B91C1C")
     case .normal: return Color(hex: "#1D4ED8")
     case .low: return Color(hex: "#4B5563")
+    case .unknown: return Color(hex: "#4B5563")
     }
   }
 
@@ -126,6 +127,7 @@ struct PriorityBadge: View {
     case .high: return Color(hex: "#FEE2E2")
     case .normal: return Color(hex: "#DBEAFE")
     case .low: return Color(hex: "#F3F4F6")
+    case .unknown: return Color(hex: "#F3F4F6")
     }
   }
 
