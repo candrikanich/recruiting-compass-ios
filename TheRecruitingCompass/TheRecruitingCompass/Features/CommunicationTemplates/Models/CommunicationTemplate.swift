@@ -25,6 +25,41 @@ struct CommunicationTemplate: Codable, Identifiable, Sendable {
     return date.formatted(date: .abbreviated, time: .omitted)
   }
 
+  init(id: String, userId: String, name: String, type: TemplateType, body: String, variables: [String]?, createdAt: String, updatedAt: String) {
+    self.id = id
+    self.userId = userId
+    self.name = name
+    self.type = type
+    self.body = body
+    self.variables = variables
+    self.createdAt = createdAt
+    self.updatedAt = updatedAt
+  }
+
+  init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    id = try c.decode(String.self, forKey: .id)
+    userId = try c.decodeIfPresent(String.self, forKey: .userId) ?? ""
+    name = try c.decode(String.self, forKey: .name)
+    type = try c.decode(TemplateType.self, forKey: .type)
+    body = try c.decode(String.self, forKey: .body)
+    variables = try c.decodeIfPresent([String].self, forKey: .variables)
+    createdAt = try c.decode(String.self, forKey: .createdAt)
+    updatedAt = try c.decode(String.self, forKey: .updatedAt)
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encode(id, forKey: .id)
+    try c.encode(userId, forKey: .userId)
+    try c.encode(name, forKey: .name)
+    try c.encode(type, forKey: .type)
+    try c.encode(body, forKey: .body)
+    try c.encodeIfPresent(variables, forKey: .variables)
+    try c.encode(createdAt, forKey: .createdAt)
+    try c.encode(updatedAt, forKey: .updatedAt)
+  }
+
   private static let fractionalFormatter: ISO8601DateFormatter = {
     let f = ISO8601DateFormatter()
     f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -111,7 +146,7 @@ extension CommunicationTemplate {
     Self.substituteVariables(in: body, values: values)
   }
 
-  /// Substitutes `{{key}}` placeholders in a string. Unknown keys become `[Display Name]` when in TemplateVariable.all.
+  /// Substitutes `{{key}}` placeholders in a string. Unknown keys become `[Display Name]` when in TemplateVariable.all, or `[key]` for unknown keys (to avoid re-matching and infinite loop).
   static func substituteVariables(in body: String, values: [String: String]) -> String {
     let keyToDisplayName: [String: String] = Dictionary(
       uniqueKeysWithValues: TemplateVariable.all.map { ($0.key, $0.name) }
@@ -128,7 +163,7 @@ extension CommunicationTemplate {
       let key = String(result[keyRange])
       let replacement = values[key]
         ?? keyToDisplayName[key].map { "[\($0)]" }
-        ?? "{{\(key)}}"
+        ?? "[\(key)]"
       let placeholderRange = Range(match.range, in: result)!
       result.replaceSubrange(placeholderRange, with: replacement)
     }

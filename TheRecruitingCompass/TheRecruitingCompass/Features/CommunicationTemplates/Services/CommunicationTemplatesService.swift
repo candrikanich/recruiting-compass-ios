@@ -18,7 +18,19 @@ private struct TemplatePayload: Encodable {
   let name: String
   let type: String
   let body: String
-  let variables: [String]
+  let userId: String
+
+  enum CodingKeys: String, CodingKey {
+    case name, type, body
+    case userId = "user_id"
+  }
+}
+
+/// Payload for update only; omits user_id so ownership is not changed.
+private struct TemplateUpdatePayload: Encodable {
+  let name: String
+  let type: String
+  let body: String
 }
 
 final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, Sendable {
@@ -45,7 +57,10 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
   func createTemplate(formData: TemplateFormData) async throws -> CommunicationTemplate {
     logger.info("Creating template: \(formData.name)")
 
-    let payload = makePayload(from: formData)
+    let session = try await supabaseManager.client.auth.session
+    let userId = session.user.id.uuidString
+
+    let payload = makePayload(from: formData, userId: userId)
 
     let template: CommunicationTemplate = try await supabaseManager.client
       .from("communication_templates")
@@ -62,7 +77,7 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
   func updateTemplate(id: String, formData: TemplateFormData) async throws -> CommunicationTemplate {
     logger.info("Updating template: \(id)")
 
-    let payload = makePayload(from: formData)
+    let payload = makeUpdatePayload(from: formData)
 
     let template: CommunicationTemplate = try await supabaseManager.client
       .from("communication_templates")
@@ -89,24 +104,20 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
     logger.info("Deleted template: \(id)")
   }
 
-  private func makePayload(from formData: TemplateFormData) -> TemplatePayload {
+  private func makePayload(from formData: TemplateFormData, userId: String) -> TemplatePayload {
     TemplatePayload(
       name: formData.name.trimmingCharacters(in: .whitespaces),
       type: formData.type.rawValue,
       body: formData.body,
-      variables: extractVariables(from: formData.body)
+      userId: userId
     )
   }
 
-  private func extractVariables(from body: String) -> [String] {
-    let pattern = #"\{\{(\w+)\}\}"#
-    guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
-    let range = NSRange(body.startIndex..., in: body)
-    let matches = regex.matches(in: body, range: range)
-    let variables = matches.compactMap { match -> String? in
-      guard let varRange = Range(match.range(at: 1), in: body) else { return nil }
-      return String(body[varRange])
-    }
-    return Array(Set(variables)).sorted()
+  private func makeUpdatePayload(from formData: TemplateFormData) -> TemplateUpdatePayload {
+    TemplateUpdatePayload(
+      name: formData.name.trimmingCharacters(in: .whitespaces),
+      type: formData.type.rawValue,
+      body: formData.body
+    )
   }
 }

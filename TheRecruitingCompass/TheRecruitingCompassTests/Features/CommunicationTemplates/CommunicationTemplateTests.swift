@@ -162,6 +162,12 @@ final class CommunicationTemplateTests: XCTestCase {
     XCTAssertEqual(result, "Plain text")
   }
 
+  func testSubstituteVariables_UnknownKeyNotInTemplateVariable_ReplacedWithBracketedKey_NoInfiniteLoop() {
+    let body = "Hello {{custom_var}}"
+    let result = CommunicationTemplate.substituteVariables(in: body, values: [:])
+    XCTAssertEqual(result, "Hello [custom_var]")
+  }
+
   // MARK: - Helpers
 
   private func makeTemplate(
