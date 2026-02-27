@@ -5,6 +5,7 @@ nonisolated private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecr
 
 protocol CollegeScorecardManaging: Sendable {
   func lookupCollege(name: String) async throws -> CollegeDataResult?
+  func lookupCollege(id: String) async throws -> CollegeDataResult?
   func searchColleges(query: String) async throws -> [CollegeSearchResult]
 }
 
@@ -64,6 +65,36 @@ actor CollegeScorecardService: CollegeScorecardManaging {
     return firstResult
   }
 
+  /// Look up college by College Scorecard ID (IPEDS unit ID) for exact match
+  /// Use when autocomplete selection provides ID to avoid wrong matches (e.g. Ohio U vs Ohio State)
+  func lookupCollege(id: String) async throws -> CollegeDataResult? {
+    guard !apiKey.isEmpty else {
+      throw CollegeDataError.apiKeyMissing
+    }
+
+    let cacheKey = "id:\(id)"
+    if let cached = await cache.getLookup(for: cacheKey) {
+      logger.debug("Cache hit for lookup id: \(id)")
+      return cached
+    }
+
+    logger.debug("Looking up college by id: \(id)")
+
+    let url = try buildLookupURLById(id: id)
+    let data = try await fetchData(from: url)
+    let apiResponse = try JSONDecoder().decode(CollegeScorecardAPIResponse.self, from: data)
+
+    guard let firstResult = apiResponse.results.first else {
+      logger.info("No results found for id: \(id)")
+      await cache.setLookup(for: cacheKey, result: nil)
+      return nil
+    }
+
+    logger.info("Found college: \(firstResult.name)")
+    await cache.setLookup(for: cacheKey, result: firstResult)
+    return firstResult
+  }
+
   // MARK: - Autocomplete Search (Phase 2)
 
   /// Search colleges for autocomplete dropdown
@@ -116,16 +147,18 @@ private actor CollegeScorecardCache {
   private var searchCache: [String: CachedEntry<[CollegeSearchResult]>] = [:]
   private let cacheTimeToLive: TimeInterval = 600 // 10 minutes
 
-  func getLookup(for name: String) -> CollegeDataResult?? {
-    guard let entry = lookupCache[name.lowercased()], entry.expiry > Date() else {
-      lookupCache.removeValue(forKey: name.lowercased())
+  func getLookup(for key: String) -> CollegeDataResult?? {
+    let normalized = key.hasPrefix("id:") ? key : key.lowercased()
+    guard let entry = lookupCache[normalized], entry.expiry > Date() else {
+      lookupCache.removeValue(forKey: normalized)
       return nil
     }
     return entry.value
   }
 
-  func setLookup(for name: String, result: CollegeDataResult?) {
-    lookupCache[name.lowercased()] = CachedEntry(
+  func setLookup(for key: String, result: CollegeDataResult?) {
+    let normalized = key.hasPrefix("id:") ? key : key.lowercased()
+    lookupCache[normalized] = CachedEntry(
       value: result,
       expiry: Date().addingTimeInterval(cacheTimeToLive)
     )
@@ -157,7 +190,40 @@ private actor CollegeScorecardCache {
 
 extension CollegeScorecardService {
 
-  /// Build URL for college lookup request
+  /// Build URL for college lookup by ID (exact match)
+  private func buildLookupURLById(id: String) throws -> URL {
+    let fields = [
+      "id",
+      "school.name",
+      "school.school_url",
+      "school.address",
+      "school.city",
+      "school.state",
+      "latest.student.size",
+      "school.carnegie_size_setting",
+      "enrollment.all",
+      "latest.admissions.admission_rate.overall",
+      "latest.student.student_faculty_ratio",
+      "latest.cost.tuition.in_state",
+      "latest.cost.tuition.out_of_state",
+      "location.lat",
+      "location.lon"
+    ].joined(separator: ",")
+
+    var components = URLComponents(string: "https://api.data.gov/ed/collegescorecard/v1/schools")!
+    components.queryItems = [
+      URLQueryItem(name: "id", value: id),
+      URLQueryItem(name: "fields", value: fields),
+      URLQueryItem(name: "per_page", value: "1")
+    ]
+
+    guard let url = components.url else {
+      throw CollegeDataError.invalidResponse
+    }
+    return url
+  }
+
+  /// Build URL for college lookup by name (text search, may return wrong match)
   private func buildLookupURL(for name: String) throws -> URL {
     let fields = [
       "id",
@@ -168,7 +234,9 @@ extension CollegeScorecardService {
       "school.state",
       "latest.student.size",
       "school.carnegie_size_setting",
+      "enrollment.all",
       "latest.admissions.admission_rate.overall",
+      "latest.student.student_faculty_ratio",
       "latest.cost.tuition.in_state",
       "latest.cost.tuition.out_of_state",
       "location.lat",

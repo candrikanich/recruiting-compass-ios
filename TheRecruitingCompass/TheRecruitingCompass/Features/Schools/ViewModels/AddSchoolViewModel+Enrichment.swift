@@ -25,27 +25,35 @@ extension AddSchoolViewModel {
   // MARK: - Enrichment Actions
 
   /// Performs College Scorecard enrichment to fetch full academic data
-  /// - Parameter collegeName: The college name to enrich
-  func performScorecardEnrichment(collegeName: String) async {
-    guard !collegeName.isEmpty else {
+  /// Uses college ID when available for exact match; falls back to name lookup
+  /// - Parameter college: The selected college from autocomplete (provides id and name)
+  func performScorecardEnrichment(for college: CollegeSearchResult) async {
+    guard !college.name.isEmpty else {
       enrichmentLogger.debug("Enrichment skipped: empty college name")
       return
     }
 
-    enrichmentLogger.debug("Performing College Scorecard enrichment for: \(collegeName)")
+    enrichmentLogger.debug("Performing College Scorecard enrichment for: \(college.name) (id: \(college.id))")
     isEnrichmentLoading = true
     enrichmentError = nil
     defer { isEnrichmentLoading = false }
 
     do {
-      if let data = try await collegeScorecardService.lookupCollege(name: collegeName) {
+      // Prefer lookup by ID for exact match (avoids Ohio U → Ohio State wrong match)
+      let data: CollegeDataResult?
+      if !college.id.isEmpty {
+        data = try await collegeScorecardService.lookupCollege(id: college.id)
+      } else {
+        data = try await collegeScorecardService.lookupCollege(name: college.name)
+      }
+      if let data {
         scorecardData = data
         enrichmentLogger.info("Enrichment successful: \(data.name)")
 
         // Announce for accessibility
         announcer.announce("College data loaded")
       } else {
-        enrichmentLogger.info("No College Scorecard data found for: \(collegeName)")
+        enrichmentLogger.info("No College Scorecard data found for: \(college.name)")
         scorecardData = nil
         enrichmentError = nil // Silent failure per spec
       }

@@ -17,6 +17,7 @@ struct SchoolCreateRequest: Encodable, Sendable {
   let notes: String?
   let status: String
   let academicInfo: AcademicInfo?
+  let faviconUrl: String?
 
   enum CodingKeys: String, CodingKey {
     case userId = "user_id"
@@ -34,5 +35,6 @@ struct SchoolCreateRequest: Encodable, Sendable {
     case notes
     case status
     case academicInfo = "academic_info"
+    case faviconUrl = "favicon_url"
   }
 }

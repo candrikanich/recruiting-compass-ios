@@ -32,6 +32,10 @@ final class MockCollegeScorecardService: CollegeScorecardManaging {
     return result
   }
 
+  nonisolated func lookupCollege(id: String) async throws -> CollegeDataResult? {
+    try await lookupCollege(name: id)
+  }
+
   nonisolated func searchColleges(query: String) async throws -> [CollegeSearchResult] {
     let (shouldThrow, error, results) = await MainActor.run {
       searchCollegesCallCount += 1

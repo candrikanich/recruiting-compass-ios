@@ -72,7 +72,8 @@ final class DuplicateDetectorTests: XCTestCase {
       ncaaId: ncaaId,
       notes: nil,
       status: "interested",
-      academicInfo: nil
+      academicInfo: nil,
+      faviconUrl: nil
     )
   }
 

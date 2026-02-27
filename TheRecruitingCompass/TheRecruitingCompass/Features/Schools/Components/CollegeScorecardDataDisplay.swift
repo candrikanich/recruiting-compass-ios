@@ -41,6 +41,15 @@ struct CollegeScorecardDataDisplay: View {
           )
         }
 
+        // Total Enrollment (web: enrollmentAll)
+        if let enrollmentAll = data.enrollmentAll {
+          dataItem(
+            label: "Total Enrollment",
+            value: formatNumber(enrollmentAll),
+            icon: "person.3.fill"
+          )
+        }
+
         // Size Category
         if let sizeCategory = data.carnegieSize {
           dataItem(
@@ -56,6 +65,15 @@ struct CollegeScorecardDataDisplay: View {
             label: "Admission Rate",
             value: formatPercentage(admissionRate),
             icon: "checkmark.seal.fill"
+          )
+        }
+
+        // Student-Faculty Ratio (web: studentFacultyRatio)
+        if let ratio = data.studentFacultyRatio {
+          dataItem(
+            label: "Student-Faculty Ratio",
+            value: String(format: "%.1f:1", ratio),
+            icon: "person.2.fill"
           )
         }
 

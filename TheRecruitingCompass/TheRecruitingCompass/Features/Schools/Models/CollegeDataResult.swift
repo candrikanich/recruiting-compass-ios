@@ -1,6 +1,7 @@
 import Foundation
 
 /// Result from College Scorecard API lookup
+/// Mirrors web CollegeDataResult (useCollegeData.ts) for parity
 struct CollegeDataResult: Codable, Sendable {
   let id: String
   let name: String
@@ -10,7 +11,9 @@ struct CollegeDataResult: Codable, Sendable {
   let state: String?
   let studentSize: Int?
   let carnegieSize: String?
+  let enrollmentAll: Int?
   let admissionRate: Double?
+  let studentFacultyRatio: Double?
   let tuitionInState: Double?
   let tuitionOutOfState: Double?
   let latitude: Double?
@@ -25,7 +28,9 @@ struct CollegeDataResult: Codable, Sendable {
     case state = "school.state"
     case studentSize = "latest.student.size"
     case carnegieSize = "school.carnegie_size_setting"
+    case enrollmentAll = "enrollment.all"
     case admissionRate = "latest.admissions.admission_rate.overall"
+    case studentFacultyRatio = "latest.student.student_faculty_ratio"
     case tuitionInState = "latest.cost.tuition.in_state"
     case tuitionOutOfState = "latest.cost.tuition.out_of_state"
     case latitude = "location.lat"
@@ -42,7 +47,9 @@ struct CollegeDataResult: Codable, Sendable {
     state: String? = nil,
     studentSize: Int? = nil,
     carnegieSize: String? = nil,
+    enrollmentAll: Int? = nil,
     admissionRate: Double? = nil,
+    studentFacultyRatio: Double? = nil,
     tuitionInState: Double? = nil,
     tuitionOutOfState: Double? = nil,
     latitude: Double? = nil,
@@ -56,7 +63,9 @@ struct CollegeDataResult: Codable, Sendable {
     self.state = state
     self.studentSize = studentSize
     self.carnegieSize = carnegieSize
+    self.enrollmentAll = enrollmentAll
     self.admissionRate = admissionRate
+    self.studentFacultyRatio = studentFacultyRatio
     self.tuitionInState = tuitionInState
     self.tuitionOutOfState = tuitionOutOfState
     self.latitude = latitude
@@ -91,7 +100,9 @@ struct CollegeDataResult: Codable, Sendable {
     } else {
       carnegieSize = try c.decodeIfPresent(String.self, forKey: .carnegieSize)
     }
+    enrollmentAll = try c.decodeIfPresent(Int.self, forKey: .enrollmentAll)
     admissionRate = try c.decodeIfPresent(Double.self, forKey: .admissionRate)
+    studentFacultyRatio = try Self.decodeDoubleOrInt(c, forKey: .studentFacultyRatio)
     // API may return tuition as Int (e.g. 37938) or Double
     tuitionInState = try Self.decodeDoubleOrInt(c, forKey: .tuitionInState)
     tuitionOutOfState = try Self.decodeDoubleOrInt(c, forKey: .tuitionOutOfState)
@@ -115,7 +126,9 @@ struct CollegeDataResult: Codable, Sendable {
     try c.encodeIfPresent(state, forKey: .state)
     try c.encodeIfPresent(studentSize, forKey: .studentSize)
     try c.encodeIfPresent(carnegieSize, forKey: .carnegieSize)
+    try c.encodeIfPresent(enrollmentAll, forKey: .enrollmentAll)
     try c.encodeIfPresent(admissionRate, forKey: .admissionRate)
+    try c.encodeIfPresent(studentFacultyRatio, forKey: .studentFacultyRatio)
     try c.encodeIfPresent(tuitionInState, forKey: .tuitionInState)
     try c.encodeIfPresent(tuitionOutOfState, forKey: .tuitionOutOfState)
     try c.encodeIfPresent(latitude, forKey: .latitude)

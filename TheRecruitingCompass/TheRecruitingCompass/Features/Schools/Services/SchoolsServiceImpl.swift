@@ -17,9 +17,13 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
   func createSchool(request: SchoolCreateRequest) async throws -> School {
     logger.debug("Creating school: \(request.name)")
 
+    // Build insert payload without top-level city/state (schools table may not have these columns).
+    // Merge city/state into academic_info so data is preserved.
+    let payload = SchoolsInsertPayload(from: request)
+
     let result: School = try await supabaseManager.client
       .from("schools")
-      .insert(request)
+      .insert(payload)
       .select()
       .single()
       .execute()
@@ -428,6 +432,69 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
 
     logger.info("Priority tier updated for school: \(id)")
     return updated
+  }
+}
+
+// MARK: - School Insert Payload
+
+/// Insert payload omitting top-level city/state (schools table may not have these columns).
+/// Merges city/state into academic_info so data is preserved.
+private struct SchoolsInsertPayload: Encodable {
+  let user_id: String
+  let family_unit_id: String
+  let name: String
+  let location: String?
+  let division: String?
+  let conference: String?
+  let website: String?
+  let twitter_handle: String?
+  let instagram_handle: String?
+  let ncaa_id: String?
+  let notes: String?
+  let status: String
+  let academic_info: AcademicInfo?
+  let favicon_url: String?
+
+  init(from request: SchoolCreateRequest) {
+    user_id = request.userId
+    family_unit_id = request.familyUnitId
+    name = request.name
+    location = request.location
+    division = request.division
+    conference = request.conference
+    website = request.website
+    twitter_handle = request.twitterHandle
+    instagram_handle = request.instagramHandle
+    ncaa_id = request.ncaaId
+    notes = request.notes
+    status = request.status
+    favicon_url = request.faviconUrl
+    // Merge city/state from request into academic_info
+    let base = request.academicInfo
+    if request.city != nil || request.state != nil || base != nil {
+      academic_info = AcademicInfo(
+        gpaRequirement: base?.gpaRequirement,
+        satRequirement: base?.satRequirement,
+        actRequirement: base?.actRequirement,
+        additionalRequirements: base?.additionalRequirements,
+        address: base?.address,
+        city: request.city ?? base?.city,
+        state: request.state ?? base?.state,
+        latitude: base?.latitude,
+        longitude: base?.longitude,
+        studentSize: base?.studentSize,
+        baseballFacilityAddress: base?.baseballFacilityAddress,
+        mascot: base?.mascot,
+        undergradSize: base?.undergradSize,
+        carnegieSize: base?.carnegieSize,
+        tuitionInState: base?.tuitionInState,
+        tuitionOutOfState: base?.tuitionOutOfState,
+        admissionRate: base?.admissionRate,
+        distanceFromHome: base?.distanceFromHome
+      )
+    } else {
+      academic_info = nil
+    }
   }
 }
 

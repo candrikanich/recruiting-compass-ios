@@ -85,11 +85,11 @@ extension AddSchoolViewModel {
     let announcement = "Selected: \(college.name), \(college.location)"
     announcer.announce(announcement)
 
-    // Trigger NCAA lookup for division/conference
-    await performNcaaLookup(for: college.name)
-
-    // Phase 3: Trigger College Scorecard enrichment
-    await performScorecardEnrichment(collegeName: college.name)
+    // Run NCAA lookup and College Scorecard enrichment in parallel.
+    // Use college ID for exact lookup when available (avoids wrong match e.g. Ohio U vs Ohio State).
+    async let ncaaTask: () = performNcaaLookup(for: college.name)
+    async let enrichmentTask: () = performScorecardEnrichment(for: college)
+    _ = await (ncaaTask, enrichmentTask)
   }
 
   /// Clears the selected college and auto-filled fields
