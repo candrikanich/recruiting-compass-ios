@@ -12,6 +12,7 @@ import Supabase
 struct TheRecruitingCompassApp: App {
   @State private var authManager = AuthManager.shared
   @State private var familyManager = FamilyManager.shared
+  @State private var onboardingManager = OnboardingManager()
   @State private var networkMonitor = NetworkMonitor()
   @State private var showResetPassword = false
   @State private var pendingResetPasswordFromDeepLink = false
@@ -23,12 +24,7 @@ struct TheRecruitingCompassApp: App {
         if authManager.isCheckingSession {
           sessionLoadingView
         } else if authManager.isAuthenticated {
-          ZStack(alignment: .top) {
-            MainTabView()
-            if !networkMonitor.isConnected {
-              OfflineBanner()
-            }
-          }
+          authenticatedContent
         } else {
           NavigationStack {
             LandingView()
@@ -60,6 +56,30 @@ struct TheRecruitingCompassApp: App {
       .environment(authManager)
       .environment(familyManager)
       .environment(networkMonitor)
+    }
+  }
+
+  @ViewBuilder
+  private var authenticatedContent: some View {
+    ZStack(alignment: .top) {
+      if onboardingManager.needsOnboarding == true {
+        OnboardingWrapperView(onComplete: {
+          onboardingManager.markComplete()
+          Task { await familyManager.loadFamilyData() }
+        })
+      } else if onboardingManager.needsOnboarding == false {
+        MainTabView()
+        if !networkMonitor.isConnected {
+          OfflineBanner()
+        }
+      } else {
+        sessionLoadingView
+      }
+    }
+    .task(id: authManager.isAuthenticated) {
+      if authManager.isAuthenticated {
+        await onboardingManager.loadStatus()
+      }
     }
   }
 

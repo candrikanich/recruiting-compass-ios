@@ -14,8 +14,9 @@ struct CoachesListView: View {
   }
 
   var body: some View {
-    contentView
-      .navigationTitle("Coaches")
+    NavigationStack(path: $navigationPath) {
+      contentView
+        .navigationTitle("Coaches")
       .searchable(
         text: $viewModel.filters.searchText,
         prompt: "Search coaches..."
@@ -64,13 +65,14 @@ struct CoachesListView: View {
           .accessibilityHint("Opens form to add a new coach")
         }
       }
-      .navigationDestination(for: CoachDestination.self) { destination in
-        destinationView(for: destination)
-      }
-      .sheet(item: $quickCommunicationContext) { context in
-        QuickCommunicationView(context: context)
-      }
-      .toast(
+        .navigationDestination(for: CoachDestination.self) { destination in
+          destinationView(for: destination)
+        }
+    }
+    .sheet(item: $quickCommunicationContext) { context in
+      QuickCommunicationView(context: context)
+    }
+    .toast(
         isShowing: $viewModel.showSuccessToast,
         message: $viewModel.successMessage,
         type: .success,

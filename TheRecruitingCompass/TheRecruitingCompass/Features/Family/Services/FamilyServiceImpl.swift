@@ -147,11 +147,66 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
   // MARK: - Family Management (Player)
 
+  /// Creates a family unit for the current player. Uses POST /api/family/create when API_BASE_URL is set (mirrors web flow).
+  /// Family creation is lazy — triggered when player visits Family Management; endpoint is idempotent.
   func createFamily() async throws -> CreateFamilyResponse {
-    struct EmptyBody: Encodable {}
-    let response: CreateFamilyResponse = try await supabaseManager.client.functions
-      .invoke("family-create", options: FunctionInvokeOptions(body: EmptyBody()))
-    return response
+    if let response = try await createFamilyViaWebAPI() {
+      return response
+    }
+    throw FamilyError.serverError(
+      "Family creation requires API_BASE_URL. Set it in Scheme → Run → Environment Variables (e.g. your web app URL)."
+    )
+  }
+
+  /// Calls POST /api/family/create with Bearer token. Returns nil if API_BASE_URL or token unavailable.
+  private func createFamilyViaWebAPI() async throws -> CreateFamilyResponse? {
+    guard let baseURL = SupabaseConfig.apiBaseURL else {
+      logger.debug("API_BASE_URL not set, skipping web API family create")
+      return nil
+    }
+    let session = try await supabaseManager.client.auth.session
+    let token = session.accessToken
+    guard !token.isEmpty else {
+      logger.debug("No access token for family create API")
+      return nil
+    }
+
+    let url = baseURL.appendingPathComponent("api/family/create")
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+    let (data, response) = try await URLSession.shared.data(for: request)
+
+    guard let http = response as? HTTPURLResponse else {
+      throw FamilyError.serverError("Invalid response")
+    }
+
+    guard http.statusCode == 200 else {
+      let body = String(data: data, encoding: .utf8)
+      logger.error("Family create API returned \(http.statusCode): \(body ?? "nil")")
+      let message = parseAPIErrorMessage(data: data) ?? "Failed to create family (\(http.statusCode))"
+      throw FamilyError.serverError(message)
+    }
+
+    let decoder = JSONDecoder()
+    let result = try decoder.decode(CreateFamilyResponse.self, from: data)
+    logger.info("Family created via web API: familyId=\(result.familyId)")
+    return result
+  }
+
+  /// Parses Nuxt/h3 API error response body for user-facing message.
+  private func parseAPIErrorMessage(data: Data) -> String? {
+    struct ErrorResponse: Codable {
+      let message: String?
+      let statusMessage: String?
+    }
+    guard let decoded = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
+      return nil
+    }
+    return decoded.message ?? decoded.statusMessage
   }
 
   func regenerateCode(familyId: String) async throws -> RegenerateFamilyCodeResponse {

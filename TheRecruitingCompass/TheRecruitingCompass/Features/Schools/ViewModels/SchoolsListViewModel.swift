@@ -34,7 +34,7 @@ final class SchoolsListViewModel {
   /// Cached home location from user_preferences (Settings → Home Location). Loaded in loadSchools().
   private var homeLocationFromPreferences: CLLocationCoordinate2D?
 
-  private let schoolsService: any SchoolsManaging
+  let schoolsService: any SchoolsManaging
   private let familyManager: FamilyManager
   private let preferenceService: any PreferenceManaging
   private let authManager: any AuthManaging

@@ -3,8 +3,78 @@ import SwiftUI
 struct InteractionsListView: View {
   @State private var viewModel = InteractionsListViewModel()
   @Environment(FamilyManager.self) private var familyManager
+  @Environment(AuthManager.self) private var authManager
+  @State private var navigationPath = NavigationPath()
 
   var body: some View {
+    NavigationStack(path: $navigationPath) {
+      contentView
+        .navigationTitle(viewModel.isAthlete ? "My Interactions" : "Interactions")
+        .searchable(text: $viewModel.filters.searchText, prompt: "Subject, content...")
+        .refreshable { await viewModel.loadInteractions() }
+        .task { await viewModel.loadInteractions() }
+        .confirmationDialog("Delete Interaction", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
+          Button("Delete", role: .destructive) { Task { await viewModel.deleteInteraction() } }
+          Button("Cancel", role: .cancel) {}
+        } message: {
+          if let interaction = viewModel.interactionToDelete {
+            let subject = interaction.subject ?? interaction.type.displayName
+            Text("Are you sure you want to delete \"\(subject)\"? This action cannot be undone.")
+          }
+        }
+        .alert("Error", isPresented: Binding(
+          get: { viewModel.deleteErrorMessage != nil },
+          set: { if !$0 { viewModel.deleteErrorMessage = nil } }
+        )) {
+          Button("OK") { viewModel.deleteErrorMessage = nil }
+        } message: {
+          if let error = viewModel.deleteErrorMessage { Text(error) }
+        }
+        .toolbar {
+          ToolbarItem(placement: .navigationBarTrailing) {
+            Button {
+              navigationPath.append(InteractionDestination.add)
+            } label: {
+              Image(systemName: "plus")
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+            }
+            .accessibilityLabel("Log new interaction")
+            .accessibilityHint("Opens form to log a new interaction")
+          }
+        }
+        .navigationDestination(for: InteractionDestination.self) { destination in
+          destinationView(for: destination)
+        }
+    }
+    .toast(
+      isShowing: $viewModel.showSuccessToast,
+      message: $viewModel.successMessage,
+      type: .success,
+      duration: 3.0
+    )
+  }
+
+  @ViewBuilder
+  private func destinationView(for destination: InteractionDestination) -> some View {
+    switch destination {
+    case .add, .addWithSchool:
+      if let familyUnitId = familyManager.currentMember?.familyUnitId,
+         let userId = authManager.user?.id {
+        AddInteractionView(
+          interactionsService: viewModel.interactionsService,
+          familyUnitId: familyUnitId,
+          userId: userId
+        )
+      } else {
+        ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
+      }
+    case .detail(let interactionId):
+      Text("Interaction detail: \(interactionId)")
+    }
+  }
+
+  private var contentView: some View {
     Group {
       if viewModel.isLoading && viewModel.allInteractions.isEmpty {
         LoadingStateView(message: "Loading interactions...")
@@ -14,57 +84,6 @@ struct InteractionsListView: View {
         interactionListContent
       }
     }
-    .navigationTitle(viewModel.isAthlete ? "My Interactions" : "Interactions")
-    .searchable(
-      text: $viewModel.filters.searchText,
-      prompt: "Subject, content..."
-    )
-    .refreshable { await viewModel.loadInteractions() }
-    .task { await viewModel.loadInteractions() }
-    .confirmationDialog(
-      "Delete Interaction",
-      isPresented: $viewModel.showDeleteConfirmation,
-      titleVisibility: .visible
-    ) {
-      Button("Delete", role: .destructive) {
-        Task { await viewModel.deleteInteraction() }
-      }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      if let interaction = viewModel.interactionToDelete {
-        let subject = interaction.subject ?? interaction.type.displayName
-        Text("Are you sure you want to delete \"\(subject)\"? This action cannot be undone.")
-      }
-    }
-    .alert("Error", isPresented: Binding(
-      get: { viewModel.deleteErrorMessage != nil },
-      set: { if !$0 { viewModel.deleteErrorMessage = nil } }
-    )) {
-      Button("OK") { viewModel.deleteErrorMessage = nil }
-    } message: {
-      if let error = viewModel.deleteErrorMessage {
-        Text(error)
-      }
-    }
-    .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
-        Button {
-          // TODO: Navigate to add interaction
-        } label: {
-          Image(systemName: "plus")
-            .frame(minWidth: 44, minHeight: 44)
-            .contentShape(Rectangle())
-        }
-        .accessibilityLabel("Log new interaction")
-        .accessibilityHint("Opens form to log a new interaction")
-      }
-    }
-    .toast(
-      isShowing: $viewModel.showSuccessToast,
-      message: $viewModel.successMessage,
-      type: .success,
-      duration: 3.0
-    )
   }
 
   // MARK: - List Content
@@ -160,8 +179,7 @@ struct InteractionsListView: View {
 }
 
 #Preview {
-  NavigationStack {
-    InteractionsListView()
-  }
+  InteractionsListView()
   .environment(FamilyManager.shared)
+  .environment(AuthManager.shared)
 }

@@ -138,10 +138,8 @@ final class DashboardViewModel {
     let targetUserId = familyManager.selectedAthleteId ?? userId
 
     guard let familyUnitId = familyManager.familyUnitId else {
-      errorMessage = "No family unit found. Please contact support."
-      logger.error("No family unit ID found for user \(userId)")
-      #if DEBUG
-      logger.warning("Using empty stats for development")
+      // Mirrors web: no family yet — show empty state. User creates from Family tab when inviting parent.
+      logger.debug("No family unit for user \(userId), showing empty stats")
       stats = DashboardStats(
         coachCount: 0,
         schoolCount: 0,
@@ -152,7 +150,12 @@ final class DashboardViewModel {
         acceptanceRate: nil
       )
       lastUpdated = Date()
-      #endif
+      loadQuickTasks()
+      async let suggestionsTask: () = fetchSuggestions()
+      async let eventsTask: () = fetchEvents()
+      async let metricsTask: () = fetchMetrics()
+      async let trendsTask: () = fetchInteractionTrends()
+      _ = await (suggestionsTask, eventsTask, metricsTask, trendsTask)
       return
     }
 

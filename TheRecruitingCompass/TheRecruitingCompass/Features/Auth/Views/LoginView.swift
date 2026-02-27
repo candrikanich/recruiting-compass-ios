@@ -122,6 +122,7 @@ struct LoginView: View {
       ),
       isSecure: false,
       keyboardType: .emailAddress,
+      textContentType: .emailAddress,
       onBlur: viewModel.validateEmail
     )
     .disabled(viewModel.isLoading)
@@ -139,6 +140,7 @@ struct LoginView: View {
       ),
       isSecure: true,
       keyboardType: .default,
+      textContentType: .password,
       onBlur: viewModel.validatePassword
     )
     .disabled(viewModel.isLoading)

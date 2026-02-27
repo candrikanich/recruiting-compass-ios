@@ -96,6 +96,7 @@ struct ForgotPasswordView: View {
         ),
         isSecure: false,
         keyboardType: .emailAddress,
+        textContentType: .emailAddress,
         onBlur: viewModel.validateEmail
       )
       .disabled(viewModel.isLoading)

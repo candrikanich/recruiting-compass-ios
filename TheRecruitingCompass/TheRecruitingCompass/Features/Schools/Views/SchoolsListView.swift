@@ -3,10 +3,12 @@ import SwiftUI
 struct SchoolsListView: View {
   @State private var viewModel = SchoolsListViewModel()
   @Environment(FamilyManager.self) private var familyManager
-  @State private var showAddSchool = false
+  @Environment(AuthManager.self) private var authManager
+  @State private var navigationPath = NavigationPath()
 
   var body: some View {
-    Group {
+    NavigationStack(path: $navigationPath) {
+      Group {
       if viewModel.isLoading && viewModel.allSchools.isEmpty {
         LoadingStateView(message: "Loading schools...")
       } else if viewModel.allSchools.isEmpty {
@@ -46,29 +48,32 @@ struct SchoolsListView: View {
         Text(error)
       }
     }
-    .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
-        Button {
-          showAddSchool = true
-        } label: {
+      .toolbar {
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button {
+            navigationPath.append(SchoolDestination.add)
+          } label: {
           Image(systemName: "plus")
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
         .accessibilityLabel("Add new school")
         .accessibilityHint("Opens form to add a new school")
+        }
       }
-    }
-    .navigationDestination(for: SchoolDestination.self) { destination in
-      switch destination {
-      case .detail(let schoolId):
-        SchoolDetailView(schoolId: schoolId)
-      case .add:
-        Text("Add School")
+      .navigationDestination(for: SchoolDestination.self) { destination in
+        switch destination {
+        case .detail(let schoolId):
+          SchoolDetailView(schoolId: schoolId)
+        case .add:
+          AddSchoolView(
+            schoolsService: viewModel.schoolsService,
+            familyUnitId: familyManager.currentMember?.familyUnitId ?? "",
+            userId: authManager.user?.id ?? "",
+            navigationPath: $navigationPath
+          )
+        }
       }
-    }
-    .sheet(isPresented: $showAddSchool) {
-      Text("Add School Form")
     }
     .toast(
       isShowing: $viewModel.showSuccessToast,
@@ -160,8 +165,7 @@ struct SchoolsListView: View {
 }
 
 #Preview {
-  NavigationStack {
-    SchoolsListView()
-  }
+  SchoolsListView()
   .environment(FamilyManager.shared)
+  .environment(AuthManager.shared)
 }

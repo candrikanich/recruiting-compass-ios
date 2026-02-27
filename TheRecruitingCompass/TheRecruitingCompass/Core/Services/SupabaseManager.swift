@@ -90,6 +90,19 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     }
   }
 
+  /// Payload for upserting into public.users. Mirrors web signup flow.
+  private struct UsersUpsertPayload: Encodable {
+    let id: String
+    let email: String
+    let fullName: String
+    let role: String
+
+    enum CodingKeys: String, CodingKey {
+      case id, email, role
+      case fullName = "full_name"
+    }
+  }
+
   private init() {
     self.client = SupabaseClient(
       supabaseURL: SupabaseConfig.url,
@@ -113,7 +126,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     )
 
     // Fetch user profile from database with retry
-    guard let user = await fetchUserProfileWithRetry(
+    guard let user = try await fetchUserProfileWithRetry(
       userId: response.user.id.uuidString,
       email: response.user.email ?? email,
       fallbackMetadata: response.user.userMetadata
@@ -142,30 +155,52 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       metadata["family_code"] = .string(familyCode)
     }
 
-    let response = try await client.auth.signUp(
-      email: email,
-      password: password,
-      data: metadata
-    )
+    do {
+      let response = try await client.auth.signUp(
+        email: email,
+        password: password,
+        data: metadata
+      )
 
-    // Try to fetch from database, fall back to metadata for new users
-    let user = await fetchUserProfileWithRetry(
-      userId: response.user.id.uuidString,
-      email: response.user.email ?? email,
-      fallbackMetadata: response.user.userMetadata
-    ) ?? User(
-      id: response.user.id.uuidString,
-      email: response.user.email ?? email,
-      emailConfirmedAt: nil,
-      phone: nil,
-      createdAt: ISO8601DateFormatter().string(from: Date()),
-      updatedAt: ISO8601DateFormatter().string(from: Date()),
-      role: role
-    )
+      let userId = response.user.id.uuidString
+      let userEmail = response.user.email ?? email
 
-    let session = response.session.map { mapToSession($0, user: user) }
+      // Upsert users row (mirrors web signup). Required for user_preferences FK.
+      try await client
+        .from("users")
+        .upsert(
+          UsersUpsertPayload(
+            id: userId,
+            email: userEmail,
+            fullName: fullName,
+            role: role.rawValue
+          ),
+          onConflict: "id"
+        )
+        .execute()
 
-    return (user, session)
+      // Try to fetch from database, fall back to metadata for new users
+      let user = try await fetchUserProfileWithRetry(
+        userId: userId,
+        email: userEmail,
+        fallbackMetadata: response.user.userMetadata
+      ) ?? User(
+        id: userId,
+        email: userEmail,
+        emailConfirmedAt: nil,
+        phone: nil,
+        fullName: fullName,
+        createdAt: ISO8601DateFormatter().string(from: Date()),
+        updatedAt: ISO8601DateFormatter().string(from: Date()),
+        role: role
+      )
+
+      let session = response.session.map { mapToSession($0, user: user) }
+
+      return (user, session)
+    } catch {
+      throw mapSupabaseSignUpError(error)
+    }
   }
 
   func signOut() async throws {
@@ -179,7 +214,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         return nil
       }
 
-      guard let user = await fetchUserProfileWithRetry(
+      guard let user = try await fetchUserProfileWithRetry(
         userId: authSession.user.id.uuidString,
         email: authSession.user.email ?? "",
         fallbackMetadata: authSession.user.userMetadata
@@ -188,6 +223,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       }
 
       return mapToSession(authSession, user: user)
+    } catch let authError as AuthError {
+      throw authError
     } catch {
       throw AuthError.unknown(error)
     }
@@ -196,7 +233,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
   func refreshSession() async throws -> User {
     let authSession = try await client.auth.session
 
-    guard let user = await fetchUserProfileWithRetry(
+    guard let user = try await fetchUserProfileWithRetry(
       userId: authSession.user.id.uuidString,
       email: authSession.user.email ?? "",
       fallbackMetadata: authSession.user.userMetadata
@@ -261,6 +298,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       email: dbUser.email,
       emailConfirmedAt: dbUser.emailConfirmedAt,
       phone: dbUser.phone,
+      fullName: dbUser.fullName,
       createdAt: dbUser.createdAt,
       updatedAt: dbUser.updatedAt,
       role: UserRole(rawValue: dbUser.role)
@@ -271,7 +309,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     userId: String,
     email: String,
     fallbackMetadata: [String: AnyJSON]?
-  ) async -> User? {
+  ) async throws -> User? {
     let maxRetries = 3
     let retryDelays: [UInt64] = [500_000_000, 1_000_000_000, 2_000_000_000]
 
@@ -290,7 +328,35 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
 
     // Fallback to metadata if all retries failed
     logger.error("All retries failed for user \(userId), falling back to metadata")
-    return createUserFromMetadata(userId: userId, email: email, metadata: fallbackMetadata)
+    guard let user = createUserFromMetadata(userId: userId, email: email, metadata: fallbackMetadata) else {
+      return nil
+    }
+    // Upsert user into users so user_preferences FK is satisfied (e.g. during onboarding)
+    do {
+      try await client
+        .from("users")
+        .upsert(
+          UsersUpsertPayload(
+            id: user.id,
+            email: user.email,
+            fullName: user.fullName ?? "",
+            role: user.role?.rawValue ?? UserRole.player.rawValue
+          ),
+          onConflict: "id"
+        )
+        .execute()
+      logger.info("Upserted user \(userId) into users table from metadata fallback")
+    } catch {
+      logger.error("Failed to upsert user from metadata: \(error.localizedDescription)")
+      // users_id_fkey: auth user was deleted (e.g. from Supabase dashboard) but app has stale session
+      let errDesc = (error as NSError).localizedDescription
+      if errDesc.contains("users_id_fkey") {
+        try? await client.auth.signOut()
+        throw AuthError.sessionInvalid
+      }
+      // Other upsert errors: still return user; preferences save may fail
+    }
+    return user
   }
 
   // MARK: - Private Helpers
@@ -307,11 +373,17 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       return nil
     }
 
+    let fullName: String? = metadata["full_name"].flatMap { data in
+      if case let s as String = data.value { return s }
+      return nil
+    }
+
     return User(
       id: userId,
       email: email,
       emailConfirmedAt: nil,
       phone: nil,
+      fullName: fullName,
       createdAt: ISO8601DateFormatter().string(from: Date()),
       updatedAt: ISO8601DateFormatter().string(from: Date()),
       role: role
@@ -327,5 +399,42 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       refreshToken: authSession.refreshToken,
       user: user
     )
+  }
+
+  /// Maps Supabase Auth / network errors from signUp to app AuthError for user-facing messages.
+  private func mapSupabaseSignUpError(_ error: Error) -> AuthError {
+    if let authError = error as? AuthError {
+      return authError
+    }
+    let ns = error as NSError
+    let msg = (ns.userInfo[NSLocalizedDescriptionKey] as? String) ?? error.localizedDescription
+    let lower = msg.lowercased()
+
+    // Network / connection (placeholder URL, no network, etc.)
+    if ns.domain == NSURLErrorDomain {
+      let suggestion = lower.contains("placeholder") || ns.code == NSURLErrorCannotFindHost
+        ? " Check that SUPABASE_URL and SUPABASE_ANON_KEY are set in Scheme → Run → Environment Variables."
+        : ""
+      return .networkError("Could not reach the server.\(suggestion)")
+    }
+    if lower.contains("could not connect") || lower.contains("network") || lower.contains("connection") {
+      return .networkError("Could not reach the server. Check your connection and try again.")
+    }
+
+    // Supabase Auth API semantics (match common codes/descriptions)
+    if lower.contains("already exists") || lower.contains("user_already_exists") || lower.contains("email_exists") {
+      return .emailAlreadyRegistered
+    }
+    if lower.contains("weak password") || lower.contains("password") && lower.contains("strength") {
+      return .passwordTooWeak
+    }
+    if lower.contains("invalid email") || lower.contains("email_address_invalid") || lower.contains("validation_failed") {
+      return .invalidEmail
+    }
+    if lower.contains("rate limit") || lower.contains("too many") || lower.contains("429") {
+      return .tooManyAttempts(retryAfter: nil)
+    }
+
+    return .unknown(error)
   }
 }

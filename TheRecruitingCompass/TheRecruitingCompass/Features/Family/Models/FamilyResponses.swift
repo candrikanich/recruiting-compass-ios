@@ -4,7 +4,8 @@ struct CreateFamilyResponse: Codable, Sendable {
   let success: Bool
   let familyCode: String
   let familyId: String
-  let familyName: String
+  /// Omitted when "Family already exists" (web API returns message instead).
+  let familyName: String?
 
   enum CodingKeys: String, CodingKey {
     case success

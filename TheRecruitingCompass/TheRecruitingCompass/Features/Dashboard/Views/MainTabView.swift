@@ -32,9 +32,7 @@ struct MainTabView: View {
       }
       .accessibilityLabel("Dashboard")
 
-      NavigationStack {
-        SchoolsListView()
-      }
+      SchoolsListView()
       .tabItem {
         Label {
           Text("Schools")
@@ -46,9 +44,7 @@ struct MainTabView: View {
       }
       .accessibilityLabel("Schools")
 
-      NavigationStack {
-        CoachesListView()
-      }
+      CoachesListView()
       .tabItem {
         Label {
           Text("Coaches")
@@ -60,9 +56,7 @@ struct MainTabView: View {
       }
       .accessibilityLabel("Coaches")
 
-      NavigationStack {
-        InteractionsListView()
-      }
+      InteractionsListView()
       .tabItem {
         Label {
           Text("Interactions")

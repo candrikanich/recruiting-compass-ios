@@ -60,6 +60,7 @@ final class FamilyManager {
       familyUnit = try await familyService.getFamilyUnit(forPlayerUserId: userId)
       logger.debug("Fetched family unit: \(self.familyUnit?.id ?? "none")")
 
+      // Mirrors web: no auto-create. User creates family from Family tab when inviting parent.
       if let familyUnitId = self.familyUnitId {
         familyMembers = try await familyService.fetchFamilyMembers(familyUnitId: familyUnitId)
 

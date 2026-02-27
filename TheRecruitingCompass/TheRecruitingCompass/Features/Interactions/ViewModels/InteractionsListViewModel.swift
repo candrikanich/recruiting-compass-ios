@@ -20,7 +20,7 @@ final class InteractionsListViewModel {
   var successMessage: String?
   var showSuccessToast = false
 
-  private let interactionsService: any InteractionsManaging
+  let interactionsService: any InteractionsManaging
   private let familyManager: FamilyManager
   private let authManager: any AuthManaging
 

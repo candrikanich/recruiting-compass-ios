@@ -185,6 +185,12 @@ final class AuthManager: AuthManaging {
         try keychain.delete(forKey: sessionKey)
       }
     } catch {
+      if let authError = error as? AuthError, case .sessionInvalid = authError {
+        // Auth user was deleted (e.g. from Supabase); don't use stale fallback
+        clearSession()
+        try? keychain.delete(forKey: sessionKey)
+        return
+      }
       if let fallback {
         // Refresh failed but cached session is still valid — use it
         self.session = fallback
@@ -201,5 +207,6 @@ final class AuthManager: AuthManaging {
     self.session = nil
     self.user = nil
     self.isAuthenticated = false
+    self.errorMessage = nil
   }
 }

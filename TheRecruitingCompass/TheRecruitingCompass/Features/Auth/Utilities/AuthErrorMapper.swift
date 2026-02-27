@@ -11,8 +11,13 @@ func mapAuthError(_ error: Error) -> AuthErrorMappingResult {
     return mapAuthErrorCases(authError)
   }
 
+  // Show underlying message when available so network/config errors are clearer
+  let message = error.localizedDescription
+  let fallback = message.isEmpty || message.contains("The operation couldn't be completed")
+    ? "An error occurred. Please try again."
+    : message
   return AuthErrorMappingResult(
-    userMessage: "An error occurred. Please try again.",
+    userMessage: fallback,
     isDismissible: true,
     requiresAction: false
   )

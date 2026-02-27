@@ -127,6 +127,9 @@ final class FamilyManagementViewModel {
       familyMembers = []
 
       showSuccess("Family created successfully!")
+    } catch let error as FamilyError {
+      logger.error("Failed to create family: \(error.localizedDescription)")
+      errorMessage = error.errorDescription ?? "Failed to create family. Please try again."
     } catch {
       logger.error("Failed to create family: \(error.localizedDescription)")
       errorMessage = "Failed to create family. Please try again."

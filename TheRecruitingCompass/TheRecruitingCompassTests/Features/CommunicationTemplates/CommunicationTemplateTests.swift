@@ -168,6 +168,14 @@ final class CommunicationTemplateTests: XCTestCase {
     XCTAssertEqual(result, "Hello [custom_var]")
   }
 
+  /// When school_name is omitted (e.g. nil school), {{school_name}} becomes [School Name] placeholder.
+  func testSubstituteVariables_MissingSchoolName_BecomesPlaceholder() {
+    let body = "Hi {{coach_name}}, interested in {{school_name}}."
+    let values = ["coach_name": "Coach Smith"]
+    let result = CommunicationTemplate.substituteVariables(in: body, values: values)
+    XCTAssertEqual(result, "Hi Coach Smith, interested in [School Name].")
+  }
+
   // MARK: - Helpers
 
   private func makeTemplate(

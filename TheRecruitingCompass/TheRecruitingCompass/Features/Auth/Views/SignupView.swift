@@ -33,8 +33,10 @@ struct SignupView: View {
       }
     }
     .navigationBarBackButtonHidden(true)
-    .navigationDestination(isPresented: $viewModel.shouldNavigateToVerifyEmail) {
-      EmailVerificationView()
+    .sheet(isPresented: $viewModel.shouldNavigateToVerifyEmail) {
+      NavigationStack {
+        EmailVerificationView()
+      }
     }
     .sheet(item: $presentedLegal) { doc in
       doc.view
@@ -170,6 +172,7 @@ struct SignupView: View {
       error: viewModel.errorBinding(for: .fullName),
       isSecure: false,
       keyboardType: .default,
+      textContentType: .name,
       onBlur: viewModel.validateFullName
     )
   }
@@ -183,6 +186,7 @@ struct SignupView: View {
       error: viewModel.errorBinding(for: .email),
       isSecure: false,
       keyboardType: .emailAddress,
+      textContentType: .emailAddress,
       onBlur: viewModel.validateEmail
     )
   }
@@ -197,6 +201,7 @@ struct SignupView: View {
         error: viewModel.errorBinding(for: .password),
         isSecure: true,
         keyboardType: .default,
+        textContentType: .newPassword,
         onBlur: viewModel.validatePassword
       )
 
@@ -215,6 +220,7 @@ struct SignupView: View {
       error: viewModel.errorBinding(for: .confirmPassword),
       isSecure: true,
       keyboardType: .default,
+      textContentType: .newPassword,
       onBlur: viewModel.validateConfirmPassword
     )
   }

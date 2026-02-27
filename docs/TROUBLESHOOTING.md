@@ -1,5 +1,20 @@
 # Troubleshooting Guide
 
+## Simulator Console Noise (Ignore These)
+
+When running in the **iOS Simulator**, the console often shows messages that are **not from your app** and do not cause "creating account" or other failures. You can ignore:
+
+- **AX Safe category class 'SLHighlightDisambiguationPillViewAccessibility' was not found** – System accessibility framework; harmless.
+- **UIKeyboardLayoutStar implements focusItemsInRect:** – System keyboard; informational.
+- **CHHapticPattern / hapticpatternlibrary.plist couldn't be opened** – Simulator has no haptic hardware; this file exists only on device. Harmless.
+- **Unable to simultaneously satisfy constraints** involving `_UIRemoteKeyboardPlaceholderView` / `_UIKBCompatInputView` – Internal keyboard layout; system recovers automatically.
+- **Could not find cached accumulator for token=** – Keyboard/autocorrection internal; harmless.
+- **IOSurfaceClientSetSurfaceNotify failed** – Simulator graphics; harmless.
+
+**Where the real error is:** For sign-up (Create Account), the **actual error** is shown in the app UI (red error banner on the signup form). If sign-up fails, check that banner and ensure `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set in your scheme (see [Supabase Errors](#supabase-errors) and CLAUDE.md).
+
+---
+
 ## Build Fails
 
 1. **Check environment variables** (SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -26,6 +41,7 @@
 2. **Verify table schemas match Swift models** (snake_case → camelCase)
 3. **Check Supabase logs** in dashboard for query errors
 4. **Verify API keys** are correct and not expired
+5. **Signup fails or shows generic/network error:** Ensure `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set in **Product → Scheme → Edit Scheme → Run → Arguments → Environment Variables**. If they are missing or placeholder, signup will fail. See CLAUDE.md for setup steps.
 
 ---
 

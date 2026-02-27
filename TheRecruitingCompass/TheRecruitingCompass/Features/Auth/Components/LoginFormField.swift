@@ -1,6 +1,19 @@
 import SwiftUI
 import UIKit
 
+/// Applies textContentType when non-nil; fixes iOS suggestion bubble truncation/overlap.
+private struct TextContentTypeModifier: ViewModifier {
+  let contentType: UITextContentType?
+
+  func body(content: Content) -> some View {
+    if let contentType {
+      content.textContentType(contentType)
+    } else {
+      content
+    }
+  }
+}
+
 struct LoginFormField: View {
   let label: String
   let placeholder: String
@@ -9,6 +22,8 @@ struct LoginFormField: View {
   @Binding var error: String?
   let isSecure: Bool
   let keyboardType: UIKeyboardType
+  /// Semantic type for autofill/suggestions. Set to fix truncated or overlapping iOS suggestion bubbles.
+  var textContentType: UITextContentType? = nil
   let onBlur: () -> Void
   @Environment(\.sizeCategory) var sizeCategory
 
@@ -31,6 +46,7 @@ struct LoginFormField: View {
     .accessibilityValue(error.map { "Error: \($0)" } ?? "")
     .autocorrectionDisabled()
     .textInputAutocapitalization(.never)
+    .modifier(TextContentTypeModifier(contentType: textContentType))
     .onSubmit(onBlur)
   }
 

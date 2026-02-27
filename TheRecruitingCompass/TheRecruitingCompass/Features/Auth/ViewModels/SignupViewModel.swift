@@ -171,7 +171,10 @@ final class SignupViewModel {
         role: role,
         familyCode: familyCodeToUse
       )
-      shouldNavigateToVerifyEmail = true
+      // Only show email verification when no session (e.g. confirmation required)
+      if !authManager.isAuthenticated {
+        shouldNavigateToVerifyEmail = true
+      }
     } catch {
       errorMessage = mapAuthError(error).userMessage
     }

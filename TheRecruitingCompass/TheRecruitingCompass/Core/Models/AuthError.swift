@@ -17,6 +17,7 @@ enum AuthError: LocalizedError {
   case invalidResetToken
   case expiredResetToken
   case resetEmailNotFound
+  case sessionInvalid
   case unknown(Error)
 
   var errorDescription: String? {
@@ -56,8 +57,14 @@ enum AuthError: LocalizedError {
       return "This password reset link has expired."
     case .resetEmailNotFound:
       return "If an account exists for this email, you will receive a reset link shortly."
-    case .unknown:
-      return "An unexpected error occurred. Please try again."
+    case .sessionInvalid:
+      return "Your session is no longer valid. Please sign in again."
+    case .unknown(let err):
+      let msg = err.localizedDescription.trimmingCharacters(in: .whitespaces)
+      if msg.isEmpty || msg.contains("The operation couldn't be completed") {
+        return "An unexpected error occurred. Please try again."
+      }
+      return msg
     }
   }
 
@@ -91,6 +98,8 @@ enum AuthError: LocalizedError {
       return "Request a new password reset link to continue."
     case .resetEmailNotFound:
       return "Check the email address or create a new account."
+    case .sessionInvalid:
+      return "Sign out and create a new account to continue."
     case .unknown:
       return "Please try again or contact support."
     }
