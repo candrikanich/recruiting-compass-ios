@@ -159,6 +159,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
   }
 
   /// Calls POST /api/family/create with Bearer token. Returns nil if API_BASE_URL or token unavailable.
+  /// Includes x-csrf-token header (required by web API for mutating requests).
   private func createFamilyViaWebAPI() async throws -> CreateFamilyResponse? {
     guard let baseURL = SupabaseConfig.apiBaseURL else {
       logger.debug("API_BASE_URL not set, skipping web API family create")
@@ -171,12 +172,15 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
       return nil
     }
 
+    let csrfToken = try await fetchCSRFToken(baseURL: baseURL)
+
     let url = baseURL.appendingPathComponent("api/family/create")
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
+    request.setValue(csrfToken, forHTTPHeaderField: "x-csrf-token")
 
     let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -195,6 +199,30 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     let result = try decoder.decode(CreateFamilyResponse.self, from: data)
     logger.info("Family created via web API: familyId=\(result.familyId)")
     return result
+  }
+
+  /// Fetches CSRF token from API (GET /api/csrf-token). Server sets csrf-token cookie;
+  /// we read it and return the value so callers can send it in x-csrf-token header on mutating requests.
+  private func fetchCSRFToken(baseURL: URL) async throws -> String {
+    let url = baseURL.appendingPathComponent("api/csrf-token")
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+
+    let (_, response) = try await URLSession.shared.data(for: request)
+
+    guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+      logger.error("CSRF token request failed")
+      throw FamilyError.serverError("Failed to get CSRF token")
+    }
+
+    let apiURL = baseURL.appendingPathComponent("api")
+    guard let cookies = HTTPCookieStorage.shared.cookies(for: apiURL),
+          let csrfCookie = cookies.first(where: { $0.name == "csrf-token" }) else {
+      logger.error("No csrf-token cookie in storage after GET /api/csrf-token")
+      throw FamilyError.serverError("Failed to get CSRF token")
+    }
+
+    return csrfCookie.value
   }
 
   /// Parses Nuxt/h3 API error response body for user-facing message.
