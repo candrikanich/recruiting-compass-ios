@@ -50,7 +50,7 @@ Supabase credentials must be configured before running:
 
 **Action Items (Suggestions):** The dashboard Action Items widget uses the web app API (`GET /api/suggestions`, `PATCH .../dismiss`, `PATCH .../complete`). Set `API_BASE_URL` to your web app base URL (e.g. Vercel deployment). Authorization uses the Supabase session token (Bearer). If `API_BASE_URL` is unset, the widget shows "No action items at this time."
 
-**Family Creation:** Player family units are created via `POST /api/family/create` when `API_BASE_URL` is set (mirrors web flow). If unset, the app falls back to Supabase Edge Function `family-create` (which may 404 if not deployed). Set `API_BASE_URL` for family creation to work for new player signups and onboarding.
+**Family Creation:** Player family units are created directly via Supabase (`family_units` and `family_members` inserts). No web API required.
 
 **Production / TestFlight / App Store:** Release builds require real `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Scheme environment variables are **not** embedded in archived builds. Edit **`TheRecruitingCompass/Release.xcconfig`** and replace the placeholder URL and key with your real values before creating an Archive. See `docs/CONFIGURATION.md`.
 

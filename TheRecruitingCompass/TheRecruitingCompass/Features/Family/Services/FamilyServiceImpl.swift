@@ -147,94 +147,90 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
   // MARK: - Family Management (Player)
 
-  /// Creates a family unit for the current player. Uses POST /api/family/create when API_BASE_URL is set (mirrors web flow).
-  /// Family creation is lazy — triggered when player visits Family Management; endpoint is idempotent.
+  /// Creates a family unit for the current player via direct Supabase. Idempotent.
   func createFamily() async throws -> CreateFamilyResponse {
-    if let response = try await createFamilyViaWebAPI() {
-      return response
+    let userId = try await supabaseManager.client.auth.session.user.id.uuidString
+
+    // Idempotent: return existing family if present
+    if let existing = try await getFamilyUnit(forPlayerUserId: userId),
+       let code = existing.familyCode {
+      return CreateFamilyResponse(
+        success: true,
+        familyCode: code,
+        familyId: existing.id,
+        familyName: existing.familyName
+      )
     }
-    throw FamilyError.serverError(
-      "Family creation requires API_BASE_URL. Set it in Scheme → Run → Environment Variables (e.g. your web app URL)."
+
+    let familyId = UUID().uuidString
+    let memberId = UUID().uuidString
+    let now = ISO8601DateFormatter().string(from: Date())
+    let familyCode = "FAM-" + String((0..<6).map { _ in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".randomElement()! })
+
+    struct FamilyUnitInsert: Encodable {
+      let id: String
+      let playerUserId: String
+      let familyCode: String
+      let codeGeneratedAt: String
+      let createdAt: String
+      let updatedAt: String
+
+      enum CodingKeys: String, CodingKey {
+        case id
+        case playerUserId = "player_user_id"
+        case familyCode = "family_code"
+        case codeGeneratedAt = "code_generated_at"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+      }
+    }
+
+    struct FamilyMemberInsert: Encodable {
+      let id: String
+      let userId: String
+      let familyUnitId: String
+      let role: String
+      let addedAt: String
+
+      enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case familyUnitId = "family_unit_id"
+        case role
+        case addedAt = "added_at"
+      }
+    }
+
+    try await supabaseManager.client
+      .from("family_units")
+      .insert(FamilyUnitInsert(
+        id: familyId,
+        playerUserId: userId,
+        familyCode: familyCode,
+        codeGeneratedAt: now,
+        createdAt: now,
+        updatedAt: now
+      ))
+      .execute()
+
+    try await supabaseManager.client
+      .from("family_members")
+      .insert(FamilyMemberInsert(
+        id: memberId,
+        userId: userId,
+        familyUnitId: familyId,
+        role: "player",
+        addedAt: now
+      ))
+      .execute()
+
+    logger.info("Family created via Supabase: familyId=\(familyId)")
+    return CreateFamilyResponse(
+      success: true,
+      familyCode: familyCode,
+      familyId: familyId,
+      familyName: nil
     )
-  }
-
-  /// Calls POST /api/family/create with Bearer token. Returns nil if API_BASE_URL or token unavailable.
-  /// Includes x-csrf-token header (required by web API for mutating requests).
-  private func createFamilyViaWebAPI() async throws -> CreateFamilyResponse? {
-    guard let baseURL = SupabaseConfig.apiBaseURL else {
-      logger.debug("API_BASE_URL not set, skipping web API family create")
-      return nil
-    }
-    let session = try await supabaseManager.client.auth.session
-    let token = session.accessToken
-    guard !token.isEmpty else {
-      logger.debug("No access token for family create API")
-      return nil
-    }
-
-    let csrfToken = try await fetchCSRFToken(baseURL: baseURL)
-
-    let url = baseURL.appendingPathComponent("api/family/create")
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
-    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue("application/json", forHTTPHeaderField: "Accept")
-    request.setValue(csrfToken, forHTTPHeaderField: "x-csrf-token")
-
-    let (data, response) = try await URLSession.shared.data(for: request)
-
-    guard let http = response as? HTTPURLResponse else {
-      throw FamilyError.serverError("Invalid response")
-    }
-
-    guard http.statusCode == 200 else {
-      let body = String(data: data, encoding: .utf8)
-      logger.error("Family create API returned \(http.statusCode): \(body ?? "nil")")
-      let message = parseAPIErrorMessage(data: data) ?? "Failed to create family (\(http.statusCode))"
-      throw FamilyError.serverError(message)
-    }
-
-    let decoder = JSONDecoder()
-    let result = try decoder.decode(CreateFamilyResponse.self, from: data)
-    logger.info("Family created via web API: familyId=\(result.familyId)")
-    return result
-  }
-
-  /// Fetches CSRF token from API (GET /api/csrf-token). Server sets csrf-token cookie;
-  /// we read it and return the value so callers can send it in x-csrf-token header on mutating requests.
-  private func fetchCSRFToken(baseURL: URL) async throws -> String {
-    let url = baseURL.appendingPathComponent("api/csrf-token")
-    var request = URLRequest(url: url)
-    request.httpMethod = "GET"
-
-    let (_, response) = try await URLSession.shared.data(for: request)
-
-    guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-      logger.error("CSRF token request failed")
-      throw FamilyError.serverError("Failed to get CSRF token")
-    }
-
-    let apiURL = baseURL.appendingPathComponent("api")
-    guard let cookies = HTTPCookieStorage.shared.cookies(for: apiURL),
-          let csrfCookie = cookies.first(where: { $0.name == "csrf-token" }) else {
-      logger.error("No csrf-token cookie in storage after GET /api/csrf-token")
-      throw FamilyError.serverError("Failed to get CSRF token")
-    }
-
-    return csrfCookie.value
-  }
-
-  /// Parses Nuxt/h3 API error response body for user-facing message.
-  private func parseAPIErrorMessage(data: Data) -> String? {
-    struct ErrorResponse: Codable {
-      let message: String?
-      let statusMessage: String?
-    }
-    guard let decoded = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
-      return nil
-    }
-    return decoded.message ?? decoded.statusMessage
   }
 
   func regenerateCode(familyId: String) async throws -> RegenerateFamilyCodeResponse {
