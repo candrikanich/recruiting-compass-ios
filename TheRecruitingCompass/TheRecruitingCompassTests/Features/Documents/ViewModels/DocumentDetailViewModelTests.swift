@@ -39,7 +39,8 @@ final class DocumentDetailViewModelTests: XCTestCase {
       documentsService: mockDocuments,
       schoolsService: mockSchools,
       authManager: mockAuth,
-      familyManager: mockFamilyManager
+      familyManager: mockFamilyManager,
+      cache: InMemoryCache()
     )
   }
 

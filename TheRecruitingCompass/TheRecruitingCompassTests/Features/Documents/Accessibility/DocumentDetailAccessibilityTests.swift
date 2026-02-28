@@ -38,7 +38,8 @@ final class DocumentDetailAccessibilityTests: XCTestCase {
       documentsService: documentsService,
       schoolsService: MockSchoolsService(),
       authManager: auth,
-      familyManager: familyManager
+      familyManager: familyManager,
+      cache: InMemoryCache()
     )
   }
 
