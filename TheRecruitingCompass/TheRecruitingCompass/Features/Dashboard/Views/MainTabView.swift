@@ -14,12 +14,16 @@ struct MainTabView: View {
   @Environment(AuthManager.self) private var authManager
   @Environment(FamilyManager.self) private var familyManager
   @State private var notificationsViewModel = NotificationsListViewModel()
+  @State private var dashboardViewModel = DashboardViewModel()
 
   var body: some View {
     TabView {
       NavigationStack {
-        DashboardView()
+        DashboardView(viewModel: dashboardViewModel)
           .activityNavigation()
+          .navigationDestination(for: DashboardDestination.self) { destination in
+            dashboardDestinationView(for: destination)
+          }
       }
       .tabItem {
         Label {
@@ -83,6 +87,26 @@ struct MainTabView: View {
     }
     .task {
       await notificationsViewModel.fetchNotifications()
+    }
+  }
+
+  @ViewBuilder
+  private func dashboardDestinationView(for destination: DashboardDestination) -> some View {
+    switch destination {
+    case .coaches:
+      CoachesListView()
+    case .schools:
+      SchoolsListView()
+    case .interactions:
+      InteractionsListView()
+    case .offers:
+      OffersListView()
+    case .accepted:
+      OffersListView()
+    case .aTier:
+      SchoolsListView()
+    case .suggestions:
+      SuggestionsListView(viewModel: dashboardViewModel)
     }
   }
 }

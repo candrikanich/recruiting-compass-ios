@@ -39,6 +39,11 @@ extension AddSchoolViewModel {
 
     // Perform lookup (actor-isolated)
     if let result = await ncaaDatabase.lookup(schoolName: schoolName) {
+      // Ignore stale results: user may have selected a different college while lookup was in flight
+      guard formState.name == schoolName else {
+        ncaaLogger.debug("Discarding NCAA result for \(schoolName) — user selected different college")
+        return
+      }
       ncaaLogger.info("NCAA match found: \(result.division.rawValue) - \(result.conference)")
 
       // Auto-fill division and conference

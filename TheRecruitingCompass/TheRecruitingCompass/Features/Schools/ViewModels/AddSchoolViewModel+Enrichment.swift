@@ -47,18 +47,25 @@ extension AddSchoolViewModel {
         data = try await collegeScorecardService.lookupCollege(name: college.name)
       }
       if let data {
+        // Ignore stale results: user may have selected a different college while enrichment was in flight
+        guard selectedCollege?.id == college.id else {
+          enrichmentLogger.debug("Discarding enrichment for \(college.name) — user selected different college")
+          return
+        }
         scorecardData = data
         enrichmentLogger.info("Enrichment successful: \(data.name)")
 
         // Announce for accessibility
         announcer.announce("College data loaded")
       } else {
+        guard selectedCollege?.id == college.id else { return }
         enrichmentLogger.info("No College Scorecard data found for: \(college.name)")
         scorecardData = nil
         enrichmentError = nil // Silent failure per spec
       }
 
     } catch let error as CollegeDataError {
+      guard selectedCollege?.id == college.id else { return }
       enrichmentLogger.error("Enrichment failed: \(error.localizedDescription)")
 
       // Silent failures per spec - don't show errors to user
@@ -80,6 +87,7 @@ extension AddSchoolViewModel {
       }
 
     } catch {
+      guard selectedCollege?.id == college.id else { return }
       enrichmentLogger.error("Unexpected enrichment error: \(error.localizedDescription)")
       enrichmentError = nil // Silent failure
       scorecardData = nil

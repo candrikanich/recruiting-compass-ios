@@ -17,8 +17,8 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
   func createSchool(request: SchoolCreateRequest) async throws -> School {
     logger.debug("Creating school: \(request.name)")
 
-    // Build insert payload without top-level city/state (schools table may not have these columns).
-    // Merge city/state into academic_info so data is preserved.
+    // Build insert payload including top-level city/state (migration adds these columns).
+    // Also merge city/state into academic_info for backward compatibility.
     let payload = SchoolsInsertPayload(from: request)
 
     let result: School = try await supabaseManager.client
@@ -437,13 +437,15 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
 
 // MARK: - School Insert Payload
 
-/// Insert payload omitting top-level city/state (schools table may not have these columns).
-/// Merges city/state into academic_info so data is preserved.
+/// Insert payload including top-level city/state (schools table has these columns per migration).
+/// Also merges city/state into academic_info for backward compatibility.
 private struct SchoolsInsertPayload: Encodable {
   let user_id: String
   let family_unit_id: String
   let name: String
   let location: String?
+  let city: String?
+  let state: String?
   let division: String?
   let conference: String?
   let website: String?
@@ -460,6 +462,8 @@ private struct SchoolsInsertPayload: Encodable {
     family_unit_id = request.familyUnitId
     name = request.name
     location = request.location
+    city = request.city
+    state = request.state
     division = request.division
     conference = request.conference
     website = request.website

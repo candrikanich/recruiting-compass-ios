@@ -80,9 +80,6 @@ struct DashboardView: View {
         }
       }
       .navigationTitle("Dashboard")
-      .navigationDestination(for: DashboardDestination.self) { destination in
-        destinationView(for: destination)
-      }
       .task {
         await viewModel.fetchDashboardData()
       }
@@ -155,25 +152,6 @@ struct DashboardView: View {
     .accessibilityHint("Ends your session and returns to the login screen")
   }
 
-  @ViewBuilder
-  private func destinationView(for destination: DashboardDestination) -> some View {
-    switch destination {
-    case .coaches:
-      CoachesListView()
-    case .schools:
-      SchoolsListView()
-    case .interactions:
-      InteractionsListView()
-    case .offers:
-      OffersListView()
-    case .accepted:
-      OffersListView()
-    case .aTier:
-      SchoolsListView()
-    case .suggestions:
-      SuggestionsListView(viewModel: viewModel)
-    }
-  }
 }
 
 #Preview {

@@ -191,10 +191,23 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       throw NSError(domain: "DashboardService", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Suggestions failed (\(http.statusCode))"])
     }
 
-    let decoder = JSONDecoder()
-    let result = try decoder.decode(SuggestionsResponse.self, from: data)
-    logger.info("Fetched \(result.suggestions.count) suggestions, pendingCount: \(result.pendingCount)")
-    return (result.suggestions, result.pendingCount)
+    // Empty response (e.g. HTML error page, empty body) often causes "data is missing" decode error
+    guard !data.isEmpty else {
+      logger.debug("Suggestions API returned empty body, treating as no suggestions")
+      return ([], 0)
+    }
+
+    do {
+      let decoder = JSONDecoder()
+      let result = try decoder.decode(SuggestionsResponse.self, from: data)
+      logger.info("Fetched \(result.suggestions.count) suggestions, pendingCount: \(result.pendingCount)")
+      return (result.suggestions, result.pendingCount)
+    } catch let error as DecodingError {
+      logger.warning("Suggestions API response decode failed: \(String(describing: error)). Treating as empty.")
+      return ([], 0)
+    } catch {
+      throw error
+    }
   }
 
   func dismissSuggestion(id: String, accessToken: String?) async throws {
