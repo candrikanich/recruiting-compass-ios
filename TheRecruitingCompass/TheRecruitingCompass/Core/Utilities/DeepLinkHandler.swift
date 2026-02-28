@@ -2,27 +2,45 @@ import Foundation
 
 enum DeepLinkRoute: Equatable {
   case resetPassword(token: String)
+  case joinInvite(token: String)
   case unknown
 }
 
 enum DeepLinkHandler {
   static let scheme = "recruiting-compass"
+  static let universalLinkHosts: Set<String> = [
+    "recruiting-compass.com",
+    "www.recruiting-compass.com",
+    "localhost",
+    "127.0.0.1",
+  ]
 
   static func parse(_ url: URL) -> DeepLinkRoute {
-    guard url.scheme == scheme else {
+    // Custom scheme: recruiting-compass://reset-password?token=...
+    if url.scheme == scheme {
+      guard url.host == "reset-password",
+            let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+            let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
+            !token.isEmpty else {
+        return .unknown
+      }
+      return .resetPassword(token: token)
+    }
+
+    // Universal links: https://recruiting-compass.com/join?token=...
+    guard (url.scheme == "http" || url.scheme == "https"),
+          let host = url.host,
+          universalLinkHosts.contains(host) else {
       return .unknown
     }
 
-    guard url.host == "reset-password" else {
-      return .unknown
-    }
-
-    guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+    guard url.path == "/join",
+          let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
           let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
           !token.isEmpty else {
       return .unknown
     }
 
-    return .resetPassword(token: token)
+    return .joinInvite(token: token)
   }
 }

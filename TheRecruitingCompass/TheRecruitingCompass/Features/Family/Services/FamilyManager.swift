@@ -56,8 +56,8 @@ final class FamilyManager {
       // Try to get family member record (works for all family members)
       currentMember = try await familyService.getCurrentMember(userId: userId)
 
-      // Also fetch family unit directly (ensures we have the family unit ID for players)
-      familyUnit = try await familyService.getFamilyUnit(forPlayerUserId: userId)
+      // Also fetch family unit via membership (works for all roles)
+      familyUnit = try await familyService.getFamilyUnit(forUserId: userId)
       logger.debug("Fetched family unit: \(self.familyUnit?.id ?? "none")")
 
       // Mirrors web: no auto-create. User creates family from Family tab when inviting parent.

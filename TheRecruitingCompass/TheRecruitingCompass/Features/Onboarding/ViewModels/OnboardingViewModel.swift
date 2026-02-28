@@ -19,12 +19,20 @@ final class OnboardingViewModel {
   var isLoading = false
   var errorMessage: String?
   var zipCodeError: String?
+  var inviteEmail: String = ""
+  var isInviteSent = false
 
   var onComplete: (() -> Void)?
 
   private let onboardingService: any OnboardingManaging
   private let preferenceService: any PreferenceManaging
   private let authManager: any AuthManaging
+  private let familyService: any FamilyManaging
+
+  var isEmailInviteValid: Bool {
+    let trimmed = inviteEmail.trimmingCharacters(in: .whitespaces)
+    return trimmed.contains("@") && trimmed.contains(".")
+  }
 
   var positionsForSport: [String] {
     guard !primarySport.isEmpty,
@@ -37,11 +45,32 @@ final class OnboardingViewModel {
   init(
     onboardingService: (any OnboardingManaging)? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    familyService: (any FamilyManaging)? = nil
   ) {
     self.onboardingService = onboardingService ?? OnboardingServiceImpl(supabaseManager: .shared)
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
+  }
+
+  func sendParentInvite() async {
+    guard let userId = authManager.user?.id, isEmailInviteValid else { return }
+
+    isLoading = true
+    defer { isLoading = false }
+
+    do {
+      if try await familyService.getFamilyUnit(forUserId: userId) != nil {
+        try await familyService.sendEmailInvite(email: inviteEmail, role: "parent")
+        inviteEmail = ""
+        isInviteSent = true
+      } else {
+        errorMessage = "Family not set up yet. Complete onboarding first."
+      }
+    } catch {
+      errorMessage = "Failed to send invite. You can do this later from Family Management."
+    }
   }
 
   func validateStep() -> Bool {

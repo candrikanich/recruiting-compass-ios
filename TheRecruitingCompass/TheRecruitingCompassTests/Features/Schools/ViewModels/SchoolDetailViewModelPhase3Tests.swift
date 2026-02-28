@@ -16,7 +16,7 @@ final class SchoolDetailViewModelPhase3Tests: XCTestCase {
     // Set up FamilyManager.shared with test data
     FamilyManager.shared.familyUnit = FamilyUnit(
       id: "test-family-id",
-      playerUserId: "user-1",
+      createdByUserId: "user-1",
       familyName: "Test Family",
       familyCode: nil,
       codeGeneratedAt: nil,

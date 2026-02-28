@@ -185,7 +185,7 @@ final class TasksListViewModelTests: XCTestCase {
     )
     let mockFamily = MockFamilyService()
     mockFamily.stubbedCurrentMember = parentMember
-    mockFamily.stubbedFamilyUnit = FamilyUnit(id: "fu1", playerUserId: "athlete-1", familyName: "Family", familyCode: "CODE", codeGeneratedAt: nil, createdAt: "", updatedAt: "", homeLatitude: nil, homeLongitude: nil)
+    mockFamily.stubbedFamilyUnit = FamilyUnit(id: "fu1", createdByUserId: "athlete-1", familyName: "Family", familyCode: "CODE", codeGeneratedAt: nil, createdAt: "", updatedAt: "", homeLatitude: nil, homeLongitude: nil)
     mockFamily.stubbedFamilyMembers = [parentMember, athleteMember]
 
     let fm = FamilyManager(familyService: mockFamily, authManager: mockAuthManager)

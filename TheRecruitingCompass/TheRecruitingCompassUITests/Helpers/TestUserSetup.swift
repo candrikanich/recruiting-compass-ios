@@ -14,14 +14,14 @@ struct TestUser {
 /// Encodable struct for inserting family unit data
 private struct FamilyUnitInsert: Encodable {
   let id: String
-  let playerUserId: String
+  let createdByUserId: String
   let familyCode: String
   let createdAt: String
   let updatedAt: String
 
   enum CodingKeys: String, CodingKey {
     case id
-    case playerUserId = "player_user_id"
+    case createdByUserId = "created_by_user_id"
     case familyCode = "family_code"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
@@ -123,7 +123,7 @@ final class TestUserSetup {
 
     let familyData = FamilyUnitInsert(
       id: familyUnitId,
-      playerUserId: userId,
+      createdByUserId: userId,
       familyCode: "FAM-\(timestamp)",
       createdAt: now,
       updatedAt: now

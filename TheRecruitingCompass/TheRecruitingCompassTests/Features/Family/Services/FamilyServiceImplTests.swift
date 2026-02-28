@@ -76,17 +76,17 @@ final class FamilyServiceImplTests: XCTestCase {
 
   func testGetFamilyUnit_Success_ReturnsUnit() async throws {
     // Given
-    let expectedUnit = createFamilyUnit(id: "family1", playerUserId: "user1")
+    let expectedUnit = createFamilyUnit(id: "family1", createdByUserId: "user1")
     mockService.stubbedFamilyUnit = expectedUnit
 
     // When
-    let result = try await mockService.getFamilyUnit(forPlayerUserId: "user1")
+    let result = try await mockService.getFamilyUnit(forUserId: "user1")
 
     // Then
     XCTAssertNotNil(result)
     XCTAssertEqual(result?.id, "family1")
     XCTAssertEqual(mockService.getFamilyUnitCallCount, 1)
-    XCTAssertEqual(mockService.lastPlayerUserIdFetched, "user1")
+    XCTAssertEqual(mockService.lastUserIdFetched, "user1")
   }
 
   func testGetFamilyUnit_NotFound_ReturnsNil() async throws {
@@ -94,7 +94,7 @@ final class FamilyServiceImplTests: XCTestCase {
     mockService.stubbedFamilyUnit = nil
 
     // When
-    let result = try await mockService.getFamilyUnit(forPlayerUserId: "user1")
+    let result = try await mockService.getFamilyUnit(forUserId: "user1")
 
     // Then
     XCTAssertNil(result)
@@ -152,7 +152,7 @@ final class FamilyServiceImplTests: XCTestCase {
     mockService.mockCreateFamilyResponse = expectedResponse
 
     // When
-    let result = try await mockService.createFamily()
+    let result = try await mockService.createFamily(role: .player)
 
     // Then
     XCTAssertTrue(result.success)
@@ -168,7 +168,7 @@ final class FamilyServiceImplTests: XCTestCase {
 
     // When/Then
     do {
-      _ = try await mockService.createFamily()
+      _ = try await mockService.createFamily(role: .player)
       XCTFail("Expected error to be thrown")
     } catch {
       XCTAssertTrue(error is FamilyError)
@@ -266,12 +266,12 @@ final class FamilyServiceImplTests: XCTestCase {
 
   private func createFamilyUnit(
     id: String,
-    playerUserId: String,
+    createdByUserId: String,
     familyCode: String = "FAM-TEST123"
   ) -> FamilyUnit {
     FamilyUnit(
       id: id,
-      playerUserId: playerUserId,
+      createdByUserId: createdByUserId,
       familyName: "Test Family",
       familyCode: familyCode,
       codeGeneratedAt: "2025-01-01T00:00:00Z",

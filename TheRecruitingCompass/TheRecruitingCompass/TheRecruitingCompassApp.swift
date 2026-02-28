@@ -8,6 +8,10 @@
 import SwiftUI
 import Supabase
 
+struct PendingInvite: Identifiable {
+  let id: String
+}
+
 @main
 struct TheRecruitingCompassApp: App {
   @State private var authManager = AuthManager.shared
@@ -16,6 +20,7 @@ struct TheRecruitingCompassApp: App {
   @State private var networkMonitor = NetworkMonitor()
   @State private var showResetPassword = false
   @State private var pendingResetPasswordFromDeepLink = false
+  @State private var pendingInvite: PendingInvite?
   @Environment(\.accessibilityReduceMotion) var reduceMotion
 
   var body: some Scene {
@@ -52,6 +57,9 @@ struct TheRecruitingCompassApp: App {
         NavigationStack {
           ResetPasswordView(authManager: authManager)
         }
+      }
+      .sheet(item: $pendingInvite) { pending in
+        InviteJoinView(viewModel: InviteJoinViewModel(token: pending.id))
       }
       .environment(authManager)
       .environment(familyManager)
@@ -91,6 +99,8 @@ struct TheRecruitingCompassApp: App {
       if !authManager.isCheckingSession, !authManager.isAuthenticated {
         showResetPassword = true
       }
+    case .joinInvite(let token):
+      pendingInvite = PendingInvite(id: token)
     case .unknown:
       break
     }

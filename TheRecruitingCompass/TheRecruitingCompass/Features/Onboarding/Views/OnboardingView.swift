@@ -282,12 +282,47 @@ struct OnboardingView: View {
     VStack(spacing: 24) {
       Text("You're All Set!")
         .font(.title2.weight(.bold))
-      Text("Your profile is ready. Would you like to invite a parent?")
+
+      Text("Invite a parent or guardian to follow your recruiting journey.")
         .font(.body)
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
+
+      if viewModel.isInviteSent {
+        Label("Invite sent!", systemImage: "checkmark.circle")
+          .foregroundStyle(.green)
+          .font(.subheadline.weight(.medium))
+      } else {
+        VStack(spacing: 12) {
+          TextField("Parent's email", text: $viewModel.inviteEmail)
+            .textFieldStyle(.roundedBorder)
+            .keyboardType(.emailAddress)
+            .textContentType(.emailAddress)
+            .autocapitalization(.none)
+
+          Button {
+            Task { await viewModel.sendParentInvite() }
+          } label: {
+            if viewModel.isLoading {
+              ProgressView().tint(.white)
+            } else {
+              Text("Send Invite")
+            }
+          }
+          .frame(maxWidth: .infinity)
+          .frame(height: 44)
+          .background(viewModel.isEmailInviteValid ? Color.accentColor : Color.gray)
+          .foregroundColor(.white)
+          .cornerRadius(8)
+          .disabled(!viewModel.isEmailInviteValid || viewModel.isLoading)
+        }
+      }
+
+      Text("You can invite a parent later from Family Management.")
+        .font(.caption)
+        .foregroundStyle(.tertiary)
     }
-    .padding(.vertical, 48)
+    .padding(.vertical, 32)
   }
 
   private var errorBanner: some View {

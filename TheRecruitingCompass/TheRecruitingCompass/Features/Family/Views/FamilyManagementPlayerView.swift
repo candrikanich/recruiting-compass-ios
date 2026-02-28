@@ -7,6 +7,8 @@ struct FamilyManagementPlayerView: View {
     ScrollView {
       VStack(spacing: FamilyConstants.Spacing.large) {
         familyCodeCard
+        inviteByEmailCard
+        pendingInvitationsSection
         familyMembersSection
       }
       .padding(.horizontal, FamilyConstants.Spacing.medium)
@@ -101,6 +103,100 @@ struct FamilyManagementPlayerView: View {
     .background(Color(.systemBackground))
     .cornerRadius(12)
     .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+  }
+
+  // MARK: - Invite by Email Card
+  private var inviteByEmailCard: some View {
+    VStack(spacing: FamilyConstants.Spacing.medium) {
+      Text("Invite Parent by Email")
+        .font(.headline)
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+      Text("They'll receive a link to join your family.")
+        .font(.subheadline)
+        .foregroundColor(.secondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+      HStack(spacing: FamilyConstants.Spacing.small) {
+        TextField("parent@example.com", text: $viewModel.inviteEmail)
+          .textFieldStyle(.roundedBorder)
+          .keyboardType(.emailAddress)
+          .textContentType(.emailAddress)
+          .autocapitalization(.none)
+          .accessibilityLabel("Parent email address")
+
+        Button {
+          Task { await viewModel.sendEmailInvite() }
+        } label: {
+          if viewModel.isLoading {
+            ProgressView().tint(.white)
+          } else {
+            Text("Send")
+          }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(viewModel.isEmailInviteValid ? Color.accentColor : Color.gray)
+        .foregroundColor(.white)
+        .cornerRadius(8)
+        .disabled(!viewModel.isEmailInviteValid || viewModel.isLoading)
+        .accessibilityLabel("Send invite")
+        .accessibilityHint(viewModel.isEmailInviteValid
+          ? "Send email invite to the entered address"
+          : "Enter a valid email to enable")
+      }
+    }
+    .padding(FamilyConstants.Spacing.medium)
+    .background(Color(.systemBackground))
+    .cornerRadius(12)
+    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+  }
+
+  @ViewBuilder
+  private var pendingInvitationsSection: some View {
+    if !viewModel.pendingInvitations.isEmpty {
+      VStack(spacing: FamilyConstants.Spacing.medium) {
+        HStack {
+          Text("Pending Invitations")
+            .font(.headline)
+          Spacer()
+          Text("\(viewModel.pendingInvitations.count)")
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+        }
+
+        ForEach(viewModel.pendingInvitations) { invite in
+          HStack {
+            VStack(alignment: .leading, spacing: 4) {
+              Text(invite.invitedEmail)
+                .font(.subheadline.weight(.medium))
+              Text("Expires \(formattedExpiry(invite.expiresAt))")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            }
+            Spacer()
+            Button("Revoke") {
+              Task { await viewModel.revokeInvitation(invite) }
+            }
+            .font(.caption)
+            .foregroundColor(.red)
+            .buttonStyle(.bordered)
+            .tint(.red)
+            .accessibilityLabel("Revoke invite to \(invite.invitedEmail)")
+          }
+          .padding(.vertical, 4)
+        }
+      }
+      .padding(FamilyConstants.Spacing.medium)
+      .background(Color(.systemBackground))
+      .cornerRadius(12)
+      .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+    }
+  }
+
+  private func formattedExpiry(_ isoString: String) -> String {
+    guard let date = ISO8601DateFormatter().date(from: isoString) else { return "unknown" }
+    return DateFormatter.familyCodeDate.string(from: date)
   }
 
   // MARK: - Family Members Section

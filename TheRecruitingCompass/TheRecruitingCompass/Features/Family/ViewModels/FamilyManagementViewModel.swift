@@ -14,6 +14,8 @@ final class FamilyManagementViewModel {
   var familyName: String?
   var codeGeneratedAt: String?
   var familyMembers: [FamilyMember] = []
+  var pendingInvitations: [FamilyInvitation] = []
+  var inviteEmail: String = ""
 
   // MARK: - Parent State
   var parentFamilies: [ParentFamilyData] = []
@@ -45,6 +47,11 @@ final class FamilyManagementViewModel {
   var isCodeInputValid: Bool {
     let trimmed = codeInput.trimmingCharacters(in: .whitespaces)
     return trimmed.range(of: FamilyConstants.Validation.codePattern, options: .regularExpression) != nil
+  }
+
+  var isEmailInviteValid: Bool {
+    let trimmed = inviteEmail.trimmingCharacters(in: .whitespaces)
+    return trimmed.contains("@") && trimmed.contains(".")
   }
 
   var formattedCodeGeneratedAt: String? {
@@ -83,14 +90,15 @@ final class FamilyManagementViewModel {
 
     do {
       // Fetch or create family unit
-      if let familyUnit = try await familyService.getFamilyUnit(forPlayerUserId: userId) {
+      if let familyUnit = try await familyService.getFamilyUnit(forUserId: userId) {
         familyCode = familyUnit.familyCode
         familyId = familyUnit.id
         familyName = familyUnit.familyName
         codeGeneratedAt = familyUnit.codeGeneratedAt
 
-        // Load family members
+        // Load family members and pending invitations
         await loadFamilyMembers(familyUnitId: familyUnit.id)
+        await loadPendingInvitations()
       } else {
         // No family unit exists, create one
         await createFamily()
@@ -119,7 +127,8 @@ final class FamilyManagementViewModel {
     defer { isLoading = false }
 
     do {
-      let response = try await familyService.createFamily()
+      let role = isPlayer ? UserRole.player : UserRole.parent
+      let response = try await familyService.createFamily(role: role)
       familyCode = response.familyCode
       familyId = response.familyId
       familyName = response.familyName
@@ -200,6 +209,13 @@ final class FamilyManagementViewModel {
   private func loadParentData() async {
     do {
       parentFamilies = try await familyService.getParentFamilies()
+
+      // If parent has no family, create one (symmetric: parents can create families)
+      if parentFamilies.isEmpty {
+        await createFamily()
+        parentFamilies = try await familyService.getParentFamilies()
+      }
+      await loadPendingInvitations()
     } catch {
       logger.error("Failed to load parent families: \(error.localizedDescription)")
       errorMessage = "Failed to load families. Please try again."
@@ -233,6 +249,54 @@ final class FamilyManagementViewModel {
     } catch {
       logger.error("Failed to join family: \(error.localizedDescription)")
       errorMessage = "Failed to join family. Please try again."
+    }
+  }
+
+  // MARK: - Invite Actions
+
+  private func loadPendingInvitations() async {
+    do {
+      pendingInvitations = try await familyService.fetchPendingInvitations()
+    } catch {
+      logger.debug("Failed to load pending invitations: \(error.localizedDescription)")
+      pendingInvitations = []
+    }
+  }
+
+  func sendEmailInvite() async {
+    guard isEmailInviteValid else {
+      errorMessage = "Please enter a valid email address"
+      return
+    }
+
+    let email = inviteEmail.trimmingCharacters(in: .whitespaces)
+    let inviteRole = isPlayer ? "parent" : "player"
+
+    isLoading = true
+    errorMessage = nil
+    defer { isLoading = false }
+
+    do {
+      try await familyService.sendEmailInvite(email: email, role: inviteRole)
+      inviteEmail = ""
+      await loadPendingInvitations()
+      showSuccess("Invite sent to \(email)!")
+    } catch {
+      logger.error("Failed to send invite: \(error.localizedDescription)")
+      errorMessage = "Failed to send invite. Please try again."
+    }
+  }
+
+  func revokeInvitation(_ invitation: FamilyInvitation) async {
+    isLoading = true
+    defer { isLoading = false }
+
+    do {
+      try await familyService.revokeInvitation(id: invitation.id)
+      pendingInvitations.removeAll { $0.id == invitation.id }
+      showSuccess("Invite revoked.")
+    } catch {
+      errorMessage = "Failed to revoke invite. Please try again."
     }
   }
 

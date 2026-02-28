@@ -39,14 +39,14 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
   private func makeFamilyUnit(
     id: String = "family-1",
-    playerUserId: String = "user-1",
+    createdByUserId: String = "user-1",
     familyCode: String = "FAM-ABC123",
     familyName: String = "Test Family",
     codeGeneratedAt: String = "2024-01-01T00:00:00Z"
   ) -> FamilyUnit {
     FamilyUnit(
       id: id,
-      playerUserId: playerUserId,
+      createdByUserId: createdByUserId,
       familyName: familyName,
       familyCode: familyCode,
       codeGeneratedAt: codeGeneratedAt,

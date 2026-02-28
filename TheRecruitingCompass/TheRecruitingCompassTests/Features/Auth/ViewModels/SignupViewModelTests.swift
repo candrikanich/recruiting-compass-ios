@@ -5,17 +5,20 @@ import XCTest
 final class SignupViewModelTests: XCTestCase {
   var sut: SignupViewModel!
   var mockAuthManager: MockAuthManager!
+  var mockFamilyService: MockFamilyService!
 
   @MainActor
   override func setUp() {
     super.setUp()
     mockAuthManager = MockAuthManager()
-    sut = SignupViewModel(authManager: mockAuthManager)
+    mockFamilyService = MockFamilyService()
+    sut = SignupViewModel(authManager: mockAuthManager, familyService: mockFamilyService)
   }
 
   override func tearDown() {
     sut = nil
     mockAuthManager = nil
+    mockFamilyService = nil
     super.tearDown()
   }
 

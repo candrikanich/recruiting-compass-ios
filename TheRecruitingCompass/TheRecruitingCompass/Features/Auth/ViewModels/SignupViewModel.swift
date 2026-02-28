@@ -1,6 +1,9 @@
 import Foundation
+import OSLog
 import SwiftUI
 import Observation
+
+private let signupLogger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "SignupViewModel")
 
 @Observable
 @MainActor
@@ -27,6 +30,7 @@ final class SignupViewModel {
   var shouldNavigateToVerifyEmail = false
 
   private let authManager: any AuthManaging
+  private let familyService: any FamilyManaging
   private let formValidator = FormValidator.self
 
   var isFormValid: Bool {
@@ -61,8 +65,9 @@ final class SignupViewModel {
     isLoading || !isFormValid
   }
 
-  init(authManager: (any AuthManaging)? = nil) {
+  init(authManager: (any AuthManaging)? = nil, familyService: (any FamilyManaging)? = nil) {
     self.authManager = authManager ?? AuthManager.shared
+    self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
   }
 
   // MARK: - Two-Step Flow
@@ -157,20 +162,24 @@ final class SignupViewModel {
     }
 
     do {
-      let trimmedFamilyCode = familyCode.trimmingCharacters(in: .whitespaces)
-      let familyCodeToUse: String? = if role.requiresFamilyCode {
-        trimmedFamilyCode.isEmpty ? nil : familyCode
-      } else {
-        nil
-      }
-
       try await authManager.signup(
         email: email,
         password: password,
         fullName: fullName,
         role: role,
-        familyCode: familyCodeToUse
+        familyCode: nil
       )
+
+      // Create family for both roles (mirrors web: POST /api/family/create)
+      if authManager.isAuthenticated {
+        do {
+          _ = try await familyService.createFamily(role: role)
+        } catch {
+          // Log but don't block signup; user can create family from Family Management
+          signupLogger.warning("Family creation failed: \(error.localizedDescription)")
+        }
+      }
+
       // Only show email verification when no session (e.g. confirmation required)
       if !authManager.isAuthenticated {
         shouldNavigateToVerifyEmail = true

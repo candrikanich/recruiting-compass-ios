@@ -130,7 +130,7 @@ final class DashboardViewModelTests: XCTestCase {
   private func setupFamilyContext(userId: String = "test-user-id", role: String = "parent") {
     let familyUnit = FamilyUnit(
       id: "family-unit-1",
-      playerUserId: userId,
+      createdByUserId: userId,
       familyName: "Test Family",
       familyCode: "FAM-123",
       codeGeneratedAt: "2024-01-01T00:00:00Z",

@@ -134,25 +134,43 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     )
   }
 
-  func getFamilyUnit(forPlayerUserId userId: String) async throws -> FamilyUnit? {
-    let response: [FamilyUnit] = try await supabaseManager.client
-      .from("family_units")
-      .select()
-      .eq("player_user_id", value: userId)
+  func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit? {
+    struct MemberRow: Codable {
+      let familyUnitId: String
+      enum CodingKeys: String, CodingKey {
+        case familyUnitId = "family_unit_id"
+      }
+    }
+    let rows: [MemberRow] = try await supabaseManager.client
+      .from("family_members")
+      .select("family_unit_id")
+      .eq("user_id", value: userId)
       .limit(1)
       .execute()
       .value
-    return response.first
+
+    guard let row = rows.first else { return nil }
+
+    let units: [FamilyUnit] = try await supabaseManager.client
+      .from("family_units")
+      .select()
+      .eq("id", value: row.familyUnitId)
+      .limit(1)
+      .execute()
+      .value
+
+    return units.first
   }
 
-  // MARK: - Family Management (Player)
+  // MARK: - Family Management (Player + Parent)
 
-  /// Creates a family unit for the current player via direct Supabase. Idempotent.
-  func createFamily() async throws -> CreateFamilyResponse {
+  /// Creates a family unit for the current user via direct Supabase. Idempotent.
+  /// Both players and parents can create families.
+  func createFamily(role: UserRole) async throws -> CreateFamilyResponse {
     let userId = try await supabaseManager.client.auth.session.user.id.uuidString
 
     // Idempotent: return existing family if present
-    if let existing = try await getFamilyUnit(forPlayerUserId: userId),
+    if let existing = try await getFamilyUnit(forUserId: userId),
        let code = existing.familyCode {
       return CreateFamilyResponse(
         success: true,
@@ -169,7 +187,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
     struct FamilyUnitInsert: Encodable {
       let id: String
-      let playerUserId: String
+      let createdByUserId: String
       let familyCode: String
       let codeGeneratedAt: String
       let createdAt: String
@@ -177,7 +195,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
       enum CodingKeys: String, CodingKey {
         case id
-        case playerUserId = "player_user_id"
+        case createdByUserId = "created_by_user_id"
         case familyCode = "family_code"
         case codeGeneratedAt = "code_generated_at"
         case createdAt = "created_at"
@@ -205,7 +223,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
       .from("family_units")
       .insert(FamilyUnitInsert(
         id: familyId,
-        playerUserId: userId,
+        createdByUserId: userId,
         familyCode: familyCode,
         codeGeneratedAt: now,
         createdAt: now,
@@ -219,12 +237,12 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
         id: memberId,
         userId: userId,
         familyUnitId: familyId,
-        role: "player",
+        role: role.rawValue,
         addedAt: now
       ))
       .execute()
 
-    logger.info("Family created via Supabase: familyId=\(familyId)")
+    logger.info("Family created via Supabase: familyId=\(familyId), role=\(role.rawValue)")
     return CreateFamilyResponse(
       success: true,
       familyCode: familyCode,
@@ -253,14 +271,140 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
   // MARK: - Family Management (Parent)
 
   func joinFamilyWithCode(familyCode: String) async throws {
-    struct JoinBody: Encodable {
-      let familyCode: String
+    if let baseURL = SupabaseConfig.apiBaseURL {
+      let token = try await supabaseManager.client.auth.session.accessToken
+      struct Body: Encodable {
+        let familyCode: String
+        enum CodingKeys: String, CodingKey { case familyCode }
+      }
+      var request = URLRequest(
+        url: baseURL.appendingPathComponent("api/family/code/join")
+      )
+      request.httpMethod = "POST"
+      request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+      request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+      request.httpBody = try JSONEncoder().encode(Body(familyCode: familyCode))
+
+      let (_, response) = try await URLSession.shared.data(for: request)
+      guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+        throw FamilyError.serverError("Failed to join family")
+      }
+    } else {
+      struct JoinBody: Encodable { let familyCode: String }
+      struct JoinResponse: Codable { let message: String }
+      let _: JoinResponse = try await supabaseManager.client.functions
+        .invoke("family-code-join", options: FunctionInvokeOptions(body: JoinBody(familyCode: familyCode)))
     }
-    struct JoinResponse: Codable {
-      let message: String
+  }
+
+  // MARK: - Invite Methods
+
+  func sendEmailInvite(email: String, role: String) async throws {
+    guard let baseURL = SupabaseConfig.apiBaseURL else {
+      throw FamilyError.serverError("API base URL not configured. Set API_BASE_URL for invite features.")
     }
-    let _: JoinResponse = try await supabaseManager.client.functions
-      .invoke("family-code-join", options: FunctionInvokeOptions(body: JoinBody(familyCode: familyCode)))
+    let token = try await supabaseManager.client.auth.session.accessToken
+
+    struct Body: Encodable {
+      let email: String
+      let role: String
+    }
+
+    var request = URLRequest(url: baseURL.appendingPathComponent("api/family/invite"))
+    request.httpMethod = "POST"
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = try JSONEncoder().encode(Body(email: email, role: role))
+
+    let (_, response) = try await URLSession.shared.data(for: request)
+    guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+      throw FamilyError.serverError("Failed to send invite")
+    }
+  }
+
+  func fetchPendingInvitations() async throws -> [FamilyInvitation] {
+    guard let baseURL = SupabaseConfig.apiBaseURL else {
+      return []
+    }
+    let token = try await supabaseManager.client.auth.session.accessToken
+
+    var request = URLRequest(url: baseURL.appendingPathComponent("api/family/invitations"))
+    request.httpMethod = "GET"
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+    let (data, response) = try await URLSession.shared.data(for: request)
+    guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+      return []
+    }
+
+    struct InvitationsResponse: Codable {
+      let invitations: [FamilyInvitation]
+    }
+    let decoded = try JSONDecoder().decode(InvitationsResponse.self, from: data)
+    return decoded.invitations
+  }
+
+  func revokeInvitation(id: String) async throws {
+    guard let baseURL = SupabaseConfig.apiBaseURL else {
+      throw FamilyError.serverError("API base URL not configured")
+    }
+    let token = try await supabaseManager.client.auth.session.accessToken
+
+    var request = URLRequest(
+      url: baseURL.appendingPathComponent("api/family/invitations/\(id)")
+    )
+    request.httpMethod = "DELETE"
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+    let (_, response) = try await URLSession.shared.data(for: request)
+    guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+      throw FamilyError.serverError("Failed to revoke invite")
+    }
+  }
+
+  func lookupInviteByToken(_ token: String) async throws -> InviteDetails {
+    guard let baseURL = SupabaseConfig.apiBaseURL else {
+      throw FamilyError.serverError("API base URL not configured")
+    }
+
+    let url = baseURL.appendingPathComponent("api/family/invite/\(token)")
+    let (data, response) = try await URLSession.shared.data(from: url)
+
+    guard let http = response as? HTTPURLResponse else {
+      throw FamilyError.serverError("Invalid response")
+    }
+    switch http.statusCode {
+    case 200:
+      return try JSONDecoder().decode(InviteDetails.self, from: data)
+    case 404:
+      throw InviteError.notFound
+    case 409:
+      throw InviteError.alreadyAccepted
+    case 410:
+      throw InviteError.expired
+    default:
+      throw FamilyError.serverError("Unexpected status \(http.statusCode)")
+    }
+  }
+
+  func acceptInvite(token: String) async throws {
+    guard let baseURL = SupabaseConfig.apiBaseURL else {
+      throw FamilyError.serverError("API base URL not configured")
+    }
+    let accessToken = try await supabaseManager.client.auth.session.accessToken
+
+    var request = URLRequest(
+      url: baseURL.appendingPathComponent("api/family/invite/\(token)/accept")
+    )
+    request.httpMethod = "POST"
+    request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = Data("{}".utf8)
+
+    let (_, response) = try await URLSession.shared.data(for: request)
+    guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+      throw FamilyError.serverError("Failed to accept invite")
+    }
   }
 
   func getParentFamilies() async throws -> [ParentFamilyData] {

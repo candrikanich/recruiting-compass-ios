@@ -31,7 +31,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     // Set up family unit
     mockFamilyManager.familyUnit = FamilyUnit(
       id: "family-1",
-      playerUserId: "user-1",
+      createdByUserId: "user-1",
       familyName: "Test Family",
       familyCode: nil,
       codeGeneratedAt: nil,
