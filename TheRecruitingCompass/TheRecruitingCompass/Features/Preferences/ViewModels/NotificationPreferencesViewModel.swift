@@ -88,4 +88,6 @@ final class NotificationPreferencesViewModel {
   func markAsChanged() {
     hasUnsavedChanges = true
   }
+
+  nonisolated deinit {}
 }

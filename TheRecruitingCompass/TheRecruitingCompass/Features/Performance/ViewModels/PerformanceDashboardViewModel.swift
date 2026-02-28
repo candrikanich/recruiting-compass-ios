@@ -268,4 +268,6 @@ final class PerformanceDashboardViewModel {
     let userName = authManager.user?.email
     return generator.generate(metrics: sortedMetrics, userName: userName)
   }
+
+  nonisolated deinit {}
 }

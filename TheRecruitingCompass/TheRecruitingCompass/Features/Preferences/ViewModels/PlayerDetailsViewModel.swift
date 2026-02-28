@@ -30,7 +30,7 @@ final class PlayerDetailsViewModel {
     self.isReadOnly = (userRole == .parent)
   }
 
-  deinit {
+  nonisolated deinit {
     saveTask?.cancel()
   }
 

@@ -576,4 +576,6 @@ final class SchoolDetailViewModel {
       }
     }
   }
+
+  nonisolated deinit {}
 }

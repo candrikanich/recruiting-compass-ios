@@ -234,7 +234,7 @@ final class EmailVerificationViewModel {
     }
   }
 
-  deinit {
+  nonisolated deinit {
     // Cancel tasks (don't call stopPolling here to avoid MainActor crossing)
     pollingTask?.cancel()
     cooldownTask?.cancel()

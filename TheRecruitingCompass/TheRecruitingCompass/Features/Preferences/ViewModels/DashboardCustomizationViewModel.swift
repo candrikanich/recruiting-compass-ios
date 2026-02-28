@@ -157,4 +157,6 @@ final class DashboardCustomizationViewModel {
     visibility.widgets.coachResponsiveness &&
     visibility.widgets.upcomingDeadlines
   }
+
+  nonisolated deinit {}
 }

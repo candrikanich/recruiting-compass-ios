@@ -257,6 +257,8 @@ final class EventsListViewModel {
     let components = Calendar.current.dateComponents([.year, .month], from: Date())
     return Calendar.current.date(from: components) ?? Date()
   }
+
+  nonisolated deinit {}
 }
 
 // MARK: - StatusFilter

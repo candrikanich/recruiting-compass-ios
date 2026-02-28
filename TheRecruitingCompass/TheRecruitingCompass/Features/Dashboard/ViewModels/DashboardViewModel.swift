@@ -352,4 +352,6 @@ final class DashboardViewModel {
       logoutErrorMessage = "Failed to log out. Please try again."
     }
   }
+
+  nonisolated deinit {}
 }

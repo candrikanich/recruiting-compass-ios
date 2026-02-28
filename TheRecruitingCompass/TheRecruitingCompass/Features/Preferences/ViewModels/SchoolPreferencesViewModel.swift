@@ -260,4 +260,6 @@ final class SchoolPreferencesViewModel {
   var hasPreferences: Bool {
     !preferences.preferences.isEmpty
   }
+
+  nonisolated deinit {}
 }

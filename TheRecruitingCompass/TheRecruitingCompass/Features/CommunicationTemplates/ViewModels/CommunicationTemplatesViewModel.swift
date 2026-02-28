@@ -134,4 +134,6 @@ final class CommunicationTemplatesViewModel {
     editingTemplate = nil
     formData = TemplateFormData()
   }
+
+  nonisolated deinit {}
 }

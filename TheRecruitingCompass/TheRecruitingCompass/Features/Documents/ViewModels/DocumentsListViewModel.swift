@@ -366,4 +366,6 @@ final class DocumentsListViewModel {
   func presentViewer(for document: Document) {
     documentToView = document
   }
+
+  nonisolated deinit {}
 }

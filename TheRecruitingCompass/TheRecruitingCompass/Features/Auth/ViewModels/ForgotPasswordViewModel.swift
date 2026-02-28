@@ -136,4 +136,6 @@ final class ForgotPasswordViewModel {
       canResendEmail = true
     }
   }
+
+  nonisolated deinit {}
 }

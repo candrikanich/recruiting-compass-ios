@@ -444,4 +444,6 @@ final class DocumentDetailViewModel {
   func clearError() {
     error = nil
   }
+
+  nonisolated deinit {}
 }

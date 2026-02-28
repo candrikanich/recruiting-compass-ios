@@ -157,4 +157,6 @@ final class OnboardingViewModel {
       isLoading = false
     }
   }
+
+  nonisolated deinit {}
 }

@@ -202,4 +202,6 @@ final class OffersListViewModel {
   func schoolName(for schoolId: String) -> String {
     EntityNameLookup.schoolName(for: schoolId, in: schoolNameMap)
   }
+
+  nonisolated deinit {}
 }

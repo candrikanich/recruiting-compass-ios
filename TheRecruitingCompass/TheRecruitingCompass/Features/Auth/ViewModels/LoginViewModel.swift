@@ -126,4 +126,6 @@ final class LoginViewModel {
       .map(\.message)
       ?? "An error occurred. Please try again."
   }
+
+  nonisolated deinit {}
 }

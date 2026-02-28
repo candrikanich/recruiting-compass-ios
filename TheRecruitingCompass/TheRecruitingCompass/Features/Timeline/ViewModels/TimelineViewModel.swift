@@ -160,4 +160,6 @@ final class TimelineViewModel {
   private func allTasksFrom(_ dict: [Int: [TaskWithStatus]]) -> [TaskWithStatus] {
     dict.values.flatMap { $0 }
   }
+
+  nonisolated deinit {}
 }

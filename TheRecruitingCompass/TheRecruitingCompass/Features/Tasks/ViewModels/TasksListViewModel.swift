@@ -164,4 +164,6 @@ final class TasksListViewModel {
   func clearSuccessMessage() {
     showSuccessMessage = false
   }
+
+  nonisolated deinit {}
 }

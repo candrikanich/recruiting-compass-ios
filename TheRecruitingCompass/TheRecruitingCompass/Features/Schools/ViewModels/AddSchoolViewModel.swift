@@ -265,4 +265,6 @@ final class AddSchoolViewModel {
       return "Unable to search colleges. Please try again."
     }
   }
+
+  nonisolated deinit {}
 }

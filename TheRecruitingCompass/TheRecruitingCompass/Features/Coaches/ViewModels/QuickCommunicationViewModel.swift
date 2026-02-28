@@ -120,4 +120,6 @@ final class QuickCommunicationViewModel {
     let trimmed = String(body.prefix(Self.maxURLBodyLength - 30))
     return trimmed.trimmingCharacters(in: .whitespacesAndNewlines) + "\n\n[Message truncated — full text in app]"
   }
+
+  nonisolated deinit {}
 }

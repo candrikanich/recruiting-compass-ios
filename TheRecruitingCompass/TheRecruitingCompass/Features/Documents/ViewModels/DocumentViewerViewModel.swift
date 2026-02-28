@@ -249,6 +249,8 @@ final class DocumentViewerViewModel {
   var hasPrevious: Bool {
     collection != nil && currentIndex > 0
   }
+
+  nonisolated deinit {}
 }
 
 // MARK: - Document Download Delegate

@@ -280,4 +280,6 @@ final class AddInteractionViewModel {
     errorMessage = nil
     logger.debug("Form reset")
   }
+
+  nonisolated deinit {}
 }

@@ -25,7 +25,7 @@ final class HomeLocationViewModel {
     self.geocoder = geocoder
   }
 
-  deinit {
+  nonisolated deinit {
     saveTask?.cancel()
   }
 

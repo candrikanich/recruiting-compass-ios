@@ -217,4 +217,6 @@ final class InteractionsListViewModel {
     guard let coachId else { return nil }
     return EntityNameLookup.coachName(for: coachId, in: coachNameMap)
   }
+
+  nonisolated deinit {}
 }

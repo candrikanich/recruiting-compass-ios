@@ -236,4 +236,6 @@ final class InteractionDetailViewModel {
   func cancelDelete() {
     showDeleteConfirmation = false
   }
+
+  nonisolated deinit {}
 }

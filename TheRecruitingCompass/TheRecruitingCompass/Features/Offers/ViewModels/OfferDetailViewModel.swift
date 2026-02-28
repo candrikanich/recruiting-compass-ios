@@ -182,4 +182,6 @@ final class OfferDetailViewModel {
     }
   }
 
+
+  nonisolated deinit {}
 }

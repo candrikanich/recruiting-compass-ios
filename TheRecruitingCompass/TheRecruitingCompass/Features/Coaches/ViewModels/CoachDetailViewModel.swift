@@ -374,4 +374,6 @@ final class CoachDetailViewModel {
       }
     }
   }
+
+  nonisolated deinit {}
 }

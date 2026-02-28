@@ -427,4 +427,6 @@ final class AnalyticsDashboardViewModel {
       logger.error("Failed to load performance correlation: \(error.localizedDescription)")
     }
   }
+
+  nonisolated deinit {}
 }

@@ -217,4 +217,6 @@ final class CoachesListViewModel {
       return coaches.sorted { $0.role.displayName < $1.role.displayName }
     }
   }
+
+  nonisolated deinit {}
 }

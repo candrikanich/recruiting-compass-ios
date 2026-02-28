@@ -254,4 +254,6 @@ final class NotificationsListViewModel {
     let afterPattern = url[range.upperBound...]
     return afterPattern.components(separatedBy: "&").first.map { String($0) }
   }
+
+  nonisolated deinit {}
 }

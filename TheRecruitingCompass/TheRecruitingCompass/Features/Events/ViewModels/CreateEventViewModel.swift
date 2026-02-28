@@ -219,6 +219,8 @@ final class CreateEventViewModel {
 
     return URL(string: "maps://?q=\(encoded)")
   }
+
+  nonisolated deinit {}
 }
 
 enum EventError: LocalizedError {

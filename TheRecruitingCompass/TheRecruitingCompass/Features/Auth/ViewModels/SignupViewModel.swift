@@ -183,4 +183,6 @@ final class SignupViewModel {
   func dismissError() {
     errorMessage = nil
   }
+
+  nonisolated deinit {}
 }

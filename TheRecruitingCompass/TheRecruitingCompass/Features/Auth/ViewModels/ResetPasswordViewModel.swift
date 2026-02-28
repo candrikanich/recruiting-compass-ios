@@ -136,4 +136,6 @@ final class ResetPasswordViewModel {
     let errorInfo = mapAuthError(error)
     state = .error(message: errorInfo.userMessage)
   }
+
+  nonisolated deinit {}
 }

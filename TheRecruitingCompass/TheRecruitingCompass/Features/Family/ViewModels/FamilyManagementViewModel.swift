@@ -281,5 +281,7 @@ final class FamilyManagementViewModel {
   func clearError() {
     errorMessage = nil
   }
+
+  nonisolated deinit {}
 }
 
