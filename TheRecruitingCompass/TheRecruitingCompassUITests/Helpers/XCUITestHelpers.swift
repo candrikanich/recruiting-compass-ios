@@ -12,14 +12,14 @@ struct TestUserData {
   let role: TestUserRole
   let familyCode: String?
 
-  static func uniqueParent() -> TestUserData {
+  static func uniqueParent(familyCode: String? = nil) -> TestUserData {
     let timestamp = Int(Date().timeIntervalSince1970)
     return TestUserData(
       fullName: "Test Parent",
       email: "testparent+\(timestamp)@example.com",
       password: "StrongPass1",
       role: .parent,
-      familyCode: nil
+      familyCode: familyCode
     )
   }
 

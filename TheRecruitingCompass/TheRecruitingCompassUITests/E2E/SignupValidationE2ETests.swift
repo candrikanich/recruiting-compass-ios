@@ -148,15 +148,15 @@ final class SignupValidationE2ETests: XCTestCase {
     add(app.takeScreenshot(name: "validation-07-terms-checked"))
   }
 
-  // MARK: - Family Code Validation (Student Role)
+  // MARK: - Family Code Validation (Parent Role)
 
   @MainActor
   func testInvalidFamilyCodeFormat() throws {
-    // Go back to role selection and choose Student
+    // Go back to role selection and choose Parent
     screen.changeRoleButton.tap()
     XCTAssertTrue(screen.selectYourRoleText.waitForExistence(timeout: 5))
 
-    screen.selectRole(.player)
+    screen.selectRole(.parent)
     XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5))
 
     screen.familyCodeField.tap()
@@ -174,11 +174,11 @@ final class SignupValidationE2ETests: XCTestCase {
 
   @MainActor
   func testValidFamilyCodeFormat() throws {
-    // Go back to role selection and choose Student
+    // Go back to role selection and choose Parent
     screen.changeRoleButton.tap()
     XCTAssertTrue(screen.selectYourRoleText.waitForExistence(timeout: 5))
 
-    screen.selectRole(.player)
+    screen.selectRole(.parent)
     XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5))
 
     screen.familyCodeField.tap()
@@ -197,15 +197,15 @@ final class SignupValidationE2ETests: XCTestCase {
 
   @MainActor
   func testEmptyFamilyCodeIsAccepted() throws {
-    // Go back to role selection and choose Student
+    // Go back to role selection and choose Parent
     screen.changeRoleButton.tap()
     XCTAssertTrue(screen.selectYourRoleText.waitForExistence(timeout: 5))
 
-    screen.selectRole(.player)
+    screen.selectRole(.parent)
     XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5))
 
     // Leave family code empty and fill everything else
-    let userData = TestUserData.uniquePlayer()
+    let userData = TestUserData.uniqueParent()
 
     screen.fullNameField.tap()
     screen.fullNameField.typeText(userData.fullName)

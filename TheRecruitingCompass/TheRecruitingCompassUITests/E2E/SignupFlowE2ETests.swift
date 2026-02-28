@@ -66,8 +66,8 @@ final class SignupFlowE2ETests: XCTestCase {
     XCTAssertTrue(screen.emailField.exists, "Email field should be visible")
     XCTAssertTrue(screen.passwordField.exists, "Password field should be visible")
     XCTAssertTrue(screen.confirmPasswordField.exists, "Confirm Password field should be visible")
-    XCTAssertFalse(screen.familyCodeField.exists,
-                   "Family Code field should NOT be visible for Parent role")
+    XCTAssertTrue(screen.familyCodeField.exists,
+                  "Family Code field SHOULD be visible for Parent role (optional)")
     XCTAssertTrue(screen.termsCheckbox.exists, "Terms checkbox should be visible")
     XCTAssertTrue(screen.createAccountButton.exists, "Create Account button should be visible")
 
@@ -75,29 +75,16 @@ final class SignupFlowE2ETests: XCTestCase {
   }
 
   @MainActor
-  func testSelectStudentRoleShowsFamilyCodeField() throws {
-    screen.navigateToSignup()
-    screen.selectRole(.player)
-
-    XCTAssertTrue(screen.fullNameField.waitForExistence(timeout: 5),
-                  "Full Name field should appear after selecting Student role")
-    XCTAssertTrue(screen.familyCodeField.exists,
-                  "Family Code field SHOULD be visible for Student role")
-
-    add(app.takeScreenshot(name: "05-student-signup-form-with-family-code"))
-  }
-
-  @MainActor
-  func testSelectPlayerRoleShowsFamilyCodeField() throws {
+  func testSelectPlayerRoleDoesNotShowFamilyCodeField() throws {
     screen.navigateToSignup()
     screen.selectRole(.player)
 
     XCTAssertTrue(screen.fullNameField.waitForExistence(timeout: 5),
                   "Full Name field should appear after selecting Player role")
-    XCTAssertTrue(screen.familyCodeField.exists,
-                  "Family Code field SHOULD be visible for Player role")
+    XCTAssertFalse(screen.familyCodeField.exists,
+                   "Family Code field should NOT be visible for Player role (player creates the code)")
 
-    add(app.takeScreenshot(name: "06-player-signup-form-with-family-code"))
+    add(app.takeScreenshot(name: "05-player-signup-form-without-family-code"))
   }
 
   @MainActor
@@ -173,22 +160,22 @@ final class SignupFlowE2ETests: XCTestCase {
     }
   }
 
-  // MARK: - Student Signup with Family Code
+  // MARK: - Parent Signup with Family Code
 
   @MainActor
-  func testStudentSignupWithFamilyCode() throws {
-    let userData = TestUserData.uniquePlayer(familyCode: "FAM-ABCD1234")
+  func testParentSignupWithFamilyCode() throws {
+    let userData = TestUserData.uniqueParent(familyCode: "FAM-ABCD1234")
 
     screen.navigateToSignup()
-    screen.selectRole(.player)
+    screen.selectRole(.parent)
 
     XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5),
-                  "Family Code field should be visible for Student role")
+                  "Family Code field should be visible for Parent role")
 
     screen.fillSignupForm(with: userData)
     screen.acceptTerms()
 
-    add(app.takeScreenshot(name: "14-student-form-with-family-code"))
+    add(app.takeScreenshot(name: "14-parent-form-with-family-code"))
 
     screen.submitSignup()
 
@@ -196,7 +183,7 @@ final class SignupFlowE2ETests: XCTestCase {
     let verifyEmailExists = screen.verifyYourEmailHeadline.waitForExistence(timeout: 15)
 
     if verifyEmailExists {
-      add(app.takeScreenshot(name: "15-student-verification-screen"))
+      add(app.takeScreenshot(name: "15-parent-verification-screen"))
     }
     // NOTE: Family code validation against Supabase is tested in API tests
   }

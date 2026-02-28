@@ -31,7 +31,9 @@ enum UserRole: String, Codable, CaseIterable {
     }
   }
 
+  /// Parent joins an existing family using a code from their player child.
+  /// Player creates the family and generates the code; no field on signup.
   var requiresFamilyCode: Bool {
-    self == .player
+    self == .parent
   }
 }

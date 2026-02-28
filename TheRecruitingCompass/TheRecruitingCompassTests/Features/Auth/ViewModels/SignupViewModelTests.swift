@@ -134,24 +134,24 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertNotNil(sut.fieldErrors[.confirmPassword])
   }
 
-  func testValidateFamilyCodeForStudentRole() {
-    sut.selectedRole = .player
+  func testValidateFamilyCodeForParentRole() {
+    sut.selectedRole = .parent
     sut.familyCode = "FAM-ABC12345"
     sut.validateFamilyCode()
 
     XCTAssertNil(sut.fieldErrors[.familyCode])
   }
 
-  func testValidateFamilyCodeOptionalForStudentRole() {
-    sut.selectedRole = .player
+  func testValidateFamilyCodeOptionalForParentRole() {
+    sut.selectedRole = .parent
     sut.familyCode = ""
     sut.validateFamilyCode()
 
     XCTAssertNil(sut.fieldErrors[.familyCode])
   }
 
-  func testValidateFamilyCodeNotRequiredForParentRole() {
-    sut.selectedRole = .parent
+  func testValidateFamilyCodeNotRequiredForPlayerRole() {
+    sut.selectedRole = .player
     sut.familyCode = ""
     sut.validateFamilyCode()
 
@@ -180,16 +180,23 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertTrue(sut.isFormValid)
   }
 
-  func testIsFormValidForStudentRoleWithoutFamilyCode() {
-    fillValidForm(role: .player)
+  func testIsFormValidForParentRoleWithoutFamilyCode() {
+    fillValidForm(role: .parent)
     sut.familyCode = ""
 
     XCTAssertTrue(sut.isFormValid)
   }
 
-  func testIsFormValidForStudentRoleWithFamilyCode() {
-    fillValidForm(role: .player)
+  func testIsFormValidForParentRoleWithFamilyCode() {
+    fillValidForm(role: .parent)
     sut.familyCode = "FAM-ABC12345"
+
+    XCTAssertTrue(sut.isFormValid)
+  }
+
+  func testIsFormValidForPlayerRoleWithoutFamilyCode() {
+    fillValidForm(role: .player)
+    sut.familyCode = ""
 
     XCTAssertTrue(sut.isFormValid)
   }
@@ -274,15 +281,6 @@ final class SignupViewModelTests: XCTestCase {
     await sut.signup()
 
     XCTAssertFalse(sut.isLoading)
-  }
-
-  func testSignupSuccessForStudentRole() async {
-    fillValidForm(role: .player)
-
-    await sut.signup()
-
-    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
-    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
   }
 
   func testSignupSuccessForPlayerRole() async {
@@ -431,8 +429,8 @@ final class SignupViewModelTests: XCTestCase {
 
   // MARK: - Signup Family Code Logic Tests
 
-  func testSignupSendsFamilyCodeForStudentRole() async {
-    fillValidForm(role: .player)
+  func testSignupSendsFamilyCodeForParentRole() async {
+    fillValidForm(role: .parent)
     sut.familyCode = "FAM-ABC12345"
 
     await sut.signup()
@@ -441,8 +439,8 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
   }
 
-  func testSignupSendsNilFamilyCodeForParentRole() async {
-    fillValidForm(role: .parent)
+  func testSignupSendsNilFamilyCodeForPlayerRole() async {
+    fillValidForm(role: .player)
     sut.familyCode = "FAM-SHOULDBEIGNORED"
 
     await sut.signup()
@@ -451,8 +449,8 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
   }
 
-  func testSignupSendsNilFamilyCodeWhenEmptyForStudentRole() async {
-    fillValidForm(role: .player)
+  func testSignupSendsNilFamilyCodeWhenEmptyForParentRole() async {
+    fillValidForm(role: .parent)
     sut.familyCode = ""
 
     await sut.signup()
@@ -462,7 +460,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupTrimsWhitespaceFamilyCode() async {
-    fillValidForm(role: .player)
+    fillValidForm(role: .parent)
     sut.familyCode = "   "
 
     await sut.signup()
