@@ -28,6 +28,7 @@ enum OnboardingConstants {
     "Wrestling": ["Wrestler"],
     "Rowing": ["Rower"],
     "Water Polo": ["Field Player", "Goalkeeper"],
+    "Other": ["Other"],
   ]
 
   static var graduationYears: [Int] {
