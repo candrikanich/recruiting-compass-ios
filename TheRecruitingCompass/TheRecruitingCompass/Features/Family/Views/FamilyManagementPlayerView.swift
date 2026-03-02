@@ -175,6 +175,13 @@ struct FamilyManagementPlayerView: View {
                 .foregroundColor(.secondary)
             }
             Spacer()
+            Button("Resend") {
+              Task { await viewModel.resendInvitation(invite) }
+            }
+            .font(.caption)
+            .buttonStyle(.bordered)
+            .accessibilityLabel("Resend invite to \(invite.invitedEmail)")
+
             Button("Revoke") {
               Task { await viewModel.revokeInvitation(invite) }
             }

@@ -107,6 +107,8 @@ struct MainTabView: View {
       SchoolsListView()
     case .suggestions:
       SuggestionsListView(viewModel: dashboardViewModel)
+    case .familyManagement:
+      FamilyManagementView()
     }
   }
 }

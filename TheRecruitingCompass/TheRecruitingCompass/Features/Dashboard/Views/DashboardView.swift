@@ -21,6 +21,12 @@ struct DashboardView: View {
           )
         }
 
+        if familyManager.currentMember?.isParent == true && !viewModel.isParentPreviewMode {
+          ParentOnboardingBanner()
+            .padding(.horizontal)
+            .padding(.top, 8)
+        }
+
         ScrollView {
           VStack(spacing: 24) {
             headerSection

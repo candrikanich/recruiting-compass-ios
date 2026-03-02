@@ -2,7 +2,9 @@ import SwiftUI
 
 struct SettingsView: View {
   @Environment(AuthManager.self) private var authManager
+  @Environment(FamilyManager.self) private var familyManager
   @State private var presentedLegal: LegalDocument?
+  @State private var showCodeCopied = false
 
   private let preferenceService: PreferenceManaging
 
@@ -12,6 +14,51 @@ struct SettingsView: View {
 
   var body: some View {
     List {
+        // Family Section (code when available + Family Management)
+        Section {
+          if let code = familyManager.familyUnit?.familyCode {
+            HStack {
+              VStack(alignment: .leading, spacing: 4) {
+                Text("Family code")
+                  .font(.caption)
+                  .foregroundColor(.secondary)
+                Text(code)
+                  .font(.system(.body, design: .monospaced).weight(.medium))
+                  .tracking(1)
+              }
+              Spacer()
+              Button {
+                UIPasteboard.general.string = code
+                showCodeCopied = true
+                Task {
+                  try? await Task.sleep(nanoseconds: 2_000_000_000)
+                  await MainActor.run { showCodeCopied = false }
+                }
+              } label: {
+                Text(showCodeCopied ? "Copied!" : "Copy")
+                  .font(.caption.weight(.medium))
+              }
+              .buttonStyle(.bordered)
+              .disabled(showCodeCopied)
+              .accessibilityLabel(showCodeCopied ? "Copied to clipboard" : "Copy family code")
+            }
+            .padding(.vertical, 4)
+          }
+
+          NavigationLink {
+            FamilyManagementView()
+          } label: {
+            SettingsRow(
+              icon: "person.3.fill",
+              title: "Family Management",
+              description: "Manage family members and share recruiting data",
+              color: .red
+            )
+          }
+        } header: {
+          Text("Family")
+        }
+
         // Profile & Player Info Section
         Section {
           NavigationLink {
@@ -101,22 +148,6 @@ struct SettingsView: View {
           Text("Communication & Social")
         }
 
-        // Family Section
-        Section {
-          NavigationLink {
-            FamilyManagementView()
-          } label: {
-            SettingsRow(
-              icon: "person.3.fill",
-              title: "Family Management",
-              description: "Manage family members and share recruiting data",
-              color: .red
-            )
-          }
-        } header: {
-          Text("Family")
-        }
-
         // Legal Section
         Section {
           Button {
@@ -148,6 +179,9 @@ struct SettingsView: View {
       }
       .navigationTitle("Settings")
       .navigationBarTitleDisplayMode(.inline)
+      .task {
+        await familyManager.loadFamilyData()
+      }
       .sheet(item: $presentedLegal) { doc in
         doc.view
       }
@@ -195,6 +229,7 @@ struct SettingsView_Previews: PreviewProvider {
   static var previews: some View {
     SettingsView()
       .environment(AuthManager.shared)
+      .environment(FamilyManager.shared)
   }
 }
 #endif

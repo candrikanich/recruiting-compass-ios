@@ -8,6 +8,7 @@ enum DashboardDestination: String, Identifiable {
   case accepted
   case aTier
   case suggestions
+  case familyManagement
 
   var id: String { rawValue }
 
@@ -20,6 +21,7 @@ enum DashboardDestination: String, Identifiable {
     case .accepted: return "Accepted Offers"
     case .aTier: return "A-Tier Schools"
     case .suggestions: return "Action Items"
+    case .familyManagement: return "Family Management"
     }
   }
 }

@@ -143,8 +143,16 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     email: "invited@example.com",
     role: "parent",
     familyName: "Test Family",
-    inviterName: "Test Player"
+    inviterName: "Test Player",
+    emailExists: false,
+    prefill: nil
   )
+  var declineInviteCallCount = 0
+  var lastDeclinedToken: String?
+  var resendInvitationCallCount = 0
+  var lastResendId: String?
+  var lastResendEmail: String?
+  var lastResendRole: String?
 
   func sendEmailInvite(email: String, role: String) async throws {
     sendEmailInviteCallCount += 1
@@ -173,6 +181,20 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   func acceptInvite(token: String) async throws {
     acceptInviteCallCount += 1
     lastAcceptedToken = token
+    if !shouldSucceed { throw mockError }
+  }
+
+  func declineInvite(token: String) async throws {
+    declineInviteCallCount += 1
+    lastDeclinedToken = token
+    if !shouldSucceed { throw mockError }
+  }
+
+  func resendInvitation(id: String, email: String, role: String) async throws {
+    resendInvitationCallCount += 1
+    lastResendId = id
+    lastResendEmail = email
+    lastResendRole = role
     if !shouldSucceed { throw mockError }
   }
 
@@ -221,6 +243,12 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     lastLookedUpToken = nil
     lastAcceptedToken = nil
     stubbedPendingInvitations = []
+    declineInviteCallCount = 0
+    lastDeclinedToken = nil
+    resendInvitationCallCount = 0
+    lastResendId = nil
+    lastResendEmail = nil
+    lastResendRole = nil
   }
 }
 

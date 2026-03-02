@@ -300,6 +300,24 @@ final class FamilyManagementViewModel {
     }
   }
 
+  func resendInvitation(_ invitation: FamilyInvitation) async {
+    let email = invitation.invitedEmail
+    let role = invitation.role
+
+    isLoading = true
+    errorMessage = nil
+    defer { isLoading = false }
+
+    do {
+      try await familyService.resendInvitation(id: invitation.id, email: email, role: role)
+      await loadPendingInvitations()
+      showSuccess("Invite resent to \(email)")
+    } catch {
+      logger.error("Failed to resend invite: \(error.localizedDescription)")
+      errorMessage = "Failed to resend invite. Please try again."
+    }
+  }
+
   // MARK: - Helpers
   private func showSuccess(_ message: String) {
     successMessage = message

@@ -407,6 +407,29 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     }
   }
 
+  func declineInvite(token: String) async throws {
+    guard let baseURL = SupabaseConfig.apiBaseURL else {
+      throw FamilyError.serverError("API base URL not configured")
+    }
+
+    var request = URLRequest(
+      url: baseURL.appendingPathComponent("api/family/invite/\(token)/decline")
+    )
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = Data("{}".utf8)
+
+    let (_, response) = try await URLSession.shared.data(for: request)
+    guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+      throw FamilyError.serverError("Failed to decline invite")
+    }
+  }
+
+  func resendInvitation(id: String, email: String, role: String) async throws {
+    try await revokeInvitation(id: id)
+    try await sendEmailInvite(email: email, role: role)
+  }
+
   func getParentFamilies() async throws -> [ParentFamilyData] {
     guard let userId = try await supabaseManager.client.auth.session.user.id.uuidString as String? else {
       throw FamilyError.notAuthenticated
