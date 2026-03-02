@@ -135,7 +135,7 @@ struct FamilyManagementParentView: View {
             VStack(alignment: .leading, spacing: 4) {
               Text(invite.invitedEmail)
                 .font(.subheadline.weight(.medium))
-              Text("Expires \(formattedExpiry(invite.expiresAt))")
+              Text("Expires \(formattedExpiry(invite.expiresAt ?? ""))")
                 .font(.caption)
                 .foregroundColor(.secondary)
             }

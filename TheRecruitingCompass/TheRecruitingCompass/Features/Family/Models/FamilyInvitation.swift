@@ -8,8 +8,8 @@ struct FamilyInvitation: Codable, Identifiable, Sendable {
   let role: String
   let token: String?
   let status: String
-  let expiresAt: String
-  let createdAt: String
+  let expiresAt: String?
+  let createdAt: String?
   let acceptedAt: String?
   let declinedAt: String?
 
@@ -27,7 +27,7 @@ struct FamilyInvitation: Codable, Identifiable, Sendable {
     case declinedAt = "declined_at"
   }
 
-  init(id: String, familyUnitId: String?, invitedBy: String?, invitedEmail: String, role: String, token: String?, status: String, expiresAt: String, createdAt: String, acceptedAt: String?, declinedAt: String?) {
+  init(id: String, familyUnitId: String?, invitedBy: String?, invitedEmail: String, role: String, token: String?, status: String, expiresAt: String?, createdAt: String?, acceptedAt: String?, declinedAt: String?) {
     self.id = id
     self.familyUnitId = familyUnitId
     self.invitedBy = invitedBy
@@ -50,9 +50,8 @@ struct FamilyInvitation: Codable, Identifiable, Sendable {
     role = try c.decode(String.self, forKey: .role)
     token = try c.decodeIfPresent(String.self, forKey: .token)
     status = try c.decode(String.self, forKey: .status)
-    // API may return dates as strings or in alternate formats; be defensive
-    expiresAt = (try? c.decode(String.self, forKey: .expiresAt)) ?? ""
-    createdAt = (try? c.decode(String.self, forKey: .createdAt)) ?? ""
+    expiresAt = try c.decodeIfPresent(String.self, forKey: .expiresAt)
+    createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt)
     acceptedAt = try c.decodeIfPresent(String.self, forKey: .acceptedAt)
     declinedAt = try c.decodeIfPresent(String.self, forKey: .declinedAt)
   }
@@ -66,15 +65,15 @@ struct FamilyInvitation: Codable, Identifiable, Sendable {
     try c.encode(role, forKey: .role)
     try c.encodeIfPresent(token, forKey: .token)
     try c.encode(status, forKey: .status)
-    try c.encode(expiresAt, forKey: .expiresAt)
-    try c.encode(createdAt, forKey: .createdAt)
+    try c.encodeIfPresent(expiresAt, forKey: .expiresAt)
+    try c.encodeIfPresent(createdAt, forKey: .createdAt)
     try c.encodeIfPresent(acceptedAt, forKey: .acceptedAt)
     try c.encodeIfPresent(declinedAt, forKey: .declinedAt)
   }
 
   var isPending: Bool { status == "pending" }
   var isExpired: Bool {
-    guard !expiresAt.isEmpty, let date = ISO8601DateFormatter().date(from: expiresAt) else { return false }
+    guard let exp = expiresAt, !exp.isEmpty, let date = ISO8601DateFormatter().date(from: exp) else { return false }
     return date < Date()
   }
 }
