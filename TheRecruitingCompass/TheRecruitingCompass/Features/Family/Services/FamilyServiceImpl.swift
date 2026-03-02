@@ -301,8 +301,12 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
   func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails? = nil) async throws {
     guard let baseURL = SupabaseConfig.apiBaseURL else {
+      logger.error("sendEmailInvite: API_BASE_URL not configured")
       throw FamilyError.serverError("API base URL not configured. Set API_BASE_URL for invite features.")
     }
+    let inviteURL = baseURL.appendingPathComponent("api/family/invite")
+    logger.info("sendEmailInvite: POST \(inviteURL.absoluteString, privacy: .public) email=\(email.prefix(3))*** role=\(role)")
+
     let token = try await supabaseManager.client.auth.session.accessToken
 
     struct Body: Encodable {
@@ -323,10 +327,27 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.httpBody = try JSONEncoder().encode(Body(email: email, role: role, pendingPlayerDetails: pendingPlayerDetails))
 
-    let (_, response) = try await URLSession.shared.data(for: request)
-    guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+    let data: Data
+    let response: URLResponse
+    do {
+      (data, response) = try await URLSession.shared.data(for: request)
+    } catch {
+      logger.error("sendEmailInvite network error: \(error.localizedDescription, privacy: .public)")
+      throw FamilyError.serverError("Failed to send invite: \(error.localizedDescription)")
+    }
+
+    guard let http = response as? HTTPURLResponse else {
+      logger.error("sendEmailInvite: response was not HTTPURLResponse")
       throw FamilyError.serverError("Failed to send invite")
     }
+
+    guard (200..<300).contains(http.statusCode) else {
+      let bodyString = String(data: data, encoding: .utf8) ?? "(unable to decode)"
+      logger.error("sendEmailInvite failed: status=\(http.statusCode), body=\(bodyString, privacy: .public)")
+      throw FamilyError.serverError("Failed to send invite")
+    }
+
+    logger.info("sendEmailInvite success: status=\(http.statusCode)")
   }
 
   func fetchPendingInvitations() async throws -> [FamilyInvitation] {
@@ -347,8 +368,14 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     struct InvitationsResponse: Codable {
       let invitations: [FamilyInvitation]
     }
-    let decoded = try JSONDecoder().decode(InvitationsResponse.self, from: data)
-    return decoded.invitations
+    do {
+      let decoded = try JSONDecoder().decode(InvitationsResponse.self, from: data)
+      return decoded.invitations
+    } catch {
+      let bodyPreview = String(data: data.prefix(500), encoding: .utf8) ?? "(unable to decode)"
+      logger.error("fetchPendingInvitations decode failed: \(error.localizedDescription, privacy: .public), body=\(bodyPreview, privacy: .public)")
+      throw error
+    }
   }
 
   func revokeInvitation(id: String) async throws {
@@ -466,11 +493,12 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
       .value
 
     return memberships.map { membership in
-      ParentFamilyData(
-        familyId: membership.familyUnit.id,
-        familyCode: membership.familyUnit.familyCode,
-        familyName: membership.familyUnit.familyName,
-        codeGeneratedAt: membership.familyUnit.codeGeneratedAt
+      let fu = membership.familyUnit
+      return ParentFamilyData(
+        familyId: fu.id,
+        familyCode: fu.familyCode ?? "",
+        familyName: fu.familyName ?? "My Family",
+        codeGeneratedAt: fu.codeGeneratedAt ?? ""
       )
     }
   }
@@ -489,9 +517,9 @@ private struct ParentFamilyMembership: Codable {
 
   struct FamilyUnitData: Codable {
     let id: String
-    let familyCode: String
-    let familyName: String
-    let codeGeneratedAt: String
+    let familyCode: String?
+    let familyName: String?
+    let codeGeneratedAt: String?
 
     enum CodingKeys: String, CodingKey {
       case id
