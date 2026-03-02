@@ -167,7 +167,8 @@ final class SignupViewModel {
         password: password,
         fullName: fullName,
         role: role,
-        familyCode: nil
+        familyCode: nil,
+        dateOfBirth: nil
       )
 
       // Create family for both roles (mirrors web: POST /api/family/create)

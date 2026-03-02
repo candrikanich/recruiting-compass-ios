@@ -18,6 +18,7 @@ enum AuthError: LocalizedError {
   case expiredResetToken
   case resetEmailNotFound
   case sessionInvalid
+  case coppaUnderAge
   case unknown(Error)
 
   var errorDescription: String? {
@@ -59,6 +60,8 @@ enum AuthError: LocalizedError {
       return "If an account exists for this email, you will receive a reset link shortly."
     case .sessionInvalid:
       return "Your session is no longer valid. Please sign in again."
+    case .coppaUnderAge:
+      return "You must be at least 13 years old to create an account."
     case .unknown(let err):
       let msg = err.localizedDescription.trimmingCharacters(in: .whitespaces)
       if msg.isEmpty || msg.contains("The operation couldn't be completed") {
@@ -100,6 +103,8 @@ enum AuthError: LocalizedError {
       return "Check the email address or create a new account."
     case .sessionInvalid:
       return "Sign out and create a new account to continue."
+    case .coppaUnderAge:
+      return "Accounts are for users 13 and older. A parent or guardian can create an account and invite you."
     case .unknown:
       return "Please try again or contact support."
     }

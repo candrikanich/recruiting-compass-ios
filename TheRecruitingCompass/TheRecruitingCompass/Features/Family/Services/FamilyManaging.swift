@@ -16,12 +16,13 @@ protocol FamilyManaging: Sendable {
   func getParentFamilies() async throws -> [ParentFamilyData]
 
   // Invite operations (email-based)
-  func sendEmailInvite(email: String, role: String) async throws
+  func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?) async throws
   func fetchPendingInvitations() async throws -> [FamilyInvitation]
   func revokeInvitation(id: String) async throws
   func resendInvitation(id: String, email: String, role: String) async throws
   func lookupInviteByToken(_ token: String) async throws -> InviteDetails
   func acceptInvite(token: String) async throws
   func declineInvite(token: String) async throws
+  func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws
 }
 

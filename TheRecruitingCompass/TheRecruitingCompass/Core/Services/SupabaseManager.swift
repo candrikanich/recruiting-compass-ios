@@ -77,6 +77,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     let role: String
     let createdAt: String
     let updatedAt: String
+    let dateOfBirth: String?
 
     enum CodingKeys: String, CodingKey {
       case id
@@ -87,6 +88,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       case role
       case createdAt = "created_at"
       case updatedAt = "updated_at"
+      case dateOfBirth = "date_of_birth"
     }
   }
 
@@ -192,7 +194,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         fullName: fullName,
         createdAt: ISO8601DateFormatter().string(from: Date()),
         updatedAt: ISO8601DateFormatter().string(from: Date()),
-        role: role
+        role: role,
+        dateOfBirth: nil
       )
 
       let session = response.session.map { mapToSession($0, user: user) }
@@ -301,7 +304,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       fullName: dbUser.fullName,
       createdAt: dbUser.createdAt,
       updatedAt: dbUser.updatedAt,
-      role: UserRole(rawValue: dbUser.role)
+      role: UserRole(rawValue: dbUser.role),
+      dateOfBirth: dbUser.dateOfBirth
     )
   }
 
@@ -386,7 +390,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       fullName: fullName,
       createdAt: ISO8601DateFormatter().string(from: Date()),
       updatedAt: ISO8601DateFormatter().string(from: Date()),
-      role: role
+      role: role,
+      dateOfBirth: nil
     )
   }
 

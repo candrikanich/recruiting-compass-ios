@@ -31,9 +31,11 @@ final class FamilyManagementViewModelTests: XCTestCase {
       email: "test@test.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
       phone: nil,
+      fullName: nil,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
-      role: role
+      role: role,
+      dateOfBirth: nil
     )
   }
 
@@ -53,7 +55,8 @@ final class FamilyManagementViewModelTests: XCTestCase {
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
       homeLatitude: nil,
-      homeLongitude: nil
+      homeLongitude: nil,
+      pendingPlayerDetails: nil
     )
   }
 

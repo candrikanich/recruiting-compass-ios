@@ -62,7 +62,7 @@ final class OnboardingViewModel {
 
     do {
       if try await familyService.getFamilyUnit(forUserId: userId) != nil {
-        try await familyService.sendEmailInvite(email: inviteEmail, role: "parent")
+        try await familyService.sendEmailInvite(email: inviteEmail, role: "parent", pendingPlayerDetails: nil)
         inviteEmail = ""
         isInviteSent = true
       } else {

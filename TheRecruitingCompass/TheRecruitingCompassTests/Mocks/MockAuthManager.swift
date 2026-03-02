@@ -50,9 +50,11 @@ class MockAuthManager: AuthManaging {
       email: email,
       emailConfirmedAt: "2024-01-01T00:00:00Z",
       phone: nil,
+      fullName: nil,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
-      role: nil
+      role: nil,
+      dateOfBirth: nil
     )
 
     let session = mockSessionToReturn ?? Session(
@@ -75,7 +77,8 @@ class MockAuthManager: AuthManaging {
     password: String,
     fullName: String,
     role: UserRole,
-    familyCode: String?
+    familyCode: String?,
+    dateOfBirth: String? = nil
   ) async throws {
     signupCallCount += 1
 
@@ -88,9 +91,11 @@ class MockAuthManager: AuthManaging {
       email: email,
       emailConfirmedAt: nil,
       phone: nil,
+      fullName: fullName,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
-      role: role
+      role: role,
+      dateOfBirth: nil
     )
 
     let session = mockSessionToReturn ?? Session(

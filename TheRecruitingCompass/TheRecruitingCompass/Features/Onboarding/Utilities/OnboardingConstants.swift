@@ -31,7 +31,6 @@ enum OnboardingConstants {
   ]
 
   static var graduationYears: [Int] {
-    let year = Calendar.current.component(.year, from: Date())
-    return (0..<5).map { year + $0 }
+    GradeLevelHelper.allowedGraduationYears
   }
 }

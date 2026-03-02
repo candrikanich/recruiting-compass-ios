@@ -299,7 +299,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
   // MARK: - Invite Methods
 
-  func sendEmailInvite(email: String, role: String) async throws {
+  func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails? = nil) async throws {
     guard let baseURL = SupabaseConfig.apiBaseURL else {
       throw FamilyError.serverError("API base URL not configured. Set API_BASE_URL for invite features.")
     }
@@ -308,13 +308,20 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     struct Body: Encodable {
       let email: String
       let role: String
+      let pendingPlayerDetails: PendingPlayerDetails?
+
+      enum CodingKeys: String, CodingKey {
+        case email
+        case role
+        case pendingPlayerDetails = "pending_player_details"
+      }
     }
 
     var request = URLRequest(url: baseURL.appendingPathComponent("api/family/invite"))
     request.httpMethod = "POST"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.httpBody = try JSONEncoder().encode(Body(email: email, role: role))
+    request.httpBody = try JSONEncoder().encode(Body(email: email, role: role, pendingPlayerDetails: pendingPlayerDetails))
 
     let (_, response) = try await URLSession.shared.data(for: request)
     guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
@@ -427,7 +434,22 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
   func resendInvitation(id: String, email: String, role: String) async throws {
     try await revokeInvitation(id: id)
-    try await sendEmailInvite(email: email, role: role)
+    try await sendEmailInvite(email: email, role: role, pendingPlayerDetails: nil)
+  }
+
+  func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws {
+    struct UpdatePayload: Encodable {
+      let pendingPlayerDetails: PendingPlayerDetails
+
+      enum CodingKeys: String, CodingKey {
+        case pendingPlayerDetails = "pending_player_details"
+      }
+    }
+    try await supabaseManager.client
+      .from("family_units")
+      .update(UpdatePayload(pendingPlayerDetails: details))
+      .eq("id", value: familyId)
+      .execute()
   }
 
   func getParentFamilies() async throws -> [ParentFamilyData] {

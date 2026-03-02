@@ -2,6 +2,9 @@ import SwiftUI
 
 /// Shown to parents: "Connect your athlete" when no athletes, or one-time "You're connected!" when an athlete has just joined.
 struct ParentOnboardingBanner: View {
+  /// When set, "Invite Athlete" presents the 2-step wizard instead of navigating to Family Management.
+  var onInviteTapped: (() -> Void)?
+
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
 
@@ -68,16 +71,40 @@ struct ParentOnboardingBanner: View {
 
       Spacer()
 
-      NavigationLink(value: DashboardDestination.familyManagement) {
-        Text("Invite Athlete")
-          .font(.caption.weight(.semibold))
-          .foregroundColor(.white)
-          .padding(.horizontal, 12)
-          .padding(.vertical, 8)
-          .background(Color(hex: "D97706"))
-          .clipShape(RoundedRectangle(cornerRadius: 8))
+      if let onInviteTapped = onInviteTapped {
+        VStack(alignment: .trailing, spacing: 6) {
+          Button {
+            onInviteTapped()
+          } label: {
+            Text("Invite Athlete")
+              .font(.caption.weight(.semibold))
+              .foregroundColor(.white)
+              .padding(.horizontal, 12)
+              .padding(.vertical, 8)
+              .background(Color(hex: "D97706"))
+              .clipShape(RoundedRectangle(cornerRadius: 8))
+          }
+          .accessibilityLabel("Invite athlete with player details")
+
+          NavigationLink(value: DashboardDestination.familyManagement) {
+            Text("Family Management")
+              .font(.caption2)
+              .foregroundColor(Color(hex: "92400E"))
+          }
+          .accessibilityLabel("Open Family Management")
+        }
+      } else {
+        NavigationLink(value: DashboardDestination.familyManagement) {
+          Text("Invite Athlete")
+            .font(.caption.weight(.semibold))
+            .foregroundColor(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(hex: "D97706"))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .accessibilityLabel("Go to settings to invite athlete")
       }
-      .accessibilityLabel("Go to settings to invite athlete")
     }
     .padding()
     .background(Color(hex: "FFFBEB"))

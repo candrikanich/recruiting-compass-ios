@@ -23,9 +23,11 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       email: "test@example.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
       phone: nil,
+      fullName: nil,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
-      role: nil
+      role: nil,
+      dateOfBirth: nil
     )
 
     // Set up family unit
@@ -38,7 +40,8 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2025-01-01T00:00:00Z",
       homeLatitude: nil,
-      homeLongitude: nil
+      homeLongitude: nil,
+      pendingPlayerDetails: nil
     )
 
     viewModel = SchoolDetailViewModel(

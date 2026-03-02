@@ -27,20 +27,31 @@ enum DeepLinkHandler {
       return .resetPassword(token: token)
     }
 
-    // Universal links: https://recruiting-compass.com/join?token=...
+    // Universal links: https://recruiting-compass.com/join?token=... or /invite/TOKEN
     guard (url.scheme == "http" || url.scheme == "https"),
           let host = url.host,
           universalLinkHosts.contains(host) else {
       return .unknown
     }
 
-    guard url.path == "/join",
-          let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-          let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
-          !token.isEmpty else {
-      return .unknown
+    // /join?token=...
+    if url.path == "/join",
+       let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+       let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
+       !token.isEmpty {
+      return .joinInvite(token: token)
     }
 
-    return .joinInvite(token: token)
+    // /invite/:token (path component)
+    if url.path.hasPrefix("/invite/") {
+      let token = url.path
+        .replacingOccurrences(of: "/invite/", with: "")
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+      if !token.isEmpty {
+        return .joinInvite(token: token)
+      }
+    }
+
+    return .unknown
   }
 }

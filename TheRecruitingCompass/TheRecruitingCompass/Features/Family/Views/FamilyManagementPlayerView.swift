@@ -117,6 +117,11 @@ struct FamilyManagementPlayerView: View {
         .foregroundColor(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
+      Text("Invites expire after 30 days.")
+        .font(.caption2)
+        .foregroundColor(.secondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+
       HStack(spacing: FamilyConstants.Spacing.small) {
         TextField("parent@example.com", text: $viewModel.inviteEmail)
           .textFieldStyle(.roundedBorder)

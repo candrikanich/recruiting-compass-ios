@@ -76,7 +76,7 @@ struct PlayerDetailsView: View {
       Section("Basic Information") {
         Picker("Graduation Year", selection: $viewModel.details.graduationYear) {
           Text("Select").tag(nil as Int?)
-          ForEach(2024...2035, id: \.self) { year in
+          ForEach(GradeLevelHelper.allowedGraduationYears, id: \.self) { year in
             Text("\(year)").tag(year as Int?)
           }
         }

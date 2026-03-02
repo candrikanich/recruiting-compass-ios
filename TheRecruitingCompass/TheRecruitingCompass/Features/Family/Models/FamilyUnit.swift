@@ -1,5 +1,22 @@
 import Foundation
 
+/// Parent-entered player info stored on family_units (pending_player_details) or sent with invite.
+struct PendingPlayerDetails: Codable, Sendable, Equatable {
+  let firstName: String
+  let lastName: String
+  let sport: String?
+  let position: String?
+  let graduationYear: Int?
+
+  enum CodingKeys: String, CodingKey {
+    case firstName = "first_name"
+    case lastName = "last_name"
+    case sport
+    case position
+    case graduationYear = "graduation_year"
+  }
+}
+
 struct FamilyUnit: Codable, Identifiable, Sendable {
   let id: String
   let createdByUserId: String
@@ -10,6 +27,7 @@ struct FamilyUnit: Codable, Identifiable, Sendable {
   let updatedAt: String?
   let homeLatitude: Double?
   let homeLongitude: Double?
+  let pendingPlayerDetails: PendingPlayerDetails?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -21,5 +39,6 @@ struct FamilyUnit: Codable, Identifiable, Sendable {
     case updatedAt = "updated_at"
     case homeLatitude = "home_latitude"
     case homeLongitude = "home_longitude"
+    case pendingPlayerDetails = "pending_player_details"
   }
 }

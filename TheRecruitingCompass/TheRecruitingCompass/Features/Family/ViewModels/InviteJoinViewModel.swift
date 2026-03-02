@@ -86,6 +86,9 @@ final class InviteJoinViewModel {
       }
       try await familyService.acceptInvite(token: token)
       successMessage = "You're connected!"
+      if inviteDetails?.emailMismatch == true {
+        successMessage = "You're connected! (You used a different email than the invite.)"
+      }
       showSuccessToast = true
       try? await Task.sleep(nanoseconds: 1_500_000_000)
       navigateToDashboard = true
@@ -131,10 +134,14 @@ final class InviteJoinViewModel {
         password: signupPassword,
         fullName: fullName,
         role: role,
-        familyCode: nil
+        familyCode: nil,
+        dateOfBirth: nil
       )
       try await familyService.acceptInvite(token: token)
       successMessage = "You're connected!"
+      if inviteDetails?.emailMismatch == true {
+        successMessage = "You're connected! (You used a different email than the invite.)"
+      }
       showSuccessToast = true
       try? await Task.sleep(nanoseconds: 1_500_000_000)
       navigateToDashboard = true

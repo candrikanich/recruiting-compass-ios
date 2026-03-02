@@ -72,8 +72,13 @@ struct FamilyManagementParentView: View {
         .font(.headline)
         .frame(maxWidth: .infinity, alignment: .leading)
 
-      Text("They'll receive a link to join your family.")
+        Text("They'll receive a link to join your family.")
         .font(.subheadline)
+        .foregroundColor(.secondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+      Text("Invites expire after 30 days.")
+        .font(.caption2)
         .foregroundColor(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 

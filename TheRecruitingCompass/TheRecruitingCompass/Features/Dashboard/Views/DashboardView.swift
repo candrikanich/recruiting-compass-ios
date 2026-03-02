@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DashboardView: View {
   @State private var viewModel = DashboardViewModel()
+  @State private var showParentWizard = false
   @Environment(FamilyManager.self) private var familyManager
 
   init(viewModel: DashboardViewModel? = nil) {
@@ -22,7 +23,9 @@ struct DashboardView: View {
         }
 
         if familyManager.currentMember?.isParent == true && !viewModel.isParentPreviewMode {
-          ParentOnboardingBanner()
+          ParentOnboardingBanner(onInviteTapped: {
+            showParentWizard = true
+          })
             .padding(.horizontal)
             .padding(.top, 8)
         }
@@ -86,6 +89,15 @@ struct DashboardView: View {
         }
       }
       .navigationTitle("Dashboard")
+      .sheet(isPresented: $showParentWizard) {
+        ParentOnboardingWizardView(
+          viewModel: ParentOnboardingWizardViewModel(),
+          onDismiss: {
+            showParentWizard = false
+            Task { await familyManager.loadFamilyData() }
+          }
+        )
+      }
       .task {
         await viewModel.fetchDashboardData()
       }

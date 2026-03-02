@@ -5,11 +5,14 @@ import OSLog
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "OnboardingManager")
 
 /// Holds onboarding gate state. Players must complete onboarding before seeing the dashboard.
+/// Parents see a short parent onboarding (invite athlete wizard) once before dashboard, matching web.
 @Observable
 @MainActor
 final class OnboardingManager {
   /// nil = loading, true = show onboarding, false = show dashboard
   var needsOnboarding: Bool?
+
+  private static let parentOnboardingCompleteKeyPrefix = "parent_onboarding_complete_"
 
   private let onboardingService: any OnboardingManaging
   private let authManager: any AuthManaging
@@ -22,15 +25,18 @@ final class OnboardingManager {
     self.authManager = authManager ?? AuthManager.shared
   }
 
-  /// Call when user becomes authenticated. Parents skip onboarding; players check DB.
+  /// Call when user becomes authenticated. Players check DB; parents check local "parent onboarding complete" flag.
   func loadStatus() async {
     guard let user = authManager.user else {
       needsOnboarding = false
       return
     }
 
-    guard user.role == .player else {
-      needsOnboarding = false
+    if user.role == .parent {
+      let key = Self.parentOnboardingCompleteKeyPrefix + user.id
+      let complete = UserDefaults.standard.bool(forKey: key)
+      needsOnboarding = !complete
+      logger.debug("Parent onboarding status: needsOnboarding=\(self.needsOnboarding ?? false)")
       return
     }
 
@@ -46,5 +52,12 @@ final class OnboardingManager {
 
   func markComplete() {
     needsOnboarding = false
+  }
+
+  /// Call when parent completes or skips the parent onboarding wizard (so we don't show it again).
+  func markParentOnboardingComplete() {
+    guard let userId = authManager.user?.id else { return }
+    UserDefaults.standard.set(true, forKey: Self.parentOnboardingCompleteKeyPrefix + userId)
+    markComplete()
   }
 }

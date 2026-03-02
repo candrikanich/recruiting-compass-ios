@@ -82,4 +82,6 @@ final class FamilyManager {
   func clearAthleteSelection() {
     selectedAthleteId = nil
   }
+
+  nonisolated deinit {}
 }

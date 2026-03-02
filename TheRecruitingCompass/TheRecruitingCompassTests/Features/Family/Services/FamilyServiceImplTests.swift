@@ -278,7 +278,8 @@ final class FamilyServiceImplTests: XCTestCase {
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2025-01-01T00:00:00Z",
       homeLatitude: nil,
-      homeLongitude: nil
+      homeLongitude: nil,
+      pendingPlayerDetails: nil
     )
   }
 }

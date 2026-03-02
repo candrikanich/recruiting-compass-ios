@@ -64,6 +64,7 @@ struct TheRecruitingCompassApp: App {
       .environment(authManager)
       .environment(familyManager)
       .environment(networkMonitor)
+      .environment(onboardingManager)
     }
   }
 
@@ -72,7 +73,6 @@ struct TheRecruitingCompassApp: App {
     ZStack(alignment: .top) {
       if onboardingManager.needsOnboarding == true {
         OnboardingWrapperView(onComplete: {
-          onboardingManager.markComplete()
           Task { await familyManager.loadFamilyData() }
         })
       } else if onboardingManager.needsOnboarding == false {

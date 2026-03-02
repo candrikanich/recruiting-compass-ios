@@ -11,6 +11,7 @@ struct FamilyInvitation: Codable, Identifiable, Sendable {
   let expiresAt: String
   let createdAt: String
   let acceptedAt: String?
+  let declinedAt: String?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -23,6 +24,7 @@ struct FamilyInvitation: Codable, Identifiable, Sendable {
     case expiresAt = "expires_at"
     case createdAt = "created_at"
     case acceptedAt = "accepted_at"
+    case declinedAt = "declined_at"
   }
 
   var isPending: Bool { status == "pending" }
@@ -43,6 +45,8 @@ struct InviteDetails: Codable, Sendable, Equatable {
   let emailExists: Bool
   /// Optional prefill from parent-entered player details (only for player invitees).
   let prefill: InvitePrefill?
+  /// When true, logged-in email differs from invite email; accept still succeeds. Informational only.
+  let emailMismatch: Bool?
 
   enum CodingKeys: String, CodingKey {
     case invitationId
@@ -52,9 +56,10 @@ struct InviteDetails: Codable, Sendable, Equatable {
     case inviterName
     case emailExists
     case prefill
+    case emailMismatch
   }
 
-  init(invitationId: String, email: String, role: String, familyName: String, inviterName: String, emailExists: Bool = false, prefill: InvitePrefill? = nil) {
+  init(invitationId: String, email: String, role: String, familyName: String, inviterName: String, emailExists: Bool = false, prefill: InvitePrefill? = nil, emailMismatch: Bool? = nil) {
     self.invitationId = invitationId
     self.email = email
     self.role = role
@@ -62,6 +67,7 @@ struct InviteDetails: Codable, Sendable, Equatable {
     self.inviterName = inviterName
     self.emailExists = emailExists
     self.prefill = prefill
+    self.emailMismatch = emailMismatch
   }
 
   init(from decoder: Decoder) throws {
@@ -73,6 +79,7 @@ struct InviteDetails: Codable, Sendable, Equatable {
     inviterName = try c.decode(String.self, forKey: .inviterName)
     emailExists = try c.decodeIfPresent(Bool.self, forKey: .emailExists) ?? false
     prefill = try c.decodeIfPresent(InvitePrefill.self, forKey: .prefill)
+    emailMismatch = try c.decodeIfPresent(Bool.self, forKey: .emailMismatch)
   }
 }
 
@@ -80,6 +87,43 @@ struct InviteDetails: Codable, Sendable, Equatable {
 struct InvitePrefill: Codable, Sendable, Equatable {
   let firstName: String
   let lastName: String
+  let sport: String?
+  let position: String?
+  let graduationYear: Int?
+
+  enum CodingKeys: String, CodingKey {
+    case firstName
+    case lastName
+    case sport
+    case position
+    case graduationYear
+  }
+
+  init(firstName: String, lastName: String, sport: String? = nil, position: String? = nil, graduationYear: Int? = nil) {
+    self.firstName = firstName
+    self.lastName = lastName
+    self.sport = sport
+    self.position = position
+    self.graduationYear = graduationYear
+  }
+
+  init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    firstName = try c.decode(String.self, forKey: .firstName)
+    lastName = try c.decode(String.self, forKey: .lastName)
+    sport = try c.decodeIfPresent(String.self, forKey: .sport)
+    position = try c.decodeIfPresent(String.self, forKey: .position)
+    graduationYear = try c.decodeIfPresent(Int.self, forKey: .graduationYear)
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encode(firstName, forKey: .firstName)
+    try c.encode(lastName, forKey: .lastName)
+    try c.encodeIfPresent(sport, forKey: .sport)
+    try c.encodeIfPresent(position, forKey: .position)
+    try c.encodeIfPresent(graduationYear, forKey: .graduationYear)
+  }
 }
 
 /// Errors from the invite join flow

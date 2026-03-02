@@ -51,8 +51,12 @@ final class AuthManager: AuthManaging {
     password: String,
     fullName: String,
     role: UserRole,
-    familyCode: String?
+    familyCode: String?,
+    dateOfBirth: String? = nil
   ) async throws {
+    if let dob = dateOfBirth, COPPAHelper.isUnderAge(dob) {
+      throw AuthError.coppaUnderAge
+    }
     do {
       let (user, session) = try await supabaseManager.signUp(
         email: email,

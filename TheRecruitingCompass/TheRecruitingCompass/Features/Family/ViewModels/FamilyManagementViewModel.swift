@@ -277,7 +277,7 @@ final class FamilyManagementViewModel {
     defer { isLoading = false }
 
     do {
-      try await familyService.sendEmailInvite(email: email, role: inviteRole)
+      try await familyService.sendEmailInvite(email: email, role: inviteRole, pendingPlayerDetails: nil)
       inviteEmail = ""
       await loadPendingInvitations()
       showSuccess("Invite sent to \(email)!")

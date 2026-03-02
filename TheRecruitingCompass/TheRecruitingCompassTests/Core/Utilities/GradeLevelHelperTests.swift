@@ -5,6 +5,13 @@ final class GradeLevelHelperTests: XCTestCase {
 
   var calendar: Calendar { Calendar.current }
 
+  func testAllowedGraduationYears_IsCurrentThroughCurrentPlus4() {
+    let years = GradeLevelHelper.allowedGraduationYears
+    let current = calendar.component(.year, from: Date())
+    XCTAssertEqual(years.count, 5, "Should show current year + 4 (5 years total)")
+    XCTAssertEqual(years, Array(current...(current + 4)), "Should be consecutive from current through current+4")
+  }
+
   func testCalculateCurrentGrade_ReturnsValueIn9To12() {
     for gradYear in [2026, 2027, 2028, 2029, 2030] {
       let grade = GradeLevelHelper.calculateCurrentGrade(graduationYear: gradYear)

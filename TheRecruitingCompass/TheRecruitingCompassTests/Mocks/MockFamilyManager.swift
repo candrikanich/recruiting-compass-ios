@@ -145,7 +145,8 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     familyName: "Test Family",
     inviterName: "Test Player",
     emailExists: false,
-    prefill: nil
+    prefill: nil,
+    emailMismatch: nil
   )
   var declineInviteCallCount = 0
   var lastDeclinedToken: String?
@@ -154,9 +155,20 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   var lastResendEmail: String?
   var lastResendRole: String?
 
-  func sendEmailInvite(email: String, role: String) async throws {
+  func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails? = nil) async throws {
     sendEmailInviteCallCount += 1
     lastInviteEmail = email
+    if !shouldSucceed { throw mockError }
+  }
+
+  var savePlayerDetailsCallCount = 0
+  var lastSavePlayerDetailsFamilyId: String?
+  var lastSavePlayerDetails: PendingPlayerDetails?
+
+  func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws {
+    savePlayerDetailsCallCount += 1
+    lastSavePlayerDetailsFamilyId = familyId
+    lastSavePlayerDetails = details
     if !shouldSucceed { throw mockError }
   }
 
@@ -249,6 +261,9 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     lastResendId = nil
     lastResendEmail = nil
     lastResendRole = nil
+    savePlayerDetailsCallCount = 0
+    lastSavePlayerDetailsFamilyId = nil
+    lastSavePlayerDetails = nil
   }
 }
 
