@@ -41,8 +41,12 @@ final class SignupScreenObject {
     app.buttons["Change role selection"]
   }
 
-  var fullNameField: XCUIElement {
-    app.textFields["Full Name"]
+  var firstNameField: XCUIElement {
+    app.textFields["First Name"]
+  }
+
+  var lastNameField: XCUIElement {
+    app.textFields["Last Name"]
   }
 
   var emailField: XCUIElement {
@@ -185,8 +189,17 @@ final class SignupScreenObject {
   }
 
   func fillSignupForm(with data: TestUserData) {
-    fullNameField.waitAndTap()
-    fullNameField.typeText(data.fullName)
+    let nameParts = data.fullName.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
+    let first = nameParts.first.map(String.init) ?? data.fullName
+    let last = nameParts.count > 1 ? String(nameParts[1]) : ""
+
+    firstNameField.waitAndTap()
+    firstNameField.typeText(first)
+
+    if !last.isEmpty {
+      lastNameField.tap()
+      lastNameField.typeText(last)
+    }
 
     emailField.tap()
     emailField.typeText(data.email)

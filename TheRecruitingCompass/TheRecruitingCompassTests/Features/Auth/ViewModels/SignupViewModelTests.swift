@@ -26,7 +26,8 @@ final class SignupViewModelTests: XCTestCase {
 
   private func fillValidForm(role: UserRole = .parent) {
     sut.selectRole(role)
-    sut.fullName = "John Doe"
+    sut.firstName = "John"
+    sut.lastName = "Doe"
     sut.email = "john@example.com"
     sut.password = "StrongPass123"
     sut.confirmPassword = "StrongPass123"
@@ -38,7 +39,8 @@ final class SignupViewModelTests: XCTestCase {
   func testInitialState() {
     XCTAssertNil(sut.selectedRole)
     XCTAssertFalse(sut.showForm)
-    XCTAssertEqual(sut.fullName, "")
+    XCTAssertEqual(sut.firstName, "")
+    XCTAssertEqual(sut.lastName, "")
     XCTAssertEqual(sut.email, "")
     XCTAssertEqual(sut.password, "")
     XCTAssertEqual(sut.confirmPassword, "")
@@ -60,7 +62,8 @@ final class SignupViewModelTests: XCTestCase {
 
   func testBackToRoleSelectionResetsState() {
     sut.selectRole(.player)
-    sut.fullName = "John Doe"
+    sut.firstName = "John"
+    sut.lastName = "Doe"
     sut.email = "john@example.com"
     sut.password = "StrongPass123"
     sut.familyCode = "FAM-ABC12345"
@@ -68,7 +71,8 @@ final class SignupViewModelTests: XCTestCase {
     sut.backToRoleSelection()
 
     XCTAssertFalse(sut.showForm)
-    XCTAssertEqual(sut.fullName, "")
+    XCTAssertEqual(sut.firstName, "")
+    XCTAssertEqual(sut.lastName, "")
     XCTAssertEqual(sut.email, "")
     XCTAssertEqual(sut.password, "")
     XCTAssertEqual(sut.confirmPassword, "")
@@ -78,19 +82,32 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   // MARK: - Validation Tests
+  func testValidateFirstName() {
+    sut.firstName = "John"
+    sut.validateFirstName()
 
-  func testValidateFullName() {
-    sut.fullName = "John Doe"
-    sut.validateFullName()
-
-    XCTAssertNil(sut.fieldErrors[.fullName])
+    XCTAssertNil(sut.fieldErrors[.firstName])
   }
 
-  func testValidateFullNameWithError() {
-    sut.fullName = "J"
-    sut.validateFullName()
+  func testValidateFirstNameWithError() {
+    sut.firstName = "J"
+    sut.validateFirstName()
 
-    XCTAssertNotNil(sut.fieldErrors[.fullName])
+    XCTAssertNotNil(sut.fieldErrors[.firstName])
+  }
+
+  func testValidateLastName() {
+    sut.lastName = "Doe"
+    sut.validateLastName()
+
+    XCTAssertNil(sut.fieldErrors[.lastName])
+  }
+
+  func testValidateLastNameWithError() {
+    sut.lastName = "D"
+    sut.validateLastName()
+
+    XCTAssertNotNil(sut.fieldErrors[.lastName])
   }
 
   func testValidateEmail() {
@@ -220,7 +237,8 @@ final class SignupViewModelTests: XCTestCase {
 
   func testIsFormInvalidWhenNoRoleSelected() {
     sut.selectedRole = nil
-    sut.fullName = "John Doe"
+    sut.firstName = "John"
+    sut.lastName = "Doe"
     sut.email = "john@example.com"
     sut.password = "StrongPass123"
     sut.confirmPassword = "StrongPass123"
@@ -299,7 +317,8 @@ final class SignupViewModelTests: XCTestCase {
 
   func testSignupWithInvalidFormDoesNotCallAuthManager() async {
     sut.selectRole(.parent)
-    sut.fullName = ""
+    sut.firstName = ""
+    sut.lastName = ""
     sut.email = ""
     sut.password = ""
     sut.confirmPassword = ""
@@ -313,7 +332,8 @@ final class SignupViewModelTests: XCTestCase {
 
   func testSignupWithInvalidFormSetsErrorMessage() async {
     sut.selectRole(.parent)
-    sut.fullName = ""
+    sut.firstName = ""
+    sut.lastName = ""
     sut.email = "invalid"
     sut.password = "weak"
     sut.confirmPassword = "different"
@@ -327,7 +347,8 @@ final class SignupViewModelTests: XCTestCase {
 
   func testSignupWithNoRoleSelectedSetsErrorMessage() async {
     sut.selectedRole = nil
-    sut.fullName = "John Doe"
+    sut.firstName = "John"
+    sut.lastName = "Doe"
     sut.email = "john@example.com"
     sut.password = "StrongPass123"
     sut.confirmPassword = "StrongPass123"
@@ -350,7 +371,8 @@ final class SignupViewModelTests: XCTestCase {
 
   func testSignupRunsAllValidationsBeforeApiCall() async {
     sut.selectRole(.parent)
-    sut.fullName = "J"
+    sut.firstName = "J"
+    sut.lastName = "D"
     sut.email = "bad"
     sut.password = "x"
     sut.confirmPassword = "y"
@@ -358,7 +380,8 @@ final class SignupViewModelTests: XCTestCase {
 
     await sut.signup()
 
-    XCTAssertNotNil(sut.fieldErrors[.fullName])
+    XCTAssertNotNil(sut.fieldErrors[.firstName])
+    XCTAssertNotNil(sut.fieldErrors[.lastName])
     XCTAssertNotNil(sut.fieldErrors[.email])
     XCTAssertNotNil(sut.fieldErrors[.password])
     XCTAssertNotNil(sut.fieldErrors[.confirmPassword])

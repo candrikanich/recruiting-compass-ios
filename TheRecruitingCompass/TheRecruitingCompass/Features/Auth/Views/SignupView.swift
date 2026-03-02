@@ -105,7 +105,8 @@ struct SignupView: View {
     VStack(spacing: 24) {
       roleHeader
       errorBannerSection
-      fullNameField
+      firstNameField
+      lastNameField
       emailField
       passwordSection
       confirmPasswordField
@@ -163,17 +164,31 @@ struct SignupView: View {
     }
   }
 
-  private var fullNameField: some View {
+  private var firstNameField: some View {
     LoginFormField(
-      label: "Full Name",
-      placeholder: "John Doe",
+      label: "First Name",
+      placeholder: "John",
       icon: "person",
-      text: $viewModel.fullName,
-      error: viewModel.errorBinding(for: .fullName),
+      text: $viewModel.firstName,
+      error: viewModel.errorBinding(for: .firstName),
       isSecure: false,
       keyboardType: .default,
-      textContentType: .name,
-      onBlur: viewModel.validateFullName
+      textContentType: .givenName,
+      onBlur: viewModel.validateFirstName
+    )
+  }
+
+  private var lastNameField: some View {
+    LoginFormField(
+      label: "Last Name",
+      placeholder: "Smith",
+      icon: "person",
+      text: $viewModel.lastName,
+      error: viewModel.errorBinding(for: .lastName),
+      isSecure: false,
+      keyboardType: .default,
+      textContentType: .familyName,
+      onBlur: viewModel.validateLastName
     )
   }
 

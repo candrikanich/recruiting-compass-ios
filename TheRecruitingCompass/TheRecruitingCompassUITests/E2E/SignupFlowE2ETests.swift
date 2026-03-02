@@ -61,8 +61,9 @@ final class SignupFlowE2ETests: XCTestCase {
     screen.navigateToSignup()
     screen.selectRole(.parent)
 
-    XCTAssertTrue(screen.fullNameField.waitForExistence(timeout: 5),
-                  "Full Name field should appear after selecting Parent role")
+    XCTAssertTrue(screen.firstNameField.waitForExistence(timeout: 5),
+                  "First Name field should appear after selecting Parent role")
+    XCTAssertTrue(screen.lastNameField.exists, "Last Name field should be visible")
     XCTAssertTrue(screen.emailField.exists, "Email field should be visible")
     XCTAssertTrue(screen.passwordField.exists, "Password field should be visible")
     XCTAssertTrue(screen.confirmPasswordField.exists, "Confirm Password field should be visible")
@@ -79,8 +80,8 @@ final class SignupFlowE2ETests: XCTestCase {
     screen.navigateToSignup()
     screen.selectRole(.player)
 
-    XCTAssertTrue(screen.fullNameField.waitForExistence(timeout: 5),
-                  "Full Name field should appear after selecting Player role")
+    XCTAssertTrue(screen.firstNameField.waitForExistence(timeout: 5),
+                  "First Name field should appear after selecting Player role")
     XCTAssertFalse(screen.familyCodeField.exists,
                    "Family Code field should NOT be visible for Player role (player creates the code)")
 

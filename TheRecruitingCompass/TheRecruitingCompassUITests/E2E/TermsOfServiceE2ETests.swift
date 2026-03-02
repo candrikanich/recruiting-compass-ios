@@ -29,7 +29,7 @@ final class TermsOfServiceE2ETests: XCTestCase {
   func testOpenTermsOfServiceFromSignupAndDismiss() throws {
     screen.navigateToSignup()
     screen.selectRole(.parent)
-    XCTAssertTrue(screen.fullNameField.waitForExistence(timeout: 5), "Signup form should be visible")
+    XCTAssertTrue(screen.firstNameField.waitForExistence(timeout: 5), "Signup form should be visible")
 
     screen.termsOfServiceLink.waitAndTap()
 
@@ -42,6 +42,6 @@ final class TermsOfServiceE2ETests: XCTestCase {
     XCTAssertTrue(backButton.waitForExistence(timeout: 2), "Back button should be visible")
     backButton.tap()
 
-    XCTAssertTrue(screen.fullNameField.waitForExistence(timeout: 3), "Should return to signup form after dismissing Terms")
+    XCTAssertTrue(screen.firstNameField.waitForExistence(timeout: 3), "Should return to signup form after dismissing Terms")
   }
 }

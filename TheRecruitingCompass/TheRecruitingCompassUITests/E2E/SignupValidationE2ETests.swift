@@ -20,7 +20,7 @@ final class SignupValidationE2ETests: XCTestCase {
     // Navigate to parent signup form for all validation tests
     screen.navigateToSignup()
     screen.selectRole(.parent)
-    XCTAssertTrue(screen.fullNameField.waitForExistence(timeout: 5))
+    XCTAssertTrue(screen.firstNameField.waitForExistence(timeout: 5))
   }
 
   override func tearDownWithError() throws {
@@ -36,7 +36,7 @@ final class SignupValidationE2ETests: XCTestCase {
     screen.passwordField.typeText("abc")
 
     // Tap elsewhere to trigger validation
-    screen.fullNameField.tap()
+    screen.firstNameField.tap()
 
     XCTAssertTrue(screen.passwordStrengthWeak.waitForExistence(timeout: 3),
                   "Weak password should show 'Weak' strength indicator")
@@ -49,7 +49,7 @@ final class SignupValidationE2ETests: XCTestCase {
     screen.passwordField.tap()
     screen.passwordField.typeText("Abcdefgh")
 
-    screen.fullNameField.tap()
+    screen.firstNameField.tap()
 
     XCTAssertTrue(screen.passwordStrengthFair.waitForExistence(timeout: 3),
                   "Fair password should show 'Fair' strength indicator")
@@ -62,7 +62,7 @@ final class SignupValidationE2ETests: XCTestCase {
     screen.passwordField.tap()
     screen.passwordField.typeText("StrongPass1")
 
-    screen.fullNameField.tap()
+    screen.firstNameField.tap()
 
     XCTAssertTrue(screen.passwordStrengthStrong.waitForExistence(timeout: 3),
                   "Strong password should show 'Strong' strength indicator")
@@ -81,7 +81,7 @@ final class SignupValidationE2ETests: XCTestCase {
     screen.confirmPasswordField.typeText("DifferentPass2")
 
     // Tap elsewhere to trigger onBlur validation
-    screen.fullNameField.tap()
+    screen.firstNameField.tap()
 
     let mismatchError = screen.errorBanner(containing: "do not match")
     XCTAssertTrue(mismatchError.waitForExistence(timeout: 3),
@@ -107,8 +107,7 @@ final class SignupValidationE2ETests: XCTestCase {
   func testCreateAccountButtonEnabledWithValidForm() throws {
     let userData = TestUserData.uniqueParent()
 
-    screen.fullNameField.tap()
-    screen.fullNameField.typeText(userData.fullName)
+    screen.fillSignupForm(with: userData)
 
     screen.emailField.tap()
     screen.emailField.typeText(userData.email)
@@ -163,7 +162,7 @@ final class SignupValidationE2ETests: XCTestCase {
     screen.familyCodeField.typeText("INVALID-CODE")
 
     // Tap elsewhere to trigger validation
-    screen.fullNameField.tap()
+    screen.firstNameField.tap()
 
     let familyCodeError = screen.errorBanner(containing: "FAM-XXXXXXXX")
     XCTAssertTrue(familyCodeError.waitForExistence(timeout: 3),
@@ -184,7 +183,7 @@ final class SignupValidationE2ETests: XCTestCase {
     screen.familyCodeField.tap()
     screen.familyCodeField.typeText("FAM-ABCD1234")
 
-    screen.fullNameField.tap()
+    screen.firstNameField.tap()
 
     let familyCodeError = screen.errorBanner(containing: "FAM-XXXXXXXX")
     XCTAssertFalse(familyCodeError.waitForExistence(timeout: 2),
@@ -207,17 +206,7 @@ final class SignupValidationE2ETests: XCTestCase {
     // Leave family code empty and fill everything else
     let userData = TestUserData.uniqueParent()
 
-    screen.fullNameField.tap()
-    screen.fullNameField.typeText(userData.fullName)
-
-    screen.emailField.tap()
-    screen.emailField.typeText(userData.email)
-
-    screen.passwordField.tap()
-    screen.passwordField.typeText(userData.password)
-
-    screen.confirmPasswordField.tap()
-    screen.confirmPasswordField.typeText(userData.password)
+    screen.fillSignupForm(with: userData)
 
     screen.acceptTerms()
 

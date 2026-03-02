@@ -73,28 +73,47 @@ struct ParentOnboardingWizardView: View {
 
   private var playerDetailsStep: some View {
     VStack(alignment: .leading, spacing: FamilyConstants.Spacing.medium) {
-      Text("Enter your athlete's details")
-        .font(.headline)
-      Text("We'll include these in the invite so they can prefill their profile.")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
+      VStack(alignment: .leading, spacing: 4) {
+        Text("Welcome to The Recruiting Compass")
+          .font(.title2.weight(.semibold))
+        Text("Tell us about your player")
+          .font(.headline)
+        Text("We'll pre-fill their profile so they can hit the ground running. Name, sport, and graduation year are optional.")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+      }
 
       VStack(alignment: .leading, spacing: FamilyConstants.Spacing.small) {
-        Text("First name")
+        Text("Player's first name")
           .font(.subheadline.weight(.medium))
         TextField("First name", text: $viewModel.playerFirstName)
           .textFieldStyle(.roundedBorder)
           .textContentType(.givenName)
           .accessibilityLabel("Athlete first name")
 
-        Text("Last name")
+        Text("Player's date of birth")
           .font(.subheadline.weight(.medium))
-        TextField("Last name", text: $viewModel.playerLastName)
-          .textFieldStyle(.roundedBorder)
-          .textContentType(.familyName)
-          .accessibilityLabel("Athlete last name")
+        DatePicker(
+          "mm/dd/yyyy",
+          selection: $viewModel.playerDateOfBirth,
+          displayedComponents: .date
+        )
+        .labelsHidden()
+        .datePickerStyle(.compact)
+        .accessibilityLabel("Player date of birth")
+        .onChange(of: viewModel.playerDateOfBirth) { _, _ in
+          viewModel.onDateOfBirthChange()
+        }
 
-        Text("Sport (optional)")
+        Text("Players must be 13 or older to create an account.")
+          .font(.caption)
+          .foregroundStyle(
+            viewModel.hasConfirmedDateOfBirth && viewModel.isPlayerUnderAge
+              ? Color.red
+              : Color.secondary
+          )
+
+        Text("Primary sport (optional)")
           .font(.subheadline.weight(.medium))
         Picker("Sport", selection: $viewModel.playerSport) {
           Text("Select sport").tag("")
@@ -104,17 +123,22 @@ struct ParentOnboardingWizardView: View {
         }
         .pickerStyle(.menu)
         .accessibilityLabel("Athlete sport")
-
-        Text("Position (optional)")
-          .font(.subheadline.weight(.medium))
-        Picker("Position", selection: $viewModel.playerPosition) {
-          Text("Select position").tag("")
-          ForEach(viewModel.positions, id: \.self) { pos in
-            Text(pos).tag(pos)
-          }
+        .onChange(of: viewModel.playerSport) { _, _ in
+          viewModel.onSportChange()
         }
-        .pickerStyle(.menu)
-        .accessibilityLabel("Athlete position")
+
+        if !viewModel.playerSport.isEmpty {
+          Text("Position (optional)")
+            .font(.subheadline.weight(.medium))
+          Picker("Position", selection: $viewModel.playerPosition) {
+            Text("Select position").tag("")
+            ForEach(viewModel.positionsForSport, id: \.self) { pos in
+              Text(pos).tag(pos)
+            }
+          }
+          .pickerStyle(.menu)
+          .accessibilityLabel("Athlete position")
+        }
 
         Text("Graduation year (optional)")
           .font(.subheadline.weight(.medium))

@@ -15,7 +15,8 @@ final class SignupViewModel {
 
   // MARK: - Form Fields
 
-  var fullName = ""
+  var firstName = ""
+  var lastName = ""
   var email = ""
   var password = ""
   var confirmPassword = ""
@@ -33,10 +34,34 @@ final class SignupViewModel {
   private let familyService: any FamilyManaging
   private let formValidator = FormValidator.self
 
+  private var trimmedFirstName: String {
+    firstName.trimmingCharacters(in: .whitespaces)
+  }
+
+  private var trimmedLastName: String {
+    lastName.trimmingCharacters(in: .whitespaces)
+  }
+
+  /// Combined full name sent to the backend (Supabase `full_name`).
+  /// Mirrors web behavior where first and last name fields are concatenated.
+  var fullName: String {
+    switch (trimmedFirstName.isEmpty, trimmedLastName.isEmpty) {
+    case (false, false):
+      return "\(trimmedFirstName) \(trimmedLastName)"
+    case (false, true):
+      return trimmedFirstName
+    case (true, false):
+      return trimmedLastName
+    default:
+      return ""
+    }
+  }
+
   var isFormValid: Bool {
     guard let role = selectedRole else { return false }
 
-    let hasValidFullName = !fullName.trimmingCharacters(in: .whitespaces).isEmpty
+    let hasValidFirstName = !trimmedFirstName.isEmpty
+    let hasValidLastName = !trimmedLastName.isEmpty
     let hasValidEmail = !email.trimmingCharacters(in: .whitespaces).isEmpty
     let hasValidPassword = !password.isEmpty
     let passwordsMatch = password == confirmPassword
@@ -51,7 +76,8 @@ final class SignupViewModel {
       true
     }
 
-    return hasValidFullName &&
+    return hasValidFirstName &&
+      hasValidLastName &&
       hasValidEmail &&
       hasValidPassword &&
       passwordsMatch &&
@@ -83,7 +109,8 @@ final class SignupViewModel {
   }
 
   private func resetFormState() {
-    fullName = ""
+    firstName = ""
+    lastName = ""
     email = ""
     password = ""
     confirmPassword = ""
@@ -99,7 +126,8 @@ final class SignupViewModel {
     fieldErrors[field] = validator()
   }
 
-  func validateFullName() { validate(.fullName) { formValidator.validateName(fullName) } }
+  func validateFirstName() { validate(.firstName) { formValidator.validateName(trimmedFirstName) } }
+  func validateLastName() { validate(.lastName) { formValidator.validateName(trimmedLastName) } }
   func validateEmail() { validate(.email) { formValidator.validateEmail(email) } }
 
   func validatePassword() {
@@ -144,7 +172,8 @@ final class SignupViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
-    validateFullName()
+    validateFirstName()
+    validateLastName()
     validateEmail()
     validatePassword()
     validateConfirmPassword()
