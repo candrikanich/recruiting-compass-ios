@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// 2-step parent onboarding: (1) Player details, (2) Send invite by email with prefill.
 struct ParentOnboardingWizardView: View {
@@ -29,7 +30,7 @@ struct ParentOnboardingWizardView: View {
         }
         navigationButtons
       }
-      .navigationTitle("Invite Athlete")
+      .navigationTitle("Invite Player")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
@@ -65,6 +66,9 @@ struct ParentOnboardingWizardView: View {
           .fill(step.rawValue <= viewModel.currentStep.rawValue ? Color.accentColor : Color(.tertiarySystemFill))
           .frame(height: 4)
       }
+      Text("\(viewModel.currentStep.rawValue + 1) of \(ParentOnboardingWizardViewModel.Step.allCases.count)")
+        .font(.caption)
+        .foregroundStyle(.secondary)
     }
     .padding(.horizontal, FamilyConstants.Spacing.medium)
     .padding(.vertical, FamilyConstants.Spacing.small)
@@ -159,21 +163,110 @@ struct ParentOnboardingWizardView: View {
 
   private var sendInviteStep: some View {
     VStack(alignment: .leading, spacing: FamilyConstants.Spacing.medium) {
-      Text("Send invite")
-        .font(.headline)
-      Text("Enter the email address where your athlete will receive the invite. Invites expire after 30 days.")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
+      VStack(alignment: .leading, spacing: 4) {
+        Text("Welcome to The Recruiting Compass")
+          .font(.title2.weight(.semibold))
+        Text("Invite your player")
+          .font(.headline)
+        Text("Send them an email invite or share your family code.")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+      }
 
       VStack(alignment: .leading, spacing: FamilyConstants.Spacing.small) {
-        Text("Email address")
+        Text("Player's email address")
           .font(.subheadline.weight(.medium))
-        TextField("athlete@example.com", text: $viewModel.inviteEmail)
+        TextField("player@example.com", text: $viewModel.inviteEmail)
           .textFieldStyle(.roundedBorder)
           .keyboardType(.emailAddress)
           .textContentType(.emailAddress)
           .autocapitalization(.none)
-          .accessibilityLabel("Athlete email for invite")
+          .accessibilityLabel("Player email for invite")
+      }
+
+      Button {
+        Task { await viewModel.sendInvite() }
+      } label: {
+        if viewModel.isLoading {
+          ProgressView().tint(.white)
+        } else {
+          Text("Send Invite")
+        }
+      }
+      .frame(maxWidth: .infinity)
+      .buttonStyle(.borderedProminent)
+      .disabled(!viewModel.isInviteStepValid || viewModel.isLoading)
+      .accessibilityLabel("Send invite")
+
+      Text("Or share your family code")
+        .font(.subheadline.weight(.medium))
+        .foregroundStyle(.secondary)
+        .padding(.top, FamilyConstants.Spacing.small)
+
+      if viewModel.isLoadingFamilyCode {
+        HStack(spacing: FamilyConstants.Spacing.small) {
+          ProgressView()
+          Text("Loading family code…")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(FamilyConstants.Spacing.small)
+        .background(Color(.tertiarySystemFill))
+        .cornerRadius(8)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Loading family code")
+      } else if let code = viewModel.familyCode {
+        VStack(spacing: FamilyConstants.Spacing.small) {
+          Text(code)
+            .font(.system(.title2, design: .monospaced).weight(.bold))
+            .tracking(2)
+            .textSelection(.enabled)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, FamilyConstants.Spacing.medium)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(12)
+            .accessibilityLabel(FamilyUtilities.formatCodeForVoiceOver(code))
+          Button {
+            UIPasteboard.general.string = code
+          } label: {
+            Label("Copy", systemImage: "doc.on.doc")
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.bordered)
+          .accessibilityLabel("Copy family code")
+          Text("Your player enters this code during their signup.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+      } else {
+        VStack(alignment: .leading, spacing: FamilyConstants.Spacing.small) {
+          Text("Family code couldn't be loaded.")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+          Button("Retry") {
+            Task { await viewModel.loadFamilyCode() }
+          }
+          .buttonStyle(.bordered)
+          .accessibilityLabel("Retry loading family code")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(FamilyConstants.Spacing.small)
+        .background(Color(.tertiarySystemFill))
+        .cornerRadius(8)
+      }
+
+      Button("I'll invite them later") {
+        onDismiss?()
+      }
+      .buttonStyle(.bordered)
+      .frame(maxWidth: .infinity)
+      .padding(.top, FamilyConstants.Spacing.small)
+      .accessibilityLabel("Skip invite for now")
+    }
+    .task(id: viewModel.currentStep) {
+      if viewModel.currentStep == .sendInvite {
+        await viewModel.loadFamilyCode()
       }
     }
   }
@@ -195,20 +288,8 @@ struct ParentOnboardingWizardView: View {
         .buttonStyle(.borderedProminent)
         .disabled(!viewModel.isPlayerDetailsValid)
         .accessibilityLabel("Next step")
-      } else {
-        Button {
-          Task { await viewModel.sendInvite() }
-        } label: {
-          if viewModel.isLoading {
-            ProgressView().tint(.white)
-          } else {
-            Text("Send invite")
-          }
-        }
-        .buttonStyle(.borderedProminent)
-        .disabled(!viewModel.isInviteStepValid || viewModel.isLoading)
-        .accessibilityLabel("Send invite")
       }
+      // Step 2: primary action (Send Invite) is in sendInviteStep content; only Back in bar
     }
     .padding(FamilyConstants.Spacing.medium)
   }

@@ -26,6 +26,10 @@ final class ParentOnboardingWizardViewModel {
 
   var inviteEmail: String = ""
 
+  /// Family code for "share your family code" (loaded when entering step 2).
+  var familyCode: String?
+  var isLoadingFamilyCode = false
+
   var isLoading = false
   var errorMessage: String?
   var successMessage: String?
@@ -103,6 +107,18 @@ final class ParentOnboardingWizardViewModel {
 
   func onDateOfBirthChange() {
     hasConfirmedDateOfBirth = true
+  }
+
+  /// Ensures a family exists and loads its code for the invite step (mirrors web: we have a family by the time we share or send invite).
+  func loadFamilyCode() async {
+    isLoadingFamilyCode = true
+    defer { isLoadingFamilyCode = false }
+    do {
+      let response = try await familyService.createFamily(role: .parent)
+      familyCode = response.familyCode
+    } catch {
+      familyCode = nil
+    }
   }
 
   func sendInvite() async {
