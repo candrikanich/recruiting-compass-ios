@@ -69,7 +69,7 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
 
   func fetchDocument(id: String) async throws -> Document {
     if shouldThrowFetchDocument {
-      throw NSError(domain: "MockDocumentsService", code: fetchDocumentErrorCode, userInfo: [NSLocalizedDescriptionKey: "Document not found"])
+      throw NSError(domain: "MockDocumentsService", code: fetchDocumentErrorCode, userInfo: [NSLocalizedDescriptionKey: "Mock fetch error"])
     }
     if let doc = stubbedDocument { return doc }
     return stubbedDocuments.first { $0.id == id } ?? Document.mock(id: id, title: "Test", type: .highlightVideo)
