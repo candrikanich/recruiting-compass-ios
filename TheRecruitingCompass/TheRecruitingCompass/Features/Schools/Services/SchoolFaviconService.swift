@@ -90,7 +90,7 @@ actor SchoolFaviconService: SchoolFaviconManaging {
     var domain = raw.lowercased()
       .replacingOccurrences(of: "https://", with: "")
       .replacingOccurrences(of: "http://", with: "")
-      .replacingOccurrences(of: "www.", with: "")
+    if domain.hasPrefix("www.") { domain = String(domain.dropFirst(4)) }
     if let cut = domain.firstIndex(of: "/") { domain = String(domain[..<cut]) }
     if let cut = domain.firstIndex(of: "?") { domain = String(domain[..<cut]) }
     domain = domain.trimmingCharacters(in: .whitespaces)
