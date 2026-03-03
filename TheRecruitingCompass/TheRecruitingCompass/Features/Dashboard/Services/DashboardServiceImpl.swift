@@ -219,7 +219,11 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
 
     let csrfToken = try await fetchCSRFToken(baseURL: baseURL)
 
-    let url = baseURL.appendingPathComponent("api/suggestions/\(id)/dismiss")
+    let safeId = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? id
+    let url = baseURL
+      .appendingPathComponent("api/suggestions")
+      .appendingPathComponent(safeId)
+      .appendingPathComponent("dismiss")
     var request = URLRequest(url: url)
     request.httpMethod = "PATCH"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -249,7 +253,11 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
 
     let csrfToken = try await fetchCSRFToken(baseURL: baseURL)
 
-    let url = baseURL.appendingPathComponent("api/suggestions/\(id)/complete")
+    let safeId = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? id
+    let url = baseURL
+      .appendingPathComponent("api/suggestions")
+      .appendingPathComponent(safeId)
+      .appendingPathComponent("complete")
     var request = URLRequest(url: url)
     request.httpMethod = "PATCH"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
