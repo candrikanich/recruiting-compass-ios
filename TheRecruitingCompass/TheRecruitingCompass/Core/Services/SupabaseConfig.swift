@@ -75,20 +75,26 @@ struct SupabaseConfig {
     #endif
   }()
 
-  /// Base URL for Recruiting Compass API (e.g. https://your-app.vercel.app). Used for suggestions (GET/PATCH /api/suggestions).
-  /// When set, dashboard action items use the API instead of direct Supabase. Optional in DEBUG (suggestions stay empty if unset).
-  /// If API_BASE_URL has no scheme, https:// is prepended (e.g. "recruiting-compass-web.vercel.app" → "https://recruiting-compass-web.vercel.app").
+  /// Base URL for Recruiting Compass API (e.g. https://myrecruitingcompass.com). Used for invite join, suggestions, and family API calls.
+  /// Reads from: (1) scheme env var API_BASE_URL (debug), (2) Release.xcconfig API_BASE_URL via embedded config, (3) production fallback.
   static let apiBaseURL: URL? = {
+    // (1) Scheme env var — works in debug/device runs from Xcode
     var urlString = (ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "").trimmingCharacters(in: .whitespaces)
-    guard !urlString.isEmpty, !urlString.contains("placeholder") else {
-      return nil
+    // (2) Embedded from Release.xcconfig at build time (same mechanism as Supabase credentials)
+    if urlString.isEmpty || urlString.contains("placeholder") {
+      let embedded = SupabaseConfigEmbedded.apiBaseURL
+      if !embedded.isEmpty, !embedded.contains("placeholder") {
+        urlString = embedded
+      }
     }
-    if !urlString.contains("://") {
-      urlString = "https://" + urlString
+    // (3) Production fallback for TestFlight/App Store
+    if urlString.isEmpty || urlString.contains("placeholder") {
+      #if !DEBUG
+      urlString = "https://myrecruitingcompass.com"
+      #endif
     }
-    guard let url = URL(string: urlString) else {
-      return nil
-    }
-    return url
+    guard !urlString.isEmpty, !urlString.contains("placeholder") else { return nil }
+    if !urlString.contains("://") { urlString = "https://" + urlString }
+    return URL(string: urlString)
   }()
 }
