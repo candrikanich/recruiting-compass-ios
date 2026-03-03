@@ -461,6 +461,8 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
   func resendInvitation(id: String, email: String, role: String) async throws {
     try await revokeInvitation(id: id)
+    // Brief delay so server can commit revoke before create (avoids soft-delete/race)
+    try await Task.sleep(nanoseconds: 500_000_000)
     try await sendEmailInvite(email: email, role: role, pendingPlayerDetails: nil)
   }
 

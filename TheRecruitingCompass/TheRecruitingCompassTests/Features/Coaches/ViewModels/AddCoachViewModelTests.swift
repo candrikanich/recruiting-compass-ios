@@ -95,22 +95,15 @@ final class AddCoachViewModelTests: XCTestCase {
   }
 
   func testLoadSchools_preventsDuplicateCalls() async {
-    // Given
+    // Given: Simulate already-loading state
+    viewModel.isLoadingSchools = true
     mockService.mockSchools = [School.mock(id: "1", name: "School A")]
 
-    // When: Start first load
-    Task {
-      await viewModel.loadSchools()
-    }
-
-    // Set loading state manually to simulate concurrent call
-    viewModel.isLoadingSchools = true
-
-    // When: Try to load again while loading
+    // When: Try to load while already loading
     await viewModel.loadSchools()
 
-    // Then: Should not make duplicate call (count stays 0 or 1, not 2)
-    XCTAssertLessThanOrEqual(mockService.fetchSchoolsCallCount, 1)
+    // Then: Guard should prevent any service call
+    XCTAssertEqual(mockService.fetchSchoolsCallCount, 0)
   }
 
   func testLoadSchools_withEmptyResult_setsEmptyArray() async {
