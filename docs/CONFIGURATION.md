@@ -42,6 +42,52 @@ Session and other secure data are stored with `KeychainHelper`. The service iden
 
 ---
 
+## Universal Links (Invite Deep Linking)
+
+For invitation emails to open the app on iOS when the user taps the link, the web server at [myrecruitingcompass.com](https://www.myrecruitingcompass.com) must host an **apple-app-site-association** file.
+
+### 1. Host `apple-app-site-association`
+
+Serve this file at:
+
+- `https://www.myrecruitingcompass.com/.well-known/apple-app-site-association`
+- or `https://www.myrecruitingcompass.com/apple-app-site-association`
+
+**Content** (no file extension; `Content-Type: application/json`):
+
+```json
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "G374A783RH.com.chrisandrikanich.TheRecruitingCompass",
+        "paths": ["/invite/*", "/join"]
+      }
+    ]
+  }
+}
+```
+
+- **Team ID:** `G374A783RH` (from Xcode)
+- **Bundle ID:** `com.chrisandrikanich.TheRecruitingCompass`
+
+### 2. Invite link format
+
+Invitation emails must use links like:
+
+- `https://www.myrecruitingcompass.com/invite/TOKEN`
+- or `https://www.myrecruitingcompass.com/join?token=TOKEN`
+
+When the app is installed, iOS opens it instead of Safari. The app presents `InviteJoinView` with the token.
+
+### 3. Verify
+
+- Test on a **physical device** (Universal Links do not work correctly in Simulator)
+- Ensure `API_BASE_URL` (or the invite email base URL) uses `https://www.myrecruitingcompass.com`
+
+---
+
 ## References
 
 - [CLAUDE.md](../CLAUDE.md) — Setup steps, architecture, testing

@@ -9,8 +9,8 @@ enum DeepLinkRoute: Equatable {
 enum DeepLinkHandler {
   static let scheme = "recruiting-compass"
   static let universalLinkHosts: Set<String> = [
-    "recruiting-compass.com",
-    "www.recruiting-compass.com",
+    "myrecruitingcompass.com",
+    "www.myrecruitingcompass.com",
     "localhost",
     "127.0.0.1",
   ]
@@ -27,7 +27,7 @@ enum DeepLinkHandler {
       return .resetPassword(token: token)
     }
 
-    // Universal links: https://recruiting-compass.com/join?token=... or /invite/TOKEN
+    // Universal links: https://www.myrecruitingcompass.com/join?token=... or /invite/TOKEN
     guard (url.scheme == "http" || url.scheme == "https"),
           let host = url.host,
           universalLinkHosts.contains(host) else {
