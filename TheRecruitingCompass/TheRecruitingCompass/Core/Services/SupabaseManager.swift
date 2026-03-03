@@ -320,7 +320,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     for attempt in 0..<maxRetries {
       do {
         let user = try await fetchUserProfile(userId: userId)
-        logger.info("Successfully fetched user profile for \(userId)")
+        logger.info("Successfully fetched user profile for \(userId, privacy: .private)")
         return user
       } catch {
         logger.warning("Attempt \(attempt + 1)/\(maxRetries) failed: \(error.localizedDescription)")
@@ -331,7 +331,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     }
 
     // Fallback to metadata if all retries failed
-    logger.error("All retries failed for user \(userId), falling back to metadata")
+    logger.error("All retries failed for user \(userId, privacy: .private), falling back to metadata")
     guard let user = createUserFromMetadata(userId: userId, email: email, metadata: fallbackMetadata) else {
       return nil
     }
@@ -349,7 +349,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
           onConflict: "id"
         )
         .execute()
-      logger.info("Upserted user \(userId) into users table from metadata fallback")
+      logger.info("Upserted user \(userId, privacy: .private) into users table from metadata fallback")
     } catch {
       logger.error("Failed to upsert user from metadata: \(error.localizedDescription)")
       // users_id_fkey: auth user was deleted (e.g. from Supabase dashboard) but app has stale session
