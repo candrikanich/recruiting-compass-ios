@@ -106,7 +106,7 @@ extension AddSchoolViewModel {
 
       // Phase 5: Fetch and persist favicon — fire-and-forget, do not await
       let faviconService = schoolFaviconService
-      Task.detached {
+      Task {
         await faviconService.fetchAndPersist(school: newSchool)
       }
 
