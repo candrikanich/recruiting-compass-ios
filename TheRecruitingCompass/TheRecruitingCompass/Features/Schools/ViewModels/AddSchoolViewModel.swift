@@ -49,6 +49,7 @@ final class AddSchoolViewModel {
   internal let schoolsService: SchoolsManaging
   internal let collegeScorecardService: CollegeScorecardManaging
   internal let ncaaDatabase: NcaaDatabaseManaging
+  internal let schoolFaviconService: SchoolFaviconManaging
   internal let familyUnitId: String
   internal let userId: String
   nonisolated(unsafe) internal let announcer: AccessibilityAnnouncing
@@ -69,6 +70,7 @@ final class AddSchoolViewModel {
     schoolsService: SchoolsManaging,
     collegeScorecardService: CollegeScorecardManaging,
     ncaaDatabase: NcaaDatabaseManaging,
+    schoolFaviconService: SchoolFaviconManaging,
     familyUnitId: String,
     userId: String,
     announcer: AccessibilityAnnouncing
@@ -76,6 +78,7 @@ final class AddSchoolViewModel {
     self.schoolsService = schoolsService
     self.collegeScorecardService = collegeScorecardService
     self.ncaaDatabase = ncaaDatabase
+    self.schoolFaviconService = schoolFaviconService
     self.familyUnitId = familyUnitId
     self.userId = userId
     self.announcer = announcer
@@ -91,6 +94,7 @@ final class AddSchoolViewModel {
       schoolsService: schoolsService,
       collegeScorecardService: CollegeScorecardService(),
       ncaaDatabase: NcaaDatabase.shared,
+      schoolFaviconService: SchoolFaviconService(),
       familyUnitId: familyUnitId,
       userId: userId,
       announcer: UIAccessibilityAnnouncer()
