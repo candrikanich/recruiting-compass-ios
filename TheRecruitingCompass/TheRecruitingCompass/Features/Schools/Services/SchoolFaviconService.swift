@@ -18,9 +18,7 @@ actor SchoolFaviconService: SchoolFaviconManaging {
   private let urlSession: URLSession
   private let baseURL: URL?
 
-  nonisolated static let defaultBaseURL: URL? = SupabaseConfig.apiBaseURL
-
-  init(urlSession: URLSession = .shared, baseURL: URL? = SchoolFaviconService.defaultBaseURL) {
+  init(urlSession: URLSession = .shared, baseURL: URL? = SupabaseConfig.apiBaseURL) {
     self.urlSession = urlSession
     self.baseURL = baseURL
   }
@@ -31,9 +29,8 @@ actor SchoolFaviconService: SchoolFaviconManaging {
       return
     }
 
-    let domain = extractDomain(from: school.website) ?? fallbackDomain(for: school.name)
-    guard !domain.isEmpty else {
-      faviconLogger.debug("Favicon skipped: could not derive domain for \(school.name)")
+    guard let domain = extractDomain(from: school.website), !domain.isEmpty else {
+      faviconLogger.debug("Favicon skipped: no website configured for \(school.name)")
       return
     }
 
@@ -96,15 +93,6 @@ actor SchoolFaviconService: SchoolFaviconManaging {
     domain = domain.trimmingCharacters(in: .whitespaces)
     guard domain.contains("."), !domain.hasPrefix(".") else { return nil }
     return domain.isEmpty ? nil : domain
-  }
-
-  private func fallbackDomain(for name: String) -> String {
-    let slug = name.lowercased()
-      .components(separatedBy: .whitespaces)
-      .joined()
-      .components(separatedBy: .punctuationCharacters)
-      .joined()
-    return "\(slug).edu"
   }
 }
 
