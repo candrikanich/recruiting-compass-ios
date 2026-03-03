@@ -8,12 +8,23 @@ enum DeepLinkRoute: Equatable {
 
 enum DeepLinkHandler {
   static let scheme = "recruiting-compass"
-  static let universalLinkHosts: Set<String> = [
-    "myrecruitingcompass.com",
-    "www.myrecruitingcompass.com",
-    "localhost",
-    "127.0.0.1",
-  ]
+  static let universalLinkHosts: Set<String> = {
+    var hosts: Set<String> = [
+      "myrecruitingcompass.com",
+      "www.myrecruitingcompass.com",
+    ]
+    #if DEBUG
+    hosts.insert("localhost")
+    hosts.insert("127.0.0.1")
+    #endif
+    return hosts
+  }()
+
+  private static let inviteTokenAllowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+
+  private static func isValidInviteToken(_ token: String) -> Bool {
+    !token.isEmpty && token.unicodeScalars.allSatisfy { inviteTokenAllowed.contains($0) }
+  }
 
   static func parse(_ url: URL) -> DeepLinkRoute {
     // Custom scheme: recruiting-compass://reset-password?token=...
@@ -38,7 +49,7 @@ enum DeepLinkHandler {
     if url.path == "/join",
        let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
        let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
-       !token.isEmpty {
+       isValidInviteToken(token) {
       return .joinInvite(token: token)
     }
 
@@ -47,7 +58,7 @@ enum DeepLinkHandler {
       let token = url.path
         .replacingOccurrences(of: "/invite/", with: "")
         .trimmingCharacters(in: .whitespacesAndNewlines)
-      if !token.isEmpty {
+      if isValidInviteToken(token) {
         return .joinInvite(token: token)
       }
     }
