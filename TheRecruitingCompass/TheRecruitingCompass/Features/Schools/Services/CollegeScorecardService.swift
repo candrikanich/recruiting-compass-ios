@@ -15,15 +15,16 @@ actor CollegeScorecardService: CollegeScorecardManaging {
   private let cache = CollegeScorecardCache()
 
   init(apiKey: String? = nil, urlSession: URLSession = .shared) {
-    // Try to get API key from environment or use placeholder
-    if let key = apiKey {
+    if let key = apiKey, !key.isEmpty {
       self.apiKey = key
-    } else if let envKey = ProcessInfo.processInfo.environment["COLLEGE_SCORECARD_API_KEY"] {
+    } else if let envKey = ProcessInfo.processInfo.environment["COLLEGE_SCORECARD_API_KEY"], !envKey.isEmpty {
       self.apiKey = envKey
     } else {
-      // Set COLLEGE_SCORECARD_API_KEY in Scheme → Run → Environment Variables, or inject via init, for production.
-      self.apiKey = ""
-      logger.warning("College Scorecard API key not configured")
+      let embedded = SupabaseConfigEmbedded.collegeScorecardApiKey
+      self.apiKey = embedded
+      if embedded.isEmpty {
+        logger.warning("College Scorecard API key not configured")
+      }
     }
     self.urlSession = urlSession
   }
