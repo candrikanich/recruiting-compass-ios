@@ -183,7 +183,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     let familyId = UUID().uuidString
     let memberId = UUID().uuidString
     let now = ISO8601DateFormatter().string(from: Date())
-    let familyCode = "FAM-" + String((0..<6).map { _ in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".randomElement()! })
+    let familyCode = "FAM-" + String((0..<8).map { _ in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".randomElement()! })
 
     struct FamilyUnitInsert: Encodable {
       let id: String
@@ -343,7 +343,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
     guard (200..<300).contains(http.statusCode) else {
       let bodyString = String(data: data, encoding: .utf8) ?? "(unable to decode)"
-      logger.error("sendEmailInvite failed: status=\(http.statusCode), body=\(bodyString, privacy: .public)")
+      logger.error("sendEmailInvite failed: status=\(http.statusCode), body=\(bodyString, privacy: .private)")
       throw FamilyError.serverError("Failed to send invite")
     }
 
@@ -373,7 +373,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
       return decoded.invitations
     } catch {
       let bodyPreview = String(data: data.prefix(500), encoding: .utf8) ?? "(unable to decode)"
-      logger.error("fetchPendingInvitations decode failed: \(error.localizedDescription, privacy: .public), body=\(bodyPreview, privacy: .public)")
+      logger.error("fetchPendingInvitations decode failed: \(error.localizedDescription, privacy: .public), body=\(bodyPreview, privacy: .private)")
       throw error
     }
   }
@@ -384,8 +384,11 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     }
     let token = try await supabaseManager.client.auth.session.accessToken
 
+    let safeId = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? id
     var request = URLRequest(
-      url: baseURL.appendingPathComponent("api/family/invitations/\(id)")
+      url: baseURL
+        .appendingPathComponent("api/family/invitations")
+        .appendingPathComponent(safeId)
     )
     request.httpMethod = "DELETE"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -401,7 +404,10 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
       throw FamilyError.serverError("API base URL not configured")
     }
 
-    let url = baseURL.appendingPathComponent("api/family/invite/\(token)")
+    let safeToken = token.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? token
+    let url = baseURL
+      .appendingPathComponent("api/family/invite")
+      .appendingPathComponent(safeToken)
     let (data, response) = try await URLSession.shared.data(from: url)
 
     guard let http = response as? HTTPURLResponse else {
@@ -427,8 +433,12 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     }
     let accessToken = try await supabaseManager.client.auth.session.accessToken
 
+    let safeToken = token.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? token
     var request = URLRequest(
-      url: baseURL.appendingPathComponent("api/family/invite/\(token)/accept")
+      url: baseURL
+        .appendingPathComponent("api/family/invite")
+        .appendingPathComponent(safeToken)
+        .appendingPathComponent("accept")
     )
     request.httpMethod = "POST"
     request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
@@ -445,11 +455,17 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     guard let baseURL = SupabaseConfig.apiBaseURL else {
       throw FamilyError.serverError("API base URL not configured")
     }
+    let accessToken = try await supabaseManager.client.auth.session.accessToken
 
+    let safeToken = token.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? token
     var request = URLRequest(
-      url: baseURL.appendingPathComponent("api/family/invite/\(token)/decline")
+      url: baseURL
+        .appendingPathComponent("api/family/invite")
+        .appendingPathComponent(safeToken)
+        .appendingPathComponent("decline")
     )
     request.httpMethod = "POST"
+    request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.httpBody = Data("{}".utf8)
 
