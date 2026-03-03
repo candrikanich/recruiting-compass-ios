@@ -227,21 +227,16 @@ final class CollegeScorecardServiceTests: XCTestCase {
     }
   }
 
-  func testLookupCollege_malformedJSON_throwsNetworkError() async {
+  func testLookupCollege_malformedJSON_throwsDecodingError() async {
     // Given
     let invalidJSON = "{ invalid json }"
     MockURLProtocol.stubResponse(statusCode: 200, data: invalidJSON.data(using: .utf8))
 
-    // When / Then
+    // When / Then — JSON decode errors propagate as DecodingError (not wrapped by fetchData)
     await XCTAssertThrowsErrorAsync(
       try await service.lookupCollege(name: "Florida")
     ) { error in
-      XCTAssertTrue(error is CollegeDataError)
-      if case .networkError = error as? CollegeDataError {
-        // Success - correct error type
-      } else {
-        XCTFail("Expected networkError, got \(error)")
-      }
+      XCTAssertTrue(error is DecodingError, "Expected DecodingError, got \(error)")
     }
   }
 
@@ -568,6 +563,7 @@ extension CollegeDataError: Equatable {
     switch (lhs, rhs) {
     case (.nameTooShort, .nameTooShort),
          (.apiKeyMissing, .apiKeyMissing),
+         (.sessionMissing, .sessionMissing),
          (.invalidApiKey, .invalidApiKey),
          (.rateLimited, .rateLimited),
          (.schoolNotFound, .schoolNotFound),
