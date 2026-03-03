@@ -73,9 +73,6 @@ extension SchoolCreateRequest {
       scorecardData: scorecardData
     )
 
-    // Optional: favicon/logo URL derived from website (Google favicon service)
-    let faviconUrl = Self.faviconUrlFromWebsite(website ?? scorecardData?.website)
-
     return SchoolCreateRequest(
       userId: userId,
       familyUnitId: familyUnitId,
@@ -92,43 +89,8 @@ extension SchoolCreateRequest {
       notes: notes,
       status: status,
       academicInfo: academicInfo,
-      faviconUrl: faviconUrl
+      faviconUrl: nil
     )
-  }
-
-  /// Derives a favicon/logo URL from a website URL using Google's favicon service
-  /// Returns nil if website is nil, empty, or domain cannot be extracted
-  private static func faviconUrlFromWebsite(_ website: String?) -> String? {
-    guard let urlString = website, !urlString.isEmpty else {
-      return nil
-    }
-    guard let domain = Self.extractDomain(from: urlString), !domain.isEmpty else {
-      return nil
-    }
-    let encoded = domain.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? domain
-    return "https://www.google.com/s2/favicons?sz=256&domain=\(encoded)"
-  }
-
-  /// Extracts a safe domain from a website URL (e.g. https://ufl.edu → ufl.edu)
-  private static func extractDomain(from urlString: String) -> String? {
-    let trimmed = urlString.trimmingCharacters(in: .whitespaces)
-    guard !trimmed.isEmpty else { return nil }
-    // Remove protocol and www.
-    var domain = trimmed
-      .lowercased()
-      .replacingOccurrences(of: "https://", with: "")
-      .replacingOccurrences(of: "http://", with: "")
-      .replacingOccurrences(of: "www.", with: "")
-    // Remove path and query
-    if let pathStart = domain.firstIndex(of: "/") {
-      domain = String(domain[..<pathStart])
-    }
-    if let queryStart = domain.firstIndex(of: "?") {
-      domain = String(domain[..<queryStart])
-    }
-    domain = domain.trimmingCharacters(in: .whitespaces)
-    guard domain.contains("."), !domain.hasPrefix(".") else { return nil }
-    return domain.isEmpty ? nil : domain
   }
 
   /// Merges College Scorecard enrichment into AcademicInfo for school create
