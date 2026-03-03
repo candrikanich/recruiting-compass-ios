@@ -32,7 +32,7 @@ enum DeepLinkHandler {
       guard url.host == "reset-password",
             let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
             let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
-            !token.isEmpty else {
+            isValidInviteToken(token) else {
         return .unknown
       }
       return .resetPassword(token: token)
