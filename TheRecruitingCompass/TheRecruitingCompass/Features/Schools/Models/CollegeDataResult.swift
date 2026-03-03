@@ -140,6 +140,7 @@ struct CollegeDataResult: Codable, Sendable {
 enum CollegeDataError: LocalizedError {
   case nameTooShort
   case apiKeyMissing
+  case sessionMissing
   case invalidApiKey
   case rateLimited
   case schoolNotFound
@@ -152,7 +153,9 @@ enum CollegeDataError: LocalizedError {
     case .nameTooShort:
       return "School name must be at least 3 characters"
     case .apiKeyMissing:
-      return "College Scorecard API key is not configured"
+      return "College Scorecard API is not configured"
+    case .sessionMissing:
+      return "You must be signed in to search colleges"
     case .invalidApiKey:
       return "Invalid API key"
     case .rateLimited:
@@ -174,6 +177,8 @@ enum CollegeDataError: LocalizedError {
       return "Try entering the full school name."
     case .apiKeyMissing:
       return "Contact support to configure API access."
+    case .sessionMissing:
+      return "Sign in and try again."
     case .invalidApiKey:
       return "Contact support to update API credentials."
     case .rateLimited:

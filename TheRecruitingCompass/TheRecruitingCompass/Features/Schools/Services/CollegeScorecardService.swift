@@ -16,15 +16,27 @@ protocol CollegeScorecardManaging: Sendable {
 /// Routes College Scorecard requests through the web app proxy at /api/colleges/search.
 /// Auth: Supabase session Bearer token. Falls back to CollegeDataError.apiKeyMissing when
 /// API_BASE_URL or session token is unavailable.
+typealias TokenProvider = @Sendable () async throws -> String?
+
 actor CollegeScorecardService: CollegeScorecardManaging {
   private let urlSession: URLSession
   private let cache = CollegeScorecardCache()
   // Captured at init to avoid crossing actor isolation when reading the MainActor-isolated property.
   private let baseURL: URL?
+  private let tokenProvider: TokenProvider
 
-  init(urlSession: URLSession = .shared, baseURL: URL? = SupabaseConfig.apiBaseURL) {
+  nonisolated static let defaultTokenProvider: TokenProvider = {
+    try? await SupabaseManager.shared.client.auth.session.accessToken
+  }
+
+  init(
+    urlSession: URLSession = .shared,
+    baseURL: URL? = SupabaseConfig.apiBaseURL,
+    tokenProvider: @escaping TokenProvider = CollegeScorecardService.defaultTokenProvider
+  ) {
     self.urlSession = urlSession
     self.baseURL = baseURL
+    self.tokenProvider = tokenProvider
   }
 
   // MARK: - Public API
@@ -125,19 +137,20 @@ actor CollegeScorecardService: CollegeScorecardManaging {
     guard let base = baseURL else {
       throw CollegeDataError.apiKeyMissing
     }
-    var components = URLComponents(
+    guard var components = URLComponents(
       url: base.appendingPathComponent("api/colleges/search"),
       resolvingAgainstBaseURL: false
-    )!
+    ) else {
+      throw CollegeDataError.invalidResponse
+    }
     components.queryItems = queryItems
     guard let url = components.url else { throw CollegeDataError.invalidResponse }
     return url
   }
 
   private func fetchData(from url: URL) async throws -> Data {
-    guard let token = try? await SupabaseManager.shared.client.auth.session.accessToken,
-          !token.isEmpty else {
-      throw CollegeDataError.apiKeyMissing
+    guard let token = try? await tokenProvider(), !token.isEmpty else {
+      throw CollegeDataError.sessionMissing
     }
 
     var request = URLRequest(url: url)

@@ -23,8 +23,8 @@ final class CollegeScorecardServiceTests: XCTestCase {
     configuration.protocolClasses = [MockURLProtocol.self]
     mockSession = URLSession(configuration: configuration)
 
-    // Inject mock session into service
-    service = CollegeScorecardService(apiKey: "test-api-key", urlSession: mockSession)
+    // Inject mock session and token provider into service
+    service = CollegeScorecardService(urlSession: mockSession, tokenProvider: { "test-token" })
   }
 
   override func tearDown() {
@@ -32,26 +32,6 @@ final class CollegeScorecardServiceTests: XCTestCase {
     service = nil
     mockSession = nil
     super.tearDown()
-  }
-
-  // MARK: - Init Tests
-
-  func testInit_withProvidedApiKey_usesProvidedKey() {
-    // Given / When
-    let service = CollegeScorecardService(apiKey: "custom-key")
-
-    // Then
-    // API key is private, so we test behavior instead
-    XCTAssertNotNil(service)
-  }
-
-  func testInit_withoutApiKey_usesEmptyString() {
-    // Given / When
-    let service = CollegeScorecardService(apiKey: nil)
-
-    // Then
-    // API key should be empty (tests will verify by checking error thrown)
-    XCTAssertNotNil(service)
   }
 
   // MARK: - lookupCollege() Success Tests
@@ -158,15 +138,15 @@ final class CollegeScorecardServiceTests: XCTestCase {
 
   // MARK: - lookupCollege() Error Tests
 
-  func testLookupCollege_missingApiKey_throwsApiKeyMissing() async {
+  func testLookupCollege_missingToken_throwsSessionMissing() async {
     // Given
-    let serviceWithoutKey = CollegeScorecardService(apiKey: "", urlSession: mockSession)
+    let serviceWithoutToken = CollegeScorecardService(urlSession: mockSession, tokenProvider: { nil })
 
     // When / Then
     await XCTAssertThrowsErrorAsync(
-      try await serviceWithoutKey.lookupCollege(name: "Florida")
+      try await serviceWithoutToken.lookupCollege(name: "Florida")
     ) { error in
-      XCTAssertEqual(error as? CollegeDataError, .apiKeyMissing)
+      XCTAssertEqual(error as? CollegeDataError, .sessionMissing)
     }
   }
 
@@ -437,15 +417,15 @@ final class CollegeScorecardServiceTests: XCTestCase {
 
   // MARK: - searchColleges() Error Tests
 
-  func testSearchColleges_missingApiKey_throwsApiKeyMissing() async {
+  func testSearchColleges_missingToken_throwsSessionMissing() async {
     // Given
-    let serviceWithoutKey = CollegeScorecardService(apiKey: "", urlSession: mockSession)
+    let serviceWithoutToken = CollegeScorecardService(urlSession: mockSession, tokenProvider: { nil })
 
     // When / Then
     await XCTAssertThrowsErrorAsync(
-      try await serviceWithoutKey.searchColleges(query: "Florida")
+      try await serviceWithoutToken.searchColleges(query: "Florida")
     ) { error in
-      XCTAssertEqual(error as? CollegeDataError, .apiKeyMissing)
+      XCTAssertEqual(error as? CollegeDataError, .sessionMissing)
     }
   }
 
