@@ -255,6 +255,7 @@ final class SchoolDetailViewModel {
 
   func saveNotes() async {
     let sanitizedNotes = DataSanitizer.stripHtmlTags(editedNotes.trimmingCharacters(in: .whitespacesAndNewlines))
+    guard canSaveNotes else { return }
     await ViewModelHelpers.withLoading(set: { self.isSavingNotes = $0 }) {
       do {
         let updated = try await schoolsService.updateNotes(id: schoolId, notes: sanitizedNotes)

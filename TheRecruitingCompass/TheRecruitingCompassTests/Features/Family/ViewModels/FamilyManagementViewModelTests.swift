@@ -212,11 +212,13 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
   func testCreateFamily_error_setsError() async {
     mockFamilyService.shouldSucceed = false
+    // Mock throws FamilyError.serverError("Mock error"); ViewModel shows error's description
+    mockFamilyService.mockError = FamilyError.serverError("Mock error")
 
     await sut.createFamily()
 
     XCTAssertNotNil(sut.errorMessage)
-    XCTAssertEqual(sut.errorMessage, "Failed to create family. Please try again.")
+    XCTAssertEqual(sut.errorMessage, "Mock error")
     XCTAssertNil(sut.familyCode)
     XCTAssertFalse(sut.isLoading)
   }
@@ -358,7 +360,8 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
     XCTAssertEqual(mockFamilyService.joinFamilyWithCodeCallCount, 1)
     XCTAssertEqual(mockFamilyService.lastFamilyCodeJoined, "FAM-ABC123")
-    XCTAssertEqual(mockFamilyService.getParentFamiliesCallCount, 1)
+    // loadParentData() calls getParentFamilies(); if empty then createFamily() then getParentFamilies() again
+    XCTAssertEqual(mockFamilyService.getParentFamiliesCallCount, 2)
     XCTAssertEqual(sut.codeInput, "")
     XCTAssertTrue(sut.showSuccessToast)
     XCTAssertEqual(sut.successMessage, "Successfully joined family!")

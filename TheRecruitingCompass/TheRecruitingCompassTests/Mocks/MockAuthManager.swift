@@ -36,6 +36,9 @@ class MockAuthManager: AuthManaging {
   var mockSessionToReturn: Session?
   var mockErrorToThrow: AuthError = .networkError("Mock network error")
 
+  /// When false, signup() does not set isAuthenticated = true, so SignupViewModel sets shouldNavigateToVerifyEmail (e.g. email confirmation required).
+  var setAuthenticatedAfterSignup = true
+
   // MARK: - AuthManaging Methods
 
   func login(email: String, password: String) async throws {
@@ -109,7 +112,9 @@ class MockAuthManager: AuthManaging {
 
     self.user = user
     self.session = session
-    self.isAuthenticated = true
+    if setAuthenticatedAfterSignup {
+      self.isAuthenticated = true
+    }
     self.errorMessage = nil
   }
 

@@ -430,10 +430,10 @@ final class CoachDetailViewModelTests: XCTestCase {
   }
 
   func testComputeStats_NoLastContact_DaysSinceContactNil() async {
-    testCoach = makeCoach(id: "coach-1", lastContactDate: nil)
+    let coachNoContact = makeCoach(id: "coach-1", lastContactDate: nil)
     sut = CoachDetailViewModel(
       coachId: "coach-1",
-      allCoaches: [testCoach],
+      allCoaches: [coachNoContact],
       allSchools: [testSchool],
       coachesService: mockService,
       authManager: mockAuthManager

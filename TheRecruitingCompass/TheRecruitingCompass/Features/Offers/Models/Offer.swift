@@ -46,7 +46,11 @@ struct Offer: Codable, Identifiable, Sendable {
 
   var daysUntilDeadline: Int? {
     guard let deadline = displayDeadlineDate else { return nil }
-    return Calendar.current.dateComponents([.day], from: Calendar.current.startOfDay(for: Date()), to: Calendar.current.startOfDay(for: deadline)).day
+    var utcCal = Calendar(identifier: .gregorian)
+    utcCal.timeZone = TimeZone(identifier: "UTC") ?? .current
+    let startToday = utcCal.startOfDay(for: Date())
+    let startDeadline = utcCal.startOfDay(for: deadline)
+    return utcCal.dateComponents([.day], from: startToday, to: startDeadline).day
   }
 
   var deadlineUrgency: DeadlineUrgency {

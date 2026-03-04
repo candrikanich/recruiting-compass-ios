@@ -31,10 +31,12 @@ final class MetricTrendTests: XCTestCase {
   // MARK: - Identifiable Tests
 
   func testIdentifiable_GeneratesUniqueId() {
-    let trend1 = createTrend()
-    let trend2 = createTrend()
+    let trend1 = createTrend(type: .velocity)
+    let trend2 = createTrend(type: .exitVelo)
 
     XCTAssertNotEqual(trend1.id, trend2.id)
+    XCTAssertEqual(trend1.id, "velocity")
+    XCTAssertEqual(trend2.id, "exit_velo")
   }
 
   // MARK: - Equatable Tests

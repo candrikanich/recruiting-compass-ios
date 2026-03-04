@@ -24,6 +24,8 @@ struct LoginFormField: View {
   let keyboardType: UIKeyboardType
   /// Semantic type for autofill/suggestions. Set to fix truncated or overlapping iOS suggestion bubbles.
   var textContentType: UITextContentType? = nil
+  /// Optional identifier for UI testing (E2E).
+  var accessibilityIdentifier: String? = nil
   let onBlur: () -> Void
   @Environment(\.sizeCategory) var sizeCategory
 
@@ -81,6 +83,7 @@ struct LoginFormField: View {
       }
     }
     .accessibilityElement(children: .combine)
+    .accessibilityIdentifier(accessibilityIdentifier ?? label)
   }
 }
 

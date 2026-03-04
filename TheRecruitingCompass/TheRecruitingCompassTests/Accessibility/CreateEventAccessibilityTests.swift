@@ -259,7 +259,8 @@ final class CreateEventAccessibilityTests: XCTestCase {
     viewModel.otherSchoolName = "   "
     viewModel.handleOtherSchool()
 
-    XCTAssertFalse(viewModel.showOtherSchoolModal, "Modal should dismiss even with empty name")
+    // Modal stays open when name is empty/whitespace (user must enter a name or cancel)
+    XCTAssertTrue(viewModel.showOtherSchoolModal, "Modal should stay open when name is empty or whitespace")
     XCTAssertTrue(viewModel.formData.location.isEmpty, "Location should not be set from whitespace-only name")
   }
 

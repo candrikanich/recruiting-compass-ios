@@ -20,7 +20,7 @@ enum DeepLinkHandler {
     return hosts
   }()
 
-  private static let inviteTokenAllowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+  private static let inviteTokenAllowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_."))
 
   private static func isValidInviteToken(_ token: String) -> Bool {
     !token.isEmpty && token.unicodeScalars.allSatisfy { inviteTokenAllowed.contains($0) }

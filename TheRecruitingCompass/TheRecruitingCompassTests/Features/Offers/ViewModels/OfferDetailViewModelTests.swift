@@ -19,10 +19,12 @@ final class OfferDetailViewModelTests: XCTestCase {
       updatedAt: "2025-01-01T00:00:00Z",
       role: .player
     ))
+    let emptyCache = InMemoryCache()
     sut = OfferDetailViewModel(
       offerId: "test-offer-id",
       offersService: mockService,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: emptyCache
     )
   }
 
@@ -321,17 +323,27 @@ final class OfferDetailViewModelTests: XCTestCase {
   }
 
   func testDeadlineDisplayText_FutureDeadline() {
-    let futureDate = Calendar.current.date(byAdding: .day, value: 10, to: Date())!
+    let utc = TimeZone(identifier: "UTC")!
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = utc
+    let startOfTodayUTC = cal.startOfDay(for: Date())
+    let futureDate = cal.date(byAdding: .day, value: 10, to: startOfTodayUTC)!
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
+    formatter.timeZone = utc
     sut.offer = makeTestOffer(id: "1", deadlineDate: formatter.string(from: futureDate))
     XCTAssertEqual(sut.deadlineDisplayText, "10d")
   }
 
   func testDeadlineDisplayText_OverdueDeadline() {
-    let pastDate = Calendar.current.date(byAdding: .day, value: -5, to: Date())!
+    let utc = TimeZone(identifier: "UTC")!
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = utc
+    let startOfTodayUTC = cal.startOfDay(for: Date())
+    let pastDate = cal.date(byAdding: .day, value: -5, to: startOfTodayUTC)!
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
+    formatter.timeZone = utc
     sut.offer = makeTestOffer(id: "1", deadlineDate: formatter.string(from: pastDate))
     XCTAssertEqual(sut.deadlineDisplayText, "5d overdue")
   }

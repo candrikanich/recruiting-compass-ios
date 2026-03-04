@@ -23,6 +23,7 @@ final class LoginViewModelTests: XCTestCase {
   private func clearUserDefaults() {
     UserDefaults.standard.removeObject(forKey: "cachedEmail")
     UserDefaults.standard.synchronize()
+    try? KeychainHelper.shared.delete(forKey: "cachedEmail")
   }
 
   // MARK: - Initialization Tests
@@ -396,12 +397,12 @@ final class LoginViewModelTests: XCTestCase {
 
     await sut.login()
 
-    let cached = UserDefaults.standard.string(forKey: "cachedEmail")
+    let cached = try? KeychainHelper.shared.load(String.self, forKey: "cachedEmail")
     XCTAssertEqual(cached, "user@example.com")
   }
 
   func testRememberMeClearsCacheWhenFalse() async {
-    UserDefaults.standard.set("old@example.com", forKey: "cachedEmail")
+    try? KeychainHelper.shared.save("old@example.com", forKey: "cachedEmail")
     sut.email = "new@example.com"
     sut.password = "ValidPassword123"
     sut.rememberMe = false
@@ -410,13 +411,13 @@ final class LoginViewModelTests: XCTestCase {
 
     await sut.login()
 
-    let cached = UserDefaults.standard.string(forKey: "cachedEmail")
+    let cached = try? KeychainHelper.shared.load(String.self, forKey: "cachedEmail")
     XCTAssertNil(cached)
   }
 
   func testLoadsCachedEmailOnInit() async {
     clearUserDefaults()
-    UserDefaults.standard.set("cached@example.com", forKey: "cachedEmail")
+    try? KeychainHelper.shared.save("cached@example.com", forKey: "cachedEmail")
 
     let viewModelWithCache = LoginViewModel(authManager: mockAuthManager)
 
@@ -604,19 +605,19 @@ final class LoginViewModelTests: XCTestCase {
 
     await sut.login()
 
-    let cached = UserDefaults.standard.string(forKey: "cachedEmail")
+    let cached = try? KeychainHelper.shared.load(String.self, forKey: "cachedEmail")
     XCTAssertEqual(cached, "user@example.com")
   }
 
   func testNoRememberMeWithSuccessfulLogin() async {
-    UserDefaults.standard.set("old@example.com", forKey: "cachedEmail")
+    try? KeychainHelper.shared.save("old@example.com", forKey: "cachedEmail")
     sut.email = "new@example.com"
     sut.password = "ValidPassword123"
     sut.rememberMe = false
 
     await sut.login()
 
-    let cached = UserDefaults.standard.string(forKey: "cachedEmail")
+    let cached = try? KeychainHelper.shared.load(String.self, forKey: "cachedEmail")
     XCTAssertNil(cached)
   }
 }

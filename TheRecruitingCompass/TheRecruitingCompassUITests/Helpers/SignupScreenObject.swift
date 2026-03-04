@@ -41,28 +41,29 @@ final class SignupScreenObject {
     app.buttons["Change role selection"]
   }
 
+  /// Signup form fields use combined accessibility (label+field); find by identifier.
   var firstNameField: XCUIElement {
-    app.textFields["First Name"]
+    app.otherElements["First Name"].firstMatch
   }
 
   var lastNameField: XCUIElement {
-    app.textFields["Last Name"]
+    app.otherElements["Last Name"].firstMatch
   }
 
   var emailField: XCUIElement {
-    app.textFields["Email"]
+    app.otherElements["Email"].firstMatch
   }
 
   var passwordField: XCUIElement {
-    app.secureTextFields["Password"]
+    app.secureTextFields["Password"].firstMatch
   }
 
   var confirmPasswordField: XCUIElement {
-    app.secureTextFields["Confirm Password"]
+    app.secureTextFields["Confirm Password"].firstMatch
   }
 
   var familyCodeField: XCUIElement {
-    app.textFields["Family Code (Optional)"]
+    app.otherElements["Family Code (Optional)"].firstMatch
   }
 
   var termsCheckbox: XCUIElement {
@@ -210,7 +211,7 @@ final class SignupScreenObject {
     confirmPasswordField.tap()
     confirmPasswordField.typeText(data.password)
 
-    if let familyCode = data.familyCode {
+    if let familyCode = data.familyCode, familyCodeField.waitForExistence(timeout: 1) {
       familyCodeField.tap()
       familyCodeField.typeText(familyCode)
     }

@@ -147,70 +147,19 @@ final class SignupValidationE2ETests: XCTestCase {
     add(app.takeScreenshot(name: "validation-07-terms-checked"))
   }
 
-  // MARK: - Family Code Validation (Parent Role)
+  // MARK: - Family Code Validation (skipped: family code not shown for either role)
 
   @MainActor
   func testInvalidFamilyCodeFormat() throws {
-    // Go back to role selection and choose Parent
-    screen.changeRoleButton.tap()
-    XCTAssertTrue(screen.selectYourRoleText.waitForExistence(timeout: 5))
-
-    screen.selectRole(.parent)
-    XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5))
-
-    screen.familyCodeField.tap()
-    screen.familyCodeField.typeText("INVALID-CODE")
-
-    // Tap elsewhere to trigger validation
-    screen.firstNameField.tap()
-
-    let familyCodeError = screen.errorBanner(containing: "FAM-XXXXXXXX")
-    XCTAssertTrue(familyCodeError.waitForExistence(timeout: 3),
-                  "Should show family code format error")
-
-    add(app.takeScreenshot(name: "validation-08-invalid-family-code"))
+    throw XCTSkip("Family code field is not shown in signup; both roles create their own family")
   }
 
   @MainActor
   func testValidFamilyCodeFormat() throws {
-    // Go back to role selection and choose Parent
-    screen.changeRoleButton.tap()
-    XCTAssertTrue(screen.selectYourRoleText.waitForExistence(timeout: 5))
-
-    screen.selectRole(.parent)
-    XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5))
-
-    screen.familyCodeField.tap()
-    screen.familyCodeField.typeText("FAM-ABCD1234")
-
-    screen.firstNameField.tap()
-
-    let familyCodeError = screen.errorBanner(containing: "FAM-XXXXXXXX")
-    XCTAssertFalse(familyCodeError.waitForExistence(timeout: 2),
-                   "Should NOT show family code format error for valid code")
-
-    add(app.takeScreenshot(name: "validation-09-valid-family-code"))
+    throw XCTSkip("Family code field is not shown in signup; both roles create their own family")
   }
-
-  // MARK: - Empty Family Code Accepted for Optional Field
 
   @MainActor
   func testEmptyFamilyCodeIsAccepted() throws {
-    // Go back to role selection and choose Parent
-    screen.changeRoleButton.tap()
-    XCTAssertTrue(screen.selectYourRoleText.waitForExistence(timeout: 5))
-
-    screen.selectRole(.parent)
-    XCTAssertTrue(screen.familyCodeField.waitForExistence(timeout: 5))
-
-    // Leave family code empty and fill everything else
-    let userData = TestUserData.uniqueParent()
-
-    screen.fillSignupForm(with: userData)
-
-    screen.acceptTerms()
-
-    // Button should be enabled since family code is optional
-    add(app.takeScreenshot(name: "validation-10-empty-family-code-accepted"))
+    throw XCTSkip("Family code field is not shown in signup; both roles create their own family")
   }
-}

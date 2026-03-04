@@ -51,7 +51,7 @@ final class OfferTypeTests: XCTestCase {
   // MARK: - CaseIterable Tests
 
   func testAllCases_ContainsFiveTypes() {
-    XCTAssertEqual(OfferType.allCases.count, 5)
+    XCTAssertEqual(OfferType.allCases.count, 6) // 5 known + .unknown
   }
 
   func testAllCases_ContainsExpectedTypes() {

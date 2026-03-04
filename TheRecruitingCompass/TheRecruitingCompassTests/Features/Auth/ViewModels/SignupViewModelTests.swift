@@ -287,6 +287,7 @@ final class SignupViewModelTests: XCTestCase {
   // MARK: - Signup Happy Path Tests
 
   func testSignupSuccessNavigatesToEmailVerification() async {
+    mockAuthManager.setAuthenticatedAfterSignup = false
     fillValidForm(role: .parent)
 
     await sut.signup()
@@ -305,6 +306,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupSuccessForPlayerRole() async {
+    mockAuthManager.setAuthenticatedAfterSignup = false
     fillValidForm(role: .player)
 
     await sut.signup()
@@ -456,6 +458,7 @@ final class SignupViewModelTests: XCTestCase {
   // MARK: - Signup Family Code Logic Tests
 
   func testSignupSendsFamilyCodeForParentRole() async {
+    mockAuthManager.setAuthenticatedAfterSignup = false
     fillValidForm(role: .parent)
     sut.familyCode = "FAM-ABC12345"
 
@@ -466,6 +469,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupSendsNilFamilyCodeForPlayerRole() async {
+    mockAuthManager.setAuthenticatedAfterSignup = false
     fillValidForm(role: .player)
     sut.familyCode = "FAM-SHOULDBEIGNORED"
 
@@ -476,6 +480,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupSendsNilFamilyCodeWhenEmptyForParentRole() async {
+    mockAuthManager.setAuthenticatedAfterSignup = false
     fillValidForm(role: .parent)
     sut.familyCode = ""
 
@@ -486,6 +491,7 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupTrimsWhitespaceFamilyCode() async {
+    mockAuthManager.setAuthenticatedAfterSignup = false
     fillValidForm(role: .parent)
     sut.familyCode = "   "
 
@@ -498,6 +504,7 @@ final class SignupViewModelTests: XCTestCase {
   // MARK: - Signup Integration / State Transition Tests
 
   func testSignupRetryAfterErrorDismissal() async {
+    mockAuthManager.setAuthenticatedAfterSignup = false
     fillValidForm(role: .parent)
     mockAuthManager.shouldThrowSignupError = true
     mockAuthManager.mockErrorToThrow = .networkError("Timeout")
@@ -516,12 +523,14 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupWithInvalidFamilyCodeFormatDoesNotCallAuthManager() async {
+    // Neither role requires family code at signup; invalid code is ignored and signup proceeds.
+    mockAuthManager.setAuthenticatedAfterSignup = false
     fillValidForm(role: .player)
     sut.familyCode = "INVALID"
 
     await sut.signup()
 
-    XCTAssertEqual(mockAuthManager.signupCallCount, 0)
-    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
   }
 }

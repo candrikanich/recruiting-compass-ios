@@ -8,12 +8,14 @@ final class LoginIntegrationTests: XCTestCase {
   @MainActor
   override func setUp() {
     super.setUp()
+    try? KeychainHelper.shared.delete(forKey: "cachedEmail")
     authManager = AuthManager()
     loginViewModel = LoginViewModel(authManager: authManager)
   }
 
   @MainActor
   override func tearDown() {
+    try? KeychainHelper.shared.delete(forKey: "cachedEmail")
     authManager = nil
     loginViewModel = nil
     super.tearDown()

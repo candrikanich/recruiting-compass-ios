@@ -49,7 +49,8 @@ final class RoleSelectionCardTests: XCTestCase {
   }
 
   func testUserRoleRequiresFamilyCode() {
+    // Both roles create their own family at signup; neither requires a family code.
     XCTAssertFalse(UserRole.parent.requiresFamilyCode)
-    XCTAssertTrue(UserRole.player.requiresFamilyCode)
+    XCTAssertFalse(UserRole.player.requiresFamilyCode)
   }
 }

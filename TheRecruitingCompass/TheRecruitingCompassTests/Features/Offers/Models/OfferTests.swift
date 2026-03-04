@@ -37,9 +37,14 @@ final class OfferTests: XCTestCase {
   }
 
   func testDaysUntilDeadline_PositiveForFutureDate() {
-    let futureDate = Calendar.current.date(byAdding: .day, value: 15, to: Date())!
+    let utc = TimeZone(identifier: "UTC")!
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = utc
+    let startOfTodayUTC = cal.startOfDay(for: Date())
+    let futureDate = cal.date(byAdding: .day, value: 15, to: startOfTodayUTC)!
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
+    formatter.timeZone = utc
     let offer = makeOffer(deadlineDate: formatter.string(from: futureDate))
 
     let days = offer.daysUntilDeadline
@@ -48,9 +53,14 @@ final class OfferTests: XCTestCase {
   }
 
   func testDaysUntilDeadline_NegativeForPastDate() {
-    let pastDate = Calendar.current.date(byAdding: .day, value: -5, to: Date())!
+    let utc = TimeZone(identifier: "UTC")!
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = utc
+    let startOfTodayUTC = cal.startOfDay(for: Date())
+    let pastDate = cal.date(byAdding: .day, value: -5, to: startOfTodayUTC)!
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
+    formatter.timeZone = utc
     let offer = makeOffer(deadlineDate: formatter.string(from: pastDate))
 
     let days = offer.daysUntilDeadline
@@ -59,9 +69,14 @@ final class OfferTests: XCTestCase {
   }
 
   func testDaysUntilDeadline_ZeroForToday() {
+    let utc = TimeZone(identifier: "UTC")!
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = utc
+    let startOfTodayUTC = cal.startOfDay(for: Date())
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
-    let offer = makeOffer(deadlineDate: formatter.string(from: Date()))
+    formatter.timeZone = utc
+    let offer = makeOffer(deadlineDate: formatter.string(from: startOfTodayUTC))
 
     let days = offer.daysUntilDeadline
     XCTAssertNotNil(days)

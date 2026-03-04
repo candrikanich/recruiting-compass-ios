@@ -7,7 +7,7 @@ final class AthleteTaskStatusTests: XCTestCase {
     let json = """
     {
       "task_id": "task-1",
-      "user_id": "user-1",
+      "athlete_id": "user-1",
       "status": "completed",
       "completed_at": "2026-01-15T12:00:00Z"
     }
@@ -22,7 +22,7 @@ final class AthleteTaskStatusTests: XCTestCase {
 
   func testDecode_NoCompletedAt() throws {
     let json = """
-    {"task_id": "t1", "user_id": "u1", "status": "in_progress"}
+    {"task_id": "t1", "athlete_id": "u1", "status": "in_progress"}
     """
     let data = json.data(using: .utf8)!
     let status = try JSONDecoder().decode(AthleteTaskStatus.self, from: data)

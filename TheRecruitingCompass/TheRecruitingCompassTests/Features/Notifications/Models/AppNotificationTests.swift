@@ -196,7 +196,7 @@ final class AppNotificationTests: XCTestCase {
   }
 
   func testNotificationType_CaseIterable() {
-    XCTAssertEqual(NotificationType.allCases.count, 6)
+    XCTAssertEqual(NotificationType.allCases.count, 7) // 6 known + .unknown
   }
 
   func testDecodingAllNotificationTypes() {
@@ -321,7 +321,9 @@ final class AppNotificationTests: XCTestCase {
     }
     """.data(using: .utf8)!
 
-    XCTAssertThrowsError(try JSONDecoder().decode(AppNotification.self, from: json))
+    let notification = try? JSONDecoder().decode(AppNotification.self, from: json)
+    XCTAssertNotNil(notification)
+    XCTAssertEqual(notification?.type, .unknown)
   }
 
   func testInvalidPriorityFailsDecoding() {
@@ -336,7 +338,9 @@ final class AppNotificationTests: XCTestCase {
     }
     """.data(using: .utf8)!
 
-    XCTAssertThrowsError(try JSONDecoder().decode(AppNotification.self, from: json))
+    let notification = try? JSONDecoder().decode(AppNotification.self, from: json)
+    XCTAssertNotNil(notification)
+    XCTAssertEqual(notification?.priority, .unknown)
   }
 
   // MARK: - NotificationServiceError Tests

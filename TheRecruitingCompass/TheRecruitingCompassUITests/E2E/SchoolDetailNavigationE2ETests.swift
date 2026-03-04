@@ -49,10 +49,10 @@ final class SchoolDetailNavigationE2ETests: XCTestCase {
 
   @MainActor
   func testNavigateToSchoolDetailFromList() async throws {
-    // Setup: Create test user and school
+    // Setup: Create test user and school (use short name to avoid DB varchar limits)
     testUser = try await testUserSetup.createTestParent()
     testSchoolId = try await testDataHelper.createSchool(
-      name: "Test University",
+      name: "E2E School",
       userId: testUser!.id,
       familyUnitId: testUser!.familyUnitId
     )
@@ -64,7 +64,7 @@ final class SchoolDetailNavigationE2ETests: XCTestCase {
     add(app.takeScreenshot(name: "01-dashboard"))
 
     // 2. Navigate to Schools List and tap on school
-    screen.navigateToSchoolDetailFromDashboard(schoolName: "Test University")
+    screen.navigateToSchoolDetailFromDashboard(schoolName: "E2E School")
 
     // 3. Verify School Detail screen appears
     XCTAssertTrue(screen.waitForSchoolToLoad(timeout: 10),

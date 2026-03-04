@@ -502,7 +502,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
     let userId = newViewModel.currentUserId
 
     // Then
-    XCTAssertEqual(userId, "")
+    XCTAssertNil(userId, "When no user is set, currentUserId should be nil")
   }
 
   func testIsEditingAnything_True_WhenEditingNotes() {
