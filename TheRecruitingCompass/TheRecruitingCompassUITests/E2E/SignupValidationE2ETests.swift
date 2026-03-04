@@ -163,3 +163,4 @@ final class SignupValidationE2ETests: XCTestCase {
   func testEmptyFamilyCodeIsAccepted() throws {
     throw XCTSkip("Family code field is not shown in signup; both roles create their own family")
   }
+}
