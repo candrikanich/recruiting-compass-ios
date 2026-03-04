@@ -33,7 +33,8 @@ final class CoachDetailViewModelTests: XCTestCase {
       allCoaches: [testCoach],
       allSchools: [testSchool],
       coachesService: mockService,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
   }
 
@@ -114,7 +115,8 @@ final class CoachDetailViewModelTests: XCTestCase {
       allCoaches: [],
       allSchools: [],
       coachesService: mockService,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await sut.loadCoach()
@@ -179,7 +181,8 @@ final class CoachDetailViewModelTests: XCTestCase {
       allCoaches: [testCoach],
       allSchools: [testSchool],
       coachesService: mockService,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await sut.loadCoach()
@@ -431,15 +434,8 @@ final class CoachDetailViewModelTests: XCTestCase {
 
   func testComputeStats_NoLastContact_DaysSinceContactNil() async {
     let coachNoContact = makeCoach(id: "coach-1", lastContactDate: nil)
-    sut = CoachDetailViewModel(
-      coachId: "coach-1",
-      allCoaches: [coachNoContact],
-      allSchools: [testSchool],
-      coachesService: mockService,
-      authManager: mockAuthManager
-    )
-
-    await sut.loadCoach()
+    // Set coach directly to avoid cache contamination from other tests
+    sut.coach = coachNoContact
     mockService.stubbedInteractions = [makeInteraction(id: "1")]
     await sut.loadDetails()
 

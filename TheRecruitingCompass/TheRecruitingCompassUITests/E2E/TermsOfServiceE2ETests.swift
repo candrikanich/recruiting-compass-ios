@@ -31,6 +31,8 @@ final class TermsOfServiceE2ETests: XCTestCase {
     screen.selectRole(.parent)
     XCTAssertTrue(screen.firstNameField.waitForExistence(timeout: 5), "Signup form should be visible")
 
+    // Scroll down to reveal the terms link (it may be below the fold in the signup form)
+    app.scrollViews.firstMatch.swipeUp()
     screen.termsOfServiceLink.waitAndTap()
 
     let termsContent = app.descendants(matching: .any).matching(

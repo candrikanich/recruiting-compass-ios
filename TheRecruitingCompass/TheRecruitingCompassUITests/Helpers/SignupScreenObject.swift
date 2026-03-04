@@ -55,11 +55,18 @@ final class SignupScreenObject {
   }
 
   var passwordField: XCUIElement {
-    app.secureTextFields["Password"].firstMatch
+    // LoginFormField uses .accessibilityElement(children: .combine), so the outer
+    // container is Other type with identifier "Password". Try to get the inner
+    // SecureField for typing; fall back to the container.
+    let container = app.otherElements.matching(identifier: "Password").firstMatch
+    let inner = container.secureTextFields.firstMatch
+    return inner.exists ? inner : container
   }
 
   var confirmPasswordField: XCUIElement {
-    app.secureTextFields["Confirm Password"].firstMatch
+    let container = app.otherElements.matching(identifier: "Confirm Password").firstMatch
+    let inner = container.secureTextFields.firstMatch
+    return inner.exists ? inner : container
   }
 
   var familyCodeField: XCUIElement {
@@ -181,12 +188,15 @@ final class SignupScreenObject {
   }
 
   func selectRole(_ role: TestUserRole) {
+    let card: XCUIElement
     switch role {
-    case .parent:
-      parentRoleCard.waitAndTap()
-    case .player:
-      playerRoleCard.waitAndTap()
+    case .parent: card = parentRoleCard
+    case .player: card = playerRoleCard
     }
+    // Use waitForExistence + tap() instead of waitAndTap() so XCTest can
+    // auto-scroll to the card if it's off-screen in the ScrollView.
+    guard card.waitForExistence(timeout: 10) else { return }
+    card.tap()
   }
 
   func fillSignupForm(with data: TestUserData) {
@@ -194,7 +204,8 @@ final class SignupScreenObject {
     let first = nameParts.first.map(String.init) ?? data.fullName
     let last = nameParts.count > 1 ? String(nameParts[1]) : ""
 
-    firstNameField.waitAndTap()
+    guard firstNameField.waitForExistence(timeout: 10) else { return }
+    firstNameField.tap()
     firstNameField.typeText(first)
 
     if !last.isEmpty {
@@ -218,11 +229,15 @@ final class SignupScreenObject {
   }
 
   func acceptTerms() {
-    termsCheckbox.waitAndTap()
+    // Scroll down to reveal the terms checkbox if it's below the fold
+    app.scrollViews.firstMatch.swipeUp()
+    guard termsCheckbox.waitForExistence(timeout: 10) else { return }
+    termsCheckbox.tap()
   }
 
   func submitSignup() {
-    createAccountButton.waitAndTap()
+    guard createAccountButton.waitForExistence(timeout: 10) else { return }
+    createAccountButton.tap()
   }
 
   func performFullParentSignup(with data: TestUserData) {

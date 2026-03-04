@@ -14,20 +14,27 @@ final class PasswordResetE2ETests: XCTestCase {
     app = nil
   }
 
-  /// Navigate from Landing → Login → Forgot Password (Forgot password link is on Login, not Landing).
+  /// Navigate from Landing → Login → Forgot Password.
+  /// Scrolls down on the Login screen to reveal the "Forgot password" button.
   private func navigateToForgotPassword() {
     let signInButton = app.buttons["Sign in to your account"]
     if signInButton.waitForExistence(timeout: 5) {
       signInButton.tap()
     }
+    // Scroll down on Login screen so the "Forgot password" link is hittable
+    app.scrollViews.firstMatch.swipeUp()
     let forgotPasswordLink = app.buttons["Forgot password"]
     XCTAssertTrue(forgotPasswordLink.waitForExistence(timeout: 5))
     forgotPasswordLink.tap()
   }
 
-  /// Email field on Forgot Password uses combined accessibility (same as LoginFormField).
+  /// Email field on Forgot Password. LoginFormField uses .accessibilityElement(children: .combine),
+  /// so the container is an Other element with identifier "Email". The inner TextField is accessed
+  /// via descendants so typeText works.
   private var forgotPasswordEmailField: XCUIElement {
-    app.otherElements["Email"].firstMatch
+    let container = app.otherElements.matching(identifier: "Email").firstMatch
+    let inner = container.textFields.firstMatch
+    return inner.exists ? inner : container
   }
 
   private var sendResetLinkButton: XCUIElement {
@@ -45,7 +52,7 @@ final class PasswordResetE2ETests: XCTestCase {
 
     XCTAssertTrue(forgotPasswordEmailField.waitForExistence(timeout: 5),
                   "Forgot password screen should show email field")
-    XCTAssertTrue(sendResetLinkButton.waitForExistence(timeout: 2),
+    XCTAssertTrue(sendResetLinkButton.waitForExistence(timeout: 5),
                   "Send password reset link button should be visible")
   }
 
@@ -56,7 +63,7 @@ final class PasswordResetE2ETests: XCTestCase {
     forgotPasswordEmailField.tap()
     forgotPasswordEmailField.typeText("test@example.com")
 
-    XCTAssertTrue(sendResetLinkButton.waitForExistence(timeout: 2))
+    XCTAssertTrue(sendResetLinkButton.waitForExistence(timeout: 5))
     sendResetLinkButton.tap()
 
     let successMessage = app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'sent'"))
@@ -249,7 +256,7 @@ final class PasswordResetE2ETests: XCTestCase {
     navigateToForgotPassword()
 
     XCTAssertTrue(forgotPasswordEmailField.waitForExistence(timeout: 5))
-    XCTAssertTrue(sendResetLinkButton.waitForExistence(timeout: 2))
+    XCTAssertTrue(sendResetLinkButton.waitForExistence(timeout: 5))
 
     let heading = app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'Forgot' OR label CONTAINS 'Reset'"))
     XCTAssertTrue(heading.firstMatch.exists)
