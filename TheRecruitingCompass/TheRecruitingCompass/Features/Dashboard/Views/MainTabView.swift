@@ -15,9 +15,10 @@ struct MainTabView: View {
   @Environment(FamilyManager.self) private var familyManager
   @State private var notificationsViewModel = NotificationsListViewModel()
   @State private var dashboardViewModel = DashboardViewModel()
+  @State private var selectedTab: AppTab = .dashboard
 
   var body: some View {
-    TabView {
+    TabView(selection: $selectedTab) {
       NavigationStack {
         DashboardView(viewModel: dashboardViewModel)
           .activityNavigation()
@@ -34,6 +35,7 @@ struct MainTabView: View {
         }
         .environment(\.symbolVariants, .none)
       }
+      .tag(AppTab.dashboard)
       .accessibilityLabel("Dashboard")
 
       SchoolsListView()
@@ -46,6 +48,7 @@ struct MainTabView: View {
         }
         .environment(\.symbolVariants, .none)
       }
+      .tag(AppTab.schools)
       .accessibilityLabel("Schools")
 
       CoachesListView()
@@ -58,6 +61,7 @@ struct MainTabView: View {
         }
         .environment(\.symbolVariants, .none)
       }
+      .tag(AppTab.coaches)
       .accessibilityLabel("Coaches")
 
       InteractionsListView()
@@ -70,6 +74,7 @@ struct MainTabView: View {
         }
         .environment(\.symbolVariants, .none)
       }
+      .tag(AppTab.interactions)
       .accessibilityLabel("Interactions")
 
       MoreMenuView(notificationsViewModel: notificationsViewModel)
@@ -82,9 +87,11 @@ struct MainTabView: View {
         }
         .environment(\.symbolVariants, .none)
       }
+      .tag(AppTab.more)
       .badge(notificationsViewModel.unreadCount > 0 ? notificationsViewModel.unreadCount : 0)
       .accessibilityLabel("More")
     }
+    .environment(\.switchTab, { selectedTab = $0 })
     .task {
       await notificationsViewModel.fetchNotifications()
     }

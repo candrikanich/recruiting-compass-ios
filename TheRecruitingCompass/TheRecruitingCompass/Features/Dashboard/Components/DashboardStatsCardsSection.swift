@@ -4,10 +4,13 @@ import SwiftUI
 /// when only other view model state (e.g. quick tasks, suggestions) changes.
 struct DashboardStatsCardsSection: View {
   let stats: DashboardStats
+  @Environment(\.switchTab) private var switchTab
 
   var body: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-      NavigationLink(value: DashboardDestination.coaches) {
+      Button {
+        switchTab(.coaches)
+      } label: {
         StatCard(
           title: "Coaches",
           count: stats.coachCount,
@@ -23,7 +26,9 @@ struct DashboardStatsCardsSection: View {
       .accessibilityHint("Opens your coaches list")
       .buttonStyle(PlainButtonStyle())
 
-      NavigationLink(value: DashboardDestination.schools) {
+      Button {
+        switchTab(.schools)
+      } label: {
         StatCard(
           title: "Schools",
           count: stats.schoolCount,
@@ -39,7 +44,9 @@ struct DashboardStatsCardsSection: View {
       .accessibilityHint("Opens your schools list")
       .buttonStyle(PlainButtonStyle())
 
-      NavigationLink(value: DashboardDestination.interactions) {
+      Button {
+        switchTab(.interactions)
+      } label: {
         StatCard(
           title: "Interactions",
           count: stats.interactionCount,
