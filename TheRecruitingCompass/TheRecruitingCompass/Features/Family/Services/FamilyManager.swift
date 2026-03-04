@@ -15,6 +15,7 @@ final class FamilyManager {
   var selectedAthleteId: String?
   var familyUnit: FamilyUnit?
 
+  private var isLoadingFamilyData = false
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
 
@@ -50,7 +51,9 @@ final class FamilyManager {
   }
 
   func loadFamilyData() async {
-    guard let userId = authManager.user?.id else { return }
+    guard !isLoadingFamilyData, let userId = authManager.user?.id else { return }
+    isLoadingFamilyData = true
+    defer { isLoadingFamilyData = false }
 
     do {
       // Try to get family member record (works for all family members)
