@@ -1,234 +1,2114 @@
 [
   {
-    "name": "Adelphi",
-    "conference": "Northeast-10"
+    "name": "Adams State University",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.adams.edu",
+    "athleticWebsite": "www.asugrizzlies.com",
+    "state": "CO"
   },
   {
-    "name": "American International",
-    "conference": "Northeast-10"
+    "name": "Adelphi University",
+    "conference": "Northeast 10 Conference",
+    "website": "www.adelphi.edu",
+    "athleticWebsite": "www.aupanthers.com",
+    "state": "NY"
   },
   {
-    "name": "Bloomsburg",
-    "conference": "Pennsylvania State Athletic"
+    "name": "Albany State University (Georgia)",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.asurams.edu",
+    "athleticWebsite": "www.asugoldenrams.com",
+    "state": "GA"
   },
   {
-    "name": "Boston State",
-    "conference": "Massachusetts State Collegiate"
+    "name": "Allen University",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "allenuniversity.edu",
+    "athleticWebsite": "auyellowjackets.com",
+    "state": "SC"
   },
   {
-    "name": "California Baptist",
-    "conference": "California Collegiate Athletic"
+    "name": "American International College",
+    "conference": "Northeast 10 Conference",
+    "website": "aic.edu",
+    "athleticWebsite": "aicyellowjackets.com",
+    "state": "MA"
+  },
+  {
+    "name": "Anderson University (South Carolina)",
+    "conference": "South Atlantic Conference",
+    "website": "www.andersonuniversity.edu",
+    "athleticWebsite": "www.autrojans.com",
+    "state": "SC"
+  },
+  {
+    "name": "Angelo State University",
+    "conference": "Lone Star Conference",
+    "website": "www.angelo.edu",
+    "athleticWebsite": "www.angelosports.com",
+    "state": "TX"
+  },
+  {
+    "name": "Arkansas Tech University",
+    "conference": "Great American Conference",
+    "website": "www.atu.edu",
+    "athleticWebsite": "www.arkansastechsports.com",
+    "state": "AR"
+  },
+  {
+    "name": "Ashland University",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "www.ashland.edu",
+    "athleticWebsite": "www.goashlandeagles.com",
+    "state": "OH"
+  },
+  {
+    "name": "Assumption University",
+    "conference": "Northeast 10 Conference",
+    "website": "www.assumption.edu",
+    "athleticWebsite": "www.assumptiongreyhounds.com",
+    "state": "MA"
+  },
+  {
+    "name": "Auburn University at Montgomery",
+    "conference": "Gulf South Conference",
+    "website": "www.aum.edu",
+    "athleticWebsite": "www.aumathletics.com",
+    "state": "AL"
+  },
+  {
+    "name": "Augusta University",
+    "conference": "Peach Belt Conference",
+    "website": "www.augusta.edu",
+    "athleticWebsite": "www.augustajags.com",
+    "state": "GA"
+  },
+  {
+    "name": "Augustana University (South Dakota)",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.augie.edu",
+    "athleticWebsite": "www.goaugie.com",
+    "state": "SD"
+  },
+  {
+    "name": "Azusa Pacific University",
+    "conference": "Pacific West Conference",
+    "website": "www.apu.edu",
+    "athleticWebsite": "athletics.apu.edu",
+    "state": "CA"
+  },
+  {
+    "name": "Barry University",
+    "conference": "Sunshine State Conference",
+    "website": "www.barry.edu",
+    "athleticWebsite": "www.gobarrybucs.com",
+    "state": "FL"
+  },
+  {
+    "name": "Barton College",
+    "conference": "Conference Carolinas",
+    "website": "www.barton.edu",
+    "athleticWebsite": "www.bartonbulldogs.com",
+    "state": "NC"
+  },
+  {
+    "name": "Belmont Abbey College",
+    "conference": "Conference Carolinas",
+    "website": "www.bac.edu",
+    "athleticWebsite": "www.abbeyathletics.com",
+    "state": "NC"
+  },
+  {
+    "name": "Bemidji State University",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.bemidjistate.edu",
+    "athleticWebsite": "www.bsubeavers.com",
+    "state": "MN"
+  },
+  {
+    "name": "Benedict College",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.benedict.edu",
+    "athleticWebsite": "benedicttigers.com",
+    "state": "SC"
+  },
+  {
+    "name": "Bentley University",
+    "conference": "Northeast 10 Conference",
+    "website": "www.bentley.edu",
+    "athleticWebsite": "www.bentley.edu/athletics",
+    "state": "MA"
+  },
+  {
+    "name": "Biola University",
+    "conference": "Pacific West Conference",
+    "website": "www.biola.edu",
+    "athleticWebsite": "athletics.biola.edu",
+    "state": "CA"
+  },
+  {
+    "name": "Black Hills State University",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.bhsu.edu",
+    "athleticWebsite": "bhsuathletics.com",
+    "state": "SD"
+  },
+  {
+    "name": "Bloomsburg University of Pennsylvania",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.commonwealthu.edu",
+    "athleticWebsite": "www.buhuskies.com",
+    "state": "PA"
+  },
+  {
+    "name": "Bluefield State University",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "bluefieldstate.edu",
+    "athleticWebsite": "gobstate.com",
+    "state": "WV"
+  },
+  {
+    "name": "Bowie State University",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "www.bowiestate.edu",
+    "athleticWebsite": "www.bsubulldogs.com",
+    "state": "MD"
+  },
+  {
+    "name": "Caldwell University",
+    "conference": "Central Atlantic Collegiate Conference",
+    "website": "www.caldwell.edu",
+    "athleticWebsite": "www.caldwellathletics.com",
+    "state": "NJ"
+  },
+  {
+    "name": "California State Polytechnic University, Humboldt",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.humboldt.edu",
+    "athleticWebsite": "humboldtathletics.com",
+    "state": "CA"
+  },
+  {
+    "name": "California State Polytechnic University, Pomona",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.cpp.edu",
+    "athleticWebsite": "www.broncoathletics.com",
+    "state": "CA"
+  },
+  {
+    "name": "California State University, Chico",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.csuchico.edu",
+    "athleticWebsite": "www.chicowildcats.com",
+    "state": "CA"
+  },
+  {
+    "name": "California State University, Dominguez Hills",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.csudh.edu",
+    "athleticWebsite": "www.gotoros.com",
+    "state": "CA"
+  },
+  {
+    "name": "California State University, East Bay",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.csueastbay.edu",
+    "athleticWebsite": "www.eastbaypioneers.com",
+    "state": "CA"
+  },
+  {
+    "name": "California State University, Los Angeles",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.calstatela.edu",
+    "athleticWebsite": "www.lagoldeneagles.com",
+    "state": "CA"
+  },
+  {
+    "name": "California State University, Monterey Bay",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.csumb.edu",
+    "athleticWebsite": "www.otterathletics.com",
+    "state": "CA"
+  },
+  {
+    "name": "California State University, San Bernardino",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.csusb.edu",
+    "athleticWebsite": "www.csusbathletics.com",
+    "state": "CA"
+  },
+  {
+    "name": "California State University, San Marcos",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.csusm.edu",
+    "athleticWebsite": "csusmcougars.com",
+    "state": "CA"
+  },
+  {
+    "name": "California State University, Stanislaus",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.csustan.edu",
+    "athleticWebsite": "www.warriorathletics.com",
+    "state": "CA"
+  },
+  {
+    "name": "Cameron University",
+    "conference": "Lone Star Conference",
+    "website": "www.cameron.edu",
+    "athleticWebsite": "cameronaggies.com",
+    "state": "OK"
+  },
+  {
+    "name": "Carson-Newman University",
+    "conference": "South Atlantic Conference",
+    "website": "www.cn.edu",
+    "athleticWebsite": "cneagles.com",
+    "state": "TN"
+  },
+  {
+    "name": "Catawba College",
+    "conference": "South Atlantic Conference",
+    "website": "www.catawba.edu",
+    "athleticWebsite": "www.catawbaathletics.com",
+    "state": "NC"
+  },
+  {
+    "name": "Cedarville University",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "www.cedarville.edu",
+    "athleticWebsite": "www.yellowjackets.cedarville.edu",
+    "state": "OH"
+  },
+  {
+    "name": "Central State University",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.centralstate.edu",
+    "athleticWebsite": "www.maraudersports.com",
+    "state": "OH"
+  },
+  {
+    "name": "Central Washington University",
+    "conference": "Great Northwest Athletic Conference",
+    "website": "cwu.edu",
+    "athleticWebsite": "wildcatsports.com",
+    "state": "WA"
+  },
+  {
+    "name": "Chadron State College",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.csc.edu",
+    "athleticWebsite": "www.chadroneagles.com",
+    "state": "NE"
+  },
+  {
+    "name": "Chaminade University",
+    "conference": "Pacific West Conference",
+    "website": "www.chaminade.edu",
+    "athleticWebsite": "goswords.com",
+    "state": "HI"
+  },
+  {
+    "name": "Chestnut Hill College",
+    "conference": "Central Atlantic Collegiate Conference",
+    "website": "www.chc.edu",
+    "athleticWebsite": "www.griffinathletics.com",
+    "state": "PA"
+  },
+  {
+    "name": "Chowan University",
+    "conference": "Conference Carolinas",
+    "website": "www.chowan.edu",
+    "athleticWebsite": "www.gocuhawks.com",
+    "state": "NC"
+  },
+  {
+    "name": "Christian Brothers University",
+    "conference": "Gulf South Conference",
+    "website": "www.cbu.edu",
+    "athleticWebsite": "www.cbubucs.com",
+    "state": "TN"
+  },
+  {
+    "name": "Claflin University",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "www.claflin.edu",
+    "athleticWebsite": "athletics.claflin.edu",
+    "state": "SC"
+  },
+  {
+    "name": "Clark Atlanta University",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.cau.edu",
+    "athleticWebsite": "www.clarkatlantasports.com",
+    "state": "GA"
+  },
+  {
+    "name": "Clayton State University",
+    "conference": "Peach Belt Conference",
+    "website": "www.clayton.edu",
+    "athleticWebsite": "www.claytonstatesports.com",
+    "state": "GA"
+  },
+  {
+    "name": "Coker University",
+    "conference": "South Atlantic Conference",
+    "website": "www.coker.edu",
+    "athleticWebsite": "www.cokercobras.com",
+    "state": "SC"
+  },
+  {
+    "name": "College of Staten Island",
+    "conference": "East Coast Conference",
+    "website": "www.csi.cuny.edu",
+    "athleticWebsite": "www.csidolphins.com",
+    "state": "NY"
+  },
+  {
+    "name": "Colorado Christian University",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.ccu.edu",
+    "athleticWebsite": "www.ccucougars.com",
+    "state": "CO"
+  },
+  {
+    "name": "Colorado Mesa University",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "coloradomesa.edu",
+    "athleticWebsite": "cmumavericks.com",
+    "state": "CO"
   },
   {
     "name": "Colorado School of Mines",
-    "conference": "Rocky Mountain Athletic"
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "mines.edu",
+    "athleticWebsite": "minesathletics.com",
+    "state": "CO"
   },
   {
-    "name": "CSU Pueblo",
-    "conference": "Rocky Mountain Athletic"
+    "name": "Colorado State University Pueblo",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.csupueblo.edu",
+    "athleticWebsite": "www.gothunderwolves.com",
+    "state": "CO"
   },
   {
-    "name": "Delaware State",
-    "conference": "Mid-Eastern Athletic"
+    "name": "Columbus State University",
+    "conference": "Peach Belt Conference",
+    "website": "www.columbusstate.edu",
+    "athleticWebsite": "csucougars.com",
+    "state": "GA"
   },
   {
-    "name": "Drexel",
-    "conference": "Colonial Athletic Association"
+    "name": "Concord University",
+    "conference": "Mountain East Conference",
+    "website": "www.concord.edu",
+    "athleticWebsite": "www.cumountainlions.com",
+    "state": "WV"
   },
   {
-    "name": "Eastern New Mexico",
-    "conference": "Lone Star"
+    "name": "Concordia University Irvine",
+    "conference": "Pacific West Conference",
+    "website": "www.cui.edu",
+    "athleticWebsite": "www.cuigoldeneagles.com",
+    "state": "CA"
   },
   {
-    "name": "Emporia State",
-    "conference": "Central Missouri State"
+    "name": "Concordia University, St. Paul",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.csp.edu",
+    "athleticWebsite": "cspbears.com/index.aspx",
+    "state": "MN"
   },
   {
-    "name": "Findlay",
-    "conference": "Great Lakes Intercollegiate"
+    "name": "Converse University",
+    "conference": "Conference Carolinas",
+    "website": "www.converse.edu",
+    "athleticWebsite": "govalkyries.com",
+    "state": "SC"
   },
   {
-    "name": "Florida Southern",
-    "conference": "Sunshine State"
+    "name": "D'Youville University",
+    "conference": "East Coast Conference",
+    "website": "www.dyc.edu",
+    "athleticWebsite": "athletics.dyc.edu",
+    "state": "NY"
   },
   {
-    "name": "Fort Hays State",
-    "conference": "Mid-America Intercollegiate Athletic"
+    "name": "Daemen University",
+    "conference": "East Coast Conference",
+    "website": "www.daemen.edu",
+    "athleticWebsite": "daemenwildcats.com",
+    "state": "NY"
   },
   {
-    "name": "Glenville State",
-    "conference": "Mountain East"
+    "name": "Dallas Baptist University",
+    "conference": "Lone Star Conference",
+    "website": "www.dbu.edu",
+    "athleticWebsite": "www.dbupatriots.com",
+    "state": "TX"
   },
   {
-    "name": "Grand Valley State",
-    "conference": "Great Lakes Intercollegiate"
+    "name": "Davenport University",
+    "conference": "Great Lakes Intercollegiate Athletic Conference",
+    "website": "www.davenport.edu",
+    "athleticWebsite": "dupanthers.com",
+    "state": "MI"
   },
   {
-    "name": "Hillsdale",
-    "conference": "Great Lakes Intercollegiate"
+    "name": "Davis & Elkins College",
+    "conference": "Mountain East Conference",
+    "website": "www.dewv.edu",
+    "athleticWebsite": "www.senatornation.com",
+    "state": "WV"
   },
   {
-    "name": "Humboldt State",
-    "conference": "California Collegiate Athletic"
+    "name": "Delta State University",
+    "conference": "Gulf South Conference",
+    "website": "www.deltastate.edu",
+    "athleticWebsite": "www.gostatesmen.com",
+    "state": "MS"
   },
   {
-    "name": "Incarnate Word",
-    "conference": "Southland"
+    "name": "Dominican University New York",
+    "conference": "Central Atlantic Collegiate Conference",
+    "website": "www.duny.edu",
+    "athleticWebsite": "www.chargerathletics.com",
+    "state": "NY"
   },
   {
-    "name": "Asheville",
-    "conference": "South Atlantic"
+    "name": "Dominican University of California",
+    "conference": "Pacific West Conference",
+    "website": "www.dominican.edu",
+    "athleticWebsite": "www.dominicanathletics.com",
+    "state": "CA"
   },
   {
-    "name": "Kutztown",
-    "conference": "Pennsylvania State Athletic"
+    "name": "Drury University",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.drury.edu",
+    "athleticWebsite": "www.drurypanthers.com",
+    "state": "MO"
   },
   {
-    "name": "Le Moyne",
-    "conference": "Northeast-10"
+    "name": "East Central University",
+    "conference": "Great American Conference",
+    "website": "www.ecok.edu",
+    "athleticWebsite": "ecutigers.com",
+    "state": "OK"
   },
   {
-    "name": "Limestone College",
-    "conference": "South Atlantic"
+    "name": "East Stroudsburg University of Pennsylvania",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.esu.edu",
+    "athleticWebsite": "esuwarriors.com",
+    "state": "PA"
   },
   {
-    "name": "Lock Haven",
-    "conference": "Pennsylvania State Athletic"
+    "name": "Eastern New Mexico University",
+    "conference": "Lone Star Conference",
+    "website": "www.enmu.edu",
+    "athleticWebsite": "www.goeasternathletics.com",
+    "state": "NM"
   },
   {
-    "name": "Mercyhurst",
-    "conference": "Pennsylvania State Athletic"
+    "name": "Eckerd College",
+    "conference": "Sunshine State Conference",
+    "website": "www.eckerd.edu",
+    "athleticWebsite": "www.eckerdtritons.com",
+    "state": "FL"
   },
   {
-    "name": "Michigan Tech",
-    "conference": "Great Lakes Intercollegiate"
+    "name": "Edward Waters University",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.ewu.edu",
+    "athleticWebsite": "www.ewutigerpride.com",
+    "state": "FL"
   },
   {
-    "name": "Millersville",
-    "conference": "Pennsylvania State Athletic"
+    "name": "Elizabeth City State University",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "www.ecsu.edu",
+    "athleticWebsite": "www.ecsuvikings.com",
+    "state": "NC"
   },
   {
-    "name": "Minnesota Duluth",
-    "conference": "Northern Sun Intercollegiate"
+    "name": "Embry-Riddle Aeronautical University (Florida)",
+    "conference": "Sunshine State Conference",
+    "website": "www.erau.edu",
+    "athleticWebsite": "www.erauathletics.com",
+    "state": "FL"
   },
   {
-    "name": "Minot State",
-    "conference": "Northern Sun Intercollegiate"
+    "name": "Emmanuel University (Georgia)",
+    "conference": "Conference Carolinas",
+    "website": "www.ec.edu",
+    "athleticWebsite": "www.goeclions.com",
+    "state": "GA"
   },
   {
-    "name": "Missouri Southern",
-    "conference": "Mid-America Intercollegiate Athletic"
+    "name": "Emory & Henry University",
+    "conference": "South Atlantic Conference",
+    "website": "www.emoryhenry.edu",
+    "athleticWebsite": "www.gowasps.com",
+    "state": "VA"
   },
   {
-    "name": "Missouri Western",
-    "conference": "Mid-America Intercollegiate Athletic"
+    "name": "Emporia State University",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.emporia.edu",
+    "athleticWebsite": "www.esuhornets.com",
+    "state": "KS"
   },
   {
-    "name": "New Mexico Highlands",
-    "conference": "Pecos League"
+    "name": "Erskine College",
+    "conference": "Conference Carolinas",
+    "website": "www.erskine.edu",
+    "athleticWebsite": "www.erskinesports.com",
+    "state": "SC"
   },
   {
-    "name": "Northcentral University",
-    "conference": "Great Lakes Intercollegiate"
+    "name": "Fairmont State University",
+    "conference": "Mountain East Conference",
+    "website": "www.fairmontstate.edu",
+    "athleticWebsite": "www.fightingfalcons.com",
+    "state": "WV"
   },
   {
-    "name": "Northern State",
-    "conference": "Northern Sun Intercollegiate"
+    "name": "Fayetteville State University",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "www.uncfsu.edu",
+    "athleticWebsite": "fsubroncos.com",
+    "state": "NC"
   },
   {
-    "name": "Northwest Missouri State",
-    "conference": "Mid-America Intercollegiate Athletic"
+    "name": "Felician University",
+    "conference": "Central Atlantic Collegiate Conference",
+    "website": "www.felician.edu",
+    "athleticWebsite": "www.felicianuathletics.com",
+    "state": "NJ"
   },
   {
-    "name": "Notre Dame College",
-    "conference": "Great Lakes Intercollegiate"
+    "name": "Ferris State University",
+    "conference": "Great Lakes Intercollegiate Athletic Conference",
+    "website": "www.ferris.edu",
+    "athleticWebsite": "www.ferrisstatebulldogs.com",
+    "state": "MI"
+  },
+  {
+    "name": "Flagler College",
+    "conference": "Peach Belt Conference",
+    "website": "www.flagler.edu",
+    "athleticWebsite": "www.flaglerathletics.com",
+    "state": "FL"
+  },
+  {
+    "name": "Florida Institute of Technology",
+    "conference": "Sunshine State Conference",
+    "website": "www.fit.edu",
+    "athleticWebsite": "floridatechsports.com",
+    "state": "FL"
+  },
+  {
+    "name": "Florida Southern College",
+    "conference": "Sunshine State Conference",
+    "website": "www.flsouthern.edu",
+    "athleticWebsite": "www.fscmocs.com",
+    "state": "FL"
+  },
+  {
+    "name": "Fort Hays State University",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.fhsu.edu",
+    "athleticWebsite": "www.fhsuathletics.com",
+    "state": "KS"
+  },
+  {
+    "name": "Fort Lewis College",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.fortlewis.edu",
+    "athleticWebsite": "www.goskyhawks.com",
+    "state": "CO"
+  },
+  {
+    "name": "Fort Valley State University",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.fvsu.edu",
+    "athleticWebsite": "fvsusports.com/index.aspx",
+    "state": "GA"
+  },
+  {
+    "name": "Francis Marion University",
+    "conference": "Conference Carolinas",
+    "website": "www.fmarion.edu",
+    "athleticWebsite": "www.fmupatriots.com",
+    "state": "SC"
+  },
+  {
+    "name": "Franklin Pierce University",
+    "conference": "Northeast 10 Conference",
+    "website": "www.franklinpierce.edu",
+    "athleticWebsite": "www.fpuravens.com/landing/index",
+    "state": "NH"
+  },
+  {
+    "name": "Fresno Pacific University",
+    "conference": "Pacific West Conference",
+    "website": "www.fresno.edu",
+    "athleticWebsite": "fpuathletics.com",
+    "state": "CA"
+  },
+  {
+    "name": "Frostburg State University",
+    "conference": "Mountain East Conference",
+    "website": "www.frostburg.edu",
+    "athleticWebsite": "www.frostburgsports.com",
+    "state": "MD"
+  },
+  {
+    "name": "Gannon University",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.gannon.edu",
+    "athleticWebsite": "www.gannonsports.com",
+    "state": "PA"
+  },
+  {
+    "name": "Georgia College",
+    "conference": "Peach Belt Conference",
+    "website": "www.gcsu.edu",
+    "athleticWebsite": "www.gcsubobcats.com",
+    "state": "GA"
+  },
+  {
+    "name": "Georgia Southwestern State University",
+    "conference": "Peach Belt Conference",
+    "website": "www.gsw.edu",
+    "athleticWebsite": "www.gswcanes.com",
+    "state": "GA"
+  },
+  {
+    "name": "Georgian Court University",
+    "conference": "Central Atlantic Collegiate Conference",
+    "website": "www.georgian.edu",
+    "athleticWebsite": "www.gculions.com",
+    "state": "NJ"
+  },
+  {
+    "name": "Glenville State University",
+    "conference": "Mountain East Conference",
+    "website": "www.glenville.edu",
+    "athleticWebsite": "www.gscpioneers.com",
+    "state": "WV"
+  },
+  {
+    "name": "Goldey-Beacom College",
+    "conference": "Central Atlantic Collegiate Conference",
+    "website": "www.gbc.edu",
+    "athleticWebsite": "www.gbcathletics.com",
+    "state": "DE"
+  },
+  {
+    "name": "Grand Valley State University",
+    "conference": "Great Lakes Intercollegiate Athletic Conference",
+    "website": "www.gvsu.edu",
+    "athleticWebsite": "gvsulakers.com",
+    "state": "MI"
+  },
+  {
+    "name": "Harding University",
+    "conference": "Great American Conference",
+    "website": "www.harding.edu",
+    "athleticWebsite": "www.hardingsports.com",
+    "state": "AR"
+  },
+  {
+    "name": "Hawaii Pacific University",
+    "conference": "Pacific West Conference",
+    "website": "www.hpu.edu",
+    "athleticWebsite": "www.hpusharks.com",
+    "state": "HI"
+  },
+  {
+    "name": "Henderson State University",
+    "conference": "Great American Conference",
+    "website": "hsu.edu",
+    "athleticWebsite": "hsusports.com",
+    "state": "AR"
+  },
+  {
+    "name": "Hillsdale College",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "www.hillsdale.edu",
+    "athleticWebsite": "www.hillsdalechargers.com",
+    "state": "MI"
+  },
+  {
+    "name": "Holy Family University",
+    "conference": "Central Atlantic Collegiate Conference",
+    "website": "www.holyfamily.edu",
+    "athleticWebsite": "athletics.holyfamily.edu",
+    "state": "PA"
+  },
+  {
+    "name": "Indiana University of Pennsylvania",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "iup.edu",
+    "athleticWebsite": "iupathletics.com",
+    "state": "PA"
+  },
+  {
+    "name": "Jessup University",
+    "conference": "Pacific West Conference",
+    "website": "jessup.edu",
+    "athleticWebsite": "jessupathletics.com",
+    "state": "CA"
+  },
+  {
+    "name": "Johnson C. Smith University",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "www.jcsu.edu",
+    "athleticWebsite": "www.goldenbullsports.com",
+    "state": "NC"
+  },
+  {
+    "name": "Kentucky State University",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.kysu.edu",
+    "athleticWebsite": "ksuthorobreds.com",
+    "state": "KY"
+  },
+  {
+    "name": "Kentucky Wesleyan College",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "kwc.edu",
+    "athleticWebsite": "kwcpanthers.com",
+    "state": "KY"
+  },
+  {
+    "name": "King University",
+    "conference": "Conference Carolinas",
+    "website": "www.king.edu",
+    "athleticWebsite": "www.kingtornado.com",
+    "state": "TN"
+  },
+  {
+    "name": "Kutztown University of Pennsylvania",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.kutztown.edu",
+    "athleticWebsite": "www.kubears.com",
+    "state": "PA"
+  },
+  {
+    "name": "Lake Erie College",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "www.lec.edu",
+    "athleticWebsite": "www.lakeeriestorm.com",
+    "state": "OH"
+  },
+  {
+    "name": "Lake Superior State University",
+    "conference": "Great Lakes Intercollegiate Athletic Conference",
+    "website": "lssu.edu",
+    "athleticWebsite": "lssulakers.com",
+    "state": "MI"
+  },
+  {
+    "name": "Lander University",
+    "conference": "Peach Belt Conference",
+    "website": "www.lander.edu",
+    "athleticWebsite": "www.landerbearcats.com",
+    "state": "SC"
+  },
+  {
+    "name": "Lane College",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.lanecollege.edu",
+    "athleticWebsite": "www.golcdragons.com",
+    "state": "TN"
+  },
+  {
+    "name": "Le Moyne College",
+    "conference": "Northeast Conference",
+    "website": "www.lemoyne.edu",
+    "athleticWebsite": "www.lemoynedolphins.com",
+    "state": "NY"
+  },
+  {
+    "name": "Lee University",
+    "conference": "Gulf South Conference",
+    "website": "www.leeuniversity.edu",
+    "athleticWebsite": "www.leeuflames.com",
+    "state": "TN"
+  },
+  {
+    "name": "Lees-McRae College",
+    "conference": "Conference Carolinas",
+    "website": "www.lmc.edu",
+    "athleticWebsite": "lmcbobcats.com",
+    "state": "NC"
+  },
+  {
+    "name": "LeMoyne-Owen College",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.loc.edu",
+    "athleticWebsite": "athletics.loc.edu",
+    "state": "TN"
+  },
+  {
+    "name": "Lenoir-Rhyne University",
+    "conference": "South Atlantic Conference",
+    "website": "www.lr.edu",
+    "athleticWebsite": "www.lrbears.com",
+    "state": "NC"
+  },
+  {
+    "name": "Lewis University",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.lewisu.edu",
+    "athleticWebsite": "www.lewisflyers.com",
+    "state": "IL"
+  },
+  {
+    "name": "Lincoln Memorial University",
+    "conference": "South Atlantic Conference",
+    "website": "www.lmunet.edu",
+    "athleticWebsite": "www.lmurailsplitters.com",
+    "state": "TN"
+  },
+  {
+    "name": "Lincoln University (Missouri)",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.lincolnu.edu",
+    "athleticWebsite": "www.lubluetigers.com",
+    "state": "MO"
+  },
+  {
+    "name": "Lincoln University (Pennsylvania)",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "www.lincoln.edu",
+    "athleticWebsite": "www.lulions.com",
+    "state": "PA"
+  },
+  {
+    "name": "Livingstone College",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "www.livingstone.edu",
+    "athleticWebsite": "bluebearathletics.com",
+    "state": "NC"
+  },
+  {
+    "name": "Lock Haven University of Pennsylvania",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.lockhaven.edu",
+    "athleticWebsite": "www.golhu.com",
+    "state": "PA"
+  },
+  {
+    "name": "Lubbock Christian University",
+    "conference": "Lone Star Conference",
+    "website": "www.lcu.edu",
+    "athleticWebsite": "www.lcuchaps.com",
+    "state": "TX"
+  },
+  {
+    "name": "Lynn University",
+    "conference": "Sunshine State Conference",
+    "website": "www.lynn.edu",
+    "athleticWebsite": "www.lynnfightingknights.com",
+    "state": "FL"
+  },
+  {
+    "name": "Malone University",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "www.malone.edu",
+    "athleticWebsite": "www.malonepioneers.com",
+    "state": "OH"
+  },
+  {
+    "name": "Mansfield University of Pennsylvania",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "commonwealthu.edu/campus-life/mansfield",
+    "athleticWebsite": "www.gomounties.com",
+    "state": "PA"
+  },
+  {
+    "name": "Mars Hill University",
+    "conference": "South Atlantic Conference",
+    "website": "www.mhu.edu",
+    "athleticWebsite": "www.marshilllions.com",
+    "state": "NC"
+  },
+  {
+    "name": "Maryville University of Saint Louis",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.maryville.edu",
+    "athleticWebsite": "www.maryvillesaints.com",
+    "state": "MO"
+  },
+  {
+    "name": "McKendree University",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.mckendree.edu",
+    "athleticWebsite": "www.mckbearcats.com",
+    "state": "IL"
+  },
+  {
+    "name": "Menlo College",
+    "conference": "Pacific West Conference",
+    "website": "www.menlo.edu",
+    "athleticWebsite": "menloathletics.com",
+    "state": "CA"
+  },
+  {
+    "name": "Mercy University",
+    "conference": "East Coast Conference",
+    "website": "www.mercy.edu",
+    "athleticWebsite": "www.mercyathletics.com",
+    "state": "NY"
+  },
+  {
+    "name": "Mercyhurst University",
+    "conference": "Northeast Conference",
+    "website": "mercyhurst.edu",
+    "athleticWebsite": "www.hurstathletics.com",
+    "state": "PA"
+  },
+  {
+    "name": "Metropolitan State University of Denver",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.msudenver.edu",
+    "athleticWebsite": "www.roadrunnersathletics.com",
+    "state": "CO"
+  },
+  {
+    "name": "Michigan Technological University",
+    "conference": "Great Lakes Intercollegiate Athletic Conference",
+    "website": "www.mtu.edu",
+    "athleticWebsite": "www.michigantechhuskies.com",
+    "state": "MI"
+  },
+  {
+    "name": "Middle Georgia State University",
+    "conference": "Peach Belt Conference",
+    "state": "GA"
+  },
+  {
+    "name": "Midwestern State University",
+    "conference": "Lone Star Conference",
+    "website": "www.msutexas.edu",
+    "athleticWebsite": "msumustangs.com",
+    "state": "TX"
+  },
+  {
+    "name": "Miles College",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.miles.edu",
+    "athleticWebsite": "milesgoldenbears.com",
+    "state": "AL"
+  },
+  {
+    "name": "Millersville University of Pennsylvania",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.millersville.edu",
+    "athleticWebsite": "www.millersvilleathletics.com",
+    "state": "PA"
+  },
+  {
+    "name": "Minnesota State University Moorhead",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.mnstate.edu",
+    "athleticWebsite": "msumdragons.com",
+    "state": "MN"
+  },
+  {
+    "name": "Minnesota State University, Mankato",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.mnsu.edu",
+    "athleticWebsite": "www.msumavericks.com",
+    "state": "MN"
+  },
+  {
+    "name": "Minot State University",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.minotstateu.edu",
+    "athleticWebsite": "www.msubeavers.com",
+    "state": "ND"
+  },
+  {
+    "name": "Mississippi College",
+    "conference": "Gulf South Conference",
+    "website": "www.mc.edu",
+    "athleticWebsite": "www.gochoctaws.com",
+    "state": "MS"
+  },
+  {
+    "name": "Missouri Southern State University",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.mssu.edu",
+    "athleticWebsite": "mssulions.com",
+    "state": "MO"
+  },
+  {
+    "name": "Missouri University of Science and Technology",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.mst.edu",
+    "athleticWebsite": "www.minerathletics.com",
+    "state": "MO"
+  },
+  {
+    "name": "Missouri Western State University",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.missouriwestern.edu",
+    "athleticWebsite": "www.gogriffons.com",
+    "state": "MO"
+  },
+  {
+    "name": "Molloy University",
+    "conference": "East Coast Conference",
+    "website": "www.molloy.edu",
+    "athleticWebsite": "www.molloylions.com",
+    "state": "NY"
+  },
+  {
+    "name": "Montana State University Billings",
+    "conference": "Great Northwest Athletic Conference",
+    "website": "www.msubillings.edu",
+    "athleticWebsite": "www.msubsports.com",
+    "state": "MT"
+  },
+  {
+    "name": "Morehouse College",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.morehouse.edu",
+    "athleticWebsite": "www.morehouseathletics.com",
+    "state": "GA"
+  },
+  {
+    "name": "New Mexico Highlands University",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.nmhu.edu",
+    "athleticWebsite": "www.nmhuathletics.com",
+    "state": "NM"
+  },
+  {
+    "name": "Newberry College",
+    "conference": "South Atlantic Conference",
+    "website": "www.newberry.edu",
+    "athleticWebsite": "www.newberrywolves.com",
+    "state": "SC"
+  },
+  {
+    "name": "Newman University",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.newmanu.edu",
+    "athleticWebsite": "www.newmanjets.com",
+    "state": "KS"
+  },
+  {
+    "name": "North Greenville University",
+    "conference": "Conference Carolinas",
+    "website": "www.ngu.edu",
+    "athleticWebsite": "www.nguathletics.com",
+    "state": "SC"
+  },
+  {
+    "name": "Northeastern State University",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.nsuok.edu",
+    "athleticWebsite": "www.goriverhawksgo.com",
+    "state": "OK"
+  },
+  {
+    "name": "Northern Michigan University",
+    "conference": "Great Lakes Intercollegiate Athletic Conference",
+    "website": "www.nmu.edu",
+    "athleticWebsite": "www.nmuwildcats.com",
+    "state": "MI"
+  },
+  {
+    "name": "Northern State University",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "northern.edu",
+    "athleticWebsite": "nsuwolves.com",
+    "state": "SD"
+  },
+  {
+    "name": "Northwest Missouri State University",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "nwmissouri.edu",
+    "athleticWebsite": "bearcatsports.com",
+    "state": "MO"
+  },
+  {
+    "name": "Northwest Nazarene University",
+    "conference": "Great Northwest Athletic Conference",
+    "website": "www.nnu.edu",
+    "athleticWebsite": "nnusports.com",
+    "state": "ID"
+  },
+  {
+    "name": "Northwestern Oklahoma State University",
+    "conference": "Great American Conference",
+    "website": "www.nwosu.edu",
+    "athleticWebsite": "www.riderangersride.com",
+    "state": "OK"
+  },
+  {
+    "name": "Northwood University",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "www.northwood.edu",
+    "athleticWebsite": "gonorthwood.com",
+    "state": "MI"
+  },
+  {
+    "name": "Nova Southeastern University",
+    "conference": "Sunshine State Conference",
+    "website": "www.nova.edu",
+    "athleticWebsite": "nsusharks.com",
+    "state": "FL"
+  },
+  {
+    "name": "Ohio Dominican University",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "www.ohiodominican.edu",
+    "athleticWebsite": "www.ohiodominicanpanthers.com",
+    "state": "OH"
+  },
+  {
+    "name": "Oklahoma Baptist University",
+    "conference": "Great American Conference",
+    "website": "www.okbu.edu",
+    "athleticWebsite": "www.obubison.com",
+    "state": "OK"
+  },
+  {
+    "name": "Oklahoma Christian University",
+    "conference": "Lone Star Conference",
+    "website": "www.oc.edu",
+    "athleticWebsite": "www.oceagles.com",
+    "state": "OK"
+  },
+  {
+    "name": "Ouachita Baptist University",
+    "conference": "Great American Conference",
+    "website": "www.obu.edu",
+    "athleticWebsite": "www.obutigers.com",
+    "state": "AR"
   },
   {
     "name": "Pace University",
-    "conference": "Northeast-10"
+    "conference": "Northeast 10 Conference",
+    "website": "www.pace.edu",
+    "athleticWebsite": "www.paceuathletics.com",
+    "state": "NY"
   },
   {
-    "name": "Palm Beach Atlantic",
-    "conference": "Sunshine State"
+    "name": "Palm Beach Atlantic University",
+    "conference": "Sunshine State Conference",
+    "website": "www.pba.edu",
+    "athleticWebsite": "www.pbasailfish.com",
+    "state": "FL"
   },
   {
-    "name": "Pittsburgh-Johnstown",
-    "conference": "Pennsylvania State Athletic"
+    "name": "Pennsylvania Western University, California",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.pennwest.edu",
+    "athleticWebsite": "www.calvulcans.com",
+    "state": "PA"
   },
   {
-    "name": "Quincy",
-    "conference": "Great Lakes Valley"
+    "name": "Pennsylvania Western University, Clarion",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.pennwest.edu",
+    "athleticWebsite": "www.clariongoldeneagles.com",
+    "state": "PA"
   },
   {
-    "name": "Rollins",
-    "conference": "Sunshine State"
+    "name": "Pennsylvania Western University, Edinboro",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.edinboro.edu",
+    "athleticWebsite": "www.gofightingscots.com",
+    "state": "PA"
   },
   {
-    "name": "Saint Cloud State",
-    "conference": "Northern Sun Intercollegiate"
+    "name": "Pittsburg State University",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.pittstate.edu",
+    "athleticWebsite": "www.pittstategorillas.com",
+    "state": "KS"
   },
   {
-    "name": "Saint Mary's Maryland",
-    "conference": "Chesapeake"
+    "name": "Point Loma Nazarene University",
+    "conference": "Pacific West Conference",
+    "website": "www.pointloma.edu",
+    "athleticWebsite": "www.plnusealions.com",
+    "state": "CA"
   },
   {
-    "name": "Shippensburg",
-    "conference": "Pennsylvania State Athletic"
+    "name": "Point Park University",
+    "conference": "Mountain East Conference",
+    "website": "pointpark.edu",
+    "athleticWebsite": "pointparksports.com",
+    "state": "PA"
   },
   {
-    "name": "Simon Fraser",
-    "conference": "Great Northwest Athletic"
+    "name": "Post University",
+    "conference": "Central Atlantic Collegiate Conference",
+    "website": "www.post.edu",
+    "athleticWebsite": "www.posteagles.com",
+    "state": "CT"
   },
   {
-    "name": "Slippery Rock",
-    "conference": "Pennsylvania State Athletic"
+    "name": "Purdue University Northwest",
+    "conference": "Great Lakes Intercollegiate Athletic Conference",
+    "website": "www.pnw.edu",
+    "athleticWebsite": "www.pnwathletics.com",
+    "state": "IN"
   },
   {
-    "name": "Sonoma State",
-    "conference": "California Collegiate Athletic"
+    "name": "Queens College (New York)",
+    "conference": "East Coast Conference",
+    "website": "www.qc.cuny.edu",
+    "athleticWebsite": "www.queensknights.com",
+    "state": "NY"
   },
   {
-    "name": "Southern Connecticut State",
-    "conference": "Northeast-10"
+    "name": "Quincy University",
+    "conference": "Great Lakes Valley Conference",
+    "website": "quincy.edu",
+    "athleticWebsite": "quhawks.com",
+    "state": "IL"
   },
   {
-    "name": "Southwest Minnesota State",
-    "conference": "Northern Sun Intercollegiate"
+    "name": "Regis University (Colorado)",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.regis.edu",
+    "athleticWebsite": "www.regisrangers.com",
+    "state": "CO"
   },
   {
-    "name": "Stonehill",
-    "conference": "Northeast-10"
+    "name": "Roberts Wesleyan University",
+    "conference": "East Coast Conference",
+    "website": "www.roberts.edu",
+    "athleticWebsite": "www.robertsredhawks.com",
+    "state": "NY"
   },
   {
-    "name": "Tampa",
-    "conference": "Sunshine State"
+    "name": "Rockhurst University",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.rockhurst.edu",
+    "athleticWebsite": "www.rockhursthawks.com",
+    "state": "MO"
   },
   {
-    "name": "Tarleton State",
-    "conference": "Lone Star"
+    "name": "Rogers State University",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.rsu.edu",
+    "athleticWebsite": "www.rsuhillcats.com",
+    "state": "OK"
   },
   {
-    "name": "Tiffin",
-    "conference": "Great Lakes Intercollegiate"
+    "name": "Rollins College",
+    "conference": "Sunshine State Conference",
+    "website": "rollins.edu",
+    "athleticWebsite": "rollinssports.com",
+    "state": "FL"
   },
   {
-    "name": "Toronto",
-    "conference": "Ontario University Athletic"
+    "name": "Roosevelt University",
+    "conference": "Great Lakes Intercollegiate Athletic Conference",
+    "website": "www.roosevelt.edu",
+    "athleticWebsite": "www.rooseveltlakers.com",
+    "state": "IL"
   },
   {
-    "name": "Truman State",
-    "conference": "Mid-America Intercollegiate Athletic"
+    "name": "Saginaw Valley State University",
+    "conference": "Great Lakes Intercollegiate Athletic Conference",
+    "website": "www.svsu.edu",
+    "athleticWebsite": "www.svsucardinals.com",
+    "state": "MI"
   },
   {
-    "name": "UC Davis",
-    "conference": "Great West Athletic"
+    "name": "Saint Anselm College",
+    "conference": "Northeast 10 Conference",
+    "website": "www.anselm.edu",
+    "athleticWebsite": "www.saintanselmhawks.com",
+    "state": "NH"
   },
   {
-    "name": "UC Riverside",
-    "conference": "California Collegiate Athletic"
+    "name": "Saint Leo University",
+    "conference": "Sunshine State Conference",
+    "website": "www.saintleo.edu",
+    "athleticWebsite": "www.saintleolions.com",
+    "state": "FL"
   },
   {
-    "name": "West Texas A&M",
-    "conference": "Lone Star"
+    "name": "Saint Martin's University",
+    "conference": "Great Northwest Athletic Conference",
+    "website": "www.stmartin.edu",
+    "athleticWebsite": "www.smusaints.com",
+    "state": "WA"
+  },
+  {
+    "name": "Saint Michael's College",
+    "conference": "Northeast 10 Conference",
+    "website": "www.smcvt.edu",
+    "athleticWebsite": "www.smcathletics.com",
+    "state": "VT"
+  },
+  {
+    "name": "Salem University (West Virginia)",
+    "conference": "Independent",
+    "website": "www.salemu.edu",
+    "athleticWebsite": "www.salemtigers.com",
+    "state": "WV"
+  },
+  {
+    "name": "San Francisco State University",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.sfsu.edu",
+    "athleticWebsite": "sfstategators.com",
+    "state": "CA"
+  },
+  {
+    "name": "Savannah State University",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.savannahstate.edu",
+    "athleticWebsite": "ssuathletics.com",
+    "state": "GA"
+  },
+  {
+    "name": "Seattle Pacific University",
+    "conference": "Great Northwest Athletic Conference",
+    "website": "spu.edu",
+    "athleticWebsite": "spufalcons.com/index.aspx",
+    "state": "WA"
+  },
+  {
+    "name": "Seton Hill University",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.setonhill.edu",
+    "athleticWebsite": "www.setonhill.edu/athletics",
+    "state": "PA"
+  },
+  {
+    "name": "Shaw University",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "www.shawuniversity.edu",
+    "athleticWebsite": "www.shawbears.com",
+    "state": "NC"
+  },
+  {
+    "name": "Shepherd University",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "shepherd.edu",
+    "athleticWebsite": "shepherdrams.com",
+    "state": "WV"
+  },
+  {
+    "name": "Shippensburg University of Pennsylvania",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.ship.edu",
+    "athleticWebsite": "www.shipraiders.com",
+    "state": "PA"
+  },
+  {
+    "name": "Shorter University",
+    "conference": "Conference Carolinas",
+    "website": "www.shorter.edu",
+    "athleticWebsite": "www.goshorterhawks.com",
+    "state": "GA"
+  },
+  {
+    "name": "Simon Fraser University",
+    "conference": "Great Northwest Athletic Conference",
+    "website": "www.sfu.ca",
+    "athleticWebsite": "athletics.sfu.ca",
+    "state": "BC"
+  },
+  {
+    "name": "Slippery Rock University of Pennsylvania",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.sru.edu",
+    "athleticWebsite": "www.rockathletics.com",
+    "state": "PA"
+  },
+  {
+    "name": "Sonoma State University",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.sonoma.edu",
+    "athleticWebsite": "www.sonomaseawolves.com",
+    "state": "CA"
+  },
+  {
+    "name": "South Dakota School of Mines & Technology",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "sdmines.sdsmt.edu/sdsmt",
+    "athleticWebsite": "gorockers.com",
+    "state": "SD"
+  },
+  {
+    "name": "Southeastern Oklahoma State University",
+    "conference": "Great American Conference",
+    "website": "www.se.edu",
+    "athleticWebsite": "www.gosoutheastern.com",
+    "state": "OK"
+  },
+  {
+    "name": "Southern Arkansas University",
+    "conference": "Great American Conference",
+    "website": "www.saumag.edu",
+    "athleticWebsite": "www.muleriderathletics.com",
+    "state": "AR"
+  },
+  {
+    "name": "Southern Connecticut State University",
+    "conference": "Northeast 10 Conference",
+    "website": "southernct.edu",
+    "athleticWebsite": "scsuowls.com",
+    "state": "CT"
+  },
+  {
+    "name": "Southern Nazarene University",
+    "conference": "Great American Conference",
+    "website": "snu.edu",
+    "athleticWebsite": "snuathletics.com",
+    "state": "OK"
+  },
+  {
+    "name": "Southern New Hampshire University",
+    "conference": "Northeast 10 Conference",
+    "website": "www.snhu.edu",
+    "athleticWebsite": "www.snhupenmen.com",
+    "state": "NH"
+  },
+  {
+    "name": "Southern Wesleyan University",
+    "conference": "Conference Carolinas",
+    "website": "www.swu.edu",
+    "athleticWebsite": "swuathletics.com",
+    "state": "SC"
+  },
+  {
+    "name": "Southwest Baptist University",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.sbuniv.edu",
+    "athleticWebsite": "www.sbubearcats.com",
+    "state": "MO"
+  },
+  {
+    "name": "Southwest Minnesota State University",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.smsu.edu",
+    "athleticWebsite": "www.smsumustangs.com",
+    "state": "MN"
+  },
+  {
+    "name": "Southwestern Oklahoma State University",
+    "conference": "Great American Conference",
+    "website": "www.swosu.edu",
+    "athleticWebsite": "www.swosuathletics.com",
+    "state": "OK"
+  },
+  {
+    "name": "Spring Hill College",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.shc.edu",
+    "athleticWebsite": "www.shcbadgers.com",
+    "state": "AL"
+  },
+  {
+    "name": "St. Cloud State University",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.stcloudstate.edu",
+    "athleticWebsite": "www.stcloudstate.edu/athletics",
+    "state": "MN"
+  },
+  {
+    "name": "St. Edward's University",
+    "conference": "Lone Star Conference",
+    "website": "stedwards.edu",
+    "athleticWebsite": "gohilltoppers.com",
+    "state": "TX"
+  },
+  {
+    "name": "St. Mary's University (Texas)",
+    "conference": "Lone Star Conference",
+    "website": "www.stmarytx.edu",
+    "athleticWebsite": "www.rattlerathletics.com",
+    "state": "TX"
+  },
+  {
+    "name": "St. Thomas Aquinas College",
+    "conference": "East Coast Conference",
+    "website": "stac.edu",
+    "athleticWebsite": "stacathletics.com/landing/index",
+    "state": "NY"
+  },
+  {
+    "name": "Texas A&M International University",
+    "conference": "Lone Star Conference",
+    "website": "www.tamiu.edu",
+    "athleticWebsite": "godustdevils.com",
+    "state": "TX"
+  },
+  {
+    "name": "Texas A&M University-Kingsville",
+    "conference": "Lone Star Conference",
+    "website": "www.tamuk.edu",
+    "athleticWebsite": "www.javelinaathletics.com",
+    "state": "TX"
+  },
+  {
+    "name": "Texas Woman's University",
+    "conference": "Lone Star Conference",
+    "website": "www.twu.edu",
+    "athleticWebsite": "www.twuathletics.com",
+    "state": "TX"
+  },
+  {
+    "name": "The University of Texas at Tyler",
+    "conference": "Lone Star Conference",
+    "website": "www.uttyler.edu",
+    "athleticWebsite": "www.uttylerpatriots.com",
+    "state": "TX"
+  },
+  {
+    "name": "The University of Texas Permian Basin",
+    "conference": "Lone Star Conference",
+    "website": "www.utpb.edu",
+    "athleticWebsite": "www.utpbfalcons.com",
+    "state": "TX"
+  },
+  {
+    "name": "The University of Virginia's College at Wise",
+    "conference": "South Atlantic Conference",
+    "website": "www.uvawise.edu",
+    "athleticWebsite": "www.uvawisecavs.com",
+    "state": "VA"
+  },
+  {
+    "name": "Thomas Jefferson University",
+    "conference": "Central Atlantic Collegiate Conference",
+    "website": "www.jefferson.edu",
+    "athleticWebsite": "www.jeffersonrams.com",
+    "state": "PA"
+  },
+  {
+    "name": "Thomas More University",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "www.thomasmore.edu",
+    "athleticWebsite": "www.thomasmoresaints.com",
+    "state": "KY"
+  },
+  {
+    "name": "Tiffin University",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "tiffin.edu",
+    "athleticWebsite": "www.gotiffindragons.com",
+    "state": "OH"
+  },
+  {
+    "name": "Trevecca Nazarene University",
+    "conference": "Gulf South Conference",
+    "website": "www.trevecca.edu",
+    "athleticWebsite": "www.tnutrojans.com",
+    "state": "TN"
+  },
+  {
+    "name": "Truman State University",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.truman.edu",
+    "athleticWebsite": "www.trumanbulldogs.com",
+    "state": "MO"
+  },
+  {
+    "name": "Tusculum University",
+    "conference": "South Atlantic Conference",
+    "website": "www.tusculum.edu",
+    "athleticWebsite": "www.tusculumpioneers.com",
+    "state": "TN"
+  },
+  {
+    "name": "Tuskegee University",
+    "conference": "Southern Intercol. Ath. Conf.",
+    "website": "www.tuskegee.edu",
+    "athleticWebsite": "www.goldentigersports.com",
+    "state": "AL"
+  },
+  {
+    "name": "Union University",
+    "conference": "Gulf South Conference",
+    "website": "www.uu.edu",
+    "athleticWebsite": "www.uuathletics.com",
+    "state": "TN"
+  },
+  {
+    "name": "University of Alabama in Huntsville",
+    "conference": "Gulf South Conference",
+    "website": "uah.edu",
+    "athleticWebsite": "uahchargers.com",
+    "state": "AL"
+  },
+  {
+    "name": "University of Alaska Anchorage",
+    "conference": "Great Northwest Athletic Conference",
+    "website": "www.uaa.alaska.edu",
+    "athleticWebsite": "www.goseawolves.com",
+    "state": "AK"
+  },
+  {
+    "name": "University of Alaska Fairbanks",
+    "conference": "Great Northwest Athletic Conference",
+    "website": "www.uaf.edu",
+    "athleticWebsite": "www.alaskananooks.com",
+    "state": "AK"
+  },
+  {
+    "name": "University of Arkansas, Fort Smith",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.uafs.edu/home/index",
+    "athleticWebsite": "www.uafortsmithlions.com",
+    "state": "AR"
+  },
+  {
+    "name": "University of Arkansas, Monticello",
+    "conference": "Great American Conference",
+    "website": "www.uamont.edu",
+    "athleticWebsite": "www.uamsports.com",
+    "state": "AR"
+  },
+  {
+    "name": "University of Bridgeport",
+    "conference": "Central Atlantic Collegiate Conference",
+    "website": "www.bridgeport.edu",
+    "athleticWebsite": "www.ubknights.com",
+    "state": "CT"
+  },
+  {
+    "name": "University of California, Merced",
+    "conference": "California Collegiate Athletic Association",
+    "website": "www.ucmerced.edu",
+    "athleticWebsite": "www.ucmercedbobcats.com",
+    "state": "CA"
+  },
+  {
+    "name": "University of Central Missouri",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.ucmo.edu",
+    "athleticWebsite": "ucmathletics.com",
+    "state": "MO"
+  },
+  {
+    "name": "University of Central Oklahoma",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.uco.edu",
+    "athleticWebsite": "www.bronchosports.com",
+    "state": "OK"
+  },
+  {
+    "name": "University of Charleston (West Virginia)",
+    "conference": "Mountain East Conference",
+    "website": "www.ucwv.edu",
+    "athleticWebsite": "www.ucgoldeneagles.com",
+    "state": "WV"
+  },
+  {
+    "name": "University of Colorado Colorado Springs",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.uccs.edu",
+    "athleticWebsite": "www.gomountainlions.com",
+    "state": "CO"
+  },
+  {
+    "name": "University of Findlay",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "www.findlay.edu",
+    "athleticWebsite": "findlayoilers.com",
+    "state": "OH"
+  },
+  {
+    "name": "University of Hawaii at Hilo",
+    "conference": "Pacific West Conference",
+    "website": "www.uhh.hawaii.edu",
+    "athleticWebsite": "hiloathletics.com",
+    "state": "HI"
+  },
+  {
+    "name": "University of Illinois Springfield",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.uis.edu",
+    "athleticWebsite": "www.uisprairiestars.com",
+    "state": "IL"
+  },
+  {
+    "name": "University of Indianapolis",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.uindy.edu",
+    "athleticWebsite": "uindyathletics.com",
+    "state": "IN"
+  },
+  {
+    "name": "University of Jamestown",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "uj.edu",
+    "athleticWebsite": "jimmiepride.com",
+    "state": "ND"
+  },
+  {
+    "name": "University of Mary",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.umary.edu",
+    "athleticWebsite": "www.goumary.com",
+    "state": "ND"
+  },
+  {
+    "name": "University of Minnesota Duluth",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.d.umn.edu",
+    "athleticWebsite": "umdbulldogs.com",
+    "state": "MN"
+  },
+  {
+    "name": "University of Minnesota, Crookston",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.umcrookston.edu",
+    "athleticWebsite": "www.goldeneaglesports.com",
+    "state": "MN"
+  },
+  {
+    "name": "University of Missouri-St. Louis",
+    "conference": "Great Lakes Valley Conference",
+    "website": "umsl.edu",
+    "athleticWebsite": "umsltritons.com",
+    "state": "MO"
+  },
+  {
+    "name": "University of Montevallo",
+    "conference": "Gulf South Conference",
+    "website": "www.montevallo.edu",
+    "athleticWebsite": "www.montevallofalcons.com",
+    "state": "AL"
+  },
+  {
+    "name": "University of Mount Olive",
+    "conference": "Conference Carolinas",
+    "website": "www.umo.edu",
+    "athleticWebsite": "www.umotrojans.com",
+    "state": "NC"
+  },
+  {
+    "name": "University of Nebraska at Kearney",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.unk.edu",
+    "athleticWebsite": "www.lopers.com",
+    "state": "NE"
+  },
+  {
+    "name": "University of New Haven",
+    "conference": "Northeast Conference",
+    "website": "www.newhaven.edu",
+    "athleticWebsite": "www.newhavenchargers.com",
+    "state": "CT"
+  },
+  {
+    "name": "University of North Carolina at Pembroke",
+    "conference": "Conference Carolinas",
+    "website": "www.uncp.edu",
+    "athleticWebsite": "www.uncpbraves.com",
+    "state": "NC"
+  },
+  {
+    "name": "University of North Georgia",
+    "conference": "Peach Belt Conference",
+    "website": "www.ung.edu",
+    "athleticWebsite": "www.ungathletics.com",
+    "state": "GA"
+  },
+  {
+    "name": "University of Pittsburgh, Johnstown",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.upj.pitt.edu",
+    "athleticWebsite": "pittjohnstownathletics.com",
+    "state": "PA"
+  },
+  {
+    "name": "University of Puerto Rico, Bayamon",
+    "conference": "Independent",
+    "website": "www.uprb.edu",
+    "athleticWebsite": "www.uprb.edu",
+    "state": "PR"
+  },
+  {
+    "name": "University of Puerto Rico, Mayaguez",
+    "conference": "Independent",
+    "website": "www.uprm.edu",
+    "athleticWebsite": "www.uprm.edu/actividadesatleticas",
+    "state": "PR"
+  },
+  {
+    "name": "University of Puerto Rico, Rio Piedras",
+    "conference": "Independent",
+    "website": "www.uprrp.edu",
+    "athleticWebsite": "estudiantes.uprrp.edu/desarollo-estudiantil/departamento-atletico",
+    "state": "PR"
+  },
+  {
+    "name": "University of Sioux Falls",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.usiouxfalls.edu",
+    "athleticWebsite": "www.usfcougars.com",
+    "state": "SD"
+  },
+  {
+    "name": "University of South Carolina Aiken",
+    "conference": "Peach Belt Conference",
+    "website": "www.usca.edu",
+    "athleticWebsite": "www.pacersports.com",
+    "state": "SC"
+  },
+  {
+    "name": "University of South Carolina Beaufort",
+    "conference": "Peach Belt Conference",
+    "website": "uscb.edu",
+    "athleticWebsite": "uscbathletics.com",
+    "state": "SC"
+  },
+  {
+    "name": "University of Tampa",
+    "conference": "Sunshine State Conference",
+    "website": "www.ut.edu",
+    "athleticWebsite": "tampaspartans.com/landing/index",
+    "state": "FL"
+  },
+  {
+    "name": "University of the District of Columbia",
+    "conference": "East Coast Conference",
+    "website": "www.udc.edu",
+    "athleticWebsite": "www.udcfirebirds.com",
+    "state": "DC"
+  },
+  {
+    "name": "University of West Alabama",
+    "conference": "Gulf South Conference",
+    "website": "www.uwa.edu",
+    "athleticWebsite": "www.uwaathletics.com",
+    "state": "AL"
+  },
+  {
+    "name": "University of West Florida",
+    "conference": "Gulf South Conference",
+    "website": "www.uwf.edu",
+    "athleticWebsite": "www.goargos.com",
+    "state": "FL"
+  },
+  {
+    "name": "University of West Georgia",
+    "conference": "Atlantic Sun Conference",
+    "website": "www.westga.edu",
+    "athleticWebsite": "www.uwgathletics.com",
+    "state": "GA"
+  },
+  {
+    "name": "University of Wisconsin-Parkside",
+    "conference": "Great Lakes Intercollegiate Athletic Conference",
+    "website": "www.uwp.edu",
+    "athleticWebsite": "www.parksiderangers.com",
+    "state": "WI"
+  },
+  {
+    "name": "Upper Iowa University",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.uiu.edu",
+    "athleticWebsite": "uiupeacocks.com",
+    "state": "IA"
+  },
+  {
+    "name": "Ursuline College",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "www.ursuline.edu",
+    "athleticWebsite": "www.ursulinearrows.com",
+    "state": "OH"
+  },
+  {
+    "name": "Valdosta State University",
+    "conference": "Gulf South Conference",
+    "website": "www.valdosta.edu",
+    "athleticWebsite": "www.vstateblazers.com",
+    "state": "GA"
+  },
+  {
+    "name": "Vanguard University",
+    "conference": "Pacific West Conference",
+    "website": "www.vanguard.edu",
+    "athleticWebsite": "www.vanguardlions.com",
+    "state": "CA"
+  },
+  {
+    "name": "Virginia State University",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "www.vsu.edu",
+    "athleticWebsite": "www.govsutrojans.com",
+    "state": "VA"
+  },
+  {
+    "name": "Virginia Union University",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "www.vuu.edu",
+    "athleticWebsite": "vuusports.com",
+    "state": "VA"
+  },
+  {
+    "name": "Walsh University",
+    "conference": "Great Midwest Athletic Conference",
+    "website": "walsh.edu",
+    "athleticWebsite": "athletics.walsh.edu/landing/index",
+    "state": "OH"
+  },
+  {
+    "name": "Washburn University",
+    "conference": "Mid-America Intercollegiate Athletics Association",
+    "website": "www.washburn.edu",
+    "athleticWebsite": "www.wusports.com",
+    "state": "KS"
+  },
+  {
+    "name": "Wayne State College (Nebraska)",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.wsc.edu",
+    "athleticWebsite": "www.wscwildcats.com",
+    "state": "NE"
+  },
+  {
+    "name": "Wayne State University (Michigan)",
+    "conference": "Great Lakes Intercollegiate Athletic Conference",
+    "website": "www.wayne.edu",
+    "athleticWebsite": "www.wsuathletics.com",
+    "state": "MI"
+  },
+  {
+    "name": "West Chester University of Pennsylvania",
+    "conference": "Pennsylvania State Athletic Conference",
+    "website": "www.wcupa.edu",
+    "athleticWebsite": "www.wcupagoldenrams.com",
+    "state": "PA"
+  },
+  {
+    "name": "West Liberty University",
+    "conference": "Mountain East Conference",
+    "website": "www.westliberty.edu",
+    "athleticWebsite": "www.hilltoppersports.com",
+    "state": "WV"
+  },
+  {
+    "name": "West Texas A&M University",
+    "conference": "Lone Star Conference",
+    "website": "www.wtamu.edu",
+    "athleticWebsite": "www.gobuffsgo.com",
+    "state": "TX"
+  },
+  {
+    "name": "West Virginia State University",
+    "conference": "Mountain East Conference",
+    "website": "www.wvstateu.edu",
+    "athleticWebsite": "www.wvsuyellowjackets.com",
+    "state": "WV"
+  },
+  {
+    "name": "West Virginia Wesleyan College",
+    "conference": "Mountain East Conference",
+    "website": "wvwc.edu",
+    "athleticWebsite": "wesleyanbobcats.com",
+    "state": "WV"
+  },
+  {
+    "name": "Western Colorado University",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.western.edu",
+    "athleticWebsite": "www.gomountaineers.com",
+    "state": "CO"
+  },
+  {
+    "name": "Western New Mexico University",
+    "conference": "Lone Star Conference",
+    "website": "www.wnmu.edu",
+    "athleticWebsite": "www.wnmumustangs.com",
+    "state": "NM"
+  },
+  {
+    "name": "Western Oregon University",
+    "conference": "Great Northwest Athletic Conference",
+    "website": "www.wou.edu",
+    "athleticWebsite": "www.wouwolves.com",
+    "state": "OR"
+  },
+  {
+    "name": "Western Washington University",
+    "conference": "Great Northwest Athletic Conference",
+    "website": "www.wwu.edu",
+    "athleticWebsite": "www.wwuvikings.com",
+    "state": "WA"
+  },
+  {
+    "name": "Westminster University (Utah)",
+    "conference": "Rocky Mountain Athletic Conference",
+    "website": "www.westminsteru.edu",
+    "athleticWebsite": "www.westminstergriffins.com",
+    "state": "UT"
+  },
+  {
+    "name": "Westmont College",
+    "conference": "Pacific West Conference",
+    "website": "westmont.edu",
+    "athleticWebsite": "athletics.westmont.edu",
+    "state": "CA"
+  },
+  {
+    "name": "Wheeling University",
+    "conference": "Mountain East Conference",
+    "website": "wheeling.edu",
+    "athleticWebsite": "wucardinals.com",
+    "state": "WV"
+  },
+  {
+    "name": "William Jewell College",
+    "conference": "Great Lakes Valley Conference",
+    "website": "www.jewell.edu",
+    "athleticWebsite": "www.jewellcardinals.com",
+    "state": "MO"
+  },
+  {
+    "name": "Wilmington University (Delaware)",
+    "conference": "Central Atlantic Collegiate Conference",
+    "website": "www.wilmu.edu/index.aspx",
+    "athleticWebsite": "athletics.wilmu.edu/landing/index",
+    "state": "DE"
+  },
+  {
+    "name": "Wingate University",
+    "conference": "South Atlantic Conference",
+    "website": "wingate.edu",
+    "athleticWebsite": "wingatebulldogs.com",
+    "state": "NC"
+  },
+  {
+    "name": "Winona State University",
+    "conference": "Northern Sun Intercollegiate Conference",
+    "website": "www.winona.edu",
+    "athleticWebsite": "www.winonastatewarriors.com",
+    "state": "MN"
+  },
+  {
+    "name": "Winston-Salem State University",
+    "conference": "Central Intercollegiate Athletic Association",
+    "website": "www.wssu.edu",
+    "athleticWebsite": "wssurams.com",
+    "state": "NC"
+  },
+  {
+    "name": "Young Harris College",
+    "conference": "Conference Carolinas",
+    "website": "www.yhc.edu",
+    "athleticWebsite": "www.yhcathletics.com",
+    "state": "GA"
   }
 ]
