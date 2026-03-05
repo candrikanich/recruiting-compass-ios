@@ -239,6 +239,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
   func testSavePrivateNotes_NoFamily_ShowsError() async {
     // Given
     mockFamilyManager.familyUnit = nil
+    mockFamilyManager.currentMember = nil
     viewModel.editedPrivateNotes = "Note"
 
     // When
@@ -305,6 +306,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
   func testAddPro_NoFamily_ShowsError() async {
     // Given
     mockFamilyManager.familyUnit = nil
+    mockFamilyManager.currentMember = nil
     viewModel.newPro = "Great facilities"
 
     // When
@@ -330,6 +332,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
   func testRemovePro_NoFamily_ShowsError() async {
     // Given
     mockFamilyManager.familyUnit = nil
+    mockFamilyManager.currentMember = nil
 
     // When
     await viewModel.removePro(at: 0)
@@ -367,6 +370,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
   func testAddCon_NoFamily_ShowsError() async {
     // Given
     mockFamilyManager.familyUnit = nil
+    mockFamilyManager.currentMember = nil
     viewModel.newCon = "Far from home"
 
     // When

@@ -117,6 +117,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
   func testLoadSchool_NoFamily_ShowsError() async {
     // Given
     mockFamilyManager.familyUnit = nil
+    mockFamilyManager.currentMember = nil
 
     // When
     await viewModel.loadSchool()
