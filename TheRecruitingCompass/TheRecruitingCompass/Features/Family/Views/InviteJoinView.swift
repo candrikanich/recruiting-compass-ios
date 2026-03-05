@@ -2,6 +2,7 @@ import SwiftUI
 
 struct InviteJoinView: View {
   @State var viewModel: InviteJoinViewModel
+  @State private var presentedLegal: LegalDocument?
   @Environment(\.dismiss) private var dismiss
 
   var body: some View {
@@ -30,6 +31,7 @@ struct InviteJoinView: View {
     .onChange(of: viewModel.navigateToDashboard) { _, navigates in
       if navigates { dismiss() }
     }
+    .sheet(item: $presentedLegal) { $0.view }
     .toast(
       isShowing: Binding(
         get: { viewModel.showSuccessToast },
@@ -149,13 +151,7 @@ struct InviteJoinView: View {
         .padding(.top, 16)
 
         if let error = viewModel.errorMessage {
-          Text(error)
-            .font(.subheadline)
-            .foregroundStyle(.red)
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.red.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+          ErrorBanner(message: error, onDismiss: { viewModel.errorMessage = nil })
         }
 
         if viewModel.isAuthenticated {
@@ -172,21 +168,12 @@ struct InviteJoinView: View {
 
   private func authenticatedConnectSection(invite: InviteDetails) -> some View {
     VStack(spacing: 12) {
-      Button {
+      gradientButton(
+        label: "Connect to \(invite.familyName)",
+        isLoading: viewModel.isAccepting
+      ) {
         Task { await viewModel.accept() }
-      } label: {
-        Group {
-          if viewModel.isAccepting {
-            ProgressView().tint(.white)
-          } else {
-            Text("Connect to \(invite.familyName)")
-          }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 48)
       }
-      .buttonStyle(.borderedProminent)
-      .disabled(viewModel.isAccepting)
 
       declineButton(loading: viewModel.isDeclining)
     }
@@ -199,33 +186,38 @@ struct InviteJoinView: View {
         .foregroundStyle(.secondary)
 
       VStack(spacing: 12) {
-        TextField("Email", text: $viewModel.loginEmail)
-          .textFieldStyle(.roundedBorder)
-          .keyboardType(.emailAddress)
-          .textContentType(.emailAddress)
-          .autocapitalization(.none)
-          .disabled(true)
+        LoginFormField(
+          label: "Email",
+          placeholder: invite.email,
+          icon: "envelope",
+          text: .constant(invite.email),
+          error: .constant(nil),
+          isSecure: false,
+          keyboardType: .emailAddress,
+          textContentType: .emailAddress,
+          onBlur: {}
+        )
+        .disabled(true)
 
-        SecureField("Password", text: $viewModel.loginPassword)
-          .textFieldStyle(.roundedBorder)
-          .textContentType(.password)
+        LoginFormField(
+          label: "Password",
+          placeholder: "Your password",
+          icon: "lock",
+          text: $viewModel.loginPassword,
+          error: .constant(nil),
+          isSecure: true,
+          keyboardType: .default,
+          textContentType: .password,
+          onBlur: {}
+        )
       }
 
-      Button {
+      gradientButton(
+        label: "Log in and connect",
+        isLoading: viewModel.isAccepting
+      ) {
         Task { await viewModel.accept() }
-      } label: {
-        Group {
-          if viewModel.isAccepting {
-            ProgressView().tint(.white)
-          } else {
-            Text("Log in and connect")
-          }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 48)
       }
-      .buttonStyle(.borderedProminent)
-      .disabled(viewModel.isAccepting)
 
       declineButton(loading: viewModel.isDeclining)
     }
@@ -238,78 +230,139 @@ struct InviteJoinView: View {
         .foregroundStyle(.secondary)
 
       if let err = viewModel.signupError {
-        Text(err)
-          .font(.subheadline)
-          .foregroundStyle(.red)
-          .padding(8)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .background(Color.red.opacity(0.08))
-          .clipShape(RoundedRectangle(cornerRadius: 8))
+        ErrorBanner(message: err, onDismiss: { viewModel.signupError = nil })
       }
 
       VStack(spacing: 12) {
-        HStack(spacing: 12) {
-          TextField("First name", text: $viewModel.signupFirstName)
-            .textFieldStyle(.roundedBorder)
-            .textContentType(.givenName)
-          TextField("Last name", text: $viewModel.signupLastName)
-            .textFieldStyle(.roundedBorder)
-            .textContentType(.familyName)
-        }
+        LoginFormField(
+          label: "First Name",
+          placeholder: "John",
+          icon: "person",
+          text: $viewModel.signupFirstName,
+          error: .constant(nil),
+          isSecure: false,
+          keyboardType: .default,
+          textContentType: .givenName,
+          onBlur: {}
+        )
 
-        Text(invite.email)
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-          .frame(maxWidth: .infinity, alignment: .leading)
+        LoginFormField(
+          label: "Last Name",
+          placeholder: "Smith",
+          icon: "person",
+          text: $viewModel.signupLastName,
+          error: .constant(nil),
+          isSecure: false,
+          keyboardType: .default,
+          textContentType: .familyName,
+          onBlur: {}
+        )
+
+        LoginFormField(
+          label: "Email",
+          placeholder: invite.email,
+          icon: "envelope",
+          text: .constant(invite.email),
+          error: .constant(nil),
+          isSecure: false,
+          keyboardType: .emailAddress,
+          textContentType: .emailAddress,
+          onBlur: {}
+        )
+        .disabled(true)
 
         if invite.role == "player" {
-          VStack(alignment: .leading, spacing: 4) {
-            Text("Date of Birth")
-              .font(.caption)
-              .foregroundStyle(.secondary)
-            DatePicker(
-              "Date of Birth",
-              selection: $viewModel.signupDateOfBirth,
-              in: ...Date(),
-              displayedComponents: .date
-            )
-            .datePickerStyle(.compact)
-            .labelsHidden()
-          }
+          dateOfBirthField
         }
 
-        SecureField("Password", text: $viewModel.signupPassword)
-          .textFieldStyle(.roundedBorder)
-          .textContentType(.newPassword)
+        VStack(alignment: .leading, spacing: 4) {
+          LoginFormField(
+            label: "Password",
+            placeholder: "Create a strong password",
+            icon: "lock",
+            text: $viewModel.signupPassword,
+            error: .constant(nil),
+            isSecure: true,
+            keyboardType: .default,
+            textContentType: .newPassword,
+            onBlur: {}
+          )
 
-        SecureField("Confirm password", text: $viewModel.signupConfirmPassword)
-          .textFieldStyle(.roundedBorder)
-          .textContentType(.newPassword)
-
-        Toggle(isOn: $viewModel.signupAgreeToTerms) {
-          Text("I agree to the Terms and Privacy Policy")
-            .font(.caption)
+          PasswordStrengthIndicator(password: viewModel.signupPassword)
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
         }
+
+        LoginFormField(
+          label: "Confirm Password",
+          placeholder: "Re-enter your password",
+          icon: "lock.fill",
+          text: $viewModel.signupConfirmPassword,
+          error: .constant(nil),
+          isSecure: true,
+          keyboardType: .default,
+          textContentType: .newPassword,
+          onBlur: {}
+        )
+
+        TermsCheckbox(
+          isChecked: $viewModel.signupAgreeToTerms,
+          onTermsPressed: { presentedLegal = .termsOfService },
+          onPrivacyPressed: { presentedLegal = .privacyPolicy }
+        )
       }
 
-      Button {
+      gradientButton(
+        label: "Create account and connect",
+        isLoading: viewModel.isAccepting
+      ) {
         Task { await viewModel.signupAndConnect() }
-      } label: {
-        Group {
-          if viewModel.isAccepting {
-            ProgressView().tint(.white)
-          } else {
-            Text("Create account and connect")
-          }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 48)
       }
-      .buttonStyle(.borderedProminent)
-      .disabled(viewModel.isAccepting)
 
       declineButton(loading: viewModel.isDeclining)
     }
+  }
+
+  private var dateOfBirthField: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 8) {
+        Image(systemName: "calendar")
+          .foregroundColor(Color.darkSlate)
+          .accessibilityHidden(true)
+        Text("Date of Birth")
+          .font(.subheadline.weight(.medium))
+          .foregroundColor(Color.darkSlate)
+      }
+
+      DatePicker(
+        "Date of Birth",
+        selection: $viewModel.signupDateOfBirth,
+        in: ...Date(),
+        displayedComponents: .date
+      )
+      .datePickerStyle(.compact)
+      .labelsHidden()
+    }
+  }
+
+  private func gradientButton(label: String, isLoading: Bool, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+      HStack {
+        Text(isLoading ? "Please wait..." : label)
+          .font(.callout.weight(.semibold))
+        if isLoading {
+          ProgressView()
+            .tint(.white)
+        }
+      }
+      .frame(maxWidth: .infinity)
+      .frame(height: 48)
+      .foregroundColor(.white)
+      .background(LinearGradient.primaryButton)
+      .cornerRadius(8)
+      .opacity(isLoading ? 0.7 : 1)
+    }
+    .disabled(isLoading)
   }
 
   private func declineButton(loading: Bool) -> some View {

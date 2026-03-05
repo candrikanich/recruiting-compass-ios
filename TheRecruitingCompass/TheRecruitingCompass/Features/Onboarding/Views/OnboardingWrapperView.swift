@@ -15,6 +15,7 @@ struct OnboardingWrapperView: View {
         onboardingManager.markComplete()
         onComplete()
       })
+      .task { await viewModel.loadExistingData() }
     }
   }
 }

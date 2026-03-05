@@ -40,6 +40,7 @@ final class InviteJoinViewModel {
   private let token: String
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
+  private let preferenceService: any PreferenceManaging
 
   var isAuthenticated: Bool { authManager.isAuthenticated }
 
@@ -51,11 +52,13 @@ final class InviteJoinViewModel {
   init(
     token: String,
     familyService: (any FamilyManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    preferenceService: (any PreferenceManaging)? = nil
   ) {
     self.token = token
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
   }
 
   func loadInvite() async {
@@ -149,6 +152,7 @@ final class InviteJoinViewModel {
         dateOfBirth: role == .player ? dobString : nil
       )
       try await familyService.acceptInvite(token: token)
+      await savePrefillPreferences(from: invite.prefill)
       successMessage = "You're connected!"
       if inviteDetails?.emailMismatch == true {
         successMessage = "You're connected! (You used a different email than the invite.)"
@@ -160,6 +164,17 @@ final class InviteJoinViewModel {
       logger.error("signupAndConnect: \(error.localizedDescription)")
       signupError = (error as? AuthError)?.errorDescription ?? "Could not create account. Please try again."
     }
+  }
+
+  private func savePrefillPreferences(from prefill: InvitePrefill?) async {
+    guard let prefill,
+          prefill.sport != nil || prefill.position != nil || prefill.graduationYear != nil else { return }
+    var details = PlayerDetails.default
+    details.primarySport = prefill.sport
+    details.primaryPosition = prefill.position
+    details.graduationYear = prefill.graduationYear
+    _ = try? await preferenceService.savePreferences(category: .player, data: details)
+    logger.debug("Saved prefill player preferences from invite")
   }
 
   func decline() async {

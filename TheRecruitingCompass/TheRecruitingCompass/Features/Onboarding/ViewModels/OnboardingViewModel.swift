@@ -54,6 +54,14 @@ final class OnboardingViewModel {
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
   }
 
+  func loadExistingData() async {
+    guard let existing: PlayerDetails = try? await preferenceService.fetchPreferences(category: .player) else { return }
+    if let year = existing.graduationYear { graduationYear = year }
+    if let sport = existing.primarySport, !sport.isEmpty { primarySport = sport }
+    if let position = existing.primaryPosition, !position.isEmpty { primaryPosition = position }
+    logger.debug("Pre-filled onboarding from existing player preferences")
+  }
+
   func sendParentInvite() async {
     guard let userId = authManager.user?.id, isEmailInviteValid else { return }
 
