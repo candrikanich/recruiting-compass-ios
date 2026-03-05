@@ -1,82 +1,746 @@
 [
   {
-    "name": "University of Florida",
+    "name": "Akron",
+    "conference": "Mid-American"
+  },
+  {
+    "name": "Air Force",
+    "conference": "Mountain West"
+  },
+  {
+    "name": "Alabama",
     "conference": "SEC"
   },
   {
-    "name": "Florida State University",
-    "conference": "ACC"
+    "name": "Arizona",
+    "conference": "Pac-12"
   },
   {
-    "name": "University of Central Florida",
+    "name": "Arizona State",
+    "conference": "Pac-12"
+  },
+  {
+    "name": "Arkansas",
+    "conference": "SEC"
+  },
+  {
+    "name": "Army",
+    "conference": "Patriot League"
+  },
+  {
+    "name": "Auburn",
+    "conference": "SEC"
+  },
+  {
+    "name": "Baylor",
     "conference": "Big 12"
   },
   {
-    "name": "University of Miami",
+    "name": "Boston College",
     "conference": "ACC"
   },
   {
-    "name": "University of South Florida",
-    "conference": "American Athletic"
+    "name": "Bowling Green",
+    "conference": "Mid-American"
   },
   {
-    "name": "Harvard University",
+    "name": "Bradley",
+    "conference": "Missouri Valley"
+  },
+  {
+    "name": "Brigham Young",
+    "conference": "West Coast"
+  },
+  {
+    "name": "BYU",
+    "conference": "West Coast"
+  },
+  {
+    "name": "Cal State Bakersfield",
+    "conference": "Western Athletic"
+  },
+  {
+    "name": "Cal State Fullerton",
+    "conference": "Big West"
+  },
+  {
+    "name": "Cal State Northridge",
+    "conference": "Big West"
+  },
+  {
+    "name": "Campbell",
+    "conference": "NCAA Division I"
+  },
+  {
+    "name": "Central Michigan",
+    "conference": "Mid-American"
+  },
+  {
+    "name": "Clemson",
+    "conference": "ACC"
+  },
+  {
+    "name": "Coastal Carolina",
+    "conference": "Sun Belt"
+  },
+  {
+    "name": "College of Charleston",
+    "conference": "Colonial"
+  },
+  {
+    "name": "Colorado",
+    "conference": "Pac-12"
+  },
+  {
+    "name": "Colorado State",
+    "conference": "Mountain West"
+  },
+  {
+    "name": "Connecticut",
+    "conference": "American"
+  },
+  {
+    "name": "Creighton",
+    "conference": "Big East"
+  },
+  {
+    "name": "Dallas Baptist",
+    "conference": "Missouri Valley"
+  },
+  {
+    "name": "Dartmouth",
     "conference": "Ivy League"
   },
   {
-    "name": "Yale University",
+    "name": "Delaware",
+    "conference": "Colonial"
+  },
+  {
+    "name": "East Carolina",
+    "conference": "American"
+  },
+  {
+    "name": "Eastern Illinois",
+    "conference": "Ohio Valley"
+  },
+  {
+    "name": "Eastern Michigan",
+    "conference": "Mid-American"
+  },
+  {
+    "name": "Evansville",
+    "conference": "Missouri Valley"
+  },
+  {
+    "name": "Florida",
+    "conference": "SEC"
+  },
+  {
+    "name": "Florida Atlantic",
+    "conference": "Conference USA"
+  },
+  {
+    "name": "Florida State",
+    "conference": "ACC"
+  },
+  {
+    "name": "Fordham",
+    "conference": "Patriot League"
+  },
+  {
+    "name": "Fresno State",
+    "conference": "Mountain West"
+  },
+  {
+    "name": "Furman",
+    "conference": "Southern"
+  },
+  {
+    "name": "Gardner-Webb",
+    "conference": "Atlantic Sun"
+  },
+  {
+    "name": "George Mason",
+    "conference": "Colonial"
+  },
+  {
+    "name": "Georgetown",
+    "conference": "Big East"
+  },
+  {
+    "name": "Georgia",
+    "conference": "SEC"
+  },
+  {
+    "name": "Georgia Southern",
+    "conference": "Sun Belt"
+  },
+  {
+    "name": "Georgia State",
+    "conference": "Sun Belt"
+  },
+  {
+    "name": "Georgia Tech",
+    "conference": "ACC"
+  },
+  {
+    "name": "Gonzaga",
+    "conference": "West Coast"
+  },
+  {
+    "name": "Grand Canyon",
+    "conference": "Western Athletic"
+  },
+  {
+    "name": "Harvard",
     "conference": "Ivy League"
   },
   {
-    "name": "Stanford University",
-    "conference": "ACC"
+    "name": "Hawaii",
+    "conference": "Mountain West"
   },
   {
-    "name": "University of California Berkeley",
-    "conference": "ACC"
+    "name": "High Point",
+    "conference": "Big South"
   },
   {
-    "name": "University of Michigan",
+    "name": "Houston",
+    "conference": "American"
+  },
+  {
+    "name": "Illinois",
     "conference": "Big Ten"
   },
   {
-    "name": "Ohio State University",
+    "name": "Illinois State",
+    "conference": "Missouri Valley"
+  },
+  {
+    "name": "Indiana",
     "conference": "Big Ten"
   },
   {
-    "name": "University of Texas",
-    "conference": "SEC"
+    "name": "Iona",
+    "conference": "MAAC"
   },
   {
-    "name": "University of Southern California",
+    "name": "Iowa",
     "conference": "Big Ten"
   },
   {
-    "name": "Duke University",
+    "name": "Iowa State",
+    "conference": "Big 12"
+  },
+  {
+    "name": "Jacksonville",
+    "conference": "Atlantic Sun"
+  },
+  {
+    "name": "James Madison",
+    "conference": "Colonial"
+  },
+  {
+    "name": "Kansas",
+    "conference": "Big 12"
+  },
+  {
+    "name": "Kansas State",
+    "conference": "Big 12"
+  },
+  {
+    "name": "Kennesaw State",
+    "conference": "Atlantic Sun"
+  },
+  {
+    "name": "Kent State",
+    "conference": "Mid-American"
+  },
+  {
+    "name": "Kentucky",
+    "conference": "SEC"
+  },
+  {
+    "name": "Lehigh",
+    "conference": "Patriot League"
+  },
+  {
+    "name": "Liberty",
+    "conference": "Big South"
+  },
+  {
+    "name": "Long Beach State",
+    "conference": "Big West"
+  },
+  {
+    "name": "Long Island University",
+    "conference": "NCAA Division I"
+  },
+  {
+    "name": "Louisiana State",
+    "conference": "SEC"
+  },
+  {
+    "name": "Louisiana Tech",
+    "conference": "Conference USA"
+  },
+  {
+    "name": "LSU",
+    "conference": "SEC"
+  },
+  {
+    "name": "Maine",
+    "conference": "American East"
+  },
+  {
+    "name": "Marshall",
+    "conference": "Conference USA"
+  },
+  {
+    "name": "Marquette",
+    "conference": "Big East"
+  },
+  {
+    "name": "Maryland",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Massachusetts",
+    "conference": "Mid-American"
+  },
+  {
+    "name": "Memphis",
+    "conference": "American"
+  },
+  {
+    "name": "Merrimack",
+    "conference": "MAAC"
+  },
+  {
+    "name": "Miami",
     "conference": "ACC"
   },
   {
-    "name": "University of North Carolina",
+    "name": "Michigan",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Michigan State",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Middle Tennessee",
+    "conference": "Conference USA"
+  },
+  {
+    "name": "Minnesota",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Mississippi",
+    "conference": "SEC"
+  },
+  {
+    "name": "Mississippi State",
+    "conference": "SEC"
+  },
+  {
+    "name": "Missouri",
+    "conference": "SEC"
+  },
+  {
+    "name": "Monmouth",
+    "conference": "Colonial"
+  },
+  {
+    "name": "Morehead State",
+    "conference": "Ohio Valley"
+  },
+  {
+    "name": "Morgan State",
+    "conference": "Mid-Eastern"
+  },
+  {
+    "name": "Navy",
+    "conference": "Patriot League"
+  },
+  {
+    "name": "Nebraska",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Nevada",
+    "conference": "Mountain West"
+  },
+  {
+    "name": "New Mexico",
+    "conference": "Mountain West"
+  },
+  {
+    "name": "New Mexico State",
+    "conference": "Western Athletic"
+  },
+  {
+    "name": "Niagara",
+    "conference": "MAAC"
+  },
+  {
+    "name": "Nicholls State",
+    "conference": "Southland"
+  },
+  {
+    "name": "Norfolk State",
+    "conference": "Mid-Eastern"
+  },
+  {
+    "name": "North Carolina",
     "conference": "ACC"
   },
   {
-    "name": "Vanderbilt University",
+    "name": "North Carolina State",
+    "conference": "ACC"
+  },
+  {
+    "name": "North Dakota State",
+    "conference": "Missouri Valley"
+  },
+  {
+    "name": "Northeastern",
+    "conference": "Colonial"
+  },
+  {
+    "name": "Northern Colorado",
+    "conference": "Big Sky"
+  },
+  {
+    "name": "Northern Illinois",
+    "conference": "Mid-American"
+  },
+  {
+    "name": "Northwestern",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Notre Dame",
+    "conference": "ACC"
+  },
+  {
+    "name": "Oakland University",
+    "conference": "Horizon"
+  },
+  {
+    "name": "Ohio State",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Ohio University",
+    "conference": "Mid-American"
+  },
+  {
+    "name": "Oklahoma",
+    "conference": "Big 12"
+  },
+  {
+    "name": "Oklahoma State",
+    "conference": "Big 12"
+  },
+  {
+    "name": "Old Dominion",
+    "conference": "Conference USA"
+  },
+  {
+    "name": "Oregon",
+    "conference": "Pac-12"
+  },
+  {
+    "name": "Oregon State",
+    "conference": "Pac-12"
+  },
+  {
+    "name": "Pepperdine",
+    "conference": "West Coast"
+  },
+  {
+    "name": "Penn State",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Pennsylvania",
+    "conference": "Ivy League"
+  },
+  {
+    "name": "Pittsburgh",
+    "conference": "ACC"
+  },
+  {
+    "name": "Princeton",
+    "conference": "Ivy League"
+  },
+  {
+    "name": "Purdue",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Quinnipiac",
+    "conference": "MAAC"
+  },
+  {
+    "name": "Rhode Island",
+    "conference": "Atlantic 10"
+  },
+  {
+    "name": "Rice",
+    "conference": "Conference USA"
+  },
+  {
+    "name": "Richmond",
+    "conference": "Atlantic 10"
+  },
+  {
+    "name": "Rutgers",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Sacramento State",
+    "conference": "Big Sky"
+  },
+  {
+    "name": "Saint Johns",
+    "conference": "Big East"
+  },
+  {
+    "name": "Saint Louis",
+    "conference": "Atlantic 10"
+  },
+  {
+    "name": "San Diego",
+    "conference": "West Coast"
+  },
+  {
+    "name": "San Diego State",
+    "conference": "Mountain West"
+  },
+  {
+    "name": "San Jose State",
+    "conference": "Mountain West"
+  },
+  {
+    "name": "Santa Clara",
+    "conference": "West Coast"
+  },
+  {
+    "name": "South Carolina",
     "conference": "SEC"
   },
   {
-    "name": "Louisiana State University",
+    "name": "South Florida",
+    "conference": "American"
+  },
+  {
+    "name": "Southeast Missouri State",
+    "conference": "Ohio Valley"
+  },
+  {
+    "name": "Southern Illinois",
+    "conference": "Missouri Valley"
+  },
+  {
+    "name": "Southern Methodist",
+    "conference": "American"
+  },
+  {
+    "name": "Southern Miss",
+    "conference": "Conference USA"
+  },
+  {
+    "name": "Southern University",
+    "conference": "Southwestern Athletic"
+  },
+  {
+    "name": "Stanford",
+    "conference": "Pac-12"
+  },
+  {
+    "name": "Stephen F Austin",
+    "conference": "Southland"
+  },
+  {
+    "name": "Stetson",
+    "conference": "Atlantic Sun"
+  },
+  {
+    "name": "Syracuse",
+    "conference": "ACC"
+  },
+  {
+    "name": "TCU",
+    "conference": "Big 12"
+  },
+  {
+    "name": "Temple",
+    "conference": "American"
+  },
+  {
+    "name": "Tennessee",
     "conference": "SEC"
   },
   {
-    "name": "University of Alabama",
+    "name": "Tennessee State",
+    "conference": "Ohio Valley"
+  },
+  {
+    "name": "Tennessee Tech",
+    "conference": "Ohio Valley"
+  },
+  {
+    "name": "Texas",
+    "conference": "Big 12"
+  },
+  {
+    "name": "Texas A&M",
     "conference": "SEC"
   },
   {
-    "name": "Auburn University",
+    "name": "Texas Arlington",
+    "conference": "Sun Belt"
+  },
+  {
+    "name": "Texas State",
+    "conference": "Sun Belt"
+  },
+  {
+    "name": "Texas Tech",
+    "conference": "Big 12"
+  },
+  {
+    "name": "Toledo",
+    "conference": "Mid-American"
+  },
+  {
+    "name": "Towson",
+    "conference": "Colonial"
+  },
+  {
+    "name": "Troy",
+    "conference": "Sun Belt"
+  },
+  {
+    "name": "Tulane",
+    "conference": "American"
+  },
+  {
+    "name": "Tulsa",
+    "conference": "American"
+  },
+  {
+    "name": "UAB",
+    "conference": "Conference USA"
+  },
+  {
+    "name": "UCF",
+    "conference": "American"
+  },
+  {
+    "name": "UCLA",
+    "conference": "Pac-12"
+  },
+  {
+    "name": "UCSB",
+    "conference": "Big West"
+  },
+  {
+    "name": "UMBC",
+    "conference": "American East"
+  },
+  {
+    "name": "UNC Charlotte",
+    "conference": "Conference USA"
+  },
+  {
+    "name": "UNC Greensboro",
+    "conference": "Southern"
+  },
+  {
+    "name": "UNCW",
+    "conference": "Colonial"
+  },
+  {
+    "name": "UNM",
+    "conference": "Mountain West"
+  },
+  {
+    "name": "UNLV",
+    "conference": "Mountain West"
+  },
+  {
+    "name": "URI",
+    "conference": "Atlantic 10"
+  },
+  {
+    "name": "USC",
+    "conference": "Pac-12"
+  },
+  {
+    "name": "Utah",
+    "conference": "Pac-12"
+  },
+  {
+    "name": "Utah State",
+    "conference": "Mountain West"
+  },
+  {
+    "name": "Valparaiso",
+    "conference": "Missouri Valley"
+  },
+  {
+    "name": "Vanderbilt",
     "conference": "SEC"
   },
   {
-    "name": "University of Georgia",
-    "conference": "SEC"
+    "name": "VCU",
+    "conference": "Atlantic 10"
+  },
+  {
+    "name": "Virginia",
+    "conference": "ACC"
+  },
+  {
+    "name": "Virginia Commonwealth",
+    "conference": "Atlantic 10"
+  },
+  {
+    "name": "Virginia Tech",
+    "conference": "ACC"
+  },
+  {
+    "name": "Wichita State",
+    "conference": "American"
+  },
+  {
+    "name": "William & Mary",
+    "conference": "Colonial"
+  },
+  {
+    "name": "Winthrop",
+    "conference": "Big South"
+  },
+  {
+    "name": "Wisconsin",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Wisconsin Milwaukee",
+    "conference": "Horizon"
+  },
+  {
+    "name": "Wright State",
+    "conference": "Horizon"
+  },
+  {
+    "name": "Wyoming",
+    "conference": "Mountain West"
+  },
+  {
+    "name": "Youngstown State",
+    "conference": "Horizon"
   }
 ]

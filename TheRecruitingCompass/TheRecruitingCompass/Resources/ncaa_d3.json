@@ -1,42 +1,1438 @@
 [
   {
-    "name": "Massachusetts Institute of Technology",
-    "conference": "NEWMAC"
+    "name": "Adrian",
+    "conference": "Michigan Intercollegiate Athletic"
   },
   {
-    "name": "California Institute of Technology",
-    "conference": "SCIAC"
+    "name": "Albion",
+    "conference": "Michigan Intercollegiate Athletic"
   },
   {
-    "name": "University of Chicago",
-    "conference": "UAA"
+    "name": "Alfred University",
+    "conference": "Empire 8"
   },
   {
-    "name": "Johns Hopkins University",
+    "name": "Alma",
+    "conference": "Michigan Intercollegiate Athletic"
+  },
+  {
+    "name": "Alvernia",
     "conference": "Centennial"
   },
   {
-    "name": "Emory University",
-    "conference": "UAA"
+    "name": "Amherst",
+    "conference": "New England Small College Athletic"
   },
   {
-    "name": "Carnegie Mellon University",
-    "conference": "UAA"
+    "name": "Anderson University",
+    "conference": "Heartland Collegiate Athletic"
   },
   {
-    "name": "Washington University in St Louis",
-    "conference": "UAA"
+    "name": "Arcadia",
+    "conference": "Centennial"
   },
   {
-    "name": "Tufts University",
-    "conference": "NESCAC"
+    "name": "Augsburg",
+    "conference": "Minnesota Intercollegiate Athletic"
   },
   {
-    "name": "Amherst College",
-    "conference": "NESCAC"
+    "name": "Aurora",
+    "conference": "Midwest Collegiate Athletic Association"
   },
   {
-    "name": "Williams College",
-    "conference": "NESCAC"
+    "name": "Averett",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Babson",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Baldwin Wallace",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Bard",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Bates",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Benedictine",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Bentley",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Bethany",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Bethel University",
+    "conference": "Minnesota Intercollegiate Athletic"
+  },
+  {
+    "name": "Bluffton",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Bob Jones University",
+    "conference": "National Christian Collegiate Athletic"
+  },
+  {
+    "name": "Bowdoin",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Brandeis",
+    "conference": "University Athletic Association"
+  },
+  {
+    "name": "Bridgewater College",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Bridgewater State",
+    "conference": "Massachusetts State Collegiate"
+  },
+  {
+    "name": "Bryn Mawr",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Buena Vista",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Buffalo State",
+    "conference": "State University of New York Athletic"
+  },
+  {
+    "name": "Cabrini",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Cairn University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Capital University",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Carleton",
+    "conference": "Minnesota Intercollegiate Athletic"
+  },
+  {
+    "name": "Carthage",
+    "conference": "Wisconsin Intercollegiate Athletic"
+  },
+  {
+    "name": "Case Western Reserve",
+    "conference": "University Athletic Association"
+  },
+  {
+    "name": "Castleton University",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Cazenovia",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Cederville University",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Centenary College",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Chatham University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Chestnut Hill College",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Chowan University",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Christopher Newport",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "City University of New York",
+    "conference": "City University of New York Athletic"
+  },
+  {
+    "name": "Claremont McKenna",
+    "conference": "Southern California Intercollegiate Athletic"
+  },
+  {
+    "name": "Clark University",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Colby",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Colby-Sawyer",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Colgate",
+    "conference": "Patriot League"
+  },
+  {
+    "name": "College of Idaho",
+    "conference": "Cascadia Collegiate Athletic"
+  },
+  {
+    "name": "College of New Jersey",
+    "conference": "New Jersey Athletic Conference"
+  },
+  {
+    "name": "College of Wooster",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Colorado College",
+    "conference": "Southern Rocky Mountain Athletic"
+  },
+  {
+    "name": "Columbia",
+    "conference": "Ivy League"
+  },
+  {
+    "name": "Concordia College",
+    "conference": "Minnesota Intercollegiate Athletic"
+  },
+  {
+    "name": "Concordia Wisconsin",
+    "conference": "Wisconsin Intercollegiate Athletic"
+  },
+  {
+    "name": "Connecticut College",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Cornish College",
+    "conference": "Northwest Conference"
+  },
+  {
+    "name": "Cornell",
+    "conference": "Ivy League"
+  },
+  {
+    "name": "Covenant College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Crown College",
+    "conference": "Minnesota Intercollegiate Athletic"
+  },
+  {
+    "name": "Curry College",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Daemen College",
+    "conference": "Northeast Collegiate Athletic"
+  },
+  {
+    "name": "Dakota State",
+    "conference": "Northern Sun Intercollegiate"
+  },
+  {
+    "name": "Dakota Wesleyan",
+    "conference": "Great Plains Athletic"
+  },
+  {
+    "name": "Danbury",
+    "conference": "Northeast Collegiate Athletic"
+  },
+  {
+    "name": "Defiance",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Delaware Valley",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Denison",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "DePauw",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Dickinson",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Dominican University",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Dowling College",
+    "conference": "Skyline Collegiate Athletic"
+  },
+  {
+    "name": "Drew University",
+    "conference": "New Jersey Athletic Conference"
+  },
+  {
+    "name": "Drury",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Dubuque",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Eastern Connecticut State",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Eastern Mennonite",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Eastern Nazarene",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Eastern University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Eckerd",
+    "conference": "Sunshine State"
+  },
+  {
+    "name": "Edgewood",
+    "conference": "Wisconsin Intercollegiate Athletic"
+  },
+  {
+    "name": "Elizabeth City State",
+    "conference": "Mid-Eastern Athletic"
+  },
+  {
+    "name": "Elizabethtown College",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Elmhurst",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Elmira",
+    "conference": "Empire 8"
+  },
+  {
+    "name": "Elms College",
+    "conference": "Massachusetts State Collegiate"
+  },
+  {
+    "name": "Elon",
+    "conference": "Colonial Athletic Association"
+  },
+  {
+    "name": "Emory",
+    "conference": "University Athletic Association"
+  },
+  {
+    "name": "Endicott",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Eugene Bible",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Eureka",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Fairleigh Dickinson-Madison",
+    "conference": "New Jersey Athletic Conference"
+  },
+  {
+    "name": "Farmingdale State",
+    "conference": "State University of New York Athletic"
+  },
+  {
+    "name": "Fayetteville State",
+    "conference": "Mid-Eastern Athletic"
+  },
+  {
+    "name": "Ferris State",
+    "conference": "Great Lakes Intercollegiate"
+  },
+  {
+    "name": "Ferrum",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Fitchburg State",
+    "conference": "Massachusetts State Collegiate"
+  },
+  {
+    "name": "Florida Memorial",
+    "conference": "Sunshine State"
+  },
+  {
+    "name": "Fordham",
+    "conference": "Patriot League"
+  },
+  {
+    "name": "Fort Lewis",
+    "conference": "Southern Rocky Mountain Athletic"
+  },
+  {
+    "name": "Francis Marion",
+    "conference": "South Atlantic"
+  },
+  {
+    "name": "Franklin & Marshall",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Franklin College",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Freed-Hardeman",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Frostburg State",
+    "conference": "Mountain East"
+  },
+  {
+    "name": "Fullerton State",
+    "conference": "California Collegiate Athletic"
+  },
+  {
+    "name": "Gallaudet University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Geneva",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Gettysburg",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Glassboro State",
+    "conference": "New Jersey Athletic Conference"
+  },
+  {
+    "name": "Goldey-Beacom",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Gordon College",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Goucher",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Grace College",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Greensboro College",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Greenville University",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Grinnell",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Guilford College",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Gustavus Adolphus",
+    "conference": "Minnesota Intercollegiate Athletic"
+  },
+  {
+    "name": "Gwynedd Mercy University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Hamilton",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Hampshire College",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Hamline University",
+    "conference": "Minnesota Intercollegiate Athletic"
+  },
+  {
+    "name": "Hanover",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Harding University",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Hardin-Simmons",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Harwick",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Harvey Mudd",
+    "conference": "Southern California Intercollegiate Athletic"
+  },
+  {
+    "name": "Haverford",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Heidelberg",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Hendrix",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "High Point University",
+    "conference": "Big South"
+  },
+  {
+    "name": "Hillsdale Baptist",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Hiram",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Hobart & William Smith",
+    "conference": "Liberty League"
+  },
+  {
+    "name": "Hofstra",
+    "conference": "Colonial Athletic Association"
+  },
+  {
+    "name": "Hollins University",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Holy Cross",
+    "conference": "Patriot League"
+  },
+  {
+    "name": "Hope College",
+    "conference": "Michigan Intercollegiate Athletic"
+  },
+  {
+    "name": "Houghton College",
+    "conference": "Empire 8"
+  },
+  {
+    "name": "Houston Baptist",
+    "conference": "Southland"
+  },
+  {
+    "name": "Howard University",
+    "conference": "Mid-Eastern Athletic"
+  },
+  {
+    "name": "Hunter College",
+    "conference": "City University of New York Athletic"
+  },
+  {
+    "name": "Huntingdon College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Huntington University",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Husson University",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Huston-Tillotson University",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Illinois Benedictine",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Illinois College",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Illinois Institute of Technology",
+    "conference": "University Athletic Association"
+  },
+  {
+    "name": "Illinois Wesleyan",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Immaculata University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Ithaca College",
+    "conference": "Liberty League"
+  },
+  {
+    "name": "Jacksonville University",
+    "conference": "Atlantic Sun"
+  },
+  {
+    "name": "John Carroll University",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Johns Hopkins",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Johnson & Wales University",
+    "conference": "New England Collegiate Conference"
+  },
+  {
+    "name": "Johnson State",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Johnsonburgh",
+    "conference": "New England Collegiate Conference"
+  },
+  {
+    "name": "Joliet Junior College",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Jones International",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Juniata",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Kalamazoo College",
+    "conference": "Michigan Intercollegiate Athletic"
+  },
+  {
+    "name": "Kean University",
+    "conference": "New Jersey Athletic Conference"
+  },
+  {
+    "name": "Keene State",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Kenyon",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "King College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "King's College",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Kirkland",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Knox College",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "La Roche University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "La Salle University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "La Sierra University",
+    "conference": "Southern California Intercollegiate Athletic"
+  },
+  {
+    "name": "Lafayette",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Lake Erie College",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Lake Forest",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Lakehead University",
+    "conference": "Ontario University Athletic"
+  },
+  {
+    "name": "Lakeland University",
+    "conference": "Wisconsin Intercollegiate Athletic"
+  },
+  {
+    "name": "Lander University",
+    "conference": "South Atlantic"
+  },
+  {
+    "name": "Landmark",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Lees-McRae College",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Lebanon Valley",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Leeds Trinity",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Lenoir-Rhyne University",
+    "conference": "South Atlantic"
+  },
+  {
+    "name": "Lewis & Clark",
+    "conference": "Northwest Conference"
+  },
+  {
+    "name": "Lewis University",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Liberty University",
+    "conference": "Big South"
+  },
+  {
+    "name": "Limestone College",
+    "conference": "South Atlantic"
+  },
+  {
+    "name": "Lincoln University",
+    "conference": "Mid-Eastern Athletic"
+  },
+  {
+    "name": "Linfield College",
+    "conference": "Northwest Conference"
+  },
+  {
+    "name": "Lis Pendens",
+    "conference": "Empire 8"
+  },
+  {
+    "name": "Livingston",
+    "conference": "New Jersey Athletic Conference"
+  },
+  {
+    "name": "Lock Haven University",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Loras College",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Lord Fairfax",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Louisiana College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Loyola-Chicago",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Loyola-Maryland",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Loyola-New Orleans",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Lubbock Christian University",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Lutheran University",
+    "conference": "Wisconsin Intercollegiate Athletic"
+  },
+  {
+    "name": "Lynchburg College",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Lyndon State",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Lynn University",
+    "conference": "Sunshine State"
+  },
+  {
+    "name": "Macalester",
+    "conference": "Minnesota Intercollegiate Athletic"
+  },
+  {
+    "name": "MacMurray College",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Madison College",
+    "conference": "Virginia Intercollegiate Athletic"
+  },
+  {
+    "name": "Maine Maritime Academy",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Maranatha Baptist",
+    "conference": "Wisconsin Intercollegiate Athletic"
+  },
+  {
+    "name": "Marietta College",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Marist College",
+    "conference": "Metro Atlantic Athletic"
+  },
+  {
+    "name": "Marlboro College",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Marquette University",
+    "conference": "Big East"
+  },
+  {
+    "name": "Mars Hill University",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Marshall University",
+    "conference": "Conference USA"
+  },
+  {
+    "name": "Martin Methodist",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Mary Baldwin University",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Marymount University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Maryville College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Maryville University",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Marywood University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Massachusetts Institute of Technology",
+    "conference": "University Athletic Association"
+  },
+  {
+    "name": "Massachusetts Maritime Academy",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "McMurry University",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "McNeese State",
+    "conference": "Southland"
+  },
+  {
+    "name": "Medaille College",
+    "conference": "Northeast Collegiate Athletic"
+  },
+  {
+    "name": "Menlo College",
+    "conference": "California Collegiate Athletic"
+  },
+  {
+    "name": "Mercy College",
+    "conference": "Skyline Collegiate Athletic"
+  },
+  {
+    "name": "Mercyhurst University",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Meredith College",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Merrimack College",
+    "conference": "Northeast-10"
+  },
+  {
+    "name": "Mesa State",
+    "conference": "Rocky Mountain Athletic"
+  },
+  {
+    "name": "Methodist University",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Metropolitan State",
+    "conference": "Northern Sun Intercollegiate"
+  },
+  {
+    "name": "Miami University Ohio",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Mid America Nazarene University",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Middlebury",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Midway College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Midwest University",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Millikin University",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Millsaps College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Milton Academy",
+    "conference": "New England Collegiate Conference"
+  },
+  {
+    "name": "Milwaukee School of Engineering",
+    "conference": "Wisconsin Intercollegiate Athletic"
+  },
+  {
+    "name": "Minot State University",
+    "conference": "Northern Sun Intercollegiate"
+  },
+  {
+    "name": "Mississippi Valley State",
+    "conference": "Southwestern Athletic"
+  },
+  {
+    "name": "Missoula College",
+    "conference": "Northwest Collegiate"
+  },
+  {
+    "name": "Moberly Area Community College",
+    "conference": "Great Lakes Valley"
+  },
+  {
+    "name": "Monmouth College",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Monmouth University",
+    "conference": "Colonial Athletic Association"
+  },
+  {
+    "name": "Monroe Community College",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Montana State University Billings",
+    "conference": "Frontier Athletic"
+  },
+  {
+    "name": "Montclair State University",
+    "conference": "New Jersey Athletic Conference"
+  },
+  {
+    "name": "Montgomery County Community College",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Moravian College",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Morehouse College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Morrisville State",
+    "conference": "State University of New York Athletic"
+  },
+  {
+    "name": "Mount Holyoke College",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Mount Ida College",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Mount Saint Mary's University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Mount Union",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Muhlenberg College",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Nazareth College",
+    "conference": "Liberty League"
+  },
+  {
+    "name": "Nebraska Methodist",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Nebraska Wesleyan",
+    "conference": "Great Plains Athletic"
+  },
+  {
+    "name": "Neumann University",
+    "conference": "Centennial"
+  },
+  {
+    "name": "New England College",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "New Jersey City University",
+    "conference": "City University of New York Athletic"
+  },
+  {
+    "name": "New Jersey Institute of Technology",
+    "conference": "Skyline Collegiate Athletic"
+  },
+  {
+    "name": "New Mexico Institute of Mining and Technology",
+    "conference": "Rocky Mountain Athletic"
+  },
+  {
+    "name": "New York University",
+    "conference": "University Athletic Association"
+  },
+  {
+    "name": "Newberry College",
+    "conference": "South Atlantic"
+  },
+  {
+    "name": "Newport News Shipbuilding",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Newton",
+    "conference": "New England Small College Athletic"
+  },
+  {
+    "name": "Niagara University",
+    "conference": "MAAC"
+  },
+  {
+    "name": "Nichols College",
+    "conference": "Massachusetts State Collegiate"
+  },
+  {
+    "name": "Nicholls State",
+    "conference": "Southland"
+  },
+  {
+    "name": "North Adams State",
+    "conference": "Massachusetts State Collegiate"
+  },
+  {
+    "name": "North Carolina Central",
+    "conference": "Mid-Eastern Athletic"
+  },
+  {
+    "name": "North Carolina Wesleyan",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "North Georgia College & State University",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "North Greenville University",
+    "conference": "South Atlantic"
+  },
+  {
+    "name": "North Hennepin Community College",
+    "conference": "Minnesota Intercollegiate Athletic"
+  },
+  {
+    "name": "North Park University",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Northampton County Community College",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Northeast Missouri State",
+    "conference": "Great Lakes Valley"
+  },
+  {
+    "name": "Northern Illinois University",
+    "conference": "Mid-American"
+  },
+  {
+    "name": "Northern Kentucky University",
+    "conference": "Atlantic Sun"
+  },
+  {
+    "name": "Northern Michigan University",
+    "conference": "Great Lakes Intercollegiate"
+  },
+  {
+    "name": "Northern State University",
+    "conference": "Northern Sun Intercollegiate"
+  },
+  {
+    "name": "Northland College",
+    "conference": "Wisconsin Intercollegiate Athletic"
+  },
+  {
+    "name": "Northwest Missouri State University",
+    "conference": "Mid-America Intercollegiate Athletic"
+  },
+  {
+    "name": "Northwestern College",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Northwestern University",
+    "conference": "Big Ten"
+  },
+  {
+    "name": "Norwich University",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Nova Southeastern University",
+    "conference": "Sunshine State"
+  },
+  {
+    "name": "Nyack College",
+    "conference": "Skyline Collegiate Athletic"
+  },
+  {
+    "name": "Oakland University",
+    "conference": "Horizon"
+  },
+  {
+    "name": "Oberlin College",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Occidental College",
+    "conference": "Southern California Intercollegiate Athletic"
+  },
+  {
+    "name": "Odessa College",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Oglethorpe University",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Ohio Dominican University",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Ohio Northern University",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Ohio Wesleyan University",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Ohio Weslyan",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Oklahoma Baptist",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Oklahoma Christian University",
+    "conference": "Sooner Athletic"
+  },
+  {
+    "name": "Oklahoma Panhandle State University",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Oklahoma Wesleyan University",
+    "conference": "Sooner Athletic"
+  },
+  {
+    "name": "Old Dominion University",
+    "conference": "Conference USA"
+  },
+  {
+    "name": "Olivet College",
+    "conference": "Michigan Intercollegiate Athletic"
+  },
+  {
+    "name": "Olivet Nazarene University",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Otero Junior College",
+    "conference": "Rocky Mountain Athletic"
+  },
+  {
+    "name": "Ottawa University",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Otterbein University",
+    "conference": "Ohio Athletic"
+  },
+  {
+    "name": "Our Lady of the Lake University",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Pace University",
+    "conference": "Northeast-10"
+  },
+  {
+    "name": "Pacific Lutheran University",
+    "conference": "Northwest Conference"
+  },
+  {
+    "name": "Pacific University",
+    "conference": "Northwest Conference"
+  },
+  {
+    "name": "Paine College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Palm Beach Atlantic University",
+    "conference": "Sunshine State"
+  },
+  {
+    "name": "Pan American University",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Park University",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Parkland College",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Paul Quinn College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Peirce College",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Penn College",
+    "conference": "Midwest Collegiate Athletic Association"
+  },
+  {
+    "name": "Penn State Altoona",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Pennington School",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Pennsylvania College of Technology",
+    "conference": "Centennial"
+  },
+  {
+    "name": "Pennsylvania State University-Penn State Fayette",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Pensacola Junior College",
+    "conference": "Sunshine State"
+  },
+  {
+    "name": "Pepperdine University",
+    "conference": "West Coast"
+  },
+  {
+    "name": "Peru State College",
+    "conference": "Great Plains Athletic"
+  },
+  {
+    "name": "Pflugerville Baptist",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Pflugerville Community College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Philander Smith College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Piedmont College",
+    "conference": "USA South Athletic"
+  },
+  {
+    "name": "Pikes Peak Community College",
+    "conference": "Rocky Mountain Athletic"
+  },
+  {
+    "name": "Pittsbury State College",
+    "conference": "Massachusetts State Collegiate"
+  },
+  {
+    "name": "Pittstate",
+    "conference": "Massachusetts State Collegiate"
+  },
+  {
+    "name": "Plattsburgh State University",
+    "conference": "State University of New York Athletic"
+  },
+  {
+    "name": "Plymouth State University",
+    "conference": "North Atlantic States Collegiate Athletic"
+  },
+  {
+    "name": "Point Loma Nazarene University",
+    "conference": "California Collegiate Athletic"
+  },
+  {
+    "name": "Pomona-Pitzer Colleges",
+    "conference": "Southern California Intercollegiate Athletic"
+  },
+  {
+    "name": "Pomona College",
+    "conference": "Southern California Intercollegiate Athletic"
+  },
+  {
+    "name": "Pontifical Catholic University of Puerto Rico",
+    "conference": "NCAA Division I"
+  },
+  {
+    "name": "Port Huron Junior College",
+    "conference": "Michigan Intercollegiate Athletic"
+  },
+  {
+    "name": "Portland State University",
+    "conference": "Big Sky"
+  },
+  {
+    "name": "Prairie Bible",
+    "conference": "Heartland Collegiate Athletic"
+  },
+  {
+    "name": "Prairie View A&M University",
+    "conference": "Southwestern Athletic"
+  },
+  {
+    "name": "Pratt Institute",
+    "conference": "Skyline Collegiate Athletic"
+  },
+  {
+    "name": "Presbyterian College",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Presentation College",
+    "conference": "Great Plains Athletic"
+  },
+  {
+    "name": "Prince George's Community College",
+    "conference": "Old Dominion Athletic"
+  },
+  {
+    "name": "Princeton University",
+    "conference": "Ivy League"
+  },
+  {
+    "name": "Principia College",
+    "conference": "University Athletic Association"
+  },
+  {
+    "name": "Purdue University Calumet",
+    "conference": "Great Lakes Valley"
+  },
+  {
+    "name": "Purdue University North Central",
+    "conference": "Great Lakes Valley"
   }
 ]

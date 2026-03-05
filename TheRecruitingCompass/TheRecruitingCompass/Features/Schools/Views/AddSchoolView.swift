@@ -218,26 +218,22 @@ struct AddSchoolView: View {
     Button {
       Task {
         if let newSchool = await viewModel.submitSchool() {
-          // Navigate to school detail
           navigationPath.append(SchoolDestination.detail(newSchool.id))
         }
       }
     } label: {
-      HStack {
-        Spacer()
-
+      HStack(spacing: 8) {
         if viewModel.isSubmitting {
           ProgressView()
             .progressViewStyle(.circular)
+            .tint(.white)
         }
-
         Text(viewModel.submitButtonTitle)
           .fontWeight(.semibold)
-
-        Spacer()
       }
-      .frame(minHeight: 44)
+      .frame(maxWidth: .infinity, minHeight: 44)
     }
+    .buttonStyle(.borderedProminent)
     .disabled(viewModel.isSubmitDisabled)
     .accessibilityLabel(viewModel.submitButtonTitle)
     .accessibilityHint(

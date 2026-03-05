@@ -76,6 +76,10 @@ extension AddSchoolViewModel {
     formState.location = college.location
     formState.website = college.website ?? ""
 
+    // Reset division and conference so NCAA lookup always runs for the new selection
+    formState.division = nil
+    formState.conference = ""
+
     // Clear search results
     searchResults = []
     searchQuery = ""

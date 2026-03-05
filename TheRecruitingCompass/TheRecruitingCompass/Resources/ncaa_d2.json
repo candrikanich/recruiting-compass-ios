@@ -1,42 +1,234 @@
 [
   {
-    "name": "Tampa University",
+    "name": "Adelphi",
+    "conference": "Northeast-10"
+  },
+  {
+    "name": "American International",
+    "conference": "Northeast-10"
+  },
+  {
+    "name": "Bloomsburg",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Boston State",
+    "conference": "Massachusetts State Collegiate"
+  },
+  {
+    "name": "California Baptist",
+    "conference": "California Collegiate Athletic"
+  },
+  {
+    "name": "Colorado School of Mines",
+    "conference": "Rocky Mountain Athletic"
+  },
+  {
+    "name": "CSU Pueblo",
+    "conference": "Rocky Mountain Athletic"
+  },
+  {
+    "name": "Delaware State",
+    "conference": "Mid-Eastern Athletic"
+  },
+  {
+    "name": "Drexel",
+    "conference": "Colonial Athletic Association"
+  },
+  {
+    "name": "Eastern New Mexico",
+    "conference": "Lone Star"
+  },
+  {
+    "name": "Emporia State",
+    "conference": "Central Missouri State"
+  },
+  {
+    "name": "Findlay",
+    "conference": "Great Lakes Intercollegiate"
+  },
+  {
+    "name": "Florida Southern",
     "conference": "Sunshine State"
   },
   {
-    "name": "Rollins College",
+    "name": "Fort Hays State",
+    "conference": "Mid-America Intercollegiate Athletic"
+  },
+  {
+    "name": "Glenville State",
+    "conference": "Mountain East"
+  },
+  {
+    "name": "Grand Valley State",
+    "conference": "Great Lakes Intercollegiate"
+  },
+  {
+    "name": "Hillsdale",
+    "conference": "Great Lakes Intercollegiate"
+  },
+  {
+    "name": "Humboldt State",
+    "conference": "California Collegiate Athletic"
+  },
+  {
+    "name": "Incarnate Word",
+    "conference": "Southland"
+  },
+  {
+    "name": "Asheville",
+    "conference": "South Atlantic"
+  },
+  {
+    "name": "Kutztown",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Le Moyne",
+    "conference": "Northeast-10"
+  },
+  {
+    "name": "Limestone College",
+    "conference": "South Atlantic"
+  },
+  {
+    "name": "Lock Haven",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Mercyhurst",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Michigan Tech",
+    "conference": "Great Lakes Intercollegiate"
+  },
+  {
+    "name": "Millersville",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Minnesota Duluth",
+    "conference": "Northern Sun Intercollegiate"
+  },
+  {
+    "name": "Minot State",
+    "conference": "Northern Sun Intercollegiate"
+  },
+  {
+    "name": "Missouri Southern",
+    "conference": "Mid-America Intercollegiate Athletic"
+  },
+  {
+    "name": "Missouri Western",
+    "conference": "Mid-America Intercollegiate Athletic"
+  },
+  {
+    "name": "New Mexico Highlands",
+    "conference": "Pecos League"
+  },
+  {
+    "name": "Northcentral University",
+    "conference": "Great Lakes Intercollegiate"
+  },
+  {
+    "name": "Northern State",
+    "conference": "Northern Sun Intercollegiate"
+  },
+  {
+    "name": "Northwest Missouri State",
+    "conference": "Mid-America Intercollegiate Athletic"
+  },
+  {
+    "name": "Notre Dame College",
+    "conference": "Great Lakes Intercollegiate"
+  },
+  {
+    "name": "Pace University",
+    "conference": "Northeast-10"
+  },
+  {
+    "name": "Palm Beach Atlantic",
     "conference": "Sunshine State"
   },
   {
-    "name": "Lynn University",
+    "name": "Pittsburgh-Johnstown",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Quincy",
+    "conference": "Great Lakes Valley"
+  },
+  {
+    "name": "Rollins",
     "conference": "Sunshine State"
   },
   {
-    "name": "Barry University",
+    "name": "Saint Cloud State",
+    "conference": "Northern Sun Intercollegiate"
+  },
+  {
+    "name": "Saint Mary's Maryland",
+    "conference": "Chesapeake"
+  },
+  {
+    "name": "Shippensburg",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Simon Fraser",
+    "conference": "Great Northwest Athletic"
+  },
+  {
+    "name": "Slippery Rock",
+    "conference": "Pennsylvania State Athletic"
+  },
+  {
+    "name": "Sonoma State",
+    "conference": "California Collegiate Athletic"
+  },
+  {
+    "name": "Southern Connecticut State",
+    "conference": "Northeast-10"
+  },
+  {
+    "name": "Southwest Minnesota State",
+    "conference": "Northern Sun Intercollegiate"
+  },
+  {
+    "name": "Stonehill",
+    "conference": "Northeast-10"
+  },
+  {
+    "name": "Tampa",
     "conference": "Sunshine State"
   },
   {
-    "name": "Nova Southeastern University",
-    "conference": "Sunshine State"
+    "name": "Tarleton State",
+    "conference": "Lone Star"
   },
   {
-    "name": "Saint Leo University",
-    "conference": "Sunshine State"
+    "name": "Tiffin",
+    "conference": "Great Lakes Intercollegiate"
   },
   {
-    "name": "Florida Southern College",
-    "conference": "Sunshine State"
+    "name": "Toronto",
+    "conference": "Ontario University Athletic"
   },
   {
-    "name": "Eckerd College",
-    "conference": "Sunshine State"
+    "name": "Truman State",
+    "conference": "Mid-America Intercollegiate Athletic"
   },
   {
-    "name": "Florida Institute of Technology",
-    "conference": "Sunshine State"
+    "name": "UC Davis",
+    "conference": "Great West Athletic"
   },
   {
-    "name": "Palm Beach Atlantic University",
-    "conference": "Sunshine State"
+    "name": "UC Riverside",
+    "conference": "California Collegiate Athletic"
+  },
+  {
+    "name": "West Texas A&M",
+    "conference": "Lone Star"
   }
 ]
