@@ -23,6 +23,7 @@ struct SignupView: View {
               signupFormContent
             }
           }
+          .scrollDismissesKeyboard(.interactively)
           .background(Color.white.opacity(0.95))
           .cornerRadius(16)
           Color.clear.frame(width: 24)
@@ -108,6 +109,7 @@ struct SignupView: View {
       firstNameField
       lastNameField
       emailField
+      dateOfBirthField
       passwordSection
       confirmPasswordField
       familyCodeField
@@ -190,6 +192,37 @@ struct SignupView: View {
       textContentType: .familyName,
       onBlur: viewModel.validateLastName
     )
+  }
+
+  private var dateOfBirthField: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 8) {
+        Image(systemName: "calendar")
+          .foregroundColor(Color.darkSlate)
+          .accessibilityHidden(true)
+        Text("Date of Birth")
+          .font(.subheadline.weight(.medium))
+          .foregroundColor(Color.darkSlate)
+      }
+
+      DatePicker(
+        "Date of Birth",
+        selection: $viewModel.dateOfBirth,
+        in: ...Date(),
+        displayedComponents: .date
+      )
+      .datePickerStyle(.compact)
+      .labelsHidden()
+      .onChange(of: viewModel.dateOfBirth) { _, _ in
+        viewModel.validateDateOfBirth()
+      }
+
+      if let error = viewModel.fieldErrors[.dateOfBirth] {
+        Text(error)
+          .font(.caption)
+          .foregroundColor(.red)
+      }
+    }
   }
 
   private var emailField: some View {

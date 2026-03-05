@@ -31,6 +31,7 @@ final class InviteJoinViewModel {
 
   var signupFirstName: String = ""
   var signupLastName: String = ""
+  var signupDateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
   var signupPassword: String = ""
   var signupConfirmPassword: String = ""
   var signupAgreeToTerms = false
@@ -110,6 +111,17 @@ final class InviteJoinViewModel {
       signupError = "Please enter your first and last name"
       return
     }
+
+    let role = UserRole(rawValue: invite.role) ?? .player
+    let dobFormatter = DateFormatter()
+    dobFormatter.dateFormat = "yyyy-MM-dd"
+    let dobString = dobFormatter.string(from: signupDateOfBirth)
+
+    if role == .player && COPPAHelper.isUnderAge(dobString) {
+      signupError = "Players must be 13 or older"
+      return
+    }
+
     if signupPassword != signupConfirmPassword {
       signupError = "Passwords don't match"
       return
@@ -128,14 +140,13 @@ final class InviteJoinViewModel {
 
     do {
       let fullName = "\(first) \(last)"
-      let role = UserRole(rawValue: invite.role) ?? .player
       try await authManager.signup(
         email: invite.email,
         password: signupPassword,
         fullName: fullName,
         role: role,
         familyCode: nil,
-        dateOfBirth: nil
+        dateOfBirth: role == .player ? dobString : nil
       )
       try await familyService.acceptInvite(token: token)
       successMessage = "You're connected!"

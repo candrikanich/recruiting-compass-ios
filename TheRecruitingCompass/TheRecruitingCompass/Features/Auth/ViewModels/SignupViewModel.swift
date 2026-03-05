@@ -18,6 +18,7 @@ final class SignupViewModel {
   var firstName = ""
   var lastName = ""
   var email = ""
+  var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
   var password = ""
   var confirmPassword = ""
   var familyCode = ""
@@ -57,6 +58,12 @@ final class SignupViewModel {
     }
   }
 
+  private var dobString: String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    return formatter.string(from: dateOfBirth)
+  }
+
   var isFormValid: Bool {
     guard let role = selectedRole else { return false }
 
@@ -67,6 +74,7 @@ final class SignupViewModel {
     let passwordsMatch = password == confirmPassword
     let termsChecked = termsAccepted
     let passwordStrengthValid = formValidator.validatePasswordStrength(password).isValid
+    let hasValidDOB = !COPPAHelper.isUnderAge(dobString)
     let noFieldErrors = fieldErrors.isEmpty
 
     let familyCodeValid = if role.requiresFamilyCode {
@@ -83,6 +91,7 @@ final class SignupViewModel {
       passwordsMatch &&
       termsChecked &&
       passwordStrengthValid &&
+      hasValidDOB &&
       familyCodeValid &&
       noFieldErrors
   }
@@ -112,6 +121,7 @@ final class SignupViewModel {
     firstName = ""
     lastName = ""
     email = ""
+    dateOfBirth = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
     password = ""
     confirmPassword = ""
     familyCode = ""
@@ -129,6 +139,12 @@ final class SignupViewModel {
   func validateFirstName() { validate(.firstName) { formValidator.validateName(trimmedFirstName) } }
   func validateLastName() { validate(.lastName) { formValidator.validateName(trimmedLastName) } }
   func validateEmail() { validate(.email) { formValidator.validateEmail(email) } }
+
+  func validateDateOfBirth() {
+    validate(.dateOfBirth) {
+      COPPAHelper.isUnderAge(dobString) ? "You must be 13 or older to create an account" : nil
+    }
+  }
 
   func validatePassword() {
     validate(.password) {
@@ -175,6 +191,7 @@ final class SignupViewModel {
     validateFirstName()
     validateLastName()
     validateEmail()
+    validateDateOfBirth()
     validatePassword()
     validateConfirmPassword()
     validateFamilyCode()
@@ -197,7 +214,7 @@ final class SignupViewModel {
         fullName: fullName,
         role: role,
         familyCode: nil,
-        dateOfBirth: nil
+        dateOfBirth: dobString
       )
 
       // Create family for both roles (mirrors web: POST /api/family/create)

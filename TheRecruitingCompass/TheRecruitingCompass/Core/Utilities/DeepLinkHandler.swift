@@ -10,8 +10,8 @@ enum DeepLinkHandler {
   static let scheme = "recruiting-compass"
   static let universalLinkHosts: Set<String> = {
     var hosts: Set<String> = [
-      "myrecruitingcompass.com",
-      "www.myrecruitingcompass.com",
+      "therecruitingcompass.com",
+      "www.therecruitingcompass.com",
     ]
     #if DEBUG
     hosts.insert("localhost")
@@ -38,7 +38,7 @@ enum DeepLinkHandler {
       return .resetPassword(token: token)
     }
 
-    // Universal links: https://www.myrecruitingcompass.com/join?token=... or /invite/TOKEN
+    // Universal links: https://therecruitingcompass.com/join?token=... or /invite/TOKEN
     guard (url.scheme == "http" || url.scheme == "https"),
           let host = url.host,
           universalLinkHosts.contains(host) else {

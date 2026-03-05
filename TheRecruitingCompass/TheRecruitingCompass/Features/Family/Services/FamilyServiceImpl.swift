@@ -183,7 +183,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     let familyId = UUID().uuidString
     let memberId = UUID().uuidString
     let now = ISO8601DateFormatter().string(from: Date())
-    let familyCode = "FAM-" + String((0..<8).map { _ in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".randomElement()! })
+    let familyCode = "FAM-" + String((0..<6).map { _ in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".randomElement()! })
 
     struct FamilyUnitInsert: Encodable {
       let id: String
@@ -451,11 +451,11 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     }
   }
 
+  // Decline does NOT require authentication (spec: public endpoint)
   func declineInvite(token: String) async throws {
     guard let baseURL = SupabaseConfig.apiBaseURL else {
       throw FamilyError.serverError("API base URL not configured")
     }
-    let accessToken = try await supabaseManager.client.auth.session.accessToken
 
     let safeToken = token.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? token
     var request = URLRequest(
@@ -465,7 +465,6 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
         .appendingPathComponent("decline")
     )
     request.httpMethod = "POST"
-    request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.httpBody = Data("{}".utf8)
 

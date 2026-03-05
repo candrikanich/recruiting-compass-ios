@@ -1,5 +1,8 @@
 import Foundation
 import Observation
+import OSLog
+
+private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "ParentOnboardingWizard")
 
 @Observable
 @MainActor
@@ -117,6 +120,7 @@ final class ParentOnboardingWizardViewModel {
       let response = try await familyService.createFamily(role: .parent)
       familyCode = response.familyCode
     } catch {
+      logger.error("loadFamilyCode failed: \(error.localizedDescription, privacy: .public) — full error: \(String(describing: error), privacy: .private)")
       familyCode = nil
     }
   }

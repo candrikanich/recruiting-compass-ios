@@ -6,4 +6,5 @@ enum FormFieldKey: Hashable {
   case confirmPassword
   case familyCode
   case newPassword
+  case dateOfBirth
 }

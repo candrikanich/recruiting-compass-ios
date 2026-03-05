@@ -262,6 +262,22 @@ struct InviteJoinView: View {
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
 
+        if invite.role == "player" {
+          VStack(alignment: .leading, spacing: 4) {
+            Text("Date of Birth")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+            DatePicker(
+              "Date of Birth",
+              selection: $viewModel.signupDateOfBirth,
+              in: ...Date(),
+              displayedComponents: .date
+            )
+            .datePickerStyle(.compact)
+            .labelsHidden()
+          }
+        }
+
         SecureField("Password", text: $viewModel.signupPassword)
           .textFieldStyle(.roundedBorder)
           .textContentType(.newPassword)
