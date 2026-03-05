@@ -13,6 +13,7 @@ final class OnboardingServiceImpl: OnboardingManaging, Sendable {
   }
 
   func isOnboardingComplete(userId: String) async throws -> Bool {
+    logger.debug("Checking onboarding status for user: \(userId, privacy: .private)")
     struct PhaseMilestoneRow: Codable {
       let phaseMilestoneData: PhaseMilestoneData?
 
@@ -37,8 +38,13 @@ final class OnboardingServiceImpl: OnboardingManaging, Sendable {
       .execute()
       .value
 
-    guard let row = rows.first else { return false }
-    return row.phaseMilestoneData?.onboardingComplete == true
+    guard let row = rows.first else {
+      logger.debug("No user record found for onboarding check: \(userId, privacy: .private)")
+      return false
+    }
+    let complete = row.phaseMilestoneData?.onboardingComplete == true
+    logger.debug("Onboarding complete: \(complete) for user: \(userId, privacy: .private)")
+    return complete
   }
 
   func completeOnboarding(
@@ -91,12 +97,16 @@ final class OnboardingServiceImpl: OnboardingManaging, Sendable {
       )
     )
 
-    try await supabaseManager.client
-      .from("users")
-      .update(payload)
-      .eq("id", value: userId)
-      .execute()
-
-    logger.info("Onboarding completed for user \(userId), phase: \(startingPhase)")
+    do {
+      try await supabaseManager.client
+        .from("users")
+        .update(payload)
+        .eq("id", value: userId)
+        .execute()
+      logger.info("Onboarding completed for user \(userId, privacy: .private), phase: \(startingPhase)")
+    } catch {
+      logger.error("completeOnboarding failed for user \(userId, privacy: .private): \(error.localizedDescription)")
+      throw error
+    }
   }
 }

@@ -30,6 +30,7 @@ final class AuthManager: AuthManaging {
   }
 
   func login(email: String, password: String) async throws {
+    logger.debug("Attempting login for: \(email.prefix(3))***")
     do {
       let (user, session) = try await supabaseManager.signIn(email: email, password: password)
       self.user = user
@@ -39,9 +40,11 @@ final class AuthManager: AuthManaging {
 
       // Save session to Keychain
       try keychain.save(session, forKey: sessionKey)
+      logger.info("Login successful for user: \(user.id, privacy: .private)")
     } catch {
       self.isAuthenticated = false
       self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
+      logger.error("Login failed: \(error.localizedDescription)")
       throw error
     }
   }
@@ -54,7 +57,9 @@ final class AuthManager: AuthManaging {
     familyCode: String?,
     dateOfBirth: String? = nil
   ) async throws {
+    logger.debug("Attempting signup for: \(email.prefix(3))*** role: \(role.rawValue)")
     if let dob = dateOfBirth, COPPAHelper.isUnderAge(dob) {
+      logger.info("Signup blocked: COPPA age restriction")
       throw AuthError.coppaUnderAge
     }
     do {
@@ -74,14 +79,17 @@ final class AuthManager: AuthManaging {
       if let session = session {
         try keychain.save(session, forKey: sessionKey)
       }
+      logger.info("Signup successful for user: \(user.id, privacy: .private), session: \(session != nil)")
     } catch {
       self.isAuthenticated = false
       self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
+      logger.error("Signup failed: \(error.localizedDescription)")
       throw error
     }
   }
 
   func refreshSession() async throws -> User {
+    logger.debug("Refreshing session")
     do {
       _ = try await supabaseManager.refreshSession()
       guard let newSession = try await supabaseManager.getCurrentSession() else {
@@ -90,39 +98,50 @@ final class AuthManager: AuthManaging {
       self.session = newSession
       self.user = newSession.user
       try keychain.save(newSession, forKey: sessionKey)
+      logger.info("Session refreshed for user: \(newSession.user.id, privacy: .private)")
       return newSession.user
     } catch {
       self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
+      logger.error("Session refresh failed: \(error.localizedDescription)")
       throw error
     }
   }
 
   func resendVerificationEmail(email: String) async throws {
+    logger.debug("Resending verification email to: \(email.prefix(3))***")
     do {
       try await supabaseManager.resendVerificationEmail(email: email)
       self.errorMessage = nil
+      logger.info("Verification email sent")
     } catch {
       self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
+      logger.error("Resend verification failed: \(error.localizedDescription)")
       throw error
     }
   }
 
   func resetPasswordForEmail(email: String) async throws {
+    logger.debug("Requesting password reset for: \(email.prefix(3))***")
     do {
       try await supabaseManager.resetPasswordForEmail(email: email)
       self.errorMessage = nil
+      logger.info("Password reset email sent")
     } catch {
       self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
+      logger.error("Password reset request failed: \(error.localizedDescription)")
       throw error
     }
   }
 
   func updatePassword(newPassword: String) async throws {
+    logger.debug("Updating password")
     do {
       try await supabaseManager.updatePassword(newPassword: newPassword)
       self.errorMessage = nil
+      logger.info("Password updated successfully")
     } catch {
       self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
+      logger.error("Password update failed: \(error.localizedDescription)")
       throw error
     }
   }
@@ -145,6 +164,7 @@ final class AuthManager: AuthManaging {
   }
 
   func restoreSession() async {
+    logger.debug("Restoring session from Keychain")
     isCheckingSession = true
     defer { isCheckingSession = false }
 
@@ -153,14 +173,14 @@ final class AuthManager: AuthManaging {
       let now = Int(Date().timeIntervalSince1970)
 
       if savedSession.expiresAt > now {
-        // Session still valid — refresh to get latest user data, fall back to cached on failure
+        logger.debug("Cached session valid, refreshing to get latest user data")
         await refreshAndSaveSession(fallback: savedSession)
       } else {
-        // Session expired — must successfully refresh or clear all state
+        logger.debug("Cached session expired, attempting refresh")
         await refreshAndSaveSession(fallback: nil)
       }
     } catch {
-      // No saved session found
+      logger.info("No saved session found, user must log in")
       clearSession()
     }
   }
@@ -184,23 +204,28 @@ final class AuthManager: AuthManaging {
         self.isAuthenticated = true
         self.errorMessage = nil
         try keychain.save(newSession, forKey: sessionKey)
+        logger.info("Session refreshed and saved for user: \(updatedUser.id, privacy: .private)")
       } else {
+        logger.warning("No session returned after refresh, clearing state")
         clearSession()
         try keychain.delete(forKey: sessionKey)
       }
     } catch {
       if let authError = error as? AuthError, case .sessionInvalid = authError {
         // Auth user was deleted (e.g. from Supabase); don't use stale fallback
+        logger.warning("Session invalid (user may have been deleted), clearing state")
         clearSession()
         try? keychain.delete(forKey: sessionKey)
         return
       }
       if let fallback {
         // Refresh failed but cached session is still valid — use it
+        logger.warning("Session refresh failed, using cached session: \(error.localizedDescription)")
         self.session = fallback
         self.user = fallback.user
         self.isAuthenticated = true
       } else {
+        logger.error("Session refresh failed, clearing state: \(error.localizedDescription)")
         clearSession()
         try? keychain.delete(forKey: sessionKey)
       }

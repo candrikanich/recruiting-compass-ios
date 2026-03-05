@@ -13,52 +13,61 @@ final class InteractionsServiceImpl: InteractionsManaging, Sendable {
   }
 
   func fetchInteractions(familyUnitId: String) async throws -> [Interaction] {
-    logger.info("Fetching interactions for family: \(familyUnitId)")
-
-    let interactions: [Interaction] = try await supabaseManager.client
-      .from("interactions")
-      .select()
-      .eq("family_unit_id", value: familyUnitId)
-      .order("occurred_at", ascending: false)
-      .execute()
-      .value
-
-    logger.info("Fetched \(interactions.count) interactions")
-    return interactions
+    logger.debug("Fetching interactions for family: \(familyUnitId)")
+    do {
+      let interactions: [Interaction] = try await supabaseManager.client
+        .from("interactions")
+        .select()
+        .eq("family_unit_id", value: familyUnitId)
+        .order("occurred_at", ascending: false)
+        .execute()
+        .value
+      logger.info("Fetched \(interactions.count) interactions")
+      return interactions
+    } catch {
+      logger.error("fetchInteractions for family \(familyUnitId) failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func fetchInteractionsForUser(userId: String) async throws -> [Interaction] {
-    logger.info("Fetching interactions for user: \(userId, privacy: .private)")
-
-    let interactions: [Interaction] = try await supabaseManager.client
-      .from("interactions")
-      .select()
-      .eq("logged_by", value: userId)
-      .order("occurred_at", ascending: false)
-      .execute()
-      .value
-
-    logger.info("Fetched \(interactions.count) interactions")
-    return interactions
+    logger.debug("Fetching interactions for user: \(userId, privacy: .private)")
+    do {
+      let interactions: [Interaction] = try await supabaseManager.client
+        .from("interactions")
+        .select()
+        .eq("logged_by", value: userId)
+        .order("occurred_at", ascending: false)
+        .execute()
+        .value
+      logger.info("Fetched \(interactions.count) interactions for user")
+      return interactions
+    } catch {
+      logger.error("fetchInteractionsForUser failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func fetchInteraction(id: String) async throws -> Interaction {
-    logger.info("Fetching interaction: \(id)")
-
-    let interaction: Interaction = try await supabaseManager.client
-      .from("interactions")
-      .select()
-      .eq("id", value: id)
-      .single()
-      .execute()
-      .value
-
-    logger.info("Fetched interaction: \(id)")
-    return interaction
+    logger.debug("Fetching interaction: \(id)")
+    do {
+      let interaction: Interaction = try await supabaseManager.client
+        .from("interactions")
+        .select()
+        .eq("id", value: id)
+        .single()
+        .execute()
+        .value
+      logger.info("Fetched interaction: \(id)")
+      return interaction
+    } catch {
+      logger.error("fetchInteraction \(id) failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func fetchLoggedByUserName(userId: String) async throws -> String {
-    logger.info("Fetching user name for: \(userId, privacy: .private)")
+    logger.debug("Fetching user name for: \(userId, privacy: .private)")
 
     struct UserResponse: Codable {
       let fullName: String?
@@ -68,93 +77,112 @@ final class InteractionsServiceImpl: InteractionsManaging, Sendable {
       }
     }
 
-    let user: UserResponse = try await supabaseManager.client
-      .from("users")
-      .select("full_name")
-      .eq("id", value: userId)
-      .single()
-      .execute()
-      .value
-
-    let name = user.fullName ?? "Unknown"
-    logger.info("Fetched user name: \(name, privacy: .private)")
-    return name
+    do {
+      let user: UserResponse = try await supabaseManager.client
+        .from("users")
+        .select("full_name")
+        .eq("id", value: userId)
+        .single()
+        .execute()
+        .value
+      let name = user.fullName ?? "Unknown"
+      logger.info("Fetched user name for: \(userId, privacy: .private)")
+      return name
+    } catch {
+      logger.error("fetchLoggedByUserName failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func fetchSchools(familyUnitId: String) async throws -> [School] {
-    logger.info("Fetching schools for family: \(familyUnitId)")
-
-    let schools: [School] = try await supabaseManager.client
-      .from("schools")
-      .select()
-      .eq("family_unit_id", value: familyUnitId)
-      .execute()
-      .value
-
-    logger.info("Fetched \(schools.count) schools")
-    return schools
+    logger.debug("Fetching schools for family: \(familyUnitId)")
+    do {
+      let schools: [School] = try await supabaseManager.client
+        .from("schools")
+        .select()
+        .eq("family_unit_id", value: familyUnitId)
+        .execute()
+        .value
+      logger.info("Fetched \(schools.count) schools")
+      return schools
+    } catch {
+      logger.error("fetchSchools for family \(familyUnitId) failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func fetchCoaches(familyUnitId: String) async throws -> [Coach] {
-    logger.info("Fetching all coaches for family: \(familyUnitId)")
-
-    let coaches: [Coach] = try await supabaseManager.client
-      .from("coaches")
-      .select()
-      .eq("family_unit_id", value: familyUnitId)
-      .order("last_name")
-      .execute()
-      .value
-
-    logger.info("Fetched \(coaches.count) coaches")
-    return coaches
+    logger.debug("Fetching all coaches for family: \(familyUnitId)")
+    do {
+      let coaches: [Coach] = try await supabaseManager.client
+        .from("coaches")
+        .select()
+        .eq("family_unit_id", value: familyUnitId)
+        .order("last_name")
+        .execute()
+        .value
+      logger.info("Fetched \(coaches.count) coaches")
+      return coaches
+    } catch {
+      logger.error("fetchCoaches for family \(familyUnitId) failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func createInteraction(_ interaction: InteractionCreateRequest) async throws -> Interaction {
-    logger.info("Creating interaction")
-
-    let result: Interaction = try await supabaseManager.client
-      .from("interactions")
-      .insert(interaction)
-      .select()
-      .single()
-      .execute()
-      .value
-
-    logger.info("Created interaction: \(result.id)")
-    return result
+    logger.debug("Creating interaction")
+    do {
+      let result: Interaction = try await supabaseManager.client
+        .from("interactions")
+        .insert(interaction)
+        .select()
+        .single()
+        .execute()
+        .value
+      logger.info("Created interaction: \(result.id)")
+      return result
+    } catch {
+      logger.error("createInteraction failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func createCoach(_ coach: CoachCreateRequest) async throws -> Coach {
-    logger.info("Creating coach: \(coach.firstName) \(coach.lastName)")
-
-    let result: Coach = try await supabaseManager.client
-      .from("coaches")
-      .insert(coach)
-      .select()
-      .single()
-      .execute()
-      .value
-
-    logger.info("Created coach: \(result.id)")
-    return result
+    logger.debug("Creating coach: \(coach.firstName) \(coach.lastName)")
+    do {
+      let result: Coach = try await supabaseManager.client
+        .from("coaches")
+        .insert(coach)
+        .select()
+        .single()
+        .execute()
+        .value
+      logger.info("Created coach: \(result.id)")
+      return result
+    } catch {
+      logger.error("createCoach failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func uploadAttachment(interactionId: String, fileName: String, fileData: Data) async throws -> String {
-    logger.info("Uploading attachment: \(fileName) for interaction: \(interactionId)")
+    logger.debug("Uploading attachment: \(fileName) for interaction: \(interactionId)")
 
     let storagePath = "interactions/\(interactionId)/\(fileName)"
-
-    try await supabaseManager.client.storage
-      .from("interaction-attachments")
-      .upload(
-        storagePath,
-        data: fileData,
-        options: FileOptions(contentType: mimeType(for: fileName))
-      )
-
-    logger.info("Uploaded attachment: \(storagePath)")
-    return storagePath
+    do {
+      try await supabaseManager.client.storage
+        .from("interaction-attachments")
+        .upload(
+          storagePath,
+          data: fileData,
+          options: FileOptions(contentType: mimeType(for: fileName))
+        )
+      logger.info("Uploaded attachment: \(storagePath)")
+      return storagePath
+    } catch {
+      logger.error("uploadAttachment failed for \(fileName): \(error.localizedDescription)")
+      throw error
+    }
   }
 
   private func mimeType(for fileName: String) -> String {
@@ -172,26 +200,32 @@ final class InteractionsServiceImpl: InteractionsManaging, Sendable {
   }
 
   func deleteInteraction(id: String) async throws {
-    logger.info("Deleting interaction: \(id)")
-
-    try await supabaseManager.client
-      .from("interactions")
-      .delete()
-      .eq("id", value: id)
-      .execute()
-
-    logger.info("Deleted interaction: \(id)")
+    logger.debug("Deleting interaction: \(id)")
+    do {
+      try await supabaseManager.client
+        .from("interactions")
+        .delete()
+        .eq("id", value: id)
+        .execute()
+      logger.info("Deleted interaction: \(id)")
+    } catch {
+      logger.error("deleteInteraction \(id) failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func cascadeDeleteInteraction(id: String) async throws -> CascadeDeleteResult {
-    logger.info("Cascade deleting interaction: \(id)")
-
-    let result: CascadeDeleteResult = try await supabaseManager.client
-      .rpc("cascade_delete_interaction", params: ["interaction_id": id])
-      .execute()
-      .value
-
-    logger.info("Cascade deleted interaction: \(id)")
-    return result
+    logger.debug("Cascade deleting interaction: \(id)")
+    do {
+      let result: CascadeDeleteResult = try await supabaseManager.client
+        .rpc("cascade_delete_interaction", params: ["interaction_id": id])
+        .execute()
+        .value
+      logger.info("Cascade deleted interaction: \(id)")
+      return result
+    } catch {
+      logger.error("cascadeDeleteInteraction \(id) failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 }

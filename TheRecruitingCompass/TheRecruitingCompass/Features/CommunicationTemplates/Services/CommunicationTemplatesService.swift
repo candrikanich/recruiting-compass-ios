@@ -41,67 +41,76 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
   }
 
   func fetchTemplates() async throws -> [CommunicationTemplate] {
-    logger.info("Fetching communication templates")
-
-    let templates: [CommunicationTemplate] = try await supabaseManager.client
-      .from("communication_templates")
-      .select()
-      .order("updated_at", ascending: false)
-      .execute()
-      .value
-
-    logger.info("Fetched \(templates.count) templates")
-    return templates
+    logger.debug("Fetching communication templates")
+    do {
+      let templates: [CommunicationTemplate] = try await supabaseManager.client
+        .from("communication_templates")
+        .select()
+        .order("updated_at", ascending: false)
+        .execute()
+        .value
+      logger.info("Fetched \(templates.count) templates")
+      return templates
+    } catch {
+      logger.error("fetchTemplates failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func createTemplate(formData: TemplateFormData) async throws -> CommunicationTemplate {
-    logger.info("Creating template: \(formData.name)")
-
-    let session = try await supabaseManager.client.auth.session
-    let userId = session.user.id.uuidString
-
-    let payload = makePayload(from: formData, userId: userId)
-
-    let template: CommunicationTemplate = try await supabaseManager.client
-      .from("communication_templates")
-      .insert(payload)
-      .select()
-      .single()
-      .execute()
-      .value
-
-    logger.info("Created template: \(template.id)")
-    return template
+    logger.debug("Creating template: \(formData.name)")
+    do {
+      let session = try await supabaseManager.client.auth.session
+      let userId = session.user.id.uuidString
+      let payload = makePayload(from: formData, userId: userId)
+      let template: CommunicationTemplate = try await supabaseManager.client
+        .from("communication_templates")
+        .insert(payload)
+        .select()
+        .single()
+        .execute()
+        .value
+      logger.info("Created template: \(template.id)")
+      return template
+    } catch {
+      logger.error("createTemplate failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func updateTemplate(id: String, formData: TemplateFormData) async throws -> CommunicationTemplate {
-    logger.info("Updating template: \(id)")
-
-    let payload = makeUpdatePayload(from: formData)
-
-    let template: CommunicationTemplate = try await supabaseManager.client
-      .from("communication_templates")
-      .update(payload)
-      .eq("id", value: id)
-      .select()
-      .single()
-      .execute()
-      .value
-
-    logger.info("Updated template: \(id)")
-    return template
+    logger.debug("Updating template: \(id)")
+    do {
+      let payload = makeUpdatePayload(from: formData)
+      let template: CommunicationTemplate = try await supabaseManager.client
+        .from("communication_templates")
+        .update(payload)
+        .eq("id", value: id)
+        .select()
+        .single()
+        .execute()
+        .value
+      logger.info("Updated template: \(id)")
+      return template
+    } catch {
+      logger.error("updateTemplate \(id) failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func deleteTemplate(id: String) async throws {
-    logger.info("Deleting template: \(id)")
-
-    try await supabaseManager.client
-      .from("communication_templates")
-      .delete()
-      .eq("id", value: id)
-      .execute()
-
-    logger.info("Deleted template: \(id)")
+    logger.debug("Deleting template: \(id)")
+    do {
+      try await supabaseManager.client
+        .from("communication_templates")
+        .delete()
+        .eq("id", value: id)
+        .execute()
+      logger.info("Deleted template: \(id)")
+    } catch {
+      logger.error("deleteTemplate \(id) failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   private func makePayload(from formData: TemplateFormData, userId: String) -> TemplatePayload {

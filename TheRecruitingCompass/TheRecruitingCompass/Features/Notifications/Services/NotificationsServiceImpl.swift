@@ -16,75 +16,88 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
   }
 
   func fetchNotifications(userId: String) async throws -> [AppNotification] {
-    logger.info("Fetching notifications for user: \(userId, privacy: .private)")
-
-    let notifications: [AppNotification] = try await supabaseManager.client
-      .from("notifications")
-      .select()
-      .eq("user_id", value: userId)
-      .order("scheduled_for", ascending: false)
-      .execute()
-      .value
-
-    logger.info("Fetched \(notifications.count) notifications")
-    return notifications
+    logger.debug("Fetching notifications for user: \(userId, privacy: .private)")
+    do {
+      let notifications: [AppNotification] = try await supabaseManager.client
+        .from("notifications")
+        .select()
+        .eq("user_id", value: userId)
+        .order("scheduled_for", ascending: false)
+        .execute()
+        .value
+      logger.info("Fetched \(notifications.count) notifications")
+      return notifications
+    } catch {
+      logger.error("fetchNotifications failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func markAsRead(id: String) async throws -> AppNotification {
-    logger.info("Marking notification as read: \(id)")
-
-    let now = ISO8601DateFormatter().string(from: Date())
-
-    let notification: AppNotification = try await supabaseManager.client
-      .from("notifications")
-      .update(["read_at": now, "updated_at": now])
-      .eq("id", value: id)
-      .select()
-      .single()
-      .execute()
-      .value
-
-    logger.info("Marked notification as read: \(id)")
-    return notification
+    logger.debug("Marking notification as read: \(id)")
+    do {
+      let now = ISO8601DateFormatter().string(from: Date())
+      let notification: AppNotification = try await supabaseManager.client
+        .from("notifications")
+        .update(["read_at": now, "updated_at": now])
+        .eq("id", value: id)
+        .select()
+        .single()
+        .execute()
+        .value
+      logger.info("Marked notification as read: \(id)")
+      return notification
+    } catch {
+      logger.error("markAsRead \(id) failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func markAllAsRead(userId: String) async throws {
-    logger.info("Marking all notifications as read for user: \(userId, privacy: .private)")
-
-    let now = ISO8601DateFormatter().string(from: Date())
-
-    try await supabaseManager.client
-      .from("notifications")
-      .update(["read_at": now, "updated_at": now])
-      .eq("user_id", value: userId)
-      .is("read_at", value: nil)
-      .execute()
-
-    logger.info("Marked all notifications as read")
+    logger.debug("Marking all notifications as read for user: \(userId, privacy: .private)")
+    do {
+      let now = ISO8601DateFormatter().string(from: Date())
+      try await supabaseManager.client
+        .from("notifications")
+        .update(["read_at": now, "updated_at": now])
+        .eq("user_id", value: userId)
+        .is("read_at", value: nil)
+        .execute()
+      logger.info("Marked all notifications as read")
+    } catch {
+      logger.error("markAllAsRead failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func deleteNotification(id: String) async throws {
-    logger.info("Deleting notification: \(id)")
-
-    try await supabaseManager.client
-      .from("notifications")
-      .delete()
-      .eq("id", value: id)
-      .execute()
-
-    logger.info("Deleted notification: \(id)")
+    logger.debug("Deleting notification: \(id)")
+    do {
+      try await supabaseManager.client
+        .from("notifications")
+        .delete()
+        .eq("id", value: id)
+        .execute()
+      logger.info("Deleted notification: \(id)")
+    } catch {
+      logger.error("deleteNotification \(id) failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func deleteAllRead(userId: String) async throws {
-    logger.info("Deleting all read notifications for user: \(userId, privacy: .private)")
-
-    try await supabaseManager.client
-      .from("notifications")
-      .delete()
-      .eq("user_id", value: userId)
-      .not("read_at", operator: .is, value: "null")
-      .execute()
-
-    logger.info("Deleted all read notifications")
+    logger.debug("Deleting all read notifications for user: \(userId, privacy: .private)")
+    do {
+      try await supabaseManager.client
+        .from("notifications")
+        .delete()
+        .eq("user_id", value: userId)
+        .not("read_at", operator: .is, value: "null")
+        .execute()
+      logger.info("Deleted all read notifications")
+    } catch {
+      logger.error("deleteAllRead failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 }

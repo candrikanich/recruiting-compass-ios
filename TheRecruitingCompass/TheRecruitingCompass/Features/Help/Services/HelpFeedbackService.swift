@@ -23,12 +23,18 @@ final class HelpFeedbackServiceImpl: HelpFeedbackManaging, Sendable {
   }
 
   func submitFeedback(page: String, helpful: Bool, userId: String) async throws {
+    logger.debug("Submitting help feedback: page=\(page) helpful=\(helpful)")
     let payload = HelpFeedbackInsert(page: page, helpful: helpful, userId: userId)
-    try await supabaseManager.client
-      .from("help_feedback")
-      .insert(payload)
-      .execute()
-    logger.info("Help feedback submitted page=\(page) helpful=\(helpful)")
+    do {
+      try await supabaseManager.client
+        .from("help_feedback")
+        .insert(payload)
+        .execute()
+      logger.info("Help feedback submitted: page=\(page) helpful=\(helpful)")
+    } catch {
+      logger.error("submitFeedback failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 }
 

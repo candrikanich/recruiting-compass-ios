@@ -118,22 +118,27 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       }
     }
 
-    let rows: [VersionRow] = try await supabaseManager.client
-      .from("documents")
-      .select("id, version, file_url, is_current, created_at")
-      .eq("document_id", value: documentId)
-      .eq("user_id", value: userId)
-      .order("version", ascending: false)
-      .execute()
-      .value
-
-    return rows.map { DocumentVersion(
-      id: $0.id,
-      version: $0.version,
-      fileUrl: $0.fileUrl,
-      isCurrent: $0.isCurrent,
-      createdAt: $0.createdAt
-    ) }
+    do {
+      let rows: [VersionRow] = try await supabaseManager.client
+        .from("documents")
+        .select("id, version, file_url, is_current, created_at")
+        .eq("document_id", value: documentId)
+        .eq("user_id", value: userId)
+        .order("version", ascending: false)
+        .execute()
+        .value
+      logger.info("Fetched \(rows.count) versions for document: \(documentId)")
+      return rows.map { DocumentVersion(
+        id: $0.id,
+        version: $0.version,
+        fileUrl: $0.fileUrl,
+        isCurrent: $0.isCurrent,
+        createdAt: $0.createdAt
+      ) }
+    } catch {
+      logger.error("fetchVersionHistory for \(documentId) failed: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   func updateDocumentIsCurrent(id: String, isCurrent: Bool) async throws {
