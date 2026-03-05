@@ -58,10 +58,14 @@ final class SignupViewModel {
     }
   }
 
+  private static let dobFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyy-MM-dd"
+    return f
+  }()
+
   private var dobString: String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    return formatter.string(from: dateOfBirth)
+    Self.dobFormatter.string(from: dateOfBirth)
   }
 
   var isFormValid: Bool {

@@ -3,6 +3,7 @@ import SwiftUI
 struct SignupView: View {
   @State private var viewModel = SignupViewModel()
   @State private var presentedLegal: LegalDocument?
+  @State private var navigateToLogin = false
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
@@ -23,7 +24,7 @@ struct SignupView: View {
               signupFormContent
             }
           }
-          .scrollDismissesKeyboard(.interactively)
+          .scrollDismissesKeyboard(.immediately)
           .background(Color.white.opacity(0.95))
           .cornerRadius(16)
           Color.clear.frame(width: 24)
@@ -41,6 +42,9 @@ struct SignupView: View {
     }
     .sheet(item: $presentedLegal) { doc in
       doc.view
+    }
+    .navigationDestination(isPresented: $navigateToLogin) {
+      LoginView()
     }
   }
 
@@ -335,7 +339,7 @@ struct SignupView: View {
         .font(.footnote)
         .foregroundColor(Color.tertiaryText)
 
-      NavigationLink(destination: LoginView()) {
+      Button(action: { navigateToLogin = true }) {
         HStack(spacing: 4) {
           Text("Sign In")
             .font(.footnote.weight(.semibold))

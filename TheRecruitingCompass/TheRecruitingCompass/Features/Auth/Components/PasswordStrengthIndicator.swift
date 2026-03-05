@@ -59,19 +59,18 @@ struct PasswordStrengthIndicator: View {
       .accessibilityElement(children: .combine)
       .accessibilityLabel("Password strength: \(strengthText)")
 
-      GeometryReader { geometry in
-        ZStack(alignment: .leading) {
-          RoundedRectangle(cornerRadius: 4)
-            .foregroundColor(Color.borderGray)
-            .frame(height: 6)
+      ZStack(alignment: .leading) {
+        RoundedRectangle(cornerRadius: 4)
+          .foregroundColor(Color.borderGray)
+          .frame(height: 6)
 
-          RoundedRectangle(cornerRadius: 4)
-            .foregroundColor(strengthColor)
-            .frame(width: geometry.size.width * strengthPercentage, height: 6)
-        }
+        RoundedRectangle(cornerRadius: 4)
+          .foregroundColor(strengthColor)
+          .frame(height: 6)
+          .scaleEffect(x: strengthPercentage, anchor: .leading)
+          .animation(.easeInOut(duration: 0.2), value: strengthPercentage)
       }
       .frame(height: 6)
-      .clipped()
       .accessibilityHidden(true)
 
       if !strengthResult.errors.isEmpty {

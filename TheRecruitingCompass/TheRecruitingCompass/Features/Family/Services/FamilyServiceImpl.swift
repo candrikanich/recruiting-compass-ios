@@ -164,9 +164,37 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
   // MARK: - Family Management (Player + Parent)
 
-  /// Creates a family unit for the current user via direct Supabase. Idempotent.
-  /// Both players and parents can create families.
+  /// Creates a family unit for the current user. Idempotent.
+  /// Uses the web API when API_BASE_URL is configured (bypasses RLS — required for parent role).
+  /// Falls back to direct Supabase inserts when no web API is available (player RLS typically allows this).
   func createFamily(role: UserRole) async throws -> CreateFamilyResponse {
+    if let baseURL = SupabaseConfig.apiBaseURL {
+      return try await createFamilyViaAPI(baseURL: baseURL)
+    }
+    return try await createFamilyViaDirect(role: role)
+  }
+
+  private func createFamilyViaAPI(baseURL: URL) async throws -> CreateFamilyResponse {
+    let token = try await supabaseManager.client.auth.session.accessToken
+    var request = URLRequest(url: baseURL.appendingPathComponent("api/family/create"))
+    request.httpMethod = "POST"
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = Data("{}".utf8)
+
+    let (data, response) = try await URLSession.shared.data(for: request)
+    guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+      let body = String(data: data, encoding: .utf8) ?? "(unreadable)"
+      logger.error("createFamily API failed: \(body, privacy: .private)")
+      throw FamilyError.serverError("Failed to create family")
+    }
+
+    let decoded = try JSONDecoder().decode(CreateFamilyResponse.self, from: data)
+    logger.info("createFamily via API: familyId=\(decoded.familyId, privacy: .private)")
+    return decoded
+  }
+
+  private func createFamilyViaDirect(role: UserRole) async throws -> CreateFamilyResponse {
     let userId = try await supabaseManager.client.auth.session.user.id.uuidString
 
     // Idempotent: return existing family if present
@@ -242,7 +270,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
       ))
       .execute()
 
-    logger.info("Family created via Supabase: familyId=\(familyId), role=\(role.rawValue)")
+    logger.info("createFamily via Supabase: familyId=\(familyId), role=\(role.rawValue)")
     return CreateFamilyResponse(
       success: true,
       familyCode: familyCode,
