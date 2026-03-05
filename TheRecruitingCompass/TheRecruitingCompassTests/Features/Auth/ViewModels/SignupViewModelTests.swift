@@ -66,7 +66,7 @@ final class SignupViewModelTests: XCTestCase {
     sut.lastName = "Doe"
     sut.email = "john@example.com"
     sut.password = "StrongPass123"
-    sut.familyCode = "FAM-ABC12345"
+    sut.familyCode = "FAM-ABC123"
 
     sut.backToRoleSelection()
 
@@ -156,7 +156,7 @@ final class SignupViewModelTests: XCTestCase {
 
   func testValidateFamilyCodeForParentRole() {
     sut.selectedRole = .parent
-    sut.familyCode = "FAM-ABC12345"
+    sut.familyCode = "FAM-ABC123"
     sut.validateFamilyCode()
 
     XCTAssertNil(sut.fieldErrors[.familyCode])
@@ -209,7 +209,7 @@ final class SignupViewModelTests: XCTestCase {
 
   func testIsFormValidForParentRoleWithFamilyCode() {
     fillValidForm(role: .parent)
-    sut.familyCode = "FAM-ABC12345"
+    sut.familyCode = "FAM-ABC123"
 
     XCTAssertTrue(sut.isFormValid)
   }
@@ -460,7 +460,7 @@ final class SignupViewModelTests: XCTestCase {
   func testSignupSendsFamilyCodeForParentRole() async {
     mockAuthManager.setAuthenticatedAfterSignup = false
     fillValidForm(role: .parent)
-    sut.familyCode = "FAM-ABC12345"
+    sut.familyCode = "FAM-ABC123"
 
     await sut.signup()
 

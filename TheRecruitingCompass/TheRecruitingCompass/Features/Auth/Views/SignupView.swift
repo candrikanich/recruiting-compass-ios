@@ -109,7 +109,9 @@ struct SignupView: View {
       firstNameField
       lastNameField
       emailField
-      dateOfBirthField
+      if viewModel.selectedRole == .player {
+        dateOfBirthField
+      }
       passwordSection
       confirmPasswordField
       familyCodeField
@@ -278,7 +280,7 @@ struct SignupView: View {
     if viewModel.selectedRole?.requiresFamilyCode == true {
       LoginFormField(
         label: "Family Code (Optional)",
-        placeholder: "FAM-XXXXXXXX",
+        placeholder: "FAM-XXXXXX",
         icon: "person.2",
         text: $viewModel.familyCode,
         error: viewModel.errorBinding(for: .familyCode),

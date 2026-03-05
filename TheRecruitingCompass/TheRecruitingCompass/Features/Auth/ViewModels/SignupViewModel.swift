@@ -74,7 +74,8 @@ final class SignupViewModel {
     let passwordsMatch = password == confirmPassword
     let termsChecked = termsAccepted
     let passwordStrengthValid = formValidator.validatePasswordStrength(password).isValid
-    let hasValidDOB = !COPPAHelper.isUnderAge(dobString)
+    // DOB is only required for players (COPPA); parents don't provide their own DOB at signup
+    let hasValidDOB = role == .player ? !COPPAHelper.isUnderAge(dobString) : true
     let noFieldErrors = fieldErrors.isEmpty
 
     let familyCodeValid = if role.requiresFamilyCode {
@@ -191,7 +192,7 @@ final class SignupViewModel {
     validateFirstName()
     validateLastName()
     validateEmail()
-    validateDateOfBirth()
+    if selectedRole == .player { validateDateOfBirth() }
     validatePassword()
     validateConfirmPassword()
     validateFamilyCode()
@@ -214,7 +215,7 @@ final class SignupViewModel {
         fullName: fullName,
         role: role,
         familyCode: nil,
-        dateOfBirth: dobString
+        dateOfBirth: role == .player ? dobString : nil
       )
 
       // Create family for both roles (mirrors web: POST /api/family/create)

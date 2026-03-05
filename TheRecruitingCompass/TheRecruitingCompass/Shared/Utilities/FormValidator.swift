@@ -3,8 +3,8 @@ import Foundation
 enum FormValidator {
   // Email regex pattern (RFC 5322 simplified)
   private static let emailPattern = "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$"
-  // Family code pattern: FAM-XXXXXXXX (alphanumeric after prefix)
-  private static let familyCodePattern = "^FAM-[A-Z0-9]{8}$"
+  // Family code pattern: FAM-XXXXXX (6 alphanumeric chars after prefix; matches FamilyServiceImpl and FamilyConstants)
+  private static let familyCodePattern = "^FAM-[A-Z0-9]{6}$"
 
   private static let emailRegex: NSRegularExpression = try! NSRegularExpression(pattern: emailPattern)
   private static let familyCodeRegex: NSRegularExpression = try! NSRegularExpression(pattern: familyCodePattern)
@@ -103,7 +103,7 @@ enum FormValidator {
     let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
 
     guard familyCodeRegex.firstMatch(in: trimmed, range: range) != nil else {
-      return "Family code must be in format FAM-XXXXXXXX"
+      return "Family code must be in format FAM-XXXXXX"
     }
 
     return nil
