@@ -74,7 +74,10 @@ struct PlayerDetailsView: View {
 
       // Basic Information
       Section("Basic Information") {
-        Picker("Graduation Year", selection: $viewModel.details.graduationYear) {
+        Picker("Graduation Year", selection: Binding(
+          get: { viewModel.details.graduationYear },
+          set: { viewModel.updateGraduationYear($0) }
+        )) {
           Text("Select").tag(nil as Int?)
           ForEach(GradeLevelHelper.allowedGraduationYears, id: \.self) { year in
             Text(String(year)).tag(year as Int?)
@@ -144,15 +147,24 @@ struct PlayerDetailsView: View {
 
       // Academics
       Section("Academics") {
-        TextField("GPA (0.0-5.0)", value: $viewModel.details.gpa, format: .number)
+        TextField("GPA (0.0-5.0)", value: Binding(
+          get: { viewModel.details.gpa },
+          set: { viewModel.updateGPA($0) }
+        ), format: .number)
           .keyboardType(.decimalPad)
           .disabled(viewModel.isReadOnly)
 
-        TextField("SAT Score (400-1600)", value: $viewModel.details.satScore, format: .number)
+        TextField("SAT Score (400-1600)", value: Binding(
+          get: { viewModel.details.satScore },
+          set: { viewModel.updateSAT($0) }
+        ), format: .number)
           .keyboardType(.numberPad)
           .disabled(viewModel.isReadOnly)
 
-        TextField("ACT Score (1-36)", value: $viewModel.details.actScore, format: .number)
+        TextField("ACT Score (1-36)", value: Binding(
+          get: { viewModel.details.actScore },
+          set: { viewModel.updateACT($0) }
+        ), format: .number)
           .keyboardType(.numberPad)
           .disabled(viewModel.isReadOnly)
       }
@@ -226,32 +238,34 @@ struct PlayerDetailsView: View {
       }
 
       // High School Teams (Expandable by Grade)
-      DisclosureGroup("9th Grade Team") {
-        TextField("Team Name", text: binding(for: \.ninthGradeTeam))
-          .disabled(viewModel.isReadOnly)
-        TextField("Coach Name", text: binding(for: \.ninthGradeCoach))
-          .disabled(viewModel.isReadOnly)
-      }
+      Section("High School Teams") {
+        DisclosureGroup("9th Grade Team") {
+          TextField("Team Name", text: binding(for: \.ninthGradeTeam))
+            .disabled(viewModel.isReadOnly)
+          TextField("Coach Name", text: binding(for: \.ninthGradeCoach))
+            .disabled(viewModel.isReadOnly)
+        }
 
-      DisclosureGroup("10th Grade Team") {
-        TextField("Team Name", text: binding(for: \.tenthGradeTeam))
-          .disabled(viewModel.isReadOnly)
-        TextField("Coach Name", text: binding(for: \.tenthGradeCoach))
-          .disabled(viewModel.isReadOnly)
-      }
+        DisclosureGroup("10th Grade Team") {
+          TextField("Team Name", text: binding(for: \.tenthGradeTeam))
+            .disabled(viewModel.isReadOnly)
+          TextField("Coach Name", text: binding(for: \.tenthGradeCoach))
+            .disabled(viewModel.isReadOnly)
+        }
 
-      DisclosureGroup("11th Grade Team") {
-        TextField("Team Name", text: binding(for: \.eleventhGradeTeam))
-          .disabled(viewModel.isReadOnly)
-        TextField("Coach Name", text: binding(for: \.eleventhGradeCoach))
-          .disabled(viewModel.isReadOnly)
-      }
+        DisclosureGroup("11th Grade Team") {
+          TextField("Team Name", text: binding(for: \.eleventhGradeTeam))
+            .disabled(viewModel.isReadOnly)
+          TextField("Coach Name", text: binding(for: \.eleventhGradeCoach))
+            .disabled(viewModel.isReadOnly)
+        }
 
-      DisclosureGroup("12th Grade Team") {
-        TextField("Team Name", text: binding(for: \.twelfthGradeTeam))
-          .disabled(viewModel.isReadOnly)
-        TextField("Coach Name", text: binding(for: \.twelfthGradeCoach))
-          .disabled(viewModel.isReadOnly)
+        DisclosureGroup("12th Grade Team") {
+          TextField("Team Name", text: binding(for: \.twelfthGradeTeam))
+            .disabled(viewModel.isReadOnly)
+          TextField("Coach Name", text: binding(for: \.twelfthGradeCoach))
+            .disabled(viewModel.isReadOnly)
+        }
       }
 
       // Travel Team

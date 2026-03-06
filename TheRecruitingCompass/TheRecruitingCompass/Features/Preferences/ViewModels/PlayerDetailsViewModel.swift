@@ -75,12 +75,10 @@ final class PlayerDetailsViewModel {
       logger.info("Player details saved")
 
       // Clear success message after 3 seconds
-      Task {
+      saveTask = Task {
         try? await Task.sleep(for: .seconds(3))
-        await MainActor.run {
-          if successMessage == "Player details saved successfully" {
-            successMessage = nil
-          }
+        if successMessage == "Player details saved successfully" {
+          successMessage = nil
         }
       }
 
