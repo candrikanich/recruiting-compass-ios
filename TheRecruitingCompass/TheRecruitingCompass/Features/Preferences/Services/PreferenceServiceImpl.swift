@@ -138,27 +138,45 @@ final class PreferenceServiceImpl: PreferenceManaging, Sendable {
     do {
       let userId = try await getCurrentUserId()
 
-      // Fetch from user_preferences table
-      let rows: [PreferenceResponse] = try await supabaseManager.client
-        .from("user_preferences")
-        .select("data, updated_at")
-        .eq("user_id", value: userId)
-        .eq("category", value: category.rawValue)
-        .execute()
-        .value
+      // Step 1: Fetch row from Supabase (decodes into PreferenceResponse / JSONValue)
+      let rows: [PreferenceResponse]
+      do {
+        rows = try await supabaseManager.client
+          .from("user_preferences")
+          .select("data, updated_at")
+          .eq("user_id", value: userId)
+          .eq("category", value: category.rawValue)
+          .execute()
+          .value
+      } catch {
+        logger.error("[\(category.rawValue)] step1-supabase decode failed: \(String(describing: error))")
+        throw error
+      }
 
       guard let response = rows.first else {
         logger.info("No preferences found for category: \(category.rawValue)")
         return nil
       }
 
-      // Re-encode JSONValue → Data directly, bypassing the fragile anyValue → JSONSerialization path.
-      // JSONValue.encode(to:) is a clean lossless round-trip that avoids NSNumber bridging issues.
-      let jsonData = try JSONEncoder().encode(response.data)
-      let decoded: T = try await MainActor.run { try JSONDecoder().decode(T.self, from: jsonData) }
+      // Step 2: Re-encode JSONValue → raw JSON bytes
+      let jsonData: Data
+      do {
+        jsonData = try JSONEncoder().encode(response.data)
+        logger.debug("[\(category.rawValue)] step2-json: \(String(data: jsonData, encoding: .utf8) ?? "<unreadable>")")
+      } catch {
+        logger.error("[\(category.rawValue)] step2-encode failed: \(String(describing: error))")
+        throw error
+      }
 
-      logger.info("Successfully fetched preferences for category: \(category.rawValue)")
-      return decoded
+      // Step 3: Decode target type T from raw bytes
+      do {
+        let decoded: T = try await MainActor.run { try JSONDecoder().decode(T.self, from: jsonData) }
+        logger.info("Successfully fetched preferences for category: \(category.rawValue)")
+        return decoded
+      } catch {
+        logger.error("[\(category.rawValue)] step3-decode failed: \(String(describing: error))")
+        throw error
+      }
     } catch {
       logger.error("Failed to fetch preferences for \(category.rawValue): \(error.localizedDescription)")
       throw PreferenceError.fetchFailed(error.localizedDescription)
