@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: SwiftLint
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Run SwiftLint
+        run: swiftlint lint --config .swiftlint.yml --reporter github-actions-logging
+
+  build-and-test:
+    name: Build & Unit Tests
+    runs-on: macos-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Boot simulator
+        run: |
+          UDID=$(xcrun simctl list devices available | grep 'iPhone 16' | grep -v 'Plus\|Pro' | head -1 | grep -oE '[0-9A-F-]{36}')
+          echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl boot "$UDID" || true
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: deriveddata-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj') }}
+          restore-keys: deriveddata-
+
+      - name: Build
+        run: |
+          cd TheRecruitingCompass
+          xcodebuild build \
+            -scheme TheRecruitingCompass \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+            -quiet
+
+      - name: Unit Tests
+        run: |
+          cd TheRecruitingCompass
+          xcodebuild test \
+            -scheme TheRecruitingCompass \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+            -skip-testing:TheRecruitingCompassUITests \
+            -quiet

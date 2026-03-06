@@ -1,0 +1,88 @@
+included:
+  - TheRecruitingCompass/TheRecruitingCompass
+
+excluded:
+  - TheRecruitingCompass/.build
+  - TheRecruitingCompass/DerivedData
+  - TheRecruitingCompass/TheRecruitingCompassTests
+  - TheRecruitingCompass/TheRecruitingCompassUITests
+  - TheRecruitingCompass/TheRecruitingCompass/Core/Services/SupabaseConfig.generated.swift
+
+disabled_rules:
+  - todo                         # Caught by pre-commit hook
+  - trailing_whitespace          # Editor handles this
+  - force_try                    # Used legitimately for static regex compilation
+  - function_parameter_count     # Supabase service methods need many params
+
+opt_in_rules:
+  - empty_count
+  - empty_string
+  - first_where
+  - redundant_nil_coalescing
+  - shorthand_operator
+
+# File length
+file_length:
+  warning: 600
+  error: 1000
+
+# Function body length — warn only, errors require refactors
+function_body_length:
+  warning: 80
+  error: 200
+
+# Type body length
+type_body_length:
+  warning: 400
+  error: 700
+
+# Line length — generous error limit; long strings in legal/help views
+line_length:
+  warning: 140
+  error: 350
+  ignores_comments: true
+  ignores_urls: true
+
+# Nesting
+nesting:
+  type_level:
+    warning: 2
+  function_level:
+    warning: 4
+
+# Naming
+type_name:
+  min_length: 3
+  max_length: 50
+
+identifier_name:
+  min_length: 2
+  max_length: 60
+  allowed_symbols: ["_"]  # Allow underscore for Supabase JSON key structs
+  excluded:
+    - id
+    - vm
+    - to
+    - x
+    - y
+    - r
+    - g
+    - b
+    - f
+    - s
+    - throws_
+
+# Custom rules — these are the only errors that block commits
+custom_rules:
+  no_print:
+    name: "No print statements"
+    regex: '^\s*print\('
+    message: "Remove debug print() before committing. Use Logger for persistent logging."
+    severity: error
+
+  no_uikit_in_views:
+    name: "No UIKit in SwiftUI views"
+    included: ".*View\\.swift"
+    regex: '^\s*import UIKit'
+    message: "Avoid importing UIKit in SwiftUI view files."
+    severity: warning
