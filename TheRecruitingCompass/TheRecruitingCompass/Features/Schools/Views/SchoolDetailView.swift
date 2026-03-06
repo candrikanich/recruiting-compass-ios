@@ -28,7 +28,7 @@ struct SchoolDetailView: View {
       } else if let school = viewModel.school {
         detailContent(school: school)
       } else if let error = viewModel.errorMessage {
-        ErrorStateView(message: error)
+        InlineErrorView(message: error)
           .padding(.top, 100)
       }
     }

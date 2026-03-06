@@ -29,7 +29,7 @@ struct InteractionDetailView: View {
       } else if let interaction = viewModel.interaction {
         detailContent(interaction: interaction)
       } else if viewModel.errorMessage != nil {
-        ErrorStateView(message: viewModel.errorMessage ?? "Interaction not found")
+        InlineErrorView(message: viewModel.errorMessage ?? "Interaction not found")
           .padding(.top, 100)
       }
     }

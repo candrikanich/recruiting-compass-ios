@@ -29,7 +29,7 @@ struct CoachDetailView: View {
       } else if let coach = viewModel.coach {
         detailContent(coach: coach)
       } else if let error = viewModel.errorMessage {
-        ErrorStateView(message: error)
+        InlineErrorView(message: error)
           .padding(.top, 100)
       }
     }

@@ -337,17 +337,17 @@ final class CoachDetailComponentsTests: XCTestCase {
     }
   }
 
-  // MARK: - ErrorStateView Tests
+  // MARK: - InlineErrorView Tests
 
-  func testErrorStateView_rendersWithMessage() {
-    let errorView = ErrorStateView(message: "Failed to load coach")
+  func testInlineErrorView_rendersWithMessage() {
+    let errorView = InlineErrorView(message: "Failed to load coach")
 
     let hostingController = UIHostingController(rootView: errorView)
 
     XCTAssertNotNil(hostingController.view)
   }
 
-  func testErrorStateView_rendersWithDifferentErrors() {
+  func testInlineErrorView_rendersWithDifferentErrors() {
     let errorMessages = [
       "Coach not found",
       "Failed to load coach details",
@@ -356,7 +356,7 @@ final class CoachDetailComponentsTests: XCTestCase {
     ]
 
     for message in errorMessages {
-      let errorView = ErrorStateView(message: message)
+      let errorView = InlineErrorView(message: message)
       let hostingController = UIHostingController(rootView: errorView)
 
       XCTAssertNotNil(hostingController.view, "Should render with error: \(message)")
