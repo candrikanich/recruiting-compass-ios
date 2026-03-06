@@ -2,6 +2,7 @@ import CoreLocation
 import Foundation
 import Observation
 import OSLog
+import SwiftUI
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "HomeLocationViewModel")
 
@@ -10,15 +11,13 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 final class HomeLocationViewModel {
   var location: HomeLocation = .default
   var isLoading = false
-  var isSaving = false
-  var isGeocoding = false
   var errorMessage: String?
-  var successMessage: String?
-  var hasUnsavedChanges = false
+  var saveStatus: SaveStatus = .idle
 
   private let preferenceService: any PreferenceManaging
   private let geocoder: CLGeocoder
-  @ObservationIgnored nonisolated(unsafe) private var saveTask: Task<Void, Never>?
+  @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
+  @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
   init(preferenceService: any PreferenceManaging, geocoder: CLGeocoder = CLGeocoder()) {
     self.preferenceService = preferenceService
@@ -26,7 +25,8 @@ final class HomeLocationViewModel {
   }
 
   nonisolated deinit {
-    saveTask?.cancel()
+    pendingAutoSave?.cancel()
+    pendingStatusReset?.cancel()
   }
 
   // MARK: - Load/Save
@@ -54,35 +54,46 @@ final class HomeLocationViewModel {
 
   func saveLocation() async {
     logger.debug("Saving home location")
-    isSaving = true
+    saveStatus = .saving
     errorMessage = nil
-    successMessage = nil
 
     do {
       _ = try await preferenceService.savePreferences(category: .location, data: location)
-      hasUnsavedChanges = false
-      successMessage = "Location saved successfully"
+      saveStatus = .saved
+      UIImpactFeedbackGenerator(style: .light).impactOccurred()
       logger.info("Home location saved")
-
-      // Clear success message after 3 seconds
-      Task {
+      pendingStatusReset?.cancel()
+      pendingStatusReset = Task {
         try? await Task.sleep(for: .seconds(3))
-        await MainActor.run {
-          if successMessage == "Location saved successfully" {
-            successMessage = nil
-          }
-        }
+        guard !Task.isCancelled else { return }
+        if self.saveStatus == .saved { self.saveStatus = .idle }
       }
-
-      isSaving = false
     } catch {
       logger.error("Failed to save location: \(error.localizedDescription)")
       errorMessage = "Failed to save location. Please try again."
-      isSaving = false
+      saveStatus = .idle
     }
   }
 
+  // MARK: - Auto-Save
+
+  func scheduleAutoSave() {
+    pendingAutoSave?.cancel()
+    saveStatus = .saving
+    pendingAutoSave = Task {
+      try? await Task.sleep(for: .milliseconds(1000))
+      guard !Task.isCancelled else { return }
+      Task { await self.saveLocation() }
+    }
+  }
+
+  private func markChanged() {
+    scheduleAutoSave()
+  }
+
   // MARK: - Geocoding
+
+  var isGeocoding = false
 
   func geocodeAddress() async {
     guard hasValidAddress else {
@@ -104,7 +115,7 @@ final class HomeLocationViewModel {
 
       location.latitude = coordinate.latitude
       location.longitude = coordinate.longitude
-      hasUnsavedChanges = true
+      scheduleAutoSave()
       logger.info("Geocoding successful: \(coordinate.latitude), \(coordinate.longitude)")
 
       isGeocoding = false
@@ -128,7 +139,6 @@ final class HomeLocationViewModel {
   }
 
   func updateState(_ value: String) {
-    // Auto-uppercase and limit to 2 characters
     let uppercased = value.uppercased()
     let limited = String(uppercased.prefix(2))
     location.state = limited.isEmpty ? nil : limited
@@ -136,29 +146,12 @@ final class HomeLocationViewModel {
   }
 
   func updateZip(_ value: String) {
-    // Limit to 10 characters (allows ZIP+4)
     let limited = String(value.prefix(10))
     location.zip = limited.isEmpty ? nil : limited
     markChanged()
-    triggerAutoSave()
   }
 
-  // MARK: - Private Helpers
-
-  private func markChanged() {
-    hasUnsavedChanges = true
-  }
-
-  private func triggerAutoSave() {
-    // Debounce auto-save with Task (500ms delay)
-    saveTask?.cancel()
-    saveTask = Task { @MainActor in
-      try? await Task.sleep(nanoseconds: 500_000_000) // 500ms
-      if hasUnsavedChanges {
-        await saveLocation()
-      }
-    }
-  }
+  // MARK: - Computed
 
   var hasValidAddress: Bool {
     let hasCity = location.city?.isEmpty == false

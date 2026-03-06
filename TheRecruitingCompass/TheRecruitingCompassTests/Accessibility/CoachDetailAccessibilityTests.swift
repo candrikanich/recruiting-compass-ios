@@ -247,17 +247,13 @@ final class CoachDetailAccessibilityTests: XCTestCase {
 
   // MARK: - NotesSection Accessibility Tests
 
-  func testNotesSection_ViewModeHasLabel() throws {
+  func testNotesSection_HasLabel() throws {
+    @State var notes = "Great recruiter, very responsive"
     let notesSection = NotesSection(
       title: "Shared Notes",
-      notes: "Great recruiter, very responsive",
-      isEditing: false,
-      editedNotes: .constant(""),
-      onEdit: {},
-      onSave: {},
-      onCancel: {},
+      notes: $notes,
       isPrivate: false,
-      isSaving: false
+      onBlur: {}
     )
 
     let hostingController = UIHostingController(rootView: notesSection)
@@ -266,28 +262,6 @@ final class CoachDetailAccessibilityTests: XCTestCase {
     let labels = findAccessibilityLabels(in: view)
     try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
     XCTAssertTrue(labels.contains(where: { $0.contains("Shared Notes") }))
-    XCTAssertTrue(labels.contains(where: { $0.contains("Great recruiter") }))
-  }
-
-  func testNotesSection_EditButtonHasLabel() throws {
-    let notesSection = NotesSection(
-      title: "Shared Notes",
-      notes: "Test notes",
-      isEditing: false,
-      editedNotes: .constant(""),
-      onEdit: {},
-      onSave: {},
-      onCancel: {},
-      isPrivate: false,
-      isSaving: false
-    )
-
-    let hostingController = UIHostingController(rootView: notesSection)
-    let view = hostingController.view!
-
-    let labels = findAccessibilityLabels(in: view)
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(labels.contains(where: { $0.contains("Edit") }))
   }
 
   // MARK: - Button Hit Target Tests

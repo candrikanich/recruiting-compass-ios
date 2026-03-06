@@ -28,11 +28,12 @@ final class CoachDetailViewModel {
   var isDeleting = false
   var deleteSuccessMessage: String?
 
-  // Notes editing
-  var isEditingSharedNotes = false
+  // Notes (always-editable, auto-save on blur)
   var editedSharedNotes = ""
-  var isEditingPrivateNotes = false
   var editedPrivateNotes = ""
+  var saveStatus: SaveStatus = .idle
+
+  @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
   private let coachId: String
   private let coachesService: any CoachesManaging
@@ -101,6 +102,7 @@ final class CoachDetailViewModel {
     // Try cache first
     if let cachedCoach = await cacheToUse.get(Coach.self, forKey: cacheKey) {
       coach = cachedCoach
+      initializeNoteFields(from: cachedCoach)
       if let foundSchool = allSchools.first(where: { $0.id == cachedCoach.schoolId }) {
         school = foundSchool
       }
@@ -111,6 +113,7 @@ final class CoachDetailViewModel {
     // Then try passed-in list (avoids network when navigating from list)
     if let foundCoach = allCoaches.first(where: { $0.id == coachId }) {
       coach = foundCoach
+      initializeNoteFields(from: foundCoach)
       if let foundSchool = allSchools.first(where: { $0.id == foundCoach.schoolId }) {
         school = foundSchool
       }
@@ -123,6 +126,7 @@ final class CoachDetailViewModel {
     do {
       let fetchedCoach = try await coachesService.fetchCoach(id: coachId)
       coach = fetchedCoach
+      initializeNoteFields(from: fetchedCoach)
       if let foundSchool = allSchools.first(where: { $0.id == fetchedCoach.schoolId }) {
         school = foundSchool
       }
@@ -257,61 +261,52 @@ final class CoachDetailViewModel {
     return errors
   }
 
-  // MARK: - Shared Notes
+  // MARK: - Notes
 
-  func startEditingSharedNotes() {
-    editedSharedNotes = coach?.notes ?? ""
-    isEditingSharedNotes = true
+  private func initializeNoteFields(from coach: Coach) {
+    editedSharedNotes = coach.notes ?? ""
+    editedPrivateNotes = privateNoteForCurrentUser ?? ""
   }
 
-  func cancelEditingSharedNotes() {
-    editedSharedNotes = ""
-    isEditingSharedNotes = false
+  private func markSaved() {
+    saveStatus = .saved
+    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    pendingStatusReset?.cancel()
+    pendingStatusReset = Task {
+      try? await Task.sleep(for: .seconds(3))
+      guard !Task.isCancelled else { return }
+      if self.saveStatus == .saved { self.saveStatus = .idle }
+    }
   }
 
   func saveSharedNotes() async {
     guard let coachId = coach?.id else { return }
-
-    isSaving = true
-    defer { isSaving = false }
+    saveStatus = .saving
 
     do {
-      let sanitizedNotes = DataSanitizer.stripHtmlTags(editedSharedNotes.trimmingCharacters(in: .whitespacesAndNewlines))
+      let sanitized = DataSanitizer.stripHtmlTags(editedSharedNotes.trimmingCharacters(in: .whitespacesAndNewlines))
       let request = CoachUpdateRequest(
         firstName: nil, lastName: nil, email: nil, phone: nil,
         position: nil, twitterHandle: nil, instagramHandle: nil,
-        notes: DataSanitizer.nilIfEmpty(sanitizedNotes),
+        notes: DataSanitizer.nilIfEmpty(sanitized),
         privateNotes: nil
       )
       let updated = try await coachesService.updateCoach(id: coachId, updates: request)
       coach = updated
       await invalidateCoachCache()
-      isEditingSharedNotes = false
+      markSaved()
       logger.info("Shared notes updated successfully")
     } catch {
       logger.error("Failed to update shared notes: \(error.localizedDescription)")
       errorMessage = "Failed to save notes"
+      saveStatus = .idle
     }
-  }
-
-  // MARK: - Private Notes
-
-  func startEditingPrivateNotes() {
-    editedPrivateNotes = privateNoteForCurrentUser ?? ""
-    isEditingPrivateNotes = true
-  }
-
-  func cancelEditingPrivateNotes() {
-    editedPrivateNotes = ""
-    isEditingPrivateNotes = false
   }
 
   func savePrivateNotes() async {
     guard let coachId = coach?.id else { return }
     guard let userId = currentUserId else { return }
-
-    isSaving = true
-    defer { isSaving = false }
+    saveStatus = .saving
 
     do {
       let sanitized = DataSanitizer.stripHtmlTags(editedPrivateNotes.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -330,11 +325,12 @@ final class CoachDetailViewModel {
       let updated = try await coachesService.updateCoach(id: coachId, updates: request)
       coach = updated
       await invalidateCoachCache()
-      isEditingPrivateNotes = false
+      markSaved()
       logger.info("Private notes updated successfully")
     } catch {
       logger.error("Failed to update private notes: \(error.localizedDescription)")
       errorMessage = "Failed to save private notes"
+      saveStatus = .idle
     }
   }
 
@@ -375,5 +371,7 @@ final class CoachDetailViewModel {
     }
   }
 
-  nonisolated deinit {}
+  nonisolated deinit {
+    pendingStatusReset?.cancel()
+  }
 }

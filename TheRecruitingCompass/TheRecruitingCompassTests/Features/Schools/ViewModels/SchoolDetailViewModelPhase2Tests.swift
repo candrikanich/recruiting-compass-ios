@@ -55,87 +55,32 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
 
   // MARK: - Notes Tests
 
-  func testStartEditingNotes_PopulatesField() {
-    // Given
-    let school = createMockSchool(notes: "Existing notes")
-    viewModel.school = school
-
-    // When
-    viewModel.startEditingNotes()
-
-    // Then
-    XCTAssertTrue(viewModel.isEditingNotes)
-    XCTAssertEqual(viewModel.editedNotes, "Existing notes")
-  }
-
-  func testStartEditingNotes_EmptyNotes() {
-    // Given
-    let school = createMockSchool(notes: "")
-    viewModel.school = school
-
-    // When
-    viewModel.startEditingNotes()
-
-    // Then
-    XCTAssertTrue(viewModel.isEditingNotes)
-    XCTAssertEqual(viewModel.editedNotes, "")
-  }
-
   func testSaveNotes_Success() async {
     // Given
     let updatedSchool = createMockSchool(notes: "Updated notes")
     mockSchoolsService.stubbedSchool = updatedSchool
     viewModel.editedNotes = "Updated notes"
-    viewModel.isEditingNotes = true
 
     // When
     await viewModel.saveNotes()
 
     // Then
     XCTAssertEqual(viewModel.school?.notes, "Updated notes")
-    XCTAssertFalse(viewModel.isEditingNotes)
-    XCTAssertFalse(viewModel.isSavingNotes)
+    XCTAssertEqual(viewModel.saveStatus, .saved)
     XCTAssertNil(viewModel.errorMessage)
-  }
-
-  func testSaveNotes_EmptyString_NoOp() async {
-    // Given
-    viewModel.editedNotes = ""
-    let callCountBefore = mockSchoolsService.updateNotesCallCount
-
-    // When
-    await viewModel.saveNotes()
-
-    // Then
-    XCTAssertEqual(mockSchoolsService.updateNotesCallCount, callCountBefore)
-  }
-
-  func testCancelEditingNotes_ClearsState() {
-    // Given
-    viewModel.isEditingNotes = true
-    viewModel.editedNotes = "Some notes"
-
-    // When
-    viewModel.cancelEditingNotes()
-
-    // Then
-    XCTAssertFalse(viewModel.isEditingNotes)
-    XCTAssertEqual(viewModel.editedNotes, "")
   }
 
   func testSaveNotes_Failure_ShowsError() async {
     // Given
     mockSchoolsService.shouldSucceed = false
     viewModel.editedNotes = "New notes"
-    viewModel.isEditingNotes = true
 
     // When
     await viewModel.saveNotes()
 
     // Then
-    XCTAssertTrue(viewModel.isEditingNotes) // Sheet stays open
     XCTAssertEqual(viewModel.errorMessage, "Failed to save notes")
-    XCTAssertFalse(viewModel.isSavingNotes)
+    XCTAssertEqual(viewModel.saveStatus, .idle)
   }
 
   func testSaveNotes_LoadingState() async {
@@ -153,11 +98,11 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
     try? await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
 
     // Then
-    XCTAssertTrue(viewModel.isSavingNotes)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
 
     await task.value
 
-    XCTAssertFalse(viewModel.isSavingNotes)
+    XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
   // MARK: - Private Notes Tests
@@ -190,49 +135,29 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
     XCTAssertEqual(note, "")
   }
 
-  func testStartEditingPrivateNotes_PopulatesField() {
-    // Given
-    let privateNotes: [String: String] = [
-      "user-1": "My private note"
-    ]
-    let school = createMockSchool(privateNotes: privateNotes)
-    viewModel.school = school
-
-    // When
-    viewModel.startEditingPrivateNotes()
-
-    // Then
-    XCTAssertTrue(viewModel.isEditingPrivateNotes)
-    XCTAssertEqual(viewModel.editedPrivateNotes, "My private note")
-  }
-
   func testSavePrivateNotes_Success() async {
     // Given
     let updatedSchool = createMockSchool()
     mockSchoolsService.stubbedSchool = updatedSchool
     viewModel.editedPrivateNotes = "Updated private note"
-    viewModel.isEditingPrivateNotes = true
 
     // When
     await viewModel.savePrivateNotes()
 
     // Then
-    XCTAssertFalse(viewModel.isEditingPrivateNotes)
-    XCTAssertFalse(viewModel.isSavingPrivateNotes)
+    XCTAssertEqual(viewModel.saveStatus, .saved)
     XCTAssertNil(viewModel.errorMessage)
   }
 
   func testSavePrivateNotes_ClearsNote_WhenEmpty() async {
     // Given
     mockSchoolsService.stubbedSchool = createMockSchool()
-    viewModel.editedPrivateNotes = "" // Empty string should clear note
-    viewModel.isEditingPrivateNotes = true
+    viewModel.editedPrivateNotes = ""
 
     // When
     await viewModel.savePrivateNotes()
 
     // Then
-    XCTAssertFalse(viewModel.isEditingPrivateNotes)
     XCTAssertEqual(mockSchoolsService.lastPrivateNote, nil)
   }
 
@@ -247,20 +172,6 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
 
     // Then
     XCTAssertEqual(viewModel.errorMessage, "No active family")
-    XCTAssertFalse(viewModel.isSavingPrivateNotes)
-  }
-
-  func testCancelEditingPrivateNotes_ClearsState() {
-    // Given
-    viewModel.isEditingPrivateNotes = true
-    viewModel.editedPrivateNotes = "Some private note"
-
-    // When
-    viewModel.cancelEditingPrivateNotes()
-
-    // Then
-    XCTAssertFalse(viewModel.isEditingPrivateNotes)
-    XCTAssertEqual(viewModel.editedPrivateNotes, "")
   }
 
   // MARK: - Pros & Cons Tests
@@ -507,22 +418,6 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
 
     // Then
     XCTAssertNil(userId, "When no user is set, currentUserId should be nil")
-  }
-
-  func testIsEditingAnything_True_WhenEditingNotes() {
-    // Given
-    viewModel.isEditingNotes = true
-
-    // When/Then
-    XCTAssertTrue(viewModel.isEditingAnything)
-  }
-
-  func testIsEditingAnything_True_WhenEditingPrivateNotes() {
-    // Given
-    viewModel.isEditingPrivateNotes = true
-
-    // When/Then
-    XCTAssertTrue(viewModel.isEditingAnything)
   }
 
   func testIsEditingAnything_True_WhenEditingBasicInfo() {

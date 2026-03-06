@@ -347,11 +347,6 @@ final class CoachDetailViewTests: XCTestCase {
     )
 
     viewModel.coach = testCoach
-    viewModel.startEditingSharedNotes()
-
-    XCTAssertTrue(viewModel.isEditingSharedNotes)
-    XCTAssertEqual(viewModel.editedSharedNotes, "")
-
     viewModel.editedSharedNotes = "New shared notes"
 
     let updatedCoach = makeCoach(id: "coach-1", notes: "New shared notes")
@@ -361,7 +356,7 @@ final class CoachDetailViewTests: XCTestCase {
 
     XCTAssertEqual(mockService.updateCoachCallCount, 1)
     XCTAssertEqual(viewModel.coach?.notes, "New shared notes")
-    XCTAssertFalse(viewModel.isEditingSharedNotes)
+    XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
   func testNotesFlow_privateNotesEditAndSave() async {
@@ -374,11 +369,6 @@ final class CoachDetailViewTests: XCTestCase {
     )
 
     viewModel.coach = testCoach
-    viewModel.startEditingPrivateNotes()
-
-    XCTAssertTrue(viewModel.isEditingPrivateNotes)
-    XCTAssertEqual(viewModel.editedPrivateNotes, "")
-
     viewModel.editedPrivateNotes = "My private note"
 
     let updatedCoach = makeCoach(
@@ -391,7 +381,7 @@ final class CoachDetailViewTests: XCTestCase {
 
     XCTAssertEqual(mockService.updateCoachCallCount, 1)
     XCTAssertEqual(viewModel.privateNoteForCurrentUser, "My private note")
-    XCTAssertFalse(viewModel.isEditingPrivateNotes)
+    XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
   func testNotesFlow_privateNotesMergesExistingUserNotes() async {
@@ -407,7 +397,6 @@ final class CoachDetailViewTests: XCTestCase {
     )
 
     viewModel.coach = coachWithNotes
-    viewModel.startEditingPrivateNotes()
     viewModel.editedPrivateNotes = "My private note"
 
     let updatedCoach = makeCoach(

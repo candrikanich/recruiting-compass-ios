@@ -93,6 +93,7 @@ struct SchoolPreferencesView: View {
       }
     }
     .navigationTitle("School Preferences")
+    .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
         if viewModel.hasPreferences {
@@ -101,14 +102,8 @@ struct SchoolPreferencesView: View {
         }
       }
 
-      ToolbarItem(placement: .confirmationAction) {
-        Button("Save") {
-          Task {
-            await viewModel.savePreferences()
-          }
-        }
-        .disabled(!viewModel.hasUnsavedChanges || viewModel.isSaving)
-        .accessibilityLabel("Save school preferences")
+      ToolbarItem(placement: .principal) {
+        SaveStatusView(status: viewModel.saveStatus)
       }
     }
     .overlay {
@@ -128,9 +123,6 @@ struct SchoolPreferencesView: View {
       Text("Applying this template will replace your current preferences. This action cannot be undone.")
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
-    .overlay(alignment: .top) {
-      PreferenceSuccessToast(message: viewModel.successMessage)
-    }
     .sheet(isPresented: $viewModel.showingAddSheet) {
       AddPreferenceSheet(
         onAdd: { preference in

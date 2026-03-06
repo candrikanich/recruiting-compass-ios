@@ -80,15 +80,15 @@ struct NotificationPreferencesView: View {
         }
         .foregroundColor(.red)
         .accessibilityLabel("Reset notification preferences to defaults")
-        .disabled(viewModel.isSaving)
+        .disabled(viewModel.saveStatus == .saving)
       }
     }
     .navigationTitle("Notifications")
-    .preferenceSaveToolbar(
-      hasUnsavedChanges: viewModel.hasUnsavedChanges,
-      isSaving: viewModel.isSaving
-    ) {
-      await viewModel.savePreferences()
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      ToolbarItem(placement: .principal) {
+        SaveStatusView(status: viewModel.saveStatus)
+      }
     }
     .overlay {
       PreferenceLoadingOverlay(
@@ -97,9 +97,6 @@ struct NotificationPreferencesView: View {
       )
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
-    .overlay(alignment: .top) {
-      PreferenceSuccessToast(message: viewModel.successMessage)
-    }
     .task {
       await viewModel.loadPreferences()
     }

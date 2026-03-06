@@ -1,5 +1,11 @@
 import SwiftUI
 
+enum SaveStatus: Equatable {
+    case idle
+    case saving
+    case saved
+}
+
 struct SaveStatusView: View {
     let status: SaveStatus
 

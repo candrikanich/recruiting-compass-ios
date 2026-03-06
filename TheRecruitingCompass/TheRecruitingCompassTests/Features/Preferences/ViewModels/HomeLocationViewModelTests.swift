@@ -74,15 +74,12 @@ final class HomeLocationViewModelTests: XCTestCase {
   func testSaveLocation_SavesSuccessfully() async {
     // Given
     mockService.savePreferencesResult = .success(viewModel.location)
-    viewModel.hasUnsavedChanges = true
 
     // When
     await viewModel.saveLocation()
 
     // Then
-    XCTAssertFalse(viewModel.hasUnsavedChanges)
-    XCTAssertEqual(viewModel.successMessage, "Location saved successfully")
-    XCTAssertFalse(viewModel.isSaving)
+    XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
   func testSaveLocation_WhenErrorOccurs_SetsErrorMessage() async {
@@ -94,7 +91,7 @@ final class HomeLocationViewModelTests: XCTestCase {
 
     // Then
     XCTAssertNotNil(viewModel.errorMessage)
-    XCTAssertFalse(viewModel.isSaving)
+    XCTAssertEqual(viewModel.saveStatus, .idle)
   }
 
   // MARK: - Geocoding Tests
@@ -115,7 +112,7 @@ final class HomeLocationViewModelTests: XCTestCase {
       XCTAssertEqual(lat, 39.7817, accuracy: 0.0001)
       XCTAssertEqual(lon, -89.6501, accuracy: 0.0001)
     }
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
     XCTAssertFalse(viewModel.isGeocoding)
   }
 
@@ -154,7 +151,7 @@ final class HomeLocationViewModelTests: XCTestCase {
 
     // Then
     XCTAssertEqual(viewModel.location.address, "123 Main St")
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   func testUpdateAddress_WhenEmpty_SetsNil() {
@@ -171,7 +168,7 @@ final class HomeLocationViewModelTests: XCTestCase {
 
     // Then
     XCTAssertEqual(viewModel.location.city, "Springfield")
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   func testUpdateState_ConvertsToUppercase() {
@@ -180,7 +177,7 @@ final class HomeLocationViewModelTests: XCTestCase {
 
     // Then
     XCTAssertEqual(viewModel.location.state, "IL")
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   func testUpdateState_LimitsToTwoCharacters() {
@@ -197,7 +194,7 @@ final class HomeLocationViewModelTests: XCTestCase {
 
     // Then
     XCTAssertEqual(viewModel.location.zip, "62701")
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   func testUpdateZip_LimitsToTenCharacters() {

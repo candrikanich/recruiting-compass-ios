@@ -234,15 +234,15 @@ struct DashboardCustomizationView: View {
         }
         .foregroundColor(.red)
         .accessibilityLabel("Reset dashboard settings to defaults")
-        .disabled(viewModel.isSaving)
+        .disabled(viewModel.saveStatus == .saving)
       }
     }
     .navigationTitle("Dashboard")
-    .preferenceSaveToolbar(
-      hasUnsavedChanges: viewModel.hasUnsavedChanges,
-      isSaving: viewModel.isSaving
-    ) {
-      await viewModel.saveVisibility()
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      ToolbarItem(placement: .principal) {
+        SaveStatusView(status: viewModel.saveStatus)
+      }
     }
     .overlay {
       PreferenceLoadingOverlay(
@@ -251,9 +251,6 @@ struct DashboardCustomizationView: View {
       )
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
-    .overlay(alignment: .top) {
-      PreferenceSuccessToast(message: viewModel.successMessage)
-    }
     .task {
       await viewModel.loadVisibility()
     }

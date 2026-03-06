@@ -46,11 +46,10 @@ struct HomeLocationView: View {
         .textContentType(.postalCode)
         .keyboardType(.numberPad)
         .accessibilityLabel("ZIP code")
-        .accessibilityHint("Auto-saves when changed")
       } header: {
         Text("Address")
       } footer: {
-        Text("Your home location is used to calculate distances to schools. Changes to ZIP code auto-save after 500ms.")
+        Text("Your home location is used to calculate distances to schools. Changes save automatically.")
           .font(.caption)
       }
 
@@ -121,11 +120,11 @@ struct HomeLocationView: View {
       }
     }
     .navigationTitle("Home Location")
-    .preferenceSaveToolbar(
-      hasUnsavedChanges: viewModel.hasUnsavedChanges,
-      isSaving: viewModel.isSaving
-    ) {
-      await viewModel.saveLocation()
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      ToolbarItem(placement: .principal) {
+        SaveStatusView(status: viewModel.saveStatus)
+      }
     }
     .overlay {
       PreferenceLoadingOverlay(
@@ -134,9 +133,6 @@ struct HomeLocationView: View {
       )
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
-    .overlay(alignment: .top) {
-      PreferenceSuccessToast(message: viewModel.successMessage)
-    }
     .task {
       await viewModel.loadLocation()
     }

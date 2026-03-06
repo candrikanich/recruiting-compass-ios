@@ -2,15 +2,11 @@ import SwiftUI
 
 struct SchoolNotesSection: View {
   let title: String
-  let notes: String
+  @Binding var notes: String
   let isPrivate: Bool
-  let isEditing: Bool
-  @Binding var editedNotes: String
-  let onEdit: () -> Void
-  let onSave: () async -> Void
-  let onCancel: () -> Void
-  let isSaving: Bool
-  var canSave: Bool = true
+  let onBlur: () async -> Void
+
+  @FocusState private var isFocused: Bool
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -20,12 +16,6 @@ struct SchoolNotesSection: View {
           .accessibilityAddTraits(.isHeader)
 
         Spacer()
-
-        if !isEditing {
-          Button("Edit", action: onEdit)
-            .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-edit-button")
-            .accessibilityLabel("Edit \(title.lowercased())")
-        }
       }
 
       if isPrivate {
@@ -35,50 +25,25 @@ struct SchoolNotesSection: View {
           .italic()
       }
 
-      if isEditing {
-        VStack(spacing: 12) {
-          TextEditor(text: $editedNotes)
-            .frame(minHeight: 120)
-            .padding(8)
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
-            .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-text-editor")
-            .accessibilityLabel("\(title) text editor")
-            .accessibilityHint("Enter your \(title.lowercased())")
-            .accessibilityValue(editedNotes.isEmpty ? "Empty" : editedNotes)
-
-          HStack {
-            Button("Cancel", action: onCancel)
-              .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-cancel-button")
-              .disabled(isSaving)
-
-            Spacer()
-
-            Button {
-              Task { await onSave() }
-            } label: {
-              if isSaving {
-                ProgressView()
-                  .progressViewStyle(.circular)
-                  .scaleEffect(0.8)
-                  .accessibilityLabel("Saving \(title.lowercased())")
-              } else {
-                Text("Save")
-              }
-            }
-            .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-save-button")
-            .accessibilityLabel(isSaving ? "Saving \(title.lowercased())" : "Save \(title.lowercased())")
-            .buttonStyle(.borderedProminent)
-            .disabled(isSaving || !canSave)
+      TextEditor(text: $notes)
+        .frame(minHeight: 120)
+        .padding(8)
+        .background(Color(.systemGray6))
+        .cornerRadius(8)
+        .overlay(
+          RoundedRectangle(cornerRadius: 8)
+            .stroke(isFocused ? Color.accentColor : Color.clear, lineWidth: 2)
+        )
+        .focused($isFocused)
+        .accessibilityIdentifier("\(title.lowercased().replacingOccurrences(of: " ", with: "-"))-text-editor")
+        .accessibilityLabel("\(title) text editor")
+        .accessibilityHint("Enter your \(title.lowercased())")
+        .accessibilityValue(notes.isEmpty ? "Empty" : notes)
+        .onChange(of: isFocused) { _, focused in
+          if !focused {
+            Task { await onBlur() }
           }
         }
-      } else {
-        Text(notes.isEmpty ? "No notes added yet." : notes)
-          .font(.body)
-          .foregroundStyle(notes.isEmpty ? .secondary : .primary)
-          .italic(notes.isEmpty)
-          .frame(maxWidth: .infinity, alignment: .leading)
-      }
     }
     .padding()
     .background(Color(.systemGray6))
@@ -87,29 +52,22 @@ struct SchoolNotesSection: View {
 }
 
 #Preview {
+  @Previewable @State var notes = "Great academic program with strong baseball history."
+  @Previewable @State var privateNotes = ""
+
   VStack(spacing: 16) {
     SchoolNotesSection(
       title: "Notes",
-      notes: "Great academic program with strong baseball history.",
+      notes: $notes,
       isPrivate: false,
-      isEditing: false,
-      editedNotes: .constant(""),
-      onEdit: {},
-      onSave: {},
-      onCancel: {},
-      isSaving: false
+      onBlur: {}
     )
 
     SchoolNotesSection(
       title: "Private Notes",
-      notes: "",
+      notes: $privateNotes,
       isPrivate: true,
-      isEditing: true,
-      editedNotes: .constant("My private thoughts..."),
-      onEdit: {},
-      onSave: {},
-      onCancel: {},
-      isSaving: false
+      onBlur: {}
     )
   }
   .padding()

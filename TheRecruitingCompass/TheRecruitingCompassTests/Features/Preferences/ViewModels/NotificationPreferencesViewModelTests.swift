@@ -76,16 +76,13 @@ final class NotificationPreferencesViewModelTests: XCTestCase {
   func testSavePreferences_SavesSuccessfully() async {
     // Given
     mockService.savePreferencesResult = .success(viewModel.settings)
-    viewModel.hasUnsavedChanges = true
 
     // When
     await viewModel.savePreferences()
 
     // Then
-    XCTAssertFalse(viewModel.hasUnsavedChanges)
-    XCTAssertEqual(viewModel.successMessage, "Preferences saved successfully")
+    XCTAssertEqual(viewModel.saveStatus, .saved)
     XCTAssertNil(viewModel.errorMessage)
-    XCTAssertFalse(viewModel.isSaving)
     XCTAssertEqual(mockService.savePreferencesCalls.count, 1)
   }
 
@@ -99,7 +96,7 @@ final class NotificationPreferencesViewModelTests: XCTestCase {
     // Then
     XCTAssertNotNil(viewModel.errorMessage)
     XCTAssertTrue(viewModel.errorMessage?.contains("Failed to save preferences") ?? false)
-    XCTAssertFalse(viewModel.isSaving)
+    XCTAssertEqual(viewModel.saveStatus, .idle)
   }
 
   // MARK: - Reset Tests
@@ -120,15 +117,15 @@ final class NotificationPreferencesViewModelTests: XCTestCase {
 
   // MARK: - Field Update Tests
 
-  func testMarkAsChanged_SetsHasUnsavedChanges() {
+  func testMarkAsChanged_SchedulesAutoSave() {
     // Given
-    XCTAssertFalse(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .idle)
 
     // When
     viewModel.markAsChanged()
 
-    // Then
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    // Then — scheduleAutoSave sets .saving immediately
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   func testToggleFollowUpReminders_UpdatesSetting() {
@@ -141,7 +138,7 @@ final class NotificationPreferencesViewModelTests: XCTestCase {
 
     // Then
     XCTAssertNotEqual(viewModel.settings.enableFollowUpReminders, initialValue)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   func testUpdateFollowUpReminderDays_UpdatesSetting() {
@@ -154,7 +151,7 @@ final class NotificationPreferencesViewModelTests: XCTestCase {
 
     // Then
     XCTAssertEqual(viewModel.settings.followUpReminderDays, newValue)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   func testToggleEmailNotifications_UpdatesSetting() {
@@ -167,7 +164,7 @@ final class NotificationPreferencesViewModelTests: XCTestCase {
 
     // Then
     XCTAssertNotEqual(viewModel.settings.enableEmailNotifications, initialValue)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   // MARK: - Integration Tests
@@ -185,13 +182,13 @@ final class NotificationPreferencesViewModelTests: XCTestCase {
     // When - Modify
     viewModel.settings.followUpReminderDays = 14
     viewModel.markAsChanged()
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
 
     // When - Save
     await viewModel.savePreferences()
 
     // Then
-    XCTAssertFalse(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saved)
     XCTAssertEqual(mockService.savePreferencesCalls.count, 1)
   }
 }

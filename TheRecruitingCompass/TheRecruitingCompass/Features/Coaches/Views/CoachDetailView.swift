@@ -37,6 +37,9 @@ struct CoachDetailView: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbar(.hidden, for: .tabBar)
     .toolbar {
+      ToolbarItem(placement: .principal) {
+        SaveStatusView(status: viewModel.saveStatus)
+      }
       ToolbarItem(placement: .primaryAction) {
         Menu {
           Button {
@@ -162,28 +165,18 @@ struct CoachDetailView: View {
   private var sharedNotesSection: some View {
     NotesSection(
       title: "Shared Notes",
-      notes: viewModel.coach?.notes ?? "",
-      isEditing: viewModel.isEditingSharedNotes,
-      editedNotes: $viewModel.editedSharedNotes,
-      onEdit: { viewModel.startEditingSharedNotes() },
-      onSave: { await viewModel.saveSharedNotes() },
-      onCancel: { viewModel.cancelEditingSharedNotes() },
+      notes: $viewModel.editedSharedNotes,
       isPrivate: false,
-      isSaving: viewModel.isSaving
+      onBlur: { await viewModel.saveSharedNotes() }
     )
   }
 
   private var privateNotesSection: some View {
     NotesSection(
       title: "Private Notes",
-      notes: viewModel.privateNoteForCurrentUser ?? "",
-      isEditing: viewModel.isEditingPrivateNotes,
-      editedNotes: $viewModel.editedPrivateNotes,
-      onEdit: { viewModel.startEditingPrivateNotes() },
-      onSave: { await viewModel.savePrivateNotes() },
-      onCancel: { viewModel.cancelEditingPrivateNotes() },
+      notes: $viewModel.editedPrivateNotes,
       isPrivate: true,
-      isSaving: viewModel.isSaving
+      onBlur: { await viewModel.savePrivateNotes() }
     )
   }
 

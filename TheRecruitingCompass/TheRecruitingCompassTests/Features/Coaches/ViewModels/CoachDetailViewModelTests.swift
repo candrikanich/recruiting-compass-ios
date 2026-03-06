@@ -287,7 +287,6 @@ final class CoachDetailViewModelTests: XCTestCase {
 
   func testSaveSharedNotes_Success() async {
     sut.coach = testCoach
-    sut.startEditingSharedNotes()
     sut.editedSharedNotes = "New shared notes"
 
     let updatedCoach = makeCoach(id: "coach-1", notes: "New shared notes")
@@ -297,7 +296,7 @@ final class CoachDetailViewModelTests: XCTestCase {
 
     XCTAssertEqual(mockService.updateCoachCallCount, 1)
     XCTAssertEqual(sut.coach?.notes, "New shared notes")
-    XCTAssertFalse(sut.isEditingSharedNotes)
+    XCTAssertEqual(sut.saveStatus, .saved)
   }
 
   // MARK: - Private Notes Tests
@@ -307,7 +306,6 @@ final class CoachDetailViewModelTests: XCTestCase {
     testCoach = makeCoach(id: "coach-1", privateNotes: existingPrivateNotes)
     sut.coach = testCoach
 
-    sut.startEditingPrivateNotes()
     sut.editedPrivateNotes = "My private note"
 
     let updatedCoach = makeCoach(
@@ -392,7 +390,6 @@ final class CoachDetailViewModelTests: XCTestCase {
 
   func testSaveSharedNotes_ServiceError_SetsErrorMessage() async {
     sut.coach = testCoach
-    sut.startEditingSharedNotes()
     sut.editedSharedNotes = "New notes"
 
     mockService.shouldThrowUpdateCoach = true
@@ -406,7 +403,6 @@ final class CoachDetailViewModelTests: XCTestCase {
 
   func testSavePrivateNotes_ServiceError_SetsErrorMessage() async {
     sut.coach = testCoach
-    sut.startEditingPrivateNotes()
     sut.editedPrivateNotes = "Private note"
 
     mockService.shouldThrowUpdateCoach = true
@@ -515,26 +511,4 @@ final class CoachDetailViewModelTests: XCTestCase {
     XCTAssertEqual(value.firstName, "Modified")
   }
 
-  func testCancelEditingSharedNotes_ResetsState() {
-    sut.coach = makeCoach(id: "coach-1", notes: "Original notes")
-    sut.startEditingSharedNotes()
-    sut.editedSharedNotes = "Modified notes"
-
-    sut.cancelEditingSharedNotes()
-
-    XCTAssertFalse(sut.isEditingSharedNotes)
-    XCTAssertEqual(sut.editedSharedNotes, "")
-  }
-
-  func testCancelEditingPrivateNotes_ResetsState() {
-    testCoach = makeCoach(id: "coach-1", privateNotes: ["user-1": "Original note"])
-    sut.coach = testCoach
-    sut.startEditingPrivateNotes()
-    sut.editedPrivateNotes = "Modified note"
-
-    sut.cancelEditingPrivateNotes()
-
-    XCTAssertFalse(sut.isEditingPrivateNotes)
-    XCTAssertEqual(sut.editedPrivateNotes, "")
-  }
 }

@@ -237,17 +237,13 @@ final class CoachDetailComponentsTests: XCTestCase {
 
   // MARK: - NotesSection Tests
 
-  func testNotesSection_rendersInViewMode() {
+  func testNotesSection_rendersWithNotes() {
+    @State var notes = "Great recruiter, very responsive"
     let notesSection = NotesSection(
       title: "Shared Notes",
-      notes: "Great recruiter, very responsive",
-      isEditing: false,
-      editedNotes: .constant(""),
-      onEdit: {},
-      onSave: {},
-      onCancel: {},
+      notes: $notes,
       isPrivate: false,
-      isSaving: false
+      onBlur: {}
     )
 
     let hostingController = UIHostingController(rootView: notesSection)
@@ -255,17 +251,13 @@ final class CoachDetailComponentsTests: XCTestCase {
     XCTAssertNotNil(hostingController.view)
   }
 
-  func testNotesSection_rendersInEditMode() {
+  func testNotesSection_rendersPrivate() {
+    @State var notes = "My private notes"
     let notesSection = NotesSection(
       title: "Private Notes",
-      notes: "My private notes",
-      isEditing: true,
-      editedNotes: .constant("Edited notes"),
-      onEdit: {},
-      onSave: {},
-      onCancel: {},
+      notes: $notes,
       isPrivate: true,
-      isSaving: false
+      onBlur: {}
     )
 
     let hostingController = UIHostingController(rootView: notesSection)
@@ -273,42 +265,18 @@ final class CoachDetailComponentsTests: XCTestCase {
     XCTAssertNotNil(hostingController.view)
   }
 
-  func testNotesSection_rendersEmptyState() {
+  func testNotesSection_rendersEmpty() {
+    @State var notes = ""
     let notesSection = NotesSection(
       title: "Shared Notes",
-      notes: "",
-      isEditing: false,
-      editedNotes: .constant(""),
-      onEdit: {},
-      onSave: {},
-      onCancel: {},
+      notes: $notes,
       isPrivate: false,
-      isSaving: false
+      onBlur: {}
     )
 
     let hostingController = UIHostingController(rootView: notesSection)
 
     XCTAssertNotNil(hostingController.view)
-    // Should show placeholder text when notes are empty
-  }
-
-  func testNotesSection_rendersSavingState() {
-    let notesSection = NotesSection(
-      title: "Shared Notes",
-      notes: "Notes content",
-      isEditing: true,
-      editedNotes: .constant("Updated notes"),
-      onEdit: {},
-      onSave: {},
-      onCancel: {},
-      isPrivate: false,
-      isSaving: true
-    )
-
-    let hostingController = UIHostingController(rootView: notesSection)
-
-    XCTAssertNotNil(hostingController.view)
-    // Save button should show loading indicator
   }
 
   // MARK: - LoadingStateView Tests

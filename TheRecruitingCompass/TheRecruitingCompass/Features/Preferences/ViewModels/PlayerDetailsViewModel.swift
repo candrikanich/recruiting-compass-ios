@@ -6,12 +6,6 @@ import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "PlayerDetailsViewModel")
 
-enum SaveStatus: Equatable {
-    case idle
-    case saving
-    case saved
-}
-
 @Observable
 @MainActor
 final class PlayerDetailsViewModel {

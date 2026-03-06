@@ -10,18 +10,23 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 final class SchoolPreferencesViewModel {
   var preferences: SchoolPreferences = .default
   var isLoading = false
-  var isSaving = false
   var errorMessage: String?
-  var successMessage: String?
-  var hasUnsavedChanges = false
+  var saveStatus: SaveStatus = .idle
   var showingAddSheet = false
   var showingTemplateWarning = false
   var pendingTemplate: String?
 
   private let preferenceService: any PreferenceManaging
+  @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
+  @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
   init(preferenceService: any PreferenceManaging) {
     self.preferenceService = preferenceService
+  }
+
+  nonisolated deinit {
+    pendingAutoSave?.cancel()
+    pendingStatusReset?.cancel()
   }
 
   // MARK: - Load/Save
@@ -49,35 +54,42 @@ final class SchoolPreferencesViewModel {
 
   func savePreferences() async {
     logger.debug("Saving school preferences")
-    isSaving = true
+    saveStatus = .saving
     errorMessage = nil
-    successMessage = nil
+    preferences.lastUpdated = Date().ISO8601Format()
 
     do {
-      // Update metadata
-      preferences.lastUpdated = Date().ISO8601Format()
-
       _ = try await preferenceService.savePreferences(category: .school, data: preferences)
-      hasUnsavedChanges = false
-      successMessage = "Preferences saved successfully"
+      saveStatus = .saved
+      UIImpactFeedbackGenerator(style: .light).impactOccurred()
       logger.info("School preferences saved")
-
-      // Clear success message after 3 seconds
-      Task {
+      pendingStatusReset?.cancel()
+      pendingStatusReset = Task {
         try? await Task.sleep(for: .seconds(3))
-        await MainActor.run {
-          if successMessage == "Preferences saved successfully" {
-            successMessage = nil
-          }
-        }
+        guard !Task.isCancelled else { return }
+        if self.saveStatus == .saved { self.saveStatus = .idle }
       }
-
-      isSaving = false
     } catch {
       logger.error("Failed to save preferences: \(error.localizedDescription)")
       errorMessage = "Failed to save preferences. Please try again."
-      isSaving = false
+      saveStatus = .idle
     }
+  }
+
+  // MARK: - Auto-Save
+
+  func scheduleAutoSave() {
+    pendingAutoSave?.cancel()
+    saveStatus = .saving
+    pendingAutoSave = Task {
+      try? await Task.sleep(for: .milliseconds(1000))
+      guard !Task.isCancelled else { return }
+      Task { await self.savePreferences() }
+    }
+  }
+
+  private func markChanged() {
+    scheduleAutoSave()
   }
 
   // MARK: - Templates
@@ -253,13 +265,7 @@ final class SchoolPreferencesViewModel {
     }
   }
 
-  private func markChanged() {
-    hasUnsavedChanges = true
-  }
-
   var hasPreferences: Bool {
     !preferences.preferences.isEmpty
   }
-
-  nonisolated deinit {}
 }

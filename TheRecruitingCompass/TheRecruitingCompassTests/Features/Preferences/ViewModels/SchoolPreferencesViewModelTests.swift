@@ -50,14 +50,12 @@ final class SchoolPreferencesViewModelTests: XCTestCase {
   func testSavePreferences_SavesSuccessfully() async {
     // Given
     mockService.savePreferencesResult = .success(viewModel.preferences)
-    viewModel.hasUnsavedChanges = true
 
     // When
     await viewModel.savePreferences()
 
     // Then
-    XCTAssertFalse(viewModel.hasUnsavedChanges)
-    XCTAssertEqual(viewModel.successMessage, "Preferences saved successfully")
+    XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
   // MARK: - Template Tests
@@ -70,7 +68,7 @@ final class SchoolPreferencesViewModelTests: XCTestCase {
     // Then
     XCTAssertEqual(viewModel.preferences.preferences.count, 3)
     XCTAssertEqual(viewModel.preferences.templateUsed, "D1 Power Conference")
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
 
     // Verify first preference (Division: D1)
     let first = viewModel.preferences.preferences[0]
@@ -169,7 +167,7 @@ final class SchoolPreferencesViewModelTests: XCTestCase {
     // Then
     XCTAssertEqual(viewModel.preferences.preferences.count, 1)
     XCTAssertEqual(viewModel.preferences.preferences[0].priority, 1)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   func testRemovePreference_RemovesFromList() {
@@ -221,7 +219,7 @@ final class SchoolPreferencesViewModelTests: XCTestCase {
 
     // Then
     XCTAssertTrue(viewModel.preferences.preferences[0].isDealbreaker)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
 
     // When - Toggle again
     viewModel.toggleDealbreaker(id: "1")
@@ -261,7 +259,7 @@ final class SchoolPreferencesViewModelTests: XCTestCase {
     viewModel.requestTemplateApplication("Best Fit (Balanced)")
     viewModel.confirmTemplateApplication()
     XCTAssertEqual(viewModel.preferences.preferences.count, 3)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
 
     // When - Toggle dealbreaker
     viewModel.toggleDealbreaker(id: viewModel.preferences.preferences[0].id)
@@ -269,7 +267,7 @@ final class SchoolPreferencesViewModelTests: XCTestCase {
 
     // When - Save
     await viewModel.savePreferences()
-    XCTAssertFalse(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saved)
     XCTAssertEqual(mockService.savePreferencesCalls.count, 1)
   }
 }

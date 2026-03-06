@@ -17,15 +17,12 @@ final class SchoolDetailViewModel {
   var statusHistory: [SchoolStatusHistory] = []
   var isUpdatingStatus = false
 
-  // MARK: - Notes
-  var isEditingNotes = false
+  // MARK: - Notes (always-editable, auto-save on blur)
   var editedNotes = ""
-  var isSavingNotes = false
-
-  // MARK: - Private Notes
-  var isEditingPrivateNotes = false
   var editedPrivateNotes = ""
-  var isSavingPrivateNotes = false
+  var saveStatus: SaveStatus = .idle
+
+  @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
   // MARK: - Pros & Cons
   var newPro = ""
@@ -110,11 +107,6 @@ final class SchoolDetailViewModel {
     return school?.privateNote(for: userId) ?? ""
   }
 
-  /// True when notes have non-whitespace content; used to enable/disable Save button and prevent empty API calls.
-  var canSaveNotes: Bool {
-    !editedNotes.trimmingCharacters(in: .whitespaces).isEmpty
-  }
-
   var hasCoaches: Bool {
     !coaches.isEmpty
   }
@@ -124,8 +116,6 @@ final class SchoolDetailViewModel {
   }
 
   var isEditingAnything: Bool {
-    isEditingNotes ||
-    isEditingPrivateNotes ||
     isEditingBasicInfo ||
     isEditingCoachingPhilosophy
   }
@@ -152,6 +142,7 @@ final class SchoolDetailViewModel {
        let cachedHistory = await cacheToUse.get([SchoolStatusHistory].self, forKey: historyKey) {
       school = cachedSchool
       statusHistory = cachedHistory
+      initializeNoteFields(from: cachedSchool)
       logger.info("Loaded school from cache: \(cachedSchool.name)")
       await loadFitScore()
       await loadCoaches()
@@ -166,6 +157,7 @@ final class SchoolDetailViewModel {
       let loadedHistory = try await historyData
       school = loadedSchool
       statusHistory = loadedHistory
+      initializeNoteFields(from: loadedSchool)
 
       await cacheToUse.set(loadedSchool, forKey: cacheKey, ttlSeconds: Self.schoolCacheTTL)
       await cacheToUse.set(loadedHistory, forKey: historyKey, ttlSeconds: Self.schoolCacheTTL)
@@ -241,44 +233,37 @@ final class SchoolDetailViewModel {
     }
   }
 
-  // MARK: - Notes Editing
+  // MARK: - Notes
 
-  func startEditingNotes() {
-    editedNotes = school?.notes ?? ""
-    isEditingNotes = true
+  private func initializeNoteFields(from school: School) {
+    editedNotes = school.notes ?? ""
+    editedPrivateNotes = privateNoteForCurrentUser
   }
 
-  func cancelEditingNotes() {
-    editedNotes = ""
-    isEditingNotes = false
-  }
-
-  func saveNotes() async {
-    let sanitizedNotes = DataSanitizer.stripHtmlTags(editedNotes.trimmingCharacters(in: .whitespacesAndNewlines))
-    guard canSaveNotes else { return }
-    await ViewModelHelpers.withLoading(set: { self.isSavingNotes = $0 }) {
-      do {
-        let updated = try await schoolsService.updateNotes(id: schoolId, notes: sanitizedNotes)
-        school = updated
-        isEditingNotes = false
-        await invalidateSchoolCache()
-        logger.info("Notes saved successfully")
-      } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to save notes", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
-      }
+  private func markSaved() {
+    saveStatus = .saved
+    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    pendingStatusReset?.cancel()
+    pendingStatusReset = Task {
+      try? await Task.sleep(for: .seconds(3))
+      guard !Task.isCancelled else { return }
+      if self.saveStatus == .saved { self.saveStatus = .idle }
     }
   }
 
-  // MARK: - Private Notes Editing
-
-  func startEditingPrivateNotes() {
-    editedPrivateNotes = privateNoteForCurrentUser
-    isEditingPrivateNotes = true
-  }
-
-  func cancelEditingPrivateNotes() {
-    editedPrivateNotes = ""
-    isEditingPrivateNotes = false
+  func saveNotes() async {
+    let sanitized = DataSanitizer.stripHtmlTags(editedNotes.trimmingCharacters(in: .whitespacesAndNewlines))
+    saveStatus = .saving
+    do {
+      let updated = try await schoolsService.updateNotes(id: schoolId, notes: sanitized)
+      school = updated
+      await invalidateSchoolCache()
+      markSaved()
+      logger.info("Notes saved successfully")
+    } catch {
+      ViewModelHelpers.handleError(error, userMessage: "Failed to save notes", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+      saveStatus = .idle
+    }
   }
 
   func savePrivateNotes() async {
@@ -291,23 +276,23 @@ final class SchoolDetailViewModel {
       return
     }
 
-    await ViewModelHelpers.withLoading(set: { self.isSavingPrivateNotes = $0 }) {
-      do {
-        let sanitized = DataSanitizer.stripHtmlTags(editedPrivateNotes.trimmingCharacters(in: .whitespacesAndNewlines))
-        let note = sanitized.isEmpty ? nil : sanitized
-        let updated = try await schoolsService.updatePrivateNotes(
-          id: schoolId,
-          familyUnitId: familyId,
-          userId: userId,
-          note: note
-        )
-        school = updated
-        isEditingPrivateNotes = false
-        await invalidateSchoolCache()
-        logger.info("Private notes saved successfully")
-      } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to save private notes", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
-      }
+    saveStatus = .saving
+    do {
+      let sanitized = DataSanitizer.stripHtmlTags(editedPrivateNotes.trimmingCharacters(in: .whitespacesAndNewlines))
+      let note = sanitized.isEmpty ? nil : sanitized
+      let updated = try await schoolsService.updatePrivateNotes(
+        id: schoolId,
+        familyUnitId: familyId,
+        userId: userId,
+        note: note
+      )
+      school = updated
+      await invalidateSchoolCache()
+      markSaved()
+      logger.info("Private notes saved successfully")
+    } catch {
+      ViewModelHelpers.handleError(error, userMessage: "Failed to save private notes", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+      saveStatus = .idle
     }
   }
 
@@ -578,5 +563,7 @@ final class SchoolDetailViewModel {
     }
   }
 
-  nonisolated deinit {}
+  nonisolated deinit {
+    pendingStatusReset?.cancel()
+  }
 }

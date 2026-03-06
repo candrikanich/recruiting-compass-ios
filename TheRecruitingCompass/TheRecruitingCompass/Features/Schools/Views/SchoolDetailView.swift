@@ -36,6 +36,9 @@ struct SchoolDetailView: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbar(.hidden, for: .tabBar)
     .toolbar {
+      ToolbarItem(placement: .principal) {
+        SaveStatusView(status: viewModel.saveStatus)
+      }
       if viewModel.school != nil {
         ToolbarItem(placement: .primaryAction) {
           Button {
@@ -49,6 +52,7 @@ struct SchoolDetailView: View {
         }
       }
     }
+
     .refreshable {
       await viewModel.loadSchool()
     }
@@ -202,29 +206,18 @@ struct SchoolDetailView: View {
         // 10. Notes
         SchoolNotesSection(
           title: "Notes",
-          notes: school.notes ?? "",
+          notes: $viewModel.editedNotes,
           isPrivate: false,
-          isEditing: viewModel.isEditingNotes,
-          editedNotes: $viewModel.editedNotes,
-          onEdit: { viewModel.startEditingNotes() },
-          onSave: { await viewModel.saveNotes() },
-          onCancel: { viewModel.cancelEditingNotes() },
-          isSaving: viewModel.isSavingNotes,
-          canSave: viewModel.canSaveNotes
+          onBlur: { await viewModel.saveNotes() }
         )
         .padding(.horizontal)
 
         // 11. Private notes
         SchoolNotesSection(
           title: "Private Notes",
-          notes: viewModel.privateNoteForCurrentUser,
+          notes: $viewModel.editedPrivateNotes,
           isPrivate: true,
-          isEditing: viewModel.isEditingPrivateNotes,
-          editedNotes: $viewModel.editedPrivateNotes,
-          onEdit: { viewModel.startEditingPrivateNotes() },
-          onSave: { await viewModel.savePrivateNotes() },
-          onCancel: { viewModel.cancelEditingPrivateNotes() },
-          isSaving: viewModel.isSavingPrivateNotes
+          onBlur: { await viewModel.savePrivateNotes() }
         )
         .padding(.horizontal)
 

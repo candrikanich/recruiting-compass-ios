@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import OSLog
+import SwiftUI
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "DashboardCustomizationViewModel")
 
@@ -9,15 +10,20 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 final class DashboardCustomizationViewModel {
   var visibility: DashboardWidgetVisibility = .default
   var isLoading = false
-  var isSaving = false
   var errorMessage: String?
-  var successMessage: String?
-  var hasUnsavedChanges = false
+  var saveStatus: SaveStatus = .idle
 
   private let preferenceService: any PreferenceManaging
+  @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
+  @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
   init(preferenceService: any PreferenceManaging) {
     self.preferenceService = preferenceService
+  }
+
+  nonisolated deinit {
+    pendingAutoSave?.cancel()
+    pendingStatusReset?.cancel()
   }
 
   // MARK: - Load/Save
@@ -45,32 +51,41 @@ final class DashboardCustomizationViewModel {
 
   func saveVisibility() async {
     logger.debug("Saving dashboard visibility")
-    isSaving = true
+    saveStatus = .saving
     errorMessage = nil
-    successMessage = nil
 
     do {
       _ = try await preferenceService.savePreferences(category: .dashboard, data: visibility)
-      hasUnsavedChanges = false
-      successMessage = "Dashboard settings saved successfully"
+      saveStatus = .saved
+      UIImpactFeedbackGenerator(style: .light).impactOccurred()
       logger.info("Dashboard visibility saved")
-
-      // Clear success message after 3 seconds
-      Task {
+      pendingStatusReset?.cancel()
+      pendingStatusReset = Task {
         try? await Task.sleep(for: .seconds(3))
-        await MainActor.run {
-          if successMessage == "Dashboard settings saved successfully" {
-            successMessage = nil
-          }
-        }
+        guard !Task.isCancelled else { return }
+        if self.saveStatus == .saved { self.saveStatus = .idle }
       }
-
-      isSaving = false
     } catch {
       logger.error("Failed to save visibility: \(error.localizedDescription)")
       errorMessage = "Failed to save settings. Please try again."
-      isSaving = false
+      saveStatus = .idle
     }
+  }
+
+  // MARK: - Auto-Save
+
+  func scheduleAutoSave() {
+    pendingAutoSave?.cancel()
+    saveStatus = .saving
+    pendingAutoSave = Task {
+      try? await Task.sleep(for: .milliseconds(1000))
+      guard !Task.isCancelled else { return }
+      Task { await self.saveVisibility() }
+    }
+  }
+
+  func markChanged() {
+    scheduleAutoSave()
   }
 
   // MARK: - Stats Cards Toggles
@@ -117,15 +132,10 @@ final class DashboardCustomizationViewModel {
   func resetToDefaults() async {
     logger.debug("Resetting dashboard visibility to defaults")
     visibility = .default
-    hasUnsavedChanges = true
     await saveVisibility()
   }
 
-  // MARK: - Helpers
-
-  func markChanged() {
-    hasUnsavedChanges = true
-  }
+  // MARK: - Computed
 
   var allStatsCardsEnabled: Bool {
     visibility.statsCards.coaches &&
@@ -157,6 +167,4 @@ final class DashboardCustomizationViewModel {
     visibility.widgets.coachResponsiveness &&
     visibility.widgets.upcomingDeadlines
   }
-
-  nonisolated deinit {}
 }

@@ -93,15 +93,12 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
   func testSaveVisibility_SavesSuccessfully() async {
     // Given
     mockService.savePreferencesResult = .success(viewModel.visibility)
-    viewModel.hasUnsavedChanges = true
 
     // When
     await viewModel.saveVisibility()
 
     // Then
-    XCTAssertFalse(viewModel.hasUnsavedChanges)
-    XCTAssertEqual(viewModel.successMessage, "Dashboard settings saved successfully")
-    XCTAssertFalse(viewModel.isSaving)
+    XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
   func testSaveVisibility_WhenErrorOccurs_SetsErrorMessage() async {
@@ -113,7 +110,7 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
 
     // Then
     XCTAssertNotNil(viewModel.errorMessage)
-    XCTAssertFalse(viewModel.isSaving)
+    XCTAssertEqual(viewModel.saveStatus, .idle)
   }
 
   // MARK: - Toggle All Tests
@@ -143,7 +140,7 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
     XCTAssertTrue(viewModel.visibility.statsCards.performance)
     XCTAssertTrue(viewModel.visibility.statsCards.notifications)
     XCTAssertTrue(viewModel.visibility.statsCards.socialMedia)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   func testToggleAllStatsCards_DisablesAllCards() {
@@ -196,7 +193,7 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
     XCTAssertTrue(viewModel.visibility.widgets.recruitingCalendar)
     XCTAssertTrue(viewModel.visibility.widgets.quickTasks)
     XCTAssertTrue(viewModel.visibility.widgets.atAGlanceSummary)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   func testToggleAllWidgets_DisablesAllWidgets() {
@@ -275,7 +272,7 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
 
     // Then
     XCTAssertFalse(viewModel.visibility.statsCards.coaches)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
   func testToggleIndividualWidget_MarksChanged() {
@@ -285,6 +282,6 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
 
     // Then
     XCTAssertFalse(viewModel.visibility.widgets.recentNotifications)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 }
