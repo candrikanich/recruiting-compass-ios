@@ -33,6 +33,7 @@ final class PlayerDetailsViewModel {
     private let preferenceService: any PreferenceManaging
     private let userRole: UserRole
     @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
+    @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
     init(preferenceService: any PreferenceManaging, userRole: UserRole) {
         self.preferenceService = preferenceService
@@ -42,6 +43,7 @@ final class PlayerDetailsViewModel {
 
     nonisolated deinit {
         pendingAutoSave?.cancel()
+        pendingStatusReset?.cancel()
     }
 
     // MARK: - Completeness
@@ -125,11 +127,11 @@ final class PlayerDetailsViewModel {
             saveStatus = .saved
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             logger.info("Player details saved")
-            Task {
+            pendingStatusReset?.cancel()
+            pendingStatusReset = Task {
                 try? await Task.sleep(for: .seconds(3))
-                await MainActor.run {
-                    if self.saveStatus == .saved { self.saveStatus = .idle }
-                }
+                guard !Task.isCancelled else { return }
+                if self.saveStatus == .saved { self.saveStatus = .idle }
             }
         } catch {
             logger.error("Failed to save details: \(error.localizedDescription)")
