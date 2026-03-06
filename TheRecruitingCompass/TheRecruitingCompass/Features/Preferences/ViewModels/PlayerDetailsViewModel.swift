@@ -85,7 +85,9 @@ final class PlayerDetailsViewModel {
         pendingAutoSave = Task {
             try? await Task.sleep(for: .milliseconds(1000))
             guard !Task.isCancelled else { return }
-            await saveDetails()
+            // Unstructured task so cancelling pendingAutoSave (next keystroke)
+            // only ever kills the debounce delay, never an in-flight save.
+            Task { await self.saveDetails() }
         }
     }
 
