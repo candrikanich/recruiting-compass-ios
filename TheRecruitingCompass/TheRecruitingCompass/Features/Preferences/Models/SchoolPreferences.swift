@@ -1,6 +1,6 @@
 import Foundation
 
-struct SchoolPreferences: Codable, Equatable {
+struct SchoolPreferences: Codable, Equatable, Sendable {
   var preferences: [SchoolPreference]
   var templateUsed: String?
   var lastUpdated: String?
@@ -20,7 +20,7 @@ struct SchoolPreferences: Codable, Equatable {
   }
 }
 
-struct SchoolPreference: Codable, Equatable, Identifiable {
+struct SchoolPreference: Codable, Equatable, Identifiable, Sendable {
   let id: String
   var category: PreferencePreferenceCategory
   var type: String
@@ -38,7 +38,7 @@ struct SchoolPreference: Codable, Equatable, Identifiable {
   }
 }
 
-enum PreferencePreferenceCategory: String, Codable {
+enum PreferencePreferenceCategory: String, Codable, Sendable {
   case location
   case academic
   case program
@@ -46,7 +46,7 @@ enum PreferencePreferenceCategory: String, Codable {
 }
 
 /// Type-safe wrapper for heterogeneous JSON values in school preferences
-enum AnyCodableValue: Codable, Equatable {
+enum AnyCodableValue: Codable, Equatable, Sendable {
   case string(String)
   case int(Int)
   case bool(Bool)

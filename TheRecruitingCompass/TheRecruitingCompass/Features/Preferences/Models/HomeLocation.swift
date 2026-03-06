@@ -1,6 +1,6 @@
 import Foundation
 
-struct HomeLocation: Codable, Equatable {
+struct HomeLocation: Codable, Equatable, Sendable {
   var address: String?
   var city: String?
   var state: String?
