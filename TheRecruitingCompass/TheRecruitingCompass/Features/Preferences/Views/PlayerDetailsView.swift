@@ -10,32 +10,27 @@ struct PlayerDetailsView: View {
         ))
     }
 
+    private static let tabTitles = ["Basics", "Athletics", "Academics", "History"]
+
     var body: some View {
         VStack(spacing: 0) {
             PlayerCompletenessCard(score: viewModel.completenessScore)
                 .padding(.horizontal)
                 .padding(.top, 8)
 
-            TabView(selection: $viewModel.selectedTab) {
-                BasicsTab(viewModel: viewModel)
-                    .tabItem { Label("Basics", systemImage: "person.crop.square") }
-                    .tag(0)
-
-                AthleticsTab(viewModel: viewModel)
-                    .tabItem { Label("Athletics", systemImage: "bolt.fill") }
-                    .tag(1)
-
-                AcademicsSocialTab(viewModel: viewModel)
-                    .tabItem { Label("Academics", systemImage: "graduationcap.fill") }
-                    .tag(2)
-
-                HistoryTab(viewModel: viewModel)
-                    .tabItem { Label("History", systemImage: "clock.fill") }
-                    .tag(3)
+            Picker("Section", selection: $viewModel.selectedTab) {
+                ForEach(Array(Self.tabTitles.enumerated()), id: \.offset) { index, title in
+                    Text(title).tag(index)
+                }
             }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.vertical, 8)
             .onChange(of: viewModel.selectedTab) { _, _ in
                 viewModel.triggerFitScoreRecalculation()
             }
+
+            tabContent
         }
         .background(Color(.secondarySystemBackground))
         .navigationTitle("Player Profile")
@@ -65,6 +60,16 @@ struct PlayerDetailsView: View {
         }
         .onDisappear {
             viewModel.triggerFitScoreRecalculation()
+        }
+    }
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch viewModel.selectedTab {
+        case 1:  AthleticsTab(viewModel: viewModel)
+        case 2:  AcademicsSocialTab(viewModel: viewModel)
+        case 3:  HistoryTab(viewModel: viewModel)
+        default: BasicsTab(viewModel: viewModel)
         }
     }
 }
