@@ -188,6 +188,11 @@ struct SettingsView: View {
         await familyManager.loadFamilyData()
         await viewModel.loadCompletionStatus()
       }
+      .onAppear {
+        Task {
+          await viewModel.loadCompletionStatus()
+        }
+      }
       .sheet(item: $presentedLegal) { doc in
         doc.view
       }
