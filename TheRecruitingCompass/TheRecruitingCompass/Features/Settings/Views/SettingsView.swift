@@ -194,6 +194,7 @@ private struct SettingsRow: View {
   let title: String
   let description: String
   let color: Color
+  var badgeStatus: SettingsBadgeStatus? = nil
 
   var body: some View {
     HStack(spacing: 12) {
@@ -206,10 +207,22 @@ private struct SettingsRow: View {
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
-        Text(title)
-          .font(.body)
-          .fontWeight(.medium)
-          .foregroundColor(.primary)
+        HStack(spacing: 6) {
+          Text(title)
+            .font(.body)
+            .fontWeight(.medium)
+            .foregroundColor(.primary)
+
+          if let status = badgeStatus {
+            Text(status.label)
+              .font(.caption2.weight(.medium))
+              .foregroundColor(status.foregroundColor)
+              .padding(.horizontal, 6)
+              .padding(.vertical, 2)
+              .background(status.backgroundColor)
+              .clipShape(Capsule())
+          }
+        }
 
         Text(description)
           .font(.caption)
@@ -219,7 +232,7 @@ private struct SettingsRow: View {
     }
     .padding(.vertical, 4)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(title): \(description)")
+    .accessibilityLabel(badgeStatus.map { "\(title): \($0.label). \(description)" } ?? "\(title): \(description)")
   }
 }
 
