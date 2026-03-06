@@ -98,6 +98,10 @@ final class AppErrorTests: XCTestCase {
         XCTAssertEqual(AppError.unknown.config.headline, "Something went sideways.")
     }
 
+    func testSessionExpiredConfigHeadline() {
+        XCTAssertEqual(AppError.sessionExpired.config.headline, "You've been away for a while.")
+    }
+
     func test403HasNoSecondaryButton() {
         XCTAssertNil(AppError.forbidden.config.secondaryButtonLabel)
     }
