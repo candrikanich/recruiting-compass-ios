@@ -229,13 +229,13 @@ final class AddInteractionViewModel {
       var finalContent = formState.content
       if formState.showsInterestCalibration && formState.interestLevel != .notSet {
         let calibrationNote = "\n\n[Coach Interest Level: \(formState.interestLevel.rawValue.uppercased())]"
-        finalContent = finalContent + calibrationNote
+        finalContent += calibrationNote
       }
 
       // Append other coach name if used
       if formState.coachId == nil && !otherCoachName.isEmpty {
         let otherCoachNote = "\n\n[Coach: \(otherCoachName)]"
-        finalContent = finalContent + otherCoachNote
+        finalContent += otherCoachNote
       }
 
       // Create request

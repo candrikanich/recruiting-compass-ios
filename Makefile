@@ -5,7 +5,7 @@ PROJECT_DIR := TheRecruitingCompass
 SCHEME := TheRecruitingCompass
 DESTINATION ?= platform=iOS Simulator,name=iPhone 17
 
-.PHONY: build test test-unit test-unit-fast clean
+.PHONY: build test test-unit test-unit-fast clean setup-hooks lint
 
 build:
 	cd $(PROJECT_DIR) && xcodebuild build \
@@ -45,6 +45,15 @@ clean:
 	cd $(PROJECT_DIR) && xcodebuild clean \
 		-scheme $(SCHEME) \
 		-quiet
+
+# Install pre-commit hook (one-time setup per clone)
+setup-hooks:
+	git config core.hooksPath .githooks
+	@echo "Pre-commit hook installed."
+
+# Run SwiftLint across the whole codebase
+lint:
+	swiftlint lint --config .swiftlint.yml --quiet
 
 # Override DESTINATION if needed (e.g. simulator resource limits):
 #   make test-unit DESTINATION='platform=iOS Simulator,name=iPhone 16e'

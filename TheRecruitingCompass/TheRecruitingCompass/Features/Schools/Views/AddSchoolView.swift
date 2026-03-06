@@ -138,7 +138,7 @@ struct AddSchoolView: View {
               }
 
             // Show character count hint if user has started typing but hasn't reached minimum
-            if viewModel.searchQuery.count > 0 && viewModel.searchQuery.count < 3 {
+            if !viewModel.searchQuery.isEmpty && viewModel.searchQuery.count < 3 {
               Text("\(3 - viewModel.searchQuery.count) more character\(viewModel.searchQuery.count == 2 ? "" : "s") needed")
                 .font(.caption)
                 .foregroundStyle(.secondary)
