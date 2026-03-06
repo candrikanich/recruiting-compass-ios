@@ -77,7 +77,7 @@ struct PlayerDetailsView: View {
         Picker("Graduation Year", selection: $viewModel.details.graduationYear) {
           Text("Select").tag(nil as Int?)
           ForEach(GradeLevelHelper.allowedGraduationYears, id: \.self) { year in
-            Text("\(year)").tag(year as Int?)
+            Text(String(year)).tag(year as Int?)
           }
         }
         .disabled(viewModel.isReadOnly)
