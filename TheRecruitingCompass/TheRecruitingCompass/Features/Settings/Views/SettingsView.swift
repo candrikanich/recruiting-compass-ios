@@ -5,11 +5,13 @@ struct SettingsView: View {
   @Environment(FamilyManager.self) private var familyManager
   @State private var presentedLegal: LegalDocument?
   @State private var showCodeCopied = false
+  @State private var viewModel: SettingsViewModel
 
   private let preferenceService: PreferenceManaging
 
   init(preferenceService: PreferenceManaging = PreferenceServiceImpl(supabaseManager: .shared)) {
     self.preferenceService = preferenceService
+    _viewModel = State(initialValue: SettingsViewModel(preferenceService: preferenceService))
   }
 
   var body: some View {
@@ -68,7 +70,8 @@ struct SettingsView: View {
               icon: "house.fill",
               title: "Home Location",
               description: "Set your home address to calculate distances to schools",
-              color: .blue
+              color: .blue,
+              badgeStatus: viewModel.homeLocationStatus
             )
           }
 
@@ -82,7 +85,8 @@ struct SettingsView: View {
               icon: "person.fill",
               title: "Player Details",
               description: "Graduation year, positions, stats, and athletic profile",
-              color: .green
+              color: .green,
+              badgeStatus: viewModel.playerDetailsStatus
             )
           }
         } header: {
@@ -98,7 +102,8 @@ struct SettingsView: View {
               icon: "target",
               title: "School Preferences",
               description: "Set criteria for finding your ideal schools",
-              color: .purple
+              color: .purple,
+              badgeStatus: viewModel.schoolPreferencesStatus
             )
           }
         } header: {
@@ -181,6 +186,7 @@ struct SettingsView: View {
       .navigationBarTitleDisplayMode(.inline)
       .task {
         await familyManager.loadFamilyData()
+        await viewModel.loadCompletionStatus()
       }
       .sheet(item: $presentedLegal) { doc in
         doc.view
