@@ -66,14 +66,12 @@ final class PlayerDetailsViewModelTests: XCTestCase {
     // Given
     viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
     mockService.savePreferencesResult = .success(viewModel.details)
-    viewModel.hasUnsavedChanges = true
 
     // When
     await viewModel.saveDetails()
 
     // Then
-    XCTAssertFalse(viewModel.hasUnsavedChanges)
-    XCTAssertEqual(viewModel.successMessage, "Player details saved successfully")
+    XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
   // MARK: - Role-Based Access Tests
@@ -97,7 +95,6 @@ final class PlayerDetailsViewModelTests: XCTestCase {
   func testSaveDetails_WhenParentRole_DoesNotSave() async {
     // Given
     viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .parent)
-    viewModel.hasUnsavedChanges = true
 
     // When
     await viewModel.saveDetails()
@@ -293,5 +290,79 @@ final class PlayerDetailsViewModelTests: XCTestCase {
     // Then
     XCTAssertFalse(viewModel.hasUnsavedChanges)
     XCTAssertEqual(mockService.savePreferencesCalls.count, 1)
+  }
+
+  // MARK: - SaveStatus Tests
+
+  func testSaveStatus_DefaultIsIdle() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    XCTAssertEqual(viewModel.saveStatus, .idle)
+  }
+
+  func testSaveStatus_AfterSuccessfulSave_IsSaved() async {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    mockService.savePreferencesResult = .success(viewModel.details)
+    await viewModel.saveDetails()
+    XCTAssertEqual(viewModel.saveStatus, .saved)
+  }
+
+  func testCompletenessScore_EmptyDetails_IsZero() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    XCTAssertEqual(viewModel.completenessScore, 0.0)
+  }
+
+  func testCompletenessScore_WithManyFieldsFilled_IsHigh() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.graduationYear = 2026
+    viewModel.details.highSchool = "Test High"
+    viewModel.details.primarySport = "Soccer"
+    viewModel.details.schoolName = "Test School"
+    viewModel.details.schoolCity = "Austin"
+    viewModel.details.schoolState = "TX"
+    viewModel.details.heightInches = 72
+    viewModel.details.weightLbs = 180
+    viewModel.details.gpa = 3.8
+    viewModel.details.satScore = 1350
+    viewModel.details.actScore = 30
+    viewModel.details.twitterHandle = "@test"
+    XCTAssertGreaterThan(viewModel.completenessScore, 0.8)
+  }
+
+  func testNormalizePositions_TitleCasesAll() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.positions = ["pitcher", "FIRST BASE", "outfielder"]
+    viewModel.normalizePositions()
+    XCTAssertEqual(viewModel.details.positions, ["Pitcher", "First Base", "Outfielder"])
+  }
+
+  func testNormalizePositions_NilPositions_StaysNil() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.positions = nil
+    viewModel.normalizePositions()
+    XCTAssertNil(viewModel.details.positions)
+  }
+
+  func testIsBaseballOrSoftball_WhenBaseball_ReturnsTrue() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.primarySport = "Baseball"
+    XCTAssertTrue(viewModel.isBaseballOrSoftball)
+  }
+
+  func testIsBaseballOrSoftball_WhenSoftball_ReturnsTrue() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.primarySport = "Softball"
+    XCTAssertTrue(viewModel.isBaseballOrSoftball)
+  }
+
+  func testIsBaseballOrSoftball_WhenSoccer_ReturnsFalse() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.primarySport = "Soccer"
+    XCTAssertFalse(viewModel.isBaseballOrSoftball)
+  }
+
+  func testIsBaseballOrSoftball_WhenNil_ReturnsFalse() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.primarySport = nil
+    XCTAssertFalse(viewModel.isBaseballOrSoftball)
   }
 }

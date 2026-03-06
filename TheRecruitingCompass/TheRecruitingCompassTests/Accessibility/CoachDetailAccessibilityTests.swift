@@ -232,10 +232,10 @@ final class CoachDetailAccessibilityTests: XCTestCase {
     XCTAssertTrue(labels.contains(where: { $0.contains("Loading coach details") }))
   }
 
-  // MARK: - ErrorStateView Accessibility Tests
+  // MARK: - InlineErrorView Accessibility Tests
 
-  func testErrorStateView_HasAccessibleLabel() throws {
-    let errorView = ErrorStateView(message: "Failed to load coach")
+  func testInlineErrorView_HasAccessibleLabel() throws {
+    let errorView = InlineErrorView(message: "Failed to load coach")
 
     let hostingController = UIHostingController(rootView: errorView)
     let view = hostingController.view!

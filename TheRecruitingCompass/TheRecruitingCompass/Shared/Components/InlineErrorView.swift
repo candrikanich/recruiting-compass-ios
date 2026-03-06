@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// A reusable error state component with an icon and message.
-/// Optionally show a Retry button that invokes `onRetry` when provided.
-struct ErrorStateView: View {
+struct InlineErrorView: View {
   let message: String
   let icon: String
   let onRetry: (() -> Void)?
@@ -47,8 +45,8 @@ struct ErrorStateView: View {
 
 #Preview {
   VStack(spacing: 40) {
-    ErrorStateView(message: "Unable to load coach details")
-    ErrorStateView(message: "Network connection failed", icon: "wifi.slash")
-    ErrorStateView(message: "Something went wrong")
+    InlineErrorView(message: "Unable to load coach details")
+    InlineErrorView(message: "Network connection failed", icon: "wifi.slash")
+    InlineErrorView(message: "Something went wrong")
   }
 }
