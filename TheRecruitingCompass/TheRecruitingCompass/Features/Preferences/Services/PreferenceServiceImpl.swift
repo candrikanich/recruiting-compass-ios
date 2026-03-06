@@ -152,8 +152,9 @@ final class PreferenceServiceImpl: PreferenceManaging, Sendable {
         return nil
       }
 
-      // Convert JSONValue to target type (MainActor hop for types with MainActor-isolated Decodable)
-      let jsonData = try JSONSerialization.data(withJSONObject: response.data.anyValue)
+      // Re-encode JSONValue → Data directly, bypassing the fragile anyValue → JSONSerialization path.
+      // JSONValue.encode(to:) is a clean lossless round-trip that avoids NSNumber bridging issues.
+      let jsonData = try JSONEncoder().encode(response.data)
       let decoded: T = try await MainActor.run { try JSONDecoder().decode(T.self, from: jsonData) }
 
       logger.info("Successfully fetched preferences for category: \(category.rawValue)")
