@@ -3,7 +3,9 @@ import SwiftUI
 struct DashboardView: View {
   @State private var viewModel = DashboardViewModel()
   @State private var showParentWizard = false
+  @State private var showAddSchool = false
   @Environment(FamilyManager.self) private var familyManager
+  @Environment(AuthManager.self) private var authManager
 
   init(viewModel: DashboardViewModel? = nil) {
     if let viewModel = viewModel {
@@ -41,7 +43,7 @@ struct DashboardView: View {
             if viewModel.isLoading && viewModel.stats == nil {
               loadingSection
             } else if viewModel.isEmpty {
-              EmptyDashboardState()
+              EmptyDashboardState(onAddSchool: { showAddSchool = true })
             } else if let stats = viewModel.stats {
               DashboardStatsCardsSection(stats: stats)
             }
@@ -98,6 +100,14 @@ struct DashboardView: View {
           }
         )
       }
+      .sheet(isPresented: $showAddSchool, onDismiss: {
+        Task { await viewModel.fetchDashboardData() }
+      }) {
+        DashboardAddSchoolSheet(
+          familyUnitId: familyManager.currentMember?.familyUnitId ?? "",
+          userId: authManager.user?.id ?? ""
+        )
+      }
       .task {
         await viewModel.fetchDashboardData()
       }
@@ -111,7 +121,7 @@ struct DashboardView: View {
           .fontWeight(.bold)
           .accessibilityAddTraits(.isHeader)
       } else {
-        Text("Welcome back, \(viewModel.userFirstName)!")
+        Text(viewModel.isEmpty ? "Welcome, \(viewModel.userFirstName)!" : "Welcome back, \(viewModel.userFirstName)!")
           .font(.title2)
           .fontWeight(.bold)
           .accessibilityAddTraits(.isHeader)
@@ -172,7 +182,33 @@ struct DashboardView: View {
 
 }
 
+// MARK: - Add School Sheet
+
+private struct DashboardAddSchoolSheet: View {
+  let familyUnitId: String
+  let userId: String
+
+  @State private var navigationPath = NavigationPath()
+
+  var body: some View {
+    NavigationStack(path: $navigationPath) {
+      AddSchoolView(
+        schoolsService: SchoolsServiceImpl(supabaseManager: .shared),
+        familyUnitId: familyUnitId,
+        userId: userId,
+        navigationPath: $navigationPath
+      )
+      .navigationDestination(for: SchoolDestination.self) { destination in
+        if case .detail(let schoolId) = destination {
+          SchoolDetailView(schoolId: schoolId)
+        }
+      }
+    }
+  }
+}
+
 #Preview {
   DashboardView()
     .environment(AuthManager.shared)
+    .environment(FamilyManager.shared)
 }
