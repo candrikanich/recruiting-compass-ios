@@ -5,7 +5,7 @@ struct EventsListView: View {
 
   @Environment(AuthManager.self) private var authManager
   @State private var viewModel = EventsListViewModel()
-  @State private var eventToDelete: FullEvent? = nil
+  @State private var eventToDelete: FullEvent?
   @State private var showCreateEvent = false
 
   var body: some View {
