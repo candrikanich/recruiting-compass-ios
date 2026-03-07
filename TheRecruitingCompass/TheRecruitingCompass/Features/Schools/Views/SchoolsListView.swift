@@ -12,7 +12,11 @@ struct SchoolsListView: View {
       if viewModel.isLoading && viewModel.allSchools.isEmpty {
         LoadingStateView(message: "Loading schools...")
       } else if viewModel.allSchools.isEmpty {
-        SchoolEmptyState(isFiltered: false, onClearFilters: {})
+        SchoolEmptyState(
+          isFiltered: false,
+          onClearFilters: {},
+          onAddSchool: { navigationPath.append(SchoolDestination.add) }
+        )
       } else {
         schoolListContent
       }

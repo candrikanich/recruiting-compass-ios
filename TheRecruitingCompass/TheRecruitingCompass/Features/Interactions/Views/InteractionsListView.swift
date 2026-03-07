@@ -79,7 +79,11 @@ struct InteractionsListView: View {
       if viewModel.isLoading && viewModel.allInteractions.isEmpty {
         LoadingStateView(message: "Loading interactions...")
       } else if viewModel.allInteractions.isEmpty {
-        InteractionEmptyState(isFilteredEmpty: false, onClearFilters: nil)
+        InteractionEmptyState(
+          isFilteredEmpty: false,
+          onClearFilters: nil,
+          onAddInteraction: { navigationPath.append(InteractionDestination.add) }
+        )
       } else {
         interactionListContent
       }

@@ -8,7 +8,11 @@ struct OffersListView: View {
       if viewModel.isLoading && viewModel.allOffers.isEmpty {
         LoadingStateView(message: "Loading offers...")
       } else if viewModel.allOffers.isEmpty {
-        OfferEmptyState(isFilteredEmpty: false, onClearFilters: nil)
+        OfferEmptyState(
+          isFilteredEmpty: false,
+          onClearFilters: nil,
+          onAddOffer: { withAnimation { viewModel.showAddForm = true } }
+        )
       } else {
         offersListContent
       }

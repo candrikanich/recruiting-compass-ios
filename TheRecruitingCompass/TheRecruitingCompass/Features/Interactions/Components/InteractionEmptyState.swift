@@ -3,6 +3,7 @@ import SwiftUI
 struct InteractionEmptyState: View {
   let isFilteredEmpty: Bool
   let onClearFilters: (() -> Void)?
+  var onAddInteraction: (() -> Void)? = nil
 
   @Environment(\.sizeCategory) private var sizeCategory
 
@@ -43,6 +44,16 @@ struct InteractionEmptyState: View {
             .cornerRadius(8)
         }
         .accessibilityLabel("Clear all filters")
+      } else if !isFilteredEmpty, let onAddInteraction {
+        Button(action: onAddInteraction) {
+          Text("Log Your First Interaction")
+            .fontWeight(.semibold)
+            .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.borderedProminent)
+        .padding(.horizontal)
+        .accessibilityLabel("Log your first interaction")
+        .accessibilityHint("Opens the form to log an interaction")
       }
     }
     .padding(40)

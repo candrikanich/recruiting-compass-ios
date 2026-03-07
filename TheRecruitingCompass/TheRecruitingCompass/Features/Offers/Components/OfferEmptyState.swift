@@ -3,6 +3,7 @@ import SwiftUI
 struct OfferEmptyState: View {
   let isFilteredEmpty: Bool
   let onClearFilters: (() -> Void)?
+  var onAddOffer: (() -> Void)? = nil
 
   var body: some View {
     VStack(spacing: 20) {
@@ -39,6 +40,16 @@ struct OfferEmptyState: View {
         }
         .accessibilityLabel("Clear all filters")
         .accessibilityHint("Double tap to remove all active filters")
+      } else if !isFilteredEmpty, let onAddOffer {
+        Button(action: onAddOffer) {
+          Text("Log Your First Offer")
+            .fontWeight(.semibold)
+            .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.borderedProminent)
+        .padding(.horizontal)
+        .accessibilityLabel("Log your first offer")
+        .accessibilityHint("Opens the form to log an offer")
       }
     }
     .padding(40)

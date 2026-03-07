@@ -87,7 +87,11 @@ struct CoachesListView: View {
       if viewModel.isLoading && viewModel.allCoaches.isEmpty {
         LoadingStateView(message: "Loading coaches...")
       } else if viewModel.allCoaches.isEmpty {
-        CoachEmptyState(isFilteredEmpty: false, onClearFilters: nil)
+        CoachEmptyState(
+          isFilteredEmpty: false,
+          onClearFilters: nil,
+          onAddCoach: { navigationPath.append(CoachDestination.add) }
+        )
       } else {
         coachListContent
       }

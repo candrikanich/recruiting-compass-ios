@@ -3,6 +3,7 @@ import SwiftUI
 struct SchoolEmptyState: View {
   let isFiltered: Bool
   let onClearFilters: () -> Void
+  var onAddSchool: (() -> Void)? = nil
 
   @Environment(\.sizeCategory) private var sizeCategory
 
@@ -39,6 +40,16 @@ struct SchoolEmptyState: View {
         }
         .accessibilityLabel("Clear all filters")
         .accessibilityHint("Double tap to remove all active filters")
+      } else if let onAddSchool {
+        Button(action: onAddSchool) {
+          Text("Add Your First School")
+            .fontWeight(.semibold)
+            .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.borderedProminent)
+        .padding(.horizontal)
+        .accessibilityLabel("Add your first school")
+        .accessibilityHint("Opens the form to add a school")
       }
     }
     .padding(40)

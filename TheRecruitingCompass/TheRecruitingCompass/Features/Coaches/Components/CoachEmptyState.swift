@@ -3,6 +3,7 @@ import SwiftUI
 struct CoachEmptyState: View {
   let isFilteredEmpty: Bool
   let onClearFilters: (() -> Void)?
+  var onAddCoach: (() -> Void)? = nil
 
   @Environment(\.sizeCategory) private var sizeCategory
 
@@ -42,6 +43,16 @@ struct CoachEmptyState: View {
         .clipShape(Capsule())
         .accessibilityLabel("Clear filters")
         .accessibilityHint("Removes all active filters and search text")
+      } else if !isFilteredEmpty, let onAddCoach {
+        Button(action: onAddCoach) {
+          Text("Add Your First Coach")
+            .fontWeight(.semibold)
+            .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.borderedProminent)
+        .padding(.horizontal)
+        .accessibilityLabel("Add your first coach")
+        .accessibilityHint("Opens the form to add a coach")
       }
     }
     .padding(32)
