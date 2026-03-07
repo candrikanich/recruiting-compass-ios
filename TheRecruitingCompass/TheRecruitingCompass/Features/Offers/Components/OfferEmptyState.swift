@@ -3,7 +3,7 @@ import SwiftUI
 struct OfferEmptyState: View {
   let isFilteredEmpty: Bool
   let onClearFilters: (() -> Void)?
-  var onAddOffer: (() -> Void)? = nil
+  var onAddOffer: (() -> Void)?
 
   var body: some View {
     VStack(spacing: 20) {

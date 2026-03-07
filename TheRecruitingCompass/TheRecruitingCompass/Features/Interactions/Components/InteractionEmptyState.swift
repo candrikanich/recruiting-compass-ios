@@ -3,7 +3,7 @@ import SwiftUI
 struct InteractionEmptyState: View {
   let isFilteredEmpty: Bool
   let onClearFilters: (() -> Void)?
-  var onAddInteraction: (() -> Void)? = nil
+  var onAddInteraction: (() -> Void)?
 
   @Environment(\.sizeCategory) private var sizeCategory
 

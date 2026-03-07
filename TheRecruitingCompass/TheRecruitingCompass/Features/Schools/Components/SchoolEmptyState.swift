@@ -3,7 +3,7 @@ import SwiftUI
 struct SchoolEmptyState: View {
   let isFiltered: Bool
   let onClearFilters: () -> Void
-  var onAddSchool: (() -> Void)? = nil
+  var onAddSchool: (() -> Void)?
 
   @Environment(\.sizeCategory) private var sizeCategory
 
