@@ -42,6 +42,17 @@ jobs:
           echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
           xcrun simctl boot "$UDID" || true
 
+      - name: Create Release.xcconfig
+        run: |
+          # xcconfig treats // as a comment; URLs must use the _SLASH variable trick.
+          # Unit tests use mocks so placeholder credentials are sufficient for CI builds.
+          cat > TheRecruitingCompass/Release.xcconfig << 'XCCONFIG'
+          _SLASH = /
+          SUPABASE_URL = https:$(_SLASH)$(_SLASH)ci-placeholder.supabase.co
+          SUPABASE_ANON_KEY = ci_placeholder_key
+          API_BASE_URL = https:$(_SLASH)$(_SLASH)myrecruitingcompass.com
+          XCCONFIG
+
       - name: Cache DerivedData
         uses: actions/cache@v4
         with:
