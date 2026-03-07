@@ -144,9 +144,10 @@ actor NcaaDatabase: NcaaDatabaseManaging {
     }
 
     // Priority 2: Partial match (>8 chars)
+    // Use Self.normalize (nonisolated static) inside closures to avoid actor isolation ambiguity
     if normalizedName.count > 8 {
       if let school = schools.first(where: {
-        let schoolNormalized = normalizeSchoolName($0.name)
+        let schoolNormalized = Self.normalize($0.name)
         return schoolNormalized.contains(normalizedName) || normalizedName.contains(schoolNormalized)
       }) {
         logger.debug("NCAA partial match: \(school.name) (\(division.rawValue))")
@@ -156,7 +157,7 @@ actor NcaaDatabase: NcaaDatabaseManaging {
 
     // Priority 3: Fuzzy match (Levenshtein distance <= 2)
     if let school = schools.first(where: {
-      let schoolNormalized = normalizeSchoolName($0.name)
+      let schoolNormalized = Self.normalize($0.name)
       return normalizedName.levenshteinDistance(to: schoolNormalized) <= 2
     }) {
       logger.debug("NCAA fuzzy match: \(school.name) (\(division.rawValue))")

@@ -142,6 +142,23 @@ final class NcaaDatabaseTests: XCTestCase {
     XCTAssertEqual(result?.conference, "Centennial")
   }
 
+  func testLookup_partialMatch_scorecardAtCitySuffix_returnsResult() async {
+    // College Scorecard appends " at [city]" for multi-campus schools (e.g. "Kent State University at Kent").
+    // The NCAA database has "Kent State University" (no suffix).
+    // Partial match: "kent state university at kent".contains("kent state university") → true.
+    let db = TestableNcaaDatabase(
+      d1Schools: [NcaaSchoolInfo(name: "Kent State University", conference: "Mid-American Conference", logo: nil)],
+      d2Schools: [],
+      d3Schools: []
+    )
+
+    let result = await db.lookup(schoolName: "Kent State University at Kent")
+
+    XCTAssertNotNil(result)
+    XCTAssertEqual(result?.division, .d1)
+    XCTAssertEqual(result?.conference, "Mid-American Conference")
+  }
+
   func testLookup_partialMatch_ignoresShortNames() async {
     // Given - short name (8 chars or less)
     let shortDb = TestableNcaaDatabase(
@@ -486,16 +503,44 @@ final class NcaaDatabaseTests: XCTestCase {
   // MARK: - Realistic NCAA Database Tests
 
   func testLookup_realData_stanfordUniversity() async {
-    // Using actual NCAA database
+    // Uses the real bundled NCAA database. Skipped when JSON files are not in the test bundle.
     let realDatabase = NcaaDatabase.shared
+    let probe = await realDatabase.lookup(schoolName: "Stanford University")
+    guard probe != nil else {
+      // JSON not available in this test bundle — skip rather than fail
+      return
+    }
 
-    // When
-    let result = await realDatabase.lookup(schoolName: "Stanford University")
+    XCTAssertEqual(probe?.division, .d1)
+  }
 
-    // Then - Stanford should be D1
-    // Note: This test depends on NCAA database JSON files being present
-    // We can't assert specific values without the files, but we can verify behavior
-    _ = result // Acknowledge result
+  func testLookup_realData_kentStateWithScorecardSuffix() async {
+    // College Scorecard returns "Kent State University at Kent" but NCAA DB has "Kent State University".
+    // The lookup must resolve this via partial match (primary) or the " at [city]" fallback.
+    // Skipped when JSON files are not in the test bundle.
+    let realDatabase = NcaaDatabase.shared
+    let probe = await realDatabase.lookup(schoolName: "Stanford University")
+    guard probe != nil else { return } // JSON unavailable in test bundle
+
+    let result = await realDatabase.lookup(schoolName: "Kent State University at Kent")
+
+    XCTAssertNotNil(result, "Kent State University at Kent must resolve to a D1 school")
+    XCTAssertEqual(result?.division, .d1)
+    XCTAssertEqual(result?.conference, "Mid-American Conference")
+  }
+
+  func testLookup_realData_atCitySuffixStillMatchesSchoolsWithAtInName() async {
+    // Schools like "University of Texas at Austin" have " at " as part of their official name.
+    // A query for the exact NCAA name must still match (primary lookup succeeds, no stripping needed).
+    // Skipped when JSON files are not in the test bundle.
+    let realDatabase = NcaaDatabase.shared
+    let probe = await realDatabase.lookup(schoolName: "Stanford University")
+    guard probe != nil else { return } // JSON unavailable in test bundle
+
+    let result = await realDatabase.lookup(schoolName: "University of Texas at Austin")
+
+    XCTAssertNotNil(result, "University of Texas at Austin must resolve")
+    XCTAssertEqual(result?.division, .d1)
   }
 }
 

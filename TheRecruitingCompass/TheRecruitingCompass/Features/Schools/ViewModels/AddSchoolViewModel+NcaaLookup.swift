@@ -37,8 +37,21 @@ extension AddSchoolViewModel {
 
     ncaaLogger.debug("Performing NCAA lookup for: \(schoolName)")
 
-    // Perform lookup (actor-isolated)
-    if let result = await ncaaDatabase.lookup(schoolName: schoolName) {
+    // Perform primary lookup
+    var result = await ncaaDatabase.lookup(schoolName: schoolName)
+
+    // Fallback: College Scorecard appends " at [city]" for some campuses
+    // (e.g. "Kent State University at Kent" vs NCAA "Kent State University").
+    // If primary fails and the name contains " at ", retry with the base name.
+    if result == nil, let atRange = schoolName.range(of: " at ") {
+      let baseName = String(schoolName[..<atRange.lowerBound])
+      if baseName.count > 8 {
+        ncaaLogger.debug("NCAA fallback lookup (stripped ' at [city]'): \(baseName)")
+        result = await ncaaDatabase.lookup(schoolName: baseName)
+      }
+    }
+
+    if let result {
       // Ignore stale results: user may have selected a different college while lookup was in flight
       guard formState.name == schoolName else {
         ncaaLogger.debug("Discarding NCAA result for \(schoolName) — user selected different college")
