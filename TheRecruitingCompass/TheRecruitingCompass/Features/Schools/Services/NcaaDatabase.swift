@@ -63,6 +63,7 @@ actor NcaaDatabase: NcaaDatabaseManaging {
 
     schoolIndex = index
 
+    // swiftlint:disable:next line_length
     logger.info("NCAA database loaded: D1=\(self.d1Schools.count), D2=\(self.d2Schools.count), D3=\(self.d3Schools.count), Indexed=\(self.schoolIndex.count)")
   }
 
@@ -188,10 +189,8 @@ actor NcaaDatabase: NcaaDatabaseManaging {
   nonisolated private static func removePrefixes(from text: String) -> String {
     let prefixes = ["university of ", "college of ", "the ", "university ", "college "]
 
-    for prefix in prefixes {
-      if text.hasPrefix(prefix) {
-        return String(text.dropFirst(prefix.count))
-      }
+    for prefix in prefixes where text.hasPrefix(prefix) {
+      return String(text.dropFirst(prefix.count))
     }
 
     return text
