@@ -269,12 +269,29 @@ final class SchoolFieldValidatorTests: XCTestCase {
     XCTAssertNil(result)
   }
 
-  func testValidateWebsite_whenNoProtocol_returnsError() {
+  func testValidateWebsite_whenNoProtocol_returnsNil() {
+    // Bare domains are accepted and normalized at display time
     // When
     let result = SchoolFieldValidator.validateWebsite("stanford.edu")
 
     // Then
-    XCTAssertEqual(result, "Please enter a valid URL (must start with http:// or https://)")
+    XCTAssertNil(result)
+  }
+
+  func testValidateWebsite_whenBaredomainWithPath_returnsNil() {
+    // When
+    let result = SchoolFieldValidator.validateWebsite("jcu.edu/")
+
+    // Then
+    XCTAssertNil(result)
+  }
+
+  func testValidateWebsite_whenBaredomainWithSubpath_returnsNil() {
+    // When
+    let result = SchoolFieldValidator.validateWebsite("jcu.edu/athletics/baseball")
+
+    // Then
+    XCTAssertNil(result)
   }
 
   func testValidateWebsite_whenInvalidProtocol_returnsError() {
@@ -282,7 +299,7 @@ final class SchoolFieldValidatorTests: XCTestCase {
     let result = SchoolFieldValidator.validateWebsite("ftp://stanford.edu")
 
     // Then
-    XCTAssertEqual(result, "Please enter a valid URL (must start with http:// or https://)")
+    XCTAssertEqual(result, "Please enter a valid website (e.g. jcu.edu or https://jcu.edu)")
   }
 
   func testValidateWebsite_when501Characters_returnsError() {

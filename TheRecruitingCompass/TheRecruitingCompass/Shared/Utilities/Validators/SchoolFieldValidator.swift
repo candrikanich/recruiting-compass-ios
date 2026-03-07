@@ -10,13 +10,6 @@ import Foundation
 
 enum SchoolFieldValidator {
 
-  // MARK: - Regex Patterns
-
-  // URL regex pattern (http/https)
-  private static let urlPattern = "^https?://[A-Za-z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]+$"
-
-  private static let urlRegex: NSRegularExpression = try! NSRegularExpression(pattern: urlPattern)
-
   // MARK: - Name Validation
 
   /// Validates school name (required, 2-255 characters)
@@ -111,26 +104,30 @@ enum SchoolFieldValidator {
   // MARK: - Website Validation
 
   /// Validates website URL (optional, but if provided must be valid)
-  /// Requires http:// or https:// protocol
+  /// Accepts bare domains (e.g. jcu.edu) as well as http:// and https:// URLs
   /// - Parameter website: The website URL to validate
   /// - Returns: Error message if invalid, nil if valid or empty
   static func validateWebsite(_ website: String) -> String? {
     let trimmed = website.trimmingCharacters(in: .whitespacesAndNewlines)
 
-    // Empty is valid (optional field)
-    guard !trimmed.isEmpty else {
-      return nil
-    }
+    guard !trimmed.isEmpty else { return nil }
 
     if trimmed.count > 500 {
       return "Website URL must not exceed 500 characters"
     }
 
-    // Validate URL format using regex
-    let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
+    // Reject non-http schemes (e.g. ftp://) while accepting bare domains
+    if trimmed.contains("://") && !trimmed.hasPrefix("http://") && !trimmed.hasPrefix("https://") {
+      return "Please enter a valid website (e.g. jcu.edu or https://jcu.edu)"
+    }
 
-    guard urlRegex.firstMatch(in: trimmed, range: range) != nil else {
-      return "Please enter a valid URL (must start with http:// or https://)"
+    // Normalize bare domains by prepending https:// for URL validation
+    let normalized = (trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://"))
+      ? trimmed
+      : "https://\(trimmed)"
+
+    guard URL(string: normalized)?.host != nil else {
+      return "Please enter a valid website (e.g. jcu.edu or https://jcu.edu)"
     }
 
     return nil

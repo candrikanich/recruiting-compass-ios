@@ -41,10 +41,35 @@ struct SchoolBasicInfoDisplaySection: View {
         }
       }
 
-      if let website = school.website {
-        Link(destination: URL(string: "https://\(website)")!) {
-          Label("Visit Website", systemImage: "safari")
+      if let website = school.website, !website.isEmpty {
+        let urlString = (website.hasPrefix("http://") || website.hasPrefix("https://"))
+          ? website
+          : "https://\(website)"
+        HStack(alignment: .top) {
+          Text("Website:")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+          Spacer()
+          if let url = URL(string: urlString) {
+            Link(destination: url) {
+              HStack(spacing: 4) {
+                Text(website)
+                  .font(.subheadline)
+                  .multilineTextAlignment(.trailing)
+                  .lineLimit(2)
+                  .truncationMode(.middle)
+                Image(systemName: "safari")
+                  .font(.subheadline)
+              }
+            }
+          } else {
+            Text(website)
+              .font(.subheadline)
+              .multilineTextAlignment(.trailing)
+          }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Website: \(website). Tap to open in browser.")
       }
     }
     .padding()
