@@ -247,8 +247,12 @@ struct EventsListView: View {
     } description: {
       Text("Create your first event to track camps, showcases, visits, and games.")
     } actions: {
-      Button("Add Event") {
+      Button {
         showCreateEvent = true
+      } label: {
+        Text("Add Your First Event")
+          .fontWeight(.semibold)
+          .frame(maxWidth: .infinity, minHeight: 44)
       }
       .buttonStyle(.borderedProminent)
     }

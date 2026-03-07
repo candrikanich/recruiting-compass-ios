@@ -149,8 +149,12 @@ struct DocumentsListView: View {
     } description: {
       Text("Upload videos, transcripts, and other documents to share with coaches")
     } actions: {
-      Button("Upload Your First Document") {
+      Button {
         viewModel.presentUploadForm()
+      } label: {
+        Text("Upload Your First Document")
+          .fontWeight(.semibold)
+          .frame(maxWidth: .infinity, minHeight: 44)
       }
       .buttonStyle(.borderedProminent)
       .accessibilityLabel("Upload your first document")
