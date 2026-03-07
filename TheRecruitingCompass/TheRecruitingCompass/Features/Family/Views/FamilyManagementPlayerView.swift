@@ -67,20 +67,22 @@ struct FamilyManagementPlayerView: View {
               .foregroundColor(.secondary)
           }
 
-          HStack(spacing: FamilyConstants.Spacing.small) {
-            Button(action: { viewModel.copyCodeToClipboard() }) {
-              Label("Copy", systemImage: "doc.on.doc")
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .accessibilityLabel("Copy family code to clipboard")
+          VStack(spacing: FamilyConstants.Spacing.small) {
+            HStack(spacing: FamilyConstants.Spacing.small) {
+              Button(action: { viewModel.copyCodeToClipboard() }) {
+                Label("Copy", systemImage: "doc.on.doc")
+                  .frame(maxWidth: .infinity)
+              }
+              .buttonStyle(.bordered)
+              .accessibilityLabel("Copy family code to clipboard")
 
-            Button(action: { viewModel.shareCode() }) {
-              Label("Share", systemImage: "square.and.arrow.up")
-                .frame(maxWidth: .infinity)
+              Button(action: { viewModel.shareCode() }) {
+                Label("Share", systemImage: "square.and.arrow.up")
+                  .frame(maxWidth: .infinity)
+              }
+              .buttonStyle(.bordered)
+              .accessibilityLabel("Share family code")
             }
-            .buttonStyle(.bordered)
-            .accessibilityLabel("Share family code")
 
             Button(action: { viewModel.confirmRegenerateCode() }) {
               Label("Regenerate", systemImage: "arrow.clockwise")
