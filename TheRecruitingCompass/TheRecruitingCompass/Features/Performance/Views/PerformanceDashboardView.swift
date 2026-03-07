@@ -223,10 +223,13 @@ struct PerformanceDashboardView: View {
       Button {
         viewModel.showAddForm = true
       } label: {
-        Label("Log Metric", systemImage: "plus")
+        Text("Log Your First Metric")
+          .fontWeight(.semibold)
+          .frame(maxWidth: .infinity, minHeight: 44)
       }
       .buttonStyle(.borderedProminent)
       .accessibilityLabel("Log your first metric")
+      .accessibilityHint("Opens the form to log a performance metric")
     }
   }
 }
