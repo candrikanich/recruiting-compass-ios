@@ -100,14 +100,16 @@ struct DashboardView: View {
           }
         )
       }
-      .sheet(isPresented: $showAddSchool, onDismiss: {
-        Task { await viewModel.fetchDashboardData() }
-      }) {
-        DashboardAddSchoolSheet(
-          familyUnitId: familyManager.currentMember?.familyUnitId ?? "",
-          userId: authManager.user?.id ?? ""
-        )
-      }
+      .sheet(
+        isPresented: $showAddSchool,
+        onDismiss: { Task { await viewModel.fetchDashboardData() } },
+        content: {
+          DashboardAddSchoolSheet(
+            familyUnitId: familyManager.currentMember?.familyUnitId ?? "",
+            userId: authManager.user?.id ?? ""
+          )
+        }
+      )
       .task {
         await viewModel.fetchDashboardData()
       }
@@ -156,23 +158,22 @@ struct DashboardView: View {
   }
 
   private var logoutButton: some View {
-    Button(action: {
-      Task {
-        await viewModel.logout()
+    Button(
+      action: { Task { await viewModel.logout() } },
+      label: {
+        HStack {
+          Image(systemName: "rectangle.portrait.and.arrow.right")
+            .accessibilityHidden(true)
+          Text(viewModel.isLoggingOut ? "Logging out..." : "Log Out")
+            .font(.callout.weight(.semibold))
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 48)
+        .foregroundColor(.white)
+        .background(Color.errorRed)
+        .cornerRadius(8)
       }
-    }) {
-      HStack {
-        Image(systemName: "rectangle.portrait.and.arrow.right")
-          .accessibilityHidden(true)
-        Text(viewModel.isLoggingOut ? "Logging out..." : "Log Out")
-          .font(.callout.weight(.semibold))
-      }
-      .frame(maxWidth: .infinity)
-      .frame(height: 48)
-      .foregroundColor(.white)
-      .background(Color.errorRed)
-      .cornerRadius(8)
-    }
+    )
     .disabled(viewModel.isLoggingOut)
     .opacity(viewModel.isLoggingOut ? 0.6 : 1)
     .padding(.horizontal)
