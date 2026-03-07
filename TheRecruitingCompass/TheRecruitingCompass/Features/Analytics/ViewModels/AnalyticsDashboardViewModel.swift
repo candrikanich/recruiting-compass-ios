@@ -25,7 +25,15 @@ final class AnalyticsDashboardViewModel {
   var customStartDate = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
   var customEndDate = Date()
 
-  private let analyticsService: any AnalyticsManaging
+  private let serviceOverride: (any AnalyticsManaging)?
+
+  private var analyticsService: any AnalyticsManaging {
+    serviceOverride ?? AnalyticsServiceImpl(
+      supabaseManager: .shared,
+      userId: AuthManager.shared.user?.id ?? "",
+      familyUnitId: FamilyManager.shared.familyUnitId ?? ""
+    )
+  }
 
   // MARK: - Computed Properties
 
@@ -90,7 +98,7 @@ final class AnalyticsDashboardViewModel {
   // MARK: - Init
 
   init(analyticsService: (any AnalyticsManaging)? = nil) {
-    self.analyticsService = analyticsService ?? AnalyticsServiceImpl(supabaseManager: .shared)
+    self.serviceOverride = analyticsService
   }
 
   // MARK: - Actions

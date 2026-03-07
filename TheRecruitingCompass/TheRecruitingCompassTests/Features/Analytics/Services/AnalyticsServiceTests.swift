@@ -7,7 +7,7 @@ final class AnalyticsServiceTests: XCTestCase {
   // MARK: - Service Initialization
 
   func testServiceInitializes() {
-    let service = AnalyticsServiceImpl(supabaseManager: SupabaseManager.shared)
+    let service = AnalyticsServiceImpl(supabaseManager: SupabaseManager.shared, userId: "", familyUnitId: "")
     XCTAssertNotNil(service)
   }
 
