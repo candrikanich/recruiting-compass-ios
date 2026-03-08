@@ -181,6 +181,22 @@ struct SettingsView: View {
         } header: {
           Text("Legal")
         }
+
+        // App Section
+        Section {
+          NavigationLink {
+            AboutView()
+          } label: {
+            SettingsRow(
+              icon: "info.circle.fill",
+              title: "About & Feedback",
+              description: "Our mission, and a way to send us feedback or report issues",
+              color: .iconGray
+            )
+          }
+        } header: {
+          Text("App")
+        }
       }
       .navigationTitle("Settings")
       .navigationBarTitleDisplayMode(.inline)
