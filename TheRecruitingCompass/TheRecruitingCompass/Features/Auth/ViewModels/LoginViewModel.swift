@@ -13,6 +13,8 @@ final class LoginViewModel {
   var errorMessage: String?
   var fieldErrors: [FormFieldKey: String] = [:]
   var showTimeoutBanner = false
+  var shouldShowBiometricOptIn = false
+  private let biometricService: any BiometricServiceProtocol
 
   private let authManager: any AuthManaging
   private let formValidator = FormValidator.self
@@ -29,8 +31,13 @@ final class LoginViewModel {
     isLoading || !isFormValid
   }
 
-  init(authManager: (any AuthManaging)? = nil, timeoutReason: String? = nil) {
+  init(
+    authManager: (any AuthManaging)? = nil,
+    biometricService: (any BiometricServiceProtocol)? = nil,
+    timeoutReason: String? = nil
+  ) {
     self.authManager = authManager ?? AuthManager.shared
+    self.biometricService = biometricService ?? BiometricService()
     checkTimeoutReason(timeoutReason)
     loadCachedEmail()
   }
@@ -97,6 +104,9 @@ final class LoginViewModel {
 
     do {
       try await authManager.login(email: email, password: password)
+      if !authManager.biometricEnabled && biometricService.canEvaluateBiometrics() {
+        shouldShowBiometricOptIn = true
+      }
     } catch {
       errorMessage = mapError(error)
     }
@@ -104,6 +114,17 @@ final class LoginViewModel {
 
   func dismissError() {
     errorMessage = nil
+  }
+
+  // MARK: - Biometric Opt-In
+
+  func enableBiometrics() {
+    try? authManager.enableBiometrics()
+    shouldShowBiometricOptIn = false
+  }
+
+  func dismissBiometricOptIn() {
+    shouldShowBiometricOptIn = false
   }
 
   // MARK: - Error Mapping
