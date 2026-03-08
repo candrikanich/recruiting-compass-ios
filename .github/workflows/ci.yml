@@ -51,6 +51,7 @@ jobs:
           SUPABASE_URL = https:$(_SLASH)$(_SLASH)ci-placeholder.supabase.co
           SUPABASE_ANON_KEY = ci_placeholder_key
           API_BASE_URL = https:$(_SLASH)$(_SLASH)myrecruitingcompass.com
+          OTHER_SWIFT_FLAGS = -enable-experimental-feature IsolatedDeinit
           XCCONFIG
 
       - name: Cache DerivedData
