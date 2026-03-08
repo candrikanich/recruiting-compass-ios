@@ -2,6 +2,8 @@
 
 @MainActor
 final class MockBiometricService: BiometricServiceProtocol {
+  nonisolated deinit {}
+
   var canEvaluateResult = true
   var authenticateResult: Result<Void, Error> = .success(())
   var authenticateCallCount = 0

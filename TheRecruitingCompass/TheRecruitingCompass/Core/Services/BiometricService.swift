@@ -19,6 +19,8 @@ enum BiometricError: LocalizedError {
 extension BiometricError: Equatable {}
 
 final class BiometricService: BiometricServiceProtocol {
+  nonisolated deinit {}
+
   func canEvaluateBiometrics() -> Bool {
     let context = LAContext()
     var error: NSError?
