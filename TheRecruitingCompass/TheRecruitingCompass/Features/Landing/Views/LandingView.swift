@@ -2,6 +2,8 @@ import SwiftUI
 
 struct LandingView: View {
   @Environment(\.sizeCategory) var sizeCategory
+  @State private var showLogin = false
+  @State private var showSignup = false
 
   private var logoSize: CGFloat {
     sizeCategory >= .extraLarge ? 88 : 80
@@ -52,7 +54,7 @@ struct LandingView: View {
 
   private var ctaButtons: some View {
     VStack(spacing: 12) {
-      NavigationLink(destination: LoginView()) {
+      Button(action: { showLogin = true }) {
         Text("Sign In")
           .font(.headline.weight(.semibold))
           .lineLimit(2)
@@ -67,8 +69,11 @@ struct LandingView: View {
       }
       .accessibilityLabel("Sign in to your account")
       .accessibilityHint("Enter your email and password")
+      .navigationDestination(isPresented: $showLogin) {
+        LoginView()
+      }
 
-      NavigationLink(destination: SignupView()) {
+      Button(action: { showSignup = true }) {
         Text("Create Account")
           .font(.headline.weight(.semibold))
           .lineLimit(2)
@@ -83,6 +88,9 @@ struct LandingView: View {
       }
       .accessibilityLabel("Create a new account")
       .accessibilityHint("Set up a new account with your information")
+      .navigationDestination(isPresented: $showSignup) {
+        SignupView()
+      }
     }
     .padding(.horizontal)
     .padding(.bottom, 12)

@@ -138,7 +138,7 @@ final class ForgotPasswordViewModel {
       for remaining in stride(from: config.resendCooldownDuration, through: 0, by: -1) {
         resendCooldownSeconds = remaining
         if remaining > 0 {
-          try? await Task.sleep(nanoseconds: UInt64(config.timerInterval * 1_000_000_000))
+          try? await Task.sleep(for: .seconds(config.timerInterval))
         }
       }
       canResendEmail = true

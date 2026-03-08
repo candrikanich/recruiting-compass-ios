@@ -191,7 +191,7 @@ struct AnalyticsDashboardView: View {
         DatePicker(
           "Start Date",
           selection: $viewModel.customStartDate,
-          in: ...Date(),
+          in: ...Date.now,
           displayedComponents: .date
         )
         .accessibilityLabel("Start date for custom range")
@@ -199,7 +199,7 @@ struct AnalyticsDashboardView: View {
         DatePicker(
           "End Date",
           selection: $viewModel.customEndDate,
-          in: ...Date(),
+          in: ...Date.now,
           displayedComponents: .date
         )
         .accessibilityLabel("End date for custom range")

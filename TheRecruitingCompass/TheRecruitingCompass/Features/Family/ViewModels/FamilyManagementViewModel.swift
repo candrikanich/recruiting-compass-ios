@@ -324,7 +324,7 @@ final class FamilyManagementViewModel {
     showSuccessToast = true
 
     Task {
-      try? await Task.sleep(nanoseconds: FamilyConstants.Duration.successToast)
+      try? await Task.sleep(for: FamilyConstants.Duration.successToast)
       await MainActor.run {
         showSuccessToast = false
         successMessage = nil

@@ -242,12 +242,10 @@ struct ToggleCard: View {
   }
 }
 
-struct DashboardCustomizationView_Previews: PreviewProvider {
-  static var previews: some View {
-    NavigationStack {
-      DashboardCustomizationView(
-        preferenceService: PreferencePreviewMock(defaultValue: DashboardWidgetVisibility.default)
-      )
-    }
+#Preview {
+  NavigationStack {
+    DashboardCustomizationView(
+      preferenceService: PreferencePreviewMock(defaultValue: DashboardWidgetVisibility.default)
+    )
   }
 }

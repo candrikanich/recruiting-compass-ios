@@ -72,13 +72,9 @@ struct FamilyManagementView: View {
 }
 
 // MARK: - Preview
-#if DEBUG
-struct FamilyManagementView_Previews: PreviewProvider {
-  static var previews: some View {
-    NavigationStack {
-      FamilyManagementView()
-    }
-    .environment(AuthManager.shared)
+#Preview {
+  NavigationStack {
+    FamilyManagementView()
   }
+  .environment(AuthManager.shared)
 }
-#endif

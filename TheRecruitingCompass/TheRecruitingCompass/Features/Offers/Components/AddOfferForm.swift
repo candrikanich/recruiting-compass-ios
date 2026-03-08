@@ -83,7 +83,7 @@ struct AddOfferForm: View {
           ForEach(formState.validationErrors, id: \.self) { error in
             Text(error)
               .font(.caption)
-              .foregroundColor(.errorRed)
+              .foregroundStyle(Color.errorRed)
               .accessibilityLabel("Error: \(error)")
           }
         }
@@ -119,6 +119,6 @@ struct AddOfferForm: View {
     }
     .padding(16)
     .background(Color(.secondarySystemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 }

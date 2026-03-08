@@ -136,7 +136,7 @@ final class EmailVerificationViewModel {
         await checkVerificationStatus()
 
         guard !isVerified else { break }
-        try? await Task.sleep(nanoseconds: UInt64(currentInterval * 1_000_000_000))
+        try? await Task.sleep(for: .seconds(currentInterval))
       }
 
       if isVerified {
@@ -224,7 +224,7 @@ final class EmailVerificationViewModel {
 
     cooldownTask = Task {
       while resendCooldownSeconds > 0 && !Task.isCancelled {
-        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+        try? await Task.sleep(for: .seconds(1))
         resendCooldownSeconds -= 1
       }
 

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ResetPasswordView: View {
   @State private var viewModel: ResetPasswordViewModel
+  @State private var showForgotPassword = false
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
@@ -48,6 +49,9 @@ struct ResetPasswordView: View {
               errorContent(message: message)
             }
           }
+        }
+        .navigationDestination(isPresented: $showForgotPassword) {
+          ForgotPasswordView()
         }
         .background(Color.white.opacity(0.95))
         .clipShape(.rect(cornerRadius: 16))
@@ -229,7 +233,7 @@ struct ResetPasswordView: View {
         onDismiss: {}
       )
 
-      NavigationLink(destination: ForgotPasswordView()) {
+      Button(action: { showForgotPassword = true }) {
         Text("Request New Link")
           .font(.callout.weight(.semibold))
           .frame(maxWidth: .infinity)

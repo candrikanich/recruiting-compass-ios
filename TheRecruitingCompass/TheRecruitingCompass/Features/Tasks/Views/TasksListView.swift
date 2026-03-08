@@ -31,7 +31,7 @@ struct TasksListView: View {
     .onChange(of: viewModel.showSuccessMessage) { _, show in
       if show {
         successMessageDismissWork = Task {
-          try? await Task.sleep(nanoseconds: 3_000_000_000)
+          try? await Task.sleep(for: .seconds(3))
           await MainActor.run { viewModel.clearSuccessMessage() }
         }
       }

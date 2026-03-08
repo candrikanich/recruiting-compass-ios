@@ -5,6 +5,8 @@ struct LoginView: View {
   private enum ScrollAnchor { case signInButton }
 
   @State private var viewModel: LoginViewModel
+  @State private var showForgotPassword = false
+  @State private var showSignup = false
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
@@ -171,7 +173,7 @@ struct LoginView: View {
 
       Spacer()
 
-      NavigationLink(destination: ForgotPasswordView()) {
+      Button(action: { showForgotPassword = true }) {
         Text("Forgot password?")
           .font(.footnote)
           .foregroundStyle(Color.primary)
@@ -180,6 +182,9 @@ struct LoginView: View {
       }
       .accessibilityLabel("Forgot password")
       .accessibilityHint("Opens password recovery screen")
+      .navigationDestination(isPresented: $showForgotPassword) {
+        ForgotPasswordView()
+      }
     }
   }
 
@@ -229,7 +234,7 @@ struct LoginView: View {
           .font(.footnote)
           .foregroundStyle(Color.secondary)
 
-        NavigationLink(destination: SignupView()) {
+        Button(action: { showSignup = true }) {
           HStack(spacing: 4) {
             Text("Create one now")
               .font(.footnote.weight(.semibold))
@@ -243,6 +248,9 @@ struct LoginView: View {
         }
         .accessibilityLabel("Create account")
         .accessibilityHint("Opens the account creation form")
+        .navigationDestination(isPresented: $showSignup) {
+          SignupView()
+        }
       }
     }
   }

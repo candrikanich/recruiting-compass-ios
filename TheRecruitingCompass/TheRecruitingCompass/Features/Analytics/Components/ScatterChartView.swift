@@ -74,7 +74,7 @@ struct ScatterChartView: View {
     let yValues = dataSet.points.map(\.y)
     guard let minX = xValues.min(), let maxX = xValues.max(),
           let minY = yValues.min(), let maxY = yValues.max() else { return "" }
-    return "\(dataSet.xAxisLabel) ranges from \(String(format: "%.0f", minX)) to \(String(format: "%.0f", maxX)). \(dataSet.yAxisLabel) ranges from \(String(format: "%.0f", minY)) to \(String(format: "%.0f", maxY))."
+    return "\(dataSet.xAxisLabel) ranges from \(minX.formatted(.number.precision(.fractionLength(0)))) to \(maxX.formatted(.number.precision(.fractionLength(0)))). \(dataSet.yAxisLabel) ranges from \(minY.formatted(.number.precision(.fractionLength(0)))) to \(maxY.formatted(.number.precision(.fractionLength(0))))."
   }
 
   private var chartArea: some View {
@@ -136,10 +136,10 @@ struct ScatterChartView: View {
         Text(point.label)
           .font(.subheadline.bold())
           .foregroundStyle(Color.darkSlate)
-        Text("\(dataSet.xAxisLabel): \(String(format: "%.1f", point.x))")
+        Text("\(dataSet.xAxisLabel): \(point.x.formatted(.number.precision(.fractionLength(1))))")
           .font(.caption)
           .foregroundStyle(Color.secondaryText)
-        Text("\(dataSet.yAxisLabel): \(String(format: "%.1f", point.y))")
+        Text("\(dataSet.yAxisLabel): \(point.y.formatted(.number.precision(.fractionLength(1))))")
           .font(.caption)
           .foregroundStyle(Color.secondaryText)
       }
@@ -158,7 +158,7 @@ struct ScatterChartView: View {
     .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(point.label), \(dataSet.xAxisLabel): \(String(format: "%.1f", point.x)), \(dataSet.yAxisLabel): \(String(format: "%.1f", point.y))")
+    .accessibilityLabel("\(point.label), \(dataSet.xAxisLabel): \(point.x.formatted(.number.precision(.fractionLength(1)))), \(dataSet.yAxisLabel): \(point.y.formatted(.number.precision(.fractionLength(1))))")
   }
 
   private var emptyState: some View {

@@ -88,7 +88,7 @@ struct ProfileView: View {
                     if let error = viewModel.photoError {
                         Text(error)
                             .font(.caption)
-                            .foregroundColor(.errorRed)
+                            .foregroundStyle(Color.errorRed)
                     }
                 }
 
@@ -125,7 +125,7 @@ struct ProfileView: View {
             )
             Text(initials)
                 .font(.title2.weight(.semibold))
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
         }
     }
 
@@ -147,7 +147,7 @@ struct ProfileView: View {
             if let msg = viewModel.personalInfoMessage {
                 Label(msg.text, systemImage: msg.isSuccess ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                     .font(.subheadline)
-                    .foregroundColor(msg.isSuccess ? .primaryGreen : .errorRed)
+                    .foregroundStyle(msg.isSuccess ? Color.primaryGreen : Color.errorRed)
                     .accessibilityLabel(msg.isSuccess ? "Saved successfully" : "Error: \(msg.text)")
             }
 
@@ -178,7 +178,7 @@ struct ProfileView: View {
             if let email = user?.email {
                 HStack {
                     Text("Current:")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     Text(email)
                 }
                 .accessibilityElement(children: .combine)
@@ -191,7 +191,7 @@ struct ProfileView: View {
                     systemImage: "envelope.badge"
                 )
                 .font(.subheadline)
-                .foregroundColor(.blue)
+                .foregroundStyle(.blue)
                 .accessibilityLabel("Verification email sent. Check your inbox.")
             }
 
@@ -210,7 +210,7 @@ struct ProfileView: View {
                 if let msg = viewModel.emailMessage {
                     Text(msg.text)
                         .font(.subheadline)
-                        .foregroundColor(.errorRed)
+                        .foregroundStyle(Color.errorRed)
                         .accessibilityLabel("Error: \(msg.text)")
                 }
 
@@ -236,7 +236,7 @@ struct ProfileView: View {
                         viewModel.emailCurrentPassword = ""
                         viewModel.emailMessage = nil
                     }
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .accessibilityLabel("Cancel email change")
                 }
             } else {
@@ -270,14 +270,14 @@ struct ProfileView: View {
             if !viewModel.confirmPassword.isEmpty && !viewModel.passwordsMatch {
                 Text("Passwords do not match.")
                     .font(.subheadline)
-                    .foregroundColor(.errorRed)
+                    .foregroundStyle(Color.errorRed)
                     .accessibilityLabel("Error: Passwords do not match")
             }
 
             if let msg = viewModel.passwordMessage {
                 Label(msg.text, systemImage: msg.isSuccess ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                     .font(.subheadline)
-                    .foregroundColor(msg.isSuccess ? .primaryGreen : .errorRed)
+                    .foregroundStyle(msg.isSuccess ? Color.primaryGreen : Color.errorRed)
                     .accessibilityLabel(msg.isSuccess ? msg.text : "Error: \(msg.text)")
             }
 
@@ -311,10 +311,10 @@ struct ProfileView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "trophy.fill")
                         .font(.title3)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .frame(width: 36, height: 36)
                         .background(Color.green)
-                        .cornerRadius(8)
+                        .clipShape(.rect(cornerRadius: 8))
                         .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 4) {
@@ -322,7 +322,7 @@ struct ProfileView: View {
                             .font(.body.weight(.medium))
                         Text("Manage your recruiting profile — positions, stats, academic scores, and social handles.")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .lineLimit(2)
                     }
                 }
@@ -352,7 +352,7 @@ struct ProfileView: View {
             if let error = viewModel.deletionError {
                 Text(error)
                     .font(.subheadline)
-                    .foregroundColor(.errorRed)
+                    .foregroundStyle(Color.errorRed)
                     .accessibilityLabel("Error: \(error)")
             }
         } header: {
@@ -365,14 +365,14 @@ struct ProfileView: View {
             // swiftlint:disable:next line_length
             Text("You can request deletion of your account and all associated data. Your account will be permanently deleted 30 days after your request, giving you time to change your mind.")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
             Button {
                 viewModel.beginDeletionRequest()
             } label: {
                 Text("Request Account Deletion")
                     .fontWeight(.medium)
-                    .foregroundColor(.errorRed)
+                    .foregroundStyle(Color.errorRed)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
@@ -387,7 +387,7 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("This action cannot be easily undone.")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundColor(.errorRed)
+                    .foregroundStyle(Color.errorRed)
 
                 VStack(alignment: .leading, spacing: 4) {
                     bulletItem("All your schools, coaches, interactions, and notes will be deleted")
@@ -420,7 +420,7 @@ struct ProfileView: View {
                 Button("Cancel") {
                     viewModel.cancelDeletionConfirm()
                 }
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .accessibilityLabel("Cancel account deletion")
             }
         }
@@ -432,10 +432,10 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Your account is scheduled for deletion on \(scheduledFor.formatted(date: .long, time: .omitted)).")
                     .font(.subheadline.weight(.medium))
-                    .foregroundColor(.orange)
+                    .foregroundStyle(.orange)
                 Text("All your data will be permanently removed on that date. You can cancel this request before then.")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             .padding(12)
             .background(Color.orange.opacity(0.1))
@@ -462,8 +462,8 @@ struct ProfileView: View {
 
     private func bulletItem(_ text: String) -> some View {
         HStack(alignment: .top, spacing: 6) {
-            Text("•").foregroundColor(.errorRed)
-            Text(text).font(.caption).foregroundColor(.primary)
+            Text("•").foregroundStyle(Color.errorRed)
+            Text(text).font(.caption).foregroundStyle(.primary)
         }
     }
 }
@@ -473,18 +473,16 @@ struct ProfileView: View {
 private struct DateOfBirthField: View {
     @Binding var value: String
 
+    private static let dobFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+
     private var date: Binding<Date> {
         Binding(
-            get: {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                return formatter.date(from: value) ?? Date()
-            },
-            set: { newDate in
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                value = formatter.string(from: newDate)
-            }
+            get: { Self.dobFormatter.date(from: value) ?? .now },
+            set: { value = Self.dobFormatter.string(from: $0) }
         )
     }
 
@@ -492,7 +490,7 @@ private struct DateOfBirthField: View {
         DatePicker(
             "Date of Birth",
             selection: date,
-            in: ...Date(),
+            in: ...Date.now,
             displayedComponents: .date
         )
         .accessibilityLabel("Date of birth")

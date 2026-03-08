@@ -10,7 +10,7 @@ enum FamilyConstants {
   }
 
   enum Duration {
-    static let successToast: UInt64 = 3_000_000_000
+    static let successToast: Swift.Duration = .seconds(3)
   }
 
   enum Validation {

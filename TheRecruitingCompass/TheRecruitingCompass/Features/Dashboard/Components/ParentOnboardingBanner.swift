@@ -45,7 +45,7 @@ struct ParentOnboardingBanner: View {
         UserDefaults.standard.set(true, forKey: ackKey)
         acknowledged = true
         Task { @MainActor in
-          try? await Task.sleep(nanoseconds: 3_000_000_000)
+          try? await Task.sleep(for: .seconds(3))
           showConnected = false
         }
       }

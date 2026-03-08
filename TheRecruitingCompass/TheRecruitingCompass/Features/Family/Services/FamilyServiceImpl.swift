@@ -574,7 +574,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     logger.debug("Resending invitation to: \(email.prefix(3))***")
     try await revokeInvitation(id: id)
     // Brief delay so server can commit revoke before create (avoids soft-delete/race)
-    try await Task.sleep(nanoseconds: 500_000_000)
+    try await Task.sleep(for: .milliseconds(500))
     try await sendEmailInvite(email: email, role: role, pendingPlayerDetails: nil)
     logger.info("Invitation resent to: \(email.prefix(3))***")
   }

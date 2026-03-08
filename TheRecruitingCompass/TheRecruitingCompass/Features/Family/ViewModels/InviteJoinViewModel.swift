@@ -94,7 +94,7 @@ final class InviteJoinViewModel {
         successMessage = "You're connected! (You used a different email than the invite.)"
       }
       showSuccessToast = true
-      try? await Task.sleep(nanoseconds: 1_500_000_000)
+      try? await Task.sleep(for: .milliseconds(1500))
       navigateToDashboard = true
     } catch let err as InviteError {
       errorMessage = err.errorDescription
@@ -158,7 +158,7 @@ final class InviteJoinViewModel {
         successMessage = "You're connected! (You used a different email than the invite.)"
       }
       showSuccessToast = true
-      try? await Task.sleep(nanoseconds: 1_500_000_000)
+      try? await Task.sleep(for: .milliseconds(1500))
       navigateToDashboard = true
     } catch {
       logger.error("signupAndConnect: \(error.localizedDescription)")

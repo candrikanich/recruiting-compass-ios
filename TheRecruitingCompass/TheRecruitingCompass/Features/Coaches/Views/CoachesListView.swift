@@ -183,7 +183,7 @@ struct CoachesListView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
       }
-      .buttonStyle(PlainButtonStyle())
+      .buttonStyle(.plain)
       .contextMenu {
         Button {
           quickCommunicationContext = QuickCommunicationContext(

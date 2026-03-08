@@ -33,7 +33,7 @@ struct SettingsView: View {
                 UIPasteboard.general.string = code
                 showCodeCopied = true
                 Task {
-                  try? await Task.sleep(nanoseconds: 2_000_000_000)
+                  try? await Task.sleep(for: .seconds(2))
                   await MainActor.run { showCodeCopied = false }
                 }
               } label: {
@@ -215,11 +215,6 @@ struct SettingsView: View {
         await familyManager.loadFamilyData()
         await viewModel.loadCompletionStatus()
       }
-      .onAppear {
-        Task {
-          await viewModel.loadCompletionStatus()
-        }
-      }
       .sheet(item: $presentedLegal) { doc in
         doc.view
       }
@@ -275,12 +270,8 @@ private struct SettingsRow: View {
 }
 
 // MARK: - Preview
-#if DEBUG
-struct SettingsView_Previews: PreviewProvider {
-  static var previews: some View {
-    SettingsView()
-      .environment(AuthManager.shared)
-      .environment(FamilyManager.shared)
-  }
+#Preview {
+  SettingsView()
+    .environment(AuthManager.shared)
+    .environment(FamilyManager.shared)
 }
-#endif

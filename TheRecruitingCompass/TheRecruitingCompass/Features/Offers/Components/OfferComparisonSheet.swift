@@ -44,18 +44,18 @@ struct OfferComparisonSheet: View {
     .frame(width: 200)
     .padding(16)
     .background(Color(.secondarySystemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 
   private func comparisonRow(_ label: String, value: String) -> some View {
     VStack(alignment: .leading, spacing: 2) {
       Text(label)
         .font(.caption)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
 
       Text(value)
         .font(.subheadline)
-        .foregroundColor(.primary)
+        .foregroundStyle(.primary)
     }
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(label): \(value)")

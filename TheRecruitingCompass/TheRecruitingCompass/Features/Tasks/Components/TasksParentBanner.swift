@@ -15,16 +15,16 @@ struct TasksParentBanner: View {
     HStack(spacing: 12) {
       Image(systemName: "eye")
         .font(.system(size: fontSize))
-        .foregroundColor(.white)
+        .foregroundStyle(.white)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 2) {
         Text("Parent Preview Mode")
           .font(.subheadline.weight(.semibold))
-          .foregroundColor(.white)
+          .foregroundStyle(.white)
         Text("Viewing \(athleteName)'s Tasks (Read-Only)")
           .font(.caption)
-          .foregroundColor(.white.opacity(0.9))
+          .foregroundStyle(.white.opacity(0.9))
       }
 
       Spacer()
@@ -32,11 +32,11 @@ struct TasksParentBanner: View {
       Button(action: onDismiss) {
         Image(systemName: "xmark.circle.fill")
           .font(.system(size: fontSize + 2))
-          .foregroundColor(.white.opacity(0.9))
+          .foregroundStyle(.white.opacity(0.9))
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
       }
-      .buttonStyle(PlainButtonStyle())
+      .buttonStyle(.plain)
       .accessibilityLabel("Exit preview mode")
       .accessibilityHint("Returns to athlete selection")
     }

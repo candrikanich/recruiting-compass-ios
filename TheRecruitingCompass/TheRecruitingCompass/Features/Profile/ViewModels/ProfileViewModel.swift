@@ -208,7 +208,7 @@ final class ProfileViewModel {
                 )
             }
             personalInfoMessage = .success("Saved!")
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            try? await Task.sleep(for: .seconds(2))
             personalInfoMessage = nil
         } catch {
             logger.error("Personal info save failed: \(error.localizedDescription)")
@@ -258,7 +258,7 @@ final class ProfileViewModel {
             newPassword = ""
             confirmPassword = ""
             passwordMessage = .success("Password updated!")
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            try? await Task.sleep(for: .seconds(2))
             passwordMessage = nil
         } catch let error as ProfileServiceError {
             logger.error("Password change failed: \(error.localizedDescription)")
@@ -285,7 +285,7 @@ final class ProfileViewModel {
 
         do {
             try await profileService.requestDeletion()
-            let scheduledFor = Calendar.current.date(byAdding: .day, value: 30, to: Date()) ?? Date()
+            let scheduledFor = Calendar.current.date(byAdding: .day, value: 30, to: Date.now) ?? Date.now
             deletionState = .pending(scheduledFor: scheduledFor)
         } catch {
             logger.error("Deletion request failed: \(error.localizedDescription)")

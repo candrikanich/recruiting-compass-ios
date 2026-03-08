@@ -74,13 +74,11 @@ struct PlayerDetailsView: View {
     }
 }
 
-struct PlayerDetailsView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            PlayerDetailsView(
-                preferenceService: PreferencePreviewMock(defaultValue: PlayerDetails.default),
-                userRole: .player
-            )
-        }
+#Preview {
+    NavigationStack {
+        PlayerDetailsView(
+            preferenceService: PreferencePreviewMock(defaultValue: PlayerDetails.default),
+            userRole: .player
+        )
     }
 }

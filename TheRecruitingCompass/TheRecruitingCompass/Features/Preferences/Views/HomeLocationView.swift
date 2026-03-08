@@ -96,7 +96,7 @@ struct HomeLocationView: View {
               Text("Latitude:")
                 .foregroundStyle(.secondary)
               Spacer()
-              Text(String(format: "%.6f", latitude))
+              Text(latitude, format: .number.precision(.fractionLength(6)))
                 .fontWeight(.medium)
             }
 
@@ -104,13 +104,13 @@ struct HomeLocationView: View {
               Text("Longitude:")
                 .foregroundStyle(.secondary)
               Spacer()
-              Text(String(format: "%.6f", longitude))
+              Text(longitude, format: .number.precision(.fractionLength(6)))
                 .fontWeight(.medium)
             }
           }
           .font(.subheadline)
           .accessibilityElement(children: .combine)
-          .accessibilityLabel("Latitude \(String(format: "%.6f", latitude)), Longitude \(String(format: "%.6f", longitude))")
+          .accessibilityLabel("Latitude \(latitude.formatted(.number.precision(.fractionLength(6)))), Longitude \(longitude.formatted(.number.precision(.fractionLength(6))))")
         }
       } header: {
         Text("Coordinates")

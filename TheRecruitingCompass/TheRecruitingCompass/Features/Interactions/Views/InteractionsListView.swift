@@ -170,7 +170,7 @@ struct InteractionsListView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
       }
-      .buttonStyle(PlainButtonStyle())
+      .buttonStyle(.plain)
       .swipeActions(edge: .trailing, allowsFullSwipe: false) {
         Button(role: .destructive) {
           viewModel.confirmDelete(interaction)

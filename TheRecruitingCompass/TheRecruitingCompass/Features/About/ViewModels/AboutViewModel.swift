@@ -44,7 +44,7 @@ final class AboutViewModel {
             submissionState = .success
             message = ""
             selectedSubject = .general
-            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            try? await Task.sleep(for: .seconds(5))
             submissionState = .idle
         } catch {
             logger.error("Feedback submission failed: \(error.localizedDescription)")

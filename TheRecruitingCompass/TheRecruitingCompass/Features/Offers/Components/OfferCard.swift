@@ -20,7 +20,7 @@ struct OfferCard: View {
         } label: {
           Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
             .font(.title3)
-            .foregroundColor(isSelected ? .accentBlue : .secondary)
+            .foregroundStyle(isSelected ? Color.accentBlue : .secondary)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
@@ -34,7 +34,7 @@ struct OfferCard: View {
           HStack {
             Text(schoolName)
               .font(.headline)
-              .foregroundColor(.primary)
+              .foregroundStyle(.primary)
               .lineLimit(1)
 
             Spacer()
@@ -44,31 +44,31 @@ struct OfferCard: View {
 
           Text(offer.offerType.displayName)
             .font(.subheadline)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
 
           HStack(spacing: 12) {
             if let amount = offer.formattedAmount {
               Label(amount, systemImage: "dollarsign.circle")
                 .font(.subheadline)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
             }
 
             if let pct = offer.formattedPercentage {
               Label(pct, systemImage: "percent")
                 .font(.subheadline)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
             }
           }
 
           HStack(spacing: 4) {
             Image(systemName: "calendar")
               .font(.caption)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
               .accessibilityHidden(true)
 
             Text(DateFormatting.mediumDate(offer.displayOfferDate))
               .font(.caption)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
           }
 
           if let deadline = offer.displayDeadlineDate {
@@ -78,7 +78,7 @@ struct OfferCard: View {
           if let notes = offer.notes, !notes.isEmpty {
             Text(notes)
               .font(.caption)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
               .lineLimit(2)
           }
         }
@@ -91,7 +91,7 @@ struct OfferCard: View {
         } label: {
           Image(systemName: "trash")
             .font(.subheadline)
-            .foregroundColor(.errorRed)
+            .foregroundStyle(Color.errorRed)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
@@ -102,7 +102,7 @@ struct OfferCard: View {
       .padding(12)
     }
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     .accessibilityIdentifier("offer_card_\(offer.id)")
   }
@@ -127,18 +127,18 @@ struct OfferCard: View {
     HStack(spacing: 4) {
       Image(systemName: "clock")
         .font(.caption)
-        .foregroundColor(urgency.color)
+        .foregroundStyle(urgency.color)
         .accessibilityHidden(true)
 
       Text("Deadline: \(DateFormatting.mediumDate(deadline))")
         .font(.caption)
-        .foregroundColor(urgency.color)
+        .foregroundStyle(urgency.color)
 
       if let label = urgency.label {
         Text("(\(label))")
           .font(.caption)
           .fontWeight(.medium)
-          .foregroundColor(urgency.color)
+          .foregroundStyle(urgency.color)
       }
     }
   }
@@ -151,11 +151,11 @@ private struct OfferStatusBadge: View {
     Text(status.displayName)
       .font(.caption)
       .fontWeight(.medium)
-      .foregroundColor(status.statusColor)
+      .foregroundStyle(status.statusColor)
       .padding(.horizontal, 8)
       .padding(.vertical, 4)
       .background(status.statusColor.opacity(0.1))
-      .cornerRadius(6)
+      .clipShape(.rect(cornerRadius: 6))
       .accessibilityLabel("Status: \(status.displayName)")
   }
 }

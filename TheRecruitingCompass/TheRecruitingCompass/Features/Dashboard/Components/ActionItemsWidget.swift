@@ -44,7 +44,7 @@ struct ActionItemsWidget: View {
             }
             .foregroundStyle(Color.accentBlue)
           }
-          .buttonStyle(PlainButtonStyle())
+          .buttonStyle(.plain)
           .accessibilityLabel("View all action items")
           .accessibilityHint("Opens a complete list of suggested actions")
         }
@@ -99,7 +99,7 @@ struct ActionItemCard: View {
               .frame(minWidth: 44, minHeight: 44)
               .contentShape(Rectangle())
           }
-          .buttonStyle(PlainButtonStyle())
+          .buttonStyle(.plain)
           .accessibilityLabel("Complete suggestion")
           .accessibilityHint("Mark this suggestion as done")
 
@@ -110,7 +110,7 @@ struct ActionItemCard: View {
               .frame(minWidth: 44, minHeight: 44)
               .contentShape(Rectangle())
           }
-          .buttonStyle(PlainButtonStyle())
+          .buttonStyle(.plain)
           .accessibilityLabel("Dismiss suggestion")
           .accessibilityHint("Hide this suggestion without completing it")
         }

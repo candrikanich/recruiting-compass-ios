@@ -72,7 +72,7 @@ struct AthleteRow: View {
       .background(isSelected ? Color.primaryGreen.opacity(0.1) : Color(.secondarySystemBackground))
       .clipShape(.rect(cornerRadius: 8))
     }
-    .buttonStyle(PlainButtonStyle())
+    .buttonStyle(.plain)
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(athlete.role.capitalized) - ID: \(athlete.userId.prefix(8))")
     .accessibilityValue(isSelected ? "Selected" : "Not selected")

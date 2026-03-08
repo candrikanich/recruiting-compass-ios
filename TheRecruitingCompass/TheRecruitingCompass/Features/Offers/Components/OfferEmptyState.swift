@@ -10,17 +10,17 @@ struct OfferEmptyState: View {
       Image(systemName: icon)
         .font(.largeTitle)
         .imageScale(.large)
-        .foregroundColor(.gray.opacity(0.5))
+        .foregroundStyle(.gray.opacity(0.5))
         .accessibilityHidden(true)
 
       VStack(spacing: 8) {
         Text(title)
           .font(.headline)
-          .foregroundColor(.primary)
+          .foregroundStyle(.primary)
 
         Text(subtitle)
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
           .multilineTextAlignment(.center)
       }
 
@@ -31,12 +31,12 @@ struct OfferEmptyState: View {
           Text("Clear Filters")
             .font(.subheadline)
             .fontWeight(.medium)
-            .foregroundColor(.white)
+            .foregroundStyle(.white)
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
             .frame(minHeight: 44)
             .background(Color.blue)
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
         }
         .accessibilityLabel("Clear all filters")
         .accessibilityHint("Double tap to remove all active filters")

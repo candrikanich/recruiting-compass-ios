@@ -103,7 +103,7 @@ final class ResetPasswordViewModel {
       for remaining in stride(from: config.successCountdownDuration, through: 0, by: -1) {
         successCountdown = remaining
         if remaining > 0 {
-          try? await Task.sleep(nanoseconds: UInt64(config.timerInterval * 1_000_000_000))
+          try? await Task.sleep(for: .seconds(config.timerInterval))
         }
       }
       shouldNavigateToLogin = true

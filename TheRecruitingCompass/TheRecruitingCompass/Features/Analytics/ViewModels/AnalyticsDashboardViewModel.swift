@@ -288,7 +288,7 @@ final class AnalyticsDashboardViewModel {
           )
           yOffset += 25
           for point in scatterData.points {
-            let line = "\(point.label): \(scatterData.xAxisLabel)=\(String(format: "%.1f", point.x)), \(scatterData.yAxisLabel)=\(String(format: "%.1f", point.y))"
+            let line = "\(point.label): \(scatterData.xAxisLabel)=\(point.x.formatted(.number.precision(.fractionLength(1)))), \(scatterData.yAxisLabel)=\(point.y.formatted(.number.precision(.fractionLength(1))))"
             (line as NSString).draw(
               in: CGRect(x: margin + 10, y: yOffset, width: contentWidth - 10, height: 18),
               withAttributes: bodyAttributes

@@ -406,35 +406,33 @@ struct AddPreferenceSheet: View {
   }
 }
 
-struct SchoolPreferencesView_Previews: PreviewProvider {
-  static var previews: some View {
-    let prefs = SchoolPreferences(
-      preferences: [
-        SchoolPreference(
-          id: "1",
-          category: .location,
-          type: "max_distance_miles",
-          value: .int(500),
-          priority: 1,
-          isDealbreaker: false
-        ),
-        SchoolPreference(
-          id: "2",
-          category: .program,
-          type: "division",
-          value: .stringArray(["D1", "D2"]),
-          priority: 2,
-          isDealbreaker: true
-        )
-      ],
-      templateUsed: nil,
-      lastUpdated: nil
-    )
-
-    return NavigationStack {
-      SchoolPreferencesView(
-        preferenceService: PreferencePreviewMock(defaultValue: prefs)
+#Preview {
+  let prefs = SchoolPreferences(
+    preferences: [
+      SchoolPreference(
+        id: "1",
+        category: .location,
+        type: "max_distance_miles",
+        value: .int(500),
+        priority: 1,
+        isDealbreaker: false
+      ),
+      SchoolPreference(
+        id: "2",
+        category: .program,
+        type: "division",
+        value: .stringArray(["D1", "D2"]),
+        priority: 2,
+        isDealbreaker: true
       )
-    }
+    ],
+    templateUsed: nil,
+    lastUpdated: nil
+  )
+
+  return NavigationStack {
+    SchoolPreferencesView(
+      preferenceService: PreferencePreviewMock(defaultValue: prefs)
+    )
   }
 }

@@ -26,7 +26,7 @@ struct DashboardStatsCardsSection: View {
         }
         .accessibilityLabel("View all coaches, \(stats.coachCount) total")
         .accessibilityHint("Opens your coaches list")
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
       }
 
       if visibility.schools {
@@ -46,7 +46,7 @@ struct DashboardStatsCardsSection: View {
         }
         .accessibilityLabel("View all schools, \(stats.schoolCount) total")
         .accessibilityHint("Opens your schools list")
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
       }
 
       if visibility.interactions {
@@ -66,7 +66,7 @@ struct DashboardStatsCardsSection: View {
         }
         .accessibilityLabel("View all interactions, \(stats.interactionCount) total")
         .accessibilityHint("Opens your interactions list")
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
       }
 
       if visibility.offers {
@@ -84,7 +84,7 @@ struct DashboardStatsCardsSection: View {
         }
         .accessibilityLabel("View all offers, \(stats.totalOffers) total")
         .accessibilityHint("Opens your offers list")
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
       }
     }
   }

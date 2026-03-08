@@ -45,7 +45,7 @@ final class InMemoryCache: CacheManaging {
   }
 
   func get<T: Decodable>(_ type: T.Type, forKey key: String) async -> T? {
-    let now = Date()
+    let now = Date.now
     if let obj = objectCache[key], obj.expiresAt > now, let value = obj.value as? T {
       return value
     }
@@ -59,7 +59,7 @@ final class InMemoryCache: CacheManaging {
 
   func set<T: Encodable>(_ value: T, forKey key: String, ttlSeconds: TimeInterval) async {
     guard let data = try? encoder.encode(value) else { return }
-    let expiresAt = Date().addingTimeInterval(ttlSeconds)
+    let expiresAt = Date.now.addingTimeInterval(ttlSeconds)
     if let idx = orderedKeys.firstIndex(of: key) {
       orderedKeys.remove(at: idx)
     }

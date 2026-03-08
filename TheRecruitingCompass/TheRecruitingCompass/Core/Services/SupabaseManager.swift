@@ -194,8 +194,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         emailConfirmedAt: nil,
         phone: nil,
         fullName: fullName,
-        createdAt: ISO8601DateFormatter().string(from: Date()),
-        updatedAt: ISO8601DateFormatter().string(from: Date()),
+        createdAt: ISO8601DateFormatter().string(from: Date.now),
+        updatedAt: ISO8601DateFormatter().string(from: Date.now),
         role: role,
         dateOfBirth: nil
       )
@@ -318,7 +318,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     fallbackMetadata: [String: AnyJSON]?
   ) async throws -> User? {
     let maxRetries = 3
-    let retryDelays: [UInt64] = [500_000_000, 1_000_000_000, 2_000_000_000]
+    let retryDelays: [Duration] = [.milliseconds(500), .seconds(1), .seconds(2)]
 
     for attempt in 0..<maxRetries {
       do {
@@ -328,7 +328,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       } catch {
         logger.warning("Attempt \(attempt + 1)/\(maxRetries) failed: \(error.localizedDescription)")
         if attempt < maxRetries - 1 {
-          try? await Task.sleep(nanoseconds: retryDelays[attempt])
+          try? await Task.sleep(for: retryDelays[attempt])
         }
       }
     }
@@ -391,8 +391,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       emailConfirmedAt: nil,
       phone: nil,
       fullName: fullName,
-      createdAt: ISO8601DateFormatter().string(from: Date()),
-      updatedAt: ISO8601DateFormatter().string(from: Date()),
+      createdAt: ISO8601DateFormatter().string(from: Date.now),
+      updatedAt: ISO8601DateFormatter().string(from: Date.now),
       role: role,
       dateOfBirth: nil
     )

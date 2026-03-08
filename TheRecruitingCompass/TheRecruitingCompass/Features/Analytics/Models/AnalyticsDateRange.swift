@@ -18,11 +18,11 @@ enum AnalyticsDateRange: Equatable, Sendable {
   var startDate: Date {
     switch self {
     case .last7Days:
-      return Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+      return Calendar.current.date(byAdding: .day, value: -7, to: Date.now) ?? Date.now
     case .last30Days:
-      return Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+      return Calendar.current.date(byAdding: .day, value: -30, to: Date.now) ?? Date.now
     case .last90Days:
-      return Calendar.current.date(byAdding: .day, value: -90, to: Date()) ?? Date()
+      return Calendar.current.date(byAdding: .day, value: -90, to: Date.now) ?? Date.now
     case .custom(let start, _):
       return start
     }
@@ -31,7 +31,7 @@ enum AnalyticsDateRange: Equatable, Sendable {
   var endDate: Date {
     switch self {
     case .last7Days, .last30Days, .last90Days:
-      return Date()
+      return Date.now
     case .custom(_, let end):
       return end
     }

@@ -206,7 +206,7 @@ final class AuthManager: AuthManaging {
 
     do {
       let savedSession: Session = try keychain.load(Session.self, forKey: sessionKey)
-      let now = Int(Date().timeIntervalSince1970)
+      let now = Int(Date.now.timeIntervalSince1970)
 
       if savedSession.expiresAt > now {
         logger.debug("Cached session valid, refreshing to get latest user data")

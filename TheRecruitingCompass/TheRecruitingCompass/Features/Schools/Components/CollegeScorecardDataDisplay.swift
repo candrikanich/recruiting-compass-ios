@@ -72,7 +72,7 @@ struct CollegeScorecardDataDisplay: View {
         if let ratio = data.studentFacultyRatio {
           dataItem(
             label: "Student-Faculty Ratio",
-            value: String(format: "%.1f:1", ratio),
+            value: "\(ratio.formatted(.number.precision(.fractionLength(1)))):1",
             icon: "person.2.fill"
           )
         }
@@ -149,8 +149,7 @@ struct CollegeScorecardDataDisplay: View {
   }
 
   private func formatPercentage(_ decimal: Double) -> String {
-    let percentage = decimal * 100
-    return String(format: "%.1f%%", percentage)
+    decimal.formatted(.percent.precision(.fractionLength(1)))
   }
 
   private func formatCurrency(_ amount: Int) -> String {

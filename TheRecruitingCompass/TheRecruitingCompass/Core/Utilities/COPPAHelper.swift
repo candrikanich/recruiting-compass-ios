@@ -26,7 +26,7 @@ enum COPPAHelper {
     }
     guard let dob = date else { return false }
     let calendar = Calendar.current
-    let age = calendar.dateComponents([.year], from: dob, to: Date()).year ?? 0
+    let age = calendar.dateComponents([.year], from: dob, to: Date.now).year ?? 0
     return age < minimumAge
   }
 }
