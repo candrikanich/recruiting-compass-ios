@@ -4,6 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## ⚠️ Path Structure — Read First
+
+The repo root is **not** the Xcode project. All source, tests, and builds live one level deeper:
+
+| What | Path from repo root |
+|---|---|
+| Source files | `TheRecruitingCompass/TheRecruitingCompass/` |
+| Unit tests | `TheRecruitingCompass/TheRecruitingCompassTests/` |
+| UI tests | `TheRecruitingCompass/TheRecruitingCompassUITests/` |
+| Xcode project | `TheRecruitingCompass/TheRecruitingCompass.xcodeproj` |
+
+**All `xcodebuild` commands must run from `TheRecruitingCompass/` (the Xcode project wrapper), not the repo root.**
+
+When editing or creating source files, always use the full double-nested path, e.g.:
+- ✅ `TheRecruitingCompass/TheRecruitingCompass/Features/Auth/Views/LoginView.swift`
+- ❌ `TheRecruitingCompass/Features/Auth/Views/LoginView.swift` (wrong — one level too shallow)
+
+---
+
 ## Quick Start Commands
 
 ### Build
