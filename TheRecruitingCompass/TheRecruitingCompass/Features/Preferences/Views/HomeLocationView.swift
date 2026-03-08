@@ -99,7 +99,10 @@ struct HomeLocationView: View {
           }
           .font(.subheadline)
           .accessibilityElement(children: .combine)
-          .accessibilityLabel("Latitude \(latitude.formatted(.number.precision(.fractionLength(6)))), Longitude \(longitude.formatted(.number.precision(.fractionLength(6))))")
+          .accessibilityLabel(
+            "Latitude \(latitude.formatted(.number.precision(.fractionLength(6)))), " +
+            "Longitude \(longitude.formatted(.number.precision(.fractionLength(6))))"
+          )
         }
       } header: {
         Text("Coordinates")
