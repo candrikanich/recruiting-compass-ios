@@ -118,7 +118,7 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
   // MARK: - Toggle All Tests
 
   func testToggleAllStatsCards_EnablesAllCards() {
-    // Given
+    // Given — toggleAllStatsCards controls the four live stat cards
     viewModel.visibility.statsCards = StatsCardVisibility(
       coaches: false,
       schools: false,
@@ -133,15 +133,11 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
     // When
     viewModel.toggleAllStatsCards(true)
 
-    // Then
+    // Then — only live cards are toggled
     XCTAssertTrue(viewModel.visibility.statsCards.coaches)
     XCTAssertTrue(viewModel.visibility.statsCards.schools)
     XCTAssertTrue(viewModel.visibility.statsCards.interactions)
     XCTAssertTrue(viewModel.visibility.statsCards.offers)
-    XCTAssertTrue(viewModel.visibility.statsCards.events)
-    XCTAssertTrue(viewModel.visibility.statsCards.performance)
-    XCTAssertTrue(viewModel.visibility.statsCards.notifications)
-    XCTAssertTrue(viewModel.visibility.statsCards.socialMedia)
     XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
@@ -152,19 +148,15 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
     // When
     viewModel.toggleAllStatsCards(false)
 
-    // Then
+    // Then — only live cards are toggled
     XCTAssertFalse(viewModel.visibility.statsCards.coaches)
     XCTAssertFalse(viewModel.visibility.statsCards.schools)
     XCTAssertFalse(viewModel.visibility.statsCards.interactions)
     XCTAssertFalse(viewModel.visibility.statsCards.offers)
-    XCTAssertFalse(viewModel.visibility.statsCards.events)
-    XCTAssertFalse(viewModel.visibility.statsCards.performance)
-    XCTAssertFalse(viewModel.visibility.statsCards.notifications)
-    XCTAssertFalse(viewModel.visibility.statsCards.socialMedia)
   }
 
   func testToggleAllWidgets_EnablesAllWidgets() {
-    // Given
+    // Given — toggleAllWidgets controls the seven live widgets
     let allDisabled = WidgetVisibility(
       actionItems: false,
       quickTasks: false,
@@ -191,12 +183,14 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
     // When
     viewModel.toggleAllWidgets(true)
 
-    // Then
-    XCTAssertTrue(viewModel.visibility.widgets.recentNotifications)
-    XCTAssertTrue(viewModel.visibility.widgets.linkedAccounts)
-    XCTAssertTrue(viewModel.visibility.widgets.recruitingCalendar)
+    // Then — only live widgets are toggled
+    XCTAssertTrue(viewModel.visibility.widgets.actionItems)
     XCTAssertTrue(viewModel.visibility.widgets.quickTasks)
     XCTAssertTrue(viewModel.visibility.widgets.atAGlanceSummary)
+    XCTAssertTrue(viewModel.visibility.widgets.interactionTrendChart)
+    XCTAssertTrue(viewModel.visibility.widgets.eventsSummary)
+    XCTAssertTrue(viewModel.visibility.widgets.performanceSummary)
+    XCTAssertTrue(viewModel.visibility.widgets.recentActivity)
     XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 
@@ -207,12 +201,14 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
     // When
     viewModel.toggleAllWidgets(false)
 
-    // Then
-    XCTAssertFalse(viewModel.visibility.widgets.recentNotifications)
-    XCTAssertFalse(viewModel.visibility.widgets.linkedAccounts)
-    XCTAssertFalse(viewModel.visibility.widgets.recruitingCalendar)
+    // Then — only live widgets are toggled
+    XCTAssertFalse(viewModel.visibility.widgets.actionItems)
     XCTAssertFalse(viewModel.visibility.widgets.quickTasks)
     XCTAssertFalse(viewModel.visibility.widgets.atAGlanceSummary)
+    XCTAssertFalse(viewModel.visibility.widgets.interactionTrendChart)
+    XCTAssertFalse(viewModel.visibility.widgets.eventsSummary)
+    XCTAssertFalse(viewModel.visibility.widgets.performanceSummary)
+    XCTAssertFalse(viewModel.visibility.widgets.recentActivity)
   }
 
   // MARK: - Reset Tests
@@ -259,9 +255,9 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
   }
 
   func testAllWidgetsEnabled_WhenOneDisabled_ReturnsFalse() {
-    // Given
+    // Given — disable a live widget (allWidgetsEnabled only checks live widgets)
     viewModel.visibility.widgets = WidgetVisibility.default
-    viewModel.visibility.widgets.recentNotifications = false
+    viewModel.visibility.widgets.actionItems = false
 
     // Then
     XCTAssertFalse(viewModel.allWidgetsEnabled)
