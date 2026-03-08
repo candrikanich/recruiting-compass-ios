@@ -39,6 +39,31 @@ class MockAuthManager: AuthManaging {
   /// When false, signup() does not set isAuthenticated = true, so SignupViewModel sets shouldNavigateToVerifyEmail (e.g. email confirmation required).
   var setAuthenticatedAfterSignup = true
 
+  // MARK: - Biometric Mock State
+  var biometricEnabled: Bool = false
+  var enableBiometricsCallCount = 0
+  var disableBiometricsCallCount = 0
+  var authenticateWithBiometricsCallCount = 0
+  var shouldThrowEnableBiometricsError = false
+  var shouldThrowBiometricAuthError = false
+  var mockBiometricError: Error = BiometricError.failed
+
+  func enableBiometrics() throws {
+    enableBiometricsCallCount += 1
+    if shouldThrowEnableBiometricsError { throw mockBiometricError }
+    biometricEnabled = true
+  }
+
+  func disableBiometrics() {
+    disableBiometricsCallCount += 1
+    biometricEnabled = false
+  }
+
+  func authenticateWithBiometrics() async throws {
+    authenticateWithBiometricsCallCount += 1
+    if shouldThrowBiometricAuthError { throw mockBiometricError }
+  }
+
   // MARK: - AuthManaging Methods
 
   func login(email: String, password: String) async throws {
@@ -204,5 +229,11 @@ class MockAuthManager: AuthManaging {
     mockSessionToReturn = nil
     isAuthenticated = false
     errorMessage = nil
+    biometricEnabled = false
+    enableBiometricsCallCount = 0
+    disableBiometricsCallCount = 0
+    authenticateWithBiometricsCallCount = 0
+    shouldThrowEnableBiometricsError = false
+    shouldThrowBiometricAuthError = false
   }
 }

@@ -6,6 +6,7 @@ protocol AuthManaging: AnyObject {
   var isCheckingSession: Bool { get }
   var user: User? { get }
   var session: Session? { get }
+  var biometricEnabled: Bool { get }
 
   func login(email: String, password: String) async throws
   func signup(email: String, password: String, fullName: String, role: UserRole, familyCode: String?, dateOfBirth: String?) async throws
@@ -14,4 +15,7 @@ protocol AuthManaging: AnyObject {
   func resendVerificationEmail(email: String) async throws
   func resetPasswordForEmail(email: String) async throws
   func updatePassword(newPassword: String) async throws
+  func enableBiometrics() throws
+  func disableBiometrics()
+  func authenticateWithBiometrics() async throws
 }
