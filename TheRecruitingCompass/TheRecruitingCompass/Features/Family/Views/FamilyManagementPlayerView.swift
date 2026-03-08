@@ -285,5 +285,3 @@ struct FamilyManagementPlayerView: View {
   }
 
 }
-
-
