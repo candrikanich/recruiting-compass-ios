@@ -143,9 +143,7 @@ struct CollegeScorecardDataDisplay: View {
   // MARK: - Formatters
 
   private func formatNumber(_ number: Int) -> String {
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .decimal
-    return formatter.string(from: NSNumber(value: number)) ?? "\(number)"
+    number.formatted(.number)
   }
 
   private func formatPercentage(_ decimal: Double) -> String {
@@ -153,10 +151,8 @@ struct CollegeScorecardDataDisplay: View {
   }
 
   private func formatCurrency(_ amount: Int) -> String {
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .currency
-    formatter.maximumFractionDigits = 0
-    return formatter.string(from: NSNumber(value: amount)) ?? "$\(amount)"
+    amount.formatted(.currency(code: Locale.current.currency?.identifier ?? "USD")
+      .precision(.fractionLength(0)))
   }
 }
 

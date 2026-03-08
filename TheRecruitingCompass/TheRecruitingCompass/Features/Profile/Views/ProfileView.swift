@@ -28,18 +28,23 @@ struct ProfileView: View {
         }
         .navigationTitle("My Profile")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            viewModel.loadInitialState()
-        }
         .task {
+            viewModel.loadInitialState()
             await viewModel.loadDeletionStatus()
         }
         .onChange(of: selectedPhotoItem) { _, item in
             guard let item else { return }
             Task {
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
+                do {
+                    guard let data = try await item.loadTransferable(type: Data.self),
+                          let image = UIImage(data: data) else {
+                        viewModel.photoError = "Failed to load the selected photo. Please try again."
+                        selectedPhotoItem = nil
+                        return
+                    }
                     await viewModel.uploadPhoto(image)
+                } catch {
+                    viewModel.photoError = error.localizedDescription
                 }
                 selectedPhotoItem = nil
             }
@@ -107,25 +112,11 @@ struct ProfileView: View {
                 case .success(let image):
                     image.resizable().scaledToFill()
                 default:
-                    initialsAvatar
+                    InitialsAvatar(initials: userInitials(from: user?.fullName))
                 }
             }
         } else {
-            initialsAvatar
-        }
-    }
-
-    private var initialsAvatar: some View {
-        let initials = userInitials(from: user?.fullName)
-        return ZStack {
-            LinearGradient(
-                colors: [Color.blue.opacity(0.7), Color.blue],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            Text(initials)
-                .font(.title2.weight(.semibold))
-                .foregroundStyle(.white)
+            InitialsAvatar(initials: userInitials(from: user?.fullName))
         }
     }
 
@@ -398,7 +389,7 @@ struct ProfileView: View {
             }
             .padding(12)
             .background(Color.errorRed.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .clipShape(.rect(cornerRadius: 8))
 
             HStack(spacing: 12) {
                 Button {
@@ -439,7 +430,7 @@ struct ProfileView: View {
             }
             .padding(12)
             .background(Color.orange.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .clipShape(.rect(cornerRadius: 8))
 
             Button {
                 Task { await viewModel.cancelDeletionRequest() }
@@ -503,6 +494,25 @@ private func userInitials(from fullName: String?) -> String {
     guard let name = fullName, !name.isEmpty else { return "?" }
     let words = name.split(separator: " ").prefix(2)
     return words.compactMap { $0.first.map { String($0).uppercased() } }.joined()
+}
+
+// MARK: - Initials Avatar
+
+private struct InitialsAvatar: View {
+    let initials: String
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color.blue.opacity(0.7), Color.blue],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            Text(initials)
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(.white)
+        }
+    }
 }
 
 // MARK: - Preview

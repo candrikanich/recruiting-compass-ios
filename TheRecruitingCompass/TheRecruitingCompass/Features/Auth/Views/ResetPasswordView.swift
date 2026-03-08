@@ -5,6 +5,7 @@ struct ResetPasswordView: View {
   @State private var showForgotPassword = false
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
+  @ScaledMetric(relativeTo: .title) private var iconSize: CGFloat = 48
 
   init(authManager: AuthManager? = nil) {
     let manager = authManager ?? .shared
@@ -69,10 +70,6 @@ struct ResetPasswordView: View {
   }
 
   // MARK: - Form State
-
-  private var iconSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 56 : 48
-  }
 
   private var formContent: some View {
     VStack(spacing: 24) {

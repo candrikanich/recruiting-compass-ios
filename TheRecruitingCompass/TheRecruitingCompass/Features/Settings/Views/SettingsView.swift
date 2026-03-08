@@ -34,7 +34,7 @@ struct SettingsView: View {
                 showCodeCopied = true
                 Task {
                   try? await Task.sleep(for: .seconds(2))
-                  await MainActor.run { showCodeCopied = false }
+                  showCodeCopied = false
                 }
               } label: {
                 Text(showCodeCopied ? "Copied!" : "Copy")

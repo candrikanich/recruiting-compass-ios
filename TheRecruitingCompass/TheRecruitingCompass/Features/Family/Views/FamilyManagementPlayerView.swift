@@ -76,10 +76,13 @@ struct FamilyManagementPlayerView: View {
               .buttonStyle(.bordered)
               .accessibilityLabel("Copy family code to clipboard")
 
-              Button(action: { viewModel.shareCode() }) {
-                Label("Share", systemImage: "square.and.arrow.up")
-                  .frame(maxWidth: .infinity)
-              }
+              ShareLink(
+                item: "Join my family on The Recruiting Compass with code: \(code)",
+                label: {
+                  Label("Share", systemImage: "square.and.arrow.up")
+                    .frame(maxWidth: .infinity)
+                }
+              )
               .buttonStyle(.bordered)
               .accessibilityLabel("Share family code")
             }
@@ -281,27 +284,5 @@ struct FamilyManagementPlayerView: View {
     return "\(prefix) dash \(digits)"
   }
 
-  private func shareCode() {
-    guard let code = viewModel.familyCode else { return }
-    let text = "Join my family on The Recruiting Compass with code: \(code)"
-
-    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-          let window = windowScene.windows.first,
-          let rootVC = window.rootViewController else {
-      return
-    }
-
-    let activityVC = UIActivityViewController(
-      activityItems: [text],
-      applicationActivities: nil
-    )
-
-    if let popover = activityVC.popoverPresentationController {
-      popover.sourceView = window
-      popover.sourceRect = CGRect(x: window.bounds.midX, y: window.bounds.midY, width: 0, height: 0)
-      popover.permittedArrowDirections = []
-    }
-
-    rootVC.present(activityVC, animated: true)
-  }
 }
+

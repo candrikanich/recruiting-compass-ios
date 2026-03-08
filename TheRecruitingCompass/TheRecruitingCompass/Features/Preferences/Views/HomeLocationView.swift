@@ -8,44 +8,33 @@ struct HomeLocationView: View {
   }
 
   var body: some View {
+    @Bindable var viewModel = viewModel
     Form {
       // Address Section
       Section {
-        TextField("Street Address", text: Binding(
-          get: { viewModel.location.address ?? "" },
-          set: { viewModel.updateAddress($0) }
-        ))
-        .textContentType(.streetAddressLine1)
-        .autocapitalization(.words)
-        .accessibilityLabel("Street address")
+        TextField("Street Address", text: $viewModel.address)
+          .textContentType(.streetAddressLine1)
+          .autocapitalization(.words)
+          .accessibilityLabel("Street address")
 
         HStack(spacing: 12) {
-          TextField("City", text: Binding(
-            get: { viewModel.location.city ?? "" },
-            set: { viewModel.updateCity($0) }
-          ))
-          .textContentType(.addressCity)
-          .autocapitalization(.words)
-          .accessibilityLabel("City")
+          TextField("City", text: $viewModel.city)
+            .textContentType(.addressCity)
+            .autocapitalization(.words)
+            .accessibilityLabel("City")
 
-          TextField("State", text: Binding(
-            get: { viewModel.location.state ?? "" },
-            set: { viewModel.updateState($0) }
-          ))
-          .textContentType(.addressState)
-          .autocapitalization(.allCharacters)
-          .frame(width: 60)
-          .accessibilityLabel("State (2 letters)")
-          .accessibilityHint("Enter 2-letter state code")
+          TextField("State", text: $viewModel.state)
+            .textContentType(.addressState)
+            .autocapitalization(.allCharacters)
+            .frame(width: 60)
+            .accessibilityLabel("State (2 letters)")
+            .accessibilityHint("Enter 2-letter state code")
         }
 
-        TextField("ZIP Code", text: Binding(
-          get: { viewModel.location.zip ?? "" },
-          set: { viewModel.updateZip($0) }
-        ))
-        .textContentType(.postalCode)
-        .keyboardType(.numberPad)
-        .accessibilityLabel("ZIP code")
+        TextField("ZIP Code", text: $viewModel.zip)
+          .textContentType(.postalCode)
+          .keyboardType(.numberPad)
+          .accessibilityLabel("ZIP code")
       } header: {
         Text("Address")
       } footer: {

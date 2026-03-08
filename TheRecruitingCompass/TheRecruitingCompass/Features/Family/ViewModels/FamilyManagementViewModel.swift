@@ -56,7 +56,7 @@ final class FamilyManagementViewModel {
 
   var formattedCodeGeneratedAt: String? {
     guard let timestamp = codeGeneratedAt else { return nil }
-    return DateFormatter.familyCodeDate.string(from: ISO8601DateFormatter().date(from: timestamp) ?? Date())
+    return DateFormatter.familyCodeDate.string(from: ISO8601DateFormatter().date(from: timestamp) ?? Date.now)
   }
 
   // MARK: - Initialization
@@ -132,7 +132,7 @@ final class FamilyManagementViewModel {
       familyCode = response.familyCode
       familyId = response.familyId
       familyName = response.familyName
-      codeGeneratedAt = ISO8601DateFormatter().string(from: Date())
+      codeGeneratedAt = ISO8601DateFormatter().string(from: Date.now)
       familyMembers = []
 
       showSuccess("Family created successfully!")
@@ -169,7 +169,7 @@ final class FamilyManagementViewModel {
     do {
       let response = try await familyService.regenerateCode(familyId: familyId)
       familyCode = response.familyCode
-      codeGeneratedAt = ISO8601DateFormatter().string(from: Date())
+      codeGeneratedAt = ISO8601DateFormatter().string(from: Date.now)
 
       showSuccess("Family code regenerated successfully!")
     } catch {
@@ -325,35 +325,9 @@ final class FamilyManagementViewModel {
 
     Task {
       try? await Task.sleep(for: FamilyConstants.Duration.successToast)
-      await MainActor.run {
-        showSuccessToast = false
-        successMessage = nil
-      }
+      showSuccessToast = false
+      successMessage = nil
     }
-  }
-
-  func shareCode() {
-    guard let code = familyCode else { return }
-    let text = "Join my family on The Recruiting Compass with code: \(code)"
-
-    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-          let window = windowScene.windows.first,
-          let rootVC = window.rootViewController else {
-      return
-    }
-
-    let activityVC = UIActivityViewController(
-      activityItems: [text],
-      applicationActivities: nil
-    )
-
-    if let popover = activityVC.popoverPresentationController {
-      popover.sourceView = window
-      popover.sourceRect = CGRect(x: window.bounds.midX, y: window.bounds.midY, width: 0, height: 0)
-      popover.permittedArrowDirections = []
-    }
-
-    rootVC.present(activityVC, animated: true)
   }
 
   func formatCodeInput() {

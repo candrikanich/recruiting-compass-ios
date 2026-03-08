@@ -151,6 +151,28 @@ final class HomeLocationViewModel {
     markChanged()
   }
 
+  // MARK: - Flat Binding Properties
+
+  var address: String {
+    get { location.address ?? "" }
+    set { updateAddress(newValue) }
+  }
+
+  var city: String {
+    get { location.city ?? "" }
+    set { updateCity(newValue) }
+  }
+
+  var state: String {
+    get { location.state ?? "" }
+    set { updateState(newValue) }
+  }
+
+  var zip: String {
+    get { location.zip ?? "" }
+    set { updateZip(newValue) }
+  }
+
   // MARK: - Computed
 
   var hasValidAddress: Bool {

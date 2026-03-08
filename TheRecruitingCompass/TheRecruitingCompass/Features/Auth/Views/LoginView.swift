@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 struct LoginView: View {
   private enum ScrollAnchor { case signInButton }
