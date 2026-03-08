@@ -6,9 +6,8 @@ struct AboutView: View {
     var body: some View {
         List {
             Section {
-                Text(
-                    "The Recruiting Compass helps high school student athletes and their families manage the college recruiting journey — tracking schools, coaches, interactions, and timelines in one place. We believe every athlete deserves clarity, control, and a fair shot. No professional service required."
-                )
+                // swiftlint:disable:next line_length
+                Text("The Recruiting Compass helps high school student athletes and their families manage the college recruiting journey — tracking schools, coaches, interactions, and timelines in one place. We believe every athlete deserves clarity, control, and a fair shot. No professional service required.")
                 .font(.body)
                 .foregroundColor(.primary)
                 .padding(.vertical, 4)

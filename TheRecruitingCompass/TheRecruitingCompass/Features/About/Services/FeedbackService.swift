@@ -5,10 +5,10 @@ import OSLog
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "FeedbackService")
 
 enum FeedbackSubject: String, CaseIterable {
-    case bug = "bug"
-    case feature = "feature"
-    case question = "question"
-    case general = "general"
+    case bug
+    case feature
+    case question
+    case general
 
     var displayName: String {
         switch self {
