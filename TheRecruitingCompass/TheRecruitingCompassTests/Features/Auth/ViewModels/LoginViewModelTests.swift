@@ -5,17 +5,20 @@ import XCTest
 final class LoginViewModelTests: XCTestCase {
   var sut: LoginViewModel!
   var mockAuthManager: MockAuthManager!
+  var mockBiometricService: MockBiometricService!
 
   override func setUp() {
     super.setUp()
     clearUserDefaults()
     mockAuthManager = MockAuthManager()
-    sut = LoginViewModel(authManager: mockAuthManager)
+    mockBiometricService = MockBiometricService()
+    sut = LoginViewModel(authManager: mockAuthManager, biometricService: mockBiometricService)
   }
 
   override func tearDown() {
     sut = nil
     mockAuthManager = nil
+    mockBiometricService = nil
     clearUserDefaults()
     super.tearDown()
   }
@@ -619,5 +622,77 @@ final class LoginViewModelTests: XCTestCase {
 
     let cached = try? KeychainHelper.shared.load(String.self, forKey: "cachedEmail")
     XCTAssertNil(cached)
+  }
+
+  // MARK: - Biometric Opt-In Tests
+
+  func testShouldShowBiometricOptInAfterSuccessfulLoginWhenCapable() async {
+    mockBiometricService.canEvaluateResult = true
+    mockAuthManager.biometricEnabled = false
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+
+    await sut.login()
+
+    XCTAssertTrue(sut.shouldShowBiometricOptIn)
+  }
+
+  func testShouldNotShowBiometricOptInWhenDeviceNotCapable() async {
+    mockBiometricService.canEvaluateResult = false
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+
+    await sut.login()
+
+    XCTAssertFalse(sut.shouldShowBiometricOptIn)
+  }
+
+  func testShouldNotShowBiometricOptInWhenAlreadyEnabled() async {
+    mockBiometricService.canEvaluateResult = true
+    mockAuthManager.biometricEnabled = true
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+
+    await sut.login()
+
+    XCTAssertFalse(sut.shouldShowBiometricOptIn)
+  }
+
+  func testShouldNotShowBiometricOptInOnFailedLogin() async {
+    mockBiometricService.canEvaluateResult = true
+    mockAuthManager.shouldThrowLoginError = true
+    mockAuthManager.mockErrorToThrow = .invalidCredentials
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+
+    await sut.login()
+
+    XCTAssertFalse(sut.shouldShowBiometricOptIn)
+  }
+
+  func testEnableBiometricsCallsAuthManagerAndDismisses() async {
+    mockBiometricService.canEvaluateResult = true
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+    await sut.login()
+    XCTAssertTrue(sut.shouldShowBiometricOptIn)
+
+    sut.enableBiometrics()
+
+    XCTAssertEqual(mockAuthManager.enableBiometricsCallCount, 1)
+    XCTAssertFalse(sut.shouldShowBiometricOptIn)
+  }
+
+  func testDismissBiometricOptInClearsFlag() async {
+    mockBiometricService.canEvaluateResult = true
+    sut.email = "user@example.com"
+    sut.password = "ValidPassword123"
+    await sut.login()
+    XCTAssertTrue(sut.shouldShowBiometricOptIn)
+
+    sut.dismissBiometricOptIn()
+
+    XCTAssertFalse(sut.shouldShowBiometricOptIn)
+    XCTAssertEqual(mockAuthManager.enableBiometricsCallCount, 0)
   }
 }
