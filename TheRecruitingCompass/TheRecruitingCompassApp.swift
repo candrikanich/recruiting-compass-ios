@@ -13,6 +13,7 @@ struct TheRecruitingCompassApp: App {
   @State private var authManager = AuthManager.shared
   @State private var familyManager = FamilyManager.shared
   @State private var showResetPassword = false
+  @State private var showBiometricLock = false
   @Environment(\.accessibilityReduceMotion) var reduceMotion
 
   var body: some Scene {
@@ -36,6 +37,24 @@ struct TheRecruitingCompassApp: App {
         reduceMotion ? nil : .easeInOut(duration: 0.2),
         value: authManager.isCheckingSession
       )
+      .overlay {
+        if showBiometricLock {
+          BiometricLockView(
+            authManager: authManager,
+            onSuccess: { showBiometricLock = false },
+            onFailure: {
+              showBiometricLock = false
+              Task { try? await authManager.logout() }
+            }
+          )
+          .transition(.opacity)
+        }
+      }
+      .task {
+        if authManager.biometricEnabled {
+          showBiometricLock = true
+        }
+      }
       .onOpenURL { url in
         handleDeepLink(url)
       }
