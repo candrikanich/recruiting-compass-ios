@@ -214,12 +214,19 @@ final class AddSchoolViewModelTests: XCTestCase {
     XCTAssertNil(viewModel.formErrors.website)
   }
 
-  func testValidateField_website_noProtocol_setsError() {
-    // When
+  func testValidateField_website_nonHttpScheme_setsError() {
+    // Bare domains like "harvard.edu" are accepted; non-http schemes are not
+    viewModel.validateField(\.website, value: "ftp://harvard.edu")
+
+    XCTAssertNotNil(viewModel.formErrors.website)
+  }
+
+  func testValidateField_website_bareDomain_clearsError() {
+    viewModel.formErrors.website = "Previous error"
+
     viewModel.validateField(\.website, value: "harvard.edu")
 
-    // Then
-    XCTAssertEqual(viewModel.formErrors.website, "Please enter a valid URL (must start with http:// or https://)")
+    XCTAssertNil(viewModel.formErrors.website)
   }
 
   func testValidateField_website_empty_clearsError() {
@@ -362,7 +369,7 @@ final class AddSchoolViewModelTests: XCTestCase {
   func testSubmitSchool_invalidWebsite_returnsNil() async {
     // Given
     viewModel.formState.name = "Harvard"
-    viewModel.formState.website = "not-a-url" // Invalid: no protocol
+    viewModel.formState.website = "ftp://harvard.edu" // Invalid: non-http scheme
 
     // When
     let result = await viewModel.submitSchool()
@@ -375,9 +382,9 @@ final class AddSchoolViewModelTests: XCTestCase {
 
   func testSubmitSchool_multipleErrors_returnsNilWithAllErrors() async {
     // Given
-    viewModel.formState.name = "" // Invalid
-    viewModel.formState.website = "bad-url" // Invalid
-    viewModel.formState.notes = String(repeating: "a", count: 5001) // Invalid
+    viewModel.formState.name = "" // Invalid: required
+    viewModel.formState.website = "ftp://bad.edu" // Invalid: non-http scheme
+    viewModel.formState.notes = String(repeating: "a", count: 5001) // Invalid: too long
 
     // When
     let result = await viewModel.submitSchool()

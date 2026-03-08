@@ -19,6 +19,7 @@ struct TheRecruitingCompassApp: App {
   @State private var onboardingManager = OnboardingManager()
   @State private var networkMonitor = NetworkMonitor()
   @State private var showResetPassword = false
+  @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
   @State private var pendingInvite: PendingInvite?
   @Environment(\.accessibilityReduceMotion) var reduceMotion
@@ -44,6 +45,24 @@ struct TheRecruitingCompassApp: App {
         reduceMotion ? nil : .easeInOut(duration: 0.2),
         value: authManager.isCheckingSession
       )
+      .overlay {
+        if showBiometricLock {
+          BiometricLockView(
+            authManager: authManager,
+            onSuccess: { showBiometricLock = false },
+            onFailure: {
+              showBiometricLock = false
+              Task { try? await authManager.logout() }
+            }
+          )
+          .transition(.opacity)
+        }
+      }
+      .task {
+        if authManager.isAuthenticated && authManager.biometricEnabled {
+          showBiometricLock = true
+        }
+      }
       .onOpenURL { url in
         handleDeepLink(url)
       }
