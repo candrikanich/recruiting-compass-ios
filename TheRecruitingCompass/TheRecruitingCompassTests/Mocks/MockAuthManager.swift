@@ -180,6 +180,11 @@ class MockAuthManager: AuthManaging {
     }
   }
 
+  func updateUser(_ user: User) {
+    self.user = user
+    self.mockUserToReturn = user
+  }
+
   func logout() async throws {
     logoutCallCount += 1
 

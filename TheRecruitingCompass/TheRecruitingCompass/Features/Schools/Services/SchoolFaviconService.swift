@@ -98,7 +98,7 @@ actor SchoolFaviconService: SchoolFaviconManaging {
 
 // MARK: - Response Model
 
-private struct FaviconResponse: Decodable {
+private struct FaviconResponse: @preconcurrency Decodable, Sendable {
   let success: Bool
   let faviconUrl: String?
   let domain: String?

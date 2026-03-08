@@ -16,7 +16,7 @@ final class TasksServiceImplTests: XCTestCase {
   }
 
   func testConformsToTasksManaging() {
-    XCTAssertTrue(sut is TasksManaging)
+    XCTAssertNotNil(sut as? any TasksManaging)
   }
 
   func testFetchTasksWithStatus_DoesNotThrowWhenTableMissing() async {

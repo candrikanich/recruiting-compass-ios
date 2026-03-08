@@ -159,14 +159,14 @@ final class PreferenceServiceImpl: PreferenceManaging, Sendable {
       let jsonData = try JSONEncoder().encode(response.data)
 
       do {
-        let decoded: T = try await MainActor.run { try JSONDecoder().decode(T.self, from: jsonData) }
+        let decoded: T = try JSONDecoder().decode(T.self, from: jsonData)
         logger.info("Successfully fetched preferences for category: \(category.rawValue)")
         return decoded
       } catch let decodeError as DecodingError {
         // One-time migration: repair a Bool/Int type mismatch caused by pre-fix saves
         // where NSNumber(intValue: 1) was wrongly stored as JSONValue.bool(true).
         if let repairedData = repairBoolIntMismatch(in: jsonData, error: decodeError),
-           let decoded = try? await MainActor.run(resultType: T.self, body: { try JSONDecoder().decode(T.self, from: repairedData) }) {
+           let decoded = try? JSONDecoder().decode(T.self, from: repairedData) {
           logger.warning("[\(category.rawValue)] Repaired Bool/Int type mismatch — re-saving corrected data")
           _ = try? await savePreferences(category: category, data: decoded)
           return decoded

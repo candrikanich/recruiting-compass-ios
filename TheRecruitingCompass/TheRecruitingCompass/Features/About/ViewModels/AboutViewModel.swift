@@ -20,8 +20,8 @@ final class AboutViewModel {
 
     private let feedbackService: FeedbackManaging
 
-    init(feedbackService: FeedbackManaging = FeedbackServiceImpl()) {
-        self.feedbackService = feedbackService
+    init(feedbackService: FeedbackManaging? = nil) {
+        self.feedbackService = feedbackService ?? FeedbackServiceImpl()
     }
 
     nonisolated deinit {}

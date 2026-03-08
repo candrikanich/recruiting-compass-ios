@@ -76,13 +76,13 @@ final class ProfileViewModel {
     private let authManager: AuthManager
 
     init(
-        profileService: ProfileManaging = ProfileServiceImpl(),
-        photoService: ProfilePhotoManaging = ProfilePhotoServiceImpl(),
-        authManager: AuthManager = .shared
+        profileService: ProfileManaging? = nil,
+        photoService: ProfilePhotoManaging? = nil,
+        authManager: AuthManager? = nil
     ) {
-        self.profileService = profileService
-        self.photoService = photoService
-        self.authManager = authManager
+        self.profileService = profileService ?? ProfileServiceImpl()
+        self.photoService = photoService ?? ProfilePhotoServiceImpl()
+        self.authManager = authManager ?? .shared
     }
 
     nonisolated deinit {}
