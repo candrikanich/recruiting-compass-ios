@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- App does not track users across other apps or websites -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<!--
+		Regulated API usage.
+		Only UserDefaults applies here. All other APIs used (LocalAuthentication,
+		MapKit/CLGeocoder, PhotosUI via PHPickerViewController) do not require
+		reason declarations under Apple's current required-reason API list.
+	-->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<!-- UserDefaults: used for local app state (task storage, onboarding flags,
+			     widget visibility preferences, cached sort/filter state). No cross-app access. -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<!-- CA92.1: Read/write data accessible only to the app itself -->
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+
+	<!--
+		Data collected from users of this app.
+		Nutrition label details are configured in App Store Connect —
+		this list is intentionally empty (no SDK-level collection declared here).
+	-->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+</dict>
+</plist>
