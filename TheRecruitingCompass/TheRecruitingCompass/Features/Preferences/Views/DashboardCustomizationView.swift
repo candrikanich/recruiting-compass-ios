@@ -45,33 +45,10 @@ struct DashboardCustomizationView: View {
             onChange: { viewModel.markChanged() }
           )
 
-          ToggleCard(
-            icon: "calendar",
-            label: "Events",
-            isOn: $viewModel.visibility.statsCards.events,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
-            icon: "chart.bar.fill",
-            label: "Performance",
-            isOn: $viewModel.visibility.statsCards.performance,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
-            icon: "bell.fill",
-            label: "Notifications",
-            isOn: $viewModel.visibility.statsCards.notifications,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
-            icon: "at",
-            label: "Social Media",
-            isOn: $viewModel.visibility.statsCards.socialMedia,
-            onChange: { viewModel.markChanged() }
-          )
+          ToggleCard(icon: "calendar", label: "Events", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "chart.bar.fill", label: "Performance", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "bell.fill", label: "Notifications", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "at", label: "Social Media", isOn: .constant(false), onChange: {}, isComingSoon: true)
         }
       } header: {
         HStack {
@@ -92,23 +69,9 @@ struct DashboardCustomizationView: View {
       Section {
         LazyVGrid(columns: columns, spacing: 12) {
           ToggleCard(
-            icon: "bell.badge.fill",
-            label: "Recent Notifications",
-            isOn: $viewModel.visibility.widgets.recentNotifications,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
-            icon: "link",
-            label: "Linked Accounts",
-            isOn: $viewModel.visibility.widgets.linkedAccounts,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
-            icon: "calendar",
-            label: "Recruiting Calendar",
-            isOn: $viewModel.visibility.widgets.recruitingCalendar,
+            icon: "sparkles",
+            label: "Action Items",
+            isOn: $viewModel.visibility.widgets.actionItems,
             onChange: { viewModel.markChanged() }
           )
 
@@ -127,37 +90,9 @@ struct DashboardCustomizationView: View {
           )
 
           ToggleCard(
-            icon: "doc.badge.ellipsis",
-            label: "Offer Status",
-            isOn: $viewModel.visibility.widgets.offerStatusOverview,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
             icon: "chart.line.uptrend.xyaxis",
             label: "Interaction Trend",
             isOn: $viewModel.visibility.widgets.interactionTrendChart,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
-            icon: "chart.pie.fill",
-            label: "School Interest",
-            isOn: $viewModel.visibility.widgets.schoolInterestChart,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
-            icon: "map.fill",
-            label: "School Map",
-            isOn: $viewModel.visibility.widgets.schoolMapWidget,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
-            icon: "person.wave.2.fill",
-            label: "Coach Follow-up",
-            isOn: $viewModel.visibility.widgets.coachFollowupWidget,
             onChange: { viewModel.markChanged() }
           )
 
@@ -176,39 +111,24 @@ struct DashboardCustomizationView: View {
           )
 
           ToggleCard(
-            icon: "doc.richtext",
-            label: "Recent Docs",
-            isOn: $viewModel.visibility.widgets.recentDocuments,
+            icon: "clock.arrow.circlepath",
+            label: "Recent Activity",
+            isOn: $viewModel.visibility.widgets.recentActivity,
             onChange: { viewModel.markChanged() }
           )
 
-          ToggleCard(
-            icon: "chart.bar.xaxis",
-            label: "Interaction Stats",
-            isOn: $viewModel.visibility.widgets.interactionStats,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
-            icon: "building.columns.fill",
-            label: "School Status",
-            isOn: $viewModel.visibility.widgets.schoolStatusOverview,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
-            icon: "clock.badge.checkmark",
-            label: "Coach Response",
-            isOn: $viewModel.visibility.widgets.coachResponsiveness,
-            onChange: { viewModel.markChanged() }
-          )
-
-          ToggleCard(
-            icon: "exclamationmark.triangle.fill",
-            label: "Deadlines",
-            isOn: $viewModel.visibility.widgets.upcomingDeadlines,
-            onChange: { viewModel.markChanged() }
-          )
+          ToggleCard(icon: "bell.badge.fill", label: "Notifications", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "link", label: "Linked Accounts", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "calendar", label: "Recruiting Calendar", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "doc.badge.ellipsis", label: "Offer Status", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "chart.pie.fill", label: "School Interest", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "map.fill", label: "School Map", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "person.wave.2.fill", label: "Coach Follow-up", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "doc.richtext", label: "Recent Docs", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "chart.bar.xaxis", label: "Interaction Stats", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "building.columns.fill", label: "School Status", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "clock.badge.checkmark", label: "Coach Response", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(icon: "exclamationmark.triangle.fill", label: "Deadlines", isOn: .constant(false), onChange: {}, isComingSoon: true)
         }
       } header: {
         HStack {
@@ -264,25 +184,35 @@ struct ToggleCard: View {
   let label: String
   @Binding var isOn: Bool
   let onChange: () -> Void
+  var isComingSoon: Bool = false
 
   var body: some View {
     Button {
+      guard !isComingSoon else { return }
       isOn.toggle()
       onChange()
     } label: {
       VStack(spacing: 8) {
         Image(systemName: icon)
           .font(.title2)
-          .foregroundColor(isOn ? .blue : .gray)
+          .foregroundColor(isComingSoon ? .gray.opacity(0.4) : (isOn ? .blue : .gray))
 
         Text(label)
           .font(.caption)
           .fontWeight(.medium)
-          .foregroundColor(.primary)
+          .foregroundColor(isComingSoon ? .secondary.opacity(0.5) : .primary)
           .multilineTextAlignment(.center)
           .lineLimit(2)
 
-        if isOn {
+        if isComingSoon {
+          Text("Coming Soon")
+            .font(.system(size: 9, weight: .semibold))
+            .foregroundColor(.secondary)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
+            .background(Color(.systemGray5))
+            .cornerRadius(4)
+        } else if isOn {
           Image(systemName: "checkmark.circle.fill")
             .font(.caption)
             .foregroundColor(.green)
@@ -296,18 +226,19 @@ struct ToggleCard: View {
       .padding(.vertical, 12)
       .background(
         RoundedRectangle(cornerRadius: 8)
-          .fill(isOn ? Color.blue.opacity(0.1) : Color(.systemGray6))
+          .fill(isComingSoon ? Color(.systemGray6).opacity(0.5) : (isOn ? Color.blue.opacity(0.1) : Color(.systemGray6)))
       )
       .overlay(
         RoundedRectangle(cornerRadius: 8)
-          .stroke(isOn ? Color.blue : Color.clear, lineWidth: 3)
+          .stroke(isOn && !isComingSoon ? Color.blue : Color.clear, lineWidth: 3)
       )
-      .scaleEffect(isOn ? 1.0 : 0.98)
+      .scaleEffect(isOn && !isComingSoon ? 1.0 : 0.98)
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(label) \(isOn ? "enabled" : "disabled")")
-    .accessibilityHint("Tap to toggle")
-    .accessibilityAddTraits(isOn ? .isSelected : [])
+    .disabled(isComingSoon)
+    .accessibilityLabel(isComingSoon ? "\(label) coming soon" : "\(label) \(isOn ? "enabled" : "disabled")")
+    .accessibilityHint(isComingSoon ? "Not yet available" : "Tap to toggle")
+    .accessibilityAddTraits(isOn && !isComingSoon ? .isSelected : [])
   }
 }
 

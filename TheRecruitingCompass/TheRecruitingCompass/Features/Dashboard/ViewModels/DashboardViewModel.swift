@@ -9,6 +9,7 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @MainActor
 final class DashboardViewModel {
   var stats: DashboardStats?
+  var widgetVisibility: DashboardWidgetVisibility = .default
   var quickTasks: [QuickTask] = []
   var suggestions: [Suggestion] = []
   /// Additional suggestions queued beyond the 3 returned (for "Show N more").
@@ -30,6 +31,7 @@ final class DashboardViewModel {
   private let dashboardService: any DashboardManaging
   private let taskStorage: QuickTaskStorage
   private let familyManager: FamilyManager
+  private let preferenceService: any PreferenceManaging
 
   var userEmail: String {
     authManager.user?.email ?? "Unknown"
@@ -119,12 +121,14 @@ final class DashboardViewModel {
     authManager: (any AuthManaging)? = nil,
     dashboardService: (any DashboardManaging)? = nil,
     taskStorage: QuickTaskStorage? = nil,
-    familyManager: FamilyManager? = nil
+    familyManager: FamilyManager? = nil,
+    preferenceService: (any PreferenceManaging)? = nil
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.dashboardService = dashboardService ?? DashboardServiceImpl(supabaseManager: .shared)
     self.taskStorage = taskStorage ?? UserDefaultsTaskStorage()
     self.familyManager = familyManager ?? .shared
+    self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
   }
 
   func fetchDashboardData() async {
@@ -151,11 +155,12 @@ final class DashboardViewModel {
       )
       lastUpdated = Date()
       loadQuickTasks()
+      async let visibilityTask: () = fetchWidgetVisibility()
       async let suggestionsTask: () = fetchSuggestions()
       async let eventsTask: () = fetchEvents()
       async let metricsTask: () = fetchMetrics()
       async let trendsTask: () = fetchInteractionTrends()
-      _ = await (suggestionsTask, eventsTask, metricsTask, trendsTask)
+      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask)
       return
     }
 
@@ -175,11 +180,12 @@ final class DashboardViewModel {
       lastUpdated = Date()
 
       loadQuickTasks()
+      async let visibilityTask: () = fetchWidgetVisibility()
       async let suggestionsTask: () = fetchSuggestions()
       async let eventsTask: () = fetchEvents()
       async let metricsTask: () = fetchMetrics()
       async let trendsTask: () = fetchInteractionTrends()
-      _ = await (suggestionsTask, eventsTask, metricsTask, trendsTask)
+      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask)
     } catch {
       logger.error("Failed to load dashboard data: \(error.localizedDescription)")
       errorMessage = "Failed to load dashboard. Pull to refresh."
@@ -334,6 +340,16 @@ final class DashboardViewModel {
       }.sorted { $0.date < $1.date }
     } catch {
       logger.warning("Failed to load interaction trends: \(error.localizedDescription)")
+    }
+  }
+
+  func fetchWidgetVisibility() async {
+    do {
+      if let saved: DashboardWidgetVisibility = try await preferenceService.fetchPreferences(category: .dashboard) {
+        widgetVisibility = saved
+      }
+    } catch {
+      logger.debug("Could not load widget visibility, using defaults: \(error.localizedDescription)")
     }
   }
 

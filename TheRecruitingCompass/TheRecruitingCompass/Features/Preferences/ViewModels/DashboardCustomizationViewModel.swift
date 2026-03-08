@@ -95,10 +95,6 @@ final class DashboardCustomizationViewModel {
     visibility.statsCards.schools = enabled
     visibility.statsCards.interactions = enabled
     visibility.statsCards.offers = enabled
-    visibility.statsCards.events = enabled
-    visibility.statsCards.performance = enabled
-    visibility.statsCards.notifications = enabled
-    visibility.statsCards.socialMedia = enabled
     markChanged()
     logger.debug("All stats cards set to: \(enabled)")
   }
@@ -106,23 +102,13 @@ final class DashboardCustomizationViewModel {
   // MARK: - Widgets Toggles
 
   func toggleAllWidgets(_ enabled: Bool) {
-    visibility.widgets.recentNotifications = enabled
-    visibility.widgets.linkedAccounts = enabled
-    visibility.widgets.recruitingCalendar = enabled
+    visibility.widgets.actionItems = enabled
     visibility.widgets.quickTasks = enabled
     visibility.widgets.atAGlanceSummary = enabled
-    visibility.widgets.offerStatusOverview = enabled
     visibility.widgets.interactionTrendChart = enabled
-    visibility.widgets.schoolInterestChart = enabled
-    visibility.widgets.schoolMapWidget = enabled
-    visibility.widgets.coachFollowupWidget = enabled
     visibility.widgets.eventsSummary = enabled
     visibility.widgets.performanceSummary = enabled
-    visibility.widgets.recentDocuments = enabled
-    visibility.widgets.interactionStats = enabled
-    visibility.widgets.schoolStatusOverview = enabled
-    visibility.widgets.coachResponsiveness = enabled
-    visibility.widgets.upcomingDeadlines = enabled
+    visibility.widgets.recentActivity = enabled
     markChanged()
     logger.debug("All widgets set to: \(enabled)")
   }
@@ -141,30 +127,16 @@ final class DashboardCustomizationViewModel {
     visibility.statsCards.coaches &&
     visibility.statsCards.schools &&
     visibility.statsCards.interactions &&
-    visibility.statsCards.offers &&
-    visibility.statsCards.events &&
-    visibility.statsCards.performance &&
-    visibility.statsCards.notifications &&
-    visibility.statsCards.socialMedia
+    visibility.statsCards.offers
   }
 
   var allWidgetsEnabled: Bool {
-    visibility.widgets.recentNotifications &&
-    visibility.widgets.linkedAccounts &&
-    visibility.widgets.recruitingCalendar &&
+    visibility.widgets.actionItems &&
     visibility.widgets.quickTasks &&
     visibility.widgets.atAGlanceSummary &&
-    visibility.widgets.offerStatusOverview &&
     visibility.widgets.interactionTrendChart &&
-    visibility.widgets.schoolInterestChart &&
-    visibility.widgets.schoolMapWidget &&
-    visibility.widgets.coachFollowupWidget &&
     visibility.widgets.eventsSummary &&
     visibility.widgets.performanceSummary &&
-    visibility.widgets.recentDocuments &&
-    visibility.widgets.interactionStats &&
-    visibility.widgets.schoolStatusOverview &&
-    visibility.widgets.coachResponsiveness &&
-    visibility.widgets.upcomingDeadlines
+    visibility.widgets.recentActivity
   }
 }

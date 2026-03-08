@@ -3,6 +3,7 @@ import SwiftUI
 /// Action items and quick tasks widgets. Extracted so SwiftUI can skip re-evaluating this body
 /// when only other view model state (e.g. stats, charts) changes.
 struct DashboardWidgetsSection: View {
+  let visibility: WidgetVisibility
   let suggestions: [Suggestion]
   let pendingCount: Int
   let canDismissOrCompleteSuggestions: Bool
@@ -16,21 +17,25 @@ struct DashboardWidgetsSection: View {
 
   var body: some View {
     VStack(spacing: 16) {
-      ActionItemsWidget(
-        suggestions: suggestions,
-        pendingCount: pendingCount,
-        canDismissOrComplete: canDismissOrCompleteSuggestions,
-        onDismiss: onDismissSuggestion,
-        onComplete: onCompleteSuggestion
-      )
+      if visibility.actionItems {
+        ActionItemsWidget(
+          suggestions: suggestions,
+          pendingCount: pendingCount,
+          canDismissOrComplete: canDismissOrCompleteSuggestions,
+          onDismiss: onDismissSuggestion,
+          onComplete: onCompleteSuggestion
+        )
+      }
 
-      QuickTaskWidget(
-        tasks: $quickTasks,
-        onAddTask: onAddTask,
-        onToggleTask: onToggleTask,
-        onDeleteTask: onDeleteTask,
-        onClearCompleted: onClearCompleted
-      )
+      if visibility.quickTasks {
+        QuickTaskWidget(
+          tasks: $quickTasks,
+          onAddTask: onAddTask,
+          onToggleTask: onToggleTask,
+          onDeleteTask: onDeleteTask,
+          onClearCompleted: onClearCompleted
+        )
+      }
     }
   }
 }

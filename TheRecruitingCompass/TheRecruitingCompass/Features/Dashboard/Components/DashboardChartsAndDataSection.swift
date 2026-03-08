@@ -3,6 +3,7 @@ import SwiftUI
 /// Charts, events, metrics, and at-a-glance summary. Extracted so SwiftUI can skip re-evaluating
 /// this body when only other view model state (e.g. stats, quick tasks) changes.
 struct DashboardChartsAndDataSection: View {
+  let visibility: WidgetVisibility
   let interactionTrends: [InteractionTrend]
   let events: [FullEvent]
   let metrics: [PerformanceMetric]
@@ -15,21 +16,23 @@ struct DashboardChartsAndDataSection: View {
 
   var body: some View {
     VStack(spacing: 16) {
-      if !interactionTrends.isEmpty {
+      if visibility.interactionTrendChart && !interactionTrends.isEmpty {
         InteractionTrendsChart(trends: interactionTrends)
       }
 
-      if !events.isEmpty {
+      if visibility.eventsSummary && !events.isEmpty {
         UpcomingEventsWidget(events: events)
       }
 
-      RecentActivityWidget()
+      if visibility.recentActivity {
+        RecentActivityWidget()
+      }
 
-      if !metrics.isEmpty {
+      if visibility.performanceSummary && !metrics.isEmpty {
         PerformanceMetricsWidget(metrics: metrics)
       }
 
-      if !isEmpty {
+      if visibility.atAGlanceSummary && !isEmpty {
         AtAGlanceSummary(
           schoolsWithOffers: schoolsWithOffersPercentage,
           avgCoachResponsiveness: avgCoachResponsivenessFormatted,
@@ -45,6 +48,7 @@ struct DashboardChartsAndDataSection: View {
 #Preview {
   ScrollView {
     DashboardChartsAndDataSection(
+      visibility: .default,
       interactionTrends: [],
       events: [],
       metrics: [],

@@ -53,18 +53,22 @@ struct StatsCardVisibility: Codable, Equatable {
 }
 
 struct WidgetVisibility: Codable, Equatable {
+  // Live widgets
+  var actionItems: Bool
+  var quickTasks: Bool
+  var atAGlanceSummary: Bool
+  var interactionTrendChart: Bool
+  var eventsSummary: Bool
+  var performanceSummary: Bool
+  var recentActivity: Bool
+  // Coming soon — stored for future use, not yet rendered
   var recentNotifications: Bool
   var linkedAccounts: Bool
   var recruitingCalendar: Bool
-  var quickTasks: Bool
-  var atAGlanceSummary: Bool
   var offerStatusOverview: Bool
-  var interactionTrendChart: Bool
   var schoolInterestChart: Bool
   var schoolMapWidget: Bool
   var coachFollowupWidget: Bool
-  var eventsSummary: Bool
-  var performanceSummary: Bool
   var recentDocuments: Bool
   var interactionStats: Bool
   var schoolStatusOverview: Bool
@@ -73,18 +77,20 @@ struct WidgetVisibility: Codable, Equatable {
 
   static var `default`: WidgetVisibility {
     WidgetVisibility(
+      actionItems: true,
+      quickTasks: true,
+      atAGlanceSummary: true,
+      interactionTrendChart: true,
+      eventsSummary: true,
+      performanceSummary: true,
+      recentActivity: true,
       recentNotifications: true,
       linkedAccounts: true,
       recruitingCalendar: true,
-      quickTasks: true,
-      atAGlanceSummary: true,
       offerStatusOverview: true,
-      interactionTrendChart: true,
       schoolInterestChart: true,
       schoolMapWidget: true,
       coachFollowupWidget: true,
-      eventsSummary: true,
-      performanceSummary: true,
       recentDocuments: true,
       interactionStats: true,
       schoolStatusOverview: true,
@@ -94,18 +100,20 @@ struct WidgetVisibility: Codable, Equatable {
   }
 
   enum CodingKeys: String, CodingKey {
+    case actionItems
+    case quickTasks
+    case atAGlanceSummary
+    case interactionTrendChart
+    case eventsSummary
+    case performanceSummary
+    case recentActivity
     case recentNotifications
     case linkedAccounts
     case recruitingCalendar
-    case quickTasks
-    case atAGlanceSummary
     case offerStatusOverview
-    case interactionTrendChart
     case schoolInterestChart
     case schoolMapWidget
     case coachFollowupWidget
-    case eventsSummary
-    case performanceSummary
     case recentDocuments
     case interactionStats
     case schoolStatusOverview

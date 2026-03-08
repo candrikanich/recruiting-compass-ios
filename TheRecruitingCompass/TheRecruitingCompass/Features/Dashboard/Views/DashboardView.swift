@@ -45,7 +45,10 @@ struct DashboardView: View {
             } else if viewModel.isEmpty {
               EmptyDashboardState(onAddSchool: { showAddSchool = true })
             } else if let stats = viewModel.stats {
-              DashboardStatsCardsSection(stats: stats)
+              DashboardStatsCardsSection(
+                stats: stats,
+                visibility: viewModel.widgetVisibility.statsCards
+              )
             }
 
             if let error = viewModel.errorMessage {
@@ -54,6 +57,7 @@ struct DashboardView: View {
 
             if !viewModel.isEmpty {
               DashboardWidgetsSection(
+                visibility: viewModel.widgetVisibility.widgets,
                 suggestions: viewModel.suggestions,
                 pendingCount: viewModel.suggestionsPendingCount,
                 canDismissOrCompleteSuggestions: !viewModel.isParentPreviewMode,
@@ -67,6 +71,7 @@ struct DashboardView: View {
               )
 
               DashboardChartsAndDataSection(
+                visibility: viewModel.widgetVisibility.widgets,
                 interactionTrends: viewModel.interactionTrends,
                 events: viewModel.events,
                 metrics: viewModel.metrics,
