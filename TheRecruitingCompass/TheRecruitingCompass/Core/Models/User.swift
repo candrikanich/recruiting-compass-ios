@@ -10,6 +10,7 @@ struct User: Codable, Identifiable {
   let updatedAt: String
   let role: UserRole?
   let dateOfBirth: String?
+  let profilePhotoUrl: String?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -21,6 +22,7 @@ struct User: Codable, Identifiable {
     case updatedAt = "updated_at"
     case role
     case dateOfBirth = "date_of_birth"
+    case profilePhotoUrl = "profile_photo_url"
   }
 
   init(
@@ -32,7 +34,8 @@ struct User: Codable, Identifiable {
     createdAt: String,
     updatedAt: String,
     role: UserRole?,
-    dateOfBirth: String? = nil
+    dateOfBirth: String? = nil,
+    profilePhotoUrl: String? = nil
   ) {
     self.id = id
     self.email = email
@@ -43,5 +46,6 @@ struct User: Codable, Identifiable {
     self.updatedAt = updatedAt
     self.role = role
     self.dateOfBirth = dateOfBirth
+    self.profilePhotoUrl = profilePhotoUrl
   }
 }

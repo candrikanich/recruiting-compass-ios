@@ -78,6 +78,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     let createdAt: String
     let updatedAt: String
     let dateOfBirth: String?
+    let profilePhotoUrl: String?
 
     enum CodingKeys: String, CodingKey {
       case id
@@ -89,6 +90,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       case createdAt = "created_at"
       case updatedAt = "updated_at"
       case dateOfBirth = "date_of_birth"
+      case profilePhotoUrl = "profile_photo_url"
     }
   }
 
@@ -305,7 +307,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       createdAt: dbUser.createdAt,
       updatedAt: dbUser.updatedAt,
       role: UserRole(rawValue: dbUser.role),
-      dateOfBirth: dbUser.dateOfBirth
+      dateOfBirth: dbUser.dateOfBirth,
+      profilePhotoUrl: dbUser.profilePhotoUrl
     )
   }
 

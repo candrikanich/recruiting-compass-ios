@@ -64,6 +64,17 @@ struct SettingsView: View {
         // Profile & Player Info Section
         Section {
           NavigationLink {
+            ProfileView(preferenceService: preferenceService)
+          } label: {
+            SettingsRow(
+              icon: "person.circle.fill",
+              title: "My Profile",
+              description: "Photo, name, email, password, and account settings",
+              color: .blue
+            )
+          }
+
+          NavigationLink {
             HomeLocationView(preferenceService: preferenceService)
           } label: {
             SettingsRow(

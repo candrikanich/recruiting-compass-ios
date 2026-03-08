@@ -153,6 +153,22 @@ final class AuthManager: AuthManaging {
     }
   }
 
+  func updateUser(_ user: User) {
+    self.user = user
+    if var session = session {
+      session = Session(
+        accessToken: session.accessToken,
+        tokenType: session.tokenType,
+        expiresIn: session.expiresIn,
+        expiresAt: session.expiresAt,
+        refreshToken: session.refreshToken,
+        user: user
+      )
+      self.session = session
+      try? keychain.save(session, forKey: sessionKey)
+    }
+  }
+
   func enableBiometrics() throws {
     try keychain.save(true, forKey: biometricEnabledKey)
   }
