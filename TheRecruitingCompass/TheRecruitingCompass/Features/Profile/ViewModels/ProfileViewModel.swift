@@ -60,7 +60,7 @@ final class ProfileViewModel {
 
         var text: String {
             switch self {
-            case .success(let t), .error(let t): return t
+            case .success(let msg), .error(let msg): return msg
             }
         }
         var isSuccess: Bool {

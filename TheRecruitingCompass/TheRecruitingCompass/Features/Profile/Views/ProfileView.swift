@@ -362,6 +362,7 @@ struct ProfileView: View {
 
     private var deletionDefaultState: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // swiftlint:disable:next line_length
             Text("You can request deletion of your account and all associated data. Your account will be permanently deleted 30 days after your request, giving you time to change your mind.")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
