@@ -22,7 +22,7 @@ struct StatCardSkeleton: View {
     .padding()
     .frame(maxWidth: .infinity, minHeight: 120)
     .background(Color.gray.opacity(0.1))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .opacity(isAnimating ? 0.5 : 1.0)
     .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isAnimating)
     .onAppear { isAnimating = true }

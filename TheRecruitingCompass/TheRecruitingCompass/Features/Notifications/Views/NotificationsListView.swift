@@ -111,20 +111,20 @@ struct NotificationsListView: View {
         InteractionDetailView(interactionId: id, familyUnitId: familyUnitId)
       } else {
         Text("Unable to load interaction details")
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
       }
 
     case .offerDetail:
       Text("Offer details coming soon")
         .font(.headline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Offer")
 
     case .eventDetail:
       Text("Event details coming soon")
         .font(.headline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Event")
     }

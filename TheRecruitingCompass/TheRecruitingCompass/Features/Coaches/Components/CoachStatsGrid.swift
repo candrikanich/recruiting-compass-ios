@@ -41,13 +41,13 @@ struct CoachStatsGrid: View {
     VStack(spacing: 8) {
       Text(value)
         .font(sizeCategory.isAccessibilityCategory ? .title2.bold() : .title3.bold())
-        .foregroundColor(color)
+        .foregroundStyle(color)
         .lineLimit(1)
         .minimumScaleFactor(0.8)
 
       Text(title)
-        .font(sizeCategory.isAccessibilityCategory ? .caption.bold() : .caption2.bold())
-        .foregroundColor(.secondaryText)
+        .font(sizeCategory.isAccessibilityCategory ? .caption.bold() : .caption.bold())
+        .foregroundStyle(Color.secondaryText)
         .multilineTextAlignment(.center)
         .lineLimit(2)
         .minimumScaleFactor(0.9)

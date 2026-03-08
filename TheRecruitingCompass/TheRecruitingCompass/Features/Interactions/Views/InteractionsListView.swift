@@ -31,7 +31,7 @@ struct InteractionsListView: View {
           if let error = viewModel.deleteErrorMessage { Text(error) }
         }
         .toolbar {
-          ToolbarItem(placement: .navigationBarTrailing) {
+          ToolbarItem(placement: .topBarTrailing) {
             Button {
               navigationPath.append(InteractionDestination.add)
             } label: {

@@ -10,7 +10,7 @@ struct PlaceholderListView: View {
       Section {
         Text(message)
           .font(.body)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
       } header: {
         Text(header)
           .font(.caption)

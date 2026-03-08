@@ -142,7 +142,7 @@ struct PhaseCardTaskRow: View {
       VStack(alignment: .leading, spacing: 4) {
         if task.isLocked {
           Text("Locked")
-            .font(.caption2.weight(.medium))
+            .font(.caption.weight(.medium))
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(Color.orange.opacity(0.2))

@@ -21,10 +21,10 @@ struct StatCard: View {
       HStack {
         Image(systemName: icon)
           .font(.system(size: iconSize))
-          .foregroundColor(.white)
+          .foregroundStyle(.white)
           .padding(8)
           .background(Color.white.opacity(0.25))
-          .cornerRadius(8)
+          .clipShape(.rect(cornerRadius: 8))
           .accessibilityHidden(true)
 
         Spacer()
@@ -33,22 +33,22 @@ struct StatCard: View {
       VStack(alignment: .leading, spacing: 4) {
         Text("\(count)")
           .font(.largeTitle.weight(.bold))
-          .foregroundColor(.white)
+          .foregroundStyle(.white)
 
         Text(title)
           .font(.subheadline.weight(.bold))
-          .foregroundColor(.white.opacity(0.9))
+          .foregroundStyle(.white.opacity(0.9))
 
         if let subtitle = subtitle {
           Text(subtitle)
             .font(.caption)
-            .foregroundColor(.white.opacity(0.7))
+            .foregroundStyle(.white.opacity(0.7))
         }
 
         if let description = description {
           Text(description)
             .font(.caption)
-            .foregroundColor(.white.opacity(0.85))
+            .foregroundStyle(.white.opacity(0.85))
         }
       }
     }
@@ -63,7 +63,7 @@ struct StatCard: View {
         endPoint: .bottomTrailing
       )
     )
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     .opacity(isEnabled ? 1.0 : 0.7)
     .accessibilityElement(children: .combine)

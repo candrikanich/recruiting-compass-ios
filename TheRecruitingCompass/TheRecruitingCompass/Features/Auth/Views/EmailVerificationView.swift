@@ -34,7 +34,8 @@ struct EmailVerificationView: View {
     }
     .onChange(of: viewModel.verificationState) { _, newState in
       if case .verified = newState {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        Task {
+          try? await Task.sleep(for: .seconds(0.3))
           UIAccessibility.post(
             notification: .announcement,
             argument: "Email verified! You can now access the app."
@@ -56,7 +57,7 @@ struct EmailVerificationView: View {
       Button(action: { dismiss() }) {
         Text("← Back to Welcome")
           .font(.footnote.weight(.semibold))
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
       }
@@ -88,7 +89,7 @@ struct EmailVerificationView: View {
       .padding(32)
     }
     .background(Color.white.opacity(0.95))
-    .cornerRadius(16)
+    .clipShape(.rect(cornerRadius: 16))
     .padding(24)
   }
 
@@ -96,11 +97,11 @@ struct EmailVerificationView: View {
     VStack(alignment: .leading, spacing: 12) {
       Text(viewModel.headlineText)
         .font(.title2.weight(.semibold))
-        .foregroundColor(Color.darkSlate)
+        .foregroundStyle(Color.darkSlate)
 
       Text(viewModel.subtitleText)
         .font(.footnote)
-        .foregroundColor(Color.secondaryText)
+        .foregroundStyle(Color.secondaryText)
     }
     .accessibilityElement(children: .combine)
     .accessibilityLabel(viewModel.headlineText)
@@ -139,9 +140,9 @@ struct EmailVerificationView: View {
       }
       .frame(maxWidth: .infinity)
       .frame(height: 48)
-      .foregroundColor(.white)
+      .foregroundStyle(.white)
       .background(LinearGradient.primaryButton)
-      .cornerRadius(8)
+      .clipShape(.rect(cornerRadius: 8))
       .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
       .disabled(viewModel.isButtonDisabled)
     }
@@ -154,7 +155,7 @@ struct EmailVerificationView: View {
     if viewModel.shouldShowCooldownText {
       Text("Resend email in \(viewModel.resendCooldownSeconds)s")
         .font(.caption)
-        .foregroundColor(Color.secondaryText)
+        .foregroundStyle(Color.secondaryText)
         .frame(maxWidth: .infinity, alignment: .center)
         .accessibilityLabel("Resend available in \(viewModel.resendCooldownSeconds) seconds")
     }

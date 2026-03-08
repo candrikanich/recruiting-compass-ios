@@ -9,7 +9,7 @@ struct AboutView: View {
                 // swiftlint:disable:next line_length
                 Text("The Recruiting Compass helps high school student athletes and their families manage the college recruiting journey — tracking schools, coaches, interactions, and timelines in one place. We believe every athlete deserves clarity, control, and a fair shot. No professional service required.")
                 .font(.body)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
                 .padding(.vertical, 4)
             }
 
@@ -32,8 +32,8 @@ struct AboutView: View {
                     .accessibilityHint("Enter your feedback message")
 
                     Text("\(viewModel.characterCount) / 5000")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                 }
 
@@ -41,13 +41,13 @@ struct AboutView: View {
                 case .success:
                     Label("Thanks for your message — we'll be in touch soon.", systemImage: "checkmark.circle.fill")
                         .font(.subheadline)
-                        .foregroundColor(.primaryGreen)
+                        .foregroundStyle(Color.primaryGreen)
                         .accessibilityLabel("Message sent successfully")
 
                 case .failure(let message):
                     Label(message, systemImage: "exclamationmark.circle.fill")
                         .font(.subheadline)
-                        .foregroundColor(.errorRed)
+                        .foregroundStyle(Color.errorRed)
                         .accessibilityLabel("Error: \(message)")
 
                 case .idle:

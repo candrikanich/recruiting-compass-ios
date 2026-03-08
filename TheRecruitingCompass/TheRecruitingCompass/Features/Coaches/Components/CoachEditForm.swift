@@ -26,7 +26,7 @@ struct CoachEditForm: View {
           if let error = validationErrors["firstName"] {
             Text(error)
               .font(.caption)
-              .foregroundColor(.errorRed)
+              .foregroundStyle(Color.errorRed)
               .accessibilityLabel("First name error: \(error)")
           }
 
@@ -39,7 +39,7 @@ struct CoachEditForm: View {
           if let error = validationErrors["lastName"] {
             Text(error)
               .font(.caption)
-              .foregroundColor(.errorRed)
+              .foregroundStyle(Color.errorRed)
               .accessibilityLabel("Last name error: \(error)")
           }
 
@@ -63,7 +63,7 @@ struct CoachEditForm: View {
           if let error = validationErrors["email"] {
             Text(error)
               .font(.caption)
-              .foregroundColor(.errorRed)
+              .foregroundStyle(Color.errorRed)
               .accessibilityLabel("Email error: \(error)")
           }
 
@@ -75,7 +75,7 @@ struct CoachEditForm: View {
           if let error = validationErrors["phone"] {
             Text(error)
               .font(.caption)
-              .foregroundColor(.errorRed)
+              .foregroundStyle(Color.errorRed)
               .accessibilityLabel("Phone error: \(error)")
           }
         }
@@ -90,7 +90,7 @@ struct CoachEditForm: View {
           if let error = validationErrors["twitterHandle"] {
             Text(error)
               .font(.caption)
-              .foregroundColor(.errorRed)
+              .foregroundStyle(Color.errorRed)
               .accessibilityLabel("Twitter error: \(error)")
           }
 
@@ -103,7 +103,7 @@ struct CoachEditForm: View {
           if let error = validationErrors["instagramHandle"] {
             Text(error)
               .font(.caption)
-              .foregroundColor(.errorRed)
+              .foregroundStyle(Color.errorRed)
               .accessibilityLabel("Instagram error: \(error)")
           }
         }

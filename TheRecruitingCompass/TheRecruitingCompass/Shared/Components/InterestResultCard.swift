@@ -32,7 +32,7 @@ struct InterestResultCard: View {
     }
     .padding()
     .background(level.color.opacity(0.1))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
     .accessibilityLabel("Interest level: \(level.displayName). \(description ?? "")")
   }

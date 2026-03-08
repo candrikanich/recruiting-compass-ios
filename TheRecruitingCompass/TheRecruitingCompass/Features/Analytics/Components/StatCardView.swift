@@ -57,13 +57,13 @@ struct StatCardView: View {
     HStack(spacing: 2) {
       if isPositive {
         Image(systemName: "arrow.up.right")
-          .font(.caption2)
+          .font(.caption)
       } else if isNegative {
         Image(systemName: "arrow.down.right")
-          .font(.caption2)
+          .font(.caption)
       }
       Text(trend)
-        .font(.caption2)
+        .font(.caption)
     }
     .foregroundStyle(isPositive ? Color.successGreen : isNegative ? Color.errorRed : Color.secondaryText)
   }

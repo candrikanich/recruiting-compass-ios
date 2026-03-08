@@ -24,7 +24,7 @@ struct QuickTaskWidget: View {
             onClearCompleted()
           }
           .font(.caption)
-          .foregroundColor(Color.accentBlue)
+          .foregroundStyle(Color.accentBlue)
           .accessibilityLabel("Clear completed tasks")
           .accessibilityHint("Removes all completed tasks from the list")
         }
@@ -55,7 +55,7 @@ struct QuickTaskWidget: View {
       if tasks.isEmpty {
         Text("No tasks yet. Add your first task above!")
           .font(.caption)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .padding(.vertical)
       } else {
         ScrollView {
@@ -74,7 +74,7 @@ struct QuickTaskWidget: View {
     }
     .padding()
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
   }
 
@@ -95,7 +95,7 @@ struct QuickTaskRow: View {
     HStack {
       Button(action: onToggle) {
         Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-          .foregroundColor(task.isCompleted ? Color.successGreen : Color.gray)
+          .foregroundStyle(task.isCompleted ? Color.successGreen : Color.gray)
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
       }
@@ -106,14 +106,14 @@ struct QuickTaskRow: View {
 
       Text(task.text)
         .strikethrough(task.isCompleted)
-        .foregroundColor(task.isCompleted ? Color.secondaryText : Color.primary)
+        .foregroundStyle(task.isCompleted ? Color.secondaryText : Color.primary)
         .accessibilityHidden(true)
 
       Spacer()
 
       Button(action: onDelete) {
         Image(systemName: "trash")
-          .foregroundColor(Color.errorRed)
+          .foregroundStyle(Color.errorRed)
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
       }

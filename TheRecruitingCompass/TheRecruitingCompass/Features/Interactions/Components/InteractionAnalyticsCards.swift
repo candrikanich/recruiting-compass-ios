@@ -63,24 +63,24 @@ struct AnalyticsCard: View {
       HStack(spacing: 8) {
         Image(systemName: icon)
           .font(.system(size: iconSize))
-          .foregroundColor(iconColor)
+          .foregroundStyle(iconColor)
           .accessibilityHidden(true)
 
         Spacer()
 
         Text("\(value)")
           .font(.title.weight(.bold))
-          .foregroundColor(.primary)
+          .foregroundStyle(.primary)
       }
 
       Text(title)
         .font(.caption)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
     }
     .padding(12)
     .frame(maxWidth: .infinity, minHeight: cardHeight, alignment: .leading)
     .background(backgroundColor)
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(accessibilityLabel)
   }

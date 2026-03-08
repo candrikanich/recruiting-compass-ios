@@ -45,7 +45,7 @@ struct ExportFormatSheet: View {
         // Title
         Text("Export Metrics")
           .font(.title2)
-          .fontWeight(.bold)
+          .bold()
 
         // Format Selection
         VStack(alignment: .leading, spacing: 12) {
@@ -159,8 +159,8 @@ struct ShareSheetView: View {
         Label("Share \(filename)", systemImage: "square.and.arrow.up")
       }
       .onAppear {
-        // Auto-dismiss after sharing starts
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        Task {
+          try? await Task.sleep(for: .seconds(0.5))
           dismiss()
         }
       }

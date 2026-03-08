@@ -116,7 +116,7 @@ struct InteractionDetailView: View {
     VStack(alignment: .leading, spacing: 8) {
       Text(viewModel.displaySubject)
         .font(.title2)
-        .fontWeight(.bold)
+        .bold()
         .accessibilityAddTraits(.isHeader)
 
       Text(viewModel.formattedDate)
@@ -129,7 +129,7 @@ struct InteractionDetailView: View {
   // MARK: - Badges Section
 
   private func badgesSection(interaction: Interaction) -> some View {
-    ScrollView(.horizontal, showsIndicators: false) {
+    ScrollView(.horizontal) {
       HStack(spacing: 8) {
         // Type badge
         BadgeView(
@@ -156,6 +156,7 @@ struct InteractionDetailView: View {
         }
       }
     }
+    .scrollIndicators(.hidden)
   }
 
   // MARK: - Content Section
@@ -175,7 +176,7 @@ struct InteractionDetailView: View {
     }
     .padding()
     .background(Color(uiColor: .secondarySystemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 
   // MARK: - Details Grid
@@ -260,7 +261,7 @@ struct InteractionDetailView: View {
     }
     .padding()
     .background(Color(uiColor: .secondarySystemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 
   // MARK: - Metadata Section

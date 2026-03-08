@@ -26,7 +26,7 @@ struct MetricCardView: View {
       HStack(alignment: .firstTextBaseline, spacing: Layout.valueSpacing) {
         Text(metric.formattedValue)
           .font(.title2)
-          .fontWeight(.bold)
+          .bold()
           .foregroundStyle(.primary)
       }
 

@@ -16,12 +16,12 @@ struct SchoolDocumentsSection: View {
               .font(.subheadline)
 
             Text("Coming Soon")
-              .font(.caption2)
+              .font(.caption)
               .padding(.horizontal, 6)
               .padding(.vertical, 2)
               .background(Color.amberGold.opacity(0.2))
               .foregroundStyle(Color.amberGold)
-              .cornerRadius(4)
+              .clipShape(.rect(cornerRadius: 4))
           }
           .foregroundStyle(.secondary)
         }
@@ -34,7 +34,7 @@ struct SchoolDocumentsSection: View {
     }
     .padding()
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
   }
 }

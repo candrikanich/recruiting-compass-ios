@@ -34,9 +34,9 @@ struct HelpBadge: View {
 
   var body: some View {
     Text(type.label)
-      .font(.caption2)
+      .font(.caption)
       .fontWeight(.semibold)
-      .foregroundColor(.white)
+      .foregroundStyle(.white)
       .padding(.horizontal, 8)
       .padding(.vertical, 4)
       .background(type.color)

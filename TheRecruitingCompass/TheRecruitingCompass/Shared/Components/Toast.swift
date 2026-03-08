@@ -92,7 +92,8 @@ struct ToastModifier: ViewModifier {
         .padding(.top, 8)
         .transition(.move(edge: .top).combined(with: .opacity))
         .onAppear {
-          DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+          Task {
+            try? await Task.sleep(for: .seconds(duration))
             withAnimation {
               isShowing = false
               self.message = nil

@@ -49,7 +49,7 @@ struct SchoolQuickActions: View {
     }
     .padding()
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
   }
 }
@@ -88,7 +88,7 @@ private struct QuickActionButton: View {
       .frame(maxWidth: .infinity)
       .padding(.vertical, 12)
       .background(Color(.systemGray6))
-      .cornerRadius(12)
+      .clipShape(.rect(cornerRadius: 12))
     }
     .buttonStyle(.plain)
     .frame(minWidth: 44, minHeight: 44)

@@ -13,7 +13,7 @@ struct LatestMetricCard: View {
       HStack(alignment: .firstTextBaseline, spacing: 4) {
         Text(String(format: "%.2f", metric.value))
           .font(.title)
-          .fontWeight(.bold)
+          .bold()
           .foregroundStyle(Color.accentBlue)
 
         if !metric.unit.isEmpty {
@@ -24,12 +24,12 @@ struct LatestMetricCard: View {
       }
 
       Text(metric.formattedDate)
-        .font(.caption2)
+        .font(.caption)
         .foregroundStyle(.tertiary)
 
       if metric.verified {
         Label("Verified", systemImage: "checkmark.seal.fill")
-          .font(.caption2)
+          .font(.caption)
           .foregroundStyle(Color.successGreen)
       }
     }

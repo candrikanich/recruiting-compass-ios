@@ -47,25 +47,25 @@ struct PasswordStrengthIndicator: View {
       HStack {
         Text("Strength")
           .font(.caption)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .accessibilityHidden(true)
 
         Spacer()
 
         Text(strengthText)
           .font(.caption.weight(.semibold))
-          .foregroundColor(strengthColor)
+          .foregroundStyle(strengthColor)
       }
       .accessibilityElement(children: .combine)
       .accessibilityLabel("Password strength: \(strengthText)")
 
       ZStack(alignment: .leading) {
         RoundedRectangle(cornerRadius: 4)
-          .foregroundColor(Color.borderGray)
+          .foregroundStyle(Color.borderGray)
           .frame(height: 6)
 
         RoundedRectangle(cornerRadius: 4)
-          .foregroundColor(strengthColor)
+          .foregroundStyle(strengthColor)
           .frame(height: 6)
           .scaleEffect(x: strengthPercentage, anchor: .leading)
           .animation(.easeInOut(duration: 0.2), value: strengthPercentage)
@@ -78,13 +78,13 @@ struct PasswordStrengthIndicator: View {
           ForEach(strengthResult.errors, id: \.self) { error in
             HStack(spacing: 6) {
               Image(systemName: "circle.fill")
-                .font(.caption2)
-                .foregroundColor(Color.secondaryText)
+                .font(.caption)
+                .foregroundStyle(Color.secondaryText)
                 .accessibilityHidden(true)
 
               Text("Missing \(error)")
-                .font(.caption2)
-                .foregroundColor(Color.secondaryText)
+                .font(.caption)
+                .foregroundStyle(Color.secondaryText)
             }
           }
         }

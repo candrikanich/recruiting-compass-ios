@@ -18,7 +18,7 @@ struct NotesSection: View {
       HStack {
         Text(title)
           .font(sizeCategory.isAccessibilityCategory ? .title3.bold() : .headline.bold())
-          .foregroundColor(.primary)
+          .foregroundStyle(.primary)
 
         Spacer()
       }
@@ -26,7 +26,7 @@ struct NotesSection: View {
       if isPrivate {
         Text("Only visible to you")
           .font(.caption)
-          .foregroundColor(.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .accessibilityHidden(true)
       }
 

@@ -19,7 +19,7 @@ struct RecentInteractionRow: View {
 
         Image(systemName: interaction.type.iconName)
           .font(.system(size: iconSize * 0.6))
-          .foregroundColor(interaction.type.iconColor)
+          .foregroundStyle(interaction.type.iconColor)
       }
       .accessibilityHidden(true)
 
@@ -27,12 +27,12 @@ struct RecentInteractionRow: View {
         HStack(spacing: 8) {
           Text(interaction.type.displayName)
             .font(sizeCategory.isAccessibilityCategory ? .body.weight(.semibold) : .subheadline.weight(.semibold))
-            .foregroundColor(.primary)
+            .foregroundStyle(.primary)
 
           if let sentiment = interaction.sentiment {
             Text(sentiment.displayName)
-              .font(.caption2.weight(.medium))
-              .foregroundColor(.white)
+              .font(.caption.weight(.medium))
+              .foregroundStyle(.white)
               .padding(.horizontal, 6)
               .padding(.vertical, 2)
               .background(sentiment.badgeColor)
@@ -43,7 +43,7 @@ struct RecentInteractionRow: View {
         if let subject = interaction.subject, !subject.isEmpty {
           Text(subject)
             .font(sizeCategory.isAccessibilityCategory ? .callout : .caption)
-            .foregroundColor(.secondaryText)
+            .foregroundStyle(Color.secondaryText)
             .lineLimit(1)
         }
       }
@@ -52,7 +52,7 @@ struct RecentInteractionRow: View {
 
       Text(interaction.displayDate, style: .date)
         .font(.caption)
-        .foregroundColor(.secondaryText)
+        .foregroundStyle(Color.secondaryText)
     }
     .padding(.vertical, 8)
     .accessibilityElement(children: .combine)

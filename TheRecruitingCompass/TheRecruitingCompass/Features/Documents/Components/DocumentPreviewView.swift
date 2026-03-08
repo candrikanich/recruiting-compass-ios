@@ -68,7 +68,7 @@ private struct VideoPreviewLayoutModifier: ViewModifier {
     } else {
       content
         .aspectRatio(16/9, contentMode: .fit)
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
   }
 }
@@ -161,7 +161,7 @@ private struct ImagePreviewLayoutModifier: ViewModifier {
       content
     } else {
       content
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
   }
 }
@@ -259,7 +259,7 @@ private struct PDFPreviewLayoutModifier: ViewModifier {
     } else {
       content
         .frame(minHeight: 400)
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
   }
 }

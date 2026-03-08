@@ -16,7 +16,7 @@ struct AthleteSelector: View {
       if athletes.isEmpty {
         Text("No linked athletes found")
           .font(.caption)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .padding(.vertical)
           .accessibilityHint("Add family members to your account to select them here")
       } else {
@@ -33,7 +33,7 @@ struct AthleteSelector: View {
     }
     .padding()
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
   }
 }
@@ -48,29 +48,29 @@ struct AthleteRow: View {
       HStack(spacing: 12) {
         Image(systemName: "person.circle.fill")
           .font(.title2)
-          .foregroundColor(isSelected ? Color.primaryGreen : Color.iconGray)
+          .foregroundStyle(isSelected ? Color.primaryGreen : Color.iconGray)
 
         VStack(alignment: .leading, spacing: 2) {
           Text(athlete.role.capitalized)
             .font(.subheadline)
             .fontWeight(.semibold)
-            .foregroundColor(Color.darkSlate)
+            .foregroundStyle(Color.darkSlate)
 
           Text("ID: \(athlete.userId.prefix(8))...")
             .font(.caption)
-            .foregroundColor(Color.secondaryText)
+            .foregroundStyle(Color.secondaryText)
         }
 
         Spacer()
 
         if isSelected {
           Image(systemName: "checkmark.circle.fill")
-            .foregroundColor(Color.primaryGreen)
+            .foregroundStyle(Color.primaryGreen)
         }
       }
       .padding(12)
       .background(isSelected ? Color.primaryGreen.opacity(0.1) : Color(.secondarySystemBackground))
-      .cornerRadius(8)
+      .clipShape(.rect(cornerRadius: 8))
     }
     .buttonStyle(PlainButtonStyle())
     .accessibilityElement(children: .combine)

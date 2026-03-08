@@ -41,7 +41,7 @@ struct VerificationStatusIcon: View {
         case .pending:
           Image(systemName: "envelope.fill")
             .font(.system(size: iconSize))
-            .foregroundColor(Color.amberGold)
+            .foregroundStyle(Color.amberGold)
             .accessibilityHidden(true)
 
         case .checking:
@@ -53,7 +53,7 @@ struct VerificationStatusIcon: View {
         case .verified:
           Image(systemName: "checkmark.circle.fill")
             .font(.system(size: iconSize))
-            .foregroundColor(Color.successGreen)
+            .foregroundStyle(Color.successGreen)
             .scaleEffect(isAnimating && !reduceMotion ? 1.1 : 1.0)
             .animation(
               reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.7),
@@ -64,7 +64,7 @@ struct VerificationStatusIcon: View {
         case .error:
           Image(systemName: "xmark.circle.fill")
             .font(.system(size: iconSize))
-            .foregroundColor(Color.red)
+            .foregroundStyle(Color.red)
             .accessibilityHidden(true)
         }
       }

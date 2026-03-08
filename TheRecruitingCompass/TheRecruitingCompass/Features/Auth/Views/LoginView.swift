@@ -47,7 +47,7 @@ struct LoginView: View {
           }
         }
         .background(Color(uiColor: .systemBackground))
-        .cornerRadius(16)
+        .clipShape(.rect(cornerRadius: 16))
         .padding(24)
 
         Spacer()
@@ -74,7 +74,7 @@ struct LoginView: View {
           Text("Back to Welcome")
             .font(.footnote.weight(.semibold))
         }
-        .foregroundColor(Color.darkSlate)
+        .foregroundStyle(Color.darkSlate)
       }
       .accessibilityLabel("Back to welcome screen")
       .accessibilityHint("Returns to the login screen")
@@ -122,10 +122,7 @@ struct LoginView: View {
       placeholder: "your.email@example.com",
       icon: "envelope",
       text: $viewModel.email,
-      error: Binding(
-        get: { viewModel.fieldErrors[.email] },
-        set: { viewModel.fieldErrors[.email] = $0 }
-      ),
+      error: viewModel.errorBinding(for: .email),
       isSecure: false,
       keyboardType: .emailAddress,
       textContentType: .emailAddress,
@@ -140,10 +137,7 @@ struct LoginView: View {
       placeholder: "Enter your password",
       icon: "lock",
       text: $viewModel.password,
-      error: Binding(
-        get: { viewModel.fieldErrors[.password] },
-        set: { viewModel.fieldErrors[.password] = $0 }
-      ),
+      error: viewModel.errorBinding(for: .password),
       isSecure: true,
       keyboardType: .default,
       textContentType: .password,
@@ -162,7 +156,7 @@ struct LoginView: View {
       Button(action: { viewModel.rememberMe.toggle() }) {
         HStack(spacing: 6) {
           Image(systemName: viewModel.rememberMe ? "checkmark.square.fill" : "square")
-            .foregroundColor(Color.accentBlue)
+            .foregroundStyle(Color.accentBlue)
             .accessibilityHidden(true)
 
           Text("Remember me")
@@ -206,9 +200,9 @@ struct LoginView: View {
       }
       .frame(maxWidth: .infinity)
       .frame(height: 48)
-      .foregroundColor(.white)
+      .foregroundStyle(.white)
       .background(LinearGradient.primaryButton)
-      .cornerRadius(8)
+      .clipShape(.rect(cornerRadius: 8))
       .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
       .disabled(viewModel.isButtonDisabled)
     }
@@ -243,7 +237,7 @@ struct LoginView: View {
               .font(.caption.weight(.semibold))
               .accessibilityHidden(true)
           }
-          .foregroundColor(Color.accentBlue)
+          .foregroundStyle(Color.accentBlue)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
         }

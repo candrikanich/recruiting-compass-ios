@@ -116,6 +116,13 @@ final class LoginViewModel {
     errorMessage = nil
   }
 
+  func errorBinding(for key: FormFieldKey) -> Binding<String?> {
+    Binding(
+      get: { self.fieldErrors[key] },
+      set: { self.fieldErrors[key] = $0 }
+    )
+  }
+
   // MARK: - Biometric Opt-In
 
   func enableBiometrics() {

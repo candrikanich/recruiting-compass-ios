@@ -74,7 +74,7 @@ struct SchoolPreferencesView: View {
       } else {
         Section {
           Text("No preferences set. Apply a template or add your own.")
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
             .font(.callout)
         }
       }
@@ -95,7 +95,7 @@ struct SchoolPreferencesView: View {
     .navigationTitle("School Preferences")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
-      ToolbarItem(placement: .navigationBarLeading) {
+      ToolbarItem(placement: .topBarLeading) {
         if viewModel.hasPreferences {
           EditButton()
             .accessibilityLabel(editMode?.wrappedValue == .active ? "Done editing" : "Edit preferences")
@@ -153,25 +153,25 @@ struct TemplateCard: View {
       HStack(spacing: 12) {
         Image(systemName: icon)
           .font(.title2)
-          .foregroundColor(.blue)
+          .foregroundStyle(.blue)
           .frame(width: 40)
 
         VStack(alignment: .leading, spacing: 4) {
           Text(title)
             .font(.subheadline)
             .fontWeight(.medium)
-            .foregroundColor(.primary)
+            .foregroundStyle(.primary)
 
           Text(description)
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         }
 
         Spacer()
 
         Image(systemName: "chevron.right")
           .font(.caption)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
       }
       .padding(.vertical, 4)
     }
@@ -190,7 +190,7 @@ struct PreferenceRow: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: categoryIcon)
-        .foregroundColor(categoryColor)
+        .foregroundStyle(categoryColor)
         .frame(width: 24)
 
       VStack(alignment: .leading, spacing: 4) {
@@ -200,27 +200,27 @@ struct PreferenceRow: View {
 
         Text(valueDescription)
           .font(.caption)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
       }
 
       Spacer()
 
       if preference.isDealbreaker {
         Text("DEALBREAKER")
-          .font(.caption2)
-          .fontWeight(.bold)
-          .foregroundColor(.white)
+          .font(.caption)
+          .bold()
+          .foregroundStyle(.white)
           .padding(.horizontal, 8)
           .padding(.vertical, 4)
           .background(Color.red)
-          .cornerRadius(4)
+          .clipShape(.rect(cornerRadius: 4))
       }
 
       Button {
         onToggleDealbreaker()
       } label: {
         Image(systemName: preference.isDealbreaker ? "exclamationmark.triangle.fill" : "exclamationmark.triangle")
-          .foregroundColor(preference.isDealbreaker ? .red : .gray)
+          .foregroundStyle(preference.isDealbreaker ? .red : .gray)
       }
       .buttonStyle(.plain)
       .accessibilityLabel(preference.isDealbreaker ? "Remove dealbreaker" : "Mark as dealbreaker")

@@ -20,7 +20,7 @@ struct FitScoreSection: View {
         VStack(spacing: 4) {
           Text("\(Int(fitScore.score))")
             .font(.largeTitle)
-            .fontWeight(.bold)
+            .bold()
             .foregroundStyle(fitScoreColor(fitScore.score))
             .accessibilityLabel("Fit score: \(Int(fitScore.score)) out of 100")
 
@@ -46,7 +46,7 @@ struct FitScoreSection: View {
           .padding(.horizontal, 12)
           .padding(.vertical, 6)
           .background(fitScore.tier.badgeColors.background)
-          .cornerRadius(12)
+          .clipShape(.rect(cornerRadius: 12))
 
           Text(fitScore.tier.description)
             .font(.caption)
@@ -111,7 +111,7 @@ struct FitScoreSection: View {
     }
     .padding()
     .background(Color(.systemGray6))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 
   private func fitScoreColor(_ score: Double) -> Color {

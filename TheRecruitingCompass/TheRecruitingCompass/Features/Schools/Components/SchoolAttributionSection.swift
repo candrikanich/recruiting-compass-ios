@@ -24,7 +24,7 @@ struct SchoolAttributionSection: View {
           date: updatedAt
         )
       }
-      .font(.caption2)
+      .font(.caption)
       .foregroundStyle(.secondary)
       .frame(maxWidth: .infinity, alignment: .leading)
     }

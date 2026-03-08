@@ -31,7 +31,7 @@ struct DocumentCardView: View {
       .padding(12)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(Color(.secondarySystemGroupedBackground))
-      .cornerRadius(12)
+      .clipShape(.rect(cornerRadius: 12))
     }
     .buttonStyle(.plain)
     .accessibilityLabel(accessibilityLabel)
@@ -60,12 +60,12 @@ struct DocumentCardView: View {
 
   private var typeBadge: some View {
     Text("\(document.typeEmoji) \(document.type.label)")
-      .font(.caption2)
+      .font(.caption)
       .padding(.horizontal, 8)
       .padding(.vertical, 4)
       .background(Color.blue.opacity(0.2))
       .foregroundStyle(.primary)
-      .cornerRadius(6)
+      .clipShape(.rect(cornerRadius: 6))
   }
 
   private var metadataRow: some View {
@@ -77,12 +77,12 @@ struct DocumentCardView: View {
 
   private var sharedBadge: some View {
     Text("Shared: \(document.sharedWithSchools.count)")
-      .font(.caption2)
+      .font(.caption)
       .padding(.horizontal, 6)
       .padding(.vertical, 2)
       .background(Color.green.opacity(0.2))
       .foregroundStyle(.green)
-      .cornerRadius(4)
+      .clipShape(.rect(cornerRadius: 4))
   }
 
   private var accessibilityLabel: String {

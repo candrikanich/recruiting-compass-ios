@@ -15,7 +15,7 @@ struct SchoolEmptyState: View {
     VStack(spacing: 16) {
       Image(systemName: isFiltered ? "line.3.horizontal.decrease.circle" : "building.2")
         .font(.system(size: iconSize))
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
       Text(isFiltered ? "No matching schools" : "No schools found")
@@ -25,7 +25,7 @@ struct SchoolEmptyState: View {
 
       Text(isFiltered ? "Try adjusting your filters" : "Add your first school to get started")
         .font(.body)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
 
       if isFiltered {
@@ -35,7 +35,7 @@ struct SchoolEmptyState: View {
             .padding()
             .frame(minWidth: 200, minHeight: 44)
             .background(Color.blue)
-            .foregroundColor(.white)
+            .foregroundStyle(.white)
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .accessibilityLabel("Clear all filters")

@@ -24,7 +24,7 @@ struct PerformanceMetricsWidget: View {
       if recentMetrics.isEmpty {
         Text("No performance metrics recorded")
           .font(.caption)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .padding(.vertical)
       } else {
         VStack(spacing: 12) {
@@ -41,10 +41,10 @@ struct PerformanceMetricsWidget: View {
                 : "Show \(metrics.count - 4) more metrics")
                 .font(.caption)
               Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
-                .font(.caption2)
+                .font(.caption)
                 .accessibilityHidden(true)
             }
-            .foregroundColor(Color.accentBlue)
+            .foregroundStyle(Color.accentBlue)
           }
           .accessibilityLabel(isShowingAll
             ? "Show fewer metrics"
@@ -57,7 +57,7 @@ struct PerformanceMetricsWidget: View {
     }
     .padding()
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
   }
 }
@@ -89,7 +89,7 @@ struct MetricRow: View {
     HStack(spacing: 12) {
       Image(systemName: metricIcon)
         .font(.title3)
-        .foregroundColor(Color.primaryGreen)
+        .foregroundStyle(Color.primaryGreen)
         .frame(width: 32)
         .accessibilityHidden(true)
 
@@ -100,11 +100,11 @@ struct MetricRow: View {
 
         Text(formattedValue)
           .font(.body)
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
 
         Text(dateFormatted)
           .font(.caption)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
       }
 
       Spacer()
@@ -112,7 +112,7 @@ struct MetricRow: View {
     .padding(12)
     .frame(minHeight: 44)
     .background(Color(.secondarySystemBackground))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(metric.displayName): \(formattedValue)")
     .accessibilityValue("Recorded \(dateFormatted)")

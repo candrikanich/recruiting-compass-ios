@@ -31,10 +31,10 @@ struct HelpFeedbackView: View {
           Text("Was this page helpful?")
             .font(.body)
             .fontWeight(.medium)
-            .foregroundColor(.primary)
+            .foregroundStyle(.primary)
           Text("Your feedback helps us improve our docs.")
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
 
           HStack(spacing: 12) {
             Button {
@@ -66,7 +66,7 @@ struct HelpFeedbackView: View {
         Label("Thanks for your feedback!", systemImage: "checkmark.circle.fill")
           .font(.subheadline)
           .fontWeight(.medium)
-          .foregroundColor(.primaryGreen)
+          .foregroundStyle(Color.primaryGreen)
           .accessibilityLabel("Thanks for your feedback!")
       }
 
@@ -80,15 +80,15 @@ struct HelpFeedbackView: View {
     HStack(spacing: 6) {
       Image(systemName: "envelope")
         .font(.caption)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
       Text("Need more help?")
         .font(.caption)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
       if let url = URL(string: "mailto:support@therecruitingcompass.com") {
         Link("Contact support", destination: url)
           .font(.caption)
           .fontWeight(.medium)
-          .foregroundColor(.accentBlue)
+          .foregroundStyle(Color.accentBlue)
       }
     }
     .accessibilityElement(children: .combine)
@@ -116,7 +116,7 @@ private struct HelpFeedbackButtonStyle: ButtonStyle {
 
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
-      .foregroundColor(highlight ? .primaryGreen : .errorRed)
+      .foregroundStyle(highlight ? Color.primaryGreen : Color.errorRed)
       .padding(.horizontal, 16)
       .padding(.vertical, 10)
       .background(

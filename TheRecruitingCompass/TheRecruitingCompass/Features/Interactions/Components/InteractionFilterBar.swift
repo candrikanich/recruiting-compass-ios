@@ -7,7 +7,7 @@ struct InteractionFilterBar: View {
   let currentUserId: String?
 
   var body: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
+    ScrollView(.horizontal) {
       HStack(spacing: 12) {
         // Type filter
         Menu {
@@ -179,6 +179,7 @@ struct InteractionFilterBar: View {
       .padding(.horizontal, 16)
       .padding(.vertical, 8)
     }
+    .scrollIndicators(.hidden)
   }
 
   // MARK: - Computed Properties

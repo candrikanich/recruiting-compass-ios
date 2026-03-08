@@ -33,7 +33,7 @@ struct FilterChip: View {
       } label: {
         removeIcon
           .font(iconFont)
-          .fontWeight(.bold)
+          .bold()
           .frame(minWidth: 24, minHeight: 24)
           .contentShape(Rectangle())
       }

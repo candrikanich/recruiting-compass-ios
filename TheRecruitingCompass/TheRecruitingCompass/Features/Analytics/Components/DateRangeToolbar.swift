@@ -6,7 +6,7 @@ struct DateRangeToolbar: View {
   let onRangeSelected: (AnalyticsDateRange) async -> Void
 
   var body: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
+    ScrollView(.horizontal) {
       HStack(spacing: 8) {
         ForEach(AnalyticsDateRange.allPresets, id: \.displayName) { range in
           Button {
@@ -52,6 +52,7 @@ struct DateRangeToolbar: View {
       .accessibilityElement(children: .contain)
       .accessibilityLabel("Date range filters")
     }
+    .scrollIndicators(.hidden)
   }
 
   private func isSelected(_ range: AnalyticsDateRange) -> Bool {

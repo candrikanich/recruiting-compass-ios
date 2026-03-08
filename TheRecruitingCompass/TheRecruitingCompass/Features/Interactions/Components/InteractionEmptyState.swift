@@ -15,17 +15,17 @@ struct InteractionEmptyState: View {
     VStack(spacing: 20) {
       Image(systemName: icon)
         .font(.system(size: iconSize))
-        .foregroundColor(.gray.opacity(0.5))
+        .foregroundStyle(.gray.opacity(0.5))
         .accessibilityHidden(true)
 
       VStack(spacing: 8) {
         Text(title)
           .font(.headline)
-          .foregroundColor(.primary)
+          .foregroundStyle(.primary)
 
         Text(subtitle)
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
           .multilineTextAlignment(.center)
       }
 
@@ -36,12 +36,12 @@ struct InteractionEmptyState: View {
           Text("Clear Filters")
             .font(.subheadline)
             .fontWeight(.medium)
-            .foregroundColor(.white)
+            .foregroundStyle(.white)
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
             .frame(minHeight: 44)
             .background(Color.blue)
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
         }
         .accessibilityLabel("Clear all filters")
       } else if !isFilteredEmpty, let onAddInteraction {

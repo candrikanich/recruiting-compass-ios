@@ -218,7 +218,7 @@ struct DocumentViewerView: View {
             .tint(.white)
           if viewModel.downloadProgress > 0, viewModel.downloadProgress < 1 {
             Text("\(Int(viewModel.downloadProgress * 100))%")
-              .font(.caption2)
+              .font(.caption)
               .foregroundStyle(.white)
           }
         }

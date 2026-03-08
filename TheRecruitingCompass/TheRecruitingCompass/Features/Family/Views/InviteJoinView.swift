@@ -327,11 +327,11 @@ struct InviteJoinView: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 8) {
         Image(systemName: "calendar")
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
           .accessibilityHidden(true)
         Text("Date of Birth")
           .font(.subheadline.weight(.medium))
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
       }
 
       DatePicker(
@@ -357,9 +357,9 @@ struct InviteJoinView: View {
       }
       .frame(maxWidth: .infinity)
       .frame(height: 48)
-      .foregroundColor(.white)
+      .foregroundStyle(.white)
       .background(LinearGradient.primaryButton)
-      .cornerRadius(8)
+      .clipShape(.rect(cornerRadius: 8))
       .opacity(isLoading ? 0.7 : 1)
     }
     .disabled(isLoading)

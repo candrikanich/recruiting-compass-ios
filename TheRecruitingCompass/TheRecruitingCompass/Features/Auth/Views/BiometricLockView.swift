@@ -20,12 +20,12 @@ struct BiometricLockView: View {
         VStack(spacing: 16) {
           Image(systemName: "faceid")
             .font(.system(size: 56))
-            .foregroundColor(.white)
+            .foregroundStyle(.white)
             .accessibilityHidden(true)
 
           Text("Sign in with Face ID")
             .font(.title3.weight(.semibold))
-            .foregroundColor(.white)
+            .foregroundStyle(.white)
         }
 
         VStack(spacing: 12) {
@@ -34,16 +34,16 @@ struct BiometricLockView: View {
               .font(.callout.weight(.semibold))
               .frame(maxWidth: .infinity)
               .frame(height: 48)
-              .foregroundColor(.white)
+              .foregroundStyle(.white)
               .background(Color.white.opacity(0.25))
-              .cornerRadius(8)
+              .clipShape(.rect(cornerRadius: 8))
           }
           .accessibilityLabel("Sign in with Face ID")
 
           Button(action: onFailure) {
             Text("Use Password Instead")
               .font(.footnote)
-              .foregroundColor(.white.opacity(0.8))
+              .foregroundStyle(.white.opacity(0.8))
               .frame(minHeight: 44)
           }
           .accessibilityLabel("Sign in with password")

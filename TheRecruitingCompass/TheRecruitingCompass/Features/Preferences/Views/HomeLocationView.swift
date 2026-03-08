@@ -76,14 +76,14 @@ struct HomeLocationView: View {
         if viewModel.hasCoordinates {
           HStack {
             Image(systemName: "checkmark.circle.fill")
-              .foregroundColor(.green)
+              .foregroundStyle(.green)
             VStack(alignment: .leading, spacing: 4) {
               Text("Coordinates Ready")
                 .font(.subheadline)
                 .fontWeight(.medium)
               Text(viewModel.coordinatesText)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             }
           }
           .accessibilityElement(children: .combine)
@@ -94,7 +94,7 @@ struct HomeLocationView: View {
           VStack(alignment: .leading, spacing: 8) {
             HStack {
               Text("Latitude:")
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
               Spacer()
               Text(String(format: "%.6f", latitude))
                 .fontWeight(.medium)
@@ -102,7 +102,7 @@ struct HomeLocationView: View {
 
             HStack {
               Text("Longitude:")
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
               Spacer()
               Text(String(format: "%.6f", longitude))
                 .fontWeight(.medium)

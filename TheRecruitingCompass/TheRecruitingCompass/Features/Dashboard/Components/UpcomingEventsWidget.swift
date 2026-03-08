@@ -24,7 +24,7 @@ struct UpcomingEventsWidget: View {
       if sortedEvents.isEmpty {
         Text("No upcoming events scheduled")
           .font(.caption)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .padding(.vertical)
       } else {
         VStack(spacing: 12) {
@@ -41,10 +41,10 @@ struct UpcomingEventsWidget: View {
                 : "Show \(sortedEvents.count - 3) more events")
                 .font(.caption)
               Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
-                .font(.caption2)
+                .font(.caption)
                 .accessibilityHidden(true)
             }
-            .foregroundColor(Color.accentBlue)
+            .foregroundStyle(Color.accentBlue)
           }
           .accessibilityLabel(isShowingAll
             ? "Show fewer events"
@@ -57,7 +57,7 @@ struct UpcomingEventsWidget: View {
     }
     .padding()
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
   }
 }
@@ -122,7 +122,7 @@ struct EventRow: View {
     HStack(spacing: 12) {
       Image(systemName: eventTypeIcon)
         .font(.title3)
-        .foregroundColor(Color.primaryGreen)
+        .foregroundStyle(Color.primaryGreen)
         .frame(width: 32)
         .accessibilityHidden(true)
 
@@ -133,12 +133,12 @@ struct EventRow: View {
 
         Text(eventDateFormatted)
           .font(.caption)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
 
         if let location = event.location {
           Text(location)
             .font(.caption)
-            .foregroundColor(Color.secondaryText)
+            .foregroundStyle(Color.secondaryText)
         }
       }
 
@@ -147,7 +147,7 @@ struct EventRow: View {
     .padding(12)
     .frame(minHeight: 44)
     .background(Color(.secondarySystemBackground))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(event.type): \(event.name)")
     .accessibilityValue(eventDateFormatted)

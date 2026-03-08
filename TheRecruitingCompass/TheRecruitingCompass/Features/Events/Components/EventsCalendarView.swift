@@ -55,7 +55,7 @@ struct EventsCalendarView: View {
     LazyVGrid(columns: columns, spacing: 4) {
       ForEach(weekdays, id: \.self) { day in
         Text(day)
-          .font(.caption2)
+          .font(.caption)
           .fontWeight(.semibold)
           .foregroundStyle(.secondary)
           .frame(minHeight: 20)

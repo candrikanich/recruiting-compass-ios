@@ -125,12 +125,12 @@ struct DashboardView: View {
       if viewModel.isParentPreviewMode {
         Text("\(viewModel.selectedAthleteName)'s Dashboard")
           .font(.title2)
-          .fontWeight(.bold)
+          .bold()
           .accessibilityAddTraits(.isHeader)
       } else {
         Text(viewModel.isEmpty ? "Welcome, \(viewModel.userFirstName)!" : "Welcome back, \(viewModel.userFirstName)!")
           .font(.title2)
-          .fontWeight(.bold)
+          .bold()
           .accessibilityAddTraits(.isHeader)
       }
     }
@@ -174,9 +174,9 @@ struct DashboardView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: 48)
-        .foregroundColor(.white)
+        .foregroundStyle(.white)
         .background(Color.errorRed)
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
       }
     )
     .disabled(viewModel.isLoggingOut)

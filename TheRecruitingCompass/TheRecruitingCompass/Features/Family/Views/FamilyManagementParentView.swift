@@ -25,7 +25,7 @@ struct FamilyManagementParentView: View {
 
       Text("Enter a family code shared by a player")
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
       VStack(spacing: FamilyConstants.Spacing.small) {
@@ -52,8 +52,8 @@ struct FamilyManagementParentView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, FamilyConstants.Spacing.small)
         .background(viewModel.isCodeInputValid && !viewModel.isLoading ? Color.blue : Color.gray)
-        .foregroundColor(.white)
-        .cornerRadius(8)
+        .foregroundStyle(.white)
+        .clipShape(.rect(cornerRadius: 8))
         .disabled(!viewModel.isCodeInputValid || viewModel.isLoading)
         .accessibilityLabel("Join family button")
         .accessibilityHint(viewModel.isCodeInputValid ? "Join the family using the entered code" : "Enter a valid family code to enable")
@@ -61,7 +61,7 @@ struct FamilyManagementParentView: View {
     }
     .padding(FamilyConstants.Spacing.medium)
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
   }
 
@@ -74,12 +74,12 @@ struct FamilyManagementParentView: View {
 
         Text("They'll receive a link to join your family.")
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Text("Invites expire after 30 days.")
-        .font(.caption2)
-        .foregroundColor(.secondary)
+        .font(.caption)
+        .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
       HStack(spacing: FamilyConstants.Spacing.small) {
@@ -102,8 +102,8 @@ struct FamilyManagementParentView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(viewModel.isEmailInviteValid ? Color.accentColor : Color.gray)
-        .foregroundColor(.white)
-        .cornerRadius(8)
+        .foregroundStyle(.white)
+        .clipShape(.rect(cornerRadius: 8))
         .disabled(!viewModel.isEmailInviteValid || viewModel.isLoading)
         .accessibilityLabel("Send invite")
         .accessibilityHint(viewModel.isEmailInviteValid
@@ -113,7 +113,7 @@ struct FamilyManagementParentView: View {
     }
     .padding(FamilyConstants.Spacing.medium)
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
   }
 
@@ -127,7 +127,7 @@ struct FamilyManagementParentView: View {
           Spacer()
           Text("\(viewModel.pendingInvitations.count)")
             .font(.subheadline)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         }
 
         ForEach(viewModel.pendingInvitations) { invite in
@@ -137,7 +137,7 @@ struct FamilyManagementParentView: View {
                 .font(.subheadline.weight(.medium))
               Text("Expires \(formattedExpiry(invite.expiresAt ?? ""))")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             }
             Spacer()
             Button("Resend") {
@@ -151,7 +151,7 @@ struct FamilyManagementParentView: View {
               Task { await viewModel.revokeInvitation(invite) }
             }
             .font(.caption)
-            .foregroundColor(.red)
+            .foregroundStyle(.red)
             .buttonStyle(.bordered)
             .tint(.red)
             .accessibilityLabel("Revoke invite to \(invite.invitedEmail)")
@@ -161,7 +161,7 @@ struct FamilyManagementParentView: View {
       }
       .padding(FamilyConstants.Spacing.medium)
       .background(Color(.systemBackground))
-      .cornerRadius(12)
+      .clipShape(.rect(cornerRadius: 12))
       .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
     }
   }
@@ -180,7 +180,7 @@ struct FamilyManagementParentView: View {
         Spacer()
         Text("\(viewModel.parentFamilies.count)")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
       }
 
       if viewModel.isLoading && viewModel.parentFamilies.isEmpty {
@@ -196,7 +196,7 @@ struct FamilyManagementParentView: View {
     }
     .padding(FamilyConstants.Spacing.medium)
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
   }
 
@@ -204,13 +204,13 @@ struct FamilyManagementParentView: View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       Image(systemName: "person.2.slash")
         .font(.largeTitle)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .accessibilityHidden(true)
       Text("No families joined yet")
         .font(.headline)
       Text("Ask a player to share their family code")
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
     }
     .padding(.vertical, FamilyConstants.Spacing.extraLarge)

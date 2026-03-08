@@ -80,7 +80,7 @@ struct CollegeDataSection: View {
     }
     .padding()
     .background(Color(.systemGray6))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 }
 

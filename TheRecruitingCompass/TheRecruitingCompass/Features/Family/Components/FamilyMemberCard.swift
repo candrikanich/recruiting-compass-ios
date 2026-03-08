@@ -24,7 +24,7 @@ struct FamilyMemberCard: View {
         .overlay(
           Text(initials)
             .font(.headline)
-            .foregroundColor(.blue)
+            .foregroundStyle(.blue)
         )
         .accessibilityHidden(true)
 
@@ -39,8 +39,8 @@ struct FamilyMemberCard: View {
               .padding(.horizontal, 8)
               .padding(.vertical, 4)
               .background(Color.green.opacity(0.2))
-              .foregroundColor(.green)
-              .cornerRadius(4)
+              .foregroundStyle(.green)
+              .clipShape(.rect(cornerRadius: 4))
           }
 
           if let addedAt = member.addedAt,
@@ -48,7 +48,7 @@ struct FamilyMemberCard: View {
                ?? FamilyMemberCard.isoParserFallback.date(from: addedAt) {
             Text("Joined \(DateFormatter.memberJoinDate.string(from: date))")
               .font(.caption)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
           }
         }
       }
@@ -58,7 +58,7 @@ struct FamilyMemberCard: View {
       if member.isParent {
         Button(action: onRemove) {
           Image(systemName: "trash")
-            .foregroundColor(.red)
+            .foregroundStyle(.red)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
@@ -67,7 +67,7 @@ struct FamilyMemberCard: View {
     }
     .padding(FamilyConstants.Spacing.small)
     .background(Color(.secondarySystemBackground))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(displayName), \(member.role), joined \(formattedJoinDate)")
   }

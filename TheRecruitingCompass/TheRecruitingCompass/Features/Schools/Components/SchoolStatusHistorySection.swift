@@ -32,7 +32,7 @@ struct SchoolStatusHistorySection: View {
     }
     .padding()
     .background(Color(.systemGray6))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 }
 
@@ -67,12 +67,12 @@ struct StatusHistoryRow: View {
         }
 
         Text(entry.changedAt, style: .relative)
-          .font(.caption2)
+          .font(.caption)
           .foregroundStyle(.tertiary)
 
         if let notes = entry.notes, !notes.isEmpty {
           Text(notes)
-            .font(.caption2)
+            .font(.caption)
             .foregroundStyle(.secondary)
             .italic()
             .padding(.top, 2)

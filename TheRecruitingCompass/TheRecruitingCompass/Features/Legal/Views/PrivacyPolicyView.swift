@@ -18,7 +18,7 @@ struct PrivacyPolicyView: View {
         .toolbar {
           ToolbarItem(placement: .cancellationAction) {
             Button("Back") { dismiss() }
-              .foregroundColor(Color.darkSlate)
+              .foregroundStyle(Color.darkSlate)
               .accessibilityLabel("Back")
               .accessibilityHint("Dismiss Privacy Policy")
           }
@@ -32,7 +32,7 @@ struct PrivacyPolicyView: View {
         if !viewModel.lastUpdated.isEmpty {
           Text("Last Updated: \(viewModel.lastUpdated)")
             .font(.caption)
-            .foregroundColor(Color.secondaryText)
+            .foregroundStyle(Color.secondaryText)
             .frame(maxWidth: .infinity)
             .multilineTextAlignment(.center)
         }
@@ -229,26 +229,26 @@ struct PrivacyPolicyView: View {
       VStack(alignment: .leading, spacing: 8) {
         Text("The Recruiting Compass")
           .font(.headline)
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
 
         HStack(spacing: 4) {
           Text("Email:")
             .font(.body)
-            .foregroundColor(Color.secondaryText)
+            .foregroundStyle(Color.secondaryText)
           LegalEmailLink(email: "privacy@recruitingcompass.com")
         }
 
         HStack(spacing: 4) {
           Text("Support:")
             .font(.body)
-            .foregroundColor(Color.secondaryText)
+            .foregroundStyle(Color.secondaryText)
           LegalEmailLink(email: "support@recruitingcompass.com")
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(16)
       .background(contactBoxBackground)
-      .cornerRadius(12)
+      .clipShape(.rect(cornerRadius: 12))
     }
   }
 

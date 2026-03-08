@@ -42,17 +42,17 @@ struct MetricHistoryCard: View {
       HStack(spacing: 24) {
         VStack(alignment: .leading, spacing: 2) {
           Text("Value")
-            .font(.caption2)
+            .font(.caption)
             .foregroundStyle(.secondary)
           Text(metric.formattedValue)
             .font(.subheadline)
-            .fontWeight(.bold)
+            .bold()
         }
 
         if metric.verified {
           VStack(alignment: .leading, spacing: 2) {
             Text("Status")
-              .font(.caption2)
+              .font(.caption)
               .foregroundStyle(.secondary)
             Label("Verified", systemImage: "checkmark.seal.fill")
               .font(.caption)

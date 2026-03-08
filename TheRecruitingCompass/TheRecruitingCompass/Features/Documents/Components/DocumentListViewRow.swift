@@ -13,12 +13,12 @@ struct DocumentListViewRow: View {
         contentView
         if document.isShared {
           Text("Shared: \(document.sharedWithSchools.count)")
-            .font(.caption2)
+            .font(.caption)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(Color.green.opacity(0.2))
             .foregroundStyle(.green)
-            .cornerRadius(4)
+            .clipShape(.rect(cornerRadius: 4))
         }
       }
       .padding(12)

@@ -80,7 +80,7 @@ struct ActivityFeedView: View {
 
       HStack {
         Image(systemName: "magnifyingglass")
-          .foregroundColor(.iconGray)
+          .foregroundStyle(Color.iconGray)
           .accessibilityHidden(true)
 
         TextField("Search activities...", text: $viewModel.searchQuery)
@@ -92,7 +92,7 @@ struct ActivityFeedView: View {
             viewModel.searchQuery = ""
           } label: {
             Image(systemName: "xmark.circle.fill")
-              .foregroundColor(.iconGray)
+              .foregroundStyle(Color.iconGray)
           }
           .frame(minWidth: 44, minHeight: 44)
           .accessibilityLabel("Clear search")
@@ -101,11 +101,11 @@ struct ActivityFeedView: View {
       }
       .padding(10)
       .background(Color(.systemGray6))
-      .cornerRadius(10)
+      .clipShape(.rect(cornerRadius: 10))
     }
     .padding(16)
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
   }
 
@@ -127,7 +127,7 @@ struct ActivityFeedView: View {
 
       Text("Page \(viewModel.currentPage) of \(viewModel.totalPages)")
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .accessibilityLabel("Page \(viewModel.currentPage) of \(viewModel.totalPages)")
         .accessibilityIdentifier("activity-feed-page-indicator")
 
@@ -146,7 +146,7 @@ struct ActivityFeedView: View {
     }
     .padding(12)
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .accessibilityIdentifier("activity-feed-pagination")
   }
 
@@ -157,17 +157,17 @@ struct ActivityFeedView: View {
       Image(systemName: "sparkles")
         .font(.largeTitle)
         .imageScale(.large)
-        .foregroundColor(.iconGray)
+        .foregroundStyle(Color.iconGray)
         .accessibilityHidden(true)
 
       Text("No activities found")
         .font(.title3)
         .fontWeight(.medium)
-        .foregroundColor(.primary)
+        .foregroundStyle(.primary)
 
       Text("Your recruiting activity will appear here")
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -180,7 +180,7 @@ struct ActivityFeedView: View {
     VStack(spacing: 16) {
       Image(systemName: "line.3.horizontal.decrease.circle")
         .font(.largeTitle)
-        .foregroundColor(.iconGray)
+        .foregroundStyle(Color.iconGray)
         .accessibilityHidden(true)
 
       Text("No activities found")
@@ -189,7 +189,7 @@ struct ActivityFeedView: View {
 
       Text("Try adjusting your filters or search query")
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
 
       Button("Clear Filters") {
         viewModel.clearFilters()
@@ -206,12 +206,12 @@ struct ActivityFeedView: View {
       Image(systemName: "exclamationmark.triangle")
         .font(.largeTitle)
         .imageScale(.large)
-        .foregroundColor(.errorRed)
+        .foregroundStyle(Color.errorRed)
         .accessibilityHidden(true)
 
       Text(message)
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
 
       Button("Try Again") {

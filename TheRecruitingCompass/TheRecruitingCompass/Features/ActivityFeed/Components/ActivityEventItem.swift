@@ -20,7 +20,7 @@ struct ActivityEventItem: View {
 
         Image(systemName: event.icon)
           .font(compact ? .caption : .body)
-          .foregroundColor(iconBackgroundColor)
+          .foregroundStyle(iconBackgroundColor)
       }
       .accessibilityHidden(true)
 
@@ -29,13 +29,13 @@ struct ActivityEventItem: View {
         Text(event.title)
           .font(compact ? .subheadline : .headline)
           .fontWeight(.medium)
-          .foregroundColor(.primary)
+          .foregroundStyle(.primary)
           .lineLimit(1)
 
         if !event.description.isEmpty {
           Text(event.description)
             .font(compact ? .caption : .subheadline)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
             .lineLimit(2)
         }
       }
@@ -46,12 +46,12 @@ struct ActivityEventItem: View {
       VStack(alignment: .trailing, spacing: 4) {
         Text(RelativeTimeFormatter.format(event.timestamp))
           .font(.caption)
-          .foregroundColor(.tertiaryText)
+          .foregroundStyle(Color.tertiaryText)
 
         if event.isClickable {
           Image(systemName: "chevron.right")
-            .font(.caption2)
-            .foregroundColor(.iconGray)
+            .font(.caption)
+            .foregroundStyle(Color.iconGray)
             .accessibilityHidden(true)
         }
       }
@@ -59,7 +59,7 @@ struct ActivityEventItem: View {
     .padding(compact ? 12 : 16)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     .frame(minHeight: 44)
     .accessibilityElement(children: .combine)

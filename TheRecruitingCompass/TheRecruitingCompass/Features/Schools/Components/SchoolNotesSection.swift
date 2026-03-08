@@ -29,7 +29,7 @@ struct SchoolNotesSection: View {
         .frame(minHeight: 120)
         .padding(8)
         .background(Color(.systemGray6))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
         .overlay(
           RoundedRectangle(cornerRadius: 8)
             .stroke(isFocused ? Color.accentColor : Color.clear, lineWidth: 2)
@@ -47,7 +47,7 @@ struct SchoolNotesSection: View {
     }
     .padding()
     .background(Color(.systemGray6))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 }
 

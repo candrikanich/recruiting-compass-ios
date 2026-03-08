@@ -27,7 +27,7 @@ struct BadgeView: View {
     .padding(.horizontal, icon != nil ? 12 : 8)
     .padding(.vertical, 6)
     .background(color.opacity(0.2))
-    .foregroundColor(color)
+    .foregroundStyle(color)
     .clipShape(RoundedRectangle(cornerRadius: 16))
     .accessibilityLabel(accessibilityLabel ?? text)
   }

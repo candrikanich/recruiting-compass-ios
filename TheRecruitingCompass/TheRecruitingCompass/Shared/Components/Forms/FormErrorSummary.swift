@@ -55,7 +55,7 @@ struct FormErrorSummary: View {
       }
       .padding()
       .background(Color.red)
-      .cornerRadius(12)
+      .clipShape(.rect(cornerRadius: 12))
       .accessibilityElement(children: .combine)
       .accessibilityLabel("Form errors")
       .accessibilityValue("\(errors.count) error\(errors.count == 1 ? "" : "s"): \(errors.joined(separator: ", "))")

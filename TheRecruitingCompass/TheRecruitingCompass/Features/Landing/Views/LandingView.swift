@@ -42,8 +42,8 @@ struct LandingView: View {
 
       Text("The Recruiting Compass")
         .font(.title)
-        .fontWeight(.bold)
-        .foregroundColor(.white)
+        .bold()
+        .foregroundStyle(.white)
     }
     .padding(.bottom, 12)
     .accessibilityElement(children: .combine)
@@ -54,16 +54,15 @@ struct LandingView: View {
     VStack(spacing: 12) {
       NavigationLink(destination: LoginView()) {
         Text("Sign In")
-          .font(.headline)
-          .fontWeight(.semibold)
+          .font(.headline.weight(.semibold))
           .lineLimit(2)
           .frame(maxWidth: .infinity)
           .padding(.vertical, 14)
           .padding(.horizontal, 16)
           .frame(minHeight: 48)
           .background(LinearGradient.primaryButton)
-          .foregroundColor(.white)
-          .cornerRadius(12)
+          .foregroundStyle(.white)
+          .clipShape(.rect(cornerRadius: 12))
           .shadow(radius: 5)
       }
       .accessibilityLabel("Sign in to your account")
@@ -71,16 +70,15 @@ struct LandingView: View {
 
       NavigationLink(destination: SignupView()) {
         Text("Create Account")
-          .font(.headline)
-          .fontWeight(.semibold)
+          .font(.headline.weight(.semibold))
           .lineLimit(2)
           .frame(maxWidth: .infinity)
           .padding(.vertical, 14)
           .padding(.horizontal, 16)
           .frame(minHeight: 48)
           .background(Color.white)
-          .foregroundColor(Color.nearBlack)
-          .cornerRadius(12)
+          .foregroundStyle(Color.nearBlack)
+          .clipShape(.rect(cornerRadius: 12))
           .shadow(radius: 5)
       }
       .accessibilityLabel("Create a new account")

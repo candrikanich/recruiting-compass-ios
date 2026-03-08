@@ -13,8 +13,8 @@ import SwiftUI
 struct AutoFilledBadge: View {
   var body: some View {
     Text("(auto-filled)")
-      .font(.caption2)
-      .foregroundColor(.blue)
+      .font(.caption)
+      .foregroundStyle(.blue)
       .accessibilityLabel("auto-filled")
       .accessibilityAddTraits(.isStaticText)
   }

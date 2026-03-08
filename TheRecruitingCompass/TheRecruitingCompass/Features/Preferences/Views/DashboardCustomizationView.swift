@@ -152,7 +152,7 @@ struct DashboardCustomizationView: View {
             await viewModel.resetToDefaults()
           }
         }
-        .foregroundColor(.red)
+        .foregroundStyle(.red)
         .accessibilityLabel("Reset dashboard settings to defaults")
         .disabled(viewModel.saveStatus == .saving)
       }
@@ -195,31 +195,31 @@ struct ToggleCard: View {
       VStack(spacing: 8) {
         Image(systemName: icon)
           .font(.title2)
-          .foregroundColor(isComingSoon ? .gray.opacity(0.4) : (isOn ? .blue : .gray))
+          .foregroundStyle(isComingSoon ? Color.gray.opacity(0.4) : (isOn ? Color.blue : Color.gray))
 
         Text(label)
           .font(.caption)
           .fontWeight(.medium)
-          .foregroundColor(isComingSoon ? .secondary.opacity(0.5) : .primary)
+          .foregroundStyle(isComingSoon ? Color.secondary.opacity(0.5) : Color.primary)
           .multilineTextAlignment(.center)
           .lineLimit(2)
 
         if isComingSoon {
           Text("Coming Soon")
             .font(.system(size: 9, weight: .semibold))
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
             .padding(.horizontal, 4)
             .padding(.vertical, 2)
             .background(Color(.systemGray5))
-            .cornerRadius(4)
+            .clipShape(.rect(cornerRadius: 4))
         } else if isOn {
           Image(systemName: "checkmark.circle.fill")
             .font(.caption)
-            .foregroundColor(.green)
+            .foregroundStyle(.green)
         } else {
           Image(systemName: "circle")
             .font(.caption)
-            .foregroundColor(.gray)
+            .foregroundStyle(.gray)
         }
       }
       .frame(maxWidth: .infinity)

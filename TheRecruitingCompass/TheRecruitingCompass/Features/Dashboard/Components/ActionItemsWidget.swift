@@ -18,7 +18,7 @@ struct ActionItemsWidget: View {
       if suggestions.isEmpty && pendingCount == 0 {
         Text("No action items at this time")
           .font(.caption)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .padding(.vertical)
       } else {
         VStack(spacing: 12) {
@@ -39,10 +39,10 @@ struct ActionItemsWidget: View {
               Text("Show \(moreCount) more")
                 .font(.caption)
               Image(systemName: "chevron.right")
-                .font(.caption2)
+                .font(.caption)
                 .accessibilityHidden(true)
             }
-            .foregroundColor(Color.accentBlue)
+            .foregroundStyle(Color.accentBlue)
           }
           .buttonStyle(PlainButtonStyle())
           .accessibilityLabel("View all action items")
@@ -52,7 +52,7 @@ struct ActionItemsWidget: View {
     }
     .padding()
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
   }
 }
@@ -73,18 +73,18 @@ struct ActionItemCard: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text(suggestion.urgency.rawValue.capitalized)
-          .font(.caption2)
+          .font(.caption)
           .padding(.horizontal, 6)
           .padding(.vertical, 2)
           .background(suggestion.urgency.color.opacity(0.15))
-          .foregroundColor(suggestion.urgency.color)
-          .cornerRadius(4)
+          .foregroundStyle(suggestion.urgency.color)
+          .clipShape(.rect(cornerRadius: 4))
           .accessibilityHidden(true)
 
         Text(suggestion.message)
           .font(.subheadline)
           .fontWeight(.medium)
-          .foregroundColor(Color.primary)
+          .foregroundStyle(Color.primary)
           .lineLimit(3)
       }
 
@@ -94,7 +94,7 @@ struct ActionItemCard: View {
         VStack(spacing: 4) {
           Button(action: onComplete) {
             Image(systemName: "checkmark.circle.fill")
-              .foregroundColor(Color.accentBlue)
+              .foregroundStyle(Color.accentBlue)
               .font(.title3)
               .frame(minWidth: 44, minHeight: 44)
               .contentShape(Rectangle())
@@ -105,7 +105,7 @@ struct ActionItemCard: View {
 
           Button(action: onDismiss) {
             Image(systemName: "xmark.circle.fill")
-              .foregroundColor(Color.gray)
+              .foregroundStyle(Color.gray)
               .font(.title3)
               .frame(minWidth: 44, minHeight: 44)
               .contentShape(Rectangle())
@@ -118,7 +118,7 @@ struct ActionItemCard: View {
     }
     .padding(12)
     .background(Color(.secondarySystemBackground))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
   }
 }
 

@@ -28,12 +28,12 @@ struct DocumentFilterBar: View {
             Text(sortBy.label)
               .lineLimit(1)
             Image(systemName: "chevron.down")
-              .font(.caption2)
+              .font(.caption)
           }
           .padding(.horizontal, 12)
           .padding(.vertical, 8)
           .background(Color(.systemGray5))
-          .cornerRadius(8)
+          .clipShape(.rect(cornerRadius: 8))
         }
         .accessibilityLabel("Sort documents")
         .accessibilityHint("Choose sort order")
@@ -65,7 +65,7 @@ struct DocumentFilterBar: View {
               .frame(width: 44, height: 44)
               .foregroundStyle(viewMode == .grid ? .white : .secondary)
               .background(viewMode == .grid ? Color.blue : Color(.systemGray5))
-              .cornerRadius(8)
+              .clipShape(.rect(cornerRadius: 8))
           }
           .accessibilityLabel("Grid view")
           .accessibilityAddTraits(viewMode == .grid ? .isSelected : [])
@@ -77,7 +77,7 @@ struct DocumentFilterBar: View {
               .frame(width: 44, height: 44)
               .foregroundStyle(viewMode == .list ? .white : .secondary)
               .background(viewMode == .list ? Color.blue : Color(.systemGray5))
-              .cornerRadius(8)
+              .clipShape(.rect(cornerRadius: 8))
           }
           .accessibilityLabel("List view")
           .accessibilityAddTraits(viewMode == .list ? .isSelected : [])
@@ -93,6 +93,6 @@ struct DocumentFilterBar: View {
     }
     .padding()
     .background(Color(.secondarySystemGroupedBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 }

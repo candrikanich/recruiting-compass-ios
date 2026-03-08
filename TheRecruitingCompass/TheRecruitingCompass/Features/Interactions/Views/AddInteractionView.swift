@@ -29,7 +29,7 @@ struct AddInteractionView: View {
     .scrollDismissesKeyboard(.interactively)
     .navigationBarBackButtonHidden(true)
     .toolbar {
-      ToolbarItem(placement: .navigationBarLeading) {
+      ToolbarItem(placement: .topBarLeading) {
         Button("Cancel") {
           dismiss()
         }

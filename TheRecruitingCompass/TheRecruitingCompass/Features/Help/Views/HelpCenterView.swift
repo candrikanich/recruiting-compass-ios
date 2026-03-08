@@ -37,12 +37,12 @@ struct HelpCenterView: View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Help Center")
         .font(.title2)
-        .fontWeight(.bold)
-        .foregroundColor(.primary)
+        .bold()
+        .foregroundStyle(.primary)
 
       Text("Everything you need to use The Recruiting Compass.")
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .accessibilityElement(children: .combine)
@@ -65,11 +65,11 @@ private struct HelpOverviewCard: View {
         Text(section.title)
           .font(.body)
           .fontWeight(.semibold)
-          .foregroundColor(.primary)
+          .foregroundStyle(.primary)
 
         Text(section.description)
           .font(.caption)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
           .lineLimit(3)
       }
       .frame(maxWidth: .infinity, alignment: .leading)

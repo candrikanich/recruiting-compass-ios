@@ -25,7 +25,7 @@ struct DocumentsListView: View {
       await viewModel.loadSchools()
     }
     .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
+      ToolbarItem(placement: .topBarTrailing) {
         Button {
           viewModel.presentUploadForm()
         } label: {
@@ -234,7 +234,7 @@ struct DocumentsListView: View {
     }
     .padding()
     .background(Color.red)
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .padding()
   }
 }

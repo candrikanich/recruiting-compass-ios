@@ -130,7 +130,7 @@ struct PerformanceDashboardView: View {
       HStack {
         Text("Performance Trends")
           .font(.title3)
-          .fontWeight(.bold)
+          .bold()
         Spacer()
       }
 
@@ -156,7 +156,7 @@ struct PerformanceDashboardView: View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Metric Trends")
         .font(.title3)
-        .fontWeight(.bold)
+        .bold()
 
       ForEach(viewModel.metricTrends) { trend in
         TrendCard(trend: trend)
@@ -168,7 +168,7 @@ struct PerformanceDashboardView: View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Latest Metrics")
         .font(.title3)
-        .fontWeight(.bold)
+        .bold()
 
       LazyVGrid(columns: [
         GridItem(.flexible()),
@@ -189,7 +189,7 @@ struct PerformanceDashboardView: View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Metric History")
         .font(.title3)
-        .fontWeight(.bold)
+        .bold()
 
       ForEach(viewModel.sortedMetrics) { metric in
         MetricHistoryCard(

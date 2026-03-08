@@ -7,7 +7,7 @@ struct NotificationSearchBar: View {
   var body: some View {
     HStack(spacing: 8) {
       Image(systemName: "magnifyingglass")
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
       TextField("Search notifications", text: $searchText)
@@ -24,14 +24,14 @@ struct NotificationSearchBar: View {
           onSearchChanged("")
         } label: {
           Image(systemName: "xmark.circle.fill")
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         }
         .accessibilityLabel("Clear text")
       }
     }
     .padding(10)
     .background(Color(.systemGray6))
-    .cornerRadius(10)
+    .clipShape(.rect(cornerRadius: 10))
     .padding(.horizontal)
     .frame(minHeight: 44)
   }

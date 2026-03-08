@@ -26,12 +26,12 @@ struct InteractionTrendsChart: View {
         VStack(spacing: 8) {
           Image(systemName: "chart.bar.xaxis")
             .font(.system(size: iconSize))
-            .foregroundColor(Color.secondaryText)
+            .foregroundStyle(Color.secondaryText)
             .accessibilityHidden(true)
 
           Text("No interaction data yet")
             .font(.body)
-            .foregroundColor(Color.secondaryText)
+            .foregroundStyle(Color.secondaryText)
         }
         .padding(.vertical, 24)
         .frame(maxWidth: .infinity)
@@ -59,13 +59,13 @@ struct InteractionTrendsChart: View {
 
         Text("\(totalInteractions) total interactions over \(trends.count) days")
           .font(.caption)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .accessibilityHidden(true)
       }
     }
     .padding()
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
   }
 }

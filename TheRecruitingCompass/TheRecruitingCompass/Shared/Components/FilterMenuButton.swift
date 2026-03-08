@@ -27,7 +27,7 @@ struct FilterMenuButton: View {
         .fontWeight(style == .rounded && isActive ? .semibold : .regular)
 
       Image(systemName: "chevron.down")
-        .font(style == .capsule ? .caption2 : .caption)
+        .font(.caption)
         .accessibilityHidden(true)
     }
     .foregroundStyle(foregroundColor)
@@ -75,7 +75,7 @@ private struct ShapeModifier: ViewModifier {
     case .capsule:
       content.clipShape(Capsule())
     case .rounded:
-      content.cornerRadius(8)
+      content.clipShape(.rect(cornerRadius: 8))
     }
   }
 }

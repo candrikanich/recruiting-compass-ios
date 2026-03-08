@@ -18,13 +18,13 @@ struct HelpImageSlot: View {
         .overlay(
           Image(systemName: "photo")
             .font(.largeTitle)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         )
         .accessibilityHidden(true)
 
       Text(caption)
         .font(.caption)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
     }
     .accessibilityElement(children: .combine)
     .accessibilityLabel(caption)

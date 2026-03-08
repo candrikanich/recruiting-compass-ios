@@ -73,12 +73,12 @@ struct LoginFormField: View {
         RoundedRectangle(cornerRadius: 8)
           .strokeBorder(error != nil ? Color.red : Color(uiColor: .separator), lineWidth: 1)
       )
-      .cornerRadius(8)
+      .clipShape(.rect(cornerRadius: 8))
 
       if let error = error {
         Text(error)
           .font(.caption)
-          .foregroundColor(Color.errorRed)
+          .foregroundStyle(Color.errorRed)
           .accessibilityLabel("Error: \(error)")
       }
     }

@@ -20,7 +20,7 @@ struct InteractionCard: View {
 
           Image(systemName: interaction.type.iconName)
             .font(.system(size: iconImageSize))
-            .foregroundColor(interaction.type.iconColor)
+            .foregroundStyle(interaction.type.iconColor)
         }
         .accessibilityHidden(true)
 
@@ -29,7 +29,7 @@ struct InteractionCard: View {
             Text(interaction.type.displayName)
               .font(.subheadline)
               .fontWeight(.medium)
-              .foregroundColor(.primary)
+              .foregroundStyle(.primary)
 
             DirectionBadge(direction: interaction.direction)
           }
@@ -51,7 +51,7 @@ struct InteractionCard: View {
         Text(subject)
           .font(.headline)
           .lineLimit(1)
-          .foregroundColor(.primary)
+          .foregroundStyle(.primary)
       }
 
       // School and Coach
@@ -60,19 +60,19 @@ struct InteractionCard: View {
           if let schoolName {
             Text(schoolName)
               .font(.subheadline)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
           }
 
           if schoolName != nil && coachName != nil {
             Text("•")
               .font(.subheadline)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
           }
 
           if let coachName {
             Text(coachName)
               .font(.subheadline)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
           }
         }
         .lineLimit(1)
@@ -82,7 +82,7 @@ struct InteractionCard: View {
       if let content = interaction.content, !content.isEmpty {
         Text(content)
           .font(.body)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
           .lineLimit(2)
       }
 
@@ -90,12 +90,12 @@ struct InteractionCard: View {
       HStack(spacing: 4) {
         Image(systemName: "calendar")
           .font(.caption)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
           .accessibilityHidden(true)
 
         Text(DateFormatting.mediumDateShortTime(interaction.displayDate))
           .font(.caption)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
       }
     }
     .padding(16)
@@ -166,11 +166,11 @@ struct DirectionBadge: View {
     Text(direction.displayName)
       .font(.caption)
       .fontWeight(.medium)
-      .foregroundColor(direction.badgeColor)
+      .foregroundStyle(direction.badgeColor)
       .padding(.horizontal, 8)
       .padding(.vertical, 4)
       .background(direction.badgeColor.opacity(0.1))
-      .cornerRadius(6)
+      .clipShape(.rect(cornerRadius: 6))
   }
 }
 
@@ -181,11 +181,11 @@ struct SentimentBadge: View {
     Text(sentiment.displayName)
       .font(.caption)
       .fontWeight(.medium)
-      .foregroundColor(sentiment.badgeColor)
+      .foregroundStyle(sentiment.badgeColor)
       .padding(.horizontal, 8)
       .padding(.vertical, 4)
       .background(sentiment.badgeColor.opacity(0.1))
-      .cornerRadius(6)
+      .clipShape(.rect(cornerRadius: 6))
   }
 }
 
@@ -202,7 +202,7 @@ struct AttachmentIndicator: View {
         .font(.caption)
         .fontWeight(.medium)
     }
-    .foregroundColor(.secondary)
+    .foregroundStyle(.secondary)
     .accessibilityLabel("\(count) attachment\(count == 1 ? "" : "s")")
   }
 }

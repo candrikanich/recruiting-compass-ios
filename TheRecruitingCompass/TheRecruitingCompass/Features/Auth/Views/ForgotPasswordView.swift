@@ -25,7 +25,7 @@ struct ForgotPasswordView: View {
               Text("Back to Login")
                 .font(.footnote.weight(.semibold))
             }
-            .foregroundColor(Color.darkSlate)
+            .foregroundStyle(Color.darkSlate)
           }
           .accessibilityLabel("Back to login screen")
           .accessibilityHint("Returns to the sign in screen")
@@ -42,7 +42,7 @@ struct ForgotPasswordView: View {
           }
         }
         .background(Color.white.opacity(0.95))
-        .cornerRadius(16)
+        .clipShape(.rect(cornerRadius: 16))
         .padding(24)
 
         Spacer()
@@ -61,7 +61,7 @@ struct ForgotPasswordView: View {
     VStack(spacing: 24) {
       Image(systemName: "lock.rotation")
         .font(.system(size: iconSize))
-        .foregroundColor(Color.primaryGreen)
+        .foregroundStyle(Color.primaryGreen)
         .padding(.vertical, 12)
         .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
         .accessibilityHidden(true)
@@ -69,11 +69,11 @@ struct ForgotPasswordView: View {
       VStack(spacing: 8) {
         Text("Forgot Password?")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
 
         Text("Enter your email and we'll send you a link to reset your password.")
           .font(.footnote)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .multilineTextAlignment(.center)
       }
 
@@ -90,10 +90,7 @@ struct ForgotPasswordView: View {
         placeholder: "your.email@example.com",
         icon: "envelope",
         text: $viewModel.email,
-        error: Binding(
-          get: { viewModel.fieldErrors[.email] },
-          set: { viewModel.fieldErrors[.email] = $0 }
-        ),
+        error: viewModel.errorBinding(for: .email),
         isSecure: false,
         keyboardType: .emailAddress,
         textContentType: .emailAddress,
@@ -117,11 +114,11 @@ struct ForgotPasswordView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: 48)
-        .foregroundColor(.white)
+        .foregroundStyle(.white)
         .background(
           LinearGradient.primaryButton
         )
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
         .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
         .disabled(viewModel.isButtonDisabled)
       }
@@ -140,15 +137,15 @@ struct ForgotPasswordView: View {
       VStack(spacing: 8) {
         Text("Check Your Email")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
 
         Text("We've sent a password reset link to:")
           .font(.footnote)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
 
         Text(viewModel.submittedEmail)
           .font(.footnote.weight(.semibold))
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
       }
 
       if let error = viewModel.errorMessage {
@@ -176,7 +173,7 @@ struct ForgotPasswordView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: 48)
-        .foregroundColor(Color.accentBlue)
+        .foregroundStyle(Color.accentBlue)
         .background(Color.clear)
         .overlay(
           RoundedRectangle(cornerRadius: 8)
@@ -190,7 +187,7 @@ struct ForgotPasswordView: View {
       Button(action: { viewModel.resetForm() }) {
         Text("Use Different Email")
           .font(.footnote.weight(.semibold))
-          .foregroundColor(Color.accentBlue)
+          .foregroundStyle(Color.accentBlue)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
       }
@@ -205,7 +202,7 @@ struct ForgotPasswordView: View {
           Text("Back to Login")
             .font(.footnote.weight(.semibold))
         }
-        .foregroundColor(Color.tertiaryText)
+        .foregroundStyle(Color.tertiaryText)
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }

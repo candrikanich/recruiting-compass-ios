@@ -19,10 +19,10 @@ struct DocumentHeaderCard: View {
             .padding(.vertical, 4)
             .background(Color.accentBlue.opacity(0.2))
             .foregroundStyle(.primary)
-            .cornerRadius(6)
+            .clipShape(.rect(cornerRadius: 6))
           Text(document.title)
             .font(.title2)
-            .fontWeight(.bold)
+            .bold()
             .lineLimit(2)
             .truncationMode(.tail)
           if let desc = document.description, !desc.isEmpty {
@@ -65,7 +65,7 @@ struct DocumentHeaderCard: View {
     }
     .padding()
     .background(Color(.secondarySystemGroupedBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 }
 
@@ -87,7 +87,7 @@ struct DocumentMetadataGrid: View {
     }
     .padding()
     .background(Color(.secondarySystemGroupedBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 }
 
@@ -126,7 +126,7 @@ struct DocumentErrorBanner: View {
     }
     .padding()
     .background(Color.errorRed)
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
   }
 }
 
@@ -143,7 +143,7 @@ struct DocumentPreviewCard: View {
     }
     .padding()
     .background(Color(.secondarySystemGroupedBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 }
 
@@ -198,7 +198,7 @@ struct DocumentVersionHistoryCard: View {
     }
     .padding()
     .background(Color(.secondarySystemGroupedBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 }
 
@@ -217,12 +217,12 @@ struct DocumentVersionRow: View {
             .fontWeight(.semibold)
           if version.isCurrent {
             Text("Current")
-              .font(.caption2)
+              .font(.caption)
               .fontWeight(.semibold)
               .padding(.horizontal, 6)
               .padding(.vertical, 2)
               .background(Color.accentBlue.opacity(0.2))
-              .cornerRadius(4)
+              .clipShape(.rect(cornerRadius: 4))
           }
         }
         Text(version.displayDate)

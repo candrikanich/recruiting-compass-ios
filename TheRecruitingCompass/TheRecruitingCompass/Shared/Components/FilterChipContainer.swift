@@ -25,7 +25,7 @@ struct FilterChipContainer<Content: View>: View {
 
   var body: some View {
     if hasFilters {
-      ScrollView(.horizontal, showsIndicators: false) {
+      ScrollView(.horizontal) {
         HStack(spacing: 8) {
           chips()
 
@@ -33,6 +33,7 @@ struct FilterChipContainer<Content: View>: View {
         }
         .padding(.horizontal, 16)
       }
+      .scrollIndicators(.hidden)
     }
   }
 

@@ -100,7 +100,7 @@ struct CommunicationTemplatesView: View {
   }
 
   private var filterRow: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
+    ScrollView(.horizontal) {
       HStack(spacing: 8) {
         filterPill(label: "All", count: viewModel.typeCounts[nil] ?? 0, type: nil, identifier: "typeFilter.all")
         ForEach(TemplateType.allCases, id: \.self) { type in
@@ -114,6 +114,7 @@ struct CommunicationTemplatesView: View {
       }
       .padding(.horizontal)
     }
+    .scrollIndicators(.hidden)
   }
 
   private func filterPill(label: String, count: Int, type: TemplateType?, identifier: String) -> some View {

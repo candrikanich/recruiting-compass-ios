@@ -17,7 +17,7 @@ struct HelpSectionDetailView: View {
       VStack(alignment: .leading, spacing: 32) {
         Text("Last reviewed: \(lastReviewed)")
           .font(.caption)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
 
         contentForSection
 
@@ -53,7 +53,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "What is The Recruiting Compass?")
         Text("The Recruiting Compass is a recruiting management tool built for student athletes and their families. It helps you organize your college search, track schools and coaches, manage the phases of the recruiting process, and stay on top of every interaction along the way.")
           .font(.subheadline)
-          .foregroundColor(.primary)
+          .foregroundStyle(.primary)
         HelpCallout(type: .tip, text: "You're in charge of your recruiting journey. The Recruiting Compass keeps everything organized so you can focus on making the right connections.")
       }
 
@@ -61,7 +61,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Creating your profile")
         Text("Your athlete profile is the foundation of everything in the app. Complete it before adding schools or coaches.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Navigate to Settings", bodyText: "From the dashboard, go to Settings → Athlete Profile.")
         HelpStepCard(step: 2, title: "Fill in your details", bodyText: "Enter your name, graduation year, sport, position(s), GPA, and test scores. All fields help generate accurate fit scores for schools.")
         HelpStepCard(step: 3, title: "Save your profile", bodyText: "Tap Save changes. Your profile is now visible to coaches who view your recruiting page.", isLast: true)
@@ -71,7 +71,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Adding family members")
         Text("Parents and guardians can be added as family members to view and collaborate on your recruiting journey.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
         HelpStepCard(step: 2, title: "Invite a family member", bodyText: "Enter their email address and tap Send invite. They'll receive an email to create their account and join your family unit.", isLast: true)
         HelpCallout(type: .info, text: "Family members can view your school list, phases, and interactions — but only the athlete can make changes to the profile.")
@@ -81,7 +81,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Understanding the dashboard")
         Text("The dashboard gives you a snapshot of your recruiting progress at a glance.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpImageSlot(caption: "The main dashboard showing your school list, current phase, and recent activity.")
         bulletList(items: [
           ("Current Phase", "where you are in the recruiting process (Freshman through Senior)"),
@@ -95,7 +95,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Your first action")
         Text("Once your profile is set up, the most impactful first step is building your school list.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Search for schools", bodyText: "Go to Search and filter by division, sport, location, or size. Add any school that interests you.", isLast: true)
         HelpCallout(type: .tip, text: "Start broad — you can always narrow your list later. Adding 20–30 schools gives the fit score algorithm enough data to show meaningful patterns.")
       }
@@ -111,7 +111,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Adding a school to your list")
         Text("Your school list is the core of your recruiting compass. Add every school you're considering, even ones you're unsure about — fit scores will help you prioritize.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Go to Search", bodyText: "Navigate to Search and use the filters to find schools by division, sport, state, or enrollment size.")
         HelpStepCard(step: 2, title: "View the school profile", bodyText: "Tap any school to see its full profile — academic info, athletic program details, and location.")
         HelpStepCard(step: 3, title: "Add to your list", bodyText: "Tap Add to list. The school now appears on your Schools page with an initial fit score.", isLast: true)
@@ -121,11 +121,11 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "What is a fit score?")
         Text("A fit score is a 0–100 rating that reflects how well a school matches your athlete profile. Higher scores indicate a stronger overall fit.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpImageSlot(caption: "Fit score breakdown showing academic, athletic, and location dimensions.")
         Text("Fit scores are calculated from four dimensions:")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         bulletList(items: [
           ("Academic fit", "your GPA and test scores vs. the school's average admit profile"),
           ("Athletic fit", "your sport and level vs. the school's program division and roster needs"),
@@ -139,7 +139,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Managing your school list", badge: .required)
         Text("Your school list drives everything else in the app — phases, interactions, and recommendation letters are all tied to specific schools.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         bulletList(items: [
           ("Sort", "by fit score, recent activity, or date added"),
           ("Filter", "by division, state, or interaction status"),
@@ -152,7 +152,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Logging a coach interaction")
         Text("Every time you communicate with a coach — email, call, campus visit — log it as an interaction. This creates a timeline of your recruiting relationship with each school.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Open a school", bodyText: "Go to your Schools page and tap the school you interacted with.")
         HelpStepCard(step: 2, title: "Select a coach", bodyText: "Tap a coach on the school's page, or tap Add coach if they're not listed yet.")
         HelpStepCard(step: 3, title: "Log the interaction", bodyText: "Tap Log interaction, choose the type, set the date, and add any notes. Tap Save.", isLast: true)
@@ -162,7 +162,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Interaction types")
         Text("Choose the type that best describes how contact was made.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         interactionTypeRow(icon: "envelope", title: "Email", detail: "written correspondence with a coach")
         interactionTypeRow(icon: "phone", title: "Phone call", detail: "direct conversation by phone")
         interactionTypeRow(icon: "building.2", title: "Campus visit", detail: "official or unofficial campus visit")
@@ -182,7 +182,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Overview of recruiting phases")
         Text("The recruiting process is organized into four phases that map to your high school career. Each phase unlocks specific features and actions in the app.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpImageSlot(caption: "The four recruiting phases: Freshman, Sophomore, Junior, and Senior.")
       }
 
@@ -198,7 +198,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "How to advance your phase")
         Text("Phase advancement is a confirmed action — both you and a coach or family member must confirm the transition.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Open Phase settings", bodyText: "Go to Settings → Recruiting Phase.")
         HelpStepCard(step: 2, title: "Request advancement", bodyText: "Tap Advance to [next phase]. A confirmation request is sent to your family unit.")
         HelpStepCard(step: 3, title: "Family confirms", bodyText: "A family member confirms the advancement in their notification feed. Once confirmed, your phase updates and new features unlock.", isLast: true)
@@ -209,7 +209,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Requesting a recommendation letter")
         Text("Recommendation letters from coaches, teachers, or counselors strengthen your recruiting profile. Track all your requests in one place.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Go to Documents", bodyText: "Navigate to Documents and select the Recommendation Letters tab.")
         HelpStepCard(step: 2, title: "Add a new request", bodyText: "Tap Request letter and enter the recommender's name, relationship, and the school or program the letter is for.")
         HelpStepCard(step: 3, title: "Set a deadline", bodyText: "Add the submission deadline so you receive a reminder before it's due.", isLast: true)
@@ -220,7 +220,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Tracking letter status")
         Text("Each letter request moves through these states:")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         letterStatusRow(label: "Requested", color: .orange, text: "You've submitted the request. Waiting for the recommender to confirm.")
         letterStatusRow(label: "In progress", color: .blue, text: "The recommender has confirmed they'll write it.")
         letterStatusRow(label: "Received", color: .green, text: "The letter has been submitted to the school or delivered to you.")
@@ -237,7 +237,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Updating your athlete profile")
         Text("Keep your profile current — fit scores and recommendations update automatically when your profile changes.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Open Settings", bodyText: "Navigate to Settings and select Athlete Profile.")
         HelpStepCard(step: 2, title: "Edit your details", bodyText: "Update any field — graduation year, sport, positions, GPA, SAT/ACT, height, or weight.")
         HelpStepCard(step: 3, title: "Save changes", bodyText: "Tap Save changes. Fit scores for all your schools will recalculate within a few seconds.", isLast: true)
@@ -247,7 +247,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Managing family members")
         Text("Family members (parents, guardians) can view your recruiting profile and help confirm phase advancements.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
         HelpStepCard(step: 2, title: "Invite a member", bodyText: "Enter their email and tap Send invite. They'll receive an invitation to create a linked account.")
         HelpStepCard(step: 3, title: "Manage access", bodyText: "To remove a family member, tap the three-dot menu next to their name and select Remove.", isLast: true)
@@ -258,10 +258,10 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Notification preferences")
         Text("Control which notifications you receive and how you receive them.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         Text("Go to Settings → Notifications to enable or disable notifications by category.")
           .font(.subheadline)
-          .foregroundColor(.primary)
+          .foregroundStyle(.primary)
         HelpCallout(type: .tip, text: "Keep Phase confirmations and Rec letter updates notifications enabled — these are time-sensitive actions that require your attention.")
       }
 
@@ -296,7 +296,7 @@ private extension HelpSectionDetailView {
         HelpSectionHeader(title: "Data and privacy")
         Text("Your data is stored securely and never shared with third parties or college programs without your consent. The Recruiting Compass does not sell user data.")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
         bulletList(items: [
           ("What we store", "your athlete profile, school list, coach interactions, and app activity"),
           ("Who can see it", "only you and family members you've invited"),
@@ -324,10 +324,10 @@ private extension HelpSectionDetailView {
         HStack(alignment: .top, spacing: 8) {
           Text("•")
             .font(.subheadline)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
           Text("\(item.0) — \(item.1)")
             .font(.subheadline)
-            .foregroundColor(.primary)
+            .foregroundStyle(.primary)
         }
       }
     }
@@ -337,11 +337,11 @@ private extension HelpSectionDetailView {
     HStack(alignment: .top, spacing: 12) {
       Image(systemName: icon)
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .frame(width: 20, alignment: .center)
       Text("\(title) — \(detail)")
         .font(.subheadline)
-        .foregroundColor(.primary)
+        .foregroundStyle(.primary)
     }
   }
 
@@ -350,14 +350,14 @@ private extension HelpSectionDetailView {
       HStack(alignment: .firstTextBaseline, spacing: 8) {
         Text(title)
           .font(.headline)
-          .foregroundColor(.primary)
+          .foregroundStyle(.primary)
         if let badge {
           HelpBadge(type: badge)
         }
       }
       Text(text)
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
     }
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -370,14 +370,14 @@ private extension HelpSectionDetailView {
       Text(label)
         .font(.caption)
         .fontWeight(.medium)
-        .foregroundColor(color)
+        .foregroundStyle(color)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(color.opacity(0.2))
         .clipShape(Capsule())
       Text(text)
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
     }
   }
 
@@ -386,11 +386,11 @@ private extension HelpSectionDetailView {
       Text(title)
         .font(.subheadline)
         .fontWeight(.semibold)
-        .foregroundColor(.primary)
+        .foregroundStyle(.primary)
       ForEach(items, id: \.self) { item in
         Text("• \(item)")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
       }
     }
   }

@@ -24,7 +24,7 @@ struct RecentActivityWidget: View {
         } label: {
           Image(systemName: "arrow.clockwise")
             .font(.subheadline)
-            .foregroundColor(.accentBlue)
+            .foregroundStyle(Color.accentBlue)
         }
         .frame(minWidth: 44, minHeight: 44)
         .accessibilityLabel("Refresh activities")
@@ -40,7 +40,7 @@ struct RecentActivityWidget: View {
       } else if viewModel.recentActivities.isEmpty {
         Text("No recent activity")
           .font(.caption)
-          .foregroundColor(.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .padding(.vertical, 16)
       } else {
         VStack(spacing: 8) {
@@ -62,10 +62,10 @@ struct RecentActivityWidget: View {
             Text("View All Activity")
               .font(.caption)
             Image(systemName: "chevron.right")
-              .font(.caption2)
+              .font(.caption)
               .accessibilityHidden(true)
           }
-          .foregroundColor(.accentBlue)
+          .foregroundStyle(Color.accentBlue)
         }
         .frame(minWidth: 44, minHeight: 44)
         .accessibilityLabel("View all activity")
@@ -75,7 +75,7 @@ struct RecentActivityWidget: View {
     }
     .padding()
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     .accessibilityIdentifier("recent-activity-widget")
     .task {

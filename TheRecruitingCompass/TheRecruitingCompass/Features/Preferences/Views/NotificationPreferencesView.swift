@@ -78,7 +78,7 @@ struct NotificationPreferencesView: View {
             await viewModel.resetToDefaults()
           }
         }
-        .foregroundColor(.red)
+        .foregroundStyle(.red)
         .accessibilityLabel("Reset notification preferences to defaults")
         .disabled(viewModel.saveStatus == .saving)
       }

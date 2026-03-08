@@ -40,7 +40,7 @@ struct ResponsivenessBar: View {
       .accessibilityHidden(true)
 
       Text(accessibilityLabel)
-        .font(.caption2)
+        .font(.caption)
         .foregroundStyle(.secondary)
     }
     .accessibilityElement(children: .combine)

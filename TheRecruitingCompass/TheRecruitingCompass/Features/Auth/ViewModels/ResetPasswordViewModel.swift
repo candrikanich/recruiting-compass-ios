@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SwiftUI
 
 enum ResetPasswordState: Equatable {
   case form
@@ -112,6 +113,13 @@ final class ResetPasswordViewModel {
   func returnToForm() {
     state = .form
     fieldErrors = [:]
+  }
+
+  func errorBinding(for key: FormFieldKey) -> Binding<String?> {
+    Binding(
+      get: { self.fieldErrors[key] },
+      set: { self.fieldErrors[key] = $0 }
+    )
   }
 
   // MARK: - Private Helpers

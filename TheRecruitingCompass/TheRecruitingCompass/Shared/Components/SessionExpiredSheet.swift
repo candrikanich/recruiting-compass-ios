@@ -32,7 +32,7 @@ struct SessionExpiredSheet: View {
                     .frame(height: 48)
                     .foregroundStyle(.white)
                     .background(LinearGradient.primaryButton)
-                    .cornerRadius(8)
+                    .clipShape(.rect(cornerRadius: 8))
             }
             .accessibilityLabel("Sign in again")
         }

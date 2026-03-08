@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SwiftUI
 
 @Observable
 @MainActor
@@ -99,6 +100,13 @@ final class ForgotPasswordViewModel {
 
   func dismissError() {
     state = .form
+  }
+
+  func errorBinding(for key: FormFieldKey) -> Binding<String?> {
+    Binding(
+      get: { self.fieldErrors[key] },
+      set: { self.fieldErrors[key] = $0 }
+    )
   }
 
   // MARK: - Private Helpers

@@ -29,7 +29,7 @@ struct DetailGridItem: View {
         if isTappable {
           Spacer()
           Image(systemName: "chevron.right")
-            .font(.caption2)
+            .font(.caption)
             .foregroundStyle(.secondary)
             .accessibilityHidden(true)
         }
@@ -38,7 +38,7 @@ struct DetailGridItem: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding()
     .background(Color(uiColor: .tertiarySystemBackground))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(title): \(value)")
     .accessibilityAddTraits(isTappable ? [.isButton] : [])

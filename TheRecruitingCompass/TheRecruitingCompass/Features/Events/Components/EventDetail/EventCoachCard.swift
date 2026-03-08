@@ -43,7 +43,7 @@ struct EventCoachCard: View {
   private var initialsCircle: some View {
     Text(coach.initials)
       .font(.caption)
-      .fontWeight(.bold)
+      .bold()
       .foregroundStyle(.white)
       .frame(width: Layout.initialsSize, height: Layout.initialsSize)
       .background(coach.role.badgeColor)

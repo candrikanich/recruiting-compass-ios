@@ -32,12 +32,12 @@ struct FilteredResultsHeader: View {
       Text(resultText)
         .font(.subheadline)
         .fontWeight(.semibold)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
 
       if let filterText = filterText {
         Text(filterText)
           .font(.caption)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
       }
 
       Spacer()

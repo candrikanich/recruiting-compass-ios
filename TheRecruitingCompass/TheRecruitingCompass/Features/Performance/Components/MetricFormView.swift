@@ -12,7 +12,7 @@ struct MetricFormView: View {
     VStack(alignment: .leading, spacing: 20) {
       Text(title)
         .font(.title2)
-        .fontWeight(.bold)
+        .bold()
 
       VStack(alignment: .leading, spacing: 16) {
         VStack(alignment: .leading, spacing: 4) {

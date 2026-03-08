@@ -56,17 +56,17 @@ struct ParentOnboardingBanner: View {
     HStack(spacing: 12) {
       Image(systemName: "person.badge.plus")
         .font(.title3)
-        .foregroundColor(Color(hex: "B45309"))
+        .foregroundStyle(Color(hex: "B45309"))
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
         Text("Connect your athlete to get started")
           .font(.subheadline.weight(.semibold))
-          .foregroundColor(Color(hex: "78350F"))
+          .foregroundStyle(Color(hex: "78350F"))
 
         Text("Invite them to join your family or share your family code.")
           .font(.caption)
-          .foregroundColor(Color(hex: "92400E"))
+          .foregroundStyle(Color(hex: "92400E"))
       }
 
       Spacer()
@@ -78,7 +78,7 @@ struct ParentOnboardingBanner: View {
           } label: {
             Text("Invite Athlete")
               .font(.caption.weight(.semibold))
-              .foregroundColor(.white)
+              .foregroundStyle(.white)
               .padding(.horizontal, 12)
               .padding(.vertical, 8)
               .background(Color(hex: "D97706"))
@@ -88,8 +88,8 @@ struct ParentOnboardingBanner: View {
 
           NavigationLink(value: DashboardDestination.familyManagement) {
             Text("Family Management")
-              .font(.caption2)
-              .foregroundColor(Color(hex: "92400E"))
+              .font(.caption)
+              .foregroundStyle(Color(hex: "92400E"))
           }
           .accessibilityLabel("Open Family Management")
         }
@@ -97,7 +97,7 @@ struct ParentOnboardingBanner: View {
         NavigationLink(value: DashboardDestination.familyManagement) {
           Text("Invite Athlete")
             .font(.caption.weight(.semibold))
-            .foregroundColor(.white)
+            .foregroundStyle(.white)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(Color(hex: "D97706"))
@@ -122,12 +122,12 @@ struct ParentOnboardingBanner: View {
     HStack(spacing: 12) {
       Image(systemName: "checkmark.circle.fill")
         .font(.title3)
-        .foregroundColor(Color(hex: "15803D"))
+        .foregroundStyle(Color(hex: "15803D"))
         .accessibilityHidden(true)
 
       Text("You're connected! Your athlete has joined your family.")
         .font(.subheadline.weight(.medium))
-        .foregroundColor(Color(hex: "14532D"))
+        .foregroundStyle(Color(hex: "14532D"))
     }
     .padding()
     .background(Color(hex: "F0FDF4"))

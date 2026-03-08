@@ -7,7 +7,7 @@ struct FavoriteStarButton: View {
   var body: some View {
     Button(action: action) {
       Image(systemName: isFavorite ? "star.fill" : "star")
-        .foregroundColor(isFavorite ? .yellow : .gray)
+        .foregroundStyle(isFavorite ? .yellow : .gray)
         .accessibilityHidden(true)
     }
     .frame(width: 44, height: 44)

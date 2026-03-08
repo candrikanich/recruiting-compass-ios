@@ -25,7 +25,7 @@ struct DivisionRecommendationBanner: View {
       }
       .padding()
       .background(Color.blue.opacity(0.1))
-      .cornerRadius(12)
+      .clipShape(.rect(cornerRadius: 12))
       .overlay(
         RoundedRectangle(cornerRadius: 12)
           .stroke(Color.blue.opacity(0.3), lineWidth: 1)

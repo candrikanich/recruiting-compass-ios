@@ -17,7 +17,7 @@ struct NotificationCard: View {
           HStack(spacing: 8) {
             Text(notification.title)
               .font(notification.isRead ? .body : .body.weight(.semibold))
-              .foregroundColor(notification.isRead ? .primary : Color(hex: "#1E40AF"))
+              .foregroundStyle(notification.isRead ? .primary : Color(hex: "#1E40AF"))
               .lineLimit(2)
               .multilineTextAlignment(.leading)
 
@@ -26,20 +26,20 @@ struct NotificationCard: View {
 
           Text(notification.message)
             .font(.subheadline)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
             .lineLimit(3)
             .multilineTextAlignment(.leading)
 
           Text(formatRelativeDate(notification.scheduledFor))
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         }
 
         Spacer()
 
         Button(action: onDelete) {
           Image(systemName: "xmark.circle.fill")
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
             .frame(width: 44, height: 44)
             .contentShape(Rectangle())
         }
@@ -53,7 +53,7 @@ struct NotificationCard: View {
           .frame(width: 4),
         alignment: .leading
       )
-      .cornerRadius(8)
+      .clipShape(.rect(cornerRadius: 8))
       .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
     .buttonStyle(.plain)
@@ -133,11 +133,11 @@ struct PriorityBadge: View {
 
   var body: some View {
     Text(priority.rawValue.uppercased())
-      .font(.caption2.weight(.bold))
-      .foregroundColor(textColor)
+      .font(.caption.weight(.bold))
+      .foregroundStyle(textColor)
       .padding(.horizontal, 6)
       .padding(.vertical, 2)
       .background(backgroundColor)
-      .cornerRadius(4)
+      .clipShape(.rect(cornerRadius: 4))
   }
 }

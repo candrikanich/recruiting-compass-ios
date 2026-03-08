@@ -30,7 +30,7 @@ struct SchoolFilterBar: View {
   // MARK: - Row 1: Division, Status, State, Favorites
 
   private var row1: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
+    ScrollView(.horizontal) {
       HStack(spacing: 8) {
         divisionMenu
         statusMenu
@@ -38,6 +38,7 @@ struct SchoolFilterBar: View {
         favoritesToggle
       }
     }
+    .scrollIndicators(.hidden)
   }
 
   private var divisionMenu: some View {
@@ -118,7 +119,7 @@ struct SchoolFilterBar: View {
       }
       .font(.subheadline)
       .fontWeight(.medium)
-      .foregroundColor(filters.isFavoritesOnly ? .white : .primary)
+      .foregroundStyle(filters.isFavoritesOnly ? .white : .primary)
       .padding(.horizontal, 12)
       .padding(.vertical, 8)
       .frame(minHeight: chipHeight)
@@ -134,12 +135,13 @@ struct SchoolFilterBar: View {
   // MARK: - Row 2: Priority Tier, Sort
 
   private var row2: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
+    ScrollView(.horizontal) {
       HStack(spacing: 8) {
         priorityTierMenu
         sortMenu
       }
     }
+    .scrollIndicators(.hidden)
   }
 
   private var priorityTierMenu: some View {
@@ -197,14 +199,14 @@ struct SchoolFilterBar: View {
 
         Text("\(Int(filters.fitScoreMin ?? 0)) - \(Int(filters.fitScoreMax ?? 100))")
           .font(.caption)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
       }
 
       HStack(spacing: 16) {
         VStack(alignment: .leading, spacing: 4) {
           Text("Min")
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
 
           Slider(
             value: Binding(
@@ -221,7 +223,7 @@ struct SchoolFilterBar: View {
         VStack(alignment: .leading, spacing: 4) {
           Text("Max")
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
 
           Slider(
             value: Binding(
@@ -253,11 +255,11 @@ struct SchoolFilterBar: View {
         if let maxDistance = filters.maxDistance {
           Text("\(Int(maxDistance)) miles")
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         } else {
           Text("No limit")
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         }
       }
 
@@ -278,12 +280,12 @@ struct SchoolFilterBar: View {
   private var distanceWarning: some View {
     HStack(spacing: 8) {
       Image(systemName: "exclamationmark.triangle")
-        .foregroundColor(.orange)
+        .foregroundStyle(.orange)
         .accessibilityHidden(true)
 
       Text("Distance filter disabled: Set home location in settings")
         .font(.caption)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
     }
     .padding(.horizontal, 4)
     .accessibilityLabel("Distance filter disabled")

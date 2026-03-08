@@ -26,7 +26,7 @@ struct SignupView: View {
           }
           .scrollDismissesKeyboard(.immediately)
           .background(Color.white.opacity(0.95))
-          .cornerRadius(16)
+          .clipShape(.rect(cornerRadius: 16))
           Color.clear.frame(width: 24)
         }
         .padding(.vertical, 24)
@@ -60,7 +60,7 @@ struct SignupView: View {
           Text("Back")
             .font(.footnote.weight(.semibold))
         }
-        .foregroundColor(Color.darkSlate)
+        .foregroundStyle(Color.darkSlate)
       }
       .accessibilityLabel("Back to welcome screen")
       Spacer()
@@ -86,11 +86,11 @@ struct SignupView: View {
       VStack(alignment: .leading, spacing: 12) {
         Text("Select Your Role")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
 
         Text("Choose the account type that best fits your needs")
           .font(.footnote)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
       }
 
       ForEach(UserRole.allCases, id: \.self) { role in
@@ -139,7 +139,7 @@ struct SignupView: View {
             Text("Change Role")
               .font(.caption)
           }
-          .foregroundColor(Color.accentBlue)
+          .foregroundStyle(Color.accentBlue)
         }
         .accessibilityLabel("Change role selection")
         .accessibilityHint("Return to role selection screen")
@@ -154,7 +154,7 @@ struct SignupView: View {
             Text(role.displayName)
               .font(.footnote.weight(.semibold))
           }
-          .foregroundColor(Color.primaryGreen)
+          .foregroundStyle(Color.primaryGreen)
         }
       }
       .frame(minHeight: 44)
@@ -204,11 +204,11 @@ struct SignupView: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 8) {
         Image(systemName: "calendar")
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
           .accessibilityHidden(true)
         Text("Date of Birth")
           .font(.subheadline.weight(.medium))
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
       }
 
       DatePicker(
@@ -226,7 +226,7 @@ struct SignupView: View {
       if let error = viewModel.fieldErrors[.dateOfBirth] {
         Text(error)
           .font(.caption)
-          .foregroundColor(.red)
+          .foregroundStyle(.red)
       }
     }
   }
@@ -321,11 +321,11 @@ struct SignupView: View {
       }
       .frame(maxWidth: .infinity)
       .frame(height: 48)
-      .foregroundColor(.white)
+      .foregroundStyle(.white)
       .background(
         LinearGradient.primaryButton
       )
-      .cornerRadius(8)
+      .clipShape(.rect(cornerRadius: 8))
       .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
       .disabled(viewModel.isButtonDisabled)
     }
@@ -337,7 +337,7 @@ struct SignupView: View {
     HStack {
       Text("Already have an account?")
         .font(.footnote)
-        .foregroundColor(Color.tertiaryText)
+        .foregroundStyle(Color.tertiaryText)
 
       Button(action: { navigateToLogin = true }) {
         HStack(spacing: 4) {
@@ -347,7 +347,7 @@ struct SignupView: View {
             .font(.caption.weight(.semibold))
             .accessibilityHidden(true)
         }
-        .foregroundColor(Color.accentBlue)
+        .foregroundStyle(Color.accentBlue)
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }

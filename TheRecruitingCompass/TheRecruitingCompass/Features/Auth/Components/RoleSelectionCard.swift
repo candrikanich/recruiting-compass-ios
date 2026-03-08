@@ -20,17 +20,17 @@ struct RoleSelectionCard: View {
         HStack(spacing: 12) {
           Image(systemName: role.icon)
             .font(.system(size: roleIconSize))
-            .foregroundColor(Color.primaryGreen)
+            .foregroundStyle(Color.primaryGreen)
             .accessibilityHidden(true)
 
           VStack(alignment: .leading, spacing: 4) {
             Text(role.displayName)
               .font(.callout.weight(.semibold))
-              .foregroundColor(Color.darkSlate)
+              .foregroundStyle(Color.darkSlate)
 
             Text(role.description)
               .font(.caption)
-              .foregroundColor(Color.secondaryText)
+              .foregroundStyle(Color.secondaryText)
               .lineLimit(2)
           }
 
@@ -38,7 +38,7 @@ struct RoleSelectionCard: View {
 
           Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
             .font(.system(size: checkmarkSize))
-            .foregroundColor(
+            .foregroundStyle(
               isSelected
                 ? Color.accentBlue
                 : Color.borderGray
@@ -52,7 +52,7 @@ struct RoleSelectionCard: View {
         isSelected ? Color.accentBlue : Color.borderGray,
         width: 2
       )
-      .cornerRadius(8)
+      .clipShape(.rect(cornerRadius: 8))
     }
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(role.displayName) role")

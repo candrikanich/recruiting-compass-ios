@@ -67,7 +67,7 @@ struct AppErrorView: View {
         .padding(32)
         .frame(maxWidth: 400)
         .background(Color.white.opacity(0.95))
-        .cornerRadius(16)
+        .clipShape(.rect(cornerRadius: 16))
         .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 4)
     }
 
@@ -92,7 +92,7 @@ struct AppErrorView: View {
                 .frame(height: 48)
                 .foregroundStyle(.white)
                 .background(LinearGradient.primaryButton)
-                .cornerRadius(8)
+                .clipShape(.rect(cornerRadius: 8))
         }
         .accessibilityLabel(config.primaryButtonLabel)
     }
@@ -105,7 +105,7 @@ struct AppErrorView: View {
                 .frame(height: 48)
                 .foregroundStyle(Color.primary)
                 .background(Color(uiColor: .systemGray5))
-                .cornerRadius(8)
+                .clipShape(.rect(cornerRadius: 8))
         }
         .accessibilityLabel(label)
     }

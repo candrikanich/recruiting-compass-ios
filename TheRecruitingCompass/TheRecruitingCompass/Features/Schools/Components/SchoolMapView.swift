@@ -22,7 +22,7 @@ struct SchoolMapView: View {
         }
         .mapStyle(.standard)
         .frame(height: 200)
-        .cornerRadius(12)
+        .clipShape(.rect(cornerRadius: 12))
         .accessibilityLabel("Map showing \(school.name) location")
         .accessibilityAddTraits(.allowsDirectInteraction)
         .accessibilityHint("Use two fingers to pan and pinch to zoom the map")
@@ -63,7 +63,7 @@ struct SchoolMapView: View {
         .frame(height: 200)
         .frame(maxWidth: .infinity)
         .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .clipShape(.rect(cornerRadius: 12))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Location data not available. Use Lookup College Data to fetch location")
       }

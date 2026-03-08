@@ -132,7 +132,7 @@ private struct PhilosophyField: View {
         .scrollContentBackground(.hidden)
         .padding(8)
         .background(Color(.systemGray6))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
         .overlay {
           if text.isEmpty {
             Text(placeholder)

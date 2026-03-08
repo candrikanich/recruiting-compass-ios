@@ -25,7 +25,7 @@ struct ResetPasswordView: View {
               Text("Back")
                 .font(.footnote.weight(.semibold))
             }
-            .foregroundColor(Color.darkSlate)
+            .foregroundStyle(Color.darkSlate)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
           }
@@ -50,7 +50,7 @@ struct ResetPasswordView: View {
           }
         }
         .background(Color.white.opacity(0.95))
-        .cornerRadius(16)
+        .clipShape(.rect(cornerRadius: 16))
         .padding(24)
 
         Spacer()
@@ -74,7 +74,7 @@ struct ResetPasswordView: View {
     VStack(spacing: 24) {
       Image(systemName: "lock.rotation")
         .font(.system(size: iconSize))
-        .foregroundColor(Color.primaryGreen)
+        .foregroundStyle(Color.primaryGreen)
         .padding(.vertical, 12)
         .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
         .accessibilityHidden(true)
@@ -82,21 +82,18 @@ struct ResetPasswordView: View {
       VStack(spacing: 8) {
         Text("Reset Password")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
 
         Text("Enter your new password below.")
           .font(.footnote)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
       }
 
       PasswordFormField(
         label: "New Password",
         placeholder: "Enter your new password",
         text: $viewModel.newPassword,
-        error: Binding(
-          get: { viewModel.fieldErrors[.newPassword] },
-          set: { viewModel.fieldErrors[.newPassword] = $0 }
-        ),
+        error: viewModel.errorBinding(for: .newPassword),
         isPasswordVisible: $viewModel.isPasswordVisible,
         onBlur: viewModel.validateNewPassword
       )
@@ -109,10 +106,7 @@ struct ResetPasswordView: View {
         label: "Confirm Password",
         placeholder: "Re-enter your new password",
         text: $viewModel.confirmPassword,
-        error: Binding(
-          get: { viewModel.fieldErrors[.confirmPassword] },
-          set: { viewModel.fieldErrors[.confirmPassword] = $0 }
-        ),
+        error: viewModel.errorBinding(for: .confirmPassword),
         isPasswordVisible: $viewModel.isPasswordVisible,
         onBlur: viewModel.validateConfirmPassword
       )
@@ -138,11 +132,11 @@ struct ResetPasswordView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: 48)
-        .foregroundColor(.white)
+        .foregroundStyle(.white)
         .background(
           LinearGradient.primaryButton
         )
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
         .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
         .disabled(viewModel.isButtonDisabled)
       }
@@ -157,14 +151,14 @@ struct ResetPasswordView: View {
   private var passwordMatchIndicator: some View {
     HStack(spacing: 6) {
       Image(systemName: viewModel.passwordsMatch ? "checkmark.circle.fill" : "xmark.circle.fill")
-        .foregroundColor(viewModel.passwordsMatch
+        .foregroundStyle(viewModel.passwordsMatch
           ? Color.successGreen
           : Color.errorRed)
         .accessibilityHidden(true)
 
       Text(viewModel.passwordsMatch ? "Passwords match" : "Passwords do not match")
         .font(.caption)
-        .foregroundColor(viewModel.passwordsMatch
+        .foregroundStyle(viewModel.passwordsMatch
           ? Color.successGreen
           : Color.errorRed)
     }
@@ -181,11 +175,11 @@ struct ResetPasswordView: View {
       VStack(spacing: 8) {
         Text("Password Reset!")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
 
         Text("Your password has been updated successfully.")
           .font(.footnote)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .multilineTextAlignment(.center)
       }
 
@@ -193,7 +187,7 @@ struct ResetPasswordView: View {
 
       Text("Redirecting to login in \(viewModel.successCountdown)s...")
         .font(.caption)
-        .foregroundColor(Color.secondaryText)
+        .foregroundStyle(Color.secondaryText)
         .accessibilityLabel("Redirecting to login in \(viewModel.successCountdown) seconds")
 
       Button(action: { dismiss() }) {
@@ -201,11 +195,11 @@ struct ResetPasswordView: View {
           .font(.callout.weight(.semibold))
           .frame(maxWidth: .infinity)
           .frame(height: 48)
-          .foregroundColor(.white)
+          .foregroundStyle(.white)
           .background(
             LinearGradient.primaryButton
           )
-          .cornerRadius(8)
+          .clipShape(.rect(cornerRadius: 8))
       }
       .accessibilityLabel("Sign in now")
       .accessibilityHint("Navigate to the login screen")
@@ -222,11 +216,11 @@ struct ResetPasswordView: View {
       VStack(spacing: 8) {
         Text("Invalid Link")
           .font(.title3.weight(.semibold))
-          .foregroundColor(Color.darkSlate)
+          .foregroundStyle(Color.darkSlate)
 
         Text("This password reset link is no longer valid.")
           .font(.footnote)
-          .foregroundColor(Color.secondaryText)
+          .foregroundStyle(Color.secondaryText)
           .multilineTextAlignment(.center)
       }
 
@@ -240,11 +234,11 @@ struct ResetPasswordView: View {
           .font(.callout.weight(.semibold))
           .frame(maxWidth: .infinity)
           .frame(height: 48)
-          .foregroundColor(.white)
+          .foregroundStyle(.white)
           .background(
             LinearGradient.primaryButton
           )
-          .cornerRadius(8)
+          .clipShape(.rect(cornerRadius: 8))
       }
       .accessibilityLabel("Request a new password reset link")
 
@@ -256,7 +250,7 @@ struct ResetPasswordView: View {
           Text("Back to Login")
             .font(.footnote.weight(.semibold))
         }
-        .foregroundColor(Color.tertiaryText)
+        .foregroundStyle(Color.tertiaryText)
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }

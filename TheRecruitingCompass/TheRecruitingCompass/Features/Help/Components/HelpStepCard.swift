@@ -17,7 +17,7 @@ struct HelpStepCard: View {
     HStack(alignment: .top, spacing: 12) {
       Text("\(step)")
         .font(.title2)
-        .fontWeight(.bold)
+        .bold()
         .foregroundStyle(Color.accentBlue)
         .frame(width: 32, height: 32)
         .background(Color.accentBlue.opacity(0.12))
@@ -28,11 +28,11 @@ struct HelpStepCard: View {
         Text(title)
           .font(.body)
           .fontWeight(.semibold)
-          .foregroundColor(.primary)
+          .foregroundStyle(.primary)
 
         Text(bodyText)
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
           .fixedSize(horizontal: false, vertical: true)
       }
       .frame(maxWidth: .infinity, alignment: .leading)

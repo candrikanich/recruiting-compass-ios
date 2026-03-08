@@ -5,7 +5,7 @@ struct MetricTypeFilterBar: View {
   @Binding var selectedType: MetricType?
 
   var body: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
+    ScrollView(.horizontal) {
       HStack(spacing: 8) {
         ForEach(availableTypes) { type in
           Button {
@@ -30,6 +30,7 @@ struct MetricTypeFilterBar: View {
       .accessibilityElement(children: .contain)
       .accessibilityLabel("Metric type filters")
     }
+    .scrollIndicators(.hidden)
   }
 
   private func isSelected(_ type: MetricType) -> Bool {

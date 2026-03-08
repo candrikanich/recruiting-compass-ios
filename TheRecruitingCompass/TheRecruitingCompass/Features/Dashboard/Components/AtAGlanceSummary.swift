@@ -46,7 +46,7 @@ struct AtAGlanceSummary: View {
     }
     .padding()
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
   }
 }
@@ -60,20 +60,20 @@ struct MetricCard: View {
     VStack(alignment: .leading, spacing: 8) {
       Text(value)
         .font(.title.weight(.bold))
-        .foregroundColor(color)
+        .foregroundStyle(color)
         .lineLimit(1)
         .minimumScaleFactor(0.7)
 
       Text(title)
         .font(.caption)
-        .foregroundColor(Color.secondaryText)
+        .foregroundStyle(Color.secondaryText)
         .lineLimit(2)
         .fixedSize(horizontal: false, vertical: true)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(12)
     .background(Color(.secondarySystemBackground))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(title): \(value)")
     .accessibilityHint(metricHint)

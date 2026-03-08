@@ -312,8 +312,8 @@ struct OnboardingView: View {
           .frame(maxWidth: .infinity)
           .frame(height: 44)
           .background(viewModel.isEmailInviteValid ? Color.accentColor : Color.gray)
-          .foregroundColor(.white)
-          .cornerRadius(8)
+          .foregroundStyle(.white)
+          .clipShape(.rect(cornerRadius: 8))
           .disabled(!viewModel.isEmailInviteValid || viewModel.isLoading)
         }
       }

@@ -11,7 +11,7 @@ struct NotificationEmptyState: View {
     VStack(spacing: 16) {
       Image(systemName: "bell.badge.slash")
         .font(.system(size: iconSize))
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
       Text("No notifications")
@@ -19,7 +19,7 @@ struct NotificationEmptyState: View {
 
       Text("You're all caught up!")
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .accessibilityElement(children: .combine)

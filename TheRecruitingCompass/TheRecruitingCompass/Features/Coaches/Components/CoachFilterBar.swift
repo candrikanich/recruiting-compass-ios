@@ -4,7 +4,7 @@ struct CoachFilterBar: View {
   @Binding var filters: CoachFilters
 
   var body: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
+    ScrollView(.horizontal) {
       HStack(spacing: 8) {
         roleMenu
         lastContactMenu
@@ -13,6 +13,7 @@ struct CoachFilterBar: View {
       }
       .padding(.horizontal, 16)
     }
+    .scrollIndicators(.hidden)
   }
 
   // MARK: - Role Filter

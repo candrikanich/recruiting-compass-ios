@@ -9,7 +9,7 @@ struct LegalSectionHeader: View {
   var body: some View {
     Text(text)
       .font(.headline)
-      .foregroundColor(Color.darkSlate)
+      .foregroundStyle(Color.darkSlate)
       .accessibilityAddTraits(.isHeader)
   }
 }
@@ -20,7 +20,7 @@ struct LegalSubsectionHeader: View {
   var body: some View {
     Text(text)
       .font(.subheadline.weight(.semibold))
-      .foregroundColor(Color.darkSlate)
+      .foregroundStyle(Color.darkSlate)
       .accessibilityAddTraits(.isHeader)
   }
 }
@@ -31,7 +31,7 @@ struct LegalBodyText: View {
   var body: some View {
     Text(text)
       .font(.body)
-      .foregroundColor(Color.secondaryText)
+      .foregroundStyle(Color.secondaryText)
       .fixedSize(horizontal: false, vertical: true)
   }
 }
@@ -45,10 +45,10 @@ struct LegalBulletList: View {
         HStack(alignment: .top, spacing: 8) {
           Text("•")
             .font(.body)
-            .foregroundColor(Color.secondaryText)
+            .foregroundStyle(Color.secondaryText)
           Text(item)
             .font(.body)
-            .foregroundColor(Color.secondaryText)
+            .foregroundStyle(Color.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
         }
       }
@@ -74,7 +74,7 @@ struct LegalEmailLink: View {
           Text(email)
         }
         .font(.body.weight(.medium))
-        .foregroundColor(Color.accentBlue)
+        .foregroundStyle(Color.accentBlue)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
         .accessibilityLabel("Email \(email.replacingOccurrences(of: "@", with: " at ").replacingOccurrences(of: ".", with: " dot "))")
@@ -85,7 +85,7 @@ struct LegalEmailLink: View {
       } else {
         Text(email)
           .font(.body)
-          .foregroundColor(Color.accentBlue)
+          .foregroundStyle(Color.accentBlue)
       }
     }
   }

@@ -5,7 +5,7 @@ struct NotificationFilterChips: View {
   let onFilterChanged: (NotificationType?) -> Void
 
   var body: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
+    ScrollView(.horizontal) {
       HStack(spacing: 8) {
         NotificationToggleChip(
           label: "All",
@@ -27,6 +27,7 @@ struct NotificationFilterChips: View {
       }
       .padding(.horizontal)
     }
+    .scrollIndicators(.hidden)
     .accessibilityIdentifier("Filter notifications")
     .frame(minHeight: 44)
   }
@@ -41,7 +42,7 @@ private struct NotificationToggleChip: View {
     Button(action: action) {
       Text(label)
         .font(.subheadline.weight(.semibold))
-        .foregroundColor(isActive ? .white : .secondary)
+        .foregroundStyle(isActive ? .white : .secondary)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(isActive ? Color(hex: "#3B82F6") : Color(.systemBackground))
@@ -49,7 +50,7 @@ private struct NotificationToggleChip: View {
           RoundedRectangle(cornerRadius: 8)
             .stroke(Color.secondary.opacity(0.3), lineWidth: isActive ? 0 : 1)
         )
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
     .accessibilityLabel("\(label) filter\(isActive ? ", selected" : "")")
     .accessibilityAddTraits(isActive ? [.isButton, .isSelected] : .isButton)

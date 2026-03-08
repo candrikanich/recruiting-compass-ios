@@ -22,7 +22,7 @@ struct PlayerCompletenessCard: View {
                 Spacer()
                 Text("\(percentage)%")
                     .font(.subheadline)
-                    .fontWeight(.bold)
+                    .bold()
                     .foregroundStyle(progressColor)
             }
 

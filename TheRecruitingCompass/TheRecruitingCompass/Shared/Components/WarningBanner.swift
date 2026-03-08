@@ -15,7 +15,7 @@ struct WarningBanner: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: "exclamationmark.triangle.fill")
-        .foregroundColor(color)
+        .foregroundStyle(color)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
@@ -25,7 +25,7 @@ struct WarningBanner: View {
 
         Text(message)
           .font(.caption)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
       }
 
       Spacer()

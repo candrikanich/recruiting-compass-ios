@@ -54,7 +54,7 @@ struct SchoolRecruitingStatusAndTierSection: View {
           .padding(.horizontal, 12)
           .padding(.vertical, 10)
           .background(Color(.systemGray6))
-          .cornerRadius(8)
+          .clipShape(.rect(cornerRadius: 8))
         }
         .accessibilityIdentifier("status-picker-button")
         .accessibilityLabel("Recruiting status: \(currentStatus.displayName)")
@@ -97,7 +97,7 @@ struct SchoolRecruitingStatusAndTierSection: View {
           .padding(.horizontal, 12)
           .padding(.vertical, 10)
           .background(Color(.systemGray6))
-          .cornerRadius(8)
+          .clipShape(.rect(cornerRadius: 8))
         }
         .accessibilityIdentifier("tier-picker-button")
         .accessibilityLabel("Priority tier: \(selectedTier.map { tierDropdownLabel($0) } ?? "None")")

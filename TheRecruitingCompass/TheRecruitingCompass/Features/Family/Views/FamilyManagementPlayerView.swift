@@ -58,13 +58,13 @@ struct FamilyManagementPlayerView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, FamilyConstants.Spacing.medium)
             .background(Color.gray.opacity(0.1))
-            .cornerRadius(12)
+            .clipShape(.rect(cornerRadius: 12))
             .accessibilityLabel(FamilyUtilities.formatCodeForVoiceOver(code))
 
           if let date = viewModel.formattedCodeGeneratedAt {
             Text("Created \(date)")
               .font(.caption)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
           }
 
           VStack(spacing: FamilyConstants.Spacing.small) {
@@ -103,7 +103,7 @@ struct FamilyManagementPlayerView: View {
     }
     .padding(FamilyConstants.Spacing.medium)
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
   }
 
@@ -116,12 +116,12 @@ struct FamilyManagementPlayerView: View {
 
       Text("They'll receive a link to join your family.")
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Text("Invites expire after 30 days.")
-        .font(.caption2)
-        .foregroundColor(.secondary)
+        .font(.caption)
+        .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
       HStack(spacing: FamilyConstants.Spacing.small) {
@@ -144,8 +144,8 @@ struct FamilyManagementPlayerView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(viewModel.isEmailInviteValid ? Color.accentColor : Color.gray)
-        .foregroundColor(.white)
-        .cornerRadius(8)
+        .foregroundStyle(.white)
+        .clipShape(.rect(cornerRadius: 8))
         .disabled(!viewModel.isEmailInviteValid || viewModel.isLoading)
         .accessibilityLabel("Send invite")
         .accessibilityHint(viewModel.isEmailInviteValid
@@ -155,7 +155,7 @@ struct FamilyManagementPlayerView: View {
     }
     .padding(FamilyConstants.Spacing.medium)
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
   }
 
@@ -169,7 +169,7 @@ struct FamilyManagementPlayerView: View {
           Spacer()
           Text("\(viewModel.pendingInvitations.count)")
             .font(.subheadline)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         }
 
         ForEach(viewModel.pendingInvitations) { invite in
@@ -179,7 +179,7 @@ struct FamilyManagementPlayerView: View {
                 .font(.subheadline.weight(.medium))
               Text("Expires \(formattedExpiry(invite.expiresAt ?? ""))")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             }
             Spacer()
             Button("Resend") {
@@ -193,7 +193,7 @@ struct FamilyManagementPlayerView: View {
               Task { await viewModel.revokeInvitation(invite) }
             }
             .font(.caption)
-            .foregroundColor(.red)
+            .foregroundStyle(.red)
             .buttonStyle(.bordered)
             .tint(.red)
             .accessibilityLabel("Revoke invite to \(invite.invitedEmail)")
@@ -203,7 +203,7 @@ struct FamilyManagementPlayerView: View {
       }
       .padding(FamilyConstants.Spacing.medium)
       .background(Color(.systemBackground))
-      .cornerRadius(12)
+      .clipShape(.rect(cornerRadius: 12))
       .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
     }
   }
@@ -222,7 +222,7 @@ struct FamilyManagementPlayerView: View {
         Spacer()
         Text("\(viewModel.familyMembers.count)")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
       }
 
       if viewModel.loadingMembers {
@@ -238,7 +238,7 @@ struct FamilyManagementPlayerView: View {
     }
     .padding(FamilyConstants.Spacing.medium)
     .background(Color(.systemBackground))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
     .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
   }
 
@@ -246,13 +246,13 @@ struct FamilyManagementPlayerView: View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       Image(systemName: "person.2.slash")
         .font(.largeTitle)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .accessibilityHidden(true)
       Text("No family members yet")
         .font(.headline)
       Text("Share your family code to invite parents")
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
     }
     .padding(.vertical, FamilyConstants.Spacing.extraLarge)

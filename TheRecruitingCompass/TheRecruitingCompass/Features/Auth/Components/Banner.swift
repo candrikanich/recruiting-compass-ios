@@ -41,13 +41,13 @@ struct Banner: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: style.iconName)
-        .foregroundColor(style.foregroundColor)
+        .foregroundStyle(style.foregroundColor)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 2) {
         Text(message)
           .font(.footnote)
-          .foregroundColor(style.foregroundColor)
+          .foregroundStyle(style.foregroundColor)
       }
 
       Spacer()
@@ -55,7 +55,7 @@ struct Banner: View {
       if let onDismiss {
         Button(action: onDismiss) {
           Image(systemName: "xmark")
-            .foregroundColor(style.foregroundColor)
+            .foregroundStyle(style.foregroundColor)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
@@ -65,7 +65,7 @@ struct Banner: View {
     .padding(12)
     .background(style.backgroundColor)
     .border(style.borderColor, width: 1)
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
     .accessibilityLabel(style == .error ? "Error: \(message)" : "Warning: \(message)")
   }

@@ -107,7 +107,7 @@ struct CollegeScorecardDataDisplay: View {
     }
     .padding()
     .background(Color.blue.opacity(0.05))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .contain)
     .accessibilityLabel("College Scorecard academic data")
   }
@@ -135,7 +135,7 @@ struct CollegeScorecardDataDisplay: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(12)
     .background(Color(UIColor.systemBackground))
-    .cornerRadius(6)
+    .clipShape(.rect(cornerRadius: 6))
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(label): \(value)")
   }

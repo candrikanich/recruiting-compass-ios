@@ -57,13 +57,13 @@ struct FamilyManagementView: View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Image(systemName: "exclamationmark.triangle")
         .font(.largeTitle)
-        .foregroundColor(.orange)
+        .foregroundStyle(.orange)
         .accessibilityHidden(true)
       Text("Family Management Unavailable")
         .font(.headline)
       Text("This feature is only available for players and parents.")
         .font(.subheadline)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
         .padding(.horizontal, FamilyConstants.Spacing.extraLarge)
     }

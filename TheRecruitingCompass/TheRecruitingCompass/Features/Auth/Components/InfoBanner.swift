@@ -25,14 +25,14 @@ struct InfoBanner: View {
               .font(.footnote.weight(.semibold))
             Text(subtitle)
               .font(.caption)
-              .foregroundColor(Color.secondaryText)
+              .foregroundStyle(Color.secondaryText)
           }
           Spacer()
         }
         .padding(12)
       }
       .background(backgroundColor)
-      .cornerRadius(8)
+      .clipShape(.rect(cornerRadius: 8))
       .transition(.opacity)
       .accessibilityElement(children: .combine)
       .accessibilityLabel(title)

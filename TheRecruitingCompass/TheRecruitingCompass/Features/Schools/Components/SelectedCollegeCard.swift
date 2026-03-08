@@ -72,7 +72,7 @@ struct SelectedCollegeCard: View {
     }
     .padding()
     .background(Color.green.opacity(0.1))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .overlay(
       RoundedRectangle(cornerRadius: 8)
         .stroke(Color.green, lineWidth: 1)

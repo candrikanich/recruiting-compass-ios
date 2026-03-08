@@ -13,17 +13,17 @@ struct EmptyDashboardState: View {
     VStack(spacing: 20) {
       Image(systemName: "location.fill")
         .font(.system(size: iconSize))
-        .foregroundColor(Color.primaryGreen)
+        .foregroundStyle(Color.primaryGreen)
         .accessibilityHidden(true)
 
       Text("Start Your Recruiting Journey")
         .font(.title2)
-        .fontWeight(.bold)
+        .bold()
         .accessibilityAddTraits(.isHeader)
 
       Text("Add your first school to begin tracking your recruiting journey")
         .font(.body)
-        .foregroundColor(Color.secondaryText)
+        .foregroundStyle(Color.secondaryText)
         .multilineTextAlignment(.center)
         .padding(.horizontal)
 

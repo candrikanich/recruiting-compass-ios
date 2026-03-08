@@ -112,7 +112,7 @@ struct SchoolProsConsSection: View {
     }
     .padding()
     .background(Color(.systemGray6))
-    .cornerRadius(12)
+    .clipShape(.rect(cornerRadius: 12))
   }
 }
 
@@ -142,7 +142,7 @@ struct ProItem: View {
     .padding(.horizontal, 12)
     .padding(.vertical, 8)
     .background(Color.green.opacity(0.1))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
   }
 }
 
@@ -174,7 +174,7 @@ struct ConItem: View {
     .padding(.horizontal, 12)
     .padding(.vertical, 8)
     .background(Color.red.opacity(0.1))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
   }
 }
 

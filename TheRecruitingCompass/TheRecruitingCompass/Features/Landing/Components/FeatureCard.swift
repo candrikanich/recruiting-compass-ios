@@ -41,24 +41,23 @@ struct FeatureCard: View {
     VStack(spacing: 12) {
       Image(systemName: icon)
         .font(.system(size: iconSize))
-        .foregroundColor(.white)
+        .foregroundStyle(.white)
         .accessibilityHidden(true)
 
       Text(title)
-        .font(.headline)
-        .fontWeight(.semibold)
-        .foregroundColor(.white)
+        .font(.headline.weight(.semibold))
+        .foregroundStyle(.white)
 
       Text(description)
         .font(.subheadline)
-        .foregroundColor(Color.white.opacity(0.85))
+        .foregroundStyle(Color.white.opacity(0.85))
         .lineLimit(3)
         .multilineTextAlignment(.center)
     }
     .frame(maxWidth: .infinity)
     .padding(20)
     .background(Color.white.opacity(0.1))
-    .cornerRadius(16)
+    .clipShape(.rect(cornerRadius: 16))
     .overlay(
       RoundedRectangle(cornerRadius: 16)
         .stroke(Color.white.opacity(0.2), lineWidth: 1)

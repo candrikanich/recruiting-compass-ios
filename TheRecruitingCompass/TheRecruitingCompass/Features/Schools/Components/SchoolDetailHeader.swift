@@ -23,7 +23,7 @@ struct SchoolDetailHeader: View {
             } placeholder: {
               Text(school.initials)
                 .font(.title2)
-                .fontWeight(.bold)
+                .bold()
                 .foregroundStyle(.blue)
             }
             .frame(width: 56, height: 56)
@@ -31,7 +31,7 @@ struct SchoolDetailHeader: View {
           } else {
             Text(school.initials)
               .font(.title2)
-              .fontWeight(.bold)
+              .bold()
               .foregroundStyle(.blue)
           }
         }
@@ -40,7 +40,7 @@ struct SchoolDetailHeader: View {
         VStack(alignment: .leading, spacing: 4) {
           Text(school.name)
             .font(.title2)
-            .fontWeight(.bold)
+            .bold()
             .lineLimit(2)
             .minimumScaleFactor(0.9)
 
@@ -61,7 +61,7 @@ struct SchoolDetailHeader: View {
       }
 
       // Badges row
-      ScrollView(.horizontal, showsIndicators: false) {
+      ScrollView(.horizontal) {
         HStack(spacing: 8) {
           if let division = school.division {
             DivisionBadge(division: division)
@@ -83,6 +83,7 @@ struct SchoolDetailHeader: View {
           }
         }
       }
+      .scrollIndicators(.hidden)
       .accessibilityElement(children: .contain)
       .accessibilityLabel("School details badges")
       .accessibilityHint("Swipe to navigate through school attributes")

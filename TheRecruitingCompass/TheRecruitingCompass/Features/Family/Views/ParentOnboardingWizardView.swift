@@ -213,7 +213,7 @@ struct ParentOnboardingWizardView: View {
         .frame(maxWidth: .infinity)
         .padding(FamilyConstants.Spacing.small)
         .background(Color(.tertiarySystemFill))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Loading family code")
       } else if let code = viewModel.familyCode {
@@ -225,7 +225,7 @@ struct ParentOnboardingWizardView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, FamilyConstants.Spacing.medium)
             .background(Color.gray.opacity(0.1))
-            .cornerRadius(12)
+            .clipShape(.rect(cornerRadius: 12))
             .accessibilityLabel(FamilyUtilities.formatCodeForVoiceOver(code))
           Button {
             UIPasteboard.general.string = code
@@ -253,7 +253,7 @@ struct ParentOnboardingWizardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(FamilyConstants.Spacing.small)
         .background(Color(.tertiarySystemFill))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
       }
 
       Button("I'll invite them later") {
