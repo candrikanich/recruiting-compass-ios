@@ -19,9 +19,16 @@ final class AuthManager: AuthManaging {
   private let keychain = KeychainHelper.shared
   private let sessionKey = "savedSession"
   private let supabaseManager: any SupabaseManaging
+  private let biometricEnabledKey = "biometricEnabled"
+  private let biometricService: any BiometricServiceProtocol
 
-  init(supabaseManager: (any SupabaseManaging)? = nil) {
+  var biometricEnabled: Bool {
+    (try? keychain.load(Bool.self, forKey: biometricEnabledKey)) ?? false
+  }
+
+  init(supabaseManager: (any SupabaseManaging)? = nil, biometricService: (any BiometricServiceProtocol)? = nil) {
     self.supabaseManager = supabaseManager ?? SupabaseManager.shared
+    self.biometricService = biometricService ?? BiometricService()
     // Unstructured Task is intentional: @Observable classes cannot have async init.
     // @MainActor ensures session restoration runs on the main thread.
     Task {
@@ -146,6 +153,18 @@ final class AuthManager: AuthManaging {
     }
   }
 
+  func enableBiometrics() throws {
+    try keychain.save(true, forKey: biometricEnabledKey)
+  }
+
+  func disableBiometrics() {
+    try? keychain.delete(forKey: biometricEnabledKey)
+  }
+
+  func authenticateWithBiometrics() async throws {
+    try await biometricService.authenticate(reason: "Sign in to The Recruiting Compass")
+  }
+
   func logout() async throws {
     do {
       try await supabaseManager.signOut()
@@ -161,6 +180,7 @@ final class AuthManager: AuthManaging {
 
     // Clear session from Keychain
     try? keychain.delete(forKey: sessionKey)
+    disableBiometrics()
   }
 
   func restoreSession() async {
