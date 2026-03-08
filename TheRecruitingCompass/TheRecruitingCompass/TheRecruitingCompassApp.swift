@@ -72,11 +72,15 @@ struct TheRecruitingCompassApp: App {
           showResetPassword = true
         }
       }
-      .sheet(isPresented: $showResetPassword, onDismiss: { pendingResetPasswordFromDeepLink = false }) {
-        NavigationStack {
-          ResetPasswordView(authManager: authManager)
+      .sheet(
+        isPresented: $showResetPassword,
+        onDismiss: { pendingResetPasswordFromDeepLink = false },
+        content: {
+          NavigationStack {
+            ResetPasswordView(authManager: authManager)
+          }
         }
-      }
+      )
       .sheet(item: $pendingInvite) { pending in
         InviteJoinView(viewModel: InviteJoinViewModel(token: pending.id))
       }
