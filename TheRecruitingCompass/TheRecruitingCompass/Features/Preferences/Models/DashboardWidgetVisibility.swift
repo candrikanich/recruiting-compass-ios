@@ -64,15 +64,15 @@ struct StatsCardVisibility: Codable, Equatable {
   }
 
   init(from decoder: Decoder) throws {
-    let c = try decoder.container(keyedBy: CodingKeys.self)
-    coaches = try c.decodeIfPresent(Bool.self, forKey: .coaches) ?? true
-    schools = try c.decodeIfPresent(Bool.self, forKey: .schools) ?? true
-    interactions = try c.decodeIfPresent(Bool.self, forKey: .interactions) ?? true
-    offers = try c.decodeIfPresent(Bool.self, forKey: .offers) ?? true
-    events = try c.decodeIfPresent(Bool.self, forKey: .events) ?? true
-    performance = try c.decodeIfPresent(Bool.self, forKey: .performance) ?? true
-    notifications = try c.decodeIfPresent(Bool.self, forKey: .notifications) ?? true
-    socialMedia = try c.decodeIfPresent(Bool.self, forKey: .socialMedia) ?? true
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    coaches = try container.decodeIfPresent(Bool.self, forKey: .coaches) ?? true
+    schools = try container.decodeIfPresent(Bool.self, forKey: .schools) ?? true
+    interactions = try container.decodeIfPresent(Bool.self, forKey: .interactions) ?? true
+    offers = try container.decodeIfPresent(Bool.self, forKey: .offers) ?? true
+    events = try container.decodeIfPresent(Bool.self, forKey: .events) ?? true
+    performance = try container.decodeIfPresent(Bool.self, forKey: .performance) ?? true
+    notifications = try container.decodeIfPresent(Bool.self, forKey: .notifications) ?? true
+    socialMedia = try container.decodeIfPresent(Bool.self, forKey: .socialMedia) ?? true
   }
 }
 
@@ -174,25 +174,25 @@ struct WidgetVisibility: Codable, Equatable {
   }
 
   init(from decoder: Decoder) throws {
-    let c = try decoder.container(keyedBy: CodingKeys.self)
-    actionItems = try c.decodeIfPresent(Bool.self, forKey: .actionItems) ?? true
-    quickTasks = try c.decodeIfPresent(Bool.self, forKey: .quickTasks) ?? true
-    atAGlanceSummary = try c.decodeIfPresent(Bool.self, forKey: .atAGlanceSummary) ?? true
-    interactionTrendChart = try c.decodeIfPresent(Bool.self, forKey: .interactionTrendChart) ?? true
-    eventsSummary = try c.decodeIfPresent(Bool.self, forKey: .eventsSummary) ?? true
-    performanceSummary = try c.decodeIfPresent(Bool.self, forKey: .performanceSummary) ?? true
-    recentActivity = try c.decodeIfPresent(Bool.self, forKey: .recentActivity) ?? true
-    recentNotifications = try c.decodeIfPresent(Bool.self, forKey: .recentNotifications) ?? true
-    linkedAccounts = try c.decodeIfPresent(Bool.self, forKey: .linkedAccounts) ?? true
-    recruitingCalendar = try c.decodeIfPresent(Bool.self, forKey: .recruitingCalendar) ?? true
-    offerStatusOverview = try c.decodeIfPresent(Bool.self, forKey: .offerStatusOverview) ?? true
-    schoolInterestChart = try c.decodeIfPresent(Bool.self, forKey: .schoolInterestChart) ?? true
-    schoolMapWidget = try c.decodeIfPresent(Bool.self, forKey: .schoolMapWidget) ?? true
-    coachFollowupWidget = try c.decodeIfPresent(Bool.self, forKey: .coachFollowupWidget) ?? true
-    recentDocuments = try c.decodeIfPresent(Bool.self, forKey: .recentDocuments) ?? true
-    interactionStats = try c.decodeIfPresent(Bool.self, forKey: .interactionStats) ?? true
-    schoolStatusOverview = try c.decodeIfPresent(Bool.self, forKey: .schoolStatusOverview) ?? true
-    coachResponsiveness = try c.decodeIfPresent(Bool.self, forKey: .coachResponsiveness) ?? true
-    upcomingDeadlines = try c.decodeIfPresent(Bool.self, forKey: .upcomingDeadlines) ?? true
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    actionItems = try container.decodeIfPresent(Bool.self, forKey: .actionItems) ?? true
+    quickTasks = try container.decodeIfPresent(Bool.self, forKey: .quickTasks) ?? true
+    atAGlanceSummary = try container.decodeIfPresent(Bool.self, forKey: .atAGlanceSummary) ?? true
+    interactionTrendChart = try container.decodeIfPresent(Bool.self, forKey: .interactionTrendChart) ?? true
+    eventsSummary = try container.decodeIfPresent(Bool.self, forKey: .eventsSummary) ?? true
+    performanceSummary = try container.decodeIfPresent(Bool.self, forKey: .performanceSummary) ?? true
+    recentActivity = try container.decodeIfPresent(Bool.self, forKey: .recentActivity) ?? true
+    recentNotifications = try container.decodeIfPresent(Bool.self, forKey: .recentNotifications) ?? true
+    linkedAccounts = try container.decodeIfPresent(Bool.self, forKey: .linkedAccounts) ?? true
+    recruitingCalendar = try container.decodeIfPresent(Bool.self, forKey: .recruitingCalendar) ?? true
+    offerStatusOverview = try container.decodeIfPresent(Bool.self, forKey: .offerStatusOverview) ?? true
+    schoolInterestChart = try container.decodeIfPresent(Bool.self, forKey: .schoolInterestChart) ?? true
+    schoolMapWidget = try container.decodeIfPresent(Bool.self, forKey: .schoolMapWidget) ?? true
+    coachFollowupWidget = try container.decodeIfPresent(Bool.self, forKey: .coachFollowupWidget) ?? true
+    recentDocuments = try container.decodeIfPresent(Bool.self, forKey: .recentDocuments) ?? true
+    interactionStats = try container.decodeIfPresent(Bool.self, forKey: .interactionStats) ?? true
+    schoolStatusOverview = try container.decodeIfPresent(Bool.self, forKey: .schoolStatusOverview) ?? true
+    coachResponsiveness = try container.decodeIfPresent(Bool.self, forKey: .coachResponsiveness) ?? true
+    upcomingDeadlines = try container.decodeIfPresent(Bool.self, forKey: .upcomingDeadlines) ?? true
   }
 }
