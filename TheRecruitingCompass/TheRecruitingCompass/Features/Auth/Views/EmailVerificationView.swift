@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct EmailVerificationView: View {
   @State private var viewModel: EmailVerificationViewModel
