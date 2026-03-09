@@ -13,6 +13,13 @@ struct CoachesListView: View {
     self.prefilterSchoolId = prefilterSchoolId
   }
 
+  private var isShowingDeleteError: Binding<Bool> {
+    Binding(
+      get: { viewModel.deleteErrorMessage != nil },
+      set: { if !$0 { viewModel.deleteErrorMessage = nil } }
+    )
+  }
+
   var body: some View {
     NavigationStack(path: $navigationPath) {
       contentView
@@ -42,10 +49,7 @@ struct CoachesListView: View {
           Text("Are you sure you want to delete \(coach.fullName)? This action cannot be undone.")
         }
       }
-      .alert("Error", isPresented: Binding(
-        get: { viewModel.deleteErrorMessage != nil },
-        set: { if !$0 { viewModel.deleteErrorMessage = nil } }
-      )) {
+      .alert("Error", isPresented: isShowingDeleteError) {
         Button("OK") { viewModel.deleteErrorMessage = nil }
       } message: {
         if let error = viewModel.deleteErrorMessage {

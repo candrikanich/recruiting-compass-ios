@@ -6,11 +6,13 @@ import SwiftUI
 struct SessionExpiredSheet: View {
     let onSignIn: () -> Void
 
+    @ScaledMetric private var iconSize: CGFloat = 48
+
     var body: some View {
         VStack(spacing: 24) {
             VStack(spacing: 12) {
                 Image(systemName: "clock.badge.exclamationmark.fill")
-                    .font(.system(size: 48))
+                    .font(.system(size: iconSize))
                     .foregroundStyle(Color(hex: "F59E0B"))
                     .accessibilityHidden(true)
 

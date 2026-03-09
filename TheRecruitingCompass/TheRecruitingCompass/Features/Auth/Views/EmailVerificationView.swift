@@ -55,11 +55,16 @@ struct EmailVerificationView: View {
   private var backButton: some View {
     HStack {
       Button(action: { dismiss() }) {
-        Text("← Back to Welcome")
-          .font(.footnote.weight(.semibold))
-          .foregroundStyle(Color.darkSlate)
-          .frame(minHeight: 44)
-          .contentShape(Rectangle())
+        HStack(spacing: 4) {
+          Image(systemName: "arrow.left")
+            .font(.footnote.weight(.semibold))
+            .accessibilityHidden(true)
+          Text("Back to Welcome")
+            .font(.footnote.weight(.semibold))
+        }
+        .foregroundStyle(Color.darkSlate)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
       }
       .accessibilityLabel("Back to welcome screen")
       Spacer()

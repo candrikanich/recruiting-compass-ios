@@ -34,14 +34,23 @@ struct DashboardView: View {
 
         ScrollView {
           VStack(spacing: 24) {
-            headerSection
+            DashboardHeaderSection(
+              isParentPreviewMode: viewModel.isParentPreviewMode,
+              selectedAthleteName: viewModel.selectedAthleteName,
+              isEmpty: viewModel.isEmpty,
+              userFirstName: viewModel.userFirstName
+            )
 
             if familyManager.currentMember?.isParent == true && !viewModel.isParentPreviewMode {
-              athleteSelectorSection
+              DashboardAthleteSelectorSection(
+                athletes: familyManager.athletes,
+                selectedAthleteId: familyManager.selectedAthleteId,
+                onSelect: { athleteId in viewModel.selectAthlete(athleteId) }
+              )
             }
 
             if viewModel.isLoading && viewModel.stats == nil {
-              loadingSection
+              DashboardLoadingSection()
             } else if viewModel.isEmpty {
               EmptyDashboardState(onAddSchool: { showAddSchool = true })
             } else if let stats = viewModel.stats {
@@ -52,7 +61,7 @@ struct DashboardView: View {
             }
 
             if let error = viewModel.errorMessage {
-              errorSection(error)
+              DashboardErrorSection(message: error, onDismiss: { viewModel.dismissError() })
             }
 
             if !viewModel.isEmpty {
@@ -87,7 +96,10 @@ struct DashboardView: View {
             Spacer()
               .frame(height: 32)
 
-            logoutButton
+            DashboardLogoutButton(
+              isLoggingOut: viewModel.isLoggingOut,
+              onLogout: { await viewModel.logout() }
+            )
           }
           .padding()
         }
@@ -120,15 +132,25 @@ struct DashboardView: View {
       }
   }
 
-  private var headerSection: some View {
+}
+
+// MARK: - Dashboard Sub-views
+
+private struct DashboardHeaderSection: View {
+  let isParentPreviewMode: Bool
+  let selectedAthleteName: String
+  let isEmpty: Bool
+  let userFirstName: String
+
+  var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      if viewModel.isParentPreviewMode {
-        Text("\(viewModel.selectedAthleteName)'s Dashboard")
+      if isParentPreviewMode {
+        Text("\(selectedAthleteName)'s Dashboard")
           .font(.title2)
           .bold()
           .accessibilityAddTraits(.isHeader)
       } else {
-        Text(viewModel.isEmpty ? "Welcome, \(viewModel.userFirstName)!" : "Welcome back, \(viewModel.userFirstName)!")
+        Text(isEmpty ? "Welcome, \(userFirstName)!" : "Welcome back, \(userFirstName)!")
           .font(.title2)
           .bold()
           .accessibilityAddTraits(.isHeader)
@@ -136,40 +158,54 @@ struct DashboardView: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
   }
+}
 
-  private var athleteSelectorSection: some View {
+private struct DashboardAthleteSelectorSection: View {
+  let athletes: [FamilyMember]
+  let selectedAthleteId: String?
+  let onSelect: (String) -> Void
+
+  var body: some View {
     AthleteSelector(
-      athletes: familyManager.athletes,
-      selectedAthleteId: familyManager.selectedAthleteId,
-      onSelect: { athleteId in
-        viewModel.selectAthlete(athleteId)
-      }
+      athletes: athletes,
+      selectedAthleteId: selectedAthleteId,
+      onSelect: onSelect
     )
   }
+}
 
-  private var loadingSection: some View {
+private struct DashboardLoadingSection: View {
+  var body: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
       ForEach(0..<6, id: \.self) { _ in
         StatCardSkeleton()
       }
     }
   }
+}
 
-  private func errorSection(_ message: String) -> some View {
-    ErrorBanner(message: message, onDismiss: {
-      viewModel.dismissError()
-    })
-    .accessibilityAddTraits(.updatesFrequently)
+private struct DashboardErrorSection: View {
+  let message: String
+  let onDismiss: () -> Void
+
+  var body: some View {
+    ErrorBanner(message: message, onDismiss: onDismiss)
+      .accessibilityAddTraits(.updatesFrequently)
   }
+}
 
-  private var logoutButton: some View {
+private struct DashboardLogoutButton: View {
+  let isLoggingOut: Bool
+  let onLogout: () async -> Void
+
+  var body: some View {
     Button(
-      action: { Task { await viewModel.logout() } },
+      action: { Task { await onLogout() } },
       label: {
         HStack {
           Image(systemName: "rectangle.portrait.and.arrow.right")
             .accessibilityHidden(true)
-          Text(viewModel.isLoggingOut ? "Logging out..." : "Log Out")
+          Text(isLoggingOut ? "Logging out..." : "Log Out")
             .font(.callout.weight(.semibold))
         }
         .frame(maxWidth: .infinity)
@@ -179,13 +215,12 @@ struct DashboardView: View {
         .clipShape(.rect(cornerRadius: 8))
       }
     )
-    .disabled(viewModel.isLoggingOut)
-    .opacity(viewModel.isLoggingOut ? 0.6 : 1)
+    .disabled(isLoggingOut)
+    .opacity(isLoggingOut ? 0.6 : 1)
     .padding(.horizontal)
-    .accessibilityLabel(viewModel.isLoggingOut ? "Logging out" : "Log out")
+    .accessibilityLabel(isLoggingOut ? "Logging out" : "Log out")
     .accessibilityHint("Ends your session and returns to the login screen")
   }
-
 }
 
 // MARK: - Add School Sheet

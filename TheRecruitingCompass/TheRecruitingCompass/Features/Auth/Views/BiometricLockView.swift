@@ -5,6 +5,8 @@ struct BiometricLockView: View {
   let onSuccess: () -> Void
   let onFailure: () -> Void
 
+  @ScaledMetric private var iconSize: CGFloat = 56
+
   var body: some View {
     ZStack {
       LinearGradient.landingBackground
@@ -19,7 +21,7 @@ struct BiometricLockView: View {
 
         VStack(spacing: 16) {
           Image(systemName: "faceid")
-            .font(.system(size: 56))
+            .font(.system(size: iconSize))
             .foregroundStyle(.white)
             .accessibilityHidden(true)
 
