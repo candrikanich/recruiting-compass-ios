@@ -84,14 +84,15 @@ struct TheRecruitingCompassApp: App {
             try authManager.enableBiometrics()
           } catch {
             // Keychain write failed — biometrics silently not enabled.
-            // User sees the alert dismiss normally; we log for diagnostics.
-            Logger.auth.error("enableBiometrics failed: \(error, privacy: .public)")
+            // User sees the alert dismiss normally.
           }
           authManager.pendingBiometricEnrollmentOffer = false
         }
         Button("Not Now", role: .cancel) {
           authManager.pendingBiometricEnrollmentOffer = false
         }
+      } message: {
+        Text("Sign in quickly and securely with Face ID on future visits.")
       }
       .onOpenURL { url in
         handleDeepLink(url)
