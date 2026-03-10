@@ -52,7 +52,12 @@ struct HelpStepCard: View {
 #Preview {
   VStack(spacing: 12) {
     HelpStepCard(step: 1, title: "Navigate to Settings", bodyText: "From the dashboard, go to Settings → Athlete Profile.")
-    HelpStepCard(step: 2, title: "Fill in your details", bodyText: "Enter your name, graduation year, sport, position(s), GPA, and test scores.", isLast: true)
+    HelpStepCard(
+      step: 2,
+      title: "Fill in your details",
+      bodyText: "Enter your name, graduation year, sport, position(s), GPA, and test scores.",
+      isLast: true
+    )
   }
   .padding()
 }

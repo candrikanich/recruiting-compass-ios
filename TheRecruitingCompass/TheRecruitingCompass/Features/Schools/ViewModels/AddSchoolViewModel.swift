@@ -31,17 +31,17 @@ final class AddSchoolViewModel {
   var searchQuery: String = ""
   var searchResults: [CollegeSearchResult] = []
   var isSearching: Bool = false
-  var selectedCollege: CollegeSearchResult? = nil
-  var searchError: String? = nil
+  var selectedCollege: CollegeSearchResult?
+  var searchError: String?
 
   // Enrichment state (moved from extension)
-  var scorecardData: CollegeDataResult? = nil
+  var scorecardData: CollegeDataResult?
   var isEnrichmentLoading: Bool = false
-  var enrichmentError: String? = nil
+  var enrichmentError: String?
 
   // Duplicate detection state (moved from extension)
   var showDuplicateDialog = false
-  var duplicateResult: DuplicateResult? = nil
+  var duplicateResult: DuplicateResult?
   var isCheckingDuplicates = false
 
   // MARK: - Dependencies

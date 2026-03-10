@@ -151,5 +151,3 @@ struct TemplateEditorView: View {
     }
   }
 }
-
-

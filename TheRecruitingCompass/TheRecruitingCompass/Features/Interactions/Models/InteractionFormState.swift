@@ -3,13 +3,13 @@ import Foundation
 /// Form state for creating/editing an interaction
 struct InteractionFormState {
   var schoolId: String = ""
-  var coachId: String? = nil
-  var type: InteractionType? = nil
+  var coachId: String?
+  var type: InteractionType?
   var direction: Direction = .outbound
   var occurredAt: Date = Date.now
   var subject: String = ""
   var content: String = ""
-  var sentiment: Sentiment? = nil
+  var sentiment: Sentiment?
   var interestLevel: InterestLevel = .notSet
   var attachedFiles: [AttachmentFile] = []
 

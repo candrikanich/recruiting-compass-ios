@@ -190,7 +190,7 @@ final class CoachesListViewModel {
   }
 
   func schoolLogoUrl(for schoolId: String) -> String? {
-    schoolLogoMap[schoolId] ?? nil
+    schoolLogoMap[schoolId]
   }
 
   func schoolInitials(for schoolId: String) -> String {
