@@ -45,7 +45,7 @@ struct AnalyticsDashboardView: View {
     }
     .sheet(isPresented: $showShareSheet) {
       if let url = exportFileURL {
-        AnalyticsShareSheet(activityItems: [url])
+        ActivityShareSheet(activityItems: [url])
       }
     }
     .task {
@@ -231,18 +231,6 @@ struct AnalyticsDashboardView: View {
       showShareSheet = true
     }
   }
-}
-
-// MARK: - Share Sheet
-
-struct AnalyticsShareSheet: UIViewControllerRepresentable {
-  let activityItems: [Any]
-
-  func makeUIViewController(context: Context) -> UIActivityViewController {
-    UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-  }
-
-  func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 #Preview {

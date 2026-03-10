@@ -425,6 +425,10 @@ final class EventDetailViewModel {
     exportFileURL = nil
   }
 
+  func cleanupExport(url: URL) {
+    exportService.cleanup(url: url)
+  }
+
   // MARK: - Directions
 
   func getDirectionsURL() -> URL? {

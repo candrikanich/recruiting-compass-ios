@@ -42,12 +42,19 @@ final class OnboardingViewModel {
     return positions
   }
 
+  var graduationYearDisplay: String {
+    get { graduationYear.map { String($0) } ?? "" }
+    set { graduationYear = Int(newValue) }
+  }
+
   init(
+    onComplete: (() -> Void)? = nil,
     onboardingService: (any OnboardingManaging)? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
     familyService: (any FamilyManaging)? = nil
   ) {
+    self.onComplete = onComplete
     self.onboardingService = onboardingService ?? OnboardingServiceImpl(supabaseManager: .shared)
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared

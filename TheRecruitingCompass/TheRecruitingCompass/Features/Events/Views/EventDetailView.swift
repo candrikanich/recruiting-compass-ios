@@ -1,5 +1,9 @@
 import SwiftUI
 
+extension URL: @retroactive Identifiable {
+    public var id: String { absoluteString }
+}
+
 struct EventDetailView: View {
   private enum Layout {
     static let toastHorizontalPadding: CGFloat = 16
@@ -88,13 +92,9 @@ struct EventDetailView: View {
         successToast(message)
       }
     }
-    .sheet(isPresented: Binding(
-      get: { viewModel.exportFileURL != nil },
-      set: { if !$0 { viewModel.clearExport() } }
-    )) {
-      if let url = viewModel.exportFileURL {
-        EventMetricsShareSheet(activityItems: [url])
-      }
+    .sheet(item: Bindable(viewModel).exportFileURL) { url in
+      ActivityShareSheet(activityItems: [url])
+        .onDisappear { viewModel.cleanupExport(url: url) }
     }
   }
 
@@ -242,16 +242,3 @@ struct EventDetailView: View {
       .accessibilityLabel(message)
   }
 }
-
-// MARK: - Share Sheet
-
-struct EventMetricsShareSheet: UIViewControllerRepresentable {
-  let activityItems: [Any]
-
-  func makeUIViewController(context: Context) -> UIActivityViewController {
-    UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-  }
-
-  func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
-}
-

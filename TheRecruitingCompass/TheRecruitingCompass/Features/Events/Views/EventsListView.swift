@@ -8,6 +8,20 @@ struct EventsListView: View {
   @State private var eventToDelete: FullEvent?
   @State private var showCreateEvent = false
 
+  private var showErrorAlert: Binding<Bool> {
+    Binding(
+      get: { viewModel.error != nil },
+      set: { if !$0 { viewModel.error = nil } }
+    )
+  }
+
+  private var showDeleteConfirmation: Binding<Bool> {
+    Binding(
+      get: { eventToDelete != nil },
+      set: { if !$0 { eventToDelete = nil } }
+    )
+  }
+
   var body: some View {
     Group {
       if viewModel.isLoading && viewModel.events.isEmpty {
@@ -40,10 +54,7 @@ struct EventsListView: View {
     .refreshable {
       await viewModel.loadEvents()
     }
-    .alert("Error", isPresented: .init(
-      get: { viewModel.error != nil },
-      set: { if !$0 { viewModel.error = nil } }
-    ), presenting: viewModel.error) { _ in
+    .alert("Error", isPresented: showErrorAlert, presenting: viewModel.error) { _ in
       Button("Retry") { Task { await viewModel.loadEvents() } }
       Button("OK", role: .cancel) { viewModel.error = nil }
     } message: { error in
@@ -52,24 +63,18 @@ struct EventsListView: View {
     .sheet(isPresented: $showCreateEvent) {
       createEventSheet
     }
-    .confirmationDialog(
-      "Delete \(eventToDelete?.name ?? "event")?",
-      isPresented: Binding(
-        get: { eventToDelete != nil },
-        set: { if !$0 { eventToDelete = nil } }
-      ),
-      titleVisibility: .visible
-    ) {
-      Button("Delete", role: .destructive) {
-        if let event = eventToDelete {
+    .confirmationDialog("Delete Event?", isPresented: showDeleteConfirmation, titleVisibility: .visible) {
+      if let event = eventToDelete {
+        Button("Delete", role: .destructive) {
           HapticFeedbackManager.shared.warning()
           Task { await viewModel.deleteEvent(id: event.id) }
-          eventToDelete = nil
         }
       }
-      Button("Cancel", role: .cancel) { eventToDelete = nil }
+      Button("Cancel", role: .cancel) {}
     } message: {
-      Text("This action cannot be undone.")
+      if let event = eventToDelete {
+        Text("Delete \"\(event.name)\"? This cannot be undone.")
+      }
     }
   }
 
@@ -281,104 +286,5 @@ struct EventsListView: View {
     let type = EventType(rawValue: event.type)?.displayName ?? event.type
     let status = event.attended ? "Attended" : event.registered ? "Registered" : "Not Registered"
     return "\(type): \(event.name), \(event.startDate), \(status)"
-  }
-}
-
-// MARK: - Event Row View
-
-private struct EventRowView: View {
-  let event: FullEvent
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      HStack(spacing: 8) {
-        typeBadge
-        statusBadge
-        Spacer()
-      }
-
-      Text(event.name)
-        .font(.headline)
-        .lineLimit(2)
-
-      Label(formattedDate, systemImage: "calendar")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-
-      if let time = event.startTime, !time.isEmpty {
-        Label(time, systemImage: "clock")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-      }
-
-      if let location = locationLine {
-        Label(location, systemImage: "mappin")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-          .lineLimit(1)
-      }
-
-      if let cost = event.cost, cost > 0 {
-        Label(cost.formatted(.currency(code: "USD")), systemImage: "dollarsign.circle")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-      }
-
-      if let notes = event.performanceNotes, !notes.isEmpty {
-        Text(notes)
-          .font(.caption)
-          .foregroundStyle(.secondary)
-          .lineLimit(2)
-          .padding(.top, 2)
-      }
-    }
-    .padding(.vertical, 4)
-  }
-
-  private var typeBadge: some View {
-    let eventType = EventType(rawValue: event.type)
-    return Text(eventType?.displayName ?? event.type)
-      .font(.caption)
-      .fontWeight(.semibold)
-      .padding(.horizontal, 8)
-      .padding(.vertical, 3)
-      .background(typeColor.opacity(0.15))
-      .foregroundStyle(typeColor)
-      .clipShape(Capsule())
-  }
-
-  private var statusBadge: some View {
-    let label = event.attended ? "Attended" : event.registered ? "Registered" : "Not Registered"
-    let color: Color = event.attended ? .green : event.registered ? .blue : .gray
-    return Text(label)
-      .font(.caption)
-      .fontWeight(.semibold)
-      .padding(.horizontal, 8)
-      .padding(.vertical, 3)
-      .background(color.opacity(0.12))
-      .foregroundStyle(color)
-      .clipShape(Capsule())
-  }
-
-  private var typeColor: Color {
-    switch EventType(rawValue: event.type) {
-    case .showcase: return .purple
-    case .camp: return .green
-    case .officialVisit: return .blue
-    case .unofficialVisit: return .cyan
-    case .game: return .orange
-    case nil: return .gray
-    }
-  }
-
-  private var formattedDate: String {
-    DateFormatting.isoDateRangeString(from: event.startDate, to: event.endDate)
-  }
-
-  private var locationLine: String? {
-    var parts: [String] = []
-    if let city = event.city, !city.isEmpty { parts.append(city) }
-    if let state = event.state, !state.isEmpty { parts.append(state) }
-    return parts.isEmpty ? nil : parts.joined(separator: ", ")
   }
 }

@@ -2,9 +2,12 @@ import SwiftUI
 
 /// Onboarding flow for new players. Mirrors web pages/onboarding/index.vue (5 steps).
 struct OnboardingView: View {
-  @State var viewModel: OnboardingViewModel
-  var onComplete: (() -> Void)?
+  @State private var viewModel: OnboardingViewModel
   @Environment(AuthManager.self) private var authManager
+
+  init(onComplete: @escaping () -> Void) {
+    _viewModel = State(initialValue: OnboardingViewModel(onComplete: onComplete))
+  }
 
   var body: some View {
     ZStack {
@@ -16,8 +19,8 @@ struct OnboardingView: View {
       .ignoresSafeArea()
 
       VStack(spacing: 0) {
-        header
-        progressBar
+        OnboardingHeaderView(authManager: authManager)
+        OnboardingProgressBar(currentStep: viewModel.currentStep)
         ScrollView {
           screenContent
             .padding()
@@ -33,7 +36,7 @@ struct OnboardingView: View {
             .padding(.bottom, 8)
         }
 
-        navigationButtons
+        OnboardingNavigationButtons(viewModel: viewModel)
           .padding(.horizontal, 24)
           .padding(.bottom, 24)
       }
@@ -49,79 +52,7 @@ struct OnboardingView: View {
     }
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier("onboardingView")
-    .onAppear {
-      viewModel.onComplete = onComplete
-    }
-  }
-
-  private var header: some View {
-    VStack(spacing: 8) {
-      HStack {
-        Spacer()
-        Button("Sign out") {
-          Task {
-            try? await authManager.logout()
-          }
-        }
-        .font(.footnote)
-        .foregroundStyle(.secondary)
-      }
-      .padding(.horizontal, 24)
-
-      Text("Welcome to The Recruiting Compass")
-        .font(.title.weight(.bold))
-        .foregroundStyle(.primary)
-        .multilineTextAlignment(.center)
-      Text("Let's get you set up in just a few steps")
-        .font(.body)
-        .foregroundStyle(.secondary)
-
-      if let user = authManager.user {
-        accountInfoView(user: user)
-      }
-
-      Text("Please complete setup to use the app.")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-        .padding(.top, 4)
-    }
-    .padding(.horizontal, 24)
-    .padding(.bottom, 16)
-  }
-
-  @ViewBuilder
-  private func accountInfoView(user: User) -> some View {
-    let displayName = [user.fullName, user.email]
-      .compactMap { $0 }
-      .joined(separator: " · ")
-    if !displayName.isEmpty {
-      Text(displayName)
-        .font(.footnote)
-        .foregroundStyle(.tertiary)
-        .padding(.top, 4)
-        .accessibilityLabel("Signed in as \(displayName)")
-    }
-  }
-
-  private var progressBar: some View {
-    HStack(spacing: 12) {
-      GeometryReader { geo in
-        ZStack(alignment: .leading) {
-          RoundedRectangle(cornerRadius: 2)
-            .fill(Color(uiColor: .tertiarySystemFill))
-          RoundedRectangle(cornerRadius: 2)
-            .fill(Color.accentColor)
-            .frame(width: geo.size.width * CGFloat(viewModel.currentStep) / CGFloat(OnboardingConstants.totalSteps))
-        }
-      }
-      .frame(height: 8)
-
-      Text("\(viewModel.currentStep)/\(OnboardingConstants.totalSteps)")
-        .font(.subheadline.weight(.medium))
-        .foregroundStyle(.secondary)
-    }
-    .padding(.horizontal, 24)
-    .padding(.bottom, 24)
+    .task { await viewModel.loadExistingData() }
   }
 
   @ViewBuilder
@@ -130,7 +61,7 @@ struct OnboardingView: View {
     case 1:
       welcomeStep
     case 2:
-      basicInfoStep
+      OnboardingBasicInfoStep(viewModel: viewModel)
     case 3:
       locationStep
     case 4:
@@ -152,59 +83,6 @@ struct OnboardingView: View {
         .multilineTextAlignment(.center)
     }
     .padding(.vertical, 32)
-  }
-
-  private var basicInfoStep: some View {
-    VStack(alignment: .leading, spacing: 20) {
-      Text("Basic Information")
-        .font(.title2.weight(.bold))
-
-      VStack(alignment: .leading, spacing: 8) {
-        Text("Expected Graduation Year *")
-          .font(.subheadline.weight(.medium))
-        Picker("Graduation year", selection: Binding(
-          get: { viewModel.graduationYear.map { String($0) } ?? "" },
-          set: { viewModel.graduationYear = Int($0) }
-        )) {
-          Text("Select graduation year").tag("")
-          ForEach(OnboardingConstants.graduationYears, id: \.self) { year in
-            Text(String(year)).tag(String(year))
-          }
-        }
-        .pickerStyle(.menu)
-      }
-
-      VStack(alignment: .leading, spacing: 8) {
-        Text("Primary Sport *")
-          .font(.subheadline.weight(.medium))
-        Picker("Sport", selection: $viewModel.primarySport) {
-          Text("Select your sport").tag("")
-          ForEach(OnboardingConstants.commonSports, id: \.self) { sport in
-            Text(sport).tag(sport)
-          }
-        }
-        .pickerStyle(.menu)
-        .onChange(of: viewModel.primarySport) { _, _ in
-          viewModel.onSportChange()
-        }
-      }
-
-      if !viewModel.primarySport.isEmpty {
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Primary Position *")
-            .font(.subheadline.weight(.medium))
-          Picker("Position", selection: $viewModel.primaryPosition) {
-            Text("Select position").tag("")
-            ForEach(viewModel.positionsForSport, id: \.self) { pos in
-              Text(pos).tag(pos)
-            }
-          }
-          .pickerStyle(.menu)
-        }
-      }
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.vertical, 24)
   }
 
   private var locationStep: some View {
@@ -344,8 +222,146 @@ struct OnboardingView: View {
       }
     }
   }
+}
 
-  private var navigationButtons: some View {
+// MARK: - Extracted subviews
+
+private struct OnboardingHeaderView: View {
+  let authManager: AuthManager
+
+  var body: some View {
+    VStack(spacing: 8) {
+      HStack {
+        Spacer()
+        Button("Sign out") {
+          Task {
+            try? await authManager.logout()
+          }
+        }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+      }
+      .padding(.horizontal, 24)
+
+      Text("Welcome to The Recruiting Compass")
+        .font(.title.weight(.bold))
+        .foregroundStyle(.primary)
+        .multilineTextAlignment(.center)
+      Text("Let's get you set up in just a few steps")
+        .font(.body)
+        .foregroundStyle(.secondary)
+
+      if let user = authManager.user {
+        accountInfoView(user: user)
+      }
+
+      Text("Please complete setup to use the app.")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .padding(.top, 4)
+    }
+    .padding(.horizontal, 24)
+    .padding(.bottom, 16)
+  }
+
+  @ViewBuilder
+  private func accountInfoView(user: User) -> some View {
+    let displayName = [user.fullName, user.email]
+      .compactMap { $0 }
+      .joined(separator: " · ")
+    if !displayName.isEmpty {
+      Text(displayName)
+        .font(.footnote)
+        .foregroundStyle(.tertiary)
+        .padding(.top, 4)
+        .accessibilityLabel("Signed in as \(displayName)")
+    }
+  }
+}
+
+private struct OnboardingProgressBar: View {
+  let currentStep: Int
+
+  var body: some View {
+    HStack(spacing: 12) {
+      GeometryReader { geo in
+        ZStack(alignment: .leading) {
+          RoundedRectangle(cornerRadius: 2)
+            .fill(Color(uiColor: .tertiarySystemFill))
+          RoundedRectangle(cornerRadius: 2)
+            .fill(Color.accentColor)
+            .frame(width: geo.size.width * CGFloat(currentStep) / CGFloat(OnboardingConstants.totalSteps))
+        }
+      }
+      .frame(height: 8)
+
+      Text("\(currentStep)/\(OnboardingConstants.totalSteps)")
+        .font(.subheadline.weight(.medium))
+        .foregroundStyle(.secondary)
+    }
+    .padding(.horizontal, 24)
+    .padding(.bottom, 24)
+  }
+}
+
+private struct OnboardingBasicInfoStep: View {
+  @Bindable var viewModel: OnboardingViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 20) {
+      Text("Basic Information")
+        .font(.title2.weight(.bold))
+
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Expected Graduation Year *")
+          .font(.subheadline.weight(.medium))
+        Picker("Graduation year", selection: $viewModel.graduationYearDisplay) {
+          Text("Select graduation year").tag("")
+          ForEach(OnboardingConstants.graduationYears, id: \.self) { year in
+            Text(String(year)).tag(String(year))
+          }
+        }
+        .pickerStyle(.menu)
+      }
+
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Primary Sport *")
+          .font(.subheadline.weight(.medium))
+        Picker("Sport", selection: $viewModel.primarySport) {
+          Text("Select your sport").tag("")
+          ForEach(OnboardingConstants.commonSports, id: \.self) { sport in
+            Text(sport).tag(sport)
+          }
+        }
+        .pickerStyle(.menu)
+        .onChange(of: viewModel.primarySport) { _, _ in
+          viewModel.onSportChange()
+        }
+      }
+
+      if !viewModel.primarySport.isEmpty {
+        VStack(alignment: .leading, spacing: 8) {
+          Text("Primary Position *")
+            .font(.subheadline.weight(.medium))
+          Picker("Position", selection: $viewModel.primaryPosition) {
+            Text("Select position").tag("")
+            ForEach(viewModel.positionsForSport, id: \.self) { pos in
+              Text(pos).tag(pos)
+            }
+          }
+          .pickerStyle(.menu)
+        }
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.vertical, 24)
+  }
+}
+
+private struct OnboardingNavigationButtons: View {
+  @Bindable var viewModel: OnboardingViewModel
+
+  var body: some View {
     HStack {
       Button("Back") {
         viewModel.previousScreen()

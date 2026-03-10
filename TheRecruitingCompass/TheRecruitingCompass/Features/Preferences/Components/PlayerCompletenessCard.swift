@@ -26,22 +26,21 @@ struct PlayerCompletenessCard: View {
                     .foregroundStyle(progressColor)
             }
 
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(.systemGray5))
-                        .frame(height: 8)
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(
-                            LinearGradient(
-                                colors: [.red, .yellow, .green],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(.systemGray5))
+                    .frame(maxWidth: .infinity, maxHeight: 8)
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(
+                        LinearGradient(
+                            colors: [.red, .yellow, .green],
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
-                        .frame(width: geo.size.width * score, height: 8)
-                        .animation(.spring(response: 0.4), value: score)
-                }
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: 8)
+                    .scaleEffect(x: max(score, 0.001), anchor: .leading)
+                    .animation(.spring(response: 0.4), value: score)
             }
             .frame(height: 8)
         }

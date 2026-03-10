@@ -67,23 +67,21 @@ struct FunnelChartView: View {
         .font(.subheadline.bold())
         .foregroundStyle(Color.darkSlate)
 
-      GeometryReader { geometry in
-        let barWidth = max(geometry.size.width * widthFraction, 60)
-
-        HStack {
-          Spacer()
-          RoundedRectangle(cornerRadius: 8)
-            .fill(stage.color.gradient)
-            .frame(width: barWidth, height: 44)
-            .overlay {
-              Text("\(stage.value)")
-                .font(.subheadline.bold())
-                .foregroundStyle(.white)
-            }
-          Spacer()
-        }
+      HStack {
+        Spacer()
+        RoundedRectangle(cornerRadius: 8)
+          .fill(stage.color.gradient)
+          .containerRelativeFrame(.horizontal) { width, _ in
+            max(width * widthFraction, 60)
+          }
+          .frame(height: 44)
+          .overlay {
+            Text("\(stage.value)")
+              .font(.subheadline.bold())
+              .foregroundStyle(.white)
+          }
+        Spacer()
       }
-      .frame(height: 44)
     }
     .padding(.vertical, 4)
   }

@@ -7,6 +7,7 @@ struct InteractionCard: View {
 
   @Environment(\.colorScheme) private var colorScheme
   @Environment(\.sizeCategory) private var sizeCategory
+  @ScaledMetric(relativeTo: .body) private var iconImageSize: CGFloat = 18
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -122,10 +123,6 @@ struct InteractionCard: View {
 
   private var iconSize: CGFloat {
     sizeCategory.isAccessibilityCategory ? 48 : 40
-  }
-
-  private var iconImageSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 22 : 18
   }
 
   private var accessibilityLabel: String {

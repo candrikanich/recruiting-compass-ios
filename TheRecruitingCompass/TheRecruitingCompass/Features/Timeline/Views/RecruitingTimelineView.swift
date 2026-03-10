@@ -12,6 +12,13 @@ struct RecruitingTimelineView: View {
     return "Recruiting Timeline"
   }
 
+  private var showLockedTaskAlert: Binding<Bool> {
+    Binding(
+      get: { lockedTaskAlertTask != nil },
+      set: { if !$0 { lockedTaskAlertTask = nil } }
+    )
+  }
+
   private let phaseOrder: [(Int, TimelinePhase)] = [
     (9, .freshman),
     (10, .sophomore),
@@ -22,13 +29,44 @@ struct RecruitingTimelineView: View {
   var body: some View {
     ScrollView {
       LazyVStack(spacing: 16) {
-        parentBannerIfNeeded
+        TimelineParentBanner(
+          isViewingAsParent: viewModel.isViewingAsParent,
+          athleteName: familyManager.selectedAthlete?.user?.fullName ?? "Athlete",
+          onDismiss: { familyManager.clearAthleteSelection() }
+        )
         Text(headerTitle)
           .font(.title2.weight(.semibold))
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.horizontal)
-        athleteSwitcherIfNeeded
-        mainContent
+        TimelineAthleteSwitcher(
+          isViewingAsParent: viewModel.isViewingAsParent,
+          athletes: familyManager.athletes,
+          selectedAthleteId: familyManager.selectedAthleteId,
+          onSelect: { athleteId in
+            familyManager.selectAthlete(athleteId)
+            Task { await viewModel.load() }
+          }
+        )
+        TimelineMainContent(
+          isLoading: viewModel.isLoading,
+          tasksByGrade: viewModel.tasksByGrade,
+          errorMessage: viewModel.errorMessage,
+          statusScoreValue: viewModel.statusScoreValue,
+          statusLabel: viewModel.statusLabel,
+          taskCompletedCount: viewModel.taskCompletedCount,
+          taskTotalCount: viewModel.taskTotalCount,
+          milestonesCompletedCount: viewModel.milestonesCompletedCount,
+          milestonesTotalCount: viewModel.milestonesTotalCount,
+          showSuccessMessage: viewModel.showSuccessMessage,
+          currentPhase: viewModel.currentPhase,
+          expandedPhaseGrade: viewModel.expandedPhaseGrade,
+          isViewingAsParent: viewModel.isViewingAsParent,
+          phaseOrder: phaseOrder,
+          onTogglePhase: { grade in viewModel.togglePhaseExpanded(grade: grade) },
+          onTaskCheckboxTap: { taskId in Task { await viewModel.markComplete(taskId: taskId) } },
+          onLockedTaskTap: { lockedTaskAlertTask = $0 },
+          onRetry: { Task { await viewModel.refresh() } }
+        )
       }
       .padding(.vertical, 16)
     }
@@ -37,11 +75,8 @@ struct RecruitingTimelineView: View {
     .onChange(of: familyManager.selectedAthleteId) { _, _ in
       Task { await viewModel.load() }
     }
-    .alert("Complete Prerequisites First", isPresented: Binding(
-      get: { lockedTaskAlertTask != nil },
-      set: { if !$0 { lockedTaskAlertTask = nil } }
-    )) {
-      Button("OK", role: .cancel) { lockedTaskAlertTask = nil }
+    .alert("Complete Prerequisites First", isPresented: showLockedTaskAlert) {
+      Button("OK", role: .cancel) {}
     } message: {
       if let task = lockedTaskAlertTask {
         Text("Complete these tasks first: \(task.prerequisiteTasks.map(\.title).joined(separator: ", "))")
@@ -50,50 +85,80 @@ struct RecruitingTimelineView: View {
     .navigationTitle("Timeline")
     .accessibilityIdentifier("recruiting_timeline_view")
   }
+}
 
-  @ViewBuilder
-  private var parentBannerIfNeeded: some View {
-    if viewModel.isViewingAsParent {
+// MARK: - Private Subviews
+
+private struct TimelineParentBanner: View {
+  let isViewingAsParent: Bool
+  let athleteName: String
+  let onDismiss: () -> Void
+
+  var body: some View {
+    if isViewingAsParent {
       TasksParentBanner(
-        athleteName: familyManager.selectedAthlete?.user?.fullName ?? "Athlete",
-        onDismiss: { familyManager.clearAthleteSelection() }
+        athleteName: athleteName,
+        onDismiss: onDismiss
       )
     }
   }
+}
 
-  @ViewBuilder
-  private var athleteSwitcherIfNeeded: some View {
-    if viewModel.isViewingAsParent, !familyManager.athletes.isEmpty {
+private struct TimelineAthleteSwitcher: View {
+  let isViewingAsParent: Bool
+  let athletes: [FamilyMember]
+  let selectedAthleteId: String?
+  let onSelect: (String) -> Void
+
+  var body: some View {
+    if isViewingAsParent, !athletes.isEmpty {
       AthleteSelector(
-        athletes: familyManager.athletes,
-        selectedAthleteId: familyManager.selectedAthleteId,
-        onSelect: { athleteId in
-          familyManager.selectAthlete(athleteId)
-          Task { await viewModel.load() }
-        }
+        athletes: athletes,
+        selectedAthleteId: selectedAthleteId,
+        onSelect: onSelect
       )
       .padding(.horizontal)
     }
   }
+}
 
-  @ViewBuilder
-  private var mainContent: some View {
-    if viewModel.isLoading, viewModel.tasksByGrade.isEmpty {
+private struct TimelineMainContent: View {
+  let isLoading: Bool
+  let tasksByGrade: [Int: [TaskWithStatus]]
+  let errorMessage: String?
+  let statusScoreValue: Int
+  let statusLabel: StatusLabel?
+  let taskCompletedCount: Int
+  let taskTotalCount: Int
+  let milestonesCompletedCount: Int
+  let milestonesTotalCount: Int
+  let showSuccessMessage: Bool
+  let currentPhase: TimelinePhase?
+  let expandedPhaseGrade: Int?
+  let isViewingAsParent: Bool
+  let phaseOrder: [(Int, TimelinePhase)]
+  let onTogglePhase: (Int) -> Void
+  let onTaskCheckboxTap: (String) -> Void
+  let onLockedTaskTap: (TaskWithStatus) -> Void
+  let onRetry: () -> Void
+
+  var body: some View {
+    if isLoading, tasksByGrade.isEmpty {
       loadingPlaceholders
-    } else if let error = viewModel.errorMessage {
+    } else if let error = errorMessage {
       errorBanner(message: error)
     } else {
       TimelineStatPills(
-        statusScore: viewModel.statusScoreValue,
-        statusLabel: viewModel.statusLabel,
-        taskCompleted: viewModel.taskCompletedCount,
-        taskTotal: viewModel.taskTotalCount,
-        milestonesCompleted: viewModel.milestonesCompletedCount,
-        milestonesTotal: viewModel.milestonesTotalCount
+        statusScore: statusScoreValue,
+        statusLabel: statusLabel,
+        taskCompleted: taskCompletedCount,
+        taskTotal: taskTotalCount,
+        milestonesCompleted: milestonesCompletedCount,
+        milestonesTotal: milestonesTotalCount
       )
       .padding(.horizontal)
 
-      if viewModel.showSuccessMessage {
+      if showSuccessMessage {
         Text("Great job! 🎉")
           .font(.subheadline.weight(.medium))
           .foregroundStyle(Color.successGreen)
@@ -104,15 +169,13 @@ struct RecruitingTimelineView: View {
       ForEach(phaseOrder, id: \.0) { grade, phase in
         PhaseCard(
           phase: phase,
-          tasks: viewModel.tasksByGrade[grade] ?? [],
-          isCurrentPhase: viewModel.currentPhase == phase,
-          isExpanded: viewModel.expandedPhaseGrade == grade,
-          isViewingAsParent: viewModel.isViewingAsParent,
-          onToggle: { viewModel.togglePhaseExpanded(grade: grade) },
-          onTaskCheckboxTap: { taskId in
-            Task { await viewModel.markComplete(taskId: taskId) }
-          },
-          onLockedTaskTap: { lockedTaskAlertTask = $0 }
+          tasks: tasksByGrade[grade] ?? [],
+          isCurrentPhase: currentPhase == phase,
+          isExpanded: expandedPhaseGrade == grade,
+          isViewingAsParent: isViewingAsParent,
+          onToggle: { onTogglePhase(grade) },
+          onTaskCheckboxTap: { taskId in onTaskCheckboxTap(taskId) },
+          onLockedTaskTap: { task in onLockedTaskTap(task) }
         )
         .padding(.horizontal)
       }
@@ -137,7 +200,7 @@ struct RecruitingTimelineView: View {
         .foregroundStyle(.primary)
         .multilineTextAlignment(.center)
       Button("Retry") {
-        Task { await viewModel.refresh() }
+        onRetry()
       }
       .buttonStyle(.borderedProminent)
     }

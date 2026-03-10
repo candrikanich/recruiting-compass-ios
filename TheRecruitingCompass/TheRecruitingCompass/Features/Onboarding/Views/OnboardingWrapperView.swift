@@ -5,17 +5,15 @@ struct OnboardingWrapperView: View {
   var onComplete: () -> Void
   @Environment(AuthManager.self) private var authManager
   @Environment(OnboardingManager.self) private var onboardingManager
-  @State private var viewModel = OnboardingViewModel()
 
   var body: some View {
     if authManager.user?.role == .parent {
       ParentOnboardingWrapperContent(onComplete: onComplete)
     } else {
-      OnboardingView(viewModel: viewModel, onComplete: {
+      OnboardingView(onComplete: {
         onboardingManager.markComplete()
         onComplete()
       })
-      .task { await viewModel.loadExistingData() }
     }
   }
 }

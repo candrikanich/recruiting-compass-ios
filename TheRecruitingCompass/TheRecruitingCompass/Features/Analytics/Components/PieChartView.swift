@@ -49,38 +49,34 @@ struct PieChartView: View {
   }
 
   private var pieRing: some View {
-    GeometryReader { geometry in
-      let size = min(geometry.size.width, geometry.size.height)
-      let center = CGPoint(x: size / 2, y: size / 2)
-      let radius = size / 2
+    let diameter: CGFloat = 160
+    let radius = diameter / 2
 
-      ZStack {
-        ForEach(Array(segmentAngles.enumerated()), id: \.offset) { index, angles in
-          PieSlice(
-            startAngle: angles.start,
-            endAngle: angles.end
-          )
-          .fill(segments[index].color)
-        }
+    return ZStack {
+      ForEach(Array(segmentAngles.enumerated()), id: \.offset) { index, angles in
+        PieSlice(
+          startAngle: angles.start,
+          endAngle: angles.end
+        )
+        .fill(segments[index].color)
+      }
 
-        Circle()
-          .fill(Color(.systemBackground))
-          .frame(width: radius, height: radius)
+      Circle()
+        .fill(Color(.systemBackground))
+        .frame(width: radius, height: radius)
 
-        if total > 0 {
-          VStack(spacing: 2) {
-            Text("\(total)")
-              .font(.title2.bold())
-              .foregroundStyle(Color.darkSlate)
-            Text("Total")
-              .font(.caption)
-              .foregroundStyle(Color.secondaryText)
-          }
+      if total > 0 {
+        VStack(spacing: 2) {
+          Text("\(total)")
+            .font(.title2.bold())
+            .foregroundStyle(Color.darkSlate)
+          Text("Total")
+            .font(.caption)
+            .foregroundStyle(Color.secondaryText)
         }
       }
-      .frame(width: size, height: size)
-      .position(center)
     }
+    .frame(width: diameter, height: diameter)
   }
 
   private var legendView: some View {

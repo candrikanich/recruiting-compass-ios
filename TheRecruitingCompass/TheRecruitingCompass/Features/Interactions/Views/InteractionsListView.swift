@@ -6,6 +6,13 @@ struct InteractionsListView: View {
   @Environment(AuthManager.self) private var authManager
   @State private var navigationPath = NavigationPath()
 
+  private var showDeleteErrorAlert: Binding<Bool> {
+    Binding(
+      get: { viewModel.deleteErrorMessage != nil },
+      set: { if !$0 { viewModel.deleteErrorMessage = nil } }
+    )
+  }
+
   var body: some View {
     NavigationStack(path: $navigationPath) {
       contentView
@@ -22,10 +29,7 @@ struct InteractionsListView: View {
             Text("Are you sure you want to delete \"\(subject)\"? This action cannot be undone.")
           }
         }
-        .alert("Error", isPresented: Binding(
-          get: { viewModel.deleteErrorMessage != nil },
-          set: { if !$0 { viewModel.deleteErrorMessage = nil } }
-        )) {
+        .alert("Error", isPresented: showDeleteErrorAlert) {
           Button("OK") { viewModel.deleteErrorMessage = nil }
         } message: {
           if let error = viewModel.deleteErrorMessage { Text(error) }
@@ -69,8 +73,12 @@ struct InteractionsListView: View {
       } else {
         ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
       }
-    case .detail(let interactionId):
-      Text("Interaction detail: \(interactionId)")
+    case .detail(_):
+      ContentUnavailableView(
+        "Detail View Coming Soon",
+        systemImage: "bubble.left.and.bubble.right",
+        description: Text("Interaction details will be available in a future update.")
+      )
     }
   }
 
