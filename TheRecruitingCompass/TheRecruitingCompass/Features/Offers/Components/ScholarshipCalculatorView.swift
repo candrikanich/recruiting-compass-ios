@@ -182,7 +182,11 @@ struct ScholarshipCalculatorView: View {
         }
         .padding(.vertical, 2)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Year \(year): Cost \(Self.formatCurrency(annualCost)), Scholarship \(Self.formatCurrency(annualScholarship)), Your cost \(Self.formatCurrency(annualNetCost))")
+        .accessibilityLabel(
+          "Year \(year): Cost \(Self.formatCurrency(annualCost)), " +
+          "Scholarship \(Self.formatCurrency(annualScholarship)), " +
+          "Your cost \(Self.formatCurrency(annualNetCost))"
+        )
       }
     }
   }
