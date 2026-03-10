@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 
 enum SchoolStatus: String, Codable, CaseIterable, Sendable {
   case interested
@@ -43,32 +43,7 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
     }
   }
 
-  var badgeColor: Color {
-    switch self {
-    case .interested:
-      return Color.gray
-    case .contacted:
-      return Color.blue
-    case .campInvite:
-      return Color.cyan
-    case .recruited:
-      return Color.purple
-    case .officialVisitInvited:
-      return Color.orange
-    case .officialVisitScheduled:
-      return Color.orange
-    case .offerReceived:
-      return Color.green
-    case .committed:
-      return Color.green
-    case .notPursuing:
-      return Color.red
-    case .unknown:
-      return Color.gray
-    }
-  }
-
-  var semanticBadgeColor: BadgeColor {
+  var badgeColor: BadgeColor {
     switch self {
     case .interested:             return .slate
     case .contacted:              return .blue
@@ -80,31 +55,6 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
     case .committed:              return .emerald
     case .notPursuing:            return .red
     case .unknown:                return .slate
-    }
-  }
-
-  var badgeColors: (background: Color, text: Color) {
-    switch self {
-    case .interested:
-      return (Color.blue.opacity(0.15), .blue)
-    case .contacted:
-      return (Color.gray.opacity(0.15), Color(white: 0.4))
-    case .campInvite:
-      return (Color.purple.opacity(0.15), .purple)
-    case .recruited:
-      return (Color.green.opacity(0.15), .green)
-    case .officialVisitInvited:
-      return (Color.yellow.opacity(0.3), Color(red: 0.7, green: 0.5, blue: 0.0))
-    case .officialVisitScheduled:
-      return (Color.orange.opacity(0.15), .orange)
-    case .offerReceived:
-      return (Color.red.opacity(0.15), .red)
-    case .committed:
-      return (Color(red: 0.13, green: 0.50, blue: 0.13), .white)
-    case .notPursuing:
-      return (Color.gray.opacity(0.3), Color(white: 0.4))
-    case .unknown:
-      return (Color.gray.opacity(0.15), Color(white: 0.4))
     }
   }
 }

@@ -4,14 +4,13 @@ struct StatusBadge: View {
   let status: SchoolStatus
 
   var body: some View {
-    let colors = status.badgeColors
     Text(status.displayName)
       .font(.caption)
       .fontWeight(.semibold)
       .padding(.horizontal, 10)
       .padding(.vertical, 5)
-      .background(colors.background)
-      .foregroundStyle(colors.text)
+      .background(status.badgeColor.backgroundColor)
+      .foregroundStyle(status.badgeColor.foregroundColor)
       .clipShape(Capsule())
       .accessibilityLabel("Status: \(status.displayName)")
   }
@@ -36,15 +35,8 @@ struct PriorityTierBadge: View {
 struct DivisionBadge: View {
   let division: String
 
-  var badgeColor: Color {
-    switch division.uppercased() {
-    case "D1": return .blue
-    case "D2": return .green
-    case "D3": return .purple
-    case "NAIA": return .orange
-    case "JUCO": return .gray
-    default: return .gray
-    }
+  private var badgeColor: BadgeColor {
+    Division(rawValue: division.uppercased())?.badgeColor ?? .slate
   }
 
   var body: some View {
@@ -53,8 +45,8 @@ struct DivisionBadge: View {
       .fontWeight(.semibold)
       .padding(.horizontal, 10)
       .padding(.vertical, 5)
-      .background(badgeColor.opacity(0.2))
-      .foregroundStyle(badgeColor)
+      .background(badgeColor.backgroundColor)
+      .foregroundStyle(badgeColor.foregroundColor)
       .clipShape(Capsule())
       .accessibilityLabel("Division: \(division)")
   }
