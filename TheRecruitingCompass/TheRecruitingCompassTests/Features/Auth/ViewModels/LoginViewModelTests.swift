@@ -634,7 +634,7 @@ final class LoginViewModelTests: XCTestCase {
 
     await sut.login()
 
-    XCTAssertTrue(sut.shouldShowBiometricOptIn)
+    XCTAssertTrue(mockAuthManager.pendingBiometricEnrollmentOffer)
   }
 
   func testShouldNotShowBiometricOptInWhenDeviceNotCapable() async {
@@ -644,7 +644,7 @@ final class LoginViewModelTests: XCTestCase {
 
     await sut.login()
 
-    XCTAssertFalse(sut.shouldShowBiometricOptIn)
+    XCTAssertFalse(mockAuthManager.pendingBiometricEnrollmentOffer)
   }
 
   func testShouldNotShowBiometricOptInWhenAlreadyEnabled() async {
@@ -655,7 +655,7 @@ final class LoginViewModelTests: XCTestCase {
 
     await sut.login()
 
-    XCTAssertFalse(sut.shouldShowBiometricOptIn)
+    XCTAssertFalse(mockAuthManager.pendingBiometricEnrollmentOffer)
   }
 
   func testShouldNotShowBiometricOptInOnFailedLogin() async {
@@ -667,32 +667,29 @@ final class LoginViewModelTests: XCTestCase {
 
     await sut.login()
 
-    XCTAssertFalse(sut.shouldShowBiometricOptIn)
+    XCTAssertFalse(mockAuthManager.pendingBiometricEnrollmentOffer)
   }
 
-  func testEnableBiometricsCallsAuthManagerAndDismisses() async {
+  func testBiometricEnrollmentOfferSetOnAuthManagerAfterSuccessfulLogin() async {
     mockBiometricService.canEvaluateResult = true
+    mockAuthManager.biometricEnabled = false
     sut.email = "user@example.com"
     sut.password = "ValidPassword123"
+
     await sut.login()
-    XCTAssertTrue(sut.shouldShowBiometricOptIn)
 
-    sut.enableBiometrics()
-
-    XCTAssertEqual(mockAuthManager.enableBiometricsCallCount, 1)
-    XCTAssertFalse(sut.shouldShowBiometricOptIn)
+    XCTAssertTrue(mockAuthManager.pendingBiometricEnrollmentOffer,
+        "Login should set pendingBiometricEnrollmentOffer on authManager so the app-level alert can show it")
   }
 
-  func testDismissBiometricOptInClearsFlag() async {
-    mockBiometricService.canEvaluateResult = true
+  func testBiometricEnrollmentOfferNotSetWhenBiometricsUnavailable() async {
+    mockBiometricService.canEvaluateResult = false
+    mockAuthManager.biometricEnabled = false
     sut.email = "user@example.com"
     sut.password = "ValidPassword123"
+
     await sut.login()
-    XCTAssertTrue(sut.shouldShowBiometricOptIn)
 
-    sut.dismissBiometricOptIn()
-
-    XCTAssertFalse(sut.shouldShowBiometricOptIn)
-    XCTAssertEqual(mockAuthManager.enableBiometricsCallCount, 0)
+    XCTAssertFalse(mockAuthManager.pendingBiometricEnrollmentOffer)
   }
 }
