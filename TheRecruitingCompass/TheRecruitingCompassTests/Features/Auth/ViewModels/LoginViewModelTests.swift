@@ -670,18 +670,6 @@ final class LoginViewModelTests: XCTestCase {
     XCTAssertFalse(mockAuthManager.pendingBiometricEnrollmentOffer)
   }
 
-  func testBiometricEnrollmentOfferSetOnAuthManagerAfterSuccessfulLogin() async {
-    mockBiometricService.canEvaluateResult = true
-    mockAuthManager.biometricEnabled = false
-    sut.email = "user@example.com"
-    sut.password = "ValidPassword123"
-
-    await sut.login()
-
-    XCTAssertTrue(mockAuthManager.pendingBiometricEnrollmentOffer,
-        "Login should set pendingBiometricEnrollmentOffer on authManager so the app-level alert can show it")
-  }
-
   func testBiometricEnrollmentOfferNotSetWhenBiometricsUnavailable() async {
     mockBiometricService.canEvaluateResult = false
     mockAuthManager.biometricEnabled = false

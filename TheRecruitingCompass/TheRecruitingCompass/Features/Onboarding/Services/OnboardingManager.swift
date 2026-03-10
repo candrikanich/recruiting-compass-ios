@@ -58,7 +58,9 @@ final class OnboardingManager {
           logger.debug("Parent onboarding: no family found, showing onboarding")
         }
       } catch {
-        // Fail-safe: don't block parent if DB is unreachable
+        // Fail-safe: prefer dashboard access over blocking the user on a transient
+        // network failure. A parent who truly needs onboarding will see it on next
+        // successful launch when the DB check succeeds.
         logger.error("Parent onboarding DB check failed: \(error.localizedDescription)")
         needsOnboarding = false
       }

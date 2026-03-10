@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Supabase
+import os
 
 struct PendingInvite: Identifiable {
   let id: String
@@ -79,7 +80,13 @@ struct TheRecruitingCompassApp: App {
         set: { authManager.pendingBiometricEnrollmentOffer = $0 }
       )) {
         Button("Enable") {
-          try? authManager.enableBiometrics()
+          do {
+            try authManager.enableBiometrics()
+          } catch {
+            // Keychain write failed — biometrics silently not enabled.
+            // User sees the alert dismiss normally; we log for diagnostics.
+            Logger.auth.error("enableBiometrics failed: \(error, privacy: .public)")
+          }
           authManager.pendingBiometricEnrollmentOffer = false
         }
         Button("Not Now", role: .cancel) {

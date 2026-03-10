@@ -147,12 +147,13 @@ final class OnboardingManagerTests: XCTestCase {
   // MARK: - Helpers
 
   private func makeUser(role: UserRole) -> User {
-    User(
-      id: "test-parent-id",
+    let id = role == .parent ? "test-parent-id" : "test-player-id"
+    return User(
+      id: id,
       email: "test@example.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
       phone: nil,
-      fullName: "Test Parent",
+      fullName: "Test User",
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
       role: role,
