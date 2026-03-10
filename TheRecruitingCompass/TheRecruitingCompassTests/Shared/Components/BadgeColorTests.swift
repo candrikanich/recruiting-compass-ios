@@ -5,23 +5,23 @@ import SwiftUI
 final class BadgeColorTests: XCTestCase {
 
   func test_blue_backgroundColor_usesBrandBlue100() {
-    XCTAssertEqual(BadgeColor.blue.backgroundColor, Color.brand.blue100)
+    XCTAssertEqual(BadgeColor.blue.backgroundColor, Color.Brand.blue100)
   }
 
   func test_blue_foregroundColor_usesBrandBlue700() {
-    XCTAssertEqual(BadgeColor.blue.foregroundColor, Color.brand.blue700)
+    XCTAssertEqual(BadgeColor.blue.foregroundColor, Color.Brand.blue700)
   }
 
   func test_emerald_backgroundColor_usesBrandEmerald100() {
-    XCTAssertEqual(BadgeColor.emerald.backgroundColor, Color.brand.emerald100)
+    XCTAssertEqual(BadgeColor.emerald.backgroundColor, Color.Brand.emerald100)
   }
 
   func test_red_foregroundColor_usesBrandRed700() {
-    XCTAssertEqual(BadgeColor.red.foregroundColor, Color.brand.red700)
+    XCTAssertEqual(BadgeColor.red.foregroundColor, Color.Brand.red700)
   }
 
   func test_slate_indicatorColor_usesBrandSlate500() {
-    XCTAssertEqual(BadgeColor.slate.indicatorColor, Color.brand.slate500)
+    XCTAssertEqual(BadgeColor.slate.indicatorColor, Color.Brand.slate500)
   }
 
   func test_allCases_haveNonNilColors() {
