@@ -15,6 +15,7 @@ final class AuthManager: AuthManaging {
   var user: User?
   var session: Session?
   var errorMessage: String?
+  var pendingBiometricEnrollmentOffer: Bool = false
 
   private let keychain = KeychainHelper.shared
   private let sessionKey = "savedSession"

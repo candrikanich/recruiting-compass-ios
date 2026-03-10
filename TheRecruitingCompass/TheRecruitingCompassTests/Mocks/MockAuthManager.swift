@@ -41,6 +41,7 @@ class MockAuthManager: AuthManaging {
 
   // MARK: - Biometric Mock State
   var biometricEnabled: Bool = false
+  var pendingBiometricEnrollmentOffer: Bool = false
   var enableBiometricsCallCount = 0
   var disableBiometricsCallCount = 0
   var authenticateWithBiometricsCallCount = 0
@@ -235,6 +236,7 @@ class MockAuthManager: AuthManaging {
     isAuthenticated = false
     errorMessage = nil
     biometricEnabled = false
+    pendingBiometricEnrollmentOffer = false
     enableBiometricsCallCount = 0
     disableBiometricsCallCount = 0
     authenticateWithBiometricsCallCount = 0

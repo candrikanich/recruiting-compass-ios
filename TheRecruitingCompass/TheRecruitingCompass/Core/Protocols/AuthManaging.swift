@@ -7,6 +7,7 @@ protocol AuthManaging: AnyObject {
   var user: User? { get }
   var session: Session? { get }
   var biometricEnabled: Bool { get }
+  var pendingBiometricEnrollmentOffer: Bool { get set }
 
   func login(email: String, password: String) async throws
   func signup(email: String, password: String, fullName: String, role: UserRole, familyCode: String?, dateOfBirth: String?) async throws
