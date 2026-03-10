@@ -23,7 +23,7 @@ struct RecruitingTimelineView: View {
     (9, .freshman),
     (10, .sophomore),
     (11, .junior),
-    (12, .senior),
+    (12, .senior)
   ]
 
   var body: some View {

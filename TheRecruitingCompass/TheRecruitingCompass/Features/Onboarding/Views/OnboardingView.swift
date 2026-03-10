@@ -379,7 +379,9 @@ private struct OnboardingNavigationButtons: View {
         .padding(.trailing, 8)
       }
 
-      Button(viewModel.currentStep == OnboardingConstants.totalSteps ? "Complete Onboarding" : viewModel.currentStep == 4 ? "Review" : "Next") {
+      let nextLabel = viewModel.currentStep == OnboardingConstants.totalSteps ? "Complete Onboarding"
+        : viewModel.currentStep == 4 ? "Review" : "Next"
+      Button(nextLabel) {
         Task { await viewModel.nextScreen() }
       }
       .buttonStyle(.borderedProminent)

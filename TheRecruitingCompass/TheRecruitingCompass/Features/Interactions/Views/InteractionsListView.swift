@@ -73,7 +73,7 @@ struct InteractionsListView: View {
       } else {
         ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
       }
-    case .detail(_):
+    case .detail:
       ContentUnavailableView(
         "Detail View Coming Soon",
         systemImage: "bubble.left.and.bubble.right",
