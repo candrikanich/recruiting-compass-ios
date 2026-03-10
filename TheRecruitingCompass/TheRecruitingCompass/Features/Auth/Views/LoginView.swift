@@ -55,12 +55,6 @@ struct LoginView: View {
       }
     }
     .navigationBarBackButtonHidden(true)
-    .alert("Enable Face ID?", isPresented: $viewModel.shouldShowBiometricOptIn) {
-      Button("Enable") { viewModel.enableBiometrics() }
-      Button("Not Now", role: .cancel) { viewModel.dismissBiometricOptIn() }
-    } message: {
-      Text("Sign in quickly and securely with Face ID on future visits.")
-    }
   }
 
   // MARK: - Sub-views

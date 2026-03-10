@@ -74,6 +74,18 @@ struct TheRecruitingCompassApp: App {
           showBiometricLock = true
         }
       }
+      .alert("Enable Face ID?", isPresented: Binding(
+        get: { authManager.pendingBiometricEnrollmentOffer },
+        set: { authManager.pendingBiometricEnrollmentOffer = $0 }
+      )) {
+        Button("Enable") {
+          try? authManager.enableBiometrics()
+          authManager.pendingBiometricEnrollmentOffer = false
+        }
+        Button("Not Now", role: .cancel) {
+          authManager.pendingBiometricEnrollmentOffer = false
+        }
+      }
       .onOpenURL { url in
         handleDeepLink(url)
       }

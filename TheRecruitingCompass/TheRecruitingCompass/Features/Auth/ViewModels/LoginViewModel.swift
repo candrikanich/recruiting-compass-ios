@@ -13,7 +13,6 @@ final class LoginViewModel {
   var errorMessage: String?
   var fieldErrors: [FormFieldKey: String] = [:]
   var showTimeoutBanner = false
-  var shouldShowBiometricOptIn = false
   private let biometricService: any BiometricServiceProtocol
 
   private let authManager: any AuthManaging
@@ -105,7 +104,7 @@ final class LoginViewModel {
     do {
       try await authManager.login(email: email, password: password)
       if !authManager.biometricEnabled && biometricService.canEvaluateBiometrics() {
-        shouldShowBiometricOptIn = true
+        authManager.pendingBiometricEnrollmentOffer = true
       }
     } catch {
       errorMessage = mapError(error)
@@ -121,17 +120,6 @@ final class LoginViewModel {
       get: { self.fieldErrors[key] },
       set: { self.fieldErrors[key] = $0 }
     )
-  }
-
-  // MARK: - Biometric Opt-In
-
-  func enableBiometrics() {
-    try? authManager.enableBiometrics()
-    shouldShowBiometricOptIn = false
-  }
-
-  func dismissBiometricOptIn() {
-    shouldShowBiometricOptIn = false
   }
 
   // MARK: - Error Mapping
