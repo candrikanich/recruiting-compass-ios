@@ -132,6 +132,9 @@ enum InteractionType: String, Codable, CaseIterable, Sendable {
     }
   }
 
+  /// All interaction type badges use blue to maintain visual consistency.
+  /// Distinguishing 10 interaction types by color would create excessive visual noise;
+  /// the type label and icon carry semantic meaning instead.
   var badgeColor: BadgeColor { .blue }
 }
 
