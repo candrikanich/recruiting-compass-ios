@@ -23,7 +23,9 @@ struct DocumentStatisticsCardsRow: View {
         )
         DocumentStatCard(
           label: "Total Storage",
-          value: statistics.totalStorageMB > 0 ? "\(statistics.totalStorageMB.formatted(.number.precision(.fractionLength(1)))) MB" : "Phase 5",
+          value: statistics.totalStorageMB > 0
+            ? "\(statistics.totalStorageMB.formatted(.number.precision(.fractionLength(1)))) MB"
+            : "Phase 5",
           color: .orange
         )
       }
