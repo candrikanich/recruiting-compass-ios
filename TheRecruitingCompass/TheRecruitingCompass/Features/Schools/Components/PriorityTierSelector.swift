@@ -71,7 +71,7 @@ struct PriorityTierSelector: View {
 
   private func backgroundColor(for tier: PriorityTier?) -> Color {
     if selectedTier == tier {
-      return tier?.badgeColor ?? .accentBlue
+      return tier?.badgeColor.indicatorColor ?? .accentBlue
     } else {
       return Color(.systemGray6)
     }
@@ -79,7 +79,7 @@ struct PriorityTierSelector: View {
 
   private func borderColor(for tier: PriorityTier?) -> Color {
     if selectedTier == tier {
-      return tier?.badgeColor ?? .accentBlue
+      return tier?.badgeColor.indicatorColor ?? .accentBlue
     } else {
       return Color(.systemGray4)
     }

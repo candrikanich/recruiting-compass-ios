@@ -25,8 +25,8 @@ struct PriorityTierBadge: View {
       .fontWeight(.semibold)
       .padding(.horizontal, 10)
       .padding(.vertical, 5)
-      .background(tier.badgeColor.opacity(0.2))
-      .foregroundStyle(tier.badgeColor)
+      .background(tier.badgeColor.backgroundColor)
+      .foregroundStyle(tier.badgeColor.foregroundColor)
       .clipShape(Capsule())
       .accessibilityLabel("Priority Tier \(tier.displayName)")
   }

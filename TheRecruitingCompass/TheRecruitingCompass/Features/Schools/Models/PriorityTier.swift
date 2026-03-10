@@ -10,11 +10,11 @@ enum PriorityTier: String, Codable, CaseIterable, Sendable {
     rawValue
   }
 
-  var badgeColor: Color {
+  var badgeColor: BadgeColor {
     switch self {
-    case .a: return Color(red: 1.0, green: 0.84, blue: 0.0) // Gold
-    case .b: return Color(red: 0.75, green: 0.75, blue: 0.75) // Silver
-    case .c: return Color(red: 0.80, green: 0.50, blue: 0.20) // Bronze
+    case .a: return .red      // Urgency/top choice
+    case .b: return .orange   // Strong interest
+    case .c: return .slate    // Fallback
     }
   }
 }
