@@ -1,44 +1,87 @@
 import SwiftUI
 
 extension Color {
-    static let primaryGreen = Color(red: 0.024, green: 0.588, blue: 0.412)
-    static let darkEmerald = Color(red: 0.016, green: 0.522, blue: 0.373)
-    static let emeraldGradientStart = Color(red: 0.3, green: 0.6, blue: 0.4)
-    static let emeraldGradientEnd = Color(red: 0.05, green: 0.5, blue: 0.35)
+  // MARK: - Brand Palette
+  // Raw color values. Use Color.Brand.* or BadgeColor for semantic contexts.
+  enum Brand {
+    // Blue — primary actions, links, in-progress
+    static let blue100 = Color(hex: "dbeafe")
+    static let blue500 = Color(hex: "3b82f6")
+    static let blue600 = Color(hex: "2563eb")
+    static let blue700 = Color(hex: "1d4ed8")
+    // Emerald — success, completed, inbound
+    static let emerald100 = Color(hex: "d1fae5")
+    static let emerald500 = Color(hex: "10b981")
+    static let emerald600 = Color(hex: "059669")
+    static let emerald700 = Color(hex: "047857")
+    // Orange — warning, pending, reach
+    static let orange100 = Color(hex: "ffedd5")
+    static let orange500 = Color(hex: "f97316")
+    static let orange600 = Color(hex: "ea580c")
+    static let orange700 = Color(hex: "c2410c")
+    // Purple — secondary, outbound, academic
+    static let purple100 = Color(hex: "ede9fe")
+    static let purple500 = Color(hex: "8b5cf6")
+    static let purple600 = Color(hex: "7c3aed")
+    static let purple700 = Color(hex: "6d28d9")
+    // Red — error, danger, destructive, negative
+    static let red100 = Color(hex: "fee2e2")
+    static let red500 = Color(hex: "ef4444")
+    static let red600 = Color(hex: "dc2626")
+    static let red700 = Color(hex: "b91c1c")
+    // Slate — neutral, disabled, default
+    static let slate100 = Color(hex: "f1f5f9")
+    static let slate500 = Color(hex: "64748b")
+    static let slate600 = Color(hex: "475569")
+    static let slate700 = Color(hex: "334155")
+    // Indigo — accent (reserved for future button use)
+    static let indigo100 = Color(hex: "e0e7ff")
+    static let indigo500 = Color(hex: "6366f1")
+    static let indigo600 = Color(hex: "4f46e5")
+    static let indigo700 = Color(hex: "4338ca")
+  }
 
-    static let darkSlate = Color(red: 0.216, green: 0.263, blue: 0.322)
-    static let secondaryText = Color(red: 0.35, green: 0.40, blue: 0.48)
-    static let tertiaryText = Color(red: 0.282, green: 0.337, blue: 0.431)
-    static let nearBlack = Color(red: 0.05, green: 0.05, blue: 0.1)
+  // MARK: - Semantic Aliases
+  enum Semantic {
+    static let actionPrimary = Color.Brand.blue600
+    static let success = Color.Brand.emerald600
+    static let warning = Color.Brand.orange600
+    static let danger = Color.Brand.red600
+    static let muted = Color.Brand.slate500
+  }
 
-    static let accentBlue = Color(red: 0.149, green: 0.388, blue: 0.931)
-    static let blueGradientStart = Color(red: 0, green: 0.4, blue: 1)
-    static let blueGradientEnd = Color(red: 0, green: 0.32, blue: 0.8)
+  // MARK: - Legacy Aliases (bridge for existing callers)
+  static let primaryGreen = Color.Brand.emerald600
+  static let darkEmerald = Color.Brand.emerald700
+  static let emeraldGradientStart = Color.Brand.emerald500
+  static let emeraldGradientEnd = Color.Brand.emerald600
+  static let darkSlate = Color.Brand.slate700
+  static let secondaryText = Color.Brand.slate500
+  static let tertiaryText = Color.Brand.slate600
+  static let nearBlack = Color(hex: "0d0d1a")
+  static let accentBlue = Color.Brand.blue600
+  static let blueGradientStart = Color.Brand.blue500
+  static let blueGradientEnd = Color.Brand.blue700
+  static let errorRed = Color.Brand.red600
+  static let errorBackground = Color.Brand.red100
+  static let errorBorder = Color(hex: "fecaca")
+  static let warningOrange = Color.Brand.orange700
+  static let warningBackground = Color.Brand.orange100
+  static let warningBorder = Color(hex: "fed7aa")
+  static let strengthOrange = Color.Brand.orange500
+  static let amberGold = Color(hex: "b45309")
+  static let successGreen = Color.Brand.emerald600
+  static let iconGray = Color.Brand.slate500
+  static let borderGray = Color.Brand.slate100
 
-    static let errorRed = Color(red: 0.859, green: 0.149, blue: 0.149)
-    static let errorBackground = Color(red: 0.996, green: 0.886, blue: 0.886)
-    static let errorBorder = Color(red: 0.996, green: 0.792, blue: 0.792)
-
-    static let warningOrange = Color(red: 0.576, green: 0.25, blue: 0.056)
-    static let warningBackground = Color(red: 1, green: 0.984, blue: 0.92)
-    static let warningBorder = Color(red: 0.996, green: 0.891, blue: 0.658)
-    static let strengthOrange = Color(red: 1, green: 0.647, blue: 0)
-
-    static let amberGold = Color(red: 0.77, green: 0.56, blue: 0)
-    static let successGreen = Color(red: 0.2, green: 0.62, blue: 0.4)
-
-    static let iconGray = Color(red: 0.627, green: 0.655, blue: 0.686)
-    static let borderGray = Color(red: 0.827, green: 0.843, blue: 0.863)
-
-    init(hex: String) {
-        let scanner = Scanner(string: hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted))
-        var hexNumber: UInt64 = 0
-        scanner.scanHexInt64(&hexNumber)
-
-        let r = Double((hexNumber & 0xff0000) >> 16) / 255
-        let g = Double((hexNumber & 0x00ff00) >> 8) / 255
-        let b = Double(hexNumber & 0x0000ff) / 255
-
-        self.init(red: r, green: g, blue: b)
-    }
+  // MARK: - Hex Initializer
+  init(hex: String) {
+    let scanner = Scanner(string: hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted))
+    var hexNumber: UInt64 = 0
+    scanner.scanHexInt64(&hexNumber)
+    let r = Double((hexNumber & 0xff0000) >> 16) / 255
+    let g = Double((hexNumber & 0x00ff00) >> 8) / 255
+    let b = Double(hexNumber & 0x0000ff) / 255
+    self.init(red: r, green: g, blue: b)
+  }
 }

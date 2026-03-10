@@ -183,6 +183,15 @@ enum Sentiment: String, Codable, CaseIterable, Sendable {
     }
   }
 
+  var displayBadgeColor: BadgeColor {
+    switch self {
+    case .veryPositive: return .emerald
+    case .positive:     return .blue
+    case .neutral:      return .slate
+    case .negative:     return .red
+    }
+  }
+
   var isPositive: Bool {
     self == .veryPositive || self == .positive
   }

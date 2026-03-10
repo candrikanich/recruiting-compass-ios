@@ -131,10 +131,10 @@ struct InteractionDetailView: View {
   private func badgesSection(interaction: Interaction) -> some View {
     ScrollView(.horizontal) {
       HStack(spacing: 8) {
-        // Type badge
+        // Type badge — always blue per design system
         BadgeView(
           text: interaction.type.displayName,
-          color: interaction.type.iconColor,
+          color: .blue,
           icon: interaction.type.iconName,
           accessibilityLabel: "\(interaction.type.displayName) interaction"
         )
@@ -142,15 +142,15 @@ struct InteractionDetailView: View {
         // Direction badge
         BadgeView(
           text: interaction.direction.displayName,
-          color: interaction.direction.badgeColor,
+          color: interaction.direction == .inbound ? .emerald : .purple,
           accessibilityLabel: "\(interaction.direction.displayName) direction"
         )
 
-        // Sentiment badge (if present)
+        // Sentiment badge
         if let sentiment = interaction.sentiment {
           BadgeView(
             text: sentiment.displayName,
-            color: sentiment.badgeColor,
+            color: sentiment.displayBadgeColor,
             accessibilityLabel: "Sentiment: \(sentiment.displayName)"
           )
         }

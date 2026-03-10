@@ -106,17 +106,17 @@ struct SchoolCardView: View {
   private var badgesSection: some View {
     FlowLayout(spacing: 8) {
       if let division = school.division, let divisionEnum = Division(rawValue: division) {
-        BadgeView(text: divisionEnum.displayName, color: divisionEnum.badgeColor)
+        BadgeView(text: divisionEnum.displayName, color: divisionEnum.semanticBadgeColor)
       }
 
       if let statusEnum = SchoolStatus(rawValue: school.status) {
-        BadgeView(text: statusEnum.displayName, color: statusEnum.badgeColor)
+        BadgeView(text: statusEnum.displayName, color: statusEnum.semanticBadgeColor)
       }
 
       FitScoreBadge(score: school.fitScore)
 
       if let size = school.size {
-        BadgeView(text: size.displayName, color: .gray)
+        BadgeView(text: size.displayName, color: .slate)
       }
     }
   }

@@ -77,7 +77,7 @@ struct SupabaseConfig {
 
   /// Base URL for Recruiting Compass API (e.g. https://myrecruitingcompass.com). Used for invite join, suggestions, and family API calls.
   /// Reads from: (1) scheme env var API_BASE_URL (debug), (2) Release.xcconfig API_BASE_URL via embedded config, (3) production fallback.
-  nonisolated(unsafe) static let apiBaseURL: URL? = {
+  nonisolated static let apiBaseURL: URL? = {
     // (1) Scheme env var — works in debug/device runs from Xcode
     var urlString = (ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "").trimmingCharacters(in: .whitespaces)
     // (2) Embedded from Release.xcconfig at build time (same mechanism as Supabase credentials)

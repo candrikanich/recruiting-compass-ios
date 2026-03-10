@@ -25,4 +25,14 @@ enum Division: String, Codable, CaseIterable, Sendable {
       return Color.teal
     }
   }
+
+  var semanticBadgeColor: BadgeColor {
+    switch self {
+    case .d1:   return .blue
+    case .d2:   return .emerald
+    case .d3:   return .orange
+    case .naia: return .purple
+    case .juco: return .slate
+    }
+  }
 }

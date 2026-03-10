@@ -68,6 +68,21 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
     }
   }
 
+  var semanticBadgeColor: BadgeColor {
+    switch self {
+    case .interested:             return .slate
+    case .contacted:              return .blue
+    case .campInvite:             return .purple
+    case .recruited:              return .emerald
+    case .officialVisitInvited:   return .orange
+    case .officialVisitScheduled: return .orange
+    case .offerReceived:          return .emerald
+    case .committed:              return .emerald
+    case .notPursuing:            return .red
+    case .unknown:                return .slate
+    }
+  }
+
   var badgeColors: (background: Color, text: Color) {
     switch self {
     case .interested:

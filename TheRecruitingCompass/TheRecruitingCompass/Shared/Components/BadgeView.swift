@@ -2,11 +2,11 @@ import SwiftUI
 
 struct BadgeView: View {
   let text: String
-  let color: Color
+  let color: BadgeColor
   let icon: String?
   let accessibilityLabel: String?
 
-  init(text: String, color: Color, icon: String? = nil, accessibilityLabel: String? = nil) {
+  init(text: String, color: BadgeColor, icon: String? = nil, accessibilityLabel: String? = nil) {
     self.text = text
     self.color = color
     self.icon = icon
@@ -26,8 +26,8 @@ struct BadgeView: View {
     .fontWeight(.medium)
     .padding(.horizontal, icon != nil ? 12 : 8)
     .padding(.vertical, 6)
-    .background(color.opacity(0.2))
-    .foregroundStyle(color)
+    .background(color.backgroundColor)
+    .foregroundStyle(color.foregroundColor)
     .clipShape(RoundedRectangle(cornerRadius: 16))
     .accessibilityLabel(accessibilityLabel ?? text)
   }
@@ -37,9 +37,9 @@ struct BadgeView: View {
   VStack(spacing: 12) {
     BadgeView(text: "D1", color: .blue)
     BadgeView(text: "Email", color: .blue, icon: "envelope.fill")
-    BadgeView(text: "Interested", color: .gray)
-    BadgeView(text: "Fit: 85", color: .green)
-    BadgeView(text: "Tier A", color: .purple, accessibilityLabel: "Priority tier A")
+    BadgeView(text: "Interested", color: .slate)
+    BadgeView(text: "Fit: 85", color: .emerald)
+    BadgeView(text: "Tier A", color: .red, accessibilityLabel: "Priority tier A")
   }
   .padding()
 }
