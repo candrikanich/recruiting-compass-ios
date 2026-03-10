@@ -16,13 +16,16 @@ final class OnboardingManager {
 
   private let onboardingService: any OnboardingManaging
   private let authManager: any AuthManaging
+  private let familyService: any FamilyManaging
 
   init(
     onboardingService: (any OnboardingManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    familyService: (any FamilyManaging)? = nil
   ) {
     self.onboardingService = onboardingService ?? OnboardingServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
   }
 
   /// Call when user becomes authenticated. Players check DB; parents check local "parent onboarding complete" flag.
@@ -34,9 +37,31 @@ final class OnboardingManager {
 
     if user.role == .parent {
       let key = Self.parentOnboardingCompleteKeyPrefix + user.id
-      let complete = UserDefaults.standard.bool(forKey: key)
-      needsOnboarding = !complete
-      logger.debug("Parent onboarding status: needsOnboarding=\(self.needsOnboarding ?? false)")
+
+      // Fast-path: if already cached on this device, skip the DB call
+      if UserDefaults.standard.bool(forKey: key) {
+        needsOnboarding = false
+        logger.debug("Parent onboarding: cached complete on device")
+        return
+      }
+
+      // DB check: if the parent already has a family, they've done onboarding
+      do {
+        let existingFamily = try await familyService.getFamilyUnit(forUserId: user.id)
+        if existingFamily != nil {
+          // Write cache so future launches skip this DB call
+          UserDefaults.standard.set(true, forKey: key)
+          needsOnboarding = false
+          logger.debug("Parent onboarding: family found in DB, marking complete")
+        } else {
+          needsOnboarding = true
+          logger.debug("Parent onboarding: no family found, showing onboarding")
+        }
+      } catch {
+        // Fail-safe: don't block parent if DB is unreachable
+        logger.error("Parent onboarding DB check failed: \(error.localizedDescription)")
+        needsOnboarding = false
+      }
       return
     }
 
