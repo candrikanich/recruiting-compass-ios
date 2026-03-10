@@ -124,7 +124,7 @@ final class TestUserSetup {
     let familyData = FamilyUnitInsert(
       id: familyUnitId,
       createdByUserId: userId,
-      familyCode: "FAM-\(timestamp)",
+      familyCode: "FAM-" + String(format: "%06d", timestamp % 1_000_000),
       createdAt: now,
       updatedAt: now
     )

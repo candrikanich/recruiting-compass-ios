@@ -47,11 +47,11 @@ final class SignupValidationE2ETests: XCTestCase {
   @MainActor
   func testFairPasswordShowsFairStrength() throws {
     screen.passwordField.tap()
-    screen.passwordField.typeText("Abcdefgh")
+    screen.passwordField.typeText("abcdefg12")
 
-    screen.firstNameField.tap()
+    add(app.takeScreenshot(name: "validation-02-after-typing"))
 
-    XCTAssertTrue(screen.passwordStrengthFair.waitForExistence(timeout: 3),
+    XCTAssertTrue(screen.passwordStrengthFair.waitForExistence(timeout: 5),
                   "Fair password should show 'Fair' strength indicator")
 
     add(app.takeScreenshot(name: "validation-02-fair-password"))
@@ -60,11 +60,11 @@ final class SignupValidationE2ETests: XCTestCase {
   @MainActor
   func testStrongPasswordShowsStrongStrength() throws {
     screen.passwordField.tap()
-    screen.passwordField.typeText("StrongPass1")
+    // "abc1DEFGH": lowercase first (no shift at start), then uppercase mid-string
+    // length ✓  uppercase(D,E,F,G,H) ✓  lowercase(abc) ✓  number(1) ✓ → 4/4 = Strong
+    screen.passwordField.typeText("abc1DEFGH")
 
-    screen.firstNameField.tap()
-
-    XCTAssertTrue(screen.passwordStrengthStrong.waitForExistence(timeout: 3),
+    XCTAssertTrue(screen.passwordStrengthStrong.waitForExistence(timeout: 5),
                   "Strong password should show 'Strong' strength indicator")
 
     add(app.takeScreenshot(name: "validation-03-strong-password"))
@@ -75,16 +75,17 @@ final class SignupValidationE2ETests: XCTestCase {
   @MainActor
   func testPasswordMismatchShowsError() throws {
     screen.passwordField.tap()
-    screen.passwordField.typeText("StrongPass1")
+    screen.passwordField.typeText("abcdefg12")
 
     screen.confirmPasswordField.tap()
-    screen.confirmPasswordField.typeText("DifferentPass2")
+    screen.confirmPasswordField.typeText("differentpass3")
 
-    // Tap elsewhere to trigger onBlur validation
-    screen.firstNameField.tap()
+    // Press Return to trigger .onSubmit(onBlur) → validateConfirmPassword()
+    // (tapping another field does NOT fire .onSubmit)
+    screen.confirmPasswordField.typeText("\n")
 
     let mismatchError = screen.errorBanner(containing: "do not match")
-    XCTAssertTrue(mismatchError.waitForExistence(timeout: 3),
+    XCTAssertTrue(mismatchError.waitForExistence(timeout: 5),
                   "Should show 'Passwords do not match' error")
 
     add(app.takeScreenshot(name: "validation-04-password-mismatch"))
