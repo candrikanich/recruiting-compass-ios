@@ -282,8 +282,10 @@ struct InteractionDetailView: View {
 
   // MARK: - Helper Methods
 
+  private static let isoFormatter = ISO8601DateFormatter()
+
   private func formatMetadataDate(_ isoString: String) -> String {
-    guard let date = ISO8601DateFormatter().date(from: isoString) else {
+    guard let date = Self.isoFormatter.date(from: isoString) else {
       return isoString
     }
     let formatter = DateFormatter()

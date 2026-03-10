@@ -79,6 +79,6 @@ enum ActivityEventFactory {
   }
 
   private static func parseDate(_ dateString: String) -> Date {
-    iso8601Formatter.date(from: dateString) ?? Date()
+    iso8601Formatter.date(from: dateString) ?? Date.now
   }
 }

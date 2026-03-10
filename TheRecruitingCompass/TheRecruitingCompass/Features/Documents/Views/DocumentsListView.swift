@@ -7,6 +7,27 @@ struct DocumentsListView: View {
   @State private var viewModel = DocumentsListViewModel()
   @State private var documentToDelete: Document?
 
+  private var showErrorAlert: Binding<Bool> {
+    Binding(
+      get: { viewModel.error != nil },
+      set: { if !$0 { viewModel.error = nil } }
+    )
+  }
+
+  private var documentToViewBinding: Binding<Document?> {
+    Binding(
+      get: { viewModel.documentToView },
+      set: { viewModel.documentToView = $0 }
+    )
+  }
+
+  private var showDeleteConfirmation: Binding<Bool> {
+    Binding(
+      get: { documentToDelete != nil },
+      set: { if !$0 { documentToDelete = nil } }
+    )
+  }
+
   private var content: some View {
     Group {
       if viewModel.isLoading && viewModel.documents.isEmpty {
@@ -43,28 +64,19 @@ struct DocumentsListView: View {
     .sheet(isPresented: $viewModel.isFilterSheetPresented) {
       DocumentFilterSheet(viewModel: viewModel)
     }
-    .alert("Error", isPresented: Binding(
-      get: { viewModel.error != nil },
-      set: { if !$0 { viewModel.error = nil } }
-    )) {
+    .alert("Error", isPresented: showErrorAlert) {
       Button("Retry") { Task { await viewModel.loadDocuments() } }
       Button("OK", role: .cancel) { viewModel.error = nil }
     } message: {
       Text(viewModel.error ?? "")
     }
-    .fullScreenCover(item: Binding(
-      get: { viewModel.documentToView },
-      set: { viewModel.documentToView = $0 }
-    )) { document in
+    .fullScreenCover(item: documentToViewBinding) { document in
       let docs = viewModel.sortedDocuments
       let idx = docs.firstIndex(where: { $0.id == document.id }) ?? 0
       let collection = DocumentCollection(documents: docs, currentIndex: idx)
       DocumentViewerView(viewModel: DocumentViewerViewModel(document: document, collection: collection))
     }
-    .confirmationDialog("Delete Document", isPresented: Binding(
-      get: { documentToDelete != nil },
-      set: { if !$0 { documentToDelete = nil } }
-    ), titleVisibility: .visible) {
+    .confirmationDialog("Delete Document", isPresented: showDeleteConfirmation, titleVisibility: .visible) {
       Button("Delete", role: .destructive) {
         if let doc = documentToDelete {
           Task { await viewModel.deleteDocument(id: doc.id) }

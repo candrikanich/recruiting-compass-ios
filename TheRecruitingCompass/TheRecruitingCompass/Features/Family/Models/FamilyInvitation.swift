@@ -71,9 +71,11 @@ struct FamilyInvitation: Codable, Identifiable, Sendable {
     try c.encodeIfPresent(declinedAt, forKey: .declinedAt)
   }
 
+  private static let isoFormatter = ISO8601DateFormatter()
+
   var isPending: Bool { status == "pending" }
   var isExpired: Bool {
-    guard let exp = expiresAt, !exp.isEmpty, let date = ISO8601DateFormatter().date(from: exp) else { return false }
+    guard let exp = expiresAt, !exp.isEmpty, let date = Self.isoFormatter.date(from: exp) else { return false }
     return date < Date()
   }
 }

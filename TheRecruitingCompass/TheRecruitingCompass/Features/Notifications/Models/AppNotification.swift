@@ -1,6 +1,7 @@
 import Foundation
 
 struct AppNotification: Codable, Identifiable, Sendable {
+  private static let isoFormatter = ISO8601DateFormatter()
   let id: String
   let userId: String?
   let type: NotificationType
@@ -26,7 +27,7 @@ struct AppNotification: Codable, Identifiable, Sendable {
     readAt != nil
   }
 
-  func markingAsRead(at timestamp: String = ISO8601DateFormatter().string(from: Date())) -> AppNotification {
+  func markingAsRead(at timestamp: String = Self.isoFormatter.string(from: Date.now)) -> AppNotification {
     AppNotification(
       id: id,
       userId: userId,

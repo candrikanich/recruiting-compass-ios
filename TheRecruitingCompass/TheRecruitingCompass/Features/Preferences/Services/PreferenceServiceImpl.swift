@@ -131,6 +131,7 @@ private enum JSONValue: Codable, Equatable {
 /// Sendable: Stateless service with no mutable properties
 final class PreferenceServiceImpl: PreferenceManaging, Sendable {
   private let supabaseManager: SupabaseManager
+  private static let isoFormatter = ISO8601DateFormatter()
 
   init(supabaseManager: SupabaseManager) {
     self.supabaseManager = supabaseManager
@@ -225,7 +226,7 @@ final class PreferenceServiceImpl: PreferenceManaging, Sendable {
         // Update existing preferences
         let payload = PreferenceUpdatePayload(
           data: wrappedData,
-          updated_at: ISO8601DateFormatter().string(from: Date())
+          updated_at: Self.isoFormatter.string(from: Date())
         )
 
         try await supabaseManager.client

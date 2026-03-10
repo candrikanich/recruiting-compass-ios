@@ -21,7 +21,7 @@ struct OfferHeaderView: View {
 
         Text(schoolName)
           .font(.title2)
-          .fontWeight(.bold)
+          .bold()
           .accessibilityIdentifier("offer-detail-school-name")
           .accessibilityAddTraits(.isHeader)
       }

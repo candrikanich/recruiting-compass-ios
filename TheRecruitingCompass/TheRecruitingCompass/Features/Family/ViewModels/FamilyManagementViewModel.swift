@@ -34,6 +34,7 @@ final class FamilyManagementViewModel {
   // MARK: - Dependencies
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
+  private static let isoFormatter = ISO8601DateFormatter()
 
   // MARK: - Computed Properties
   var isPlayer: Bool {
@@ -56,7 +57,7 @@ final class FamilyManagementViewModel {
 
   var formattedCodeGeneratedAt: String? {
     guard let timestamp = codeGeneratedAt else { return nil }
-    return DateFormatter.familyCodeDate.string(from: ISO8601DateFormatter().date(from: timestamp) ?? Date.now)
+    return DateFormatter.familyCodeDate.string(from: Self.isoFormatter.date(from: timestamp) ?? Date.now)
   }
 
   // MARK: - Initialization
@@ -132,7 +133,7 @@ final class FamilyManagementViewModel {
       familyCode = response.familyCode
       familyId = response.familyId
       familyName = response.familyName
-      codeGeneratedAt = ISO8601DateFormatter().string(from: Date.now)
+      codeGeneratedAt = Self.isoFormatter.string(from: Date.now)
       familyMembers = []
 
       showSuccess("Family created successfully!")
@@ -169,7 +170,7 @@ final class FamilyManagementViewModel {
     do {
       let response = try await familyService.regenerateCode(familyId: familyId)
       familyCode = response.familyCode
-      codeGeneratedAt = ISO8601DateFormatter().string(from: Date.now)
+      codeGeneratedAt = Self.isoFormatter.string(from: Date.now)
 
       showSuccess("Family code regenerated successfully!")
     } catch {

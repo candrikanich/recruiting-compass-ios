@@ -9,7 +9,7 @@ struct OfferSummaryCard: View {
     VStack(spacing: 4) {
       Text("\(count)")
         .font(.title2)
-        .fontWeight(.bold)
+        .bold()
         .foregroundStyle(color)
 
       Text(title)

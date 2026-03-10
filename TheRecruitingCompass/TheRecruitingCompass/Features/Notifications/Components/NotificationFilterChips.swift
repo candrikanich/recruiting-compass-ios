@@ -45,7 +45,7 @@ private struct NotificationToggleChip: View {
         .foregroundStyle(isActive ? .white : .secondary)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(isActive ? Color(hex: "#3B82F6") : Color(.systemBackground))
+        .background(isActive ? Color.accentBlue : Color(.systemBackground))
         .overlay(
           RoundedRectangle(cornerRadius: 8)
             .stroke(Color.secondary.opacity(0.3), lineWidth: isActive ? 0 : 1)

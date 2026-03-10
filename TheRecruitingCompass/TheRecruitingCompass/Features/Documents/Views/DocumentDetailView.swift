@@ -27,6 +27,13 @@ struct DocumentDetailView: View {
     ))
   }
 
+  private var showErrorAlert: Binding<Bool> {
+    Binding(
+      get: { viewModel.error != nil && viewModel.document != nil },
+      set: { if !$0 { viewModel.clearError() } }
+    )
+  }
+
   var body: some View {
     Group {
       if viewModel.isLoading && viewModel.document == nil {
@@ -70,10 +77,7 @@ struct DocumentDetailView: View {
     } message: {
       Text("Restore this version? The current version will be marked as archived.")
     }
-    .alert("Error", isPresented: Binding(
-      get: { viewModel.error != nil && viewModel.document != nil },
-      set: { if !$0 { viewModel.clearError() } }
-    )) {
+    .alert("Error", isPresented: showErrorAlert) {
       Button("Retry") { Task { await viewModel.loadDocument() } }
       Button("OK", role: .cancel) { viewModel.clearError() }
     } message: {

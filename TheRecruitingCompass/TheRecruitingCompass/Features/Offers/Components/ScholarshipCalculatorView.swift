@@ -176,7 +176,7 @@ struct ScholarshipCalculatorView: View {
 
           Text(Self.formatCurrency(annualNetCost))
             .font(.caption)
-            .fontWeight(.bold)
+            .bold()
             .foregroundStyle(.red)
             .frame(width: 70, alignment: .trailing)
         }
@@ -256,7 +256,7 @@ struct ScholarshipCalculatorView: View {
 
       Text(Self.formatCurrency(value))
         .font(.title3)
-        .fontWeight(.bold)
+        .bold()
         .foregroundStyle(color)
     }
     .frame(maxWidth: .infinity)

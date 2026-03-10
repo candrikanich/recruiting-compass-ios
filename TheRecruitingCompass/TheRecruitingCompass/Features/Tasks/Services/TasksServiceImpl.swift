@@ -43,12 +43,24 @@ private struct AthleteTaskUpsert: Encodable {
   }
 }
 
+private let taskIsoFormatterFractional: ISO8601DateFormatter = {
+  let f = ISO8601DateFormatter()
+  f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+  return f
+}()
+
+private let taskIsoFormatterBasic = ISO8601DateFormatter()
+
+private let taskDateOnlyFormatter: DateFormatter = {
+  let f = DateFormatter()
+  f.dateFormat = "yyyy-MM-dd"
+  return f
+}()
+
 private func parseTaskDate(_ string: String) -> Date? {
-  let iso = ISO8601DateFormatter()
-  iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-  let dateOnly = DateFormatter()
-  dateOnly.dateFormat = "yyyy-MM-dd"
-  return iso.date(from: string) ?? ISO8601DateFormatter().date(from: string) ?? dateOnly.date(from: string)
+  taskIsoFormatterFractional.date(from: string)
+    ?? taskIsoFormatterBasic.date(from: string)
+    ?? taskDateOnlyFormatter.date(from: string)
 }
 
 final class TasksServiceImpl: TasksManaging, Sendable {
@@ -129,12 +141,7 @@ final class TasksServiceImpl: TasksManaging, Sendable {
   func updateTaskStatus(taskId: String, status: TaskStatus, userId: String) async throws -> AthleteTaskStatus {
     logger.info("Updating task \(taskId) status to \(status.rawValue) for user \(userId)")
 
-    let completedAt: String? = {
-      guard status == .completed else { return nil }
-      let formatter = ISO8601DateFormatter()
-      formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-      return formatter.string(from: Date())
-    }()
+    let completedAt: String? = status == .completed ? taskIsoFormatterFractional.string(from: Date()) : nil
     let payload = AthleteTaskUpsert(taskId: taskId, athleteId: userId, status: status.rawValue, completedAt: completedAt)
 
     let result: AthleteTaskStatus = try await supabaseManager.client

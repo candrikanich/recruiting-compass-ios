@@ -15,11 +15,11 @@ struct HelpImageSlot: View {
       RoundedRectangle(cornerRadius: 12)
         .fill(Color(.tertiarySystemFill))
         .frame(height: 120)
-        .overlay(
+        .overlay {
           Image(systemName: "photo")
             .font(.largeTitle)
             .foregroundStyle(.secondary)
-        )
+        }
         .accessibilityHidden(true)
 
       Text(caption)

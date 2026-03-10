@@ -54,7 +54,7 @@ struct InfoBanner: View {
       case .pending:
         Image(systemName: "envelope.fill")
           .font(.system(size: iconSize))
-          .foregroundColor(Color.amberGold)
+          .foregroundStyle(Color.amberGold)
       case .checking:
         ProgressView()
           .tint(Color.accentBlue)
@@ -62,7 +62,7 @@ struct InfoBanner: View {
       case .verified:
         Image(systemName: "checkmark.circle.fill")
           .font(.system(size: iconSize))
-          .foregroundColor(Color.successGreen)
+          .foregroundStyle(Color.successGreen)
       case .error:
         EmptyView()
       }

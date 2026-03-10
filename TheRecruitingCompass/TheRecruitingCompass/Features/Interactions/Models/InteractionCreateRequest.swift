@@ -28,6 +28,12 @@ struct InteractionCreateRequest: Codable, Sendable {
     case familyUnitId = "family_unit_id"
   }
 
+  private static let isoFormatter: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return f
+  }()
+
   /// Create a request from form state
   init(
     schoolId: String?,
@@ -50,9 +56,7 @@ struct InteractionCreateRequest: Codable, Sendable {
     self.sentiment = sentiment?.rawValue
 
     // Convert date to UTC ISO8601 string
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    self.occurredAt = formatter.string(from: occurredAt)
+    self.occurredAt = Self.isoFormatter.string(from: occurredAt)
 
     // Sanitize text fields (HTML/XSS prevention): trim, strip HTML, then nil if empty
     let trimmedSubject = subject?.trimmingCharacters(in: .whitespacesAndNewlines)

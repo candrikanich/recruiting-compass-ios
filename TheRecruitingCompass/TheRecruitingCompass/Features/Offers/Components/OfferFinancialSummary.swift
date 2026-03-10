@@ -32,7 +32,7 @@ struct OfferFinancialSummary: View {
 
         Text(deadlineText)
           .font(.title2)
-          .fontWeight(.bold)
+          .bold()
           .foregroundStyle(deadlineUrgency.color)
 
         if let urgencyLabel = deadlineUrgency.label {
@@ -87,7 +87,7 @@ struct OfferFinancialSummary: View {
 
       Text(value)
         .font(.title2)
-        .fontWeight(.bold)
+        .bold()
         .foregroundStyle(color)
     }
     .frame(maxWidth: .infinity)

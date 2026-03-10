@@ -10,6 +10,7 @@ private let logger = Logger(
 @Observable
 @MainActor
 final class NotificationsListViewModel {
+  private static let isoFormatter = ISO8601DateFormatter()
   // MARK: - State
 
   var notifications: [AppNotification] = []
@@ -138,7 +139,7 @@ final class NotificationsListViewModel {
     do {
       try await notificationsService.markAllAsRead(userId: userId)
 
-      let now = ISO8601DateFormatter().string(from: Date())
+      let now = Self.isoFormatter.string(from: Date.now)
       notifications = notifications.map { notification in
         notification.isRead ? notification : notification.markingAsRead(at: now)
       }

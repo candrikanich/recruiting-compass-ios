@@ -147,6 +147,8 @@ extension TaskWithStatus: Codable {
     return f
   }()
 
+  private static let iso8601BasicFormatter = ISO8601DateFormatter()
+
   private static let dateOnlyFormatter: DateFormatter = {
     let f = DateFormatter()
     f.dateFormat = "yyyy-MM-dd"
@@ -155,7 +157,7 @@ extension TaskWithStatus: Codable {
 
   private static func parseDate(_ string: String) -> Date? {
     iso8601Formatter.date(from: string)
-      ?? ISO8601DateFormatter().date(from: string)
+      ?? iso8601BasicFormatter.date(from: string)
       ?? dateOnlyFormatter.date(from: string)
   }
 

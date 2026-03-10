@@ -28,10 +28,16 @@ struct AthleteTaskStatus: Codable, Sendable {
     completedAt = try Self.decodeOptionalDate(c, forKey: .completedAt)
   }
 
-  private static func decodeOptionalDate(_ container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys) throws -> Date? {
-    guard let string = try container.decodeIfPresent(String.self, forKey: key) else { return nil }
+  private static let isoFormatterFractional: ISO8601DateFormatter = {
     let f = ISO8601DateFormatter()
     f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return f.date(from: string) ?? ISO8601DateFormatter().date(from: string)
+    return f
+  }()
+
+  private static let isoFormatterBasic = ISO8601DateFormatter()
+
+  private static func decodeOptionalDate(_ container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys) throws -> Date? {
+    guard let string = try container.decodeIfPresent(String.self, forKey: key) else { return nil }
+    return isoFormatterFractional.date(from: string) ?? isoFormatterBasic.date(from: string)
   }
 }

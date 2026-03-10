@@ -9,6 +9,7 @@ private let logger = Logger(
 
 /// Sendable: Stateless service with no mutable properties
 final class NotificationsServiceImpl: NotificationsManaging, Sendable {
+  private static let isoFormatter = ISO8601DateFormatter()
   private let supabaseManager: SupabaseManager
 
   init(supabaseManager: SupabaseManager) {
@@ -36,7 +37,7 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
   func markAsRead(id: String) async throws -> AppNotification {
     logger.debug("Marking notification as read: \(id)")
     do {
-      let now = ISO8601DateFormatter().string(from: Date())
+      let now = Self.isoFormatter.string(from: Date.now)
       let notification: AppNotification = try await supabaseManager.client
         .from("notifications")
         .update(["read_at": now, "updated_at": now])
@@ -56,7 +57,7 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
   func markAllAsRead(userId: String) async throws {
     logger.debug("Marking all notifications as read for user: \(userId, privacy: .private)")
     do {
-      let now = ISO8601DateFormatter().string(from: Date())
+      let now = Self.isoFormatter.string(from: Date.now)
       try await supabaseManager.client
         .from("notifications")
         .update(["read_at": now, "updated_at": now])
