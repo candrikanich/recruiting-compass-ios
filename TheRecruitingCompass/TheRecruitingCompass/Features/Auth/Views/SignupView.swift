@@ -7,10 +7,12 @@ struct SignupView: View {
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
-  // Disable iOS "Strong Password" suggestion during UI testing — it intercepts
-  // digit/uppercase keypresses sent by XCUITest's typeText, causing partial input.
+  // Suppress iOS "Use Strong Password?" sheet during UI testing.
+  // Setting textContentType: nil doesn't help — iOS infers .newPassword from two
+  // adjacent SecureFields. .oneTimeCode overrides the inference and disables the
+  // sheet so XCUITest's typeText can deliver all characters uninterrupted.
   private var passwordTextContentType: UITextContentType? {
-    ProcessInfo.processInfo.arguments.contains("--uitesting") ? nil : .newPassword
+    ProcessInfo.processInfo.arguments.contains("--uitesting") ? .oneTimeCode : .newPassword
   }
 
   var body: some View {
@@ -30,7 +32,11 @@ struct SignupView: View {
               signupFormContent
             }
           }
-          .scrollDismissesKeyboard(.immediately)
+          // Disable immediate dismissal during UI testing so typeText can deliver
+          // all characters before the indicator layout change causes a micro-scroll.
+          .scrollDismissesKeyboard(
+            ProcessInfo.processInfo.arguments.contains("--uitesting") ? .never : .immediately
+          )
           .background(Color.white.opacity(0.95))
           .clipShape(.rect(cornerRadius: 16))
           Color.clear.frame(width: 24)

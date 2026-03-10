@@ -1,4 +1,3 @@
-import UIKit
 import XCTest
 
 final class SignupValidationE2ETests: XCTestCase {
@@ -31,9 +30,23 @@ final class SignupValidationE2ETests: XCTestCase {
 
   // MARK: - Password Strength Indicator
 
+  private func tapPasswordFieldAndWaitForKeyboard() {
+    screen.passwordField.tap()
+    // Dismiss iOS "Use Strong Password?" sheet if it appears (can show despite
+    // textContentType override due to iOS's context inference).
+    let strongPasswordDismiss = app.buttons.matching(
+      NSPredicate(format: "label CONTAINS 'Cancel' OR label CONTAINS 'Not Now' OR label == '×'")
+    ).firstMatch
+    if strongPasswordDismiss.waitForExistence(timeout: 2) {
+      strongPasswordDismiss.tap()
+    }
+    // Wait for keyboard to fully initialize before typeText.
+    _ = app.keyboards.firstMatch.waitForExistence(timeout: 3)
+  }
+
   @MainActor
   func testWeakPasswordShowsWeakStrength() throws {
-    screen.passwordField.tap()
+    tapPasswordFieldAndWaitForKeyboard()
     screen.passwordField.typeText("abc")
 
     // Tap elsewhere to trigger validation
@@ -47,15 +60,12 @@ final class SignupValidationE2ETests: XCTestCase {
 
   @MainActor
   func testFairPasswordShowsFairStrength() throws {
-    // 10 lowercase letters: count ✓  lowercase ✓  uppercase ✗  number ✗ → 2/4 = Fair
-    // Pure lowercase avoids typeText unreliability for uppercase/digits in SecureTextField.
-    screen.passwordField.tap()
-    screen.passwordField.typeText("abcdefghij")
+    // 8 chars, uppercase + lowercase, no number → 3/4 = Fair
+    tapPasswordFieldAndWaitForKeyboard()
+    screen.passwordField.typeText("Abcdefgh")
 
     // Tap elsewhere so the scroll view repositions the indicator above the keyboard.
     screen.firstNameField.tap()
-
-    add(app.takeScreenshot(name: "fair-before-assert"))
 
     XCTAssertTrue(screen.passwordStrengthFair.waitForExistence(timeout: 5),
                   "Fair password should show 'Fair' strength indicator")
@@ -65,13 +75,11 @@ final class SignupValidationE2ETests: XCTestCase {
 
   @MainActor
   func testStrongPasswordShowsStrongStrength() throws {
-    // typeText on SecureTextField is unreliable for uppercase/digits on iOS 26 simulator.
-    // Use system pasteboard + Cmd+V to inject the full password reliably.
     // count ✓  uppercase ✓  lowercase ✓  number ✓ → 4/4 = Strong
-    UIPasteboard.general.string = "StrongPass1"
-
-    screen.passwordField.tap()
-    screen.passwordField.typeText(XCUIKeyboardKey.command.rawValue + "v")
+    // With iOS "Use Strong Password?" sheet suppressed by .oneTimeCode textContentType,
+    // typeText reliably delivers uppercase and digits.
+    tapPasswordFieldAndWaitForKeyboard()
+    screen.passwordField.typeText("StrongPass1")
 
     // Tap elsewhere so the scroll view repositions the indicator above the keyboard.
     screen.firstNameField.tap()
