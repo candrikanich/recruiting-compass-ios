@@ -7,6 +7,12 @@ struct SignupView: View {
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
 
+  // Disable iOS "Strong Password" suggestion during UI testing — it intercepts
+  // digit/uppercase keypresses sent by XCUITest's typeText, causing partial input.
+  private var passwordTextContentType: UITextContentType? {
+    ProcessInfo.processInfo.arguments.contains("--uitesting") ? nil : .newPassword
+  }
+
   var body: some View {
     ZStack {
       LinearGradient.primaryBackground
@@ -255,7 +261,7 @@ struct SignupView: View {
         error: viewModel.errorBinding(for: .password),
         isSecure: true,
         keyboardType: .default,
-        textContentType: .newPassword,
+        textContentType: passwordTextContentType,
         onBlur: viewModel.validatePassword
       )
 
@@ -274,7 +280,7 @@ struct SignupView: View {
       error: viewModel.errorBinding(for: .confirmPassword),
       isSecure: true,
       keyboardType: .default,
-      textContentType: .newPassword,
+      textContentType: passwordTextContentType,
       onBlur: viewModel.validateConfirmPassword
     )
   }
