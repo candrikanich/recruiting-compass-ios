@@ -29,10 +29,10 @@ struct AttachmentFile: Identifiable {
   /// Formatted file size string
   var formattedSize: String {
     if fileSizeMB >= 1.0 {
-      return String(format: "%.1f MB", fileSizeMB)
+      return fileSizeMB.formatted(.number.precision(.fractionLength(1))) + " MB"
     } else {
       let kb = Double(fileSize) / 1024
-      return String(format: "%.0f KB", kb)
+      return kb.formatted(.number.precision(.fractionLength(0))) + " KB"
     }
   }
 }

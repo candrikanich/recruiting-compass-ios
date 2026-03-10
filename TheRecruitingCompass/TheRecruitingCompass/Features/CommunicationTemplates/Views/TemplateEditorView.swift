@@ -63,10 +63,10 @@ struct TemplateEditorView: View {
       TextEditor(text: $viewModel.formData.body)
         .frame(minHeight: 200)
         .padding(4)
-        .overlay(
+        .overlay {
           RoundedRectangle(cornerRadius: 8)
             .stroke(Color(.systemGray4), lineWidth: 1)
-        )
+        }
         .focused($bodyFieldFocused)
         .accessibilityLabel("Template body")
         .accessibilityIdentifier("templateEditor.bodyEditor")

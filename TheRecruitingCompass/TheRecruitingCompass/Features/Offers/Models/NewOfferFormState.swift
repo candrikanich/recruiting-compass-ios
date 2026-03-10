@@ -6,9 +6,9 @@ struct NewOfferFormState: Sendable {
   var status: OfferStatus = .pending
   var scholarshipPercentage: Int = 0
   var scholarshipAmount: String = ""
-  var offerDate: Date = Date()
+  var offerDate: Date = Date.now
   var hasDeadline: Bool = false
-  var deadlineDate: Date = Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date()
+  var deadlineDate: Date = Calendar.current.date(byAdding: .month, value: 1, to: Date.now) ?? Date.now
   var notes: String = ""
 
   var validationErrors: [String] {
@@ -35,9 +35,9 @@ struct NewOfferFormState: Sendable {
     status = .pending
     scholarshipPercentage = 0
     scholarshipAmount = ""
-    offerDate = Date()
+    offerDate = Date.now
     hasDeadline = false
-    deadlineDate = Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date()
+    deadlineDate = Calendar.current.date(byAdding: .month, value: 1, to: Date.now) ?? Date.now
     notes = ""
   }
 }

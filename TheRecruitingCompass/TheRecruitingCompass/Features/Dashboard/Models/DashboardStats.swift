@@ -11,6 +11,6 @@ struct DashboardStats: Codable, Sendable {
 
   var acceptanceRateFormatted: String {
     guard let rate = acceptanceRate else { return "N/A" }
-    return String(format: "%.0f%%", rate * 100)
+    return rate.formatted(.percent.precision(.fractionLength(0)))
   }
 }

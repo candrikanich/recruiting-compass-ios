@@ -6,7 +6,7 @@ struct InteractionFormState {
   var coachId: String? = nil
   var type: InteractionType? = nil
   var direction: Direction = .outbound
-  var occurredAt: Date = Date()
+  var occurredAt: Date = Date.now
   var subject: String = ""
   var content: String = ""
   var sentiment: Sentiment? = nil
@@ -29,7 +29,7 @@ struct InteractionFormState {
     coachId = nil
     type = nil
     direction = .outbound
-    occurredAt = Date()
+    occurredAt = Date.now
     subject = ""
     content = ""
     sentiment = nil

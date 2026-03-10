@@ -28,9 +28,14 @@ struct TheRecruitingCompassApp: App {
     WindowGroup {
       Group {
         if authManager.isCheckingSession {
-          sessionLoadingView
+          SessionLoadingView()
         } else if authManager.isAuthenticated {
-          authenticatedContent
+          AuthenticatedContent(
+            authManager: authManager,
+            familyManager: familyManager,
+            onboardingManager: onboardingManager,
+            networkMonitor: networkMonitor
+          )
         } else {
           NavigationStack {
             LandingView()
@@ -52,7 +57,13 @@ struct TheRecruitingCompassApp: App {
             onSuccess: { showBiometricLock = false },
             onFailure: {
               showBiometricLock = false
-              Task { try? await authManager.logout() }
+              Task {
+                do {
+                  try await authManager.logout()
+                } catch {
+                  authManager.errorMessage = error.localizedDescription
+                }
+              }
             }
           )
           .transition(.opacity)
@@ -91,29 +102,6 @@ struct TheRecruitingCompassApp: App {
     }
   }
 
-  @ViewBuilder
-  private var authenticatedContent: some View {
-    ZStack(alignment: .top) {
-      if onboardingManager.needsOnboarding == true {
-        OnboardingWrapperView(onComplete: {
-          Task { await familyManager.loadFamilyData() }
-        })
-      } else if onboardingManager.needsOnboarding == false {
-        MainTabView()
-        if !networkMonitor.isConnected {
-          OfflineBanner()
-        }
-      } else {
-        sessionLoadingView
-      }
-    }
-    .task(id: authManager.isAuthenticated) {
-      if authManager.isAuthenticated {
-        await onboardingManager.loadStatus()
-      }
-    }
-  }
-
   private func handleDeepLink(_ url: URL) {
     let route = DeepLinkHandler.parse(url)
     switch route {
@@ -128,33 +116,59 @@ struct TheRecruitingCompassApp: App {
       break
     }
   }
+}
 
-  private var sessionLoadingView: some View {
-    SessionLoadingView()
+// MARK: - Authenticated Content
+
+private struct AuthenticatedContent: View {
+  let authManager: AuthManager
+  let familyManager: FamilyManager
+  let onboardingManager: OnboardingManager
+  let networkMonitor: NetworkMonitor
+
+  var body: some View {
+    ZStack(alignment: .top) {
+      if onboardingManager.needsOnboarding == true {
+        OnboardingWrapperView(onComplete: {
+          Task { await familyManager.loadFamilyData() }
+        })
+      } else if onboardingManager.needsOnboarding == false {
+        MainTabView()
+        if !networkMonitor.isConnected {
+          OfflineBanner()
+        }
+      } else {
+        SessionLoadingView()
+      }
+    }
+    .task(id: authManager.isAuthenticated) {
+      if authManager.isAuthenticated {
+        await onboardingManager.loadStatus()
+      }
+    }
   }
 }
 
 // MARK: - Session Loading (Splash) View
+
 private struct SessionLoadingView: View {
   @Environment(\.sizeCategory) var sizeCategory
 
   var body: some View {
-    GeometryReader { geometry in
-      ZStack {
-        LinearGradient.landingBackground
-          .ignoresSafeArea()
+    ZStack {
+      LinearGradient.landingBackground
+        .ignoresSafeArea()
 
-        VStack(spacing: 16) {
-          Image("AppLogo")
-            .resizable()
-            .scaledToFit()
-            .frame(width: geometry.size.width * 0.5)
-            .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
+      VStack(spacing: 16) {
+        Image("AppLogo")
+          .resizable()
+          .scaledToFit()
+          .containerRelativeFrame(.horizontal) { size, _ in size * 0.5 }
+          .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
 
-          ProgressView()
-            .tint(.white)
-            .scaleEffect(1.2)
-        }
+        ProgressView()
+          .tint(.white)
+          .scaleEffect(1.2)
       }
     }
   }

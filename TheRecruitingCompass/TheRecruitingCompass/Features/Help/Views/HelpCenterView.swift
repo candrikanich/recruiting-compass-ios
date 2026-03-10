@@ -78,10 +78,10 @@ private struct HelpOverviewCard: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .overlay(
+    .overlay {
       RoundedRectangle(cornerRadius: 12)
         .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
-    )
+    }
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(section.title): \(section.description)")
   }

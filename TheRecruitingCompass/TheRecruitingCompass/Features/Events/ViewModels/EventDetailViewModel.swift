@@ -111,12 +111,12 @@ final class EventDetailViewModel {
 
   var formattedCost: String? {
     guard let event, let cost = event.cost else { return nil }
-    return cost == 0 ? "Free" : String(format: "$%.2f", cost)
+    return cost == 0 ? "Free" : cost.formatted(.currency(code: "USD").precision(.fractionLength(2)))
   }
 
   var costAccessibilityLabel: String? {
     guard let event, let cost = event.cost else { return nil }
-    return cost == 0 ? "Free event" : String(format: "Cost: $%.2f", cost)
+    return cost == 0 ? "Free event" : "Cost: \(cost.formatted(.currency(code: "USD").precision(.fractionLength(2))))"
   }
 
   // MARK: - Init

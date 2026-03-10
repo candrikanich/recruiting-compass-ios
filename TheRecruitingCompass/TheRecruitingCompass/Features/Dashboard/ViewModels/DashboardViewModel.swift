@@ -56,8 +56,8 @@ final class DashboardViewModel {
 
   var schoolsWithOffersPercentage: String {
     guard let stats = stats, stats.schoolCount > 0 else { return "0%" }
-    let percentage = Double(schoolsWithOffers) / Double(stats.schoolCount) * 100
-    return String(format: "%.0f%%", percentage)
+    let percentage = Double(schoolsWithOffers) / Double(stats.schoolCount)
+    return percentage.formatted(.percent.precision(.fractionLength(0)))
   }
 
   var avgCoachResponsiveness: Double {
@@ -67,7 +67,7 @@ final class DashboardViewModel {
   }
 
   var avgCoachResponsivenessFormatted: String {
-    String(format: "%.0f%%", avgCoachResponsiveness * 100)
+    avgCoachResponsiveness.formatted(.percent.precision(.fractionLength(0)))
   }
 
   var avgCoachResponsivenessColor: Color {
@@ -153,7 +153,7 @@ final class DashboardViewModel {
         aTierSchoolCount: 0,
         acceptanceRate: nil
       )
-      lastUpdated = Date()
+      lastUpdated = Date.now
       loadQuickTasks()
       async let visibilityTask: () = fetchWidgetVisibility()
       async let suggestionsTask: () = fetchSuggestions()
@@ -177,7 +177,7 @@ final class DashboardViewModel {
         userId: targetUserId
       )
       stats = fetchedStats
-      lastUpdated = Date()
+      lastUpdated = Date.now
 
       loadQuickTasks()
       async let visibilityTask: () = fetchWidgetVisibility()
@@ -201,7 +201,7 @@ final class DashboardViewModel {
         aTierSchoolCount: 0,
         acceptanceRate: nil
       )
-      lastUpdated = Date()
+      lastUpdated = Date.now
       #endif
     }
   }

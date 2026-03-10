@@ -20,12 +20,25 @@ struct QuickCommunicationView: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 20) {
-          recipientSection
-          templateSection
+          QuickCommRecipientSection(recipientLine: viewModel.recipientLine)
+          QuickCommTemplateSection(
+            isLoading: viewModel.isLoading,
+            templates: viewModel.templates,
+            emailTemplates: viewModel.emailTemplates,
+            textTemplates: viewModel.textTemplates,
+            selectedTemplate: viewModel.selectedTemplate,
+            onSelect: { viewModel.selectTemplate($0) }
+          )
           if viewModel.selectedTemplate != nil, !viewModel.filledBody.isEmpty {
-            bodyPreviewSection
+            QuickCommBodyPreviewSection(filledBody: viewModel.filledBody)
           }
-          actionsSection
+          QuickCommActionsSection(
+            mailtoURL: viewModel.mailtoURL(),
+            smsURL: viewModel.smsURL(),
+            coachEmail: context.coach.email ?? "",
+            onOpenURL: { openURL($0) },
+            onDismiss: { dismiss() }
+          )
         }
         .padding()
       }
@@ -47,10 +60,16 @@ struct QuickCommunicationView: View {
       .accessibilityIdentifier("quickCommunicationView")
     }
   }
+}
 
-  private var recipientSection: some View {
+// MARK: - Private Subviews
+
+private struct QuickCommRecipientSection: View {
+  let recipientLine: String
+
+  var body: some View {
     VStack(alignment: .leading, spacing: 4) {
-      Text(viewModel.recipientLine)
+      Text(recipientLine)
         .font(.subheadline)
         .foregroundStyle(.primary)
     }
@@ -59,38 +78,59 @@ struct QuickCommunicationView: View {
     .background(Color(uiColor: .tertiarySystemFill))
     .clipShape(RoundedRectangle(cornerRadius: 10))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Recipient: \(viewModel.recipientLine)")
+    .accessibilityLabel("Recipient: \(recipientLine)")
   }
+}
 
-  private var templateSection: some View {
+private struct QuickCommTemplateSection: View {
+  let isLoading: Bool
+  let templates: [CommunicationTemplate]
+  let emailTemplates: [CommunicationTemplate]
+  let textTemplates: [CommunicationTemplate]
+  let selectedTemplate: CommunicationTemplate?
+  let onSelect: (CommunicationTemplate?) -> Void
+
+  var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Use a template")
         .font(.subheadline.weight(.medium))
         .foregroundStyle(.secondary)
 
-      if viewModel.isLoading && viewModel.templates.isEmpty {
+      if isLoading && templates.isEmpty {
         ProgressView()
           .frame(maxWidth: .infinity)
           .padding(.vertical, 8)
       } else {
-        templatePicker
+        QuickCommTemplatePicker(
+          emailTemplates: emailTemplates,
+          textTemplates: textTemplates,
+          selectedTemplate: selectedTemplate,
+          onSelect: onSelect
+        )
       }
     }
   }
+}
 
-  private var templatePicker: some View {
+private struct QuickCommTemplatePicker: View {
+  let emailTemplates: [CommunicationTemplate]
+  let textTemplates: [CommunicationTemplate]
+  let selectedTemplate: CommunicationTemplate?
+  let onSelect: (CommunicationTemplate?) -> Void
+
+  var body: some View {
     VStack(spacing: 0) {
       templateOption(nil, label: "None")
-      ForEach(viewModel.emailTemplates) { template in
+      ForEach(emailTemplates) { template in
         templateOption(template, label: template.name)
       }
-      if !viewModel.textTemplates.isEmpty {
+      if !textTemplates.isEmpty {
         Divider().padding(.vertical, 4)
         Text("Text templates")
           .font(.caption)
           .foregroundStyle(.tertiary)
           .frame(maxWidth: .infinity, alignment: .leading)
-        ForEach(viewModel.textTemplates) { template in
+        ForEach(textTemplates) { template in
           templateOption(template, label: template.name)
         }
       }
@@ -101,9 +141,9 @@ struct QuickCommunicationView: View {
   }
 
   private func templateOption(_ template: CommunicationTemplate?, label: String) -> some View {
-    let isSelected = viewModel.selectedTemplate?.id == template?.id
+    let isSelected = selectedTemplate?.id == template?.id
     return Button {
-      viewModel.selectTemplate(template)
+      onSelect(template)
     } label: {
       HStack {
         Text(label)
@@ -124,13 +164,17 @@ struct QuickCommunicationView: View {
     .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     .accessibilityHint(isSelected ? "Selected" : "Select to pre-fill message")
   }
+}
 
-  private var bodyPreviewSection: some View {
+private struct QuickCommBodyPreviewSection: View {
+  let filledBody: String
+
+  var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Message preview")
         .font(.caption)
         .foregroundStyle(.secondary)
-      Text(viewModel.filledBody)
+      Text(filledBody)
         .font(.caption)
         .foregroundStyle(.primary)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -139,17 +183,23 @@ struct QuickCommunicationView: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Message preview: \(viewModel.filledBody)")
+    .accessibilityLabel("Message preview: \(filledBody)")
   }
+}
 
-  private var actionsSection: some View {
+private struct QuickCommActionsSection: View {
+  let mailtoURL: URL?
+  let smsURL: URL?
+  let coachEmail: String
+  let onOpenURL: (URL) -> Void
+  let onDismiss: () -> Void
+
+  var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      if viewModel.mailtoURL() != nil {
+      if let mailto = mailtoURL {
         Button {
-          if let url = viewModel.mailtoURL() {
-            openURL(url)
-            dismiss()
-          }
+          onOpenURL(mailto)
+          onDismiss()
         } label: {
           Label("Send Email", systemImage: "envelope.fill")
             .font(.body.weight(.medium))
@@ -157,16 +207,14 @@ struct QuickCommunicationView: View {
             .padding(.vertical, 12)
         }
         .buttonStyle(.borderedProminent)
-        .accessibilityLabel("Send email to \(context.coach.email ?? "")")
+        .accessibilityLabel("Send email to \(coachEmail)")
         .accessibilityHint("Opens Mail with recipient and optional message body")
       }
 
-      if viewModel.smsURL() != nil {
+      if let sms = smsURL {
         Button {
-          if let url = viewModel.smsURL() {
-            openURL(url)
-            dismiss()
-          }
+          onOpenURL(sms)
+          onDismiss()
         } label: {
           Label("Send Text", systemImage: "message.fill")
             .font(.body.weight(.medium))

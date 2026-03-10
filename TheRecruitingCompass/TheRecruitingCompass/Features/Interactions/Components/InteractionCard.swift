@@ -102,10 +102,10 @@ struct InteractionCard: View {
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(Color(uiColor: .secondarySystemBackground))
-    .overlay(
+    .overlay {
       RoundedRectangle(cornerRadius: 12)
         .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
-    )
+    }
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .shadow(
       color: colorScheme == .dark ? .black.opacity(0.4) : .black.opacity(0.08),

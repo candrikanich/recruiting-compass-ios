@@ -107,6 +107,11 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     }
   }
 
+  private static let isoFormatter: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    return f
+  }()
+
   private init() {
     self.client = SupabaseClient(
       supabaseURL: SupabaseConfig.url,
@@ -194,8 +199,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         emailConfirmedAt: nil,
         phone: nil,
         fullName: fullName,
-        createdAt: ISO8601DateFormatter().string(from: Date.now),
-        updatedAt: ISO8601DateFormatter().string(from: Date.now),
+        createdAt: Self.isoFormatter.string(from: Date.now),
+        updatedAt: Self.isoFormatter.string(from: Date.now),
         role: role,
         dateOfBirth: nil
       )
@@ -391,8 +396,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       emailConfirmedAt: nil,
       phone: nil,
       fullName: fullName,
-      createdAt: ISO8601DateFormatter().string(from: Date.now),
-      updatedAt: ISO8601DateFormatter().string(from: Date.now),
+      createdAt: Self.isoFormatter.string(from: Date.now),
+      updatedAt: Self.isoFormatter.string(from: Date.now),
       role: role,
       dateOfBirth: nil
     )

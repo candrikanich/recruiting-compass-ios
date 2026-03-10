@@ -123,10 +123,10 @@ private struct HelpFeedbackButtonStyle: ButtonStyle {
         RoundedRectangle(cornerRadius: 10)
           .fill(highlight ? Color.primaryGreen.opacity(0.12) : Color.errorRed.opacity(0.12))
       )
-      .overlay(
+      .overlay {
         RoundedRectangle(cornerRadius: 10)
           .stroke(highlight ? Color.primaryGreen.opacity(0.4) : Color.errorRed.opacity(0.4), lineWidth: 1)
-      )
+      }
       .opacity(configuration.isPressed ? 0.8 : 1)
   }
 }

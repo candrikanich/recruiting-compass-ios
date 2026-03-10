@@ -40,10 +40,10 @@ struct HelpStepCard: View {
     .padding(12)
     .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .overlay(
+    .overlay {
       RoundedRectangle(cornerRadius: 12)
         .stroke(Color.accentBlue.opacity(0.3), lineWidth: isLast ? 0 : 1)
-    )
+    }
     .accessibilityElement(children: .combine)
     .accessibilityLabel("Step \(step): \(title). \(bodyText)")
   }

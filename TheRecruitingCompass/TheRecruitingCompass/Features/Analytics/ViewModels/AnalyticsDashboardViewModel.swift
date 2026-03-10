@@ -22,8 +22,8 @@ final class AnalyticsDashboardViewModel {
   var errorMessage: String?
   var showExportSheet = false
   var showDatePicker = false
-  var customStartDate = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
-  var customEndDate = Date()
+  var customStartDate = Calendar.current.date(byAdding: .day, value: -30, to: Date.now) ?? Date.now
+  var customEndDate = Date.now
 
   private let serviceOverride: (any AnalyticsManaging)?
 

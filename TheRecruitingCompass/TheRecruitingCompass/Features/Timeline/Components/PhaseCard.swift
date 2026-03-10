@@ -86,10 +86,10 @@ struct PhaseCard: View {
     .background(
       RoundedRectangle(cornerRadius: 12)
         .fill(Color(.secondarySystemBackground))
-        .overlay(
+        .overlay {
           RoundedRectangle(cornerRadius: 12)
             .stroke(isCurrentPhase ? Color.accentBlue.opacity(0.5) : Color.clear, lineWidth: 2)
-        )
+        }
     )
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)

@@ -94,10 +94,11 @@ struct PerformanceMetric: Codable, Identifiable, Equatable, Sendable {
   }
 
   var formattedValue: String {
+    let formatted = value.formatted(.number.precision(.fractionLength(2)))
     if unit.isEmpty {
-      return String(format: "%.2f", value)
+      return formatted
     }
-    return "\(String(format: "%.2f", value)) \(unit)"
+    return "\(formatted) \(unit)"
   }
 
   var formattedDate: String {

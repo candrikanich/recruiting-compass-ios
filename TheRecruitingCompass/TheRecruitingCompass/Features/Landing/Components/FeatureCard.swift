@@ -58,10 +58,10 @@ struct FeatureCard: View {
     .padding(20)
     .background(Color.white.opacity(0.1))
     .clipShape(.rect(cornerRadius: 16))
-    .overlay(
+    .overlay {
       RoundedRectangle(cornerRadius: 16)
         .stroke(Color.white.opacity(0.2), lineWidth: 1)
-    )
+    }
     .accessibilityElement(children: .combine)
     .accessibilityLabel("Feature: \(title)")
     .accessibilityValue(description)

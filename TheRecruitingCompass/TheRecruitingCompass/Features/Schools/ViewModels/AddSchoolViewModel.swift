@@ -101,6 +101,32 @@ final class AddSchoolViewModel {
     )
   }
 
+  // MARK: - Debounce Task
+
+  private var searchDebounceTask: Task<Void, Never>?
+
+  // MARK: - Search Coordination
+
+  /// Handles search query changes with 300ms debounce.
+  /// Cancels any pending search task before scheduling a new one.
+  func handleSearchQueryChanged(_ text: String) {
+    searchDebounceTask?.cancel()
+    searchDebounceTask = Task {
+      try? await Task.sleep(for: .milliseconds(300))
+      if !Task.isCancelled {
+        await performAutocompleteSearch(query: text)
+      }
+    }
+  }
+
+  /// Handles school name changes, triggering NCAA lookup when appropriate.
+  func handleNameChanged(_ newName: String) {
+    guard !newName.isEmpty, formState.division == nil else { return }
+    Task {
+      await performNcaaLookup(for: newName)
+    }
+  }
+
   // MARK: - Validation Lookup Table
 
   private typealias FieldValidation = (String) -> String?

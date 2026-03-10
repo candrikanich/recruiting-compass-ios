@@ -44,7 +44,7 @@ final class ProfilePhotoServiceImpl: ProfilePhotoManaging, Sendable {
             throw ProfilePhotoError.compressionFailed
         }
 
-        let timestamp = Int(Date().timeIntervalSince1970)
+        let timestamp = Int(Date.now.timeIntervalSince1970)
         let path = "\(userId)/profile-\(timestamp).jpg"
 
         logger.debug("Uploading profile photo to \(path)")

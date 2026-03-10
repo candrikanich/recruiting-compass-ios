@@ -3,7 +3,7 @@ import Foundation
 struct MetricFormState: Equatable {
   var metricType: MetricType?
   var value: String = ""
-  var recordedDate: Date = Date()
+  var recordedDate: Date = Date.now
   var unit: String = ""
   var notes: String = ""
   var verified: Bool = false
@@ -19,7 +19,7 @@ struct MetricFormState: Equatable {
   mutating func reset() {
     metricType = nil
     value = ""
-    recordedDate = Date()
+    recordedDate = Date.now
     unit = ""
     notes = ""
     verified = false
@@ -27,7 +27,7 @@ struct MetricFormState: Equatable {
 
   mutating func populate(from metric: PerformanceMetric) {
     metricType = metric.metricType
-    value = String(format: "%.2f", metric.value)
+    value = metric.value.formatted(.number.precision(.fractionLength(2)))
     recordedDate = metric.recordedDate
     unit = metric.unit
     notes = metric.notes ?? ""

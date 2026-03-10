@@ -43,7 +43,7 @@ final class CoachesListViewModel {
     }
 
     if let days = filters.lastContactDays {
-      let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+      let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date.now) ?? Date.now
       result = result.filter { coach in
         guard let contactDate = coach.lastContactDateParsed else { return false }
         return contactDate >= cutoff
@@ -83,8 +83,8 @@ final class CoachesListViewModel {
 
   /// Summary stats for the full coach list (unfiltered), matching web app behavior.
   var analytics: CoachAnalytics {
-    let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
-    let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+    let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date.now) ?? Date.now
+    let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date.now) ?? Date.now
 
     return CoachAnalytics(
       totalCount: allCoaches.count,

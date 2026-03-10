@@ -13,9 +13,6 @@ struct AddSchoolView: View {
   @Environment(\.dismiss) private var dismiss
   @Binding var navigationPath: NavigationPath
 
-  // Phase 2: Search debounce
-  @State private var searchTask: Task<Void, Never>?
-
   init(
     schoolsService: SchoolsManaging,
     familyUnitId: String,
@@ -41,9 +38,43 @@ struct AddSchoolView: View {
 
   var body: some View {
     Form {
-      autocompleteToggleSection
-      schoolFormSection
-      actionsSection
+      AddSchoolAutocompleteToggleSection(
+        formState: $viewModel.formState,
+        searchQuery: $viewModel.searchQuery,
+        selectedCollege: viewModel.selectedCollege,
+        scorecardData: viewModel.scorecardData,
+        isEnrichmentLoading: viewModel.isEnrichmentLoading,
+        isSearching: viewModel.isSearching,
+        searchResults: viewModel.searchResults,
+        searchError: viewModel.searchError,
+        onSearchQueryChanged: { viewModel.handleSearchQueryChanged($0) },
+        onSelectCollege: { college in
+          Task { await viewModel.selectCollege(college) }
+        },
+        onClearSelection: { viewModel.clearSelection() }
+      )
+      AddSchoolFormSection(
+        formState: $viewModel.formState,
+        formErrors: $viewModel.formErrors,
+        isSubmitting: viewModel.isSubmitting,
+        onValidateField: viewModel.validateField,
+        onCharacterCountChange: viewModel.announceCharacterCountIfNeeded,
+        onClearErrors: { viewModel.clearErrors() },
+        onNameChanged: { viewModel.handleNameChanged($0) }
+      )
+      AddSchoolActionsSection(
+        isSubmitting: viewModel.isSubmitting,
+        isSubmitDisabled: viewModel.isSubmitDisabled,
+        submitButtonTitle: viewModel.submitButtonTitle,
+        onSubmit: {
+          Task {
+            if let newSchool = await viewModel.submitSchool() {
+              navigationPath.append(SchoolDestination.detail(newSchool.id))
+            }
+          }
+        },
+        onCancel: { dismiss() }
+      )
     }
     .navigationTitle("Add School")
     .navigationBarTitleDisplayMode(.inline)
@@ -91,169 +122,6 @@ struct AddSchoolView: View {
     }
   }
 
-  // MARK: - Sections
-
-  private var autocompleteToggleSection: some View {
-    Section {
-      // Phase 2: Enable toggle (was disabled in MVP)
-      Toggle("Search college database", isOn: $viewModel.formState.isAutocompleteEnabled)
-        .accessibilityLabel("Search college database toggle")
-        .accessibilityHint("Enable to search and auto-fill from college database")
-        .accessibilityAddTraits(.isButton)
-
-      // Phase 2: Autocomplete search and selected college card
-      if viewModel.formState.isAutocompleteEnabled {
-        if let selectedCollege = viewModel.selectedCollege {
-          // Phase 3: Show selected college card with enrichment loading
-          SelectedCollegeCard(
-            college: selectedCollege,
-            isEnrichmentLoading: viewModel.isEnrichmentLoading,
-            onClear: {
-              viewModel.clearSelection()
-            }
-          )
-
-          // Phase 3: Show College Scorecard data if available
-          if let scorecardData = viewModel.scorecardData {
-            CollegeScorecardDataDisplay(data: scorecardData)
-          }
-        } else {
-          // Show search field
-          VStack(spacing: 8) {
-            TextField("Search for college...", text: $viewModel.searchQuery)
-              .textFieldStyle(.roundedBorder)
-              .textContentType(.organizationName)
-              .autocapitalization(.words)
-              .accessibilityLabel("College search")
-              .accessibilityHint("Type at least 3 characters to search")
-              .onChange(of: viewModel.searchQuery) { oldValue, newValue in
-                // Debounce search (300ms)
-                searchTask?.cancel()
-                searchTask = Task {
-                  try? await Task.sleep(for: .milliseconds(300))
-                  if !Task.isCancelled {
-                    await viewModel.performAutocompleteSearch(query: newValue)
-                  }
-                }
-              }
-
-            // Show character count hint if user has started typing but hasn't reached minimum
-            if !viewModel.searchQuery.isEmpty && viewModel.searchQuery.count < 3 {
-              Text("\(3 - viewModel.searchQuery.count) more character\(viewModel.searchQuery.count == 2 ? "" : "s") needed")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            }
-
-            // Show autocomplete dropdown if there are results or loading/error
-            if viewModel.isSearching || !viewModel.searchResults.isEmpty || viewModel.searchError != nil {
-              SchoolAutocompleteDropdown(
-                results: viewModel.searchResults,
-                isLoading: viewModel.isSearching,
-                error: viewModel.searchError,
-                onSelect: { college in
-                  Task {
-                    await viewModel.selectCollege(college)
-                  }
-                }
-              )
-            }
-          }
-        }
-      }
-    } header: {
-      Text("College Information")
-    } footer: {
-      if viewModel.formState.isAutocompleteEnabled {
-        Text("Search by college name to auto-fill school information")
-          .accessibilityLabel("Search by college name to auto-fill")
-      } else {
-        Text("Enable database search to auto-fill school information")
-          .accessibilityLabel("Enable database search to auto-fill")
-      }
-    }
-  }
-
-  private var schoolFormSection: some View {
-    Section {
-      // Error summary banner
-      if viewModel.formErrors.hasErrors {
-        FormErrorSummary(
-          errors: viewModel.formErrors.allErrors,
-          onDismiss: {
-            viewModel.clearErrors()
-          }
-        )
-      }
-
-      // All form fields
-      SchoolFormView(
-        formState: $viewModel.formState,
-        formErrors: $viewModel.formErrors,
-        isDisabled: viewModel.isSubmitting,
-        onValidateField: viewModel.validateField,
-        onNcaaLookup: nil, // NCAA lookup triggered via .onChange below
-        onCharacterCountChange: viewModel.announceCharacterCountIfNeeded
-      )
-    }
-    .onChange(of: viewModel.formState.name) { _, newName in
-      // Phase 1: Trigger NCAA lookup when school name changes
-      if !newName.isEmpty && viewModel.formState.division == nil {
-        Task {
-          await viewModel.performNcaaLookup(for: newName)
-        }
-      }
-    }
-  }
-
-  private var actionsSection: some View {
-    Section {
-      submitButton
-      cancelButton
-    }
-  }
-
-  // MARK: - Submit Button
-
-  private var submitButton: some View {
-    Button {
-      Task {
-        if let newSchool = await viewModel.submitSchool() {
-          navigationPath.append(SchoolDestination.detail(newSchool.id))
-        }
-      }
-    } label: {
-      HStack(spacing: 8) {
-        if viewModel.isSubmitting {
-          ProgressView()
-            .progressViewStyle(.circular)
-            .tint(.white)
-        }
-        Text(viewModel.submitButtonTitle)
-          .fontWeight(.semibold)
-      }
-      .frame(maxWidth: .infinity, minHeight: 44)
-    }
-    .buttonStyle(.borderedProminent)
-    .disabled(viewModel.isSubmitDisabled)
-    .accessibilityLabel(viewModel.submitButtonTitle)
-    .accessibilityHint(
-      viewModel.isSubmitDisabled
-        ? "Fill all required fields to enable"
-        : "Create new school"
-    )
-  }
-
-  // MARK: - Cancel Button
-
-  private var cancelButton: some View {
-    Button("Cancel", role: .cancel) {
-      dismiss()
-    }
-    .frame(minHeight: 44)
-    .accessibilityLabel("Cancel adding school")
-    .accessibilityHint("Return to schools list without saving")
-  }
-
   // MARK: - Helper Methods
 
   /// Builds an accessible message for the duplicate school dialog
@@ -267,6 +135,189 @@ struct AddSchoolView: View {
     }
 
     return message
+  }
+}
+
+// MARK: - Private Subviews
+
+private struct AddSchoolAutocompleteToggleSection: View {
+  @Binding var formState: SchoolFormState
+  @Binding var searchQuery: String
+  let selectedCollege: CollegeSearchResult?
+  let scorecardData: CollegeDataResult?
+  let isEnrichmentLoading: Bool
+  let isSearching: Bool
+  let searchResults: [CollegeSearchResult]
+  let searchError: String?
+  let onSearchQueryChanged: (String) -> Void
+  let onSelectCollege: (CollegeSearchResult) -> Void
+  let onClearSelection: () -> Void
+
+  var body: some View {
+    Section {
+      // Phase 2: Enable toggle (was disabled in MVP)
+      Toggle("Search college database", isOn: $formState.isAutocompleteEnabled)
+        .accessibilityLabel("Search college database toggle")
+        .accessibilityHint("Enable to search and auto-fill from college database")
+        .accessibilityAddTraits(.isButton)
+
+      // Phase 2: Autocomplete search and selected college card
+      if formState.isAutocompleteEnabled {
+        if let selectedCollege {
+          // Phase 3: Show selected college card with enrichment loading
+          SelectedCollegeCard(
+            college: selectedCollege,
+            isEnrichmentLoading: isEnrichmentLoading,
+            onClear: onClearSelection
+          )
+
+          // Phase 3: Show College Scorecard data if available
+          if let scorecardData {
+            CollegeScorecardDataDisplay(data: scorecardData)
+          }
+        } else {
+          // Show search field
+          VStack(spacing: 8) {
+            TextField("Search for college...", text: $searchQuery)
+              .textFieldStyle(.roundedBorder)
+              .textContentType(.organizationName)
+              .autocapitalization(.words)
+              .accessibilityLabel("College search")
+              .accessibilityHint("Type at least 3 characters to search")
+              .onChange(of: searchQuery) { _, newValue in
+                onSearchQueryChanged(newValue)
+              }
+
+            // Show character count hint if user has started typing but hasn't reached minimum
+            if !searchQuery.isEmpty && searchQuery.count < 3 {
+              Text("\(3 - searchQuery.count) more character\(searchQuery.count == 2 ? "" : "s") needed")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+
+            // Show autocomplete dropdown if there are results or loading/error
+            if isSearching || !searchResults.isEmpty || searchError != nil {
+              SchoolAutocompleteDropdown(
+                results: searchResults,
+                isLoading: isSearching,
+                error: searchError,
+                onSelect: onSelectCollege
+              )
+            }
+          }
+        }
+      }
+    } header: {
+      Text("College Information")
+    } footer: {
+      if formState.isAutocompleteEnabled {
+        Text("Search by college name to auto-fill school information")
+          .accessibilityLabel("Search by college name to auto-fill")
+      } else {
+        Text("Enable database search to auto-fill school information")
+          .accessibilityLabel("Enable database search to auto-fill")
+      }
+    }
+  }
+}
+
+private struct AddSchoolFormSection: View {
+  @Binding var formState: SchoolFormState
+  @Binding var formErrors: SchoolFormErrors
+  let isSubmitting: Bool
+  let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+  let onCharacterCountChange: (Int) -> Void
+  let onClearErrors: () -> Void
+  let onNameChanged: (String) -> Void
+
+  var body: some View {
+    Section {
+      // Error summary banner
+      if formErrors.hasErrors {
+        FormErrorSummary(
+          errors: formErrors.allErrors,
+          onDismiss: onClearErrors
+        )
+      }
+
+      // All form fields
+      SchoolFormView(
+        formState: $formState,
+        formErrors: $formErrors,
+        isDisabled: isSubmitting,
+        onValidateField: onValidateField,
+        onNcaaLookup: nil, // NCAA lookup triggered via .onChange below
+        onCharacterCountChange: onCharacterCountChange
+      )
+    }
+    .onChange(of: formState.name) { _, newName in
+      onNameChanged(newName)
+    }
+  }
+}
+
+private struct AddSchoolActionsSection: View {
+  let isSubmitting: Bool
+  let isSubmitDisabled: Bool
+  let submitButtonTitle: String
+  let onSubmit: () -> Void
+  let onCancel: () -> Void
+
+  var body: some View {
+    Section {
+      AddSchoolSubmitButton(
+        isSubmitting: isSubmitting,
+        isDisabled: isSubmitDisabled,
+        title: submitButtonTitle,
+        onTap: onSubmit
+      )
+      AddSchoolCancelButton(onTap: onCancel)
+    }
+  }
+}
+
+private struct AddSchoolSubmitButton: View {
+  let isSubmitting: Bool
+  let isDisabled: Bool
+  let title: String
+  let onTap: () -> Void
+
+  var body: some View {
+    Button {
+      onTap()
+    } label: {
+      HStack(spacing: 8) {
+        if isSubmitting {
+          ProgressView()
+            .progressViewStyle(.circular)
+            .tint(.white)
+        }
+        Text(title)
+          .fontWeight(.semibold)
+      }
+      .frame(maxWidth: .infinity, minHeight: 44)
+    }
+    .buttonStyle(.borderedProminent)
+    .disabled(isDisabled)
+    .accessibilityLabel(title)
+    .accessibilityHint(
+      isDisabled
+        ? "Fill all required fields to enable"
+        : "Create new school"
+    )
+  }
+}
+
+private struct AddSchoolCancelButton: View {
+  let onTap: () -> Void
+
+  var body: some View {
+    Button("Cancel", role: .cancel) {
+      onTap()
+    }
+    .frame(minHeight: 44)
+    .accessibilityLabel("Cancel adding school")
+    .accessibilityHint("Return to schools list without saving")
   }
 }
 
