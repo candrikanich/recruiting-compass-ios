@@ -134,7 +134,7 @@ struct InteractionDetailView: View {
         // Type badge — always blue per design system
         BadgeView(
           text: interaction.type.displayName,
-          color: .blue,
+          color: interaction.type.badgeColor,
           icon: interaction.type.iconName,
           accessibilityLabel: "\(interaction.type.displayName) interaction"
         )
@@ -142,7 +142,7 @@ struct InteractionDetailView: View {
         // Direction badge
         BadgeView(
           text: interaction.direction.displayName,
-          color: interaction.direction == .inbound ? .emerald : .purple,
+          color: interaction.direction.badgeColor,
           accessibilityLabel: "\(interaction.direction.displayName) direction"
         )
 
@@ -150,7 +150,7 @@ struct InteractionDetailView: View {
         if let sentiment = interaction.sentiment {
           BadgeView(
             text: sentiment.displayName,
-            color: sentiment.displayBadgeColor,
+            color: sentiment.badgeColor,
             accessibilityLabel: "Sentiment: \(sentiment.displayName)"
           )
         }

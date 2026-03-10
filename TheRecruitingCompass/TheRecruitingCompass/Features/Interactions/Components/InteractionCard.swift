@@ -16,12 +16,12 @@ struct InteractionCard: View {
         // Type icon
         ZStack {
           Circle()
-            .fill(interaction.type.iconColor.opacity(0.15))
+            .fill(interaction.type.tintColor.opacity(0.15))
             .frame(width: iconSize, height: iconSize)
 
           Image(systemName: interaction.type.iconName)
             .font(.system(size: iconImageSize))
-            .foregroundStyle(interaction.type.iconColor)
+            .foregroundStyle(interaction.type.tintColor)
         }
         .accessibilityHidden(true)
 
@@ -163,10 +163,10 @@ struct DirectionBadge: View {
     Text(direction.displayName)
       .font(.caption)
       .fontWeight(.medium)
-      .foregroundStyle(direction.badgeColor)
+      .foregroundStyle(direction.badgeColor.foregroundColor)
       .padding(.horizontal, 8)
       .padding(.vertical, 4)
-      .background(direction.badgeColor.opacity(0.1))
+      .background(direction.badgeColor.backgroundColor)
       .clipShape(.rect(cornerRadius: 6))
   }
 }
@@ -178,10 +178,10 @@ struct SentimentBadge: View {
     Text(sentiment.displayName)
       .font(.caption)
       .fontWeight(.medium)
-      .foregroundStyle(sentiment.badgeColor)
+      .foregroundStyle(sentiment.badgeColor.foregroundColor)
       .padding(.horizontal, 8)
       .padding(.vertical, 4)
-      .background(sentiment.badgeColor.opacity(0.1))
+      .background(sentiment.badgeColor.backgroundColor)
       .clipShape(.rect(cornerRadius: 6))
   }
 }
