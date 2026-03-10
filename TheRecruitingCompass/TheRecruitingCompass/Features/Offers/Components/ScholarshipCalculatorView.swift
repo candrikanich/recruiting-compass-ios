@@ -264,10 +264,8 @@ struct ScholarshipCalculatorView: View {
   }
 
   private static func formatCurrency(_ value: Double) -> String {
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .currency
-    formatter.maximumFractionDigits = 0
-    return formatter.string(from: NSNumber(value: value)) ?? "$0"
+    value.formatted(.currency(code: Locale.current.currency?.identifier ?? "USD")
+      .precision(.fractionLength(0)))
   }
 }
 

@@ -10,6 +10,13 @@ struct SchoolDetailView: View {
   @Environment(\.openURL) private var openURL
   @State private var navigationDestination: NavigationDestination?
 
+  private var showErrorAlert: Binding<Bool> {
+    Binding(
+      get: { viewModel.errorMessage != nil && !viewModel.showDeleteConfirmation },
+      set: { if !$0 { viewModel.errorMessage = nil; viewModel.activeAlert = nil } }
+    )
+  }
+
   init(schoolId: String) {
     self.schoolId = schoolId
     _viewModel = State(initialValue: SchoolDetailViewModel(schoolId: schoolId))
@@ -59,10 +66,7 @@ struct SchoolDetailView: View {
     .task {
       await viewModel.loadSchool()
     }
-    .alert("Error", isPresented: Binding(
-      get: { viewModel.errorMessage != nil && !viewModel.showDeleteConfirmation },
-      set: { if !$0 { viewModel.errorMessage = nil; viewModel.activeAlert = nil } }
-    ), presenting: viewModel.errorMessage) { _ in
+    .alert("Error", isPresented: showErrorAlert, presenting: viewModel.errorMessage) { _ in
       Button("OK") { viewModel.errorMessage = nil; viewModel.activeAlert = nil }
     } message: { message in
       Text(message)

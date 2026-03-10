@@ -7,14 +7,10 @@ struct TasksParentBanner: View {
 
   @Environment(\.sizeCategory) private var sizeCategory
 
-  private var fontSize: CGFloat {
-    sizeCategory >= .extraLarge ? 16 : 14
-  }
-
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: "eye")
-        .font(.system(size: fontSize))
+        .font(sizeCategory.isAccessibilityCategory ? .title3 : .subheadline)
         .foregroundStyle(.white)
         .accessibilityHidden(true)
 
@@ -31,7 +27,7 @@ struct TasksParentBanner: View {
 
       Button(action: onDismiss) {
         Image(systemName: "xmark.circle.fill")
-          .font(.system(size: fontSize + 2))
+          .font(sizeCategory.isAccessibilityCategory ? .title2 : .title3)
           .foregroundStyle(.white.opacity(0.9))
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())

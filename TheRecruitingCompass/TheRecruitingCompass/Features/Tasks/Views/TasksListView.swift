@@ -6,6 +6,20 @@ struct TasksListView: View {
   @State private var lockedTaskAlertTask: TaskWithStatus?
   @State private var successMessageDismissWork: Task<Void, Never>?
 
+  private var statusFilterBinding: Binding<TaskStatusFilter> {
+    Binding(
+      get: { viewModel.statusFilter },
+      set: { viewModel.setStatusFilter($0) }
+    )
+  }
+
+  private var urgencyFilterBinding: Binding<TaskUrgencyFilter> {
+    Binding(
+      get: { viewModel.urgencyFilter },
+      set: { viewModel.setUrgencyFilter($0) }
+    )
+  }
+
   private var headerTitle: String {
     if viewModel.isViewingAsParent, let athlete = familyManager.selectedAthlete {
       return "\(athlete.user?.fullName ?? "Athlete")'s Tasks"
@@ -30,8 +44,10 @@ struct TasksListView: View {
     .task { await viewModel.loadTasks() }
     .onChange(of: viewModel.showSuccessMessage) { _, show in
       if show {
+        successMessageDismissWork?.cancel()
         successMessageDismissWork = Task {
           try? await Task.sleep(for: .seconds(3))
+          guard !Task.isCancelled else { return }
           await MainActor.run { viewModel.clearSuccessMessage() }
         }
       }
@@ -89,13 +105,7 @@ struct TasksListView: View {
       )
       .padding(.horizontal)
 
-      TasksFilterBar(statusFilter: Binding(
-        get: { viewModel.statusFilter },
-        set: { viewModel.setStatusFilter($0) }
-      ), urgencyFilter: Binding(
-        get: { viewModel.urgencyFilter },
-        set: { viewModel.setUrgencyFilter($0) }
-      ))
+      TasksFilterBar(statusFilter: statusFilterBinding, urgencyFilter: urgencyFilterBinding)
       .padding(.top, 4)
 
       if viewModel.showSuccessMessage {

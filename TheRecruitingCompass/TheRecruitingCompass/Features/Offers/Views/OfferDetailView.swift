@@ -37,8 +37,36 @@ struct OfferDetailView: View {
     .task {
       await viewModel.loadOffer()
     }
-    .alert(item: $viewModel.activeAlert) { alert in
-      alertForType(alert)
+    .alert(
+      viewModel.activeAlert?.title ?? "",
+      isPresented: Binding(
+        get: { viewModel.activeAlert != nil },
+        set: { if !$0 { viewModel.activeAlert = nil } }
+      ),
+      presenting: viewModel.activeAlert
+    ) { alert in
+      switch alert {
+      case .deleteConfirmation:
+        Button("Delete", role: .destructive) {
+          Task {
+            await viewModel.deleteOffer {
+              dismiss()
+            }
+          }
+        }
+        Button("Cancel", role: .cancel) {}
+      case .error, .deleteError:
+        Button("OK", role: .cancel) {}
+      }
+    } message: { alert in
+      switch alert {
+      case .error(let message):
+        Text(message)
+      case .deleteConfirmation:
+        Text("This will permanently delete this offer. This action cannot be undone.")
+      case .deleteError(let message):
+        Text(message)
+      }
     }
   }
 
@@ -151,37 +179,6 @@ struct OfferDetailView: View {
     }
   }
 
-  // MARK: - Alerts
-
-  private func alertForType(_ alert: OfferAlertType) -> Alert {
-    switch alert {
-    case .error(let message):
-      Alert(
-        title: Text("Error"),
-        message: Text(message),
-        dismissButton: .default(Text("OK"))
-      )
-    case .deleteConfirmation:
-      Alert(
-        title: Text("Delete Offer?"),
-        message: Text("This will permanently delete this offer. This action cannot be undone."),
-        primaryButton: .destructive(Text("Delete")) {
-          Task {
-            await viewModel.deleteOffer {
-              dismiss()
-            }
-          }
-        },
-        secondaryButton: .cancel()
-      )
-    case .deleteError(let message):
-      Alert(
-        title: Text("Delete Failed"),
-        message: Text(message),
-        dismissButton: .default(Text("OK"))
-      )
-    }
-  }
 }
 
 #Preview {

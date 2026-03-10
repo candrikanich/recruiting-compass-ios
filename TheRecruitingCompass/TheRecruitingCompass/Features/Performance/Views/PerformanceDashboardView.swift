@@ -114,90 +114,25 @@ struct PerformanceDashboardView: View {
   private var metricsContent: some View {
     ScrollView {
       LazyVStack(spacing: 24) {
-        chartSection
+        PerformanceChartSection(
+          availableMetricTypes: viewModel.availableMetricTypes,
+          selectedMetricType: $viewModel.selectedMetricType,
+          chartMetrics: viewModel.chartMetrics,
+          activeMetricType: viewModel.activeMetricType
+        )
         if !viewModel.metricTrends.isEmpty {
-          trendsSection
+          PerformanceTrendsSection(metricTrends: viewModel.metricTrends)
         }
-        latestMetricsSection
-        historySection
+        PerformanceLatestMetricsSection(
+          latestMetricsByType: viewModel.latestMetricsByType
+        )
+        PerformanceHistorySection(
+          sortedMetrics: viewModel.sortedMetrics,
+          onEdit: { viewModel.startEditing($0) },
+          onDelete: { viewModel.confirmDelete($0) }
+        )
       }
       .padding()
-    }
-  }
-
-  private var chartSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack {
-        Text("Performance Trends")
-          .font(.title3)
-          .bold()
-        Spacer()
-      }
-
-      if viewModel.availableMetricTypes.count > 1 {
-        MetricTypeFilterBar(
-          availableTypes: viewModel.availableMetricTypes,
-          selectedType: $viewModel.selectedMetricType
-        )
-      }
-
-      PerformanceChartView(
-        metrics: viewModel.chartMetrics,
-        metricType: viewModel.activeMetricType
-      )
-    }
-    .padding()
-    .background(Color(.systemBackground))
-    .clipShape(RoundedRectangle(cornerRadius: 12))
-    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-  }
-
-  private var trendsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("Metric Trends")
-        .font(.title3)
-        .bold()
-
-      ForEach(viewModel.metricTrends) { trend in
-        TrendCard(trend: trend)
-      }
-    }
-  }
-
-  private var latestMetricsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("Latest Metrics")
-        .font(.title3)
-        .bold()
-
-      LazyVGrid(columns: [
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible())
-      ], spacing: 12) {
-        ForEach(
-          Array(viewModel.latestMetricsByType.values)
-            .sorted(by: { $0.metricType.displayName < $1.metricType.displayName })
-        ) { metric in
-          LatestMetricCard(metric: metric)
-        }
-      }
-    }
-  }
-
-  private var historySection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("Metric History")
-        .font(.title3)
-        .bold()
-
-      ForEach(viewModel.sortedMetrics) { metric in
-        MetricHistoryCard(
-          metric: metric,
-          onEdit: { viewModel.startEditing(metric) },
-          onDelete: { viewModel.confirmDelete(metric) }
-        )
-      }
     }
   }
 
@@ -234,23 +169,102 @@ struct PerformanceDashboardView: View {
   }
 }
 
-// MARK: - Supporting Views
+// MARK: - Private Section Structs
 
-struct SuccessToast: View {
-  let message: String
+private struct PerformanceChartSection: View {
+  let availableMetricTypes: [MetricType]
+  @Binding var selectedMetricType: MetricType?
+  let chartMetrics: [PerformanceMetric]
+  let activeMetricType: MetricType?
 
   var body: some View {
-    Text(message)
-      .font(.subheadline)
-      .fontWeight(.medium)
-      .foregroundStyle(.white)
-      .padding(.horizontal, 16)
-      .padding(.vertical, 10)
-      .background(Color.successGreen)
-      .clipShape(Capsule())
-      .shadow(radius: 4)
-      .padding(.bottom, 20)
-      .accessibilityLabel(message)
+    VStack(alignment: .leading, spacing: 12) {
+      HStack {
+        Text("Performance Trends")
+          .font(.title3)
+          .bold()
+        Spacer()
+      }
+
+      if availableMetricTypes.count > 1 {
+        MetricTypeFilterBar(
+          availableTypes: availableMetricTypes,
+          selectedType: $selectedMetricType
+        )
+      }
+
+      PerformanceChartView(
+        metrics: chartMetrics,
+        metricType: activeMetricType
+      )
+    }
+    .padding()
+    .background(Color(.systemBackground))
+    .clipShape(RoundedRectangle(cornerRadius: 12))
+    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+  }
+}
+
+private struct PerformanceTrendsSection: View {
+  let metricTrends: [MetricTrend]
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Metric Trends")
+        .font(.title3)
+        .bold()
+
+      ForEach(metricTrends) { trend in
+        TrendCard(trend: trend)
+      }
+    }
+  }
+}
+
+private struct PerformanceLatestMetricsSection: View {
+  let latestMetricsByType: [MetricType: PerformanceMetric]
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Latest Metrics")
+        .font(.title3)
+        .bold()
+
+      LazyVGrid(columns: [
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible())
+      ], spacing: 12) {
+        ForEach(
+          Array(latestMetricsByType.values)
+            .sorted(by: { $0.metricType.displayName < $1.metricType.displayName })
+        ) { metric in
+          LatestMetricCard(metric: metric)
+        }
+      }
+    }
+  }
+}
+
+private struct PerformanceHistorySection: View {
+  let sortedMetrics: [PerformanceMetric]
+  let onEdit: (PerformanceMetric) -> Void
+  let onDelete: (PerformanceMetric) -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Metric History")
+        .font(.title3)
+        .bold()
+
+      ForEach(sortedMetrics) { metric in
+        MetricHistoryCard(
+          metric: metric,
+          onEdit: { onEdit(metric) },
+          onDelete: { onDelete(metric) }
+        )
+      }
+    }
   }
 }
 

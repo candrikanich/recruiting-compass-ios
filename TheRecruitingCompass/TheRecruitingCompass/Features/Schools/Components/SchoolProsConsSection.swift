@@ -116,68 +116,6 @@ struct SchoolProsConsSection: View {
   }
 }
 
-struct ProItem: View {
-  let text: String
-  let onRemove: () -> Void
-
-  var body: some View {
-    HStack(spacing: 8) {
-      Image(systemName: "checkmark.circle.fill")
-        .foregroundStyle(.green)
-        .font(.caption)
-        .accessibilityHidden(true)
-
-      Text(text)
-        .font(.body)
-        .frame(maxWidth: .infinity, alignment: .leading)
-
-      Button(action: onRemove) {
-        Image(systemName: "xmark.circle.fill")
-          .foregroundStyle(.secondary)
-          .font(.caption)
-      }
-      .frame(width: 30, height: 30)
-      .accessibilityLabel("Remove \(text)")
-    }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 8)
-    .background(Color.green.opacity(0.1))
-    .clipShape(.rect(cornerRadius: 8))
-  }
-}
-
-struct ConItem: View {
-  let text: String
-  let onRemove: () -> Void
-
-  var body: some View {
-    HStack(spacing: 8) {
-      Image(systemName: "xmark.circle.fill")
-        .foregroundStyle(.red)
-        .font(.caption)
-        .accessibilityHidden(true)
-
-      Text(text)
-        .font(.body)
-        .frame(maxWidth: .infinity, alignment: .leading)
-
-      Button(action: onRemove) {
-        Image(systemName: "xmark.circle.fill")
-          .foregroundStyle(.secondary)
-          .font(.caption)
-          .accessibilityHidden(true)
-      }
-      .frame(minWidth: 44, minHeight: 44)
-      .accessibilityLabel("Remove con: \(text)")
-      .accessibilityHint("Double tap to remove this con")
-    }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 8)
-    .background(Color.red.opacity(0.1))
-    .clipShape(.rect(cornerRadius: 8))
-  }
-}
-
 #Preview {
   ScrollView {
     SchoolProsConsSection(

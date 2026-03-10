@@ -6,70 +6,27 @@ struct OfferEmptyState: View {
   var onAddOffer: (() -> Void)?
 
   var body: some View {
-    VStack(spacing: 20) {
-      Image(systemName: icon)
-        .font(.largeTitle)
-        .imageScale(.large)
-        .foregroundStyle(.gray.opacity(0.5))
-        .accessibilityHidden(true)
-
-      VStack(spacing: 8) {
-        Text(title)
-          .font(.headline)
-          .foregroundStyle(.primary)
-
-        Text(subtitle)
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-          .multilineTextAlignment(.center)
+    if isFilteredEmpty {
+      ContentUnavailableView {
+        Label("No Matching Offers", systemImage: "magnifyingglass")
+      } description: {
+        Text("Try adjusting your search or filters")
+      } actions: {
+        if let onClearFilters {
+          Button("Clear Filters", action: onClearFilters)
+        }
       }
-
-      if isFilteredEmpty, let onClearFilters {
-        Button {
-          onClearFilters()
-        } label: {
-          Text("Clear Filters")
-            .font(.subheadline)
-            .fontWeight(.medium)
-            .foregroundStyle(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-            .frame(minHeight: 44)
-            .background(Color.blue)
-            .clipShape(.rect(cornerRadius: 8))
+    } else {
+      ContentUnavailableView {
+        Label("No Offers Yet", systemImage: "doc.text.fill")
+      } description: {
+        Text("Start logging your scholarship offers to track your recruiting journey")
+      } actions: {
+        if let onAddOffer {
+          Button("Log Your First Offer", action: onAddOffer)
         }
-        .accessibilityLabel("Clear all filters")
-        .accessibilityHint("Double tap to remove all active filters")
-      } else if !isFilteredEmpty, let onAddOffer {
-        Button(action: onAddOffer) {
-          Text("Log Your First Offer")
-            .fontWeight(.semibold)
-            .frame(maxWidth: .infinity, minHeight: 44)
-        }
-        .buttonStyle(.borderedProminent)
-        .padding(.horizontal)
-        .accessibilityLabel("Log your first offer")
-        .accessibilityHint("Opens the form to log an offer")
       }
     }
-    .padding(40)
-    .frame(maxWidth: .infinity)
-    .accessibilityElement(children: .contain)
-    .accessibilityLabel(isFilteredEmpty ? "No offers match your filters" : "No offers yet")
-  }
-
-  private var icon: String {
-    isFilteredEmpty ? "magnifyingglass" : "doc.text.fill"
-  }
-
-  private var title: String {
-    isFilteredEmpty ? "No offers match your filters" : "No offers yet"
-  }
-
-  private var subtitle: String {
-    isFilteredEmpty
-      ? "Try adjusting your search or filters"
-      : "Start logging your scholarship offers to track your recruiting journey"
   }
 }
 

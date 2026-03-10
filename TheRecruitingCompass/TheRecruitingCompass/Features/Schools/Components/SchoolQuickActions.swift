@@ -62,15 +62,11 @@ private struct QuickActionButton: View {
 
   @Environment(\.sizeCategory) private var sizeCategory
 
-  private var iconSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 28 : 24
-  }
-
   var body: some View {
     Button(action: action) {
       VStack(spacing: 8) {
         Image(systemName: icon)
-          .font(.system(size: iconSize))
+          .font(sizeCategory.isAccessibilityCategory ? .title2 : .title3)
           .foregroundStyle(.white)
           .frame(width: 48, height: 48)
           .background(gradient)

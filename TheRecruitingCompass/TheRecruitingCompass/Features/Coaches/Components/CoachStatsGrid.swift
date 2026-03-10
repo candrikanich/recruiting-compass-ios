@@ -46,7 +46,7 @@ struct CoachStatsGrid: View {
         .minimumScaleFactor(0.8)
 
       Text(title)
-        .font(sizeCategory.isAccessibilityCategory ? .caption.bold() : .caption.bold())
+        .font(.caption.bold())
         .foregroundStyle(Color.secondaryText)
         .multilineTextAlignment(.center)
         .lineLimit(2)
