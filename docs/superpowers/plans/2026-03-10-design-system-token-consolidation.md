@@ -1,6 +1,6 @@
 # Design System Token Consolidation Implementation Plan
 
-> **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Establish a semantic color vocabulary on iOS matching the web app exactly, introduce a typed `BadgeColor` enum, fix critical color mismatches (`PriorityTier`, `SchoolStatus`, etc.), add skeleton loading views with reduced motion support, and write four `docs/design/` spec files.
 
@@ -33,7 +33,7 @@
 **Files:**
 - Modify: `TheRecruitingCompass/TheRecruitingCompass/Core/Theme/AppColors.swift`
 
-- [ ] **Step 1: Replace `AppColors.swift` with two-layer structure**
+- [x] **Step 1: Replace `AppColors.swift` with two-layer structure**
 
   Replace the entire file with:
 
@@ -134,7 +134,7 @@
 **Files:**
 - Create: `TheRecruitingCompass/TheRecruitingCompassTests/Shared/Components/BadgeColorTests.swift`
 
-- [ ] **Step 1: Create the test file**
+- [x] **Step 1: Create the test file**
 
   ```swift
   import XCTest
@@ -178,7 +178,7 @@
   }
   ```
 
-- [ ] **Step 2: Verify the test file fails to compile** (expected — `BadgeColor` doesn't exist yet)
+- [x] **Step 2: Verify the test file fails to compile** (expected — `BadgeColor` doesn't exist yet)
 
 ---
 
@@ -187,7 +187,7 @@
 **Files:**
 - Create: `TheRecruitingCompass/TheRecruitingCompass/Shared/Components/BadgeColor.swift`
 
-- [ ] **Step 1: Create the file**
+- [x] **Step 1: Create the file**
 
   ```swift
   import SwiftUI
@@ -238,7 +238,7 @@
   }
   ```
 
-- [ ] **Step 2: Run BadgeColor tests — expect PASS**
+- [x] **Step 2: Run BadgeColor tests — expect PASS**
 
   ```bash
   cd TheRecruitingCompass
@@ -262,7 +262,7 @@
 - Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Schools/Components/FitScoreBadge.swift`
 - Modify: `TheRecruitingCompass/TheRecruitingCompassTests/Features/Schools/Views/SchoolsListViewAccessibilityTests.swift`
 
-- [ ] **Step 1: Update `BadgeView.swift`**
+- [x] **Step 1: Update `BadgeView.swift`**
 
   Replace the entire file:
 
@@ -314,7 +314,7 @@
   }
   ```
 
-- [ ] **Step 2: Update `InteractionDetailView.swift` badge calls**
+- [x] **Step 2: Update `InteractionDetailView.swift` badge calls**
 
   At this point `Interaction.direction.badgeColor` and `Interaction.sentiment?.badgeColor` still return `Color` — that will be fixed in Phase 2. For now, pass a hardcoded `BadgeColor` at the call site:
 
@@ -370,7 +370,7 @@
 
   The old `badgeColor: Color` property stays for now and is removed in Phase 2.
 
-- [ ] **Step 3: Update `SchoolCardView.swift` badge calls**
+- [x] **Step 3: Update `SchoolCardView.swift` badge calls**
 
   In `badgesSection`, update:
 
@@ -423,7 +423,7 @@
   }
   ```
 
-- [ ] **Step 4: Update `FitScoreBadge.swift`**
+- [x] **Step 4: Update `FitScoreBadge.swift`**
 
   Replace the entire file:
 
@@ -464,11 +464,11 @@
   }
   ```
 
-- [ ] **Step 5: Fix `SchoolsListViewAccessibilityTests.swift`**
+- [x] **Step 5: Fix `SchoolsListViewAccessibilityTests.swift`**
 
   Search for any `BadgeView(color:)` call in this file that passes a raw `Color`. Replace with the appropriate `BadgeColor` case. If the test instantiates `BadgeView` directly, update the argument. If it only queries accessibility labels, no change needed.
 
-- [ ] **Step 6: Build — expect clean compile**
+- [x] **Step 6: Build — expect clean compile**
 
   ```bash
   cd TheRecruitingCompass
@@ -485,7 +485,7 @@
 **Files:**
 - Modify: `TheRecruitingCompass/TheRecruitingCompass/Core/Theme/AppGradients.swift`
 
-- [ ] **Step 1: Replace raw color values with brand tokens**
+- [x] **Step 1: Replace raw color values with brand tokens**
 
   ```swift
   import SwiftUI
@@ -515,7 +515,7 @@
 
 ### Task 6: Phase 1 build + test + commit
 
-- [ ] **Step 1: Build**
+- [x] **Step 1: Build**
 
   ```bash
   cd TheRecruitingCompass
@@ -525,7 +525,7 @@
 
   Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 2: Run unit tests**
+- [x] **Step 2: Run unit tests**
 
   ```bash
   xcodebuild test -scheme TheRecruitingCompass \
@@ -534,7 +534,7 @@
 
   Expected: all tests pass.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
   ```bash
   git add \
@@ -585,7 +585,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 - Modify: `Features/Interactions/Components/InteractionCard.swift`
 - Modify: `Features/Interactions/Views/InteractionDetailView.swift`
 
-- [ ] **Step 1: Update `InteractionType` in `Interaction.swift`**
+- [x] **Step 1: Update `InteractionType` in `Interaction.swift`**
 
   Replace `iconColor: Color` with two properties:
 
@@ -614,7 +614,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 
   Remove the old `iconColor: Color` property entirely.
 
-- [ ] **Step 2: Update `Direction` in `Interaction.swift`**
+- [x] **Step 2: Update `Direction` in `Interaction.swift`**
 
   Replace `badgeColor: Color` with:
 
@@ -627,7 +627,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
   }
   ```
 
-- [ ] **Step 3: Update `Sentiment` in `Interaction.swift`**
+- [x] **Step 3: Update `Sentiment` in `Interaction.swift`**
 
   Replace `badgeColor: Color` with `badgeColor: BadgeColor`. Remove `displayBadgeColor` (the Phase 1 bridge):
 
@@ -642,7 +642,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
   }
   ```
 
-- [ ] **Step 4: Update `InteractionDetailView.swift` — use typed properties**
+- [x] **Step 4: Update `InteractionDetailView.swift` — use typed properties**
 
   In `badgesSection`, replace the hardcoded direction/sentiment logic with the now-typed properties:
 
@@ -671,13 +671,13 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 
   Also replace any remaining `interaction.type.iconColor` with `interaction.type.tintColor`.
 
-- [ ] **Step 5: Update `InteractionCard.swift`**
+- [x] **Step 5: Update `InteractionCard.swift`**
 
   Search for references to `.iconColor`, `.badgeColor` (returning `Color`), or `.displayBadgeColor`. Update:
   - `iconColor` → `tintColor`
   - `direction.badgeColor` and `sentiment?.badgeColor` now return `BadgeColor` — if passed to `BadgeView`, they're already correct. If used in a `foregroundStyle()` call, wrap as: `foregroundStyle(direction.badgeColor.foregroundColor)`.
 
-- [ ] **Step 6: Build**
+- [x] **Step 6: Build**
 
   ```bash
   cd TheRecruitingCompass
@@ -687,7 +687,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 
   Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
   ```bash
   git add TheRecruitingCompass/TheRecruitingCompass/Features/Interactions/
@@ -702,7 +702,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 - Modify: `Features/Schools/Models/FitScore.swift`
 - Modify: `Features/Schools/Components/FitScoreSection.swift`
 
-- [ ] **Step 1: Update `FitTier` in `FitScore.swift`**
+- [x] **Step 1: Update `FitTier` in `FitScore.swift`**
 
   Remove `badgeColors: (background: Color, text: Color)`. Replace with `badgeColor: BadgeColor`:
 
@@ -717,7 +717,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
   }
   ```
 
-- [ ] **Step 2: Update `FitScoreSection.swift`**
+- [x] **Step 2: Update `FitScoreSection.swift`**
 
   **Tier badge section** — replace `.badgeColors.background/.text` with typed properties:
 
@@ -775,7 +775,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
   .transition(reduceMotion ? .identity : .opacity.combined(with: .move(edge: .top)))
   ```
 
-- [ ] **Step 3: Build**
+- [x] **Step 3: Build**
 
   ```bash
   cd TheRecruitingCompass
@@ -785,7 +785,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 
   Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
   ```bash
   git add \
@@ -805,7 +805,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 **Current (wrong):** A=gold, B=silver, C=bronze.
 **Correct (web-aligned):** A=red (urgency/importance), B=orange (strong interest), C=slate (fallback).
 
-- [ ] **Step 1: Update `PriorityTier.swift`**
+- [x] **Step 1: Update `PriorityTier.swift`**
 
   ```swift
   var badgeColor: BadgeColor {
@@ -819,7 +819,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 
   Remove the old `badgeColor: Color` property.
 
-- [ ] **Step 2: Update `PriorityTierBadge` in `SchoolBadges.swift`**
+- [x] **Step 2: Update `PriorityTierBadge` in `SchoolBadges.swift`**
 
   ```swift
   struct PriorityTierBadge: View {
@@ -839,7 +839,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
   }
   ```
 
-- [ ] **Step 3: Build + commit**
+- [x] **Step 3: Build + commit**
 
   ```bash
   cd TheRecruitingCompass
@@ -860,7 +860,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 - Modify: `Features/Schools/Components/SchoolBadges.swift` (`StatusBadge`)
 - Modify: `Features/Schools/Components/SchoolCardView.swift` (remove `semanticBadgeColor` bridge)
 
-- [ ] **Step 1: Update `SchoolStatus.swift`**
+- [x] **Step 1: Update `SchoolStatus.swift`**
 
   Replace `badgeColor: Color` and `badgeColors: (background: Color, text: Color)` with a single `badgeColor: BadgeColor`. The `semanticBadgeColor` added in Phase 1 becomes the canonical `badgeColor`:
 
@@ -883,7 +883,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 
   Remove `semanticBadgeColor`, the old `badgeColor: Color`, and `badgeColors`.
 
-- [ ] **Step 2: Update `StatusBadge` in `SchoolBadges.swift`**
+- [x] **Step 2: Update `StatusBadge` in `SchoolBadges.swift`**
 
   ```swift
   struct StatusBadge: View {
@@ -903,7 +903,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
   }
   ```
 
-- [ ] **Step 3: Update `SchoolCardView.swift`**
+- [x] **Step 3: Update `SchoolCardView.swift`**
 
   Remove `semanticBadgeColor` bridge; use `badgeColor` directly:
 
@@ -911,7 +911,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
   BadgeView(text: statusEnum.displayName, color: statusEnum.badgeColor)
   ```
 
-- [ ] **Step 4: Build + commit**
+- [x] **Step 4: Build + commit**
 
   ```bash
   cd TheRecruitingCompass
@@ -933,7 +933,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 - Modify: `Features/Schools/Components/SchoolBadges.swift` (`DivisionBadge`)
 - Modify: `Features/Schools/Components/SchoolCardView.swift` (remove `semanticBadgeColor` bridge)
 
-- [ ] **Step 1: Update `Division.swift`**
+- [x] **Step 1: Update `Division.swift`**
 
   Replace `badgeColor: Color` and remove `semanticBadgeColor`:
 
@@ -949,7 +949,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
   }
   ```
 
-- [ ] **Step 2: Consolidate `DivisionBadge` in `SchoolBadges.swift`**
+- [x] **Step 2: Consolidate `DivisionBadge` in `SchoolBadges.swift`**
 
   `DivisionBadge` currently takes a `String` and has its own switch. Consolidate:
 
@@ -975,7 +975,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
   }
   ```
 
-- [ ] **Step 3: Update `SchoolCardView.swift`**
+- [x] **Step 3: Update `SchoolCardView.swift`**
 
   Remove `semanticBadgeColor` bridge; use `badgeColor` directly:
 
@@ -983,7 +983,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
   BadgeView(text: divisionEnum.displayName, color: divisionEnum.badgeColor)
   ```
 
-- [ ] **Step 4: Build + commit**
+- [x] **Step 4: Build + commit**
 
   ```bash
   cd TheRecruitingCompass
@@ -1003,7 +1003,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 **Files:**
 - Modify: `Features/Interactions/Models/InterestLevel.swift`
 
-- [ ] **Step 1: Update `InterestLevel.swift`**
+- [x] **Step 1: Update `InterestLevel.swift`**
 
   Replace `color: Color` with `badgeColor: BadgeColor`:
 
@@ -1018,7 +1018,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
   }
   ```
 
-- [ ] **Step 2: Fix callers**
+- [x] **Step 2: Fix callers**
 
   Search the codebase for `.interestLevel?.color` or `.color` on `InterestLevel` values:
 
@@ -1028,7 +1028,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 
   For each caller: if passing to `BadgeView`, change to `.badgeColor`. If using in `foregroundStyle()`, change to `.badgeColor.foregroundColor`.
 
-- [ ] **Step 3: Build + commit**
+- [x] **Step 3: Build + commit**
 
   ```bash
   cd TheRecruitingCompass
@@ -1047,7 +1047,7 @@ Remove the temporary bridge properties added in Phase 1 and replace with typed `
 
 The existing tests only check counts and identity (not specific hex values), so they will still pass after this change.
 
-- [ ] **Step 1: Replace raw hex strings with brand tokens**
+- [x] **Step 1: Replace raw hex strings with brand tokens**
 
   ```swift
   import SwiftUI
@@ -1081,7 +1081,7 @@ The existing tests only check counts and identity (not specific hex values), so 
   }
   ```
 
-- [ ] **Step 2: Run AnalyticsChartColors tests**
+- [x] **Step 2: Run AnalyticsChartColors tests**
 
   ```bash
   cd TheRecruitingCompass
@@ -1092,7 +1092,7 @@ The existing tests only check counts and identity (not specific hex values), so 
 
   Expected: all 9 tests pass (tests check identity/count, not hex values).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
   ```bash
   git add TheRecruitingCompass/TheRecruitingCompass/Features/Analytics/Models/AnalyticsChartColors.swift
@@ -1106,7 +1106,7 @@ The existing tests only check counts and identity (not specific hex values), so 
 **Files:**
 - Modify: `Features/Dashboard/Components/StatCardSkeleton.swift`
 
-- [ ] **Step 1: Add `@Environment(\.accessibilityReduceMotion)` and conditional animation**
+- [x] **Step 1: Add `@Environment(\.accessibilityReduceMotion)` and conditional animation**
 
   ```swift
   import SwiftUI
@@ -1153,7 +1153,7 @@ The existing tests only check counts and identity (not specific hex values), so 
   }
   ```
 
-- [ ] **Step 2: Build + commit**
+- [x] **Step 2: Build + commit**
 
   ```bash
   cd TheRecruitingCompass
@@ -1167,7 +1167,7 @@ The existing tests only check counts and identity (not specific hex values), so 
 
 ### Task 15: Phase 2 full test run
 
-- [ ] **Step 1: Run full test suite**
+- [x] **Step 1: Run full test suite**
 
   ```bash
   cd TheRecruitingCompass
@@ -1202,7 +1202,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
 **Files:**
 - Create: `Shared/Components/ShimmerModifier.swift`
 
-- [ ] **Step 1: Create the file**
+- [x] **Step 1: Create the file**
 
   ```swift
   import SwiftUI
@@ -1238,7 +1238,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
 **Files:**
 - Create: `Shared/Components/ListRowSkeleton.swift`
 
-- [ ] **Step 1: Create the file**
+- [x] **Step 1: Create the file**
 
   ```swift
   import SwiftUI
@@ -1290,7 +1290,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
 **Files:**
 - Create: `Shared/Components/CardSkeleton.swift`
 
-- [ ] **Step 1: Create the file**
+- [x] **Step 1: Create the file**
 
   ```swift
   import SwiftUI
@@ -1343,7 +1343,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
   }
   ```
 
-- [ ] **Step 2: Build all skeleton components**
+- [x] **Step 2: Build all skeleton components**
 
   ```bash
   cd TheRecruitingCompass
@@ -1353,7 +1353,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
 
   Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 3: Commit skeleton components**
+- [x] **Step 3: Commit skeleton components**
 
   ```bash
   git add \
@@ -1373,7 +1373,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
 - Create: `docs/design/states.md`
 - Create: `docs/design/components.md`
 
-- [ ] **Step 1: Create `docs/design/tokens.md`**
+- [x] **Step 1: Create `docs/design/tokens.md`**
 
   ```markdown
   # Design Tokens — iOS
@@ -1432,7 +1432,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
   - System colors (`.primary`, `.secondary`, `.tertiarySystemBackground`) are fine for structural/layout use
   ```
 
-- [ ] **Step 2: Create `docs/design/colors.md`**
+- [x] **Step 2: Create `docs/design/colors.md`**
 
   ```markdown
   # Color Roles — iOS
@@ -1548,7 +1548,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
   | Slate | `.slate` | Neutral, disabled, fallback |
   ```
 
-- [ ] **Step 3: Create `docs/design/states.md`**
+- [x] **Step 3: Create `docs/design/states.md`**
 
   ```markdown
   # Domain State → Visual Treatment — iOS
@@ -1684,7 +1684,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
   | `notSet` | `.slate` |
   ```
 
-- [ ] **Step 4: Create `docs/design/components.md`**
+- [x] **Step 4: Create `docs/design/components.md`**
 
   ```markdown
   # Components Guide — iOS
@@ -1798,7 +1798,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
   Low-level modifier for building custom skeleton shapes. Prefer `ListRowSkeleton` or `CardSkeleton` when the layout matches. Use `.shimmer()` only for one-off skeleton shapes.
   ```
 
-- [ ] **Step 5: Commit design docs**
+- [x] **Step 5: Commit design docs**
 
   ```bash
   git add docs/design/
@@ -1809,7 +1809,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
 
 ### Task 20: Final verification
 
-- [ ] **Step 1: Full build + test**
+- [x] **Step 1: Full build + test**
 
   ```bash
   cd TheRecruitingCompass
@@ -1819,7 +1819,7 @@ All Swift file paths below are relative to `TheRecruitingCompass/TheRecruitingCo
 
   Expected: BUILD SUCCEEDED, all tests pass.
 
-- [ ] **Step 2: Visual spot-check** (manual)
+- [x] **Step 2: Visual spot-check** (manual)
 
   Open the app in Simulator and verify:
   - Schools list: Division badges use correct colors (D1=blue, D2=emerald, etc.)
