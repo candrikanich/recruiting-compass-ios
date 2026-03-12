@@ -143,5 +143,5 @@ final class LoginViewModel {
       ?? "An error occurred. Please try again."
   }
 
-  nonisolated deinit {}
+
 }

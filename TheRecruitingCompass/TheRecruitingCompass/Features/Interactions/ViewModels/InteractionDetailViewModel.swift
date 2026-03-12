@@ -237,5 +237,5 @@ final class InteractionDetailViewModel {
     showDeleteConfirmation = false
   }
 
-  nonisolated deinit {}
+
 }

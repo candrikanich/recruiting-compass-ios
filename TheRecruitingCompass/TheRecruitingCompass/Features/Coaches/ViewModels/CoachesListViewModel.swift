@@ -218,5 +218,5 @@ final class CoachesListViewModel {
     }
   }
 
-  nonisolated deinit {}
+
 }

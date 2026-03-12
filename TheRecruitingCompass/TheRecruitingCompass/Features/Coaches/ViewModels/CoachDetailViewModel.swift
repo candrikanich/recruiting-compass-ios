@@ -371,7 +371,7 @@ final class CoachDetailViewModel {
     }
   }
 
-  nonisolated deinit {
+  deinit {
     pendingStatusReset?.cancel()
   }
 }

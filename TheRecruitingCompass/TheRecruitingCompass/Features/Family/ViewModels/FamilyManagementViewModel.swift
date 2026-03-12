@@ -339,5 +339,5 @@ final class FamilyManagementViewModel {
     errorMessage = nil
   }
 
-  nonisolated deinit {}
+
 }

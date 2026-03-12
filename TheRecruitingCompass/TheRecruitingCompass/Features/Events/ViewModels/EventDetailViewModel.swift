@@ -453,5 +453,5 @@ final class EventDetailViewModel {
     showSuccessToast = true
   }
 
-  nonisolated deinit {}
+
 }

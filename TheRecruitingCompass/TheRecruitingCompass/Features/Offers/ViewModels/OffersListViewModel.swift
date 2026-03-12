@@ -203,5 +203,5 @@ final class OffersListViewModel {
     EntityNameLookup.schoolName(for: schoolId, in: schoolNameMap)
   }
 
-  nonisolated deinit {}
+
 }

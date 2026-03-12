@@ -135,5 +135,5 @@ final class CommunicationTemplatesViewModel {
     formData = TemplateFormData()
   }
 
-  nonisolated deinit {}
+
 }

@@ -289,7 +289,7 @@ final class SchoolsListViewModel {
     }
   }
 
-  nonisolated deinit {}
+
 }
 
 extension SchoolFilters {

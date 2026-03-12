@@ -20,7 +20,7 @@ final class SettingsViewModel {
     self.preferenceService = preferenceService
   }
 
-  nonisolated deinit {}
+
 
   func loadCompletionStatus() async {
     logger.debug("Loading completion status for settings badges")

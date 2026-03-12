@@ -35,7 +35,7 @@ final class PlayerDetailsViewModel {
         self.isReadOnly = (userRole == .parent)
     }
 
-    nonisolated deinit {
+    deinit {
         pendingAutoSave?.cancel()
         pendingStatusReset?.cancel()
     }

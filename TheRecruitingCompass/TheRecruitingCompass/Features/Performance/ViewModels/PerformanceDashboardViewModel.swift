@@ -269,5 +269,5 @@ final class PerformanceDashboardViewModel {
     return generator.generate(metrics: sortedMetrics, userName: userName)
   }
 
-  nonisolated deinit {}
+
 }

@@ -445,5 +445,5 @@ final class DocumentDetailViewModel {
     error = nil
   }
 
-  nonisolated deinit {}
+
 }

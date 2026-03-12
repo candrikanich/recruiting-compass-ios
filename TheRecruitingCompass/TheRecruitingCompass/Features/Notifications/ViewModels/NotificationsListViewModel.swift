@@ -256,5 +256,5 @@ final class NotificationsListViewModel {
     return afterPattern.components(separatedBy: "&").first.map { String($0) }
   }
 
-  nonisolated deinit {}
+
 }

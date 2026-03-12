@@ -3,7 +3,7 @@ import UIKit
 import PDFKit
 
 final class PerformancePDFGenerator {
-  nonisolated deinit {}
+
 
   private let pageWidth: CGFloat = 612.0  // 8.5 inches at 72 DPI
   private let pageHeight: CGFloat = 792.0 // 11 inches at 72 DPI

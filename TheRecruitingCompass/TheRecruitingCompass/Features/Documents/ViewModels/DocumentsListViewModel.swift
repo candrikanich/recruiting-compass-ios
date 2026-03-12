@@ -367,5 +367,5 @@ final class DocumentsListViewModel {
     documentToView = document
   }
 
-  nonisolated deinit {}
+
 }

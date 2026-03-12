@@ -86,5 +86,5 @@ final class FamilyManager {
     selectedAthleteId = nil
   }
 
-  nonisolated deinit {}
+
 }

@@ -563,7 +563,7 @@ final class SchoolDetailViewModel {
     }
   }
 
-  nonisolated deinit {
+  deinit {
     pendingStatusReset?.cancel()
   }
 }

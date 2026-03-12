@@ -189,5 +189,5 @@ final class InviteJoinViewModel {
     }
   }
 
-  nonisolated deinit {}
+
 }

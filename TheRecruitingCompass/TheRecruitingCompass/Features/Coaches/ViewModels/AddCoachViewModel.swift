@@ -256,5 +256,5 @@ final class AddCoachViewModel {
     submitError = nil
   }
 
-  nonisolated deinit {}
+
 }

@@ -24,7 +24,7 @@ final class HomeLocationViewModel {
     self.geocoder = geocoder
   }
 
-  nonisolated deinit {
+  deinit {
     pendingAutoSave?.cancel()
     pendingStatusReset?.cancel()
   }

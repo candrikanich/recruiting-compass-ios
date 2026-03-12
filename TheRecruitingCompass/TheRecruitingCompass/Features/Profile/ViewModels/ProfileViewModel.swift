@@ -85,7 +85,7 @@ final class ProfileViewModel {
         self.authManager = authManager ?? .shared
     }
 
-    nonisolated deinit {}
+  
 
     // MARK: - Load
 

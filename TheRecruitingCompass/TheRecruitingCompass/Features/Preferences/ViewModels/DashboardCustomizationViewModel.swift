@@ -21,7 +21,7 @@ final class DashboardCustomizationViewModel {
     self.preferenceService = preferenceService
   }
 
-  nonisolated deinit {
+  deinit {
     pendingAutoSave?.cancel()
     pendingStatusReset?.cancel()
   }

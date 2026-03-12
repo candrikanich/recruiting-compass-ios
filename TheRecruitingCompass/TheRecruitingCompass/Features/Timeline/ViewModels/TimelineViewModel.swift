@@ -161,5 +161,5 @@ final class TimelineViewModel {
     dict.values.flatMap { $0 }
   }
 
-  nonisolated deinit {}
+
 }

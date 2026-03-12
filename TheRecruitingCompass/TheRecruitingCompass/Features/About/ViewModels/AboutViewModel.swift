@@ -24,7 +24,7 @@ final class AboutViewModel {
         self.feedbackService = feedbackService ?? FeedbackServiceImpl()
     }
 
-    nonisolated deinit {}
+  
 
     var isFormValid: Bool {
         !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

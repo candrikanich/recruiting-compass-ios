@@ -436,5 +436,5 @@ final class AnalyticsDashboardViewModel {
     }
   }
 
-  nonisolated deinit {}
+
 }

@@ -369,5 +369,5 @@ final class DashboardViewModel {
     }
   }
 
-  nonisolated deinit {}
+
 }

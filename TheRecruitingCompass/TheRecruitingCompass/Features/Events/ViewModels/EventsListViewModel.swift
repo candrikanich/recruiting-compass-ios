@@ -258,7 +258,7 @@ final class EventsListViewModel {
     return Calendar.current.date(from: components) ?? Date()
   }
 
-  nonisolated deinit {}
+
 }
 
 // MARK: - StatusFilter

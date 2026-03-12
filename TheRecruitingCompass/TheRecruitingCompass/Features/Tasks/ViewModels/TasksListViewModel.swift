@@ -165,5 +165,5 @@ final class TasksListViewModel {
     showSuccessMessage = false
   }
 
-  nonisolated deinit {}
+
 }

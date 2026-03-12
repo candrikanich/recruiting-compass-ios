@@ -218,5 +218,5 @@ final class InteractionsListViewModel {
     return EntityNameLookup.coachName(for: coachId, in: coachNameMap)
   }
 
-  nonisolated deinit {}
+
 }

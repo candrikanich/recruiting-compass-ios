@@ -250,7 +250,7 @@ final class DocumentViewerViewModel {
     collection != nil && currentIndex > 0
   }
 
-  nonisolated deinit {}
+
 }
 
 // MARK: - Document Download Delegate

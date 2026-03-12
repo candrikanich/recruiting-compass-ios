@@ -296,5 +296,5 @@ final class AddSchoolViewModel {
     }
   }
 
-  nonisolated deinit {}
+
 }
