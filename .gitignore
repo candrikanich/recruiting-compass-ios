@@ -44,5 +44,5 @@ supabase/.temp/
 # Release config (contains real credentials — never commit)
 TheRecruitingCompass/Release.xcconfig
 
-# Generated credential file baked from Release.xcconfig — never commit
-TheRecruitingCompass/TheRecruitingCompass/Core/Services/SupabaseConfig.generated.swift
+# SupabaseConfig.generated.swift is committed as a placeholder stub.
+# The "Generate Supabase config" Xcode build phase overwrites it with real values.
