@@ -19,7 +19,7 @@ struct InterestResultCard: View {
       VStack(alignment: .leading, spacing: 4) {
         Text(level.displayName)
           .font(.headline)
-          .foregroundStyle(level.color)
+          .foregroundStyle(level.badgeColor.foregroundColor)
 
         if let description = description {
           Text(description)
@@ -31,7 +31,7 @@ struct InterestResultCard: View {
       Spacer()
     }
     .padding()
-    .background(level.color.opacity(0.1))
+    .background(level.badgeColor.backgroundColor.opacity(0.1))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
     .accessibilityLabel("Interest level: \(level.displayName). \(description ?? "")")

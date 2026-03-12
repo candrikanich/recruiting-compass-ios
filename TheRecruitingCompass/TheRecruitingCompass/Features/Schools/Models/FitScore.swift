@@ -33,16 +33,12 @@ enum FitTier: String, Codable, CaseIterable, Sendable {
     }
   }
 
-  var badgeColors: (background: Color, text: Color) {
+  var badgeColor: BadgeColor {
     switch self {
-    case .reach:
-      return (Color.orange.opacity(0.15), .orange)
-    case .match:
-      return (Color.green.opacity(0.15), .green)
-    case .safety:
-      return (Color.blue.opacity(0.15), .blue)
-    case .unlikely:
-      return (Color.red.opacity(0.15), .red)
+    case .reach: return .orange
+    case .match: return .emerald
+    case .safety: return .emerald
+    case .unlikely: return .red
     }
   }
 

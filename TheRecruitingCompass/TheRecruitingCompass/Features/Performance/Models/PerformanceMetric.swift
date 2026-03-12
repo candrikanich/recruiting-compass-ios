@@ -94,7 +94,7 @@ struct PerformanceMetric: Codable, Identifiable, Equatable, Sendable {
   }
 
   var formattedValue: String {
-    let formatted = value.formatted(.number.precision(.fractionLength(2)))
+    let formatted = value.formatted(.number.precision(.fractionLength(2)).grouping(.never))
     if unit.isEmpty {
       return formatted
     }

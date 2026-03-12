@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 
 enum Division: String, Codable, CaseIterable, Sendable {
   case d1 = "D1"
@@ -11,22 +11,7 @@ enum Division: String, Codable, CaseIterable, Sendable {
     rawValue
   }
 
-  var badgeColor: Color {
-    switch self {
-    case .d1:
-      return Color.blue
-    case .d2:
-      return Color.green
-    case .d3:
-      return Color.orange
-    case .naia:
-      return Color.purple
-    case .juco:
-      return Color.teal
-    }
-  }
-
-  var semanticBadgeColor: BadgeColor {
+  var badgeColor: BadgeColor {
     switch self {
     case .d1:   return .blue
     case .d2:   return .emerald

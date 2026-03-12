@@ -3,6 +3,7 @@ import SwiftUI
 struct FitScoreSection: View {
   let fitScore: FitScoreResult
   @State private var isExpanded = false
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
@@ -34,18 +35,18 @@ struct FitScoreSection: View {
           // Tier badge
           HStack(spacing: 6) {
             Circle()
-              .fill(fitScore.tier.badgeColors.background)
+              .fill(fitScore.tier.badgeColor.indicatorColor)
               .frame(width: 8, height: 8)
               .accessibilityHidden(true)
 
             Text(fitScore.tier.displayName)
               .font(.subheadline)
               .fontWeight(.semibold)
-              .foregroundStyle(fitScore.tier.badgeColors.text)
+              .foregroundStyle(fitScore.tier.badgeColor.foregroundColor)
           }
           .padding(.horizontal, 12)
           .padding(.vertical, 6)
-          .background(fitScore.tier.badgeColors.background)
+          .background(fitScore.tier.badgeColor.backgroundColor)
           .clipShape(.rect(cornerRadius: 12))
 
           Text(fitScore.tier.description)
@@ -58,8 +59,10 @@ struct FitScoreSection: View {
 
         // Expand/collapse button
         Button {
-          withAnimation {
+          if reduceMotion {
             isExpanded.toggle()
+          } else {
+            withAnimation { isExpanded.toggle() }
           }
         } label: {
           Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
@@ -80,16 +83,16 @@ struct FitScoreSection: View {
             .padding(.top, 8)
 
           if let athletic = fitScore.breakdown.athleticFit {
-            BreakdownRow(label: "Athletic Fit", score: athletic, color: .blue)
+            BreakdownRow(label: "Athletic Fit", score: athletic, color: Color.Brand.blue500)
           }
           if let academic = fitScore.breakdown.academicFit {
-            BreakdownRow(label: "Academic Fit", score: academic, color: .green)
+            BreakdownRow(label: "Academic Fit", score: academic, color: Color.Brand.purple500)
           }
           if let opportunity = fitScore.breakdown.opportunityFit {
-            BreakdownRow(label: "Opportunity Fit", score: opportunity, color: .orange)
+            BreakdownRow(label: "Opportunity Fit", score: opportunity, color: Color.Brand.emerald500)
           }
           if let personal = fitScore.breakdown.personalFit {
-            BreakdownRow(label: "Personal Fit", score: personal, color: .purple)
+            BreakdownRow(label: "Personal Fit", score: personal, color: Color.Brand.orange500)
           }
 
           if !fitScore.missingDimensions.isEmpty {
@@ -106,7 +109,7 @@ struct FitScoreSection: View {
             .padding(.top, 4)
           }
         }
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        .transition(reduceMotion ? .identity : .opacity.combined(with: .move(edge: .top)))
       }
     }
     .padding()
@@ -115,12 +118,9 @@ struct FitScoreSection: View {
   }
 
   private func fitScoreColor(_ score: Double) -> Color {
-    switch score {
-    case 80...: return .green
-    case 60..<80: return .blue
-    case 40..<60: return .orange
-    default: return .red
-    }
+    if score >= 70 { return Color.Brand.emerald600 }
+    if score >= 50 { return Color.Brand.orange600 }
+    return Color.Brand.red600
   }
 }
 

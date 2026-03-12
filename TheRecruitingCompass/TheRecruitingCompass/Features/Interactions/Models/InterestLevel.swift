@@ -25,12 +25,12 @@ enum InterestLevel: String, Codable, Sendable {
     }
   }
 
-  var color: Color {
+  var badgeColor: BadgeColor {
     switch self {
-    case .high: return .green
+    case .high: return .emerald
     case .medium: return .orange
-    case .low: return .gray
-    case .notSet: return .gray
+    case .low: return .slate
+    case .notSet: return .slate
     }
   }
 }

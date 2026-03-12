@@ -14,12 +14,12 @@ struct RecentInteractionRow: View {
       // Type icon with colored background
       ZStack {
         Circle()
-          .fill(interaction.type.iconColor.opacity(0.15))
+          .fill(interaction.type.tintColor.opacity(0.15))
           .frame(width: iconSize + 12, height: iconSize + 12)
 
         Image(systemName: interaction.type.iconName)
           .font(.system(size: iconSize * 0.6))
-          .foregroundStyle(interaction.type.iconColor)
+          .foregroundStyle(interaction.type.tintColor)
       }
       .accessibilityHidden(true)
 
@@ -32,10 +32,10 @@ struct RecentInteractionRow: View {
           if let sentiment = interaction.sentiment {
             Text(sentiment.displayName)
               .font(.caption.weight(.medium))
-              .foregroundStyle(.white)
+              .foregroundStyle(sentiment.badgeColor.foregroundColor)
               .padding(.horizontal, 6)
               .padding(.vertical, 2)
-              .background(sentiment.badgeColor)
+              .background(sentiment.badgeColor.backgroundColor)
               .clipShape(Capsule())
           }
         }
