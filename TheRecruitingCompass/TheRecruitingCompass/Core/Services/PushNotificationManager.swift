@@ -77,7 +77,9 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
     func deleteDeviceToken() async {
         guard let token = currentTokenString,
               let userId = authManager.user?.id else { return }
-        // Clear token immediately so callers see nil even if Supabase call fails
+        // Clear in-memory token immediately so callers see nil even if the Supabase call fails.
+        // If the deletion fails, the orphaned row is harmless — the next login for the same user
+        // on this device will upsert the same token, and the row is keyed on (user_id, token).
         currentTokenString = nil
         do {
             try await supabaseManager.client
@@ -111,7 +113,13 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
     }
 
     func clearBadge() {
-        Task { try? await UNUserNotificationCenter.current().setBadgeCount(0) }
+        Task {
+            do {
+                try await UNUserNotificationCenter.current().setBadgeCount(0)
+            } catch {
+                logger.error("Clear badge failed: \(error.localizedDescription)")
+            }
+        }
     }
 
     // MARK: - Navigation
@@ -145,12 +153,14 @@ extension PushNotificationManager: UNUserNotificationCenterDelegate {
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let userInfo = response.notification.request.content.userInfo
-        if let destination = NotificationDestinationParser.destination(fromPayload: userInfo) {
-            NotificationCenter.default.post(
-                name: .pushNotificationTapped,
-                object: nil,
-                userInfo: ["destination": destination]
-            )
+        Task { @MainActor in
+            if let destination = NotificationDestinationParser.destination(fromPayload: userInfo) {
+                NotificationCenter.default.post(
+                    name: .pushNotificationTapped,
+                    object: nil,
+                    userInfo: ["destination": destination]
+                )
+            }
         }
         completionHandler()
     }
