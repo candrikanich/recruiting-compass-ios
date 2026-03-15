@@ -10,21 +10,21 @@ import SwiftUI
 /// Displays content in HStack on iPad/wide screens, VStack on iPhone/narrow screens
 struct AdaptiveHStackVStack<Content: View>: View {
   let spacing: CGFloat
-  @ViewBuilder let content: () -> Content
+  @ViewBuilder let content: Content
 
-  init(spacing: CGFloat = 16, @ViewBuilder content: @escaping () -> Content) {
+  init(spacing: CGFloat = 16, @ViewBuilder content: () -> Content) {
     self.spacing = spacing
-    self.content = content
+    self.content = content()
   }
 
   var body: some View {
     ViewThatFits {
       HStack(spacing: spacing) {
-        content()
+        content
       }
 
       VStack(spacing: spacing) {
-        content()
+        content
       }
     }
   }
