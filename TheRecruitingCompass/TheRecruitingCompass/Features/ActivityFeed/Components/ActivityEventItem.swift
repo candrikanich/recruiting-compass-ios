@@ -44,7 +44,7 @@ struct ActivityEventItem: View {
 
       // Time + chevron
       VStack(alignment: .trailing, spacing: 4) {
-        Text(RelativeTimeFormatter.format(event.timestamp))
+        Text(event.timestamp, format: .relative(presentation: .named))
           .font(.caption)
           .foregroundStyle(Color.tertiaryText)
 
@@ -87,13 +87,14 @@ struct ActivityEventItem: View {
   }
 
   private var accessibilityLabel: String {
+    let relativeTime = RelativeDateTimeFormatter().localizedString(for: event.timestamp, relativeTo: Date())
     var parts: [String] = []
     parts.append(event.type.label)
     parts.append(event.title)
     if !event.description.isEmpty {
       parts.append(event.description)
     }
-    parts.append(RelativeTimeFormatter.format(event.timestamp))
+    parts.append(relativeTime)
     return parts.joined(separator: ", ")
   }
 }

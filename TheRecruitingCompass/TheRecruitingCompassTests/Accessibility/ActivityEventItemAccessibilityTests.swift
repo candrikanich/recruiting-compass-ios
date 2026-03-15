@@ -309,13 +309,14 @@ final class ActivityEventItemAccessibilityTests: XCTestCase {
   }
 
   private func buildAccessibilityLabel(for event: ActivityEvent) -> String {
+    let relativeTime = RelativeDateTimeFormatter().localizedString(for: event.timestamp, relativeTo: Date())
     var parts: [String] = []
     parts.append(event.type.label)
     parts.append(event.title)
     if !event.description.isEmpty {
       parts.append(event.description)
     }
-    parts.append(RelativeTimeFormatter.format(event.timestamp))
+    parts.append(relativeTime)
     return parts.joined(separator: ", ")
   }
 
