@@ -22,7 +22,7 @@ struct AppErrorView: View {
             .padding(.horizontal, 24)
         }
         .onAppear {
-            UIAccessibility.post(notification: .announcement, argument: config.headline)
+            AccessibilityNotification.Announcement(config.headline).post()
         }
     }
 

@@ -74,7 +74,7 @@ final class AddCoachViewModel {
       coachesService: coachesService,
       familyUnitId: familyUnitId,
       userId: userId,
-      announcer: UIAccessibilityAnnouncer()
+      announcer: AccessibilityAnnouncer()
     )
   }
 
@@ -194,7 +194,7 @@ final class AddCoachViewModel {
 
       // Success announcement with haptic feedback
       let announcement = "Coach \(newCoach.firstName) \(newCoach.lastName) added successfully"
-      announcer.announceWithFeedback(announcement, success: true)
+      announcer.announce(announcement)
 
       return newCoach
 
@@ -203,10 +203,7 @@ final class AddCoachViewModel {
       submitError = "Failed to create coach. Please try again."
 
       // Error announcement with haptic feedback
-      announcer.announceWithFeedback(
-        "Failed to create coach. \(error.localizedDescription)",
-        success: false
-      )
+      announcer.announce("Failed to create coach. \(error.localizedDescription)")
 
       return nil
     }

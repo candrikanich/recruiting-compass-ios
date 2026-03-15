@@ -97,7 +97,7 @@ final class AddSchoolViewModel {
       schoolFaviconService: SchoolFaviconService(),
       familyUnitId: familyUnitId,
       userId: userId,
-      announcer: UIAccessibilityAnnouncer()
+      announcer: AccessibilityAnnouncer()
     )
   }
 

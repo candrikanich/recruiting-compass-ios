@@ -112,7 +112,7 @@ extension AddSchoolViewModel {
 
       // Success announcement with haptic feedback
       let announcement = "School \(newSchool.name) added successfully"
-      announcer.announceWithFeedback(announcement, success: true)
+      announcer.announce(announcement)
 
       return newSchool
 
@@ -121,10 +121,7 @@ extension AddSchoolViewModel {
       submitError = "Failed to create school. Please try again."
 
       // Error announcement with haptic feedback
-      announcer.announceWithFeedback(
-        "Failed to create school. \(error.localizedDescription)",
-        success: false
-      )
+      announcer.announce("Failed to create school. \(error.localizedDescription)")
 
       return nil
     }
