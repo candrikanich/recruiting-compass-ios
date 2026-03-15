@@ -7,6 +7,8 @@
 
 import SwiftUI
 import Supabase
+import UIKit
+import UserNotifications
 import os
 
 struct PendingInvite: Identifiable {
@@ -15,6 +17,7 @@ struct PendingInvite: Identifiable {
 
 @main
 struct TheRecruitingCompassApp: App {
+  @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
   @State private var authManager = AuthManager.shared
   @State private var familyManager = FamilyManager.shared
   @State private var onboardingManager = OnboardingManager()
@@ -23,6 +26,7 @@ struct TheRecruitingCompassApp: App {
   @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
   @State private var pendingInvite: PendingInvite?
+  @State private var pendingPushDestination: NotificationDestination?
   @Environment(\.accessibilityReduceMotion) var reduceMotion
 
   var body: some Scene {
@@ -35,8 +39,23 @@ struct TheRecruitingCompassApp: App {
             authManager: authManager,
             familyManager: familyManager,
             onboardingManager: onboardingManager,
-            networkMonitor: networkMonitor
+            networkMonitor: networkMonitor,
+            pendingPushDestination: $pendingPushDestination
           )
+          .task {
+            UNUserNotificationCenter.current().delegate = PushNotificationManager.shared
+            await PushNotificationManager.shared.requestPermission()
+            await PushNotificationManager.shared.syncBadgeCount()
+            if let userId = authManager.user?.id {
+              try? await PushPreferencesServiceImpl(supabaseManager: .shared).seedDefaultPreferences(userId: userId)
+            }
+          }
+          .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            Task { await PushNotificationManager.shared.syncBadgeCount() }
+          }
+          .onReceive(NotificationCenter.default.publisher(for: .pushNotificationTapped)) { notification in
+            pendingPushDestination = notification.userInfo?["destination"] as? NotificationDestination
+          }
         } else {
           NavigationStack {
             LandingView()
@@ -142,6 +161,7 @@ private struct AuthenticatedContent: View {
   let familyManager: FamilyManager
   let onboardingManager: OnboardingManager
   let networkMonitor: NetworkMonitor
+  @Binding var pendingPushDestination: NotificationDestination?
 
   var body: some View {
     ZStack(alignment: .top) {
@@ -150,7 +170,7 @@ private struct AuthenticatedContent: View {
           Task { await familyManager.loadFamilyData() }
         })
       } else if onboardingManager.needsOnboarding == false {
-        MainTabView()
+        MainTabView(pendingPushDestination: $pendingPushDestination)
         if !networkMonitor.isConnected {
           OfflineBanner()
         }

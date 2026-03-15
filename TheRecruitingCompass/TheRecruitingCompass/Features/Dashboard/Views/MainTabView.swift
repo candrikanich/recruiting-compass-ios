@@ -16,6 +16,15 @@ struct MainTabView: View {
   @State private var notificationsViewModel = NotificationsListViewModel()
   @State private var dashboardViewModel = DashboardViewModel()
   @State private var selectedTab: AppTab = .dashboard
+  @State private var schoolsPath = NavigationPath()
+  @State private var coachesPath = NavigationPath()
+  @State private var interactionsPath = NavigationPath()
+  @State private var morePath: [MorePath] = []
+  @Binding var pendingPushDestination: NotificationDestination?
+
+  init(pendingPushDestination: Binding<NotificationDestination?> = .constant(nil)) {
+    self._pendingPushDestination = pendingPushDestination
+  }
 
   var body: some View {
     TabView(selection: $selectedTab) {
@@ -38,7 +47,7 @@ struct MainTabView: View {
       .tag(AppTab.dashboard)
       .accessibilityLabel("Dashboard")
 
-      SchoolsListView()
+      SchoolsListView(navigationPath: $schoolsPath)
       .tabItem {
         Label {
           Text("Schools")
@@ -51,7 +60,7 @@ struct MainTabView: View {
       .tag(AppTab.schools)
       .accessibilityLabel("Schools")
 
-      CoachesListView()
+      CoachesListView(navigationPath: $coachesPath)
       .tabItem {
         Label {
           Text("Coaches")
@@ -64,7 +73,7 @@ struct MainTabView: View {
       .tag(AppTab.coaches)
       .accessibilityLabel("Coaches")
 
-      InteractionsListView()
+      InteractionsListView(navigationPath: $interactionsPath)
       .tabItem {
         Label {
           Text("Interactions")
@@ -77,7 +86,7 @@ struct MainTabView: View {
       .tag(AppTab.interactions)
       .accessibilityLabel("Interactions")
 
-      MoreMenuView(notificationsViewModel: notificationsViewModel)
+      MoreMenuView(notificationsViewModel: notificationsViewModel, path: $morePath)
       .tabItem {
         Label {
           Text("More")
@@ -94,6 +103,37 @@ struct MainTabView: View {
     .environment(\.switchTab, { selectedTab = $0 })
     .task {
       await notificationsViewModel.fetchNotifications()
+    }
+    .onChange(of: pendingPushDestination) { _, destination in
+      guard let destination else { return }
+      pendingPushDestination = nil
+      navigate(to: destination)
+    }
+  }
+
+  private func navigate(to destination: NotificationDestination) {
+    switch destination {
+    case .schoolDetail(let id):
+      var path = NavigationPath()
+      path.append(SchoolDestination.detail(id))
+      schoolsPath = path
+      selectedTab = .schools
+    case .coachDetail(let id):
+      var path = NavigationPath()
+      path.append(CoachDestination.detail(id))
+      coachesPath = path
+      selectedTab = .coaches
+    case .interactionDetail(let id):
+      var path = NavigationPath()
+      path.append(InteractionDestination.detail(id))
+      interactionsPath = path
+      selectedTab = .interactions
+    case .offerDetail(let id):
+      morePath = [.section(.offers), .offerDetail(offerId: id)]
+      selectedTab = .more
+    case .eventDetail(let id):
+      morePath = [.section(.events), .eventDetail(eventId: id)]
+      selectedTab = .more
     }
   }
 

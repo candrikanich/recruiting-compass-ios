@@ -183,6 +183,8 @@ final class AuthManager: AuthManaging {
   }
 
   func logout() async throws {
+    // Delete device token before clearing user identity
+    await PushNotificationManager.shared.deleteDeviceToken()
     do {
       try await supabaseManager.signOut()
     } catch {

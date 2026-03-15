@@ -5,6 +5,11 @@ struct SchoolsListView: View {
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
   @State private var navigationPath = NavigationPath()
+  @Binding private var externalNavigationPath: NavigationPath
+
+  init(navigationPath: Binding<NavigationPath>? = nil) {
+    self._externalNavigationPath = navigationPath ?? .constant(NavigationPath())
+  }
 
   private var isShowingDeleteError: Binding<Bool> {
     Binding(
@@ -89,6 +94,11 @@ struct SchoolsListView: View {
       type: .success,
       duration: 3.0
     )
+    .onChange(of: externalNavigationPath) { _, newPath in
+      guard !newPath.isEmpty else { return }
+      navigationPath = newPath
+      externalNavigationPath = NavigationPath()
+    }
   }
 
   // MARK: - List Content
