@@ -31,6 +31,11 @@ struct NotificationDestinationParserTests {
         #expect(NotificationDestinationParser.destination(from: n) == .interactionDetail(id: "i1"))
     }
 
+    @Test func interactionEntityWithNoFallbackIdReturnsNil() {
+        let n = makeNotification(entityType: "interaction", entityId: nil)
+        #expect(NotificationDestinationParser.destination(from: n) == nil)
+    }
+
     @Test func coachFallsBackToEntityId() {
         let n = makeNotification(entityType: "coach", entityId: "fallback")
         #expect(NotificationDestinationParser.destination(from: n) == .coachDetail(id: "fallback"))

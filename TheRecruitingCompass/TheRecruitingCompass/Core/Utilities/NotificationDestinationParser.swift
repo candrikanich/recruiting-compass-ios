@@ -28,6 +28,7 @@ enum NotificationDestinationParser {
         case "school":      return notification.relatedSchoolId
         case "offer":       return notification.relatedOfferId
         case "event":       return notification.relatedEventId
+        // AppNotification has no relatedInteractionId — intentionally falls back to relatedEntityId
         default:            return nil
         }
     }
@@ -49,6 +50,8 @@ enum NotificationDestinationParser {
     }
 
     private static func destination(fromActionUrl url: String) -> NotificationDestination? {
+        // Coach URLs use the highlight= query param form only (e.g. /coaches?highlight=<id>).
+        // Path-style /coaches/<id> is not a valid coach URL in this app.
         if url.contains("/coaches") {
             return extractId(from: url, pattern: "highlight=").map { .coachDetail(id: $0) }
         } else if url.contains("/schools/") {
@@ -71,6 +74,6 @@ enum NotificationDestinationParser {
 
     private static func lastPathComponent(of url: String) -> String? {
         let component = url.components(separatedBy: "/").last
-        return component.flatMap { $0.isEmpty ? nil : $0 }
+        return component.flatMap { $0.isEmpty ? nil : $0.components(separatedBy: "?").first }
     }
 }
