@@ -178,7 +178,17 @@ private struct DashboardLoadingSection: View {
   var body: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
       ForEach(0..<6, id: \.self) { _ in
-        StatCardSkeleton()
+        StatCard(
+          title: "Loading",
+          count: 0,
+          subtitle: nil,
+          description: nil,
+          icon: "circle",
+          gradientColors: [Color.Brand.slate100, Color.Brand.slate100],
+          isEnabled: false,
+          destination: nil
+        )
+        .redacted(reason: .placeholder)
       }
     }
   }
