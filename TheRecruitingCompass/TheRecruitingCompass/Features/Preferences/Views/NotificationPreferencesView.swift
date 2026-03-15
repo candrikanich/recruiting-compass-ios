@@ -112,8 +112,13 @@ struct NotificationPreferencesView: View {
       } header: {
         Text("Push Notifications")
       } footer: {
-        Text("Controls which notification types trigger a push alert on your device.")
-          .font(.caption)
+        if pushAuthStatus == .notDetermined {
+          Text("Push notifications have not been enabled yet. You'll be prompted when you next use the app.")
+            .font(.caption)
+        } else if pushAuthStatus == .authorized || pushAuthStatus == .provisional {
+          Text("Controls which notification types trigger a push alert on your device.")
+            .font(.caption)
+        }
       }
 
       // Actions Section
@@ -142,6 +147,12 @@ struct NotificationPreferencesView: View {
       )
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
+    .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+      Task {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        pushAuthStatus = settings.authorizationStatus
+      }
+    }
     .task {
       let settings = await UNUserNotificationCenter.current().notificationSettings()
       pushAuthStatus = settings.authorizationStatus

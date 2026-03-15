@@ -18,6 +18,7 @@ final class NotificationPreferencesViewModel {
   private let pushPreferencesService: (any PushPreferencesManaging)?
   @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
   @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
+  @ObservationIgnored nonisolated(unsafe) private var pendingPreferenceUpdates: [NotificationType: Task<Void, Never>] = [:]
 
   init(
     preferenceService: any PreferenceManaging,
@@ -30,6 +31,7 @@ final class NotificationPreferencesViewModel {
   nonisolated deinit {
     pendingAutoSave?.cancel()
     pendingStatusReset?.cancel()
+    pendingPreferenceUpdates.values.forEach { $0.cancel() }
   }
 
   // MARK: - Load Preferences
@@ -119,13 +121,20 @@ final class NotificationPreferencesViewModel {
 
   func updatePushPreference(userId: String, type: NotificationType, enabled: Bool) async {
     guard let service = pushPreferencesService else { return }
+    pendingPreferenceUpdates[type]?.cancel()
     pushPreferences[type] = enabled  // optimistic update
-    do {
-      try await service.updatePreference(userId: userId, type: type, pushEnabled: enabled)
-    } catch {
-      pushPreferences[type] = !enabled  // revert
-      errorMessage = "Failed to update push preference."
-      logger.error("updatePushPreference failed: \(error.localizedDescription)")
+    let task = Task {
+      guard !Task.isCancelled else { return }
+      do {
+        try await service.updatePreference(userId: userId, type: type, pushEnabled: enabled)
+      } catch {
+        guard !Task.isCancelled else { return }
+        pushPreferences[type] = !enabled  // revert
+        errorMessage = "Failed to update push preference."
+        logger.error("updatePushPreference failed: \(error.localizedDescription)")
+      }
     }
+    pendingPreferenceUpdates[type] = task
+    await task.value
   }
 }
