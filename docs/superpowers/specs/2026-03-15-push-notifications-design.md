@@ -176,6 +176,8 @@ CREATE POLICY "notification_preferences: users manage own"
 
 **Location:** `supabase/functions/send-push-notification/index.ts`
 
+**Prerequisites:** The `pg_net` extension must be enabled on the Supabase project (`supabase_functions.http_request` depends on it). Verify with `SELECT * FROM pg_extension WHERE extname = 'pg_net'`. Supabase hosted projects have it enabled by default.
+
 **Auth:** Runs as service role (bypasses RLS). The service role key is **never embedded in SQL** — it is injected automatically by Supabase's function invoker when triggered via `supabase_functions.http_request`. No secret appears in DDL.
 
 **Trigger:**
