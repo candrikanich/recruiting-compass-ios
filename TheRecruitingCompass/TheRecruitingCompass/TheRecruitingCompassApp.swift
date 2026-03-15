@@ -75,10 +75,7 @@ struct TheRecruitingCompassApp: App {
           showBiometricLock = true
         }
       }
-      .alert("Enable Face ID?", isPresented: Binding(
-        get: { authManager.pendingBiometricEnrollmentOffer },
-        set: { authManager.pendingBiometricEnrollmentOffer = $0 }
-      )) {
+      .alert("Enable Face ID?", isPresented: $authManager.pendingBiometricEnrollmentOffer) {
         Button("Enable") {
           do {
             try authManager.enableBiometrics()

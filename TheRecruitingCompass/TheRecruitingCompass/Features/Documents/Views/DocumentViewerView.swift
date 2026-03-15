@@ -127,13 +127,10 @@ struct DocumentViewerView: View {
     }
     .statusBarHidden(!viewModel.isToolbarVisible)
     .accessibilityIdentifier("document-viewer-view")
-    .sheet(isPresented: Binding(
-      get: { viewModel.isShareSheetPresented },
-      set: {
-        viewModel.isShareSheetPresented = $0
-        if !$0 { viewModel.downloadedFileURL = nil }
-      }
-    )) {
+    .sheet(
+      isPresented: $viewModel.isShareSheetPresented,
+      onDismiss: { viewModel.downloadedFileURL = nil }
+    ) {
       if !viewModel.shareItems.isEmpty {
         ShareSheet(items: viewModel.shareItems)
       }
