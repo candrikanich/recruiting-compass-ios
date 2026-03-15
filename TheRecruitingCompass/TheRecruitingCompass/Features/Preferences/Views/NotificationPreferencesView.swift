@@ -1,10 +1,17 @@
 import SwiftUI
+import UserNotifications
 
 struct NotificationPreferencesView: View {
   @State private var viewModel: NotificationPreferencesViewModel
+  @Environment(\.openURL) private var openURL
+  @Environment(AuthManager.self) private var authManager
+  @State private var pushAuthStatus: UNAuthorizationStatus = .notDetermined
 
-  init(preferenceService: PreferenceManaging) {
-    _viewModel = State(initialValue: NotificationPreferencesViewModel(preferenceService: preferenceService))
+  init(preferenceService: any PreferenceManaging, pushPreferencesService: (any PushPreferencesManaging)? = nil) {
+    _viewModel = State(initialValue: NotificationPreferencesViewModel(
+      preferenceService: preferenceService,
+      pushPreferencesService: pushPreferencesService
+    ))
   }
 
   var body: some View {
@@ -71,6 +78,44 @@ struct NotificationPreferencesView: View {
         Text("Email Notifications")
       }
 
+      // Push Notifications Section
+      Section {
+        if pushAuthStatus == .denied {
+          HStack {
+            Image(systemName: "bell.slash")
+              .foregroundStyle(.secondary)
+            Text("Push notifications are disabled in iOS Settings.")
+              .font(.subheadline)
+              .foregroundStyle(.secondary)
+            Spacer()
+            Button("Open Settings") {
+              if let url = URL(string: UIApplication.openSettingsURLString) {
+                openURL(url)
+              }
+            }
+            .font(.subheadline)
+          }
+          .accessibilityElement(children: .combine)
+          .accessibilityLabel("Push notifications disabled. Open Settings to enable.")
+        } else {
+          ForEach(NotificationType.allCases.filter { $0 != .unknown }, id: \.self) { type in
+            Toggle(type.label, isOn: Binding(
+              get: { viewModel.pushPreferences[type] ?? true },
+              set: { enabled in
+                guard let userId = authManager.user?.id else { return }
+                Task { await viewModel.updatePushPreference(userId: userId, type: type, enabled: enabled) }
+              }
+            ))
+            .accessibilityLabel("Push notifications for \(type.label)")
+          }
+        }
+      } header: {
+        Text("Push Notifications")
+      } footer: {
+        Text("Controls which notification types trigger a push alert on your device.")
+          .font(.caption)
+      }
+
       // Actions Section
       Section {
         Button("Reset to Defaults") {
@@ -98,7 +143,12 @@ struct NotificationPreferencesView: View {
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
     .task {
+      let settings = await UNUserNotificationCenter.current().notificationSettings()
+      pushAuthStatus = settings.authorizationStatus
       await viewModel.loadPreferences()
+      if let userId = authManager.user?.id {
+        await viewModel.loadPushPreferences(userId: userId)
+      }
     }
   }
 }
@@ -116,4 +166,5 @@ struct NotificationPreferencesView: View {
   return NavigationStack {
     NotificationPreferencesView(preferenceService: PreviewMock())
   }
+  .environment(AuthManager.shared)
 }
