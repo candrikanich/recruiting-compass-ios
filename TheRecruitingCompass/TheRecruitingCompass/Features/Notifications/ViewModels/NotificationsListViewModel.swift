@@ -195,66 +195,6 @@ final class NotificationsListViewModel {
   // MARK: - Navigation Parsing
 
   private func parseDestination(from notification: AppNotification) -> NotificationDestination? {
-    if let actionUrl = notification.actionUrl {
-      return parseActionUrl(actionUrl)
-    }
-
-    guard let entityType = notification.relatedEntityType else { return nil }
-
-    switch entityType {
-    case "coach":
-      if let id = notification.relatedCoachId ?? notification.relatedEntityId {
-        return .coachDetail(id: id)
-      }
-    case "school":
-      if let id = notification.relatedSchoolId ?? notification.relatedEntityId {
-        return .schoolDetail(id: id)
-      }
-    case "offer":
-      if let id = notification.relatedOfferId ?? notification.relatedEntityId {
-        return .offerDetail(id: id)
-      }
-    case "event":
-      if let id = notification.relatedEventId ?? notification.relatedEntityId {
-        return .eventDetail(id: id)
-      }
-    case "interaction":
-      if let id = notification.relatedEntityId {
-        return .interactionDetail(id: id)
-      }
-    default:
-      break
-    }
-
-    return nil
+    NotificationDestinationParser.destination(from: notification)
   }
-
-  private func parseActionUrl(_ url: String) -> NotificationDestination? {
-    if url.contains("/coaches") {
-      let id = extractId(from: url, pattern: "highlight=")
-      return id.map { .coachDetail(id: $0) }
-    } else if url.contains("/schools/") {
-      guard let id = url.components(separatedBy: "/").last, !id.isEmpty else { return nil }
-      return .schoolDetail(id: id)
-    } else if url.contains("/offers") {
-      let id = extractId(from: url, pattern: "highlight=")
-      return id.map { .offerDetail(id: $0) }
-    } else if url.contains("/events/") {
-      guard let id = url.components(separatedBy: "/").last, !id.isEmpty else { return nil }
-      return .eventDetail(id: id)
-    } else if url.contains("/interactions/") {
-      guard let id = url.components(separatedBy: "/").last, !id.isEmpty else { return nil }
-      return .interactionDetail(id: id)
-    }
-
-    return nil
-  }
-
-  private func extractId(from url: String, pattern: String) -> String? {
-    guard let range = url.range(of: pattern) else { return nil }
-    let afterPattern = url[range.upperBound...]
-    return afterPattern.components(separatedBy: "&").first.map { String($0) }
-  }
-
-
 }
