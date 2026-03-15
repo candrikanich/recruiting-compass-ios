@@ -19,77 +19,32 @@ struct MainTabView: View {
 
   var body: some View {
     TabView(selection: $selectedTab) {
-      NavigationStack {
-        DashboardView(viewModel: dashboardViewModel)
-          .activityNavigation()
-          .navigationDestination(for: DashboardDestination.self) { destination in
-            dashboardDestinationView(for: destination)
-          }
-      }
-      .tabItem {
-        Label {
-          Text("Dashboard")
-        } icon: {
-          Image(systemName: "house")
-            .fontWeight(.thin)
+      Tab("Dashboard", systemImage: "house", value: AppTab.dashboard) {
+        NavigationStack {
+          DashboardView(viewModel: dashboardViewModel)
+            .activityNavigation()
+            .navigationDestination(for: DashboardDestination.self) { destination in
+              dashboardDestinationView(for: destination)
+            }
         }
-        .environment(\.symbolVariants, .none)
       }
-      .tag(AppTab.dashboard)
-      .accessibilityLabel("Dashboard")
 
-      SchoolsListView()
-      .tabItem {
-        Label {
-          Text("Schools")
-        } icon: {
-          Image(systemName: "building.2")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
+      Tab("Schools", systemImage: "building.2", value: AppTab.schools) {
+        SchoolsListView()
       }
-      .tag(AppTab.schools)
-      .accessibilityLabel("Schools")
 
-      CoachesListView()
-      .tabItem {
-        Label {
-          Text("Coaches")
-        } icon: {
-          Image(systemName: "person.2")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
+      Tab("Coaches", systemImage: "person.2", value: AppTab.coaches) {
+        CoachesListView()
       }
-      .tag(AppTab.coaches)
-      .accessibilityLabel("Coaches")
 
-      InteractionsListView()
-      .tabItem {
-        Label {
-          Text("Interactions")
-        } icon: {
-          Image(systemName: "bubble.left.and.bubble.right")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
+      Tab("Interactions", systemImage: "bubble.left.and.bubble.right", value: AppTab.interactions) {
+        InteractionsListView()
       }
-      .tag(AppTab.interactions)
-      .accessibilityLabel("Interactions")
 
-      MoreMenuView(notificationsViewModel: notificationsViewModel)
-      .tabItem {
-        Label {
-          Text("More")
-        } icon: {
-          Image(systemName: "ellipsis.circle")
-            .fontWeight(.thin)
-        }
-        .environment(\.symbolVariants, .none)
+      Tab("More", systemImage: "ellipsis.circle", value: AppTab.more) {
+        MoreMenuView(notificationsViewModel: notificationsViewModel)
       }
-      .tag(AppTab.more)
       .badge(notificationsViewModel.unreadCount > 0 ? notificationsViewModel.unreadCount : 0)
-      .accessibilityLabel("More")
     }
     .environment(\.switchTab, { selectedTab = $0 })
     .task {
