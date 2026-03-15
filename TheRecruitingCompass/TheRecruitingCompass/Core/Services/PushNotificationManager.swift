@@ -106,7 +106,11 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
                 .is("read_at", value: nil)
                 .execute()
             let count = response.count ?? 0
-            try? await UNUserNotificationCenter.current().setBadgeCount(count)
+            do {
+                try await UNUserNotificationCenter.current().setBadgeCount(count)
+            } catch {
+                logger.error("Badge sync setBadgeCount failed: \(error.localizedDescription)")
+            }
         } catch {
             logger.error("Badge sync failed: \(error.localizedDescription)")
         }
