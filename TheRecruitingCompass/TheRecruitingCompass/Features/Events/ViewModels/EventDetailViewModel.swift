@@ -62,11 +62,16 @@ final class EventDetailViewModel {
 
   var exportFileURL: URL?
 
+  // MARK: - Haptic Triggers
+
+  var hapticSuccessTrigger = 0
+  var hapticErrorTrigger = 0
+  var hapticWarningTrigger = 0
+
   // MARK: - Dependencies
 
   private let eventsService: any EventsManaging
   private let authManager: any AuthManaging
-  private let haptics = HapticFeedbackManager.shared
   private let exportService = MetricsExportService()
   let eventId: String
 
@@ -118,6 +123,8 @@ final class EventDetailViewModel {
     guard let event, let cost = event.cost else { return nil }
     return cost == 0 ? "Free event" : "Cost: \(cost.formatted(.currency(code: "USD").precision(.fractionLength(2))))"
   }
+
+  nonisolated deinit {}
 
   // MARK: - Init
 
@@ -214,13 +221,13 @@ final class EventDetailViewModel {
         let request = EventUpdateRequest(attended: true)
         let updated = try await eventsService.updateEvent(id: eventId, request: request)
         event = updated
-        haptics.success()
+        hapticSuccessTrigger += 1
         showSuccess("Marked as attended")
         showQuickLogSheet = true
         logger.info("Event marked as attended: \(self.eventId)")
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.error = $0 }
-        haptics.error()
+        hapticErrorTrigger += 1
       }
     }
   }
@@ -240,12 +247,12 @@ final class EventDetailViewModel {
         let updated = try await eventsService.updateEvent(id: eventId, request: request)
         event = updated
         showEditSheet = false
-        haptics.success()
+        hapticSuccessTrigger += 1
         showSuccess("Event updated")
         logger.info("Event updated: \(self.eventId)")
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.error = $0 }
-        haptics.error()
+        hapticErrorTrigger += 1
       }
     }
   }
@@ -253,7 +260,7 @@ final class EventDetailViewModel {
   // MARK: - Delete Event
 
   func confirmDelete() {
-    haptics.warning()
+    hapticWarningTrigger += 1
     showDeleteConfirmation = true
   }
 
@@ -261,12 +268,12 @@ final class EventDetailViewModel {
     await ViewModelHelpers.withLoading(set: { self.isDeleting = $0 }) {
       do {
         try await eventsService.deleteEvent(id: eventId)
-        haptics.success()
+        hapticSuccessTrigger += 1
         shouldDismiss = true
         logger.info("Event deleted: \(self.eventId)")
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to delete event. Please try again.", logger: logger) { self.error = $0 }
-        haptics.error()
+        hapticErrorTrigger += 1
       }
     }
   }
@@ -293,12 +300,12 @@ final class EventDetailViewModel {
         )
         try await eventsService.createInteraction(request)
         showQuickLogSheet = false
-        haptics.success()
+        hapticSuccessTrigger += 1
         showSuccess("Interaction logged")
         logger.info("Interaction logged for event: \(self.eventId)")
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to log interaction. Please try again.", logger: logger) { self.error = $0 }
-        haptics.error()
+        hapticErrorTrigger += 1
       }
     }
   }
@@ -323,13 +330,13 @@ final class EventDetailViewModel {
       let request = EventUpdateRequest(coachesPresent: currentCoaches)
       let updated = try await eventsService.updateEvent(id: eventId, request: request)
       self.event = updated
-      haptics.success()
+      hapticSuccessTrigger += 1
       showSuccess("Coach added")
       logger.info("Coach added to event: \(self.eventId)")
     } catch {
       logger.error("Failed to add coach: \(error.localizedDescription)")
       self.error = "Failed to add coach. Please try again."
-      haptics.error()
+      hapticErrorTrigger += 1
     }
   }
 
@@ -342,12 +349,12 @@ final class EventDetailViewModel {
         let request = EventUpdateRequest(coachesPresent: currentCoaches)
         let updated = try await eventsService.updateEvent(id: eventId, request: request)
         self.event = updated
-        haptics.success()
+        hapticSuccessTrigger += 1
         showSuccess("Coach removed")
         logger.info("Coach removed from event: \(self.eventId)")
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to remove coach. Please try again.", logger: logger) { self.error = $0 }
-        haptics.error()
+        hapticErrorTrigger += 1
       }
     }
   }
@@ -382,12 +389,12 @@ final class EventDetailViewModel {
         metrics.append(metric)
         showMetricForm = false
         newMetricData = NewMetricData()
-        haptics.success()
+        hapticSuccessTrigger += 1
         showSuccess("Metric recorded")
         logger.info("Metric created: \(metric.id)")
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to save metric. Please try again.", logger: logger) { self.error = $0 }
-        haptics.error()
+        hapticErrorTrigger += 1
       }
     }
   }
@@ -396,13 +403,13 @@ final class EventDetailViewModel {
     do {
       try await eventsService.deleteMetric(id: metricId)
       metrics.removeAll { $0.id == metricId }
-      haptics.success()
+      hapticSuccessTrigger += 1
       showSuccess("Metric deleted")
       logger.info("Metric deleted: \(metricId)")
     } catch {
       logger.error("Failed to delete metric: \(error.localizedDescription)")
       self.error = "Failed to delete metric. Please try again."
-      haptics.error()
+      hapticErrorTrigger += 1
     }
   }
 

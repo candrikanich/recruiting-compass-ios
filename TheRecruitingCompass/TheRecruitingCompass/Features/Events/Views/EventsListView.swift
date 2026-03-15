@@ -7,6 +7,8 @@ struct EventsListView: View {
   @State private var viewModel = EventsListViewModel()
   @State private var eventToDelete: FullEvent?
   @State private var showCreateEvent = false
+  @State private var hapticWarningTrigger = 0
+  @State private var hapticLightTrigger = 0
 
   private var showErrorAlert: Binding<Bool> {
     Binding(
@@ -66,7 +68,7 @@ struct EventsListView: View {
     .confirmationDialog("Delete Event?", isPresented: showDeleteConfirmation, titleVisibility: .visible) {
       if let event = eventToDelete {
         Button("Delete", role: .destructive) {
-          HapticFeedbackManager.shared.warning()
+          hapticWarningTrigger += 1
           Task { await viewModel.deleteEvent(id: event.id) }
         }
       }
@@ -76,6 +78,8 @@ struct EventsListView: View {
         Text("Delete \"\(event.name)\"? This cannot be undone.")
       }
     }
+    .sensoryFeedback(.warning, trigger: hapticWarningTrigger)
+    .sensoryFeedback(.impact(weight: .light), trigger: hapticLightTrigger)
   }
 
   // MARK: - Create Event Sheet
@@ -230,7 +234,7 @@ struct EventsListView: View {
     .accessibilityLabel(rowAccessibilityLabel(event))
     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
       Button(role: .destructive) {
-        HapticFeedbackManager.shared.lightImpact()
+        hapticLightTrigger += 1
         eventToDelete = event
       } label: {
         Label("Delete", systemImage: "trash")

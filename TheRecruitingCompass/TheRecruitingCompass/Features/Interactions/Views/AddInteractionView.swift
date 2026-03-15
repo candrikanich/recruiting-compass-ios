@@ -3,6 +3,8 @@ import SwiftUI
 struct AddInteractionView: View {
   @State private var viewModel: AddInteractionViewModel
   @Environment(\.dismiss) private var dismiss
+  @State private var hapticSuccessTrigger = 0
+  @State private var hapticErrorTrigger = 0
 
   init(
     interactionsService: InteractionsManaging,
@@ -60,7 +62,7 @@ struct AddInteractionView: View {
               let success = await viewModel.createNewCoach()
               if success {
                 viewModel.showAddCoachSheet = false
-                HapticFeedbackManager.shared.success()
+                hapticSuccessTrigger += 1
               }
             }
           }
@@ -77,6 +79,8 @@ struct AddInteractionView: View {
     .task {
       await viewModel.loadFormData()
     }
+    .sensoryFeedback(.success, trigger: hapticSuccessTrigger)
+    .sensoryFeedback(.error, trigger: hapticErrorTrigger)
   }
 
   // MARK: - Form Sections
@@ -317,10 +321,10 @@ struct AddInteractionView: View {
         Task {
           let success = await viewModel.submitInteraction()
           if success {
-            HapticFeedbackManager.shared.success()
+            hapticSuccessTrigger += 1
             dismiss()
           } else {
-            HapticFeedbackManager.shared.error()
+            hapticErrorTrigger += 1
           }
         }
       }) {

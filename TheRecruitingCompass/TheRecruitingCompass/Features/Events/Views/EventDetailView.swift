@@ -96,6 +96,9 @@ struct EventDetailView: View {
       ActivityShareSheet(activityItems: [url])
         .onDisappear { viewModel.cleanupExport(url: url) }
     }
+    .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
+    .sensoryFeedback(.error, trigger: viewModel.hapticErrorTrigger)
+    .sensoryFeedback(.warning, trigger: viewModel.hapticWarningTrigger)
   }
 
   /// Shown when event is nil but not loading/error/notFound (e.g. after task cancellation).

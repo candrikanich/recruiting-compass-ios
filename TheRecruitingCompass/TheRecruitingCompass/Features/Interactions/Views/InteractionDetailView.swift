@@ -3,6 +3,9 @@ import SwiftUI
 struct InteractionDetailView: View {
   @State private var viewModel: InteractionDetailViewModel
   @Environment(\.dismiss) private var dismiss
+  @State private var hapticSuccessTrigger = 0
+  @State private var hapticErrorTrigger = 0
+  @State private var hapticWarningTrigger = 0
 
   init(
     interactionId: String,
@@ -71,13 +74,13 @@ struct InteractionDetailView: View {
     ) {
       Button("Delete", role: .destructive) {
         Task {
-          HapticFeedbackManager.shared.warning()
+          hapticWarningTrigger += 1
           let success = await viewModel.deleteInteraction()
           if success {
-            HapticFeedbackManager.shared.success()
+            hapticSuccessTrigger += 1
             dismiss()
           } else {
-            HapticFeedbackManager.shared.error()
+            hapticErrorTrigger += 1
           }
         }
       }
@@ -90,6 +93,9 @@ struct InteractionDetailView: View {
     .task {
       await viewModel.loadInteraction()
     }
+    .sensoryFeedback(.success, trigger: hapticSuccessTrigger)
+    .sensoryFeedback(.error, trigger: hapticErrorTrigger)
+    .sensoryFeedback(.warning, trigger: hapticWarningTrigger)
   }
 
   // MARK: - Detail Content
