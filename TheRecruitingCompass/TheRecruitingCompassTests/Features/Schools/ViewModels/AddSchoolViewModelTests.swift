@@ -9,6 +9,26 @@
 import XCTest
 @testable import TheRecruitingCompass
 
+// MARK: - Test Helpers
+
+private final class MockNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
+  var mockResult: NcaaLookupResult?
+  var lookupCallCount = 0
+  var lastLookedUpName: String?
+
+  func lookup(schoolName: String) async -> NcaaLookupResult? {
+    lookupCallCount += 1
+    lastLookedUpName = schoolName
+    return mockResult
+  }
+}
+
+private final class MockSchoolFaviconService: SchoolFaviconManaging, @unchecked Sendable {
+  func fetchAndPersist(school: School) async {}
+}
+
+// MARK: - Tests
+
 @MainActor
 final class AddSchoolViewModelTests: XCTestCase {
 
@@ -514,5 +534,114 @@ final class AddSchoolViewModelTests: XCTestCase {
     XCTAssertNil(viewModel.formState.division)
     XCTAssertFalse(viewModel.formErrors.hasErrors)
     XCTAssertNil(viewModel.submitError)
+  }
+
+  // MARK: - selectCollege() NCAA Lookup Tests
+
+  private func makeViewModelWithMockNcaa(result: NcaaLookupResult?) -> (AddSchoolViewModel, MockNcaaDatabase) {
+    let mockNcaa = MockNcaaDatabase()
+    mockNcaa.mockResult = result
+    let vm = AddSchoolViewModel(
+      schoolsService: mockService,
+      collegeScorecardService: MockCollegeScorecardService(),
+      ncaaDatabase: mockNcaa,
+      schoolFaviconService: MockSchoolFaviconService(),
+      familyUnitId: "test-family-123",
+      userId: "test-user-456",
+      announcer: MockAccessibilityAnnouncer()
+    )
+    return (vm, mockNcaa)
+  }
+
+  private func makeCollegeSearchResult(name: String = "University of Florida") -> CollegeSearchResult {
+    CollegeSearchResult(
+      id: "134130",
+      name: name,
+      city: "Gainesville",
+      state: "FL",
+      website: "https://ufl.edu"
+    )
+  }
+
+  func testSelectCollege_populatesDivisionAndConference() async {
+    // Given
+    let (vm, _) = makeViewModelWithMockNcaa(result: NcaaLookupResult(division: .d1, conference: "SEC"))
+
+    // When
+    await vm.selectCollege(makeCollegeSearchResult())
+
+    // Then
+    XCTAssertEqual(vm.formState.division, .d1)
+    XCTAssertEqual(vm.formState.conference, "SEC")
+  }
+
+  func testSelectCollege_callsNcaaLookupWithSchoolName() async {
+    // Given
+    let (vm, mockNcaa) = makeViewModelWithMockNcaa(result: NcaaLookupResult(division: .d1, conference: "Big Ten"))
+
+    // When
+    await vm.selectCollege(makeCollegeSearchResult(name: "University of Michigan"))
+
+    // Then - NCAA lookup must be called with the college name
+    XCTAssertGreaterThan(mockNcaa.lookupCallCount, 0)
+    XCTAssertEqual(mockNcaa.lastLookedUpName, "University of Michigan")
+  }
+
+  func testSelectCollege_withNoNcaaMatch_leavesDivisionNil() async {
+    // Given
+    let (vm, _) = makeViewModelWithMockNcaa(result: nil)
+
+    // When
+    await vm.selectCollege(makeCollegeSearchResult(name: "Unknown Community College"))
+
+    // Then
+    XCTAssertNil(vm.formState.division)
+    XCTAssertEqual(vm.formState.conference, "")
+  }
+
+  func testSelectCollege_secondSelection_populatesNewDivisionAndConference() async {
+    // Given - first selection populates SEC
+    let (vm, mockNcaa) = makeViewModelWithMockNcaa(result: NcaaLookupResult(division: .d1, conference: "SEC"))
+    await vm.selectCollege(makeCollegeSearchResult(name: "University of Florida"))
+    XCTAssertEqual(vm.formState.conference, "SEC")
+
+    // Clear and select a second school
+    vm.clearSelection()
+    mockNcaa.mockResult = NcaaLookupResult(division: .d1, conference: "Big Ten")
+    let michigan = CollegeSearchResult(
+      id: "147767",
+      name: "University of Michigan",
+      city: "Ann Arbor",
+      state: "MI",
+      website: "https://umich.edu"
+    )
+
+    // When
+    await vm.selectCollege(michigan)
+
+    // Then - second selection must also populate division/conference
+    XCTAssertEqual(vm.formState.division, .d1)
+    XCTAssertEqual(vm.formState.conference, "Big Ten")
+  }
+
+  func testSelectCollege_alwaysCallsNcaaLookupRegardlessOfPreviousResult() async {
+    // Regression: ensure NCAA lookup is called on every selection, not skipped after
+    // a previous selection already populated the division.
+    let (vm, mockNcaa) = makeViewModelWithMockNcaa(result: NcaaLookupResult(division: .d1, conference: "SEC"))
+
+    // First selection
+    await vm.selectCollege(makeCollegeSearchResult(name: "University of Florida"))
+    let firstCallCount = mockNcaa.lookupCallCount
+    XCTAssertGreaterThan(firstCallCount, 0)
+
+    // Clear and select again
+    vm.clearSelection()
+    mockNcaa.mockResult = NcaaLookupResult(division: .d2, conference: "Some Conference")
+    await vm.selectCollege(makeCollegeSearchResult(name: "University of Florida"))
+
+    // Then - lookup was called again after clearing selection
+    XCTAssertGreaterThan(mockNcaa.lookupCallCount, firstCallCount,
+                         "NCAA lookup must be called again for each new college selection")
+    XCTAssertEqual(vm.formState.division, .d2)
   }
 }

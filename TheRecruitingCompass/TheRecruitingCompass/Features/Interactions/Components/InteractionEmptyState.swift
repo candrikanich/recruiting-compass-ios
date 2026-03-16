@@ -2,13 +2,46 @@ import SwiftUI
 
 struct InteractionEmptyState: View {
   let isFilteredEmpty: Bool
+  let noCoaches: Bool
   let onClearFilters: (() -> Void)?
   var onAddInteraction: (() -> Void)?
+
+  init(
+    isFilteredEmpty: Bool,
+    noCoaches: Bool = false,
+    onClearFilters: (() -> Void)?,
+    onAddInteraction: (() -> Void)? = nil
+  ) {
+    self.isFilteredEmpty = isFilteredEmpty
+    self.noCoaches = noCoaches
+    self.onClearFilters = onClearFilters
+    self.onAddInteraction = onAddInteraction
+  }
 
   @Environment(\.sizeCategory) private var sizeCategory
 
   private var iconSize: CGFloat {
     sizeCategory.isAccessibilityCategory ? 72 : 60
+  }
+
+  // MARK: - Computed Properties
+
+  private var icon: String {
+    if isFilteredEmpty { return "magnifyingglass" }
+    if noCoaches { return "person.2.slash" }
+    return "bubble.left.and.bubble.right.fill"
+  }
+
+  private var title: String {
+    if isFilteredEmpty { return "No interactions match your filters" }
+    if noCoaches { return "Add a coach first" }
+    return "No interactions yet"
+  }
+
+  private var subtitle: String {
+    if isFilteredEmpty { return "Try adjusting your search or filters" }
+    if noCoaches { return "Interactions are linked to coaches. Visit a school's page to add coaches to your list." }
+    return "Start logging your recruiting communications with coaches."
   }
 
   var body: some View {
@@ -44,7 +77,7 @@ struct InteractionEmptyState: View {
             .clipShape(.rect(cornerRadius: 8))
         }
         .accessibilityLabel("Clear all filters")
-      } else if !isFilteredEmpty, let onAddInteraction {
+      } else if !isFilteredEmpty && !noCoaches, let onAddInteraction {
         Button(action: onAddInteraction) {
           Text("Log Your First Interaction")
             .fontWeight(.semibold)
@@ -59,28 +92,19 @@ struct InteractionEmptyState: View {
     .padding(40)
     .frame(maxWidth: .infinity)
   }
-
-  // MARK: - Computed Properties
-
-  private var icon: String {
-    isFilteredEmpty ? "magnifyingglass" : "bubble.left.and.bubble.right.fill"
-  }
-
-  private var title: String {
-    isFilteredEmpty ? "No interactions match your filters" : "No interactions yet"
-  }
-
-  private var subtitle: String {
-    isFilteredEmpty
-      ? "Try adjusting your search or filters"
-      : "Start logging your recruiting communications"
-  }
-
 }
 
 #Preview("No Data") {
   InteractionEmptyState(
     isFilteredEmpty: false,
+    onClearFilters: nil
+  )
+}
+
+#Preview("No Coaches") {
+  InteractionEmptyState(
+    isFilteredEmpty: false,
+    noCoaches: true,
     onClearFilters: nil
   )
 }

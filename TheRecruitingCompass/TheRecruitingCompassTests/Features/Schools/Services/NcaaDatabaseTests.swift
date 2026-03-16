@@ -542,6 +542,66 @@ final class NcaaDatabaseTests: XCTestCase {
     XCTAssertNotNil(result, "University of Texas at Austin must resolve")
     XCTAssertEqual(result?.division, .d1)
   }
+
+  // MARK: - College Scorecard Suffix Normalization Tests
+
+  func testLookup_mainCampusSuffix_matchesSchoolWithoutSuffix() async {
+    // College Scorecard returns "Ohio State University-Main Campus" but NCAA DB has "Ohio State University".
+    // Regression: before the fix, removePunctuation() stripped the hyphen, yielding
+    // "ohio state universitymain campus" which did NOT match "ohio state university".
+    let db = TestableNcaaDatabase(
+      d1Schools: [NcaaSchoolInfo(name: "Ohio State University", conference: "Big Ten", logo: nil)],
+      d2Schools: [],
+      d3Schools: []
+    )
+
+    let result = await db.lookup(schoolName: "Ohio State University-Main Campus")
+
+    XCTAssertNotNil(result, "'-Main Campus' suffix must be stripped before matching NCAA database")
+    XCTAssertEqual(result?.division, .d1)
+    XCTAssertEqual(result?.conference, "Big Ten")
+  }
+
+  func testLookup_mainCampusWithSpaceSuffix_matchesSchoolWithoutSuffix() async {
+    // Handles "University Name Main Campus" (space instead of hyphen)
+    let db = TestableNcaaDatabase(
+      d1Schools: [NcaaSchoolInfo(name: "Penn State University", conference: "Big Ten", logo: nil)],
+      d2Schools: [],
+      d3Schools: []
+    )
+
+    let result = await db.lookup(schoolName: "Penn State University Main Campus")
+
+    XCTAssertNotNil(result, "' Main Campus' suffix must be stripped before matching NCAA database")
+    XCTAssertEqual(result?.division, .d1)
+  }
+
+  func testLookup_atCitySuffix_matchesSchoolWithoutSuffix() async {
+    // College Scorecard returns "Kent State University at Kent" but NCAA DB has "Kent State University".
+    let db = TestableNcaaDatabase(
+      d1Schools: [NcaaSchoolInfo(name: "Kent State University", conference: "Mid-American Conference", logo: nil)],
+      d2Schools: [],
+      d3Schools: []
+    )
+
+    let result = await db.lookup(schoolName: "Kent State University at Kent")
+
+    XCTAssertNotNil(result, "' at [city]' suffix must be handled for NCAA database matching")
+    XCTAssertEqual(result?.division, .d1)
+  }
+
+  func testLookup_realData_mainCampusSuffixStillMatchesSchool() async {
+    // Verifies the "-Main Campus" fix works against the real bundled NCAA database.
+    // Skipped when JSON files are not in the test bundle.
+    let realDatabase = NcaaDatabase.shared
+    let probe = await realDatabase.lookup(schoolName: "Stanford University")
+    guard probe != nil else { return } // JSON unavailable in test bundle
+
+    let result = await realDatabase.lookup(schoolName: "Ohio State University-Main Campus")
+
+    XCTAssertNotNil(result, "Ohio State University-Main Campus must resolve via normalization")
+    XCTAssertEqual(result?.division, .d1)
+  }
 }
 
 // MARK: - Testable NCAA Database
@@ -646,6 +706,15 @@ final class TestableNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
 
   private func normalizeSchoolName(_ name: String) -> String {
     var normalized = name.lowercased()
+
+    // Strip College Scorecard campus suffixes before removing punctuation to avoid
+    // merging words: "University-Main Campus" → "UniversityMain Campus" (wrong)
+    if let range = normalized.range(of: #"[-\s]+main\s+campus$"#, options: [.regularExpression, .caseInsensitive]) {
+      normalized = String(normalized[..<range.lowerBound])
+    }
+    if let range = normalized.range(of: #"\s+at\s+.+$"#, options: .regularExpression) {
+      normalized = String(normalized[..<range.lowerBound])
+    }
 
     // Remove common prefixes
     let prefixes = ["university of ", "college of ", "the ", "university ", "college "]

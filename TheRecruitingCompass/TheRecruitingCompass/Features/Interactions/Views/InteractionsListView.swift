@@ -86,9 +86,16 @@ struct InteractionsListView: View {
     Group {
       if viewModel.isLoading && viewModel.allInteractions.isEmpty {
         LoadingStateView(message: "Loading interactions...")
+      } else if viewModel.allInteractions.isEmpty && viewModel.allCoaches.isEmpty {
+        InteractionEmptyState(
+          isFilteredEmpty: false,
+          noCoaches: true,
+          onClearFilters: nil
+        )
       } else if viewModel.allInteractions.isEmpty {
         InteractionEmptyState(
           isFilteredEmpty: false,
+          noCoaches: false,
           onClearFilters: nil,
           onAddInteraction: { navigationPath.append(InteractionDestination.add) }
         )

@@ -180,9 +180,31 @@ actor NcaaDatabase: NcaaDatabaseManaging {
   /// Static normalization for use during initialization and externally
   nonisolated private static func normalize(_ name: String) -> String {
     let lowercased = name.lowercased()
-    let withoutPrefixes = removePrefixes(from: lowercased)
+    // Strip College Scorecard campus suffixes before removing punctuation to avoid
+    // merging words: "University-Main Campus" → "UniversityMain Campus" (wrong)
+    let withoutCampusSuffix = removeCampusSuffix(from: lowercased)
+    let withoutLocationSuffix = removeAtLocationSuffix(from: withoutCampusSuffix)
+    let withoutPrefixes = removePrefixes(from: withoutLocationSuffix)
     let withoutPunctuation = removePunctuation(from: withoutPrefixes)
     return normalizeWhitespace(in: withoutPunctuation)
+  }
+
+  /// Remove "- Main Campus", "-Main Campus", " Main Campus" suffixes appended by College Scorecard
+  nonisolated private static func removeCampusSuffix(from text: String) -> String {
+    guard let range = text.range(
+      of: #"[-\s]+main\s+campus$"#,
+      options: [.regularExpression, .caseInsensitive]
+    ) else { return text }
+    return String(text[..<range.lowerBound])
+  }
+
+  /// Remove " at [city]" suffixes appended by College Scorecard for branch campuses
+  nonisolated private static func removeAtLocationSuffix(from text: String) -> String {
+    guard let range = text.range(
+      of: #"\s+at\s+.+$"#,
+      options: .regularExpression
+    ) else { return text }
+    return String(text[..<range.lowerBound])
   }
 
   /// Remove common institutional prefixes
