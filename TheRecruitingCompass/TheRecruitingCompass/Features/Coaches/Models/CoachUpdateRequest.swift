@@ -9,7 +9,6 @@ struct CoachUpdateRequest: Codable, Sendable {
   let twitterHandle: String?
   let instagramHandle: String?
   let notes: String?
-  let privateNotes: [String: String]?
 
   enum CodingKeys: String, CodingKey {
     case firstName = "first_name"
@@ -18,6 +17,5 @@ struct CoachUpdateRequest: Codable, Sendable {
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
     case notes
-    case privateNotes = "private_notes"
   }
 }

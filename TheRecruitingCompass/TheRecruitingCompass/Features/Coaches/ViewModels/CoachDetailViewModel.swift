@@ -30,7 +30,6 @@ final class CoachDetailViewModel {
 
   // Notes (always-editable, auto-save on blur)
   var editedSharedNotes = ""
-  var editedPrivateNotes = ""
   var saveStatus: SaveStatus = .idle
 
   @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
@@ -65,10 +64,6 @@ final class CoachDetailViewModel {
 
   var currentUserId: String? {
     authManager.user?.id
-  }
-
-  var privateNoteForCurrentUser: String? {
-    currentUserId.flatMap { coach?.privateNote(for: $0) }
   }
 
   var editableCoachBinding: Binding<EditableCoach> {
@@ -265,7 +260,6 @@ final class CoachDetailViewModel {
 
   private func initializeNoteFields(from coach: Coach) {
     editedSharedNotes = coach.notes ?? ""
-    editedPrivateNotes = privateNoteForCurrentUser ?? ""
   }
 
   private func markSaved() {

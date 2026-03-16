@@ -19,7 +19,6 @@ final class SchoolDetailViewModel {
 
   // MARK: - Notes (always-editable, auto-save on blur)
   var editedNotes = ""
-  var editedPrivateNotes = ""
   var saveStatus: SaveStatus = .idle
 
   @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
@@ -97,11 +96,6 @@ final class SchoolDetailViewModel {
 
   var currentUserId: String? {
     authManager.user?.id
-  }
-
-  var privateNoteForCurrentUser: String {
-    guard let userId = currentUserId else { return "" }
-    return school?.privateNote(for: userId) ?? ""
   }
 
   var hasCoaches: Bool {
@@ -234,7 +228,6 @@ final class SchoolDetailViewModel {
 
   private func initializeNoteFields(from school: School) {
     editedNotes = school.notes ?? ""
-    editedPrivateNotes = privateNoteForCurrentUser
   }
 
   private func markSaved() {

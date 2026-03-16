@@ -20,7 +20,6 @@ protocol SchoolsManaging: Sendable {
 
   // MARK: - Phase 2 Methods (Editing & Notes)
   func updateNotes(id: String, notes: String) async throws -> School
-  func updatePrivateNotes(id: String, familyUnitId: String, userId: String, note: String?) async throws -> School
   func addPro(id: String, familyUnitId: String, text: String) async throws -> School
   func removePro(id: String, familyUnitId: String, index: Int) async throws -> School
   func addCon(id: String, familyUnitId: String, text: String) async throws -> School

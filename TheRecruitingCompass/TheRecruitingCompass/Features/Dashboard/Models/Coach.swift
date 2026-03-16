@@ -14,7 +14,6 @@ struct Coach: Codable, Identifiable, Sendable {
   let twitterHandle: String?
   let instagramHandle: String?
   let notes: String?
-  let privateNotes: [String: String]?
   let responsivenessScore: Double
   let lastContactDate: String?
   let createdAt: String
@@ -64,7 +63,6 @@ struct Coach: Codable, Identifiable, Sendable {
     twitterHandle: String? = nil,
     instagramHandle: String? = nil,
     notes: String? = nil,
-    privateNotes: [String: String]? = nil,
     responsivenessScore: Double,
     lastContactDate: String? = nil,
     createdAt: String,
@@ -80,7 +78,6 @@ struct Coach: Codable, Identifiable, Sendable {
     self.twitterHandle = twitterHandle
     self.instagramHandle = instagramHandle
     self.notes = notes
-    self.privateNotes = privateNotes
     self.responsivenessScore = responsivenessScore
     self.lastContactDate = lastContactDate
     self.createdAt = createdAt

@@ -186,32 +186,6 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
     return updated
   }
 
-  func updatePrivateNotes(id: String, familyUnitId: String, userId: String, note: String?) async throws -> School {
-    logger.debug("Updating private notes for school: \(id), user: \(userId)")
-
-    // CRITICAL: Fetch current school to merge private notes
-    let current = try await fetchSchool(id: id, familyUnitId: familyUnitId)
-    var privateNotes = current.privateNotes ?? [:]
-
-    if let note = note, !note.isEmpty {
-      privateNotes[userId] = note
-    } else {
-      privateNotes.removeValue(forKey: userId)
-    }
-
-    let updated: School = try await supabaseManager.client
-      .from("schools")
-      .update(["private_notes": privateNotes])
-      .eq("id", value: id)
-      .select()
-      .single()
-      .execute()
-      .value
-
-    logger.info("Private notes updated for school: \(id)")
-    return updated
-  }
-
   func addPro(id: String, familyUnitId: String, text: String) async throws -> School {
     logger.debug("Adding pro to school: \(id)")
 
