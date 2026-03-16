@@ -174,7 +174,6 @@ struct SchoolCardView: View {
     ncaaId: nil,
     status: "interested",
     statusChangedAt: nil,
-    priorityTier: nil,
     notes: "Great academic program",
     privateNotes: nil,
     pros: [],

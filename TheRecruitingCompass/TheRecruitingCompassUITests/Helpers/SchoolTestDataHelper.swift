@@ -44,7 +44,6 @@ private struct SchoolDetailInsert: Encodable {
   let updatedAt: String
   let notes: String?
   let privateNotes: [String: String]?
-  let priorityTier: String?
   let location: String?
   let division: String?
   let conference: String?
@@ -62,7 +61,6 @@ private struct SchoolDetailInsert: Encodable {
     case updatedAt = "updated_at"
     case notes
     case privateNotes = "private_notes"
-    case priorityTier = "priority_tier"
     case location
     case division
     case conference
@@ -194,7 +192,6 @@ final class SchoolTestDataHelper {
   ///   - privateNotes: Private notes (keyed by user ID)
   ///   - pros: List of pros
   ///   - cons: List of cons
-  ///   - priorityTier: Priority tier (A/B/C/D)
   ///   - location: School location
   ///   - division: Division (D1, D2, D3, NAIA, JUCO)
   ///   - conference: Conference name
@@ -210,7 +207,6 @@ final class SchoolTestDataHelper {
     privateNotes: [String: String]? = nil,
     pros: [String] = [],
     cons: [String] = [],
-    priorityTier: String? = nil,
     location: String? = nil,
     division: String? = nil,
     conference: String? = nil
@@ -233,7 +229,6 @@ final class SchoolTestDataHelper {
       updatedAt: now,
       notes: notes,
       privateNotes: privateNotes,
-      priorityTier: priorityTier,
       location: location,
       division: division,
       conference: conference

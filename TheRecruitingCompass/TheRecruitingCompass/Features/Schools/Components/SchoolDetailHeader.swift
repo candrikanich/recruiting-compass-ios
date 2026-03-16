@@ -108,7 +108,6 @@ struct SchoolDetailHeader: View {
       ncaaId: nil,
       status: "recruited",
       statusChangedAt: nil,
-      priorityTier: nil,
       notes: nil,
       privateNotes: nil,
       pros: [],
