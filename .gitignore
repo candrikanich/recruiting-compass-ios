@@ -46,3 +46,4 @@ TheRecruitingCompass/Release.xcconfig
 
 # SupabaseConfig.generated.swift is committed as a placeholder stub.
 # The "Generate Supabase config" Xcode build phase overwrites it with real values.
+.superpowers/
