@@ -243,7 +243,6 @@ struct CoachCardView: View {
       twitterHandle: "@coachsmith",
       instagramHandle: "@coachsmith",
       notes: "Great recruiter",
-      responsivenessScore: 85,
       lastContactDate: "2026-01-15T10:00:00Z",
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2026-01-15T10:00:00Z"

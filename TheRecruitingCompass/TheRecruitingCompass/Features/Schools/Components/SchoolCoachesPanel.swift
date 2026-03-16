@@ -105,7 +105,6 @@ private struct CoachesEmptyState: View {
         twitterHandle: "@coach",
         instagramHandle: "@coach",
         notes: nil,
-        responsivenessScore: 85,
         lastContactDate: nil,
         createdAt: "2024-01-01T00:00:00Z",
         updatedAt: "2024-01-01T00:00:00Z"
@@ -121,7 +120,6 @@ private struct CoachesEmptyState: View {
         twitterHandle: nil,
         instagramHandle: nil,
         notes: nil,
-        responsivenessScore: 85,
         lastContactDate: nil,
         createdAt: "2024-01-01T00:00:00Z",
         updatedAt: "2024-01-01T00:00:00Z"
