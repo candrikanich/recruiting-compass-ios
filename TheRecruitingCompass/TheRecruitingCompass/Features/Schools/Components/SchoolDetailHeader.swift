@@ -109,7 +109,6 @@ struct SchoolDetailHeader: View {
       status: "recruited",
       statusChangedAt: nil,
       notes: nil,
-      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,

@@ -53,22 +53,12 @@ struct SchoolNotesSection: View {
 
 #Preview {
   @Previewable @State var notes = "Great academic program with strong baseball history."
-  @Previewable @State var privateNotes = ""
 
-  VStack(spacing: 16) {
-    SchoolNotesSection(
-      title: "Notes",
-      notes: $notes,
-      isPrivate: false,
-      onBlur: {}
-    )
-
-    SchoolNotesSection(
-      title: "Private Notes",
-      notes: $privateNotes,
-      isPrivate: true,
-      onBlur: {}
-    )
-  }
+  SchoolNotesSection(
+    title: "Notes",
+    notes: $notes,
+    isPrivate: false,
+    onBlur: {}
+  )
   .padding()
 }

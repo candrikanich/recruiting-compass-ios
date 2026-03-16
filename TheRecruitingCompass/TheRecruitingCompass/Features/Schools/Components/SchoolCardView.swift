@@ -175,7 +175,6 @@ struct SchoolCardView: View {
     status: "interested",
     statusChangedAt: nil,
     notes: "Great academic program",
-    privateNotes: nil,
     pros: [],
     cons: [],
     offerDetails: nil,

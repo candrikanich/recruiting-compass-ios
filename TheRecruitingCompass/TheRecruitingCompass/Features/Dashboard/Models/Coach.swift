@@ -134,7 +134,6 @@ struct Coach: Codable, Identifiable, Sendable {
     try container.encodeIfPresent(twitterHandle, forKey: .twitterHandle)
     try container.encodeIfPresent(instagramHandle, forKey: .instagramHandle)
     try container.encodeIfPresent(notes, forKey: .notes)
-    try container.encodeIfPresent(privateNotes, forKey: .privateNotes)
     try container.encode(responsivenessScore, forKey: .responsivenessScore)
     try container.encodeIfPresent(lastContactDate, forKey: .lastContactDate)
     try container.encode(createdAt, forKey: .createdAt)
@@ -142,46 +141,4 @@ struct Coach: Codable, Identifiable, Sendable {
     // role is decoding-only (database may return role or position)
   }
 
-  private static func decodePrivateNotes(from container: KeyedDecodingContainer<CodingKeys>) -> [String: String]? {
-    guard let value = try? container.decodeIfPresent(PrivateNotesValue.self, forKey: .privateNotes) else {
-      return nil
-    }
-    return value.toDictionary
-  }
-
-  private enum PrivateNotesValue: Decodable {
-    case dict([String: String])
-    case string(String)
-
-    init(from decoder: Decoder) throws {
-      let container = try decoder.singleValueContainer()
-      if let dict = try? container.decode([String: String].self) {
-        self = .dict(dict)
-      } else if let str = try? container.decode(String.self) {
-        self = .string(str)
-      } else {
-        throw DecodingError.dataCorruptedError(
-          in: container,
-          debugDescription: "private_notes must be dictionary or string"
-        )
-      }
-    }
-
-    var toDictionary: [String: String]? {
-      switch self {
-      case .dict(let d): return d.isEmpty ? nil : d
-      case .string(let s):
-        guard !s.isEmpty,
-              let data = s.data(using: .utf8),
-              let parsed = try? JSONDecoder().decode([String: String].self, from: data) else {
-          return nil
-        }
-        return parsed
-      }
-    }
-  }
-
-  func privateNote(for userId: String) -> String? {
-    privateNotes?[userId]
-  }
 }
