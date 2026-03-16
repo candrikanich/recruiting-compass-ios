@@ -98,7 +98,6 @@ struct DashboardStatsCardsSection: View {
       interactionCount: 8,
       totalOffers: 3,
       acceptedOffers: 1,
-      aTierSchoolCount: 4,
       acceptanceRate: 0.33
     ),
     visibility: .default

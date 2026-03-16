@@ -150,7 +150,6 @@ final class DashboardViewModel {
         interactionCount: 0,
         totalOffers: 0,
         acceptedOffers: 0,
-        aTierSchoolCount: 0,
         acceptanceRate: nil
       )
       lastUpdated = Date.now
@@ -198,7 +197,6 @@ final class DashboardViewModel {
         interactionCount: 0,
         totalOffers: 0,
         acceptedOffers: 0,
-        aTierSchoolCount: 0,
         acceptanceRate: nil
       )
       lastUpdated = Date.now

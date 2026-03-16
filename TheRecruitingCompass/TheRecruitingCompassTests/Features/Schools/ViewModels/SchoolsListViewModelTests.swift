@@ -499,7 +499,6 @@ final class SchoolsListViewModelTests: XCTestCase {
     XCTAssertNil(sut.filters.status)
     XCTAssertNil(sut.filters.state)
     XCTAssertFalse(sut.filters.isFavoritesOnly)
-    XCTAssertNil(sut.filters.priorityTier)
     XCTAssertNil(sut.filters.fitScoreMin)
     XCTAssertNil(sut.filters.maxDistance)
     XCTAssertEqual(sut.filters.sortBy, originalSort)

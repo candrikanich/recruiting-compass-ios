@@ -419,7 +419,6 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       ncaaId: nil,
       status: status,
       statusChangedAt: "2025-01-01T00:00:00Z",
-      priorityTier: nil,
       notes: nil,
       privateNotes: nil,
       pros: [],

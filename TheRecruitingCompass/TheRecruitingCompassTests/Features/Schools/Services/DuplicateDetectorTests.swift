@@ -545,7 +545,6 @@ extension School {
       ncaaId: ncaaId,
       status: "interested",
       statusChangedAt: nil,
-      priorityTier: "tier3",
       notes: nil,
       privateNotes: nil,
       pros: [],

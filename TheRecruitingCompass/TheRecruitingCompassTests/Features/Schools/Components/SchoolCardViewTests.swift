@@ -214,7 +214,6 @@ final class SchoolCardViewTests: XCTestCase {
       ncaaId: nil,
       status: status,
       statusChangedAt: nil,
-      priorityTier: "A",
       notes: notes,
       privateNotes: nil,
       pros: [],

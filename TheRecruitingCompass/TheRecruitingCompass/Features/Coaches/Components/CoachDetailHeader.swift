@@ -96,7 +96,7 @@ struct CoachDetailHeader: View {
         ncaaId: nil,
         status: "interested",
         statusChangedAt: nil,
-        priorityTier: "A",
+        priorityTier: nil,
         notes: nil,
         privateNotes: nil,
         pros: [],

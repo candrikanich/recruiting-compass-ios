@@ -304,7 +304,6 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
       ncaaId: school.ncaaId,
       status: school.status,
       statusChangedAt: school.statusChangedAt,
-      priorityTier: school.priorityTier,
       notes: school.notes,
       privateNotes: school.privateNotes,
       pros: school.pros,

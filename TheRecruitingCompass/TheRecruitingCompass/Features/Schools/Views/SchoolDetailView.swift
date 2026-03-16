@@ -106,14 +106,11 @@ struct SchoolDetailView: View {
       Divider()
 
       VStack(spacing: 24) {
-        // 1. Recruiting status & tier (one row: status + tier dropdown)
+        // 1. Recruiting status
         SchoolRecruitingStatusAndTierSection(
           currentStatus: SchoolStatus(rawValue: school.status) ?? .interested,
-          selectedTier: school.priorityTier.flatMap { PriorityTier(rawValue: $0) },
           isUpdatingStatus: viewModel.isUpdatingStatus,
-          isUpdatingTier: viewModel.isUpdatingPriorityTier,
-          onStatusChange: { await viewModel.updateStatus(to: $0) },
-          onTierSelect: { await viewModel.updatePriorityTier($0) }
+          onStatusChange: { await viewModel.updateStatus(to: $0) }
         )
 
         // 2. Map

@@ -6,7 +6,6 @@ struct DashboardStats: Codable, Sendable {
   let interactionCount: Int
   let totalOffers: Int
   let acceptedOffers: Int
-  let aTierSchoolCount: Int
   let acceptanceRate: Double?
 
   var acceptanceRateFormatted: String {
