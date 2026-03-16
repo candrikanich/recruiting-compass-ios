@@ -185,7 +185,6 @@ struct School: Codable, Identifiable, Sendable {
   let status: String
   let statusChangedAt: String?
   let notes: String?
-  let privateNotes: [String: String]?
   let pros: [String]
   let cons: [String]
   let offerDetails: OfferDetails?
