@@ -520,6 +520,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -enable-experimental-feature IsolatedDeinit";
 				PRODUCT_BUNDLE_IDENTIFIER = com.chrisandrikanich.TheRecruitingCompass;
 				PRODUCT_MODULE_NAME = TheRecruitingCompass;
 				PRODUCT_NAME = myCompass;
@@ -557,6 +558,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -enable-experimental-feature IsolatedDeinit";
 				PRODUCT_BUNDLE_IDENTIFIER = com.chrisandrikanich.TheRecruitingCompass;
 				PRODUCT_MODULE_NAME = TheRecruitingCompass;
 				PRODUCT_NAME = myCompass;
