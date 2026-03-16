@@ -25,19 +25,15 @@ final class SettingsViewModel {
   func loadCompletionStatus() async {
     logger.debug("Loading completion status for settings badges")
 
-    async let locationStatus = fetchForStatus(category: .location) { (loc: HomeLocation) in
+    homeLocationStatus = await fetchForStatus(category: .location) { (loc: HomeLocation) in
       loc.latitude != nil && loc.longitude != nil
     }
-    async let playerStatus = fetchForStatus(category: .player) { (details: PlayerDetails) in
+    playerDetailsStatus = await fetchForStatus(category: .player) { (details: PlayerDetails) in
       details.graduationYear != nil || details.positions?.isEmpty == false
     }
-    async let schoolStatus = fetchForStatus(category: .school) { (prefs: SchoolPreferences) in
+    schoolPreferencesStatus = await fetchForStatus(category: .school) { (prefs: SchoolPreferences) in
       !prefs.preferences.isEmpty
     }
-
-    homeLocationStatus = await locationStatus
-    playerDetailsStatus = await playerStatus
-    schoolPreferencesStatus = await schoolStatus
 
     logger.info(
       "Badge status — location: \(String(describing: self.homeLocationStatus)), player: \(String(describing: self.playerDetailsStatus)), school: \(String(describing: self.schoolPreferencesStatus))"
