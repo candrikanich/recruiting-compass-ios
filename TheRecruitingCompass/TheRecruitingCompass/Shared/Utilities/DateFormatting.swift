@@ -1,40 +1,19 @@
 import Foundation
 
 enum DateFormatting {
-  private static let mediumDateShortTimeFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .medium
-    formatter.timeStyle = .short
-    return formatter
-  }()
-
-  private static let shortDateFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .none
-    return formatter
-  }()
-
-  private static let mediumDateFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .medium
-    formatter.timeStyle = .none
-    return formatter
-  }()
-
   static func mediumDateShortTime(_ date: Date) -> String {
-    mediumDateShortTimeFormatter.string(from: date)
+    date.formatted(date: .abbreviated, time: .shortened)
   }
 
   static func shortDate(_ date: Date) -> String {
-    shortDateFormatter.string(from: date)
+    date.formatted(date: .numeric, time: .omitted)
   }
 
   static func mediumDate(_ date: Date) -> String {
-    mediumDateFormatter.string(from: date)
+    date.formatted(date: .abbreviated, time: .omitted)
   }
 
-  /// Shared formatter for ISO date export ("yyyy-MM-dd")
+  /// Shared formatter for ISO date export ("yyyy-MM-dd") — keep as DateFormatter for POSIX locale control
   static let isoExportFormatter: DateFormatter = {
     let f = DateFormatter()
     f.locale = Locale(identifier: "en_US_POSIX")
