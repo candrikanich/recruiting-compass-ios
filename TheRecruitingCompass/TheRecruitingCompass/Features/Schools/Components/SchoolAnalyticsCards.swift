@@ -34,17 +34,6 @@ struct SchoolAnalyticsCards: View {
       )
 
       AnalyticsCard(
-        title: "Tier A",
-        value: analytics.tierACount,
-        icon: "trophy.circle.fill",
-        backgroundColor: Color.purple.opacity(0.1),
-        iconColor: .purple,
-        accessibilityLabelOverride: analytics.tierACount == 1
-          ? "1 Tier A school"
-          : "\(analytics.tierACount) Tier A schools"
-      )
-
-      AnalyticsCard(
         title: "Visited",
         value: analytics.visitedCount,
         icon: "map.circle.fill",
@@ -65,7 +54,6 @@ struct SchoolAnalyticsCards: View {
     analytics: SchoolAnalytics(
       totalCount: 35,
       favoritesCount: 8,
-      tierACount: 5,
       visitedCount: 3
     )
   )
