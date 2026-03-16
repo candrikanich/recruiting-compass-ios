@@ -205,7 +205,6 @@ final class DashboardViewModelTests: XCTestCase {
       interactionCount: 0,
       totalOffers: 0,
       acceptedOffers: 0,
-      aTierSchoolCount: 0,
       acceptanceRate: nil
     )
 
@@ -219,7 +218,6 @@ final class DashboardViewModelTests: XCTestCase {
       interactionCount: 0,
       totalOffers: 0,
       acceptedOffers: 0,
-      aTierSchoolCount: 0,
       acceptanceRate: nil
     )
 
@@ -514,7 +512,6 @@ final class DashboardViewModelTests: XCTestCase {
       interactionCount: 10,
       totalOffers: 2,
       acceptedOffers: 1,
-      aTierSchoolCount: 0,
       acceptanceRate: nil
     )
     mockDashboardService.stubbedStats = stats
@@ -536,7 +533,6 @@ final class DashboardViewModelTests: XCTestCase {
       interactionCount: 20,
       totalOffers: 3,
       acceptedOffers: 1,
-      aTierSchoolCount: 2,
       acceptanceRate: nil
     )
     mockDashboardService.stubbedStats = stats
@@ -560,7 +556,6 @@ final class DashboardViewModelTests: XCTestCase {
       interactionCount: 20,
       totalOffers: 0,
       acceptedOffers: 0,
-      aTierSchoolCount: 2,
       acceptanceRate: nil
     )
     mockDashboardService.stubbedStats = stats
@@ -572,50 +567,7 @@ final class DashboardViewModelTests: XCTestCase {
     XCTAssertEqual(sut.schoolsWithOffersPercentage, "0%")
   }
 
-  func testAvgCoachResponsivenessColorLogicGreen() async {
-    // Given: stats with data (default 75% responsiveness)
-    authenticateUser()
-    setupFamilyContext()
-    let stats = DashboardStats(
-      coachCount: 5,
-      schoolCount: 10,
-      interactionCount: 20,
-      totalOffers: 3,
-      acceptedOffers: 1,
-      aTierSchoolCount: 2,
-      acceptanceRate: nil
-    )
-    mockDashboardService.stubbedStats = stats
 
-    // When
-    await sut.fetchDashboardData()
-
-    // Then: Color should match responsiveness level (>=75% = green)
-    let color = sut.avgCoachResponsivenessColor
-    XCTAssertEqual(color, .successGreen)
-  }
-
-  func testAvgCoachResponsivenessFormattedValue() async {
-    // Given: stats with data
-    authenticateUser()
-    setupFamilyContext()
-    let stats = DashboardStats(
-      coachCount: 5,
-      schoolCount: 10,
-      interactionCount: 20,
-      totalOffers: 3,
-      acceptedOffers: 1,
-      aTierSchoolCount: 2,
-      acceptanceRate: nil
-    )
-    mockDashboardService.stubbedStats = stats
-
-    // When
-    await sut.fetchDashboardData()
-
-    // Then: Should format as percentage
-    XCTAssertEqual(sut.avgCoachResponsivenessFormatted, "75%")
-  }
 
   func testDaysUntilGraduationFormattedWhenNil() async {
     // Given: no stats
@@ -634,7 +586,6 @@ final class DashboardViewModelTests: XCTestCase {
       interactionCount: 20,
       totalOffers: 3,
       acceptedOffers: 1,
-      aTierSchoolCount: 2,
       acceptanceRate: nil
     )
     mockDashboardService.stubbedStats = stats
