@@ -40,7 +40,6 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
     interactionCount: 20,
     totalOffers: 3,
     acceptedOffers: 1,
-    aTierSchoolCount: 2,
     acceptanceRate: 0.33
   )
   var stubbedSchools: [School] = []
