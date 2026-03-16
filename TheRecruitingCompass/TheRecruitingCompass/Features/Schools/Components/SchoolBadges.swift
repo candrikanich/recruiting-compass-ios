@@ -16,22 +16,6 @@ struct StatusBadge: View {
   }
 }
 
-struct PriorityTierBadge: View {
-  let tier: PriorityTier
-
-  var body: some View {
-    Text("Tier \(tier.displayName)")
-      .font(.caption)
-      .fontWeight(.semibold)
-      .padding(.horizontal, 10)
-      .padding(.vertical, 5)
-      .background(tier.badgeColor.backgroundColor)
-      .foregroundStyle(tier.badgeColor.foregroundColor)
-      .clipShape(Capsule())
-      .accessibilityLabel("Priority Tier \(tier.displayName)")
-  }
-}
-
 struct DivisionBadge: View {
   let division: String
 

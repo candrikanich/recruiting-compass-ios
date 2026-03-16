@@ -69,11 +69,6 @@ struct SchoolDetailHeader: View {
 
           StatusBadge(status: SchoolStatus(rawValue: school.status) ?? .interested)
 
-          if let tierString = school.priorityTier,
-             let tier = PriorityTier(rawValue: tierString) {
-            PriorityTierBadge(tier: tier)
-          }
-
           if let size = school.size {
             SizeBadge(size: size)
           }
@@ -113,7 +108,7 @@ struct SchoolDetailHeader: View {
       ncaaId: nil,
       status: "recruited",
       statusChangedAt: nil,
-      priorityTier: "A",
+      priorityTier: nil,
       notes: nil,
       privateNotes: nil,
       pros: [],

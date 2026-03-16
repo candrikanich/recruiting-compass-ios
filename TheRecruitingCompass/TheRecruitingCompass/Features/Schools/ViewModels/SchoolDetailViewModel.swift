@@ -58,9 +58,6 @@ final class SchoolDetailViewModel {
   var isDeleting = false
   var deleteErrorMessage: String?
 
-  // MARK: - Priority Tier
-  var isUpdatingPriorityTier = false
-
   // Dependencies
   private let schoolId: String
   private let schoolsService: any SchoolsManaging
@@ -545,21 +542,6 @@ final class SchoolDetailViewModel {
       await invalidateSchoolCache()
       let totalDeleted = result.deletedInteractions + result.deletedNotes
       logger.info("School deleted successfully (cascade delete: \(totalDeleted) related items)")
-    }
-  }
-
-  // MARK: - Priority Tier Update
-
-  func updatePriorityTier(_ tier: PriorityTier?) async {
-    await ViewModelHelpers.withLoading(set: { self.isUpdatingPriorityTier = $0 }) {
-      do {
-        let updated = try await schoolsService.updatePriorityTier(id: schoolId, tier: tier)
-        school = updated
-        await invalidateSchoolCache()
-        logger.info("Priority tier updated to \(tier?.rawValue ?? "none")")
-      } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to update priority tier", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
-      }
     }
   }
 
