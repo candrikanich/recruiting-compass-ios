@@ -132,39 +132,15 @@ struct SchoolFilterBar: View {
     .accessibilityAddTraits(.isButton)
   }
 
-  // MARK: - Row 2: Priority Tier, Sort
+  // MARK: - Row 2: Sort
 
   private var row2: some View {
     ScrollView(.horizontal) {
       HStack(spacing: 8) {
-        priorityTierMenu
         sortMenu
       }
     }
     .scrollIndicators(.hidden)
-  }
-
-  private var priorityTierMenu: some View {
-    Menu {
-      Button("All Tiers") {
-        filters.priorityTier = nil
-      }
-
-      ForEach(PriorityTier.allCases, id: \.self) { tier in
-        Button(tier.displayName) {
-          filters.priorityTier = tier
-        }
-      }
-    } label: {
-      FilterMenuButton(
-        label: filters.priorityTier?.displayName ?? "Tier",
-        isActive: filters.priorityTier != nil,
-        style: .capsule
-      )
-    }
-    .accessibilityLabel("Priority tier filter")
-    .accessibilityValue(filters.priorityTier?.displayName ?? "All")
-    .accessibilityHint("Double tap to change priority tier filter")
   }
 
   private var sortMenu: some View {

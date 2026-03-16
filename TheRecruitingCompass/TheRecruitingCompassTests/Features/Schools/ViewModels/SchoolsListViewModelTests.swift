@@ -66,7 +66,6 @@ final class SchoolsListViewModelTests: XCTestCase {
     conference: String? = "Pac-12",
     isFavorite: Bool = false,
     status: String = "interested",
-    priorityTier: String? = "A",
     notes: String? = nil,
     fitScore: Double? = 85,
     latitude: Double? = 37.4275,
@@ -90,7 +89,6 @@ final class SchoolsListViewModelTests: XCTestCase {
       ncaaId: nil,
       status: status,
       statusChangedAt: "2026-02-01T10:00:00Z",
-      priorityTier: priorityTier,
       notes: notes,
       privateNotes: nil,
       pros: [],
@@ -303,21 +301,6 @@ final class SchoolsListViewModelTests: XCTestCase {
     XCTAssertTrue(sut.filteredSchools.allSatisfy { $0.isFavorite })
   }
 
-  // MARK: - Filter Tests: Priority Tier
-
-  func testFilter_PriorityTier() {
-    sut.allSchools = [
-      makeSchool(id: "1", priorityTier: "A"),
-      makeSchool(id: "2", priorityTier: "B"),
-      makeSchool(id: "3", priorityTier: "A")
-    ]
-
-    sut.filters.priorityTier = .a
-
-    XCTAssertEqual(sut.filteredSchools.count, 2)
-    XCTAssertTrue(sut.filteredSchools.allSatisfy { $0.priorityTier == "A" })
-  }
-
   // MARK: - Filter Tests: Fit Score
 
   func testFilter_FitScoreMin() {
@@ -505,7 +488,6 @@ final class SchoolsListViewModelTests: XCTestCase {
     sut.filters.status = .contacted
     sut.filters.state = "CA"
     sut.filters.isFavoritesOnly = true
-    sut.filters.priorityTier = .a
     sut.filters.fitScoreMin = 70
     sut.filters.maxDistance = 100
     let originalSort = sut.filters.sortBy

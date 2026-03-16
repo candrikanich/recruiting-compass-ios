@@ -42,10 +42,6 @@ struct SchoolActiveFilterChips: View {
       result.append(("Favorites", { filters.isFavoritesOnly = false }))
     }
 
-    if let tier = filters.priorityTier {
-      result.append((tier.displayName, { filters.priorityTier = nil }))
-    }
-
     if filters.fitScoreMin != nil || filters.fitScoreMax != nil {
       let minScore = Int(filters.fitScoreMin ?? 0)
       let maxScore = Int(filters.fitScoreMax ?? 100)

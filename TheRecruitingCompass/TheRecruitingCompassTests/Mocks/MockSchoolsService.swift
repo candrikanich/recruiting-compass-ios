@@ -49,9 +49,6 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
   var shouldSucceed = true
   var simpleDeleteShouldFail = false
 
-  // Priority tier tracking
-  var updatePriorityTierCallCount = 0
-  var lastPriorityTier: PriorityTier?
   var delayDuration: TimeInterval = 0
 
   // MARK: - Create

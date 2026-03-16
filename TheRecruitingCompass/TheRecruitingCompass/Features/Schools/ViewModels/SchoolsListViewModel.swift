@@ -73,10 +73,6 @@ final class SchoolsListViewModel {
       result = result.filter { $0.isFavorite }
     }
 
-    if let tier = filters.priorityTier {
-      result = result.filter { $0.priorityTier == tier.rawValue }
-    }
-
     if let minScore = filters.fitScoreMin {
       result = result.filter { ($0.fitScore ?? 0) >= minScore }
     }
@@ -117,7 +113,6 @@ final class SchoolsListViewModel {
     SchoolAnalytics(
       totalCount: allSchools.count,
       favoritesCount: allSchools.filter(\.isFavorite).count,
-      tierACount: allSchools.filter { $0.priorityTier == "A" }.count,
       visitedCount: allSchools.filter { school in
         school.status == SchoolStatus.officialVisitScheduled.rawValue
           || school.status == SchoolStatus.officialVisitInvited.rawValue
@@ -300,7 +295,6 @@ extension SchoolFilters {
     if status != nil { count += 1 }
     if state != nil { count += 1 }
     if isFavoritesOnly { count += 1 }
-    if priorityTier != nil { count += 1 }
     if fitScoreMin != nil || fitScoreMax != nil { count += 1 }
     if maxDistance != nil { count += 1 }
     return count

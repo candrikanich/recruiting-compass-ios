@@ -184,7 +184,6 @@ struct School: Codable, Identifiable, Sendable {
   let ncaaId: String?
   let status: String
   let statusChangedAt: String?
-  let priorityTier: String?
   let notes: String?
   let privateNotes: [String: String]?
   let pros: [String]
@@ -217,7 +216,6 @@ struct School: Codable, Identifiable, Sendable {
     case ncaaId = "ncaa_id"
     case status
     case statusChangedAt = "status_changed_at"
-    case priorityTier = "priority_tier"
     case notes
     case privateNotes = "private_notes"
     case pros, cons
@@ -295,7 +293,6 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
-      priorityTier: priorityTier,
       notes: notes,
       privateNotes: privateNotes,
       pros: pros,
@@ -337,7 +334,6 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
-      priorityTier: priorityTier,
       notes: notes,
       privateNotes: privateNotes,
       pros: pros,
@@ -379,7 +375,6 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
-      priorityTier: priorityTier,
       notes: notes,
       privateNotes: privateNotes,
       pros: pros,
@@ -421,7 +416,6 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
-      priorityTier: priorityTier,
       notes: notes,
       privateNotes: privateNotes,
       pros: pros,
@@ -463,7 +457,6 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
-      priorityTier: priorityTier,
       notes: notes,
       privateNotes: privateNotes,
       pros: pros,
@@ -505,7 +498,6 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
-      priorityTier: priorityTier,
       notes: notes,
       privateNotes: privateNotes,
       pros: pros,
@@ -547,7 +539,6 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
-      priorityTier: priorityTier,
       notes: notes,
       privateNotes: privateNotes,
       pros: pros,
@@ -593,7 +584,6 @@ extension School {
     ncaaId = try container.decodeIfPresent(String.self, forKey: .ncaaId)
     status = try container.decode(String.self, forKey: .status)
     statusChangedAt = try container.decodeIfPresent(String.self, forKey: .statusChangedAt)
-    priorityTier = try container.decodeIfPresent(String.self, forKey: .priorityTier)
     notes = try container.decodeIfPresent(String.self, forKey: .notes)
     privateNotes = try container.decodeIfPresent([String: String].self, forKey: .privateNotes)
     pros = try container.decodeIfPresent([String].self, forKey: .pros) ?? []

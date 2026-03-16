@@ -6,7 +6,6 @@ struct SchoolFilters: Sendable {
   var status: SchoolStatus? = nil
   var state: String? = nil
   var isFavoritesOnly: Bool = false
-  var priorityTier: PriorityTier? = nil
   var fitScoreMin: Double? = nil
   var fitScoreMax: Double? = nil
   var maxDistance: Double? = nil
