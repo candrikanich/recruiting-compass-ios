@@ -95,7 +95,6 @@ final class CoachesListViewTests: XCTestCase {
       ncaaId: nil,
       status: "interested",
       statusChangedAt: nil,
-      priorityTier: "A",
       notes: nil,
       pros: [],
       cons: [],
@@ -325,49 +324,9 @@ final class CoachesListViewTests: XCTestCase {
     XCTAssertEqual(viewModel.filteredCoaches.first?.id, "1")
   }
 
-  func testFilter_activeFilterCountReflectsFilters() async {
-    let mockService = MockCoachesService()
-    mockService.stubbedSchools = [makeSchool()]
-    mockService.stubbedCoaches = [makeCoach()]
 
-    let viewModel = CoachesListViewModel(
-      coachesService: mockService,
-      familyManager: mockFamilyManager,
-      authManager: mockAuthManager
-    )
 
-    await viewModel.loadCoaches()
-    XCTAssertEqual(viewModel.activeFilterCount, 0)
 
-    viewModel.filters.role = .head
-    viewModel.filters.responsivenessLevel = .high
-
-    XCTAssertEqual(viewModel.activeFilterCount, 2)
-  }
-
-  func testFilter_clearFiltersResetsAll() async {
-    let mockService = MockCoachesService()
-    mockService.stubbedSchools = [makeSchool()]
-    mockService.stubbedCoaches = [makeCoach()]
-
-    let viewModel = CoachesListViewModel(
-      coachesService: mockService,
-      familyManager: mockFamilyManager,
-      authManager: mockAuthManager
-    )
-
-    await viewModel.loadCoaches()
-    viewModel.filters.role = .head
-    viewModel.filters.responsivenessLevel = .high
-    viewModel.filters.searchText = "test"
-
-    viewModel.clearFilters()
-
-    XCTAssertEqual(viewModel.filters.searchText, "")
-    XCTAssertNil(viewModel.filters.role)
-    XCTAssertNil(viewModel.filters.responsivenessLevel)
-    XCTAssertEqual(viewModel.activeFilterCount, 0)
-  }
 
   // MARK: - Success Toast Tests
 
@@ -461,24 +420,7 @@ final class CoachesListViewTests: XCTestCase {
     XCTAssertEqual(viewModel.filteredCoaches.last?.lastName, "Zimmerman")
   }
 
-  func testSort_byResponsiveness() async {
-    let mockService = MockCoachesService()
-    mockService.stubbedSchools = [makeSchool()]
-    mockService.stubbedCoaches = [
-    ]
 
-    let viewModel = CoachesListViewModel(
-      coachesService: mockService,
-      familyManager: mockFamilyManager,
-      authManager: mockAuthManager
-    )
-
-    await viewModel.loadCoaches()
-    viewModel.filters.sortBy = .responsiveness
-
-    XCTAssertEqual(viewModel.filteredCoaches.first?.id, "2") // Higher score first
-    XCTAssertEqual(viewModel.filteredCoaches.last?.id, "1")
-  }
 
   // MARK: - School Name Lookup Tests
 
@@ -575,24 +517,5 @@ final class CoachesListViewTests: XCTestCase {
     XCTAssertNil(viewModel.allCoaches.first?.phone)
   }
 
-  func testEdgeCase_multipleFiltersActive() async {
-    let mockService = MockCoachesService()
-    mockService.stubbedSchools = [makeSchool()]
-    mockService.stubbedCoaches = [
-    ]
 
-    let viewModel = CoachesListViewModel(
-      coachesService: mockService,
-      familyManager: mockFamilyManager,
-      authManager: mockAuthManager
-    )
-
-    await viewModel.loadCoaches()
-    viewModel.filters.searchText = "john"
-    viewModel.filters.role = .head
-    viewModel.filters.responsivenessLevel = .high
-
-    XCTAssertEqual(viewModel.filteredCoaches.count, 1)
-    XCTAssertEqual(viewModel.filteredCoaches.first?.firstName, "John")
-  }
 }

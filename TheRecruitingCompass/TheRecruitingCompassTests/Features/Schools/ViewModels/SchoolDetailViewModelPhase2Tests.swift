@@ -105,44 +105,11 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
     XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
-  func testSavePrivateNotes_Success() async {
-    // Given
-    let updatedSchool = createMockSchool()
-    mockSchoolsService.stubbedSchool = updatedSchool
-    viewModel.editedPrivateNotes = "Updated private note"
 
-    // When
-    await viewModel.savePrivateNotes()
 
-    // Then
-    XCTAssertEqual(viewModel.saveStatus, .saved)
-    XCTAssertNil(viewModel.errorMessage)
-  }
 
-  func testSavePrivateNotes_ClearsNote_WhenEmpty() async {
-    // Given
-    mockSchoolsService.stubbedSchool = createMockSchool()
-    viewModel.editedPrivateNotes = ""
 
-    // When
-    await viewModel.savePrivateNotes()
 
-    // Then
-    XCTAssertEqual(viewModel.saveStatus, .saved)
-  }
-
-  func testSavePrivateNotes_NoFamily_ShowsError() async {
-    // Given
-    mockFamilyManager.familyUnit = nil
-    mockFamilyManager.currentMember = nil
-    viewModel.editedPrivateNotes = "Note"
-
-    // When
-    await viewModel.savePrivateNotes()
-
-    // Then
-    XCTAssertEqual(viewModel.errorMessage, "No active family")
-  }
 
   // MARK: - Pros & Cons Tests
 

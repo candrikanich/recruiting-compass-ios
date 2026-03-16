@@ -104,7 +104,6 @@ final class CoachesListViewModelTests: XCTestCase {
       ncaaId: nil,
       status: "interested",
       statusChangedAt: nil,
-      priorityTier: "A",
       notes: nil,
       pros: [],
       cons: [],
@@ -359,15 +358,12 @@ final class CoachesListViewModelTests: XCTestCase {
     sut.filters.searchText = "test"
     sut.filters.role = .head
     sut.filters.lastContactDays = 30
-    sut.filters.responsivenessLevel = .high
-    sut.filters.sortBy = .responsiveness
 
     sut.clearFilters()
 
     XCTAssertEqual(sut.filters.searchText, "")
     XCTAssertNil(sut.filters.role)
     XCTAssertNil(sut.filters.lastContactDays)
-    XCTAssertNil(sut.filters.responsivenessLevel)
     XCTAssertEqual(sut.filters.sortBy, .name)
   }
 

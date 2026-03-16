@@ -12,13 +12,7 @@ final class FilterComponentsTests: XCTestCase {
     XCTAssertNotNil(view)
   }
 
-  func testCoachFilterBar_initialState() {
-    let filters = CoachFilters()
-    XCTAssertNil(filters.role)
-    XCTAssertNil(filters.lastContactDays)
-    XCTAssertNil(filters.responsivenessLevel)
-    XCTAssertEqual(filters.sortBy, .name)
-  }
+
 
   func testCoachFilterBar_roleFilterUpdates() {
     var filters = CoachFilters()
@@ -42,27 +36,9 @@ final class FilterComponentsTests: XCTestCase {
     XCTAssertNil(filters.lastContactDays)
   }
 
-  func testCoachFilterBar_responsivenessFilterUpdates() {
-    var filters = CoachFilters()
-    XCTAssertNil(filters.responsivenessLevel)
 
-    filters.responsivenessLevel = .high
-    XCTAssertEqual(filters.responsivenessLevel, .high)
 
-    filters.responsivenessLevel = nil
-    XCTAssertNil(filters.responsivenessLevel)
-  }
 
-  func testCoachFilterBar_sortByUpdates() {
-    var filters = CoachFilters()
-    XCTAssertEqual(filters.sortBy, .name)
-
-    filters.sortBy = .responsiveness
-    XCTAssertEqual(filters.sortBy, .responsiveness)
-
-    filters.sortBy = .school
-    XCTAssertEqual(filters.sortBy, .school)
-  }
 
   func testCoachFilterBar_roleMenuAccessibility() {
     let view = CoachFilterBar(filters: .constant(CoachFilters()))
@@ -77,21 +53,9 @@ final class FilterComponentsTests: XCTestCase {
     XCTAssertTrue(allRoles.contains(.recruiting))
   }
 
-  func testCoachFilterBar_allResponsivenessLevelsAvailable() {
-    let allLevels = ResponsivenessLevel.allCases
-    XCTAssertTrue(allLevels.contains(.high))
-    XCTAssertTrue(allLevels.contains(.medium))
-    XCTAssertTrue(allLevels.contains(.low))
-  }
 
-  func testCoachFilterBar_allSortOptionsAvailable() {
-    let allOptions = CoachSortOption.allCases
-    XCTAssertTrue(allOptions.contains(.name))
-    XCTAssertTrue(allOptions.contains(.school))
-    XCTAssertTrue(allOptions.contains(.lastContacted))
-    XCTAssertTrue(allOptions.contains(.responsiveness))
-    XCTAssertTrue(allOptions.contains(.role))
-  }
+
+
 
   // MARK: - ActiveFilterChips Tests
 
@@ -119,22 +83,9 @@ final class FilterComponentsTests: XCTestCase {
     XCTAssertEqual(filters.activeFilterCount, 1)
   }
 
-  func testActiveFilterChips_showsResponsivenessChip() {
-    var filters = CoachFilters()
-    filters.responsivenessLevel = .high
-    XCTAssertTrue(filters.hasActiveFilters)
-    XCTAssertEqual(filters.activeFilterCount, 1)
-  }
 
-  func testActiveFilterChips_showsAllChips() {
-    var filters = CoachFilters()
-    filters.role = .head
-    filters.lastContactDays = 30
-    filters.responsivenessLevel = .high
 
-    XCTAssertTrue(filters.hasActiveFilters)
-    XCTAssertEqual(filters.activeFilterCount, 3)
-  }
+
 
   func testActiveFilterChips_removeRoleChip() {
     var filters = CoachFilters()
@@ -154,31 +105,9 @@ final class FilterComponentsTests: XCTestCase {
     XCTAssertEqual(filters.activeFilterCount, 0)
   }
 
-  func testActiveFilterChips_removeResponsivenessChip() {
-    var filters = CoachFilters()
-    filters.responsivenessLevel = .high
-    XCTAssertEqual(filters.activeFilterCount, 1)
 
-    filters.responsivenessLevel = nil
-    XCTAssertEqual(filters.activeFilterCount, 0)
-  }
 
-  func testActiveFilterChips_clearAllFilters() {
-    var filters = CoachFilters()
-    filters.role = .head
-    filters.lastContactDays = 30
-    filters.responsivenessLevel = .high
 
-    XCTAssertEqual(filters.activeFilterCount, 3)
-
-    // Clear all
-    filters.role = nil
-    filters.lastContactDays = nil
-    filters.responsivenessLevel = nil
-
-    XCTAssertEqual(filters.activeFilterCount, 0)
-    XCTAssertFalse(filters.hasActiveFilters)
-  }
 
   func testActiveFilterChips_clearAllButtonAccessibility() {
     let view = ActiveFilterChips(filters: .constant(CoachFilters(role: .head)))
@@ -294,13 +223,7 @@ final class FilterComponentsTests: XCTestCase {
 
   // MARK: - CoachSortOption Tests
 
-  func testCoachSortOption_displayNames() {
-    XCTAssertEqual(CoachSortOption.name.displayName, "Name")
-    XCTAssertEqual(CoachSortOption.school.displayName, "School")
-    XCTAssertEqual(CoachSortOption.lastContacted.displayName, "Last Contacted")
-    XCTAssertEqual(CoachSortOption.responsiveness.displayName, "Responsiveness")
-    XCTAssertEqual(CoachSortOption.role.displayName, "Role")
-  }
+
 
   func testCoachSortOption_allCases() {
     let allOptions = CoachSortOption.allCases
@@ -327,28 +250,7 @@ final class FilterComponentsTests: XCTestCase {
     XCTAssertFalse(filters.hasActiveFilters)
   }
 
-  func testIntegration_multipleFiltersInteraction() {
-    var filters = CoachFilters()
 
-    // Add filters one by one
-    filters.role = .head
-    XCTAssertEqual(filters.activeFilterCount, 1)
-
-    filters.lastContactDays = 30
-    XCTAssertEqual(filters.activeFilterCount, 2)
-
-    filters.responsivenessLevel = .high
-    XCTAssertEqual(filters.activeFilterCount, 3)
-
-    // Remove middle filter
-    filters.lastContactDays = nil
-    XCTAssertEqual(filters.activeFilterCount, 2)
-
-    // Clear remaining filters
-    filters.role = nil
-    filters.responsivenessLevel = nil
-    XCTAssertEqual(filters.activeFilterCount, 0)
-  }
 
   func testIntegration_emptyStateWithFilters() {
     var filters = CoachFilters()

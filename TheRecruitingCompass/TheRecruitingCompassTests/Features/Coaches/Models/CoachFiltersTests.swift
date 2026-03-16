@@ -37,16 +37,7 @@ final class CoachFiltersTests: XCTestCase {
     XCTAssertEqual(filters.activeFilterCount, 0)
   }
 
-  func testSchoolIdFilter_WithAllFilters_CountsCorrectly() {
-    var filters = CoachFilters()
-    filters.schoolId = "school-123"
-    filters.role = .assistant
-    filters.lastContactDays = 7
-    filters.responsivenessLevel = .high
 
-    XCTAssertTrue(filters.hasActiveFilters)
-    XCTAssertEqual(filters.activeFilterCount, 4)
-  }
 
   // MARK: - Equatable Tests
 

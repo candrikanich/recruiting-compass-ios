@@ -586,7 +586,6 @@ extension School {
       ncaaId: nil,
       status: "active",
       statusChangedAt: nil,
-      priorityTier: nil,
       notes: nil,
       pros: [],
       cons: [],

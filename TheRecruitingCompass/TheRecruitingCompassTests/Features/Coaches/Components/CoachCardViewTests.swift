@@ -40,7 +40,7 @@ final class CoachCardViewTests: XCTestCase {
   func testCoachCard_rendersWithoutCrashing() {
     let coach = makeCoach()
     let view = CoachCardView(
-      coach: coach,
+      coach: makeCoach(),
       schoolName: "State University",
       schoolLogoUrl: nil,
       schoolInitials: "SU"
@@ -58,7 +58,7 @@ final class CoachCardViewTests: XCTestCase {
       lastContactDate: nil
     )
     let view = CoachCardView(
-      coach: coach,
+      coach: makeCoach(),
       schoolName: "State University",
       schoolLogoUrl: nil,
       schoolInitials: "SU"
@@ -76,7 +76,7 @@ final class CoachCardViewTests: XCTestCase {
       lastContactDate: "2026-02-08T10:00:00Z"
     )
     let view = CoachCardView(
-      coach: coach,
+      coach: makeCoach(),
       schoolName: "State University",
       schoolLogoUrl: nil,
       schoolInitials: "SU"
@@ -191,19 +191,14 @@ final class CoachCardViewTests: XCTestCase {
     XCTAssertNil(coach.instagramHandle)
   }
 
-  // MARK: - Responsiveness Score Tests
 
-  func testCoachCard_displaysResponsivenessScore() {
-  }
 
-  func testCoachCard_highResponsivenessScore() {
-  }
 
-  func testCoachCard_mediumResponsivenessScore() {
-  }
 
-  func testCoachCard_lowResponsivenessScore() {
-  }
+
+
+
+
 
   // MARK: - Last Contact Date Tests
 
@@ -226,7 +221,7 @@ final class CoachCardViewTests: XCTestCase {
 
   func testAccessibility_cardHasLabel() {
     let view = CoachCardView(
-      coach: coach,
+      coach: makeCoach(),
       schoolName: "State University",
       schoolLogoUrl: nil,
       schoolInitials: "SU"
@@ -244,7 +239,7 @@ final class CoachCardViewTests: XCTestCase {
   func testAccessibility_deleteButtonHasLabel() {
     let coach = makeCoach()
     let view = CoachCardView(
-      coach: coach,
+      coach: makeCoach(),
       schoolName: "State University",
       schoolLogoUrl: nil,
       schoolInitials: "SU"
@@ -259,7 +254,7 @@ final class CoachCardViewTests: XCTestCase {
   func testDynamicType_supportsAccessibilitySizes() {
     let coach = makeCoach()
     let view = CoachCardView(
-      coach: coach,
+      coach: makeCoach(),
       schoolName: "State University",
       schoolLogoUrl: nil,
       schoolInitials: "SU"
@@ -272,7 +267,7 @@ final class CoachCardViewTests: XCTestCase {
   func testDynamicType_supportsStandardSizes() {
     let coach = makeCoach()
     let view = CoachCardView(
-      coach: coach,
+      coach: makeCoach(),
       schoolName: "State University",
       schoolLogoUrl: nil,
       schoolInitials: "SU"
@@ -286,7 +281,7 @@ final class CoachCardViewTests: XCTestCase {
     // Test that initials size is calculated based on size category
     let coach = makeCoach()
     let view = CoachCardView(
-      coach: coach,
+      coach: makeCoach(),
       schoolName: "State University",
       schoolLogoUrl: nil,
       schoolInitials: "SU"
@@ -348,7 +343,7 @@ final class CoachCardViewTests: XCTestCase {
   func testCoachCard_displaysSchoolName() {
     let coach = makeCoach()
     let view = CoachCardView(
-      coach: coach,
+      coach: makeCoach(),
       schoolName: "University of Testing",
       schoolLogoUrl: nil,
       schoolInitials: "UT"
@@ -360,7 +355,7 @@ final class CoachCardViewTests: XCTestCase {
   func testCoachCard_handlesLongSchoolName() {
     let coach = makeCoach()
     let view = CoachCardView(
-      coach: coach,
+      coach: makeCoach(),
       schoolName: "The University of Very Long Names and Extended Titles for Testing Purposes",
       schoolLogoUrl: nil,
       schoolInitials: "UV"
@@ -382,11 +377,7 @@ final class CoachCardViewTests: XCTestCase {
     XCTAssertEqual(coach.fullName, "José O'Brien-Smith")
   }
 
-  func testEdgeCase_zeroResponsivenessScore() {
-    XCTAssertTrue(ResponsivenessLevel.low.matches(score: 0))
-  }
 
-  func testEdgeCase_hundredResponsivenessScore() {
-    XCTAssertTrue(ResponsivenessLevel.high.matches(score: 100))
-  }
+
+
 }

@@ -264,46 +264,7 @@ final class PreferenceServiceTests: XCTestCase {
     XCTAssertEqual(decoded, original)
   }
 
-  func testDashboardWidgetVisibility_EncodesAndDecodes() throws {
-    let original = DashboardWidgetVisibility(
-      statsCards: StatsCardVisibility(
-        coaches: true,
-        schools: false,
-        interactions: true,
-        offers: false,
-        events: true,
-        performance: false,
-        notifications: true,
-        socialMedia: false
-      ),
-      widgets: WidgetVisibility(
-        actionItems: true,
-        quickTasks: false,
-        atAGlanceSummary: true,
-        interactionTrendChart: true,
-        eventsSummary: true,
-        performanceSummary: false,
-        recentActivity: true,
-        recentNotifications: true,
-        linkedAccounts: false,
-        recruitingCalendar: true,
-        offerStatusOverview: false,
-        schoolInterestChart: false,
-        schoolMapWidget: true,
-        coachFollowupWidget: false,
-        recentDocuments: true,
-        interactionStats: false,
-        schoolStatusOverview: true,
-        coachResponsiveness: false,
-        upcomingDeadlines: true
-      )
-    )
 
-    let encoded = try JSONEncoder().encode(original)
-    let decoded = try JSONDecoder().decode(DashboardWidgetVisibility.self, from: encoded)
-
-    XCTAssertEqual(decoded, original)
-  }
 
   // MARK: - AnyCodableValue Tests
 

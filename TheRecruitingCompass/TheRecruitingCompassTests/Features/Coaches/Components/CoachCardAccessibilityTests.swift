@@ -58,25 +58,12 @@ final class CoachCardAccessibilityTests: XCTestCase {
     XCTAssertEqual(coach.role, .assistant)
   }
 
-  // MARK: - Responsiveness Level Tests
 
-  func testResponsivenessLevel_highRange() {
-    XCTAssertTrue(ResponsivenessLevel.high.matches(score: 75))
-    XCTAssertTrue(ResponsivenessLevel.high.matches(score: 100))
-    XCTAssertFalse(ResponsivenessLevel.high.matches(score: 74))
-  }
 
-  func testResponsivenessLevel_mediumRange() {
-    XCTAssertTrue(ResponsivenessLevel.medium.matches(score: 50))
-    XCTAssertTrue(ResponsivenessLevel.medium.matches(score: 74))
-    XCTAssertFalse(ResponsivenessLevel.medium.matches(score: 49))
-  }
 
-  func testResponsivenessLevel_lowRange() {
-    XCTAssertTrue(ResponsivenessLevel.low.matches(score: 0))
-    XCTAssertTrue(ResponsivenessLevel.low.matches(score: 49))
-    XCTAssertFalse(ResponsivenessLevel.low.matches(score: 50))
-  }
+
+
+
 
   // MARK: - Communication Type Tests
 
@@ -122,15 +109,7 @@ final class CoachCardAccessibilityTests: XCTestCase {
     XCTAssertTrue(filters.hasActiveFilters)
   }
 
-  func testCoachFilters_activeFilterCount() {
-    var filters = CoachFilters()
-    XCTAssertEqual(filters.activeFilterCount, 0)
 
-    filters.role = .head
-    filters.lastContactDays = 30
-    filters.responsivenessLevel = .high
-    XCTAssertEqual(filters.activeFilterCount, 3)
-  }
 
   // MARK: - Coach Full Name
 

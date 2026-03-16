@@ -261,7 +261,6 @@ final class SchoolsListViewAccessibilityTests: XCTestCase {
       ncaaId: nil,
       status: status,
       statusChangedAt: nil,
-      priorityTier: "A",
       notes: notes,
       pros: [],
       cons: [],

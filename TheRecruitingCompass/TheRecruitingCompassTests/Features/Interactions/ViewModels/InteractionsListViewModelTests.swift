@@ -662,7 +662,6 @@ final class InteractionsListViewModelTests: XCTestCase {
       ncaaId: nil,
       status: "researching",
       statusChangedAt: nil,
-      priorityTier: nil,
       notes: nil,
       pros: [],
       cons: [],

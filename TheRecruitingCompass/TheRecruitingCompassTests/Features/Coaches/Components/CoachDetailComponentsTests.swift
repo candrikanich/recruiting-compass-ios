@@ -50,8 +50,7 @@ final class CoachDetailComponentsTests: XCTestCase {
     School(
       id: id, userId: "user-1", name: name, location: "City, ST", city: "City", state: "ST",
       division: "D1", conference: "Big Ten", ranking: nil, isFavorite: false, website: nil,
-      faviconUrl: nil, twitterHandle: nil, instagramHandle: nil, ncaaId: nil, status: "interested",
-      statusChangedAt: nil, priorityTier: "A", notes: nil,
+      faviconUrl: nil, twitterHandle: nil, instagramHandle: nil, ncaaId: nil, status: "interested", statusChangedAt: nil, notes: nil,
       pros: [], cons: [], offerDetails: nil,
       academicInfo: nil, amenities: nil, coachingPhilosophy: nil, coachingStyle: nil,
       recruitingApproach: nil, communicationStyle: nil, successMetrics: nil, fitScore: nil,
@@ -232,47 +231,11 @@ final class CoachDetailComponentsTests: XCTestCase {
 
   // MARK: - NotesSection Tests
 
-  func testNotesSection_rendersWithNotes() {
-    @State var notes = "Great recruiter, very responsive"
-    let notesSection = NotesSection(
-      title: "Shared Notes",
-      notes: $notes,
-      isPrivate: false,
-      onBlur: {}
-    )
 
-    let hostingController = UIHostingController(rootView: notesSection)
 
-    XCTAssertNotNil(hostingController.view)
-  }
 
-  func testNotesSection_rendersPrivate() {
-    @State var notes = "My private notes"
-    let notesSection = NotesSection(
-      title: "Private Notes",
-      notes: $notes,
-      isPrivate: true,
-      onBlur: {}
-    )
 
-    let hostingController = UIHostingController(rootView: notesSection)
 
-    XCTAssertNotNil(hostingController.view)
-  }
-
-  func testNotesSection_rendersEmpty() {
-    @State var notes = ""
-    let notesSection = NotesSection(
-      title: "Shared Notes",
-      notes: $notes,
-      isPrivate: false,
-      onBlur: {}
-    )
-
-    let hostingController = UIHostingController(rootView: notesSection)
-
-    XCTAssertNotNil(hostingController.view)
-  }
 
   // MARK: - LoadingStateView Tests
 

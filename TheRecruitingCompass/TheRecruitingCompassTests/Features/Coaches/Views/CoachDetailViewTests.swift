@@ -66,8 +66,7 @@ final class CoachDetailViewTests: XCTestCase {
     School(
       id: id, userId: "user-1", name: name, location: "City, ST", city: "City", state: "ST",
       division: "D1", conference: "Big Ten", ranking: nil, isFavorite: false, website: nil,
-      faviconUrl: nil, twitterHandle: nil, instagramHandle: nil, ncaaId: nil, status: "interested",
-      statusChangedAt: nil, priorityTier: "A", notes: nil,
+      faviconUrl: nil, twitterHandle: nil, instagramHandle: nil, ncaaId: nil, status: "interested", statusChangedAt: nil, notes: nil,
           pros: [], cons: [], offerDetails: nil,
       academicInfo: nil, amenities: nil, coachingPhilosophy: nil, coachingStyle: nil,
       recruitingApproach: nil, communicationStyle: nil, successMetrics: nil, fitScore: nil,

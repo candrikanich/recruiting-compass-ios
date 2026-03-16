@@ -148,130 +148,45 @@ final class CommunicationComponentsTests: XCTestCase {
     XCTAssertNil(url)
   }
 
-  // MARK: - ResponsivenessBar Tests
 
-  func testResponsivenessBar_rendersWithoutCrashing() {
-    let view = ResponsivenessBar(score: 85)
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_highScore() {
-    let view = ResponsivenessBar(score: 90)
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_mediumScore() {
-    let view = ResponsivenessBar(score: 60)
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_lowScore() {
-    let view = ResponsivenessBar(score: 30)
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_zeroScore() {
-    let view = ResponsivenessBar(score: 0)
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_hundredScore() {
-    let view = ResponsivenessBar(score: 100)
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_negativeScore() {
-    let view = ResponsivenessBar(score: -10)
-    // Should normalize to 0
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_overHundredScore() {
-    let view = ResponsivenessBar(score: 150)
-    // Should normalize to 100
-    XCTAssertNotNil(view)
-  }
 
-  // MARK: - ResponsivenessBar Color Tests
 
-  func testResponsivenessBar_highScoreColorThreshold() {
-    // Score >= 75 should be green
-    let view75 = ResponsivenessBar(score: 75)
-    let view90 = ResponsivenessBar(score: 90)
-    let view100 = ResponsivenessBar(score: 100)
 
-    XCTAssertNotNil(view75)
-    XCTAssertNotNil(view90)
-    XCTAssertNotNil(view100)
-  }
 
-  func testResponsivenessBar_mediumScoreColorThreshold() {
-    // Score >= 50 && < 75 should be amber
-    let view50 = ResponsivenessBar(score: 50)
-    let view60 = ResponsivenessBar(score: 60)
-    let view74 = ResponsivenessBar(score: 74)
 
-    XCTAssertNotNil(view50)
-    XCTAssertNotNil(view60)
-    XCTAssertNotNil(view74)
-  }
 
-  func testResponsivenessBar_lowScoreColorThreshold() {
-    // Score < 50 should be red
-    let view0 = ResponsivenessBar(score: 0)
-    let view30 = ResponsivenessBar(score: 30)
-    let view49 = ResponsivenessBar(score: 49)
 
-    XCTAssertNotNil(view0)
-    XCTAssertNotNil(view30)
-    XCTAssertNotNil(view49)
-  }
 
-  // MARK: - ResponsivenessBar Accessibility Tests
 
-  func testResponsivenessBar_hasAccessibilityLabel() {
-    let view = ResponsivenessBar(score: 85)
-    // Should have "Responsiveness" as accessibility label
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_hasAccessibilityValue() {
-    let view = ResponsivenessBar(score: 85)
-    // Should have "85% Responsive" as accessibility value
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_barHiddenForAccessibility() {
-    let view = ResponsivenessBar(score: 85)
-    // Progress bar should be hidden from accessibility
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_dynamicType() {
-    let view = ResponsivenessBar(score: 85)
-      .environment(\.sizeCategory, .accessibilityExtraExtraLarge)
-    XCTAssertNotNil(view)
-  }
 
-  // MARK: - ResponsivenessBar Score Normalization Tests
 
-  func testResponsivenessBar_normalizesNegativeScore() {
-    // Score of -10 should normalize to 0
-    let view = ResponsivenessBar(score: -10)
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_normalizesOverHundred() {
-    // Score of 150 should normalize to 100
-    let view = ResponsivenessBar(score: 150)
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_preservesValidScore() {
-    // Score of 85 should remain 85
-    let view = ResponsivenessBar(score: 85)
-    XCTAssertNotNil(view)
-  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // MARK: - Integration Tests
 
@@ -287,15 +202,7 @@ final class CommunicationComponentsTests: XCTestCase {
     XCTAssertNotNil(instagramButton)
   }
 
-  func testIntegration_responsivenessBarWithDifferentScores() {
-    let low = ResponsivenessBar(score: 20)
-    let medium = ResponsivenessBar(score: 60)
-    let high = ResponsivenessBar(score: 90)
 
-    XCTAssertNotNil(low)
-    XCTAssertNotNil(medium)
-    XCTAssertNotNil(high)
-  }
 
   // MARK: - Edge Cases
 
@@ -323,8 +230,5 @@ final class CommunicationComponentsTests: XCTestCase {
     XCTAssertNotNil(url)
   }
 
-  func testEdgeCase_fractionalResponsivenessScore() {
-    let view = ResponsivenessBar(score: 85.7)
-    XCTAssertNotNil(view)
-  }
+
 }

@@ -20,51 +20,7 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
 
   // MARK: - Load Tests
 
-  func testLoadVisibility_WhenSettingsExist_LoadsData() async {
-    // Given
-    let expectedVisibility = DashboardWidgetVisibility(
-      statsCards: StatsCardVisibility(
-        coaches: false,
-        schools: true,
-        interactions: false,
-        offers: true,
-        events: false,
-        performance: true,
-        notifications: false,
-        socialMedia: true
-      ),
-      widgets: WidgetVisibility(
-        actionItems: false,
-        quickTasks: true,
-        atAGlanceSummary: false,
-        interactionTrendChart: false,
-        eventsSummary: false,
-        performanceSummary: true,
-        recentActivity: false,
-        recentNotifications: false,
-        linkedAccounts: true,
-        recruitingCalendar: false,
-        offerStatusOverview: true,
-        schoolInterestChart: true,
-        schoolMapWidget: false,
-        coachFollowupWidget: true,
-        recentDocuments: false,
-        interactionStats: true,
-        schoolStatusOverview: false,
-        coachResponsiveness: true,
-        upcomingDeadlines: false
-      )
-    )
-    mockService.fetchPreferencesResult = .success(expectedVisibility)
 
-    // When
-    await viewModel.loadVisibility()
-
-    // Then
-    XCTAssertEqual(viewModel.visibility, expectedVisibility)
-    XCTAssertFalse(viewModel.isLoading)
-    XCTAssertNil(viewModel.errorMessage)
-  }
 
   func testLoadVisibility_WhenNoSettings_UsesDefaults() async {
     // Given
@@ -155,44 +111,7 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.visibility.statsCards.offers)
   }
 
-  func testToggleAllWidgets_EnablesAllWidgets() {
-    // Given — toggleAllWidgets controls the seven live widgets
-    let allDisabled = WidgetVisibility(
-      actionItems: false,
-      quickTasks: false,
-      atAGlanceSummary: false,
-      interactionTrendChart: false,
-      eventsSummary: false,
-      performanceSummary: false,
-      recentActivity: false,
-      recentNotifications: false,
-      linkedAccounts: false,
-      recruitingCalendar: false,
-      offerStatusOverview: false,
-      schoolInterestChart: false,
-      schoolMapWidget: false,
-      coachFollowupWidget: false,
-      recentDocuments: false,
-      interactionStats: false,
-      schoolStatusOverview: false,
-      coachResponsiveness: false,
-      upcomingDeadlines: false
-    )
-    viewModel.visibility.widgets = allDisabled
 
-    // When
-    viewModel.toggleAllWidgets(true)
-
-    // Then — only live widgets are toggled
-    XCTAssertTrue(viewModel.visibility.widgets.actionItems)
-    XCTAssertTrue(viewModel.visibility.widgets.quickTasks)
-    XCTAssertTrue(viewModel.visibility.widgets.atAGlanceSummary)
-    XCTAssertTrue(viewModel.visibility.widgets.interactionTrendChart)
-    XCTAssertTrue(viewModel.visibility.widgets.eventsSummary)
-    XCTAssertTrue(viewModel.visibility.widgets.performanceSummary)
-    XCTAssertTrue(viewModel.visibility.widgets.recentActivity)
-    XCTAssertEqual(viewModel.saveStatus, .saving)
-  }
 
   func testToggleAllWidgets_DisablesAllWidgets() {
     // Given

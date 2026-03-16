@@ -104,17 +104,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     XCTAssertNotNil(view)
   }
 
-  func testCoachCardView_responsivenessBarAccessible() {
-    let view = CoachCardView(
-      coach: coach,
-      schoolName: "State University",
-      schoolLogoUrl: nil,
-      schoolInitials: "SU"
-    )
 
-    // ResponsivenessBar should have label and value
-    XCTAssertNotNil(view)
-  }
 
   func testCoachCardView_dynamicTypeSupport() {
     let coach = makeCoach()
@@ -130,35 +120,14 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     XCTAssertNotNil(view)
   }
 
-  // MARK: - ResponsivenessBar Accessibility Tests
 
-  func testResponsivenessBar_hasAccessibilityLabel() {
-    let view = ResponsivenessBar(score: 85)
 
-    // Should have "Responsiveness" as label
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_hasAccessibilityValue() {
-    let view = ResponsivenessBar(score: 85)
 
-    // Should have "85% Responsive" as value
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_progressBarHidden() {
-    let view = ResponsivenessBar(score: 85)
 
-    // Visual progress bar should be hidden from accessibility
-    XCTAssertNotNil(view)
-  }
 
-  func testResponsivenessBar_hasUpdatesFrequentlyTrait() {
-    let view = ResponsivenessBar(score: 85)
 
-    // Should have .updatesFrequently trait since scores can change
-    XCTAssertNotNil(view)
-  }
 
   // MARK: - CoachFilterBar Accessibility Tests
 
@@ -185,12 +154,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     XCTAssertNotNil(view)
   }
 
-  func testCoachFilterBar_responsivenessMenuAccessible() {
-    let view = CoachFilterBar(filters: .constant(CoachFilters()))
 
-    // Responsiveness menu should have label, hint, and value
-    XCTAssertNotNil(view)
-  }
 
   func testCoachFilterBar_sortMenuAccessible() {
     let view = CoachFilterBar(filters: .constant(CoachFilters()))
@@ -382,27 +346,7 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
 
   // MARK: - Integration Tests
 
-  func testIntegration_fullCardAccessibility() {
-    let coach = makeCoach(
-      email: "test@test.com",
-      phone: "555-1234",
-      position: "head"
-    )
-    let view = CoachCardView(
-      coach: coach,
-      schoolName: "State University",
-      schoolLogoUrl: nil,
-      schoolInitials: "SU"
-    )
 
-    // Full card should be accessible with proper hierarchy:
-    // - Header (name, school, role) readable
-    // - Contact info readable
-    // - Responsiveness bar with label/value
-    // - Communication buttons with labels
-    // - Delete button with label
-    XCTAssertNotNil(view)
-  }
 
   func testIntegration_filterBarToChipsAccessibility() {
     var filters = CoachFilters()

@@ -390,7 +390,6 @@ final class OfferDetailViewModelTests: XCTestCase {
       ncaaId: nil,
       status: "active",
       statusChangedAt: nil,
-      priorityTier: nil,
       notes: nil,
       pros: [],
       cons: [],

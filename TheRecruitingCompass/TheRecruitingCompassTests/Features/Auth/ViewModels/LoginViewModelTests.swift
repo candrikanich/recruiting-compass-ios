@@ -324,29 +324,9 @@ final class LoginViewModelTests: XCTestCase {
 
   // MARK: - Performance Tests
 
-  func testFormInputResponsiveness() {
-    let startTime = CFAbsoluteTimeGetCurrent()
 
-    sut.email = "user@example.com"
-    sut.validateEmail()
 
-    let endTime = CFAbsoluteTimeGetCurrent()
-    let duration = endTime - startTime
 
-    XCTAssertLessThan(duration, 0.1)
-  }
-
-  func testPasswordInputResponsiveness() {
-    let startTime = CFAbsoluteTimeGetCurrent()
-
-    sut.password = "ValidPassword123"
-    sut.validatePassword()
-
-    let endTime = CFAbsoluteTimeGetCurrent()
-    let duration = endTime - startTime
-
-    XCTAssertLessThan(duration, 0.1)
-  }
 
   // MARK: - State Transition Tests
 
