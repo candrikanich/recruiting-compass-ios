@@ -90,7 +90,6 @@ final class SchoolsListViewModelTests: XCTestCase {
       status: status,
       statusChangedAt: "2026-02-01T10:00:00Z",
       notes: notes,
-      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,
