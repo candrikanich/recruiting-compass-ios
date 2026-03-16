@@ -1,7 +1,7 @@
 # Sign in with Apple — Cross-Platform Design Spec
 
 **Date:** 2026-03-15
-**Status:** Draft — Awaiting User Review
+**Status:** Approved by user 2026-03-16
 **Scope:** iOS (native) + Web (Nuxt 3)
 
 ---
@@ -656,39 +656,73 @@ Use `.fullScreenCover` (not `.sheet`) to prevent swipe-to-dismiss, which would l
 
 ## 6. Web Implementation (Nuxt 3)
 
+### 6.0 Web Auth Context
+
+The web app uses a **raw Supabase JS client** (not `@nuxtjs/supabase` module). Key facts:
+- Client configured in `composables/useSupabase.ts` with `detectSessionInUrl: true`
+- Session stored in `localStorage` via Supabase client auto-storage
+- Auth state synced to Pinia store via `plugins/auth.client.ts` (listens for `SIGNED_IN` / `SIGNED_OUT` events)
+- Page structure is flat: `pages/login.vue`, `pages/signup.vue` — no `/auth/` prefix convention
+- No `@nuxtjs/supabase` confirm route in use — `detectSessionInUrl: true` handles URL-based session detection
+
 ### 6.1 Sign In with Apple Button
 
-Both the login and signup pages get an Apple Sign In button. Use the official black Apple button styling per Human Interface Guidelines.
+Add a Sign In with Apple button to both `components/Auth/LoginForm.vue` and `components/Auth/SignupForm.vue`. Use the official Apple button markup (black background, white logo+text, min 44px height per HIG).
+
+Add a `signInWithApple()` function to `composables/useAuth.ts` alongside the existing `login()` and `signup()` methods:
 
 ```typescript
-// In the auth composable or directly in the page
 async function signInWithApple() {
+    const supabase = useSupabaseClient()
     const { error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
+            redirectTo: `${window.location.origin}/apple-callback`,
             scopes: 'name email',
         }
     })
     if (error) throw error
+    // Browser redirects to Apple — no further code runs here
 }
 ```
 
-### 6.2 Auth Callback
+### 6.2 Auth Callback Page (`/apple-callback`)
 
-`@nuxtjs/supabase` handles the PKCE code exchange automatically via its built-in `confirmRoute` (defaults to `/confirm`, configurable). If the project already uses this route, no additional page is needed — just set `redirectTo` in the `signInWithOAuth` call to match the configured route.
+Create `pages/apple-callback.vue`. The app uses `detectSessionInUrl: true`, so Supabase automatically exchanges the code for a session when this page loads — no manual `exchangeCodeForSession` call needed.
 
-If a custom `/auth/callback` page is preferred, it should:
-1. Call `supabase.auth.exchangeCodeForSession(route.query.code)` (if not using the module's built-in handler)
-2. Check `session.user.user_metadata?.role` for presence
-3. Navigate to `/auth/apple-setup` if no role, or `/dashboard` if role present
+The page's `onMounted` logic:
 
-### 6.3 New User Role Selection (`/auth/apple-setup`)
+```typescript
+// pages/apple-callback.vue
+onMounted(async () => {
+    // detectSessionInUrl handles the code exchange automatically.
+    // Wait for the SIGNED_IN event via the auth plugin, then check user state.
+    await waitForSession()  // polls userStore.isAuthenticated or listens to supabase.auth.onAuthStateChange
 
-A minimal Nuxt page:
-- Role selection: Parent / Coach
-- On submit: call `supabase.auth.updateUser({ data: { role: selectedRole } })` and insert into `public.users`
-- Then navigate to `/dashboard`
+    const user = userStore.user
+    if (!user?.role) {
+        // New Apple user — no role yet
+        await navigateTo('/apple-setup')
+    } else {
+        await navigateTo('/dashboard')
+    }
+})
+```
+
+The page shows a loading spinner while the exchange completes. Handle error state if no session is established within a timeout.
+
+**Set the callback URL in Supabase Dashboard:** Authentication → URL Configuration → Add `https://myrecruitingcompass.com/apple-callback` to the Redirect URLs allowlist.
+
+### 6.3 New User Role Selection (`/apple-setup`)
+
+Create `pages/apple-setup.vue`. Shown only for new Apple users who have no role in their profile.
+
+**Contents:**
+- Role selection: Parent / Coach (match the `UserTypeSelector.vue` pattern from signup)
+- "Continue" button → calls `supabase.auth.updateUser({ data: { role, full_name } })` + upserts into `public.users`
+- Then navigates to `/dashboard`
+
+**Guard:** Add a route check — if the user already has a role, redirect to `/dashboard` immediately (prevents direct URL access).
 
 ### 6.4 Apple Domain Verification
 
@@ -698,7 +732,7 @@ Apple requires a publicly accessible verification file at:
 https://myrecruitingcompass.com/.well-known/apple-developer-domain-association.txt
 ```
 
-Content is generated in Apple Developer Portal when configuring the Service ID. This file must be served as plain text (no auth, no redirects).
+Place this file in the Nuxt `public/.well-known/` directory. Content is generated in Apple Developer Portal when configuring the Service ID. Must be served as plain text (no auth, no redirects).
 
 ---
 
@@ -796,14 +830,12 @@ New types requiring this:
 
 ---
 
-## 11. Open Questions for Review
+## 11. Resolved Questions
 
-1. **Implementation order:** iOS first (for App Store), then web? Or simultaneous? Apple only requires web parity if the app has *other* third-party social logins — so web can follow.
+All open questions answered 2026-03-16:
 
-2. **Apple Developer Portal access:** Do you have access to enable Sign in with Apple on the App ID and create a Service ID + P8 key? Required before any end-to-end testing.
-
-3. **Supabase dashboard access:** Needed to enable the Apple provider and turn on automatic identity linking.
-
-4. **`@nuxtjs/supabase` confirmRoute:** Does the web app currently use the module's built-in `/confirm` route, or does it have a custom callback? This determines whether a new `/auth/callback` page is needed.
-
-5. **`AppleProfileSetupView` — modal or full-screen cover?** Full-screen cover is recommended (prevents swipe-to-dismiss which would leave the user in an incomplete state) but confirm if you have a preference.
+1. **Implementation order:** Web auth already exists — this adds Apple to both iOS and web simultaneously.
+2. **Apple Developer Portal:** Access confirmed.
+3. **Supabase dashboard:** Access confirmed.
+4. **Web auth callback:** App uses raw Supabase client with `detectSessionInUrl: true` (not `@nuxtjs/supabase` module). Requires a custom `/apple-callback` page — see Section 6.2.
+5. **`AppleProfileSetupView`:** Full-screen cover confirmed.
