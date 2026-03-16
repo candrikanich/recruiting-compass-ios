@@ -3,7 +3,6 @@ import SwiftUI
 struct NotesSection: View {
   let title: String
   @Binding var notes: String
-  let isPrivate: Bool
   let onBlur: () async -> Void
 
   @Environment(\.sizeCategory) private var sizeCategory
@@ -21,13 +20,6 @@ struct NotesSection: View {
           .foregroundStyle(.primary)
 
         Spacer()
-      }
-
-      if isPrivate {
-        Text("Only visible to you")
-          .font(.caption)
-          .foregroundStyle(Color.secondaryText)
-          .accessibilityHidden(true)
       }
 
       TextEditor(text: $notes)
@@ -59,18 +51,6 @@ struct NotesSection: View {
   NotesSection(
     title: "Shared Notes",
     notes: $notes,
-    isPrivate: false,
-    onBlur: {}
-  )
-  .padding()
-}
-
-#Preview("Private Notes - Empty") {
-  @Previewable @State var notes = ""
-  NotesSection(
-    title: "Private Notes",
-    notes: $notes,
-    isPrivate: true,
     onBlur: {}
   )
   .padding()

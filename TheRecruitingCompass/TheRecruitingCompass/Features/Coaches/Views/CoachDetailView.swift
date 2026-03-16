@@ -165,7 +165,6 @@ struct CoachDetailView: View {
     NotesSection(
       title: "Shared Notes",
       notes: $viewModel.editedSharedNotes,
-      isPrivate: false,
       onBlur: { await viewModel.saveSharedNotes() }
     )
   }

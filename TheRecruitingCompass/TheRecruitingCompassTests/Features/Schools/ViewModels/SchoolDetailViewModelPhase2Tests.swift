@@ -105,36 +105,6 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
     XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
-  // MARK: - Private Notes Tests
-
-  func testPrivateNoteForCurrentUser_ReturnsCorrectNote() {
-    // Given
-    let privateNotes: [String: String] = [
-      "user-1": "My private note",
-      "user-2": "Other user's note"
-    ]
-    let school = createMockSchool(privateNotes: privateNotes)
-    viewModel.school = school
-
-    // When
-    let note = viewModel.privateNoteForCurrentUser
-
-    // Then
-    XCTAssertEqual(note, "My private note")
-  }
-
-  func testPrivateNoteForCurrentUser_NoNote_ReturnsEmpty() {
-    // Given
-    let school = createMockSchool(privateNotes: [:])
-    viewModel.school = school
-
-    // When
-    let note = viewModel.privateNoteForCurrentUser
-
-    // Then
-    XCTAssertEqual(note, "")
-  }
-
   func testSavePrivateNotes_Success() async {
     // Given
     let updatedSchool = createMockSchool()
@@ -445,7 +415,6 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
 
   private func createMockSchool(
     notes: String? = nil,
-    privateNotes: [String: String]? = nil,
     pros: [String] = [],
     cons: [String] = [],
     website: String? = nil,
@@ -471,7 +440,6 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
       status: "interested",
       statusChangedAt: "2025-01-01T00:00:00Z",
       notes: notes,
-      privateNotes: privateNotes,
       pros: pros,
       cons: cons,
       offerDetails: nil,

@@ -14,7 +14,6 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
 
   // Phase 2 call counters
   var updateNotesCallCount = 0
-  var updatePrivateNotesCallCount = 0
   var addProCallCount = 0
   var removeProCallCount = 0
   var addConCallCount = 0
@@ -32,9 +31,6 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
 
   // Phase 2 tracking
   var lastUpdatedNotes: String?
-  var lastPrivateNote: String? // Alias for lastUpdatedPrivateNote
-  var lastUpdatedPrivateNote: String?
-  var lastPrivateNoteUserId: String?
   var lastAddedPro: String?
   var lastProIndex: Int? // Alias for lastRemovedProIndex
   var lastRemovedProIndex: Int?
@@ -156,27 +152,6 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
       throw NSError(domain: "MockSchoolsService", code: -1)
     }
     stubbedSchool = school.with(notes: notes)
-    return stubbedSchool!
-  }
-
-  func updatePrivateNotes(id: String, familyUnitId: String, userId: String, note: String?) async throws -> School {
-    updatePrivateNotesCallCount += 1
-    lastPrivateNote = note
-    lastUpdatedPrivateNote = note
-    lastPrivateNoteUserId = userId
-    if shouldThrowError {
-      throw errorToThrow
-    }
-    guard let school = stubbedSchool else {
-      throw NSError(domain: "MockSchoolsService", code: -1)
-    }
-    var privateNotes = school.privateNotes ?? [:]
-    if let note = note {
-      privateNotes[userId] = note
-    } else {
-      privateNotes.removeValue(forKey: userId)
-    }
-    stubbedSchool = school.with(privateNotes: privateNotes)
     return stubbedSchool!
   }
 
@@ -305,7 +280,6 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
       status: school.status,
       statusChangedAt: school.statusChangedAt,
       notes: school.notes,
-      privateNotes: school.privateNotes,
       pros: school.pros,
       cons: school.cons,
       offerDetails: school.offerDetails,

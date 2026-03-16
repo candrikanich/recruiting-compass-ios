@@ -3,7 +3,6 @@ import SwiftUI
 struct SchoolNotesSection: View {
   let title: String
   @Binding var notes: String
-  let isPrivate: Bool
   let onBlur: () async -> Void
 
   @FocusState private var isFocused: Bool
@@ -16,13 +15,6 @@ struct SchoolNotesSection: View {
           .accessibilityAddTraits(.isHeader)
 
         Spacer()
-      }
-
-      if isPrivate {
-        Text("Only you can see these notes")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-          .italic()
       }
 
       TextEditor(text: $notes)
@@ -57,7 +49,6 @@ struct SchoolNotesSection: View {
   SchoolNotesSection(
     title: "Notes",
     notes: $notes,
-    isPrivate: false,
     onBlur: {}
   )
   .padding()

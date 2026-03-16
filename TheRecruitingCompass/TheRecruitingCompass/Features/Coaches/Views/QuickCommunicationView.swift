@@ -243,7 +243,6 @@ private struct QuickCommActionsSection: View {
         twitterHandle: nil,
         instagramHandle: nil,
         notes: nil,
-        privateNotes: nil,
         responsivenessScore: 0,
         lastContactDate: nil,
         createdAt: "",

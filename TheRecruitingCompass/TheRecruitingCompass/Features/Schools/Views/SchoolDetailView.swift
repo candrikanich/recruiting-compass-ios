@@ -208,7 +208,6 @@ struct SchoolDetailView: View {
         SchoolNotesSection(
           title: "Notes",
           notes: $viewModel.editedNotes,
-          isPrivate: false,
           onBlur: { await viewModel.saveNotes() }
         )
         .padding(.horizontal)
