@@ -96,7 +96,6 @@ struct Coach: Codable, Identifiable, Sendable {
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
     case notes
-    case privateNotes = "private_notes"
     case responsivenessScore = "responsiveness_score"
     case lastContactDate = "last_contact_date"
     case createdAt = "created_at"
@@ -117,7 +116,6 @@ struct Coach: Codable, Identifiable, Sendable {
     twitterHandle = try container.decodeIfPresent(String.self, forKey: .twitterHandle)
     instagramHandle = try container.decodeIfPresent(String.self, forKey: .instagramHandle)
     notes = try container.decodeIfPresent(String.self, forKey: .notes)
-    privateNotes = Self.decodePrivateNotes(from: container)
     responsivenessScore = try container.decodeIfPresent(Double.self, forKey: .responsivenessScore) ?? 0.0
     lastContactDate = try container.decodeIfPresent(String.self, forKey: .lastContactDate)
     createdAt = try container.decode(String.self, forKey: .createdAt)

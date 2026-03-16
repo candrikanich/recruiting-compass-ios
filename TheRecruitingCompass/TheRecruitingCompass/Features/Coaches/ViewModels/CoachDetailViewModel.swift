@@ -297,37 +297,6 @@ final class CoachDetailViewModel {
     }
   }
 
-  func savePrivateNotes() async {
-    guard let coachId = coach?.id else { return }
-    guard let userId = currentUserId else { return }
-    saveStatus = .saving
-
-    do {
-      let sanitized = DataSanitizer.stripHtmlTags(editedPrivateNotes.trimmingCharacters(in: .whitespacesAndNewlines))
-      var privateNotes = coach?.privateNotes ?? [:]
-      if sanitized.isEmpty {
-        privateNotes.removeValue(forKey: userId)
-      } else {
-        privateNotes[userId] = sanitized
-      }
-
-      let request = CoachUpdateRequest(
-        firstName: nil, lastName: nil, email: nil, phone: nil,
-        position: nil, twitterHandle: nil, instagramHandle: nil,
-        notes: nil, privateNotes: privateNotes
-      )
-      let updated = try await coachesService.updateCoach(id: coachId, updates: request)
-      coach = updated
-      await invalidateCoachCache()
-      markSaved()
-      logger.info("Private notes updated successfully")
-    } catch {
-      logger.error("Failed to update private notes: \(error.localizedDescription)")
-      errorMessage = "Failed to save private notes"
-      saveStatus = .idle
-    }
-  }
-
   // MARK: - Delete
 
   func confirmDelete() {

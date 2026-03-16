@@ -213,16 +213,7 @@ struct SchoolDetailView: View {
         )
         .padding(.horizontal)
 
-        // 11. Private notes
-        SchoolNotesSection(
-          title: "Private Notes",
-          notes: $viewModel.editedPrivateNotes,
-          isPrivate: true,
-          onBlur: { await viewModel.savePrivateNotes() }
-        )
-        .padding(.horizontal)
-
-        // 12. Documents
+        // 11. Documents
         SchoolDocumentsSection()
           .padding(.horizontal)
 

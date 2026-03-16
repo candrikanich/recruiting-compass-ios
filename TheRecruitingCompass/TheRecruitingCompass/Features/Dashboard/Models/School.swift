@@ -266,10 +266,6 @@ struct School: Codable, Identifiable, Sendable {
     return distanceInMiles
   }
 
-  func privateNote(for userId: String) -> String? {
-    privateNotes?[userId]
-  }
-
   // MARK: - Mutability Helpers
 
   func with(isFavorite: Bool) -> School {
@@ -355,47 +351,6 @@ struct School: Codable, Identifiable, Sendable {
   }
 
   func with(notes: String) -> School {
-    School(
-      id: id,
-      userId: userId,
-      name: name,
-      location: location,
-      city: city,
-      state: state,
-      division: division,
-      conference: conference,
-      ranking: ranking,
-      isFavorite: isFavorite,
-      website: website,
-      faviconUrl: faviconUrl,
-      twitterHandle: twitterHandle,
-      instagramHandle: instagramHandle,
-      ncaaId: ncaaId,
-      status: status,
-      statusChangedAt: statusChangedAt,
-      notes: notes,
-      privateNotes: privateNotes,
-      pros: pros,
-      cons: cons,
-      offerDetails: offerDetails,
-      academicInfo: academicInfo,
-      amenities: amenities,
-      coachingPhilosophy: coachingPhilosophy,
-      coachingStyle: coachingStyle,
-      recruitingApproach: recruitingApproach,
-      communicationStyle: communicationStyle,
-      successMetrics: successMetrics,
-      fitScore: fitScore,
-      fitTier: fitTier,
-      familyUnitId: familyUnitId,
-      createdBy: createdBy,
-      updatedBy: updatedBy,
-      createdAt: createdAt,
-      updatedAt: updatedAt
-    )
-  }
-
-  func with(privateNotes: [String: String]?) -> School {
     School(
       id: id,
       userId: userId,

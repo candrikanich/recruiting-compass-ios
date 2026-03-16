@@ -256,36 +256,6 @@ final class SchoolDetailViewModel {
     }
   }
 
-  func savePrivateNotes() async {
-    guard let familyId = familyManager.familyUnitId else {
-      errorMessage = "No active family"
-      return
-    }
-    guard let userId = currentUserId else {
-      errorMessage = "You must be signed in"
-      return
-    }
-
-    saveStatus = .saving
-    do {
-      let sanitized = DataSanitizer.stripHtmlTags(editedPrivateNotes.trimmingCharacters(in: .whitespacesAndNewlines))
-      let note = sanitized.isEmpty ? nil : sanitized
-      let updated = try await schoolsService.updatePrivateNotes(
-        id: schoolId,
-        familyUnitId: familyId,
-        userId: userId,
-        note: note
-      )
-      school = updated
-      await invalidateSchoolCache()
-      markSaved()
-      logger.info("Private notes saved successfully")
-    } catch {
-      ViewModelHelpers.handleError(error, userMessage: "Failed to save private notes", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
-      saveStatus = .idle
-    }
-  }
-
   // MARK: - Pros & Cons
 
   func addPro() async {

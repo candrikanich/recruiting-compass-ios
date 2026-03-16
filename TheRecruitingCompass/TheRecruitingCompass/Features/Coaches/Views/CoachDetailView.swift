@@ -131,7 +131,6 @@ struct CoachDetailView: View {
       CoachStatisticsSection(coach: coach)
       recentInteractionsSection
       sharedNotesSection
-      privateNotesSection
     }
     .padding()
   }
@@ -168,15 +167,6 @@ struct CoachDetailView: View {
       notes: $viewModel.editedSharedNotes,
       isPrivate: false,
       onBlur: { await viewModel.saveSharedNotes() }
-    )
-  }
-
-  private var privateNotesSection: some View {
-    NotesSection(
-      title: "Private Notes",
-      notes: $viewModel.editedPrivateNotes,
-      isPrivate: true,
-      onBlur: { await viewModel.savePrivateNotes() }
     )
   }
 
