@@ -930,17 +930,299 @@ git commit -m "refactor: replace StatCardSkeleton with StatCard+.redacted, inlin
 
 ## Summary of Changes
 
-| Task | Files Affected | Type |
-|---|---|---|
-| 1. @Entry macro | `TabEnvironment.swift` | Simplify |
-| 2. AdaptiveHStackVStack closure | `AdaptiveHStackVStack.swift` | Fix |
-| 3. Binding(get:set:) | `TheRecruitingCompassApp.swift`, `DocumentViewerView.swift` | Fix |
-| 4. HapticFeedbackManager | Delete 1, modify 4 | Remove UIKit |
-| 5. UIAccessibility | `AccessibilityAnnouncing.swift`, `AppErrorView.swift` | Remove UIKit |
-| 6. Tab API | `MainTabView.swift` | Modernize |
-| 7. CountdownTimer | Delete 1 | Dead code |
-| 8. RelativeTimeFormatter | Delete 2, modify 1 | Remove custom |
-| 9. MiniBarChart | `MiniBarChart.swift` | Remove GeometryReader |
-| 10. Shimmer/Skeleton | Delete 2, modify callers | Remove custom |
+| Task | Files Affected | Type | Status |
+|---|---|---|---|
+| 1. @Entry macro | `TabEnvironment.swift` | Simplify | ✅ Done |
+| 2. AdaptiveHStackVStack closure | `AdaptiveHStackVStack.swift` | Fix | ✅ Done |
+| 3. Binding(get:set:) | `TheRecruitingCompassApp.swift`, `DocumentViewerView.swift` | Fix | ✅ Done |
+| 4. HapticFeedbackManager | Delete 1, modify 4 | Remove UIKit | ✅ Done |
+| 5. UIAccessibility | `AccessibilityAnnouncing.swift`, `AppErrorView.swift` | Remove UIKit | ✅ Done |
+| 6. Tab API | `MainTabView.swift` | Modernize | ✅ Done |
+| 7. CountdownTimer | Delete 1 | Dead code | ✅ Done |
+| 8. RelativeTimeFormatter | Delete 2, modify 1 | Remove custom | ✅ Done |
+| 9. MiniBarChart | `MiniBarChart.swift` | Remove GeometryReader | ✅ Done |
+| 10. Shimmer/Skeleton | Delete 2, modify callers | Remove custom | ✅ Done |
+| 11. .searchable() | `NotificationsListView.swift`, delete `NotificationSearchBar.swift` | Remove custom | ⬜ Todo |
+| 12. Swift Regex | `FormValidator.swift` | Modernize | ⬜ Todo |
+| 13. .formatted() | `DateFormatting.swift` | Modernize | ⬜ Todo |
 
 **End state:** No `UIKit` imports in view or component files. No custom implementations of things SwiftUI/Foundation provide. All iOS 18 API patterns in use.
+
+---
+
+## Chunk 6: Remaining Audit Items (2026-03-15)
+
+### Task 11: Replace `NotificationSearchBar` with `.searchable()`
+
+**Files:**
+- Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Notifications/Views/NotificationsListView.swift`
+- Delete: `TheRecruitingCompass/TheRecruitingCompass/Features/Notifications/Components/NotificationSearchBar.swift`
+- Delete: `TheRecruitingCompass/TheRecruitingCompassTests/Features/Notifications/Accessibility/NotificationSearchBarAccessibilityTests.swift`
+
+`NotificationSearchBar` is a custom HStack with a magnifying glass icon, TextField, and clear button. SwiftUI's `.searchable(text:prompt:)` (iOS 15+) renders the same UI natively, integrates with `NavigationStack` keyboard dismiss, and handles the clear button automatically.
+
+The ViewModel already exposes `var searchText: String = ""` and the `filteredNotifications` computed property already filters on it — no ViewModel changes needed.
+
+The `NotificationSearchBarAccessibilityTests.swift` tests the custom component directly via `UIHostingController`. With the component gone, those tests have no value (Apple owns the native search bar accessibility). Delete them.
+
+- [ ] **Step 1: Add `.searchable()` to `NotificationsListView` and remove `NotificationSearchBar`**
+
+Open `TheRecruitingCompass/TheRecruitingCompass/Features/Notifications/Views/NotificationsListView.swift`.
+
+In `body`, remove these lines:
+```swift
+NotificationSearchBar(
+  searchText: $viewModel.searchText,
+  onSearchChanged: { _ in }
+)
+```
+
+Add `.searchable(text: $viewModel.searchText, prompt: "Search notifications")` to the modifier chain on the outermost view (the `VStack`). Place it after `.navigationBarTitleDisplayMode(.inline)`:
+
+```swift
+.searchable(text: $viewModel.searchText, prompt: "Search notifications")
+```
+
+The full modifier block should look like:
+```swift
+.navigationTitle("Notifications")
+.navigationBarTitleDisplayMode(.inline)
+.searchable(text: $viewModel.searchText, prompt: "Search notifications")
+.navigationDestination(item: $viewModel.selectedDestination) { destination in
+  destinationView(for: destination)
+}
+```
+
+- [ ] **Step 2: Delete `NotificationSearchBar.swift`**
+
+```bash
+rm /Volumes/AlphabetSoup/TheRecruitingCompass/code/recruiting-compass-ios/TheRecruitingCompass/TheRecruitingCompass/Features/Notifications/Components/NotificationSearchBar.swift
+```
+
+- [ ] **Step 3: Delete `NotificationSearchBarAccessibilityTests.swift`**
+
+```bash
+rm /Volumes/AlphabetSoup/TheRecruitingCompass/code/recruiting-compass-ios/TheRecruitingCompass/TheRecruitingCompassTests/Features/Notifications/Accessibility/NotificationSearchBarAccessibilityTests.swift
+```
+
+- [ ] **Step 4: Verify build and tests pass**
+
+```bash
+cd /Volumes/AlphabetSoup/TheRecruitingCompass/code/recruiting-compass-ios/TheRecruitingCompass
+xcodebuild build -scheme TheRecruitingCompass -destination 'platform=iOS Simulator,name=iPhone 17' 2>&1 | grep -E "error:|BUILD"
+xcodebuild test -scheme TheRecruitingCompass -destination 'platform=iOS Simulator,name=iPhone 17' 2>&1 | grep -E "Test Suite|passed|failed"
+```
+
+Expected: `BUILD SUCCEEDED`, all tests pass.
+
+- [ ] **Step 5: Commit**
+
+```bash
+cd /Volumes/AlphabetSoup/TheRecruitingCompass/code/recruiting-compass-ios
+git add TheRecruitingCompass/TheRecruitingCompass/Features/Notifications/Views/NotificationsListView.swift
+git rm TheRecruitingCompass/TheRecruitingCompass/Features/Notifications/Components/NotificationSearchBar.swift
+git rm TheRecruitingCompass/TheRecruitingCompassTests/Features/Notifications/Accessibility/NotificationSearchBarAccessibilityTests.swift
+git commit -m "refactor: replace custom NotificationSearchBar with native .searchable() modifier"
+```
+
+---
+
+### Task 12: Replace `NSRegularExpression` with Swift `Regex` in `FormValidator`
+
+**Files:**
+- Modify: `TheRecruitingCompass/TheRecruitingCompass/Shared/Utilities/FormValidator.swift`
+
+`FormValidator` uses `NSRegularExpression` with `try!` force-try, requiring `NSRange` boilerplate. Swift 5.7 (iOS 16+) ships native `Regex` literals — compile-time checked, no throwing, no `NSRange`. The public API (all static methods, return types) stays identical — tests require zero changes.
+
+Current patterns:
+- Email: `"^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$"`
+- Name: `"^[a-zA-Z\\s\\-']+$"`
+- Family code: `"^FAM-[A-Z0-9]{6}$"`
+
+- [ ] **Step 1: Rewrite `FormValidator.swift`**
+
+Replace the entire file content:
+
+```swift
+import Foundation
+
+enum FormValidator {
+  // MARK: - Email
+  private static let emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/
+
+  static func validateEmail(_ email: String) -> String? {
+    let trimmed = email.trimmingCharacters(in: .whitespaces)
+    guard !trimmed.isEmpty else { return "Email is required" }
+    guard trimmed.wholeMatch(of: emailRegex) != nil else { return "Invalid email address" }
+    return nil
+  }
+
+  // MARK: - Password
+  static func validatePassword(_ password: String) -> String? {
+    guard !password.isEmpty else { return "Password is required" }
+    guard password.count >= 8 else { return "Password must be at least 8 characters" }
+    return nil
+  }
+
+  static func validatePasswordStrength(_ password: String) -> (isValid: Bool, errors: [String]) {
+    var errors: [String] = []
+    if password.count < 8 { errors.append("at least 8 characters") }
+    if !password.contains(where: { $0.isUppercase }) { errors.append("an uppercase letter") }
+    if !password.contains(where: { $0.isLowercase }) { errors.append("a lowercase letter") }
+    if !password.contains(where: { $0.isNumber }) { errors.append("a number") }
+    return (isValid: errors.isEmpty, errors: errors)
+  }
+
+  static func validatePasswordMatch(_ password: String, _ confirmPassword: String) -> String? {
+    guard password == confirmPassword else { return "Passwords do not match" }
+    return nil
+  }
+
+  // MARK: - Name
+  private static let nameRegex = /^[a-zA-Z\s\-']+$/
+
+  static func validateName(_ name: String) -> String? {
+    let trimmed = name.trimmingCharacters(in: .whitespaces)
+    guard !trimmed.isEmpty else { return "Name is required" }
+    guard trimmed.count >= 2 else { return "Name must be at least 2 characters" }
+    guard trimmed.wholeMatch(of: nameRegex) != nil else {
+      return "Name can only contain letters, spaces, hyphens, and apostrophes"
+    }
+    return nil
+  }
+
+  // MARK: - Family Code
+  private static let familyCodeRegex = /^FAM-[A-Z0-9]{6}$/
+
+  static func validateFamilyCode(_ code: String?) -> String? {
+    guard let code else { return nil }
+    let trimmed = code.trimmingCharacters(in: .whitespaces)
+    guard !trimmed.isEmpty else { return nil }
+    guard trimmed.wholeMatch(of: familyCodeRegex) != nil else {
+      return "Family code must be in format FAM-XXXXXX"
+    }
+    return nil
+  }
+}
+```
+
+- [ ] **Step 2: Run existing tests to confirm all pass**
+
+```bash
+cd /Volumes/AlphabetSoup/TheRecruitingCompass/code/recruiting-compass-ios/TheRecruitingCompass
+xcodebuild test -scheme TheRecruitingCompass -destination 'platform=iOS Simulator,name=iPhone 17' \
+  -only-testing:TheRecruitingCompassTests/FormValidatorTests 2>&1 | grep -E "Test Case|passed|failed|error:"
+```
+
+Expected: all 18 test cases pass with no changes to the test file.
+
+- [ ] **Step 3: Verify build**
+
+```bash
+xcodebuild build -scheme TheRecruitingCompass -destination 'platform=iOS Simulator,name=iPhone 17' 2>&1 | grep -E "error:|BUILD"
+```
+
+Expected: `BUILD SUCCEEDED`.
+
+- [ ] **Step 4: Commit**
+
+```bash
+cd /Volumes/AlphabetSoup/TheRecruitingCompass/code/recruiting-compass-ios
+git add TheRecruitingCompass/TheRecruitingCompass/Shared/Utilities/FormValidator.swift
+git commit -m "refactor: replace NSRegularExpression with Swift Regex literals in FormValidator"
+```
+
+---
+
+### Task 13: Replace `DateFormatter` with `.formatted()` in `DateFormatting`
+
+**Files:**
+- Modify: `TheRecruitingCompass/TheRecruitingCompass/Shared/Utilities/DateFormatting.swift`
+
+`DateFormatting` holds three singleton `DateFormatter` instances. `Date.formatted(_:)` with `FormatStyle` (iOS 15+) is faster (no singleton), locale-aware, and already partially used in `isoDateString`. The three display methods keep identical signatures — all 7 callers need no changes.
+
+`isoExportFormatter` stays as `DateFormatter` — it uses a fixed POSIX locale for ISO serialization, which `FormatStyle` doesn't support cleanly.
+
+Mapping:
+- `mediumDateShortTime(_:)` → `.formatted(date: .abbreviated, time: .shortened)`
+- `shortDate(_:)` → `.formatted(date: .numeric, time: .omitted)`
+- `mediumDate(_:)` → `.formatted(date: .abbreviated, time: .omitted)`
+
+- [ ] **Step 1: Rewrite the three display methods in `DateFormatting.swift`**
+
+Replace the top of the file (the three `DateFormatter` instances and their methods) with:
+
+```swift
+import Foundation
+
+enum DateFormatting {
+  static func mediumDateShortTime(_ date: Date) -> String {
+    date.formatted(date: .abbreviated, time: .shortened)
+  }
+
+  static func shortDate(_ date: Date) -> String {
+    date.formatted(date: .numeric, time: .omitted)
+  }
+
+  static func mediumDate(_ date: Date) -> String {
+    date.formatted(date: .abbreviated, time: .omitted)
+  }
+
+  /// Shared formatter for ISO date export ("yyyy-MM-dd") — keep as DateFormatter for POSIX locale control
+  static let isoExportFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.dateFormat = "yyyy-MM-dd"
+    return f
+  }()
+
+  /// Converts an ISO date string ("yyyy-MM-dd") to a display string ("Apr 15, 2026")
+  static func isoDateString(_ isoDate: String) -> String {
+    let components = isoDate.split(separator: "-").compactMap { Int($0) }
+    guard components.count == 3 else { return isoDate }
+    let date = DateComponents(
+      calendar: .current,
+      year: components[0], month: components[1], day: components[2]
+    ).date
+    return date?.formatted(.dateTime.month(.abbreviated).day().year()) ?? isoDate
+  }
+
+  /// Converts an ISO date range to "Apr 15, 2026" or "Apr 15 – Jun 5, 2026"
+  static func isoDateRangeString(from startDate: String, to endDate: String?) -> String {
+    let start = isoDateString(startDate)
+    guard let endDate, endDate != startDate else { return start }
+    let endComponents = endDate.split(separator: "-").compactMap { Int($0) }
+    guard endComponents.count == 3,
+          let end = DateComponents(
+            calendar: .current,
+            year: endComponents[0], month: endComponents[1], day: endComponents[2]
+          ).date else { return "\(start) – \(isoDateString(endDate))" }
+    return "\(start) – \(end.formatted(.dateTime.month(.abbreviated).day().year()))"
+  }
+}
+```
+
+- [ ] **Step 2: Verify build — all 7 callers still compile**
+
+```bash
+cd /Volumes/AlphabetSoup/TheRecruitingCompass/code/recruiting-compass-ios/TheRecruitingCompass
+xcodebuild build -scheme TheRecruitingCompass -destination 'platform=iOS Simulator,name=iPhone 17' 2>&1 | grep -E "error:|BUILD"
+```
+
+Expected: `BUILD SUCCEEDED`. The 7 callers use the same method signatures, so no caller changes are needed.
+
+- [ ] **Step 3: Run full test suite**
+
+```bash
+xcodebuild test -scheme TheRecruitingCompass -destination 'platform=iOS Simulator,name=iPhone 17' 2>&1 | grep -E "Test Suite|passed|failed"
+```
+
+Expected: all tests pass. Note: `.formatted()` output is locale-dependent — if any test asserts exact date strings like "Feb 12, 2026", those tests will still pass on en_US locale machines but may differ in CI. Check for any hard-coded date string assertions and loosen them if needed.
+
+- [ ] **Step 4: Commit**
+
+```bash
+cd /Volumes/AlphabetSoup/TheRecruitingCompass/code/recruiting-compass-ios
+git add TheRecruitingCompass/TheRecruitingCompass/Shared/Utilities/DateFormatting.swift
+git commit -m "refactor: replace DateFormatter singletons with Date.formatted() in DateFormatting"
+```

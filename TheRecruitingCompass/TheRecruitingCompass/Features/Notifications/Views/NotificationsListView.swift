@@ -25,11 +25,6 @@ struct NotificationsListView: View {
           }
         )
 
-        NotificationSearchBar(
-          searchText: $viewModel.searchText,
-          onSearchChanged: { _ in }
-        )
-
         NotificationFilterChips(
           selectedType: $viewModel.selectedTypeFilter,
           onFilterChanged: { _ in }
@@ -68,6 +63,7 @@ struct NotificationsListView: View {
       }
       .navigationTitle("Notifications")
       .navigationBarTitleDisplayMode(.inline)
+      .searchable(text: $viewModel.searchText, prompt: "Search notifications")
       .navigationDestination(item: $viewModel.selectedDestination) { destination in
         destinationView(for: destination)
       }
