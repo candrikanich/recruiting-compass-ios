@@ -98,9 +98,23 @@ actor SchoolFaviconService: SchoolFaviconManaging {
 
 // MARK: - Response Model
 
-private struct FaviconResponse: Decodable, Sendable {
+private struct FaviconResponse: Sendable {
   let success: Bool
   let faviconUrl: String?
   let domain: String?
   let schoolId: String?
+}
+
+extension FaviconResponse: Decodable {
+  nonisolated init(from decoder: any Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    success = try container.decode(Bool.self, forKey: .success)
+    faviconUrl = try container.decodeIfPresent(String.self, forKey: .faviconUrl)
+    domain = try container.decodeIfPresent(String.self, forKey: .domain)
+    schoolId = try container.decodeIfPresent(String.self, forKey: .schoolId)
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case success, faviconUrl, domain, schoolId
+  }
 }
