@@ -63,7 +63,7 @@ struct Coach: Codable, Identifiable, Sendable {
     twitterHandle: String? = nil,
     instagramHandle: String? = nil,
     notes: String? = nil,
-    responsivenessScore: Double,
+    responsivenessScore: Double = 0.0,
     lastContactDate: String? = nil,
     createdAt: String,
     updatedAt: String
