@@ -215,7 +215,6 @@ final class SchoolCardViewTests: XCTestCase {
       status: status,
       statusChangedAt: nil,
       notes: notes,
-      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,
