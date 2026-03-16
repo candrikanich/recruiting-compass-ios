@@ -59,24 +59,6 @@ final class SchoolDetailScreenObject {
     app.buttons["notes-cancel-button"]
   }
 
-  // MARK: - Private Notes Elements
-
-  var privateNotesEditButton: XCUIElement {
-    app.buttons["private-notes-edit-button"]
-  }
-
-  var privateNotesTextEditor: XCUIElement {
-    app.textViews["private-notes-text-editor"]
-  }
-
-  var privateNotesSaveButton: XCUIElement {
-    app.buttons["private-notes-save-button"]
-  }
-
-  var privateNotesCancelButton: XCUIElement {
-    app.buttons["private-notes-cancel-button"]
-  }
-
   // MARK: - Pros & Cons Elements
 
   var proTextField: XCUIElement {
@@ -231,21 +213,6 @@ final class SchoolDetailScreenObject {
 
   func cancelNotesEditing() {
     notesCancelButton.tap()
-  }
-
-  func editPrivateNotes(_ text: String) {
-    scrollToElement(privateNotesEditButton)
-    privateNotesEditButton.tap()
-    privateNotesTextEditor.tap()
-    privateNotesTextEditor.typeText(text)
-  }
-
-  func savePrivateNotes() {
-    privateNotesSaveButton.tap()
-  }
-
-  func cancelPrivateNotesEditing() {
-    privateNotesCancelButton.tap()
   }
 
   func addPro(_ text: String) {

@@ -85,8 +85,6 @@ struct DashboardView: View {
                 events: viewModel.events,
                 metrics: viewModel.metrics,
                 schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
-                avgCoachResponsivenessFormatted: viewModel.avgCoachResponsivenessFormatted,
-                avgCoachResponsivenessColor: viewModel.avgCoachResponsivenessColor,
                 interactionsThisMonth: viewModel.interactionsThisMonth,
                 daysUntilGraduationFormatted: viewModel.daysUntilGraduationFormatted,
                 isEmpty: viewModel.isEmpty

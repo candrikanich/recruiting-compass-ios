@@ -16,6 +16,8 @@ struct CollegeDataResult: Codable, Sendable {
   let studentFacultyRatio: Double?
   let tuitionInState: Double?
   let tuitionOutOfState: Double?
+  let avgNetPrice: Int?
+  let graduationRate: Double?
   let latitude: Double?
   let longitude: Double?
 
@@ -33,6 +35,8 @@ struct CollegeDataResult: Codable, Sendable {
     case studentFacultyRatio = "latest.student.student_faculty_ratio"
     case tuitionInState = "latest.cost.tuition.in_state"
     case tuitionOutOfState = "latest.cost.tuition.out_of_state"
+    case avgNetPrice = "latest.cost.avg_net_price.overall"
+    case graduationRate = "latest.completion.completion_rate_4yr_150nt"
     case latitude = "location.lat"
     case longitude = "location.lon"
   }
@@ -52,6 +56,8 @@ struct CollegeDataResult: Codable, Sendable {
     studentFacultyRatio: Double? = nil,
     tuitionInState: Double? = nil,
     tuitionOutOfState: Double? = nil,
+    avgNetPrice: Int? = nil,
+    graduationRate: Double? = nil,
     latitude: Double? = nil,
     longitude: Double? = nil
   ) {
@@ -68,6 +74,8 @@ struct CollegeDataResult: Codable, Sendable {
     self.studentFacultyRatio = studentFacultyRatio
     self.tuitionInState = tuitionInState
     self.tuitionOutOfState = tuitionOutOfState
+    self.avgNetPrice = avgNetPrice
+    self.graduationRate = graduationRate
     self.latitude = latitude
     self.longitude = longitude
   }
@@ -106,6 +114,15 @@ struct CollegeDataResult: Codable, Sendable {
     // API may return tuition as Int (e.g. 37938) or Double
     tuitionInState = try Self.decodeDoubleOrInt(c, forKey: .tuitionInState)
     tuitionOutOfState = try Self.decodeDoubleOrInt(c, forKey: .tuitionOutOfState)
+    // API may return avg_net_price as Int or Double
+    if let i = try? c.decodeIfPresent(Int.self, forKey: .avgNetPrice) {
+      avgNetPrice = i
+    } else if let d = try? c.decodeIfPresent(Double.self, forKey: .avgNetPrice) {
+      avgNetPrice = Int(d)
+    } else {
+      avgNetPrice = nil
+    }
+    graduationRate = try c.decodeIfPresent(Double.self, forKey: .graduationRate)
     latitude = try c.decodeIfPresent(Double.self, forKey: .latitude)
     longitude = try c.decodeIfPresent(Double.self, forKey: .longitude)
   }
@@ -131,6 +148,8 @@ struct CollegeDataResult: Codable, Sendable {
     try c.encodeIfPresent(studentFacultyRatio, forKey: .studentFacultyRatio)
     try c.encodeIfPresent(tuitionInState, forKey: .tuitionInState)
     try c.encodeIfPresent(tuitionOutOfState, forKey: .tuitionOutOfState)
+    try c.encodeIfPresent(avgNetPrice, forKey: .avgNetPrice)
+    try c.encodeIfPresent(graduationRate, forKey: .graduationRate)
     try c.encodeIfPresent(latitude, forKey: .latitude)
     try c.encodeIfPresent(longitude, forKey: .longitude)
   }

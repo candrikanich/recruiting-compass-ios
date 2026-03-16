@@ -24,8 +24,7 @@ final class CoachDetailAccessibilityTests: XCTestCase {
     id: String,
     firstName: String = "John",
     lastName: String = "Smith",
-    notes: String? = nil,
-    privateNotes: [String: String]? = nil
+    notes: String? = nil
   ) -> Coach {
     Coach(
       id: id,
@@ -38,8 +37,6 @@ final class CoachDetailAccessibilityTests: XCTestCase {
       twitterHandle: "@coach",
       instagramHandle: "@coach",
       notes: notes,
-      privateNotes: privateNotes,
-      responsivenessScore: 80,
       lastContactDate: "2026-02-01T10:00:00Z",
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z"
@@ -52,7 +49,7 @@ final class CoachDetailAccessibilityTests: XCTestCase {
       division: "D1", conference: "Big Ten", ranking: nil, isFavorite: false, website: nil,
       faviconUrl: nil, twitterHandle: nil, instagramHandle: nil, ncaaId: nil, status: "interested",
       statusChangedAt: nil, priorityTier: "A", notes: nil,
-          privateNotes: nil, pros: [], cons: [], offerDetails: nil,
+      pros: [], cons: [], offerDetails: nil,
       academicInfo: nil, amenities: nil, coachingPhilosophy: nil, coachingStyle: nil,
       recruitingApproach: nil, communicationStyle: nil, successMetrics: nil, fitScore: nil,
       fitTier: nil, familyUnitId: "family-1", createdBy: nil, updatedBy: nil,

@@ -126,7 +126,7 @@ final class EventsServiceImpl: EventsManaging, Sendable {
     do {
       let results: [Coach] = try await supabaseManager.client
         .from("coaches")
-        .select("id,first_name,last_name,position,email,phone,school_id,twitter_handle,instagram_handle,notes,responsiveness_score,last_contact_date,created_at,updated_at")
+        .select("id,first_name,last_name,position,email,phone,school_id,twitter_handle,instagram_handle,notes,last_contact_date,created_at,updated_at")
         .eq("school_id", value: schoolId)
         .execute()
         .value

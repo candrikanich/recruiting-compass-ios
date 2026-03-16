@@ -66,8 +66,6 @@ final class CoachesListViewModelTests: XCTestCase {
     twitterHandle: String? = nil,
     instagramHandle: String? = nil,
     notes: String? = nil,
-    privateNotes: [String: String]? = nil,
-    responsivenessScore: Double = 80,
     lastContactDate: String? = "2026-02-01T10:00:00Z"
   ) -> Coach {
     Coach(
@@ -81,8 +79,6 @@ final class CoachesListViewModelTests: XCTestCase {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       notes: notes,
-      privateNotes: privateNotes,
-      responsivenessScore: responsivenessScore,
       lastContactDate: lastContactDate,
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z"
@@ -110,7 +106,6 @@ final class CoachesListViewModelTests: XCTestCase {
       statusChangedAt: nil,
       priorityTier: "A",
       notes: nil,
-      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,
@@ -301,53 +296,6 @@ final class CoachesListViewModelTests: XCTestCase {
     XCTAssertEqual(sut.filteredCoaches.first?.id, "1")
   }
 
-  // MARK: - Responsiveness Filter Tests
-
-  func testResponsivenessFilter_high() async {
-    mockService.stubbedSchools = [makeSchool()]
-    mockService.stubbedCoaches = [
-      makeCoach(id: "1", responsivenessScore: 90),
-      makeCoach(id: "2", responsivenessScore: 60),
-      makeCoach(id: "3", responsivenessScore: 30),
-    ]
-
-    await sut.loadCoaches()
-    sut.filters.responsivenessLevel = .high
-
-    XCTAssertEqual(sut.filteredCoaches.count, 1)
-    XCTAssertEqual(sut.filteredCoaches.first?.id, "1")
-  }
-
-  func testResponsivenessFilter_medium() async {
-    mockService.stubbedSchools = [makeSchool()]
-    mockService.stubbedCoaches = [
-      makeCoach(id: "1", responsivenessScore: 90),
-      makeCoach(id: "2", responsivenessScore: 60),
-      makeCoach(id: "3", responsivenessScore: 30),
-    ]
-
-    await sut.loadCoaches()
-    sut.filters.responsivenessLevel = .medium
-
-    XCTAssertEqual(sut.filteredCoaches.count, 1)
-    XCTAssertEqual(sut.filteredCoaches.first?.id, "2")
-  }
-
-  func testResponsivenessFilter_low() async {
-    mockService.stubbedSchools = [makeSchool()]
-    mockService.stubbedCoaches = [
-      makeCoach(id: "1", responsivenessScore: 90),
-      makeCoach(id: "2", responsivenessScore: 60),
-      makeCoach(id: "3", responsivenessScore: 30),
-    ]
-
-    await sut.loadCoaches()
-    sut.filters.responsivenessLevel = .low
-
-    XCTAssertEqual(sut.filteredCoaches.count, 1)
-    XCTAssertEqual(sut.filteredCoaches.first?.id, "3")
-  }
-
   // MARK: - Sort Tests
 
   func testSortByName() async {
@@ -392,19 +340,6 @@ final class CoachesListViewModelTests: XCTestCase {
     XCTAssertEqual(sut.filteredCoaches.first?.id, "2")
   }
 
-  func testSortByResponsiveness() async {
-    mockService.stubbedSchools = [makeSchool()]
-    mockService.stubbedCoaches = [
-      makeCoach(id: "1", responsivenessScore: 50),
-      makeCoach(id: "2", responsivenessScore: 90),
-    ]
-
-    await sut.loadCoaches()
-    sut.filters.sortBy = .responsiveness
-
-    XCTAssertEqual(sut.filteredCoaches.first?.id, "2")
-  }
-
   // MARK: - Active Filter Count Tests
 
   func testActiveFilterCount_noFilters() {
@@ -414,9 +349,8 @@ final class CoachesListViewModelTests: XCTestCase {
   func testActiveFilterCount_allFilters() {
     sut.filters.role = .head
     sut.filters.lastContactDays = 30
-    sut.filters.responsivenessLevel = .high
 
-    XCTAssertEqual(sut.activeFilterCount, 3)
+    XCTAssertEqual(sut.activeFilterCount, 2)
   }
 
   // MARK: - Clear Filters Tests

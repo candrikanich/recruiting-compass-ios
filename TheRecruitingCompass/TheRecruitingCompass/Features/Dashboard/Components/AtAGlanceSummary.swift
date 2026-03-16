@@ -2,8 +2,6 @@ import SwiftUI
 
 struct AtAGlanceSummary: View {
   let schoolsWithOffers: String
-  let avgCoachResponsiveness: String
-  let avgResponsivenessColor: Color
   let interactionsThisMonth: Int
   let daysUntilGraduation: String
 
@@ -23,12 +21,6 @@ struct AtAGlanceSummary: View {
           title: "Schools with Offers",
           value: schoolsWithOffers,
           color: .accentBlue
-        )
-
-        MetricCard(
-          title: "Avg Coach Responsiveness",
-          value: avgCoachResponsiveness,
-          color: avgResponsivenessColor
         )
 
         MetricCard(
@@ -81,8 +73,6 @@ struct MetricCard: View {
 
   private var metricHint: String {
     switch title {
-    case "Avg Coach Responsiveness":
-      return "Higher percentages indicate coaches respond faster"
     case "Days Until Graduation":
       return "Number of days remaining until graduation"
     case "Schools with Offers":
@@ -98,8 +88,6 @@ struct MetricCard: View {
 #Preview {
   AtAGlanceSummary(
     schoolsWithOffers: "40%",
-    avgCoachResponsiveness: "75%",
-    avgResponsivenessColor: .successGreen,
     interactionsThisMonth: 12,
     daysUntilGraduation: "365"
   )

@@ -60,26 +60,6 @@ final class DashboardViewModel {
     return percentage.formatted(.percent.precision(.fractionLength(0)))
   }
 
-  var avgCoachResponsiveness: Double {
-    // TODO: Calculate from actual interaction response-time tracking data
-    guard stats != nil else { return 0.0 }
-    return 0.75  // Placeholder when stats exist
-  }
-
-  var avgCoachResponsivenessFormatted: String {
-    avgCoachResponsiveness.formatted(.percent.precision(.fractionLength(0)))
-  }
-
-  var avgCoachResponsivenessColor: Color {
-    if avgCoachResponsiveness >= 0.75 {
-      return .successGreen
-    } else if avgCoachResponsiveness >= 0.50 {
-      return .warningOrange
-    } else {
-      return .errorRed
-    }
-  }
-
   var interactionsThisMonth: Int {
     // TODO: Filter by current month once ActivityFeedService supports date-range queries
     return stats?.interactionCount ?? 0

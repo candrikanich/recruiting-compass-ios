@@ -8,8 +8,6 @@ struct DashboardChartsAndDataSection: View {
   let events: [FullEvent]
   let metrics: [PerformanceMetric]
   let schoolsWithOffersPercentage: String
-  let avgCoachResponsivenessFormatted: String
-  let avgCoachResponsivenessColor: Color
   let interactionsThisMonth: Int
   let daysUntilGraduationFormatted: String
   let isEmpty: Bool
@@ -35,8 +33,6 @@ struct DashboardChartsAndDataSection: View {
       if visibility.atAGlanceSummary && !isEmpty {
         AtAGlanceSummary(
           schoolsWithOffers: schoolsWithOffersPercentage,
-          avgCoachResponsiveness: avgCoachResponsivenessFormatted,
-          avgResponsivenessColor: avgCoachResponsivenessColor,
           interactionsThisMonth: interactionsThisMonth,
           daysUntilGraduation: daysUntilGraduationFormatted
         )
@@ -53,8 +49,6 @@ struct DashboardChartsAndDataSection: View {
       events: [],
       metrics: [],
       schoolsWithOffersPercentage: "25%",
-      avgCoachResponsivenessFormatted: "75%",
-      avgCoachResponsivenessColor: Color.green,
       interactionsThisMonth: 4,
       daysUntilGraduationFormatted: "365",
       isEmpty: false

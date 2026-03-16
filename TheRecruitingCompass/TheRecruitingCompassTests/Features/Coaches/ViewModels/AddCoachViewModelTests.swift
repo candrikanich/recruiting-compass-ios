@@ -588,7 +588,6 @@ extension School {
       statusChangedAt: nil,
       priorityTier: nil,
       notes: nil,
-      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,
@@ -628,8 +627,6 @@ extension Coach {
       twitterHandle: nil,
       instagramHandle: nil,
       notes: nil,
-      privateNotes: nil,
-      responsivenessScore: 0,
       lastContactDate: nil,
       createdAt: "2026-02-10T00:00:00Z",
       updatedAt: "2026-02-10T00:00:00Z"

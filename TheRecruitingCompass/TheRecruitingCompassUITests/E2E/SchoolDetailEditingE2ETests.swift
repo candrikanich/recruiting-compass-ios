@@ -137,62 +137,6 @@ final class SchoolDetailEditingE2ETests: XCTestCase {
     throw XCTSkip("Requires School Detail loading integration")
   }
 
-  @MainActor
-  func testEditPrivateNotesAsParent() throws {
-    // TODO: Requires login as Parent and School Detail to be loaded
-    // For now, it's a placeholder showing the expected flow
-
-    // 1. Login as parent
-    // loginAsParent()
-
-    // 2. Navigate to School Detail
-    // screen.navigateToSchoolDetailFromList(schoolName: "Test University")
-    // XCTAssertTrue(screen.waitForSchoolToLoad(timeout: 10),
-    //               "School should load")
-
-    // 3. Scroll to Private Notes section
-    // screen.scrollToElement(screen.privateNotesEditButton)
-
-    // add(app.takeScreenshot(name: "18-private-notes-view"))
-
-    // 4. Tap "Edit"
-    // screen.privateNotesEditButton.tap()
-
-    // 5. Type private note text
-    // let privateNote = "Private thoughts about coaching staff - seems very supportive"
-    // screen.editPrivateNotes(privateNote)
-
-    // add(app.takeScreenshot(name: "19-private-notes-editing"))
-
-    // 6. Tap "Save"
-    // screen.savePrivateNotes()
-
-    // 7. Verify private note saves
-    // app.waitForElementToDisappear(screen.privateNotesSaveButton, timeout: 5)
-    // let privateNoteDisplay = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", privateNote)).firstMatch
-    // XCTAssertTrue(privateNoteDisplay.exists,
-    //               "Private note should be saved and displayed")
-
-    // add(app.takeScreenshot(name: "20-private-notes-saved"))
-
-    // 8. Logout and login as student from same family
-    // logout()
-    // loginAsStudent(fromSameFamilyAs: parentUser)
-
-    // 9. Navigate to same School Detail
-    // screen.navigateToSchoolDetailFromList(schoolName: "Test University")
-
-    // 10. Verify private note NOT visible to student
-    // screen.scrollToElement(screen.privateNotesEditButton)
-    // XCTAssertFalse(privateNoteDisplay.exists,
-    //                "Private note should NOT be visible to student")
-
-    // add(app.takeScreenshot(name: "21-private-notes-hidden-from-student"))
-
-    // PLACEHOLDER: Mark as skip until multi-user testing is set up
-    throw XCTSkip("Requires multi-user authentication integration")
-  }
-
   // MARK: - Pros & Cons Tests
 
   @MainActor

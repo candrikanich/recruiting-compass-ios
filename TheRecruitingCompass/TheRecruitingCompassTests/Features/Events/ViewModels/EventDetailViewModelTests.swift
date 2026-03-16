@@ -1000,8 +1000,6 @@ final class EventDetailViewModelTests: XCTestCase {
       twitterHandle: nil,
       instagramHandle: nil,
       notes: nil,
-      privateNotes: nil,
-      responsivenessScore: 5.0,
       lastContactDate: nil,
       createdAt: "2026-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z"

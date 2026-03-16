@@ -11,7 +11,6 @@ final class CoachCardAccessibilityTests: XCTestCase {
     position: String? = "head",
     twitterHandle: String? = nil,
     instagramHandle: String? = nil,
-    responsivenessScore: Double = 85
   ) -> Coach {
     Coach(
       id: "coach-1",
@@ -24,8 +23,6 @@ final class CoachCardAccessibilityTests: XCTestCase {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       notes: nil,
-      privateNotes: nil,
-      responsivenessScore: responsivenessScore,
       lastContactDate: "2026-02-01T00:00:00Z",
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z"
@@ -161,8 +158,6 @@ final class CoachCardAccessibilityTests: XCTestCase {
       twitterHandle: nil,
       instagramHandle: nil,
       notes: nil,
-      privateNotes: nil,
-      responsivenessScore: 0,
       lastContactDate: nil,
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2025-01-01T00:00:00Z"

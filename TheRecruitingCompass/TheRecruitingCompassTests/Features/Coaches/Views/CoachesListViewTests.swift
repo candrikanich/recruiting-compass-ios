@@ -54,7 +54,6 @@ final class CoachesListViewTests: XCTestCase {
     phone: String? = "555-1234",
     position: String? = "head",
     schoolId: String = "school-1",
-    responsivenessScore: Double = 80,
     lastContactDate: String? = "2026-02-01T10:00:00Z"
   ) -> Coach {
     Coach(
@@ -68,8 +67,6 @@ final class CoachesListViewTests: XCTestCase {
       twitterHandle: nil,
       instagramHandle: nil,
       notes: nil,
-      privateNotes: nil,
-      responsivenessScore: responsivenessScore,
       lastContactDate: lastContactDate,
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z"
@@ -100,7 +97,6 @@ final class CoachesListViewTests: XCTestCase {
       statusChangedAt: nil,
       priorityTier: "A",
       notes: nil,
-      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,
@@ -469,8 +465,6 @@ final class CoachesListViewTests: XCTestCase {
     let mockService = MockCoachesService()
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
-      makeCoach(id: "1", responsivenessScore: 50),
-      makeCoach(id: "2", responsivenessScore: 90),
     ]
 
     let viewModel = CoachesListViewModel(
@@ -585,8 +579,6 @@ final class CoachesListViewTests: XCTestCase {
     let mockService = MockCoachesService()
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
-      makeCoach(id: "1", firstName: "John", position: "head", responsivenessScore: 90),
-      makeCoach(id: "2", firstName: "Jane", position: "assistant", responsivenessScore: 60),
     ]
 
     let viewModel = CoachesListViewModel(

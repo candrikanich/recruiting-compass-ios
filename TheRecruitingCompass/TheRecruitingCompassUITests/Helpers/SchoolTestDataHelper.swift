@@ -43,7 +43,6 @@ private struct SchoolDetailInsert: Encodable {
   let createdAt: String
   let updatedAt: String
   let notes: String?
-  let privateNotes: [String: String]?
   let location: String?
   let division: String?
   let conference: String?
@@ -60,7 +59,6 @@ private struct SchoolDetailInsert: Encodable {
     case createdAt = "created_at"
     case updatedAt = "updated_at"
     case notes
-    case privateNotes = "private_notes"
     case location
     case division
     case conference
@@ -189,7 +187,6 @@ final class SchoolTestDataHelper {
   ///   - userId: User ID
   ///   - familyUnitId: Family unit ID
   ///   - notes: Public notes
-  ///   - privateNotes: Private notes (keyed by user ID)
   ///   - pros: List of pros
   ///   - cons: List of cons
   ///   - location: School location
@@ -204,7 +201,6 @@ final class SchoolTestDataHelper {
     userId: String,
     familyUnitId: String,
     notes: String? = nil,
-    privateNotes: [String: String]? = nil,
     pros: [String] = [],
     cons: [String] = [],
     location: String? = nil,
@@ -228,7 +224,6 @@ final class SchoolTestDataHelper {
       createdAt: now,
       updatedAt: now,
       notes: notes,
-      privateNotes: privateNotes,
       location: location,
       division: division,
       conference: conference

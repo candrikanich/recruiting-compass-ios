@@ -43,7 +43,6 @@ final class CoachDetailViewTests: XCTestCase {
     firstName: String = "John",
     lastName: String = "Smith",
     notes: String? = nil,
-    privateNotes: [String: String]? = nil,
     lastContactDate: String? = "2026-02-01T10:00:00Z"
   ) -> Coach {
     Coach(
@@ -57,8 +56,6 @@ final class CoachDetailViewTests: XCTestCase {
       twitterHandle: "@coach",
       instagramHandle: "@coach",
       notes: notes,
-      privateNotes: privateNotes,
-      responsivenessScore: 80,
       lastContactDate: lastContactDate,
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z"
@@ -71,7 +68,7 @@ final class CoachDetailViewTests: XCTestCase {
       division: "D1", conference: "Big Ten", ranking: nil, isFavorite: false, website: nil,
       faviconUrl: nil, twitterHandle: nil, instagramHandle: nil, ncaaId: nil, status: "interested",
       statusChangedAt: nil, priorityTier: "A", notes: nil,
-          privateNotes: nil, pros: [], cons: [], offerDetails: nil,
+          pros: [], cons: [], offerDetails: nil,
       academicInfo: nil, amenities: nil, coachingPhilosophy: nil, coachingStyle: nil,
       recruitingApproach: nil, communicationStyle: nil, successMetrics: nil, fitScore: nil,
       fitTier: nil, familyUnitId: "family-1", createdBy: nil, updatedBy: nil,
@@ -357,61 +354,6 @@ final class CoachDetailViewTests: XCTestCase {
     XCTAssertEqual(mockService.updateCoachCallCount, 1)
     XCTAssertEqual(viewModel.coach?.notes, "New shared notes")
     XCTAssertEqual(viewModel.saveStatus, .saved)
-  }
-
-  func testNotesFlow_privateNotesEditAndSave() async {
-    let viewModel = CoachDetailViewModel(
-      coachId: "coach-1",
-      allCoaches: [testCoach],
-      allSchools: [testSchool],
-      coachesService: mockService,
-      authManager: mockAuthManager
-    )
-
-    viewModel.coach = testCoach
-    viewModel.editedPrivateNotes = "My private note"
-
-    let updatedCoach = makeCoach(
-      id: "coach-1",
-      privateNotes: ["user-1": "My private note"]
-    )
-    mockService.stubbedUpdatedCoach = updatedCoach
-
-    await viewModel.savePrivateNotes()
-
-    XCTAssertEqual(mockService.updateCoachCallCount, 1)
-    XCTAssertEqual(viewModel.privateNoteForCurrentUser, "My private note")
-    XCTAssertEqual(viewModel.saveStatus, .saved)
-  }
-
-  func testNotesFlow_privateNotesMergesExistingUserNotes() async {
-    let existingPrivateNotes = ["user-2": "User 2's note"]
-    let coachWithNotes = makeCoach(id: "coach-1", privateNotes: existingPrivateNotes)
-
-    let viewModel = CoachDetailViewModel(
-      coachId: "coach-1",
-      allCoaches: [coachWithNotes],
-      allSchools: [testSchool],
-      coachesService: mockService,
-      authManager: mockAuthManager
-    )
-
-    viewModel.coach = coachWithNotes
-    viewModel.editedPrivateNotes = "My private note"
-
-    let updatedCoach = makeCoach(
-      id: "coach-1",
-      privateNotes: ["user-1": "My private note", "user-2": "User 2's note"]
-    )
-    mockService.stubbedUpdatedCoach = updatedCoach
-
-    await viewModel.savePrivateNotes()
-
-    XCTAssertEqual(mockService.updateCoachCallCount, 1)
-    let lastUpdate = mockService.lastUpdateCoachUpdates
-    XCTAssertEqual(lastUpdate?.privateNotes?.count, 2)
-    XCTAssertEqual(lastUpdate?.privateNotes?["user-1"], "My private note")
-    XCTAssertEqual(lastUpdate?.privateNotes?["user-2"], "User 2's note")
   }
 
   // MARK: - Loading State Tests

@@ -1,15 +1,12 @@
 import SwiftUI
 
-/// Statistics section for coach detail view showing responsiveness and last contact.
+/// Statistics section for coach detail view showing last contact date.
 struct CoachStatisticsSection: View {
   let coach: Coach
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       SectionHeader(title: "Statistics")
-
-      ResponsivenessBar(score: coach.responsivenessScore)
-        .padding(.vertical, 4)
 
       if let lastContact = coach.lastContactDateParsed {
         HStack(spacing: 8) {
@@ -48,7 +45,6 @@ struct CoachStatisticsSection: View {
         twitterHandle: "@coachsmith",
         instagramHandle: "@coachsmith",
         notes: "Great recruiter",
-        responsivenessScore: 85,
         lastContactDate: "2026-01-15T10:00:00Z",
         createdAt: "2025-01-01T00:00:00Z",
         updatedAt: "2026-01-15T10:00:00Z"
@@ -67,7 +63,6 @@ struct CoachStatisticsSection: View {
         twitterHandle: nil,
         instagramHandle: nil,
         notes: nil,
-        responsivenessScore: 60,
         lastContactDate: nil,
         createdAt: "2025-01-01T00:00:00Z",
         updatedAt: "2025-01-01T00:00:00Z"

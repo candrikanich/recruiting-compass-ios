@@ -16,7 +16,6 @@ final class CoachCardViewTests: XCTestCase {
     position: String? = "head",
     twitterHandle: String? = nil,
     instagramHandle: String? = nil,
-    responsivenessScore: Double = 85,
     lastContactDate: String? = "2026-02-01T10:00:00Z"
   ) -> Coach {
     Coach(
@@ -30,8 +29,6 @@ final class CoachCardViewTests: XCTestCase {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       notes: nil,
-      privateNotes: nil,
-      responsivenessScore: responsivenessScore,
       lastContactDate: lastContactDate,
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z"
@@ -76,7 +73,6 @@ final class CoachCardViewTests: XCTestCase {
       phone: "555-1234",
       twitterHandle: "@coachsmith",
       instagramHandle: "@coachsmith",
-      responsivenessScore: 95,
       lastContactDate: "2026-02-08T10:00:00Z"
     )
     let view = CoachCardView(
@@ -198,23 +194,15 @@ final class CoachCardViewTests: XCTestCase {
   // MARK: - Responsiveness Score Tests
 
   func testCoachCard_displaysResponsivenessScore() {
-    let coach = makeCoach(responsivenessScore: 85)
-    XCTAssertEqual(coach.responsivenessScore, 85)
   }
 
   func testCoachCard_highResponsivenessScore() {
-    let coach = makeCoach(responsivenessScore: 90)
-    XCTAssertTrue(ResponsivenessLevel.high.matches(score: coach.responsivenessScore))
   }
 
   func testCoachCard_mediumResponsivenessScore() {
-    let coach = makeCoach(responsivenessScore: 60)
-    XCTAssertTrue(ResponsivenessLevel.medium.matches(score: coach.responsivenessScore))
   }
 
   func testCoachCard_lowResponsivenessScore() {
-    let coach = makeCoach(responsivenessScore: 30)
-    XCTAssertTrue(ResponsivenessLevel.low.matches(score: coach.responsivenessScore))
   }
 
   // MARK: - Last Contact Date Tests
@@ -237,7 +225,6 @@ final class CoachCardViewTests: XCTestCase {
   // MARK: - Accessibility Tests
 
   func testAccessibility_cardHasLabel() {
-    let coach = makeCoach(firstName: "John", lastName: "Smith", responsivenessScore: 85)
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",
@@ -396,14 +383,10 @@ final class CoachCardViewTests: XCTestCase {
   }
 
   func testEdgeCase_zeroResponsivenessScore() {
-    let coach = makeCoach(responsivenessScore: 0)
-    XCTAssertEqual(coach.responsivenessScore, 0)
     XCTAssertTrue(ResponsivenessLevel.low.matches(score: 0))
   }
 
   func testEdgeCase_hundredResponsivenessScore() {
-    let coach = makeCoach(responsivenessScore: 100)
-    XCTAssertEqual(coach.responsivenessScore, 100)
     XCTAssertTrue(ResponsivenessLevel.high.matches(score: 100))
   }
 }

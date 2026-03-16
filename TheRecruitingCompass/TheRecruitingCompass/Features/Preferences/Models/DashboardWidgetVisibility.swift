@@ -96,7 +96,6 @@ struct WidgetVisibility: Codable, Equatable {
   var recentDocuments: Bool
   var interactionStats: Bool
   var schoolStatusOverview: Bool
-  var coachResponsiveness: Bool
   var upcomingDeadlines: Bool
 
   static var `default`: WidgetVisibility {
@@ -118,7 +117,6 @@ struct WidgetVisibility: Codable, Equatable {
       recentDocuments: true,
       interactionStats: true,
       schoolStatusOverview: true,
-      coachResponsiveness: true,
       upcomingDeadlines: true
     )
   }
@@ -141,7 +139,6 @@ struct WidgetVisibility: Codable, Equatable {
     case recentDocuments
     case interactionStats
     case schoolStatusOverview
-    case coachResponsiveness
     case upcomingDeadlines
   }
 
@@ -150,7 +147,7 @@ struct WidgetVisibility: Codable, Equatable {
        recentActivity: Bool, recentNotifications: Bool, linkedAccounts: Bool,
        recruitingCalendar: Bool, offerStatusOverview: Bool, schoolInterestChart: Bool,
        schoolMapWidget: Bool, coachFollowupWidget: Bool, recentDocuments: Bool,
-       interactionStats: Bool, schoolStatusOverview: Bool, coachResponsiveness: Bool,
+       interactionStats: Bool, schoolStatusOverview: Bool,
        upcomingDeadlines: Bool) {
     self.actionItems = actionItems
     self.quickTasks = quickTasks
@@ -169,7 +166,6 @@ struct WidgetVisibility: Codable, Equatable {
     self.recentDocuments = recentDocuments
     self.interactionStats = interactionStats
     self.schoolStatusOverview = schoolStatusOverview
-    self.coachResponsiveness = coachResponsiveness
     self.upcomingDeadlines = upcomingDeadlines
   }
 
@@ -192,7 +188,6 @@ struct WidgetVisibility: Codable, Equatable {
     recentDocuments = try container.decodeIfPresent(Bool.self, forKey: .recentDocuments) ?? true
     interactionStats = try container.decodeIfPresent(Bool.self, forKey: .interactionStats) ?? true
     schoolStatusOverview = try container.decodeIfPresent(Bool.self, forKey: .schoolStatusOverview) ?? true
-    coachResponsiveness = try container.decodeIfPresent(Bool.self, forKey: .coachResponsiveness) ?? true
     upcomingDeadlines = try container.decodeIfPresent(Bool.self, forKey: .upcomingDeadlines) ?? true
   }
 }

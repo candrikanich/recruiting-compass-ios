@@ -130,6 +130,8 @@ actor CollegeScorecardService: CollegeScorecardManaging {
     "latest.admissions.admission_rate.overall",
     "latest.student.student_faculty_ratio",
     "latest.cost.tuition.in_state", "latest.cost.tuition.out_of_state",
+    "latest.cost.avg_net_price.overall",
+    "latest.completion.completion_rate_4yr_150nt",
     "location.lat", "location.lon"
   ].joined(separator: ",")
 

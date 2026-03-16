@@ -15,7 +15,6 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     phone: String? = "555-1234",
     position: String? = "head",
     schoolId: String = "school-1",
-    responsivenessScore: Double = 85
   ) -> Coach {
     Coach(
       id: id,
@@ -28,8 +27,6 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
       twitterHandle: nil,
       instagramHandle: nil,
       notes: nil,
-      privateNotes: nil,
-      responsivenessScore: responsivenessScore,
       lastContactDate: "2026-02-01T00:00:00Z",
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z"
@@ -108,7 +105,6 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
   }
 
   func testCoachCardView_responsivenessBarAccessible() {
-    let coach = makeCoach(responsivenessScore: 85)
     let view = CoachCardView(
       coach: coach,
       schoolName: "State University",

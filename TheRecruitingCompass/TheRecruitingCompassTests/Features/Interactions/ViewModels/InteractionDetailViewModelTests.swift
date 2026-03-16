@@ -514,7 +514,6 @@ final class InteractionDetailViewModelTests: XCTestCase {
       statusChangedAt: nil,
       priorityTier: nil,
       notes: nil,
-      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,
@@ -551,8 +550,6 @@ final class InteractionDetailViewModelTests: XCTestCase {
       twitterHandle: nil,
       instagramHandle: nil,
       notes: nil,
-      privateNotes: nil,
-      responsivenessScore: 0.0,
       lastContactDate: nil,
       createdAt: ISO8601DateFormatter().string(from: Date()),
       updatedAt: ISO8601DateFormatter().string(from: Date()

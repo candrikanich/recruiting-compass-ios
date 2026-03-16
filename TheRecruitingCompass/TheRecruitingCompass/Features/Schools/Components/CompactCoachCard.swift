@@ -73,7 +73,7 @@ struct CompactCoachCard: View {
       twitterHandle: "@coachsmith",
       instagramHandle: "@coachsmith",
       notes: nil,
-      responsivenessScore: 0.85,
+      responsivenessScore: 85,
       lastContactDate: nil,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z"
@@ -95,7 +95,7 @@ struct CompactCoachCard: View {
       twitterHandle: nil,
       instagramHandle: nil,
       notes: nil,
-      responsivenessScore: 0.70,
+      responsivenessScore: 85,
       lastContactDate: nil,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z"
@@ -117,7 +117,7 @@ struct CompactCoachCard: View {
       twitterHandle: nil,
       instagramHandle: nil,
       notes: nil,
-      responsivenessScore: 0.80,
+      responsivenessScore: 85,
       lastContactDate: "2026-02-20T14:00:00Z",
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2026-02-20T14:00:00Z"

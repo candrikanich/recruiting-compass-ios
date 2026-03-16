@@ -50,10 +50,6 @@ final class CoachesListViewModel {
       }
     }
 
-    if let level = filters.responsivenessLevel {
-      result = result.filter { level.matches(score: $0.responsivenessScore) }
-    }
-
     if let schoolId = filters.schoolId {
       result = result.filter { $0.schoolId == schoolId }
     }
@@ -211,8 +207,6 @@ final class CoachesListViewModel {
         let rhsDate = rhs.lastContactDateParsed ?? .distantPast
         return lhsDate > rhsDate
       }
-    case .responsiveness:
-      return coaches.sorted { $0.responsivenessScore > $1.responsivenessScore }
     case .role:
       return coaches.sorted { $0.role.displayName < $1.role.displayName }
     }

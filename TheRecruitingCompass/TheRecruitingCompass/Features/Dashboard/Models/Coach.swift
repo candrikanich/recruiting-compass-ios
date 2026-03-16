@@ -14,7 +14,6 @@ struct Coach: Codable, Identifiable, Sendable {
   let twitterHandle: String?
   let instagramHandle: String?
   let notes: String?
-  let responsivenessScore: Double
   let lastContactDate: String?
   let createdAt: String
   let updatedAt: String
@@ -63,7 +62,6 @@ struct Coach: Codable, Identifiable, Sendable {
     twitterHandle: String? = nil,
     instagramHandle: String? = nil,
     notes: String? = nil,
-    responsivenessScore: Double,
     lastContactDate: String? = nil,
     createdAt: String,
     updatedAt: String
@@ -78,7 +76,6 @@ struct Coach: Codable, Identifiable, Sendable {
     self.twitterHandle = twitterHandle
     self.instagramHandle = instagramHandle
     self.notes = notes
-    self.responsivenessScore = responsivenessScore
     self.lastContactDate = lastContactDate
     self.createdAt = createdAt
     self.updatedAt = updatedAt
@@ -96,7 +93,6 @@ struct Coach: Codable, Identifiable, Sendable {
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
     case notes
-    case responsivenessScore = "responsiveness_score"
     case lastContactDate = "last_contact_date"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
@@ -116,7 +112,6 @@ struct Coach: Codable, Identifiable, Sendable {
     twitterHandle = try container.decodeIfPresent(String.self, forKey: .twitterHandle)
     instagramHandle = try container.decodeIfPresent(String.self, forKey: .instagramHandle)
     notes = try container.decodeIfPresent(String.self, forKey: .notes)
-    responsivenessScore = try container.decodeIfPresent(Double.self, forKey: .responsivenessScore) ?? 0.0
     lastContactDate = try container.decodeIfPresent(String.self, forKey: .lastContactDate)
     createdAt = try container.decode(String.self, forKey: .createdAt)
     updatedAt = try container.decode(String.self, forKey: .updatedAt)
@@ -134,7 +129,6 @@ struct Coach: Codable, Identifiable, Sendable {
     try container.encodeIfPresent(twitterHandle, forKey: .twitterHandle)
     try container.encodeIfPresent(instagramHandle, forKey: .instagramHandle)
     try container.encodeIfPresent(notes, forKey: .notes)
-    try container.encode(responsivenessScore, forKey: .responsivenessScore)
     try container.encodeIfPresent(lastContactDate, forKey: .lastContactDate)
     try container.encode(createdAt, forKey: .createdAt)
     try container.encode(updatedAt, forKey: .updatedAt)

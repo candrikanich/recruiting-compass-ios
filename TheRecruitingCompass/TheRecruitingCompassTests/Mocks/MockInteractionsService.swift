@@ -100,7 +100,6 @@ final class MockInteractionsService: InteractionsManaging, @unchecked Sendable {
       twitterHandle: coach.twitterHandle,
       instagramHandle: coach.instagramHandle,
       notes: coach.notes,
-      responsivenessScore: 0.0,
       lastContactDate: nil,
       createdAt: ISO8601DateFormatter().string(from: Date()),
       updatedAt: ""

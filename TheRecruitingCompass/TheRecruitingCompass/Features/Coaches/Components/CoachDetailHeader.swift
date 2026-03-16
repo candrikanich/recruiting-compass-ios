@@ -128,7 +128,7 @@ struct CoachDetailHeader: View {
         twitterHandle: nil,
         instagramHandle: nil,
         notes: nil,
-        responsivenessScore: 60,
+        responsivenessScore: 85,
         lastContactDate: nil,
         createdAt: "2025-01-01T00:00:00Z",
         updatedAt: "2025-01-01T00:00:00Z"

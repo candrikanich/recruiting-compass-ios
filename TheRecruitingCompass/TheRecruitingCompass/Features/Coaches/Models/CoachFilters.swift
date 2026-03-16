@@ -4,47 +4,19 @@ struct CoachFilters: Equatable, Sendable {
   var searchText: String = ""
   var role: CoachRole?
   var lastContactDays: Int?
-  var responsivenessLevel: ResponsivenessLevel?
   var schoolId: String?
   var sortBy: CoachSortOption = .name
 
   var hasActiveFilters: Bool {
-    role != nil || lastContactDays != nil || responsivenessLevel != nil || schoolId != nil
+    role != nil || lastContactDays != nil || schoolId != nil
   }
 
   var activeFilterCount: Int {
     var count = 0
     if role != nil { count += 1 }
     if lastContactDays != nil { count += 1 }
-    if responsivenessLevel != nil { count += 1 }
     if schoolId != nil { count += 1 }
     return count
-  }
-}
-
-enum ResponsivenessLevel: String, CaseIterable, Sendable {
-  case high
-  case medium
-  case low
-
-  var displayName: String {
-    switch self {
-    case .high: return "High (75-100%)"
-    case .medium: return "Medium (50-74%)"
-    case .low: return "Low (0-49%)"
-    }
-  }
-
-  var range: ClosedRange<Double> {
-    switch self {
-    case .high: return 75...100
-    case .medium: return 50...74
-    case .low: return 0...49
-    }
-  }
-
-  func matches(score: Double) -> Bool {
-    range.contains(score)
   }
 }
 
@@ -52,7 +24,6 @@ enum CoachSortOption: String, CaseIterable, Sendable {
   case name
   case school
   case lastContacted
-  case responsiveness
   case role
 
   var displayName: String {
@@ -60,7 +31,6 @@ enum CoachSortOption: String, CaseIterable, Sendable {
     case .name: return "Name"
     case .school: return "School"
     case .lastContacted: return "Last Contacted"
-    case .responsiveness: return "Responsiveness"
     case .role: return "Role"
     }
   }

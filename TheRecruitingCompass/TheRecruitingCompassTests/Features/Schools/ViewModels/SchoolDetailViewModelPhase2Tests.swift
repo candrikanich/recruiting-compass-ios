@@ -128,7 +128,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
     await viewModel.savePrivateNotes()
 
     // Then
-    XCTAssertEqual(mockSchoolsService.lastPrivateNote, nil)
+    XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
   func testSavePrivateNotes_NoFamily_ShowsError() async {

@@ -8,7 +8,6 @@ struct CoachFilterBar: View {
       HStack(spacing: 8) {
         roleMenu
         lastContactMenu
-        responsivenessMenu
         sortMenu
       }
       .padding(.horizontal, 16)
@@ -69,31 +68,6 @@ struct CoachFilterBar: View {
   private var lastContactLabel: String {
     guard let days = filters.lastContactDays else { return "Last Contact" }
     return LastContactOption(rawValue: days)?.displayName ?? "Last \(days) days"
-  }
-
-  // MARK: - Responsiveness Filter
-
-  private var responsivenessMenu: some View {
-    Menu {
-      Button("All levels") {
-        filters.responsivenessLevel = nil
-      }
-
-      ForEach(ResponsivenessLevel.allCases, id: \.self) { level in
-        Button(level.displayName) {
-          filters.responsivenessLevel = level
-        }
-      }
-    } label: {
-      FilterMenuButton(
-        label: filters.responsivenessLevel?.displayName ?? "Responsiveness",
-        isActive: filters.responsivenessLevel != nil,
-        style: .capsule
-      )
-    }
-    .accessibilityLabel("Filter by responsiveness")
-    .accessibilityHint("Opens responsiveness level filter options")
-    .accessibilityValue(filters.responsivenessLevel?.displayName ?? "All levels")
   }
 
   // MARK: - Sort Menu

@@ -95,6 +95,24 @@ struct CollegeScorecardDataDisplay: View {
           )
         }
 
+        // Avg Net Price
+        if let avgNetPrice = data.avgNetPrice {
+          dataItem(
+            label: "Avg Net Price",
+            value: "\(formatCurrency(avgNetPrice))/yr",
+            icon: "dollarsign.circle.fill"
+          )
+        }
+
+        // Graduation Rate
+        if let graduationRate = data.graduationRate {
+          dataItem(
+            label: "Graduation Rate",
+            value: "\(Int(graduationRate * 100))%",
+            icon: "graduationcap.fill"
+          )
+        }
+
         // Map Coordinates
         if data.latitude != nil && data.longitude != nil {
           dataItem(
@@ -173,6 +191,8 @@ struct CollegeScorecardDataDisplay: View {
         admissionRate: 0.296,
         tuitionInState: 6381.0,
         tuitionOutOfState: 28658.0,
+        avgNetPrice: 14200,
+        graduationRate: 0.88,
         latitude: 29.6516,
         longitude: -82.3248
       )

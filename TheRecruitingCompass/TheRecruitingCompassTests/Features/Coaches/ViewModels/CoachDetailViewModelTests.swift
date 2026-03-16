@@ -66,8 +66,6 @@ final class CoachDetailViewModelTests: XCTestCase {
       twitterHandle: "@coach",
       instagramHandle: "@coach",
       notes: notes,
-      privateNotes: nil,
-      responsivenessScore: 80,
       lastContactDate: lastContactDate,
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z"

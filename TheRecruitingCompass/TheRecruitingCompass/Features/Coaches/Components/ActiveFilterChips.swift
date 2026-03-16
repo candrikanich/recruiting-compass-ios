@@ -22,18 +22,12 @@ struct ActiveFilterChips: View {
         }
       }
 
-      if let level = filters.responsivenessLevel {
-        FilterChip(label: level.displayName, style: .outlined) {
-          filters.responsivenessLevel = nil
-        }
-      }
     }
   }
 
   private func clearAllFilters() {
     filters.role = nil
     filters.lastContactDays = nil
-    filters.responsivenessLevel = nil
   }
 }
 

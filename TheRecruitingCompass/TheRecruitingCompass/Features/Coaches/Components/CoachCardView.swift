@@ -129,8 +129,6 @@ struct CoachCardView: View {
         contactRow(icon: "phone", text: phone)
       }
 
-      ResponsivenessBar(score: coach.responsivenessScore)
-
       if let lastContact = coach.lastContactDateParsed {
         lastContactRow(date: lastContact)
       }

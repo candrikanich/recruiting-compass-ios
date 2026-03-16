@@ -546,7 +546,6 @@ extension School {
       status: "interested",
       statusChangedAt: nil,
       notes: nil,
-      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,
