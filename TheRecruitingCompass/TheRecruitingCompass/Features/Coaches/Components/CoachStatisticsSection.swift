@@ -67,7 +67,6 @@ struct CoachStatisticsSection: View {
         twitterHandle: nil,
         instagramHandle: nil,
         notes: nil,
-        privateNotes: nil,
         responsivenessScore: 60,
         lastContactDate: nil,
         createdAt: "2025-01-01T00:00:00Z",

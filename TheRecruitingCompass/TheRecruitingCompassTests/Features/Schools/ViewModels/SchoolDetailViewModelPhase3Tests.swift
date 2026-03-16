@@ -291,7 +291,6 @@ final class SchoolDetailViewModelPhase3Tests: XCTestCase {
       status: "interested",
       statusChangedAt: nil,
       notes: nil,
-      privateNotes: nil,
       pros: [],
       cons: [],
       offerDetails: nil,

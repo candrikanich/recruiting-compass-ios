@@ -53,7 +53,6 @@ final class CoachDetailViewModelTests: XCTestCase {
     firstName: String = "John",
     lastName: String = "Smith",
     notes: String? = nil,
-    privateNotes: [String: String]? = nil,
     lastContactDate: String? = "2026-02-01T10:00:00Z"
   ) -> Coach {
     Coach(
@@ -67,7 +66,7 @@ final class CoachDetailViewModelTests: XCTestCase {
       twitterHandle: "@coach",
       instagramHandle: "@coach",
       notes: notes,
-      privateNotes: privateNotes,
+      privateNotes: nil,
       responsivenessScore: 80,
       lastContactDate: lastContactDate,
       createdAt: "2025-01-01T00:00:00Z",
@@ -81,7 +80,7 @@ final class CoachDetailViewModelTests: XCTestCase {
       division: "D1", conference: "Big Ten", ranking: nil, isFavorite: false, website: nil,
       faviconUrl: nil, twitterHandle: nil, instagramHandle: nil, ncaaId: nil, status: "interested",
       statusChangedAt: nil, notes: nil,
-      privateNotes: nil, pros: [], cons: [], offerDetails: nil,
+      pros: [], cons: [], offerDetails: nil,
       academicInfo: nil, amenities: nil, coachingPhilosophy: nil, coachingStyle: nil,
       recruitingApproach: nil, communicationStyle: nil, successMetrics: nil, fitScore: nil,
       fitTier: nil, familyUnitId: "family-1", createdBy: nil, updatedBy: nil,
@@ -299,40 +298,6 @@ final class CoachDetailViewModelTests: XCTestCase {
     XCTAssertEqual(sut.saveStatus, .saved)
   }
 
-  // MARK: - Private Notes Tests
-
-  func testSavePrivateNotes_MergesExisting() async {
-    let existingPrivateNotes = ["user-2": "User 2's note"]
-    testCoach = makeCoach(id: "coach-1", privateNotes: existingPrivateNotes)
-    sut.coach = testCoach
-
-    sut.editedPrivateNotes = "My private note"
-
-    let updatedCoach = makeCoach(
-      id: "coach-1",
-      privateNotes: ["user-1": "My private note", "user-2": "User 2's note"]
-    )
-    mockService.stubbedUpdatedCoach = updatedCoach
-
-    await sut.savePrivateNotes()
-
-    XCTAssertEqual(mockService.updateCoachCallCount, 1)
-    let lastUpdate = mockService.lastUpdateCoachUpdates
-    XCTAssertEqual(lastUpdate?.privateNotes?.count, 2)
-    XCTAssertEqual(lastUpdate?.privateNotes?["user-1"], "My private note")
-    XCTAssertEqual(lastUpdate?.privateNotes?["user-2"], "User 2's note")
-  }
-
-  func testPrivateNoteForCurrentUser() {
-    testCoach = makeCoach(
-      id: "coach-1",
-      privateNotes: ["user-1": "My note", "user-2": "Other note"]
-    )
-    sut.coach = testCoach
-
-    XCTAssertEqual(sut.privateNoteForCurrentUser, "My note")
-  }
-
   // MARK: - Delete Tests
 
   func testDeleteCoach_Simple() async {
@@ -399,19 +364,6 @@ final class CoachDetailViewModelTests: XCTestCase {
     XCTAssertEqual(mockService.updateCoachCallCount, 1)
     XCTAssertNotNil(sut.errorMessage)
     XCTAssertEqual(sut.errorMessage, "Failed to save notes")
-  }
-
-  func testSavePrivateNotes_ServiceError_SetsErrorMessage() async {
-    sut.coach = testCoach
-    sut.editedPrivateNotes = "Private note"
-
-    mockService.shouldThrowUpdateCoach = true
-
-    await sut.savePrivateNotes()
-
-    XCTAssertEqual(mockService.updateCoachCallCount, 1)
-    XCTAssertNotNil(sut.errorMessage)
-    XCTAssertEqual(sut.errorMessage, "Failed to save private notes")
   }
 
   // MARK: - Edge Case Tests
