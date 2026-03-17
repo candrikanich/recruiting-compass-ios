@@ -80,16 +80,8 @@ A summary of the user's recruiting activity over the past week.
 
 ---
 
-### 4. `inbound_interaction`
-Notifies the user when they log a coach-initiated interaction.
-
-**Trigger:** User creates an interaction record and marks the direction as `inbound`
-
-**Implementation:** Postgres trigger on `interactions` INSERT where `direction = 'inbound'`
-
-**Notification content:** "Coach [name] from [school] reached out" with deep link to interaction detail
-
-**Channels:** Push only
+### 4. `inbound_interaction` — **INACTIVE in v1**
+Since inbound interactions are entered manually by the user, a notification on creation is redundant — same reasoning as `offer`. Type retained in the enum for future use (e.g. automatic coach email detection).
 
 ---
 
@@ -116,7 +108,7 @@ Since offers are entered manually by the user, a notification on creation is red
 | `follow_up_reminder` | ✅ | ✅ | — |
 | `deadline_alert` | ✅ | ✅ | ✅ |
 | `weekly_digest` | ✅ | ✅ | ✅ |
-| `inbound_interaction` | ✅ | ✅ | — |
+| `inbound_interaction` | — | — | — |
 | `event` | ✅ | ✅ | — |
 | `offer` | — | — | — |
 
