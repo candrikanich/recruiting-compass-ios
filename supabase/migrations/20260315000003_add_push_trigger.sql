@@ -2,8 +2,7 @@
 --
 -- Prerequisites:
 --   - pg_net extension must be enabled (Dashboard → Database → Extensions → pg_net)
---   - Run once in SQL Editor (not this file) to set the project ref:
---       ALTER DATABASE postgres SET app.edge_function_base_url = 'https://<PROJECT-REF>.supabase.co/functions/v1';
+--   - Replace <PROJECT-REF> below with your Supabase project ref before running
 
 CREATE OR REPLACE FUNCTION trigger_push_notification()
 RETURNS trigger
@@ -12,7 +11,7 @@ SECURITY DEFINER
 AS $$
 BEGIN
   PERFORM net.http_post(
-    url     := current_setting('app.edge_function_base_url') || '/send-push-notification',
+    url     := 'https://<PROJECT-REF>.supabase.co/functions/v1/send-push-notification',
     headers := '{"Content-Type":"application/json"}'::jsonb,
     body    := to_jsonb(NEW)
   );
