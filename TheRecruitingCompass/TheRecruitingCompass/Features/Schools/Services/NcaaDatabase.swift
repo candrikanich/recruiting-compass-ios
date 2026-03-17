@@ -147,7 +147,7 @@ actor NcaaDatabase: NcaaDatabaseManaging {
     // Priority 1: Exact match (O(1) index lookup)
     if let (indexDivision, school) = schoolIndex[normalizedName], indexDivision == division {
       logger.debug("NCAA exact match (indexed): \(school.name) (\(division.rawValue))")
-      return NcaaLookupResult(division: division, conference: school.conference, logo: school.logo)
+      return NcaaLookupResult(division: division, conference: school.conference ?? "", logo: school.logo)
     }
 
     // Priority 2: Partial match (>8 chars)
@@ -158,7 +158,7 @@ actor NcaaDatabase: NcaaDatabaseManaging {
         return schoolNormalized.contains(normalizedName) || normalizedName.contains(schoolNormalized)
       }) {
         logger.debug("NCAA partial match: \(school.name) (\(division.rawValue))")
-        return NcaaLookupResult(division: division, conference: school.conference, logo: school.logo)
+        return NcaaLookupResult(division: division, conference: school.conference ?? "", logo: school.logo)
       }
     }
 
@@ -168,7 +168,7 @@ actor NcaaDatabase: NcaaDatabaseManaging {
       return normalizedName.levenshteinDistance(to: schoolNormalized) <= 2
     }) {
       logger.debug("NCAA fuzzy match: \(school.name) (\(division.rawValue))")
-      return NcaaLookupResult(division: division, conference: school.conference, logo: school.logo)
+      return NcaaLookupResult(division: division, conference: school.conference ?? "", logo: school.logo)
     }
 
     return nil

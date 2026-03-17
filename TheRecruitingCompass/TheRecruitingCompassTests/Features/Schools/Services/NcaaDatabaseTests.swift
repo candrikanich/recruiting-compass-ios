@@ -681,7 +681,7 @@ final class TestableNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
   ) -> NcaaLookupResult? {
     // Priority 1: Exact match
     if let school = schools.first(where: { normalizeSchoolName($0.name) == normalizedName }) {
-      return NcaaLookupResult(division: division, conference: school.conference, logo: school.logo)
+      return NcaaLookupResult(division: division, conference: school.conference ?? "", logo: school.logo)
     }
 
     // Priority 2: Partial match (>8 chars)
@@ -690,7 +690,7 @@ final class TestableNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
         let schoolNormalized = normalizeSchoolName($0.name)
         return schoolNormalized.contains(normalizedName) || normalizedName.contains(schoolNormalized)
       }) {
-        return NcaaLookupResult(division: division, conference: school.conference, logo: school.logo)
+        return NcaaLookupResult(division: division, conference: school.conference ?? "", logo: school.logo)
       }
     }
 
@@ -698,7 +698,7 @@ final class TestableNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
     if let school = schools.first(where: {
       levenshteinDistance(normalizedName, normalizeSchoolName($0.name)) <= 2
     }) {
-      return NcaaLookupResult(division: division, conference: school.conference, logo: school.logo)
+      return NcaaLookupResult(division: division, conference: school.conference ?? "", logo: school.logo)
     }
 
     return nil

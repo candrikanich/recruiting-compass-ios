@@ -11,7 +11,7 @@ import Foundation
 /// NCAA school information for division/conference lookup
 struct NcaaSchoolInfo: Codable, Sendable {
   let name: String
-  let conference: String
+  let conference: String?  // Optional: some entries in the JSON have null conference
   let logo: String?
 
   enum CodingKeys: String, CodingKey {
