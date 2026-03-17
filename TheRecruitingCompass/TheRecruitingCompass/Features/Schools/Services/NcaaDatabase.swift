@@ -113,10 +113,16 @@ actor NcaaDatabase: NcaaDatabaseManaging {
 
   // MARK: - Private Helpers
 
-  /// Load schools from bundled JSON resource
+  /// Load schools from bundled JSON resource.
+  /// Searches bundle root first, then `Resources/` subdirectory to handle
+  /// different Xcode bundling behaviors (PBXFileSystemSynchronizedRootGroup
+  /// may place files at the root or inside a subdirectory).
   nonisolated private static func loadSchools(from filename: String) -> [NcaaSchoolInfo] {
-    guard let url = Bundle.main.url(forResource: filename, withExtension: "json") else {
-      logger.warning("NCAA database file not found: \(filename).json")
+    let url = Bundle.main.url(forResource: filename, withExtension: "json")
+      ?? Bundle.main.url(forResource: filename, withExtension: "json", subdirectory: "Resources")
+
+    guard let url else {
+      logger.error("NCAA database file not found anywhere in bundle: \(filename).json — division/conference auto-fill will not work")
       return []
     }
 
@@ -124,10 +130,10 @@ actor NcaaDatabase: NcaaDatabaseManaging {
       let data = try Data(contentsOf: url)
       let decoder = JSONDecoder()
       let schools = try decoder.decode([NcaaSchoolInfo].self, from: data)
-      logger.debug("Loaded \(schools.count) schools from \(filename).json")
+      logger.debug("Loaded \(schools.count) schools from \(filename).json at \(url.path)")
       return schools
     } catch {
-      logger.error("Failed to load NCAA database \(filename).json: \(error.localizedDescription)")
+      logger.error("Failed to decode NCAA database \(filename).json: \(error.localizedDescription)")
       return []
     }
   }
