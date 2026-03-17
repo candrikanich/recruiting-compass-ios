@@ -20,8 +20,6 @@ private struct DeviceTokenRow: Encodable {
 
 @MainActor
 final class PushNotificationManager: NSObject, PushNotificationManaging {
-    nonisolated deinit {}
-
     static let shared = PushNotificationManager()
 
     private(set) var currentTokenString: String?
