@@ -162,11 +162,6 @@ A page in the web app (admin-gated) to send a notification to a specific user or
 
 ## Infrastructure Required
 
-### Postgres Triggers (new)
-| Trigger | Table | Condition | Action |
-|---|---|---|---|
-| `notify_on_inbound_interaction` | `interactions` | `direction = 'inbound'` on INSERT | INSERT into `notifications` |
-
 ### Supabase Edge Functions (new)
 | Function | Schedule | Purpose |
 |---|---|---|
@@ -184,7 +179,6 @@ All scheduled functions use Supabase's pg_cron or Vercel Cron calling Edge Funct
 | `add_device_tokens` | ✅ Done |
 | `add_notification_preferences` | ✅ Done |
 | `add_push_trigger` | ✅ Done |
-| `add_inbound_interaction_trigger` | Postgres trigger for inbound interactions |
 | `add_deadline_alert_tracking` | Track which deadline × alert distance combos have already fired |
 | `add_coach_inactivity_threshold` | Per-coach `follow_up_threshold_days` column |
 
