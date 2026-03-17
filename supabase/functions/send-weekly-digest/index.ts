@@ -82,7 +82,7 @@ Deno.serve(async () => {
         ]
 
     // Insert in-app notification
-    await supabase.from('notifications').insert({
+    const { error: insertError } = await supabase.from('notifications').insert({
       user_id: user.id,
       type: 'weekly_digest',
       title: 'Your weekly recruiting recap',
@@ -91,11 +91,16 @@ Deno.serve(async () => {
       scheduled_for: new Date().toISOString(),
     })
 
+    if (insertError) {
+      console.error(`Failed to insert notification for user ${user.id}:`, insertError)
+      continue
+    }
+
     // Send email if user has an email address and email is enabled
     const emailEnabled = pref?.email_enabled !== false
     if (user.email && emailEnabled) {
       try {
-        await fetch(`${WEB_APP_URL}/api/email/send`, {
+        const response = await fetch(`${WEB_APP_URL}/api/email/send`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -105,6 +110,12 @@ Deno.serve(async () => {
             data: { lines, upcomingDeadlines: upcoming ?? [] },
           }),
         })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error(`Failed to send digest email for user ${user.id}: HTTP ${response.status} - ${errorText}`)
+          // Don't throw — push notification already inserted, email is best-effort
+        }
       } catch (err) {
         console.error(`Failed to send digest email for user ${user.id}:`, err)
         // Don't throw — push notification already inserted, email is best-effort

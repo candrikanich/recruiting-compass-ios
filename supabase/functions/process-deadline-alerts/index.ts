@@ -8,10 +8,14 @@ Deno.serve(async () => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 
-  const { data: users } = await supabase
+  const { data: users, error: usersError } = await supabase
     .from('users')
     .select('id, timezone')
 
+  if (usersError) {
+    console.error('Failed to fetch users:', usersError)
+    return new Response(JSON.stringify({ error: 'Failed to fetch users' }), { status: 500 })
+  }
   let processed = 0
 
   for (const user of users ?? []) {

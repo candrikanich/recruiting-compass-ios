@@ -9,6 +9,9 @@ struct CoachEditForm: View {
 
   @Environment(\.sizeCategory) private var sizeCategory
 
+  @State private var isNextContactEnabled: Bool = false
+  @State private var nextContactDateTemp: Date = Date()
+
   private var minFieldHeight: CGFloat {
     sizeCategory.isAccessibilityCategory ? 50 : 44
   }
@@ -111,24 +114,24 @@ struct CoachEditForm: View {
         Section("Follow-up") {
           DatePicker(
             "Next Contact",
-            selection: Binding(
-              get: { editedCoach.nextContactDate ?? Date() },
-              set: { editedCoach.nextContactDate = $0 }
-            ),
+            selection: $nextContactDateTemp,
             displayedComponents: .date
           )
           .frame(minHeight: minFieldHeight)
+          .disabled(!isNextContactEnabled)
           .accessibilityLabel("Next contact date")
 
           Toggle(
-            isOn: Binding(
-              get: { editedCoach.nextContactDate != nil },
-              set: { isOn in
-                editedCoach.nextContactDate = isOn ? (editedCoach.nextContactDate ?? Date()) : nil
-              }
-            )
+            isOn: $isNextContactEnabled
           ) {
             Text("Set next contact date")
+          }
+          .onChange(of: isNextContactEnabled) { _, newValue in
+            if newValue {
+              editedCoach.nextContactDate = nextContactDateTemp
+            } else {
+              editedCoach.nextContactDate = nil
+            }
           }
           .accessibilityLabel("Toggle next contact date")
 
@@ -164,6 +167,10 @@ struct CoachEditForm: View {
         }
       }
       .disabled(isSaving)
+      .onAppear {
+        isNextContactEnabled = editedCoach.nextContactDate != nil
+        nextContactDateTemp = editedCoach.nextContactDate ?? Date()
+      }
     }
   }
 }
