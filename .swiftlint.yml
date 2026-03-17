@@ -86,3 +86,9 @@ custom_rules:
     regex: '^\s*import UIKit'
     message: "Avoid importing UIKit in SwiftUI view files."
     severity: warning
+
+  viewbuilder_on_some_view:
+    name: "Missing @ViewBuilder on some View property"
+    regex: '(?m)^(?![ \t]*@ViewBuilder)[^\n]*\n[ \t]*(?:(?:private|public|internal|fileprivate)[ \t]+)?var[ \t]+(?!body)\w+[ \t]*:[ \t]*some[ \t]+View[ \t]*\{'
+    message: "Computed 'some View' properties (except 'body') must be annotated with @ViewBuilder. Omitting it causes MapContentBuilder/ChartContentBuilder type inference errors in Xcode 16.4+."
+    severity: error
