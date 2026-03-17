@@ -19,6 +19,40 @@ This spec covers: triggers, timing, channels, user preferences, admin tooling, a
 
 ---
 
+## Timezone
+
+Users are US-only. Four zones supported: `America/New_York`, `America/Chicago`, `America/Denver`, `America/Los_Angeles`. Default: `America/New_York`.
+
+**Source:** `HomeLocation` already stores `zip`, `latitude`, and `longitude`. Derive timezone from **state** (extracted from zip or reverse geocode) using a static state→timezone map. Store result as `timezone text` on the user profile row.
+
+**When to derive:** Once, when the user saves their home location. Re-derive only if home location changes. Never compute per-send.
+
+**Static map approach** (no external API needed):
+- ET states: ME, NH, VT, MA, RI, CT, NY, NJ, PA, DE, MD, DC, VA, WV, NC, SC, GA, FL, OH, MI, IN, KY, TN
+- CT states: ND, SD, NE, KS, MN, IA, MO, WI, IL, AR, LA, MS, AL, OK, TX
+- MT states: MT, WY, CO, NM, AZ, UT, ID (non-Pacific)
+- PT states: WA, OR, CA, NV
+- Everything else → default ET
+
+---
+
+## Email Stack
+
+**Provider:** Resend (native Vercel Marketplace, single API key, delivery analytics built in)
+
+**Templates:** Vue Email (`vue-email` / `@vue-email/render`) — the Vue equivalent of React Email. Components render to email-safe HTML server-side in Nuxt.
+
+**Architecture:** Email sending lives in the **Nuxt app**, not in Supabase Edge Functions.
+- Nuxt server route: `POST /api/email/send` — accepts `{ to, subject, template, data }`
+- Cron Edge Functions (or Supabase cron) call this endpoint when email delivery is needed
+- Keeps Vue Email rendering in Node/Nuxt where it belongs; Edge Functions stay thin
+
+**Templates needed:**
+- `deadline-alert.vue` — school name, deadline type, days remaining, CTA button
+- `weekly-digest.vue` — activity summary table, upcoming deadlines, suggested actions
+
+---
+
 ## Notification Types
 
 ### 1. `follow_up_reminder`
@@ -33,10 +67,10 @@ Reminds the user to reach out to a coach they haven't contacted recently.
 
 **Inactivity threshold:**
 - System default: **21 days**
-- User can override per coach (stored alongside coach record)
+- User can override per coach via `follow_up_threshold_days` column on the coach record
 - Inactivity is measured from the most recent interaction date for that coach
 
-**Timing:** Daily cron at 8am — scan all coaches for both conditions
+**Timing:** Daily cron at 8am user timezone
 
 **Channels:** Push only
 
@@ -54,9 +88,9 @@ Warns the user that an important recruiting deadline is approaching.
 **Alert cadence:** Three notifications per deadline:
 - **7 days out** — early warning
 - **3 days out** — last chance to act
-- **Day of** — morning of the deadline (8am)
+- **Day of** — morning of the deadline (8am user timezone)
 
-**Deduplication:** Track which alerts have fired per deadline (prevent re-send on cron re-run).
+**Deduplication:** `deadline_alert_log` table — one row per `(deadline_id, alert_days_before)`. Query: fire alert only if no matching row exists. Insert row immediately after firing.
 
 **Channels:** Push + Email
 
@@ -65,7 +99,7 @@ Warns the user that an important recruiting deadline is approaching.
 ### 3. `weekly_digest`
 A summary of the user's recruiting activity over the past week.
 
-**Schedule:** Monday 8am (fixed — no user control over timing)
+**Schedule:** Monday 8am user timezone (fixed — no user control over timing)
 
 **Content:**
 - Interactions logged last week (count by coach/school)
@@ -81,14 +115,14 @@ A summary of the user's recruiting activity over the past week.
 ---
 
 ### 4. `inbound_interaction` — **INACTIVE in v1**
-Since inbound interactions are entered manually by the user, a notification on creation is redundant — same reasoning as `offer`. Type retained in the enum for future use (e.g. automatic coach email detection).
+Inbound interactions are entered manually — user already knows. Type retained for future use (e.g. automatic coach email detection).
 
 ---
 
 ### 5. `event`
 Reminds the user of an upcoming scheduled event (campus visit, showcase, camp, etc.)
 
-**Trigger:** Scheduled cron scans upcoming events — fires reminder **24 hours before** the event start time
+**Trigger:** Daily cron scans upcoming events — fires reminder **24 hours before** the event start time
 
 **Channels:** Push only
 
@@ -97,7 +131,7 @@ Reminds the user of an upcoming scheduled event (campus visit, showcase, camp, e
 ---
 
 ### 6. `offer` — **INACTIVE in v1**
-Since offers are entered manually by the user, a notification on creation is redundant. Removed from active triggers. The type remains in the enum for future use (e.g. coach-initiated offer via a future integration).
+Offers are entered manually — notification is redundant. Type retained for future use (e.g. coach-initiated offer via future integration).
 
 ---
 
@@ -112,8 +146,6 @@ Since offers are entered manually by the user, a notification on creation is red
 | `event` | ✅ | ✅ | — |
 | `offer` | — | — | — |
 
-**Email service:** TBD (Resend recommended — native Vercel Marketplace integration)
-
 ---
 
 ## User Preferences
@@ -126,7 +158,7 @@ One source of truth: `notification_preferences` table (already created).
 |---|---|---|
 | Push enabled per type | Per notification type | All on |
 | Email enabled per type | Per notification type (digest + deadlines only) | On |
-| Inactivity threshold | Per coach | 21 days |
+| Inactivity threshold | Per coach (`follow_up_threshold_days`) | 21 days |
 
 ### What users do NOT control
 - Digest send day/time (Monday 8am, fixed)
@@ -146,9 +178,9 @@ One source of truth: `notification_preferences` table (already created).
 A page in the web app (admin-gated) to send a notification to a specific user or all users.
 
 **Use cases:**
-- Testing the full push pipeline
+- Testing the full push pipeline end-to-end
 - Product announcements ("New feature: offers tracking")
-- System alerts ("We'll be down for maintenance at 2am")
+- System alerts
 
 **Implementation:**
 - Web app API route: `POST /api/admin/notifications/broadcast`
@@ -170,22 +202,26 @@ A page in the web app (admin-gated) to send a notification to a specific user or
 | `send-weekly-digest` | Monday 8am | Compile weekly summary, INSERT notifications |
 | `send-push-notification` | On demand (trigger) | APNs delivery — **already built** ✅ |
 
-### Cron Config (`supabase/functions/`)
-All scheduled functions use Supabase's pg_cron or Vercel Cron calling Edge Function endpoints.
-
-### Database Changes
-| Migration | Purpose |
+### Nuxt Server Routes (new)
+| Route | Purpose |
 |---|---|
-| `add_device_tokens` | ✅ Done |
-| `add_notification_preferences` | ✅ Done |
-| `add_push_trigger` | ✅ Done |
-| `add_deadline_alert_tracking` | Track which deadline × alert distance combos have already fired |
-| `add_coach_inactivity_threshold` | Per-coach `follow_up_threshold_days` column |
+| `POST /api/email/send` | Render Vue Email template + deliver via Resend |
+| `POST /api/admin/notifications/broadcast` | Admin-only notification broadcast |
+
+### Database Migrations
+| Migration | Status | Purpose |
+|---|---|---|
+| `add_device_tokens` | ✅ Done | APNs token storage |
+| `add_notification_preferences` | ✅ Done | Per-type push/email toggles |
+| `add_push_trigger` | ✅ Done | Fires Edge Function on notifications INSERT |
+| `add_user_timezone` | Needed | `timezone text` column on users/profiles table |
+| `add_coach_next_contact_date` | Needed | `next_contact_date date` + `follow_up_threshold_days int` on coaches |
+| `add_deadline_alert_log` | Needed | `(deadline_id, alert_days_before, sent_at)` dedup table |
 
 ### Web App Changes
 | Page | Work |
 |---|---|
-| `/notifications` | Enhance from read-only to include mark-read, delete, filter by type |
+| `/notifications` | Enhance from read-only: mark-read, delete, filter by type |
 | `/settings/notifications` | Preferences page — reads/writes `notification_preferences` table |
 | `/admin/notifications` | Broadcast tool (admin-only) |
 
@@ -197,8 +233,8 @@ Already done:
 - Deep link routing ✅
 
 Remaining:
-- Per-coach inactivity threshold UI (coach detail or preferences)
-- Handle `weekly_digest` notification type deep link (route to notifications list)
+- `next_contact_date` + `follow_up_threshold_days` UI on coach detail
+- Handle `weekly_digest` deep link (route to notifications list)
 
 ---
 
@@ -208,27 +244,22 @@ Remaining:
 1. Admin broadcast page in web app
 2. Verify push delivers end-to-end
 
-### Phase 2 — Event-driven notifications (1–2 sessions)
-1. `inbound_interaction` Postgres trigger
-2. Per-coach inactivity threshold column + iOS UI
+### Phase 2 — Data model (1 session)
+1. Migration: `add_user_timezone` + derive from existing `HomeLocation` data
+2. Migration: `add_coach_next_contact_date` + `follow_up_threshold_days`
+3. iOS: `next_contact_date` UI on coach detail
 
-### Phase 3 — Scheduled notifications (2 sessions)
-1. `process-follow-up-reminders` Edge Function + cron
-2. `process-deadline-alerts` Edge Function + cron + dedup tracking
+### Phase 3 — Scheduled push notifications (2 sessions)
+1. Migration: `add_deadline_alert_log`
+2. `process-follow-up-reminders` Edge Function + cron
+3. `process-deadline-alerts` Edge Function + cron
 
-### Phase 4 — Digest + Email (1–2 sessions)
-1. `send-weekly-digest` Edge Function + cron
-2. Email delivery via Resend for digest + deadline_alert types
-3. Web app `/settings/notifications` preferences page
+### Phase 4 — Event reminders (1 session)
+1. Update `process-follow-up-reminders` or separate `process-event-reminders` cron
 
-### Phase 5 — Web app notification management
-1. Enhance `/notifications` page (mark read, delete, filter)
-
----
-
-## Open Questions
-
-- What timezone do we use for scheduled sends? User's local timezone (requires storing it) or a fixed zone (e.g. ET)?
-- For the weekly digest email — do we build a React Email template or plain text first?
-- Should `next_contact_date` on coaches already exist, or is that a new field to add?
-- Deadline alert dedup: store in a separate table or as a flag on the deadline record?
+### Phase 5 — Email (1–2 sessions)
+1. Install Resend via Vercel Marketplace, add to Nuxt
+2. `POST /api/email/send` Nuxt route + Vue Email templates
+3. `send-weekly-digest` Edge Function calls Nuxt email route
+4. Deadline alert email wired into `process-deadline-alerts`
+5. Web app `/settings/notifications` preferences page
