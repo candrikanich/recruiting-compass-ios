@@ -129,17 +129,17 @@ struct MoreMenuView: View {
   @ViewBuilder
   private var moreMenuList: some View {
     List {
-      ForEach(MoreMenuSection.recruitingSections, id: \.header) { group in
-        Section {
-          ForEach(group.items) { item in
-            MoreMenuSectionRow(
-              section: item,
-              unreadCount: notificationsViewModel.unreadCount
-            )
-          }
-        } header: {
-          Text(group.header)
-        }
+      menuSectionView("Recruiting", items: [.timeline, .events, .documents, .offers, .performance, .analytics, .activity])
+      menuSectionView("Support", items: [.helpCenter])
+      menuSectionView("Account", items: [.notifications, .settings])
+    }
+  }
+
+  @ViewBuilder
+  private func menuSectionView(_ header: String, items: [MoreMenuSection]) -> some View {
+    Section(header) {
+      ForEach(items) { (item: MoreMenuSection) in
+        MoreMenuSectionRow(section: item, unreadCount: notificationsViewModel.unreadCount)
       }
     }
   }
