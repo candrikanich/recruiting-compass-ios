@@ -9,6 +9,15 @@ struct EditableCoach {
   var twitterHandle: String
   var instagramHandle: String
   var notes: String
+  var nextContactDate: Date?
+  var followUpThresholdDays: Int
+
+  private static let isoDateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyy-MM-dd"
+    f.locale = Locale(identifier: "en_US_POSIX")
+    return f
+  }()
 
   static var empty: EditableCoach {
     EditableCoach(
@@ -19,11 +28,24 @@ struct EditableCoach {
       position: "assistant",
       twitterHandle: "",
       instagramHandle: "",
-      notes: ""
+      notes: "",
+      nextContactDate: nil,
+      followUpThresholdDays: 21
     )
   }
 
-  init(firstName: String, lastName: String, email: String, phone: String, position: String, twitterHandle: String, instagramHandle: String, notes: String) {
+  init(
+    firstName: String,
+    lastName: String,
+    email: String,
+    phone: String,
+    position: String,
+    twitterHandle: String,
+    instagramHandle: String,
+    notes: String,
+    nextContactDate: Date? = nil,
+    followUpThresholdDays: Int = 21
+  ) {
     self.firstName = firstName
     self.lastName = lastName
     self.email = email
@@ -32,6 +54,8 @@ struct EditableCoach {
     self.twitterHandle = twitterHandle
     self.instagramHandle = instagramHandle
     self.notes = notes
+    self.nextContactDate = nextContactDate
+    self.followUpThresholdDays = followUpThresholdDays
   }
 
   init(from coach: Coach) {
@@ -43,10 +67,17 @@ struct EditableCoach {
     self.twitterHandle = coach.twitterHandle ?? ""
     self.instagramHandle = coach.instagramHandle ?? ""
     self.notes = coach.notes ?? ""
+    self.followUpThresholdDays = coach.followUpThresholdDays ?? 21
+    if let dateString = coach.nextContactDate {
+      self.nextContactDate = EditableCoach.isoDateFormatter.date(from: dateString)
+    } else {
+      self.nextContactDate = nil
+    }
   }
 
   func toUpdateRequest() -> CoachUpdateRequest {
-    CoachUpdateRequest(
+    let nextContactDateString = nextContactDate.map { EditableCoach.isoDateFormatter.string(from: $0) }
+    return CoachUpdateRequest(
       firstName: firstName,
       lastName: lastName,
       email: email.isEmpty ? nil : email,
@@ -54,7 +85,9 @@ struct EditableCoach {
       position: position,
       twitterHandle: twitterHandle.isEmpty ? nil : twitterHandle,
       instagramHandle: instagramHandle.isEmpty ? nil : instagramHandle,
-      notes: DataSanitizer.nilIfEmpty(DataSanitizer.stripHtmlTags(notes))
+      notes: DataSanitizer.nilIfEmpty(DataSanitizer.stripHtmlTags(notes)),
+      nextContactDate: nextContactDateString,
+      followUpThresholdDays: followUpThresholdDays
     )
   }
 }
