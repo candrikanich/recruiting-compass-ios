@@ -20,6 +20,8 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS push_on_notification_insert ON notifications;
+
 CREATE TRIGGER push_on_notification_insert
   AFTER INSERT ON notifications
   FOR EACH ROW
