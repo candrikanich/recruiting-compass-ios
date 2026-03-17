@@ -132,9 +132,9 @@ struct MoreMenuView: View {
     List {
       ForEach(MoreMenuView.Section.recruitingSections, id: \.header) { group in
         SwiftUI.Section {
-          ForEach(group.items) { section in
+          SwiftUI.ForEach(group.items) { item in
             MoreMenuSectionRow(
-              section: section,
+              section: item,
               unreadCount: notificationsViewModel.unreadCount
             )
           }
