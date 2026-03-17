@@ -16,6 +16,8 @@ struct Coach: Codable, Identifiable, Sendable {
   let notes: String?
   let responsivenessScore: Double
   let lastContactDate: String?
+  let nextContactDate: String?
+  let followUpThresholdDays: Int?
   let createdAt: String
   let updatedAt: String
 
@@ -65,6 +67,8 @@ struct Coach: Codable, Identifiable, Sendable {
     notes: String? = nil,
     responsivenessScore: Double = 0.0,
     lastContactDate: String? = nil,
+    nextContactDate: String? = nil,
+    followUpThresholdDays: Int? = nil,
     createdAt: String,
     updatedAt: String
   ) {
@@ -80,6 +84,8 @@ struct Coach: Codable, Identifiable, Sendable {
     self.notes = notes
     self.responsivenessScore = responsivenessScore
     self.lastContactDate = lastContactDate
+    self.nextContactDate = nextContactDate
+    self.followUpThresholdDays = followUpThresholdDays
     self.createdAt = createdAt
     self.updatedAt = updatedAt
   }
@@ -98,6 +104,8 @@ struct Coach: Codable, Identifiable, Sendable {
     case notes
     case responsivenessScore = "responsiveness_score"
     case lastContactDate = "last_contact_date"
+    case nextContactDate = "next_contact_date"
+    case followUpThresholdDays = "follow_up_threshold_days"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
   }
@@ -118,6 +126,8 @@ struct Coach: Codable, Identifiable, Sendable {
     notes = try container.decodeIfPresent(String.self, forKey: .notes)
     responsivenessScore = try container.decodeIfPresent(Double.self, forKey: .responsivenessScore) ?? 0.0
     lastContactDate = try container.decodeIfPresent(String.self, forKey: .lastContactDate)
+    nextContactDate = try container.decodeIfPresent(String.self, forKey: .nextContactDate)
+    followUpThresholdDays = try container.decodeIfPresent(Int.self, forKey: .followUpThresholdDays)
     createdAt = try container.decode(String.self, forKey: .createdAt)
     updatedAt = try container.decode(String.self, forKey: .updatedAt)
   }
@@ -136,6 +146,8 @@ struct Coach: Codable, Identifiable, Sendable {
     try container.encodeIfPresent(notes, forKey: .notes)
     try container.encode(responsivenessScore, forKey: .responsivenessScore)
     try container.encodeIfPresent(lastContactDate, forKey: .lastContactDate)
+    try container.encodeIfPresent(nextContactDate, forKey: .nextContactDate)
+    try container.encodeIfPresent(followUpThresholdDays, forKey: .followUpThresholdDays)
     try container.encode(createdAt, forKey: .createdAt)
     try container.encode(updatedAt, forKey: .updatedAt)
     // role is decoding-only (database may return role or position)

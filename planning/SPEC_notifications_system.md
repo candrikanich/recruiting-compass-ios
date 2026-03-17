@@ -11,7 +11,7 @@ This spec covers: triggers, timing, channels, user preferences, admin tooling, a
 
 ---
 
-## Principals & Scope
+## Principles & Scope
 
 - **Each user** (athlete or parent) has their own independent notification feed and preferences
 - **No shared family feed** — family members are notified individually
@@ -312,7 +312,7 @@ A page in the web app (admin-gated) to send a notification to a specific user or
 | `add_notification_preferences` | ✅ Done | Per-type push/email toggles |
 | `add_push_trigger` | ✅ Done | Fires Edge Function on notifications INSERT |
 | `add_user_timezone` | Needed | `timezone text` on user profile |
-| `add_coach_next_contact_date` | Needed | `next_contact_date date` + `follow_up_threshold_days int` on coaches |
+| `add_coach_next_contact_date` | ✅ Done | `next_contact_date date` + `follow_up_threshold_days int` on coaches |
 | `add_user_deadlines` | Needed | User-created deadline table |
 | `add_system_calendar` | Needed | Admin-managed NCAA + testing dates |
 | `add_deadline_alert_log` | Needed | Dedup tracking across all deadline sources |
