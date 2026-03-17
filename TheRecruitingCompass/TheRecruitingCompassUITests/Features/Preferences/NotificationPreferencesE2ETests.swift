@@ -166,8 +166,8 @@ final class NotificationPreferencesE2ETests: XCTestCase {
       screen.deadlineAlertsToggle.tap()
     }
 
-    if screen.dailyDigestToggle.exists {
-      screen.dailyDigestToggle.tap()
+    if screen.weeklyDigestToggle.exists {
+      screen.weeklyDigestToggle.tap()
     }
 
     if screen.inboundContactAlertsToggle.exists {
@@ -370,13 +370,13 @@ final class NotificationPreferencesE2ETests: XCTestCase {
 
     add(app.takeScreenshot(name: "27-persistence-before"))
 
-    // When: Toggle daily digest OFF
-    let currentValue = screen.dailyDigestToggle.value as? String
+    // When: Toggle weekly digest OFF
+    let currentValue = screen.weeklyDigestToggle.value as? String
     if currentValue == "1" {
-      screen.dailyDigestToggle.tap()
+      screen.weeklyDigestToggle.tap()
     }
 
-    add(app.takeScreenshot(name: "28-persistence-daily-digest-off"))
+    add(app.takeScreenshot(name: "28-persistence-weekly-digest-off"))
 
     // When: Save
     screen.tapSave()
@@ -396,8 +396,8 @@ final class NotificationPreferencesE2ETests: XCTestCase {
 
     add(app.takeScreenshot(name: "31-persistence-reopened"))
 
-    // Then: Daily digest should still be OFF
-    let persistedValue = screen.dailyDigestToggle.value as? String
+    // Then: Weekly digest should still be OFF
+    let persistedValue = screen.weeklyDigestToggle.value as? String
 
     XCTAssertEqual(
       persistedValue,
@@ -431,7 +431,7 @@ final class NotificationPreferencesE2ETests: XCTestCase {
     // When: Modify in-app notifications
     screen.toggleFollowUpReminders(true)
     screen.deadlineAlertsToggle.tap()
-    screen.dailyDigestToggle.tap()
+    screen.weeklyDigestToggle.tap()
 
     add(app.takeScreenshot(name: "34-comprehensive-in-app-modified"))
 

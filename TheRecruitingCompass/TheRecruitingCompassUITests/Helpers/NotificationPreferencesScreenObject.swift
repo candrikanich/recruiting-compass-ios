@@ -40,8 +40,8 @@ final class NotificationPreferencesScreenObject {
     app.switches["Deadline Alerts"]
   }
 
-  var dailyDigestToggle: XCUIElement {
-    app.switches["Daily Digest"]
+  var weeklyDigestToggle: XCUIElement {
+    app.switches["Weekly Digest"]
   }
 
   var inboundContactAlertsToggle: XCUIElement {
