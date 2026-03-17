@@ -7,25 +7,14 @@ struct InviteJoinView: View {
 
   var body: some View {
     NavigationStack {
-      Group {
-        switch viewModel.state {
-        case .loading:
-          loadingView
-        case .error(let err):
-          errorView(err)
-        case .declined:
-          declinedView
-        case .loaded(let invite):
-          inviteView(invite)
+      stateContent
+        .navigationTitle("Join Family")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .cancellationAction) {
+            Button("Close") { dismiss() }
+          }
         }
-      }
-      .navigationTitle("Join Family")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .cancellationAction) {
-          Button("Close") { dismiss() }
-        }
-      }
     }
     .task { await viewModel.loadInvite() }
     .onChange(of: viewModel.navigateToDashboard) { _, navigates in
@@ -44,6 +33,20 @@ struct InviteJoinView: View {
       type: .success,
       duration: 2.0
     )
+  }
+
+  @ViewBuilder
+  private var stateContent: some View {
+    switch viewModel.state {
+    case .loading:
+      loadingView
+    case .error(let err):
+      errorView(err)
+    case .declined:
+      declinedView
+    case .loaded(let invite):
+      inviteView(invite)
+    }
   }
 
   private var loadingView: some View {
