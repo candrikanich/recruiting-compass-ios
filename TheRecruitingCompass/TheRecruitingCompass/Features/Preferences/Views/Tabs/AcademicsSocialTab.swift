@@ -141,6 +141,7 @@ struct AcademicsSocialTab: View {
         }
     }
 
+    @ViewBuilder
     private var divider: some View { Divider().padding(.leading) }
 }
 

@@ -93,6 +93,7 @@ struct CoachesListView: View {
 
   // MARK: - Content View
 
+  @ViewBuilder
   private var contentView: some View {
     Group {
       if viewModel.isLoading && viewModel.allCoaches.isEmpty {
@@ -141,6 +142,7 @@ struct CoachesListView: View {
 
   // MARK: - List Content
 
+  @ViewBuilder
   private var coachListContent: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
@@ -170,11 +172,13 @@ struct CoachesListView: View {
     }
   }
 
+  @ViewBuilder
   private var filterSection: some View {
     CoachFilterBar(filters: $viewModel.filters)
       .padding(.vertical, 8)
   }
 
+  @ViewBuilder
   private var resultsHeader: some View {
     FilteredResultsHeader(
       resultCount: viewModel.resultCount,
@@ -186,6 +190,7 @@ struct CoachesListView: View {
     .padding(.vertical, 4)
   }
 
+  @ViewBuilder
   private var coachCards: some View {
     ForEach(viewModel.filteredCoaches) { coach in
       NavigationLink(value: CoachDestination.detail(coach.id)) {

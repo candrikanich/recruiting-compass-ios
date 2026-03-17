@@ -52,6 +52,7 @@ struct ParentOnboardingBanner: View {
     }
   }
 
+  @ViewBuilder
   private var inviteCtaBanner: some View {
     HStack(spacing: 12) {
       Image(systemName: "person.badge.plus")
@@ -118,6 +119,7 @@ struct ParentOnboardingBanner: View {
     .accessibilityLabel("Connect your athlete to get started. Invite them from Family Management.")
   }
 
+  @ViewBuilder
   private var connectedBanner: some View {
     HStack(spacing: 12) {
       Image(systemName: "checkmark.circle.fill")

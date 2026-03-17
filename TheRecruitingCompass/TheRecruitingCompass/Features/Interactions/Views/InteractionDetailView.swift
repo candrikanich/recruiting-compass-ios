@@ -187,6 +187,7 @@ struct InteractionDetailView: View {
 
   // MARK: - Details Grid
 
+  @ViewBuilder
   private var detailsGrid: some View {
     VStack(spacing: 16) {
       Text("Details")

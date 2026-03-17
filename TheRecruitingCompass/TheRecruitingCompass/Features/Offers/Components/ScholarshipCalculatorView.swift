@@ -74,6 +74,7 @@ struct ScholarshipCalculatorView: View {
 
   // MARK: - Subviews
 
+  @ViewBuilder
   private var headerRow: some View {
     HStack {
       Text("Scholarship Calculator")
@@ -96,6 +97,7 @@ struct ScholarshipCalculatorView: View {
     }
   }
 
+  @ViewBuilder
   private var inputSection: some View {
     VStack(spacing: 12) {
       calculatorField(
@@ -138,6 +140,7 @@ struct ScholarshipCalculatorView: View {
     }
   }
 
+  @ViewBuilder
   private var resultsSection: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
       resultCard(label: "Annual Scholarship", value: annualScholarship, color: .blue)
@@ -147,6 +150,7 @@ struct ScholarshipCalculatorView: View {
     }
   }
 
+  @ViewBuilder
   private var yearBreakdown: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Year-by-Year Breakdown")
@@ -191,6 +195,7 @@ struct ScholarshipCalculatorView: View {
     }
   }
 
+  @ViewBuilder
   private var actionButtons: some View {
     HStack(spacing: 12) {
       Button {

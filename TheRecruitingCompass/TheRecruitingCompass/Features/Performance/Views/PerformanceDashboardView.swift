@@ -111,6 +111,7 @@ struct PerformanceDashboardView: View {
 
   // MARK: - Content Sections
 
+  @ViewBuilder
   private var metricsContent: some View {
     ScrollView {
       LazyVStack(spacing: 24) {
@@ -138,6 +139,7 @@ struct PerformanceDashboardView: View {
 
   // MARK: - States
 
+  @ViewBuilder
   private var loadingView: some View {
     VStack(spacing: 16) {
       ProgressView()
@@ -149,6 +151,7 @@ struct PerformanceDashboardView: View {
     .accessibilityLabel("Loading performance metrics")
   }
 
+  @ViewBuilder
   private var emptyStateView: some View {
     ContentUnavailableView {
       Label("No Metrics Logged", systemImage: "chart.xyaxis.line")

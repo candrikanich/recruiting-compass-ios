@@ -22,6 +22,7 @@ struct CommunicationTemplatesView: View {
     .accessibilityIdentifier("communicationTemplatesView")
   }
 
+  @ViewBuilder
   private var tabBar: some View {
     HStack(spacing: 0) {
       tabButton(
@@ -71,6 +72,7 @@ struct CommunicationTemplatesView: View {
     }
   }
 
+  @ViewBuilder
   private var listContent: some View {
     ScrollView {
       LazyVStack(spacing: 12) {
@@ -99,6 +101,7 @@ struct CommunicationTemplatesView: View {
     .accessibilityIdentifier("communicationTemplates.list")
   }
 
+  @ViewBuilder
   private var filterRow: some View {
     ScrollView(.horizontal) {
       HStack(spacing: 8) {
@@ -135,6 +138,7 @@ struct CommunicationTemplatesView: View {
     .accessibilityIdentifier(identifier)
   }
 
+  @ViewBuilder
   private var emptyState: some View {
     VStack(spacing: 12) {
       Image(systemName: "doc.text")
@@ -170,6 +174,7 @@ struct CommunicationTemplatesView: View {
     .accessibilityLabel("No templates yet. Create your first template to get started.")
   }
 
+  @ViewBuilder
   private var loadingPlaceholders: some View {
     VStack(spacing: 12) {
       ForEach(0..<3, id: \.self) { _ in

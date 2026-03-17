@@ -45,6 +45,7 @@ struct CoachCardView: View {
 
   // MARK: - Header
 
+  @ViewBuilder
   private var headerSection: some View {
     HStack(spacing: 12) {
       schoolLogoView
@@ -88,6 +89,7 @@ struct CoachCardView: View {
     }
   }
 
+  @ViewBuilder
   private var initialsCircle: some View {
     Text(schoolInitials)
       .font(initialsFont)
@@ -103,6 +105,7 @@ struct CoachCardView: View {
       .clipShape(RoundedRectangle(cornerRadius: 10))
   }
 
+  @ViewBuilder
   private var roleBadge: some View {
     Text(coach.role.displayName)
       .font(.caption)
@@ -118,6 +121,7 @@ struct CoachCardView: View {
 
   // MARK: - Content
 
+  @ViewBuilder
   private var contentSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       if let email = coach.email {
@@ -164,6 +168,7 @@ struct CoachCardView: View {
 
   // MARK: - Actions
 
+  @ViewBuilder
   private var actionsSection: some View {
     HStack(spacing: 4) {
       communicationButtons

@@ -107,6 +107,7 @@ struct OffersListView: View {
 
   // MARK: - List Content
 
+  @ViewBuilder
   private var offersListContent: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
@@ -157,6 +158,7 @@ struct OffersListView: View {
     }
   }
 
+  @ViewBuilder
   private var offerCards: some View {
     ForEach(viewModel.filteredOffers) { offer in
       NavigationLink(value: OfferDestination.detail(offer.id)) {

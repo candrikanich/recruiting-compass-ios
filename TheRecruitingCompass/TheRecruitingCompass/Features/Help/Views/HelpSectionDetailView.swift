@@ -47,6 +47,7 @@ struct HelpSectionDetailView: View {
 
 // MARK: - Getting Started
 private extension HelpSectionDetailView {
+  @ViewBuilder
   var gettingStartedContent: some View {
     VStack(alignment: .leading, spacing: 24) {
       sectionBlock {
@@ -105,6 +106,7 @@ private extension HelpSectionDetailView {
 
 // MARK: - Schools & Coaches
 private extension HelpSectionDetailView {
+  @ViewBuilder
   var schoolsContent: some View {
     VStack(alignment: .leading, spacing: 24) {
       sectionBlock {
@@ -176,6 +178,7 @@ private extension HelpSectionDetailView {
 
 // MARK: - Phases & Letters
 private extension HelpSectionDetailView {
+  @ViewBuilder
   var phasesContent: some View {
     VStack(alignment: .leading, spacing: 24) {
       sectionBlock {
@@ -231,6 +234,7 @@ private extension HelpSectionDetailView {
 
 // MARK: - Account & Settings
 private extension HelpSectionDetailView {
+  @ViewBuilder
   var accountContent: some View {
     VStack(alignment: .leading, spacing: 24) {
       sectionBlock {

@@ -62,6 +62,7 @@ struct ParentOnboardingWizardView: View {
     }
   }
 
+  @ViewBuilder
   private var stepIndicator: some View {
     HStack(spacing: 8) {
       ForEach(ParentOnboardingWizardViewModel.Step.allCases, id: \.rawValue) { step in
@@ -78,6 +79,7 @@ struct ParentOnboardingWizardView: View {
     .accessibilityLabel("Step \(viewModel.currentStep.rawValue + 1) of \(ParentOnboardingWizardViewModel.Step.allCases.count)")
   }
 
+  @ViewBuilder
   private var playerDetailsStep: some View {
     VStack(alignment: .leading, spacing: FamilyConstants.Spacing.medium) {
       VStack(alignment: .leading, spacing: 4) {
@@ -164,6 +166,7 @@ struct ParentOnboardingWizardView: View {
     }
   }
 
+  @ViewBuilder
   private var sendInviteStep: some View {
     VStack(alignment: .leading, spacing: FamilyConstants.Spacing.medium) {
       VStack(alignment: .leading, spacing: 4) {
@@ -274,6 +277,7 @@ struct ParentOnboardingWizardView: View {
     }
   }
 
+  @ViewBuilder
   private var navigationButtons: some View {
     HStack(spacing: FamilyConstants.Spacing.medium) {
       if viewModel.currentStep.rawValue > 0 {

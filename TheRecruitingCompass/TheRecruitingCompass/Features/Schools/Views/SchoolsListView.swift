@@ -103,6 +103,7 @@ struct SchoolsListView: View {
 
   // MARK: - List Content
 
+  @ViewBuilder
   private var schoolListContent: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
@@ -157,6 +158,7 @@ struct SchoolsListView: View {
 
   // MARK: - School Cards
 
+  @ViewBuilder
   private var schoolCards: some View {
     ForEach(viewModel.filteredSchools) { school in
       NavigationLink(value: SchoolDestination.detail(school.id)) {

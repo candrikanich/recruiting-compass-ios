@@ -44,6 +44,7 @@ struct AthleticsTab: View {
 
     // MARK: - Physical Stats Card
 
+    @ViewBuilder
     private var physicalStatsCard: some View {
         VStack(spacing: 0) {
             heightRow
@@ -52,6 +53,7 @@ struct AthleticsTab: View {
         }
     }
 
+    @ViewBuilder
     private var heightRow: some View {
         HStack {
             Text("Height").font(.body)
@@ -90,6 +92,7 @@ struct AthleticsTab: View {
         .padding(.vertical, 12)
     }
 
+    @ViewBuilder
     private var weightRow: some View {
         HStack {
             Text("Weight (lbs)").font(.body)
@@ -112,6 +115,7 @@ struct AthleticsTab: View {
 
     // MARK: - Baseball Card
 
+    @ViewBuilder
     private var baseballCard: some View {
         VStack(spacing: 0) {
             segmentedRow(
@@ -142,6 +146,7 @@ struct AthleticsTab: View {
 
     // MARK: - External IDs Card
 
+    @ViewBuilder
     private var externalIdsCard: some View {
         VStack(spacing: 0) {
             if viewModel.isBaseballOrSoftball {
@@ -208,6 +213,7 @@ struct AthleticsTab: View {
         }
     }
 
+    @ViewBuilder
     private var divider: some View { Divider().padding(.leading) }
 }
 

@@ -104,6 +104,7 @@ struct AddInteractionView: View {
 
   // MARK: - School Section
 
+  @ViewBuilder
   private var schoolSection: some View {
     Section {
       Picker("School", selection: $viewModel.formState.schoolId) {
@@ -127,6 +128,7 @@ struct AddInteractionView: View {
 
   // MARK: - Coach Section
 
+  @ViewBuilder
   private var coachSection: some View {
     Section("Coach (Optional)") {
       Picker("Coach", selection: $viewModel.formState.coachId) {
@@ -160,6 +162,7 @@ struct AddInteractionView: View {
 
   // MARK: - Type Section
 
+  @ViewBuilder
   private var interactionTypeSection: some View {
     Section {
       Picker("Type", selection: $viewModel.formState.type) {
@@ -182,6 +185,7 @@ struct AddInteractionView: View {
 
   // MARK: - Direction Section
 
+  @ViewBuilder
   private var directionSection: some View {
     Section {
       Picker("Direction", selection: $viewModel.formState.direction) {
@@ -211,6 +215,7 @@ struct AddInteractionView: View {
 
   // MARK: - Date/Time Section
 
+  @ViewBuilder
   private var dateTimeSection: some View {
     Section("Date & Time") {
       DatePicker(
@@ -225,6 +230,7 @@ struct AddInteractionView: View {
 
   // MARK: - Details Section
 
+  @ViewBuilder
   private var detailsSection: some View {
     Section("Details (Optional)") {
       TextField("Subject", text: $viewModel.formState.subject, axis: .vertical)
@@ -255,6 +261,7 @@ struct AddInteractionView: View {
 
   // MARK: - Sentiment Section
 
+  @ViewBuilder
   private var sentimentSection: some View {
     Section("Sentiment (Optional)") {
       Picker("How was this interaction?", selection: $viewModel.formState.sentiment) {
@@ -274,6 +281,7 @@ struct AddInteractionView: View {
 
   // MARK: - Interest Calibration Section
 
+  @ViewBuilder
   private var interestCalibrationSection: some View {
     Section {
       VStack(alignment: .leading, spacing: 16) {
@@ -315,6 +323,7 @@ struct AddInteractionView: View {
 
   // MARK: - Submit Section
 
+  @ViewBuilder
   private var submitSection: some View {
     Section {
       Button(action: {

@@ -38,6 +38,7 @@ struct DocumentCardView: View {
     .accessibilityHint("Opens document details")
   }
 
+  @ViewBuilder
   private var thumbnailSection: some View {
     ZStack {
       RoundedRectangle(cornerRadius: 8)
@@ -58,6 +59,7 @@ struct DocumentCardView: View {
     }
   }
 
+  @ViewBuilder
   private var typeBadge: some View {
     Text("\(document.typeEmoji) \(document.type.label)")
       .font(.caption)
@@ -68,6 +70,7 @@ struct DocumentCardView: View {
       .clipShape(.rect(cornerRadius: 6))
   }
 
+  @ViewBuilder
   private var metadataRow: some View {
     Text("\(schoolName) • v\(document.version) • \(document.displayDate)")
       .font(.caption)
@@ -75,6 +78,7 @@ struct DocumentCardView: View {
       .lineLimit(1)
   }
 
+  @ViewBuilder
   private var sharedBadge: some View {
     Text("Shared: \(document.sharedWithSchools.count)")
       .font(.caption)

@@ -35,6 +35,7 @@ struct HistoryTab: View {
 
     // MARK: - Travel Year Row
 
+    @ViewBuilder
     private var travelYearRow: some View {
         HStack {
             Text("Year").font(.body)
@@ -111,6 +112,7 @@ struct HistoryTab: View {
         }
     }
 
+    @ViewBuilder
     private var divider: some View { Divider().padding(.leading) }
 }
 

@@ -30,6 +30,7 @@ struct OfferEditForm: View {
 
   // MARK: - Form Fields
 
+  @ViewBuilder
   private var offerTypePicker: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Offer Type")
@@ -46,6 +47,7 @@ struct OfferEditForm: View {
     }
   }
 
+  @ViewBuilder
   private var statusPicker: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Status")
@@ -62,6 +64,7 @@ struct OfferEditForm: View {
     }
   }
 
+  @ViewBuilder
   private var amountField: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Scholarship Amount ($)")
@@ -79,6 +82,7 @@ struct OfferEditForm: View {
     }
   }
 
+  @ViewBuilder
   private var percentageField: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Scholarship Percentage (%)")
@@ -96,6 +100,7 @@ struct OfferEditForm: View {
     }
   }
 
+  @ViewBuilder
   private var offerDatePicker: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Offer Date")
@@ -112,6 +117,7 @@ struct OfferEditForm: View {
     }
   }
 
+  @ViewBuilder
   private var deadlineDatePicker: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Deadline Date")
@@ -146,6 +152,7 @@ struct OfferEditForm: View {
     }
   }
 
+  @ViewBuilder
   private var conditionsField: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Conditions")
@@ -159,6 +166,7 @@ struct OfferEditForm: View {
     }
   }
 
+  @ViewBuilder
   private var notesField: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Notes")
@@ -174,6 +182,7 @@ struct OfferEditForm: View {
 
   // MARK: - Actions
 
+  @ViewBuilder
   private var actionButtons: some View {
     HStack(spacing: 12) {
       Button {

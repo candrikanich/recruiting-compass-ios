@@ -40,6 +40,7 @@ struct SchoolCardView: View {
 
   // MARK: - Header
 
+  @ViewBuilder
   private var headerSection: some View {
     HStack(spacing: 12) {
       schoolLogo
@@ -85,6 +86,7 @@ struct SchoolCardView: View {
     }
   }
 
+  @ViewBuilder
   private var initialsCircle: some View {
     Text(school.initials)
       .font(initialsFont)
@@ -102,6 +104,7 @@ struct SchoolCardView: View {
 
   // MARK: - Badges
 
+  @ViewBuilder
   private var badgesSection: some View {
     FlowLayout(spacing: 8) {
       if let division = school.division, let divisionEnum = Division(rawValue: division) {
@@ -122,6 +125,7 @@ struct SchoolCardView: View {
 
   // MARK: - Content
 
+  @ViewBuilder
   private var contentSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       if let conference = school.conference {

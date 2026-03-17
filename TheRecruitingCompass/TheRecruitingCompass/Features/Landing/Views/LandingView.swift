@@ -33,6 +33,7 @@ struct LandingView: View {
 
   // MARK: - Sub-views
 
+  @ViewBuilder
   private var logoSection: some View {
     VStack {
       Image("AppLogo")
@@ -52,6 +53,7 @@ struct LandingView: View {
     .accessibilityLabel("The Recruiting Compass")
   }
 
+  @ViewBuilder
   private var ctaButtons: some View {
     VStack(spacing: 12) {
       Button(action: { showLogin = true }) {
@@ -96,6 +98,7 @@ struct LandingView: View {
     .padding(.bottom, 12)
   }
 
+  @ViewBuilder
   private var featureCardsSection: some View {
     VStack(spacing: 16) {
       ForEach(FeatureCardData.landingFeatures) { feature in

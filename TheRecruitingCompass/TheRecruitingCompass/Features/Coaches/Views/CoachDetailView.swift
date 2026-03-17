@@ -136,6 +136,7 @@ struct CoachDetailView: View {
   }
 
 
+  @ViewBuilder
   private var recentInteractionsSection: some View {
     VStack(alignment: .leading, spacing: 12) {
       SectionHeader(title: "Recent Interactions")
@@ -161,6 +162,7 @@ struct CoachDetailView: View {
     }
   }
 
+  @ViewBuilder
   private var sharedNotesSection: some View {
     NotesSection(
       title: "Shared Notes",

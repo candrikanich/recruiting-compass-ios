@@ -127,6 +127,7 @@ struct MoreMenuView: View {
     }
   }
 
+  @ViewBuilder
   private var moreMenuList: some View {
     List {
       ForEach(MoreMenuView.Section.recruitingSections, id: \.header) { group in

@@ -37,6 +37,7 @@ struct FilterChipContainer<Content: View>: View {
     }
   }
 
+  @ViewBuilder
   private var clearAllButton: some View {
     Button("Clear all") {
       onClearAll()

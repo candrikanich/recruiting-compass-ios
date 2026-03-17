@@ -73,6 +73,7 @@ struct OnboardingView: View {
     }
   }
 
+  @ViewBuilder
   private var welcomeStep: some View {
     VStack(spacing: 24) {
       Text("Welcome!")
@@ -85,6 +86,7 @@ struct OnboardingView: View {
     .padding(.vertical, 32)
   }
 
+  @ViewBuilder
   private var locationStep: some View {
     VStack(alignment: .leading, spacing: 20) {
       Text("Your Location")
@@ -111,6 +113,7 @@ struct OnboardingView: View {
     .padding(.vertical, 24)
   }
 
+  @ViewBuilder
   private var academicStep: some View {
     VStack(alignment: .leading, spacing: 20) {
       Text("Academic Info")
@@ -156,6 +159,7 @@ struct OnboardingView: View {
     .padding(.vertical, 24)
   }
 
+  @ViewBuilder
   private var completeStep: some View {
     VStack(spacing: 24) {
       Text("You're All Set!")
@@ -203,6 +207,7 @@ struct OnboardingView: View {
     .padding(.vertical, 32)
   }
 
+  @ViewBuilder
   private var errorBanner: some View {
     Group {
       if let error = viewModel.errorMessage {

@@ -103,6 +103,7 @@ struct CreateEventView: View {
 
   // MARK: - Section 1: Event Info
 
+  @ViewBuilder
   private var eventInfoSection: some View {
     Section {
       Picker("Event Type *", selection: $viewModel.formData.type) {
@@ -157,6 +158,7 @@ struct CreateEventView: View {
 
   // MARK: - School Picker
 
+  @ViewBuilder
   private var schoolPicker: some View {
     Picker("School", selection: Binding(
       get: { viewModel.formData.schoolId ?? "none" },
@@ -176,6 +178,7 @@ struct CreateEventView: View {
 
   // MARK: - Section 2: Date & Time
 
+  @ViewBuilder
   private var dateTimeSection: some View {
     Section {
       DatePicker(
@@ -273,6 +276,7 @@ struct CreateEventView: View {
 
   // MARK: - Section 3: Location
 
+  @ViewBuilder
   private var locationSection: some View {
     Section {
       TextField("Street Address", text: $viewModel.formData.address)
@@ -309,6 +313,7 @@ struct CreateEventView: View {
 
   // MARK: - Section 4: Event Details
 
+  @ViewBuilder
   private var eventDetailsSection: some View {
     Section {
       TextField("Event Description", text: $viewModel.formData.description, axis: .vertical)
@@ -327,6 +332,7 @@ struct CreateEventView: View {
 
   // MARK: - Section 5: Performance
 
+  @ViewBuilder
   private var performanceSection: some View {
     Section {
       TextField("Performance Notes", text: $viewModel.formData.performanceNotes, axis: .vertical)
@@ -339,6 +345,7 @@ struct CreateEventView: View {
 
   // MARK: - Bottom Bar
 
+  @ViewBuilder
   private var bottomBar: some View {
     VStack(spacing: 12) {
       Button {

@@ -57,6 +57,7 @@ struct ForgotPasswordView: View {
     sizeCategory.isAccessibilityCategory ? 56 : 48
   }
 
+  @ViewBuilder
   private var formContent: some View {
     VStack(spacing: 24) {
       Image(systemName: "lock.rotation")
@@ -130,6 +131,7 @@ struct ForgotPasswordView: View {
 
   // MARK: - Success State
 
+  @ViewBuilder
   private var successContent: some View {
     VStack(spacing: 24) {
       VerificationStatusIcon(state: .verified)

@@ -17,6 +17,7 @@ struct FamilyManagementParentView: View {
   }
 
   // MARK: - Join Family Card
+  @ViewBuilder
   private var joinFamilyCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Text("Join a Family")
@@ -66,6 +67,7 @@ struct FamilyManagementParentView: View {
   }
 
   // MARK: - Invite by Email Card
+  @ViewBuilder
   private var inviteByEmailCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Text("Invite Player by Email")
@@ -172,6 +174,7 @@ struct FamilyManagementParentView: View {
   }
 
   // MARK: - My Families Section
+  @ViewBuilder
   private var myFamiliesSection: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       HStack {
@@ -200,6 +203,7 @@ struct FamilyManagementParentView: View {
     .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
   }
 
+  @ViewBuilder
   private var emptyFamiliesState: some View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       Image(systemName: "person.2.slash")
@@ -217,6 +221,7 @@ struct FamilyManagementParentView: View {
     .frame(maxWidth: .infinity)
   }
 
+  @ViewBuilder
   private var familiesList: some View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       ForEach(viewModel.parentFamilies) { family in

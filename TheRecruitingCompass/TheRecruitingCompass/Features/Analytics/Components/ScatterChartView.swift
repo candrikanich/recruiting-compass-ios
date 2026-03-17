@@ -77,6 +77,7 @@ struct ScatterChartView: View {
     return "\(dataSet.xAxisLabel) ranges from \(minX.formatted(.number.precision(.fractionLength(0)))) to \(maxX.formatted(.number.precision(.fractionLength(0)))). \(dataSet.yAxisLabel) ranges from \(minY.formatted(.number.precision(.fractionLength(0)))) to \(maxY.formatted(.number.precision(.fractionLength(0))))."
   }
 
+  @ViewBuilder
   private var chartArea: some View {
     GeometryReader { geometry in
       let gridLines = 5
@@ -92,6 +93,7 @@ struct ScatterChartView: View {
     }
   }
 
+  @ViewBuilder
   private var pointsOverlay: some View {
     GeometryReader { geometry in
       let width = geometry.size.width
@@ -120,6 +122,7 @@ struct ScatterChartView: View {
     }
   }
 
+  @ViewBuilder
   private var axisLabels: some View {
     HStack {
       Spacer()
@@ -161,6 +164,7 @@ struct ScatterChartView: View {
     .accessibilityLabel("\(point.label), \(dataSet.xAxisLabel): \(point.x.formatted(.number.precision(.fractionLength(1)))), \(dataSet.yAxisLabel): \(point.y.formatted(.number.precision(.fractionLength(1))))")
   }
 
+  @ViewBuilder
   private var emptyState: some View {
     ChartEmptyStateView(iconName: "chart.dots.scatter", message: "No correlation data")
   }

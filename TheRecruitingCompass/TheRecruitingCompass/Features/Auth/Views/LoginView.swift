@@ -59,6 +59,7 @@ struct LoginView: View {
 
   // MARK: - Sub-views
 
+  @ViewBuilder
   private var backButton: some View {
     HStack {
       Button(action: { dismiss() }) {
@@ -79,6 +80,7 @@ struct LoginView: View {
     .padding(.vertical, 16)
   }
 
+  @ViewBuilder
   private var compassIcon: some View {
     Image("LogoStacked")
       .resizable()
@@ -111,6 +113,7 @@ struct LoginView: View {
     }
   }
 
+  @ViewBuilder
   private var emailField: some View {
     LoginFormField(
       label: "Email",
@@ -126,6 +129,7 @@ struct LoginView: View {
     .disabled(viewModel.isLoading)
   }
 
+  @ViewBuilder
   private var passwordField: some View {
     LoginFormField(
       label: "Password",
@@ -146,6 +150,7 @@ struct LoginView: View {
     }
   }
 
+  @ViewBuilder
   private var rememberMeRow: some View {
     HStack(spacing: 12) {
       Button(action: { viewModel.rememberMe.toggle() }) {
@@ -181,6 +186,7 @@ struct LoginView: View {
     }
   }
 
+  @ViewBuilder
   private var signInButton: some View {
     Button(action: {
       Task {
@@ -208,6 +214,7 @@ struct LoginView: View {
     .accessibilityHint(viewModel.isLoading ? "Please wait while we verify your credentials" : "Sign in with your email and password")
   }
 
+  @ViewBuilder
   private var dividerSection: some View {
     Rectangle()
       .frame(height: 1)
@@ -215,6 +222,7 @@ struct LoginView: View {
       .accessibilityHidden(true)
   }
 
+  @ViewBuilder
   private var signUpSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("New to The Recruiting Compass?")

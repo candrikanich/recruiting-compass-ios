@@ -25,6 +25,7 @@ struct EventsCalendarView: View {
     .accessibilityLabel("Calendar showing \(title)")
   }
 
+  @ViewBuilder
   private var navigationHeader: some View {
     HStack {
       Button(action: onPreviousMonth) {
@@ -51,6 +52,7 @@ struct EventsCalendarView: View {
     }
   }
 
+  @ViewBuilder
   private var weekdayHeader: some View {
     LazyVGrid(columns: columns, spacing: 4) {
       ForEach(weekdays, id: \.self) { day in
@@ -63,6 +65,7 @@ struct EventsCalendarView: View {
     }
   }
 
+  @ViewBuilder
   private var daysGrid: some View {
     LazyVGrid(columns: columns, spacing: 4) {
       ForEach(days, id: \.self) { date in

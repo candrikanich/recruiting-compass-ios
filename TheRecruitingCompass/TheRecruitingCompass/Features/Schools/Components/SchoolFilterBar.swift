@@ -29,6 +29,7 @@ struct SchoolFilterBar: View {
 
   // MARK: - Row 1: Division, Status, State, Favorites
 
+  @ViewBuilder
   private var row1: some View {
     ScrollView(.horizontal) {
       HStack(spacing: 8) {
@@ -41,6 +42,7 @@ struct SchoolFilterBar: View {
     .scrollIndicators(.hidden)
   }
 
+  @ViewBuilder
   private var divisionMenu: some View {
     Menu {
       Button("All Divisions") {
@@ -64,6 +66,7 @@ struct SchoolFilterBar: View {
     .accessibilityHint("Double tap to change division filter")
   }
 
+  @ViewBuilder
   private var statusMenu: some View {
     Menu {
       Button("All Statuses") {
@@ -87,6 +90,7 @@ struct SchoolFilterBar: View {
     .accessibilityHint("Double tap to change status filter")
   }
 
+  @ViewBuilder
   private var stateMenu: some View {
     Menu {
       Button("All States") {
@@ -110,6 +114,7 @@ struct SchoolFilterBar: View {
     .accessibilityHint("Double tap to change state filter")
   }
 
+  @ViewBuilder
   private var favoritesToggle: some View {
     Button(action: { filters.isFavoritesOnly.toggle() }) {
       HStack(spacing: 4) {
@@ -134,6 +139,7 @@ struct SchoolFilterBar: View {
 
   // MARK: - Row 2: Sort
 
+  @ViewBuilder
   private var row2: some View {
     ScrollView(.horizontal) {
       HStack(spacing: 8) {
@@ -143,6 +149,7 @@ struct SchoolFilterBar: View {
     .scrollIndicators(.hidden)
   }
 
+  @ViewBuilder
   private var sortMenu: some View {
     Menu {
       ForEach(SchoolSortOption.allCases, id: \.self) { option in
@@ -164,6 +171,7 @@ struct SchoolFilterBar: View {
 
   // MARK: - Row 3: Fit Score Sliders
 
+  @ViewBuilder
   private var row3: some View {
     VStack(spacing: 12) {
       HStack {
@@ -219,6 +227,7 @@ struct SchoolFilterBar: View {
 
   // MARK: - Row 4: Distance Slider
 
+  @ViewBuilder
   private var row4: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
@@ -253,6 +262,7 @@ struct SchoolFilterBar: View {
     .padding(.horizontal, 4)
   }
 
+  @ViewBuilder
   private var distanceWarning: some View {
     HStack(spacing: 8) {
       Image(systemName: "exclamationmark.triangle")

@@ -49,6 +49,7 @@ struct InviteJoinView: View {
     }
   }
 
+  @ViewBuilder
   private var loadingView: some View {
     VStack(spacing: 16) {
       ProgressView()
@@ -86,6 +87,7 @@ struct InviteJoinView: View {
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
+  @ViewBuilder
   private var declinedView: some View {
     VStack(spacing: 16) {
       Image(systemName: "hand.raised")
@@ -326,6 +328,7 @@ struct InviteJoinView: View {
     }
   }
 
+  @ViewBuilder
   private var dateOfBirthField: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 8) {

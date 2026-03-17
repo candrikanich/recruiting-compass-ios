@@ -28,6 +28,7 @@ struct DocumentsListView: View {
     )
   }
 
+  @ViewBuilder
   private var content: some View {
     Group {
       if viewModel.isLoading && viewModel.documents.isEmpty {
@@ -105,6 +106,7 @@ struct DocumentsListView: View {
     }
   }
 
+  @ViewBuilder
   private var loadingState: some View {
     ContentUnavailableView {
       ProgressView()
@@ -113,6 +115,7 @@ struct DocumentsListView: View {
     }
   }
 
+  @ViewBuilder
   private var mainContent: some View {
     ScrollView {
       VStack(spacing: 16) {
@@ -155,6 +158,7 @@ struct DocumentsListView: View {
     }
   }
 
+  @ViewBuilder
   private var emptyState: some View {
     ContentUnavailableView {
       Label("No documents yet", systemImage: "doc")
@@ -174,6 +178,7 @@ struct DocumentsListView: View {
     }
   }
 
+  @ViewBuilder
   private var noResultsState: some View {
     ContentUnavailableView.search(text: viewModel.searchQuery)
   }
@@ -215,6 +220,7 @@ struct DocumentsListView: View {
     }
   }
 
+  @ViewBuilder
   private var uploadFAB: some View {
     Button {
       viewModel.presentUploadForm()
@@ -232,6 +238,7 @@ struct DocumentsListView: View {
     .accessibilityHint("Opens upload form")
   }
 
+  @ViewBuilder
   private var errorBanner: some View {
     HStack {
       Text(viewModel.error ?? "")

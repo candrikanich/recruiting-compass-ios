@@ -119,6 +119,7 @@ struct DocumentDetailView: View {
 
   // MARK: - Loading / Empty / Error
 
+  @ViewBuilder
   private var loadingState: some View {
     ContentUnavailableView {
       ProgressView()
@@ -127,6 +128,7 @@ struct DocumentDetailView: View {
     }
   }
 
+  @ViewBuilder
   private var notFoundView: some View {
     ContentUnavailableView {
       Label("Document not found", systemImage: "doc.badge.gearshape")

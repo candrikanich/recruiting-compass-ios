@@ -76,6 +76,7 @@ struct ResetPasswordView: View {
 
   // MARK: - Form State
 
+  @ViewBuilder
   private var formContent: some View {
     VStack(spacing: 24) {
       Image(systemName: "lock.rotation")
@@ -154,6 +155,7 @@ struct ResetPasswordView: View {
 
   // MARK: - Password Match Indicator
 
+  @ViewBuilder
   private var passwordMatchIndicator: some View {
     HStack(spacing: 6) {
       Image(systemName: viewModel.passwordsMatch ? "checkmark.circle.fill" : "xmark.circle.fill")
@@ -174,6 +176,7 @@ struct ResetPasswordView: View {
 
   // MARK: - Success State
 
+  @ViewBuilder
   private var successContent: some View {
     VStack(spacing: 24) {
       VerificationStatusIcon(state: .verified)

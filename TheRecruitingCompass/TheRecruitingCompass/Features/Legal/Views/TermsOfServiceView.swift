@@ -26,6 +26,7 @@ struct TermsOfServiceView: View {
     }
   }
 
+  @ViewBuilder
   private var contentView: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 24) {
@@ -55,6 +56,7 @@ struct TermsOfServiceView: View {
 
   // MARK: - Section 1: Agreement to Terms
 
+  @ViewBuilder
   private var section1AgreementToTerms: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "1. Agreement to Terms")
@@ -67,6 +69,7 @@ struct TermsOfServiceView: View {
 
   // MARK: - Section 2: Use License
 
+  @ViewBuilder
   private var section2UseLicense: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "2. Use License")
@@ -84,6 +87,7 @@ struct TermsOfServiceView: View {
 
   // MARK: - Section 3: Disclaimer
 
+  @ViewBuilder
   private var section3Disclaimer: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "3. Disclaimer")
@@ -97,6 +101,7 @@ struct TermsOfServiceView: View {
 
   // MARK: - Section 4: Limitations
 
+  @ViewBuilder
   private var section4Limitations: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "4. Limitations")
@@ -110,6 +115,7 @@ struct TermsOfServiceView: View {
 
   // MARK: - Section 5: Accuracy of Materials
 
+  @ViewBuilder
   private var section5AccuracyOfMaterials: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "5. Accuracy of Materials")
@@ -123,6 +129,7 @@ struct TermsOfServiceView: View {
 
   // MARK: - Section 6: Links
 
+  @ViewBuilder
   private var section6Links: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "6. Links")
@@ -135,6 +142,7 @@ struct TermsOfServiceView: View {
 
   // MARK: - Section 7: Modifications
 
+  @ViewBuilder
   private var section7Modifications: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "7. Modifications")
@@ -147,6 +155,7 @@ struct TermsOfServiceView: View {
 
   // MARK: - Section 8: Governing Law
 
+  @ViewBuilder
   private var section8GoverningLaw: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "8. Governing Law")
@@ -159,6 +168,7 @@ struct TermsOfServiceView: View {
 
   // MARK: - Section 9: User Accounts
 
+  @ViewBuilder
   private var section9UserAccounts: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "9. User Accounts")
@@ -174,6 +184,7 @@ struct TermsOfServiceView: View {
 
   // MARK: - Section 10: Prohibited Activities
 
+  @ViewBuilder
   private var section10ProhibitedActivities: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "10. Prohibited Activities")
@@ -190,6 +201,7 @@ struct TermsOfServiceView: View {
 
   // MARK: - Section 11: Contact Information
 
+  @ViewBuilder
   private var section11ContactInformation: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "11. Contact Information")

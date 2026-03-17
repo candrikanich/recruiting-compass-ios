@@ -22,6 +22,7 @@ struct DocumentShareSheet: View {
     }
   }
 
+  @ViewBuilder
   private var addSchoolsSection: some View {
     Section("Add Schools") {
       ForEach(availableSchools, id: \.id) { school in

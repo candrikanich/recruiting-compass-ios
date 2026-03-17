@@ -43,6 +43,7 @@ struct CoachFormView: View {
 
   // MARK: - Role Picker
 
+  @ViewBuilder
   private var rolePicker: some View {
     FormFieldWrapper(label: "Role", isRequired: true, error: formErrors.role) {
       Picker("Role", selection: $formState.role) {
@@ -66,6 +67,7 @@ struct CoachFormView: View {
 
   // MARK: - Name Fields
 
+  @ViewBuilder
   private var nameFields: some View {
     AdaptiveHStackVStack {
       firstNameField
@@ -73,6 +75,7 @@ struct CoachFormView: View {
     }
   }
 
+  @ViewBuilder
   private var firstNameField: some View {
     FormFieldWrapper(label: "First Name", isRequired: true, error: formErrors.firstName) {
       TextField("e.g., John", text: $formState.firstName)
@@ -89,6 +92,7 @@ struct CoachFormView: View {
     }
   }
 
+  @ViewBuilder
   private var lastNameField: some View {
     FormFieldWrapper(label: "Last Name", isRequired: true, error: formErrors.lastName) {
       TextField("e.g., Smith", text: $formState.lastName)
@@ -107,6 +111,7 @@ struct CoachFormView: View {
 
   // MARK: - Contact Info
 
+  @ViewBuilder
   private var emailField: some View {
     FormFieldWrapper(label: "Email", error: formErrors.email) {
       TextField("john.smith@university.edu", text: $formState.email)
@@ -124,6 +129,7 @@ struct CoachFormView: View {
     }
   }
 
+  @ViewBuilder
   private var phoneField: some View {
     FormFieldWrapper(label: "Phone", error: formErrors.phone) {
       TextField("(555) 123-4567", text: $formState.phone)
@@ -144,6 +150,7 @@ struct CoachFormView: View {
 
   // MARK: - Social Media
 
+  @ViewBuilder
   private var socialMediaFields: some View {
     AdaptiveHStackVStack {
       twitterField
@@ -151,6 +158,7 @@ struct CoachFormView: View {
     }
   }
 
+  @ViewBuilder
   private var twitterField: some View {
     FormFieldWrapper(label: "Twitter Handle", error: formErrors.twitterHandle) {
       TextField("@handle", text: $formState.twitterHandle)
@@ -166,6 +174,7 @@ struct CoachFormView: View {
     }
   }
 
+  @ViewBuilder
   private var instagramField: some View {
     FormFieldWrapper(label: "Instagram Handle", error: formErrors.instagramHandle) {
       TextField("@handle", text: $formState.instagramHandle)
@@ -183,6 +192,7 @@ struct CoachFormView: View {
 
   // MARK: - Notes
 
+  @ViewBuilder
   private var notesField: some View {
     FormFieldWrapper(label: "Notes", error: formErrors.notes) {
       VStack(spacing: 4) {

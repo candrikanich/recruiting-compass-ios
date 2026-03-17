@@ -76,6 +76,7 @@ struct HelpFeedbackView: View {
     .accessibilityElement(children: .contain)
   }
 
+  @ViewBuilder
   private var supportLink: some View {
     HStack(spacing: 6) {
       Image(systemName: "envelope")

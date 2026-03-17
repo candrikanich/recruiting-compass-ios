@@ -33,6 +33,7 @@ struct SchoolAutocompleteDropdown: View {
 
   // MARK: - Loading View
 
+  @ViewBuilder
   private var loadingView: some View {
     HStack {
       ProgressView()
@@ -67,6 +68,7 @@ struct SchoolAutocompleteDropdown: View {
 
   // MARK: - Empty View
 
+  @ViewBuilder
   private var emptyView: some View {
     HStack(spacing: 12) {
       Image(systemName: "magnifyingglass")
@@ -86,6 +88,7 @@ struct SchoolAutocompleteDropdown: View {
 
   // MARK: - Results List
 
+  @ViewBuilder
   private var resultsList: some View {
     VStack(spacing: 0) {
       ForEach(results) { college in

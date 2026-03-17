@@ -17,6 +17,7 @@ struct CoachFilterBar: View {
 
   // MARK: - Role Filter
 
+  @ViewBuilder
   private var roleMenu: some View {
     Menu {
       Button("All Roles") {
@@ -42,6 +43,7 @@ struct CoachFilterBar: View {
 
   // MARK: - Last Contact Filter
 
+  @ViewBuilder
   private var lastContactMenu: some View {
     Menu {
       Button("Any time") {
@@ -72,6 +74,7 @@ struct CoachFilterBar: View {
 
   // MARK: - Sort Menu
 
+  @ViewBuilder
   private var sortMenu: some View {
     Menu {
       ForEach(CoachSortOption.allCases, id: \.self) { option in

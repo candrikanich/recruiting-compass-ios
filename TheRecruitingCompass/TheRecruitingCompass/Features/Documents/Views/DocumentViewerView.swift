@@ -137,6 +137,7 @@ struct DocumentViewerView: View {
     }
   }
 
+  @ViewBuilder
   private var contentArea: some View {
     Group {
       if let document = viewModel.document {
@@ -167,6 +168,7 @@ struct DocumentViewerView: View {
       }
   }
 
+  @ViewBuilder
   private var topToolbar: some View {
     VStack(spacing: 0) {
       HStack {
@@ -266,6 +268,7 @@ struct DocumentViewerView: View {
     }
   }
 
+  @ViewBuilder
   private var loadingOverlay: some View {
     ZStack {
       Color.black.opacity(0.6)
@@ -276,6 +279,7 @@ struct DocumentViewerView: View {
     }
   }
 
+  @ViewBuilder
   private var errorOverlay: some View {
     ZStack {
       Color.black.opacity(DocumentViewerLayout.overlayOpacity)

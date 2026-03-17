@@ -61,6 +61,7 @@ struct ProfileView: View {
 
     // MARK: - Section 1: Profile Photo
 
+    @ViewBuilder
     private var photoSection: some View {
         Section {
             HStack(spacing: 16) {
@@ -122,6 +123,7 @@ struct ProfileView: View {
 
     // MARK: - Section 2: Personal Information
 
+    @ViewBuilder
     private var personalInfoSection: some View {
         Section {
             TextField("Full Name", text: $viewModel.fullName)
@@ -164,6 +166,7 @@ struct ProfileView: View {
 
     // MARK: - Section 3: Email
 
+    @ViewBuilder
     private var emailSection: some View {
         Section {
             if let email = user?.email {
@@ -244,6 +247,7 @@ struct ProfileView: View {
 
     // MARK: - Section 4: Password
 
+    @ViewBuilder
     private var passwordSection: some View {
         Section {
             SecureField("Current Password", text: $viewModel.currentPassword)
@@ -294,6 +298,7 @@ struct ProfileView: View {
 
     // MARK: - Section 5: Athlete Profile (athletes only)
 
+    @ViewBuilder
     private var athleteProfileSection: some View {
         Section {
             NavigationLink {
@@ -327,6 +332,7 @@ struct ProfileView: View {
 
     // MARK: - Section 6: Data & Privacy
 
+    @ViewBuilder
     private var dataPrivacySection: some View {
         Section {
             switch viewModel.deletionState {
@@ -351,6 +357,7 @@ struct ProfileView: View {
         }
     }
 
+    @ViewBuilder
     private var deletionDefaultState: some View {
         VStack(alignment: .leading, spacing: 12) {
             // swiftlint:disable:next line_length
@@ -373,6 +380,7 @@ struct ProfileView: View {
         .padding(.vertical, 4)
     }
 
+    @ViewBuilder
     private var deletionConfirmState: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {

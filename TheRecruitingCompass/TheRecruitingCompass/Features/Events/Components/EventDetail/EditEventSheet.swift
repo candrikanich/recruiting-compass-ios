@@ -35,6 +35,7 @@ struct EditEventSheet: View {
 
   // MARK: - Sections
 
+  @ViewBuilder
   private var basicInfoSection: some View {
     Section {
       TextField("Event Name", text: $editData.name)
@@ -54,6 +55,7 @@ struct EditEventSheet: View {
     }
   }
 
+  @ViewBuilder
   private var dateTimeSection: some View {
     Section {
       TextField("Start Date (YYYY-MM-DD)", text: $editData.startDate)
@@ -71,6 +73,7 @@ struct EditEventSheet: View {
     }
   }
 
+  @ViewBuilder
   private var locationSection: some View {
     Section {
       TextField("Venue / Location Name", text: $editData.location)
@@ -86,6 +89,7 @@ struct EditEventSheet: View {
     }
   }
 
+  @ViewBuilder
   private var detailsSection: some View {
     Section {
       TextField("Event URL", text: $editData.url)
@@ -114,6 +118,7 @@ struct EditEventSheet: View {
     }
   }
 
+  @ViewBuilder
   private var statusSection: some View {
     Section {
       Toggle("Registered", isOn: $editData.registered)
@@ -125,6 +130,7 @@ struct EditEventSheet: View {
     }
   }
 
+  @ViewBuilder
   private var performanceSection: some View {
     Section {
       TextField("Performance Notes", text: $editData.performanceNotes, axis: .vertical)

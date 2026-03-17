@@ -92,6 +92,7 @@ struct InteractionsListView: View {
     }
   }
 
+  @ViewBuilder
   private var contentView: some View {
     Group {
       if viewModel.isLoading && viewModel.allInteractions.isEmpty {
@@ -117,6 +118,7 @@ struct InteractionsListView: View {
 
   // MARK: - List Content
 
+  @ViewBuilder
   private var interactionListContent: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
@@ -162,6 +164,7 @@ struct InteractionsListView: View {
     }
   }
 
+  @ViewBuilder
   private var filterSection: some View {
     InteractionFilterBar(
       filters: $viewModel.filters,
@@ -172,6 +175,7 @@ struct InteractionsListView: View {
     .padding(.vertical, 8)
   }
 
+  @ViewBuilder
   private var resultsHeader: some View {
     FilteredResultsHeader(
       resultCount: viewModel.resultCount,
@@ -182,6 +186,7 @@ struct InteractionsListView: View {
     .padding(.vertical, 4)
   }
 
+  @ViewBuilder
   private var interactionCards: some View {
     ForEach(viewModel.filteredInteractions) { interaction in
       Button {

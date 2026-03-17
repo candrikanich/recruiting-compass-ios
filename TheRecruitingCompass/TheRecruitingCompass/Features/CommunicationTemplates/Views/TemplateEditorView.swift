@@ -24,6 +24,7 @@ struct TemplateEditorView: View {
     .accessibilityIdentifier("templateEditorView")
   }
 
+  @ViewBuilder
   private var nameField: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text("Template Name")
@@ -37,6 +38,7 @@ struct TemplateEditorView: View {
     }
   }
 
+  @ViewBuilder
   private var typePicker: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text("Template Type")
@@ -54,6 +56,7 @@ struct TemplateEditorView: View {
     }
   }
 
+  @ViewBuilder
   private var bodyEditor: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text("Body")
@@ -73,6 +76,7 @@ struct TemplateEditorView: View {
     }
   }
 
+  @ViewBuilder
   private var variablesGuide: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Available Variables")
@@ -106,6 +110,7 @@ struct TemplateEditorView: View {
     .clipShape(RoundedRectangle(cornerRadius: 12))
   }
 
+  @ViewBuilder
   private var actionButtons: some View {
     VStack(spacing: 12) {
       Button {

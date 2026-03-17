@@ -74,6 +74,7 @@ struct AddCoachView: View {
 
   // MARK: - Sections
 
+  @ViewBuilder
   private var schoolSelectionSection: some View {
     Section {
       if viewModel.isLoadingSchools {
@@ -101,6 +102,7 @@ struct AddCoachView: View {
     }
   }
 
+  @ViewBuilder
   private var coachFormSection: some View {
     Section {
       // Error summary banner
@@ -124,6 +126,7 @@ struct AddCoachView: View {
     }
   }
 
+  @ViewBuilder
   private var actionsSection: some View {
     Section {
       submitButton
@@ -131,6 +134,7 @@ struct AddCoachView: View {
     }
   }
 
+  @ViewBuilder
   private var infoPromptSection: some View {
     Section {
       infoPrompt
@@ -139,6 +143,7 @@ struct AddCoachView: View {
 
   // MARK: - Info Prompt (Select School)
 
+  @ViewBuilder
   private var infoPrompt: some View {
     HStack(spacing: 12) {
       Image(systemName: "info.circle.fill")
@@ -156,6 +161,7 @@ struct AddCoachView: View {
 
   // MARK: - Submit Button
 
+  @ViewBuilder
   private var submitButton: some View {
     Button {
       Task {
@@ -191,6 +197,7 @@ struct AddCoachView: View {
 
   // MARK: - Cancel Button
 
+  @ViewBuilder
   private var cancelButton: some View {
     Button("Cancel", role: .cancel) {
       dismiss()

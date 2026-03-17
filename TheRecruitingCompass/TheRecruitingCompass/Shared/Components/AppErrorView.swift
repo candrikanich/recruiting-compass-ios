@@ -28,6 +28,7 @@ struct AppErrorView: View {
 
     // MARK: - Sub-views
 
+    @ViewBuilder
     private var logo: some View {
         Image("LogoStacked")
             .resizable()
@@ -37,6 +38,7 @@ struct AppErrorView: View {
             .accessibilityHidden(true)
     }
 
+    @ViewBuilder
     private var card: some View {
         VStack(spacing: 20) {
             iconCircle
@@ -71,6 +73,7 @@ struct AppErrorView: View {
         .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 4)
     }
 
+    @ViewBuilder
     private var iconCircle: some View {
         ZStack {
             Circle()
@@ -84,6 +87,7 @@ struct AppErrorView: View {
         .accessibilityHidden(true)
     }
 
+    @ViewBuilder
     private var primaryButton: some View {
         Button(action: onPrimary) {
             Text(config.primaryButtonLabel)
@@ -110,6 +114,7 @@ struct AppErrorView: View {
         .accessibilityLabel(label)
     }
 
+    @ViewBuilder
     private var supportLink: some View {
         Link(
             "Need help? Contact support",

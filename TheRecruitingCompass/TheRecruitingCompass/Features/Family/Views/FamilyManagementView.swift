@@ -53,6 +53,7 @@ struct FamilyManagementView: View {
     }
   }
 
+  @ViewBuilder
   private var unsupportedRoleView: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Image(systemName: "exclamationmark.triangle")

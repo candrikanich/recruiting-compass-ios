@@ -138,6 +138,7 @@ struct TasksListView: View {
     .padding(.horizontal)
   }
 
+  @ViewBuilder
   private var loadingPlaceholders: some View {
     VStack(spacing: 12) {
       ForEach(0..<5, id: \.self) { _ in
@@ -167,6 +168,7 @@ struct TasksListView: View {
     .padding(.horizontal)
   }
 
+  @ViewBuilder
   private var emptyState: some View {
     Text("No tasks available for this grade level")
       .font(.body)

@@ -72,6 +72,7 @@ struct OfferDetailView: View {
 
   // MARK: - Not Found
 
+  @ViewBuilder
   private var notFoundView: some View {
     VStack(spacing: 16) {
       Image(systemName: "doc.questionmark")
@@ -145,6 +146,7 @@ struct OfferDetailView: View {
 
   // MARK: - Action Buttons
 
+  @ViewBuilder
   private var actionButtons: some View {
     Group {
       if !viewModel.isEditing {

@@ -40,6 +40,7 @@ struct EventCoachCard: View {
     return parts.joined(separator: ", ")
   }
 
+  @ViewBuilder
   private var initialsCircle: some View {
     Text(coach.initials)
       .font(.caption)
@@ -51,6 +52,7 @@ struct EventCoachCard: View {
       .accessibilityHidden(true)
   }
 
+  @ViewBuilder
   private var contactButtons: some View {
     HStack(spacing: Layout.contactSpacing) {
       if let email = coach.email, !email.isEmpty,

@@ -51,6 +51,7 @@ struct EmailVerificationView: View {
 
   // MARK: - Sub-views
 
+  @ViewBuilder
   private var backButton: some View {
     HStack {
       Button(action: { dismiss() }) {
@@ -72,6 +73,7 @@ struct EmailVerificationView: View {
     .padding(.vertical, 16)
   }
 
+  @ViewBuilder
   private var contentCard: some View {
     ScrollView {
       VStack(spacing: 24) {
@@ -97,6 +99,7 @@ struct EmailVerificationView: View {
     .padding(24)
   }
 
+  @ViewBuilder
   private var headerSection: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text(viewModel.headlineText)
@@ -124,6 +127,7 @@ struct EmailVerificationView: View {
     }
   }
 
+  @ViewBuilder
   private var actionButton: some View {
     Button(action: {
       if viewModel.isVerified {

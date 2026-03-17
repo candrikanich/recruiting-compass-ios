@@ -62,6 +62,7 @@ struct SignupView: View {
 
   // MARK: - Back Button
 
+  @ViewBuilder
   private var backButton: some View {
     HStack {
       Button(action: { dismiss() }) {
@@ -83,6 +84,7 @@ struct SignupView: View {
 
   // MARK: - Role Selection Step
 
+  @ViewBuilder
   private var roleSelectionContent: some View {
     VStack(spacing: 24) {
       Image("LogoStacked")
@@ -118,6 +120,7 @@ struct SignupView: View {
 
   // MARK: - Signup Form Step
 
+  @ViewBuilder
   private var signupFormContent: some View {
     VStack(spacing: 24) {
       roleHeader
@@ -140,6 +143,7 @@ struct SignupView: View {
 
   // MARK: - Form Sub-views
 
+  @ViewBuilder
   private var roleHeader: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
@@ -184,6 +188,7 @@ struct SignupView: View {
     }
   }
 
+  @ViewBuilder
   private var firstNameField: some View {
     LoginFormField(
       label: "First Name",
@@ -198,6 +203,7 @@ struct SignupView: View {
     )
   }
 
+  @ViewBuilder
   private var lastNameField: some View {
     LoginFormField(
       label: "Last Name",
@@ -212,6 +218,7 @@ struct SignupView: View {
     )
   }
 
+  @ViewBuilder
   private var dateOfBirthField: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 8) {
@@ -243,6 +250,7 @@ struct SignupView: View {
     }
   }
 
+  @ViewBuilder
   private var emailField: some View {
     LoginFormField(
       label: "Email",
@@ -257,6 +265,7 @@ struct SignupView: View {
     )
   }
 
+  @ViewBuilder
   private var passwordSection: some View {
     VStack(alignment: .leading, spacing: 4) {
       LoginFormField(
@@ -277,6 +286,7 @@ struct SignupView: View {
     }
   }
 
+  @ViewBuilder
   private var confirmPasswordField: some View {
     LoginFormField(
       label: "Confirm Password",
@@ -307,6 +317,7 @@ struct SignupView: View {
     }
   }
 
+  @ViewBuilder
   private var termsSection: some View {
     TermsCheckbox(
       isChecked: $viewModel.termsAccepted,
@@ -315,6 +326,7 @@ struct SignupView: View {
     )
   }
 
+  @ViewBuilder
   private var createAccountButton: some View {
     Button(action: {
       Task {
@@ -345,6 +357,7 @@ struct SignupView: View {
     .accessibilityHint("Double tap to create your account")
   }
 
+  @ViewBuilder
   private var signInSection: some View {
     HStack {
       Text("Already have an account?")

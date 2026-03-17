@@ -36,6 +36,7 @@ struct DocumentListViewRow: View {
     }
   }
 
+  @ViewBuilder
   private var thumbnailView: some View {
     ZStack {
       RoundedRectangle(cornerRadius: 8)
@@ -56,6 +57,7 @@ struct DocumentListViewRow: View {
     }
   }
 
+  @ViewBuilder
   private var contentView: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(document.title)

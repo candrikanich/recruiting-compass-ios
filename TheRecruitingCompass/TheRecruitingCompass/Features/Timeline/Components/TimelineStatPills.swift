@@ -30,6 +30,7 @@ struct TimelineStatPills: View {
     }
   }
 
+  @ViewBuilder
   private var statusPill: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Status")
@@ -51,6 +52,7 @@ struct TimelineStatPills: View {
     .accessibilityLabel("Status score \(statusScore) out of 100")
   }
 
+  @ViewBuilder
   private var tasksPill: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Tasks")
@@ -69,6 +71,7 @@ struct TimelineStatPills: View {
     .accessibilityLabel("Tasks \(taskCompleted) of \(taskTotal) complete, \(taskPercent) percent")
   }
 
+  @ViewBuilder
   private var milestonesPill: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Milestones")

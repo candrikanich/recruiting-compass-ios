@@ -102,6 +102,7 @@ struct EventDetailView: View {
   }
 
   /// Shown when event is nil but not loading/error/notFound (e.g. after task cancellation).
+  @ViewBuilder
   private var loadingOrEmptyState: some View {
     VStack(spacing: Layout.errorSpacing) {
       ProgressView("Loading event...")
@@ -114,6 +115,7 @@ struct EventDetailView: View {
 
   // MARK: - Not Found
 
+  @ViewBuilder
   private var notFoundView: some View {
     VStack(spacing: Layout.errorSpacing) {
       Image(systemName: "calendar.badge.exclamationmark")

@@ -33,6 +33,7 @@ struct HelpCenterView: View {
     .navigationBarTitleDisplayMode(.inline)
   }
 
+  @ViewBuilder
   private var headerView: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Help Center")

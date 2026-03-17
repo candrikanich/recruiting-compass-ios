@@ -58,6 +58,7 @@ struct AnalyticsDashboardView: View {
 
   // MARK: - Dashboard Content
 
+  @ViewBuilder
   private var dashboardContent: some View {
     ScrollView {
       LazyVStack(spacing: 20) {
@@ -119,6 +120,7 @@ struct AnalyticsDashboardView: View {
 
   // MARK: - Sections
 
+  @ViewBuilder
   private var headerSection: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Comprehensive recruiting metrics and performance insights")
@@ -130,6 +132,7 @@ struct AnalyticsDashboardView: View {
     .padding(.horizontal)
   }
 
+  @ViewBuilder
   private var summaryStatsSection: some View {
     LazyVGrid(columns: [
       GridItem(.flexible()),
@@ -146,6 +149,7 @@ struct AnalyticsDashboardView: View {
 
   // MARK: - States
 
+  @ViewBuilder
   private var loadingView: some View {
     VStack(spacing: 16) {
       ProgressView()
@@ -174,6 +178,7 @@ struct AnalyticsDashboardView: View {
     }
   }
 
+  @ViewBuilder
   private var emptyStateView: some View {
     ContentUnavailableView {
       Label("No Data to Analyze", systemImage: "chart.bar.xaxis")
@@ -185,6 +190,7 @@ struct AnalyticsDashboardView: View {
 
   // MARK: - Custom Date Picker
 
+  @ViewBuilder
   private var customDatePickerSheet: some View {
     NavigationStack {
       Form {

@@ -41,6 +41,7 @@ struct BasicsTab: View {
 
     // MARK: - Photo Card
 
+    @ViewBuilder
     private var photoCard: some View {
         VStack(spacing: 16) {
             if let image = viewModel.profileImage {
@@ -78,6 +79,7 @@ struct BasicsTab: View {
 
     // MARK: - Basic Info Card
 
+    @ViewBuilder
     private var basicInfoCard: some View {
         VStack(spacing: 0) {
             gradYearRow
@@ -92,6 +94,7 @@ struct BasicsTab: View {
         }
     }
 
+    @ViewBuilder
     private var gradYearRow: some View {
         HStack {
             Text("Graduation Year")
@@ -115,6 +118,7 @@ struct BasicsTab: View {
         .padding(.vertical, 12)
     }
 
+    @ViewBuilder
     private var primarySportRow: some View {
         HStack {
             Text("Primary Sport")
@@ -178,6 +182,7 @@ struct BasicsTab: View {
         }
     }
 
+    @ViewBuilder
     private var divider: some View { Divider().padding(.leading) }
 }
 

@@ -26,6 +26,7 @@ struct PrivacyPolicyView: View {
     }
   }
 
+  @ViewBuilder
   private var contentView: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 24) {
@@ -56,6 +57,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 1: Introduction
 
+  @ViewBuilder
   private var section1Introduction: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "1. Introduction")
@@ -73,6 +75,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 2: Information We Collect
 
+  @ViewBuilder
   private var section2InformationWeCollect: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "2. Information We Collect")
@@ -99,6 +102,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 3: How We Use Your Information
 
+  @ViewBuilder
   private var section3HowWeUse: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "3. How We Use Your Information")
@@ -118,6 +122,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 4: Sharing Your Information
 
+  @ViewBuilder
   private var section4Sharing: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "4. Sharing Your Information")
@@ -135,6 +140,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 5: Data Security
 
+  @ViewBuilder
   private var section5DataSecurity: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "5. Data Security")
@@ -146,6 +152,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 6: Retention of Information
 
+  @ViewBuilder
   private var section6Retention: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "6. Retention of Information")
@@ -157,6 +164,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 7: Your Privacy Rights
 
+  @ViewBuilder
   private var section7PrivacyRights: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "7. Your Privacy Rights")
@@ -175,6 +183,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 8: Cookies and Tracking Technologies
 
+  @ViewBuilder
   private var section8Cookies: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "8. Cookies and Tracking Technologies")
@@ -186,6 +195,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 9: Third-Party Links
 
+  @ViewBuilder
   private var section9ThirdPartyLinks: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "9. Third-Party Links")
@@ -197,6 +207,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 10: Children's Privacy
 
+  @ViewBuilder
   private var section10ChildrenPrivacy: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "10. Children's Privacy")
@@ -208,6 +219,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 11: Changes to This Privacy Policy
 
+  @ViewBuilder
   private var section11Changes: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "11. Changes to This Privacy Policy")
@@ -219,6 +231,7 @@ struct PrivacyPolicyView: View {
 
   // MARK: - Section 12: Contact Us
 
+  @ViewBuilder
   private var section12ContactUs: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "12. Contact Us")

@@ -22,6 +22,7 @@ struct ActivityFeedView: View {
 
   // MARK: - List Content
 
+  @ViewBuilder
   private var activityListContent: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
@@ -61,6 +62,7 @@ struct ActivityFeedView: View {
 
   // MARK: - Filter Section
 
+  @ViewBuilder
   private var filterSection: some View {
     VStack(spacing: 12) {
       Picker("Activity Type", selection: $viewModel.selectedType) {
@@ -111,6 +113,7 @@ struct ActivityFeedView: View {
 
   // MARK: - Pagination
 
+  @ViewBuilder
   private var paginationControls: some View {
     HStack {
       Button {
@@ -152,6 +155,7 @@ struct ActivityFeedView: View {
 
   // MARK: - States
 
+  @ViewBuilder
   private var emptyState: some View {
     VStack(spacing: 16) {
       Image(systemName: "sparkles")
@@ -176,6 +180,7 @@ struct ActivityFeedView: View {
     .accessibilityIdentifier("activity-feed-empty-state")
   }
 
+  @ViewBuilder
   private var filteredEmptyState: some View {
     VStack(spacing: 16) {
       Image(systemName: "line.3.horizontal.decrease.circle")

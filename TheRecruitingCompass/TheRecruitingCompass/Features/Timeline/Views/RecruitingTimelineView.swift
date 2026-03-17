@@ -182,6 +182,7 @@ private struct TimelineMainContent: View {
     }
   }
 
+  @ViewBuilder
   private var loadingPlaceholders: some View {
     VStack(spacing: 12) {
       ForEach(0..<4, id: \.self) { _ in

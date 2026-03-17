@@ -50,6 +50,7 @@ struct SchoolFormView: View {
 
   // MARK: - Name Field
 
+  @ViewBuilder
   private var nameField: some View {
     FormFieldWrapper(label: "School Name", isRequired: true, error: formErrors.name) {
       TextField("e.g., Harvard University", text: $formState.name)
@@ -76,6 +77,7 @@ struct SchoolFormView: View {
 
   // MARK: - Location Fields
 
+  @ViewBuilder
   private var locationFields: some View {
     AdaptiveHStackVStack {
       cityField
@@ -83,6 +85,7 @@ struct SchoolFormView: View {
     }
   }
 
+  @ViewBuilder
   private var cityField: some View {
     FormFieldWrapper(label: "City", error: formErrors.city) {
       TextField("e.g., Cambridge", text: $formState.city)
@@ -99,6 +102,7 @@ struct SchoolFormView: View {
     }
   }
 
+  @ViewBuilder
   private var stateField: some View {
     FormFieldWrapper(label: "State", error: formErrors.state) {
       TextField("e.g., Massachusetts", text: $formState.state)
@@ -117,6 +121,7 @@ struct SchoolFormView: View {
 
   // MARK: - Division Picker
 
+  @ViewBuilder
   private var divisionPicker: some View {
     FormFieldWrapper(label: "Division", error: formErrors.division) {
       Picker("Division", selection: $formState.division) {
@@ -138,6 +143,7 @@ struct SchoolFormView: View {
 
   // MARK: - Conference Field
 
+  @ViewBuilder
   private var conferenceField: some View {
     FormFieldWrapper(label: "Conference", error: formErrors.conference) {
       TextField("e.g., Ivy League", text: $formState.conference)
@@ -155,6 +161,7 @@ struct SchoolFormView: View {
 
   // MARK: - Website Field
 
+  @ViewBuilder
   private var websiteField: some View {
     FormFieldWrapper(label: "Website", error: formErrors.website) {
       TextField("https://example.edu", text: $formState.website)
@@ -174,6 +181,7 @@ struct SchoolFormView: View {
 
   // MARK: - Social Media
 
+  @ViewBuilder
   private var socialMediaFields: some View {
     AdaptiveHStackVStack {
       twitterField
@@ -181,6 +189,7 @@ struct SchoolFormView: View {
     }
   }
 
+  @ViewBuilder
   private var twitterField: some View {
     FormFieldWrapper(label: "Twitter Handle", error: formErrors.twitterHandle) {
       TextField("@handle", text: $formState.twitterHandle)
@@ -196,6 +205,7 @@ struct SchoolFormView: View {
     }
   }
 
+  @ViewBuilder
   private var instagramField: some View {
     FormFieldWrapper(label: "Instagram Handle", error: formErrors.instagramHandle) {
       TextField("@handle", text: $formState.instagramHandle)
@@ -213,6 +223,7 @@ struct SchoolFormView: View {
 
   // MARK: - Notes
 
+  @ViewBuilder
   private var notesField: some View {
     FormFieldWrapper(label: "Notes", error: formErrors.notes) {
       VStack(spacing: 4) {
@@ -259,6 +270,7 @@ struct SchoolFormView: View {
 
   // MARK: - Status Picker
 
+  @ViewBuilder
   private var statusPicker: some View {
     FormFieldWrapper(label: "Status", error: formErrors.status) {
       Picker("Status", selection: $formState.status) {

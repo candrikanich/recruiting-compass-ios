@@ -35,6 +35,7 @@ struct QuickLogInteractionSheet: View {
 
   // MARK: - Sections
 
+  @ViewBuilder
   private var typeSection: some View {
     Section {
       Picker("Type", selection: $data.type) {
@@ -49,6 +50,7 @@ struct QuickLogInteractionSheet: View {
     }
   }
 
+  @ViewBuilder
   private var directionSection: some View {
     Section {
       Picker("Direction", selection: $data.direction) {
@@ -63,6 +65,7 @@ struct QuickLogInteractionSheet: View {
     }
   }
 
+  @ViewBuilder
   private var sentimentSection: some View {
     Section {
       Picker("Sentiment", selection: $data.sentiment) {
@@ -96,6 +99,7 @@ struct QuickLogInteractionSheet: View {
     }
   }
 
+  @ViewBuilder
   private var notesSection: some View {
     Section {
       TextField("Notes", text: $data.notes, axis: .vertical)

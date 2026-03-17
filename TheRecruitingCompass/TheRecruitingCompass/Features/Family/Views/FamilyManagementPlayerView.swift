@@ -44,6 +44,7 @@ struct FamilyManagementPlayerView: View {
   }
 
   // MARK: - Family Code Card
+  @ViewBuilder
   private var familyCodeCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Text("Your Family Code")
@@ -111,6 +112,7 @@ struct FamilyManagementPlayerView: View {
   }
 
   // MARK: - Invite by Email Card
+  @ViewBuilder
   private var inviteByEmailCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Text("Invite Parent by Email")
@@ -217,6 +219,7 @@ struct FamilyManagementPlayerView: View {
   }
 
   // MARK: - Family Members Section
+  @ViewBuilder
   private var familyMembersSection: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       HStack {
@@ -245,6 +248,7 @@ struct FamilyManagementPlayerView: View {
     .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
   }
 
+  @ViewBuilder
   private var emptyMembersState: some View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       Image(systemName: "person.2.slash")
@@ -262,6 +266,7 @@ struct FamilyManagementPlayerView: View {
     .frame(maxWidth: .infinity)
   }
 
+  @ViewBuilder
   private var membersList: some View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       ForEach(viewModel.familyMembers) { member in

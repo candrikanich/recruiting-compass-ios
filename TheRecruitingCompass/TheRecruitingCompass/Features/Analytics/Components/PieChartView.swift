@@ -48,6 +48,7 @@ struct PieChartView: View {
     }.joined(separator: "; ")
   }
 
+  @ViewBuilder
   private var pieRing: some View {
     let diameter: CGFloat = 160
     let radius = diameter / 2
@@ -79,6 +80,7 @@ struct PieChartView: View {
     .frame(width: diameter, height: diameter)
   }
 
+  @ViewBuilder
   private var legendView: some View {
     VStack(alignment: .leading, spacing: 8) {
       ForEach(segments) { segment in
@@ -102,6 +104,7 @@ struct PieChartView: View {
     }
   }
 
+  @ViewBuilder
   private var emptyState: some View {
     ChartEmptyStateView(iconName: "chart.pie", message: "No data available")
   }

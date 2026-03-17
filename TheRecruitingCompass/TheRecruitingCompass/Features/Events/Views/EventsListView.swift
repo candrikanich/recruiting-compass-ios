@@ -102,6 +102,7 @@ struct EventsListView: View {
 
   // MARK: - Content
 
+  @ViewBuilder
   private var eventsContent: some View {
     ScrollViewReader { proxy in
       List {
@@ -151,6 +152,7 @@ struct EventsListView: View {
 
   // MARK: - Calendar Section
 
+  @ViewBuilder
   private var calendarSection: some View {
     Section {
       EventsCalendarView(
@@ -170,6 +172,7 @@ struct EventsListView: View {
 
   // MARK: - Filter Bar
 
+  @ViewBuilder
   private var filterBar: some View {
     Section {
       Picker("Type", selection: $viewModel.typeFilter) {
@@ -207,6 +210,7 @@ struct EventsListView: View {
 
   // MARK: - Sort Results Bar
 
+  @ViewBuilder
   private var sortResultsBar: some View {
     Section {
       HStack {
@@ -244,12 +248,14 @@ struct EventsListView: View {
 
   // MARK: - States
 
+  @ViewBuilder
   private var loadingState: some View {
     ProgressView("Loading events...")
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       .accessibilityLabel("Loading events")
   }
 
+  @ViewBuilder
   private var emptyState: some View {
     ContentUnavailableView {
       Label("No Events Yet", systemImage: "calendar")
@@ -267,6 +273,7 @@ struct EventsListView: View {
     }
   }
 
+  @ViewBuilder
   private var noResultsState: some View {
     Section {
       if viewModel.hasActiveFilters && viewModel.searchText.isEmpty {
