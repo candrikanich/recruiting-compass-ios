@@ -227,7 +227,11 @@ final class FilterComponentsTests: XCTestCase {
 
   func testCoachSortOption_allCases() {
     let allOptions = CoachSortOption.allCases
-    XCTAssertEqual(allOptions.count, 5)
+    XCTAssertEqual(allOptions.count, 4)
+    XCTAssertTrue(allOptions.contains(.name))
+    XCTAssertTrue(allOptions.contains(.school))
+    XCTAssertTrue(allOptions.contains(.lastContacted))
+    XCTAssertTrue(allOptions.contains(.role))
   }
 
   // MARK: - Integration Tests
