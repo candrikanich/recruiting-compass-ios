@@ -1,6 +1,6 @@
 import Foundation
 
-enum UserRole: String, Codable, CaseIterable {
+enum UserRole: String, Codable, CaseIterable, Sendable {
   case parent = "parent"
   case player = "player"
 

@@ -228,13 +228,18 @@ final class AuthManager: AuthManaging {
     // Capture Sendable references before hopping off the main actor
     let savedSession = try? keychain.load(Session.self, forKey: sessionKey)
     let mgr = supabaseManager
+    let log = logger
 
     // Run all Supabase network calls off the main actor so a slow/timed-out
     // refresh (can take up to ~157s on iOS) doesn't block UI input.
     typealias RefreshResult = (user: User, session: Session?)
     let result = await Task.detached {
       if let saved = savedSession {
-        try? await mgr.setSession(accessToken: saved.accessToken, refreshToken: saved.refreshToken)
+        do {
+          try await mgr.setSession(accessToken: saved.accessToken, refreshToken: saved.refreshToken)
+        } catch {
+          log.error("Failed to set saved session: \(error.localizedDescription)")
+        }
       }
       let updatedUser = try await mgr.refreshSession()
       let newSession = try await mgr.getCurrentSession()

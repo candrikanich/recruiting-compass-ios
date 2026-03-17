@@ -1,6 +1,6 @@
 import Foundation
 
-struct Session: Codable {
+struct Session: Codable, Sendable {
   let accessToken: String
   let tokenType: String
   let expiresIn: Int
