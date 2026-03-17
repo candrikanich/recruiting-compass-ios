@@ -107,6 +107,38 @@ struct CoachEditForm: View {
               .accessibilityLabel("Instagram error: \(error)")
           }
         }
+
+        Section("Follow-up") {
+          DatePicker(
+            "Next Contact",
+            selection: Binding(
+              get: { editedCoach.nextContactDate ?? Date() },
+              set: { editedCoach.nextContactDate = $0 }
+            ),
+            displayedComponents: .date
+          )
+          .frame(minHeight: minFieldHeight)
+          .accessibilityLabel("Next contact date")
+
+          Toggle(
+            isOn: Binding(
+              get: { editedCoach.nextContactDate != nil },
+              set: { isOn in
+                editedCoach.nextContactDate = isOn ? (editedCoach.nextContactDate ?? Date()) : nil
+              }
+            )
+          ) {
+            Text("Set next contact date")
+          }
+          .accessibilityLabel("Toggle next contact date")
+
+          Stepper(
+            "Follow-up in \(editedCoach.followUpThresholdDays) days",
+            value: $editedCoach.followUpThresholdDays,
+            in: 1...365
+          )
+          .accessibilityLabel("Follow-up threshold: \(editedCoach.followUpThresholdDays) days")
+        }
       }
       .navigationTitle("Edit Coach")
       .navigationBarTitleDisplayMode(.inline)

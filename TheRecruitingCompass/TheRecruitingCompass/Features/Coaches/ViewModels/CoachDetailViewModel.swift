@@ -282,7 +282,8 @@ final class CoachDetailViewModel {
       let request = CoachUpdateRequest(
         firstName: nil, lastName: nil, email: nil, phone: nil,
         position: nil, twitterHandle: nil, instagramHandle: nil,
-        notes: DataSanitizer.nilIfEmpty(sanitized)
+        notes: DataSanitizer.nilIfEmpty(sanitized),
+        nextContactDate: nil, followUpThresholdDays: nil
       )
       let updated = try await coachesService.updateCoach(id: coachId, updates: request)
       coach = updated

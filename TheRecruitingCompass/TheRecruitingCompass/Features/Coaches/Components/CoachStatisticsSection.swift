@@ -1,8 +1,27 @@
 import SwiftUI
 
-/// Statistics section for coach detail view showing last contact date.
+/// Statistics section for coach detail view showing last contact date and next contact date.
 struct CoachStatisticsSection: View {
   let coach: Coach
+
+  private static let dateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateStyle = .medium
+    f.timeStyle = .none
+    return f
+  }()
+
+  private static let isoDateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyy-MM-dd"
+    f.locale = Locale(identifier: "en_US_POSIX")
+    return f
+  }()
+
+  private var nextContactDateParsed: Date? {
+    guard let dateString = coach.nextContactDate else { return nil }
+    return CoachStatisticsSection.isoDateFormatter.date(from: dateString)
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -27,6 +46,28 @@ struct CoachStatisticsSection: View {
             .italic()
         }
       }
+
+      if let nextContact = nextContactDateParsed {
+        HStack(spacing: 8) {
+          Image(systemName: "calendar.badge.clock")
+            .foregroundStyle(.secondary)
+            .accessibilityHidden(true)
+          Text("Next contact: \(CoachStatisticsSection.dateFormatter.string(from: nextContact))")
+            .font(.subheadline)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Next contact date: \(CoachStatisticsSection.dateFormatter.string(from: nextContact))")
+      }
+
+      HStack(spacing: 8) {
+        Image(systemName: "bell")
+          .foregroundStyle(.secondary)
+          .accessibilityHidden(true)
+        Text("Follow-up threshold: \(coach.followUpThresholdDays ?? 21) days")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+      }
+      .accessibilityLabel("Follow-up threshold: \(coach.followUpThresholdDays ?? 21) days")
     }
   }
 }

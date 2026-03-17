@@ -76,9 +76,9 @@ final class AppNotificationTests: XCTestCase {
     let json = """
     {
         "id": "minimal-1",
-        "type": "daily_digest",
-        "title": "Daily Digest",
-        "message": "Here is your daily summary",
+        "type": "weekly_digest",
+        "title": "Weekly Digest",
+        "message": "Here is your weekly summary",
         "priority": "low",
         "scheduled_for": "2026-02-15T08:00:00Z"
     }
@@ -174,7 +174,7 @@ final class AppNotificationTests: XCTestCase {
   func testNotificationTypeLabels() {
     XCTAssertEqual(NotificationType.followUpReminder.label, "Follow-ups")
     XCTAssertEqual(NotificationType.deadlineAlert.label, "Deadlines")
-    XCTAssertEqual(NotificationType.dailyDigest.label, "Digest")
+    XCTAssertEqual(NotificationType.weeklyDigest.label, "Digest")
     XCTAssertEqual(NotificationType.inboundInteraction.label, "Inbound")
     XCTAssertEqual(NotificationType.offer.label, "Offers")
     XCTAssertEqual(NotificationType.event.label, "Events")
@@ -183,7 +183,7 @@ final class AppNotificationTests: XCTestCase {
   func testNotificationTypeRawValues() {
     XCTAssertEqual(NotificationType.followUpReminder.rawValue, "follow_up_reminder")
     XCTAssertEqual(NotificationType.deadlineAlert.rawValue, "deadline_alert")
-    XCTAssertEqual(NotificationType.dailyDigest.rawValue, "daily_digest")
+    XCTAssertEqual(NotificationType.weeklyDigest.rawValue, "weekly_digest")
     XCTAssertEqual(NotificationType.inboundInteraction.rawValue, "inbound_interaction")
     XCTAssertEqual(NotificationType.offer.rawValue, "offer")
     XCTAssertEqual(NotificationType.event.rawValue, "event")
