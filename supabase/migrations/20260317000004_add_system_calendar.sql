@@ -15,3 +15,6 @@ CREATE TABLE IF NOT EXISTS system_calendar (
   season_year  int NOT NULL,
   created_at   timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE UNIQUE INDEX system_calendar_label_date_year_idx
+  ON system_calendar (label, start_date, season_year);
