@@ -11,15 +11,8 @@ struct ParentOnboardingWizardView: View {
       VStack(spacing: 0) {
         stepIndicator
         ScrollView {
-          Group {
-            switch viewModel.currentStep {
-            case .playerDetails:
-              playerDetailsStep
-            case .sendInvite:
-              sendInviteStep
-            }
-          }
-          .padding(FamilyConstants.Spacing.medium)
+          currentStepContent
+            .padding(FamilyConstants.Spacing.medium)
         }
         if let error = viewModel.errorMessage {
           Text(error)
@@ -56,6 +49,16 @@ struct ParentOnboardingWizardView: View {
           onDismiss?()
         }
       }
+    }
+  }
+
+  @ViewBuilder
+  private var currentStepContent: some View {
+    switch viewModel.currentStep {
+    case .playerDetails:
+      playerDetailsStep
+    case .sendInvite:
+      sendInviteStep
     }
   }
 

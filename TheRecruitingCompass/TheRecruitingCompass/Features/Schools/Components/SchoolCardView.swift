@@ -63,26 +63,25 @@ struct SchoolCardView: View {
     }
   }
 
+  @ViewBuilder
   private var schoolLogo: some View {
-    Group {
-      if let faviconUrl = school.faviconUrl, let url = URL(string: faviconUrl) {
-        AsyncImage(url: url) { phase in
-          switch phase {
-          case .success(let image):
-            image
-              .resizable()
-              .scaledToFit()
-          case .failure, .empty:
-            initialsCircle
-          @unknown default:
-            initialsCircle
-          }
+    if let faviconUrl = school.faviconUrl, let url = URL(string: faviconUrl) {
+      AsyncImage(url: url) { phase in
+        switch phase {
+        case .success(let image):
+          image
+            .resizable()
+            .scaledToFit()
+        case .failure, .empty:
+          initialsCircle
+        @unknown default:
+          initialsCircle
         }
-        .frame(width: initialsSize, height: initialsSize)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-      } else {
-        initialsCircle
       }
+      .frame(width: initialsSize, height: initialsSize)
+      .clipShape(RoundedRectangle(cornerRadius: 10))
+    } else {
+      initialsCircle
     }
   }
 

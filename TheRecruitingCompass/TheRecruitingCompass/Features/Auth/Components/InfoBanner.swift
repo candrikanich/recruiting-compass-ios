@@ -48,24 +48,23 @@ struct InfoBanner: View {
     return false
   }
 
+  @ViewBuilder
   private var icon: some View {
-    Group {
-      switch state {
-      case .pending:
-        Image(systemName: "envelope.fill")
-          .font(.system(size: iconSize))
-          .foregroundStyle(Color.amberGold)
-      case .checking:
-        ProgressView()
-          .tint(Color.accentBlue)
-          .accessibilityLabel("Checking verification")
-      case .verified:
-        Image(systemName: "checkmark.circle.fill")
-          .font(.system(size: iconSize))
-          .foregroundStyle(Color.successGreen)
-      case .error:
-        EmptyView()
-      }
+    switch state {
+    case .pending:
+      Image(systemName: "envelope.fill")
+        .font(.system(size: iconSize))
+        .foregroundStyle(Color.amberGold)
+    case .checking:
+      ProgressView()
+        .tint(Color.accentBlue)
+        .accessibilityLabel("Checking verification")
+    case .verified:
+      Image(systemName: "checkmark.circle.fill")
+        .font(.system(size: iconSize))
+        .foregroundStyle(Color.successGreen)
+    case .error:
+      EmptyView()
     }
   }
 

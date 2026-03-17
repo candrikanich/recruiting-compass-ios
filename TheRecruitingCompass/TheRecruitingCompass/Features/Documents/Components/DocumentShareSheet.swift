@@ -3,20 +3,19 @@ import SwiftUI
 struct DocumentShareSheet: View {
   @Bindable var viewModel: DocumentDetailViewModel
 
+  @ViewBuilder
   private var sharedWithSection: some View {
-    Group {
-      if let sharedIds = viewModel.document?.sharedWithSchools, !sharedIds.isEmpty {
-        Section("Shared With") {
-          ForEach(sharedIds, id: \.self) { schoolId in
-            HStack {
-              Text(viewModel.schoolName(for: schoolId))
-              Spacer()
-              Button("Remove", role: .destructive) {
-                Task { await viewModel.removeShare(schoolId: schoolId) }
-              }
-              .font(.caption)
-              .accessibilityLabel("Remove \(viewModel.schoolName(for: schoolId))")
+    if let sharedIds = viewModel.document?.sharedWithSchools, !sharedIds.isEmpty {
+      Section("Shared With") {
+        ForEach(sharedIds, id: \.self) { schoolId in
+          HStack {
+            Text(viewModel.schoolName(for: schoolId))
+            Spacer()
+            Button("Remove", role: .destructive) {
+              Task { await viewModel.removeShare(schoolId: schoolId) }
             }
+            .font(.caption)
+            .accessibilityLabel("Remove \(viewModel.schoolName(for: schoolId))")
           }
         }
       }

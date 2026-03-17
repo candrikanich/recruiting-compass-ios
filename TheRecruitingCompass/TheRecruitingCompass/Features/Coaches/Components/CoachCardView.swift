@@ -66,26 +66,25 @@ struct CoachCardView: View {
     }
   }
 
+  @ViewBuilder
   private var schoolLogoView: some View {
-    Group {
-      if let faviconUrl = schoolLogoUrl, let url = URL(string: faviconUrl) {
-        AsyncImage(url: url) { phase in
-          switch phase {
-          case .success(let image):
-            image
-              .resizable()
-              .scaledToFit()
-          case .failure, .empty:
-            initialsCircle
-          @unknown default:
-            initialsCircle
-          }
+    if let faviconUrl = schoolLogoUrl, let url = URL(string: faviconUrl) {
+      AsyncImage(url: url) { phase in
+        switch phase {
+        case .success(let image):
+          image
+            .resizable()
+            .scaledToFit()
+        case .failure, .empty:
+          initialsCircle
+        @unknown default:
+          initialsCircle
         }
-        .frame(width: initialsSize, height: initialsSize)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-      } else {
-        initialsCircle
       }
+      .frame(width: initialsSize, height: initialsSize)
+      .clipShape(RoundedRectangle(cornerRadius: 10))
+    } else {
+      initialsCircle
     }
   }
 

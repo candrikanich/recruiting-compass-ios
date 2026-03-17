@@ -36,38 +36,7 @@ struct VerificationStatusIcon: View {
         .accessibilityHidden(true)
 
       // Icon content
-      Group {
-        switch state {
-        case .pending:
-          Image(systemName: "envelope.fill")
-            .font(.system(size: iconSize))
-            .foregroundStyle(Color.amberGold)
-            .accessibilityHidden(true)
-
-        case .checking:
-          ProgressView()
-            .tint(Color.accentBlue)
-            .scaleEffect(1.5)
-            .accessibilityLabel("Checking verification status")
-
-        case .verified:
-          Image(systemName: "checkmark.circle.fill")
-            .font(.system(size: iconSize))
-            .foregroundStyle(Color.successGreen)
-            .scaleEffect(isAnimating && !reduceMotion ? 1.1 : 1.0)
-            .animation(
-              reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.7),
-              value: isAnimating
-            )
-            .accessibilityHidden(true)
-
-        case .error:
-          Image(systemName: "xmark.circle.fill")
-            .font(.system(size: iconSize))
-            .foregroundStyle(Color.red)
-            .accessibilityHidden(true)
-        }
-      }
+      iconContent
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(accessibilityLabelForState)
@@ -75,6 +44,40 @@ struct VerificationStatusIcon: View {
       if case .verified = state {
         isAnimating = true
       }
+    }
+  }
+
+  @ViewBuilder
+  private var iconContent: some View {
+    switch state {
+    case .pending:
+      Image(systemName: "envelope.fill")
+        .font(.system(size: iconSize))
+        .foregroundStyle(Color.amberGold)
+        .accessibilityHidden(true)
+
+    case .checking:
+      ProgressView()
+        .tint(Color.accentBlue)
+        .scaleEffect(1.5)
+        .accessibilityLabel("Checking verification status")
+
+    case .verified:
+      Image(systemName: "checkmark.circle.fill")
+        .font(.system(size: iconSize))
+        .foregroundStyle(Color.successGreen)
+        .scaleEffect(isAnimating && !reduceMotion ? 1.1 : 1.0)
+        .animation(
+          reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.7),
+          value: isAnimating
+        )
+        .accessibilityHidden(true)
+
+    case .error:
+      Image(systemName: "xmark.circle.fill")
+        .font(.system(size: iconSize))
+        .foregroundStyle(Color.red)
+        .accessibilityHidden(true)
     }
   }
 

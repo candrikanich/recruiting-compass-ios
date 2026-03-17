@@ -38,18 +38,7 @@ struct ResetPasswordView: View {
         .padding(.vertical, 16)
 
         ScrollView {
-          Group {
-            switch viewModel.state {
-            case .form:
-              formContent
-            case .resetting:
-              formContent
-            case .success:
-              successContent
-            case .error(let message):
-              errorContent(message: message)
-            }
-          }
+          stateContent
         }
         .navigationDestination(isPresented: $showForgotPassword) {
           ForgotPasswordView()
@@ -66,6 +55,22 @@ struct ResetPasswordView: View {
       if shouldNavigate {
         dismiss()
       }
+    }
+  }
+
+  // MARK: - State Content
+
+  @ViewBuilder
+  private var stateContent: some View {
+    switch viewModel.state {
+    case .form:
+      formContent
+    case .resetting:
+      formContent
+    case .success:
+      successContent
+    case .error(let message):
+      errorContent(message: message)
     }
   }
 
