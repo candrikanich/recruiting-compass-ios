@@ -12,10 +12,12 @@ import SwiftUI
 enum MorePath: Hashable {
   case section(MoreMenuView.Section)
   case eventDetail(eventId: String)
+  case offerDetail(offerId: String)
   case helpSection(slug: String)
 }
 
 struct MoreMenuView: View {
+  // MARK: - Section
   enum Section: String, CaseIterable, Identifiable {
     case timeline
     case events
@@ -101,7 +103,13 @@ struct MoreMenuView: View {
   }
 
   @State private var path: [MorePath] = []
+  @Binding var externalPath: [MorePath]
   var notificationsViewModel: NotificationsListViewModel
+
+  init(notificationsViewModel: NotificationsListViewModel, path: Binding<[MorePath]>? = nil) {
+    self.notificationsViewModel = notificationsViewModel
+    self._externalPath = path ?? .constant([])
+  }
 
   var body: some View {
     NavigationStack(path: $path) {
@@ -111,6 +119,11 @@ struct MoreMenuView: View {
         .navigationDestination(for: MorePath.self) { morePath in
           destinationView(for: morePath)
         }
+    }
+    .onChange(of: externalPath) { _, newPath in
+      guard !newPath.isEmpty else { return }
+      path = newPath
+      externalPath = []
     }
   }
 
@@ -138,6 +151,8 @@ struct MoreMenuView: View {
       sectionDestination(section)
     case .eventDetail(let eventId):
       EventDetailView(eventId: eventId)
+    case .offerDetail(let offerId):
+      OfferDetailView(offerId: offerId)
     case .helpSection(let slug):
       let section = HelpSection(slug: slug) ?? .gettingStarted
       HelpSectionDetailView(section: section)

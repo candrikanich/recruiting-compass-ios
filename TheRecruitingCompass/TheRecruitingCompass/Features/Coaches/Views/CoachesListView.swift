@@ -8,9 +8,11 @@ struct CoachesListView: View {
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
   @State private var navigationPath = NavigationPath()
+  @Binding private var externalNavigationPath: NavigationPath
 
-  init(prefilterSchoolId: String? = nil) {
+  init(prefilterSchoolId: String? = nil, navigationPath: Binding<NavigationPath>? = nil) {
     self.prefilterSchoolId = prefilterSchoolId
+    self._externalNavigationPath = navigationPath ?? .constant(NavigationPath())
   }
 
   private var isShowingDeleteError: Binding<Bool> {
@@ -82,6 +84,11 @@ struct CoachesListView: View {
         type: .success,
         duration: 3.0
       )
+    .onChange(of: externalNavigationPath) { _, newPath in
+      guard !newPath.isEmpty else { return }
+      navigationPath = newPath
+      externalNavigationPath = NavigationPath()
+    }
   }
 
   // MARK: - Content View

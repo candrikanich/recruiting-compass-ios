@@ -12,18 +12,26 @@ final class NotificationPreferencesViewModel {
   var isLoading = false
   var errorMessage: String?
   var saveStatus: SaveStatus = .idle
+  var pushPreferences: [NotificationType: Bool] = [:]
 
   private let preferenceService: any PreferenceManaging
+  private let pushPreferencesService: (any PushPreferencesManaging)?
   @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
   @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
+  @ObservationIgnored nonisolated(unsafe) private var pendingPreferenceUpdates: [NotificationType: Task<Void, Never>] = [:]
 
-  init(preferenceService: any PreferenceManaging) {
+  init(
+    preferenceService: any PreferenceManaging,
+    pushPreferencesService: (any PushPreferencesManaging)? = nil
+  ) {
     self.preferenceService = preferenceService
+    self.pushPreferencesService = pushPreferencesService
   }
 
-  deinit {
+  nonisolated deinit {
     pendingAutoSave?.cancel()
     pendingStatusReset?.cancel()
+    pendingPreferenceUpdates.values.forEach { $0.cancel() }
   }
 
   // MARK: - Load Preferences
@@ -96,5 +104,37 @@ final class NotificationPreferencesViewModel {
     logger.debug("Resetting notification preferences to defaults")
     settings = .default
     await savePreferences()
+  }
+
+  // MARK: - Push Preferences
+
+  func loadPushPreferences(userId: String) async {
+    guard let service = pushPreferencesService else { return }
+    do {
+      let prefs = try await service.fetchPreferences(userId: userId)
+      pushPreferences = prefs.filter { $0.key != .unknown }
+    } catch {
+      errorMessage = "Failed to load push preferences."
+      logger.error("loadPushPreferences failed: \(error.localizedDescription)")
+    }
+  }
+
+  func updatePushPreference(userId: String, type: NotificationType, enabled: Bool) async {
+    guard let service = pushPreferencesService else { return }
+    pendingPreferenceUpdates[type]?.cancel()
+    pushPreferences[type] = enabled  // optimistic update
+    let task = Task {
+      guard !Task.isCancelled else { return }
+      do {
+        try await service.updatePreference(userId: userId, type: type, pushEnabled: enabled)
+      } catch {
+        guard !Task.isCancelled else { return }
+        pushPreferences[type] = !enabled  // revert
+        errorMessage = "Failed to update push preference."
+        logger.error("updatePushPreference failed: \(error.localizedDescription)")
+      }
+    }
+    pendingPreferenceUpdates[type] = task
+    await task.value
   }
 }
