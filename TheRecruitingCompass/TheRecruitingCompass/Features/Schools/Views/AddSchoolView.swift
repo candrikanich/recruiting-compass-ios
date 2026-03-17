@@ -69,7 +69,10 @@ struct AddSchoolView: View {
         onSubmit: {
           Task {
             if let newSchool = await viewModel.submitSchool() {
-              navigationPath.append(SchoolDestination.detail(newSchool.id))
+              // Replace the Add School entry so back arrow returns to the list
+              var path = NavigationPath()
+              path.append(SchoolDestination.detail(newSchool.id))
+              navigationPath = path
             }
           }
         },
