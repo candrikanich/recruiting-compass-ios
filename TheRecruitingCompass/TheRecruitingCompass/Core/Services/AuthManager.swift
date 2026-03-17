@@ -225,29 +225,37 @@ final class AuthManager: AuthManaging {
   /// Attempts to refresh the Supabase session and persist the result to Keychain.
   /// - Parameter fallback: If provided and refresh fails, uses this cached session instead of clearing state.
   private func refreshAndSaveSession(fallback: Session?) async {
-    // Inject Keychain session into Supabase client before refresh (fixes cold-start when SDK storage is empty)
-    if let savedSession = try? keychain.load(Session.self, forKey: sessionKey) {
-      try? await supabaseManager.setSession(
-        accessToken: savedSession.accessToken,
-        refreshToken: savedSession.refreshToken
-      )
-    }
+    // Capture Sendable references before hopping off the main actor
+    let savedSession = try? keychain.load(Session.self, forKey: sessionKey)
+    let mgr = supabaseManager
 
-    do {
-      let updatedUser = try await supabaseManager.refreshSession()
-      if let newSession = try await supabaseManager.getCurrentSession() {
+    // Run all Supabase network calls off the main actor so a slow/timed-out
+    // refresh (can take up to ~157s on iOS) doesn't block UI input.
+    typealias RefreshResult = (user: User, session: Session?)
+    let result = await Task.detached {
+      if let saved = savedSession {
+        try? await mgr.setSession(accessToken: saved.accessToken, refreshToken: saved.refreshToken)
+      }
+      let updatedUser = try await mgr.refreshSession()
+      let newSession = try await mgr.getCurrentSession()
+      return RefreshResult(user: updatedUser, session: newSession)
+    }.result
+
+    switch result {
+    case .success(let (updatedUser, newSession)):
+      if let newSession {
         self.session = newSession
         self.user = updatedUser
         self.isAuthenticated = true
         self.errorMessage = nil
-        try keychain.save(newSession, forKey: sessionKey)
+        try? keychain.save(newSession, forKey: sessionKey)
         logger.info("Session refreshed and saved for user: \(updatedUser.id, privacy: .private)")
       } else {
         logger.warning("No session returned after refresh, clearing state")
         clearSession()
-        try keychain.delete(forKey: sessionKey)
+        try? keychain.delete(forKey: sessionKey)
       }
-    } catch {
+    case .failure(let error):
       if let authError = error as? AuthError, case .sessionInvalid = authError {
         // Auth user was deleted (e.g. from Supabase); don't use stale fallback
         logger.warning("Session invalid (user may have been deleted), clearing state")
