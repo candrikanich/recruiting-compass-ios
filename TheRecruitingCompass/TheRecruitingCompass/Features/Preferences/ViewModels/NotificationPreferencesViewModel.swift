@@ -28,7 +28,7 @@ final class NotificationPreferencesViewModel {
     self.pushPreferencesService = pushPreferencesService
   }
 
-  nonisolated deinit {
+  deinit {
     pendingAutoSave?.cancel()
     pendingStatusReset?.cancel()
     pendingPreferenceUpdates.values.forEach { $0.cancel() }

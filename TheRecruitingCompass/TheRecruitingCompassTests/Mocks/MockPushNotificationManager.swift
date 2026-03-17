@@ -3,8 +3,6 @@ import Foundation
 
 // @unchecked Sendable required: protocol is Sendable but test mock uses mutable state
 final class MockPushNotificationManager: PushNotificationManaging, @unchecked Sendable {
-    nonisolated deinit {}
-
     var requestPermissionCalled = false
     var registeredTokenData: Data?
     var deleteDeviceTokenCalled = false

@@ -124,8 +124,6 @@ final class EventDetailViewModel {
     return cost == 0 ? "Free event" : "Cost: \(cost.formatted(.currency(code: "USD").precision(.fractionLength(2))))"
   }
 
-  nonisolated deinit {}
-
   // MARK: - Init
 
   init(
