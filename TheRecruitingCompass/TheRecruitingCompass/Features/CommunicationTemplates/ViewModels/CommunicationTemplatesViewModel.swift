@@ -11,6 +11,8 @@ private let logger = Logger(
 @MainActor
 final class CommunicationTemplatesViewModel {
 
+  nonisolated deinit {}
+
   enum Tab: String, CaseIterable {
     case list
     case create

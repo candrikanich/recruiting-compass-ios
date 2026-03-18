@@ -11,6 +11,8 @@ private let logger = Logger(
 @MainActor
 final class DocumentDetailViewModel {
 
+  nonisolated deinit {}
+
   // MARK: - State
 
   var document: Document?

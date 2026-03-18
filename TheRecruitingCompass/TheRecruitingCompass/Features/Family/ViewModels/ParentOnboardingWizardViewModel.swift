@@ -7,6 +7,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class ParentOnboardingWizardViewModel {
+
+  nonisolated deinit {}
   enum Step: Int, CaseIterable {
     case playerDetails = 0
     case sendInvite = 1

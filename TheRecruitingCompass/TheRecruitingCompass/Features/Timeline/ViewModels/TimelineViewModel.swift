@@ -7,6 +7,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class TimelineViewModel {
+
+  nonisolated deinit {}
   var tasksByGrade: [Int: [TaskWithStatus]] = [:]
   var currentPhase: TimelinePhase = .freshman
   var statusScore: StatusScore?

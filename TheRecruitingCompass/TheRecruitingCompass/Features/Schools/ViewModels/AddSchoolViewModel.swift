@@ -20,6 +20,8 @@ private let logger = Logger(
 @MainActor
 final class AddSchoolViewModel {
 
+  nonisolated deinit {}
+
   // MARK: - State
 
   var formState = SchoolFormState()

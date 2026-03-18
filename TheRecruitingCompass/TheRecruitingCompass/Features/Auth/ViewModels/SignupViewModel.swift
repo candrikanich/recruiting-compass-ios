@@ -8,6 +8,8 @@ private let signupLogger = Logger(subsystem: "com.chrisandrikanich.TheRecruiting
 @Observable
 @MainActor
 final class SignupViewModel {
+
+  nonisolated deinit {}
   // MARK: - Two-Step State
 
   var selectedRole: UserRole?

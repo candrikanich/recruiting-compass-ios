@@ -9,6 +9,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class HomeLocationViewModel {
+
+  nonisolated deinit {}
   var location: HomeLocation = .default
   var isLoading = false
   var errorMessage: String?

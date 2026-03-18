@@ -8,6 +8,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class DashboardViewModel {
+
+  nonisolated deinit {}
   var stats: DashboardStats?
   var widgetVisibility: DashboardWidgetVisibility = .default
   var quickTasks: [QuickTask] = []

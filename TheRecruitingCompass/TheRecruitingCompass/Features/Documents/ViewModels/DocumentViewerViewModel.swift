@@ -44,6 +44,8 @@ private func userFacingLoadError(from error: Error) -> String {
 @MainActor
 final class DocumentViewerViewModel {
 
+  nonisolated deinit {}
+
   // MARK: - State
 
   var document: Document?

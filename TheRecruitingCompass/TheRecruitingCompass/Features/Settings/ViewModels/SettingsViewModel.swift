@@ -10,6 +10,8 @@ private let logger = Logger(
 @Observable
 @MainActor
 final class SettingsViewModel {
+
+  nonisolated deinit {}
   var homeLocationStatus: SettingsBadgeStatus?
   var playerDetailsStatus: SettingsBadgeStatus?
   var schoolPreferencesStatus: SettingsBadgeStatus?

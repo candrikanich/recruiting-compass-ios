@@ -11,6 +11,8 @@ private let logger = Logger(
 @Observable
 @MainActor
 final class AnalyticsDashboardViewModel {
+
+  nonisolated deinit {}
   var summary: AnalyticsSummary = .empty
   var interactionTypesData: [PieChartSegment] = []
   var sentimentData: [PieChartSegment] = []

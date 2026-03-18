@@ -10,6 +10,8 @@ private let logger = Logger(
 @Observable
 @MainActor
 final class NotificationsListViewModel {
+
+  nonisolated deinit {}
   private static let isoFormatter = ISO8601DateFormatter()
   // MARK: - State
 

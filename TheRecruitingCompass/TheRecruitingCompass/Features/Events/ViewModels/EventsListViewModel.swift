@@ -13,6 +13,8 @@ private let eventsSortByKey = "eventsSortBy"
 @MainActor
 final class EventsListViewModel {
 
+  nonisolated deinit {}
+
   // MARK: - State
 
   var events: [FullEvent] = []

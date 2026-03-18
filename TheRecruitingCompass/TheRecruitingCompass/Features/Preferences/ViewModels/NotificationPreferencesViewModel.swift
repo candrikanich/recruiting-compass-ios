@@ -8,6 +8,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class NotificationPreferencesViewModel {
+
+  nonisolated deinit {}
   var settings: NotificationSettings = .default
   var isLoading = false
   var errorMessage: String?

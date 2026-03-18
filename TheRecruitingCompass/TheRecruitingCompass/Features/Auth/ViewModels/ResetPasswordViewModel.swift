@@ -12,6 +12,8 @@ enum ResetPasswordState: Equatable {
 @Observable
 @MainActor
 final class ResetPasswordViewModel {
+
+  nonisolated deinit {}
   var state: ResetPasswordState = .form
   var newPassword = ""
   var confirmPassword = ""

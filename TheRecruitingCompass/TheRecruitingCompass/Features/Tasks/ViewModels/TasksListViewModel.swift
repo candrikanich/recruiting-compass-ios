@@ -12,6 +12,8 @@ private enum FilterStorage {
 @Observable
 @MainActor
 final class TasksListViewModel {
+
+  nonisolated deinit {}
   var tasks: [TaskWithStatus] = []
   var isLoading = false
   var errorMessage: String?

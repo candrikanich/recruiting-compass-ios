@@ -12,6 +12,8 @@ private let logger = Logger(
 @MainActor
 final class InteractionDetailViewModel {
 
+  nonisolated deinit {}
+
   // MARK: - Observable State
 
   var interaction: Interaction?

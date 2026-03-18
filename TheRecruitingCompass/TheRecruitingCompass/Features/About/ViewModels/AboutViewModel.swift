@@ -7,6 +7,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class AboutViewModel {
+
+  nonisolated deinit {}
     var selectedSubject: FeedbackSubject = .general
     var message: String = ""
     var isLoading: Bool = false

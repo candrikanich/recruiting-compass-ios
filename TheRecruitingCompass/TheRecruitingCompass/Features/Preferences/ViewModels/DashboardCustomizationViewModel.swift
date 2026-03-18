@@ -8,6 +8,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class DashboardCustomizationViewModel {
+
+  nonisolated deinit {}
   var visibility: DashboardWidgetVisibility = .default
   var isLoading = false
   var errorMessage: String?

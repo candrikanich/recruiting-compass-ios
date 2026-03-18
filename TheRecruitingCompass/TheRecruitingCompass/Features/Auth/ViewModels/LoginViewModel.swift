@@ -5,6 +5,8 @@ import Observation
 @Observable
 @MainActor
 final class LoginViewModel {
+
+  nonisolated deinit {}
   var email = ""
   var password = ""
   var rememberMe = false

@@ -9,6 +9,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @MainActor
 final class ProfileViewModel {
 
+  nonisolated deinit {}
+
     // MARK: - Section 1: Profile Photo
 
     var isUploadingPhoto = false

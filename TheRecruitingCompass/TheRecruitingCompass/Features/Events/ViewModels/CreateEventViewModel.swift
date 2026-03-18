@@ -11,6 +11,8 @@ private let logger = Logger(
 @MainActor
 final class CreateEventViewModel {
 
+  nonisolated deinit {}
+
   // MARK: - State
 
   var formData = CreateEventData()

@@ -18,6 +18,8 @@ struct QuickCommunicationContext: Identifiable {
 @Observable
 @MainActor
 final class QuickCommunicationViewModel {
+
+  nonisolated deinit {}
   var templates: [CommunicationTemplate] = []
   var selectedTemplate: CommunicationTemplate?
   var isLoading = false

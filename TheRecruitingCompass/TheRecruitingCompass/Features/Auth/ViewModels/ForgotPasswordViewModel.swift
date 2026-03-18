@@ -5,6 +5,8 @@ import SwiftUI
 @Observable
 @MainActor
 final class ForgotPasswordViewModel {
+
+  nonisolated deinit {}
   var state: ForgotPasswordState = .form
   var email = ""
   var fieldErrors: [FormFieldKey: String] = [:]

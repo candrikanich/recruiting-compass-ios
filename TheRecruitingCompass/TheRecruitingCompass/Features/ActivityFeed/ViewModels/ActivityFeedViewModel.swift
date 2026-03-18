@@ -10,6 +10,8 @@ private let logger = Logger(
 @Observable
 @MainActor
 final class ActivityFeedViewModel {
+
+  nonisolated deinit {}
   var activities: [ActivityEvent] = []
   var isLoading = false
   var errorMessage: String?

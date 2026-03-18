@@ -17,6 +17,8 @@ enum InviteJoinState: Equatable {
 @Observable
 @MainActor
 final class InviteJoinViewModel {
+
+  nonisolated deinit {}
   var state: InviteJoinState = .loading
   var isAccepting = false
   var isDeclining = false

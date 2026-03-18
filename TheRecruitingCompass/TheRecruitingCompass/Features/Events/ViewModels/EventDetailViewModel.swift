@@ -11,6 +11,8 @@ private let logger = Logger(
 @MainActor
 final class EventDetailViewModel {
 
+  nonisolated deinit {}
+
   // MARK: - State
 
   var event: FullEvent?

@@ -10,6 +10,8 @@ private let logger = Logger(
 @Observable
 @MainActor
 final class PerformanceDashboardViewModel {
+
+  nonisolated deinit {}
   var metrics: [PerformanceMetric] = []
   var isLoading = false
   var errorMessage: String?

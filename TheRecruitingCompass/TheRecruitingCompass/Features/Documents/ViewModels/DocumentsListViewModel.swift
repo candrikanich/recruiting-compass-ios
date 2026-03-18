@@ -43,6 +43,8 @@ enum DocumentViewMode: String, CaseIterable {
 @MainActor
 final class DocumentsListViewModel {
 
+  nonisolated deinit {}
+
   // MARK: - State
 
   var documents: [Document] = []

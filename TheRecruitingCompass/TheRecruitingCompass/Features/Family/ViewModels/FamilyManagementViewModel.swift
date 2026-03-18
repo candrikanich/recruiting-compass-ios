@@ -8,6 +8,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class FamilyManagementViewModel {
+
+  nonisolated deinit {}
   // MARK: - Player State
   var familyCode: String?
   var familyId: String?

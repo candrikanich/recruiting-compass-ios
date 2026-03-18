@@ -7,6 +7,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class OfferDetailViewModel {
+
+  nonisolated deinit {}
   var offer: Offer?
   var school: School?
   var isLoading = false

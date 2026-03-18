@@ -7,6 +7,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class OnboardingViewModel {
+
+  nonisolated deinit {}
   var currentStep = 1
   var graduationYear: Int?
   var primarySport: String = ""

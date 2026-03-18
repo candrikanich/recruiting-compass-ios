@@ -8,6 +8,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class SchoolPreferencesViewModel {
+
+  nonisolated deinit {}
   var preferences: SchoolPreferences = .default
   var isLoading = false
   var errorMessage: String?

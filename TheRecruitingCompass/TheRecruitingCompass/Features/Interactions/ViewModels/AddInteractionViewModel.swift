@@ -12,6 +12,8 @@ private let logger = Logger(
 @MainActor
 final class AddInteractionViewModel {
 
+  nonisolated deinit {}
+
   // MARK: - State
 
   var formState = InteractionFormState()

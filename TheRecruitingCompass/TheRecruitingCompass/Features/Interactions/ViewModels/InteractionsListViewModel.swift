@@ -7,6 +7,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class InteractionsListViewModel {
+
+  nonisolated deinit {}
   var allInteractions: [Interaction] = []
   var allSchools: [School] = []
   var allCoaches: [Coach] = []
