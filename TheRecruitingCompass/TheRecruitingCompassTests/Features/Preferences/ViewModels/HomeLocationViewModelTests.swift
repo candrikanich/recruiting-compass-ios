@@ -206,6 +206,102 @@ final class HomeLocationViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.location.zip?.count, 10)
   }
 
+  // MARK: - Use Current Location Tests
+
+  func testUseCurrentLocation_WhenSuccessful_SetsCoordinates() async throws {
+    // Given
+    let mockLocation = MockLocationProvider()
+    mockLocation.mockLocation = CLLocation(latitude: 37.7749, longitude: -122.4194)
+    viewModel = HomeLocationViewModel(
+      preferenceService: mockService,
+      geocoder: mockGeocoder,
+      locationService: mockLocation
+    )
+    mockGeocoder.mockCoordinate = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+
+    // When
+    await viewModel.useCurrentLocation()
+
+    // Then
+    let lat = try XCTUnwrap(viewModel.location.latitude)
+    let lon = try XCTUnwrap(viewModel.location.longitude)
+    XCTAssertEqual(lat, 37.7749, accuracy: 0.0001)
+    XCTAssertEqual(lon, -122.4194, accuracy: 0.0001)
+    XCTAssertFalse(viewModel.isRequestingLocation)
+    XCTAssertNil(viewModel.errorMessage)
+  }
+
+  func testUseCurrentLocation_WhenPermissionDenied_ShowsError() async {
+    // Given
+    let mockLocation = MockLocationProvider()
+    mockLocation.errorToThrow = LocationError.permissionDenied
+    viewModel = HomeLocationViewModel(
+      preferenceService: mockService,
+      geocoder: mockGeocoder,
+      locationService: mockLocation
+    )
+
+    // When
+    await viewModel.useCurrentLocation()
+
+    // Then
+    XCTAssertNotNil(viewModel.errorMessage)
+    XCTAssertTrue(viewModel.errorMessage?.contains("denied") ?? false)
+    XCTAssertFalse(viewModel.isRequestingLocation)
+    XCTAssertNil(viewModel.location.latitude)
+  }
+
+  func testUseCurrentLocation_WhenLocationUnavailable_ShowsError() async {
+    // Given
+    let mockLocation = MockLocationProvider()
+    mockLocation.errorToThrow = LocationError.locationUnavailable
+    viewModel = HomeLocationViewModel(
+      preferenceService: mockService,
+      geocoder: mockGeocoder,
+      locationService: mockLocation
+    )
+
+    // When
+    await viewModel.useCurrentLocation()
+
+    // Then
+    XCTAssertNotNil(viewModel.errorMessage)
+    XCTAssertFalse(viewModel.isRequestingLocation)
+  }
+
+  func testUseCurrentLocation_SetsIsRequestingLocationDuringRequest() async {
+    // Given
+    let mockLocation = MockLocationProvider()
+    mockLocation.mockLocation = CLLocation(latitude: 37.7749, longitude: -122.4194)
+    viewModel = HomeLocationViewModel(
+      preferenceService: mockService,
+      geocoder: mockGeocoder,
+      locationService: mockLocation
+    )
+
+    // When/Then — after completion, flag must be false
+    await viewModel.useCurrentLocation()
+    XCTAssertFalse(viewModel.isRequestingLocation)
+  }
+
+  func testUseCurrentLocation_SchedulesAutoSave() async {
+    // Given
+    let mockLocation = MockLocationProvider()
+    mockLocation.mockLocation = CLLocation(latitude: 37.7749, longitude: -122.4194)
+    viewModel = HomeLocationViewModel(
+      preferenceService: mockService,
+      geocoder: mockGeocoder,
+      locationService: mockLocation
+    )
+    mockService.savePreferencesResult = .success(viewModel.location)
+
+    // When
+    await viewModel.useCurrentLocation()
+
+    // Then
+    XCTAssertEqual(viewModel.saveStatus, .saving)
+  }
+
   // MARK: - Computed Properties Tests
 
   func testHasCoordinates_WhenBothSet_ReturnsTrue() {
@@ -245,6 +341,23 @@ final class HomeLocationViewModelTests: XCTestCase {
 
     // Then
     XCTAssertEqual(text, "No coordinates set")
+  }
+}
+
+// MARK: - Mock Location Provider
+
+final class MockLocationProvider: CurrentLocationProviding, @unchecked Sendable {
+  var mockLocation: CLLocation?
+  var errorToThrow: Error?
+
+  func requestCurrentLocation() async throws -> CLLocation {
+    if let error = errorToThrow {
+      throw error
+    }
+    guard let location = mockLocation else {
+      throw LocationError.locationUnavailable
+    }
+    return location
   }
 }
 

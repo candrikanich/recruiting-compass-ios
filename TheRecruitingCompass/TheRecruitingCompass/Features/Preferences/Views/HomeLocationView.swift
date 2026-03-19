@@ -12,6 +12,22 @@ struct HomeLocationView: View {
     Form {
       // Address Section
       Section {
+        Button {
+          Task { await viewModel.useCurrentLocation() }
+        } label: {
+          HStack {
+            Image(systemName: "location.fill")
+            Text("Use My Location")
+            if viewModel.isRequestingLocation {
+              Spacer()
+              ProgressView()
+            }
+          }
+        }
+        .disabled(viewModel.isRequestingLocation)
+        .accessibilityLabel("Use current location")
+        .accessibilityHint("Fills in your address using your current GPS location")
+
         TextField("Street Address", text: $viewModel.address)
           .textContentType(.streetAddressLine1)
           .autocapitalization(.words)

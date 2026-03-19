@@ -15,14 +15,22 @@ final class HomeLocationViewModel {
   var errorMessage: String?
   var saveStatus: SaveStatus = .idle
 
+  var isRequestingLocation = false
+
   private let preferenceService: any PreferenceManaging
   private let geocoder: CLGeocoder
+  private let locationService: any CurrentLocationProviding
   @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
   @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
-  init(preferenceService: any PreferenceManaging, geocoder: CLGeocoder = CLGeocoder()) {
+  init(
+    preferenceService: any PreferenceManaging,
+    geocoder: CLGeocoder = CLGeocoder(),
+    locationService: any CurrentLocationProviding = CoreLocationService()
+  ) {
     self.preferenceService = preferenceService
     self.geocoder = geocoder
+    self.locationService = locationService
   }
 
   nonisolated deinit {
@@ -90,6 +98,40 @@ final class HomeLocationViewModel {
 
   private func markChanged() {
     scheduleAutoSave()
+  }
+
+  // MARK: - Current Location
+
+  func useCurrentLocation() async {
+    logger.debug("Requesting current location")
+    isRequestingLocation = true
+    errorMessage = nil
+
+    do {
+      let clLocation = try await locationService.requestCurrentLocation()
+      location.latitude = clLocation.coordinate.latitude
+      location.longitude = clLocation.coordinate.longitude
+
+      let placemarks = try? await geocoder.reverseGeocodeLocation(clLocation)
+      if let placemark = placemarks?.first {
+        if let street = placemark.thoroughfare {
+          let number = placemark.subThoroughfare.map { "\($0) " } ?? ""
+          location.address = "\(number)\(street)"
+        }
+        location.city = placemark.locality
+        location.state = placemark.administrativeArea.map { String($0.prefix(2)).uppercased() }
+        location.zip = placemark.postalCode
+      }
+
+      scheduleAutoSave()
+      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      logger.info("Current location applied: \(clLocation.coordinate.latitude), \(clLocation.coordinate.longitude)")
+    } catch {
+      logger.error("Current location failed: \(error.localizedDescription)")
+      errorMessage = error.localizedDescription
+    }
+
+    isRequestingLocation = false
   }
 
   // MARK: - Geocoding
