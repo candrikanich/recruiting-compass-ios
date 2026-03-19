@@ -76,3 +76,81 @@ jobs:
             -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
             -skip-testing:TheRecruitingCompassUITests \
             -quiet
+
+  e2e-tests:
+    name: E2E UITests
+    runs-on: macos-latest
+    timeout-minutes: 60
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Boot simulator
+        run: |
+          UDID=$(xcrun simctl list devices available | grep 'iPhone 16' | grep -v 'Plus\|Pro' | head -1 | grep -oE '[0-9A-F-]{36}')
+          echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl boot "$UDID" || true
+
+      - name: Create Release.xcconfig
+        run: |
+          cat > TheRecruitingCompass/Release.xcconfig << 'XCCONFIG'
+          _SLASH = /
+          SUPABASE_URL = https:$(_SLASH)$(_SLASH)ci-placeholder.supabase.co
+          SUPABASE_ANON_KEY = ci_placeholder_key
+          API_BASE_URL = https:$(_SLASH)$(_SLASH)myrecruitingcompass.com
+          XCCONFIG
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install seed script dependencies
+        run: cd scripts && npm ci
+
+      - name: Seed E2E test data
+        run: cd scripts && npm run seed:e2e
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: deriveddata-e2e-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj') }}
+          restore-keys: deriveddata-e2e-
+
+      - name: Build for testing
+        run: |
+          cd TheRecruitingCompass
+          xcodebuild build-for-testing \
+            -scheme TheRecruitingCompass \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+            -quiet
+
+      - name: Run UITests
+        run: |
+          cd TheRecruitingCompass
+          xcodebuild test-without-building \
+            -scheme TheRecruitingCompass \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+            -only-testing:TheRecruitingCompassUITests \
+            -quiet \
+            -testenv SUPABASE_URL="${SUPABASE_URL}" \
+            -testenv SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+      - name: Upload xcresult
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcresult-e2e
+          path: ~/Library/Developer/Xcode/DerivedData/**/Logs/Test/*.xcresult
+          retention-days: 7
