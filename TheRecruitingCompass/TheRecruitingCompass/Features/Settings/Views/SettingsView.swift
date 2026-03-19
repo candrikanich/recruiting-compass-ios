@@ -227,7 +227,7 @@ private struct SettingsRow: View {
   let title: String
   let description: String
   let color: Color
-  var badgeStatus: SettingsBadgeStatus? = nil
+  var badgeStatus: SettingsBadgeStatus?
 
   var body: some View {
     HStack(spacing: 12) {

@@ -58,7 +58,7 @@ struct SupabaseConfig {
     }
     return placeholderURL
     #else
-    fatalError("SUPABASE_URL must be set for Release builds. Set SUPABASE_URL and SUPABASE_ANON_KEY in Release.xcconfig (or Scheme → Run → Environment Variables for local runs). Archive/TestFlight builds do not inherit scheme env vars — use Release.xcconfig.")
+    fatalError("SUPABASE_URL must be set for Release builds. Configure in Release.xcconfig. Archive/TestFlight builds do not inherit scheme env vars.")
     #endif
   }()
 
@@ -71,7 +71,7 @@ struct SupabaseConfig {
     logger.warning("SUPABASE_ANON_KEY not configured - using placeholder (DEBUG only)")
     return placeholderKey
     #else
-    fatalError("SUPABASE_ANON_KEY must be set for Release builds. Set SUPABASE_URL and SUPABASE_ANON_KEY in Release.xcconfig (or Scheme → Run → Environment Variables for local runs). Archive/TestFlight builds do not inherit scheme env vars — use Release.xcconfig.")
+    fatalError("SUPABASE_ANON_KEY must be set for Release builds. Configure in Release.xcconfig. Archive/TestFlight builds do not inherit scheme env vars.")
     #endif
   }()
 

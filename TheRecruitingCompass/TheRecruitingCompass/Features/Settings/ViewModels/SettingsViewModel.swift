@@ -22,8 +22,6 @@ final class SettingsViewModel {
     self.preferenceService = preferenceService
   }
 
-
-
   func loadCompletionStatus() async {
     logger.debug("Loading completion status for settings badges")
 
@@ -37,9 +35,10 @@ final class SettingsViewModel {
       !prefs.preferences.isEmpty
     }
 
-    logger.info(
-      "Badge status — location: \(String(describing: self.homeLocationStatus)), player: \(String(describing: self.playerDetailsStatus)), school: \(String(describing: self.schoolPreferencesStatus))"
-    )
+    let loc = String(describing: homeLocationStatus)
+    let player = String(describing: playerDetailsStatus)
+    let school = String(describing: schoolPreferencesStatus)
+    logger.info("Badge status — location: \(loc), player: \(player), school: \(school)")
   }
 
   // MARK: - Private

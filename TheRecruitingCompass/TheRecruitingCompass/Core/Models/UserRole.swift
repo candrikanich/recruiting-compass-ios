@@ -1,8 +1,8 @@
 import Foundation
 
 enum UserRole: String, Codable, CaseIterable, Sendable {
-  case parent = "parent"
-  case player = "player"
+  case parent
+  case player
 
   var displayName: String {
     switch self {
