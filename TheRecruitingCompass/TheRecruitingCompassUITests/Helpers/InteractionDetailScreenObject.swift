@@ -22,7 +22,7 @@ final class InteractionDetailScreenObject {
   // MARK: - Content Elements
 
   var interactionSubject: XCUIElement {
-    app.staticTexts.matching(NSPredicate(format: "accessibilityTraits contains %d", UIAccessibilityTraits.header.rawValue)).firstMatch
+    app.staticTexts["interaction-subject"]
   }
 
   var occurredAtLabel: XCUIElement {

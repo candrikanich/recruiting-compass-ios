@@ -8,6 +8,7 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class FamilyManager {
+  nonisolated deinit {}
   static let shared = FamilyManager()
 
   var currentMember: FamilyMember?

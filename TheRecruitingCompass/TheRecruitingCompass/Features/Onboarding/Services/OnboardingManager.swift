@@ -9,6 +9,7 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class OnboardingManager {
+  nonisolated deinit {}
   /// nil = loading, true = show onboarding, false = show dashboard
   var needsOnboarding: Bool?
 

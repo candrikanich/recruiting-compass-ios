@@ -9,7 +9,6 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @MainActor
 final class SchoolDetailViewModel {
 
-  nonisolated deinit {}
   var school: School?
   var isLoading = false
   var errorMessage: String?
@@ -510,7 +509,7 @@ final class SchoolDetailViewModel {
     }
   }
 
-  deinit {
+  nonisolated deinit {
     pendingStatusReset?.cancel()
   }
 }

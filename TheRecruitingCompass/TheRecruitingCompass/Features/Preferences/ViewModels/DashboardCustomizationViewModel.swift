@@ -9,7 +9,6 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @MainActor
 final class DashboardCustomizationViewModel {
 
-  nonisolated deinit {}
   var visibility: DashboardWidgetVisibility = .default
   var isLoading = false
   var errorMessage: String?
@@ -23,7 +22,7 @@ final class DashboardCustomizationViewModel {
     self.preferenceService = preferenceService
   }
 
-  deinit {
+  nonisolated deinit {
     pendingAutoSave?.cancel()
     pendingStatusReset?.cancel()
   }

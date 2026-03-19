@@ -8,6 +8,7 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @Observable
 @MainActor
 final class AuthManager: AuthManaging {
+  nonisolated deinit {}
   static let shared = AuthManager()
 
   var isAuthenticated = false

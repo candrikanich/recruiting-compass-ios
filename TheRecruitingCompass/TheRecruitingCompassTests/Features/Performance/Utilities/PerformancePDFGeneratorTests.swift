@@ -2,6 +2,7 @@ import XCTest
 import PDFKit
 @testable import TheRecruitingCompass
 
+@MainActor
 final class PerformancePDFGeneratorTests: XCTestCase {
   func testGeneratePDF_WithMetrics_ReturnsValidPDFData() {
     // Given

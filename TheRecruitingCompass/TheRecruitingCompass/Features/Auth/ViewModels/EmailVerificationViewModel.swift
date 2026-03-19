@@ -13,7 +13,6 @@ enum VerificationState: Equatable {
 @MainActor
 final class EmailVerificationViewModel {
 
-  nonisolated deinit {}
   // MARK: - State
 
   var verificationState: VerificationState = .pending
@@ -236,7 +235,7 @@ final class EmailVerificationViewModel {
     }
   }
 
-  deinit {
+  nonisolated deinit {
     // Cancel tasks (don't call stopPolling here to avoid MainActor crossing)
     pollingTask?.cancel()
     cooldownTask?.cancel()

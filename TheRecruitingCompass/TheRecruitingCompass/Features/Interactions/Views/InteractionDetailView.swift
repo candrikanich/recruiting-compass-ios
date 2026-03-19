@@ -124,6 +124,7 @@ struct InteractionDetailView: View {
         .font(.title2)
         .bold()
         .accessibilityAddTraits(.isHeader)
+        .accessibilityIdentifier("interaction-subject")
 
       Text(viewModel.formattedDate)
         .font(.subheadline)

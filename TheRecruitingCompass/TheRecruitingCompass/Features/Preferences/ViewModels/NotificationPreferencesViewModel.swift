@@ -9,7 +9,6 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @MainActor
 final class NotificationPreferencesViewModel {
 
-  nonisolated deinit {}
   var settings: NotificationSettings = .default
   var isLoading = false
   var errorMessage: String?
@@ -30,7 +29,7 @@ final class NotificationPreferencesViewModel {
     self.pushPreferencesService = pushPreferencesService
   }
 
-  deinit {
+  nonisolated deinit {
     pendingAutoSave?.cancel()
     pendingStatusReset?.cancel()
     pendingPreferenceUpdates.values.forEach { $0.cancel() }

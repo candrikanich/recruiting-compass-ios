@@ -19,6 +19,7 @@ protocol CacheManaging: Sendable {
 /// with MainActor-isolated Codable types (School, Coach, etc.).
 @MainActor
 final class InMemoryCache: CacheManaging {
+  nonisolated deinit {}
   private struct Entry {
     let data: Data
     let expiresAt: Date

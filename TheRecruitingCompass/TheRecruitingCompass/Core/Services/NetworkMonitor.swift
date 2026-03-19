@@ -23,7 +23,7 @@ final class NetworkMonitor {
     monitor.start(queue: queue)
   }
 
-  deinit {
+  nonisolated deinit {
     monitor.cancel()
   }
 }

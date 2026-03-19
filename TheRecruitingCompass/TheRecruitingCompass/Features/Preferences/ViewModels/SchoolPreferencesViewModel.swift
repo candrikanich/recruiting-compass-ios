@@ -9,7 +9,6 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @MainActor
 final class SchoolPreferencesViewModel {
 
-  nonisolated deinit {}
   var preferences: SchoolPreferences = .default
   var isLoading = false
   var errorMessage: String?
@@ -26,7 +25,7 @@ final class SchoolPreferencesViewModel {
     self.preferenceService = preferenceService
   }
 
-  deinit {
+  nonisolated deinit {
     pendingAutoSave?.cancel()
     pendingStatusReset?.cancel()
   }

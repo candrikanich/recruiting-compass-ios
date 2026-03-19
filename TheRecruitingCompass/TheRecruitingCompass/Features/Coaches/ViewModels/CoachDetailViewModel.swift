@@ -9,7 +9,6 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @MainActor
 final class CoachDetailViewModel {
 
-  nonisolated deinit {}
   var coach: Coach?
   var school: School?
   var isLoading = false
@@ -336,7 +335,7 @@ final class CoachDetailViewModel {
     }
   }
 
-  deinit {
+  nonisolated deinit {
     pendingStatusReset?.cancel()
   }
 }

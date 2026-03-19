@@ -10,7 +10,6 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 @MainActor
 final class PlayerDetailsViewModel {
 
-  nonisolated deinit {}
     var details: PlayerDetails = .default
     var isLoading = false
     var isUploadingPhoto = false
@@ -37,7 +36,7 @@ final class PlayerDetailsViewModel {
         self.isReadOnly = (userRole == .parent)
     }
 
-    deinit {
+    nonisolated deinit {
         pendingAutoSave?.cancel()
         pendingStatusReset?.cancel()
     }
