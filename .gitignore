@@ -50,3 +50,8 @@ TheRecruitingCompass/Release.xcconfig
 
 # Doc cleanup
 .doc-cleanup-manifest.json
+
+# Node.js scripts
+scripts/.env.test
+scripts/node_modules/
+scripts/dist/

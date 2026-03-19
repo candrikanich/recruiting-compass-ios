@@ -1,0 +1,15 @@
+{
+  "name": "recruiting-compass-ios-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed:e2e": "tsx seed-e2e.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  }
+}
