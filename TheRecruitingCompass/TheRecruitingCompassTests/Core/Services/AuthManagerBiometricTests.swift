@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class AuthManagerBiometricTests: XCTestCase {
+  nonisolated deinit {}
   var sut: AuthManager!
   var mockBiometricService: MockBiometricService!
   var mockSupabaseManager: MockSupabaseManager!

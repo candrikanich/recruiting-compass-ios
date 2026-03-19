@@ -12,6 +12,7 @@ import SwiftUI
 
 @MainActor
 final class CreateEventAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // Explicit tearDown avoids deallocating @Observable @MainActor ViewModels at scope exit,
   // which can trigger malloc corruption on some SDK versions (FB: CreateEventViewModel deinit crash).

@@ -4,6 +4,7 @@ import XCTest
 /// Verifies Documents List accessibility: sort/filter labels and document type display names.
 @MainActor
 final class DocumentsListAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Sort option labels (used in sort menu accessibility)
 

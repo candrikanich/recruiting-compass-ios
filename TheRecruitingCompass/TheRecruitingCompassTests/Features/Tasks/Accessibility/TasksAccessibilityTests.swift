@@ -5,6 +5,7 @@ import SwiftUI
 /// Accessibility tests for Phase 5 Tasks/Timeline (WCAG AA, 44pt targets, VoiceOver labels).
 @MainActor
 final class TasksAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Checkbox label format (spec: "Mark [Task] complete" / "Complete [prerequisites] to unlock")
 

@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class ActivityEventModelTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - ActivityEvent Identity Tests
 

@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class FamilyManagementViewModelTests: XCTestCase {
+  nonisolated deinit {}
 
   private var sut: FamilyManagementViewModel!
   private var mockFamilyService: MockFamilyService!

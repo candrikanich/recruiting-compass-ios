@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class OfferTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Test Helpers
 

@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class PrivacyPolicyViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var sut: PrivacyPolicyViewModel!
 
   override func setUp() {

@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class NotificationsListViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: NotificationsListViewModel!
   var mockService: MockNotificationsService!
   var mockAuthManager: MockAuthManager!

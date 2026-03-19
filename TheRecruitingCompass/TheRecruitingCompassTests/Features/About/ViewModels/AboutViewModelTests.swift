@@ -23,6 +23,7 @@ final class MockFeedbackService: FeedbackManaging, @unchecked Sendable {
 
 @MainActor
 final class AboutViewModelTests: XCTestCase {
+  nonisolated deinit {}
     var sut: AboutViewModel!
     var mockService: MockFeedbackService!
 

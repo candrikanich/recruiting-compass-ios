@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class CoachDetailComponentsTests: XCTestCase {
+  nonisolated deinit {}
 
   private var testCoach: Coach!
   private var testSchool: School!

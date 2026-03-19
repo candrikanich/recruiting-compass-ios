@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class AnalyticsChartDataTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - PieChartSegment Tests
 

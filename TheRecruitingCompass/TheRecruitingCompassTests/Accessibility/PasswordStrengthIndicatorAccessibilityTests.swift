@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class PasswordStrengthIndicatorAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   func testPasswordStrengthIndicator_EmptyPassword_HasLabel() {
     let indicator = PasswordStrengthIndicator(password: "")

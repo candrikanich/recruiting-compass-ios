@@ -5,6 +5,7 @@ import UIKit
 
 @MainActor
 final class CoachDetailViewTests: XCTestCase {
+  nonisolated deinit {}
 
   private var mockService: MockCoachesService!
   private var mockAuthManager: MockAuthManager!

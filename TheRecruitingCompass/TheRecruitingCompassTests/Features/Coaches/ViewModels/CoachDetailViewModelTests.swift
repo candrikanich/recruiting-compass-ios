@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class CoachDetailViewModelTests: XCTestCase {
+  nonisolated deinit {}
 
   private var sut: CoachDetailViewModel!
   private var mockService: MockCoachesService!

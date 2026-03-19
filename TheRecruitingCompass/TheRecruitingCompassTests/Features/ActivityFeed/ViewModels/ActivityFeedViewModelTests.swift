@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class ActivityFeedViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var sut: ActivityFeedViewModel!
   var mockService: MockActivityFeedService!
   var mockAuthManager: MockAuthManager!

@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class VerificationStatusIconAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Accessibility Label Tests
 

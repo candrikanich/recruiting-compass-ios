@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class CoachesListViewModelTests: XCTestCase {
+  nonisolated deinit {}
 
   private var sut: CoachesListViewModel!
   private var mockService: MockCoachesService!

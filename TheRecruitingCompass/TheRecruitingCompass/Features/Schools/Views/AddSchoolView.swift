@@ -160,7 +160,7 @@ private struct AddSchoolAutocompleteToggleSection: View {
     Section {
       // Phase 2: Enable toggle (was disabled in MVP)
       Toggle("Search college database", isOn: $formState.isAutocompleteEnabled)
-        .accessibilityLabel("Search college database toggle")
+        .accessibilityLabel("Search college database")
         .accessibilityHint("Enable to search and auto-fill from college database")
         .accessibilityAddTraits(.isButton)
 

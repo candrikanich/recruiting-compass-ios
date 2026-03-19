@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class OnboardingManagerTests: XCTestCase {
+  nonisolated deinit {}
   var sut: OnboardingManager!
   var mockOnboardingService: MockOnboardingService!
   var mockAuthManager: MockAuthManager!

@@ -11,6 +11,7 @@ import XCTest
 
 @MainActor
 final class AddCoachIntegrationTests: XCTestCase {
+  nonisolated deinit {}
 
   var mockService: MockCoachesService!
   var viewModel: AddCoachViewModel!

@@ -4,6 +4,7 @@ import XCTest
 /// Verifies Events List accessibility labels and display names per spec §6 Accessibility.
 @MainActor
 final class EventsListAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Calendar Labels
 

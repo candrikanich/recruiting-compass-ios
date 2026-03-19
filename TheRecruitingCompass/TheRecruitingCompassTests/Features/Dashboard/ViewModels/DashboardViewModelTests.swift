@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class DashboardViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var sut: DashboardViewModel!
   var mockAuthManager: MockAuthManager!
   var mockDashboardService: MockDashboardService!

@@ -2,9 +2,8 @@ import XCTest
 import PDFKit
 @testable import TheRecruitingCompass
 
-@MainActor
 final class PerformancePDFGeneratorTests: XCTestCase {
-  func testGeneratePDF_WithMetrics_ReturnsValidPDFData() {
+  func testGeneratePDF_WithMetrics_ReturnsValidPDFData() async {
     // Given
     let metrics = [
       PerformanceMetric(
@@ -24,26 +23,26 @@ final class PerformancePDFGeneratorTests: XCTestCase {
     let generator = PerformancePDFGenerator()
 
     // When
-    let pdfData = generator.generate(metrics: metrics, userName: "Test User")
+    let pdfData = await generator.generate(metrics: metrics, userName: "Test User")
 
     // Then
     XCTAssertNotNil(pdfData)
     XCTAssertGreaterThan(pdfData.count, 0)
   }
 
-  func testGeneratePDF_WithEmptyMetrics_ReturnsValidPDFData() {
+  func testGeneratePDF_WithEmptyMetrics_ReturnsValidPDFData() async {
     // Given
     let generator = PerformancePDFGenerator()
 
     // When
-    let pdfData = generator.generate(metrics: [], userName: "Test User")
+    let pdfData = await generator.generate(metrics: [], userName: "Test User")
 
     // Then
     XCTAssertNotNil(pdfData)
     XCTAssertGreaterThan(pdfData.count, 0)
   }
 
-  func testPDF_ContainsAthleteNameAndMetricValues() {
+  func testPDF_ContainsAthleteNameAndMetricValues() async {
     // Given
     let generator = PerformancePDFGenerator()
     let metrics = [
@@ -63,7 +62,7 @@ final class PerformancePDFGeneratorTests: XCTestCase {
     ]
 
     // When
-    let data = generator.generate(metrics: metrics, userName: "Jane Doe")
+    let data = await generator.generate(metrics: metrics, userName: "Jane Doe")
     let pdf = PDFDocument(data: data)
     let pageText = pdf?.page(at: 0)?.string ?? ""
 
@@ -73,7 +72,7 @@ final class PerformancePDFGeneratorTests: XCTestCase {
     XCTAssertTrue(pageText.contains("Velocity"), "PDF should contain metric type")
   }
 
-  func testPDF_SortsMetricsByDateDescending() {
+  func testPDF_SortsMetricsByDateDescending() async {
     // Given
     let generator = PerformancePDFGenerator()
     let now = Date()
@@ -123,7 +122,7 @@ final class PerformancePDFGeneratorTests: XCTestCase {
     ]
 
     // When
-    let data = generator.generate(metrics: metrics, userName: "Test User")
+    let data = await generator.generate(metrics: metrics, userName: "Test User")
     let pdf = PDFDocument(data: data)
     let pageText = pdf?.page(at: 0)?.string ?? ""
 
@@ -143,7 +142,7 @@ final class PerformancePDFGeneratorTests: XCTestCase {
     }
   }
 
-  func testPDF_RespectsMaximumMetricLimit() {
+  func testPDF_RespectsMaximumMetricLimit() async {
     // Given
     let generator = PerformancePDFGenerator()
     let metrics = (0..<60).map { index in
@@ -163,22 +162,18 @@ final class PerformancePDFGeneratorTests: XCTestCase {
     }
 
     // When
-    let data = generator.generate(metrics: metrics, userName: "Test User")
+    let data = await generator.generate(metrics: metrics, userName: "Test User")
     let pdf = PDFDocument(data: data)
     let pageText = pdf?.page(at: 0)?.string ?? ""
 
     // Then
     XCTAssertNotNil(pdf, "Should generate valid PDF")
     XCTAssertTrue(pageText.contains("Total Metrics Logged: 60"), "Should show total count")
-
-    // The PDF should only display up to 50 metrics (sorted by date)
-    // Since all have same date, it should show first 50 from the sorted array
-    // Verify truncation indicator is present
     let hasTruncationIndicator = pageText.contains("and") && pageText.contains("more metric")
     XCTAssertTrue(hasTruncationIndicator, "Should show truncation indicator when metrics exceed limit")
   }
 
-  func testPDF_WorksWithNilUserName() {
+  func testPDF_WorksWithNilUserName() async {
     // Given
     let generator = PerformancePDFGenerator()
     let metrics = [
@@ -198,7 +193,7 @@ final class PerformancePDFGeneratorTests: XCTestCase {
     ]
 
     // When
-    let data = generator.generate(metrics: metrics, userName: nil)
+    let data = await generator.generate(metrics: metrics, userName: nil)
     let pdf = PDFDocument(data: data)
     let pageText = pdf?.page(at: 0)?.string ?? ""
 

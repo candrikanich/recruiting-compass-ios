@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class OfferCardAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Accessibility Label
 

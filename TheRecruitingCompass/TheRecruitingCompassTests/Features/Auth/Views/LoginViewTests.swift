@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class LoginViewTests: XCTestCase {
+  nonisolated deinit {}
   var mockAuthManager: MockAuthManager!
 
   override func setUp() {

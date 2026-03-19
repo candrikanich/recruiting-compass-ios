@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class FamilyServiceImplTests: XCTestCase {
+  nonisolated deinit {}
   var mockService: MockFamilyService!
 
   override func setUp() {

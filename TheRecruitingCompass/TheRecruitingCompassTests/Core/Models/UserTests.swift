@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class UserTests: XCTestCase {
+  nonisolated deinit {}
   func testUserDecodingFromSupabaseResponse() throws {
     let json = """
     {

@@ -5,6 +5,7 @@ import XCTest
 
 @MainActor
 final class FeedbackServiceTests: XCTestCase {
+  nonisolated deinit {}
 
     // MARK: - FeedbackSubject
 

@@ -20,6 +20,7 @@ final class MockPerCategoryPreferenceManager: PreferenceManaging, @unchecked Sen
 
 @MainActor
 final class SettingsViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: SettingsViewModel!
   var mockService: MockPerCategoryPreferenceManager!
 

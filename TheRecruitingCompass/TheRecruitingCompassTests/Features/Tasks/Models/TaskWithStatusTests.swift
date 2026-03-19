@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class TaskWithStatusTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - isLocked
 

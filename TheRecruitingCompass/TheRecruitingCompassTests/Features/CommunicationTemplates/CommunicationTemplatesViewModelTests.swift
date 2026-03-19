@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class CommunicationTemplatesViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: CommunicationTemplatesViewModel!
   var mockService: MockCommunicationTemplatesService!
 

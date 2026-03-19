@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class VerificationStatusIconTests: XCTestCase {
+  nonisolated deinit {}
   func testPendingStateIcon() {
     let icon = VerificationStatusIcon(state: .pending)
 

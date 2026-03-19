@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class AppNotificationTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Codable Tests
 

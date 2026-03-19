@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class CreateEventViewModelTests: XCTestCase {
+  nonisolated deinit {}
 
   private var sut: CreateEventViewModel!
   private var mockService: MockEventsService!

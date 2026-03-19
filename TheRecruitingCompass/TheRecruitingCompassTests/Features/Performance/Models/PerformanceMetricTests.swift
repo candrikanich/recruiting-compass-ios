@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class PerformanceMetricTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Initialization Tests
 

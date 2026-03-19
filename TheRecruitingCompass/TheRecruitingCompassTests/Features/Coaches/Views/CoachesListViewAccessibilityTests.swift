@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class CoachesListViewAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Test Helpers
 

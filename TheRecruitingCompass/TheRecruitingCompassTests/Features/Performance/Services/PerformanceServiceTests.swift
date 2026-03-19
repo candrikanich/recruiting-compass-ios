@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class PerformanceServiceTests: XCTestCase {
+  nonisolated deinit {}
   var mockService: MockPerformanceService!
 
   override func setUp() {

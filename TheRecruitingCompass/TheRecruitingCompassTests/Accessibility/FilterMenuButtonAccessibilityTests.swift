@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class FilterMenuButtonAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Chevron Icon
 

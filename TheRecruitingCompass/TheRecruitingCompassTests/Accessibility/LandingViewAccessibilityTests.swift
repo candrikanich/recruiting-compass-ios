@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class LandingViewAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   func testLandingView_LogoSection_HasAccessibilityLabel() {
     let view = LandingView()

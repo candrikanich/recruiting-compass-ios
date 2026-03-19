@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class AnalyticsDateRangeTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Display Name Tests
 

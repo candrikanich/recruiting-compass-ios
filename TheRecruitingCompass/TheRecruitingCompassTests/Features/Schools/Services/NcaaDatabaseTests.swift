@@ -11,6 +11,7 @@ import XCTest
 
 @MainActor
 final class NcaaDatabaseTests: XCTestCase {
+  nonisolated deinit {}
 
   var database: TestableNcaaDatabase!
 

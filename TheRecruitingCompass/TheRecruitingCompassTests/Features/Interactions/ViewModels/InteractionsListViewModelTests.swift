@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class InteractionsListViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: InteractionsListViewModel!
   var mockService: MockInteractionsService!
   var mockFamilyManager: FamilyManager!

@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class CoachesListViewModelSchoolFilterTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - School Filter Tests
 

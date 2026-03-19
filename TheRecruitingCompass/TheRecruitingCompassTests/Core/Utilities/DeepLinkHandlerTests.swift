@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class DeepLinkHandlerTests: XCTestCase {
+  nonisolated deinit {}
 
   func testValidResetPasswordURL() {
     let url = URL(string: "recruiting-compass://reset-password?token=abc123")!

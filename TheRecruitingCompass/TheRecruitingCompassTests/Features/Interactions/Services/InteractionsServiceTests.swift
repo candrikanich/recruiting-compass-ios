@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class InteractionsServiceTests: XCTestCase {
+  nonisolated deinit {}
   var mockService: MockInteractionsService!
 
   override func setUp() {

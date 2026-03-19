@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class InteractionModelTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Display Date Tests
 

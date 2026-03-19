@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class PrivacyPolicyAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Back Button / Toolbar
 

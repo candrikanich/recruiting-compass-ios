@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class CoachFiltersTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - SchoolId Filter Tests
 

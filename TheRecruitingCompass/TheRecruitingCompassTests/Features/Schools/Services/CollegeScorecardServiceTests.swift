@@ -11,6 +11,7 @@ import XCTest
 
 @MainActor
 final class CollegeScorecardServiceTests: XCTestCase {
+  nonisolated deinit {}
 
   var service: CollegeScorecardService!
   var mockSession: URLSession!

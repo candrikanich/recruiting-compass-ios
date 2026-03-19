@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class NotificationsServiceTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Service Initialization
 

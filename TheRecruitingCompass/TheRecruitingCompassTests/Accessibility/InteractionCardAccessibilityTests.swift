@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class InteractionCardAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Type Icon Hiding
 

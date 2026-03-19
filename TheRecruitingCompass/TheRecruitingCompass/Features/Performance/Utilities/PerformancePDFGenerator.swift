@@ -16,6 +16,7 @@ final class PerformancePDFGenerator {
     return formatter
   }()
 
+  @MainActor
   func generate(metrics: [PerformanceMetric], userName: String?) -> Data {
     let pdfMetaData = [
       kCGPDFContextTitle: "Performance Metrics Report",

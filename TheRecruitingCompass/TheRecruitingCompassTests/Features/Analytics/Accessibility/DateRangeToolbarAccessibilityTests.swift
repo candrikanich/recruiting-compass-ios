@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class DateRangeToolbarAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Filter Button Label Tests
 

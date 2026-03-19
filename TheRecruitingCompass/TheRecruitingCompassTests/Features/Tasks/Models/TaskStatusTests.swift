@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class TaskStatusTests: XCTestCase {
+  nonisolated deinit {}
 
   func testRawValue_NotStarted() {
     XCTAssertEqual(TaskStatus.notStarted.rawValue, "not_started")

@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class NotificationBulkActionsAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Mark All Read Button
 

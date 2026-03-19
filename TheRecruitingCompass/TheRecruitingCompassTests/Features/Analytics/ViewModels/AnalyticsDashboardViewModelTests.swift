@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class AnalyticsDashboardViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: AnalyticsDashboardViewModel!
   var mockService: MockAnalyticsService!
 

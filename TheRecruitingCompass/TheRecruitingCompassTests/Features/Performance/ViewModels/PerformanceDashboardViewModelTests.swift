@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class PerformanceDashboardViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: PerformanceDashboardViewModel!
   var mockService: MockPerformanceService!
   var mockAuthManager: MockAuthManager!

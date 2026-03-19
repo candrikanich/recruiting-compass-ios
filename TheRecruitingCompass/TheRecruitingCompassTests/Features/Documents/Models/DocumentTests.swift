@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class DocumentTests: XCTestCase {
+  nonisolated deinit {}
 
   func testIsShared_emptySchools_isFalse() {
     let doc = Document.mock(sharedWithSchools: [])

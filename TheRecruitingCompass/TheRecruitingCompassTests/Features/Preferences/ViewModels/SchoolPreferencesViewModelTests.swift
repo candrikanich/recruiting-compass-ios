@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class SchoolPreferencesViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: SchoolPreferencesViewModel!
   var mockService: MockPreferenceManager!
 

@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class RoleSelectionCardAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   func testRoleSelectionCard_HasAccessibilityLabel() {
     let card = RoleSelectionCard(

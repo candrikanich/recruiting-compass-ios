@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class EmailVerificationViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var sut: EmailVerificationViewModel!
   var mockAuthManager: MockAuthManager!
 

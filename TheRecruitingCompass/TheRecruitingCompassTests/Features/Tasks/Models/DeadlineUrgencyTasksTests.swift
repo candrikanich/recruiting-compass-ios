@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class DeadlineUrgencyTasksTests: XCTestCase {
+  nonisolated deinit {}
 
   var calendar: Calendar { Calendar.current }
 

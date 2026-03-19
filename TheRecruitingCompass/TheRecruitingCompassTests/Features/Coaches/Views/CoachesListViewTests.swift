@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class CoachesListViewTests: XCTestCase {
+  nonisolated deinit {}
 
   private var mockAuthManager: MockAuthManager!
   private var mockFamilyManager: FamilyManager!

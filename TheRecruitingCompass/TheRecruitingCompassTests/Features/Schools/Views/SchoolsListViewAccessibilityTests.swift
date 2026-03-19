@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class SchoolsListViewAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - FavoriteStarButton Tests
 

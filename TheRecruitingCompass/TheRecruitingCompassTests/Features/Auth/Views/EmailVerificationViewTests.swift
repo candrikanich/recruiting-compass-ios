@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class EmailVerificationViewTests: XCTestCase {
+  nonisolated deinit {}
   var mockAuthManager: MockAuthManager!
 
   private let unverifiedUser = User(

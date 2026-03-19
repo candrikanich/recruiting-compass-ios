@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class OfferStatusTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - displayName Tests
 

@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class SignupViewAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   func testSignupView_BackButton_HasLabel() {
     let view = SignupView()

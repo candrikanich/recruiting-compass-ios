@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class InteractionDetailViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: InteractionDetailViewModel!
   var mockService: MockInteractionsService!
   var mockAuthManager: MockAuthManager!

@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class OfferFilterBarAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Status Picker Label
 

@@ -31,6 +31,7 @@ private final class MockSchoolFaviconService: SchoolFaviconManaging, @unchecked 
 
 @MainActor
 final class AddSchoolViewModelTests: XCTestCase {
+  nonisolated deinit {}
 
   var viewModel: AddSchoolViewModel!
   var mockService: MockSchoolsService!

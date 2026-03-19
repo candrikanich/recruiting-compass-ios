@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class NotificationPreferencesViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: NotificationPreferencesViewModel!
   var mockService: MockPreferenceManager!
 

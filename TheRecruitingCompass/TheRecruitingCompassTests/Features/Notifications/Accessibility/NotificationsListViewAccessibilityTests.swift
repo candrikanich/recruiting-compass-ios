@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class NotificationsListViewAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Error State Accessibility
 

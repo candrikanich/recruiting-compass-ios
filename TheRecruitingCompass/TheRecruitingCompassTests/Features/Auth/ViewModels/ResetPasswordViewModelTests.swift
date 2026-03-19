@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class ResetPasswordViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var sut: ResetPasswordViewModel!
   var mockAuthManager: MockAuthManager!
 

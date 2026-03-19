@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class CommunicationComponentsTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - CommunicationButton Tests
 

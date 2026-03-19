@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class RecentActivityWidgetAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Header Accessibility
 

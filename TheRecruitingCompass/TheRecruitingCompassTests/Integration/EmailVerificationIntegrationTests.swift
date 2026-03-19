@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class EmailVerificationIntegrationTests: XCTestCase {
+  nonisolated deinit {}
   var mockAuthManager: MockAuthManager!
 
   override func setUp() {

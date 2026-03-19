@@ -22,15 +22,15 @@ final class AddInteractionScreenObject {
   // MARK: - Form Fields
 
   var schoolPicker: XCUIElement {
-    app.pickers["School picker"]
+    app.buttons["School picker"]
   }
 
   var coachPicker: XCUIElement {
-    app.pickers["Coach picker"]
+    app.buttons["Coach picker"]
   }
 
   var interactionTypePicker: XCUIElement {
-    app.pickers["Interaction type picker"]
+    app.buttons["Interaction type picker"]
   }
 
   var directionPicker: XCUIElement {

@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class PreferenceServiceTests: XCTestCase {
+  nonisolated deinit {}
   var mockManager: MockPreferenceManager!
 
   override func setUp() {

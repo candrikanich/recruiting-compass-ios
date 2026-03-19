@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class TasksListViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: TasksListViewModel!
   var mockService: MockTasksService!
   var mockAuthManager: MockAuthManager!

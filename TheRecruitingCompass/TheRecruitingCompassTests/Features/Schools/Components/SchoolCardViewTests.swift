@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class SchoolCardViewTests: XCTestCase {
+  nonisolated deinit {}
 
   private var school: School!
 

@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class ActivityFeedServiceTests: XCTestCase {
+  nonisolated deinit {}
   var mockService: MockActivityFeedService!
 
   override func setUp() {

@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class MetricRequestTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - MetricCreateRequest Tests
 

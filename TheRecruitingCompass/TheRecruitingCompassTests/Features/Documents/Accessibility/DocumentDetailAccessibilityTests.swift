@@ -5,6 +5,7 @@ import SwiftUI
 /// Verifies Document Detail accessibility: VoiceOver labels, 44pt touch targets, Dynamic Type.
 @MainActor
 final class DocumentDetailAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   private func makeViewModel(
     documentsService: MockDocumentsService = MockDocumentsService(),

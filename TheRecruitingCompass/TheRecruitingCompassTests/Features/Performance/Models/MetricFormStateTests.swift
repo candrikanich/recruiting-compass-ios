@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class MetricFormStateTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Default Initialization Tests
 

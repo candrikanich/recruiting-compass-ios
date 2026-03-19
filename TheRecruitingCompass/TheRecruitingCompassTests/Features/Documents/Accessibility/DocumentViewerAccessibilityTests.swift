@@ -6,6 +6,7 @@ import SwiftUI
 /// VoiceOver labels, 44pt hit targets, Dynamic Type.
 @MainActor
 final class DocumentViewerAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Test Helpers
 

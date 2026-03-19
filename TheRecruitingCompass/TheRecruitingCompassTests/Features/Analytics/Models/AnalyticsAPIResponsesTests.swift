@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class AnalyticsAPIResponsesTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - ChartDataItem Tests
 

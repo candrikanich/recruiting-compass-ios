@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class InteractionFilterBarAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Type Filter
 

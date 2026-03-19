@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class NotificationFilterChipsAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Accessibility Labels
 

@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class TermsOfServiceViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var sut: TermsOfServiceViewModel!
 
   override func setUp() {

@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class ActivityEventItemAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Icon Hidden from VoiceOver
 

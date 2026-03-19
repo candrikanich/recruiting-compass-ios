@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class LandingViewTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - View Rendering Tests
 

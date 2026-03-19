@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class SchoolDetailViewModelPhase2Tests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: SchoolDetailViewModel!
   var mockSchoolsService: MockSchoolsService!
   var mockAuthManager: MockAuthManager!

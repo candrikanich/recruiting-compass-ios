@@ -12,6 +12,7 @@ import SwiftUI
 
 @MainActor
 final class AddCoachAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - ViewModel Accessibility Tests
 

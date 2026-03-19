@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class InfoBannerTests: XCTestCase {
+  nonisolated deinit {}
   func testPendingStateBanner() {
     let banner = InfoBanner(state: .pending, email: "test@example.com")
     XCTAssertNotNil(banner)

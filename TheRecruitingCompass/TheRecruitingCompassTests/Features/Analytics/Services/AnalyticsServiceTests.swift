@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class AnalyticsServiceTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Service Initialization
 

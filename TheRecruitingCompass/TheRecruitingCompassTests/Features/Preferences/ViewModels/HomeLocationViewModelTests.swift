@@ -4,6 +4,7 @@ import CoreLocation
 
 @MainActor
 final class HomeLocationViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: HomeLocationViewModel!
   var mockService: MockPreferenceManager!
   var mockGeocoder: MockGeocoder!

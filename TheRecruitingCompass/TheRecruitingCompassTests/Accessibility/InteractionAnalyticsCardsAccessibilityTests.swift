@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class InteractionAnalyticsCardsAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Total Card
 

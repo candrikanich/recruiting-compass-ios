@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class OfferDetailViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var mockService: MockOffersService!
   var mockAuthManager: MockAuthManager!
   var sut: OfferDetailViewModel!

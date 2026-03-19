@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class TermsCheckboxAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   func testTermsCheckbox_HasAccessibilityLabel() {
     @State var isChecked = false

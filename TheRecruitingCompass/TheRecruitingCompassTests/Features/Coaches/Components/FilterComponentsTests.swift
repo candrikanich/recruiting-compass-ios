@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class FilterComponentsTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - CoachFilterBar Tests
 

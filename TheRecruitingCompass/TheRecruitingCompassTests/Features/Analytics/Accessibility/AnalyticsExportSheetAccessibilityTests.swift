@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class AnalyticsExportSheetAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Export Button Label Tests
 

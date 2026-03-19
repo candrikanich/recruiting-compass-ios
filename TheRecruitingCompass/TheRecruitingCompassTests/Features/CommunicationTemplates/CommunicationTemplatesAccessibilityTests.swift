@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class CommunicationTemplatesAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Test Data
 

@@ -4,6 +4,7 @@ import CoreLocation
 
 @MainActor
 final class SchoolsListViewModelTests: XCTestCase {
+  nonisolated deinit {}
 
   private var sut: SchoolsListViewModel!
   private var mockService: MockSchoolsService!

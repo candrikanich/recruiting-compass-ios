@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class MetricTrendTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Initialization Tests
 

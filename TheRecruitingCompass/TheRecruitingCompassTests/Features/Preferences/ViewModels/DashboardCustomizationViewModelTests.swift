@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class DashboardCustomizationViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var viewModel: DashboardCustomizationViewModel!
   var mockService: MockPreferenceManager!
 

@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class DocumentViewerViewModelTests: XCTestCase {
+  nonisolated deinit {}
 
   private var sut: DocumentViewerViewModel!
   private var mockDocuments: MockDocumentsService!

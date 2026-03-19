@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 final class ActivityFeedViewAccessibilityTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - Empty State Accessibility
 

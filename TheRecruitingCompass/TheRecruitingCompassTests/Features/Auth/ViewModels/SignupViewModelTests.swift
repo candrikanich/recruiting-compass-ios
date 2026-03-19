@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class SignupViewModelTests: XCTestCase {
+  nonisolated deinit {}
   var sut: SignupViewModel!
   var mockAuthManager: MockAuthManager!
   var mockFamilyService: MockFamilyService!

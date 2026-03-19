@@ -3,6 +3,7 @@ import XCTest
 
 @MainActor
 final class OfferTypeTests: XCTestCase {
+  nonisolated deinit {}
 
   // MARK: - displayName Tests
 
