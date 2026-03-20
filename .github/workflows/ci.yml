@@ -144,9 +144,7 @@ jobs:
             -scheme TheRecruitingCompass \
             -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
             -only-testing:TheRecruitingCompassUITests \
-            -quiet \
-            -testenv SUPABASE_URL="${SUPABASE_URL}" \
-            -testenv SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
+            -quiet
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
