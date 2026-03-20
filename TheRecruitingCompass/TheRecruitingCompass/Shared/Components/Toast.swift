@@ -35,11 +35,8 @@ struct Toast: View {
       .accessibilityLabel("Dismiss notification")
     }
     .padding(16)
-    .background(
-      RoundedRectangle(cornerRadius: 12)
-        .fill(Color(.systemBackground))
-        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-    )
+    .background(Color.Surface.card, in: RoundedRectangle(cornerRadius: 12))
+    .brandShadowMd()
     .padding(.horizontal, 16)
     .accessibilityElement(children: .combine)
     .accessibilityLabel(message)

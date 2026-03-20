@@ -40,9 +40,9 @@ struct NotesSection: View {
         }
     }
     .padding(16)
-    .background(Color(.systemBackground))
+    .background(Color.Surface.card)
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+    .brandShadowMd()
   }
 }
 

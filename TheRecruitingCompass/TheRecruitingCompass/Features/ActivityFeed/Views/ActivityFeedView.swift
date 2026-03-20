@@ -106,9 +106,9 @@ struct ActivityFeedView: View {
       .clipShape(.rect(cornerRadius: 10))
     }
     .padding(16)
-    .background(Color(.systemBackground))
+    .background(Color.Surface.card)
     .clipShape(.rect(cornerRadius: 12))
-    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+    .brandShadowSm()
   }
 
   // MARK: - Pagination

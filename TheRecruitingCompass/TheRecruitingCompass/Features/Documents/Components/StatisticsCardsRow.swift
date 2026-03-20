@@ -54,8 +54,8 @@ private struct DocumentStatCard: View {
     }
     .frame(width: 140, height: 80)
     .padding(12)
-    .background(Color(.systemBackground))
+    .background(Color.Surface.card)
     .clipShape(.rect(cornerRadius: 12))
-    .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+    .brandShadowSm()
   }
 }

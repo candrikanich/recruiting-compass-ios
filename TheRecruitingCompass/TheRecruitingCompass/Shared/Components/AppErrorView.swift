@@ -68,9 +68,9 @@ struct AppErrorView: View {
         }
         .padding(32)
         .frame(maxWidth: 400)
-        .background(Color.white.opacity(0.95))
+        .background(Color.Surface.card)
         .clipShape(.rect(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 4)
+        .brandShadowLg()
     }
 
     @ViewBuilder

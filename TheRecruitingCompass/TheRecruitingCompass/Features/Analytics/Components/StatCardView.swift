@@ -28,9 +28,9 @@ struct StatCardView: View {
     }
     .padding()
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(.systemBackground))
+    .background(Color.Surface.card)
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+    .brandShadowSm()
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(accessibilityLabelText)
     .accessibilityValue(card.trend ?? "")

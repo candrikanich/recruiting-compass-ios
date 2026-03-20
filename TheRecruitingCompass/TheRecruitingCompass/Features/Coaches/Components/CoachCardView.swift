@@ -34,12 +34,7 @@ struct CoachCardView: View {
         .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
     )
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .shadow(
-      color: colorScheme == .dark ? .black.opacity(0.4) : .black.opacity(0.08),
-      radius: colorScheme == .dark ? 4 : 8,
-      x: 0,
-      y: 2
-    )
+    .brandShadowSm()
     .accessibilityElement(children: .contain)
   }
 

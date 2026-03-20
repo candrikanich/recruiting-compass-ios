@@ -158,7 +158,7 @@ struct ScatterChartView: View {
       .contentShape(Rectangle())
     }
     .padding(12)
-    .background(Color(.secondarySystemBackground))
+    .background(Color.Surface.card)
     .clipShape(RoundedRectangle(cornerRadius: 8))
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(point.label), \(dataSet.xAxisLabel): \(point.x.formatted(.number.precision(.fractionLength(1)))), \(dataSet.yAxisLabel): \(point.y.formatted(.number.precision(.fractionLength(1))))")

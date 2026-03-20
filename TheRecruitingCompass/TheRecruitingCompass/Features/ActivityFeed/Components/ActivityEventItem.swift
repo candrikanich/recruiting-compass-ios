@@ -58,9 +58,9 @@ struct ActivityEventItem: View {
     }
     .padding(compact ? 12 : 16)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(.systemBackground))
+    .background(Color.Surface.card)
     .clipShape(.rect(cornerRadius: 12))
-    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+    .brandShadowSm()
     .frame(minHeight: 44)
     .accessibilityElement(children: .combine)
     .accessibilityLabel(accessibilityLabel)

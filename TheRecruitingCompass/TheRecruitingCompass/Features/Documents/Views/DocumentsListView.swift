@@ -232,7 +232,7 @@ struct DocumentsListView: View {
         .frame(width: 64, height: 64)
         .background(Color.blue)
         .clipShape(Circle())
-        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+        .brandShadowSm()
     }
     .accessibilityLabel("Upload new document")
     .accessibilityHint("Opens upload form")

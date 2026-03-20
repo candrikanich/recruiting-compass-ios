@@ -5,7 +5,6 @@ struct InteractionCard: View {
   let schoolName: String?
   let coachName: String?
 
-  @Environment(\.colorScheme) private var colorScheme
   @Environment(\.sizeCategory) private var sizeCategory
   @ScaledMetric(relativeTo: .body) private var iconImageSize: CGFloat = 18
 
@@ -101,18 +100,13 @@ struct InteractionCard: View {
     }
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(uiColor: .secondarySystemBackground))
+    .background(Color.Surface.card)
     .overlay {
       RoundedRectangle(cornerRadius: 12)
         .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
     }
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .shadow(
-      color: colorScheme == .dark ? .black.opacity(0.4) : .black.opacity(0.08),
-      radius: colorScheme == .dark ? 4 : 8,
-      x: 0,
-      y: 2
-    )
+    .brandShadowSm()
     .accessibilityElement(children: .combine)
     .accessibilityLabel(accessibilityLabel)
     .accessibilityAddTraits(.isButton)

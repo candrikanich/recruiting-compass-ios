@@ -46,7 +46,7 @@ struct NotificationCard: View {
         .accessibilityLabel("Delete notification")
       }
       .padding()
-      .background(notification.isRead ? Color(.systemBackground) : Color(hex: "#EFF6FF"))
+      .background(notification.isRead ? Color.Surface.card : Color(hex: "#EFF6FF"))
       .overlay(
         Rectangle()
           .fill(notification.isRead ? Color(hex: "#9CA3AF") : Color(hex: "#3B82F6"))
@@ -54,7 +54,7 @@ struct NotificationCard: View {
         alignment: .leading
       )
       .clipShape(.rect(cornerRadius: 8))
-      .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+      .brandShadowSm()
     }
     .buttonStyle(.plain)
     .accessibilityIdentifier("notification-card-\(notification.id)")

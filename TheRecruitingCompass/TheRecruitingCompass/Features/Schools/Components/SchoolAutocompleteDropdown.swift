@@ -26,9 +26,9 @@ struct SchoolAutocompleteDropdown: View {
         resultsList
       }
     }
-    .background(Color(UIColor.systemBackground))
+    .background(Color.Surface.card)
     .clipShape(.rect(cornerRadius: 8))
-    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+    .brandShadowSm()
   }
 
   // MARK: - Loading View

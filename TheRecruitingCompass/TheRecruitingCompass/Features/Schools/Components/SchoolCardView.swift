@@ -4,7 +4,6 @@ struct SchoolCardView: View {
   let school: School
   let onToggleFavorite: () -> Void
 
-  @Environment(\.colorScheme) private var colorScheme
   @Environment(\.sizeCategory) private var sizeCategory
 
   private var initialsSize: CGFloat {
@@ -23,18 +22,13 @@ struct SchoolCardView: View {
     }
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(uiColor: .secondarySystemBackground))
+    .background(Color.Surface.card)
     .overlay(
       RoundedRectangle(cornerRadius: 12)
         .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
     )
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .shadow(
-      color: colorScheme == .dark ? .black.opacity(0.4) : .black.opacity(0.08),
-      radius: colorScheme == .dark ? 4 : 8,
-      x: 0,
-      y: 2
-    )
+    .brandShadowSm()
     .accessibilityElement(children: .contain)
   }
 

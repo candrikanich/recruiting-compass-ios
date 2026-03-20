@@ -71,9 +71,9 @@ struct MetricHistoryCard: View {
       }
     }
     .padding()
-    .background(Color(.systemBackground))
+    .background(Color.Surface.card)
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+    .brandShadowSm()
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(metric.displayName), \(metric.formattedValue), recorded \(metric.formattedDate)")
   }

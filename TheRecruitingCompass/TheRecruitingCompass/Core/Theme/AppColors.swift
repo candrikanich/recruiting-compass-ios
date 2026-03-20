@@ -74,6 +74,24 @@ extension Color {
   static let iconGray = Color.Brand.slate500
   static let borderGray = Color.Brand.slate100
 
+  // MARK: - Tinted Surface Tokens
+  // Every neutral carries a trace of the brand blue (#2563EB) so the brand
+  // color feels native to the surface rather than sitting on top of it.
+  enum Surface {
+    static let background  = Color(hex: "F4F6FA")  // page/screen background
+    static let card        = Color(hex: "FAFBFD")  // card / sheet background
+    static let muted       = Color(hex: "E8EDF5")  // muted fills, disabled states
+    static let border      = Color(red: 30/255, green: 50/255, blue: 100/255).opacity(0.12)
+    static let borderStrong = Color(red: 30/255, green: 50/255, blue: 100/255).opacity(0.22)
+  }
+
+  // MARK: - Tinted Text Tokens
+  enum Text {
+    static let primary   = Color(hex: "0F1523")  // headings — cool near-black
+    static let secondary = Color(hex: "3A4560")  // body copy
+    static let muted     = Color(hex: "7A8BA0")  // captions, placeholder
+  }
+
   // MARK: - Hex Initializer
   init(hex: String) {
     let scanner = Scanner(string: hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted))

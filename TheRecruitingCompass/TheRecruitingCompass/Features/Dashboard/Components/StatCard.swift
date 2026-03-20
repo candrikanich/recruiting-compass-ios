@@ -64,7 +64,7 @@ struct StatCard: View {
       )
     )
     .clipShape(.rect(cornerRadius: 12))
-    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+    .brandShadowSm()
     .opacity(isEnabled ? 1.0 : 0.7)
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(title): \(count)")
