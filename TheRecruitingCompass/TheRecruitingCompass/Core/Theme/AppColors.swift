@@ -78,18 +78,18 @@ extension Color {
   // Every neutral carries a trace of the brand blue (#2563EB) so the brand
   // color feels native to the surface rather than sitting on top of it.
   enum Surface {
-    static let background  = Color(hex: "F4F6FA")  // page/screen background
-    static let card        = Color(hex: "FAFBFD")  // card / sheet background
-    static let muted       = Color(hex: "E8EDF5")  // muted fills, disabled states
-    static let border      = Color(red: 30/255, green: 50/255, blue: 100/255).opacity(0.12)
-    static let borderStrong = Color(red: 30/255, green: 50/255, blue: 100/255).opacity(0.22)
+    static let background  = Color(light: Color(hex: "F4F6FA"), dark: Color(hex: "121212"))  // page/screen background
+    static let card        = Color(light: Color(hex: "FAFBFD"), dark: Color(hex: "1E1E1E"))  // card / sheet background
+    static let muted       = Color(light: Color(hex: "E8EDF5"), dark: Color(hex: "2A2A2A"))  // muted fills, disabled states
+    static let border      = Color(light: Color(red: 30/255, green: 50/255, blue: 100/255).opacity(0.12), dark: Color.white.opacity(0.1))
+    static let borderStrong = Color(light: Color(red: 30/255, green: 50/255, blue: 100/255).opacity(0.22), dark: Color.white.opacity(0.2))
   }
 
   // MARK: - Tinted Text Tokens
   enum Text {
-    static let primary   = Color(hex: "0F1523")  // headings — cool near-black
-    static let secondary = Color(hex: "3A4560")  // body copy
-    static let muted     = Color(hex: "7A8BA0")  // captions, placeholder
+    static let primary   = Color(light: Color(hex: "0F1523"), dark: Color(hex: "FFFFFF"))  // headings — cool near-black
+    static let secondary = Color(light: Color(hex: "3A4560"), dark: Color(hex: "CCCCCC"))  // body copy
+    static let muted     = Color(light: Color(hex: "7A8BA0"), dark: Color(hex: "888888"))  // captions, placeholder
   }
 
   // MARK: - Hex Initializer
