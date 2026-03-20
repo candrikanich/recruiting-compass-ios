@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 extension Color {
   // MARK: - Brand Palette
@@ -91,6 +94,17 @@ extension Color {
     static let secondary = Color(light: Color(hex: "3A4560"), dark: Color(hex: "CCCCCC"))  // body copy
     static let muted     = Color(light: Color(hex: "7A8BA0"), dark: Color(hex: "888888"))  // captions, placeholder
   }
+
+  // MARK: - Adaptive Light/Dark Initializer
+  // Provides Color(light:dark:) using UIColor trait-based dynamic colors,
+  // replacing the iOS 17 SwiftUI API that was removed in Xcode 26.3 SDK.
+  #if canImport(UIKit)
+  init(light: Color, dark: Color) {
+    self = Color(uiColor: UIColor { traits in
+      traits.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
+    })
+  }
+  #endif
 
   // MARK: - Hex Initializer
   init(hex: String) {
