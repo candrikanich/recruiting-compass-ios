@@ -5,7 +5,7 @@ PROJECT_DIR := TheRecruitingCompass
 SCHEME := TheRecruitingCompass
 DESTINATION ?= platform=iOS Simulator,name=iPhone 17
 
-.PHONY: build test test-unit test-unit-fast clean setup-hooks lint
+.PHONY: build test test-ui test-unit test-unit-fast clean setup-hooks lint
 
 build:
 	cd $(PROJECT_DIR) && xcodebuild build \
@@ -14,11 +14,14 @@ build:
 		-quiet
 
 # Full test suite (unit + UI tests)
+# Runs fast unit tests first, then resilient UI tests with retry.
 test:
-	cd $(PROJECT_DIR) && xcodebuild test \
-		-scheme $(SCHEME) \
-		-destination '$(DESTINATION)' \
-		-quiet
+	$(MAKE) test-unit-fast DESTINATION='$(DESTINATION)'
+	./scripts/run_ui_tests_resilient.sh "$(PROJECT_DIR)" "$(SCHEME)" "$(DESTINATION)"
+
+# UI tests only with simulator preflight and retry
+test-ui:
+	./scripts/run_ui_tests_resilient.sh "$(PROJECT_DIR)" "$(SCHEME)" "$(DESTINATION)"
 
 # Unit tests only (skip UI tests) - significantly faster
 # Use for rapid feedback during development
