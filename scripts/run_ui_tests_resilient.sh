@@ -49,7 +49,7 @@ run_ui_tests_once() {
 }
 
 is_known_launch_error() {
-  rg -q "FBSOpenApplicationErrorDomain|Unknown application display identifier|xctrunner" "$LOG_FILE"
+  /usr/bin/grep -Eq "FBSOpenApplicationErrorDomain|Unknown application display identifier|xctrunner" "$LOG_FILE"
 }
 
 attempt=1
