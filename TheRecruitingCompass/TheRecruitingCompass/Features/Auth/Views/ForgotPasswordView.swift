@@ -140,6 +140,7 @@ struct ForgotPasswordView: View {
         Text("Check Your Email")
           .font(.title3.weight(.semibold))
           .foregroundStyle(Color.darkSlate)
+          .accessibilityIdentifier("ForgotPasswordCheckEmailHeading")
 
         Text("We've sent a password reset link to:")
           .font(.footnote)

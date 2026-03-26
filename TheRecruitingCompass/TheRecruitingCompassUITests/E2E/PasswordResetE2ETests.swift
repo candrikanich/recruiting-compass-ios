@@ -69,8 +69,12 @@ final class PasswordResetE2ETests: XCTestCase {
     XCTAssertTrue(sendResetLinkButton.waitForExistence(timeout: 5))
     sendResetLinkButton.tap()
 
-    let successMessage = app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'sent'"))
-    XCTAssertTrue(successMessage.firstMatch.waitForExistence(timeout: 5))
+    let successHeading = app.staticTexts.matching(identifier: "ForgotPasswordCheckEmailHeading")
+      .firstMatch
+    XCTAssertTrue(
+      successHeading.waitForExistence(timeout: 20),
+      "Password reset success screen should appear after Supabase responds"
+    )
   }
 
   func testSendPasswordResetEmailWithInvalidEmail() throws {

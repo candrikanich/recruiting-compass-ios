@@ -14,9 +14,13 @@ build:
 		-quiet
 
 # Full test suite (unit + UI tests)
-# Runs fast unit tests first, then resilient UI tests with retry.
+# Uses sequential unit tests (not test-unit-fast) to avoid parallel simulator
+# clones, which often trigger NSMachErrorDomain / launch failures on local CI.
+# Then runs resilient UI tests with retry.
+# Do not start a second `make test`/xcodebuild for this scheme in parallel —
+# DerivedData build.db will lock and wedge runs.
 test:
-	$(MAKE) test-unit-fast DESTINATION='$(DESTINATION)'
+	$(MAKE) test-unit DESTINATION='$(DESTINATION)'
 	./scripts/run_ui_tests_resilient.sh "$(PROJECT_DIR)" "$(SCHEME)" "$(DESTINATION)"
 
 # UI tests only with simulator preflight and retry
@@ -24,12 +28,14 @@ test-ui:
 	./scripts/run_ui_tests_resilient.sh "$(PROJECT_DIR)" "$(SCHEME)" "$(DESTINATION)"
 
 # Unit tests only (skip UI tests) - significantly faster
-# Use for rapid feedback during development
+# Explicitly disable parallel simulators (Xcode may default to clones otherwise).
 test-unit:
 	cd $(PROJECT_DIR) && xcodebuild test \
 		-scheme $(SCHEME) \
 		-destination '$(DESTINATION)' \
 		-skip-testing:TheRecruitingCompassUITests \
+		-parallel-testing-enabled NO \
+		-maximum-concurrent-test-simulator-destinations 1 \
 		-quiet
 
 # Unit tests with parallel execution - fastest option

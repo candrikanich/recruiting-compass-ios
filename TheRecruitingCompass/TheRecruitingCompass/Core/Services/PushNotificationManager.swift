@@ -27,12 +27,11 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
     private let supabaseManager: SupabaseManager
     private let authManager: any AuthManaging
 
-    init(
-        supabaseManager: SupabaseManager = .shared,
-        authManager: any AuthManaging = AuthManager.shared
-    ) {
-        self.supabaseManager = supabaseManager
-        self.authManager = authManager
+    /// Dependencies default inside the initializer body so default-argument evaluation
+    /// does not run in a nonisolated context (Swift 6 / strict concurrency).
+    init(supabaseManager: SupabaseManager? = nil, authManager: (any AuthManaging)? = nil) {
+        self.supabaseManager = supabaseManager ?? SupabaseManager.shared
+        self.authManager = authManager ?? AuthManager.shared
     }
 
     // MARK: - Permission

@@ -26,11 +26,11 @@ final class HomeLocationViewModel {
   init(
     preferenceService: any PreferenceManaging,
     geocoder: CLGeocoder = CLGeocoder(),
-    locationService: any CurrentLocationProviding = CoreLocationService()
+    locationService: (any CurrentLocationProviding)? = nil
   ) {
     self.preferenceService = preferenceService
     self.geocoder = geocoder
-    self.locationService = locationService
+    self.locationService = locationService ?? CoreLocationService()
   }
 
   nonisolated deinit {
