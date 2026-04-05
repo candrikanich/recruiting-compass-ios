@@ -1,5 +1,11 @@
 # Completed Work
 
+## Doc Cleanup — 2026-04-05
+
+- **Auto-deleted:** 0 files
+- **Compressed:** 0 files
+- **Flagged for review:** 33 files (no action taken — requires human review)
+
 ## Doc Cleanup Run — 2026-03-18
 - Deleted: 39 files (session debris — handoffs, agent team docs, phase complete flags)
 - Compressed: 4 files → `docs/history/ios.md` (Phase 1–5 dashboard/family summaries)
