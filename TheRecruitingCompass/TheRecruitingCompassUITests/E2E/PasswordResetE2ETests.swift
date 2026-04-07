@@ -71,6 +71,7 @@ final class PasswordResetE2ETests: XCTestCase {
 
     let successHeading = app.staticTexts.matching(identifier: "ForgotPasswordCheckEmailHeading")
       .firstMatch
+    // 20s: Supabase auth endpoint latency under simulator network conditions
     XCTAssertTrue(
       successHeading.waitForExistence(timeout: 20),
       "Password reset success screen should appear after Supabase responds"

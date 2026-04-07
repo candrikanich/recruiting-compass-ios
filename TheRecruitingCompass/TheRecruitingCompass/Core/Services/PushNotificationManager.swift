@@ -27,8 +27,8 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
     private let supabaseManager: SupabaseManager
     private let authManager: any AuthManaging
 
-    /// Dependencies default inside the initializer body so default-argument evaluation
-    /// does not run in a nonisolated context (Swift 6 / strict concurrency).
+    // Swift 6: singleton default arguments evaluate in the caller's isolation context,
+    // not the callee's — resolve lazily in the body instead.
     init(supabaseManager: SupabaseManager? = nil, authManager: (any AuthManaging)? = nil) {
         self.supabaseManager = supabaseManager ?? SupabaseManager.shared
         self.authManager = authManager ?? AuthManager.shared

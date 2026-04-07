@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Avoid running another xcodebuild for this scheme while this script runs —
-# concurrent builds share DerivedData and can wedge with "build.db is locked".
-
 set -euo pipefail
 
 PROJECT_DIR="${1:-TheRecruitingCompass}"
@@ -11,10 +8,9 @@ DESTINATION="${3:-platform=iOS Simulator,name=iPhone 17}"
 MAX_ATTEMPTS=3
 LOG_FILE="$(mktemp -t ui-tests.XXXXXX.log)"
 
-cleanup() {
+cleanup_on_success() {
   rm -f "$LOG_FILE"
 }
-trap cleanup EXIT
 
 extract_simulator_name() {
   printf '%s' "$DESTINATION" | sed -n "s/.*name=\([^,']*\).*/\1/p"
@@ -57,7 +53,10 @@ run_ui_tests_once() {
       -parallel-testing-enabled NO \
       -maximum-concurrent-test-simulator-destinations 1 \
       -quiet
-  ) 2>&1 | tee "$LOG_FILE" || status=${PIPESTATUS[0]}
+  ) 2>&1 | tee "$LOG_FILE"
+  # Capture xcodebuild's exit code — tee exits 0 even when xcodebuild fails,
+  # so reading PIPESTATUS after || would silently ignore test failures.
+  status=${PIPESTATUS[0]}
 
   return "$status"
 }
@@ -76,6 +75,7 @@ while (( attempt <= MAX_ATTEMPTS )); do
 
   if run_ui_tests_once "$attempt"; then
     echo "UI tests passed."
+    cleanup_on_success
     exit 0
   fi
 
@@ -85,6 +85,6 @@ while (( attempt <= MAX_ATTEMPTS )); do
     continue
   fi
 
-  echo "UI tests failed."
+  echo "UI tests failed. Full output: $LOG_FILE"
   exit 1
 done

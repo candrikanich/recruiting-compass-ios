@@ -14,11 +14,7 @@ build:
 		-quiet
 
 # Full test suite (unit + UI tests)
-# Uses sequential unit tests (not test-unit-fast) to avoid parallel simulator
-# clones, which often trigger NSMachErrorDomain / launch failures on local CI.
-# Then runs resilient UI tests with retry.
-# Do not start a second `make test`/xcodebuild for this scheme in parallel —
-# DerivedData build.db will lock and wedge runs.
+# Do not invoke a second `make test` in parallel — DerivedData build.db will lock.
 test:
 	$(MAKE) test-unit DESTINATION='$(DESTINATION)'
 	./scripts/run_ui_tests_resilient.sh "$(PROJECT_DIR)" "$(SCHEME)" "$(DESTINATION)"
