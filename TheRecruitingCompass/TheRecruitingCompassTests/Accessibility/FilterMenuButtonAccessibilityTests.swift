@@ -6,138 +6,50 @@ import SwiftUI
 final class FilterMenuButtonAccessibilityTests: XCTestCase {
   nonisolated deinit {}
 
-  // MARK: - Chevron Icon
-
-  func testChevronIcon_IsHidden() {
-    let button = FilterMenuButton(
-      label: "Type",
-      isActive: false,
-      style: .rounded
-    )
-
-    let hostingController = UIHostingController(rootView: button)
-    let view = hostingController.view!
-
-    // Find chevron image - should be hidden
-    let images = findSubviews(of: UIImageView.self, in: view)
-    XCTAssertTrue(images.allSatisfy { $0.accessibilityElementsHidden })
+  private func makeButton(
+    label: String,
+    isActive: Bool,
+    style: FilterMenuButton.Style = .capsule
+  ) -> FilterMenuButton {
+    FilterMenuButton(label: label, isActive: isActive, style: style)
   }
 
   // MARK: - Accessibility Label
 
-  func testInactiveButton_HasCorrectLabel() throws {
-    let button = FilterMenuButton(
-      label: "Type",
-      isActive: false,
-      style: .rounded
-    )
-
-    let hostingController = UIHostingController(rootView: button)
-    let view = hostingController.view!
-
-    try XCTSkipIf(view.accessibilityLabel == nil, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-
-    // Should announce just the label when inactive
-    XCTAssertEqual(view.accessibilityLabel, "Type")
+  func testInactiveButton_HasCorrectLabel() {
+    let button = makeButton(label: "Type", isActive: false, style: .rounded)
+    XCTAssertEqual(button.accessibilityLabel, "Type", "Inactive button should announce just the label")
   }
 
-  func testActiveButton_HasCorrectLabel() throws {
-    let button = FilterMenuButton(
-      label: "Email",
-      isActive: true,
-      style: .rounded
-    )
-
-    let hostingController = UIHostingController(rootView: button)
-    let view = hostingController.view!
-
-    try XCTSkipIf(view.accessibilityLabel == nil, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-
-    // Should announce label + active state
-    XCTAssertEqual(view.accessibilityLabel, "Email, active")
+  func testActiveButton_HasCorrectLabel() {
+    let button = makeButton(label: "Email", isActive: true, style: .rounded)
+    XCTAssertEqual(button.accessibilityLabel, "Email, active", "Active button should announce label + active state")
   }
 
-  func testCapsuleStyle_HasCorrectLabel() throws {
-    let button = FilterMenuButton(
-      label: "Direction",
-      isActive: true,
-      style: .capsule
+  func testCapsuleStyle_HasCorrectLabel() {
+    let button = makeButton(label: "Direction", isActive: true, style: .capsule)
+    XCTAssertEqual(
+      button.accessibilityLabel,
+      "Direction, active",
+      "Active state should be announced regardless of style"
     )
-
-    let hostingController = UIHostingController(rootView: button)
-    let view = hostingController.view!
-
-    try XCTSkipIf(view.accessibilityLabel == nil, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-
-    // Should announce label + active state regardless of style
-    XCTAssertEqual(view.accessibilityLabel, "Direction, active")
   }
 
-  // MARK: - Accessibility Traits
+  // MARK: - Decorative Chevron / Traits / Touch Target
+  //
+  // The button hides the decorative chevron via `.accessibilityHidden(true)`,
+  // adds `.isButton` via `.accessibilityAddTraits`, and enforces a 44pt minimum
+  // height via `.frame(minHeight: 44)` in the SwiftUI body. None of those
+  // modifiers are introspectable from a unit test (SwiftUI does not expose its
+  // accessibility tree or auto-size views in UIHostingController), so we assert
+  // on the label data the button relies on instead. Hidden state, button trait,
+  // and touch-target sizing are verified by the E2E/VoiceOver audit.
 
-  func testButton_HasButtonTrait() throws {
-    let button = FilterMenuButton(
-      label: "Type",
-      isActive: false,
-      style: .rounded
+  func testActiveStateConveyedViaLabelNotStyleAlone() {
+    let button = makeButton(label: "Type", isActive: true, style: .rounded)
+    XCTAssertTrue(
+      button.accessibilityLabel.contains("active"),
+      "Active state must be conveyed as text, not color/weight alone"
     )
-
-    let hostingController = UIHostingController(rootView: button)
-    let view = hostingController.view!
-
-    try XCTSkipIf(!view.isAccessibilityElement && view.accessibilityTraits.isEmpty, "SwiftUI accessibility traits not accessible via UIHostingController in unit tests")
-
-    // Should have button trait
-    XCTAssertTrue(view.accessibilityTraits.contains(.button))
-  }
-
-  // MARK: - Touch Target
-
-  func testButton_MeetsMinimumTouchTarget() throws {
-    let button = FilterMenuButton(
-      label: "Type",
-      isActive: false,
-      style: .rounded
-    )
-
-    let hostingController = UIHostingController(rootView: button)
-    let view = hostingController.view!
-
-    // Force layout
-    hostingController.view.layoutIfNeeded()
-
-    try XCTSkipIf(view.frame.height == 0, "UIHostingController doesn't auto-size SwiftUI views in unit tests")
-    XCTAssertGreaterThanOrEqual(view.frame.height, 44.0)
-  }
-
-  func testButton_MeetsMinimumTouchTarget_AtLargeDynamicType() throws {
-    let button = FilterMenuButton(
-      label: "Type",
-      isActive: false,
-      style: .rounded
-    )
-    .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
-
-    let hostingController = UIHostingController(rootView: button)
-    let view = hostingController.view!
-
-    // Force layout
-    hostingController.view.layoutIfNeeded()
-
-    try XCTSkipIf(view.frame.height == 0, "UIHostingController doesn't auto-size SwiftUI views in unit tests")
-    XCTAssertGreaterThanOrEqual(view.frame.height, 44.0)
-  }
-
-  // MARK: - Helper Methods
-
-  private func findSubviews<T: UIView>(of type: T.Type, in view: UIView) -> [T] {
-    var results: [T] = []
-    for subview in view.subviews {
-      if let match = subview as? T {
-        results.append(match)
-      }
-      results.append(contentsOf: findSubviews(of: type, in: subview))
-    }
-    return results
   }
 }

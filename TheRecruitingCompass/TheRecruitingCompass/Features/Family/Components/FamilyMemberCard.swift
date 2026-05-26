@@ -62,17 +62,25 @@ struct FamilyMemberCard: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Remove \(displayName)")
+        .accessibilityLabel(removeAccessibilityLabel)
       }
     }
     .padding(FamilyConstants.Spacing.small)
     .background(Color(.secondarySystemBackground))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(displayName), \(member.role), joined \(formattedJoinDate)")
+    .accessibilityLabel(cardAccessibilityLabel)
   }
 
-  private var displayName: String {
+  var cardAccessibilityLabel: String {
+    "\(displayName), \(member.role), joined \(formattedJoinDate)"
+  }
+
+  var removeAccessibilityLabel: String {
+    "Remove \(displayName)"
+  }
+
+  var displayName: String {
     member.user?.fullName ?? member.user?.email ?? "Unknown"
   }
 
@@ -91,7 +99,7 @@ struct FamilyMemberCard: View {
     return "??"
   }
 
-  private var formattedJoinDate: String {
+  var formattedJoinDate: String {
     guard let addedAt = member.addedAt,
           let date = FamilyMemberCard.isoParser.date(from: addedAt)
             ?? FamilyMemberCard.isoParserFallback.date(from: addedAt) else {

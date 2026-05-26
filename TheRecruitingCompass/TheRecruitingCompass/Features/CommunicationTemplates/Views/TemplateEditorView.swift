@@ -4,7 +4,11 @@ struct TemplateEditorView: View {
   @Bindable var viewModel: CommunicationTemplatesViewModel
   @FocusState private var bodyFieldFocused: Bool
 
-  private var isEditing: Bool { viewModel.editingTemplate != nil }
+  var isEditing: Bool { viewModel.editingTemplate != nil }
+
+  var saveButtonLabel: String {
+    isEditing ? "Save Changes" : "Save Template"
+  }
 
   private var title: String {
     isEditing ? "Edit Template" : "Create Template"
@@ -116,7 +120,7 @@ struct TemplateEditorView: View {
       Button {
         Task { await viewModel.saveTemplate() }
       } label: {
-        Text(isEditing ? "Save Changes" : "Save Template")
+        Text(saveButtonLabel)
           .font(.body.weight(.semibold))
           .foregroundStyle(.white)
           .frame(maxWidth: .infinity)
@@ -125,7 +129,7 @@ struct TemplateEditorView: View {
           .clipShape(RoundedRectangle(cornerRadius: 12))
       }
       .disabled(!viewModel.formData.isValid)
-      .accessibilityLabel(isEditing ? "Save Changes" : "Save Template")
+      .accessibilityLabel(saveButtonLabel)
       .accessibilityIdentifier("templateEditor.saveButton")
 
       Button {

@@ -58,7 +58,11 @@ struct CoachStatsGrid: View {
     .background(Color(.systemGray6))
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(title): \(value)")
+    .accessibilityLabel(statAccessibilityLabel(title: title, value: value))
+  }
+
+  func statAccessibilityLabel(title: String, value: String) -> String {
+    "\(title): \(value)"
   }
 }
 

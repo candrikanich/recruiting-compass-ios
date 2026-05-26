@@ -7,6 +7,14 @@ final class ResetPasswordViewModelTests: XCTestCase {
   var sut: ResetPasswordViewModel!
   var mockAuthManager: MockAuthManager!
 
+  /// Same durations as `.default` but a tiny tick interval so countdown timer
+  /// tests advance in milliseconds instead of real seconds.
+  static let fastTimerConfig = PasswordResetConfig(
+    resendCooldownDuration: 60,
+    successCountdownDuration: 3,
+    timerInterval: 0.01
+  )
+
   override func setUp() {
     super.setUp()
     mockAuthManager = MockAuthManager()
@@ -227,37 +235,27 @@ final class ResetPasswordViewModelTests: XCTestCase {
   // MARK: - Timer Behavior
 
   func testSuccessCountdownTimerCountsDown() async {
+    sut = ResetPasswordViewModel(authManager: mockAuthManager, config: Self.fastTimerConfig)
     sut.state = .success
     sut.startSuccessCountdown()
 
     XCTAssertEqual(sut.successCountdown, 3)
     XCTAssertFalse(sut.shouldNavigateToLogin)
 
-    let expectation = expectation(description: "Timer counts down")
-
-    Task {
-      try? await Task.sleep(nanoseconds: 2_100_000_000)
-      expectation.fulfill()
-    }
-
-    await fulfillment(of: [expectation], timeout: 3.0)
+    // 1-2 ticks at the fast test interval (mid-countdown)
+    try? await Task.sleep(nanoseconds: 50_000_000)
 
     XCTAssertLessThan(sut.successCountdown, 3)
     XCTAssertGreaterThanOrEqual(sut.successCountdown, 0)
   }
 
   func testSuccessCountdownTimerCompletesAndTriggersNavigation() async {
+    sut = ResetPasswordViewModel(authManager: mockAuthManager, config: Self.fastTimerConfig)
     sut.state = .success
     sut.startSuccessCountdown()
 
-    let expectation = expectation(description: "Timer completes and triggers navigation")
-
-    Task {
-      try? await Task.sleep(nanoseconds: 3_500_000_000)
-      expectation.fulfill()
-    }
-
-    await fulfillment(of: [expectation], timeout: 4.5)
+    // 3 ticks at the fast test interval drain the countdown to zero
+    try? await Task.sleep(nanoseconds: 200_000_000)
 
     XCTAssertEqual(sut.successCountdown, 0)
     XCTAssertTrue(sut.shouldNavigateToLogin)

@@ -25,10 +25,10 @@ struct OfferCard: View {
             .contentShape(Rectangle())
         }
         .accessibilityIdentifier("offer_checkbox_\(offer.id)")
-        .accessibilityLabel("Select for comparison")
-        .accessibilityValue(isSelected ? "Selected" : "Not selected")
+        .accessibilityLabel(checkboxAccessibilityLabel)
+        .accessibilityValue(checkboxAccessibilityValue)
         .accessibilityAddTraits(.isButton)
-        .accessibilityHint(isSelected ? "Double tap to deselect" : "Double tap to select")
+        .accessibilityHint(checkboxAccessibilityHint)
 
         VStack(alignment: .leading, spacing: 8) {
           HStack {
@@ -96,7 +96,7 @@ struct OfferCard: View {
             .contentShape(Rectangle())
         }
         .accessibilityIdentifier("offer_delete_button_\(offer.id)")
-        .accessibilityLabel("Delete offer from \(schoolName)")
+        .accessibilityLabel(deleteAccessibilityLabel)
         .accessibilityHint("Double tap to delete this offer")
       }
       .padding(12)
@@ -107,7 +107,12 @@ struct OfferCard: View {
     .accessibilityIdentifier("offer_card_\(offer.id)")
   }
 
-  private var cardAccessibilityLabel: String {
+  var checkboxAccessibilityLabel: String { "Select for comparison" }
+  var checkboxAccessibilityValue: String { isSelected ? "Selected" : "Not selected" }
+  var checkboxAccessibilityHint: String { isSelected ? "Double tap to deselect" : "Double tap to select" }
+  var deleteAccessibilityLabel: String { "Delete offer from \(schoolName)" }
+
+  var cardAccessibilityLabel: String {
     var parts = ["Offer from \(schoolName)", offer.status.displayName, offer.offerType.displayName]
     if let amount = offer.formattedAmount { parts.append(amount) }
     if let pct = offer.formattedPercentage { parts.append(pct) }

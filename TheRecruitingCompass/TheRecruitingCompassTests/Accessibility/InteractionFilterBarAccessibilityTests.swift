@@ -6,267 +6,103 @@ import SwiftUI
 final class InteractionFilterBarAccessibilityTests: XCTestCase {
   nonisolated deinit {}
 
+  private func makeFilterBar(
+    filters: InteractionFilters = InteractionFilters(),
+    showLoggedByFilter: Bool = false,
+    linkedAthletes: [FamilyMember] = [],
+    currentUserId: String? = nil
+  ) -> InteractionFilterBar {
+    InteractionFilterBar(
+      filters: .constant(filters),
+      showLoggedByFilter: showLoggedByFilter,
+      linkedAthletes: linkedAthletes,
+      currentUserId: currentUserId
+    )
+  }
+
   // MARK: - Type Filter
 
-  func testTypeFilter_HasCorrectAccessibilityLabel_NoSelection() throws {
-    let filters = InteractionFilters()
-
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: false,
-      linkedAthletes: [],
-      currentUserId: nil
-    )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    // Type filter should have descriptive label when no selection
-    let labels = findAccessibilityLabels(in: view)
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(labels.contains("Filter by type"))
+  func testTypeFilter_HasCorrectAccessibilityLabel_NoSelection() {
+    let bar = makeFilterBar()
+    XCTAssertEqual(bar.typeFilterAccessibilityLabel, "Filter by type")
   }
 
-  func testTypeFilter_HasCorrectAccessibilityLabel_WithSelection() throws {
+  func testTypeFilter_HasCorrectAccessibilityLabel_WithSelection() {
     var filters = InteractionFilters()
     filters.type = .email
-
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: false,
-      linkedAthletes: [],
-      currentUserId: nil
-    )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    // Type filter should announce selected type
-    let labels = findAccessibilityLabels(in: view)
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(labels.contains("Filter by type: Email selected"))
+    let bar = makeFilterBar(filters: filters)
+    XCTAssertEqual(bar.typeFilterAccessibilityLabel, "Filter by type: Email selected")
   }
 
-  func testTypeFilter_HasCorrectAccessibilityHint() throws {
-    let filters = InteractionFilters()
-
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: false,
-      linkedAthletes: [],
-      currentUserId: nil
-    )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    // Type filter should have hint explaining menu action
-    let hints = findAccessibilityHints(in: view)
-    try XCTSkipIf(hints.isEmpty, "SwiftUI accessibility hints not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(hints.contains("Opens menu to filter by interaction type"))
+  func testTypeFilter_HasCorrectAccessibilityHint() {
+    let bar = makeFilterBar()
+    XCTAssertEqual(bar.typeFilterAccessibilityHint, "Opens menu to filter by interaction type")
   }
 
   // MARK: - Direction Filter
 
-  func testDirectionFilter_HasCorrectAccessibilityLabel_NoSelection() throws {
-    let filters = InteractionFilters()
-
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: false,
-      linkedAthletes: [],
-      currentUserId: nil
-    )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let labels = findAccessibilityLabels(in: view)
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(labels.contains("Filter by direction"))
+  func testDirectionFilter_HasCorrectAccessibilityLabel_NoSelection() {
+    let bar = makeFilterBar()
+    XCTAssertEqual(bar.directionFilterAccessibilityLabel, "Filter by direction")
   }
 
-  func testDirectionFilter_HasCorrectAccessibilityLabel_WithSelection() throws {
+  func testDirectionFilter_HasCorrectAccessibilityLabel_WithSelection() {
     var filters = InteractionFilters()
     filters.direction = .outbound
-
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: false,
-      linkedAthletes: [],
-      currentUserId: nil
-    )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let labels = findAccessibilityLabels(in: view)
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(labels.contains("Filter by direction: Outbound selected"))
+    let bar = makeFilterBar(filters: filters)
+    XCTAssertEqual(bar.directionFilterAccessibilityLabel, "Filter by direction: Outbound selected")
   }
 
   // MARK: - Sentiment Filter
 
-  func testSentimentFilter_HasCorrectAccessibilityLabel_NoSelection() throws {
-    let filters = InteractionFilters()
-
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: false,
-      linkedAthletes: [],
-      currentUserId: nil
-    )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let labels = findAccessibilityLabels(in: view)
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(labels.contains("Filter by sentiment"))
+  func testSentimentFilter_HasCorrectAccessibilityLabel_NoSelection() {
+    let bar = makeFilterBar()
+    XCTAssertEqual(bar.sentimentFilterAccessibilityLabel, "Filter by sentiment")
   }
 
-  func testSentimentFilter_HasCorrectAccessibilityLabel_WithSelection() throws {
+  func testSentimentFilter_HasCorrectAccessibilityLabel_WithSelection() {
     var filters = InteractionFilters()
     filters.sentiment = .veryPositive
-
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: false,
-      linkedAthletes: [],
-      currentUserId: nil
+    let bar = makeFilterBar(filters: filters)
+    XCTAssertEqual(
+      bar.sentimentFilterAccessibilityLabel,
+      "Filter by sentiment: Very Positive selected"
     )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let labels = findAccessibilityLabels(in: view)
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(labels.contains("Filter by sentiment: Very Positive selected"))
   }
 
   // MARK: - Time Period Filter
 
-  func testTimePeriodFilter_HasCorrectAccessibilityLabel_NoSelection() throws {
-    let filters = InteractionFilters()
-
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: false,
-      linkedAthletes: [],
-      currentUserId: nil
-    )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let labels = findAccessibilityLabels(in: view)
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(labels.contains("Filter by time period"))
+  func testTimePeriodFilter_HasCorrectAccessibilityLabel_NoSelection() {
+    let bar = makeFilterBar()
+    XCTAssertEqual(bar.timePeriodFilterAccessibilityLabel, "Filter by time period")
   }
 
-  func testTimePeriodFilter_HasCorrectAccessibilityLabel_WithSelection() throws {
+  func testTimePeriodFilter_HasCorrectAccessibilityLabel_WithSelection() {
     var filters = InteractionFilters()
     filters.timePeriod = .last7Days
-
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: false,
-      linkedAthletes: [],
-      currentUserId: nil
+    let bar = makeFilterBar(filters: filters)
+    XCTAssertEqual(
+      bar.timePeriodFilterAccessibilityLabel,
+      "Filter by time period: Last 7 days selected"
     )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let labels = findAccessibilityLabels(in: view)
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(labels.contains("Filter by time period: Last 7 days selected"))
   }
 
   // MARK: - Logged By Filter (Parents Only)
 
-  func testLoggedByFilter_NotShownForAthletes() throws {
-    let filters = InteractionFilters()
+  // The logged-by menu is only rendered when `showLoggedByFilter` is true; that
+  // conditional rendering is not introspectable from a unit test (SwiftUI does
+  // not expose its view tree to UIHostingController here) and is covered by the
+  // E2E/VoiceOver audit. The label logic itself is verified below.
 
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: false,
-      linkedAthletes: [],
-      currentUserId: nil
-    )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let labels = findAccessibilityLabels(in: view)
-    // When labels is empty due to SwiftUI bridging, it trivially satisfies "does not contain"
-    XCTAssertFalse(labels.contains("Filter by logged by"))
+  func testLoggedByFilter_HasCorrectAccessibilityLabel_NoSelection() {
+    let bar = makeFilterBar(showLoggedByFilter: true, currentUserId: "user1")
+    XCTAssertEqual(bar.loggedByFilterAccessibilityLabel, "Filter by logged by")
   }
 
-  func testLoggedByFilter_HasCorrectAccessibilityLabel_NoSelection() throws {
-    let filters = InteractionFilters()
-
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: true,
-      linkedAthletes: [],
-      currentUserId: "user1"
-    )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let labels = findAccessibilityLabels(in: view)
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(labels.contains("Filter by logged by"))
-  }
-
-  func testLoggedByFilter_HasCorrectAccessibilityLabel_MeSelected() throws {
+  func testLoggedByFilter_HasCorrectAccessibilityLabel_MeSelected() {
     var filters = InteractionFilters()
     filters.loggedBy = "user1"
-
-    let filterBar = InteractionFilterBar(
-      filters: .constant(filters),
-      showLoggedByFilter: true,
-      linkedAthletes: [],
-      currentUserId: "user1"
-    )
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let labels = findAccessibilityLabels(in: view)
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-    XCTAssertTrue(labels.contains("Filter by logged by: Me selected"))
-  }
-
-  // MARK: - Helper Methods
-
-  private func findAccessibilityLabels(in view: UIView) -> [String] {
-    var labels: [String] = []
-
-    if let label = view.accessibilityLabel {
-      labels.append(label)
-    }
-
-    for subview in view.subviews {
-      labels.append(contentsOf: findAccessibilityLabels(in: subview))
-    }
-
-    return labels
-  }
-
-  private func findAccessibilityHints(in view: UIView) -> [String] {
-    var hints: [String] = []
-
-    if let hint = view.accessibilityHint {
-      hints.append(hint)
-    }
-
-    for subview in view.subviews {
-      hints.append(contentsOf: findAccessibilityHints(in: subview))
-    }
-
-    return hints
+    let bar = makeFilterBar(filters: filters, showLoggedByFilter: true, currentUserId: "user1")
+    XCTAssertEqual(bar.loggedByFilterAccessibilityLabel, "Filter by logged by: Me selected")
   }
 }

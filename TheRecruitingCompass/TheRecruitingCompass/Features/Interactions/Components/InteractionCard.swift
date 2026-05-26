@@ -110,7 +110,7 @@ struct InteractionCard: View {
     .accessibilityElement(children: .combine)
     .accessibilityLabel(accessibilityLabel)
     .accessibilityAddTraits(.isButton)
-    .accessibilityHint("Tap to view details")
+    .accessibilityHint(accessibilityHint)
   }
 
   // MARK: - Computed Properties
@@ -119,7 +119,9 @@ struct InteractionCard: View {
     sizeCategory.isAccessibilityCategory ? 48 : 40
   }
 
-  private var accessibilityLabel: String {
+  var accessibilityHint: String { "Tap to view details" }
+
+  var accessibilityLabel: String {
     var parts: [String] = []
 
     parts.append(interaction.type.displayName)
@@ -194,7 +196,11 @@ struct AttachmentIndicator: View {
         .fontWeight(.medium)
     }
     .foregroundStyle(.secondary)
-    .accessibilityLabel("\(count) attachment\(count == 1 ? "" : "s")")
+    .accessibilityLabel(accessibilityLabel)
+  }
+
+  var accessibilityLabel: String {
+    "\(count) attachment\(count == 1 ? "" : "s")"
   }
 }
 

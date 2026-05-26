@@ -13,8 +13,8 @@ struct OfferFilterBar: View {
           }
         }
         .pickerStyle(.menu)
-        .accessibilityLabel("Filter by status")
-        .accessibilityHint("Double tap to choose a status filter")
+        .accessibilityLabel(statusFilterLabel)
+        .accessibilityHint(statusFilterHint)
 
         Picker("Type", selection: $filters.offerType) {
           Text("All Types").tag(nil as OfferType?)
@@ -23,8 +23,8 @@ struct OfferFilterBar: View {
           }
         }
         .pickerStyle(.menu)
-        .accessibilityLabel("Filter by offer type")
-        .accessibilityHint("Double tap to choose an offer type filter")
+        .accessibilityLabel(offerTypeFilterLabel)
+        .accessibilityHint(offerTypeFilterHint)
       }
 
       HStack(spacing: 8) {
@@ -34,8 +34,8 @@ struct OfferFilterBar: View {
           }
         }
         .pickerStyle(.menu)
-        .accessibilityLabel("Sort by field")
-        .accessibilityHint("Double tap to choose sort field")
+        .accessibilityLabel(sortByFieldLabel)
+        .accessibilityHint(sortByFieldHint)
 
         Picker("Direction", selection: $filters.sortDirection) {
           ForEach(SortDirection.allCases, id: \.self) { dir in
@@ -43,10 +43,22 @@ struct OfferFilterBar: View {
           }
         }
         .pickerStyle(.menu)
-        .accessibilityLabel("Sort direction")
-        .accessibilityHint("Double tap to change sort direction")
+        .accessibilityLabel(sortDirectionLabel)
+        .accessibilityHint(sortDirectionHint)
       }
     }
     .padding(.horizontal, 16)
   }
+
+  var statusFilterLabel: String { "Filter by status" }
+  var statusFilterHint: String { "Double tap to choose a status filter" }
+
+  var offerTypeFilterLabel: String { "Filter by offer type" }
+  var offerTypeFilterHint: String { "Double tap to choose an offer type filter" }
+
+  var sortByFieldLabel: String { "Sort by field" }
+  var sortByFieldHint: String { "Double tap to choose sort field" }
+
+  var sortDirectionLabel: String { "Sort direction" }
+  var sortDirectionHint: String { "Double tap to change sort direction" }
 }

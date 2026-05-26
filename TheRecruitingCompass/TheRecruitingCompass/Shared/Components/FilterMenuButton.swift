@@ -59,7 +59,7 @@ struct FilterMenuButton: View {
     }
   }
 
-  private var accessibilityLabel: String {
+  var accessibilityLabel: String {
     if isActive {
       return "\(label), active"
     }

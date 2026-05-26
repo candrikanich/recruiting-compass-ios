@@ -39,18 +39,21 @@ final class EmailVerificationIntegrationTests: XCTestCase {
     )
 
     mockAuthManager.setMockUser(unverifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let viewModel = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      initialPollingInterval: 0.05
+    )
 
     // Start as pending
     XCTAssertEqual(viewModel.verificationState, .pending)
 
     // Start polling
     viewModel.startPolling()
-    try? await Task.sleep(nanoseconds: 500_000_000)
+    try? await Task.sleep(nanoseconds: 100_000_000)
 
     // Simulate email verification
     mockAuthManager.setMockUser(verifiedUser)
-    try? await Task.sleep(nanoseconds: 3_000_000_000)
+    try? await Task.sleep(nanoseconds: 300_000_000)
 
     // Should detect verification
     XCTAssertEqual(viewModel.verificationState, .verified)
@@ -80,15 +83,18 @@ final class EmailVerificationIntegrationTests: XCTestCase {
     )
 
     mockAuthManager.setMockUser(unverifiedUser)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let viewModel = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      initialPollingInterval: 0.05
+    )
 
     viewModel.startPolling()
     try? await Task.sleep(nanoseconds: 100_000_000)
 
     mockAuthManager.setMockUser(verifiedUser)
 
-    // Wait for polling to detect (should happen within 2 seconds)
-    try? await Task.sleep(nanoseconds: 3_000_000_000)
+    // Wait for polling to detect (a few poll cycles at the fast test interval)
+    try? await Task.sleep(nanoseconds: 300_000_000)
 
     XCTAssertEqual(viewModel.verificationState, .verified)
 

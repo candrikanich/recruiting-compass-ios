@@ -4,6 +4,20 @@ struct NotificationFilterChips: View {
   @Binding var selectedType: NotificationType?
   let onFilterChanged: (NotificationType?) -> Void
 
+  var chipDisplayLabels: [String] {
+    ["All"] + NotificationType.allCases.map { "\($0.emoji) \($0.label)" }
+  }
+
+  var chipAccessibilityLabels: [String] {
+    let allActive = selectedType == nil
+    var labels = [NotificationToggleChip.accessibilityLabel(for: "All", isActive: allActive)]
+    for type in NotificationType.allCases {
+      let isActive = selectedType == type
+      labels.append(NotificationToggleChip.accessibilityLabel(for: "\(type.emoji) \(type.label)", isActive: isActive))
+    }
+    return labels
+  }
+
   var body: some View {
     ScrollView(.horizontal) {
       HStack(spacing: 8) {
@@ -33,10 +47,14 @@ struct NotificationFilterChips: View {
   }
 }
 
-private struct NotificationToggleChip: View {
+struct NotificationToggleChip: View {
   let label: String
   let isActive: Bool
   let action: () -> Void
+
+  static func accessibilityLabel(for label: String, isActive: Bool) -> String {
+    "\(label) filter\(isActive ? ", selected" : "")"
+  }
 
   var body: some View {
     Button(action: action) {
@@ -52,7 +70,7 @@ private struct NotificationToggleChip: View {
         )
         .clipShape(.rect(cornerRadius: 8))
     }
-    .accessibilityLabel("\(label) filter\(isActive ? ", selected" : "")")
+    .accessibilityLabel(NotificationToggleChip.accessibilityLabel(for: label, isActive: isActive))
     .accessibilityAddTraits(isActive ? [.isButton, .isSelected] : .isButton)
   }
 }

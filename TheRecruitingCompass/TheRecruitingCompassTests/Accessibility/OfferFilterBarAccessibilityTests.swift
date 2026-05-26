@@ -6,123 +6,42 @@ import SwiftUI
 final class OfferFilterBarAccessibilityTests: XCTestCase {
   nonisolated deinit {}
 
-  // MARK: - Status Picker Label
-
-  func testStatusPicker_HasAccessibilityLabel() throws {
-    let filters = OfferFilters()
-    let filterBar = OfferFilterBar(filters: .constant(filters))
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let accessibilityElements = findAccessibilityElements(in: view)
-    let labels = accessibilityElements.compactMap { $0.accessibilityLabel }
-    let combined = labels.joined(separator: " ")
-
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-
-    XCTAssertTrue(combined.contains("Filter by status"), "Status picker should have 'Filter by status' label")
+  private func makeFilterBar() -> OfferFilterBar {
+    OfferFilterBar(filters: .constant(OfferFilters()))
   }
 
-  // MARK: - Offer Type Picker Label
+  // MARK: - Picker Labels
 
-  func testOfferTypePicker_HasAccessibilityLabel() throws {
-    let filters = OfferFilters()
-    let filterBar = OfferFilterBar(filters: .constant(filters))
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let accessibilityElements = findAccessibilityElements(in: view)
-    let labels = accessibilityElements.compactMap { $0.accessibilityLabel }
-    let combined = labels.joined(separator: " ")
-
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-
-    XCTAssertTrue(combined.contains("Filter by offer type"), "Offer type picker should have 'Filter by offer type' label")
+  func testStatusPicker_HasAccessibilityLabel() {
+    XCTAssertEqual(makeFilterBar().statusFilterLabel, "Filter by status")
   }
 
-  // MARK: - Sort Pickers
-
-  func testSortByPicker_HasAccessibilityLabel() throws {
-    let filters = OfferFilters()
-    let filterBar = OfferFilterBar(filters: .constant(filters))
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let accessibilityElements = findAccessibilityElements(in: view)
-    let labels = accessibilityElements.compactMap { $0.accessibilityLabel }
-    let combined = labels.joined(separator: " ")
-
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-
-    XCTAssertTrue(combined.contains("Sort by field"), "Sort by picker should have 'Sort by field' label")
+  func testOfferTypePicker_HasAccessibilityLabel() {
+    XCTAssertEqual(makeFilterBar().offerTypeFilterLabel, "Filter by offer type")
   }
 
-  func testSortDirectionPicker_HasAccessibilityLabel() throws {
-    let filters = OfferFilters()
-    let filterBar = OfferFilterBar(filters: .constant(filters))
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let accessibilityElements = findAccessibilityElements(in: view)
-    let labels = accessibilityElements.compactMap { $0.accessibilityLabel }
-    let combined = labels.joined(separator: " ")
-
-    try XCTSkipIf(labels.isEmpty, "SwiftUI accessibility labels not accessible via UIHostingController in unit tests")
-
-    XCTAssertTrue(combined.contains("Sort direction"), "Sort direction picker should have 'Sort direction' label")
+  func testSortByPicker_HasAccessibilityLabel() {
+    XCTAssertEqual(makeFilterBar().sortByFieldLabel, "Sort by field")
   }
 
-  // MARK: - All Pickers Have Hints
-
-  func testAllPickers_HaveAccessibilityHints() throws {
-    let filters = OfferFilters()
-    let filterBar = OfferFilterBar(filters: .constant(filters))
-
-    let hostingController = UIHostingController(rootView: filterBar)
-    let view = hostingController.view!
-
-    let hints = findAccessibilityHints(in: view)
-
-    try XCTSkipIf(hints.isEmpty, "SwiftUI accessibility hints not accessible via UIHostingController in unit tests")
-
-    XCTAssertTrue(hints.contains(where: { $0.contains("Double tap") }), "Pickers should have hints starting with 'Double tap'")
+  func testSortDirectionPicker_HasAccessibilityLabel() {
+    XCTAssertEqual(makeFilterBar().sortDirectionLabel, "Sort direction")
   }
 
-  // MARK: - Helper Methods
+  // MARK: - Picker Hints
 
-  private func findAccessibilityElements(in view: UIView) -> [NSObject] {
-    var elements: [NSObject] = []
+  func testAllPickers_HaveAccessibilityHints() {
+    let bar = makeFilterBar()
+    let hints = [
+      bar.statusFilterHint,
+      bar.offerTypeFilterHint,
+      bar.sortByFieldHint,
+      bar.sortDirectionHint
+    ]
 
-    if view.isAccessibilityElement {
-      elements.append(view)
-    }
-
-    if let accessibilityElements = view.accessibilityElements as? [NSObject] {
-      elements.append(contentsOf: accessibilityElements)
-    }
-
-    for subview in view.subviews {
-      elements.append(contentsOf: findAccessibilityElements(in: subview))
-    }
-
-    return elements
-  }
-
-  private func findAccessibilityHints(in view: UIView) -> [String] {
-    var hints: [String] = []
-
-    if let hint = view.accessibilityHint {
-      hints.append(hint)
-    }
-
-    for subview in view.subviews {
-      hints.append(contentsOf: findAccessibilityHints(in: subview))
-    }
-
-    return hints
+    XCTAssertTrue(
+      hints.allSatisfy { $0.hasPrefix("Double tap") },
+      "All picker hints should start with 'Double tap'"
+    )
   }
 }

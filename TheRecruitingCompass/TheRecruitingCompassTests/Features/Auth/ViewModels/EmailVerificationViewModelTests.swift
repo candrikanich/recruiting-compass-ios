@@ -329,14 +329,15 @@ final class EmailVerificationViewModelTests: XCTestCase {
     mockAuthManager.setMockUser(unverifiedUser)
     sut = EmailVerificationViewModel(
       authManager: mockAuthManager,
-      cooldownDuration: 2
+      cooldownDuration: 2,
+      cooldownInterval: 0.02
     )
 
     await sut.resendVerificationEmail()
     XCTAssertFalse(sut.canResendEmail)
     XCTAssertEqual(sut.resendCooldownSeconds, 2)
 
-    try? await Task.sleep(nanoseconds: 3_000_000_000)
+    try? await Task.sleep(nanoseconds: 200_000_000)
 
     XCTAssertEqual(sut.resendCooldownSeconds, 0)
     XCTAssertTrue(sut.canResendEmail, "Resend should be re-enabled after cooldown completes")

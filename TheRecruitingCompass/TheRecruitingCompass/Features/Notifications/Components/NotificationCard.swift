@@ -64,7 +64,7 @@ struct NotificationCard: View {
     .accessibilityAddTraits(.isButton)
   }
 
-  private var accessibilityLabel: String {
+  var accessibilityLabel: String {
     let status = notification.isRead ? "Read" : "Unread"
     let priority = notification.priority == .high ? "High priority" : ""
     let type = notification.type.label

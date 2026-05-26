@@ -34,7 +34,7 @@ struct TemplateCardView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Edit \(template.name) template")
+        .accessibilityLabel(editAccessibilityLabel)
         .accessibilityIdentifier("template.editButton.\(template.id)")
       }
 
@@ -49,8 +49,16 @@ struct TemplateCardView: View {
     .contentShape(Rectangle())
     .onTapGesture { onEdit() }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(template.name), \(template.typeDisplayName) template, Created \(template.formattedDate)")
+    .accessibilityLabel(cardAccessibilityLabel)
     .accessibilityHint("Double tap to edit")
     .accessibilityIdentifier("template.card.\(template.id)")
+  }
+
+  var cardAccessibilityLabel: String {
+    "\(template.name), \(template.typeDisplayName) template, Created \(template.formattedDate)"
+  }
+
+  var editAccessibilityLabel: String {
+    "Edit \(template.name) template"
   }
 }

@@ -95,7 +95,7 @@ struct AnalyticsCard: View {
     sizeCategory.isAccessibilityCategory ? 100 : 80
   }
 
-  private var accessibilityLabel: String {
+  var accessibilityLabel: String {
     if let override = accessibilityLabelOverride {
       return override
     }

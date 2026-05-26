@@ -15,9 +15,18 @@ struct ActivityFeedView: View {
         activityListContent
       }
     }
-    .navigationTitle("Activity History")
+    .navigationTitle(navigationTitleText)
     .refreshable { await viewModel.loadActivities() }
     .task { await viewModel.loadActivities() }
+  }
+
+  // MARK: - Accessibility
+
+  let navigationTitleText = "Activity History"
+  var clearSearchAccessibilityLabel: String { "Clear search" }
+
+  func pageIndicatorAccessibilityLabel(currentPage: Int, totalPages: Int) -> String {
+    "Page \(currentPage) of \(totalPages)"
   }
 
   // MARK: - List Content
@@ -97,7 +106,7 @@ struct ActivityFeedView: View {
               .foregroundStyle(Color.iconGray)
           }
           .frame(minWidth: 44, minHeight: 44)
-          .accessibilityLabel("Clear search")
+          .accessibilityLabel(clearSearchAccessibilityLabel)
           .accessibilityIdentifier("activity-feed-clear-search")
         }
       }
@@ -128,10 +137,11 @@ struct ActivityFeedView: View {
 
       Spacer()
 
-      Text("Page \(viewModel.currentPage) of \(viewModel.totalPages)")
+      Text(pageIndicatorAccessibilityLabel(currentPage: viewModel.currentPage, totalPages: viewModel.totalPages))
         .font(.subheadline)
         .foregroundStyle(.secondary)
-        .accessibilityLabel("Page \(viewModel.currentPage) of \(viewModel.totalPages)")
+        .accessibilityLabel(pageIndicatorAccessibilityLabel(
+          currentPage: viewModel.currentPage, totalPages: viewModel.totalPages))
         .accessibilityIdentifier("activity-feed-page-indicator")
 
       Spacer()
