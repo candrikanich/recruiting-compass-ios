@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Base Info.plist. Xcode merges the generated keys and INFOPLIST_KEY_*
+	  build settings on top of this (GENERATE_INFOPLIST_FILE stays YES).
+	  The only key here is the App Transport Security exception that allows
+	  cleartext loads to loopback/local addresses, so E2E tests can drive the
+	  app against a local Supabase stack (http://127.0.0.1:54321). This permits
+	  local networking only; production traffic uses HTTPS and is unaffected.
+	-->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+</dict>
+</plist>
