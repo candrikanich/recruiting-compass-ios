@@ -140,17 +140,26 @@ final class OffersListScreenObject {
   // MARK: - Navigation Actions
 
   func navigateToOffers() -> Bool {
-    let offersTab = app.tabBars.buttons["Offers"]
-    if offersTab.waitForExistence(timeout: 3) {
-      offersTab.tap()
+    // Offers is not a top-level tab. It lives under the "More" tab, in the
+    // "Recruiting" section. The row uses .accessibilityElement(children: .combine)
+    // so its label is "Offers: <description>" — match on a leading "Offers".
+    let moreTab = app.tabBars.buttons["More"]
+    guard moreTab.waitForExistence(timeout: 5) else {
+      return waitForScreenToLoad()
+    }
+    moreTab.tap()
+
+    let offersRowPredicate = NSPredicate(format: "label BEGINSWITH 'Offers'")
+    let offersButton = app.buttons.matching(offersRowPredicate).firstMatch
+    if offersButton.waitForExistence(timeout: 5) {
+      offersButton.tap()
       return waitForScreenToLoad()
     }
 
-    let offersLink = app.buttons.matching(NSPredicate(
-      format: "label CONTAINS 'Offers' OR label CONTAINS 'View Offers'"
-    )).firstMatch
-    if offersLink.waitForExistence(timeout: 5) {
-      offersLink.tap()
+    // Combined rows can surface as otherElements rather than buttons.
+    let offersOther = app.otherElements.matching(offersRowPredicate).firstMatch
+    if offersOther.waitForExistence(timeout: 3) {
+      offersOther.tap()
     }
     return waitForScreenToLoad()
   }
