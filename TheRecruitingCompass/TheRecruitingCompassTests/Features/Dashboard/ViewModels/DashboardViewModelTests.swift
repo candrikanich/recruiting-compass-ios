@@ -124,9 +124,9 @@ final class DashboardViewModelTests: XCTestCase {
       id: id,
       userId: userId,
       familyUnitId: "family-unit-1",
-      role: "athlete",
+      role: "player",
       addedAt: "2024-01-01T00:00:00Z",
-      user: FamilyMemberUser(id: userId, email: "alex@example.com", fullName: "Alex Doe", role: "athlete")
+      user: FamilyMemberUser(id: userId, email: "alex@example.com", fullName: "Alex Doe", role: "player")
     )
   }
 
@@ -292,7 +292,10 @@ final class DashboardViewModelTests: XCTestCase {
 
     await sut.fetchDashboardData()
 
-    XCTAssertEqual(mockDashboardService.lastFetchStatsUserId, "athlete-member-id")
+    // Dashboard queries the SELECTED ATHLETE's user_id (offers/events/metrics are
+    // owned by the athlete), resolved via familyManager.selectedAthlete.userId —
+    // not the family_members row id held in selectedAthleteId.
+    XCTAssertEqual(mockDashboardService.lastFetchStatsUserId, "athlete-user-id")
     XCTAssertEqual(mockDashboardService.lastFetchStatsFamilyUnitId, "family-unit-1")
   }
 

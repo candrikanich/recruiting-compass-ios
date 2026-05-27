@@ -106,10 +106,17 @@ final class OffersListViewModel {
     self.authManager = authManager ?? AuthManager.shared
   }
 
+  /// The user whose offers we read/write. When a parent is viewing an athlete,
+  /// offers belong to the athlete (mirrors web + DashboardViewModel); otherwise
+  /// the logged-in user's own id.
+  private var targetUserId: String? {
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
+  }
+
   // MARK: - Data Loading
 
   func loadOffers() async {
-    guard let userId = authManager.user?.id else {
+    guard let userId = targetUserId else {
       logger.warning("No userId available")
       errorMessage = "Unable to load offers. Please try again."
       return
@@ -135,7 +142,7 @@ final class OffersListViewModel {
 
   func createOffer() async {
     guard formState.isValid else { return }
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = targetUserId else { return }
 
     isSubmitting = true
     defer { isSubmitting = false }

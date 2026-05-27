@@ -55,3 +55,6 @@ TheRecruitingCompass/Release.xcconfig
 scripts/.env.test
 scripts/node_modules/
 scripts/dist/
+
+# Runtime lock for scheduled agent tasks
+.claude/scheduled_tasks.lock

@@ -121,7 +121,7 @@ final class DashboardViewModel {
 
     await familyManager.loadFamilyData()
 
-    let targetUserId = familyManager.selectedAthleteId ?? userId
+    let targetUserId = familyManager.selectedAthlete?.userId ?? userId
 
     guard let familyUnitId = familyManager.familyUnitId else {
       // Mirrors web: no family yet — show empty state. User creates from Family tab when inviting parent.

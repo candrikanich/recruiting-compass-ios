@@ -52,7 +52,26 @@ Reference state; do not redo. Commits up to `c3e7799`.
 
 ---
 
-## Phase 1 — Canonical fixture: parent + linked player + populated data
+## Phase 1 — Canonical fixture: parent + linked player + populated data ✅ DONE (2026-05-27)
+
+**Gate met:** `OffersListE2ETests/testOffersList_navigate_displaysScreen` PASSES with real seeded data.
+
+Resolved open questions:
+1. **Athlete selection** = `family_members.id` (row UUID) held in `selectedAthleteId`; the athlete's
+   query `user_id` is `selectedAthlete.userId`. Athlete users auto-select self; parents now auto-select
+   the first athlete (added to `FamilyManager.loadFamilyData`, mirroring web's closest-grad default).
+2. **Dashboard ownership:** schools/coaches/interactions → `family_unit_id`; offers/events/
+   performance_metrics/documents → athlete `user_id` + `family_unit_id` (RLS visibility).
+
+Done: seed-e2e seeds player+profile+membership and owns athlete data; fixed 3 iOS parity bugs
+(`isAthlete` "player", Dashboard+Offers VM target `selectedAthlete.userId`, parent auto-select);
+hardened `E2ETestEnvironment` to default LOCAL and ignore ambient prod `SUPABASE_URL` (Phase 0's
+"verified" was a false positive against prod); fixed OffersListScreenObject nav (coordinate-tap the
+non-hittable More tab) + summary-card staticText selectors + "No Offers Yet" empty title. Unit suite
+re-green (2 fixture tests updated to role "player" / athlete userId).
+
+### Original plan (for reference)
+
 
 **Outcome:** After parent login, the Dashboard is populated (no onboarding banner) and tabs navigate.
 Player-login also reaches a populated dashboard.

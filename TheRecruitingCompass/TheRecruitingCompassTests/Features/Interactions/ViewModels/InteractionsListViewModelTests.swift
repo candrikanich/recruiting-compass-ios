@@ -522,8 +522,8 @@ final class InteractionsListViewModelTests: XCTestCase {
   }
 
   func testIsAthlete_ReturnsTrue() {
-    // Given
-    mockFamilyManager.currentMember = createFamilyMember(role: "athlete", userId: "athlete1")
+    // Given — the athlete role in the DB/web is "player" (see FamilyMember.isAthlete)
+    mockFamilyManager.currentMember = createFamilyMember(role: "player", userId: "athlete1")
 
     // Then
     XCTAssertTrue(viewModel.isAthlete)

@@ -35,26 +35,28 @@ final class OffersListScreenObject {
   // SummaryCard uses .accessibilityElement(children: .combine)
   // with .accessibilityLabel("\(count) \(title) offer(s)")
 
+  // SummaryCard combines children but surfaces as a StaticText (label e.g.
+  // "2 Pending offers"), so query staticTexts rather than otherElements.
   var acceptedCard: XCUIElement {
-    app.otherElements.matching(NSPredicate(
+    app.staticTexts.matching(NSPredicate(
       format: "label CONTAINS 'Accepted offer'"
     )).firstMatch
   }
 
   var pendingCard: XCUIElement {
-    app.otherElements.matching(NSPredicate(
+    app.staticTexts.matching(NSPredicate(
       format: "label CONTAINS 'Pending offer'"
     )).firstMatch
   }
 
   var declinedCard: XCUIElement {
-    app.otherElements.matching(NSPredicate(
+    app.staticTexts.matching(NSPredicate(
       format: "label CONTAINS 'Declined offer'"
     )).firstMatch
   }
 
   var allSummaryCards: XCUIElementQuery {
-    app.otherElements.matching(NSPredicate(
+    app.staticTexts.matching(NSPredicate(
       format: "label CONTAINS 'Accepted offer' OR label CONTAINS 'Pending offer' OR label CONTAINS 'Declined offer'"
     ))
   }
@@ -88,7 +90,7 @@ final class OffersListScreenObject {
   // MARK: - Empty State
 
   var emptyStateTitle: XCUIElement {
-    app.staticTexts["No offers yet"]
+    app.staticTexts["No Offers Yet"]
   }
 
   var emptyStateSubtitle: XCUIElement {
@@ -141,25 +143,35 @@ final class OffersListScreenObject {
 
   func navigateToOffers() -> Bool {
     // Offers is not a top-level tab. It lives under the "More" tab, in the
-    // "Recruiting" section. The row uses .accessibilityElement(children: .combine)
-    // so its label is "Offers: <description>" — match on a leading "Offers".
+    // "Recruiting" section, as a NavigationLink labeled "Offers".
+    //
+    // The tab-bar button reports isHittable == false while the Dashboard's tall
+    // scroll content is on screen, so a plain .tap() silently no-ops. Tap via a
+    // normalized coordinate, which lands reliably regardless of hittability.
     let moreTab = app.tabBars.buttons["More"]
     guard moreTab.waitForExistence(timeout: 5) else {
       return waitForScreenToLoad()
     }
-    moreTab.tap()
 
-    let offersRowPredicate = NSPredicate(format: "label BEGINSWITH 'Offers'")
-    let offersButton = app.buttons.matching(offersRowPredicate).firstMatch
-    if offersButton.waitForExistence(timeout: 5) {
-      offersButton.tap()
+    // A plain .tap() on the tab-bar button silently no-ops while the Dashboard's
+    // tall scroll content is on screen (isHittable flickers, the hit-test misses).
+    // A coordinate tap lands reliably. Retry until the "More" navbar appears.
+    let moreNav = app.navigationBars["More"]
+    for _ in 0..<3 where !moreNav.exists {
+      moreTab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+      _ = moreNav.waitForExistence(timeout: 5)
+    }
+    guard moreNav.exists else {
       return waitForScreenToLoad()
     }
 
-    // Combined rows can surface as otherElements rather than buttons.
-    let offersOther = app.otherElements.matching(offersRowPredicate).firstMatch
-    if offersOther.waitForExistence(timeout: 3) {
-      offersOther.tap()
+    let offersRow = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Offers'")).firstMatch
+    if offersRow.waitForExistence(timeout: 5) {
+      if offersRow.isHittable {
+        offersRow.tap()
+      } else {
+        offersRow.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+      }
     }
     return waitForScreenToLoad()
   }

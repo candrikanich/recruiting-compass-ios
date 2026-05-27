@@ -3,20 +3,24 @@ import XCTest
 
 /// Resolves the Supabase credentials E2E tests inject into the app under test.
 ///
-/// Priority: the test runner's own environment (`SUPABASE_URL` / `SUPABASE_ANON_KEY`,
-/// set by CI or a scheme) wins; otherwise we fall back to the local Supabase stack
-/// started via `supabase start` in recruiting-compass-web. The local values are the
-/// standard Supabase DEMO keys — public, identical on every local install, never
-/// secrets — so it is safe to hard-code them as the default. This guarantees E2E
-/// runs hit a local DB, never production.
+/// E2E ALWAYS targets the local Supabase stack (`supabase start` in
+/// recruiting-compass-web) by default. The local values are the standard
+/// Supabase DEMO keys — public, identical on every local install, never
+/// secrets — so they are safe to hard-code.
+///
+/// To point E2E at a different stack (e.g. an ephemeral CI database) set the
+/// DEDICATED `E2E_SUPABASE_URL` / `E2E_SUPABASE_ANON_KEY` vars. We deliberately
+/// IGNORE the ambient `SUPABASE_URL` / `SUPABASE_ANON_KEY`, because a developer's
+/// local run scheme sets those to PRODUCTION for normal app runs — honoring them
+/// here would silently run E2E (and the destructive seed) against prod.
 enum E2ETestEnvironment {
   static let supabaseURL: String = {
-    let fromEnv = ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? ""
+    let fromEnv = ProcessInfo.processInfo.environment["E2E_SUPABASE_URL"] ?? ""
     return fromEnv.isEmpty ? "http://127.0.0.1:54321" : fromEnv
   }()
 
   static let supabaseAnonKey: String = {
-    let fromEnv = ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] ?? ""
+    let fromEnv = ProcessInfo.processInfo.environment["E2E_SUPABASE_ANON_KEY"] ?? ""
     guard fromEnv.isEmpty else { return fromEnv }
     return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
   }()
