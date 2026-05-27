@@ -102,22 +102,30 @@ async function resolveTestUser(): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// Step 2 — Patch users table row (created by DB trigger on auth.users insert)
+// Step 2 — Upsert public.users row.
+// Prod creates this via an auth.users trigger; the local stack has no such
+// trigger, so we insert it explicitly (id, email, role are NOT NULL). Upsert
+// on the primary key keeps reseeding idempotent.
 // ---------------------------------------------------------------------------
 async function patchUsersRow(userId: string): Promise<void> {
   const { error } = await supabase
     .from("users")
-    .update({
-      role: "parent",
-      onboarding_completed: true,
-    })
-    .eq("id", userId);
+    .upsert(
+      {
+        id: userId,
+        email: TEST_EMAIL,
+        full_name: TEST_DISPLAY_NAME,
+        role: "parent",
+        onboarding_completed: true,
+      },
+      { onConflict: "id" }
+    );
 
   if (error) {
-    console.warn("Could not update users row (trigger may not have fired yet):", error.message);
-  } else {
-    console.log("Patched users row: role=parent, onboarding_completed=true");
+    console.error("Failed to upsert users row:", error.message);
+    process.exit(1);
   }
+  console.log("Upserted users row: role=parent, onboarding_completed=true");
 }
 
 // ---------------------------------------------------------------------------
@@ -161,6 +169,26 @@ async function resolveFamily(userId: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
+// Cleanup — delete prior E2E rows so reseeding is idempotent.
+// None of these tables have a unique constraint matching a natural key, so
+// upsert(onConflict) fails ("no unique constraint matching ON CONFLICT").
+// Delete-then-insert is constraint-independent. Order: children -> parents
+// to satisfy foreign keys. Family unit/membership is preserved (resolveFamily
+// is idempotent and the app's onboarding gate depends on it).
+// ---------------------------------------------------------------------------
+async function cleanupTestData(userId: string): Promise<void> {
+  await supabase.from("interactions").delete().eq("logged_by", userId);
+  await supabase.from("performance_metrics").delete().eq("user_id", userId);
+  await supabase.from("offers").delete().eq("user_id", userId);
+  await supabase.from("documents").delete().eq("user_id", userId);
+  await supabase.from("notifications").delete().eq("user_id", userId);
+  await supabase.from("events").delete().eq("user_id", userId);
+  await supabase.from("coaches").delete().eq("user_id", userId);
+  await supabase.from("schools").delete().eq("user_id", userId);
+  console.log("Cleaned prior E2E data for test user");
+}
+
+// ---------------------------------------------------------------------------
 // Step 4 — Schools (2: one normal + one duplicate-name for duplicate detection)
 // ---------------------------------------------------------------------------
 async function seedSchools(
@@ -195,23 +223,15 @@ async function seedSchools(
 
   const { data, error } = await supabase
     .from("schools")
-    .upsert(schools, { onConflict: "user_id,name,family_unit_id", ignoreDuplicates: true })
+    .insert(schools)
     .select("id, name");
 
   if (error) {
     console.warn("Schools seed error:", error.message);
   }
 
-  // Fetch the seeded schools regardless (upsert with ignoreDuplicates returns partial results)
-  const { data: fetched } = await supabase
-    .from("schools")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("family_unit_id", familyUnitId)
-    .limit(2);
-
-  const ids = (fetched ?? []).map((r) => r.id as string);
-  console.log(`Schools: ${ids.length} found/created`);
+  const ids = (data ?? []).map((r) => r.id as string);
+  console.log(`Schools: ${ids.length} created`);
   return [ids[0] ?? "", ids[1] ?? ids[0] ?? ""];
 }
 
@@ -228,7 +248,7 @@ async function seedCoaches(
       school_id: schoolId,
       user_id: userId,
       family_unit_id: familyUnitId,
-      role: "Head Coach",
+      role: "head",
       first_name: "John",
       last_name: "Smith",
       email: "jsmith@duke.edu",
@@ -237,7 +257,7 @@ async function seedCoaches(
       school_id: schoolId,
       user_id: userId,
       family_unit_id: familyUnitId,
-      role: "Recruiting Coordinator",
+      role: "recruiting",
       first_name: "Mike",
       last_name: "Johnson",
       email: "mjohnson@duke.edu",
@@ -246,7 +266,7 @@ async function seedCoaches(
 
   const { data, error } = await supabase
     .from("coaches")
-    .upsert(coaches, { onConflict: "school_id,user_id,email", ignoreDuplicates: true })
+    .insert(coaches)
     .select("id");
 
   if (error) {
@@ -303,10 +323,7 @@ async function seedInteractions(
 
   const { error } = await supabase
     .from("interactions")
-    .upsert(interactions, {
-      onConflict: "family_unit_id,type,direction,occurred_at",
-      ignoreDuplicates: true,
-    });
+    .insert(interactions);
 
   if (error) {
     console.warn("Interactions seed error:", error.message);
@@ -337,21 +354,14 @@ async function seedEvents(
 
   const { data, error } = await supabase
     .from("events")
-    .upsert([event], { onConflict: "user_id,name,start_date", ignoreDuplicates: true })
+    .insert([event])
     .select("id");
 
   if (error) {
     console.warn("Events seed error:", error.message);
   }
 
-  const { data: fetched } = await supabase
-    .from("events")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("name", "E2E Test — Summer Showcase")
-    .maybeSingle();
-
-  const eventId = fetched?.id as string ?? "";
+  const eventId = (data?.[0]?.id as string) ?? "";
   console.log("Event seeded:", eventId);
   return eventId;
 }
@@ -386,10 +396,7 @@ async function seedOffers(
 
   const { error } = await supabase
     .from("offers")
-    .upsert(offers, {
-      onConflict: "user_id,school_id,offer_date,offer_type",
-      ignoreDuplicates: true,
-    });
+    .insert(offers);
 
   if (error) {
     console.warn("Offers seed error:", error.message);
@@ -440,10 +447,7 @@ async function seedPerformanceMetrics(
 
   const { error } = await supabase
     .from("performance_metrics")
-    .upsert(metrics, {
-      onConflict: "user_id,metric_type,recorded_date",
-      ignoreDuplicates: true,
-    });
+    .insert(metrics);
 
   if (error) {
     console.warn("Performance metrics seed error:", error.message);
@@ -453,20 +457,9 @@ async function seedPerformanceMetrics(
 }
 
 // ---------------------------------------------------------------------------
-// Step 10 — Notifications (2, different types) — no natural unique key,
-//            so skip if count >= 2 for this user already
+// Step 10 — Notifications (2, different types)
 // ---------------------------------------------------------------------------
 async function seedNotifications(userId: string): Promise<void> {
-  const { count } = await supabase
-    .from("notifications")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId);
-
-  if ((count ?? 0) >= 2) {
-    console.log(`Notifications: ${count} already exist — skipping`);
-    return;
-  }
-
   const notifications = [
     {
       user_id: userId,
@@ -514,10 +507,7 @@ async function seedDocuments(userId: string): Promise<void> {
 
   const { error } = await supabase
     .from("documents")
-    .upsert([document], {
-      onConflict: "user_id,title,version",
-      ignoreDuplicates: true,
-    });
+    .insert([document]);
 
   if (error) {
     console.warn("Documents seed error:", error.message);
@@ -535,6 +525,7 @@ async function main(): Promise<void> {
   const userId = await resolveTestUser();
   await patchUsersRow(userId);
   const familyUnitId = await resolveFamily(userId);
+  await cleanupTestData(userId);
 
   const [schoolId] = await seedSchools(userId, familyUnitId);
   const coachId = await seedCoaches(schoolId, userId, familyUnitId);
