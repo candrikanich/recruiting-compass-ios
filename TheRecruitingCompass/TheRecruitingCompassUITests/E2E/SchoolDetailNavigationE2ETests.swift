@@ -12,13 +12,9 @@ final class SchoolDetailNavigationE2ETests: XCTestCase {
     continueAfterFailure = false
 
     app = XCUIApplication()
-    app.launchArguments = ["--uitesting"]
-    let supabaseURL = ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? ""
-    let supabaseKey = ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] ?? ""
-    app.launchEnvironment = [
-      "SUPABASE_URL": supabaseURL,
-      "SUPABASE_ANON_KEY": supabaseKey
-    ]
+    E2ETestEnvironment.configure(app)
+    let supabaseURL = E2ETestEnvironment.supabaseURL
+    let supabaseKey = E2ETestEnvironment.supabaseAnonKey
     app.launch()
 
     screen = SchoolDetailScreenObject(app: app)

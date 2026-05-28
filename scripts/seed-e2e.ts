@@ -38,6 +38,21 @@ if (!SERVICE_ROLE_KEY) {
   process.exit(1);
 }
 
+// Safety guard: this script DELETES data (cleanupTestData). A developer's shell
+// may export SUPABASE_URL pointing at PRODUCTION (used for normal app runs), and
+// the .env.test loader above only sets vars that are not already present — so an
+// ambient prod URL would win. Refuse any non-local target unless explicitly
+// overridden, so we can never wipe prod by accident.
+const isLocalStack = /(?:127\.0\.0\.1|localhost)/.test(SUPABASE_URL);
+if (!isLocalStack && process.env.ALLOW_REMOTE_SEED !== "1") {
+  console.error(
+    `Refusing to seed a non-local Supabase target (${SUPABASE_URL}).\n` +
+      "This script deletes data. Point SUPABASE_URL at the local stack " +
+      "(http://127.0.0.1:54321) or set ALLOW_REMOTE_SEED=1 to override."
+  );
+  process.exit(1);
+}
+
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });

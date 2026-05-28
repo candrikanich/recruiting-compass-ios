@@ -96,7 +96,31 @@ Steps:
 
 ---
 
-## Phase 2 — Shared E2E harness hardening
+## Phase 2 — Shared E2E harness hardening ✅ DONE (2026-05-28)
+
+**Gate met:** UITest target compiles; representative tests pass via the shared helper
+(`OffersListE2ETests/testOffersList_navigate_displaysScreen` via `MainTabNavigator`;
+`SignupValidationE2ETests/testWeakPasswordShowsWeakStrength` pre-login via `configure`).
+
+Done:
+- All 42 inline-`launchEnvironment` setUps → `E2ETestEnvironment.configure(app)`. This ALSO closed
+  the prod leak in every one of them (they each forwarded the ambient prod `SUPABASE_URL`).
+  `SchoolDetailNavigationE2ETests` kept its `supabaseURL`/`supabaseKey` lets, now sourced from
+  `E2ETestEnvironment` (TestUserSetup/SchoolTestDataHelper → local). The lone deliberate
+  invalid-creds block in `ActivityFeedErrorStatesE2ETests` is left as-is.
+- New `MainTabNavigator` (UITests/Helpers): `goTo(.tab)`, `goToMore()`, `goToMoreSection(title)` —
+  coordinate-taps the non-hittable tab buttons with retry. `OffersListScreenObject.navigateToOffers`
+  now delegates to it.
+- `Makefile`: `e2e-precheck` (supabase status), `e2e-seed`, `e2e-local`.
+- `scripts/seed-e2e.ts`: refuses non-local targets unless `ALLOW_REMOTE_SEED=1` (the seed deletes data).
+- `docs/E2E_TESTING.md` run book.
+
+Note: a bulk sed-style replace is risky — `SignupSessionPersistenceTests` had no `app.launch()` in
+setUp, so an `app.launch()` end-delimiter deleted a whole test + tearDown (compiled clean!). Corrected
+to end the block at the `launchEnvironment` closing `]`. Verify diffs, not just the build.
+
+### Original plan (for reference)
+
 
 **Outcome:** One consistent launch/login/navigation harness; no inline per-file config; fast local loop.
 

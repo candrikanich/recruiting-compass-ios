@@ -142,38 +142,8 @@ final class OffersListScreenObject {
   // MARK: - Navigation Actions
 
   func navigateToOffers() -> Bool {
-    // Offers is not a top-level tab. It lives under the "More" tab, in the
-    // "Recruiting" section, as a NavigationLink labeled "Offers".
-    //
-    // The tab-bar button reports isHittable == false while the Dashboard's tall
-    // scroll content is on screen, so a plain .tap() silently no-ops. Tap via a
-    // normalized coordinate, which lands reliably regardless of hittability.
-    let moreTab = app.tabBars.buttons["More"]
-    guard moreTab.waitForExistence(timeout: 5) else {
-      return waitForScreenToLoad()
-    }
-
-    // A plain .tap() on the tab-bar button silently no-ops while the Dashboard's
-    // tall scroll content is on screen (isHittable flickers, the hit-test misses).
-    // A coordinate tap lands reliably. Retry until the "More" navbar appears.
-    let moreNav = app.navigationBars["More"]
-    for _ in 0..<3 where !moreNav.exists {
-      moreTab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-      _ = moreNav.waitForExistence(timeout: 5)
-    }
-    guard moreNav.exists else {
-      return waitForScreenToLoad()
-    }
-
-    let offersRow = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Offers'")).firstMatch
-    if offersRow.waitForExistence(timeout: 5) {
-      if offersRow.isHittable {
-        offersRow.tap()
-      } else {
-        offersRow.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-      }
-    }
-    return waitForScreenToLoad()
+    // Offers lives under the More tab as a NavigationLink labeled "Offers".
+    MainTabNavigator(app: app).goToMoreSection("Offers")
   }
 
   // MARK: - Wait Helpers
