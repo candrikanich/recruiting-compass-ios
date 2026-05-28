@@ -163,21 +163,4 @@ final class SignupValidationE2ETests: XCTestCase {
 
     add(app.takeScreenshot(name: "validation-07-terms-checked"))
   }
-
-  // MARK: - Family Code Validation (skipped: family code not shown for either role)
-
-  @MainActor
-  func testInvalidFamilyCodeFormat() throws {
-    throw XCTSkip("Family code field is not shown in signup; both roles create their own family")
-  }
-
-  @MainActor
-  func testValidFamilyCodeFormat() throws {
-    throw XCTSkip("Family code field is not shown in signup; both roles create their own family")
-  }
-
-  @MainActor
-  func testEmptyFamilyCodeIsAccepted() throws {
-    throw XCTSkip("Family code field is not shown in signup; both roles create their own family")
-  }
 }

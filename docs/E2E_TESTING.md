@@ -83,6 +83,28 @@ Data ownership (must match the seed or RLS hides rows from the parent):
   "Sign in to account". Combined-accessibility form fields aren't addressable by
   label — use `textFields.firstMatch` / `secureTextFields.firstMatch`.
 
+## Known environment-gated skips (email-confirmation flow)
+
+The `EmailVerificationE2ETests`, `PasswordResetE2ETests` "resend/journey" cases,
+`SignupFlowE2ETests/testFullParentSignupFlow`, and
+`SignupSessionPersistenceTests` verification cases **skip** on the local stack.
+They are not selector drift and not broken — they exercise the email-confirmation
+flow, which the app's signup cannot complete locally:
+
+- Local Supabase runs with `enable_confirmations = false`, so `auth.signUp`
+  returns a session immediately and no verification screen is shown.
+- Turning confirmations **on** does not help: `auth.signUp` then returns **no
+  session**, but `SupabaseManager.signUp` immediately upserts `public.users`,
+  which fails RLS without a session (`new row violates row-level security policy
+  for table "users"`) → signup errors. (The web app relies on a
+  `handle_new_user` trigger instead, but that trigger is not created in any
+  migration — separate drift.)
+
+Making these green requires aligning the app's signup with a confirmation-required
+backend (e.g. create `public.users` via a SECURITY DEFINER trigger rather than an
+authenticated upsert). Tracked separately from the E2E harness work. The tests
+`throw XCTSkip` defensively, so the suite stays green.
+
 ## Debugging a selector / navigation issue
 
 `print()` from a UI test does **not** reach stdout. Attach the tree to the
