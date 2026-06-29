@@ -195,19 +195,13 @@ struct InteractionsListView: View {
         InteractionCard(
           interaction: interaction,
           schoolName: viewModel.schoolName(for: interaction.schoolId),
-          coachName: viewModel.coachName(for: interaction.coachId)
+          coachName: viewModel.coachName(for: interaction.coachId),
+          onDelete: { viewModel.confirmDelete(interaction) }
         )
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
       }
       .buttonStyle(.plain)
-      .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-        Button(role: .destructive) {
-          viewModel.confirmDelete(interaction)
-        } label: {
-          Label("Delete", systemImage: "trash")
-        }
-      }
     }
   }
 }

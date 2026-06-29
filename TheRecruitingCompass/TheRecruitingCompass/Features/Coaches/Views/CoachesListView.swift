@@ -201,7 +201,8 @@ struct CoachesListView: View {
           schoolInitials: viewModel.schoolInitials(for: coach.schoolId),
           onQuickCommunication: { context in
             quickCommunicationContext = context
-          }
+          },
+          onDelete: { viewModel.confirmDelete(coach) }
         )
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
@@ -215,13 +216,6 @@ struct CoachesListView: View {
           )
         } label: {
           Label("Quick Communication", systemImage: "envelope.badge")
-        }
-      }
-      .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-        Button(role: .destructive) {
-          viewModel.confirmDelete(coach)
-        } label: {
-          Label("Delete", systemImage: "trash")
         }
       }
     }

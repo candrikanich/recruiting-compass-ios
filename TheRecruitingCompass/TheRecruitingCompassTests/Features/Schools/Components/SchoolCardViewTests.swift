@@ -26,6 +26,31 @@ final class SchoolCardViewTests: XCTestCase {
     XCTAssertNotNil(mirror)
   }
 
+  // MARK: - Delete Affordance Tests
+  // Regression: delete used to be reachable only via .swipeActions, which is
+  // inert inside ScrollView+LazyVStack. The card now owns an explicit, labeled
+  // delete button (mirrors OfferCard).
+
+  func testDeleteAccessibilityLabel() {
+    let school = makeSchool(name: "Stanford University")
+    let card = SchoolCardView(school: school, onToggleFavorite: {}, onDelete: {})
+
+    XCTAssertEqual(card.deleteAccessibilityLabel, "Delete Stanford University")
+  }
+
+  func testOnDeleteClosureIsStored() {
+    var deleted = false
+    let card = SchoolCardView(
+      school: school,
+      onToggleFavorite: {},
+      onDelete: { deleted = true }
+    )
+
+    card.onDelete()
+
+    XCTAssertTrue(deleted, "Delete button must invoke the supplied onDelete closure")
+  }
+
   func testRendersLocation() {
     let school = makeSchool(location: "Stanford, CA")
     let card = SchoolCardView(school: school, onToggleFavorite: {})

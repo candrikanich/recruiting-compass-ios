@@ -166,20 +166,13 @@ struct SchoolsListView: View {
           school: school,
           onToggleFavorite: {
             Task { await viewModel.toggleFavorite(school: school) }
-          }
+          },
+          onDelete: { viewModel.confirmDelete(school: school) }
         )
         .padding(.horizontal)
         .padding(.bottom, 12)
       }
       .buttonStyle(.plain)
-      .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-        Button(role: .destructive) {
-          viewModel.confirmDelete(school: school)
-        } label: {
-          Label("Delete", systemImage: "trash")
-        }
-        .accessibilityLabel("Delete \(school.name)")
-      }
     }
   }
 }

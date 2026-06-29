@@ -8,9 +8,12 @@ struct CoachCardView: View {
 
   /// When set, email and phone buttons open Quick Communication sheet instead of Mail/Messages.
   var onQuickCommunication: ((QuickCommunicationContext) -> Void)? = nil
+  var onDelete: () -> Void = {}
 
   @Environment(\.colorScheme) private var colorScheme
   @Environment(\.sizeCategory) private var sizeCategory
+
+  var deleteAccessibilityLabel: String { "Delete \(coach.fullName)" }
 
   private var initialsSize: CGFloat {
     sizeCategory.isAccessibilityCategory ? 56 : 48
@@ -169,7 +172,22 @@ struct CoachCardView: View {
       communicationButtons
 
       Spacer()
+
+      deleteButton
     }
+  }
+
+  @ViewBuilder
+  private var deleteButton: some View {
+    Button(role: .destructive, action: onDelete) {
+      Image(systemName: "trash")
+        .font(.subheadline)
+        .foregroundStyle(Color.errorRed)
+        .frame(minWidth: 44, minHeight: 44)
+        .contentShape(Rectangle())
+    }
+    .accessibilityLabel(deleteAccessibilityLabel)
+    .accessibilityHint("Double tap to delete this coach")
   }
 
   @ViewBuilder

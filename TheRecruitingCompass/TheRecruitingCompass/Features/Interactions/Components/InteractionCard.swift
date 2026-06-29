@@ -4,11 +4,49 @@ struct InteractionCard: View {
   let interaction: Interaction
   let schoolName: String?
   let coachName: String?
+  var onDelete: () -> Void = {}
 
   @Environment(\.sizeCategory) private var sizeCategory
   @ScaledMetric(relativeTo: .body) private var iconImageSize: CGFloat = 18
 
+  var deleteAccessibilityLabel: String { "Delete \(interaction.type.displayName) interaction" }
+
   var body: some View {
+    HStack(alignment: .top, spacing: 8) {
+      cardContent
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityHint(accessibilityHint)
+
+      deleteButton
+    }
+    .padding(16)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Color.Surface.card)
+    .overlay {
+      RoundedRectangle(cornerRadius: 12)
+        .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
+    }
+    .clipShape(RoundedRectangle(cornerRadius: 12))
+    .brandShadowSm()
+  }
+
+  @ViewBuilder
+  private var deleteButton: some View {
+    Button(role: .destructive, action: onDelete) {
+      Image(systemName: "trash")
+        .font(.subheadline)
+        .foregroundStyle(Color.errorRed)
+        .frame(minWidth: 44, minHeight: 44)
+        .contentShape(Rectangle())
+    }
+    .accessibilityLabel(deleteAccessibilityLabel)
+    .accessibilityHint("Double tap to delete this interaction")
+  }
+
+  @ViewBuilder
+  private var cardContent: some View {
     VStack(alignment: .leading, spacing: 12) {
       // Header: Type icon, badges
       HStack(spacing: 12) {
@@ -98,19 +136,6 @@ struct InteractionCard: View {
           .foregroundStyle(.secondary)
       }
     }
-    .padding(16)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color.Surface.card)
-    .overlay {
-      RoundedRectangle(cornerRadius: 12)
-        .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
-    }
-    .clipShape(RoundedRectangle(cornerRadius: 12))
-    .brandShadowSm()
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(accessibilityLabel)
-    .accessibilityAddTraits(.isButton)
-    .accessibilityHint(accessibilityHint)
   }
 
   // MARK: - Computed Properties

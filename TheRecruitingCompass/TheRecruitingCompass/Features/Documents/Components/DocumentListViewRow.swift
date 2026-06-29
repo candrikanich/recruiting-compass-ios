@@ -6,34 +6,49 @@ struct DocumentListViewRow: View {
   let onTap: () -> Void
   let onDelete: () -> Void
 
+  var deleteAccessibilityLabel: String { "Delete \(document.title)" }
+
   var body: some View {
-    Button(action: onTap) {
-      HStack(spacing: 12) {
-        thumbnailView
-        contentView
-        if document.isShared {
-          Text("Shared: \(document.sharedWithSchools.count)")
-            .font(.caption)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(Color.green.opacity(0.2))
-            .foregroundStyle(.green)
-            .clipShape(.rect(cornerRadius: 4))
+    HStack(spacing: 0) {
+      Button(action: onTap) {
+        HStack(spacing: 12) {
+          thumbnailView
+          contentView
+          if document.isShared {
+            Text("Shared: \(document.sharedWithSchools.count)")
+              .font(.caption)
+              .padding(.horizontal, 6)
+              .padding(.vertical, 2)
+              .background(Color.green.opacity(0.2))
+              .foregroundStyle(.green)
+              .clipShape(.rect(cornerRadius: 4))
+          }
         }
+        .padding(12)
       }
-      .padding(12)
+      .buttonStyle(.plain)
+      .accessibilityLabel(accessibilityLabel)
+      .accessibilityHint("Opens document details")
+
+      deleteButton
+        .padding(.trailing, 12)
     }
-    .buttonStyle(.plain)
-    .accessibilityLabel(accessibilityLabel)
-    .accessibilityHint("Opens document details")
-    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-      Button(role: .destructive) {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        onDelete()
-      } label: {
-        Label("Delete", systemImage: "trash")
-      }
+  }
+
+  @ViewBuilder
+  private var deleteButton: some View {
+    Button(role: .destructive) {
+      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      onDelete()
+    } label: {
+      Image(systemName: "trash")
+        .font(.subheadline)
+        .foregroundStyle(Color.errorRed)
+        .frame(minWidth: 44, minHeight: 44)
+        .contentShape(Rectangle())
     }
+    .accessibilityLabel(deleteAccessibilityLabel)
+    .accessibilityHint("Double tap to delete this document")
   }
 
   @ViewBuilder
