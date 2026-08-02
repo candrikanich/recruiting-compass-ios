@@ -38,10 +38,10 @@ final class NotificationsListViewModel {
     }
 
     if !searchText.isEmpty {
-      let query = searchText.lowercased()
+      let query = searchText
       result = result.filter {
-        $0.title.lowercased().contains(query) ||
-        $0.message.lowercased().contains(query)
+        $0.title.localizedStandardContains(query) ||
+        $0.message.localizedStandardContains(query)
       }
     }
 

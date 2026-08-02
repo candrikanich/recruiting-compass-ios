@@ -34,10 +34,9 @@ final class OffersListViewModel {
     var result = allOffers
 
     if !filters.schoolSearch.isEmpty {
-      let query = filters.schoolSearch.lowercased()
+      let query = filters.schoolSearch
       result = result.filter { offer in
-        let name = schoolName(for: offer.schoolId).lowercased()
-        return name.contains(query)
+        schoolName(for: offer.schoolId).localizedStandardContains(query)
       }
     }
 

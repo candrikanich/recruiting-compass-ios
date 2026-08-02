@@ -49,10 +49,10 @@ final class ActivityFeedViewModel {
     }
 
     if !searchQuery.isEmpty {
-      let query = searchQuery.lowercased()
+      let query = searchQuery
       result = result.filter {
-        $0.title.lowercased().contains(query) ||
-        $0.description.lowercased().contains(query)
+        $0.title.localizedStandardContains(query) ||
+        $0.description.localizedStandardContains(query)
       }
     }
 

@@ -11,17 +11,14 @@ import Foundation
 enum FieldValidator {
 
   // MARK: - Regex Patterns
+  // Regex literals are validated at compile time, so construction cannot fail at runtime.
+  // Matched via wholeMatch(of:), which anchors both ends.
 
   // Email regex that prevents consecutive dots
-  private static let emailPattern = "^[A-Za-z0-9_%+\\-]+(\\.[A-Za-z0-9_%+\\-]+)*@[A-Za-z0-9\\-]+(\\.[A-Za-z0-9\\-]+)*\\.[A-Za-z]{2,}$"
-  private static let phonePattern = "^\\(?([0-9]{3})\\)?[\\-. ]?([0-9]{3})[\\-. ]?([0-9]{4})$"
-  private static let twitterPattern = "^[A-Za-z0-9_]{1,15}$"
-  private static let instagramPattern = "^[A-Za-z0-9_.]{1,30}$"
-
-  private static let emailRegex: NSRegularExpression = try! NSRegularExpression(pattern: emailPattern)
-  private static let phoneRegex: NSRegularExpression = try! NSRegularExpression(pattern: phonePattern)
-  private static let twitterRegex: NSRegularExpression = try! NSRegularExpression(pattern: twitterPattern)
-  private static let instagramRegex: NSRegularExpression = try! NSRegularExpression(pattern: instagramPattern)
+  private static let emailRegex = #/[A-Za-z0-9_%+\-]+(\.[A-Za-z0-9_%+\-]+)*@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)*\.[A-Za-z]{2,}/#
+  private static let phoneRegex = #/\(?[0-9]{3}\)?[\-. ]?[0-9]{3}[\-. ]?[0-9]{4}/#
+  private static let twitterRegex = #/[A-Za-z0-9_]{1,15}/#
+  private static let instagramRegex = #/[A-Za-z0-9_.]{1,30}/#
 
   // MARK: - Role Validation
 
@@ -93,9 +90,7 @@ enum FieldValidator {
     }
 
     // Validate email format using regex
-    let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
-
-    guard emailRegex.firstMatch(in: trimmed, range: range) != nil else {
+    guard trimmed.wholeMatch(of: Self.emailRegex) != nil else {
       return "Please enter a valid email address"
     }
 
@@ -115,9 +110,7 @@ enum FieldValidator {
     }
 
     // Validate phone format using regex
-    let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
-
-    guard phoneRegex.firstMatch(in: trimmed, range: range) != nil else {
+    guard trimmed.wholeMatch(of: Self.phoneRegex) != nil else {
       return "Please enter a valid phone number"
     }
 
@@ -142,9 +135,7 @@ enum FieldValidator {
     let cleaned = trimmed.hasPrefix("@") ? String(trimmed.dropFirst()) : trimmed
 
     // Validate Twitter handle format using regex
-    let range = NSRange(cleaned.startIndex..<cleaned.endIndex, in: cleaned)
-
-    guard twitterRegex.firstMatch(in: cleaned, range: range) != nil else {
+    guard cleaned.wholeMatch(of: Self.twitterRegex) != nil else {
       return "Invalid Twitter handle (1-15 characters, letters/numbers/underscore)"
     }
 
@@ -167,9 +158,7 @@ enum FieldValidator {
     let cleaned = trimmed.hasPrefix("@") ? String(trimmed.dropFirst()) : trimmed
 
     // Validate Instagram handle format using regex
-    let range = NSRange(cleaned.startIndex..<cleaned.endIndex, in: cleaned)
-
-    guard instagramRegex.firstMatch(in: cleaned, range: range) != nil else {
+    guard cleaned.wholeMatch(of: Self.instagramRegex) != nil else {
       return "Invalid Instagram handle (1-30 characters, letters/numbers/dots/underscore)"
     }
 

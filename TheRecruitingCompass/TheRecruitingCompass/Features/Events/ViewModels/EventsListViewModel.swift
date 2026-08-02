@@ -45,12 +45,12 @@ final class EventsListViewModel {
     var result = events
 
     if !searchText.isEmpty {
-      let query = searchText.lowercased()
+      let query = searchText
       result = result.filter {
-        $0.name.lowercased().contains(query)
-        || ($0.city?.lowercased().contains(query) ?? false)
-        || ($0.description?.lowercased().contains(query) ?? false)
-        || ($0.address?.lowercased().contains(query) ?? false)
+        $0.name.localizedStandardContains(query)
+        || ($0.city?.localizedStandardContains(query) ?? false)
+        || ($0.description?.localizedStandardContains(query) ?? false)
+        || ($0.address?.localizedStandardContains(query) ?? false)
       }
     }
 

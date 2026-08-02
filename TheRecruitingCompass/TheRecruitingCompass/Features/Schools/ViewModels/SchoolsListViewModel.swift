@@ -48,14 +48,14 @@ final class SchoolsListViewModel {
     var result = allSchools
 
     if !filters.searchText.isEmpty {
-      let query = filters.searchText.lowercased()
+      let query = filters.searchText
       result = result.filter { school in
-        school.name.lowercased().contains(query)
-          || (school.location?.lowercased().contains(query) ?? false)
-          || (school.city?.lowercased().contains(query) ?? false)
-          || (school.state?.lowercased().contains(query) ?? false)
-          || (school.conference?.lowercased().contains(query) ?? false)
-          || (school.notes?.lowercased().contains(query) ?? false)
+        school.name.localizedStandardContains(query)
+          || (school.location?.localizedStandardContains(query) ?? false)
+          || (school.city?.localizedStandardContains(query) ?? false)
+          || (school.state?.localizedStandardContains(query) ?? false)
+          || (school.conference?.localizedStandardContains(query) ?? false)
+          || (school.notes?.localizedStandardContains(query) ?? false)
       }
     }
 

@@ -239,6 +239,34 @@ final class CoachesListViewModelTests: XCTestCase {
     XCTAssertEqual(sut.filteredCoaches.count, 1)
   }
 
+  func testSearchFilter_diacriticInsensitive_plainQueryMatchesAccentedName() async {
+    mockService.stubbedSchools = [makeSchool()]
+    mockService.stubbedCoaches = [
+      makeCoach(id: "1", firstName: "Carlos", lastName: "Muñoz"),
+      makeCoach(id: "2", firstName: "Jane", lastName: "Doe"),
+    ]
+
+    await sut.loadCoaches()
+    sut.filters.searchText = "munoz"
+
+    XCTAssertEqual(sut.filteredCoaches.count, 1)
+    XCTAssertEqual(sut.filteredCoaches.first?.lastName, "Muñoz")
+  }
+
+  func testSearchFilter_diacriticInsensitive_accentedQueryMatchesPlainName() async {
+    mockService.stubbedSchools = [makeSchool()]
+    mockService.stubbedCoaches = [
+      makeCoach(id: "1", firstName: "Carlos", lastName: "Munoz"),
+      makeCoach(id: "2", firstName: "Jane", lastName: "Doe"),
+    ]
+
+    await sut.loadCoaches()
+    sut.filters.searchText = "muñoz"
+
+    XCTAssertEqual(sut.filteredCoaches.count, 1)
+    XCTAssertEqual(sut.filteredCoaches.first?.lastName, "Munoz")
+  }
+
   func testSearchFilter_caseInsensitive() async {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [makeCoach(firstName: "John")]

@@ -33,10 +33,10 @@ final class InteractionsListViewModel {
 
     // 1. Text search (subject + content)
     if !filters.searchText.isEmpty {
-      let query = filters.searchText.lowercased()
+      let query = filters.searchText
       result = result.filter { interaction in
-        (interaction.subject?.lowercased().contains(query) ?? false) ||
-        (interaction.content?.lowercased().contains(query) ?? false)
+        (interaction.subject?.localizedStandardContains(query) ?? false) ||
+        (interaction.content?.localizedStandardContains(query) ?? false)
       }
     }
 

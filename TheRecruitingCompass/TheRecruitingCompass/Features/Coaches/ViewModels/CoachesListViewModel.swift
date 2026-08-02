@@ -29,14 +29,14 @@ final class CoachesListViewModel {
     var result = allCoaches
 
     if !filters.searchText.isEmpty {
-      let query = filters.searchText.lowercased()
+      let query = filters.searchText
       result = result.filter { coach in
-        coach.fullName.lowercased().contains(query)
-          || (coach.email?.lowercased().contains(query) ?? false)
-          || (coach.phone?.lowercased().contains(query) ?? false)
-          || (coach.notes?.lowercased().contains(query) ?? false)
-          || (coach.twitterHandle?.lowercased().contains(query) ?? false)
-          || (coach.instagramHandle?.lowercased().contains(query) ?? false)
+        coach.fullName.localizedStandardContains(query)
+          || (coach.email?.localizedStandardContains(query) ?? false)
+          || (coach.phone?.localizedStandardContains(query) ?? false)
+          || (coach.notes?.localizedStandardContains(query) ?? false)
+          || (coach.twitterHandle?.localizedStandardContains(query) ?? false)
+          || (coach.instagramHandle?.localizedStandardContains(query) ?? false)
       }
     }
 
