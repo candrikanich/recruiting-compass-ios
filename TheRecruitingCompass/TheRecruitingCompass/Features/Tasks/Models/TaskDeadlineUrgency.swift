@@ -18,6 +18,16 @@ enum TaskDeadlineUrgency: String, Codable, CaseIterable, Sendable {
     }
   }
 
+  /// Shape cue paired with `color`; nil for the states that render no label.
+  var iconName: String? {
+    switch self {
+    case .critical: return "exclamationmark.octagon.fill"
+    case .urgent: return "exclamationmark.triangle.fill"
+    case .upcoming: return "clock.fill"
+    case .future, .none: return nil
+    }
+  }
+
   var color: Color {
     switch self {
     case .critical: return .errorRed

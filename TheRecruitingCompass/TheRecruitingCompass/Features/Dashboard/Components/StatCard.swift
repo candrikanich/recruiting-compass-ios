@@ -10,11 +10,7 @@ struct StatCard: View {
   let isEnabled: Bool
   let destination: DashboardDestination?
 
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var iconSize: CGFloat {
-    sizeCategory >= .extraLarge ? 28 : 24
-  }
+  @ScaledMetric(relativeTo: .title2) private var iconSize: CGFloat = 24
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -37,18 +33,18 @@ struct StatCard: View {
 
         Text(title)
           .font(.subheadline.weight(.bold))
-          .foregroundStyle(.white.opacity(0.9))
+          .foregroundStyle(.white)
 
         if let subtitle = subtitle {
           Text(subtitle)
             .font(.caption)
-            .foregroundStyle(.white.opacity(0.7))
+            .foregroundStyle(.white)
         }
 
         if let description = description {
           Text(description)
             .font(.caption)
-            .foregroundStyle(.white.opacity(0.85))
+            .foregroundStyle(.white)
         }
       }
     }
@@ -81,7 +77,7 @@ struct StatCard: View {
     subtitle: nil,
     description: "View all coaches",
     icon: "person.2",
-    gradientColors: [Color(hex: "#3B82F6"), Color(hex: "#2563EB")],
+    gradientColors: [Color.Brand.blue600, Color.Brand.blue700],
     isEnabled: true,
     destination: .coaches
   )

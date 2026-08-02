@@ -13,6 +13,14 @@ struct CoachStats: Sendable {
     return Color(hex: "#EF4444")                       // red - over month
   }
 
+  /// Shape cue paired with `contactStatusColor`; the recency tier is not in `contactStatusText`.
+  var contactStatusIconName: String {
+    guard let days = daysSinceContact else { return "minus.circle" }
+    if days == 0 { return "checkmark.circle.fill" }
+    if days <= 30 { return "clock.fill" }
+    return "exclamationmark.triangle.fill"
+  }
+
   var contactStatusText: String {
     guard let days = daysSinceContact else { return "Never" }
     if days == 0 { return "Today" }

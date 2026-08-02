@@ -3,15 +3,11 @@ import SwiftUI
 struct InfoBanner: View {
   let state: VerificationState
   let email: String?
-  @Environment(\.sizeCategory) var sizeCategory
+  @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 20
 
   init(state: VerificationState, email: String? = nil) {
     self.state = state
     self.email = email
-  }
-
-  private var iconSize: CGFloat {
-    sizeCategory >= .extraLarge ? 22 : 20
   }
 
   var body: some View {

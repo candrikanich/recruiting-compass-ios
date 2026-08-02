@@ -4,11 +4,7 @@ struct ParentPreviewBanner: View {
   let athleteName: String
   let onDismiss: () -> Void
 
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var fontSize: CGFloat {
-    sizeCategory >= .extraLarge ? 16 : 14
-  }
+  @ScaledMetric(relativeTo: .subheadline) private var fontSize: CGFloat = 14
 
   var body: some View {
     HStack(spacing: 12) {

@@ -70,9 +70,14 @@ struct TaskCard: View {
                 .clipShape(Capsule())
                 .accessibilityHidden(true)
             }
-            Text(task.effectiveStatus.displayName)
-              .font(.caption)
-              .foregroundStyle(task.statusColor)
+            HStack(spacing: 3) {
+              Image(systemName: task.statusIconName)
+                .font(.caption2)
+                .accessibilityHidden(true)
+              Text(task.effectiveStatus.displayName)
+            }
+            .font(.caption)
+            .foregroundStyle(task.statusColor)
           }
 
           Text(task.title)

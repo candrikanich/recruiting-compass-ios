@@ -24,6 +24,16 @@ enum FitTier: String, Codable, CaseIterable, Sendable {
   case safety
   case unlikely
 
+  /// Tier thresholds mirror the web app's classification.
+  init(score: Double) {
+    switch score {
+    case 80...: self = .safety
+    case 60..<80: self = .match
+    case 40..<60: self = .reach
+    default: self = .unlikely
+    }
+  }
+
   var displayName: String {
     switch self {
     case .reach: return "Reach"

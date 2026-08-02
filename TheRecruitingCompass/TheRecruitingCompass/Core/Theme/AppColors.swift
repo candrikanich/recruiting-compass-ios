@@ -17,11 +17,13 @@ extension Color {
     static let emerald500 = Color(hex: "10b981")
     static let emerald600 = Color(hex: "059669")
     static let emerald700 = Color(hex: "047857")
+    static let emerald800 = Color(hex: "065f46")
     // Orange — warning, pending, reach
     static let orange100 = Color(hex: "ffedd5")
     static let orange500 = Color(hex: "f97316")
     static let orange600 = Color(hex: "ea580c")
     static let orange700 = Color(hex: "c2410c")
+    static let orange800 = Color(hex: "9a3412")
     // Purple — secondary, outbound, academic
     static let purple100 = Color(hex: "ede9fe")
     static let purple500 = Color(hex: "8b5cf6")

@@ -11,6 +11,14 @@ enum SettingsBadgeStatus {
     }
   }
 
+  /// Shape cue so the badge reads without relying on the emerald/amber fill.
+  var iconName: String {
+    switch self {
+    case .complete: return "checkmark.circle.fill"
+    case .incomplete: return "exclamationmark.circle.fill"
+    }
+  }
+
   var foregroundColor: Color {
     switch self {
     case .complete: return Color(red: 0.06, green: 0.52, blue: 0.28)   // emerald-700

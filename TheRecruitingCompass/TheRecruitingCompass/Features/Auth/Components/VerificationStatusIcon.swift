@@ -3,16 +3,9 @@ import SwiftUI
 struct VerificationStatusIcon: View {
   let state: VerificationState
   @State private var isAnimating = false
-  @Environment(\.sizeCategory) var sizeCategory
   @Environment(\.accessibilityReduceMotion) var reduceMotion
-
-  private var backgroundSize: CGFloat {
-    sizeCategory >= .extraLarge ? 88 : 80
-  }
-
-  private var iconSize: CGFloat {
-    sizeCategory >= .extraLarge ? 44 : 40
-  }
+  @ScaledMetric(relativeTo: .largeTitle) private var backgroundSize: CGFloat = 80
+  @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = 40
 
   private var accessibilityLabelForState: String {
     switch state {

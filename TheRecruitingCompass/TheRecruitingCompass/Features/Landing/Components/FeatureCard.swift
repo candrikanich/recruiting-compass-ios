@@ -31,11 +31,7 @@ struct FeatureCard: View {
   let icon: String
   let title: String
   let description: String
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var iconSize: CGFloat {
-    sizeCategory >= .extraLarge ? 36 : 32
-  }
+  @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = 32
 
   var body: some View {
     VStack(spacing: 12) {

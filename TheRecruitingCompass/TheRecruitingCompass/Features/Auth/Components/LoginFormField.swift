@@ -27,11 +27,7 @@ struct LoginFormField: View {
   /// Optional identifier for UI testing (E2E).
   var accessibilityIdentifier: String? = nil
   let onBlur: () -> Void
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var iconWidth: CGFloat {
-    sizeCategory >= .extraLarge ? 22 : 20
-  }
+  @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 20
 
   @ViewBuilder
   private var inputField: some View {

@@ -4,6 +4,7 @@ struct EventsListView: View {
   @Binding var path: [MorePath]
 
   @Environment(AuthManager.self) private var authManager
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var viewModel = EventsListViewModel()
   @State private var eventToDelete: FullEvent?
   @State private var showCreateEvent = false
@@ -144,7 +145,11 @@ struct EventsListView: View {
       .onChange(of: viewModel.selectedCalendarDate) { _, date in
         guard let date else { return }
         if let id = viewModel.eventsForDate(date).first?.id {
-          withAnimation { proxy.scrollTo(id, anchor: .top) }
+          if reduceMotion {
+            proxy.scrollTo(id, anchor: .top)
+          } else {
+            withAnimation { proxy.scrollTo(id, anchor: .top) }
+          }
         }
       }
     }

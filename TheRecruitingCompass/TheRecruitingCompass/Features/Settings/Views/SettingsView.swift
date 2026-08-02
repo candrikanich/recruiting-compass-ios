@@ -247,13 +247,18 @@ private struct SettingsRow: View {
             .foregroundStyle(.primary)
 
           if let status = badgeStatus {
-            Text(status.label)
-              .font(.caption.weight(.medium))
-              .foregroundStyle(status.foregroundColor)
-              .padding(.horizontal, 6)
-              .padding(.vertical, 2)
-              .background(status.backgroundColor)
-              .clipShape(Capsule())
+            HStack(spacing: 3) {
+              Image(systemName: status.iconName)
+                .font(.caption2)
+                .accessibilityHidden(true)
+              Text(status.label)
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(status.foregroundColor)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(status.backgroundColor)
+            .clipShape(Capsule())
           }
         }
 

@@ -1,13 +1,9 @@
 import SwiftUI
 
 struct LandingView: View {
-  @Environment(\.sizeCategory) var sizeCategory
+  @ScaledMetric(relativeTo: .largeTitle) private var logoSize: CGFloat = 80
   @State private var showLogin = false
   @State private var showSignup = false
-
-  private var logoSize: CGFloat {
-    sizeCategory >= .extraLarge ? 88 : 80
-  }
 
   var body: some View {
     ZStack {

@@ -371,24 +371,32 @@ final class SchoolDetailViewModel {
 
   // MARK: - Fit Score
 
+  /// Fit scores are computed by the web app and stored on the school row.
+  /// When no stored score exists the section stays hidden — we never show
+  /// a locally invented score.
   func loadFitScore() async {
     isLoadingFitScore = true
     defer { isLoadingFitScore = false }
 
-    do {
-      let result = try await fitScoreService.calculateFitScore(schoolId: schoolId)
-      self.fitScore = result
-
-      self.divisionRecommendation = fitScoreService.getDivisionRecommendations(
-        division: school?.division,
-        fitScore: result.score
-      )
-
-      logger.info("Fit score loaded: \(result.score)")
-    } catch {
-      // Non-critical - just hide section if calculation fails
-      logger.error("Failed to load fit score: \(error.localizedDescription)")
+    guard let storedScore = school?.fitScore else {
+      fitScore = nil
+      divisionRecommendation = nil
+      return
     }
+
+    fitScore = FitScoreResult(
+      score: storedScore,
+      tier: (school?.fitTier).flatMap(FitTier.init(rawValue:)) ?? FitTier(score: storedScore),
+      breakdown: FitScoreBreakdown(athleticFit: nil, academicFit: nil, opportunityFit: nil, personalFit: nil),
+      missingDimensions: []
+    )
+
+    divisionRecommendation = fitScoreService.getDivisionRecommendations(
+      division: school?.division,
+      fitScore: storedScore
+    )
+
+    logger.info("Fit score loaded from stored value: \(storedScore)")
   }
 
   // MARK: - College Scorecard Lookup

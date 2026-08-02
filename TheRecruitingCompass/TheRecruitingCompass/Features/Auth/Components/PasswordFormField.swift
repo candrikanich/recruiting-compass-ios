@@ -7,11 +7,7 @@ struct PasswordFormField: View {
   @Binding var error: String?
   @Binding var isPasswordVisible: Bool
   let onBlur: () -> Void
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var iconWidth: CGFloat {
-    sizeCategory >= .extraLarge ? 22 : 20
-  }
+  @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 20
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {

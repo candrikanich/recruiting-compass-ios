@@ -19,7 +19,7 @@ struct DashboardStatsCardsSection: View {
             subtitle: nil,
             description: "View all coaches",
             icon: "person.2",
-            gradientColors: [Color(hex: "#3B82F6"), Color(hex: "#2563EB")],
+            gradientColors: [Color.Brand.blue600, Color.Brand.blue700],
             isEnabled: true,
             destination: .coaches
           )
@@ -39,7 +39,7 @@ struct DashboardStatsCardsSection: View {
             subtitle: nil,
             description: "Manage schools",
             icon: "building.2",
-            gradientColors: [Color(hex: "#8B5CF6"), Color(hex: "#7C3AED")],
+            gradientColors: [Color.Brand.purple600, Color.Brand.purple700],
             isEnabled: true,
             destination: .schools
           )
@@ -59,7 +59,7 @@ struct DashboardStatsCardsSection: View {
             subtitle: nil,
             description: "Track interactions",
             icon: "bubble.left.and.bubble.right",
-            gradientColors: [Color(hex: "#10B981"), Color(hex: "#059669")],
+            gradientColors: [Color.Brand.emerald700, Color.Brand.emerald800],
             isEnabled: true,
             destination: .interactions
           )
@@ -77,7 +77,7 @@ struct DashboardStatsCardsSection: View {
             subtitle: nil,
             description: "View all offers",
             icon: "gift",
-            gradientColors: [Color(hex: "#F97316"), Color(hex: "#EA580C")],
+            gradientColors: [Color.Brand.orange700, Color.Brand.orange800],
             isEnabled: true,
             destination: .offers
           )

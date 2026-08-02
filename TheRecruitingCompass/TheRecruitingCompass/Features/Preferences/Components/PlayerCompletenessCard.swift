@@ -3,6 +3,8 @@ import SwiftUI
 struct PlayerCompletenessCard: View {
     let score: Double  // 0.0 - 1.0
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     private var percentage: Int { Int(score * 100) }
 
     private var progressColor: Color {
@@ -40,7 +42,7 @@ struct PlayerCompletenessCard: View {
                     )
                     .frame(maxWidth: .infinity, maxHeight: 8)
                     .scaleEffect(x: max(score, 0.001), anchor: .leading)
-                    .animation(.spring(response: 0.4), value: score)
+                    .animation(reduceMotion ? nil : .spring(response: 0.4), value: score)
             }
             .frame(height: 8)
         }

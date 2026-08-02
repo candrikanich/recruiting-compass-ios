@@ -4,11 +4,7 @@ struct TermsCheckbox: View {
   @Binding var isChecked: Bool
   let onTermsPressed: () -> Void
   let onPrivacyPressed: () -> Void
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var checkboxSize: CGFloat {
-    sizeCategory >= .extraLarge ? 20 : 18
-  }
+  @ScaledMetric(relativeTo: .body) private var checkboxSize: CGFloat = 18
 
   var body: some View {
     HStack(alignment: .top, spacing: 10) {

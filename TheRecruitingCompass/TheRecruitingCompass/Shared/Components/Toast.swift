@@ -77,27 +77,31 @@ struct ToastModifier: ViewModifier {
   let type: ToastType
   let duration: TimeInterval
 
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
   func body(content: Content) -> some View {
     content.overlay(alignment: .top) {
       if isShowing, let message {
         Toast(message: message, type: type) {
-          withAnimation {
-            isShowing = false
-            self.message = nil
-          }
+          dismiss()
         }
         .padding(.top, 8)
-        .transition(.move(edge: .top).combined(with: .opacity))
+        .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
         .onAppear {
           Task {
             try? await Task.sleep(for: .seconds(duration))
-            withAnimation {
-              isShowing = false
-              self.message = nil
-            }
+            dismiss()
           }
         }
       }
+    }
+  }
+
+  /// Fades rather than slides under Reduce Motion; the transition above drops the move.
+  private func dismiss() {
+    withAnimation {
+      isShowing = false
+      message = nil
     }
   }
 }
