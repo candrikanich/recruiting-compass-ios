@@ -13,8 +13,8 @@ struct EventsListView: View {
 
   private var showErrorAlert: Binding<Bool> {
     Binding(
-      get: { viewModel.error != nil },
-      set: { if !$0 { viewModel.error = nil } }
+      get: { viewModel.errorMessage != nil },
+      set: { if !$0 { viewModel.errorMessage = nil } }
     )
   }
 
@@ -57,9 +57,9 @@ struct EventsListView: View {
     .refreshable {
       await viewModel.loadEvents()
     }
-    .alert("Error", isPresented: showErrorAlert, presenting: viewModel.error) { _ in
+    .alert("Error", isPresented: showErrorAlert, presenting: viewModel.errorMessage) { _ in
       Button("Retry") { Task { await viewModel.loadEvents() } }
-      Button("OK", role: .cancel) { viewModel.error = nil }
+      Button("OK", role: .cancel) { viewModel.errorMessage = nil }
     } message: { error in
       Text(error)
     }

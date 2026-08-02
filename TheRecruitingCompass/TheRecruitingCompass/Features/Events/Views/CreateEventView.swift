@@ -19,8 +19,8 @@ struct CreateEventView: View {
 
   private var isShowingError: Binding<Bool> {
     Binding(
-      get: { viewModel.error != nil },
-      set: { if !$0 { viewModel.error = nil } }
+      get: { viewModel.errorMessage != nil },
+      set: { if !$0 { viewModel.errorMessage = nil } }
     )
   }
 
@@ -64,7 +64,7 @@ struct CreateEventView: View {
     .alert("Error", isPresented: isShowingError) {
       Button("OK", role: .cancel) { }
     } message: {
-      Text(viewModel.error ?? "")
+      Text(viewModel.errorMessage ?? "")
     }
     .alert("Discard Changes?", isPresented: $showDiscardAlert) {
       Button("Discard", role: .destructive) { dismiss() }

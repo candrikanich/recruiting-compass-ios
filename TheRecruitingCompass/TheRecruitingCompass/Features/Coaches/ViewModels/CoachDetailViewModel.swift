@@ -318,7 +318,7 @@ final class CoachDetailViewModel {
       logger.info("Coach deleted successfully")
     } catch {
       // If FK constraint error, fallback to cascade delete
-      if error.localizedDescription.contains("foreign key") {
+      if isForeignKeyViolation(error) {
         do {
           let result = try await coachesService.cascadeDeleteCoach(id: coach.id)
           await invalidateCoachCache()

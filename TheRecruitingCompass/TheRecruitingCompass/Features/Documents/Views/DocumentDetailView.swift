@@ -29,7 +29,7 @@ struct DocumentDetailView: View {
 
   private var showErrorAlert: Binding<Bool> {
     Binding(
-      get: { viewModel.error != nil && viewModel.document != nil },
+      get: { viewModel.errorMessage != nil && viewModel.document != nil },
       set: { if !$0 { viewModel.clearError() } }
     )
   }
@@ -40,7 +40,7 @@ struct DocumentDetailView: View {
         loadingState
       } else if viewModel.document == nil && viewModel.isNotFound {
         notFoundView
-      } else if let errorMessage = viewModel.error, viewModel.document == nil {
+      } else if let errorMessage = viewModel.errorMessage, viewModel.document == nil {
         errorState(message: errorMessage)
       } else if let document = viewModel.document {
         documentContent(document)
@@ -81,7 +81,7 @@ struct DocumentDetailView: View {
       Button("Retry") { Task { await viewModel.loadDocument() } }
       Button("OK", role: .cancel) { viewModel.clearError() }
     } message: {
-      Text(viewModel.error ?? "")
+      Text(viewModel.errorMessage ?? "")
     }
     .onChange(of: viewModel.shouldDismiss) { _, shouldDismiss in
       if shouldDismiss { dismiss() }
@@ -101,7 +101,7 @@ struct DocumentDetailView: View {
           }
         }
       case .failure:
-        viewModel.error = "Failed to select file."
+        viewModel.errorMessage = "Failed to select file."
       }
     }
   }
@@ -171,7 +171,7 @@ struct DocumentDetailView: View {
   private func documentContent(_ document: Document) -> some View {
     ScrollView {
       VStack(alignment: .leading, spacing: Layout.cardSpacing) {
-        if let error = viewModel.error {
+        if let error = viewModel.errorMessage {
           DocumentErrorBanner(error: error) {
             Task { await viewModel.loadDocument() }
           }

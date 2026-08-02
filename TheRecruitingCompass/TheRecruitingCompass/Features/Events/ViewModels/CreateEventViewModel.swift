@@ -20,7 +20,7 @@ final class CreateEventViewModel {
   var isLoading = false
   var isSaving = false
   var isSavingSchool = false
-  var error: String?
+  var errorMessage: String?
   var validationErrors: [String: String] = [:]
 
   // Modal state
@@ -64,7 +64,7 @@ final class CreateEventViewModel {
       logger.info("Loaded \(self.schools.count) schools")
     } catch {
       logger.error("Failed to load schools: \(error.localizedDescription)")
-      self.error = "Failed to load schools. Please try again."
+      self.errorMessage = "Failed to load schools. Please try again."
     }
   }
 
@@ -121,7 +121,7 @@ final class CreateEventViewModel {
       logger.info("New school created and selected: \(school.id)")
     } catch {
       logger.error("Failed to create school: \(error.localizedDescription)")
-      self.error = "Failed to add school. Please try again."
+      self.errorMessage = "Failed to add school. Please try again."
     }
   }
 
@@ -190,7 +190,7 @@ final class CreateEventViewModel {
 
     logger.debug("Creating event: \(self.formData.name)")
     isSaving = true
-    error = nil
+    errorMessage = nil
     defer { isSaving = false }
 
     let request = CreateEventRequest.from(formData: formData, userId: userId)
@@ -200,7 +200,7 @@ final class CreateEventViewModel {
       return event.id
     } catch {
       logger.error("Failed to create event: \(error.localizedDescription)")
-      self.error = "Failed to create event. Please check your connection and try again."
+      self.errorMessage = "Failed to create event. Please check your connection and try again."
       return nil
     }
   }

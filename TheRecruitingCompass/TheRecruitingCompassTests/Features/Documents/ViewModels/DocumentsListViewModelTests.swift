@@ -65,7 +65,7 @@ final class DocumentsListViewModelTests: XCTestCase {
     await sut.loadDocuments()
 
     XCTAssertEqual(sut.documents.count, 2)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertEqual(mockDocuments.fetchDocumentsCallCount, 1)
     XCTAssertEqual(mockDocuments.lastFetchDocumentsUserId, "user-1")
   }
@@ -76,7 +76,7 @@ final class DocumentsListViewModelTests: XCTestCase {
     await sut.loadDocuments()
 
     XCTAssertTrue(sut.documents.isEmpty)
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   func testLoadDocuments_noUser_skipsLoad() async {
@@ -243,7 +243,7 @@ final class DocumentsListViewModelTests: XCTestCase {
     await sut.deleteDocument(id: "doc-1")
 
     XCTAssertEqual(sut.documents.count, 1)
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   // MARK: - Filters

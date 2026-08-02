@@ -19,7 +19,7 @@ final class EventsListViewModel {
 
   var events: [FullEvent] = []
   var isLoading = false
-  var error: String?
+  var errorMessage: String?
   var searchText = ""
   var typeFilter: EventType?
   var statusFilter: StatusFilter = .all
@@ -198,7 +198,7 @@ final class EventsListViewModel {
 
     logger.debug("Loading events for user: \(userId)")
     isLoading = true
-    error = nil
+    errorMessage = nil
     defer { isLoading = false }
 
     do {
@@ -210,11 +210,9 @@ final class EventsListViewModel {
       logger.debug("Load events cancelled (request cancelled)")
     } catch where (error as NSError).domain == NSURLErrorDomain && (error as NSError).code == NSURLErrorCancelled {
       logger.debug("Load events cancelled (URL cancelled)")
-    } catch where error.localizedDescription.lowercased().contains("cancelled") {
-      logger.debug("Load events cancelled: \(error.localizedDescription)")
     } catch {
       logger.error("Failed to load events: \(error.localizedDescription)")
-      self.error = "Failed to load events. Please try again."
+      self.errorMessage = "Failed to load events. Please try again."
     }
   }
 
@@ -231,7 +229,7 @@ final class EventsListViewModel {
       events.removeAll { $0.id == id }
     } catch {
       logger.error("Failed to delete event \(id): \(error.localizedDescription)")
-      self.error = "Failed to delete event. Please try again."
+      self.errorMessage = "Failed to delete event. Please try again."
     }
   }
 

@@ -39,7 +39,7 @@ struct EventDetailView: View {
           .accessibilityLabel("Loading event details")
       } else if viewModel.event == nil && viewModel.isNotFound {
         notFoundView
-      } else if let errorMessage = viewModel.error, viewModel.event == nil {
+      } else if let errorMessage = viewModel.errorMessage, viewModel.event == nil {
         errorState(message: errorMessage)
       } else if let event = viewModel.event {
         eventContent(event)
@@ -76,11 +76,11 @@ struct EventDetailView: View {
       Text("Are you sure you want to delete this event? This action cannot be undone.")
     }
     .alert("Error", isPresented: .init(
-      get: { viewModel.error != nil && viewModel.event != nil },
-      set: { if !$0 { viewModel.error = nil } }
-    ), presenting: viewModel.error) { _ in
+      get: { viewModel.errorMessage != nil && viewModel.event != nil },
+      set: { if !$0 { viewModel.errorMessage = nil } }
+    ), presenting: viewModel.errorMessage) { _ in
       Button("Retry") { Task { await viewModel.loadAll() } }
-      Button("OK", role: .cancel) { viewModel.error = nil }
+      Button("OK", role: .cancel) { viewModel.errorMessage = nil }
     } message: { error in
       Text(error)
     }

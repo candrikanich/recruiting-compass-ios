@@ -40,7 +40,7 @@ final class EventDetailViewModelTests: XCTestCase {
   func testInitialState() {
     XCTAssertFalse(sut.isLoading)
     XCTAssertNil(sut.event)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertFalse(sut.isNotFound)
     XCTAssertTrue(sut.schoolCoaches.isEmpty)
     XCTAssertTrue(sut.metrics.isEmpty)
@@ -71,7 +71,7 @@ final class EventDetailViewModelTests: XCTestCase {
     XCTAssertEqual(sut.event?.id, "event-1")
     XCTAssertEqual(sut.schoolCoaches.count, 2)
     XCTAssertEqual(sut.metrics.count, 1)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertFalse(sut.isLoading)
     XCTAssertEqual(mockService.fetchEventCallCount, 1)
     XCTAssertEqual(mockService.lastFetchEventId, "test-event-id")
@@ -88,7 +88,7 @@ final class EventDetailViewModelTests: XCTestCase {
 
     XCTAssertNil(sut.event)
     XCTAssertTrue(sut.isNotFound)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertFalse(sut.isLoading)
   }
 
@@ -100,8 +100,8 @@ final class EventDetailViewModelTests: XCTestCase {
 
     XCTAssertNil(sut.event)
     XCTAssertFalse(sut.isNotFound)
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to load event"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Failed to load event"))
     XCTAssertFalse(sut.isLoading)
     XCTAssertEqual(mockService.fetchCoachesCallCount, 0)
     XCTAssertEqual(mockService.fetchMetricsCallCount, 0)
@@ -113,8 +113,8 @@ final class EventDetailViewModelTests: XCTestCase {
     await sut.loadAll()
 
     XCTAssertNil(sut.event)
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("signed in"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("signed in"))
     XCTAssertEqual(mockService.fetchEventCallCount, 0)
   }
 
@@ -131,13 +131,13 @@ final class EventDetailViewModelTests: XCTestCase {
     mockService.shouldThrowFetchEvent = true
     mockService.fetchEventErrorCode = 500
     await sut.loadAll()
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
 
     mockService.shouldThrowFetchEvent = false
     mockService.stubbedFetchedEvent = .mock()
     await sut.loadAll()
 
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertNotNil(sut.event)
   }
 
@@ -188,8 +188,8 @@ final class EventDetailViewModelTests: XCTestCase {
 
     await sut.markAsAttended()
 
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to update event"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Failed to update event"))
     XCTAssertFalse(sut.isSaving)
   }
 
@@ -260,8 +260,8 @@ final class EventDetailViewModelTests: XCTestCase {
 
     await sut.updateEvent()
 
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to update event"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Failed to update event"))
     XCTAssertFalse(sut.isSaving)
   }
 
@@ -288,8 +288,8 @@ final class EventDetailViewModelTests: XCTestCase {
 
     await sut.deleteEvent()
 
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to delete event"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Failed to delete event"))
     XCTAssertFalse(sut.shouldDismiss)
   }
 
@@ -404,8 +404,8 @@ final class EventDetailViewModelTests: XCTestCase {
 
     await sut.logInteraction()
 
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to log interaction"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Failed to log interaction"))
     XCTAssertFalse(sut.isLoggingInteraction)
   }
 
@@ -490,8 +490,8 @@ final class EventDetailViewModelTests: XCTestCase {
 
     await sut.addMetric()
 
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to save metric"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Failed to save metric"))
     XCTAssertFalse(sut.isSavingMetric)
   }
 
@@ -832,8 +832,8 @@ final class EventDetailViewModelTests: XCTestCase {
 
     await sut.addCoach()
 
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to add coach"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Failed to add coach"))
     XCTAssertFalse(sut.isUpdatingCoaches)
   }
 
@@ -860,8 +860,8 @@ final class EventDetailViewModelTests: XCTestCase {
 
     await sut.removeCoach(id: "c1")
 
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to remove coach"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Failed to remove coach"))
     XCTAssertFalse(sut.isUpdatingCoaches)
   }
 
@@ -881,8 +881,8 @@ final class EventDetailViewModelTests: XCTestCase {
 
     await sut.deleteMetric(id: "m1")
 
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to delete metric"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Failed to delete metric"))
     XCTAssertEqual(sut.metrics.count, 1, "Metric should not be removed on failure")
   }
 
@@ -972,7 +972,7 @@ final class EventDetailViewModelTests: XCTestCase {
     await sut.loadAll()
 
     XCTAssertNotNil(sut.event)
-    XCTAssertNil(sut.error, "Coaches fetch failure should be silent")
+    XCTAssertNil(sut.errorMessage, "Coaches fetch failure should be silent")
     XCTAssertTrue(sut.schoolCoaches.isEmpty)
   }
 
@@ -983,7 +983,7 @@ final class EventDetailViewModelTests: XCTestCase {
     await sut.loadAll()
 
     XCTAssertNotNil(sut.event)
-    XCTAssertNil(sut.error, "Metrics fetch failure should be silent")
+    XCTAssertNil(sut.errorMessage, "Metrics fetch failure should be silent")
     XCTAssertTrue(sut.metrics.isEmpty)
   }
 

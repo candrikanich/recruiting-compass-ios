@@ -9,8 +9,8 @@ struct DocumentsListView: View {
 
   private var showErrorAlert: Binding<Bool> {
     Binding(
-      get: { viewModel.error != nil },
-      set: { if !$0 { viewModel.error = nil } }
+      get: { viewModel.errorMessage != nil },
+      set: { if !$0 { viewModel.errorMessage = nil } }
     )
   }
 
@@ -67,9 +67,9 @@ struct DocumentsListView: View {
     }
     .alert("Error", isPresented: showErrorAlert) {
       Button("Retry") { Task { await viewModel.loadDocuments() } }
-      Button("OK", role: .cancel) { viewModel.error = nil }
+      Button("OK", role: .cancel) { viewModel.errorMessage = nil }
     } message: {
-      Text(viewModel.error ?? "")
+      Text(viewModel.errorMessage ?? "")
     }
     .fullScreenCover(item: documentToViewBinding) { document in
       let docs = viewModel.sortedDocuments
@@ -152,7 +152,7 @@ struct DocumentsListView: View {
       uploadFAB
     }
     .overlay(alignment: .top) {
-      if viewModel.error != nil {
+      if viewModel.errorMessage != nil {
         errorBanner
       }
     }
@@ -241,7 +241,7 @@ struct DocumentsListView: View {
   @ViewBuilder
   private var errorBanner: some View {
     HStack {
-      Text(viewModel.error ?? "")
+      Text(viewModel.errorMessage ?? "")
         .font(.caption)
         .foregroundStyle(.white)
       Spacer()

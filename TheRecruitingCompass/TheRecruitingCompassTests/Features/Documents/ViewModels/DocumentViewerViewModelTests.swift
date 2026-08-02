@@ -28,7 +28,7 @@ final class DocumentViewerViewModelTests: XCTestCase {
     XCTAssertEqual(sut.document?.id, "doc-1")
     XCTAssertEqual(sut.document?.title, "My Doc")
     XCTAssertFalse(sut.isLoading)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertEqual(sut.currentIndex, 0)
   }
 
@@ -78,7 +78,7 @@ final class DocumentViewerViewModelTests: XCTestCase {
 
     XCTAssertEqual(sut.document?.id, "doc-1")
     XCTAssertEqual(sut.document?.title, "Loaded Doc")
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertFalse(sut.isLoading)
   }
 
@@ -90,8 +90,8 @@ final class DocumentViewerViewModelTests: XCTestCase {
     await sut.loadDocument(id: "doc-1")
 
     XCTAssertNil(sut.document)
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Unable to load document"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Unable to load document"))
     XCTAssertFalse(sut.isLoading)
   }
 
@@ -103,7 +103,7 @@ final class DocumentViewerViewModelTests: XCTestCase {
     await sut.loadDocument(id: "doc-1")
 
     XCTAssertNil(sut.document)
-    XCTAssertEqual(sut.error, "Document not found")
+    XCTAssertEqual(sut.errorMessage, "Document not found")
     XCTAssertFalse(sut.isLoading)
   }
 
@@ -156,7 +156,7 @@ final class DocumentViewerViewModelTests: XCTestCase {
 
     await sut.downloadDocument()
 
-    XCTAssertEqual(sut.error, "Invalid file URL")
+    XCTAssertEqual(sut.errorMessage, "Invalid file URL")
     XCTAssertNil(sut.downloadedFileURL)
   }
 
@@ -166,7 +166,7 @@ final class DocumentViewerViewModelTests: XCTestCase {
 
     await sut.downloadDocument()
 
-    XCTAssertEqual(sut.error, "Invalid file URL")
+    XCTAssertEqual(sut.errorMessage, "Invalid file URL")
   }
 
   // MARK: - retryLoad
@@ -174,12 +174,12 @@ final class DocumentViewerViewModelTests: XCTestCase {
   func testRetryLoad_withDocumentId_reloadsDocument() async {
     mockDocuments.stubbedDocument = .mock(id: "doc-1", title: "Retried")
     sut = DocumentViewerViewModel(document: .mock(id: "doc-1"), documentsService: mockDocuments)
-    sut.error = "Previous error"
+    sut.errorMessage = "Previous error"
 
     sut.retryLoad()
     try? await Task.sleep(for: .milliseconds(300))
 
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertEqual(sut.document?.title, "Retried")
   }
 
@@ -188,7 +188,7 @@ final class DocumentViewerViewModelTests: XCTestCase {
     let collection = DocumentCollection(documents: docs, currentIndex: 0)
     sut = DocumentViewerViewModel(collection: collection, documentsService: mockDocuments)
     sut.document = nil
-    sut.error = "Previous error"
+    sut.errorMessage = "Previous error"
 
     sut.retryLoad()
 
@@ -198,11 +198,11 @@ final class DocumentViewerViewModelTests: XCTestCase {
 
   func testRetryLoad_clearsError() {
     sut = DocumentViewerViewModel(document: .mock(id: "doc-1"), documentsService: mockDocuments)
-    sut.error = "Some error"
+    sut.errorMessage = "Some error"
 
     sut.retryLoad()
 
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
   }
 
   // MARK: - nextDocument / previousDocument
@@ -365,12 +365,12 @@ final class DocumentViewerViewModelTests: XCTestCase {
     mockDocuments.shouldThrowFetchDocument = true
     sut = DocumentViewerViewModel(documentsService: mockDocuments)
     await sut.loadDocument(id: "doc-1")
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
 
     mockDocuments.shouldThrowFetchDocument = false
     mockDocuments.stubbedDocument = .mock(id: "doc-1")
     await sut.loadDocument(id: "doc-1")
 
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
   }
 }

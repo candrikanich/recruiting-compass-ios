@@ -50,7 +50,7 @@ final class DocumentsListViewModel {
   var documents: [Document] = []
   var schools: [School] = []
   var isLoading = false
-  var error: String?
+  var errorMessage: String?
   var isUploadFormPresented = false
   var isFilterSheetPresented = false
   var uploadProgress: Double = 0
@@ -209,7 +209,7 @@ final class DocumentsListViewModel {
 
     logger.debug("Loading documents for user: \(userId)")
     isLoading = true
-    error = nil
+    errorMessage = nil
     defer { isLoading = false }
 
     do {
@@ -217,7 +217,7 @@ final class DocumentsListViewModel {
       logger.info("Loaded \(self.documents.count) documents")
     } catch {
       logger.error("Failed to load documents: \(error.localizedDescription)")
-      self.error = "Unable to load documents. Check your connection."
+      self.errorMessage = "Unable to load documents. Check your connection."
     }
   }
 
@@ -344,7 +344,7 @@ final class DocumentsListViewModel {
       documents.removeAll { $0.id == id }
     } catch {
       logger.error("Delete failed: \(error.localizedDescription)")
-      self.error = "Failed to delete document. Please try again."
+      self.errorMessage = "Failed to delete document. Please try again."
     }
   }
 

@@ -205,13 +205,8 @@ final class InteractionDetailViewModel {
       logger.info("Deleted interaction: \(interaction.id)")
       return true
     } catch {
-      let message = error.localizedDescription
-
       // Check for FK constraint error → try cascade
-      if message.contains("Cannot delete") ||
-         message.contains("violates foreign key constraint") ||
-         message.contains("still referenced") {
-
+      if isForeignKeyViolation(error) {
         logger.debug("Simple delete failed, trying cascade delete")
 
         do {

@@ -269,11 +269,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     do {
       try await client.auth.resetPasswordForEmail(email)
     } catch {
-      let description = error.localizedDescription.lowercased()
-      if description.contains("not found") || description.contains("no user") {
-        throw AuthError.resetEmailNotFound
+      guard SupabaseAuthErrors.isUserNotFound(error) else {
+        throw AuthError.serverError("Failed to send password reset email")
       }
-      throw AuthError.serverError("Failed to send password reset email")
+      throw AuthError.resetEmailNotFound
     }
   }
 
@@ -281,11 +280,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     do {
       try await client.auth.update(user: UserAttributes(password: newPassword))
     } catch {
-      let description = error.localizedDescription.lowercased()
-      if description.contains("invalid") || description.contains("token") {
+      if SupabaseAuthErrors.isInvalidToken(error) {
         throw AuthError.invalidResetToken
       }
-      if description.contains("expired") {
+      if SupabaseAuthErrors.isExpiredToken(error) {
         throw AuthError.expiredResetToken
       }
       throw AuthError.serverError("Failed to update password")

@@ -83,7 +83,7 @@ struct DocumentViewerView: View {
         loadingOverlay
       }
 
-      if viewModel.error != nil {
+      if viewModel.errorMessage != nil {
         errorOverlay
       }
     }
@@ -145,7 +145,7 @@ struct DocumentViewerView: View {
           .offset(y: dragOffset * 0.3)
           .contentShape(Rectangle())
           .simultaneousGesture(collectionSwipeGesture)
-      } else if viewModel.error == nil && !viewModel.isLoading {
+      } else if viewModel.errorMessage == nil && !viewModel.isLoading {
         ContentUnavailableView {
           Label("Document not found", systemImage: "doc")
         } description: {
@@ -291,7 +291,7 @@ struct DocumentViewerView: View {
           .foregroundStyle(.white)
           .accessibilityHidden(true)
 
-        Text(viewModel.error ?? "Something went wrong")
+        Text(viewModel.errorMessage ?? "Something went wrong")
           .font(.subheadline)
           .foregroundStyle(.white)
           .multilineTextAlignment(.center)

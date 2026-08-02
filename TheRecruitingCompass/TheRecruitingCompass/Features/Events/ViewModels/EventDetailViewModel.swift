@@ -19,7 +19,7 @@ final class EventDetailViewModel {
   var schoolCoaches: [Coach] = []
   var metrics: [PerformanceMetric] = []
   var isLoading = false
-  var error: String?
+  var errorMessage: String?
   var isNotFound = false
   var shouldDismiss = false
 
@@ -151,12 +151,12 @@ final class EventDetailViewModel {
   func loadAll() async {
     logger.debug("Loading event: \(self.eventId)")
     isLoading = true
-    error = nil
+    errorMessage = nil
     isNotFound = false
     defer { isLoading = false }
 
     guard let userId else {
-      self.error = "You must be signed in to view this event."
+      self.errorMessage = "You must be signed in to view this event."
       return
     }
 
@@ -169,16 +169,14 @@ final class EventDetailViewModel {
       logger.debug("Load event cancelled")
     } catch let error as URLError where error.code == .cancelled {
       logger.debug("Load event cancelled (request cancelled)")
-    } catch where error.localizedDescription.lowercased().contains("cancelled") {
-      logger.debug("Load event cancelled: \(error.localizedDescription)")
     } catch {
       logger.error("Failed to load event: \(error.localizedDescription)")
       if Self.isEventNotFound(error) {
         event = nil
         isNotFound = true
-        self.error = nil
+        self.errorMessage = nil
       } else {
-        self.error = "Failed to load event. Please try again."
+        self.errorMessage = "Failed to load event. Please try again."
       }
     }
   }
@@ -232,7 +230,7 @@ final class EventDetailViewModel {
         showQuickLogSheet = true
         logger.info("Event marked as attended: \(self.eventId)")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -257,7 +255,7 @@ final class EventDetailViewModel {
         showSuccess("Event updated")
         logger.info("Event updated: \(self.eventId)")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -278,7 +276,7 @@ final class EventDetailViewModel {
         shouldDismiss = true
         logger.info("Event deleted: \(self.eventId)")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to delete event. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to delete event. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -310,7 +308,7 @@ final class EventDetailViewModel {
         showSuccess("Interaction logged")
         logger.info("Interaction logged for event: \(self.eventId)")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to log interaction. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to log interaction. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -341,7 +339,7 @@ final class EventDetailViewModel {
       logger.info("Coach added to event: \(self.eventId)")
     } catch {
       logger.error("Failed to add coach: \(error.localizedDescription)")
-      self.error = "Failed to add coach. Please try again."
+      self.errorMessage = "Failed to add coach. Please try again."
       hapticErrorTrigger += 1
     }
   }
@@ -359,7 +357,7 @@ final class EventDetailViewModel {
         showSuccess("Coach removed")
         logger.info("Coach removed from event: \(self.eventId)")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to remove coach. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to remove coach. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -399,7 +397,7 @@ final class EventDetailViewModel {
         showSuccess("Metric recorded")
         logger.info("Metric created: \(metric.id)")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to save metric. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to save metric. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -414,7 +412,7 @@ final class EventDetailViewModel {
       logger.info("Metric deleted: \(metricId)")
     } catch {
       logger.error("Failed to delete metric: \(error.localizedDescription)")
-      self.error = "Failed to delete metric. Please try again."
+      self.errorMessage = "Failed to delete metric. Please try again."
       hapticErrorTrigger += 1
     }
   }
@@ -427,7 +425,7 @@ final class EventDetailViewModel {
       exportFileURL = try exportService.prepareCSV(metrics: metrics, eventName: event.name)
     } catch {
       logger.error("Failed to write CSV: \(error.localizedDescription)")
-      self.error = "Failed to prepare export."
+      self.errorMessage = "Failed to prepare export."
     }
   }
 

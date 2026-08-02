@@ -5,37 +5,19 @@ import UIKit
 // MARK: - Download Error Mapping
 
 private func userFacingDownloadError(from error: Error) -> String {
-  if let urlError = error as? URLError {
-    switch urlError.code {
-    case .notConnectedToInternet, .networkConnectionLost:
-      return "No internet connection. Please check your connection."
-    case .timedOut:
-      return "Connection timed out. Please try again."
-    case .serverCertificateHasBadDate, .serverCertificateUntrusted, .serverCertificateHasUnknownRoot,
-         .serverCertificateNotYetValid:
-      return "Secure connection failed. Please check your connection."
-    default:
-      break
-    }
-  }
-  return "Download failed. Check your connection."
+  userFacingMessage(
+    for: error,
+    fallback: "Download failed. Check your connection.",
+    secureConnectionFailed: "Secure connection failed. Please check your connection."
+  )
 }
 
 private func userFacingLoadError(from error: Error) -> String {
-  if let urlError = error as? URLError {
-    switch urlError.code {
-    case .notConnectedToInternet, .networkConnectionLost:
-      return "No internet connection. Please check your connection."
-    case .timedOut:
-      return "Connection timed out. Please try again."
-    default:
-      break
-    }
-  }
-  if (error as NSError).code == 404 {
-    return "Document not found"
-  }
-  return "Unable to load document. Check your connection."
+  userFacingMessage(
+    for: error,
+    fallback: "Unable to load document. Check your connection.",
+    notFound: "Document not found"
+  )
 }
 
 // MARK: - DocumentViewerViewModel
@@ -50,7 +32,7 @@ final class DocumentViewerViewModel {
 
   var document: Document?
   var isLoading = false
-  var error: String?
+  var errorMessage: String?
   var isToolbarVisible = true
   var isShareSheetPresented = false
   var downloadProgress: Double = 0
@@ -108,18 +90,18 @@ final class DocumentViewerViewModel {
 
   func loadDocument(id: String) async {
     isLoading = true
-    error = nil
+    errorMessage = nil
     defer { isLoading = false }
 
     do {
       document = try await documentsService.fetchDocument(id: id)
     } catch {
-      self.error = userFacingLoadError(from: error)
+      self.errorMessage = userFacingLoadError(from: error)
     }
   }
 
   func retryLoad() {
-    error = nil
+    errorMessage = nil
     if let id = document?.id {
       Task { await loadDocument(id: id) }
     } else if let coll = collection {
@@ -164,7 +146,7 @@ final class DocumentViewerViewModel {
   func downloadDocument() async {
     guard let urlString = document?.fileUrl,
           let url = URL(string: urlString) else {
-      error = "Invalid file URL"
+      errorMessage = "Invalid file URL"
       return
     }
 
@@ -208,10 +190,10 @@ final class DocumentViewerViewModel {
               UIImpactFeedbackGenerator(style: .medium).impactOccurred()
               this.presentShareSheet()
             } catch {
-              this.error = userFacingDownloadError(from: error)
+              this.errorMessage = userFacingDownloadError(from: error)
             }
           case .failure(let err):
-            this.error = userFacingDownloadError(from: err)
+            this.errorMessage = userFacingDownloadError(from: err)
           }
           continuation.resume()
         }

@@ -29,7 +29,7 @@ final class EventsListViewModelTests: XCTestCase {
   func testInitialState_isEmpty() {
     XCTAssertTrue(sut.events.isEmpty)
     XCTAssertFalse(sut.isLoading)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertEqual(sut.statusFilter, .all)
     XCTAssertNil(sut.typeFilter)
     XCTAssertEqual(sut.searchText, "")
@@ -47,7 +47,7 @@ final class EventsListViewModelTests: XCTestCase {
     await sut.loadEvents()
 
     XCTAssertEqual(sut.events.count, 2)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertEqual(mockService.fetchEventsCallCount, 1)
     XCTAssertEqual(mockService.lastFetchEventsUserId, "user-1")
   }
@@ -59,7 +59,7 @@ final class EventsListViewModelTests: XCTestCase {
     await sut.loadEvents()
 
     XCTAssertTrue(sut.events.isEmpty)
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   func testLoadEvents_noUser_skipsLoad() async {
@@ -72,11 +72,11 @@ final class EventsListViewModelTests: XCTestCase {
 
   func testLoadEvents_clearsErrorBeforeLoad() async {
     mockAuth.user = userMock(id: "user-1")
-    sut.error = "Previous error"
+    sut.errorMessage = "Previous error"
 
     await sut.loadEvents()
 
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
   }
 
   func testLoadEvents_clearsLoadingAfterCompletion() async {
@@ -323,7 +323,7 @@ final class EventsListViewModelTests: XCTestCase {
     await sut.deleteEvent(id: "e1")
 
     XCTAssertEqual(sut.events.count, 1) // not removed on failure
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   func testDeleteEvent_callsServiceWithCorrectId() async {

@@ -19,7 +19,7 @@ final class DocumentDetailViewModel {
   var versions: [DocumentVersion] = []
   var schools: [School] = []
   var isLoading = false
-  var error: String?
+  var errorMessage: String?
   var isNotFound = false
   var shouldDismiss = false
 
@@ -106,13 +106,13 @@ final class DocumentDetailViewModel {
 
   func loadDocument() async {
     guard authManager.user != nil else {
-      error = "You must be signed in to view this document."
+      errorMessage = "You must be signed in to view this document."
       return
     }
 
     logger.debug("Loading document: \(self.documentId)")
     isLoading = true
-    error = nil
+    errorMessage = nil
     isNotFound = false
     defer { isLoading = false }
 
@@ -138,11 +138,11 @@ final class DocumentDetailViewModel {
       if Self.isDocumentNotFound(error) {
         document = nil
         isNotFound = true
-        self.error = nil
+        self.errorMessage = nil
       } else if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Unable to load document details. Check your connection."
+        self.errorMessage = "Unable to load document details. Check your connection."
       }
     }
   }
@@ -169,7 +169,7 @@ final class DocumentDetailViewModel {
     } catch {
       logger.error("Logout failed: \(error.localizedDescription)")
     }
-    self.error = "Your session has expired. Please sign in again."
+    self.errorMessage = "Your session has expired. Please sign in again."
   }
 
   func loadSchools() async {
@@ -221,7 +221,7 @@ final class DocumentDetailViewModel {
       if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Failed to save changes. Please try again."
+        self.errorMessage = "Failed to save changes. Please try again."
       }
     }
   }
@@ -252,7 +252,7 @@ final class DocumentDetailViewModel {
         if Self.isUnauthorized(error) {
           await handleAuthErrorIfNeeded(error)
         } else {
-          self.error = "Failed to share document. Check your connection."
+          self.errorMessage = "Failed to share document. Check your connection."
         }
         return
       }
@@ -280,7 +280,7 @@ final class DocumentDetailViewModel {
       if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Failed to remove school access."
+        self.errorMessage = "Failed to remove school access."
       }
     }
   }
@@ -322,7 +322,7 @@ final class DocumentDetailViewModel {
         if Self.isUnauthorized(error) {
           await handleAuthErrorIfNeeded(error)
         } else {
-          self.error = "Failed to restore version. Please try again."
+          self.errorMessage = "Failed to restore version. Please try again."
         }
         return
       }
@@ -341,7 +341,7 @@ final class DocumentDetailViewModel {
       if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Failed to restore version. Please try again."
+        self.errorMessage = "Failed to restore version. Please try again."
       }
     }
   }
@@ -351,13 +351,13 @@ final class DocumentDetailViewModel {
 
     let ext = "." + file.pathExtension.lowercased()
     guard doc.type.allowedExtensions.contains(ext) else {
-      error = "Invalid file type. \(doc.type.label) requires \(doc.type.allowedExtensions.joined(separator: ", "))."
+      errorMessage = "Invalid file type. \(doc.type.label) requires \(doc.type.allowedExtensions.joined(separator: ", "))."
       return
     }
 
     let maxBytes = 100 * 1024 * 1024
     if let fileSize = try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize, fileSize > maxBytes {
-      error = "File exceeds 100MB limit."
+      errorMessage = "File exceeds 100MB limit."
       return
     }
 
@@ -395,7 +395,7 @@ final class DocumentDetailViewModel {
       if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Upload failed: \(error.localizedDescription)"
+        self.errorMessage = "Upload failed: \(error.localizedDescription)"
       }
     }
   }
@@ -439,7 +439,7 @@ final class DocumentDetailViewModel {
       if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Failed to delete document. Please try again."
+        self.errorMessage = "Failed to delete document. Please try again."
       }
     }
   }
@@ -447,7 +447,7 @@ final class DocumentDetailViewModel {
   // MARK: - Retry
 
   func clearError() {
-    error = nil
+    errorMessage = nil
   }
 
 

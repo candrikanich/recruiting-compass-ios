@@ -67,7 +67,7 @@ final class DocumentDetailViewModelTests: XCTestCase {
     XCTAssertEqual(sut.document?.id, "doc-1")
     XCTAssertEqual(sut.document?.title, "Test Doc")
     XCTAssertEqual(sut.versions.count, 1)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertFalse(sut.isLoading)
     XCTAssertFalse(sut.isNotFound)
   }
@@ -78,8 +78,8 @@ final class DocumentDetailViewModelTests: XCTestCase {
     await sut.loadDocument()
 
     XCTAssertNil(sut.document)
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Unable to load document"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Unable to load document"))
     XCTAssertFalse(sut.isLoading)
   }
 
@@ -91,7 +91,7 @@ final class DocumentDetailViewModelTests: XCTestCase {
 
     XCTAssertNil(sut.document)
     XCTAssertTrue(sut.isNotFound)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertFalse(sut.isLoading)
   }
 
@@ -101,8 +101,8 @@ final class DocumentDetailViewModelTests: XCTestCase {
     await sut.loadDocument()
 
     XCTAssertNil(sut.document)
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("signed in"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("signed in"))
   }
 
   func testLoadDocument_callsFetchVersionsAfterDocumentLoaded() async {
@@ -129,7 +129,7 @@ final class DocumentDetailViewModelTests: XCTestCase {
     XCTAssertEqual(sut.document?.title, "Updated Title")
     XCTAssertFalse(sut.showEditSheet)
     XCTAssertFalse(sut.isSaving)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
   }
 
   func testSaveEdit_onFailure_setsError() async {
@@ -141,8 +141,8 @@ final class DocumentDetailViewModelTests: XCTestCase {
 
     await sut.saveEdit()
 
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to save"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Failed to save"))
     XCTAssertFalse(sut.isSaving)
   }
 
@@ -211,8 +211,8 @@ final class DocumentDetailViewModelTests: XCTestCase {
 
     await sut.saveShare()
 
-    XCTAssertNotNil(sut.error)
-    XCTAssertTrue(sut.error!.contains("Failed to share"))
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage!.contains("Failed to share"))
   }
 
   func testRemoveShare_onSuccess_refreshesDocument() async {
@@ -221,7 +221,7 @@ final class DocumentDetailViewModelTests: XCTestCase {
 
     await sut.removeShare(schoolId: "s1")
 
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
   }
 
   func testRemoveShare_onFailure_setsError() async {
@@ -231,7 +231,7 @@ final class DocumentDetailViewModelTests: XCTestCase {
 
     await sut.removeShare(schoolId: "s1")
 
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   // MARK: - delete
@@ -260,7 +260,7 @@ final class DocumentDetailViewModelTests: XCTestCase {
     await sut.deleteDocument()
 
     XCTAssertFalse(sut.shouldDismiss)
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   func testDeleteDocument_noUser_doesNotCallService() async {
@@ -314,7 +314,7 @@ final class DocumentDetailViewModelTests: XCTestCase {
 
     XCTAssertFalse(sut.showRestoreConfirmation)
     XCTAssertNil(sut.versionToRestore)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
   }
 
   func testRestoreVersion_onFailure_setsError() async {
@@ -329,7 +329,7 @@ final class DocumentDetailViewModelTests: XCTestCase {
 
     await sut.restoreVersion()
 
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   func testRestoreVersion_noVersionToRestore_doesNothing() async {
@@ -375,9 +375,9 @@ final class DocumentDetailViewModelTests: XCTestCase {
   // MARK: - clearError
 
   func testClearError_clearsError() {
-    sut.error = "Some error"
+    sut.errorMessage = "Some error"
     sut.clearError()
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
   }
 
   // MARK: - Helpers
