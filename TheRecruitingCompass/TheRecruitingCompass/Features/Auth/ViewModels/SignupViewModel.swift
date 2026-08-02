@@ -229,8 +229,10 @@ final class SignupViewModel {
         do {
           _ = try await familyService.createFamily(role: role)
         } catch {
-          // Log but don't block signup; user can create family from Family Management
-          signupLogger.warning("Family creation failed: \(error.localizedDescription)")
+          // intentionally silent: signup itself succeeded and must not be blocked.
+          // The dashboard onboarding banner detects the missing family and walks
+          // the user through creating one, so that is the recovery surface.
+          signupLogger.error("Family creation failed during signup: \(error.localizedDescription)")
         }
       }
 

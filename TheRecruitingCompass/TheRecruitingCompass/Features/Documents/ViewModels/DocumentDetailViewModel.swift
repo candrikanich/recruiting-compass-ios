@@ -62,8 +62,11 @@ final class DocumentDetailViewModel {
 
   // MARK: - Computed
 
+  /// The user whose document we read/write. When a parent is viewing an
+  /// athlete, documents belong to the athlete (mirrors web +
+  /// OffersListViewModel); otherwise the logged-in user's own id.
   private var userId: String? {
-    authManager.user?.id
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
   }
 
   func schoolName(for schoolId: String?) -> String {

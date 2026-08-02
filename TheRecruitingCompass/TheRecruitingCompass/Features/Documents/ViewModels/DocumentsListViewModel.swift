@@ -174,6 +174,13 @@ final class DocumentsListViewModel {
   private let authManager: any AuthManaging
   private let familyManager: FamilyManager
 
+  /// The user whose documents we read/write. When a parent is viewing an
+  /// athlete, documents belong to the athlete (mirrors web +
+  /// OffersListViewModel); otherwise the logged-in user's own id.
+  private var targetUserId: String? {
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
+  }
+
   // MARK: - Init
 
   init(
@@ -195,7 +202,7 @@ final class DocumentsListViewModel {
   // MARK: - Load
 
   func loadDocuments() async {
-    guard let userId = authManager.user?.id else {
+    guard let userId = targetUserId else {
       logger.warning("No userId for documents")
       return
     }
@@ -254,7 +261,7 @@ final class DocumentsListViewModel {
   }
 
   func uploadDocument() async {
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = targetUserId else { return }
     guard let type = uploadType else {
       uploadError = "Please select a document type."
       return
@@ -330,7 +337,7 @@ final class DocumentsListViewModel {
   // MARK: - Delete
 
   func deleteDocument(id: String) async {
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = targetUserId else { return }
 
     do {
       try await documentsService.deleteDocument(id: id, userId: userId)

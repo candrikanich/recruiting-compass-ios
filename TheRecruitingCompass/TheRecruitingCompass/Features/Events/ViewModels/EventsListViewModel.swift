@@ -164,15 +164,25 @@ final class EventsListViewModel {
   // MARK: - Dependencies
 
   private let eventsService: any EventsManaging
+  private let familyManager: FamilyManager
   private let authManager: any AuthManaging
+
+  /// The user whose events we read/write. When a parent is viewing an athlete,
+  /// events belong to the athlete (mirrors web + OffersListViewModel); otherwise
+  /// the logged-in user's own id.
+  var targetUserId: String? {
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
+  }
 
   // MARK: - Init
 
   init(
     eventsService: (any EventsManaging)? = nil,
+    familyManager: FamilyManager? = nil,
     authManager: (any AuthManaging)? = nil
   ) {
     self.eventsService = eventsService ?? EventsServiceImpl()
+    self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
     let raw = UserDefaults.standard.string(forKey: eventsSortByKey)
     self._sortBy = SortOption(rawValue: raw ?? "") ?? .dateDesc
@@ -181,7 +191,7 @@ final class EventsListViewModel {
   // MARK: - Load
 
   func loadEvents() async {
-    guard let userId = authManager.user?.id else {
+    guard let userId = targetUserId else {
       logger.warning("No userId available for events list")
       return
     }

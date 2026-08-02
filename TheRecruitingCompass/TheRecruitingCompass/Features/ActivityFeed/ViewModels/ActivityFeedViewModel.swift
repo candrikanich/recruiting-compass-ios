@@ -28,10 +28,14 @@ final class ActivityFeedViewModel {
   let pageSize: Int = 20
 
   private let activityService: any ActivityFeedManaging
+  private let familyManager: FamilyManager
   private let authManager: any AuthManaging
 
+  /// The user whose activity we read. When a parent is viewing an athlete,
+  /// activity belongs to the athlete (mirrors web + OffersListViewModel);
+  /// otherwise the logged-in user's own id.
   var userId: String? {
-    authManager.user?.id
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
   }
 
   // MARK: - Computed Properties
@@ -86,9 +90,11 @@ final class ActivityFeedViewModel {
 
   init(
     activityService: (any ActivityFeedManaging)? = nil,
+    familyManager: FamilyManager? = nil,
     authManager: (any AuthManaging)? = nil
   ) {
     self.activityService = activityService ?? ActivityFeedServiceImpl(supabaseManager: .shared)
+    self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
   }
 
@@ -100,7 +106,7 @@ final class ActivityFeedViewModel {
   // MARK: - Data Loading
 
   func loadActivities() async {
-    guard let userId = authManager.user?.id else {
+    guard let userId else {
       logger.warning("No user ID available for activity feed")
       errorMessage = "Unable to load activities. Please sign in."
       return

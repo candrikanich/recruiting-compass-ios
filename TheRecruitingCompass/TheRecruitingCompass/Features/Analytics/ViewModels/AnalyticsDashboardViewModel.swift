@@ -22,18 +22,29 @@ final class AnalyticsDashboardViewModel {
   var dateRange: AnalyticsDateRange = .last30Days
   var isLoading = false
   var errorMessage: String?
+  var exportError: String?
+  var showExportError = false
   var showExportSheet = false
   var showDatePicker = false
   var customStartDate = Calendar.current.date(byAdding: .day, value: -30, to: Date.now) ?? Date.now
   var customEndDate = Date.now
 
   private let serviceOverride: (any AnalyticsManaging)?
+  private let familyManager: FamilyManager
+  private let authManager: any AuthManaging
+
+  /// The user whose analytics we read. When a parent is viewing an athlete,
+  /// athlete-owned analytics belong to the athlete (mirrors web +
+  /// OffersListViewModel); otherwise the logged-in user's own id.
+  private var targetUserId: String? {
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
+  }
 
   private var analyticsService: any AnalyticsManaging {
     serviceOverride ?? AnalyticsServiceImpl(
       supabaseManager: .shared,
-      userId: AuthManager.shared.user?.id ?? "",
-      familyUnitId: FamilyManager.shared.familyUnitId ?? ""
+      userId: targetUserId ?? "",
+      familyUnitId: familyManager.familyUnitId ?? ""
     )
   }
 
@@ -99,8 +110,14 @@ final class AnalyticsDashboardViewModel {
 
   // MARK: - Init
 
-  init(analyticsService: (any AnalyticsManaging)? = nil) {
+  init(
+    analyticsService: (any AnalyticsManaging)? = nil,
+    familyManager: FamilyManager? = nil,
+    authManager: (any AuthManaging)? = nil
+  ) {
     self.serviceOverride = analyticsService
+    self.familyManager = familyManager ?? .shared
+    self.authManager = authManager ?? AuthManager.shared
   }
 
   // MARK: - Actions
@@ -327,6 +344,7 @@ final class AnalyticsDashboardViewModel {
         return fileURL
       } catch {
         logger.error("Failed to write CSV: \(error.localizedDescription)")
+        reportExportFailure()
         return nil
       }
     case .excel:
@@ -336,11 +354,21 @@ final class AnalyticsDashboardViewModel {
         return fileURL
       } catch {
         logger.error("Failed to write Excel export: \(error.localizedDescription)")
+        reportExportFailure()
         return nil
       }
     case .pdf:
-      return generatePDFExport(to: fileURL)
+      if let url = generatePDFExport(to: fileURL) {
+        return url
+      }
+      reportExportFailure()
+      return nil
     }
+  }
+
+  private func reportExportFailure() {
+    exportError = "Couldn't create the export file. Please try again."
+    showExportError = true
   }
 
   // MARK: - Private Loaders

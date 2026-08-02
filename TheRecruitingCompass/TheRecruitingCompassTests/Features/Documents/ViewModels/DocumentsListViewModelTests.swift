@@ -87,6 +87,20 @@ final class DocumentsListViewModelTests: XCTestCase {
     XCTAssertEqual(mockDocuments.fetchDocumentsCallCount, 0)
   }
 
+  func testLoadDocuments_parentViewingAthlete_usesAthleteUserId() async {
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuth)
+    sut = DocumentsListViewModel(
+      documentsService: mockDocuments,
+      schoolsService: mockSchools,
+      authManager: mockAuth,
+      familyManager: familyManager
+    )
+
+    await sut.loadDocuments()
+
+    XCTAssertEqual(mockDocuments.lastFetchDocumentsUserId, ParentViewingAthleteFixture.athleteUserId)
+  }
+
   // MARK: - Filtered Documents
 
   func testFilteredDocuments_noFilters_returnsAll() async {

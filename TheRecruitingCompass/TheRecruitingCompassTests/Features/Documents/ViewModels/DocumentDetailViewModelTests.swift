@@ -273,6 +273,24 @@ final class DocumentDetailViewModelTests: XCTestCase {
     XCTAssertEqual(mockDocuments.deleteDocumentCallCount, 0)
   }
 
+  func testDeleteDocument_parentViewingAthlete_usesAthleteUserId() async {
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuth)
+    sut = DocumentDetailViewModel(
+      documentId: "doc-1",
+      documentsService: mockDocuments,
+      schoolsService: mockSchools,
+      authManager: mockAuth,
+      familyManager: familyManager,
+      cache: InMemoryCache()
+    )
+    mockDocuments.stubbedDocument = .mock(id: "doc-1")
+    await sut.loadDocument()
+
+    await sut.deleteDocument()
+
+    XCTAssertEqual(mockDocuments.lastDeleteDocumentUserId, ParentViewingAthleteFixture.athleteUserId)
+  }
+
   // MARK: - restoreVersion
 
   func testConfirmRestore_setsVersionAndShowsConfirmation() {

@@ -73,14 +73,18 @@ final class EventDetailViewModel {
   // MARK: - Dependencies
 
   private let eventsService: any EventsManaging
+  private let familyManager: FamilyManager
   private let authManager: any AuthManaging
   private let exportService = MetricsExportService()
   let eventId: String
 
   // MARK: - Computed
 
+  /// The user whose event data we read/write. When a parent is viewing an
+  /// athlete, events and metrics belong to the athlete (mirrors web +
+  /// OffersListViewModel); otherwise the logged-in user's own id.
   private var userId: String? {
-    authManager.user?.id
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
   }
 
   var formattedDateRange: String {
@@ -130,10 +134,12 @@ final class EventDetailViewModel {
 
   init(
     eventsService: (any EventsManaging)? = nil,
+    familyManager: FamilyManager? = nil,
     authManager: (any AuthManaging)? = nil,
     eventId: String
   ) {
     self.eventsService = eventsService ?? EventsServiceImpl()
+    self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
     self.eventId = eventId
   }

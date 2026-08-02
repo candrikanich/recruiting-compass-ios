@@ -998,4 +998,24 @@ final class ActivityFeedViewModelTests: XCTestCase {
     // Then: page should NOT reset (didSet checks oldValue)
     XCTAssertEqual(sut.currentPage, 3)
   }
+
+  // MARK: - Athlete Targeting Tests
+
+  func testLoadActivities_parentViewingAthlete_usesAthleteUserId() async {
+    // Given
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuthManager)
+    sut = ActivityFeedViewModel(
+      activityService: mockService,
+      familyManager: familyManager,
+      authManager: mockAuthManager
+    )
+
+    // When
+    await sut.loadActivities()
+
+    // Then
+    XCTAssertEqual(mockService.lastFetchInteractionsUserId, ParentViewingAthleteFixture.athleteUserId)
+    XCTAssertEqual(mockService.lastFetchStatusChangesUserId, ParentViewingAthleteFixture.athleteUserId)
+    XCTAssertEqual(mockService.lastFetchDocumentsUserId, ParentViewingAthleteFixture.athleteUserId)
+  }
 }

@@ -848,6 +848,44 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
     XCTAssertGreaterThan(pdfData.count, 0)
   }
 
+  // MARK: - Athlete Targeting Tests
+
+  func testLoadMetrics_parentViewingAthlete_usesAthleteUserId() async {
+    // Given
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuthManager)
+    viewModel = PerformanceDashboardViewModel(
+      performanceService: mockService,
+      familyManager: familyManager,
+      authManager: mockAuthManager
+    )
+
+    // When
+    await viewModel.loadMetrics()
+
+    // Then
+    XCTAssertEqual(mockService.lastFetchUserId, ParentViewingAthleteFixture.athleteUserId)
+  }
+
+  func testAddMetric_parentViewingAthlete_usesAthleteUserId() async {
+    // Given
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuthManager)
+    viewModel = PerformanceDashboardViewModel(
+      performanceService: mockService,
+      familyManager: familyManager,
+      authManager: mockAuthManager
+    )
+    viewModel.addFormState.metricType = .velocity
+    viewModel.addFormState.value = "92.5"
+    viewModel.addFormState.unit = "mph"
+
+    // When
+    await viewModel.addMetric()
+
+    // Then
+    XCTAssertEqual(mockService.createMetricCallCount, 1)
+    XCTAssertEqual(mockService.lastCreateUserId, ParentViewingAthleteFixture.athleteUserId)
+  }
+
   // MARK: - Helper Methods
 
   private func createUser(id: String) -> User {

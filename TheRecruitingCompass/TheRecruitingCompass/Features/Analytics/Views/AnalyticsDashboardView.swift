@@ -48,6 +48,11 @@ struct AnalyticsDashboardView: View {
         ActivityShareSheet(activityItems: [url])
       }
     }
+    .alert("Export Failed", isPresented: $viewModel.showExportError) {
+      Button("OK", role: .cancel) {}
+    } message: {
+      Text(viewModel.exportError ?? "Couldn't create the export file. Please try again.")
+    }
     .task {
       await viewModel.loadAllData()
     }

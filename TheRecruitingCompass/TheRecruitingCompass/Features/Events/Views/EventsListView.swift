@@ -86,7 +86,7 @@ struct EventsListView: View {
 
   @ViewBuilder
   private var createEventSheet: some View {
-    if let userId = authManager.user?.id {
+    if let userId = viewModel.targetUserId {
       NavigationStack {
         CreateEventView(
           eventsService: EventsServiceImpl(),

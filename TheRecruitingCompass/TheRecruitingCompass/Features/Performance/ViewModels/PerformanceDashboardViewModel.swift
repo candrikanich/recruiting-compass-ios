@@ -30,7 +30,15 @@ final class PerformanceDashboardViewModel {
   var isDeleting = false
 
   let performanceService: any PerformanceManaging
+  private let familyManager: FamilyManager
   private let authManager: any AuthManaging
+
+  /// The user whose metrics we read/write. When a parent is viewing an
+  /// athlete, metrics belong to the athlete (mirrors web +
+  /// OffersListViewModel); otherwise the logged-in user's own id.
+  private var targetUserId: String? {
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
+  }
   private static let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
@@ -107,16 +115,18 @@ final class PerformanceDashboardViewModel {
 
   init(
     performanceService: (any PerformanceManaging)? = nil,
+    familyManager: FamilyManager? = nil,
     authManager: (any AuthManaging)? = nil
   ) {
     self.performanceService = performanceService ?? PerformanceServiceImpl(supabaseManager: .shared)
+    self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
   }
 
   // MARK: - Actions
 
   func loadMetrics() async {
-    guard let userId = authManager.user?.id else {
+    guard let userId = targetUserId else {
       logger.warning("No authenticated user")
       errorMessage = "Please sign in to view performance metrics."
       return
@@ -136,7 +146,7 @@ final class PerformanceDashboardViewModel {
   }
 
   func addMetric() async {
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = targetUserId else { return }
     guard addFormState.isValid, let parsedValue = addFormState.parsedValue else { return }
     guard let type = addFormState.metricType else { return }
 

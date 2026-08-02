@@ -434,6 +434,21 @@ final class EventsListViewModelTests: XCTestCase {
     XCTAssertEqual(current.month, limit.month)
   }
 
+  // MARK: - Athlete Targeting
+
+  func testLoadEvents_parentViewingAthlete_usesAthleteUserId() async {
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuth)
+    sut = EventsListViewModel(
+      eventsService: mockService,
+      familyManager: familyManager,
+      authManager: mockAuth
+    )
+
+    await sut.loadEvents()
+
+    XCTAssertEqual(mockService.lastFetchEventsUserId, ParentViewingAthleteFixture.athleteUserId)
+  }
+
   // MARK: - Helpers
 
   private func userMock(id: String) -> User {

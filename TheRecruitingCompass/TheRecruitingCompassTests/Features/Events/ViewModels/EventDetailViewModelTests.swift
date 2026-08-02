@@ -987,6 +987,22 @@ final class EventDetailViewModelTests: XCTestCase {
     XCTAssertTrue(sut.metrics.isEmpty)
   }
 
+  // MARK: - Athlete Targeting
+
+  func testLoadEvent_parentViewingAthlete_usesAthleteUserId() async {
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuthManager)
+    sut = EventDetailViewModel(
+      eventsService: mockService,
+      familyManager: familyManager,
+      authManager: mockAuthManager,
+      eventId: "test-event-id"
+    )
+
+    await sut.loadAll()
+
+    XCTAssertEqual(mockService.lastFetchEventUserId, ParentViewingAthleteFixture.athleteUserId)
+  }
+
   // MARK: - Helpers
 
   private func makeTestCoach(id: String) -> Coach {
