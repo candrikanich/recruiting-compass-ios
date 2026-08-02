@@ -82,7 +82,7 @@ struct LoginFormField: View {
           .accessibilityLabel("Error: \(error)")
       }
     }
-    .accessibilityElement(children: .combine)
+    .accessibilityElement(children: .contain)
     .accessibilityIdentifier(accessibilityIdentifier ?? label)
   }
 }

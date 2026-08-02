@@ -205,7 +205,7 @@ final class AddCoachViewModel {
       submitError = "Failed to create coach. Please try again."
 
       // Error announcement with haptic feedback
-      announcer.announce("Failed to create coach. \(error.localizedDescription)")
+      announcer.announce("Failed to create coach. Please try again.")
 
       return nil
     }

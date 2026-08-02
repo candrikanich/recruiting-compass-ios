@@ -138,7 +138,7 @@ struct ResetPasswordView: View {
           }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 48)
+        .frame(minHeight: 48)
         .foregroundStyle(.white)
         .background(
           LinearGradient.primaryButton
@@ -203,7 +203,7 @@ struct ResetPasswordView: View {
         Text("Sign In Now")
           .font(.callout.weight(.semibold))
           .frame(maxWidth: .infinity)
-          .frame(height: 48)
+          .frame(minHeight: 48)
           .foregroundStyle(.white)
           .background(
             LinearGradient.primaryButton
@@ -242,7 +242,7 @@ struct ResetPasswordView: View {
         Text("Request New Link")
           .font(.callout.weight(.semibold))
           .frame(maxWidth: .infinity)
-          .frame(height: 48)
+          .frame(minHeight: 48)
           .foregroundStyle(.white)
           .background(
             LinearGradient.primaryButton

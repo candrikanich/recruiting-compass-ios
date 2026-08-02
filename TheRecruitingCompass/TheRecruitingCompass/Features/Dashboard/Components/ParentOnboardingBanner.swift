@@ -115,8 +115,7 @@ struct ParentOnboardingBanner: View {
         .frame(width: 4)
     }
     .clipShape(RoundedRectangle(cornerRadius: 8))
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("Connect your athlete to get started. Invite them from Family Management.")
+    .accessibilityElement(children: .contain)
   }
 
   @ViewBuilder

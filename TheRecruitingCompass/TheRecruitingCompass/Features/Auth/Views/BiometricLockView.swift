@@ -35,7 +35,7 @@ struct BiometricLockView: View {
             Text("Use Face ID")
               .font(.callout.weight(.semibold))
               .frame(maxWidth: .infinity)
-              .frame(height: 48)
+              .frame(minHeight: 48)
               .foregroundStyle(.white)
               .background(Color.white.opacity(0.25))
               .clipShape(.rect(cornerRadius: 8))

@@ -55,7 +55,7 @@ struct StatCard: View {
     .padding(.horizontal, 16)
     .padding(.top, 20)
     .padding(.bottom, 20)
-    .frame(maxWidth: .infinity, minHeight: 180, maxHeight: 180)
+    .frame(maxWidth: .infinity, minHeight: 180)
     .background(
       LinearGradient(
         gradient: Gradient(colors: gradientColors),

@@ -362,7 +362,7 @@ struct InviteJoinView: View {
         }
       }
       .frame(maxWidth: .infinity)
-      .frame(height: 48)
+      .frame(minHeight: 48)
       .foregroundStyle(.white)
       .background(LinearGradient.primaryButton)
       .clipShape(.rect(cornerRadius: 8))
@@ -383,7 +383,7 @@ struct InviteJoinView: View {
         }
       }
       .frame(maxWidth: .infinity)
-      .frame(height: 44)
+      .frame(minHeight: 44)
     }
     .buttonStyle(.bordered)
     .tint(.red)

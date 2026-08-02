@@ -114,7 +114,7 @@ struct ForgotPasswordView: View {
           }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 48)
+        .frame(minHeight: 48)
         .foregroundStyle(.white)
         .background(
           LinearGradient.primaryButton
@@ -175,7 +175,7 @@ struct ForgotPasswordView: View {
             .font(.callout.weight(.semibold))
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 48)
+        .frame(minHeight: 48)
         .foregroundStyle(Color.accentBlue)
         .background(Color.clear)
         .overlay(

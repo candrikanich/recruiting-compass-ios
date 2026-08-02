@@ -344,7 +344,7 @@ struct SignupView: View {
         }
       }
       .frame(maxWidth: .infinity)
-      .frame(height: 48)
+      .frame(minHeight: 48)
       .foregroundStyle(.white)
       .background(
         LinearGradient.primaryButton

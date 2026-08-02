@@ -121,7 +121,7 @@ extension AddSchoolViewModel {
       submitError = "Failed to create school. Please try again."
 
       // Error announcement with haptic feedback
-      announcer.announce("Failed to create school. \(error.localizedDescription)")
+      announcer.announce("Failed to create school. Please try again.")
 
       return nil
     }

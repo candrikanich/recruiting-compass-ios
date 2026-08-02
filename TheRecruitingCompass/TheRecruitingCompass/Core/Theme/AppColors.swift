@@ -54,14 +54,16 @@ extension Color {
   }
 
   // MARK: - Legacy Aliases (bridge for existing callers)
+  // Text-role aliases are adaptive: the light value is unchanged, the dark
+  // value keeps WCAG AA contrast (>= 4.5:1) on Surface.card / Surface.background.
   static let primaryGreen = Color.Brand.emerald600
   static let darkEmerald = Color.Brand.emerald700
   static let emeraldGradientStart = Color.Brand.emerald500
   static let emeraldGradientEnd = Color.Brand.emerald600
-  static let darkSlate = Color.Brand.slate700
-  static let secondaryText = Color.Brand.slate500
-  static let tertiaryText = Color.Brand.slate600
-  static let nearBlack = Color(hex: "0d0d1a")
+  static let darkSlate = Color(light: Color.Brand.slate700, dark: Color(hex: "cbd5e1"))
+  static let secondaryText = Color(light: Color.Brand.slate500, dark: Color(hex: "94a3b8"))
+  static let tertiaryText = Color(light: Color.Brand.slate600, dark: Color(hex: "94a3b8"))
+  static let nearBlack = Color(light: Color(hex: "0d0d1a"), dark: Color(hex: "f2f2f7"))
   static let accentBlue = Color.Brand.blue600
   static let blueGradientStart = Color.Brand.blue500
   static let blueGradientEnd = Color.Brand.blue700
@@ -72,10 +74,10 @@ extension Color {
   static let warningBackground = Color.Brand.orange100
   static let warningBorder = Color(hex: "fed7aa")
   static let strengthOrange = Color.Brand.orange500
-  static let amberGold = Color(hex: "b45309")
+  static let amberGold = Color(light: Color(hex: "b45309"), dark: Color(hex: "fbbf24"))
   static let successGreen = Color.Brand.emerald600
-  static let iconGray = Color.Brand.slate500
-  static let borderGray = Color.Brand.slate100
+  static let iconGray = Color(light: Color.Brand.slate500, dark: Color(hex: "94a3b8"))
+  static let borderGray = Color(light: Color.Brand.slate100, dark: Color.white.opacity(0.12))
 
   // MARK: - Tinted Surface Tokens
   // Every neutral carries a trace of the brand blue (#2563EB) so the brand

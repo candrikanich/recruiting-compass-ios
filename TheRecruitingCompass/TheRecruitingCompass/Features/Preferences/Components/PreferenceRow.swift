@@ -42,8 +42,7 @@ struct PreferenceRow: View {
       .buttonStyle(.plain)
       .accessibilityLabel(preference.isDealbreaker ? "Remove dealbreaker" : "Mark as dealbreaker")
     }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(preferenceLabel): \(valueDescription)\(preference.isDealbreaker ? ", dealbreaker" : "")")
+    .accessibilityElement(children: .contain)
   }
 
   private var categoryIcon: String {

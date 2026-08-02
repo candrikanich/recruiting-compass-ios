@@ -206,7 +206,7 @@ struct ToggleCard: View {
 
         if isComingSoon {
           Text("Coming Soon")
-            .font(.system(size: 9, weight: .semibold))
+            .font(.caption2.weight(.semibold))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 4)
             .padding(.vertical, 2)

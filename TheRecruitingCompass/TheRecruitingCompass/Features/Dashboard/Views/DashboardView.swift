@@ -217,7 +217,7 @@ private struct DashboardLogoutButton: View {
             .font(.callout.weight(.semibold))
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 48)
+        .frame(minHeight: 48)
         .foregroundStyle(.white)
         .background(Color.errorRed)
         .clipShape(.rect(cornerRadius: 8))

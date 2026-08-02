@@ -69,7 +69,7 @@ struct PasswordFormField: View {
           .accessibilityLabel("Error: \(error)")
       }
     }
-    .accessibilityElement(children: .combine)
+    .accessibilityElement(children: .contain)
   }
 }
 

@@ -95,8 +95,7 @@ struct NotificationPreferencesView: View {
             }
             .font(.subheadline)
           }
-          .accessibilityElement(children: .combine)
-          .accessibilityLabel("Push notifications disabled. Open Settings to enable.")
+          .accessibilityElement(children: .contain)
         } else {
           ForEach(NotificationType.allCases.filter { $0 != .unknown }, id: \.self) { type in
             Toggle(type.label, isOn: Binding(

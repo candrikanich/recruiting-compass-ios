@@ -163,7 +163,7 @@ struct LoginView: View {
             .font(.footnote)
             .foregroundStyle(Color.primary)
         }
-        .frame(height: 44)
+        .frame(minHeight: 44)
       }
       .accessibilityLabel("Remember me")
       .accessibilityValue(viewModel.rememberMe ? "checked" : "unchecked")
@@ -203,7 +203,7 @@ struct LoginView: View {
         }
       }
       .frame(maxWidth: .infinity)
-      .frame(height: 48)
+      .frame(minHeight: 48)
       .foregroundStyle(.white)
       .background(LinearGradient.primaryButton)
       .clipShape(.rect(cornerRadius: 8))
