@@ -10,12 +10,15 @@ final class DocumentsListViewModelTests: XCTestCase {
   private var mockSchools: MockSchoolsService!
   private var mockAuth: MockAuthManager!
   private var mockFamilyManager: FamilyManager!
+  private var mockCache: InMemoryCache!
 
   override func setUp() {
     super.setUp()
     mockDocuments = MockDocumentsService()
     mockSchools = MockSchoolsService()
     mockAuth = MockAuthManager()
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
     let mockFamilyService = MockFamilyService()
     mockFamilyManager = FamilyManager(familyService: mockFamilyService, authManager: mockAuth)
     mockFamilyManager.currentMember = FamilyMember(
@@ -39,7 +42,8 @@ final class DocumentsListViewModelTests: XCTestCase {
       documentsService: mockDocuments,
       schoolsService: mockSchools,
       authManager: mockAuth,
-      familyManager: mockFamilyManager
+      familyManager: mockFamilyManager,
+      cache: mockCache
     )
   }
 
@@ -51,6 +55,7 @@ final class DocumentsListViewModelTests: XCTestCase {
     mockSchools = nil
     mockAuth = nil
     mockFamilyManager = nil
+    mockCache = nil
     super.tearDown()
   }
 
@@ -210,11 +215,13 @@ final class DocumentsListViewModelTests: XCTestCase {
     sut.searchQuery = "spring"
     XCTAssertEqual(sut.filteredDocuments.count, 1)
 
-    mockDocuments.stubbedDocuments = [
+    // Reassign documents directly (e.g. a reload) without touching the
+    // fetch cache — this test targets filteredDocuments staleness, not the
+    // list fetch cache (see the "List Fetch Caching Tests" section for that).
+    sut.documents = [
       .mock(id: "d3", title: "Spring Report"),
       .mock(id: "d4", title: "Spring Video")
     ]
-    await sut.loadDocuments()
 
     XCTAssertEqual(sut.filteredDocuments.count, 2)
   }
@@ -245,6 +252,50 @@ final class DocumentsListViewModelTests: XCTestCase {
     sut.sortBy = .name
 
     XCTAssertEqual(sut.sortedDocuments.first?.title, "Alpha")
+  }
+
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadDocuments_SecondLoad_UsesCacheAndSkipsService() async {
+    mockDocuments.stubbedDocuments = [.mock(id: "d1", title: "Alpha")]
+
+    await sut.loadDocuments()
+    XCTAssertEqual(mockDocuments.fetchDocumentsCallCount, 1)
+
+    mockDocuments.stubbedDocuments = [.mock(id: "d2", title: "Beta")]
+    await sut.loadDocuments()
+
+    XCTAssertEqual(mockDocuments.fetchDocumentsCallCount, 1)
+    XCTAssertEqual(sut.documents.first?.id, "d1")
+  }
+
+  func testDeleteDocument_InvalidatesListCache_NextLoadRefetches() async {
+    mockDocuments.stubbedDocuments = [.mock(id: "d1", title: "Alpha")]
+    await sut.loadDocuments()
+    XCTAssertEqual(mockDocuments.fetchDocumentsCallCount, 1)
+
+    await sut.deleteDocument(id: "d1")
+
+    mockDocuments.stubbedDocuments = []
+    await sut.loadDocuments()
+
+    XCTAssertEqual(mockDocuments.fetchDocumentsCallCount, 2)
+  }
+
+  func testDocumentDetailViewModel_EditOrDelete_InvalidatesDocumentsListCache() async {
+    mockDocuments.stubbedDocuments = [.mock(id: "d1", title: "Alpha")]
+    await sut.loadDocuments()
+    XCTAssertEqual(mockDocuments.fetchDocumentsCallCount, 1)
+
+    // Simulate what DocumentDetailViewModel does on edit/share/delete:
+    // invalidate the same cache key via the shared ListCacheKeys builder.
+    await mockCache.remove(forKey: ListCacheKeys.documents(userId: "user-1"))
+
+    mockDocuments.stubbedDocuments = [.mock(id: "d1", title: "Alpha"), .mock(id: "d2", title: "Beta")]
+    await sut.loadDocuments()
+
+    XCTAssertEqual(mockDocuments.fetchDocumentsCallCount, 2)
+    XCTAssertEqual(sut.documents.count, 2)
   }
 
   // MARK: - Statistics

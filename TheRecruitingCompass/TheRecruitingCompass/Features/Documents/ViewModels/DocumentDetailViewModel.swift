@@ -192,9 +192,15 @@ final class DocumentDetailViewModel {
     }
   }
 
+  /// Invalidates this document's cache, plus DocumentsListViewModel's cached
+  /// list (Phase 3.6) so an edit/share/delete shows correctly on next visit
+  /// to the list screen. Call after any mutation.
   private func invalidateDocumentCache() async {
     let cacheToUse = cache ?? InMemoryCache.shared
     await cacheToUse.remove(forKey: "document:\(documentId)")
+    if let userId {
+      await cacheToUse.remove(forKey: ListCacheKeys.documents(userId: userId))
+    }
   }
 
   // MARK: - Edit

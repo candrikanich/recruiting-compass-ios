@@ -206,20 +206,35 @@ final class DocumentsListViewModel {
 
   // MARK: - Init
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached documents list (seconds).
+  private static let documentsListCacheTTL: TimeInterval = 60
+
   init(
     documentsService: (any DocumentsManaging)? = nil,
     schoolsService: (any SchoolsManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
-    familyManager: FamilyManager? = nil
+    familyManager: FamilyManager? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.documentsService = documentsService ?? DocumentsServiceImpl()
     self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.familyManager = familyManager ?? FamilyManager.shared
+    self.cache = cache
     let sortRaw = UserDefaults.standard.string(forKey: documentsSortByKey)
     self._sortBy = DocumentSortOption(rawValue: sortRaw ?? "") ?? .newest
     let viewRaw = UserDefaults.standard.string(forKey: documentsViewModeKey)
     self._viewMode = DocumentViewMode(rawValue: viewRaw ?? "") ?? .grid
+  }
+
+  /// Invalidates the cached documents list so the next `loadDocuments()`
+  /// refetches. Call after any mutation (upload, delete). `DocumentDetailViewModel`
+  /// invalidates the same key (via `ListCacheKeys.documents`) after edit/share/delete.
+  private func invalidateDocumentsListCache() async {
+    guard let userId = targetUserId else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.documents(userId: userId))
   }
 
   // MARK: - Load
@@ -235,9 +250,19 @@ final class DocumentsListViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    let cacheKey = ListCacheKeys.documents(userId: userId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
     do {
-      documents = try await documentsService.fetchDocuments(userId: userId)
-      logger.info("Loaded \(self.documents.count) documents")
+      if let cached = await cacheToUse.get([Document].self, forKey: cacheKey) {
+        documents = cached
+        logger.info("Loaded \(self.documents.count) documents from cache")
+      } else {
+        let fetched = try await documentsService.fetchDocuments(userId: userId)
+        documents = fetched
+        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.documentsListCacheTTL)
+        logger.info("Loaded \(self.documents.count) documents")
+      }
     } catch {
       logger.error("Failed to load documents: \(error.localizedDescription)")
       self.errorMessage = "Unable to load documents. Check your connection."
@@ -334,6 +359,7 @@ final class DocumentsListViewModel {
 
       uploadProgress = 1
       documents.insert(doc, at: 0)
+      await invalidateDocumentsListCache()
       dismissUploadForm()
     } catch {
       logger.error("Upload failed: \(error.localizedDescription)")
@@ -365,6 +391,7 @@ final class DocumentsListViewModel {
     do {
       try await documentsService.deleteDocument(id: id, userId: userId)
       documents.removeAll { $0.id == id }
+      await invalidateDocumentsListCache()
     } catch {
       logger.error("Delete failed: \(error.localizedDescription)")
       self.errorMessage = "Failed to delete document. Please try again."
