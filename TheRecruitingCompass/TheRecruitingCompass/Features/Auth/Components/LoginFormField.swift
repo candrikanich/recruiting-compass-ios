@@ -67,7 +67,7 @@ struct LoginFormField: View {
       .background(Color(uiColor: .secondarySystemBackground))
       .overlay(
         RoundedRectangle(cornerRadius: 8)
-          .strokeBorder(error != nil ? Color.red : Color(uiColor: .separator), lineWidth: 1)
+          .stroke(error != nil ? Color.red : Color(uiColor: .separator), lineWidth: 1)
       )
       .clipShape(.rect(cornerRadius: 8))
 

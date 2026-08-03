@@ -34,9 +34,9 @@ struct CoachCardView: View {
     .background(Color(uiColor: .secondarySystemBackground))
     .overlay(
       RoundedRectangle(cornerRadius: 12)
-        .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
+        .stroke(Color(uiColor: .separator), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 12))
+    .clipShape(.rect(cornerRadius: 12))
     .brandShadowSm()
     .accessibilityElement(children: .contain)
   }
