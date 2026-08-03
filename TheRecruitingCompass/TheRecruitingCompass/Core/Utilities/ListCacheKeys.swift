@@ -7,7 +7,13 @@ import Foundation
 enum ListCacheKeys {
   static func schools(familyUnitId: String) -> String { "schoolsList:\(familyUnitId)" }
   static func offers(userId: String) -> String { "offersList:\(userId)" }
-  static func interactions(familyUnitId: String) -> String { "interactionsList:\(familyUnitId)" }
+  /// Interactions has two distinct fetch scopes (InteractionsListViewModel):
+  /// parents see the whole family unit, athletes see only their own — cache
+  /// each separately or a parent's cache read would leak into/from an
+  /// athlete's narrower view, or vice versa. Any mutation site invalidates
+  /// both, since it can't always tell which scope is currently cached.
+  static func interactionsForFamily(familyUnitId: String) -> String { "interactionsList:family:\(familyUnitId)" }
+  static func interactionsForAthlete(userId: String) -> String { "interactionsList:athlete:\(userId)" }
   static func coaches(familyUnitId: String) -> String { "coachesList:\(familyUnitId)" }
   static func documents(userId: String) -> String { "documentsList:\(userId)" }
   static func events(userId: String) -> String { "eventsList:\(userId)" }

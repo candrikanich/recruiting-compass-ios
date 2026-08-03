@@ -264,6 +264,11 @@ final class AddInteractionViewModel {
       let interaction = try await interactionsService.createInteraction(request)
       logger.info("Created interaction: \(interaction.id)")
 
+      // Invalidate InteractionsListViewModel's cached list (Phase 3.6) for both
+      // possible fetch scopes — this VM doesn't know which one is cached.
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: userId))
+
       // Upload attachments if any (Phase 4 - defer for MVP)
       // if !formState.attachedFiles.isEmpty { ... }
 

@@ -186,6 +186,17 @@ final class InteractionDetailViewModel {
     return ([header] + rows).joined(separator: "\n")
   }
 
+  /// Invalidates InteractionsListViewModel's cached list (Phase 3.6) for both
+  /// possible fetch scopes (family/athlete) since this VM doesn't know which
+  /// one is currently cached for the viewing user.
+  private func invalidateInteractionsListCache() async {
+    let cacheToUse = InMemoryCache.shared
+    await cacheToUse.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+    if let userId = authManager.user?.id {
+      await cacheToUse.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: userId))
+    }
+  }
+
   // MARK: - Delete
 
   func deleteInteraction() async -> Bool {
@@ -209,6 +220,7 @@ final class InteractionDetailViewModel {
       // Try simple delete first
       try await interactionsService.deleteInteraction(id: interaction.id)
       logger.info("Deleted interaction: \(interaction.id)")
+      await invalidateInteractionsListCache()
       return true
     } catch {
       // Check for FK constraint error → try cascade
@@ -218,6 +230,7 @@ final class InteractionDetailViewModel {
         do {
           let result = try await interactionsService.cascadeDeleteInteraction(id: interaction.id)
           logger.info("Cascade deleted interaction: \(interaction.id), notes: \(result.deletedNotes)")
+          await invalidateInteractionsListCache()
           return true
         } catch {
           logger.error("Cascade delete failed: \(error.localizedDescription)")

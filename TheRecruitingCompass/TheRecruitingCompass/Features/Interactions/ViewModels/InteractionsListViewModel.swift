@@ -125,14 +125,34 @@ final class InteractionsListViewModel {
 
   // MARK: - Initialization
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached interactions list (seconds).
+  private static let interactionsListCacheTTL: TimeInterval = 60
+
   init(
     interactionsService: (any InteractionsManaging)? = nil,
     familyManager: FamilyManager? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.interactionsService = interactionsService ?? InteractionsServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
+  }
+
+  /// Invalidates the cached interactions list for both fetch scopes so the
+  /// next `loadInteractions()` refetches. `InteractionDetailViewModel` and
+  /// `AddInteractionViewModel` invalidate the same keys after delete/create.
+  private func invalidateInteractionsListCache() async {
+    let cacheToUse = cache ?? InMemoryCache.shared
+    if let familyUnitId = familyManager.currentMember?.familyUnitId {
+      await cacheToUse.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+    }
+    if let userId = authManager.user?.id {
+      await cacheToUse.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: userId))
+    }
   }
 
   // MARK: - Data Loading
@@ -148,6 +168,8 @@ final class InteractionsListViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    let cacheToUse = cache ?? InMemoryCache.shared
+
     do {
       // Load schools and coaches for name lookup
       let schools = try await interactionsService.fetchSchools(familyUnitId: familyUnitId)
@@ -158,12 +180,28 @@ final class InteractionsListViewModel {
       // Load interactions based on role
       if isAthlete, let userId = authManager.user?.id {
         // Athletes see only their own interactions
-        allInteractions = try await interactionsService.fetchInteractionsForUser(userId: userId)
-        logger.info("Loaded \(self.allInteractions.count) interactions for athlete")
+        let cacheKey = ListCacheKeys.interactionsForAthlete(userId: userId)
+        if let cached = await cacheToUse.get([Interaction].self, forKey: cacheKey) {
+          allInteractions = cached
+          logger.info("Loaded \(self.allInteractions.count) interactions for athlete from cache")
+        } else {
+          let fetched = try await interactionsService.fetchInteractionsForUser(userId: userId)
+          allInteractions = fetched
+          await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.interactionsListCacheTTL)
+          logger.info("Loaded \(self.allInteractions.count) interactions for athlete")
+        }
       } else {
         // Parents see all family interactions
-        allInteractions = try await interactionsService.fetchInteractions(familyUnitId: familyUnitId)
-        logger.info("Loaded \(self.allInteractions.count) interactions for family")
+        let cacheKey = ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId)
+        if let cached = await cacheToUse.get([Interaction].self, forKey: cacheKey) {
+          allInteractions = cached
+          logger.info("Loaded \(self.allInteractions.count) interactions for family from cache")
+        } else {
+          let fetched = try await interactionsService.fetchInteractions(familyUnitId: familyUnitId)
+          allInteractions = fetched
+          await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.interactionsListCacheTTL)
+          logger.info("Loaded \(self.allInteractions.count) interactions for family")
+        }
       }
     } catch {
       logger.error("Failed to load interactions: \(error.localizedDescription)")
@@ -197,6 +235,7 @@ final class InteractionsListViewModel {
       logger.info("Deleted interaction: \(interactionSubject)")
       successMessage = "Interaction deleted"
       showSuccessToast = true
+      await invalidateInteractionsListCache()
     } catch {
       logger.warning("Simple delete failed, attempting cascade: \(error.localizedDescription)")
       do {
@@ -212,6 +251,7 @@ final class InteractionsListViewModel {
           successMessage = "Interaction deleted"
         }
         showSuccessToast = true
+        await invalidateInteractionsListCache()
       } catch {
         logger.error("Cascade delete failed: \(error.localizedDescription)")
         deleteErrorMessage = "Failed to delete interaction. Please try again."

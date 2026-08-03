@@ -8,16 +8,20 @@ final class InteractionsListViewModelTests: XCTestCase {
   var mockService: MockInteractionsService!
   var mockFamilyManager: FamilyManager!
   var mockAuthManager: MockAuthManager!
+  var mockCache: InMemoryCache!
 
   override func setUp() async throws {
     mockService = MockInteractionsService()
     mockFamilyManager = FamilyManager.shared
     mockAuthManager = MockAuthManager()
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
 
     viewModel = InteractionsListViewModel(
       interactionsService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: mockCache
     )
   }
 
@@ -26,6 +30,7 @@ final class InteractionsListViewModelTests: XCTestCase {
     mockService = nil
     mockFamilyManager = nil
     mockAuthManager = nil
+    mockCache = nil
   }
 
   // MARK: - Data Loading Tests
@@ -508,6 +513,90 @@ final class InteractionsListViewModelTests: XCTestCase {
     // Then
     XCTAssertEqual(viewModel.allInteractions.count, 2)
     XCTAssertFalse(viewModel.allInteractions.contains { $0.id == "2" })
+  }
+
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadInteractions_ForParent_SecondLoad_UsesCacheAndSkipsService() async {
+    let parent = createFamilyMember(role: "parent", userId: "parent1")
+    mockFamilyManager.currentMember = parent
+    mockAuthManager.user = User(
+      id: "parent1", email: "parent@test.com", emailConfirmedAt: nil, phone: nil,
+      createdAt: "", updatedAt: "", role: nil
+    )
+    mockService.mockInteractions = createMockInteractions(count: 3, loggedBy: "various")
+
+    await viewModel.loadInteractions()
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+
+    mockService.mockInteractions = createMockInteractions(count: 7, loggedBy: "various")
+    await viewModel.loadInteractions()
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+    XCTAssertEqual(viewModel.allInteractions.count, 3)
+  }
+
+  func testLoadInteractions_ForAthlete_SecondLoad_UsesCacheAndSkipsService() async {
+    let athlete = createFamilyMember(role: "player", userId: "athlete1")
+    mockFamilyManager.currentMember = athlete
+    mockAuthManager.user = User(
+      id: "athlete1", email: "athlete@test.com", emailConfirmedAt: nil, phone: nil,
+      createdAt: "", updatedAt: "", role: nil
+    )
+    mockService.mockInteractions = createMockInteractions(count: 3, loggedBy: "athlete1")
+
+    await viewModel.loadInteractions()
+    XCTAssertEqual(mockService.fetchInteractionsForUserCallCount, 1)
+
+    mockService.mockInteractions = createMockInteractions(count: 5, loggedBy: "athlete1")
+    await viewModel.loadInteractions()
+
+    XCTAssertEqual(mockService.fetchInteractionsForUserCallCount, 1)
+    XCTAssertEqual(viewModel.allInteractions.count, 3)
+  }
+
+  func testDeleteInteraction_InvalidatesListCache_NextLoadRefetches() async {
+    let parent = createFamilyMember(role: "parent", userId: "parent1")
+    mockFamilyManager.currentMember = parent
+    mockAuthManager.user = User(
+      id: "parent1", email: "parent@test.com", emailConfirmedAt: nil, phone: nil,
+      createdAt: "", updatedAt: "", role: nil
+    )
+    let interaction = createInteraction(id: "1")
+    mockService.mockInteractions = [interaction]
+
+    await viewModel.loadInteractions()
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+
+    viewModel.interactionToDelete = interaction
+    await viewModel.deleteInteraction()
+
+    mockService.mockInteractions = []
+    await viewModel.loadInteractions()
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2)
+  }
+
+  func testAddInteractionViewModel_Create_InvalidatesInteractionsListCache() async {
+    let parent = createFamilyMember(role: "parent", userId: "parent1")
+    mockFamilyManager.currentMember = parent
+    mockAuthManager.user = User(
+      id: "parent1", email: "parent@test.com", emailConfirmedAt: nil, phone: nil,
+      createdAt: "", updatedAt: "", role: nil
+    )
+    mockService.mockInteractions = []
+    await viewModel.loadInteractions()
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+
+    // Simulate what AddInteractionViewModel does on successful creation:
+    // invalidate the same cache key via the shared ListCacheKeys builder.
+    await mockCache.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: "family1"))
+
+    mockService.mockInteractions = [createInteraction(id: "new-1")]
+    await viewModel.loadInteractions()
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2)
+    XCTAssertEqual(viewModel.allInteractions.count, 1)
   }
 
   // MARK: - Cached filteredInteractions Staleness Tests
