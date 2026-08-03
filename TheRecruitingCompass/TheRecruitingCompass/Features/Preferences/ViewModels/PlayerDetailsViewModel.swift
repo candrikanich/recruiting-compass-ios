@@ -97,6 +97,7 @@ final class PlayerDetailsViewModel {
         logger.debug("Loading player details")
         isLoading = true
         errorMessage = nil
+        defer { isLoading = false }
         do {
             if let savedDetails: PlayerDetails = try await preferenceService.fetchPreferences(category: .player) {
                 details = savedDetails
@@ -106,11 +107,9 @@ final class PlayerDetailsViewModel {
                 logger.info("No existing details, using defaults")
             }
             saveStatus = .idle
-            isLoading = false
         } catch {
             logger.error("Failed to load details: \(error.localizedDescription)")
             errorMessage = "Failed to load player details. Please try again."
-            isLoading = false
         }
     }
 

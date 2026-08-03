@@ -33,6 +33,7 @@ final class DashboardCustomizationViewModel {
     logger.debug("Loading dashboard visibility settings")
     isLoading = true
     errorMessage = nil
+    defer { isLoading = false }
 
     do {
       if let savedVisibility: DashboardWidgetVisibility = try await preferenceService.fetchPreferences(category: .dashboard) {
@@ -42,11 +43,9 @@ final class DashboardCustomizationViewModel {
         visibility = .default
         logger.info("No existing visibility settings, using defaults")
       }
-      isLoading = false
     } catch {
       logger.error("Failed to load visibility: \(error.localizedDescription)")
       errorMessage = "Failed to load settings. Please try again."
-      isLoading = false
     }
   }
 

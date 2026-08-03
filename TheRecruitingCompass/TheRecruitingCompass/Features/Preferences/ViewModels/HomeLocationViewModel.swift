@@ -44,6 +44,7 @@ final class HomeLocationViewModel {
     logger.debug("Loading home location")
     isLoading = true
     errorMessage = nil
+    defer { isLoading = false }
 
     do {
       if let savedLocation: HomeLocation = try await preferenceService.fetchPreferences(category: .location) {
@@ -53,11 +54,9 @@ final class HomeLocationViewModel {
         location = .default
         logger.info("No existing location, using defaults")
       }
-      isLoading = false
     } catch {
       logger.error("Failed to load location: \(error.localizedDescription)")
       errorMessage = "Failed to load location settings. Please try again."
-      isLoading = false
     }
   }
 

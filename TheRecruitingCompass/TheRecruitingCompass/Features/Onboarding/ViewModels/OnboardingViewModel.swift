@@ -118,6 +118,7 @@ final class OnboardingViewModel {
 
     isLoading = true
     errorMessage = nil
+    defer { isLoading = false }
 
     do {
       if currentStep == 2 {
@@ -144,11 +145,9 @@ final class OnboardingViewModel {
       }
 
       currentStep += 1
-      isLoading = false
     } catch {
       logger.error("Failed to save onboarding step: \(error.localizedDescription)")
-      errorMessage = error.localizedDescription
-      isLoading = false
+      errorMessage = "Couldn't save this step. Please try again."
     }
   }
 
@@ -183,6 +182,7 @@ final class OnboardingViewModel {
 
     isLoading = true
     errorMessage = nil
+    defer { isLoading = false }
 
     do {
       let assessment = OnboardingAssessment.defaultForOnboarding
@@ -195,12 +195,10 @@ final class OnboardingViewModel {
       )
 
       // Mirrors web: onboarding completion does not create family; user creates from Family tab when inviting parent
-      isLoading = false
       onComplete?()
     } catch {
       logger.error("Failed to complete onboarding: \(error.localizedDescription)")
-      errorMessage = error.localizedDescription
-      isLoading = false
+      errorMessage = "Couldn't finish setup. Please try again."
     }
   }
 

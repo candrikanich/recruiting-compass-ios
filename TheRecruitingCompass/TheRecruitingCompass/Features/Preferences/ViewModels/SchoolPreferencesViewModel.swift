@@ -36,6 +36,7 @@ final class SchoolPreferencesViewModel {
     logger.debug("Loading school preferences")
     isLoading = true
     errorMessage = nil
+    defer { isLoading = false }
 
     do {
       if let savedPreferences: SchoolPreferences = try await preferenceService.fetchPreferences(category: .school) {
@@ -45,11 +46,9 @@ final class SchoolPreferencesViewModel {
         preferences = .default
         logger.info("No existing preferences, using defaults")
       }
-      isLoading = false
     } catch {
       logger.error("Failed to load preferences: \(error.localizedDescription)")
       errorMessage = "Failed to load preferences. Please try again."
-      isLoading = false
     }
   }
 

@@ -41,6 +41,7 @@ final class NotificationPreferencesViewModel {
     logger.debug("Loading notification preferences")
     isLoading = true
     errorMessage = nil
+    defer { isLoading = false }
 
     do {
       if let savedSettings: NotificationSettings = try await preferenceService.fetchPreferences(category: .notifications) {
@@ -50,11 +51,9 @@ final class NotificationPreferencesViewModel {
         settings = .default
         logger.info("No existing preferences, using defaults")
       }
-      isLoading = false
     } catch {
       logger.error("Failed to load preferences: \(error.localizedDescription)")
       errorMessage = "Failed to load preferences. Please try again."
-      isLoading = false
     }
   }
 
