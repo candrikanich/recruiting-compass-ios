@@ -14,15 +14,23 @@ private enum FilterStorage {
 final class TasksListViewModel {
 
   nonisolated deinit {}
-  var tasks: [TaskWithStatus] = []
+  var tasks: [TaskWithStatus] = [] {
+    didSet { recomputeFilteredTasks() }
+  }
   var isLoading = false
   var errorMessage: String?
   var currentGradeLevel: Int = 10
   var statusFilter: TaskStatusFilter = .all {
-    didSet { persistFilters() }
+    didSet {
+      persistFilters()
+      recomputeFilteredTasks()
+    }
   }
   var urgencyFilter: TaskUrgencyFilter = .all {
-    didSet { persistFilters() }
+    didSet {
+      persistFilters()
+      recomputeFilteredTasks()
+    }
   }
   var expandedTaskId: String?
   var showSuccessMessage = false
@@ -41,11 +49,16 @@ final class TasksListViewModel {
 
   // MARK: - Computed
 
-  var filteredTasks: [TaskWithStatus] {
+  /// Cached derived list — recomputed via `recomputeFilteredTasks()` whenever
+  /// `tasks`, `statusFilter`, or `urgencyFilter` change. Do not compute this
+  /// inline elsewhere; it would go stale silently.
+  private(set) var filteredTasks: [TaskWithStatus] = []
+
+  private func recomputeFilteredTasks() {
     var result = tasks
     result = result.filter { statusFilter.matches($0.effectiveStatus) }
     result = result.filter { urgencyFilter.matches($0.deadlineUrgency) }
-    return result.sorted { lhs, rhs in
+    filteredTasks = result.sorted { lhs, rhs in
       if lhs.required != rhs.required { return lhs.required }
       let uOrder: (TaskDeadlineUrgency) -> Int = { u in
         switch u {

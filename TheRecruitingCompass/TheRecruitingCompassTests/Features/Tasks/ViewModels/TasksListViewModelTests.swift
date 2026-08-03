@@ -70,6 +70,28 @@ final class TasksListViewModelTests: XCTestCase {
     XCTAssertEqual(filtered.first?.id, "t2")
   }
 
+  // MARK: - Cached filteredTasks Staleness Tests
+  // filteredTasks is a cached stored property (Phase 3.3), recomputed via
+  // didSet on tasks/statusFilter/urgencyFilter — not read live.
+
+  func testFilteredTasks_UpdatesWhenTasksReassigned_WithoutTouchingFilters() async {
+    mockService.stubbedTasks = [
+      TaskWithStatus(id: "t1", title: "A", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: false)
+    ]
+    await viewModel.loadTasks()
+    viewModel.setStatusFilter(.notStarted)
+    XCTAssertEqual(viewModel.filteredTasks.count, 1)
+
+    // Reassign tasks wholesale (e.g. a reload) without touching filters again.
+    viewModel.tasks = [
+      TaskWithStatus(id: "t2", title: "B", gradeLevel: 10, category: "c", required: true, athleteTask: AthleteTaskStatus(taskId: "t2", userId: "u", status: .completed, completedAt: nil), hasIncompletePrerequisites: false),
+      TaskWithStatus(id: "t3", title: "C", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: false)
+    ]
+
+    XCTAssertEqual(viewModel.filteredTasks.count, 1)
+    XCTAssertEqual(viewModel.filteredTasks.first?.id, "t3")
+  }
+
   func testMarkComplete_LockedTask_DoesNotCallService() async {
     mockService.stubbedTasks = [
       TaskWithStatus(id: "t1", title: "Locked", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: true)
