@@ -151,6 +151,14 @@ final class AnalyticsDashboardViewModel {
     await loadAllData()
   }
 
+  /// First failure wins; a section that fails after another already
+  /// reported keeps the original message.
+  private func reportSectionLoadFailure() {
+    if errorMessage == nil {
+      errorMessage = "Some analytics couldn't load. Pull to refresh."
+    }
+  }
+
   // MARK: - Export
 
   func generateCSVExport() -> String {
@@ -409,6 +417,7 @@ final class AnalyticsDashboardViewModel {
       }
     } catch {
       logger.error("Failed to load interaction analytics: \(error.localizedDescription)")
+      reportSectionLoadFailure()
     }
   }
 
@@ -424,6 +433,7 @@ final class AnalyticsDashboardViewModel {
       }
     } catch {
       logger.error("Failed to load pipeline: \(error.localizedDescription)")
+      reportSectionLoadFailure()
     }
   }
 
@@ -439,6 +449,7 @@ final class AnalyticsDashboardViewModel {
       }
     } catch {
       logger.error("Failed to load school analytics: \(error.localizedDescription)")
+      reportSectionLoadFailure()
     }
   }
 
@@ -463,6 +474,7 @@ final class AnalyticsDashboardViewModel {
       }
     } catch {
       logger.error("Failed to load performance correlation: \(error.localizedDescription)")
+      reportSectionLoadFailure()
     }
   }
 

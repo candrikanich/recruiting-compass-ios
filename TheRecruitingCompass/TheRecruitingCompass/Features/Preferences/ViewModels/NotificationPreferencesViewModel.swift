@@ -14,6 +14,7 @@ final class NotificationPreferencesViewModel {
   var errorMessage: String?
   var saveStatus: SaveStatus = .idle
   var pushPreferences: [NotificationType: Bool] = [:]
+  var pushSetupError: String?
 
   private let preferenceService: any PreferenceManaging
   private let pushPreferencesService: (any PushPreferencesManaging)?
@@ -109,6 +110,9 @@ final class NotificationPreferencesViewModel {
   // MARK: - Push Preferences
 
   func loadPushPreferences(userId: String) async {
+    // Surface any device-registration failure recorded by the push manager;
+    // without this the device silently never receives push.
+    pushSetupError = PushNotificationManager.shared.lastError
     guard let service = pushPreferencesService else { return }
     do {
       let prefs = try await service.fetchPreferences(userId: userId)

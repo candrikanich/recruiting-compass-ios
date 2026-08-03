@@ -124,6 +124,7 @@ final class ParentOnboardingWizardViewModel {
     } catch {
       logger.error("loadFamilyCode failed: \(error.localizedDescription, privacy: .public) — full error: \(String(describing: error), privacy: .private)")
       familyCode = nil
+      errorMessage = "Couldn't load your family code. Please try again."
     }
   }
 

@@ -80,6 +80,11 @@ struct NotificationPreferencesView: View {
 
       // Push Notifications Section
       Section {
+        if let pushSetupError = viewModel.pushSetupError {
+          Label(pushSetupError, systemImage: "exclamationmark.triangle.fill")
+            .font(.subheadline)
+            .foregroundStyle(Color.errorRed)
+        }
         if pushAuthStatus == .denied {
           HStack {
             Image(systemName: "bell.slash")

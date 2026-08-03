@@ -110,6 +110,8 @@ final class ProfileViewModel {
                 deletionState = .noRequest
             }
         } catch {
+            // intentionally silent to the user: worst case the UI offers the
+            // deletion request flow again, and the server rejects duplicates.
             logger.warning("Could not fetch deletion status: \(error.localizedDescription)")
             deletionState = .noRequest
         }
