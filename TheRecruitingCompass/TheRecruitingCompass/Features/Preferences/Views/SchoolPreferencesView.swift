@@ -121,6 +121,7 @@ struct SchoolPreferencesView: View {
       Text("Applying this template will replace your current preferences. This action cannot be undone.")
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
+    .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
     .sheet(isPresented: $viewModel.showingAddSheet) {
       AddPreferenceSheet(
         onAdd: { preference in

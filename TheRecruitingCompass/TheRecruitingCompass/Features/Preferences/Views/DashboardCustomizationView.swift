@@ -171,6 +171,7 @@ struct DashboardCustomizationView: View {
       )
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
+    .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
     .task {
       await viewModel.loadVisibility()
     }

@@ -15,6 +15,7 @@ final class NotificationPreferencesViewModel {
   var saveStatus: SaveStatus = .idle
   var pushPreferences: [NotificationType: Bool] = [:]
   var pushSetupError: String?
+  var hapticSuccessTrigger = 0
 
   private let preferenceService: any PreferenceManaging
   private let pushPreferencesService: (any PushPreferencesManaging)?
@@ -68,7 +69,7 @@ final class NotificationPreferencesViewModel {
     do {
       _ = try await preferenceService.savePreferences(category: .notifications, data: settings)
       saveStatus = .saved
-      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      hapticSuccessTrigger += 1
       logger.info("Notification preferences saved")
       pendingStatusReset?.cancel()
       pendingStatusReset = Task {

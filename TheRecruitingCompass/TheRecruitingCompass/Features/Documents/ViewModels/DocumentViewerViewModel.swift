@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import UIKit
 
 // MARK: - Download Error Mapping
 
@@ -37,6 +36,7 @@ final class DocumentViewerViewModel {
   var isShareSheetPresented = false
   var downloadProgress: Double = 0
   var isDownloading = false
+  var hapticImpactTrigger = 0
 
   var collection: DocumentCollection?
   var currentIndex: Int = 0
@@ -187,7 +187,7 @@ final class DocumentViewerViewModel {
               try FileManager.default.moveItem(at: tempURL, to: destURL)
               this.downloadProgress = 1
               this.downloadedFileURL = destURL
-              UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+              this.hapticImpactTrigger += 1
               this.presentShareSheet()
             } catch {
               this.errorMessage = userFacingDownloadError(from: error)

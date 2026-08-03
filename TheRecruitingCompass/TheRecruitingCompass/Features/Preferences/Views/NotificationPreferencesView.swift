@@ -151,6 +151,7 @@ struct NotificationPreferencesView: View {
       )
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
+    .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
     .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
       Task {
         let settings = await UNUserNotificationCenter.current().notificationSettings()

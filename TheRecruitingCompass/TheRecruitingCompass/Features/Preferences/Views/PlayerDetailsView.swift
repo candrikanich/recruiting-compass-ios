@@ -47,6 +47,7 @@ struct PlayerDetailsView: View {
             )
         }
         .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
+        .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
         .alert("Delete Profile Photo?", isPresented: $viewModel.showDeletePhotoConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {

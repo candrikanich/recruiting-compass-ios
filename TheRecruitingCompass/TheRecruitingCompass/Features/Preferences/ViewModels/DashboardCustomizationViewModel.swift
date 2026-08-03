@@ -13,6 +13,7 @@ final class DashboardCustomizationViewModel {
   var isLoading = false
   var errorMessage: String?
   var saveStatus: SaveStatus = .idle
+  var hapticSuccessTrigger = 0
 
   private let preferenceService: any PreferenceManaging
   @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
@@ -57,7 +58,7 @@ final class DashboardCustomizationViewModel {
     do {
       _ = try await preferenceService.savePreferences(category: .dashboard, data: visibility)
       saveStatus = .saved
-      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      hapticSuccessTrigger += 1
       logger.info("Dashboard visibility saved")
       pendingStatusReset?.cancel()
       pendingStatusReset = Task {

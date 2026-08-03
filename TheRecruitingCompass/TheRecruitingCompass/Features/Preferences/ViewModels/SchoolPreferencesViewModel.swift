@@ -13,6 +13,7 @@ final class SchoolPreferencesViewModel {
   var isLoading = false
   var errorMessage: String?
   var saveStatus: SaveStatus = .idle
+  var hapticSuccessTrigger = 0
   var showingAddSheet = false
   var showingTemplateWarning = false
   var pendingTemplate: String?
@@ -61,7 +62,7 @@ final class SchoolPreferencesViewModel {
     do {
       _ = try await preferenceService.savePreferences(category: .school, data: preferences)
       saveStatus = .saved
-      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      hapticSuccessTrigger += 1
       logger.info("School preferences saved")
       pendingStatusReset?.cancel()
       pendingStatusReset = Task {

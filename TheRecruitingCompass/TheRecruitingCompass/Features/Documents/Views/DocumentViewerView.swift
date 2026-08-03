@@ -127,6 +127,7 @@ struct DocumentViewerView: View {
     }
     .statusBarHidden(!viewModel.isToolbarVisible)
     .accessibilityIdentifier("document-viewer-view")
+    .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.hapticImpactTrigger)
     .sheet(
       isPresented: $viewModel.isShareSheetPresented,
       onDismiss: { viewModel.downloadedFileURL = nil }

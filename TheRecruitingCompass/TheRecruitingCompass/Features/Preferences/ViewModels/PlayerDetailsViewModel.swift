@@ -18,6 +18,7 @@ final class PlayerDetailsViewModel {
     var isReadOnly = false
     var showDeletePhotoConfirmation = false
     var saveStatus: SaveStatus = .idle
+    var hapticSuccessTrigger = 0
     var selectedTab: Int = 0
 
     // Backward-compat computed wrappers (existing tests use these)
@@ -121,7 +122,7 @@ final class PlayerDetailsViewModel {
         do {
             _ = try await preferenceService.savePreferences(category: .player, data: details)
             saveStatus = .saved
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            hapticSuccessTrigger += 1
             logger.info("Player details saved")
             pendingStatusReset?.cancel()
             pendingStatusReset = Task {

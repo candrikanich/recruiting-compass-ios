@@ -239,6 +239,7 @@ struct SchoolDetailView: View {
       }
       .padding(.vertical)
     }
+    .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
     .sheet(isPresented: $viewModel.isEditingCoachingPhilosophy) {
       SchoolCoachingPhilosophySheet(
         philosophy: $viewModel.editedCoachingPhilosophy,

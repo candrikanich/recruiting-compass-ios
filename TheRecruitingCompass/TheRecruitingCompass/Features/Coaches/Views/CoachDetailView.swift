@@ -73,6 +73,7 @@ struct CoachDetailView: View {
         }
       }
     }
+    .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
     .sheet(isPresented: $viewModel.isEditing) {
       if viewModel.editedCoach != nil {
         CoachEditForm(

@@ -33,6 +33,7 @@ final class SchoolDetailViewModel {
   // MARK: - Notes (always-editable, auto-save on blur)
   var editedNotes = ""
   var saveStatus: SaveStatus = .idle
+  var hapticSuccessTrigger = 0
 
   @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
@@ -251,7 +252,7 @@ final class SchoolDetailViewModel {
 
   private func markSaved() {
     saveStatus = .saved
-    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    hapticSuccessTrigger += 1
     pendingStatusReset?.cancel()
     pendingStatusReset = Task {
       try? await Task.sleep(for: .seconds(3))
