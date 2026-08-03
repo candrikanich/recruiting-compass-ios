@@ -47,7 +47,9 @@ final class DocumentsListViewModel {
 
   // MARK: - State
 
-  var documents: [Document] = []
+  var documents: [Document] = [] {
+    didSet { recomputeDerivedDocuments() }
+  }
   var schools: [School] = []
   var isLoading = false
   var errorMessage: String?
@@ -62,10 +64,18 @@ final class DocumentsListViewModel {
   var uploadProgress: Double = 0
   var documentToView: Document?
 
-  var searchQuery = ""
-  var selectedTypes: Set<DocumentType> = []
-  var selectedSchoolId: String? = nil
-  var showSharedOnly = false
+  var searchQuery = "" {
+    didSet { recomputeDerivedDocuments() }
+  }
+  var selectedTypes: Set<DocumentType> = [] {
+    didSet { recomputeDerivedDocuments() }
+  }
+  var selectedSchoolId: String? = nil {
+    didSet { recomputeDerivedDocuments() }
+  }
+  var showSharedOnly = false {
+    didSet { recomputeDerivedDocuments() }
+  }
 
   private var _sortBy: DocumentSortOption
   var sortBy: DocumentSortOption {
@@ -73,6 +83,7 @@ final class DocumentsListViewModel {
     set {
       _sortBy = newValue
       UserDefaults.standard.set(newValue.rawValue, forKey: documentsSortByKey)
+      recomputeDerivedDocuments()
     }
   }
 
@@ -98,7 +109,16 @@ final class DocumentsListViewModel {
 
   // MARK: - Computed
 
-  var filteredDocuments: [Document] {
+  /// Cached derived lists — recomputed via `recomputeDerivedDocuments()` whenever
+  /// `documents`, `searchQuery`, `selectedTypes`, `selectedSchoolId`, `showSharedOnly`,
+  /// or `sortBy` change. Do not compute these inline elsewhere; they would go
+  /// stale silently. `filteredDocuments` and `sortedDocuments` were previously
+  /// computed properties independently re-derived on every read (worst case:
+  /// read 4x per view body eval per the audit plan).
+  private(set) var filteredDocuments: [Document] = []
+  private(set) var sortedDocuments: [Document] = []
+
+  private func recomputeDerivedDocuments() {
     var result = documents
 
     if !searchQuery.isEmpty {
@@ -125,12 +145,9 @@ final class DocumentsListViewModel {
       result = result.filter { $0.isShared }
     }
 
-    return result
-  }
+    filteredDocuments = result
 
-  var sortedDocuments: [Document] {
-    let sorted = filteredDocuments
-    return sorted.sorted { a, b in
+    sortedDocuments = result.sorted { a, b in
       switch sortBy {
       case .newest:
         return (a.createdAt ?? "") > (b.createdAt ?? "")

@@ -196,6 +196,57 @@ final class DocumentsListViewModelTests: XCTestCase {
     XCTAssertEqual(sut.sortedDocuments.first?.title, "Alpha")
   }
 
+  // MARK: - Cached filteredDocuments/sortedDocuments Staleness Tests
+  // Both are cached stored properties (Phase 3.3), recomputed via didSet on
+  // documents/searchQuery/selectedTypes/selectedSchoolId/showSharedOnly and
+  // sortBy's custom setter — not read live.
+
+  func testFilteredDocuments_UpdatesWhenReloadedWithoutTouchingFilter() async {
+    mockDocuments.stubbedDocuments = [
+      .mock(id: "d1", title: "Spring Highlights"),
+      .mock(id: "d2", title: "Summer Camp")
+    ]
+    await sut.loadDocuments()
+    sut.searchQuery = "spring"
+    XCTAssertEqual(sut.filteredDocuments.count, 1)
+
+    mockDocuments.stubbedDocuments = [
+      .mock(id: "d3", title: "Spring Report"),
+      .mock(id: "d4", title: "Spring Video")
+    ]
+    await sut.loadDocuments()
+
+    XCTAssertEqual(sut.filteredDocuments.count, 2)
+  }
+
+  func testFilteredDocuments_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    mockDocuments.stubbedDocuments = [
+      .mock(id: "keep", title: "Keep", type: .resume),
+      .mock(id: "remove", title: "Remove", type: .resume)
+    ]
+    await sut.loadDocuments()
+    sut.selectedTypes = [.resume]
+    XCTAssertEqual(sut.filteredDocuments.count, 2)
+
+    await sut.deleteDocument(id: "remove")
+
+    XCTAssertEqual(sut.filteredDocuments.count, 1)
+    XCTAssertEqual(sut.filteredDocuments.first?.id, "keep")
+  }
+
+  func testSortedDocuments_UpdatesWhenSortByChangedAfterLoad() async {
+    mockDocuments.stubbedDocuments = [
+      .mock(id: "d1", title: "Zebra"),
+      .mock(id: "d2", title: "Alpha")
+    ]
+    await sut.loadDocuments()
+    XCTAssertEqual(sut.sortedDocuments.first?.title, "Zebra")
+
+    sut.sortBy = .name
+
+    XCTAssertEqual(sut.sortedDocuments.first?.title, "Alpha")
+  }
+
   // MARK: - Statistics
 
   func testStatistics_countsTotalAndShared() async {
