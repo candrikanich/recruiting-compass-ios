@@ -296,6 +296,48 @@ final class EventsListViewModelTests: XCTestCase {
     XCTAssertEqual(freshSut.sortBy, .dateDesc)
   }
 
+  // MARK: - Cached filteredEvents Staleness Tests
+  // filteredEvents is a cached stored property (Phase 3.3), recomputed via
+  // didSet on events/searchText/typeFilter/statusFilter/dateRangeFilter and
+  // sortBy's custom setter — not read live.
+
+  func testFilteredEvents_UpdatesWhenEventsReassigned_WithoutTouchingFilters() {
+    sut.events = [fullEventMock(id: "1", type: "showcase")]
+    sut.typeFilter = .showcase
+    XCTAssertEqual(sut.filteredEvents.count, 1)
+
+    sut.events = [
+      fullEventMock(id: "2", type: "showcase"),
+      fullEventMock(id: "3", type: "camp")
+    ]
+
+    XCTAssertEqual(sut.filteredEvents.count, 1)
+    XCTAssertEqual(sut.filteredEvents.first?.id, "2")
+  }
+
+  func testFilteredEvents_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    let keep = fullEventMock(id: "keep", type: "showcase")
+    let remove = fullEventMock(id: "remove", type: "showcase")
+    sut.events = [keep, remove]
+    sut.typeFilter = .showcase
+    XCTAssertEqual(sut.filteredEvents.count, 2)
+
+    await sut.deleteEvent(id: "remove")
+
+    XCTAssertEqual(sut.filteredEvents.count, 1)
+    XCTAssertEqual(sut.filteredEvents.first?.id, "keep")
+  }
+
+  func testFilteredEvents_UpdatesWhenSortByChangedAfterLoad() {
+    sut.events = [
+      fullEventMock(id: "1", name: "Zebra Camp"),
+      fullEventMock(id: "2", name: "Alpha Camp")
+    ]
+    sut.sortBy = .name
+
+    XCTAssertEqual(sut.filteredEvents.first?.name, "Alpha Camp")
+  }
+
   // MARK: - Delete
 
   func testDeleteEvent_removesEventFromList() async {

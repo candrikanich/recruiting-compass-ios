@@ -17,7 +17,9 @@ final class EventsListViewModel {
 
   // MARK: - State
 
-  var events: [FullEvent] = []
+  var events: [FullEvent] = [] {
+    didSet { recomputeFilteredEvents() }
+  }
   var isLoading = false
   var errorMessage: String?
 
@@ -26,16 +28,25 @@ final class EventsListViewModel {
     get { errorMessage != nil }
     set { if !newValue { errorMessage = nil } }
   }
-  var searchText = ""
-  var typeFilter: EventType?
-  var statusFilter: StatusFilter = .all
-  var dateRangeFilter: DateRangeFilter = .all
+  var searchText = "" {
+    didSet { recomputeFilteredEvents() }
+  }
+  var typeFilter: EventType? {
+    didSet { recomputeFilteredEvents() }
+  }
+  var statusFilter: StatusFilter = .all {
+    didSet { recomputeFilteredEvents() }
+  }
+  var dateRangeFilter: DateRangeFilter = .all {
+    didSet { recomputeFilteredEvents() }
+  }
   private var _sortBy: SortOption
   var sortBy: SortOption {
     get { _sortBy }
     set {
       _sortBy = newValue
       UserDefaults.standard.set(newValue.rawValue, forKey: eventsSortByKey)
+      recomputeFilteredEvents()
     }
   }
   var currentMonth: Date = {
@@ -47,7 +58,15 @@ final class EventsListViewModel {
 
   // MARK: - Computed
 
-  var filteredEvents: [FullEvent] {
+  /// Cached derived list — recomputed via `recomputeFilteredEvents()` whenever
+  /// `events`, `searchText`, `typeFilter`, `statusFilter`, `dateRangeFilter`, or
+  /// `sortBy` change. Do not compute this inline elsewhere; it would go stale
+  /// silently. Note: the date-range filter's "today" cutoff is computed once
+  /// per recompute (not live), same as the prior computed-property behavior —
+  /// it only advances when a mutation triggers a recompute.
+  private(set) var filteredEvents: [FullEvent] = []
+
+  private func recomputeFilteredEvents() {
     var result = events
 
     if !searchText.isEmpty {
@@ -84,7 +103,7 @@ final class EventsListViewModel {
       result = result.filter { $0.startDate.hasPrefix(nextMonthPrefix) }
     }
 
-    return result.sorted { a, b in
+    filteredEvents = result.sorted { a, b in
       switch sortBy {
       case .dateAsc: return a.startDate < b.startDate
       case .dateDesc: return a.startDate > b.startDate
