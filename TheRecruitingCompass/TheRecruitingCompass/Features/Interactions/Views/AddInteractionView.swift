@@ -39,10 +39,7 @@ struct AddInteractionView: View {
         .accessibilityLabel("Cancel and return to school details")
       }
     }
-    .alert("Error", isPresented: Binding(
-      get: { viewModel.errorMessage != nil },
-      set: { if !$0 { viewModel.errorMessage = nil } }
-    )) {
+    .alert("Error", isPresented: $viewModel.isShowingErrorAlert) {
       Button("OK") {
         viewModel.errorMessage = nil
       }

@@ -19,6 +19,12 @@ final class InteractionsListViewModel {
   var interactionToDelete: Interaction?
   var isDeleting = false
   var deleteErrorMessage: String?
+
+  /// Drives the delete-error alert directly, without a view-local Binding(get:set:) wrapper.
+  var isShowingDeleteError: Bool {
+    get { deleteErrorMessage != nil }
+    set { if !newValue { deleteErrorMessage = nil } }
+  }
   var successMessage: String?
   var showSuccessToast = false
 

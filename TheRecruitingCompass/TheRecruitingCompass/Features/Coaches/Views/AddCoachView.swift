@@ -29,13 +29,6 @@ struct AddCoachView: View {
 
   // MARK: - Computed Properties
 
-  private var isShowingError: Binding<Bool> {
-    Binding(
-      get: { viewModel.submitError != nil },
-      set: { if !$0 { viewModel.submitError = nil } }
-    )
-  }
-
   var body: some View {
     Form {
       schoolSelectionSection
@@ -63,7 +56,7 @@ struct AddCoachView: View {
       .task {
         await viewModel.loadSchools()
       }
-      .alert("Error", isPresented: isShowingError) {
+      .alert("Error", isPresented: $viewModel.isShowingError) {
         Button("OK", role: .cancel) { }
       } message: {
         if let error = viewModel.submitError {

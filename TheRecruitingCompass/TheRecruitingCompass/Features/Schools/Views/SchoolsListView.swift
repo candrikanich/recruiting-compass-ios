@@ -11,13 +11,6 @@ struct SchoolsListView: View {
     self._externalNavigationPath = navigationPath ?? .constant(NavigationPath())
   }
 
-  private var isShowingDeleteError: Binding<Bool> {
-    Binding(
-      get: { viewModel.deleteErrorMessage != nil },
-      set: { if !$0 { viewModel.deleteErrorMessage = nil } }
-    )
-  }
-
   var body: some View {
     NavigationStack(path: $navigationPath) {
       VStack(spacing: 0) {
@@ -58,7 +51,7 @@ struct SchoolsListView: View {
         Text("Are you sure you want to delete \(school.name)? This action cannot be undone.")
       }
     }
-    .alert("Error", isPresented: isShowingDeleteError) {
+    .alert("Error", isPresented: $viewModel.isShowingDeleteError) {
       Button("OK") { viewModel.deleteErrorMessage = nil }
     } message: {
       if let error = viewModel.deleteErrorMessage {

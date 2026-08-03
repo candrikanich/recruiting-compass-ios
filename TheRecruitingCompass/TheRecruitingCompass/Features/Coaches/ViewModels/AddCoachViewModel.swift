@@ -31,6 +31,12 @@ final class AddCoachViewModel {
   var isSubmitting = false
   var submitError: String?
 
+  /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
+  var isShowingError: Bool {
+    get { submitError != nil }
+    set { if !newValue { submitError = nil } }
+  }
+
   // MARK: - Dependencies
 
   private let coachesService: CoachesManaging

@@ -13,6 +13,12 @@ final class OffersListViewModel {
   var schools: [School] = []
   var isLoading = false
   var errorMessage: String?
+
+  /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
+  var isShowingErrorAlert: Bool {
+    get { errorMessage != nil }
+    set { if !newValue { errorMessage = nil } }
+  }
   var showAddForm = false
   var showComparison = false
   var selectedOfferIds: Set<String> = []

@@ -14,6 +14,12 @@ final class OfferDetailViewModel {
   var isLoading = false
   var errorMessage: String?
   var activeAlert: OfferAlertType?
+
+  /// Drives the alert(_:isPresented:presenting:) directly, without a view-local Binding(get:set:) wrapper.
+  var isShowingActiveAlert: Bool {
+    get { activeAlert != nil }
+    set { if !newValue { activeAlert = nil } }
+  }
   var isEditing = false
   var editData = OfferEditData()
   var isUpdating = false

@@ -14,6 +14,18 @@ final class SchoolDetailViewModel {
   var errorMessage: String?
   var activeAlert: AlertType?
 
+  /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
+  /// Suppressed while the delete confirmation dialog is up so the two don't overlap.
+  var isShowingErrorAlert: Bool {
+    get { errorMessage != nil && !showDeleteConfirmation }
+    set {
+      if !newValue {
+        errorMessage = nil
+        activeAlert = nil
+      }
+    }
+  }
+
   // Status management
   var statusHistory: [SchoolStatusHistory] = []
   var isUpdatingStatus = false

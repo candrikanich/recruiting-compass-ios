@@ -7,20 +7,6 @@ struct DocumentsListView: View {
   @State private var viewModel = DocumentsListViewModel()
   @State private var documentToDelete: Document?
 
-  private var showErrorAlert: Binding<Bool> {
-    Binding(
-      get: { viewModel.errorMessage != nil },
-      set: { if !$0 { viewModel.errorMessage = nil } }
-    )
-  }
-
-  private var documentToViewBinding: Binding<Document?> {
-    Binding(
-      get: { viewModel.documentToView },
-      set: { viewModel.documentToView = $0 }
-    )
-  }
-
   private var showDeleteConfirmation: Binding<Bool> {
     Binding(
       get: { documentToDelete != nil },
@@ -65,13 +51,13 @@ struct DocumentsListView: View {
     .sheet(isPresented: $viewModel.isFilterSheetPresented) {
       DocumentFilterSheet(viewModel: viewModel)
     }
-    .alert("Error", isPresented: showErrorAlert) {
+    .alert("Error", isPresented: $viewModel.isShowingErrorAlert) {
       Button("Retry") { Task { await viewModel.loadDocuments() } }
       Button("OK", role: .cancel) { viewModel.errorMessage = nil }
     } message: {
       Text(viewModel.errorMessage ?? "")
     }
-    .fullScreenCover(item: documentToViewBinding) { document in
+    .fullScreenCover(item: $viewModel.documentToView) { document in
       let docs = viewModel.sortedDocuments
       let idx = docs.firstIndex(where: { $0.id == document.id }) ?? 0
       let collection = DocumentCollection(documents: docs, currentIndex: idx)

@@ -39,10 +39,7 @@ struct OfferDetailView: View {
     }
     .alert(
       viewModel.activeAlert?.title ?? "",
-      isPresented: Binding(
-        get: { viewModel.activeAlert != nil },
-        set: { if !$0 { viewModel.activeAlert = nil } }
-      ),
+      isPresented: $viewModel.isShowingActiveAlert,
       presenting: viewModel.activeAlert
     ) { alert in
       switch alert {

@@ -17,13 +17,6 @@ struct CreateEventView: View {
 
   // MARK: - Computed
 
-  private var isShowingError: Binding<Bool> {
-    Binding(
-      get: { viewModel.errorMessage != nil },
-      set: { if !$0 { viewModel.errorMessage = nil } }
-    )
-  }
-
   private var hasUnsavedChanges: Bool {
     viewModel.formData.type != nil ||
     !viewModel.formData.name.isEmpty ||
@@ -61,7 +54,7 @@ struct CreateEventView: View {
         .accessibilityLabel("Back to events list")
       }
     }
-    .alert("Error", isPresented: isShowingError) {
+    .alert("Error", isPresented: $viewModel.isShowingError) {
       Button("OK", role: .cancel) { }
     } message: {
       Text(viewModel.errorMessage ?? "")

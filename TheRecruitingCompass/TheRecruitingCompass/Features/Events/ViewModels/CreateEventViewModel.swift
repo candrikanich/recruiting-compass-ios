@@ -21,6 +21,12 @@ final class CreateEventViewModel {
   var isSaving = false
   var isSavingSchool = false
   var errorMessage: String?
+
+  /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
+  var isShowingError: Bool {
+    get { errorMessage != nil }
+    set { if !newValue { errorMessage = nil } }
+  }
   var validationErrors: [String: String] = [:]
 
   // Modal state

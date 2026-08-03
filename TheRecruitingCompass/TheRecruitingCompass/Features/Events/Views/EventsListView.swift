@@ -11,13 +11,6 @@ struct EventsListView: View {
   @State private var hapticWarningTrigger = 0
   @State private var hapticLightTrigger = 0
 
-  private var showErrorAlert: Binding<Bool> {
-    Binding(
-      get: { viewModel.errorMessage != nil },
-      set: { if !$0 { viewModel.errorMessage = nil } }
-    )
-  }
-
   private var showDeleteConfirmation: Binding<Bool> {
     Binding(
       get: { eventToDelete != nil },
@@ -57,7 +50,7 @@ struct EventsListView: View {
     .refreshable {
       await viewModel.loadEvents()
     }
-    .alert("Error", isPresented: showErrorAlert, presenting: viewModel.errorMessage) { _ in
+    .alert("Error", isPresented: $viewModel.isShowingErrorAlert, presenting: viewModel.errorMessage) { _ in
       Button("Retry") { Task { await viewModel.loadEvents() } }
       Button("OK", role: .cancel) { viewModel.errorMessage = nil }
     } message: { error in

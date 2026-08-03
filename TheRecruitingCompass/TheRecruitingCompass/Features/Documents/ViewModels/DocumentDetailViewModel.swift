@@ -20,6 +20,13 @@ final class DocumentDetailViewModel {
   var schools: [School] = []
   var isLoading = false
   var errorMessage: String?
+
+  /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
+  /// Only shows once a document has loaded — a load failure has its own not-found/error UI.
+  var isShowingErrorAlert: Bool {
+    get { errorMessage != nil && document != nil }
+    set { if !newValue { clearError() } }
+  }
   var isNotFound = false
   var shouldDismiss = false
 
