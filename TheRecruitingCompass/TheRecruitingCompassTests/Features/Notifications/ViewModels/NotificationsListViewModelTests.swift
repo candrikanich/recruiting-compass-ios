@@ -303,6 +303,37 @@ final class NotificationsListViewModelTests: XCTestCase {
     XCTAssertTrue(viewModel.filteredNotifications.allSatisfy { $0.type == .followUpReminder })
   }
 
+  // MARK: - Cached filteredNotifications Staleness Tests
+  // filteredNotifications is a cached stored property (Phase 3.3), recomputed
+  // via didSet on notifications/selectedTypeFilter/searchText — not read live.
+
+  func testFilteredNotifications_UpdatesWhenNotificationsReassigned_WithoutTouchingFilter() {
+    viewModel.notifications = [makeNotification(id: "1", type: .followUpReminder)]
+    viewModel.selectedTypeFilter = .followUpReminder
+    XCTAssertEqual(viewModel.filteredNotifications.count, 1)
+
+    viewModel.notifications = [
+      makeNotification(id: "2", type: .followUpReminder),
+      makeNotification(id: "3", type: .deadlineAlert)
+    ]
+
+    XCTAssertEqual(viewModel.filteredNotifications.count, 1)
+    XCTAssertEqual(viewModel.filteredNotifications.first?.id, "2")
+  }
+
+  func testFilteredNotifications_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    let keep = makeNotification(id: "keep", type: .followUpReminder)
+    let remove = makeNotification(id: "remove", type: .followUpReminder)
+    viewModel.notifications = [keep, remove]
+    viewModel.selectedTypeFilter = .followUpReminder
+    XCTAssertEqual(viewModel.filteredNotifications.count, 2)
+
+    await viewModel.deleteNotification(id: "remove")
+
+    XCTAssertEqual(viewModel.filteredNotifications.count, 1)
+    XCTAssertEqual(viewModel.filteredNotifications.first?.id, "keep")
+  }
+
   // MARK: - Active Filter Count Tests
 
   func testActiveFilterCount_NoFilters() {

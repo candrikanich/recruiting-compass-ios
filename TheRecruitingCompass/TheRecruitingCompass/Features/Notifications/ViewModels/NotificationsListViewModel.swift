@@ -15,14 +15,20 @@ final class NotificationsListViewModel {
   private static let isoFormatter = ISO8601DateFormatter()
   // MARK: - State
 
-  var notifications: [AppNotification] = []
+  var notifications: [AppNotification] = [] {
+    didSet { recomputeFilteredNotifications() }
+  }
   private(set) var isLoading = false
   var errorMessage: String?
 
   // MARK: - Filters & Search
 
-  var selectedTypeFilter: NotificationType?
-  var searchText: String = ""
+  var selectedTypeFilter: NotificationType? {
+    didSet { recomputeFilteredNotifications() }
+  }
+  var searchText: String = "" {
+    didSet { recomputeFilteredNotifications() }
+  }
 
   // MARK: - Navigation
 
@@ -30,7 +36,12 @@ final class NotificationsListViewModel {
 
   // MARK: - Computed Properties
 
-  var filteredNotifications: [AppNotification] {
+  /// Cached derived list — recomputed via `recomputeFilteredNotifications()`
+  /// whenever `notifications`, `selectedTypeFilter`, or `searchText` change.
+  /// Do not compute this inline elsewhere; it would go stale silently.
+  private(set) var filteredNotifications: [AppNotification] = []
+
+  private func recomputeFilteredNotifications() {
     var result = notifications
 
     if let filter = selectedTypeFilter {
@@ -45,7 +56,7 @@ final class NotificationsListViewModel {
       }
     }
 
-    return result
+    filteredNotifications = result
   }
 
   var unreadCount: Int {
