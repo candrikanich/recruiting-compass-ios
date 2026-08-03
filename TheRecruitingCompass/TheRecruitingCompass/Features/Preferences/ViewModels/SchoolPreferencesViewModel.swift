@@ -57,7 +57,7 @@ final class SchoolPreferencesViewModel {
     logger.debug("Saving school preferences")
     saveStatus = .saving
     errorMessage = nil
-    preferences.lastUpdated = Date().ISO8601Format()
+    preferences.lastUpdated = Date.now.ISO8601Format()
 
     do {
       _ = try await preferenceService.savePreferences(category: .school, data: preferences)

@@ -72,7 +72,7 @@ struct ParentOnboardingBanner: View {
 
       Spacer()
 
-      if let onInviteTapped = onInviteTapped {
+      if let onInviteTapped {
         VStack(alignment: .trailing, spacing: 6) {
           Button {
             onInviteTapped()

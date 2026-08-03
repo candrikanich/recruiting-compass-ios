@@ -62,7 +62,7 @@ final class AnalyticsServiceImpl: AnalyticsManaging, Sendable {
       .value
 
     let (schools, interactions, offers) = try await (schoolsFetch, interactionsFetch, offersFetch)
-    let commitments = schools.filter { $0.status == SchoolStatus.committed.rawValue }.count
+    let commitments = schools.count(where: { $0.status == SchoolStatus.committed.rawValue })
 
     logger.info("Summary: \(schools.count) schools, \(interactions.count) interactions, \(offers.count) offers")
     return AnalyticsSummary(

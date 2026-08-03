@@ -160,7 +160,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       "role": .string(role.rawValue)
     ]
 
-    if let familyCode = familyCode, !familyCode.trimmingCharacters(in: .whitespaces).isEmpty {
+    if let familyCode, !familyCode.trimmingCharacters(in: .whitespaces).isEmpty {
       metadata["family_code"] = .string(familyCode)
     }
 

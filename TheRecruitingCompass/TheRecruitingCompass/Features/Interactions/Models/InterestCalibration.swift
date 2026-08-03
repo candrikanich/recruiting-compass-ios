@@ -17,7 +17,7 @@ struct InterestCalibration {
 
   /// Number of yes answers
   var yesCount: Int {
-    answers.filter { $0 }.count
+    answers.count(where: { $0 })
   }
 
   /// Computed interest level based on yes count

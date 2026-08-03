@@ -129,12 +129,12 @@ struct MetricRow: View {
         metricType: .sixtyTime,
         value: 4.5,
         unit: "sec",
-        recordedDate: Date(),
+        recordedDate: .now,
         eventId: nil,
         verified: false,
         notes: nil,
-        createdAt: Date(),
-        updatedAt: Date()
+        createdAt: .now,
+        updatedAt: .now
       ),
       PerformanceMetric(
         id: "2",
@@ -142,12 +142,12 @@ struct MetricRow: View {
         metricType: .velocity,
         value: 85.0,
         unit: "mph",
-        recordedDate: Date().addingTimeInterval(-86400 * 15),
+        recordedDate: Date.now.addingTimeInterval(-86400 * 15),
         eventId: nil,
         verified: true,
         notes: nil,
-        createdAt: Date(),
-        updatedAt: Date()
+        createdAt: .now,
+        updatedAt: .now
       ),
       PerformanceMetric(
         id: "3",
@@ -155,12 +155,12 @@ struct MetricRow: View {
         metricType: .exitVelo,
         value: 92.5,
         unit: "mph",
-        recordedDate: Date().addingTimeInterval(-86400 * 20),
+        recordedDate: Date.now.addingTimeInterval(-86400 * 20),
         eventId: nil,
         verified: false,
         notes: nil,
-        createdAt: Date(),
-        updatedAt: Date()
+        createdAt: .now,
+        updatedAt: .now
       )
     ]
   )

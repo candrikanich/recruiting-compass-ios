@@ -34,7 +34,7 @@ struct FilteredResultsHeader: View {
         .fontWeight(.semibold)
         .foregroundStyle(.secondary)
 
-      if let filterText = filterText {
+      if let filterText {
         Text(filterText)
           .font(.caption)
           .foregroundStyle(.secondary)

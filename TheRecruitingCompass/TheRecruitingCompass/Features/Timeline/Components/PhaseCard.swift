@@ -11,7 +11,7 @@ struct PhaseCard: View {
   let onLockedTaskTap: (TaskWithStatus) -> Void
 
   private var completedCount: Int {
-    tasks.filter { $0.effectiveStatus == .completed }.count
+    tasks.count(where: { $0.effectiveStatus == .completed })
   }
 
   private var totalCount: Int { tasks.count }

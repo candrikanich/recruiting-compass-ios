@@ -48,7 +48,7 @@ struct TasksListView: View {
         successMessageDismissWork = Task {
           try? await Task.sleep(for: .seconds(3))
           guard !Task.isCancelled else { return }
-          await MainActor.run { viewModel.clearSuccessMessage() }
+          viewModel.clearSuccessMessage()
         }
       }
     }

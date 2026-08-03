@@ -103,7 +103,7 @@ final class CoachesListViewModel {
 
     return CoachAnalytics(
       totalCount: allCoaches.count,
-      headCoachCount: allCoaches.filter { $0.role == .head }.count,
+      headCoachCount: allCoaches.count(where: { $0.role == .head }),
       recentContactsCount: allCoaches.filter { coach in
         guard let date = coach.lastContactDateParsed else { return false }
         return date >= sevenDaysAgo

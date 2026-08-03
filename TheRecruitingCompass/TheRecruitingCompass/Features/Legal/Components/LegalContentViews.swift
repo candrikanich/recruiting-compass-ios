@@ -77,7 +77,7 @@ struct LegalEmailLink: View {
         .foregroundStyle(Color.accentBlue)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
-        .accessibilityLabel("Email \(email.replacingOccurrences(of: "@", with: " at ").replacingOccurrences(of: ".", with: " dot "))")
+        .accessibilityLabel("Email \(email.replacing("@", with: " at ").replacing(".", with: " dot "))")
         .accessibilityHint("Opens Mail app")
         .alert("Email not available on this device", isPresented: $showMailUnavailableAlert) {
           Button("OK", role: .cancel) {}

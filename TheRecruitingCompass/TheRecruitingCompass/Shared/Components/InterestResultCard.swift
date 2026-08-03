@@ -21,7 +21,7 @@ struct InterestResultCard: View {
           .font(.headline)
           .foregroundStyle(level.badgeColor.foregroundColor)
 
-        if let description = description {
+        if let description {
           Text(description)
             .font(.caption)
             .foregroundStyle(.secondary)

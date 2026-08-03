@@ -10,7 +10,7 @@ struct CoachEditForm: View {
   @Environment(\.sizeCategory) private var sizeCategory
 
   @State private var isNextContactEnabled: Bool = false
-  @State private var nextContactDateTemp: Date = Date()
+  @State private var nextContactDateTemp: Date = .now
 
   private var minFieldHeight: CGFloat {
     sizeCategory.isAccessibilityCategory ? 50 : 44
@@ -169,7 +169,7 @@ struct CoachEditForm: View {
       .disabled(isSaving)
       .onAppear {
         isNextContactEnabled = editedCoach.nextContactDate != nil
-        nextContactDateTemp = editedCoach.nextContactDate ?? Date()
+        nextContactDateTemp = editedCoach.nextContactDate ?? .now
       }
     }
   }

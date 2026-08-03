@@ -11,7 +11,7 @@ struct BasicsTab: View {
     ]
 
     private var currentYear: Int {
-        Calendar.current.component(.year, from: Date())
+        Calendar.current.component(.year, from: .now)
     }
 
     var body: some View {

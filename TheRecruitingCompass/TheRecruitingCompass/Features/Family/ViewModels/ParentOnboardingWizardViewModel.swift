@@ -25,8 +25,8 @@ final class ParentOnboardingWizardViewModel {
   var playerDateOfBirth: Date = Calendar.current.date(
     byAdding: .year,
     value: -16,
-    to: Date()
-  ) ?? Date()
+    to: .now
+  ) ?? .now
   var hasConfirmedDateOfBirth = false
 
   var inviteEmail: String = ""

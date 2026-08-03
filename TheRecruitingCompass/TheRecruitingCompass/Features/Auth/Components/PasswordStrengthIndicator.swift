@@ -15,7 +15,7 @@ struct PasswordStrengthIndicator: View {
       password.contains(where: { $0.isLowercase }),
       password.contains(where: { $0.isNumber })
     ]
-    return Double(requirements.filter { $0 }.count) / Double(requirements.count)
+    return Double(requirements.count(where: { $0 })) / Double(requirements.count)
   }
 
   private var strengthColor: Color {

@@ -85,8 +85,8 @@ actor SchoolFaviconService: SchoolFaviconManaging {
   private func extractDomain(from website: String?) -> String? {
     guard let raw = website, !raw.isEmpty else { return nil }
     var domain = raw.lowercased()
-      .replacingOccurrences(of: "https://", with: "")
-      .replacingOccurrences(of: "http://", with: "")
+      .replacing("https://", with: "")
+      .replacing("http://", with: "")
     if domain.hasPrefix("www.") { domain = String(domain.dropFirst(4)) }
     if let cut = domain.firstIndex(of: "/") { domain = String(domain[..<cut]) }
     if let cut = domain.firstIndex(of: "?") { domain = String(domain[..<cut]) }

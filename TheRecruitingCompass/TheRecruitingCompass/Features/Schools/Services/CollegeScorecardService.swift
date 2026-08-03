@@ -205,25 +205,25 @@ private actor CollegeScorecardCache {
   private let ttl: TimeInterval = 600
 
   func getLookup(for key: String) -> CollegeDataResult?? {
-    guard let e = lookupCache[key], e.expiry > Date() else {
+    guard let e = lookupCache[key], e.expiry > .now else {
       lookupCache.removeValue(forKey: key); return nil
     }
     return e.value
   }
 
   func setLookup(for key: String, result: CollegeDataResult?) {
-    lookupCache[key] = Entry(value: result, expiry: Date().addingTimeInterval(ttl))
+    lookupCache[key] = Entry(value: result, expiry: Date.now.addingTimeInterval(ttl))
   }
 
   func getSearch(for query: String) -> [CollegeSearchResult]? {
     let key = query.lowercased()
-    guard let e = searchCache[key], e.expiry > Date() else {
+    guard let e = searchCache[key], e.expiry > .now else {
       searchCache.removeValue(forKey: key); return nil
     }
     return e.value
   }
 
   func setSearch(for query: String, results: [CollegeSearchResult]) {
-    searchCache[query.lowercased()] = Entry(value: results, expiry: Date().addingTimeInterval(ttl))
+    searchCache[query.lowercased()] = Entry(value: results, expiry: Date.now.addingTimeInterval(ttl))
   }
 }

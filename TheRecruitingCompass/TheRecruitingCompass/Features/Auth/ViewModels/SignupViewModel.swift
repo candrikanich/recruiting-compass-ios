@@ -20,7 +20,7 @@ final class SignupViewModel {
   var firstName = ""
   var lastName = ""
   var email = ""
-  var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
+  var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: .now) ?? .now
   var password = ""
   var confirmPassword = ""
   var familyCode = ""
@@ -128,7 +128,7 @@ final class SignupViewModel {
     firstName = ""
     lastName = ""
     email = ""
-    dateOfBirth = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
+    dateOfBirth = Calendar.current.date(byAdding: .year, value: -18, to: .now) ?? .now
     password = ""
     confirmPassword = ""
     familyCode = ""

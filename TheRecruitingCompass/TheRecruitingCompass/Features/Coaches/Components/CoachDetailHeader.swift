@@ -47,7 +47,7 @@ struct CoachDetailHeader: View {
           .clipShape(Capsule())
           .accessibilityLabel("Role: \(coach.role.displayName)")
 
-        if let school = school {
+        if let school {
           Text(school.name)
             .font(.subheadline)
             .foregroundStyle(Color.accentBlue)

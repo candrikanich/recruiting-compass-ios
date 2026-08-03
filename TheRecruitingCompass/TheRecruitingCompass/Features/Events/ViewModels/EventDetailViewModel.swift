@@ -406,7 +406,7 @@ final class EventDetailViewModel {
           metricType: newMetricData.metricType.rawValue,
           value: value,
           unit: newMetricData.unit.isEmpty ? newMetricData.metricType.defaultUnit : newMetricData.unit,
-          recordedDate: DateFormatting.isoExportFormatter.string(from: Date()),
+          recordedDate: DateFormatting.isoExportFormatter.string(from: .now),
           eventId: eventId,
           verified: false,
           notes: newMetricData.notes.isEmpty ? nil : newMetricData.notes

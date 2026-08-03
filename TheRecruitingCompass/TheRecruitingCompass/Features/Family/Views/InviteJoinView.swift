@@ -343,7 +343,7 @@ struct InviteJoinView: View {
       DatePicker(
         "Date of Birth",
         selection: $viewModel.signupDateOfBirth,
-        in: ...Date(),
+        in: ...Date.now,
         displayedComponents: .date
       )
       .datePickerStyle(.compact)

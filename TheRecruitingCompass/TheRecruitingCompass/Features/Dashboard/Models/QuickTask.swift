@@ -10,7 +10,7 @@ struct QuickTask: Codable, Identifiable, Sendable {
     id: String = UUID().uuidString,
     text: String,
     isCompleted: Bool = false,
-    createdAt: Date = Date()
+    createdAt: Date = .now
   ) {
     self.id = id
     self.text = text

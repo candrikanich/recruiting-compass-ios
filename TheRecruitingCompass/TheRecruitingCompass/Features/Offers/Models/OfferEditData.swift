@@ -15,7 +15,7 @@ struct OfferEditData: Sendable {
     self.status = .pending
     self.scholarshipAmount = nil
     self.scholarshipPercentage = nil
-    self.offerDate = Date()
+    self.offerDate = .now
     self.deadlineDate = nil
     self.conditions = ""
     self.notes = ""

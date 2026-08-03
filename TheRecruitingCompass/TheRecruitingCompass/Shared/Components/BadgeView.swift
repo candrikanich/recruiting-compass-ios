@@ -15,7 +15,7 @@ struct BadgeView: View {
 
   var body: some View {
     HStack(spacing: 4) {
-      if let icon = icon {
+      if let icon {
         Image(systemName: icon)
           .font(.caption)
           .accessibilityHidden(true)

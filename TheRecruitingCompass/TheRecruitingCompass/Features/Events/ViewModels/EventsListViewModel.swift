@@ -51,8 +51,8 @@ final class EventsListViewModel {
   }
   var currentMonth: Date = {
     let calendar = Calendar.current
-    let components = calendar.dateComponents([.year, .month], from: Date())
-    return calendar.date(from: components) ?? Date()
+    let components = calendar.dateComponents([.year, .month], from: .now)
+    return calendar.date(from: components) ?? .now
   }()
   var selectedCalendarDate: Date?
 
@@ -132,8 +132,8 @@ final class EventsListViewModel {
     let today = isoToday()
     return EventAnalytics(
       totalCount: events.count,
-      upcomingCount: events.filter { $0.startDate >= today }.count,
-      registeredCount: events.filter { $0.registered && !$0.attended }.count,
+      upcomingCount: events.count(where: { $0.startDate >= today }),
+      registeredCount: events.count(where: { $0.registered && !$0.attended }),
       attendedCount: events.filter(\.attended).count
     )
   }
@@ -304,11 +304,11 @@ final class EventsListViewModel {
   // MARK: - Private Helpers
 
   private func isoToday() -> String {
-    EventsListViewModel.dayPrefixFormatter.string(from: Date())
+    EventsListViewModel.dayPrefixFormatter.string(from: .now)
   }
 
   private func isoNextMonthPrefix() -> String {
-    guard let nextMonth = Calendar.current.date(byAdding: .month, value: 1, to: Date()) else {
+    guard let nextMonth = Calendar.current.date(byAdding: .month, value: 1, to: .now) else {
       return ""
     }
     return EventsListViewModel.monthPrefixFormatter.string(from: nextMonth)
@@ -316,8 +316,8 @@ final class EventsListViewModel {
 
   /// First day of the current calendar month (for ±2 year limit).
   private func referenceDate() -> Date {
-    let components = Calendar.current.dateComponents([.year, .month], from: Date())
-    return Calendar.current.date(from: components) ?? Date()
+    let components = Calendar.current.dateComponents([.year, .month], from: .now)
+    return Calendar.current.date(from: components) ?? .now
   }
 
 }

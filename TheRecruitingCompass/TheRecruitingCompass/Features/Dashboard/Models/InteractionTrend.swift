@@ -18,6 +18,6 @@ struct InteractionTrend: Codable, Identifiable, Sendable {
   }()
 
   var dateFormatted: Date {
-    Self.fractionalFormatter.date(from: date) ?? Self.basicFormatter.date(from: date) ?? Date()
+    Self.fractionalFormatter.date(from: date) ?? Self.basicFormatter.date(from: date) ?? .now
   }
 }

@@ -143,7 +143,7 @@ struct OfferEditForm: View {
           .foregroundStyle(.red)
         } else {
           Button("Set Deadline") {
-            editData.deadlineDate = Date()
+            editData.deadlineDate = .now
           }
           .font(.subheadline)
         }

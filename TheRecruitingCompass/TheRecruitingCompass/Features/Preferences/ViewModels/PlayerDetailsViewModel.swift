@@ -63,7 +63,7 @@ final class PlayerDetailsViewModel {
             fields.append(details.bats != nil)
             fields.append(details.throws_ != nil)
         }
-        let filled = fields.filter { $0 }.count
+        let filled = fields.count(where: { $0 })
         return Double(filled) / Double(fields.count)
     }
 

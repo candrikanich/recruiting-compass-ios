@@ -239,12 +239,12 @@ struct AttachmentIndicator: View {
     subject: "Follow-up on Camp Visit",
     content: "Thank you for taking the time to meet with me at the summer camp. I'm very interested in learning more about the program...",
     sentiment: .veryPositive,
-    occurredAt: ISO8601DateFormatter().string(from: Date()),
+    occurredAt: ISO8601DateFormatter().string(from: .now),
     loggedBy: "user1",
     attachments: ["file1.pdf", "file2.jpg"],
     familyUnitId: "family1",
-    createdAt: ISO8601DateFormatter().string(from: Date()),
-    updatedAt: ISO8601DateFormatter().string(from: Date())
+    createdAt: ISO8601DateFormatter().string(from: .now),
+    updatedAt: ISO8601DateFormatter().string(from: .now)
   )
 
   InteractionCard(

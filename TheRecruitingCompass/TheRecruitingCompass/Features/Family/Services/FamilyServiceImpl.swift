@@ -235,7 +235,7 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
 
     let familyId = UUID().uuidString
     let memberId = UUID().uuidString
-    let now = ISO8601DateFormatter().string(from: Date())
+    let now = ISO8601DateFormatter().string(from: .now)
     let familyCode = "FAM-" + String((0..<6).map { _ in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".randomElement()! })
 
     struct FamilyUnitInsert: Encodable {

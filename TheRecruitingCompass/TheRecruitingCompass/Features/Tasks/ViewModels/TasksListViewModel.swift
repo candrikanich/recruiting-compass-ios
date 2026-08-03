@@ -76,7 +76,7 @@ final class TasksListViewModel {
   }
 
   var progressCompleted: Int {
-    tasks.filter { $0.effectiveStatus == .completed }.count
+    tasks.count(where: { $0.effectiveStatus == .completed })
   }
 
   var progressTotal: Int {
@@ -131,7 +131,7 @@ final class TasksListViewModel {
     if let year = graduationYear {
       currentGradeLevel = GradeLevelHelper.calculateCurrentGrade(graduationYear: year)
     } else {
-      let defaultGradYear = Calendar.current.component(.year, from: Date()) + 2
+      let defaultGradYear = Calendar.current.component(.year, from: .now) + 2
       currentGradeLevel = GradeLevelHelper.calculateCurrentGrade(graduationYear: defaultGradYear)
     }
 

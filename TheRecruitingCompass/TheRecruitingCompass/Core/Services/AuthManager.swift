@@ -91,7 +91,7 @@ final class AuthManager: AuthManaging {
       self.errorMessage = nil
 
       // Save session to Keychain if signup returned a session
-      if let session = session {
+      if let session {
         try keychain.save(session, forKey: sessionKey)
       }
       logger.info("Signup successful for user: \(user.id, privacy: .private), session: \(session != nil)")

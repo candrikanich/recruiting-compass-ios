@@ -64,7 +64,7 @@ final class ActivityFeedViewModel {
     }
 
     if let days = selectedDateRange.daysAgo {
-      let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+      let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: .now) ?? .now
       result = result.filter { $0.timestamp >= cutoff }
     }
 

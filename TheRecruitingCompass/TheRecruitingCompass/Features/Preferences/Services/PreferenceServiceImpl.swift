@@ -226,7 +226,7 @@ final class PreferenceServiceImpl: PreferenceManaging, Sendable {
         // Update existing preferences
         let payload = PreferenceUpdatePayload(
           data: wrappedData,
-          updated_at: Self.isoFormatter.string(from: Date())
+          updated_at: Self.isoFormatter.string(from: .now)
         )
 
         try await supabaseManager.client

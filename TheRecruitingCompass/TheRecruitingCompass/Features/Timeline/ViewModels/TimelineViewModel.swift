@@ -38,7 +38,7 @@ final class TimelineViewModel {
   }
 
   var taskCompletedCount: Int {
-    allTasks.filter { $0.effectiveStatus == .completed }.count
+    allTasks.count(where: { $0.effectiveStatus == .completed })
   }
 
   var taskTotalCount: Int {

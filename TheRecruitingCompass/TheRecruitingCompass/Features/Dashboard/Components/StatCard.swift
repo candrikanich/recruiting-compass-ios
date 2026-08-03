@@ -35,13 +35,13 @@ struct StatCard: View {
           .font(.subheadline.weight(.bold))
           .foregroundStyle(.white)
 
-        if let subtitle = subtitle {
+        if let subtitle {
           Text(subtitle)
             .font(.caption)
             .foregroundStyle(.white)
         }
 
-        if let description = description {
+        if let description {
           Text(description)
             .font(.caption)
             .foregroundStyle(.white)

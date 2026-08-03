@@ -87,15 +87,15 @@ final class OffersListViewModel {
   }
 
   var acceptedCount: Int {
-    allOffers.filter { $0.status == .accepted }.count
+    allOffers.count(where: { $0.status == .accepted })
   }
 
   var pendingCount: Int {
-    allOffers.filter { $0.status == .pending }.count
+    allOffers.count(where: { $0.status == .pending })
   }
 
   var declinedCount: Int {
-    allOffers.filter { $0.status == .declined }.count
+    allOffers.count(where: { $0.status == .declined })
   }
 
   var selectedOffers: [Offer] {

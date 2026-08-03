@@ -99,7 +99,7 @@ struct NotificationCard: View {
       return dateString
     }
 
-    let seconds = Date().timeIntervalSince(date)
+    let seconds = Date.now.timeIntervalSince(date)
 
     if seconds < 60 { return "just now" }
     if seconds < 3600 { return "\(Int(seconds / 60))m ago" }

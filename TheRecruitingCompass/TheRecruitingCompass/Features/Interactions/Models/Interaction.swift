@@ -24,7 +24,7 @@ struct Interaction: Identifiable, Codable, Sendable {
     }
     if let date = Self.iso8601Formatter.date(from: createdAt) { return date }
     if let date = Self.iso8601FallbackFormatter.date(from: createdAt) { return date }
-    return Date()
+    return .now
   }
 
   var hasAttachments: Bool {

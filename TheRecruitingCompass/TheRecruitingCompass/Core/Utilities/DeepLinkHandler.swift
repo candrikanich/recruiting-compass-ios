@@ -58,7 +58,7 @@ enum DeepLinkHandler {
     // /invite/:token (path component)
     if url.path.hasPrefix("/invite/") {
       let token = url.path
-        .replacingOccurrences(of: "/invite/", with: "")
+        .replacing("/invite/", with: "")
         .trimmingCharacters(in: .whitespacesAndNewlines)
       if isValidInviteToken(token) {
         return .joinInvite(token: token)

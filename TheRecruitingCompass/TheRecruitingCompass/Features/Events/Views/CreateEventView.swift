@@ -177,7 +177,7 @@ struct CreateEventView: View {
       DatePicker(
         "Start Date *",
         selection: Binding(
-          get: { viewModel.formData.startDate ?? Date() },
+          get: { viewModel.formData.startDate ?? .now },
           set: { viewModel.handleStartDateChanged($0) }
         ),
         displayedComponents: .date
@@ -190,14 +190,14 @@ struct CreateEventView: View {
 
       Toggle("Start Time", isOn: Binding(
         get: { viewModel.formData.startTime != nil },
-        set: { viewModel.formData.startTime = $0 ? Date() : nil }
+        set: { viewModel.formData.startTime = $0 ? .now : nil }
       ))
 
       if viewModel.formData.startTime != nil {
         DatePicker(
           "",
           selection: Binding(
-            get: { viewModel.formData.startTime ?? Date() },
+            get: { viewModel.formData.startTime ?? .now },
             set: { viewModel.handleStartTimeChanged($0) }
           ),
           displayedComponents: .hourAndMinute
@@ -208,14 +208,14 @@ struct CreateEventView: View {
 
       Toggle("End Date", isOn: Binding(
         get: { viewModel.formData.endDate != nil },
-        set: { viewModel.formData.endDate = $0 ? (viewModel.formData.startDate ?? Date()) : nil }
+        set: { viewModel.formData.endDate = $0 ? (viewModel.formData.startDate ?? .now) : nil }
       ))
 
       if viewModel.formData.endDate != nil {
         DatePicker(
           "",
           selection: Binding(
-            get: { viewModel.formData.endDate ?? Date() },
+            get: { viewModel.formData.endDate ?? .now },
             set: { viewModel.formData.endDate = $0 }
           ),
           displayedComponents: .date
@@ -229,14 +229,14 @@ struct CreateEventView: View {
 
       Toggle("End Time", isOn: Binding(
         get: { viewModel.formData.endTime != nil },
-        set: { viewModel.formData.endTime = $0 ? Date() : nil }
+        set: { viewModel.formData.endTime = $0 ? .now : nil }
       ))
 
       if viewModel.formData.endTime != nil {
         DatePicker(
           "",
           selection: Binding(
-            get: { viewModel.formData.endTime ?? Date() },
+            get: { viewModel.formData.endTime ?? .now },
             set: { viewModel.formData.endTime = $0 }
           ),
           displayedComponents: .hourAndMinute
@@ -247,14 +247,14 @@ struct CreateEventView: View {
 
       Toggle("Check-in Time", isOn: Binding(
         get: { viewModel.formData.checkinTime != nil },
-        set: { viewModel.formData.checkinTime = $0 ? Date() : nil }
+        set: { viewModel.formData.checkinTime = $0 ? .now : nil }
       ))
 
       if viewModel.formData.checkinTime != nil {
         DatePicker(
           "",
           selection: Binding(
-            get: { viewModel.formData.checkinTime ?? Date() },
+            get: { viewModel.formData.checkinTime ?? .now },
             set: { viewModel.formData.checkinTime = $0 }
           ),
           displayedComponents: .hourAndMinute

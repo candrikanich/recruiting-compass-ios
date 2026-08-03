@@ -31,7 +31,7 @@ struct SchoolMapView: View {
         }
 
         // Distance from home
-        if let distance = distance {
+        if let distance {
           HStack(spacing: 6) {
             Image(systemName: "mappin.and.ellipse")
               .foregroundStyle(.secondary)

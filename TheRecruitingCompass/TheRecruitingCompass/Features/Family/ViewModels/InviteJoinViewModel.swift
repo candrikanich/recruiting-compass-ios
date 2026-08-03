@@ -33,7 +33,7 @@ final class InviteJoinViewModel {
 
   var signupFirstName: String = ""
   var signupLastName: String = ""
-  var signupDateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
+  var signupDateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: .now) ?? .now
   var signupPassword: String = ""
   var signupConfirmPassword: String = ""
   var signupAgreeToTerms = false

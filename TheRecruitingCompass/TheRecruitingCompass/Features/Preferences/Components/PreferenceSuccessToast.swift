@@ -6,7 +6,7 @@ struct PreferenceSuccessToast: View {
 
   var body: some View {
     Group {
-      if let message = message {
+      if let message {
         Text(message)
           .font(.callout)
           .foregroundStyle(.white)

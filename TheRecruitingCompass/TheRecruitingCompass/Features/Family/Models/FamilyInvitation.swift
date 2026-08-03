@@ -76,7 +76,7 @@ struct FamilyInvitation: Codable, Identifiable, Sendable {
   var isPending: Bool { status == "pending" }
   var isExpired: Bool {
     guard let exp = expiresAt, !exp.isEmpty, let date = Self.isoFormatter.date(from: exp) else { return false }
-    return date < Date()
+    return date < .now
   }
 }
 

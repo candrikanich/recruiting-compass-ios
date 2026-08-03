@@ -168,7 +168,7 @@ final class CoachDetailViewModel {
     let daysSinceContact: Int? = {
       guard let lastContactDate = coach?.lastContactDateParsed else { return nil }
       let calendar = Calendar.current
-      let days = calendar.dateComponents([.day], from: lastContactDate, to: Date()).day
+      let days = calendar.dateComponents([.day], from: lastContactDate, to: .now).day
       return days
     }()
 

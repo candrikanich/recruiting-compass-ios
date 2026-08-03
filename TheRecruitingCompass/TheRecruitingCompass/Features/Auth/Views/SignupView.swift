@@ -233,7 +233,7 @@ struct SignupView: View {
       DatePicker(
         "Date of Birth",
         selection: $viewModel.dateOfBirth,
-        in: ...Date(),
+        in: ...Date.now,
         displayedComponents: .date
       )
       .datePickerStyle(.compact)

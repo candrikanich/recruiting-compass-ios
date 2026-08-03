@@ -38,7 +38,7 @@ enum TaskDeadlineUrgency: String, Codable, CaseIterable, Sendable {
   }
 
   /// Computes urgency from a deadline date and optional reference date (default: today).
-  static func from(deadline: Date?, reference: Date = Date()) -> TaskDeadlineUrgency {
+  static func from(deadline: Date?, reference: Date = .now) -> TaskDeadlineUrgency {
     guard let deadline else { return .none }
     let calendar = Calendar.current
     let startRef = calendar.startOfDay(for: reference)

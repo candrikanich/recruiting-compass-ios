@@ -71,7 +71,7 @@ struct LoginFormField: View {
       )
       .clipShape(.rect(cornerRadius: 8))
 
-      if let error = error {
+      if let error {
         Text(error)
           .font(.caption)
           .foregroundStyle(Color.errorRed)

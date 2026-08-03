@@ -164,7 +164,7 @@ final class DocumentsListViewModel {
   }
 
   var statistics: DocumentStatistics {
-    let sharedCount = documents.filter { $0.isShared }.count
+    let sharedCount = documents.count(where: { $0.isShared })
     let typeCounts = Dictionary(grouping: documents, by: { $0.type })
       .mapValues { $0.count }
     let mostCommon = typeCounts.max(by: { $0.value < $1.value })

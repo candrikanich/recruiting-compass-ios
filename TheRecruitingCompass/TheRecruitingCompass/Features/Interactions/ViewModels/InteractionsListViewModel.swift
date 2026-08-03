@@ -74,7 +74,7 @@ final class InteractionsListViewModel {
 
     // 5. Time period filter
     if let period = filters.timePeriod {
-      let cutoff = Calendar.current.date(byAdding: .day, value: -period.rawValue, to: Date()) ?? Date()
+      let cutoff = Calendar.current.date(byAdding: .day, value: -period.rawValue, to: .now) ?? .now
       result = result.filter { $0.displayDate >= cutoff }
     }
 
@@ -89,13 +89,13 @@ final class InteractionsListViewModel {
 
   var analytics: InteractionAnalytics {
     let filtered = filteredInteractions
-    let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+    let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .now
 
     return InteractionAnalytics(
       totalCount: filtered.count,
-      outboundCount: filtered.filter { $0.direction == .outbound }.count,
-      inboundCount: filtered.filter { $0.direction == .inbound }.count,
-      thisWeekCount: filtered.filter { $0.displayDate >= weekAgo }.count
+      outboundCount: filtered.count(where: { $0.direction == .outbound }),
+      inboundCount: filtered.count(where: { $0.direction == .inbound }),
+      thisWeekCount: filtered.count(where: { $0.displayDate >= weekAgo })
     )
   }
 

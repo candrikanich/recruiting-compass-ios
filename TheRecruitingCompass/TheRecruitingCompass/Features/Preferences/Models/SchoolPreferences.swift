@@ -9,7 +9,7 @@ struct SchoolPreferences: Codable, Equatable, Sendable {
     SchoolPreferences(
       preferences: [],
       templateUsed: nil,
-      lastUpdated: Date().ISO8601Format()
+      lastUpdated: Date.now.ISO8601Format()
     )
   }
 

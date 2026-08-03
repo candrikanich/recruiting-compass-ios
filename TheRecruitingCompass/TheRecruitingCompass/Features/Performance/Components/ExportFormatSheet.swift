@@ -97,7 +97,7 @@ struct ExportFormatSheet: View {
   private var currentFilename: String {
     let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = "yyyy-MM-dd"
-    let dateString = dateFormatter.string(from: Date())
+    let dateString = dateFormatter.string(from: .now)
     return "performance_metrics_\(dateString).\(selectedFormat.rawValue.lowercased())"
   }
 }

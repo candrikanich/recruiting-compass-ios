@@ -66,7 +66,7 @@ struct FormFieldWrapper<Content: View>: View {
       accessibleLabel += ", required"
     }
 
-    if let error = error {
+    if let error {
       accessibleLabel += ", error: \(error)"
     }
 

@@ -8,7 +8,7 @@ struct DashboardView: View {
   @Environment(AuthManager.self) private var authManager
 
   init(viewModel: DashboardViewModel? = nil) {
-    if let viewModel = viewModel {
+    if let viewModel {
       _viewModel = State(initialValue: viewModel)
     }
   }

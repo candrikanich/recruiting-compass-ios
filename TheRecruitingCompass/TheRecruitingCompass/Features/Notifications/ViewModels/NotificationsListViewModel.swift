@@ -60,7 +60,7 @@ final class NotificationsListViewModel {
   }
 
   var unreadCount: Int {
-    notifications.filter { !$0.isRead }.count
+    notifications.count(where: { !$0.isRead })
   }
 
   var hasUnread: Bool {

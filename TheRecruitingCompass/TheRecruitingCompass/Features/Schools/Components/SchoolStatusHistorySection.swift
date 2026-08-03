@@ -108,9 +108,9 @@ struct StatusHistoryRow: View {
         previousStatus: "interested",
         newStatus: "contacted",
         changedBy: "user-1",
-        changedAt: Date().addingTimeInterval(-86400 * 2),
+        changedAt: Date.now.addingTimeInterval(-86400 * 2),
         notes: "Emailed coach about official visit",
-        createdAt: Date().addingTimeInterval(-86400 * 2)
+        createdAt: Date.now.addingTimeInterval(-86400 * 2)
       ),
       SchoolStatusHistory(
         id: "2",
@@ -118,9 +118,9 @@ struct StatusHistoryRow: View {
         previousStatus: "contacted",
         newStatus: "recruited",
         changedBy: "user-1",
-        changedAt: Date().addingTimeInterval(-86400),
+        changedAt: Date.now.addingTimeInterval(-86400),
         notes: nil,
-        createdAt: Date().addingTimeInterval(-86400)
+        createdAt: Date.now.addingTimeInterval(-86400)
       ),
       SchoolStatusHistory(
         id: "3",
@@ -128,9 +128,9 @@ struct StatusHistoryRow: View {
         previousStatus: nil,
         newStatus: "interested",
         changedBy: "user-1",
-        changedAt: Date().addingTimeInterval(-86400 * 5),
+        changedAt: Date.now.addingTimeInterval(-86400 * 5),
         notes: "Initial contact at showcase",
-        createdAt: Date().addingTimeInterval(-86400 * 5)
+        createdAt: Date.now.addingTimeInterval(-86400 * 5)
       )
     ])
     .padding()

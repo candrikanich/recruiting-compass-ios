@@ -303,7 +303,7 @@ final class PerformanceDashboardViewModel {
   func generateCSV() -> String {
     var csv = "Metric Type,Value,Unit,Date,Verified,Notes\n"
     for metric in sortedMetrics {
-      let notes = (metric.notes ?? "").replacingOccurrences(of: ",", with: ";")
+      let notes = (metric.notes ?? "").replacing(",", with: ";")
       csv += "\(metric.metricType.displayName),\(metric.value),\(metric.unit),\(metric.formattedDate),\(metric.verified),\(notes)\n"
     }
     return csv

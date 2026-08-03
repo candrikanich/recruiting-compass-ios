@@ -236,7 +236,7 @@ final class AnalyticsDashboardViewModel {
         )
         yOffset += 30
 
-        let dateGenerated = "Generated: \(Self.pdfDateFormatter.string(from: Date()))" as NSString
+        let dateGenerated = "Generated: \(Self.pdfDateFormatter.string(from: .now))" as NSString
         dateGenerated.draw(
           in: CGRect(x: margin, y: yOffset, width: contentWidth, height: 20),
           withAttributes: subtitleAttributes
