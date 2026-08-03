@@ -104,14 +104,25 @@ final class ActivityFeedViewModel {
 
   // MARK: - Initialization
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached activity feed (seconds). Short, and deliberately not
+  /// invalidated from the many VMs that create interactions/status-changes/
+  /// documents — this is an aggregated feed, not a primary source of truth
+  /// for any one entity, so a bounded staleness window is expected UX (same
+  /// tradeoff as any activity/social feed) rather than a correctness bug.
+  private static let activitiesCacheTTL: TimeInterval = 60
+
   init(
     activityService: (any ActivityFeedManaging)? = nil,
     familyManager: FamilyManager? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.activityService = activityService ?? ActivityFeedServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
   }
 
   // Prevent compiler-synthesized main-actor-isolated deinit.
@@ -131,6 +142,16 @@ final class ActivityFeedViewModel {
     isLoading = true
     errorMessage = nil
     defer { isLoading = false }
+
+    let cacheKey = ListCacheKeys.activities(userId: userId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
+    if let cached = await cacheToUse.get([ActivityEvent].self, forKey: cacheKey) {
+      activities = cached
+      currentPage = 1
+      logger.info("Loaded \(cached.count) activity events from cache")
+      return
+    }
 
     do {
       async let interactionsTask = activityService.fetchInteractions(userId: userId)
@@ -174,6 +195,7 @@ final class ActivityFeedViewModel {
 
       activities = events
       currentPage = 1
+      await cacheToUse.set(events, forKey: cacheKey, ttlSeconds: Self.activitiesCacheTTL)
 
       logger.info("Loaded \(events.count) activity events")
     } catch {

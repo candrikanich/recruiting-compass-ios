@@ -7,14 +7,18 @@ final class ActivityFeedViewModelTests: XCTestCase {
   var sut: ActivityFeedViewModel!
   var mockService: MockActivityFeedService!
   var mockAuthManager: MockAuthManager!
+  var mockCache: InMemoryCache!
 
   override func setUp() {
     super.setUp()
     mockService = MockActivityFeedService()
     mockAuthManager = MockAuthManager()
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
     sut = ActivityFeedViewModel(
       activityService: mockService,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: mockCache
     )
   }
 
@@ -22,6 +26,7 @@ final class ActivityFeedViewModelTests: XCTestCase {
     sut = nil
     mockService = nil
     mockAuthManager = nil
+    mockCache = nil
     super.tearDown()
   }
 
@@ -586,6 +591,40 @@ final class ActivityFeedViewModelTests: XCTestCase {
     XCTAssertEqual(sut.currentPage, 1)
   }
 
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadActivities_SecondLoad_UsesCacheAndSkipsService() async {
+    authenticateUser()
+    setupMockDataForFullLoad()
+
+    await sut.loadActivities()
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+    let firstCount = sut.activities.count
+
+    mockService.mockInteractions = [createInteraction(id: "i3")]
+    await sut.loadActivities()
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+    XCTAssertEqual(sut.activities.count, firstCount)
+  }
+
+  func testAddRealtimeEvent_DoesNotForceARefetch_CacheStillServesUntilTTL() async {
+    // Realtime inserts write directly into `activities` (not the cache) — this
+    // documents the accepted tradeoff (see activitiesCacheTTL doc comment):
+    // the aggregated feed is eventually consistent, not invalidated on write.
+    authenticateUser()
+    setupMockDataForFullLoad()
+    await sut.loadActivities()
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+
+    let newEvent = ActivityEventFactory.fromInteraction(createInteraction(id: "realtime-1"), schoolName: nil)
+    sut.addRealtimeEvent(newEvent)
+    await sut.loadActivities()
+
+    // Still cached — the realtime insert didn't invalidate it.
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+  }
+
   // MARK: - Cached filteredActivities Staleness Tests
   // filteredActivities is a cached stored property (Phase 3.3), recomputed via
   // didSet on activities/selectedType/selectedDateRange/searchQuery — not read live.
@@ -597,12 +636,12 @@ final class ActivityFeedViewModelTests: XCTestCase {
     sut.selectedType = .interaction
     XCTAssertEqual(sut.filteredActivities.count, 2)
 
-    // Reload with entirely different data — a new interaction plus no other types —
-    // without touching selectedType again.
-    mockService.mockInteractions = [createInteraction(id: "i3")]
-    mockService.mockStatusChanges = []
-    mockService.mockDocuments = []
-    await sut.loadActivities()
+    // Reassign activities directly (e.g. a reload) without touching
+    // selectedType — this test targets filteredActivities staleness, not the
+    // fetch cache (see the "List Fetch Caching Tests" section for that).
+    sut.activities = [
+      ActivityEventFactory.fromInteraction(createInteraction(id: "i3"), schoolName: nil)
+    ]
 
     XCTAssertEqual(sut.filteredActivities.count, 1)
     XCTAssertTrue(sut.filteredActivities.allSatisfy { $0.type == .interaction })

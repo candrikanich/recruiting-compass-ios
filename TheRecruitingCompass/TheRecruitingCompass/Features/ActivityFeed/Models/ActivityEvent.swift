@@ -1,6 +1,6 @@
 import Foundation
 
-struct ActivityEvent: Identifiable, Sendable {
+struct ActivityEvent: Identifiable, Sendable, Codable {
   let id: String
   let type: ActivityEventType
   let timestamp: Date
@@ -14,7 +14,7 @@ struct ActivityEvent: Identifiable, Sendable {
   let clickUrl: String?
 }
 
-enum ActivityEventType: String, CaseIterable, Sendable {
+enum ActivityEventType: String, CaseIterable, Sendable, Codable {
   case interaction
   case schoolStatusChange = "school_status_change"
   case documentUpload = "document_upload"
