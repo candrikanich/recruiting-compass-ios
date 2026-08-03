@@ -8,12 +8,15 @@ final class EventsListViewModelTests: XCTestCase {
   private var sut: EventsListViewModel!
   private var mockService: MockEventsService!
   private var mockAuth: MockAuthManager!
+  private var mockCache: InMemoryCache!
 
   override func setUp() {
     super.setUp()
     mockService = MockEventsService()
     mockAuth = MockAuthManager()
-    sut = EventsListViewModel(eventsService: mockService, authManager: mockAuth)
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
+    sut = EventsListViewModel(eventsService: mockService, authManager: mockAuth, cache: mockCache)
   }
 
   override func tearDown() {
@@ -21,6 +24,7 @@ final class EventsListViewModelTests: XCTestCase {
     sut = nil
     mockService = nil
     mockAuth = nil
+    mockCache = nil
     super.tearDown()
   }
 
@@ -336,6 +340,54 @@ final class EventsListViewModelTests: XCTestCase {
     sut.sortBy = .name
 
     XCTAssertEqual(sut.filteredEvents.first?.name, "Alpha Camp")
+  }
+
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadEvents_SecondLoad_UsesCacheAndSkipsService() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [.mock(id: "e1", name: "Spring Showcase")]
+
+    await sut.loadEvents()
+    XCTAssertEqual(mockService.fetchEventsCallCount, 1)
+
+    mockService.stubbedEvents = [.mock(id: "e2", name: "Summer Camp")]
+    await sut.loadEvents()
+
+    XCTAssertEqual(mockService.fetchEventsCallCount, 1)
+    XCTAssertEqual(sut.events.first?.id, "e1")
+  }
+
+  func testDeleteEvent_InvalidatesListCache_NextLoadRefetches() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [.mock(id: "e1", name: "Event")]
+    await sut.loadEvents()
+    XCTAssertEqual(mockService.fetchEventsCallCount, 1)
+
+    await sut.deleteEvent(id: "e1")
+
+    mockService.stubbedEvents = []
+    await sut.loadEvents()
+
+    XCTAssertEqual(mockService.fetchEventsCallCount, 2)
+  }
+
+  func testEventDetailOrCreateViewModel_Mutation_InvalidatesEventsListCache() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [.mock(id: "e1", name: "Event")]
+    await sut.loadEvents()
+    XCTAssertEqual(mockService.fetchEventsCallCount, 1)
+
+    // Simulate what EventDetailViewModel/CreateEventViewModel do on
+    // edit/attended-toggle/create/delete: invalidate the same cache key via
+    // the shared ListCacheKeys builder.
+    await mockCache.remove(forKey: ListCacheKeys.events(userId: "user-1"))
+
+    mockService.stubbedEvents = [.mock(id: "e1", name: "Event"), .mock(id: "e2", name: "New Event")]
+    await sut.loadEvents()
+
+    XCTAssertEqual(mockService.fetchEventsCallCount, 2)
+    XCTAssertEqual(sut.events.count, 2)
   }
 
   // MARK: - Delete

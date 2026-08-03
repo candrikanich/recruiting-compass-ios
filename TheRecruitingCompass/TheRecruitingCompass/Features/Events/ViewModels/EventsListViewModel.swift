@@ -201,16 +201,32 @@ final class EventsListViewModel {
 
   // MARK: - Init
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached events list (seconds).
+  private static let eventsListCacheTTL: TimeInterval = 60
+
   init(
     eventsService: (any EventsManaging)? = nil,
     familyManager: FamilyManager? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.eventsService = eventsService ?? EventsServiceImpl()
     self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
     let raw = UserDefaults.standard.string(forKey: eventsSortByKey)
     self._sortBy = SortOption(rawValue: raw ?? "") ?? .dateDesc
+  }
+
+  /// Invalidates the cached events list so the next `loadEvents()` refetches.
+  /// Call after any mutation (delete). `EventDetailViewModel` and
+  /// `CreateEventViewModel` invalidate the same key (via `ListCacheKeys.events`)
+  /// after edit/attended-toggle/create/delete.
+  private func invalidateEventsListCache() async {
+    guard let userId = targetUserId else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.events(userId: userId))
   }
 
   // MARK: - Load
@@ -226,9 +242,19 @@ final class EventsListViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    let cacheKey = ListCacheKeys.events(userId: userId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
     do {
-      events = try await eventsService.fetchEvents(userId: userId)
-      logger.info("Loaded \(self.events.count) events")
+      if let cached = await cacheToUse.get([FullEvent].self, forKey: cacheKey) {
+        events = cached
+        logger.info("Loaded \(self.events.count) events from cache")
+      } else {
+        let fetched = try await eventsService.fetchEvents(userId: userId)
+        events = fetched
+        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.eventsListCacheTTL)
+        logger.info("Loaded \(self.events.count) events")
+      }
     } catch is CancellationError {
       logger.debug("Load events cancelled (view disappeared)")
     } catch let error as URLError where error.code == .cancelled {
@@ -252,6 +278,7 @@ final class EventsListViewModel {
     do {
       try await eventsService.deleteEvent(id: id)
       events.removeAll { $0.id == id }
+      await invalidateEventsListCache()
     } catch {
       logger.error("Failed to delete event \(id): \(error.localizedDescription)")
       self.errorMessage = "Failed to delete event. Please try again."

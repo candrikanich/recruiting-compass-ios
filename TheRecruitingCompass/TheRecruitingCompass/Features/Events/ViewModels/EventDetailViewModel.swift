@@ -146,6 +146,14 @@ final class EventDetailViewModel {
 
   // MARK: - Loading Helper
 
+  /// Invalidates EventsListViewModel's cached list (Phase 3.6) so an edit,
+  /// attended-status change, or delete shows correctly on next visit to the
+  /// list screen instead of waiting out the TTL. Call after any mutation.
+  private func invalidateEventsListCache() async {
+    guard let userId else { return }
+    await InMemoryCache.shared.remove(forKey: ListCacheKeys.events(userId: userId))
+  }
+
   // MARK: - Load
 
   func loadAll() async {
@@ -233,6 +241,7 @@ final class EventDetailViewModel {
         showSuccess("Marked as attended")
         showQuickLogSheet = true
         logger.info("Event marked as attended: \(self.eventId)")
+        await invalidateEventsListCache()
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
@@ -258,6 +267,7 @@ final class EventDetailViewModel {
         hapticSuccessTrigger += 1
         showSuccess("Event updated")
         logger.info("Event updated: \(self.eventId)")
+        await invalidateEventsListCache()
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
@@ -279,6 +289,7 @@ final class EventDetailViewModel {
         hapticSuccessTrigger += 1
         shouldDismiss = true
         logger.info("Event deleted: \(self.eventId)")
+        await invalidateEventsListCache()
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to delete event. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
@@ -311,6 +322,13 @@ final class EventDetailViewModel {
         hapticSuccessTrigger += 1
         showSuccess("Interaction logged")
         logger.info("Interaction logged for event: \(self.eventId)")
+
+        // Invalidate InteractionsListViewModel's cached list (Phase 3.6) for
+        // both possible fetch scopes, plus this quick-log's own event cache.
+        await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: userId))
+        if let familyUnitId = familyManager.familyUnitId {
+          await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+        }
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to log interaction. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
@@ -400,6 +418,9 @@ final class EventDetailViewModel {
         hapticSuccessTrigger += 1
         showSuccess("Metric recorded")
         logger.info("Metric created: \(metric.id)")
+
+        // Invalidate PerformanceDashboardViewModel's cached list (Phase 3.6).
+        await InMemoryCache.shared.remove(forKey: ListCacheKeys.metrics(userId: userId))
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to save metric. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1

@@ -203,6 +203,11 @@ final class CreateEventViewModel {
     do {
       let event = try await eventsService.createEvent(request)
       logger.info("Event created successfully: \(event.id)")
+
+      // Invalidate EventsListViewModel's cached list (Phase 3.6) so the new
+      // event appears immediately on next visit instead of waiting out the TTL.
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.events(userId: userId))
+
       return event.id
     } catch {
       logger.error("Failed to create event: \(error.localizedDescription)")
