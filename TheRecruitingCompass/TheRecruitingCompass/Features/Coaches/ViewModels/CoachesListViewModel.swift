@@ -9,11 +9,17 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 final class CoachesListViewModel {
 
   nonisolated deinit {}
-  var allCoaches: [Coach] = []
-  var allSchools: [School] = []
+  var allCoaches: [Coach] = [] {
+    didSet { recomputeFilteredCoaches() }
+  }
+  var allSchools: [School] = [] {
+    didSet { recomputeFilteredCoaches() }
+  }
   var isLoading = false
   var errorMessage: String?
-  var filters = CoachFilters()
+  var filters = CoachFilters() {
+    didSet { recomputeFilteredCoaches() }
+  }
   var showDeleteConfirmation = false
   var coachToDelete: Coach?
   var isDeleting = false
@@ -31,7 +37,12 @@ final class CoachesListViewModel {
   private let familyManager: FamilyManager
   private let authManager: any AuthManaging
 
-  var filteredCoaches: [Coach] {
+  /// Cached derived list — recomputed via `recomputeFilteredCoaches()` whenever
+  /// `allCoaches`, `allSchools` (sort-by-school reads schoolName(for:)), or
+  /// `filters` change. Do not compute this inline elsewhere; it would go stale silently.
+  private(set) var filteredCoaches: [Coach] = []
+
+  private func recomputeFilteredCoaches() {
     var result = allCoaches
 
     if !filters.searchText.isEmpty {
@@ -62,7 +73,7 @@ final class CoachesListViewModel {
       result = result.filter { $0.schoolId == schoolId }
     }
 
-    return sorted(result)
+    filteredCoaches = sorted(result)
   }
 
   var schoolNameMap: [String: String] {

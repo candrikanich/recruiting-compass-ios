@@ -396,6 +396,56 @@ final class CoachesListViewModelTests: XCTestCase {
     XCTAssertEqual(sut.filters.sortBy, .name)
   }
 
+  // MARK: - Cached filteredCoaches Staleness Tests
+  // filteredCoaches is a cached stored property (Phase 3.3), recomputed via
+  // didSet on allCoaches/allSchools/filters — not read live.
+
+  func testFilteredCoaches_UpdatesWhenAllCoachesReassigned_WithoutTouchingFilters() {
+    sut.allCoaches = [makeCoach(id: "1", position: "head")]
+    sut.filters.role = .head
+    XCTAssertEqual(sut.filteredCoaches.count, 1)
+
+    sut.allCoaches = [
+      makeCoach(id: "2", position: "head"),
+      makeCoach(id: "3", position: "assistant")
+    ]
+
+    XCTAssertEqual(sut.filteredCoaches.count, 1)
+    XCTAssertEqual(sut.filteredCoaches.first?.id, "2")
+  }
+
+  func testFilteredCoaches_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    let keep = makeCoach(id: "keep", position: "head")
+    let remove = makeCoach(id: "remove", position: "head")
+    sut.allCoaches = [keep, remove]
+    sut.filters.role = .head
+    XCTAssertEqual(sut.filteredCoaches.count, 2)
+
+    sut.confirmDelete(remove)
+    await sut.deleteCoach()
+
+    XCTAssertEqual(sut.filteredCoaches.count, 1)
+    XCTAssertEqual(sut.filteredCoaches.first?.id, "keep")
+  }
+
+  func testFilteredCoaches_SortBySchoolUpdatesWhenSchoolsAssignedAfterSortSet() {
+    sut.allCoaches = [
+      makeCoach(id: "1", lastName: "A", schoolId: "s1"),
+      makeCoach(id: "2", lastName: "B", schoolId: "s2")
+    ]
+    sut.filters.sortBy = .school
+    // No schools loaded yet — schoolName(for:) falls back to a placeholder, both equal.
+    let beforeOrder = sut.filteredCoaches.map(\.id)
+    XCTAssertEqual(Set(beforeOrder), ["1", "2"])
+
+    sut.allSchools = [
+      makeSchool(id: "s1", name: "Zeta University"),
+      makeSchool(id: "s2", name: "Alpha College")
+    ]
+
+    XCTAssertEqual(sut.filteredCoaches.map(\.id), ["2", "1"])
+  }
+
   // MARK: - Delete Tests
 
   func testDeleteCoach_callsServiceAndRemovesFromList() async {
