@@ -36,15 +36,23 @@ struct ProfileView: View {
             guard let item else { return }
             Task {
                 do {
-                    guard let data = try await item.loadTransferable(type: Data.self),
-                          let image = UIImage(data: data) else {
+                    guard let data = try await item.loadTransferable(type: Data.self) else {
+                        viewModel.photoError = "Failed to load the selected photo. Please try again."
+                        selectedPhotoItem = nil
+                        return
+                    }
+                    // Decode off the main actor: UIImage(data:) on a full-resolution
+                    // photo can be expensive enough to visibly stall the UI.
+                    guard let image = await Task.detached(priority: .userInitiated, operation: {
+                        UIImage(data: data)
+                    }).value else {
                         viewModel.photoError = "Failed to load the selected photo. Please try again."
                         selectedPhotoItem = nil
                         return
                     }
                     await viewModel.uploadPhoto(image)
                 } catch {
-                    viewModel.photoError = error.localizedDescription
+                    viewModel.photoError = "Failed to load the selected photo. Please try again."
                 }
                 selectedPhotoItem = nil
             }

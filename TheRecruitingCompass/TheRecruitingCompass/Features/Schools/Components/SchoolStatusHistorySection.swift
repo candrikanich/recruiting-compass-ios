@@ -17,7 +17,7 @@ struct SchoolStatusHistorySection: View {
           .padding(.vertical, 8)
           .accessibilityLabel("Status history empty")
       } else {
-        VStack(spacing: 12) {
+        LazyVStack(spacing: 12) {
           ForEach(history) { entry in
             StatusHistoryRow(entry: entry)
 

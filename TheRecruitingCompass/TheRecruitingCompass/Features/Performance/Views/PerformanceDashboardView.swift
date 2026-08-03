@@ -224,7 +224,14 @@ private struct PerformanceTrendsSection: View {
 }
 
 private struct PerformanceLatestMetricsSection: View {
-  let latestMetricsByType: [MetricType: PerformanceMetric]
+  /// Sorted once at init rather than re-sorted inside the ForEach initializer
+  /// on every body evaluation.
+  private let sortedMetrics: [PerformanceMetric]
+
+  init(latestMetricsByType: [MetricType: PerformanceMetric]) {
+    self.sortedMetrics = Array(latestMetricsByType.values)
+      .sorted(by: { $0.metricType.displayName < $1.metricType.displayName })
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -237,10 +244,7 @@ private struct PerformanceLatestMetricsSection: View {
         GridItem(.flexible()),
         GridItem(.flexible())
       ], spacing: 12) {
-        ForEach(
-          Array(latestMetricsByType.values)
-            .sorted(by: { $0.metricType.displayName < $1.metricType.displayName })
-        ) { metric in
+        ForEach(sortedMetrics) { metric in
           LatestMetricCard(metric: metric)
         }
       }

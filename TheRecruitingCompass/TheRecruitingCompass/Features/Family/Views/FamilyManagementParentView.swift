@@ -168,8 +168,10 @@ struct FamilyManagementParentView: View {
     }
   }
 
+  private static let expiryFormatter = ISO8601DateFormatter()
+
   private func formattedExpiry(_ isoString: String) -> String {
-    guard let date = ISO8601DateFormatter().date(from: isoString) else { return "unknown" }
+    guard let date = Self.expiryFormatter.date(from: isoString) else { return "unknown" }
     return DateFormatter.familyCodeDate.string(from: date)
   }
 

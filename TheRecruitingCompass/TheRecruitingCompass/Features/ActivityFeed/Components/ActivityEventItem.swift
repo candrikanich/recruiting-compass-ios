@@ -86,8 +86,10 @@ struct ActivityEventItem: View {
     }
   }
 
+  private static let relativeTimeFormatter = RelativeDateTimeFormatter()
+
   var accessibilityLabel: String {
-    let relativeTime = RelativeDateTimeFormatter().localizedString(for: event.timestamp, relativeTo: Date())
+    let relativeTime = Self.relativeTimeFormatter.localizedString(for: event.timestamp, relativeTo: Date())
     var parts: [String] = []
     parts.append(event.type.label)
     parts.append(event.title)

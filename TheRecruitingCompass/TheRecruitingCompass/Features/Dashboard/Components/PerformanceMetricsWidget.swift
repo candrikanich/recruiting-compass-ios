@@ -1,12 +1,13 @@
 import SwiftUI
 
 struct PerformanceMetricsWidget: View {
-  let metrics: [PerformanceMetric]
+  /// Sorted once at init rather than re-sorted on every body evaluation.
+  private let recentMetrics: [PerformanceMetric]
 
   @State private var isShowingAll = false
 
-  private var recentMetrics: [PerformanceMetric] {
-    metrics.sorted(by: { $0.recordedDate > $1.recordedDate })
+  init(metrics: [PerformanceMetric]) {
+    self.recentMetrics = metrics.sorted(by: { $0.recordedDate > $1.recordedDate })
   }
 
   private var visibleMetrics: [PerformanceMetric] {
@@ -33,12 +34,12 @@ struct PerformanceMetricsWidget: View {
           }
         }
 
-        if metrics.count > 4 {
+        if recentMetrics.count > 4 {
           Button(action: { isShowingAll.toggle() }) {
             HStack(spacing: 4) {
               Text(isShowingAll
                 ? "Show less"
-                : "Show \(metrics.count - 4) more metrics")
+                : "Show \(recentMetrics.count - 4) more metrics")
                 .font(.caption)
               Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
                 .font(.caption)
@@ -48,7 +49,7 @@ struct PerformanceMetricsWidget: View {
           }
           .accessibilityLabel(isShowingAll
             ? "Show fewer metrics"
-            : "Show all \(metrics.count) metrics")
+            : "Show all \(recentMetrics.count) metrics")
           .accessibilityHint(isShowingAll
             ? "Collapses the list to show only 4 metrics"
             : "Expands the list to show all metrics")

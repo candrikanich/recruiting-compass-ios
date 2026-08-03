@@ -1,12 +1,14 @@
 import SwiftUI
 
 struct UpcomingEventsWidget: View {
-  let events: [FullEvent]
+  /// Sorted once at init rather than re-sorted on every body evaluation
+  /// (this computed property used to be read up to 5 times per render).
+  private let sortedEvents: [FullEvent]
 
   @State private var isShowingAll = false
 
-  private var sortedEvents: [FullEvent] {
-    events.sorted { $0.startDate < $1.startDate }
+  init(events: [FullEvent]) {
+    self.sortedEvents = events.sorted { $0.startDate < $1.startDate }
   }
 
   private var visibleEvents: [FullEvent] {

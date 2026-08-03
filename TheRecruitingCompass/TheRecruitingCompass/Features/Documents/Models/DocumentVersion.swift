@@ -7,15 +7,23 @@ struct DocumentVersion: Identifiable, Sendable {
   let isCurrent: Bool
   let createdAt: String
 
-  var displayDate: String {
+  private static let fractionalSecondsFormatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    if let date = formatter.date(from: createdAt) {
+    return formatter
+  }()
+
+  private static let basicFormatter: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime]
+    return formatter
+  }()
+
+  var displayDate: String {
+    if let date = Self.fractionalSecondsFormatter.date(from: createdAt) {
       return date.formatted(date: .abbreviated, time: .shortened)
     }
-    let basicFormatter = ISO8601DateFormatter()
-    basicFormatter.formatOptions = [.withInternetDateTime]
-    if let date = basicFormatter.date(from: createdAt) {
+    if let date = Self.basicFormatter.date(from: createdAt) {
       return date.formatted(date: .abbreviated, time: .shortened)
     }
     return "Unknown"

@@ -26,7 +26,7 @@ struct SchoolProsConsSection: View {
             .fontWeight(.semibold)
             .foregroundStyle(.green)
 
-          ForEach(Array(pros.enumerated()), id: \.offset) { index, pro in
+          ForEach(Array(pros.enumerated()), id: \.element) { index, pro in
             ProItem(text: pro) {
               Task { await onRemovePro(index) }
             }
@@ -71,7 +71,7 @@ struct SchoolProsConsSection: View {
             .fontWeight(.semibold)
             .foregroundStyle(.red)
 
-          ForEach(Array(cons.enumerated()), id: \.offset) { index, con in
+          ForEach(Array(cons.enumerated()), id: \.element) { index, con in
             ConItem(text: con) {
               Task { await onRemoveCon(index) }
             }

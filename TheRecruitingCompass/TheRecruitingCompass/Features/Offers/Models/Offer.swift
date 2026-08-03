@@ -63,12 +63,16 @@ struct Offer: Codable, Identifiable, Sendable {
 
   // MARK: - Display Helpers
 
-  var formattedAmount: String? {
-    guard let amount = scholarshipAmount, amount > 0 else { return nil }
+  private static let amountFormatter: NumberFormatter = {
     let formatter = NumberFormatter()
     formatter.numberStyle = .currency
     formatter.maximumFractionDigits = 0
-    return formatter.string(from: NSNumber(value: amount))
+    return formatter
+  }()
+
+  var formattedAmount: String? {
+    guard let amount = scholarshipAmount, amount > 0 else { return nil }
+    return Self.amountFormatter.string(from: NSNumber(value: amount))
   }
 
   var formattedPercentage: String? {

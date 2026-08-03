@@ -119,7 +119,7 @@ private struct QuickCommTemplatePicker: View {
   let onSelect: (CommunicationTemplate?) -> Void
 
   var body: some View {
-    VStack(spacing: 0) {
+    LazyVStack(spacing: 0) {
       templateOption(nil, label: "None")
       ForEach(emailTemplates) { template in
         templateOption(template, label: template.name)
