@@ -135,7 +135,6 @@ struct CoachDetailView: View {
     .padding()
   }
 
-
   @ViewBuilder
   private var recentInteractionsSection: some View {
     VStack(alignment: .leading, spacing: 12) {

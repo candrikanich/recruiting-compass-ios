@@ -234,7 +234,6 @@ final class DocumentViewerViewModel {
     collection != nil && currentIndex > 0
   }
 
-
 }
 
 // MARK: - Document Download Delegate

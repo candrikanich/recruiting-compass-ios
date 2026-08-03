@@ -7,7 +7,7 @@ struct CoachCardView: View {
   let schoolInitials: String
 
   /// When set, email and phone buttons open Quick Communication sheet instead of Mail/Messages.
-  var onQuickCommunication: ((QuickCommunicationContext) -> Void)? = nil
+  var onQuickCommunication: ((QuickCommunicationContext) -> Void)?
   var onDelete: () -> Void = {}
 
   @Environment(\.colorScheme) private var colorScheme

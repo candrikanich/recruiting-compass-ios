@@ -182,7 +182,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", firstName: "John", lastName: "Smith", email: "coach1@school.edu"),
-      makeCoach(id: "2", firstName: "Jane", lastName: "Doe", email: "coach2@school.edu"),
+      makeCoach(id: "2", firstName: "Jane", lastName: "Doe", email: "coach2@school.edu")
     ]
 
     await sut.loadCoaches()
@@ -196,7 +196,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", email: "john@school.edu"),
-      makeCoach(id: "2", email: "jane@university.edu"),
+      makeCoach(id: "2", email: "jane@university.edu")
     ]
 
     await sut.loadCoaches()
@@ -209,7 +209,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", phone: "555-1234"),
-      makeCoach(id: "2", phone: "555-9999"),
+      makeCoach(id: "2", phone: "555-9999")
     ]
 
     await sut.loadCoaches()
@@ -222,7 +222,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", notes: "Great recruiter"),
-      makeCoach(id: "2", notes: "Average"),
+      makeCoach(id: "2", notes: "Average")
     ]
 
     await sut.loadCoaches()
@@ -235,7 +235,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", twitterHandle: "@coachsmith"),
-      makeCoach(id: "2", twitterHandle: nil),
+      makeCoach(id: "2", twitterHandle: nil)
     ]
 
     await sut.loadCoaches()
@@ -248,7 +248,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", firstName: "Carlos", lastName: "Muñoz"),
-      makeCoach(id: "2", firstName: "Jane", lastName: "Doe"),
+      makeCoach(id: "2", firstName: "Jane", lastName: "Doe")
     ]
 
     await sut.loadCoaches()
@@ -262,7 +262,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", firstName: "Carlos", lastName: "Munoz"),
-      makeCoach(id: "2", firstName: "Jane", lastName: "Doe"),
+      makeCoach(id: "2", firstName: "Jane", lastName: "Doe")
     ]
 
     await sut.loadCoaches()
@@ -289,7 +289,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedCoaches = [
       makeCoach(id: "1", position: "head"),
       makeCoach(id: "2", position: "assistant"),
-      makeCoach(id: "3", position: "recruiting"),
+      makeCoach(id: "3", position: "recruiting")
     ]
 
     await sut.loadCoaches()
@@ -305,7 +305,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", lastContactDate: ISO8601DateFormatter().string(from: Date())),
-      makeCoach(id: "2", lastContactDate: "2025-01-01T00:00:00Z"),
+      makeCoach(id: "2", lastContactDate: "2025-01-01T00:00:00Z")
     ]
 
     await sut.loadCoaches()
@@ -319,7 +319,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", lastContactDate: ISO8601DateFormatter().string(from: Date())),
-      makeCoach(id: "2", lastContactDate: nil),
+      makeCoach(id: "2", lastContactDate: nil)
     ]
 
     await sut.loadCoaches()
@@ -335,7 +335,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", lastName: "Zimmerman"),
-      makeCoach(id: "2", lastName: "Adams"),
+      makeCoach(id: "2", lastName: "Adams")
     ]
 
     await sut.loadCoaches()
@@ -351,7 +351,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [school1, school2]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", schoolId: "s1"),
-      makeCoach(id: "2", schoolId: "s2"),
+      makeCoach(id: "2", schoolId: "s2")
     ]
 
     await sut.loadCoaches()
@@ -364,7 +364,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", lastContactDate: "2026-01-01T00:00:00Z"),
-      makeCoach(id: "2", lastContactDate: "2026-02-01T00:00:00Z"),
+      makeCoach(id: "2", lastContactDate: "2026-02-01T00:00:00Z")
     ]
 
     await sut.loadCoaches()
@@ -574,7 +574,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", firstName: "John", email: "coach1@school.edu"),
-      makeCoach(id: "2", firstName: "Jane", email: "coach2@school.edu"),
+      makeCoach(id: "2", firstName: "Jane", email: "coach2@school.edu")
     ]
 
     await sut.loadCoaches()

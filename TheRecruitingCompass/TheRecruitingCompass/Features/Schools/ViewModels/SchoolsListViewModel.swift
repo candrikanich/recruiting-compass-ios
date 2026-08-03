@@ -338,7 +338,6 @@ final class SchoolsListViewModel {
     }
   }
 
-
 }
 
 extension SchoolFilters {

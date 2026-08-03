@@ -21,8 +21,6 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
 
   // MARK: - Load Tests
 
-
-
   func testLoadVisibility_WhenNoSettings_UsesDefaults() async {
     // Given
     mockService.fetchPreferencesResult = .success(nil)
@@ -111,8 +109,6 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.visibility.statsCards.interactions)
     XCTAssertFalse(viewModel.visibility.statsCards.offers)
   }
-
-
 
   func testToggleAllWidgets_DisablesAllWidgets() {
     // Given

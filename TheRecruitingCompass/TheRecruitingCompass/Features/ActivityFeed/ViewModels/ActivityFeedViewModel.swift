@@ -129,7 +129,6 @@ final class ActivityFeedViewModel {
   // @MainActor classes otherwise get a deinit that calls swift_task_deinitOnExecutorImpl,
   // which crashes when ARC deallocates the object outside a task context (e.g. in tests).
 
-
   // MARK: - Data Loading
 
   func loadActivities() async {

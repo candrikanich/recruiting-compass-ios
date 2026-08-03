@@ -291,7 +291,7 @@ final class CoachesListViewTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", firstName: "John", lastName: "Smith", email: "john@school.edu"),
-      makeCoach(id: "2", firstName: "Jane", lastName: "Doe", email: "jane@school.edu"),
+      makeCoach(id: "2", firstName: "Jane", lastName: "Doe", email: "jane@school.edu")
     ]
 
     let viewModel = CoachesListViewModel(
@@ -315,7 +315,7 @@ final class CoachesListViewTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", position: "head"),
-      makeCoach(id: "2", position: "assistant"),
+      makeCoach(id: "2", position: "assistant")
     ]
 
     let viewModel = CoachesListViewModel(
@@ -333,10 +333,6 @@ final class CoachesListViewTests: XCTestCase {
     XCTAssertEqual(viewModel.filteredCoaches.count, 1)
     XCTAssertEqual(viewModel.filteredCoaches.first?.id, "1")
   }
-
-
-
-
 
   // MARK: - Success Toast Tests
 
@@ -417,7 +413,7 @@ final class CoachesListViewTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", lastName: "Zimmerman"),
-      makeCoach(id: "2", lastName: "Adams"),
+      makeCoach(id: "2", lastName: "Adams")
     ]
 
     let viewModel = CoachesListViewModel(
@@ -433,8 +429,6 @@ final class CoachesListViewTests: XCTestCase {
     XCTAssertEqual(viewModel.filteredCoaches.first?.lastName, "Adams")
     XCTAssertEqual(viewModel.filteredCoaches.last?.lastName, "Zimmerman")
   }
-
-
 
   // MARK: - School Name Lookup Tests
 
@@ -479,7 +473,7 @@ final class CoachesListViewTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", firstName: "John", email: "john@school.edu"),
-      makeCoach(id: "2", firstName: "Jane", email: "jane@school.edu"),
+      makeCoach(id: "2", firstName: "Jane", email: "jane@school.edu")
     ]
 
     let viewModel = CoachesListViewModel(
@@ -519,7 +513,7 @@ final class CoachesListViewTests: XCTestCase {
     let mockService = MockCoachesService()
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
-      makeCoach(id: "1", email: nil, phone: nil),
+      makeCoach(id: "1", email: nil, phone: nil)
     ]
 
     let viewModel = CoachesListViewModel(
@@ -535,6 +529,5 @@ final class CoachesListViewTests: XCTestCase {
     XCTAssertNil(viewModel.allCoaches.first?.email)
     XCTAssertNil(viewModel.allCoaches.first?.phone)
   }
-
 
 }

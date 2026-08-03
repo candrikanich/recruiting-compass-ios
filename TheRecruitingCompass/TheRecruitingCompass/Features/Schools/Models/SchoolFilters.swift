@@ -2,13 +2,13 @@ import Foundation
 
 struct SchoolFilters: Sendable {
   var searchText: String = ""
-  var division: Division? = nil
-  var status: SchoolStatus? = nil
-  var state: String? = nil
+  var division: Division?
+  var status: SchoolStatus?
+  var state: String?
   var isFavoritesOnly: Bool = false
-  var fitScoreMin: Double? = nil
-  var fitScoreMax: Double? = nil
-  var maxDistance: Double? = nil
+  var fitScoreMin: Double?
+  var fitScoreMax: Double?
+  var maxDistance: Double?
   var sortBy: SchoolSortOption = .nameAZ
 }
 

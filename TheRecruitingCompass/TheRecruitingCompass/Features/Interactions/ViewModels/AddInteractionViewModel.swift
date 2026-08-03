@@ -298,5 +298,4 @@ final class AddInteractionViewModel {
     logger.debug("Form reset")
   }
 
-
 }

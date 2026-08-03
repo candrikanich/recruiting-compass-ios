@@ -23,7 +23,7 @@ extension FeatureCardData {
       icon: "chart.bar.fill",
       title: "Monitor Progress",
       description: "Visualize your recruiting journey with insights"
-    ),
+    )
   ]
 }
 

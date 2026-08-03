@@ -277,5 +277,4 @@ final class InteractionsListViewModel {
     return EntityNameLookup.coachName(for: coachId, in: coachNameMap)
   }
 
-
 }

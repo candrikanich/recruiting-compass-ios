@@ -454,7 +454,7 @@ final class DashboardViewModelTests: XCTestCase {
       makeInteraction(id: "i1", date: "2024-01-15T10:00:00Z"),
       makeInteraction(id: "i2", date: "2024-01-15T14:00:00Z"),
       makeInteraction(id: "i3", date: "2024-01-16T09:00:00Z"),
-      makeInteraction(id: "i4", date: "2024-01-14T08:00:00Z"),
+      makeInteraction(id: "i4", date: "2024-01-14T08:00:00Z")
     ]
 
     await sut.fetchInteractionTrends()
@@ -570,8 +570,6 @@ final class DashboardViewModelTests: XCTestCase {
     // Then
     XCTAssertEqual(sut.schoolsWithOffersPercentage, "0%")
   }
-
-
 
   func testDaysUntilGraduationFormattedWhenNil() async {
     // Given: no stats

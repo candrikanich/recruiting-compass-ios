@@ -469,5 +469,4 @@ final class DocumentDetailViewModel {
     errorMessage = nil
   }
 
-
 }

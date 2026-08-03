@@ -196,6 +196,4 @@ final class OfferDetailViewModel {
     }
   }
 
-
-
 }

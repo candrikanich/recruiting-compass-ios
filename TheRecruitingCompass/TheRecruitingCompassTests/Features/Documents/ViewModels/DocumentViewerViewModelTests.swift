@@ -349,7 +349,7 @@ final class DocumentViewerViewModelTests: XCTestCase {
     sut = DocumentViewerViewModel(document: .mock(fileUrl: "https://example.com/file.pdf"), documentsService: mockDocuments)
 
     XCTAssertEqual(sut.shareItems.count, 1)
-    XCTAssertTrue(sut.shareItems.first as? URL != nil)
+    XCTAssertTrue(sut.shareItems.first is URL)
   }
 
   func testShareItems_withNoURL_returnsEmpty() {

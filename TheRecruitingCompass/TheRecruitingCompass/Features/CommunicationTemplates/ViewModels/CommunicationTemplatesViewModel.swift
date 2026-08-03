@@ -157,5 +157,4 @@ final class CommunicationTemplatesViewModel {
     formData = TemplateFormData()
   }
 
-
 }

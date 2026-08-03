@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HelpSectionHeader: View {
   let title: String
-  var badge: HelpBadge.BadgeType? = nil
+  var badge: HelpBadge.BadgeType?
 
   var body: some View {
     HStack(alignment: .firstTextBaseline, spacing: 8) {

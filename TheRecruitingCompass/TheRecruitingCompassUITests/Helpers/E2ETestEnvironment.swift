@@ -30,7 +30,7 @@ enum E2ETestEnvironment {
     app.launchArguments = ["--uitesting"]
     app.launchEnvironment = [
       "SUPABASE_URL": supabaseURL,
-      "SUPABASE_ANON_KEY": supabaseAnonKey,
+      "SUPABASE_ANON_KEY": supabaseAnonKey
     ]
   }
 }

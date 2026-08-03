@@ -4,9 +4,9 @@ import SwiftUI
 struct ContactInfoSection: View {
   let coach: Coach
   /// When set, email row opens Quick Communication instead of Mail.
-  var onEmailTap: (() -> Void)? = nil
+  var onEmailTap: (() -> Void)?
   /// When set, phone row opens Quick Communication instead of Messages.
-  var onPhoneTap: (() -> Void)? = nil
+  var onPhoneTap: (() -> Void)?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {

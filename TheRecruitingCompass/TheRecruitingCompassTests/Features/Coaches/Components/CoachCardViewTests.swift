@@ -192,15 +192,6 @@ final class CoachCardViewTests: XCTestCase {
     XCTAssertNil(coach.instagramHandle)
   }
 
-
-
-
-
-
-
-
-
-
   // MARK: - Last Contact Date Tests
 
   func testCoachCard_parsesLastContactDate() {
@@ -391,8 +382,5 @@ final class CoachCardViewTests: XCTestCase {
     let coach = makeCoach(firstName: "José", lastName: "O'Brien-Smith")
     XCTAssertEqual(coach.fullName, "José O'Brien-Smith")
   }
-
-
-
 
 }

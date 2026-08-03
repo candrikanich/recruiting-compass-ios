@@ -304,5 +304,4 @@ final class AddSchoolViewModel {
     }
   }
 
-
 }

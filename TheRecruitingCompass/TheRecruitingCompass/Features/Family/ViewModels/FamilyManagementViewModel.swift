@@ -343,5 +343,4 @@ final class FamilyManagementViewModel {
     errorMessage = nil
   }
 
-
 }

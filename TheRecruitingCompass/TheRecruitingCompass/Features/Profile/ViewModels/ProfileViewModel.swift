@@ -87,8 +87,6 @@ final class ProfileViewModel {
         self.authManager = authManager ?? .shared
     }
 
-  
-
     // MARK: - Load
 
     func loadInitialState() {

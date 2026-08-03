@@ -105,8 +105,6 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     XCTAssertNotNil(view)
   }
 
-
-
   func testCoachCardView_dynamicTypeSupport() {
     let coach = makeCoach()
     let view = CoachCardView(
@@ -120,15 +118,6 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     // Should render without issues at large dynamic type sizes
     XCTAssertNotNil(view)
   }
-
-
-
-
-
-
-
-
-
 
   // MARK: - CoachFilterBar Accessibility Tests
 
@@ -154,8 +143,6 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
     // Last contact menu should have label, hint, and value
     XCTAssertNotNil(view)
   }
-
-
 
   func testCoachFilterBar_sortMenuAccessible() {
     let view = CoachFilterBar(filters: .constant(CoachFilters()))
@@ -346,8 +333,6 @@ final class CoachesListViewAccessibilityTests: XCTestCase {
   }
 
   // MARK: - Integration Tests
-
-
 
   func testIntegration_filterBarToChipsAccessibility() {
     var filters = CoachFilters()

@@ -123,5 +123,4 @@ final class QuickCommunicationViewModel {
     return trimmed.trimmingCharacters(in: .whitespacesAndNewlines) + "\n\n[Message truncated — full text in app]"
   }
 
-
 }

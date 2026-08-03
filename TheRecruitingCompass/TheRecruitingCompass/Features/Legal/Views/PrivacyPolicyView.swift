@@ -80,14 +80,14 @@ struct PrivacyPolicyView: View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "2. Information We Collect")
 
-      LegalBodyText(text:"We may collect information about you in a variety of ways:")
+      LegalBodyText(text: "We may collect information about you in a variety of ways:")
 
       LegalSubsectionHeader(text: "Information You Provide")
       LegalBulletList(items: [
         "Registration Information: Name, email address, password, phone number, and role (parent or player)",
         "Profile Information: Profile photo, biographical information, preferences, and school-related data",
         "Communication Data: Messages, notes, and communications you create or store within the Service",
-        "Preference Data: School preferences, location preferences, and other customization settings",
+        "Preference Data: School preferences, location preferences, and other customization settings"
       ])
 
       LegalSubsectionHeader(text: "Automatically Collected Information")
@@ -95,7 +95,7 @@ struct PrivacyPolicyView: View {
         "Log Data: IP address, browser type, pages visited, and time and date stamps",
         "Device Information: Device type, operating system, and unique device identifiers",
         "Usage Analytics: How you interact with our Service, features you use, and actions you take",
-        "Cookies: Small data files stored on your device to enhance your experience",
+        "Cookies: Small data files stored on your device to enhance your experience"
       ])
     }
   }
@@ -106,7 +106,7 @@ struct PrivacyPolicyView: View {
   private var section3HowWeUse: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "3. How We Use Your Information")
-      LegalBodyText(text:"We use the information we collect for various purposes:")
+      LegalBodyText(text: "We use the information we collect for various purposes:")
       LegalBulletList(items: [
         "To create and maintain your account",
         "To provide, maintain, and improve the Service",
@@ -115,7 +115,7 @@ struct PrivacyPolicyView: View {
         "To analyze usage patterns and improve our offerings",
         "To comply with legal obligations",
         "To prevent fraud and enhance security",
-        "To send marketing communications (with your consent)",
+        "To send marketing communications (with your consent)"
       ])
     }
   }
@@ -133,7 +133,7 @@ struct PrivacyPolicyView: View {
         "Service Providers: Third-party vendors who assist in operating our Service, subject to confidentiality agreements",
         "Legal Requirements: When required by law, court order, or government request",
         "Business Transfers: In connection with a merger, acquisition, or sale of assets",
-        "With Your Consent: When you explicitly authorize us to share your information",
+        "With Your Consent: When you explicitly authorize us to share your information"
       ])
     }
   }
@@ -168,16 +168,16 @@ struct PrivacyPolicyView: View {
   private var section7PrivacyRights: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "7. Your Privacy Rights")
-      LegalBodyText(text:"Depending on your location, you may have the right to:")
+      LegalBodyText(text: "Depending on your location, you may have the right to:")
       LegalBulletList(items: [
         "Access the personal information we hold about you",
         "Correct inaccurate or incomplete information",
         "Request deletion of your information",
         "Opt-out of certain data processing activities",
         "Request a portable copy of your data",
-        "Withdraw consent at any time",
+        "Withdraw consent at any time"
       ])
-      LegalBodyText(text:"To exercise these rights, please contact us at privacy@recruitingcompass.com.")
+      LegalBodyText(text: "To exercise these rights, please contact us at privacy@recruitingcompass.com.")
     }
   }
 

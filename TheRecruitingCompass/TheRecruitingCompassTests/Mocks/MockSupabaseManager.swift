@@ -6,7 +6,7 @@ final class MockSupabaseManager: SupabaseManaging {
   var signInResult: Result<(user: User, session: Session), Error> = .failure(AuthError.networkError("Mock: not configured"))
   var signUpResult: Result<(user: User, session: Session?), Error> = .failure(AuthError.networkError("Mock: not configured"))
   var signOutError: Error?
-  var currentSessionResult: Session? = nil
+  var currentSessionResult: Session?
   var refreshSessionResult: Result<User, Error> = .failure(AuthError.networkError("Mock: not configured"))
   var resendVerificationEmailError: Error?
   var resetPasswordError: Error?

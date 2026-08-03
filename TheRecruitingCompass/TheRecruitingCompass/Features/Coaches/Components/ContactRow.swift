@@ -7,7 +7,7 @@ struct ContactRow: View {
   let value: String
   let type: CommunicationType
   /// When set, row is a button that runs this action instead of opening the type's URL (e.g. to show Quick Communication).
-  var customAction: (() -> Void)? = nil
+  var customAction: (() -> Void)?
 
   var body: some View {
     Group {

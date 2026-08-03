@@ -489,5 +489,4 @@ final class EventDetailViewModel {
     showSuccessToast = true
   }
 
-
 }

@@ -58,13 +58,6 @@ final class CoachCardAccessibilityTests: XCTestCase {
     XCTAssertEqual(coach.role, .assistant)
   }
 
-
-
-
-
-
-
-
   // MARK: - Communication Type Tests
 
   func testCommunicationType_emailURL() {
@@ -108,8 +101,6 @@ final class CoachCardAccessibilityTests: XCTestCase {
     filters.role = .head
     XCTAssertTrue(filters.hasActiveFilters)
   }
-
-
 
   // MARK: - Coach Full Name
 

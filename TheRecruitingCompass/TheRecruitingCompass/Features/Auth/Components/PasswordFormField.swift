@@ -71,7 +71,7 @@ struct PasswordFormField: View {
 
 #Preview {
   @Previewable @State var text = ""
-  @Previewable @State var error: String? = nil
+  @Previewable @State var error: String?
   @Previewable @State var isVisible = false
 
   PasswordFormField(

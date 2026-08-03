@@ -23,9 +23,9 @@ struct LoginFormField: View {
   let isSecure: Bool
   let keyboardType: UIKeyboardType
   /// Semantic type for autofill/suggestions. Set to fix truncated or overlapping iOS suggestion bubbles.
-  var textContentType: UITextContentType? = nil
+  var textContentType: UITextContentType?
   /// Optional identifier for UI testing (E2E).
-  var accessibilityIdentifier: String? = nil
+  var accessibilityIdentifier: String?
   let onBlur: () -> Void
   @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 20
 
@@ -85,7 +85,7 @@ struct LoginFormField: View {
 
 #Preview {
   @Previewable @State var text = ""
-  @Previewable @State var error: String? = nil
+  @Previewable @State var error: String?
 
   return LoginFormField(
     label: "Email",

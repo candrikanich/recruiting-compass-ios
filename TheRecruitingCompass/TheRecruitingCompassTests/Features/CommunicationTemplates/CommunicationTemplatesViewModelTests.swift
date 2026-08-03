@@ -79,7 +79,7 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
       makeTemplate(id: "1", type: .email),
       makeTemplate(id: "2", type: .text),
       makeTemplate(id: "3", type: .email),
-      makeTemplate(id: "4", type: .twitter),
+      makeTemplate(id: "4", type: .twitter)
     ]
     await viewModel.loadTemplates()
 
@@ -93,7 +93,7 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
     mockService.mockTemplates = [
       makeTemplate(id: "1", type: .email),
       makeTemplate(id: "2", type: .text),
-      makeTemplate(id: "3", type: .text),
+      makeTemplate(id: "3", type: .text)
     ]
     await viewModel.loadTemplates()
 
@@ -107,7 +107,7 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
     mockService.mockTemplates = [
       makeTemplate(id: "1", type: .twitter),
       makeTemplate(id: "2", type: .email),
-      makeTemplate(id: "3", type: .twitter),
+      makeTemplate(id: "3", type: .twitter)
     ]
     await viewModel.loadTemplates()
 
@@ -120,7 +120,7 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
   func testFilteredTemplates_FilterWithNoMatches_ReturnsEmpty() async {
     mockService.mockTemplates = [
       makeTemplate(id: "1", type: .email),
-      makeTemplate(id: "2", type: .email),
+      makeTemplate(id: "2", type: .email)
     ]
     await viewModel.loadTemplates()
 
@@ -173,7 +173,7 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
       makeTemplate(id: "1", type: .email),
       makeTemplate(id: "2", type: .email),
       makeTemplate(id: "3", type: .text),
-      makeTemplate(id: "4", type: .twitter),
+      makeTemplate(id: "4", type: .twitter)
     ]
     await viewModel.loadTemplates()
 
@@ -320,7 +320,7 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
     mockService.mockTemplates = [
       makeTemplate(id: "1"),
       makeTemplate(id: "2"),
-      makeTemplate(id: "3"),
+      makeTemplate(id: "3")
     ]
     await viewModel.loadTemplates()
 

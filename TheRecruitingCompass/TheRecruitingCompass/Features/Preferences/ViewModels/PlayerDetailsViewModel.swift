@@ -56,7 +56,7 @@ final class PlayerDetailsViewModel {
             details.gpa != nil,
             details.satScore != nil,
             details.actScore != nil,
-            !(details.twitterHandle ?? "").isEmpty || !(details.instagramHandle ?? "").isEmpty,
+            !(details.twitterHandle ?? "").isEmpty || !(details.instagramHandle ?? "").isEmpty
         ]
         if isBaseballOrSoftball {
             fields.append(details.bats != nil)

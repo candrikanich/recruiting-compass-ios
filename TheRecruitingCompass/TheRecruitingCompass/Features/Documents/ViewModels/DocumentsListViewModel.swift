@@ -70,7 +70,7 @@ final class DocumentsListViewModel {
   var selectedTypes: Set<DocumentType> = [] {
     didSet { recomputeDerivedDocuments() }
   }
-  var selectedSchoolId: String? = nil {
+  var selectedSchoolId: String? {
     didSet { recomputeDerivedDocuments() }
   }
   var showSharedOnly = false {
@@ -425,6 +425,5 @@ final class DocumentsListViewModel {
   func presentViewer(for document: Document) {
     documentToView = document
   }
-
 
 }

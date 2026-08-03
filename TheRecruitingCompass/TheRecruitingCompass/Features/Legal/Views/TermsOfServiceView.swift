@@ -80,7 +80,7 @@ struct TermsOfServiceView: View {
         "Use the materials for any commercial purpose or for any public display",
         "Attempt to decompile or reverse engineer any software contained in the Service",
         "Remove any copyright or other proprietary notations from the materials",
-        "Transfer the materials to another person or \"mirror\" the materials on any other server",
+        "Transfer the materials to another person or \"mirror\" the materials on any other server"
       ])
     }
   }
@@ -172,12 +172,12 @@ struct TermsOfServiceView: View {
   private var section9UserAccounts: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "9. User Accounts")
-      LegalBodyText(text:"When you create an account with us, you must provide accurate and complete information. You agree to:")
+      LegalBodyText(text: "When you create an account with us, you must provide accurate and complete information. You agree to:")
       LegalBulletList(items: [
         "Provide accurate, current, and complete information during registration",
         "Maintain and promptly update your account information and keep your password secure",
         "Accept responsibility for all activities that occur under your account",
-        "Notify us immediately of any unauthorized use of your account or any other breach of security",
+        "Notify us immediately of any unauthorized use of your account or any other breach of security"
       ])
     }
   }
@@ -188,13 +188,13 @@ struct TermsOfServiceView: View {
   private var section10ProhibitedActivities: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
       LegalSectionHeader(text: "10. Prohibited Activities")
-      LegalBodyText(text:"You agree not to use the Service to:")
+      LegalBodyText(text: "You agree not to use the Service to:")
       LegalBulletList(items: [
         "Violate any applicable laws or regulations",
         "Infringe upon the intellectual property rights of others",
         "Harass, abuse, or harm another person",
         "Gain unauthorized access to any systems, networks, or accounts",
-        "Transmit any viruses, malware, or other harmful code",
+        "Transmit any viruses, malware, or other harmful code"
       ])
     }
   }

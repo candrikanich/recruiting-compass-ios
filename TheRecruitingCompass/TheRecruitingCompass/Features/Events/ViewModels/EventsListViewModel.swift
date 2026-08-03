@@ -54,7 +54,7 @@ final class EventsListViewModel {
     let components = calendar.dateComponents([.year, .month], from: Date())
     return calendar.date(from: components) ?? Date()
   }()
-  var selectedCalendarDate: Date? = nil
+  var selectedCalendarDate: Date?
 
   // MARK: - Computed
 
@@ -319,7 +319,6 @@ final class EventsListViewModel {
     let components = Calendar.current.dateComponents([.year, .month], from: Date())
     return Calendar.current.date(from: components) ?? Date()
   }
-
 
 }
 

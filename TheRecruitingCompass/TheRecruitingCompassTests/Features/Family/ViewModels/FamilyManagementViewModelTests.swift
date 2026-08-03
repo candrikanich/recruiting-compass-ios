@@ -185,7 +185,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
     mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
     mockFamilyService.stubbedFamilyMembers = [
       makeFamilyMember(id: "m1", role: "athlete"),
-      makeFamilyMember(id: "m2", role: "parent"),
+      makeFamilyMember(id: "m2", role: "parent")
     ]
 
     await sut.loadData()
@@ -328,7 +328,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
         familyCode: "FAM-ABC123",
         familyName: "Smith Family",
         codeGeneratedAt: "2024-01-01T00:00:00Z"
-      ),
+      )
     ]
 
     await sut.loadData()

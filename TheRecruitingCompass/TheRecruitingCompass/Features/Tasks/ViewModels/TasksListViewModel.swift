@@ -207,5 +207,4 @@ final class TasksListViewModel {
     showSuccessMessage = false
   }
 
-
 }

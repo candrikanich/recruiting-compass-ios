@@ -4,7 +4,6 @@ import PDFKit
 
 final class PerformancePDFGenerator {
 
-
   private let pageWidth: CGFloat = 612.0  // 8.5 inches at 72 DPI
   private let pageHeight: CGFloat = 792.0 // 11 inches at 72 DPI
   private let margin: CGFloat = 50.0

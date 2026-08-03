@@ -478,5 +478,4 @@ final class AnalyticsDashboardViewModel {
     }
   }
 
-
 }

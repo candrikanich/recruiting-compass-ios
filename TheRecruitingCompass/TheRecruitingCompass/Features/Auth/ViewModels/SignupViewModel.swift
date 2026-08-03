@@ -249,5 +249,4 @@ final class SignupViewModel {
     errorMessage = nil
   }
 
-
 }

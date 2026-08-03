@@ -253,5 +253,4 @@ final class InteractionDetailViewModel {
     showDeleteConfirmation = false
   }
 
-
 }

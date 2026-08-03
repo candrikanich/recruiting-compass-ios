@@ -325,10 +325,6 @@ final class LoginViewModelTests: XCTestCase {
 
   // MARK: - Performance Tests
 
-
-
-
-
   // MARK: - State Transition Tests
 
   func testFieldErrorsResetOnNewInput() {

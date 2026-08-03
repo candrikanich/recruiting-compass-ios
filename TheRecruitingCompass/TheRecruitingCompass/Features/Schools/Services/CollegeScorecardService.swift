@@ -91,8 +91,7 @@ actor CollegeScorecardService: CollegeScorecardManaging {
     let response = try JSONDecoder().decode(CollegeScorecardAPIResponse.self, from: data)
     let result = response.results.first
 
-    if let result { logger.info("Found college: \(result.name)") }
-    else { logger.info("No results for: \(name)") }
+    if let result { logger.info("Found college: \(result.name)") } else { logger.info("No results for: \(name)") }
     await cache.setLookup(for: cacheKey, result: result)
     return result
   }
@@ -115,8 +114,7 @@ actor CollegeScorecardService: CollegeScorecardManaging {
     let response = try JSONDecoder().decode(CollegeScorecardAPIResponse.self, from: data)
     let result = response.results.first
 
-    if let result { logger.info("Found college: \(result.name)") }
-    else { logger.info("No results for id: \(id)") }
+    if let result { logger.info("Found college: \(result.name)") } else { logger.info("No results for id: \(id)") }
     await cache.setLookup(for: cacheKey, result: result)
     return result
   }
