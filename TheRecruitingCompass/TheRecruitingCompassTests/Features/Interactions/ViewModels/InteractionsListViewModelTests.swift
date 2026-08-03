@@ -510,6 +510,38 @@ final class InteractionsListViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.allInteractions.contains { $0.id == "2" })
   }
 
+  // MARK: - Cached filteredInteractions Staleness Tests
+  // filteredInteractions is a cached stored property (Phase 3.3), recomputed via
+  // didSet on allInteractions/filters — not read live.
+
+  func testFilteredInteractions_UpdatesWhenAllInteractionsReassigned_WithoutTouchingFilters() {
+    viewModel.allInteractions = [createInteraction(id: "1", type: .email)]
+    viewModel.filters.type = .email
+    XCTAssertEqual(viewModel.filteredInteractions.count, 1)
+
+    viewModel.allInteractions = [
+      createInteraction(id: "2", type: .email),
+      createInteraction(id: "3", type: .phoneCall)
+    ]
+
+    XCTAssertEqual(viewModel.filteredInteractions.count, 1)
+    XCTAssertEqual(viewModel.filteredInteractions.first?.id, "2")
+  }
+
+  func testFilteredInteractions_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    let keep = createInteraction(id: "keep", type: .email)
+    let remove = createInteraction(id: "remove", type: .email)
+    viewModel.allInteractions = [keep, remove]
+    viewModel.filters.type = .email
+    XCTAssertEqual(viewModel.filteredInteractions.count, 2)
+
+    viewModel.interactionToDelete = remove
+    await viewModel.deleteInteraction()
+
+    XCTAssertEqual(viewModel.filteredInteractions.count, 1)
+    XCTAssertEqual(viewModel.filteredInteractions.first?.id, "keep")
+  }
+
   // MARK: - Role-Based Tests
 
   func testIsParent_ReturnsTrue() {

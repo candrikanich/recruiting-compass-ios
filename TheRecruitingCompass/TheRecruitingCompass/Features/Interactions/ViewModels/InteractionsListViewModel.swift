@@ -9,12 +9,16 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 final class InteractionsListViewModel {
 
   nonisolated deinit {}
-  var allInteractions: [Interaction] = []
+  var allInteractions: [Interaction] = [] {
+    didSet { recomputeFilteredInteractions() }
+  }
   var allSchools: [School] = []
   var allCoaches: [Coach] = []
   var isLoading = false
   var errorMessage: String?
-  var filters = InteractionFilters()
+  var filters = InteractionFilters() {
+    didSet { recomputeFilteredInteractions() }
+  }
   var showDeleteConfirmation = false
   var interactionToDelete: Interaction?
   var isDeleting = false
@@ -34,7 +38,14 @@ final class InteractionsListViewModel {
 
   // MARK: - Computed Properties
 
-  var filteredInteractions: [Interaction] {
+  /// Cached derived list — recomputed via `recomputeFilteredInteractions()` whenever
+  /// `allInteractions` or `filters` change. Do not compute this inline elsewhere;
+  /// it would go stale silently. Note: the time-period filter's cutoff is
+  /// computed once per recompute (not live), same as the prior computed-property
+  /// behavior — it only advances when a mutation triggers a recompute.
+  private(set) var filteredInteractions: [Interaction] = []
+
+  private func recomputeFilteredInteractions() {
     var result = allInteractions
 
     // 1. Text search (subject + content)
@@ -73,7 +84,7 @@ final class InteractionsListViewModel {
     }
 
     // Sort by date descending (newest first)
-    return result.sorted { $0.displayDate > $1.displayDate }
+    filteredInteractions = result.sorted { $0.displayDate > $1.displayDate }
   }
 
   var analytics: InteractionAnalytics {
