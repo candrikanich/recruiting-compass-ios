@@ -118,14 +118,30 @@ final class PerformanceDashboardViewModel {
 
   // MARK: - Init
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached metrics list (seconds).
+  private static let metricsListCacheTTL: TimeInterval = 60
+
   init(
     performanceService: (any PerformanceManaging)? = nil,
     familyManager: FamilyManager? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.performanceService = performanceService ?? PerformanceServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
+  }
+
+  /// Invalidates the cached metrics list so the next `loadMetrics()` refetches.
+  /// Call after any mutation (create, update, delete). `EventDetailViewModel.addMetric()`
+  /// invalidates the same key (via `ListCacheKeys.metrics`) for metrics logged
+  /// inline from an event's quick-log form.
+  private func invalidateMetricsListCache() async {
+    guard let userId = targetUserId else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.metrics(userId: userId))
   }
 
   // MARK: - Actions
@@ -141,9 +157,19 @@ final class PerformanceDashboardViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    let cacheKey = ListCacheKeys.metrics(userId: userId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
     do {
-      metrics = try await performanceService.fetchMetrics(userId: userId)
-      logger.info("Loaded \(self.metrics.count) metrics")
+      if let cached = await cacheToUse.get([PerformanceMetric].self, forKey: cacheKey) {
+        metrics = cached
+        logger.info("Loaded \(self.metrics.count) metrics from cache")
+      } else {
+        let fetched = try await performanceService.fetchMetrics(userId: userId)
+        metrics = fetched
+        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.metricsListCacheTTL)
+        logger.info("Loaded \(self.metrics.count) metrics")
+      }
     } catch {
       logger.error("Failed to load metrics: \(error.localizedDescription)")
       errorMessage = "Failed to load metrics. Please try again."
@@ -175,6 +201,7 @@ final class PerformanceDashboardViewModel {
       successMessage = "Metric logged successfully"
       showSuccessToast = true
       logger.info("Metric added: \(newMetric.id)")
+      await invalidateMetricsListCache()
     } catch {
       logger.error("Failed to add metric: \(error.localizedDescription)")
       errorMessage = "Failed to log metric. Please try again."
@@ -214,6 +241,7 @@ final class PerformanceDashboardViewModel {
       successMessage = "Metric updated successfully"
       showSuccessToast = true
       logger.info("Metric updated: \(metric.id)")
+      await invalidateMetricsListCache()
     } catch {
       logger.error("Failed to update metric: \(error.localizedDescription)")
       errorMessage = "Failed to update metric. Please try again."
@@ -240,6 +268,7 @@ final class PerformanceDashboardViewModel {
       successMessage = "Metric deleted"
       showSuccessToast = true
       logger.info("Metric deleted: \(metric.id)")
+      await invalidateMetricsListCache()
     } catch {
       logger.error("Failed to delete metric: \(error.localizedDescription)")
       errorMessage = "Failed to delete metric. Please try again."
