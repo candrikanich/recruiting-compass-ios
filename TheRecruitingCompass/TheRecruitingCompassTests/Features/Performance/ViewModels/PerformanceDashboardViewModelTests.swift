@@ -262,6 +262,42 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
     XCTAssertEqual(latest[.exitVelo]?.id, "e-1")
   }
 
+  // MARK: - Cached Derived Metrics Staleness Tests
+  // sortedMetrics/availableMetricTypes/activeMetricType/chartMetrics/
+  // latestMetricsByType/metricTrends are cached stored properties (Phase 3.3),
+  // recomputed via didSet on metrics/selectedMetricType — not read live.
+
+  func testChartMetrics_UpdatesWhenMetricsReassigned_WithoutTouchingSelectedType() {
+    viewModel.metrics = [mockService.createTestMetric(id: "1", metricType: .velocity)]
+    viewModel.selectedMetricType = .velocity
+    XCTAssertEqual(viewModel.chartMetrics.count, 1)
+
+    // Reassign metrics wholesale (e.g. a reload) without touching selectedMetricType again.
+    viewModel.metrics = [
+      mockService.createTestMetric(id: "2", metricType: .velocity),
+      mockService.createTestMetric(id: "3", metricType: .velocity),
+      mockService.createTestMetric(id: "4", metricType: .exitVelo)
+    ]
+
+    XCTAssertEqual(viewModel.chartMetrics.count, 2)
+    XCTAssertTrue(viewModel.chartMetrics.allSatisfy { $0.metricType == .velocity })
+  }
+
+  func testActiveMetricType_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    let toDelete = mockService.createTestMetric(id: "del-1", metricType: .velocity)
+    viewModel.metrics = [
+      toDelete,
+      mockService.createTestMetric(id: "keep-1", metricType: .exitVelo)
+    ]
+    viewModel.selectedMetricType = .velocity
+    XCTAssertEqual(viewModel.activeMetricType, .velocity)
+
+    viewModel.confirmDelete(toDelete)
+    await viewModel.deleteMetric()
+
+    XCTAssertFalse(viewModel.availableMetricTypes.contains(.velocity))
+  }
+
   // MARK: - addMetric Tests
 
   func testAddMetric_Success() async {

@@ -12,7 +12,9 @@ private let logger = Logger(
 final class PerformanceDashboardViewModel {
 
   nonisolated deinit {}
-  var metrics: [PerformanceMetric] = []
+  var metrics: [PerformanceMetric] = [] {
+    didSet { recomputeDerivedMetrics() }
+  }
   var isLoading = false
   var errorMessage: String?
   var showAddForm = false
@@ -21,7 +23,9 @@ final class PerformanceDashboardViewModel {
   var showExportSheet = false
   var showDeleteConfirmation = false
   var metricToDelete: PerformanceMetric?
-  var selectedMetricType: MetricType?
+  var selectedMetricType: MetricType? {
+    didSet { recomputeDerivedMetrics() }
+  }
   var successMessage: String?
   var showSuccessToast = false
   var addFormState = MetricFormState()
@@ -49,43 +53,44 @@ final class PerformanceDashboardViewModel {
 
   // MARK: - Computed Properties
 
-  var sortedMetrics: [PerformanceMetric] {
-    metrics.sorted { $0.recordedDate > $1.recordedDate }
-  }
-
-  var availableMetricTypes: [MetricType] {
-    let types = Set(metrics.map(\.metricType))
-    return MetricType.allCases.filter { types.contains($0) }
-  }
-
-  var activeMetricType: MetricType? {
-    selectedMetricType ?? availableMetricTypes.first
-  }
-
-  var chartMetrics: [PerformanceMetric] {
-    guard let type = activeMetricType else { return [] }
-    return metrics
-      .filter { $0.metricType == type }
-      .sorted { $0.recordedDate < $1.recordedDate }
-  }
+  /// Cached derived state — recomputed via `recomputeDerivedMetrics()` whenever
+  /// `metrics` or `selectedMetricType` change. Do not compute these inline
+  /// elsewhere; they would go stale silently.
+  private(set) var sortedMetrics: [PerformanceMetric] = []
+  private(set) var availableMetricTypes: [MetricType] = []
+  private(set) var activeMetricType: MetricType?
+  private(set) var chartMetrics: [PerformanceMetric] = []
+  private(set) var latestMetricsByType: [MetricType: PerformanceMetric] = [:]
+  private(set) var metricTrends: [MetricTrend] = []
 
   var hasEnoughDataForChart: Bool {
     chartMetrics.count >= 2
   }
 
-  var latestMetricsByType: [MetricType: PerformanceMetric] {
-    var result: [MetricType: PerformanceMetric] = [:]
-    let sorted = sortedMetrics
-    for metric in sorted where result[metric.metricType] == nil {
-      result[metric.metricType] = metric
+  private func recomputeDerivedMetrics() {
+    sortedMetrics = metrics.sorted { $0.recordedDate > $1.recordedDate }
+
+    let types = Set(metrics.map(\.metricType))
+    availableMetricTypes = MetricType.allCases.filter { types.contains($0) }
+
+    activeMetricType = selectedMetricType ?? availableMetricTypes.first
+
+    if let type = activeMetricType {
+      chartMetrics = metrics
+        .filter { $0.metricType == type }
+        .sorted { $0.recordedDate < $1.recordedDate }
+    } else {
+      chartMetrics = []
     }
-    return result
-  }
 
-  var metricTrends: [MetricTrend] {
+    var latest: [MetricType: PerformanceMetric] = [:]
+    for metric in sortedMetrics where latest[metric.metricType] == nil {
+      latest[metric.metricType] = metric
+    }
+    latestMetricsByType = latest
+
     let typeGroups = Dictionary(grouping: metrics, by: \.metricType)
-
-    return typeGroups
+    metricTrends = typeGroups
       .filter { $0.value.count >= 2 }
       .compactMap { type, records in
         let sorted = records.sorted { $0.recordedDate < $1.recordedDate }
