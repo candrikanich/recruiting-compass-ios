@@ -554,6 +554,67 @@ final class SchoolsListViewModelTests: XCTestCase {
     XCTAssertTrue(sut.showWarningBanner)
   }
 
+  // MARK: - Cached filteredSchools Staleness Tests
+  // filteredSchools is a cached stored property (Phase 3.3), recomputed via
+  // didSet on allSchools/filters and homeLocation's setter — not read live.
+  // These tests exist to catch a missed invalidation hook, which would silently
+  // leave filteredSchools stale after a mutation.
+
+  func testFilteredSchools_UpdatesWhenAllSchoolsReassigned_WithoutTouchingFilters() {
+    sut.allSchools = [makeSchool(id: "1", division: "D1")]
+    sut.filters.division = .d1
+    XCTAssertEqual(sut.filteredSchools.count, 1)
+
+    // Reassign allSchools wholesale (e.g. a reload) without touching filters again.
+    sut.allSchools = [
+      makeSchool(id: "2", division: "D1"),
+      makeSchool(id: "3", division: "D2")
+    ]
+
+    XCTAssertEqual(sut.filteredSchools.count, 1)
+    XCTAssertEqual(sut.filteredSchools.first?.id, "2")
+  }
+
+  func testFilteredSchools_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    let keep = makeSchool(id: "keep", isFavorite: true)
+    let remove = makeSchool(id: "remove", isFavorite: true)
+    sut.allSchools = [keep, remove]
+    sut.filters.isFavoritesOnly = true
+    XCTAssertEqual(sut.filteredSchools.count, 2)
+
+    sut.confirmDelete(school: remove)
+    await sut.deleteSchool()
+
+    XCTAssertEqual(sut.filteredSchools.count, 1)
+    XCTAssertEqual(sut.filteredSchools.first?.id, "keep")
+  }
+
+  func testFilteredSchools_UpdatesAfterToggleFavoriteWithoutExplicitRecompute() async {
+    let school = makeSchool(id: "1", isFavorite: false)
+    sut.allSchools = [school]
+    sut.filters.isFavoritesOnly = true
+    XCTAssertEqual(sut.filteredSchools.count, 0)
+
+    await sut.toggleFavorite(school: school)
+
+    XCTAssertEqual(sut.filteredSchools.count, 1)
+  }
+
+  func testFilteredSchools_UpdatesWhenHomeLocationSetAfterDistanceFilter() {
+    sut.allSchools = [
+      makeSchool(id: "1", latitude: 37.4275, longitude: -122.1697),
+      makeSchool(id: "2", latitude: 42.3601, longitude: -71.0589)
+    ]
+    sut.filters.maxDistance = 50
+    // No home location yet — distance filter is a no-op per existing behavior.
+    XCTAssertEqual(sut.filteredSchools.count, 2)
+
+    sut.homeLocation = CLLocationCoordinate2D(latitude: 37.3861, longitude: -122.0839)
+
+    XCTAssertEqual(sut.filteredSchools.count, 1)
+    XCTAssertEqual(sut.filteredSchools.first?.id, "1")
+  }
+
   // MARK: - Distance Caching Tests
 
   func testCachedDistance() {

@@ -10,10 +10,14 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 final class SchoolsListViewModel {
 
   nonisolated deinit {}
-  var allSchools: [School] = []
+  var allSchools: [School] = [] {
+    didSet { recomputeFilteredSchools() }
+  }
   var isLoading = false
   var errorMessage: String?
-  var filters = SchoolFilters()
+  var filters = SchoolFilters() {
+    didSet { recomputeFilteredSchools() }
+  }
   var showDeleteConfirmation = false
   var schoolToDelete: School?
   var isDeleting = false
@@ -36,7 +40,10 @@ final class SchoolsListViewModel {
       }
       return homeLocationFromPreferences
     }
-    set { homeLocationFromPreferences = newValue }
+    set {
+      homeLocationFromPreferences = newValue
+      recomputeFilteredSchools()
+    }
   }
 
   /// Cached home location from user_preferences (Settings → Home Location). Loaded in loadSchools().
@@ -50,7 +57,12 @@ final class SchoolsListViewModel {
   private var distanceCacheOrderedKeys: [String] = []
   private static let maxDistanceCacheEntries = 300
 
-  var filteredSchools: [School] {
+  /// Cached derived list — recomputed via `recomputeFilteredSchools()` whenever
+  /// `allSchools`, `filters`, or `homeLocation` change (see their didSet/setter hooks).
+  /// Do not compute this inline elsewhere; it would go stale silently.
+  private(set) var filteredSchools: [School] = []
+
+  private func recomputeFilteredSchools() {
     var result = allSchools
 
     if !filters.searchText.isEmpty {
@@ -96,7 +108,7 @@ final class SchoolsListViewModel {
       }
     }
 
-    return sorted(result)
+    filteredSchools = sorted(result)
   }
 
   var availableStates: [String] {
