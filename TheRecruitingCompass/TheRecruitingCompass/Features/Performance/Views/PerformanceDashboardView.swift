@@ -9,7 +9,12 @@ struct PerformanceDashboardView: View {
   }
 
   var body: some View {
-    Group {
+    VStack(spacing: 0) {
+      if let errorMessage = viewModel.errorMessage {
+        ErrorBanner(message: errorMessage) { viewModel.errorMessage = nil }
+          .padding(.horizontal)
+      }
+
       if viewModel.isLoading && viewModel.metrics.isEmpty {
         loadingView
       } else if viewModel.metrics.isEmpty {

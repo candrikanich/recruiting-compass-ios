@@ -95,7 +95,11 @@ struct CoachesListView: View {
 
   @ViewBuilder
   private var contentView: some View {
-    Group {
+    VStack(spacing: 0) {
+      if let loadError = viewModel.errorMessage {
+        ErrorBanner(message: loadError) { viewModel.errorMessage = nil }
+          .padding(.horizontal)
+      }
       if viewModel.isLoading && viewModel.allCoaches.isEmpty {
         LoadingStateView(message: "Loading coaches...")
       } else if viewModel.allSchools.isEmpty {

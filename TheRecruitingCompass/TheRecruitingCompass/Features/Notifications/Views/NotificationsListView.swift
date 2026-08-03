@@ -30,11 +30,21 @@ struct NotificationsListView: View {
           onFilterChanged: { _ in }
         )
 
+        if let errorMessage = viewModel.errorMessage {
+          ErrorBanner(message: errorMessage) { viewModel.errorMessage = nil }
+            .padding(.horizontal)
+        }
+
         if viewModel.isLoading && viewModel.notifications.isEmpty {
-          ProgressView("Loading notifications...")
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+          LoadingStateView(message: "Loading notifications...")
         } else if viewModel.filteredNotifications.isEmpty {
-          NotificationEmptyState()
+          ScrollView {
+            NotificationEmptyState()
+              .frame(maxWidth: .infinity)
+          }
+          .refreshable {
+            await viewModel.refresh()
+          }
         } else {
           ScrollView {
             LazyVStack(spacing: 12) {

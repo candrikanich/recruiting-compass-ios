@@ -20,7 +20,11 @@ struct SchoolsListView: View {
 
   var body: some View {
     NavigationStack(path: $navigationPath) {
-      Group {
+      VStack(spacing: 0) {
+      if let loadError = viewModel.errorMessage {
+        ErrorBanner(message: loadError) { viewModel.errorMessage = nil }
+          .padding(.horizontal)
+      }
       if viewModel.isLoading && viewModel.allSchools.isEmpty {
         LoadingStateView(message: "Loading schools...")
       } else if viewModel.allSchools.isEmpty {

@@ -94,7 +94,11 @@ struct InteractionsListView: View {
 
   @ViewBuilder
   private var contentView: some View {
-    Group {
+    VStack(spacing: 0) {
+      if let loadError = viewModel.errorMessage {
+        ErrorBanner(message: loadError) { viewModel.errorMessage = nil }
+          .padding(.horizontal)
+      }
       if viewModel.isLoading && viewModel.allInteractions.isEmpty {
         LoadingStateView(message: "Loading interactions...")
       } else if viewModel.allInteractions.isEmpty && viewModel.allCoaches.isEmpty {
