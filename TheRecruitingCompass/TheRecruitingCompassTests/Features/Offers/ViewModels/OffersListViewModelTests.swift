@@ -9,11 +9,14 @@ final class OffersListViewModelTests: XCTestCase {
   var mockAuthManager: MockAuthManager!
   var mockFamilyService: MockFamilyService!
   var familyManager: FamilyManager!
+  var mockCache: InMemoryCache!
 
   override func setUp() async throws {
     mockService = MockOffersService()
     mockAuthManager = MockAuthManager()
     mockFamilyService = MockFamilyService()
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
     mockAuthManager.setMockUser(User(
       id: "test-user-id",
       email: "test@example.com",
@@ -30,7 +33,8 @@ final class OffersListViewModelTests: XCTestCase {
     viewModel = OffersListViewModel(
       offersService: mockService,
       familyManager: familyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: mockCache
     )
   }
 
@@ -40,6 +44,7 @@ final class OffersListViewModelTests: XCTestCase {
     mockAuthManager = nil
     mockFamilyService = nil
     familyManager = nil
+    mockCache = nil
   }
 
   // MARK: - Initial State
@@ -335,6 +340,68 @@ final class OffersListViewModelTests: XCTestCase {
     viewModel.schools = [makeSchool(id: "s1", name: "UCLA")]
 
     XCTAssertEqual(viewModel.filteredOffers.count, 1)
+  }
+
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadOffers_SecondLoad_UsesCacheAndSkipsService() async {
+    mockService.stubbedOffers = [makeTestOffer(id: "1")]
+
+    await viewModel.loadOffers()
+    XCTAssertEqual(mockService.fetchOffersCallCount, 1)
+
+    mockService.stubbedOffers = [makeTestOffer(id: "2")]
+    await viewModel.loadOffers()
+
+    XCTAssertEqual(mockService.fetchOffersCallCount, 1)
+    XCTAssertEqual(viewModel.allOffers.first?.id, "1")
+  }
+
+  func testCreateOffer_InvalidatesListCache_NextLoadRefetches() async {
+    mockService.stubbedOffers = []
+    await viewModel.loadOffers()
+    XCTAssertEqual(mockService.fetchOffersCallCount, 1)
+
+    let created = makeTestOffer(id: "new-1")
+    mockService.stubbedCreatedOffer = created
+    viewModel.formState.schoolId = "school-1"
+    await viewModel.createOffer()
+
+    mockService.stubbedOffers = [created]
+    await viewModel.loadOffers()
+
+    XCTAssertEqual(mockService.fetchOffersCallCount, 2)
+  }
+
+  func testDeleteOffer_InvalidatesListCache_NextLoadRefetches() async {
+    let offer = makeTestOffer(id: "del-1")
+    mockService.stubbedOffers = [offer]
+    await viewModel.loadOffers()
+    XCTAssertEqual(mockService.fetchOffersCallCount, 1)
+
+    viewModel.confirmDelete(offer)
+    await viewModel.deleteOffer()
+
+    mockService.stubbedOffers = []
+    await viewModel.loadOffers()
+
+    XCTAssertEqual(mockService.fetchOffersCallCount, 2)
+  }
+
+  func testOfferDetailViewModel_EditOrDelete_InvalidatesOffersListCache() async {
+    mockService.stubbedOffers = [makeTestOffer(id: "1")]
+    await viewModel.loadOffers()
+    XCTAssertEqual(mockService.fetchOffersCallCount, 1)
+
+    // Simulate what OfferDetailViewModel does on edit/delete: invalidate the
+    // same cache key via the shared ListCacheKeys builder.
+    await mockCache.remove(forKey: ListCacheKeys.offers(userId: "test-user-id"))
+
+    mockService.stubbedOffers = [makeTestOffer(id: "1"), makeTestOffer(id: "2")]
+    await viewModel.loadOffers()
+
+    XCTAssertEqual(mockService.fetchOffersCallCount, 2)
+    XCTAssertEqual(viewModel.allOffers.count, 2)
   }
 
   // MARK: - Selection Tests

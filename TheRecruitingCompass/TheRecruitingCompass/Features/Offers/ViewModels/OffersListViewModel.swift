@@ -112,14 +112,21 @@ final class OffersListViewModel {
 
   // MARK: - Initialization
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached offers list (seconds).
+  private static let offersListCacheTTL: TimeInterval = 60
+
   init(
     offersService: (any OffersManaging)? = nil,
     familyManager: FamilyManager? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.offersService = offersService ?? OffersServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
   }
 
   /// The user whose offers we read/write. When a parent is viewing an athlete,
@@ -127,6 +134,14 @@ final class OffersListViewModel {
   /// the logged-in user's own id.
   private var targetUserId: String? {
     familyManager.selectedAthlete?.userId ?? authManager.user?.id
+  }
+
+  /// Invalidates the cached offers list so the next `loadOffers()` refetches.
+  /// Call after any mutation (create, delete). `OfferDetailViewModel`
+  /// invalidates the same key (via `ListCacheKeys.offers`) after edit/delete.
+  private func invalidateOffersListCache() async {
+    guard let userId = targetUserId else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.offers(userId: userId))
   }
 
   // MARK: - Data Loading
@@ -142,12 +157,23 @@ final class OffersListViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    let cacheKey = ListCacheKeys.offers(userId: userId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
     do {
       if let familyUnitId = familyManager.familyUnitId {
         schools = try await offersService.fetchSchools(familyUnitId: familyUnitId)
       }
-      allOffers = try await offersService.fetchOffers(userId: userId)
-      logger.info("Loaded \(self.allOffers.count) offers")
+
+      if let cachedOffers = await cacheToUse.get([Offer].self, forKey: cacheKey) {
+        allOffers = cachedOffers
+        logger.info("Loaded \(self.allOffers.count) offers from cache")
+      } else {
+        let fetched = try await offersService.fetchOffers(userId: userId)
+        allOffers = fetched
+        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.offersListCacheTTL)
+        logger.info("Loaded \(self.allOffers.count) offers")
+      }
     } catch {
       logger.error("Failed to load offers: \(error.localizedDescription)")
       errorMessage = "Failed to load offers. Please try again."
@@ -172,6 +198,7 @@ final class OffersListViewModel {
       successMessage = "Offer logged successfully"
       showSuccessToast = true
       logger.info("Created offer: \(newOffer.id)")
+      await invalidateOffersListCache()
     } catch {
       logger.error("Failed to create offer: \(error.localizedDescription)")
       errorMessage = "Failed to save offer. Please try again."
@@ -199,6 +226,7 @@ final class OffersListViewModel {
       selectedOfferIds.remove(offer.id)
       successMessage = "Offer deleted"
       showSuccessToast = true
+      await invalidateOffersListCache()
       logger.info("Deleted offer: \(offer.id)")
     } catch {
       logger.error("Failed to delete offer: \(error.localizedDescription)")

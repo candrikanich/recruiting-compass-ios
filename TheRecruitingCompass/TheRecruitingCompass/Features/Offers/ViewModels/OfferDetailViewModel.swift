@@ -127,11 +127,15 @@ final class OfferDetailViewModel {
     }
   }
 
+  /// Invalidates this offer's cache plus OffersListViewModel's cached list
+  /// (Phase 3.6), keyed by the offer's owning user id — matches
+  /// OffersListViewModel.targetUserId for the athlete this offer belongs to.
   private func invalidateOfferCache() async {
     guard let offer else { return }
     let cacheToUse = cache ?? InMemoryCache.shared
     await cacheToUse.remove(forKey: "offer:\(offerId)")
     await cacheToUse.remove(forKey: "school:\(offer.schoolId)")
+    await cacheToUse.remove(forKey: ListCacheKeys.offers(userId: offer.userId))
   }
 
   // MARK: - Editing
