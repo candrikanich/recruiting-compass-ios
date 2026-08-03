@@ -107,23 +107,7 @@ final class ProfilePhotoServiceImpl: ProfilePhotoManaging, Sendable {
     // MARK: - Private helpers
 
     private func compress(_ image: UIImage) -> Data? {
-        let maxDimension: CGFloat = 1024
-        let size = image.size
-        let scale = min(maxDimension / size.width, maxDimension / size.height, 1.0)
-        let targetSize = CGSize(width: size.width * scale, height: size.height * scale)
-
-        let renderer = UIGraphicsImageRenderer(size: targetSize)
-        let resized = renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: targetSize))
-        }
-
-        // Try progressively lower quality until under 1 MB
-        for quality in stride(from: 0.8, through: 0.3, by: -0.1) {
-            if let data = resized.jpegData(compressionQuality: quality), data.count <= 1_000_000 {
-                return data
-            }
-        }
-        return resized.jpegData(compressionQuality: 0.3)
+        ImageCompression.downsampledJPEGData(from: image)
     }
 
     /// Extracts the storage path (everything after `/profile-photos/`) from a public URL.

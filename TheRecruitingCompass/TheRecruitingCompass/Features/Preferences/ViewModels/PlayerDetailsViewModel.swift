@@ -149,8 +149,14 @@ final class PlayerDetailsViewModel {
         logger.debug("Uploading profile photo")
         isUploadingPhoto = true
         errorMessage = nil
+        defer { isUploadingPhoto = false }
         do {
-            guard let compressedData = image.jpegData(compressionQuality: 0.7) else {
+            // Downsample + encode off the main actor: a full-resolution photo-picker
+            // image can take 300-800ms to encode, which would otherwise freeze the UI.
+            let compressedData = await Task.detached(priority: .userInitiated) {
+                ImageCompression.downsampledJPEGData(from: image, maxBytes: 5_000_000)
+            }.value
+            guard let compressedData else {
                 throw PhotoError.compressionFailed
             }
             guard compressedData.count <= 5_000_000 else {
@@ -159,11 +165,9 @@ final class PlayerDetailsViewModel {
             profileImage = image
             markChanged()
             logger.info("Profile photo uploaded successfully")
-            isUploadingPhoto = false
         } catch {
             logger.error("Failed to upload photo: \(error.localizedDescription)")
             errorMessage = "Failed to upload photo. Please try again."
-            isUploadingPhoto = false
         }
     }
 
