@@ -129,6 +129,43 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
     XCTAssertTrue(viewModel.filteredTemplates.isEmpty)
   }
 
+  // MARK: - Cached filteredTemplates Staleness Tests
+  // filteredTemplates is a cached stored property (Phase 3.3), recomputed via
+  // didSet on templates/filterType/searchQuery — not read live.
+
+  func testFilteredTemplates_UpdatesWhenReloadedWithoutTouchingFilter() async {
+    mockService.mockTemplates = [
+      makeTemplate(id: "1", type: .email),
+      makeTemplate(id: "2", type: .text)
+    ]
+    await viewModel.loadTemplates()
+    viewModel.filterType = .email
+    XCTAssertEqual(viewModel.filteredTemplates.count, 1)
+
+    mockService.mockTemplates = [
+      makeTemplate(id: "3", type: .email),
+      makeTemplate(id: "4", type: .email)
+    ]
+    await viewModel.loadTemplates()
+
+    XCTAssertEqual(viewModel.filteredTemplates.count, 2)
+  }
+
+  func testFilteredTemplates_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    let keep = makeTemplate(id: "keep", type: .email)
+    let remove = makeTemplate(id: "remove", type: .email)
+    mockService.mockTemplates = [keep, remove]
+    await viewModel.loadTemplates()
+    viewModel.filterType = .email
+    XCTAssertEqual(viewModel.filteredTemplates.count, 2)
+
+    viewModel.confirmDelete(id: "remove")
+    await viewModel.executeDelete()
+
+    XCTAssertEqual(viewModel.filteredTemplates.count, 1)
+    XCTAssertEqual(viewModel.filteredTemplates.first?.id, "keep")
+  }
+
   // MARK: - typeCounts Tests
 
   func testTypeCounts_CalculatesCorrectly() async {
