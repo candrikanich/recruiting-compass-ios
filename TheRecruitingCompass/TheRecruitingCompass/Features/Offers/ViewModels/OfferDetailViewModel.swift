@@ -121,6 +121,8 @@ final class OfferDetailViewModel {
       await cacheToUse.set(fetchedSchool, forKey: schoolKey, ttlSeconds: Self.offerCacheTTL)
       logger.info("Loaded school: \(fetchedSchool.name)")
     } catch {
+      // intentionally silent: the offer itself loaded fine; the view already
+      // handles school == nil by falling back to the offer's stored school name.
       logger.warning("Failed to load school for offer: \(error.localizedDescription)")
     }
   }

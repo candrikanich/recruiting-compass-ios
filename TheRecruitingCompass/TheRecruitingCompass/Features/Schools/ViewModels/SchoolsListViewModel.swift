@@ -168,6 +168,10 @@ final class SchoolsListViewModel {
             homeLocationFromPreferences = nil
           }
         } catch {
+          // intentionally silent: distance-based sort just falls back to
+          // having no reference point (schools sort as if distance is
+          // unknown) rather than blocking the schools list on a preferences
+          // fetch failure.
           logger.debug("Could not load home location from preferences: \(error.localizedDescription)")
           homeLocationFromPreferences = nil
         }

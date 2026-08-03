@@ -261,6 +261,8 @@ final class FamilyManagementViewModel {
     do {
       pendingInvitations = try await familyService.fetchPendingInvitations()
     } catch {
+      // intentionally silent: secondary section on an already-loaded family
+      // management screen; an empty list here just means none are pending.
       logger.debug("Failed to load pending invitations: \(error.localizedDescription)")
       pendingInvitations = []
     }

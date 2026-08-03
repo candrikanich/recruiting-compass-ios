@@ -203,6 +203,8 @@ final class EventDetailViewModel {
       schoolCoaches = try await eventsService.fetchCoaches(schoolId: schoolId, userId: userId)
       logger.info("Loaded \(self.schoolCoaches.count) coaches")
     } catch {
+      // intentionally silent: the event itself loaded fine; an empty
+      // coaches-present list here just means the check-in picker is empty.
       logger.error("Failed to load coaches: \(error.localizedDescription)")
     }
   }
@@ -212,6 +214,8 @@ final class EventDetailViewModel {
       metrics = try await eventsService.fetchMetrics(eventId: eventId, userId: userId)
       logger.info("Loaded \(self.metrics.count) metrics")
     } catch {
+      // intentionally silent: secondary section on an already-loaded event;
+      // an empty metrics list here just means nothing to show, not an error.
       logger.error("Failed to load metrics: \(error.localizedDescription)")
     }
   }

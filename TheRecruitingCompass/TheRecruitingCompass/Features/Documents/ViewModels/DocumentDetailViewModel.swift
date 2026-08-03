@@ -185,6 +185,9 @@ final class DocumentDetailViewModel {
     do {
       schools = try await schoolsService.fetchSchools(familyUnitId: familyUnitId)
     } catch {
+      // intentionally silent: schools only back the share sheet's picker; a
+      // failure here shouldn't overwrite the document detail's own error state.
+      // The picker simply shows no schools, which is self-evident in its UI.
       logger.error("Failed to load schools: \(error.localizedDescription)")
     }
   }
@@ -300,6 +303,9 @@ final class DocumentDetailViewModel {
     do {
       versions = try await documentsService.fetchVersionHistory(documentId: self.documentId, document: doc)
     } catch {
+      // intentionally silent: version history is a secondary detail section;
+      // the document itself loaded fine, and an empty list here reads as
+      // "no other versions" rather than an error worth interrupting the user for.
       logger.error("Failed to fetch versions: \(error.localizedDescription)")
       versions = []
     }

@@ -129,6 +129,8 @@ final class InteractionDetailViewModel {
           logger.warning("School not found: \(schoolId)")
         }
       } catch {
+        // intentionally silent: the interaction itself loaded fine; the view
+        // already handles school == nil by simply not showing a school row.
         logger.error("Failed to load school: \(error.localizedDescription)")
       }
     }
@@ -142,6 +144,8 @@ final class InteractionDetailViewModel {
           logger.warning("Coach not found: \(coachId)")
         }
       } catch {
+        // intentionally silent: same as school above — coach == nil already
+        // has a defined, non-error presentation.
         logger.error("Failed to load coach: \(error.localizedDescription)")
       }
     }
@@ -151,6 +155,8 @@ final class InteractionDetailViewModel {
       do {
         loggedByName = try await interactionsService.fetchLoggedByUserName(userId: loggedBy)
       } catch {
+        // intentionally silent: falls back to a labeled placeholder rather
+        // than blocking display of the interaction the user came here to see.
         logger.error("Failed to load user name: \(error.localizedDescription)")
         loggedByName = "Unknown"
       }
