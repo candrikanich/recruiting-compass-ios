@@ -134,11 +134,18 @@ final class CoachDetailViewModel {
     }
   }
 
-  /// Invalidates cached coach so the next load refetches. Call after any mutation.
+  /// Invalidates cached coach, plus CoachesListViewModel's cached list
+  /// (Phase 3.6) so an edited field shows correctly on next visit to the list
+  /// screen. `allSchools` is the same list the caller passed in on
+  /// navigation (from CoachesListViewModel), so no extra fetch is needed to
+  /// resolve the coach's familyUnitId. Call after any mutation.
   private func invalidateCoachCache() async {
     let cacheKey = "coach:\(coachId)"
     let cacheToUse = cache ?? InMemoryCache.shared
     await cacheToUse.remove(forKey: cacheKey)
+    if let coach, let familyUnitId = allSchools.first(where: { $0.id == coach.schoolId })?.familyUnitId {
+      await cacheToUse.remove(forKey: ListCacheKeys.coaches(familyUnitId: familyUnitId))
+    }
   }
 
   func loadDetails() async {

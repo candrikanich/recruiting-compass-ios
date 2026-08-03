@@ -200,6 +200,10 @@ final class AddCoachViewModel {
       let newCoach = try await coachesService.createCoach(request: request)
       logger.info("Coach created successfully: \(newCoach.id)")
 
+      // Invalidate CoachesListViewModel's cached list (Phase 3.6) so the new
+      // coach appears immediately on next visit instead of waiting out the TTL.
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.coaches(familyUnitId: familyUnitId))
+
       // Success announcement with haptic feedback
       let announcement = "Coach \(newCoach.firstName) \(newCoach.lastName) added successfully"
       announcer.announce(announcement)

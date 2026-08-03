@@ -10,11 +10,14 @@ final class CoachesListViewModelTests: XCTestCase {
   private var mockAuthManager: MockAuthManager!
   private var mockFamilyManager: FamilyManager!
   private var mockFamilyService: MockFamilyService!
+  private var mockCache: InMemoryCache!
 
   override func setUp() async throws {
     mockService = MockCoachesService()
     mockAuthManager = MockAuthManager()
     mockFamilyService = MockFamilyService()
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
     mockFamilyManager = FamilyManager(
       familyService: mockFamilyService,
       authManager: mockAuthManager
@@ -42,7 +45,8 @@ final class CoachesListViewModelTests: XCTestCase {
     sut = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: mockCache
     )
   }
 
@@ -52,6 +56,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockAuthManager = nil
     mockFamilyManager = nil
     mockFamilyService = nil
+    mockCache = nil
   }
 
   // MARK: - Test Helpers
@@ -444,6 +449,55 @@ final class CoachesListViewModelTests: XCTestCase {
     ]
 
     XCTAssertEqual(sut.filteredCoaches.map(\.id), ["2", "1"])
+  }
+
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadCoaches_SecondLoad_UsesCacheAndSkipsService() async {
+    mockService.stubbedSchools = [makeSchool()]
+    mockService.stubbedCoaches = [makeCoach(id: "1")]
+
+    await sut.loadCoaches()
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 1)
+
+    mockService.stubbedCoaches = [makeCoach(id: "2")]
+    await sut.loadCoaches()
+
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 1)
+    XCTAssertEqual(sut.allCoaches.first?.id, "1")
+  }
+
+  func testDeleteCoach_InvalidatesListCache_NextLoadRefetches() async {
+    let coach = makeCoach(id: "1")
+    mockService.stubbedSchools = [makeSchool()]
+    mockService.stubbedCoaches = [coach]
+    await sut.loadCoaches()
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 1)
+
+    sut.confirmDelete(coach)
+    await sut.deleteCoach()
+
+    mockService.stubbedCoaches = []
+    await sut.loadCoaches()
+
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 2)
+  }
+
+  func testAddCoachViewModel_CreateCoach_InvalidatesCoachesListCache() async {
+    mockService.stubbedSchools = [makeSchool()]
+    mockService.stubbedCoaches = [makeCoach(id: "1")]
+    await sut.loadCoaches()
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 1)
+
+    // Simulate what AddCoachViewModel/AddInteractionViewModel do on creation:
+    // invalidate the same cache key via the shared ListCacheKeys builder.
+    await mockCache.remove(forKey: ListCacheKeys.coaches(familyUnitId: "family-1"))
+
+    mockService.stubbedCoaches = [makeCoach(id: "1"), makeCoach(id: "2")]
+    await sut.loadCoaches()
+
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 2)
+    XCTAssertEqual(sut.allCoaches.count, 2)
   }
 
   // MARK: - Delete Tests

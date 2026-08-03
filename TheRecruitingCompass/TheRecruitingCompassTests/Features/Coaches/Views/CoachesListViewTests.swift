@@ -139,7 +139,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -157,7 +158,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     // Before load
@@ -178,7 +180,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -198,7 +201,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -218,7 +222,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -244,7 +249,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -265,7 +271,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -290,7 +297,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -313,7 +321,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -340,7 +349,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -363,7 +373,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -388,7 +399,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -411,7 +423,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -433,7 +446,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -449,7 +463,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -470,7 +485,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -489,7 +505,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()
@@ -508,7 +525,8 @@ final class CoachesListViewTests: XCTestCase {
     let viewModel = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
     )
 
     await viewModel.loadCoaches()

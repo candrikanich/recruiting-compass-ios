@@ -115,14 +115,30 @@ final class CoachesListViewModel {
     )
   }
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached coaches list (seconds).
+  private static let coachesListCacheTTL: TimeInterval = 60
+
   init(
     coachesService: (any CoachesManaging)? = nil,
     familyManager: FamilyManager? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
+  }
+
+  /// Invalidates the cached coaches list so the next `loadCoaches()`
+  /// refetches. Call after any mutation (delete). `AddCoachViewModel`,
+  /// `AddInteractionViewModel.createNewCoach()`, and `CoachDetailViewModel`
+  /// invalidate the same key (via `ListCacheKeys.coaches`) after create/edit.
+  private func invalidateCoachesListCache() async {
+    guard let familyUnitId = familyManager.currentMember?.familyUnitId else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.coaches(familyUnitId: familyUnitId))
   }
 
   func loadCoaches() async {
@@ -136,14 +152,23 @@ final class CoachesListViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    let cacheKey = ListCacheKeys.coaches(familyUnitId: familyUnitId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
     do {
       let schools = try await coachesService.fetchSchools(familyUnitId: familyUnitId)
       allSchools = schools
 
-      let schoolIds = schools.map(\.id)
-      allCoaches = try await coachesService.fetchCoaches(schoolIds: schoolIds)
-
-      logger.info("Loaded \(self.allCoaches.count) coaches from \(schools.count) schools")
+      if let cachedCoaches = await cacheToUse.get([Coach].self, forKey: cacheKey) {
+        allCoaches = cachedCoaches
+        logger.info("Loaded \(self.allCoaches.count) coaches from cache")
+      } else {
+        let schoolIds = schools.map(\.id)
+        let fetched = try await coachesService.fetchCoaches(schoolIds: schoolIds)
+        allCoaches = fetched
+        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.coachesListCacheTTL)
+        logger.info("Loaded \(self.allCoaches.count) coaches from \(schools.count) schools")
+      }
     } catch {
       logger.error("Failed to load coaches: \(error.localizedDescription)")
       errorMessage = "Failed to load coaches. Please try again."
@@ -174,6 +199,7 @@ final class CoachesListViewModel {
       logger.info("Deleted coach: \(coachName)")
       successMessage = "Coach deleted"
       showSuccessToast = true
+      await invalidateCoachesListCache()
     } catch {
       logger.warning("Simple delete failed, attempting cascade: \(error.localizedDescription)")
       do {
@@ -189,6 +215,7 @@ final class CoachesListViewModel {
           successMessage = "Coach deleted"
         }
         showSuccessToast = true
+        await invalidateCoachesListCache()
       } catch {
         logger.error("Cascade delete failed: \(error.localizedDescription)")
         deleteErrorMessage = "Failed to delete coach. Please try again."

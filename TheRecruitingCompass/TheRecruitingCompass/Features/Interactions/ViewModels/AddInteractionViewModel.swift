@@ -156,6 +156,10 @@ final class AddInteractionViewModel {
       let newCoach = try await interactionsService.createCoach(request)
       logger.info("Created coach: \(newCoach.id)")
 
+      // Invalidate CoachesListViewModel's cached list (Phase 3.6) so the new
+      // coach appears immediately on next visit instead of waiting out the TTL.
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.coaches(familyUnitId: familyUnitId))
+
       // Add to local coach list and select
       allCoaches.append(newCoach)
       formState.coachId = newCoach.id
