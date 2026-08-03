@@ -176,13 +176,19 @@ final class SchoolDetailViewModel {
     }
   }
 
-  /// Invalidates cached school and history so the next load refetches. Call after any mutation.
+  /// Invalidates cached school and history so the next load refetches, plus
+  /// SchoolsListViewModel's cached list (Phase 3.6) so an edited field (status,
+  /// favorite, etc.) shows correctly on next visit to the list screen instead
+  /// of waiting out the list cache's TTL. Call after any mutation.
   private func invalidateSchoolCache() async {
     let cacheKey = "school:\(schoolId)"
     let historyKey = "school:\(schoolId):history"
     let cacheToUse = cache ?? InMemoryCache.shared
     await cacheToUse.remove(forKey: cacheKey)
     await cacheToUse.remove(forKey: historyKey)
+    if let familyUnitId = familyManager.familyUnitId {
+      await cacheToUse.remove(forKey: ListCacheKeys.schools(familyUnitId: familyUnitId))
+    }
   }
 
   // MARK: - Status Update

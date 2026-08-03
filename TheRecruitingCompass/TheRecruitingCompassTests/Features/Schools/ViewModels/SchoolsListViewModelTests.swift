@@ -11,11 +11,14 @@ final class SchoolsListViewModelTests: XCTestCase {
   private var mockAuthManager: MockAuthManager!
   private var mockFamilyManager: FamilyManager!
   private var mockFamilyService: MockFamilyService!
+  private var mockCache: InMemoryCache!
 
   override func setUp() async throws {
     mockService = MockSchoolsService()
     mockAuthManager = MockAuthManager()
     mockFamilyService = MockFamilyService()
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
     mockFamilyManager = FamilyManager(
       familyService: mockFamilyService,
       authManager: mockAuthManager
@@ -43,7 +46,8 @@ final class SchoolsListViewModelTests: XCTestCase {
     sut = SchoolsListViewModel(
       schoolsService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: mockCache
     )
   }
 
@@ -53,6 +57,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     mockAuthManager = nil
     mockFamilyManager = nil
     mockFamilyService = nil
+    mockCache = nil
   }
 
   // MARK: - Test Helpers
@@ -613,6 +618,67 @@ final class SchoolsListViewModelTests: XCTestCase {
 
     XCTAssertEqual(sut.filteredSchools.count, 1)
     XCTAssertEqual(sut.filteredSchools.first?.id, "1")
+  }
+
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadSchools_SecondLoad_UsesCacheAndSkipsService() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+
+    await sut.loadSchools()
+    XCTAssertEqual(mockService.fetchSchoolsCallCount, 1)
+
+    mockService.stubbedSchools = [makeSchool(id: "2")]
+    await sut.loadSchools()
+
+    // Second load reads the cache — service not called again, list unchanged.
+    XCTAssertEqual(mockService.fetchSchoolsCallCount, 1)
+    XCTAssertEqual(sut.allSchools.first?.id, "1")
+  }
+
+  func testDeleteSchool_InvalidatesListCache_NextLoadRefetches() async {
+    let school = makeSchool(id: "1")
+    mockService.stubbedSchools = [school]
+    await sut.loadSchools()
+    XCTAssertEqual(mockService.fetchSchoolsCallCount, 1)
+
+    sut.confirmDelete(school: school)
+    await sut.deleteSchool()
+
+    mockService.stubbedSchools = []
+    await sut.loadSchools()
+
+    XCTAssertEqual(mockService.fetchSchoolsCallCount, 2)
+  }
+
+  func testToggleFavorite_InvalidatesListCache_NextLoadRefetches() async {
+    let school = makeSchool(id: "1", isFavorite: false)
+    mockService.stubbedSchools = [school]
+    await sut.loadSchools()
+    XCTAssertEqual(mockService.fetchSchoolsCallCount, 1)
+
+    await sut.toggleFavorite(school: school)
+
+    mockService.stubbedSchools = [makeSchool(id: "1", isFavorite: true)]
+    await sut.loadSchools()
+
+    XCTAssertEqual(mockService.fetchSchoolsCallCount, 2)
+  }
+
+  func testAddSchoolViewModel_CreateSchool_InvalidatesSchoolsListCache() async throws {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    await sut.loadSchools()
+    XCTAssertEqual(mockService.fetchSchoolsCallCount, 1)
+
+    // Simulate what AddSchoolViewModel does on successful creation: invalidate
+    // the same cache key via the shared ListCacheKeys builder.
+    await mockCache.remove(forKey: ListCacheKeys.schools(familyUnitId: "family-1"))
+
+    mockService.stubbedSchools = [makeSchool(id: "1"), makeSchool(id: "2")]
+    await sut.loadSchools()
+
+    XCTAssertEqual(mockService.fetchSchoolsCallCount, 2)
+    XCTAssertEqual(sut.allSchools.count, 2)
   }
 
   // MARK: - Distance Caching Tests

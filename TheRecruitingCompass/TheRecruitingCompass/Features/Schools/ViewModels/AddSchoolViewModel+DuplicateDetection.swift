@@ -104,6 +104,10 @@ extension AddSchoolViewModel {
       let newSchool = try await schoolsService.createSchool(request: request)
       duplicateLogger.info("School created successfully: \(newSchool.id)")
 
+      // Invalidate SchoolsListViewModel's cached list (Phase 3.6) so the new
+      // school appears immediately on next visit instead of waiting out the TTL.
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.schools(familyUnitId: familyUnitId))
+
       // Phase 5: Fetch and persist favicon — fire-and-forget, do not await
       let faviconService = schoolFaviconService
       Task {
