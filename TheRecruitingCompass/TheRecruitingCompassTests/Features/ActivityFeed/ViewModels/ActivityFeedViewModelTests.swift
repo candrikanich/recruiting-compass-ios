@@ -586,6 +586,44 @@ final class ActivityFeedViewModelTests: XCTestCase {
     XCTAssertEqual(sut.currentPage, 1)
   }
 
+  // MARK: - Cached filteredActivities Staleness Tests
+  // filteredActivities is a cached stored property (Phase 3.3), recomputed via
+  // didSet on activities/selectedType/selectedDateRange/searchQuery — not read live.
+
+  func testFilteredActivities_UpdatesWhenActivitiesReloaded_WithoutTouchingFilter() async {
+    authenticateUser()
+    setupMockDataForFullLoad()
+    await sut.loadActivities()
+    sut.selectedType = .interaction
+    XCTAssertEqual(sut.filteredActivities.count, 2)
+
+    // Reload with entirely different data — a new interaction plus no other types —
+    // without touching selectedType again.
+    mockService.mockInteractions = [createInteraction(id: "i3")]
+    mockService.mockStatusChanges = []
+    mockService.mockDocuments = []
+    await sut.loadActivities()
+
+    XCTAssertEqual(sut.filteredActivities.count, 1)
+    XCTAssertTrue(sut.filteredActivities.allSatisfy { $0.type == .interaction })
+  }
+
+  func testFilteredActivities_UpdatesAfterRealtimeInsertWithoutExplicitRecompute() async {
+    authenticateUser()
+    setupMockDataForFullLoad()
+    await sut.loadActivities()
+    sut.selectedType = .interaction
+    XCTAssertEqual(sut.filteredActivities.count, 2)
+
+    let newEvent = ActivityEventFactory.fromInteraction(
+      createInteraction(id: "realtime-1"),
+      schoolName: nil
+    )
+    sut.addRealtimeEvent(newEvent)
+
+    XCTAssertEqual(sut.filteredActivities.count, 3)
+  }
+
   // MARK: - Combined Filters Tests
 
   func testCombinedFilters_TypeAndSearch() async {

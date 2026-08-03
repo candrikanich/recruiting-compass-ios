@@ -12,17 +12,28 @@ private let logger = Logger(
 final class ActivityFeedViewModel {
 
   nonisolated deinit {}
-  var activities: [ActivityEvent] = []
+  var activities: [ActivityEvent] = [] {
+    didSet { recomputeFilteredActivities() }
+  }
   var isLoading = false
   var errorMessage: String?
   var selectedType: ActivityEventType? {
-    didSet { if oldValue != selectedType { currentPage = 1 } }
+    didSet {
+      if oldValue != selectedType { currentPage = 1 }
+      recomputeFilteredActivities()
+    }
   }
   var selectedDateRange: ActivityDateRange = .all {
-    didSet { if oldValue != selectedDateRange { currentPage = 1 } }
+    didSet {
+      if oldValue != selectedDateRange { currentPage = 1 }
+      recomputeFilteredActivities()
+    }
   }
   var searchQuery: String = "" {
-    didSet { if oldValue != searchQuery { currentPage = 1 } }
+    didSet {
+      if oldValue != searchQuery { currentPage = 1 }
+      recomputeFilteredActivities()
+    }
   }
   var currentPage: Int = 1
   let pageSize: Int = 20
@@ -40,7 +51,12 @@ final class ActivityFeedViewModel {
 
   // MARK: - Computed Properties
 
-  var filteredActivities: [ActivityEvent] {
+  /// Cached derived list — recomputed via `recomputeFilteredActivities()` whenever
+  /// `activities`, `selectedType`, `selectedDateRange`, or `searchQuery` change.
+  /// Do not compute this inline elsewhere; it would go stale silently.
+  private(set) var filteredActivities: [ActivityEvent] = []
+
+  private func recomputeFilteredActivities() {
     var result = activities
 
     if let type = selectedType {
@@ -60,7 +76,7 @@ final class ActivityFeedViewModel {
       }
     }
 
-    return result
+    filteredActivities = result
   }
 
   var paginatedActivities: [ActivityEvent] {
