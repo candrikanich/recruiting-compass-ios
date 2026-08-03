@@ -4,6 +4,7 @@ import Foundation
 final class MockNotificationsService: NotificationsManaging, @unchecked Sendable {
   var shouldSucceed = true
   var mockNotifications: [AppNotification] = []
+  var fetchNotificationsCallCount = 0
   var markAsReadCallCount = 0
   var markAllAsReadCallCount = 0
   var deleteCallCount = 0
@@ -12,6 +13,7 @@ final class MockNotificationsService: NotificationsManaging, @unchecked Sendable
   var lastDeletedId: String?
 
   func fetchNotifications(userId: String) async throws -> [AppNotification] {
+    fetchNotificationsCallCount += 1
     if !shouldSucceed { throw NotificationServiceError.networkTimeout }
     return mockNotifications
   }
@@ -51,6 +53,7 @@ final class MockNotificationsService: NotificationsManaging, @unchecked Sendable
   func reset() {
     shouldSucceed = true
     mockNotifications = []
+    fetchNotificationsCallCount = 0
     markAsReadCallCount = 0
     markAllAsReadCallCount = 0
     deleteCallCount = 0

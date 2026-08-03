@@ -7,10 +7,13 @@ final class NotificationsListViewModelTests: XCTestCase {
   var viewModel: NotificationsListViewModel!
   var mockService: MockNotificationsService!
   var mockAuthManager: MockAuthManager!
+  var mockCache: InMemoryCache!
 
   override func setUp() async throws {
     mockService = MockNotificationsService()
     mockAuthManager = MockAuthManager()
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
     mockAuthManager.user = User(
       id: "user-1",
       email: "athlete@test.com",
@@ -24,7 +27,8 @@ final class NotificationsListViewModelTests: XCTestCase {
 
     viewModel = NotificationsListViewModel(
       notificationsService: mockService,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: mockCache
     )
   }
 
@@ -32,6 +36,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     viewModel = nil
     mockService = nil
     mockAuthManager = nil
+    mockCache = nil
   }
 
   // MARK: - Initial State Tests
@@ -371,6 +376,47 @@ final class NotificationsListViewModelTests: XCTestCase {
     XCTAssertTrue(viewModel.searchText.isEmpty)
     XCTAssertNil(viewModel.selectedTypeFilter)
     XCTAssertEqual(viewModel.activeFilterCount, 0)
+  }
+
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testFetchNotifications_SecondLoad_UsesCacheAndSkipsService() async {
+    mockService.mockNotifications = [makeNotification(id: "1")]
+
+    await viewModel.fetchNotifications()
+    XCTAssertEqual(mockService.fetchNotificationsCallCount, 1)
+
+    mockService.mockNotifications = [makeNotification(id: "2")]
+    await viewModel.fetchNotifications()
+
+    XCTAssertEqual(mockService.fetchNotificationsCallCount, 1)
+    XCTAssertEqual(viewModel.notifications.first?.id, "1")
+  }
+
+  func testMarkAsRead_InvalidatesListCache_NextFetchRefetches() async {
+    mockService.mockNotifications = [makeNotification(id: "1")]
+    await viewModel.fetchNotifications()
+    XCTAssertEqual(mockService.fetchNotificationsCallCount, 1)
+
+    await viewModel.markAsRead(id: "1")
+
+    mockService.mockNotifications = []
+    await viewModel.fetchNotifications()
+
+    XCTAssertEqual(mockService.fetchNotificationsCallCount, 2)
+  }
+
+  func testDeleteNotification_InvalidatesListCache_NextFetchRefetches() async {
+    mockService.mockNotifications = [makeNotification(id: "1")]
+    await viewModel.fetchNotifications()
+    XCTAssertEqual(mockService.fetchNotificationsCallCount, 1)
+
+    await viewModel.deleteNotification(id: "1")
+
+    mockService.mockNotifications = []
+    await viewModel.fetchNotifications()
+
+    XCTAssertEqual(mockService.fetchNotificationsCallCount, 2)
   }
 
   // MARK: - Mark As Read Tests
