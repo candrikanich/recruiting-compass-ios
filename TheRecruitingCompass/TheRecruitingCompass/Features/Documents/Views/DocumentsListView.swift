@@ -28,6 +28,7 @@ struct DocumentsListView: View {
     .refreshable {
       await viewModel.loadDocuments()
     }
+    .searchable(text: $viewModel.searchQuery, prompt: "Search title or description...")
     .task {
       await viewModel.loadDocuments()
       await viewModel.loadSchools()
@@ -94,11 +95,7 @@ struct DocumentsListView: View {
 
   @ViewBuilder
   private var loadingState: some View {
-    ContentUnavailableView {
-      ProgressView()
-    } description: {
-      Text("Loading documents...")
-    }
+    LoadingStateView(message: "Loading documents...")
   }
 
   @ViewBuilder
@@ -109,7 +106,6 @@ struct DocumentsListView: View {
           .padding(.vertical, 8)
 
         DocumentFilterBar(
-          searchQuery: $viewModel.searchQuery,
           sortBy: $viewModel.sortBy,
           viewMode: $viewModel.viewMode,
           hasActiveFilters: viewModel.hasActiveFilters,

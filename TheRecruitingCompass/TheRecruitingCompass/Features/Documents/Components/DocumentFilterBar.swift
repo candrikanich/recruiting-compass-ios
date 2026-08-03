@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct DocumentFilterBar: View {
-  @Binding var searchQuery: String
   @Binding var sortBy: DocumentSortOption
   @Binding var viewMode: DocumentViewMode
   let hasActiveFilters: Bool
@@ -11,12 +10,7 @@ struct DocumentFilterBar: View {
 
   var body: some View {
     VStack(spacing: 12) {
-      HStack(spacing: 12) {
-        TextField("Search title or description...", text: $searchQuery)
-          .textFieldStyle(.roundedBorder)
-          .accessibilityLabel("Search documents")
-          .accessibilityHint("Filters by title or description")
-
+      HStack {
         Menu {
           ForEach(DocumentSortOption.allCases, id: \.self) { option in
             Button(option.label) {
@@ -37,6 +31,8 @@ struct DocumentFilterBar: View {
         }
         .accessibilityLabel("Sort documents")
         .accessibilityHint("Choose sort order")
+
+        Spacer()
       }
 
       HStack {

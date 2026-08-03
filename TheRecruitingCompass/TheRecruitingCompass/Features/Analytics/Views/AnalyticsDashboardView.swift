@@ -156,14 +156,8 @@ struct AnalyticsDashboardView: View {
 
   @ViewBuilder
   private var loadingView: some View {
-    VStack(spacing: 16) {
-      ProgressView()
-        .scaleEffect(1.2)
-      Text("Loading analytics...")
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .accessibilityLabel("Loading analytics dashboard")
+    LoadingStateView(message: "Loading analytics...")
+      .accessibilityLabel("Loading analytics dashboard")
   }
 
   private func errorView(_ message: String) -> some View {

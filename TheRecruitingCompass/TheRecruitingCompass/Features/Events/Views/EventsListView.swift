@@ -248,8 +248,7 @@ struct EventsListView: View {
 
   @ViewBuilder
   private var loadingState: some View {
-    ProgressView("Loading events...")
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
+    LoadingStateView(message: "Loading events...")
       .accessibilityLabel("Loading events")
   }
 

@@ -16,6 +16,7 @@ struct ActivityFeedView: View {
       }
     }
     .navigationTitle(navigationTitleText)
+    .searchable(text: $viewModel.searchQuery, prompt: "Search activities...")
     .refreshable { await viewModel.loadActivities() }
     .task { await viewModel.loadActivities() }
   }
@@ -88,31 +89,6 @@ struct ActivityFeedView: View {
         }
       }
       .pickerStyle(.segmented)
-
-      HStack {
-        Image(systemName: "magnifyingglass")
-          .foregroundStyle(Color.iconGray)
-          .accessibilityHidden(true)
-
-        TextField("Search activities...", text: $viewModel.searchQuery)
-          .textFieldStyle(.plain)
-          .accessibilityIdentifier("activity-feed-search-field")
-
-        if !viewModel.searchQuery.isEmpty {
-          Button {
-            viewModel.searchQuery = ""
-          } label: {
-            Image(systemName: "xmark.circle.fill")
-              .foregroundStyle(Color.iconGray)
-          }
-          .frame(minWidth: 44, minHeight: 44)
-          .accessibilityLabel(clearSearchAccessibilityLabel)
-          .accessibilityIdentifier("activity-feed-clear-search")
-        }
-      }
-      .padding(10)
-      .background(Color(.systemGray6))
-      .clipShape(.rect(cornerRadius: 10))
     }
     .padding(16)
     .background(Color.Surface.card)

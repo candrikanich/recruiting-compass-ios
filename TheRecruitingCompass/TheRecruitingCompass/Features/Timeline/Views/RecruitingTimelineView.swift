@@ -142,11 +142,23 @@ private struct TimelineMainContent: View {
   let onLockedTaskTap: (TaskWithStatus) -> Void
   let onRetry: () -> Void
 
+  private var allTasksEmpty: Bool {
+    phaseOrder.allSatisfy { grade, _ in (tasksByGrade[grade] ?? []).isEmpty }
+  }
+
   var body: some View {
     if isLoading, tasksByGrade.isEmpty {
-      loadingPlaceholders
+      LoadingStateView(message: "Loading timeline...")
+        .padding(.horizontal)
     } else if let error = errorMessage {
-      errorBanner(message: error)
+      InlineErrorView(message: error, onRetry: onRetry)
+        .padding(.horizontal)
+    } else if allTasksEmpty {
+      ContentUnavailableView(
+        "No Timeline Tasks",
+        systemImage: "calendar",
+        description: Text("Tasks for your recruiting phases will appear here.")
+      )
     } else {
       TimelineStatPills(
         statusScore: statusScoreValue,
@@ -180,36 +192,6 @@ private struct TimelineMainContent: View {
         .padding(.horizontal)
       }
     }
-  }
-
-  @ViewBuilder
-  private var loadingPlaceholders: some View {
-    VStack(spacing: 12) {
-      ForEach(0..<4, id: \.self) { _ in
-        RoundedRectangle(cornerRadius: 12)
-          .fill(Color(.tertiarySystemFill))
-          .frame(height: 100)
-      }
-    }
-    .padding(.horizontal)
-  }
-
-  private func errorBanner(message: String) -> some View {
-    VStack(spacing: 8) {
-      Text(message)
-        .font(.subheadline)
-        .foregroundStyle(.primary)
-        .multilineTextAlignment(.center)
-      Button("Retry") {
-        onRetry()
-      }
-      .buttonStyle(.borderedProminent)
-    }
-    .padding()
-    .frame(maxWidth: .infinity)
-    .background(Color.errorRed.opacity(0.1))
-    .clipShape(RoundedRectangle(cornerRadius: 12))
-    .padding(.horizontal)
   }
 }
 

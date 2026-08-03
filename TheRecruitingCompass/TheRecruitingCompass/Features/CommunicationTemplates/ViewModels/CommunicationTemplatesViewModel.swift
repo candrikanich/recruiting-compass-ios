@@ -28,12 +28,21 @@ final class CommunicationTemplatesViewModel {
   var formData = TemplateFormData()
   var showDeleteConfirmation = false
   var templateToDeleteId: String?
+  var searchQuery = ""
 
   private let service: any CommunicationTemplatesServicing
 
   var filteredTemplates: [CommunicationTemplate] {
-    guard let filterType else { return templates }
-    return templates.filter { $0.type == filterType }
+    var result = templates
+    if let filterType {
+      result = result.filter { $0.type == filterType }
+    }
+    if !searchQuery.isEmpty {
+      result = result.filter {
+        $0.name.localizedStandardContains(searchQuery) || $0.body.localizedStandardContains(searchQuery)
+      }
+    }
+    return result
   }
 
   var typeCounts: [TemplateType?: Int] {

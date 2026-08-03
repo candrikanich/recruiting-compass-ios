@@ -146,14 +146,8 @@ struct PerformanceDashboardView: View {
 
   @ViewBuilder
   private var loadingView: some View {
-    VStack(spacing: 16) {
-      ProgressView()
-        .scaleEffect(1.2)
-      Text("Loading metrics...")
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .accessibilityLabel("Loading performance metrics")
+    LoadingStateView(message: "Loading metrics...")
+      .accessibilityLabel("Loading performance metrics")
   }
 
   @ViewBuilder

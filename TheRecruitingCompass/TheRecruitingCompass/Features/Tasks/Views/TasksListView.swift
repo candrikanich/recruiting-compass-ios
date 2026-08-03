@@ -94,9 +94,10 @@ struct TasksListView: View {
   @ViewBuilder
   private var mainContent: some View {
     if viewModel.isLoading, viewModel.tasks.isEmpty {
-      loadingPlaceholders
+      LoadingStateView(message: "Loading tasks...")
     } else if let error = viewModel.errorMessage {
-      errorBanner(message: error)
+      InlineErrorView(message: error, onRetry: { Task { await viewModel.refresh() } })
+        .padding(.horizontal)
     } else {
       TasksProgressCard(
         completed: viewModel.progressCompleted,
@@ -139,43 +140,12 @@ struct TasksListView: View {
   }
 
   @ViewBuilder
-  private var loadingPlaceholders: some View {
-    VStack(spacing: 12) {
-      ForEach(0..<5, id: \.self) { _ in
-        RoundedRectangle(cornerRadius: 12)
-          .fill(Color(.tertiarySystemFill))
-          .frame(height: 80)
-      }
-    }
-    .padding(.horizontal)
-  }
-
-  private func errorBanner(message: String) -> some View {
-    VStack(spacing: 8) {
-      Text(message)
-        .font(.subheadline)
-        .foregroundStyle(.primary)
-        .multilineTextAlignment(.center)
-      Button("Retry") {
-        Task { await viewModel.refresh() }
-      }
-      .buttonStyle(.borderedProminent)
-    }
-    .padding()
-    .frame(maxWidth: .infinity)
-    .background(Color.errorRed.opacity(0.1))
-    .clipShape(RoundedRectangle(cornerRadius: 12))
-    .padding(.horizontal)
-  }
-
-  @ViewBuilder
   private var emptyState: some View {
-    Text("No tasks available for this grade level")
-      .font(.body)
-      .foregroundStyle(.secondary)
-      .frame(maxWidth: .infinity)
-      .padding(.vertical, 40)
-      .accessibilityLabel("No tasks available for this grade level")
+    ContentUnavailableView(
+      "No Tasks",
+      systemImage: "checkmark.circle",
+      description: Text("No tasks available for this grade level")
+    )
   }
 }
 
