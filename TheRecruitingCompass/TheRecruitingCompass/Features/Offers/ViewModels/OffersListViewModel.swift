@@ -9,8 +9,12 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 final class OffersListViewModel {
 
   nonisolated deinit {}
-  var allOffers: [Offer] = []
-  var schools: [School] = []
+  var allOffers: [Offer] = [] {
+    didSet { recomputeFilteredOffers() }
+  }
+  var schools: [School] = [] {
+    didSet { recomputeFilteredOffers() }
+  }
   var isLoading = false
   var errorMessage: String?
 
@@ -22,7 +26,9 @@ final class OffersListViewModel {
   var showAddForm = false
   var showComparison = false
   var selectedOfferIds: Set<String> = []
-  var filters = OfferFilters()
+  var filters = OfferFilters() {
+    didSet { recomputeFilteredOffers() }
+  }
   var formState = NewOfferFormState()
   var isSubmitting = false
   var successMessage: String?
@@ -36,7 +42,12 @@ final class OffersListViewModel {
 
   // MARK: - Computed Properties
 
-  var filteredOffers: [Offer] {
+  /// Cached derived list — recomputed via `recomputeFilteredOffers()` whenever
+  /// `allOffers`, `schools` (schoolSearch reads schoolName(for:)), or `filters`
+  /// change. Do not compute this inline elsewhere; it would go stale silently.
+  private(set) var filteredOffers: [Offer] = []
+
+  private func recomputeFilteredOffers() {
     var result = allOffers
 
     if !filters.schoolSearch.isEmpty {
@@ -54,7 +65,7 @@ final class OffersListViewModel {
       result = result.filter { $0.offerType == offerType }
     }
 
-    return result.sorted { lhs, rhs in
+    filteredOffers = result.sorted { lhs, rhs in
       let ascending = filters.sortDirection == .ascending
       switch filters.sortBy {
       case .offerDate:

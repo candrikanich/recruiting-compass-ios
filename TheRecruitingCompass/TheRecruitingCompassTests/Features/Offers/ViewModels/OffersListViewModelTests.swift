@@ -294,6 +294,49 @@ final class OffersListViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.filteredOffers.first?.id, "1")
   }
 
+  // MARK: - Cached filteredOffers Staleness Tests
+  // filteredOffers is a cached stored property (Phase 3.3), recomputed via
+  // didSet on allOffers/schools/filters — not read live.
+
+  func testFilteredOffers_UpdatesWhenAllOffersReassigned_WithoutTouchingFilters() {
+    viewModel.allOffers = [makeTestOffer(id: "1", status: .pending)]
+    viewModel.filters.status = .pending
+    XCTAssertEqual(viewModel.filteredOffers.count, 1)
+
+    viewModel.allOffers = [
+      makeTestOffer(id: "2", status: .pending),
+      makeTestOffer(id: "3", status: .accepted)
+    ]
+
+    XCTAssertEqual(viewModel.filteredOffers.count, 1)
+    XCTAssertEqual(viewModel.filteredOffers.first?.id, "2")
+  }
+
+  func testFilteredOffers_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    let keep = makeTestOffer(id: "keep", status: .pending)
+    let remove = makeTestOffer(id: "remove", status: .pending)
+    viewModel.allOffers = [keep, remove]
+    viewModel.filters.status = .pending
+    XCTAssertEqual(viewModel.filteredOffers.count, 2)
+
+    viewModel.confirmDelete(remove)
+    await viewModel.deleteOffer()
+
+    XCTAssertEqual(viewModel.filteredOffers.count, 1)
+    XCTAssertEqual(viewModel.filteredOffers.first?.id, "keep")
+  }
+
+  func testFilteredOffers_UpdatesWhenSchoolsAssignedAfterSearchFilterSet() {
+    viewModel.allOffers = [makeTestOffer(id: "1", schoolId: "s1")]
+    viewModel.filters.schoolSearch = "UCLA"
+    // No schools loaded yet — schoolName(for:) falls back to "Unknown School".
+    XCTAssertEqual(viewModel.filteredOffers.count, 0)
+
+    viewModel.schools = [makeSchool(id: "s1", name: "UCLA")]
+
+    XCTAssertEqual(viewModel.filteredOffers.count, 1)
+  }
+
   // MARK: - Selection Tests
 
   func testToggleSelection_AddsOffer() {
