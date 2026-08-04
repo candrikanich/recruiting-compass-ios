@@ -78,6 +78,11 @@ extension Color {
   static let strengthOrange = Color.Brand.orange500
   static let amberGold = Color(light: Color(hex: "b45309"), dark: Color(hex: "fbbf24"))
   static let successGreen = Color.Brand.emerald600
+  // Warning/success banner text (e.g. ParentOnboardingBanner) — paired with Surface.warningTint/successTint.
+  static let warningBannerTitle = Color(light: Color(hex: "78350F"), dark: Color(hex: "FDE68A"))
+  static let warningBannerBody = Color(light: Color(hex: "92400E"), dark: Color(hex: "FCD34D"))
+  static let successBannerIcon = Color(light: Color(hex: "15803D"), dark: Color(hex: "4ADE80"))
+  static let successBannerText = Color(light: Color(hex: "14532D"), dark: Color(hex: "BBF7D0"))
   static let iconGray = Color(light: Color.Brand.slate500, dark: Color(hex: "94a3b8"))
   static let borderGray = Color(light: Color.Brand.slate100, dark: Color.white.opacity(0.12))
 
@@ -90,6 +95,12 @@ extension Color {
     static let muted       = Color(light: Color(hex: "E8EDF5"), dark: Color(hex: "2A2A2A"))  // muted fills, disabled states
     static let border      = Color(light: Color(red: 30/255, green: 50/255, blue: 100/255).opacity(0.12), dark: Color.white.opacity(0.1))
     static let borderStrong = Color(light: Color(red: 30/255, green: 50/255, blue: 100/255).opacity(0.22), dark: Color.white.opacity(0.2))
+    // Tinted status banners (e.g. ParentOnboardingBanner) — light tint on light mode, dark low-luminance tint on dark mode.
+    static let warningTint   = Color(light: Color(hex: "FFFBEB"), dark: Color(hex: "3A2A0A"))
+    static let warningAccent = Color(light: Color(hex: "F59E0B"), dark: Color(hex: "D97706"))
+    static let warningCTA    = Color(light: Color(hex: "D97706"), dark: Color(hex: "F59E0B"))
+    static let successTint   = Color(light: Color(hex: "F0FDF4"), dark: Color(hex: "0F2E1C"))
+    static let successAccent = Color(light: Color(hex: "22C55E"), dark: Color(hex: "16A34A"))
   }
 
   // MARK: - Tinted Text Tokens

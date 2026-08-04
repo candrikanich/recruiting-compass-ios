@@ -4,7 +4,7 @@ struct TermsOfServiceView: View {
   @State private var viewModel = TermsOfServiceViewModel()
   @Environment(\.dismiss) var dismiss
 
-  private let contactBoxBackground = Color(hex: "F3F4F6")
+  private let contactBoxBackground = Color.Surface.muted
   private let sectionSpacing: CGFloat = 16
   private let padding: CGFloat = 20
 
@@ -12,7 +12,7 @@ struct TermsOfServiceView: View {
     NavigationStack {
       contentView
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.white)
+        .background(Color.Surface.background)
         .navigationTitle("Terms and Conditions")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

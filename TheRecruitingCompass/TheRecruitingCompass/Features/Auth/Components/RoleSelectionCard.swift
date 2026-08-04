@@ -40,7 +40,7 @@ struct RoleSelectionCard: View {
         }
       }
       .padding(16)
-      .background(Color.white)
+      .background(Color.Surface.card)
       .border(
         isSelected ? Color.accentBlue : Color.borderGray,
         width: 2
