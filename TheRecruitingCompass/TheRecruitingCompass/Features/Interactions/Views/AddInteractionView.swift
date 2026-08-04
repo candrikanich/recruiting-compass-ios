@@ -40,9 +40,6 @@ struct AddInteractionView: View {
       }
     }
     .alert("Error", isPresented: $viewModel.isShowingErrorAlert) {
-      Button("OK") {
-        viewModel.errorMessage = nil
-      }
     } message: {
       if let error = viewModel.errorMessage {
         Text(error)

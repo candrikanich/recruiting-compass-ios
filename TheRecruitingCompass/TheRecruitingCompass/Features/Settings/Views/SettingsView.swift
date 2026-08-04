@@ -1,5 +1,17 @@
 import SwiftUI
 
+private enum SettingsDestination: Hashable {
+  case familyManagement
+  case profile
+  case homeLocation
+  case playerDetails
+  case schoolPreferences
+  case dashboardCustomization
+  case notificationPreferences
+  case communicationTemplates
+  case about
+}
+
 struct SettingsView: View {
   @Environment(AuthManager.self) private var authManager
   @Environment(FamilyManager.self) private var familyManager
@@ -47,9 +59,7 @@ struct SettingsView: View {
             .padding(.vertical, 4)
           }
 
-          NavigationLink {
-            FamilyManagementView()
-          } label: {
+          NavigationLink(value: SettingsDestination.familyManagement) {
             SettingsRow(
               icon: "person.3.fill",
               title: "Family Management",
@@ -63,9 +73,7 @@ struct SettingsView: View {
 
         // Profile & Player Info Section
         Section {
-          NavigationLink {
-            ProfileView(preferenceService: preferenceService)
-          } label: {
+          NavigationLink(value: SettingsDestination.profile) {
             SettingsRow(
               icon: "person.circle.fill",
               title: "My Profile",
@@ -74,9 +82,7 @@ struct SettingsView: View {
             )
           }
 
-          NavigationLink {
-            HomeLocationView(preferenceService: preferenceService)
-          } label: {
+          NavigationLink(value: SettingsDestination.homeLocation) {
             SettingsRow(
               icon: "house.fill",
               title: "Home Location",
@@ -86,12 +92,7 @@ struct SettingsView: View {
             )
           }
 
-          NavigationLink {
-            PlayerDetailsView(
-              preferenceService: preferenceService,
-              userRole: authManager.user?.role ?? .player
-            )
-          } label: {
+          NavigationLink(value: SettingsDestination.playerDetails) {
             SettingsRow(
               icon: "person.fill",
               title: "Player Details",
@@ -106,9 +107,7 @@ struct SettingsView: View {
 
         // School Preferences Section
         Section {
-          NavigationLink {
-            SchoolPreferencesView(preferenceService: preferenceService)
-          } label: {
+          NavigationLink(value: SettingsDestination.schoolPreferences) {
             SettingsRow(
               icon: "target",
               title: "School Preferences",
@@ -123,9 +122,7 @@ struct SettingsView: View {
 
         // Dashboard Section
         Section {
-          NavigationLink {
-            DashboardCustomizationView(preferenceService: preferenceService)
-          } label: {
+          NavigationLink(value: SettingsDestination.dashboardCustomization) {
             SettingsRow(
               icon: "slider.horizontal.3",
               title: "Dashboard Customization",
@@ -139,9 +136,7 @@ struct SettingsView: View {
 
         // Communication & Social Section
         Section {
-          NavigationLink {
-            NotificationPreferencesView(preferenceService: preferenceService)
-          } label: {
+          NavigationLink(value: SettingsDestination.notificationPreferences) {
             SettingsRow(
               icon: "bell.fill",
               title: "Notifications",
@@ -150,9 +145,7 @@ struct SettingsView: View {
             )
           }
 
-          NavigationLink {
-            CommunicationTemplatesView()
-          } label: {
+          NavigationLink(value: SettingsDestination.communicationTemplates) {
             SettingsRow(
               icon: "doc.text.fill",
               title: "Communication Templates",
@@ -195,9 +188,7 @@ struct SettingsView: View {
 
         // App Section
         Section {
-          NavigationLink {
-            AboutView()
-          } label: {
+          NavigationLink(value: SettingsDestination.about) {
             SettingsRow(
               icon: "info.circle.fill",
               title: "About & Feedback",
@@ -211,6 +202,31 @@ struct SettingsView: View {
       }
       .navigationTitle("Settings")
       .navigationBarTitleDisplayMode(.inline)
+      .navigationDestination(for: SettingsDestination.self) { destination in
+        switch destination {
+        case .familyManagement:
+          FamilyManagementView()
+        case .profile:
+          ProfileView(preferenceService: preferenceService)
+        case .homeLocation:
+          HomeLocationView(preferenceService: preferenceService)
+        case .playerDetails:
+          PlayerDetailsView(
+            preferenceService: preferenceService,
+            userRole: authManager.user?.role ?? .player
+          )
+        case .schoolPreferences:
+          SchoolPreferencesView(preferenceService: preferenceService)
+        case .dashboardCustomization:
+          DashboardCustomizationView(preferenceService: preferenceService)
+        case .notificationPreferences:
+          NotificationPreferencesView(preferenceService: preferenceService)
+        case .communicationTemplates:
+          CommunicationTemplatesView()
+        case .about:
+          AboutView()
+        }
+      }
       .task {
         await familyManager.loadFamilyData()
         await viewModel.loadCompletionStatus()

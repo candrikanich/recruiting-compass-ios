@@ -55,7 +55,6 @@ struct CreateEventView: View {
       }
     }
     .alert("Error", isPresented: $viewModel.isShowingError) {
-      Button("OK", role: .cancel) { }
     } message: {
       Text(viewModel.errorMessage ?? "")
     }

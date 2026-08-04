@@ -80,7 +80,6 @@ struct LegalEmailLink: View {
         .accessibilityLabel("Email \(email.replacing("@", with: " at ").replacing(".", with: " dot "))")
         .accessibilityHint("Opens Mail app")
         .alert("Email not available on this device", isPresented: $showMailUnavailableAlert) {
-          Button("OK", role: .cancel) {}
         }
       } else {
         Text(email)

@@ -57,7 +57,6 @@ struct AddCoachView: View {
         await viewModel.loadSchools()
       }
       .alert("Error", isPresented: $viewModel.isShowingError) {
-        Button("OK", role: .cancel) { }
       } message: {
         if let error = viewModel.submitError {
           Text(error)

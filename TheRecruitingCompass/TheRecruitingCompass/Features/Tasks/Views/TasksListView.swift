@@ -56,7 +56,6 @@ struct TasksListView: View {
       get: { lockedTaskAlertTask != nil },
       set: { if !$0 { lockedTaskAlertTask = nil } }
     )) {
-      Button("OK", role: .cancel) { lockedTaskAlertTask = nil }
     } message: {
       if let task = lockedTaskAlertTask {
         Text("Complete these tasks first: \(task.prerequisiteTasks.map(\.title).joined(separator: ", "))")

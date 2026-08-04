@@ -1,9 +1,13 @@
 import SwiftUI
 
+private struct IdentifiableURL: Identifiable {
+  let url: URL
+  var id: URL { url }
+}
+
 struct AnalyticsDashboardView: View {
   @State private var viewModel: AnalyticsDashboardViewModel
-  @State private var exportFileURL: URL?
-  @State private var showShareSheet = false
+  @State private var exportFileURL: IdentifiableURL?
 
   init(viewModel: AnalyticsDashboardViewModel? = nil) {
     _viewModel = State(initialValue: viewModel ?? AnalyticsDashboardViewModel())
@@ -43,13 +47,10 @@ struct AnalyticsDashboardView: View {
     .sheet(isPresented: $viewModel.showDatePicker) {
       customDatePickerSheet
     }
-    .sheet(isPresented: $showShareSheet) {
-      if let url = exportFileURL {
-        ActivityShareSheet(activityItems: [url])
-      }
+    .sheet(item: $exportFileURL) { wrapped in
+      ActivityShareSheet(activityItems: [wrapped.url])
     }
     .alert("Export Failed", isPresented: $viewModel.showExportError) {
-      Button("OK", role: .cancel) {}
     } message: {
       Text(viewModel.exportError ?? "Couldn't create the export file. Please try again.")
     }
@@ -232,8 +233,7 @@ struct AnalyticsDashboardView: View {
 
   private func handleExport(_ format: AnalyticsExportFormat) {
     if let url = viewModel.exportFileURL(format: format) {
-      exportFileURL = url
-      showShareSheet = true
+      exportFileURL = IdentifiableURL(url: url)
     }
   }
 }

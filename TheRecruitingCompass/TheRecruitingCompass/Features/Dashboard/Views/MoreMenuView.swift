@@ -167,7 +167,7 @@ struct MoreMenuView: View {
     case .events:
       EventsListView(path: $path)
     case .documents:
-      DocumentsListView(embedInNavigationStack: false)
+      DocumentsListView()
     case .offers:
       OffersListView()
     case .performance:

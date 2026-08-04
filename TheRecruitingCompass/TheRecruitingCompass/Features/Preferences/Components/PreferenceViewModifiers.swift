@@ -11,9 +11,6 @@ struct PreferenceErrorAlertModifier: ViewModifier {
         get: { errorMessage != nil },
         set: { if !$0 { errorMessage = nil } }
       )) {
-        Button("OK") {
-          errorMessage = nil
-        }
       } message: {
         if let errorMessage {
           Text(errorMessage)

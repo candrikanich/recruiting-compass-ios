@@ -86,7 +86,6 @@ struct AddSchoolView: View {
       }
     }
     .alert("Error", isPresented: $viewModel.isShowingError) {
-      Button("OK", role: .cancel) { }
     } message: {
       if let error = viewModel.submitError {
         Text(error)

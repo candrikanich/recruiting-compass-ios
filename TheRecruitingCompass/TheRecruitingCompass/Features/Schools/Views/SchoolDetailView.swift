@@ -60,7 +60,6 @@ struct SchoolDetailView: View {
       await viewModel.loadSchool()
     }
     .alert("Error", isPresented: $viewModel.isShowingErrorAlert, presenting: viewModel.errorMessage) { _ in
-      Button("OK") { viewModel.errorMessage = nil; viewModel.activeAlert = nil }
     } message: { message in
       Text(message)
     }

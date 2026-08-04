@@ -28,7 +28,6 @@ struct InteractionsListView: View {
           }
         }
         .alert("Error", isPresented: $viewModel.isShowingDeleteError) {
-          Button("OK") { viewModel.deleteErrorMessage = nil }
         } message: {
           if let error = viewModel.deleteErrorMessage { Text(error) }
         }

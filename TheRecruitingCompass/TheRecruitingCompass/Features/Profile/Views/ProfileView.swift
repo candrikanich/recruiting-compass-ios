@@ -1,6 +1,10 @@
 import SwiftUI
 import PhotosUI
 
+private enum ProfileDestination: Hashable {
+    case playerDetails
+}
+
 struct ProfileView: View {
     @Environment(AuthManager.self) private var authManager
     @State private var viewModel = ProfileViewModel()
@@ -28,6 +32,12 @@ struct ProfileView: View {
         }
         .navigationTitle("My Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(for: ProfileDestination.self) { destination in
+            switch destination {
+            case .playerDetails:
+                PlayerDetailsView(preferenceService: preferenceService, userRole: .player)
+            }
+        }
         .task {
             viewModel.loadInitialState()
             await viewModel.loadDeletionStatus()
@@ -309,9 +319,7 @@ struct ProfileView: View {
     @ViewBuilder
     private var athleteProfileSection: some View {
         Section {
-            NavigationLink {
-                PlayerDetailsView(preferenceService: preferenceService, userRole: .player)
-            } label: {
+            NavigationLink(value: ProfileDestination.playerDetails) {
                 HStack(spacing: 12) {
                     Image(systemName: "trophy.fill")
                         .font(.title3)

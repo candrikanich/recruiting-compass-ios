@@ -76,7 +76,6 @@ struct RecruitingTimelineView: View {
       Task { await viewModel.load() }
     }
     .alert("Complete Prerequisites First", isPresented: showLockedTaskAlert) {
-      Button("OK", role: .cancel) {}
     } message: {
       if let task = lockedTaskAlertTask {
         Text("Complete these tasks first: \(task.prerequisiteTasks.map(\.title).joined(separator: ", "))")

@@ -49,17 +49,25 @@ struct QuickCommunicationView: View {
           Button("Done") { dismiss() }
         }
         ToolbarItem(placement: .primaryAction) {
-          NavigationLink {
-            CommunicationTemplatesView()
-          } label: {
+          NavigationLink(value: QuickCommDestination.manageTemplates) {
             Text("Manage Templates")
           }
+        }
+      }
+      .navigationDestination(for: QuickCommDestination.self) { destination in
+        switch destination {
+        case .manageTemplates:
+          CommunicationTemplatesView()
         }
       }
       .task { await viewModel.loadTemplates() }
       .accessibilityIdentifier("quickCommunicationView")
     }
   }
+}
+
+private enum QuickCommDestination: Hashable {
+  case manageTemplates
 }
 
 // MARK: - Private Subviews

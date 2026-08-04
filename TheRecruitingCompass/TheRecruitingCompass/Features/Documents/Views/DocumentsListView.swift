@@ -1,9 +1,6 @@
 import SwiftUI
 
 struct DocumentsListView: View {
-  /// When false, content is used inside a parent NavigationStack (e.g. pushed from More menu).
-  var embedInNavigationStack: Bool = true
-
   @State private var viewModel = DocumentsListViewModel()
   @State private var documentToDelete: Document?
 
@@ -84,13 +81,7 @@ struct DocumentsListView: View {
   }
 
   var body: some View {
-    if embedInNavigationStack {
-      NavigationStack {
-        content
-      }
-    } else {
-      content
-    }
+    content
   }
 
   @ViewBuilder
