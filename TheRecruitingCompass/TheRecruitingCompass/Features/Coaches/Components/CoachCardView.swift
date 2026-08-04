@@ -10,24 +10,13 @@ struct CoachCardView: View {
   var onQuickCommunication: ((QuickCommunicationContext) -> Void)?
   var onDelete: () -> Void = {}
 
-  @Environment(\.colorScheme) private var colorScheme
-  @Environment(\.sizeCategory) private var sizeCategory
-
   var deleteAccessibilityLabel: String { "Delete \(coach.fullName)" }
-
-  private var initialsSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 56 : 48
-  }
-
-  private var initialsFont: Font {
-    sizeCategory.isAccessibilityCategory ? .title2.bold() : .body.bold()
-  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      headerSection
-      contentSection
-      actionsSection
+      CoachCardHeaderSection(coach: coach, schoolName: schoolName, schoolLogoUrl: schoolLogoUrl, schoolInitials: schoolInitials)
+      CoachCardContentSection(coach: coach)
+      CoachCardActionsSection(coach: coach, schoolName: schoolName, onQuickCommunication: onQuickCommunication, onDelete: onDelete)
     }
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -40,13 +29,19 @@ struct CoachCardView: View {
     .brandShadowSm()
     .accessibilityElement(children: .contain)
   }
+}
 
-  // MARK: - Header
+// MARK: - Header
 
-  @ViewBuilder
-  private var headerSection: some View {
+private struct CoachCardHeaderSection: View {
+  let coach: Coach
+  let schoolName: String
+  let schoolLogoUrl: String?
+  let schoolInitials: String
+
+  var body: some View {
     HStack(spacing: 12) {
-      schoolLogoView
+      CoachCardSchoolLogoView(schoolLogoUrl: schoolLogoUrl, schoolInitials: schoolInitials)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
@@ -61,12 +56,22 @@ struct CoachCardView: View {
 
       Spacer()
 
-      roleBadge
+      CoachCardRoleBadge(role: coach.role)
     }
   }
+}
 
-  @ViewBuilder
-  private var schoolLogoView: some View {
+private struct CoachCardSchoolLogoView: View {
+  let schoolLogoUrl: String?
+  let schoolInitials: String
+
+  @Environment(\.sizeCategory) private var sizeCategory
+
+  private var initialsSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 56 : 48
+  }
+
+  var body: some View {
     if let faviconUrl = schoolLogoUrl, let url = URL(string: faviconUrl) {
       AsyncImage(url: url) { phase in
         switch phase {
@@ -75,20 +80,33 @@ struct CoachCardView: View {
             .resizable()
             .scaledToFit()
         case .failure, .empty:
-          initialsCircle
+          CoachCardInitialsCircle(schoolInitials: schoolInitials)
         @unknown default:
-          initialsCircle
+          CoachCardInitialsCircle(schoolInitials: schoolInitials)
         }
       }
       .frame(width: initialsSize, height: initialsSize)
       .clipShape(RoundedRectangle(cornerRadius: 10))
     } else {
-      initialsCircle
+      CoachCardInitialsCircle(schoolInitials: schoolInitials)
     }
   }
+}
 
-  @ViewBuilder
-  private var initialsCircle: some View {
+private struct CoachCardInitialsCircle: View {
+  let schoolInitials: String
+
+  @Environment(\.sizeCategory) private var sizeCategory
+
+  private var initialsSize: CGFloat {
+    sizeCategory.isAccessibilityCategory ? 56 : 48
+  }
+
+  private var initialsFont: Font {
+    sizeCategory.isAccessibilityCategory ? .title2.bold() : .body.bold()
+  }
+
+  var body: some View {
     Text(schoolInitials)
       .font(initialsFont)
       .foregroundStyle(.white)
@@ -102,25 +120,31 @@ struct CoachCardView: View {
       )
       .clipShape(RoundedRectangle(cornerRadius: 10))
   }
+}
 
-  @ViewBuilder
-  private var roleBadge: some View {
-    Text(coach.role.displayName)
+private struct CoachCardRoleBadge: View {
+  let role: CoachRole
+
+  var body: some View {
+    Text(role.displayName)
       .font(.caption)
       .fontWeight(.medium)
       .foregroundStyle(.white)
       .padding(.horizontal, 10)
       .padding(.vertical, 4)
-      .background(coach.role.badgeColor)
+      .background(role.badgeColor)
       .clipShape(Capsule())
-      .accessibilityLabel("Role: \(coach.role.displayName)")
+      .accessibilityLabel("Role: \(role.displayName)")
       .accessibilityAddTraits(.isStaticText)
   }
+}
 
-  // MARK: - Content
+// MARK: - Content
 
-  @ViewBuilder
-  private var contentSection: some View {
+private struct CoachCardContentSection: View {
+  let coach: Coach
+
+  var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       if let email = coach.email {
         contactRow(icon: "envelope", text: email)
@@ -135,50 +159,62 @@ struct CoachCardView: View {
       }
     }
   }
+}
 
-  private func contactRow(icon: String, text: String) -> some View {
-    HStack(spacing: 8) {
-      Image(systemName: icon)
-        .font(.caption)
-        .foregroundStyle(.secondary)
-        .frame(width: 16)
-        .accessibilityHidden(true)
+private func contactRow(icon: String, text: String) -> some View {
+  HStack(spacing: 8) {
+    Image(systemName: icon)
+      .font(.caption)
+      .foregroundStyle(.secondary)
+      .frame(width: 16)
+      .accessibilityHidden(true)
 
-      Text(text)
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
+    Text(text)
+      .font(.subheadline)
+      .foregroundStyle(.secondary)
   }
+}
 
-  private func lastContactRow(date: Date) -> some View {
-    HStack(spacing: 8) {
-      Image(systemName: "clock")
-        .font(.caption)
-        .foregroundStyle(.secondary)
-        .frame(width: 16)
-        .accessibilityHidden(true)
+private func lastContactRow(date: Date) -> some View {
+  HStack(spacing: 8) {
+    Image(systemName: "clock")
+      .font(.caption)
+      .foregroundStyle(.secondary)
+      .frame(width: 16)
+      .accessibilityHidden(true)
 
-      Text("Last contact: \(date, style: .relative) ago")
-        .font(.caption)
-        .foregroundStyle(Color.tertiaryText)
-    }
+    Text("Last contact: \(date, style: .relative) ago")
+      .font(.caption)
+      .foregroundStyle(Color.tertiaryText)
   }
+}
 
-  // MARK: - Actions
+// MARK: - Actions
 
-  @ViewBuilder
-  private var actionsSection: some View {
+private struct CoachCardActionsSection: View {
+  let coach: Coach
+  let schoolName: String
+  var onQuickCommunication: ((QuickCommunicationContext) -> Void)?
+  var onDelete: () -> Void = {}
+
+  var body: some View {
     HStack(spacing: 4) {
-      communicationButtons
+      CoachCardCommunicationButtons(coach: coach, schoolName: schoolName, onQuickCommunication: onQuickCommunication)
 
       Spacer()
 
-      deleteButton
+      CoachCardDeleteButton(coach: coach, onDelete: onDelete)
     }
   }
+}
 
-  @ViewBuilder
-  private var deleteButton: some View {
+private struct CoachCardDeleteButton: View {
+  let coach: Coach
+  var onDelete: () -> Void = {}
+
+  private var deleteAccessibilityLabel: String { "Delete \(coach.fullName)" }
+
+  var body: some View {
     Button(role: .destructive, action: onDelete) {
       Image(systemName: "trash")
         .font(.subheadline)
@@ -189,9 +225,16 @@ struct CoachCardView: View {
     .accessibilityLabel(deleteAccessibilityLabel)
     .accessibilityHint("Double tap to delete this coach")
   }
+}
 
-  @ViewBuilder
-  private var communicationButtons: some View {
+private struct CoachCardCommunicationButtons: View {
+  let coach: Coach
+  let schoolName: String
+  var onQuickCommunication: ((QuickCommunicationContext) -> Void)?
+
+  @Environment(\.sizeCategory) private var sizeCategory
+
+  var body: some View {
     if let email = coach.email {
       if let onQuickCommunication {
         quickCommunicationTriggerButton(
