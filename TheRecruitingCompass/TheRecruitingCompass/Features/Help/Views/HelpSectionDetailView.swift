@@ -19,7 +19,7 @@ struct HelpSectionDetailView: View {
           .font(.caption)
           .foregroundStyle(.secondary)
 
-        contentForSection
+        HelpSectionContent(section: section)
 
         HelpFeedbackView(page: "/help/\(section.slug)")
       }
@@ -29,26 +29,29 @@ struct HelpSectionDetailView: View {
     .navigationTitle(section.title)
     .navigationBarTitleDisplayMode(.inline)
   }
+}
 
-  @ViewBuilder
-  private var contentForSection: some View {
+private struct HelpSectionContent: View {
+  let section: HelpSection
+
+  var body: some View {
     switch section {
     case .gettingStarted:
-      gettingStartedContent
+      HelpGettingStartedContent()
     case .schools:
-      schoolsContent
+      HelpSchoolsContent()
     case .phases:
-      phasesContent
+      HelpPhasesContent()
     case .account:
-      accountContent
+      HelpAccountContent()
     }
   }
 }
 
 // MARK: - Getting Started
-private extension HelpSectionDetailView {
-  @ViewBuilder
-  var gettingStartedContent: some View {
+
+private struct HelpGettingStartedContent: View {
+  var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       sectionBlock {
         HelpSectionHeader(title: "What is The Recruiting Compass?")
@@ -105,9 +108,9 @@ private extension HelpSectionDetailView {
 }
 
 // MARK: - Schools & Coaches
-private extension HelpSectionDetailView {
-  @ViewBuilder
-  var schoolsContent: some View {
+
+private struct HelpSchoolsContent: View {
+  var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       sectionBlock {
         HelpSectionHeader(title: "Adding a school to your list")
@@ -177,9 +180,9 @@ private extension HelpSectionDetailView {
 }
 
 // MARK: - Phases & Letters
-private extension HelpSectionDetailView {
-  @ViewBuilder
-  var phasesContent: some View {
+
+private struct HelpPhasesContent: View {
+  var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       sectionBlock {
         HelpSectionHeader(title: "Overview of recruiting phases")
@@ -233,9 +236,9 @@ private extension HelpSectionDetailView {
 }
 
 // MARK: - Account & Settings
-private extension HelpSectionDetailView {
-  @ViewBuilder
-  var accountContent: some View {
+
+private struct HelpAccountContent: View {
+  var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       sectionBlock {
         HelpSectionHeader(title: "Updating your athlete profile")
@@ -312,93 +315,91 @@ private extension HelpSectionDetailView {
   }
 }
 
-// MARK: - Shared helpers
-private extension HelpSectionDetailView {
-  @ViewBuilder
-  func sectionBlock<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      content()
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-  }
+// MARK: - Shared content helpers
 
-  func bulletList(items: [(String, String)]) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
-      ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-        HStack(alignment: .top, spacing: 8) {
-          Text("•")
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-          Text("\(item.0) — \(item.1)")
-            .font(.subheadline)
-            .foregroundStyle(.primary)
-        }
-      }
-    }
+@ViewBuilder
+private func sectionBlock<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+  VStack(alignment: .leading, spacing: 12) {
+    content()
   }
+  .frame(maxWidth: .infinity, alignment: .leading)
+}
 
-  func interactionTypeRow(icon: String, title: String, detail: String) -> some View {
-    HStack(alignment: .top, spacing: 12) {
-      Image(systemName: icon)
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-        .frame(width: 20, alignment: .center)
-      Text("\(title) — \(detail)")
-        .font(.subheadline)
-        .foregroundStyle(.primary)
-    }
-  }
-
-  func phaseCard(title: String, badge: HelpBadge.BadgeType?, text: String) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
-      HStack(alignment: .firstTextBaseline, spacing: 8) {
-        Text(title)
-          .font(.headline)
-          .foregroundStyle(.primary)
-        if let badge {
-          HelpBadge(type: badge)
-        }
-      }
-      Text(text)
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
-    .padding(16)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(.secondarySystemBackground))
-    .clipShape(RoundedRectangle(cornerRadius: 12))
-  }
-
-  func letterStatusRow(label: String, color: Color, text: String) -> some View {
-    HStack(alignment: .top, spacing: 12) {
-      Text(label)
-        .font(.caption)
-        .fontWeight(.medium)
-        .foregroundStyle(color)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(color.opacity(0.2))
-        .clipShape(Capsule())
-      Text(text)
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
-  }
-
-  func notificationPriorityRow(title: String, items: [String]) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(title)
-        .font(.subheadline)
-        .fontWeight(.semibold)
-        .foregroundStyle(.primary)
-      ForEach(items, id: \.self) { item in
-        Text("• \(item)")
+private func bulletList(items: [(String, String)]) -> some View {
+  VStack(alignment: .leading, spacing: 8) {
+    ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+      HStack(alignment: .top, spacing: 8) {
+        Text("•")
           .font(.subheadline)
           .foregroundStyle(.secondary)
+        Text("\(item.0) — \(item.1)")
+          .font(.subheadline)
+          .foregroundStyle(.primary)
       }
     }
   }
+}
 
+private func interactionTypeRow(icon: String, title: String, detail: String) -> some View {
+  HStack(alignment: .top, spacing: 12) {
+    Image(systemName: icon)
+      .font(.subheadline)
+      .foregroundStyle(.secondary)
+      .frame(width: 20, alignment: .center)
+    Text("\(title) — \(detail)")
+      .font(.subheadline)
+      .foregroundStyle(.primary)
+  }
+}
+
+private func phaseCard(title: String, badge: HelpBadge.BadgeType?, text: String) -> some View {
+  VStack(alignment: .leading, spacing: 8) {
+    HStack(alignment: .firstTextBaseline, spacing: 8) {
+      Text(title)
+        .font(.headline)
+        .foregroundStyle(.primary)
+      if let badge {
+        HelpBadge(type: badge)
+      }
+    }
+    Text(text)
+      .font(.subheadline)
+      .foregroundStyle(.secondary)
+  }
+  .padding(16)
+  .frame(maxWidth: .infinity, alignment: .leading)
+  .background(Color(.secondarySystemBackground))
+  .clipShape(RoundedRectangle(cornerRadius: 12))
+}
+
+private func letterStatusRow(label: String, color: Color, text: String) -> some View {
+  HStack(alignment: .top, spacing: 12) {
+    Text(label)
+      .font(.caption)
+      .fontWeight(.medium)
+      .foregroundStyle(color)
+      .padding(.horizontal, 8)
+      .padding(.vertical, 4)
+      .background(color.opacity(0.2))
+      .clipShape(Capsule())
+    Text(text)
+      .font(.subheadline)
+      .foregroundStyle(.secondary)
+  }
+}
+
+private func notificationPriorityRow(title: String, items: [String]) -> some View {
+  VStack(alignment: .leading, spacing: 4) {
+    Text(title)
+      .font(.subheadline)
+      .fontWeight(.semibold)
+      .foregroundStyle(.primary)
+    ForEach(items, id: \.self) { item in
+      Text("• \(item)")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+    }
+  }
 }
 
 #Preview("Getting Started") {
