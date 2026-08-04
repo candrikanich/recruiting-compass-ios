@@ -19,31 +19,3 @@ struct OfferFilters: Sendable {
     ].filter(\.self).count
   }
 }
-
-enum OfferSortField: String, CaseIterable, Sendable {
-  case offerDate
-  case deadline
-  case percentage
-  case amount
-
-  var displayName: String {
-    switch self {
-    case .offerDate: return "Offer Date"
-    case .deadline: return "Deadline"
-    case .percentage: return "Percentage"
-    case .amount: return "Amount"
-    }
-  }
-}
-
-enum SortDirection: String, CaseIterable, Sendable {
-  case ascending
-  case descending
-
-  var displayName: String {
-    switch self {
-    case .ascending: return "Ascending"
-    case .descending: return "Descending"
-    }
-  }
-}
