@@ -321,31 +321,3 @@ final class EventsListViewModel {
   }
 
 }
-
-// MARK: - StatusFilter
-
-enum StatusFilter: String, CaseIterable {
-  case all = "All"
-  case attended = "Attended"
-  case registered = "Registered"
-  case notRegistered = "Not Registered"
-}
-
-// MARK: - DateRangeFilter
-
-enum DateRangeFilter: String, CaseIterable {
-  case all = "All Dates"
-  case upcoming = "Upcoming"
-  case past = "Past"
-  case thisMonth = "This Month"
-  case nextMonth = "Next Month"
-}
-
-// MARK: - SortOption
-
-enum SortOption: String, CaseIterable {
-  case dateDesc = "Date (Newest First)"
-  case dateAsc = "Date (Oldest First)"
-  case name = "Name"
-  case type = "Type"
-}

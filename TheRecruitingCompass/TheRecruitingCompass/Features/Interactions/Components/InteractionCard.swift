@@ -175,60 +175,6 @@ struct InteractionCard: View {
 
 }
 
-// MARK: - Supporting Views
-
-struct DirectionBadge: View {
-  let direction: Direction
-
-  var body: some View {
-    Text(direction.displayName)
-      .font(.caption)
-      .fontWeight(.medium)
-      .foregroundStyle(direction.badgeColor.foregroundColor)
-      .padding(.horizontal, 8)
-      .padding(.vertical, 4)
-      .background(direction.badgeColor.backgroundColor)
-      .clipShape(.rect(cornerRadius: 6))
-  }
-}
-
-struct SentimentBadge: View {
-  let sentiment: Sentiment
-
-  var body: some View {
-    Text(sentiment.displayName)
-      .font(.caption)
-      .fontWeight(.medium)
-      .foregroundStyle(sentiment.badgeColor.foregroundColor)
-      .padding(.horizontal, 8)
-      .padding(.vertical, 4)
-      .background(sentiment.badgeColor.backgroundColor)
-      .clipShape(.rect(cornerRadius: 6))
-  }
-}
-
-struct AttachmentIndicator: View {
-  let count: Int
-
-  var body: some View {
-    HStack(spacing: 4) {
-      Image(systemName: "paperclip")
-        .font(.caption)
-        .accessibilityHidden(true)
-
-      Text("\(count)")
-        .font(.caption)
-        .fontWeight(.medium)
-    }
-    .foregroundStyle(.secondary)
-    .accessibilityLabel(accessibilityLabel)
-  }
-
-  var accessibilityLabel: String {
-    "\(count) attachment\(count == 1 ? "" : "s")"
-  }
-}
-
 #Preview {
   let interaction = Interaction(
     id: "1",
