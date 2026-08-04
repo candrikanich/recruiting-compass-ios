@@ -21,14 +21,14 @@ struct ProfileView: View {
 
     var body: some View {
         List {
-            photoSection
-            personalInfoSection
-            emailSection
-            passwordSection
+            ProfilePhotoSection(viewModel: viewModel, user: user, selectedPhotoItem: $selectedPhotoItem)
+            ProfilePersonalInfoSection(viewModel: viewModel, isAthlete: isAthlete)
+            ProfileEmailSection(viewModel: viewModel, email: user?.email)
+            ProfilePasswordSection(viewModel: viewModel)
             if isAthlete {
-                athleteProfileSection
+                ProfileAthleteSection()
             }
-            dataPrivacySection
+            ProfileDataPrivacySection(viewModel: viewModel)
         }
         .navigationTitle("My Profile")
         .navigationBarTitleDisplayMode(.inline)
@@ -76,14 +76,19 @@ struct ProfileView: View {
             Text("Are you sure you want to remove your profile photo? You can upload a new one anytime.")
         }
     }
+}
 
-    // MARK: - Section 1: Profile Photo
+// MARK: - Section 1: Profile Photo
 
-    @ViewBuilder
-    private var photoSection: some View {
+private struct ProfilePhotoSection: View {
+    @Bindable var viewModel: ProfileViewModel
+    let user: User?
+    @Binding var selectedPhotoItem: PhotosPickerItem?
+
+    var body: some View {
         Section {
             HStack(spacing: 16) {
-                photoAvatar
+                ProfilePhotoAvatar(user: user)
                     .frame(width: 96, height: 96)
                     .clipShape(Circle())
 
@@ -122,9 +127,12 @@ struct ProfileView: View {
             .accessibilityElement(children: .contain)
         }
     }
+}
 
-    @ViewBuilder
-    private var photoAvatar: some View {
+private struct ProfilePhotoAvatar: View {
+    let user: User?
+
+    var body: some View {
         if let urlString = user?.profilePhotoUrl, let url = URL(string: urlString) {
             AsyncImage(url: url) { phase in
                 switch phase {
@@ -138,11 +146,15 @@ struct ProfileView: View {
             InitialsAvatar(initials: userInitials(from: user?.fullName))
         }
     }
+}
 
-    // MARK: - Section 2: Personal Information
+// MARK: - Section 2: Personal Information
 
-    @ViewBuilder
-    private var personalInfoSection: some View {
+private struct ProfilePersonalInfoSection: View {
+    @Bindable var viewModel: ProfileViewModel
+    let isAthlete: Bool
+
+    var body: some View {
         Section {
             TextField("Full Name", text: $viewModel.fullName)
                 .accessibilityLabel("Full name")
@@ -181,13 +193,17 @@ struct ProfileView: View {
             Text("Personal Information")
         }
     }
+}
 
-    // MARK: - Section 3: Email
+// MARK: - Section 3: Email
 
-    @ViewBuilder
-    private var emailSection: some View {
+private struct ProfileEmailSection: View {
+    @Bindable var viewModel: ProfileViewModel
+    let email: String?
+
+    var body: some View {
         Section {
-            if let email = user?.email {
+            if let email {
                 HStack {
                     Text("Current:")
                         .foregroundStyle(.secondary)
@@ -262,11 +278,14 @@ struct ProfileView: View {
             Text("Email Address")
         }
     }
+}
 
-    // MARK: - Section 4: Password
+// MARK: - Section 4: Password
 
-    @ViewBuilder
-    private var passwordSection: some View {
+private struct ProfilePasswordSection: View {
+    @Bindable var viewModel: ProfileViewModel
+
+    var body: some View {
         Section {
             SecureField("Current Password", text: $viewModel.currentPassword)
                 .textContentType(.password)
@@ -313,11 +332,12 @@ struct ProfileView: View {
             Text("Password")
         }
     }
+}
 
-    // MARK: - Section 5: Athlete Profile (athletes only)
+// MARK: - Section 5: Athlete Profile (athletes only)
 
-    @ViewBuilder
-    private var athleteProfileSection: some View {
+private struct ProfileAthleteSection: View {
+    var body: some View {
         Section {
             NavigationLink(value: ProfileDestination.playerDetails) {
                 HStack(spacing: 12) {
@@ -345,21 +365,24 @@ struct ProfileView: View {
             Text("Athlete Profile")
         }
     }
+}
 
-    // MARK: - Section 6: Data & Privacy
+// MARK: - Section 6: Data & Privacy
 
-    @ViewBuilder
-    private var dataPrivacySection: some View {
+private struct ProfileDataPrivacySection: View {
+    @Bindable var viewModel: ProfileViewModel
+
+    var body: some View {
         Section {
             switch viewModel.deletionState {
             case .noRequest:
-                deletionDefaultState
+                ProfileDeletionDefaultState(viewModel: viewModel)
 
             case .confirmStep:
-                deletionConfirmState
+                ProfileDeletionConfirmState(viewModel: viewModel)
 
             case .pending(let scheduledFor):
-                deletionPendingState(scheduledFor: scheduledFor)
+                ProfileDeletionPendingState(viewModel: viewModel, scheduledFor: scheduledFor)
             }
 
             if let error = viewModel.deletionError {
@@ -372,9 +395,12 @@ struct ProfileView: View {
             Text("Data & Privacy")
         }
     }
+}
 
-    @ViewBuilder
-    private var deletionDefaultState: some View {
+private struct ProfileDeletionDefaultState: View {
+    @Bindable var viewModel: ProfileViewModel
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // swiftlint:disable:next line_length
             Text("You can request deletion of your account and all associated data. Your account will be permanently deleted 30 days after your request, giving you time to change your mind.")
@@ -395,9 +421,12 @@ struct ProfileView: View {
         }
         .padding(.vertical, 4)
     }
+}
 
-    @ViewBuilder
-    private var deletionConfirmState: some View {
+private struct ProfileDeletionConfirmState: View {
+    @Bindable var viewModel: ProfileViewModel
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("This action cannot be easily undone.")
@@ -442,7 +471,19 @@ struct ProfileView: View {
         .padding(.vertical, 4)
     }
 
-    private func deletionPendingState(scheduledFor: Date) -> some View {
+    private func bulletItem(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 6) {
+            Text("•").foregroundStyle(Color.errorRed)
+            Text(text).font(.caption).foregroundStyle(.primary)
+        }
+    }
+}
+
+private struct ProfileDeletionPendingState: View {
+    @Bindable var viewModel: ProfileViewModel
+    let scheduledFor: Date
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Your account is scheduled for deletion on \(scheduledFor.formatted(date: .long, time: .omitted)).")
@@ -473,13 +514,6 @@ struct ProfileView: View {
             .accessibilityLabel("Cancel account deletion request")
         }
         .padding(.vertical, 4)
-    }
-
-    private func bulletItem(_ text: String) -> some View {
-        HStack(alignment: .top, spacing: 6) {
-            Text("•").foregroundStyle(Color.errorRed)
-            Text(text).font(.caption).foregroundStyle(.primary)
-        }
     }
 }
 
