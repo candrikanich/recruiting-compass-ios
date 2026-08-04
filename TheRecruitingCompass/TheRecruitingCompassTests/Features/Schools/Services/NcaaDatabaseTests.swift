@@ -273,7 +273,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testNormalizeSchoolName_removesUniversityOfPrefix() {
     // When
-    let result = database.testNormalize("University of Florida")
+    let result = database.exposedNormalize("University of Florida")
 
     // Then
     XCTAssertEqual(result, "florida")
@@ -281,7 +281,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testNormalizeSchoolName_removesCollegeOfPrefix() {
     // When
-    let result = database.testNormalize("College of William and Mary")
+    let result = database.exposedNormalize("College of William and Mary")
 
     // Then
     XCTAssertEqual(result, "william and mary")
@@ -289,7 +289,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testNormalizeSchoolName_removesThePrefix() {
     // When
-    let result = database.testNormalize("The Ohio State University")
+    let result = database.exposedNormalize("The Ohio State University")
 
     // Then - only "the " prefix is removed; "university" suffix is not stripped
     XCTAssertEqual(result, "ohio state university")
@@ -297,7 +297,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testNormalizeSchoolName_removesUniversityAlone() {
     // When - "university " is a prefix pattern, but "stanford university" starts with "stanford"
-    let result = database.testNormalize("Stanford University")
+    let result = database.exposedNormalize("Stanford University")
 
     // Then - no prefix matches, so the full normalized name is kept
     XCTAssertEqual(result, "stanford university")
@@ -305,7 +305,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testNormalizeSchoolName_removesCollegeAlone() {
     // When - "college " is a prefix pattern, but "boston college" starts with "boston"
-    let result = database.testNormalize("Boston College")
+    let result = database.exposedNormalize("Boston College")
 
     // Then - no prefix matches, so the full normalized name is kept
     XCTAssertEqual(result, "boston college")
@@ -313,7 +313,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testNormalizeSchoolName_removesPunctuation() {
     // When
-    let result = database.testNormalize("St. Mary's College")
+    let result = database.exposedNormalize("St. Mary's College")
 
     // Then - punctuation removed but "college" suffix is not a prefix pattern
     XCTAssertEqual(result, "st marys college")
@@ -321,7 +321,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testNormalizeSchoolName_removesExtraWhitespace() {
     // When - extra spaces prevent "university of " prefix from matching
-    let result = database.testNormalize("University  of   Florida")
+    let result = database.exposedNormalize("University  of   Florida")
 
     // Then - "university " prefix matches (single space), leaving " of   florida", then whitespace collapsed
     XCTAssertEqual(result, "of florida")
@@ -329,7 +329,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testNormalizeSchoolName_trimsLeadingTrailingWhitespace() {
     // When
-    let result = database.testNormalize("  Stanford  ")
+    let result = database.exposedNormalize("  Stanford  ")
 
     // Then
     XCTAssertEqual(result, "stanford")
@@ -337,7 +337,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testNormalizeSchoolName_convertsToLowercase() {
     // When
-    let result = database.testNormalize("STANFORD UNIVERSITY")
+    let result = database.exposedNormalize("STANFORD UNIVERSITY")
 
     // Then - lowercased but no prefix removed (doesn't start with a known prefix)
     XCTAssertEqual(result, "stanford university")
@@ -345,7 +345,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testNormalizeSchoolName_handlesSpecialCharacters() {
     // When
-    let result = database.testNormalize("Miami (OH)")
+    let result = database.exposedNormalize("Miami (OH)")
 
     // Then
     XCTAssertEqual(result, "miami oh")
@@ -355,7 +355,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testLevenshteinDistance_identicalStrings_returnsZero() {
     // When
-    let distance = database.testLevenshteinDistance("stanford", "stanford")
+    let distance = database.exposedLevenshteinDistance("stanford", "stanford")
 
     // Then
     XCTAssertEqual(distance, 0)
@@ -363,7 +363,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testLevenshteinDistance_oneInsertion_returnsOne() {
     // When
-    let distance = database.testLevenshteinDistance("stanfrd", "stanford")
+    let distance = database.exposedLevenshteinDistance("stanfrd", "stanford")
 
     // Then
     XCTAssertEqual(distance, 1)
@@ -371,7 +371,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testLevenshteinDistance_oneDeletion_returnsOne() {
     // When
-    let distance = database.testLevenshteinDistance("stanford", "stanfrd")
+    let distance = database.exposedLevenshteinDistance("stanford", "stanfrd")
 
     // Then
     XCTAssertEqual(distance, 1)
@@ -379,7 +379,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testLevenshteinDistance_oneSubstitution_returnsOne() {
     // When
-    let distance = database.testLevenshteinDistance("stanford", "stanferd")
+    let distance = database.exposedLevenshteinDistance("stanford", "stanferd")
 
     // Then
     XCTAssertEqual(distance, 1)
@@ -387,7 +387,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testLevenshteinDistance_twoChanges_returnsTwo() {
     // When - "stanfxrd" vs "stanford": only position 5 differs ('x' vs 'o')
-    let distance = database.testLevenshteinDistance("stanford", "stanfxrd")
+    let distance = database.exposedLevenshteinDistance("stanford", "stanfxrd")
 
     // Then - single substitution = distance 1
     XCTAssertEqual(distance, 1)
@@ -395,7 +395,7 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testLevenshteinDistance_threeChanges_returnsThree() {
     // When - "stanxxrd" vs "stanford": positions 4,5 differ ('x','x' vs 'f','o')
-    let distance = database.testLevenshteinDistance("stanford", "stanxxrd")
+    let distance = database.exposedLevenshteinDistance("stanford", "stanxxrd")
 
     // Then - two substitutions = distance 2
     XCTAssertEqual(distance, 2)
@@ -403,9 +403,9 @@ final class NcaaDatabaseTests: XCTestCase {
 
   func testLevenshteinDistance_emptyStrings_returnsCorrectly() {
     // When
-    let distance1 = database.testLevenshteinDistance("", "test")
-    let distance2 = database.testLevenshteinDistance("test", "")
-    let distance3 = database.testLevenshteinDistance("", "")
+    let distance1 = database.exposedLevenshteinDistance("", "test")
+    let distance2 = database.exposedLevenshteinDistance("test", "")
+    let distance3 = database.exposedLevenshteinDistance("", "")
 
     // Then
     XCTAssertEqual(distance1, 4) // Insert 4 chars
@@ -665,11 +665,11 @@ final class TestableNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
 
   // MARK: - Test Helpers
 
-  func testNormalize(_ name: String) -> String {
+  func exposedNormalize(_ name: String) -> String {
     return normalizeSchoolName(name)
   }
 
-  func testLevenshteinDistance(_ s1: String, _ s2: String) -> Int {
+  func exposedLevenshteinDistance(_ s1: String, _ s2: String) -> Int {
     return levenshteinDistance(s1, s2)
   }
 

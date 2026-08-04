@@ -24,12 +24,19 @@ final class BadgeColorTests: XCTestCase {
     XCTAssertEqual(BadgeColor.slate.indicatorColor, Color.Brand.slate500)
   }
 
-  func test_allCases_haveNonNilColors() {
-    for color in BadgeColor.allCases {
-      _ = color.backgroundColor
-      _ = color.foregroundColor
-      _ = color.indicatorColor
-    }
+  func test_allCases_haveDistinctBackgroundColors() {
+    let backgroundColors = BadgeColor.allCases.map(\.backgroundColor)
+    XCTAssertEqual(Set(backgroundColors).count, BadgeColor.allCases.count, "Each case should have a distinct background color")
+  }
+
+  func test_allCases_haveDistinctForegroundColors() {
+    let foregroundColors = BadgeColor.allCases.map(\.foregroundColor)
+    XCTAssertEqual(Set(foregroundColors).count, BadgeColor.allCases.count, "Each case should have a distinct foreground color")
+  }
+
+  func test_allCases_haveDistinctIndicatorColors() {
+    let indicatorColors = BadgeColor.allCases.map(\.indicatorColor)
+    XCTAssertEqual(Set(indicatorColors).count, BadgeColor.allCases.count, "Each case should have a distinct indicator color")
   }
 
   func test_allCasesCount() {

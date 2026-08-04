@@ -79,16 +79,6 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
   // MARK: - Initialization Tests
 
-  // Note: Skipping test with default dependencies as it requires SupabaseManager to be fully configured
-  // func testInit_defaultDependencies() {
-  //   let vm = FamilyManagementViewModel()
-  //   XCTAssertNotNil(vm)
-  //   XCTAssertFalse(vm.isLoading)
-  //   XCTAssertNil(vm.errorMessage)
-  //   XCTAssertNil(vm.familyCode)
-  //   XCTAssertTrue(vm.familyMembers.isEmpty)
-  // }
-
   func testInit_mockDependencies() {
     XCTAssertFalse(sut.isLoading)
     XCTAssertNil(sut.errorMessage)
