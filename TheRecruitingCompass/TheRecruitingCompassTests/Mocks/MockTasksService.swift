@@ -3,6 +3,8 @@ import Foundation
 
 final class MockTasksService: TasksManaging, @unchecked Sendable {
   var stubbedTasks: [TaskWithStatus] = []
+  /// When set, fetchAllTasksWithStatus returns this instead of the default single-grade-9 wrapping of stubbedTasks.
+  var stubbedTasksByGrade: [Int: [TaskWithStatus]]?
   var stubbedAthleteTaskStatus: AthleteTaskStatus?
   var shouldThrowFetchError = false
   var shouldThrowUpdateError = false
@@ -29,7 +31,7 @@ final class MockTasksService: TasksManaging, @unchecked Sendable {
     if shouldThrowFetchError {
       throw NSError(domain: "MockError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Fetch failed"])
     }
-    return [9: stubbedTasks, 10: [], 11: [], 12: []]
+    return stubbedTasksByGrade ?? [9: stubbedTasks, 10: [], 11: [], 12: []]
   }
 
   func updateTaskStatus(taskId: String, status: TaskStatus, userId: String) async throws -> AthleteTaskStatus {
