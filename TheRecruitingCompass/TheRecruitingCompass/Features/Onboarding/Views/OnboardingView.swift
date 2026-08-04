@@ -22,7 +22,7 @@ struct OnboardingView: View {
         OnboardingHeaderView(authManager: authManager)
         OnboardingProgressBar(currentStep: viewModel.currentStep)
         ScrollView {
-          screenContent
+          OnboardingScreenContent(viewModel: viewModel)
             .padding()
         }
         .background(Color.white.opacity(0.95))
@@ -31,7 +31,7 @@ struct OnboardingView: View {
         .padding(.bottom, 16)
 
         if viewModel.errorMessage != nil {
-          errorBanner
+          OnboardingErrorBanner(viewModel: viewModel)
             .padding(.horizontal, 24)
             .padding(.bottom, 8)
         }
@@ -55,178 +55,6 @@ struct OnboardingView: View {
     .task { await viewModel.loadExistingData() }
   }
 
-  @ViewBuilder
-  private var screenContent: some View {
-    switch viewModel.currentStep {
-    case 1:
-      welcomeStep
-    case 2:
-      OnboardingBasicInfoStep(viewModel: viewModel)
-    case 3:
-      locationStep
-    case 4:
-      academicStep
-    case 5:
-      completeStep
-    default:
-      welcomeStep
-    }
-  }
-
-  @ViewBuilder
-  private var welcomeStep: some View {
-    VStack(spacing: 24) {
-      Text("Welcome!")
-        .font(.title2.weight(.bold))
-      Text("This onboarding will help us understand your recruiting goals and preferences. It should take about 5 minutes.")
-        .font(.body)
-        .foregroundStyle(.secondary)
-        .multilineTextAlignment(.center)
-    }
-    .padding(.vertical, 32)
-  }
-
-  @ViewBuilder
-  private var locationStep: some View {
-    VStack(alignment: .leading, spacing: 20) {
-      Text("Your Location")
-        .font(.title2.weight(.bold))
-      Text("Tell us your zip code so we can find nearby schools.")
-        .font(.body)
-        .foregroundStyle(.secondary)
-
-      VStack(alignment: .leading, spacing: 8) {
-        Text("Zip Code *")
-          .font(.subheadline.weight(.medium))
-        TextField("Enter your 5-digit zip code", text: $viewModel.zipCode)
-          .textFieldStyle(.roundedBorder)
-          .keyboardType(.numberPad)
-          .textContentType(.postalCode)
-        if let zipError = viewModel.zipCodeError {
-          Text(zipError)
-            .font(.caption)
-            .foregroundStyle(.red)
-        }
-      }
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.vertical, 24)
-  }
-
-  @ViewBuilder
-  private var academicStep: some View {
-    VStack(alignment: .leading, spacing: 20) {
-      Text("Academic Info")
-        .font(.title2.weight(.bold))
-      Text("Share your GPA and test scores (optional) for better recommendations.")
-        .font(.body)
-        .foregroundStyle(.secondary)
-
-      VStack(alignment: .leading, spacing: 8) {
-        Text("GPA (Optional)")
-          .font(.subheadline.weight(.medium))
-        TextField("e.g., 3.8", value: $viewModel.gpa, format: .number)
-          .textFieldStyle(.roundedBorder)
-          .keyboardType(.decimalPad)
-        Text("Scale of 0.0 - 4.0")
-          .font(.caption)
-          .foregroundStyle(.tertiary)
-      }
-
-      VStack(alignment: .leading, spacing: 8) {
-        Text("SAT Score (Optional)")
-          .font(.subheadline.weight(.medium))
-        TextField("e.g., 1500", value: $viewModel.satScore, format: .number)
-          .textFieldStyle(.roundedBorder)
-          .keyboardType(.numberPad)
-        Text("Score between 400-1600")
-          .font(.caption)
-          .foregroundStyle(.tertiary)
-      }
-
-      VStack(alignment: .leading, spacing: 8) {
-        Text("ACT Score (Optional)")
-          .font(.subheadline.weight(.medium))
-        TextField("e.g., 35", value: $viewModel.actScore, format: .number)
-          .textFieldStyle(.roundedBorder)
-          .keyboardType(.numberPad)
-        Text("Score between 1-36")
-          .font(.caption)
-          .foregroundStyle(.tertiary)
-      }
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.vertical, 24)
-  }
-
-  @ViewBuilder
-  private var completeStep: some View {
-    VStack(spacing: 24) {
-      Text("You're All Set!")
-        .font(.title2.weight(.bold))
-
-      Text("Invite a parent or guardian to follow your recruiting journey.")
-        .font(.body)
-        .foregroundStyle(.secondary)
-        .multilineTextAlignment(.center)
-
-      if viewModel.isInviteSent {
-        Label("Invite sent!", systemImage: "checkmark.circle")
-          .foregroundStyle(.green)
-          .font(.subheadline.weight(.medium))
-      } else {
-        VStack(spacing: 12) {
-          TextField("Parent's email", text: $viewModel.inviteEmail)
-            .textFieldStyle(.roundedBorder)
-            .keyboardType(.emailAddress)
-            .textContentType(.emailAddress)
-            .autocapitalization(.none)
-
-          Button {
-            Task { await viewModel.sendParentInvite() }
-          } label: {
-            if viewModel.isLoading {
-              ProgressView().tint(.white)
-            } else {
-              Text("Send Invite")
-            }
-          }
-          .frame(maxWidth: .infinity)
-          .frame(height: 44)
-          .background(viewModel.isEmailInviteValid ? Color.accentColor : Color.gray)
-          .foregroundStyle(.white)
-          .clipShape(.rect(cornerRadius: 8))
-          .disabled(!viewModel.isEmailInviteValid || viewModel.isLoading)
-        }
-      }
-
-      Text("You can invite a parent later from Family Management.")
-        .font(.caption)
-        .foregroundStyle(.tertiary)
-    }
-    .padding(.vertical, 32)
-  }
-
-  @ViewBuilder
-  private var errorBanner: some View {
-    Group {
-      if let error = viewModel.errorMessage {
-        VStack(alignment: .leading, spacing: 8) {
-          Text(error)
-            .font(.subheadline)
-            .foregroundStyle(.red)
-          Button("Dismiss") {
-            viewModel.clearError()
-          }
-          .font(.caption)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.red.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-      }
-    }
-  }
 }
 
 // MARK: - Extracted subviews
@@ -360,6 +188,193 @@ private struct OnboardingBasicInfoStep: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.vertical, 24)
+  }
+}
+
+private struct OnboardingScreenContent: View {
+  @Bindable var viewModel: OnboardingViewModel
+
+  var body: some View {
+    switch viewModel.currentStep {
+    case 1:
+      OnboardingWelcomeStep()
+    case 2:
+      OnboardingBasicInfoStep(viewModel: viewModel)
+    case 3:
+      OnboardingLocationStep(viewModel: viewModel)
+    case 4:
+      OnboardingAcademicStep(viewModel: viewModel)
+    case 5:
+      OnboardingCompleteStep(viewModel: viewModel)
+    default:
+      OnboardingWelcomeStep()
+    }
+  }
+}
+
+private struct OnboardingWelcomeStep: View {
+  var body: some View {
+    VStack(spacing: 24) {
+      Text("Welcome!")
+        .font(.title2.weight(.bold))
+      Text("This onboarding will help us understand your recruiting goals and preferences. It should take about 5 minutes.")
+        .font(.body)
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
+    }
+    .padding(.vertical, 32)
+  }
+}
+
+private struct OnboardingLocationStep: View {
+  @Bindable var viewModel: OnboardingViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 20) {
+      Text("Your Location")
+        .font(.title2.weight(.bold))
+      Text("Tell us your zip code so we can find nearby schools.")
+        .font(.body)
+        .foregroundStyle(.secondary)
+
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Zip Code *")
+          .font(.subheadline.weight(.medium))
+        TextField("Enter your 5-digit zip code", text: $viewModel.zipCode)
+          .textFieldStyle(.roundedBorder)
+          .keyboardType(.numberPad)
+          .textContentType(.postalCode)
+        if let zipError = viewModel.zipCodeError {
+          Text(zipError)
+            .font(.caption)
+            .foregroundStyle(.red)
+        }
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.vertical, 24)
+  }
+}
+
+private struct OnboardingAcademicStep: View {
+  @Bindable var viewModel: OnboardingViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 20) {
+      Text("Academic Info")
+        .font(.title2.weight(.bold))
+      Text("Share your GPA and test scores (optional) for better recommendations.")
+        .font(.body)
+        .foregroundStyle(.secondary)
+
+      VStack(alignment: .leading, spacing: 8) {
+        Text("GPA (Optional)")
+          .font(.subheadline.weight(.medium))
+        TextField("e.g., 3.8", value: $viewModel.gpa, format: .number)
+          .textFieldStyle(.roundedBorder)
+          .keyboardType(.decimalPad)
+        Text("Scale of 0.0 - 4.0")
+          .font(.caption)
+          .foregroundStyle(.tertiary)
+      }
+
+      VStack(alignment: .leading, spacing: 8) {
+        Text("SAT Score (Optional)")
+          .font(.subheadline.weight(.medium))
+        TextField("e.g., 1500", value: $viewModel.satScore, format: .number)
+          .textFieldStyle(.roundedBorder)
+          .keyboardType(.numberPad)
+        Text("Score between 400-1600")
+          .font(.caption)
+          .foregroundStyle(.tertiary)
+      }
+
+      VStack(alignment: .leading, spacing: 8) {
+        Text("ACT Score (Optional)")
+          .font(.subheadline.weight(.medium))
+        TextField("e.g., 35", value: $viewModel.actScore, format: .number)
+          .textFieldStyle(.roundedBorder)
+          .keyboardType(.numberPad)
+        Text("Score between 1-36")
+          .font(.caption)
+          .foregroundStyle(.tertiary)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.vertical, 24)
+  }
+}
+
+private struct OnboardingCompleteStep: View {
+  @Bindable var viewModel: OnboardingViewModel
+
+  var body: some View {
+    VStack(spacing: 24) {
+      Text("You're All Set!")
+        .font(.title2.weight(.bold))
+
+      Text("Invite a parent or guardian to follow your recruiting journey.")
+        .font(.body)
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
+
+      if viewModel.isInviteSent {
+        Label("Invite sent!", systemImage: "checkmark.circle")
+          .foregroundStyle(.green)
+          .font(.subheadline.weight(.medium))
+      } else {
+        VStack(spacing: 12) {
+          TextField("Parent's email", text: $viewModel.inviteEmail)
+            .textFieldStyle(.roundedBorder)
+            .keyboardType(.emailAddress)
+            .textContentType(.emailAddress)
+            .autocapitalization(.none)
+
+          Button {
+            Task { await viewModel.sendParentInvite() }
+          } label: {
+            if viewModel.isLoading {
+              ProgressView().tint(.white)
+            } else {
+              Text("Send Invite")
+            }
+          }
+          .frame(maxWidth: .infinity)
+          .frame(height: 44)
+          .background(viewModel.isEmailInviteValid ? Color.accentColor : Color.gray)
+          .foregroundStyle(.white)
+          .clipShape(.rect(cornerRadius: 8))
+          .disabled(!viewModel.isEmailInviteValid || viewModel.isLoading)
+        }
+      }
+
+      Text("You can invite a parent later from Family Management.")
+        .font(.caption)
+        .foregroundStyle(.tertiary)
+    }
+    .padding(.vertical, 32)
+  }
+}
+
+private struct OnboardingErrorBanner: View {
+  @Bindable var viewModel: OnboardingViewModel
+
+  var body: some View {
+    if let error = viewModel.errorMessage {
+      VStack(alignment: .leading, spacing: 8) {
+        Text(error)
+          .font(.subheadline)
+          .foregroundStyle(.red)
+        Button("Dismiss") {
+          viewModel.clearError()
+        }
+        .font(.caption)
+      }
+      .padding()
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(Color.red.opacity(0.1))
+      .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
   }
 }
 
