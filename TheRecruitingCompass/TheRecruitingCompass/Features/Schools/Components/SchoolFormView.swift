@@ -24,47 +24,86 @@ struct SchoolFormView: View {
 
   var body: some View {
     VStack(spacing: 24) {
-      // Name (required)
-      nameField
+      SchoolFormNameField(
+        formState: $formState,
+        error: formErrors.name,
+        isDisabled: isDisabled,
+        focusedField: $focusedField,
+        onValidateField: onValidateField,
+        onNcaaLookup: onNcaaLookup
+      )
 
-      // Location fields (side-by-side on iPad, stacked on iPhone)
-      locationFields
+      SchoolFormLocationFields(
+        formState: $formState,
+        formErrors: formErrors,
+        isDisabled: isDisabled,
+        focusedField: $focusedField,
+        onValidateField: onValidateField
+      )
 
-      // Division & Conference
-      divisionPicker
-      conferenceField
+      SchoolFormDivisionPicker(formState: $formState, error: formErrors.division, isDisabled: isDisabled)
+      SchoolFormConferenceField(
+        formState: $formState,
+        error: formErrors.conference,
+        isDisabled: isDisabled,
+        focusedField: $focusedField,
+        onValidateField: onValidateField
+      )
 
-      // Website
-      websiteField
+      SchoolFormWebsiteField(
+        formState: $formState,
+        error: formErrors.website,
+        isDisabled: isDisabled,
+        focusedField: $focusedField,
+        onValidateField: onValidateField
+      )
 
-      // Social Media (side-by-side on iPad, stacked on iPhone)
-      socialMediaFields
+      SchoolFormSocialMediaFields(
+        formState: $formState,
+        formErrors: formErrors,
+        isDisabled: isDisabled,
+        focusedField: $focusedField,
+        onValidateField: onValidateField
+      )
 
-      // Notes
-      notesField
+      SchoolFormNotesField(
+        formState: $formState,
+        error: formErrors.notes,
+        isDisabled: isDisabled,
+        focusedField: $focusedField,
+        onValidateField: onValidateField,
+        onCharacterCountChange: onCharacterCountChange
+      )
 
-      // Status
-      statusPicker
+      SchoolFormStatusPicker(formState: $formState, error: formErrors.status, isDisabled: isDisabled)
     }
   }
+}
 
-  // MARK: - Name Field
+// MARK: - Name Field
 
-  @ViewBuilder
-  private var nameField: some View {
-    FormFieldWrapper(label: "School Name", isRequired: true, error: formErrors.name) {
+private struct SchoolFormNameField: View {
+  @Binding var formState: SchoolFormState
+  let error: String?
+  let isDisabled: Bool
+  var focusedField: FocusState<SchoolFormView.Field?>.Binding
+  let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+  let onNcaaLookup: ((String) -> Void)?
+
+  var body: some View {
+    FormFieldWrapper(label: "School Name", isRequired: true, error: error) {
       TextField("e.g., Harvard University", text: $formState.name)
         .textFieldStyle(.roundedBorder)
         .textContentType(.organizationName)
         .autocapitalization(.words)
         .disabled(isDisabled)
-        .focused($focusedField, equals: .name)
+        .focused(focusedField, equals: .name)
         .onSubmit {
           onValidateField(\.name, formState.name)
           // Phase 1: Trigger NCAA lookup after validation
           onNcaaLookup?(formState.name)
         }
-        .onChange(of: focusedField) { oldValue, newValue in
+        .onChange(of: focusedField.wrappedValue) { oldValue, newValue in
           // Trigger NCAA lookup when name field loses focus
           if oldValue == .name && newValue != .name && !formState.name.isEmpty {
             onNcaaLookup?(formState.name)
@@ -74,26 +113,52 @@ struct SchoolFormView: View {
         .accessibilityHint("Enter the school's full name")
     }
   }
+}
 
-  // MARK: - Location Fields
+// MARK: - Location Fields
 
-  @ViewBuilder
-  private var locationFields: some View {
+private struct SchoolFormLocationFields: View {
+  @Binding var formState: SchoolFormState
+  let formErrors: SchoolFormErrors
+  let isDisabled: Bool
+  var focusedField: FocusState<SchoolFormView.Field?>.Binding
+  let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+
+  var body: some View {
     AdaptiveHStackVStack {
-      cityField
-      stateField
+      SchoolFormCityField(
+        formState: $formState,
+        error: formErrors.city,
+        isDisabled: isDisabled,
+        focusedField: focusedField,
+        onValidateField: onValidateField
+      )
+      SchoolFormStateField(
+        formState: $formState,
+        error: formErrors.state,
+        isDisabled: isDisabled,
+        focusedField: focusedField,
+        onValidateField: onValidateField
+      )
     }
   }
+}
 
-  @ViewBuilder
-  private var cityField: some View {
-    FormFieldWrapper(label: "City", error: formErrors.city) {
+private struct SchoolFormCityField: View {
+  @Binding var formState: SchoolFormState
+  let error: String?
+  let isDisabled: Bool
+  var focusedField: FocusState<SchoolFormView.Field?>.Binding
+  let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+
+  var body: some View {
+    FormFieldWrapper(label: "City", error: error) {
       TextField("e.g., Cambridge", text: $formState.city)
         .textFieldStyle(.roundedBorder)
         .textContentType(.addressCity)
         .autocapitalization(.words)
         .disabled(isDisabled)
-        .focused($focusedField, equals: .city)
+        .focused(focusedField, equals: .city)
         .onSubmit {
           onValidateField(\.city, formState.city)
         }
@@ -101,16 +166,23 @@ struct SchoolFormView: View {
         .accessibilityHint("Enter the city where the school is located")
     }
   }
+}
 
-  @ViewBuilder
-  private var stateField: some View {
-    FormFieldWrapper(label: "State", error: formErrors.state) {
+private struct SchoolFormStateField: View {
+  @Binding var formState: SchoolFormState
+  let error: String?
+  let isDisabled: Bool
+  var focusedField: FocusState<SchoolFormView.Field?>.Binding
+  let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+
+  var body: some View {
+    FormFieldWrapper(label: "State", error: error) {
       TextField("e.g., Massachusetts", text: $formState.state)
         .textFieldStyle(.roundedBorder)
         .textContentType(.addressState)
         .autocapitalization(.words)
         .disabled(isDisabled)
-        .focused($focusedField, equals: .state)
+        .focused(focusedField, equals: .state)
         .onSubmit {
           onValidateField(\.state, formState.state)
         }
@@ -118,12 +190,17 @@ struct SchoolFormView: View {
         .accessibilityHint("Enter the state where the school is located")
     }
   }
+}
 
-  // MARK: - Division Picker
+// MARK: - Division Picker
 
-  @ViewBuilder
-  private var divisionPicker: some View {
-    FormFieldWrapper(label: "Division", error: formErrors.division) {
+private struct SchoolFormDivisionPicker: View {
+  @Binding var formState: SchoolFormState
+  let error: String?
+  let isDisabled: Bool
+
+  var body: some View {
+    FormFieldWrapper(label: "Division", error: error) {
       Picker("Division", selection: $formState.division) {
         Text("Select Division")
           .tag(nil as Division?)
@@ -140,17 +217,24 @@ struct SchoolFormView: View {
       .accessibilityHint("Select the school's NCAA division")
     }
   }
+}
 
-  // MARK: - Conference Field
+// MARK: - Conference Field
 
-  @ViewBuilder
-  private var conferenceField: some View {
-    FormFieldWrapper(label: "Conference", error: formErrors.conference) {
+private struct SchoolFormConferenceField: View {
+  @Binding var formState: SchoolFormState
+  let error: String?
+  let isDisabled: Bool
+  var focusedField: FocusState<SchoolFormView.Field?>.Binding
+  let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+
+  var body: some View {
+    FormFieldWrapper(label: "Conference", error: error) {
       TextField("e.g., Ivy League", text: $formState.conference)
         .textFieldStyle(.roundedBorder)
         .autocapitalization(.words)
         .disabled(isDisabled)
-        .focused($focusedField, equals: .conference)
+        .focused(focusedField, equals: .conference)
         .onSubmit {
           onValidateField(\.conference, formState.conference)
         }
@@ -158,19 +242,26 @@ struct SchoolFormView: View {
         .accessibilityHint("Enter the athletic conference name")
     }
   }
+}
 
-  // MARK: - Website Field
+// MARK: - Website Field
 
-  @ViewBuilder
-  private var websiteField: some View {
-    FormFieldWrapper(label: "Website", error: formErrors.website) {
+private struct SchoolFormWebsiteField: View {
+  @Binding var formState: SchoolFormState
+  let error: String?
+  let isDisabled: Bool
+  var focusedField: FocusState<SchoolFormView.Field?>.Binding
+  let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+
+  var body: some View {
+    FormFieldWrapper(label: "Website", error: error) {
       TextField("https://example.edu", text: $formState.website)
         .textFieldStyle(.roundedBorder)
         .keyboardType(.URL)
         .textContentType(.URL)
         .autocapitalization(.none)
         .disabled(isDisabled)
-        .focused($focusedField, equals: .website)
+        .focused(focusedField, equals: .website)
         .onSubmit {
           onValidateField(\.website, formState.website)
         }
@@ -178,25 +269,51 @@ struct SchoolFormView: View {
         .accessibilityHint("Enter the school's website URL")
     }
   }
+}
 
-  // MARK: - Social Media
+// MARK: - Social Media
 
-  @ViewBuilder
-  private var socialMediaFields: some View {
+private struct SchoolFormSocialMediaFields: View {
+  @Binding var formState: SchoolFormState
+  let formErrors: SchoolFormErrors
+  let isDisabled: Bool
+  var focusedField: FocusState<SchoolFormView.Field?>.Binding
+  let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+
+  var body: some View {
     AdaptiveHStackVStack {
-      twitterField
-      instagramField
+      SchoolFormTwitterField(
+        formState: $formState,
+        error: formErrors.twitterHandle,
+        isDisabled: isDisabled,
+        focusedField: focusedField,
+        onValidateField: onValidateField
+      )
+      SchoolFormInstagramField(
+        formState: $formState,
+        error: formErrors.instagramHandle,
+        isDisabled: isDisabled,
+        focusedField: focusedField,
+        onValidateField: onValidateField
+      )
     }
   }
+}
 
-  @ViewBuilder
-  private var twitterField: some View {
-    FormFieldWrapper(label: "Twitter Handle", error: formErrors.twitterHandle) {
+private struct SchoolFormTwitterField: View {
+  @Binding var formState: SchoolFormState
+  let error: String?
+  let isDisabled: Bool
+  var focusedField: FocusState<SchoolFormView.Field?>.Binding
+  let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+
+  var body: some View {
+    FormFieldWrapper(label: "Twitter Handle", error: error) {
       TextField("@handle", text: $formState.twitterHandle)
         .textFieldStyle(.roundedBorder)
         .autocapitalization(.none)
         .disabled(isDisabled)
-        .focused($focusedField, equals: .twitter)
+        .focused(focusedField, equals: .twitter)
         .onSubmit {
           onValidateField(\.twitterHandle, formState.twitterHandle)
         }
@@ -204,15 +321,22 @@ struct SchoolFormView: View {
         .accessibilityHint("Enter the school's Twitter handle")
     }
   }
+}
 
-  @ViewBuilder
-  private var instagramField: some View {
-    FormFieldWrapper(label: "Instagram Handle", error: formErrors.instagramHandle) {
+private struct SchoolFormInstagramField: View {
+  @Binding var formState: SchoolFormState
+  let error: String?
+  let isDisabled: Bool
+  var focusedField: FocusState<SchoolFormView.Field?>.Binding
+  let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+
+  var body: some View {
+    FormFieldWrapper(label: "Instagram Handle", error: error) {
       TextField("@handle", text: $formState.instagramHandle)
         .textFieldStyle(.roundedBorder)
         .autocapitalization(.none)
         .disabled(isDisabled)
-        .focused($focusedField, equals: .instagram)
+        .focused(focusedField, equals: .instagram)
         .onSubmit {
           onValidateField(\.instagramHandle, formState.instagramHandle)
         }
@@ -220,12 +344,20 @@ struct SchoolFormView: View {
         .accessibilityHint("Enter the school's Instagram handle")
     }
   }
+}
 
-  // MARK: - Notes
+// MARK: - Notes
 
-  @ViewBuilder
-  private var notesField: some View {
-    FormFieldWrapper(label: "Notes", error: formErrors.notes) {
+private struct SchoolFormNotesField: View {
+  @Binding var formState: SchoolFormState
+  let error: String?
+  let isDisabled: Bool
+  var focusedField: FocusState<SchoolFormView.Field?>.Binding
+  let onValidateField: (KeyPath<SchoolFormState, String>, String) -> Void
+  let onCharacterCountChange: ((Int) -> Void)?
+
+  var body: some View {
+    FormFieldWrapper(label: "Notes", error: error) {
       VStack(spacing: 4) {
         ZStack(alignment: .topLeading) {
           if formState.notes.isEmpty {
@@ -238,12 +370,12 @@ struct SchoolFormView: View {
           TextEditor(text: $formState.notes)
             .frame(minHeight: 100)
             .disabled(isDisabled)
-            .focused($focusedField, equals: .notes)
+            .focused(focusedField, equals: .notes)
             .onChange(of: formState.notes) { _, newValue in
               // Accessibility: Announce character count milestones
               onCharacterCountChange?(newValue.count)
             }
-            .onChange(of: focusedField) { _, newFocus in
+            .onChange(of: focusedField.wrappedValue) { _, newFocus in
               if newFocus != .notes && !formState.notes.isEmpty {
                 onValidateField(\.notes, formState.notes)
               }
@@ -267,12 +399,17 @@ struct SchoolFormView: View {
       }
     }
   }
+}
 
-  // MARK: - Status Picker
+// MARK: - Status Picker
 
-  @ViewBuilder
-  private var statusPicker: some View {
-    FormFieldWrapper(label: "Status", error: formErrors.status) {
+private struct SchoolFormStatusPicker: View {
+  @Binding var formState: SchoolFormState
+  let error: String?
+  let isDisabled: Bool
+
+  var body: some View {
+    FormFieldWrapper(label: "Status", error: error) {
       Picker("Status", selection: $formState.status) {
         ForEach(SchoolStatus.allCases, id: \.self) { status in
           Text(status.displayName)
