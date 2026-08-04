@@ -78,8 +78,7 @@ struct AddCoachView: View {
           message: "You need to add a school before adding a coach",
           actionTitle: "Add School"
         ) {
-          // TODO: Navigate to Add School
-          // This will be implemented in Phase 6 (Integration & Navigation)
+          navigationPath.append(CoachDestination.addSchool)
         }
       } else {
         SchoolPicker(

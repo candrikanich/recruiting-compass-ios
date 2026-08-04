@@ -60,7 +60,11 @@ struct FormErrorSummary: View {
       .accessibilityLabel("Form errors")
       .accessibilityValue("\(errors.count) error\(errors.count == 1 ? "" : "s"): \(errors.joined(separator: ", "))")
       .accessibilityAddTraits(.updatesFrequently)
-      // TODO: Add UIAccessibility.post() announcement when errors appear (requires ViewModel integration)
+      .onChange(of: errors) { oldValue, newValue in
+        guard !newValue.isEmpty, oldValue != newValue else { return }
+        let message = "\(newValue.count) error\(newValue.count == 1 ? "" : "s"): \(newValue.joined(separator: ". "))"
+        AccessibilityNotification.Announcement(message).post()
+      }
     }
   }
 }

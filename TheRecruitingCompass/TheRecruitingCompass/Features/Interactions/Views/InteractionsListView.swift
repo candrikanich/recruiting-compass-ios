@@ -75,12 +75,16 @@ struct InteractionsListView: View {
       } else {
         ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
       }
-    case .detail:
-      ContentUnavailableView(
-        "Detail View Coming Soon",
-        systemImage: "bubble.left.and.bubble.right",
-        description: Text("Interaction details will be available in a future update.")
-      )
+    case .detail(let interactionId):
+      if let familyUnitId = familyManager.currentMember?.familyUnitId {
+        InteractionDetailView(
+          interactionId: interactionId,
+          familyUnitId: familyUnitId,
+          interactionsService: viewModel.interactionsService
+        )
+      } else {
+        ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
+      }
     }
   }
 
@@ -186,7 +190,7 @@ struct InteractionsListView: View {
   private var interactionCards: some View {
     ForEach(viewModel.filteredInteractions) { interaction in
       Button {
-        // TODO: Navigate to interaction detail
+        navigationPath.append(InteractionDestination.detail(interaction.id))
       } label: {
         InteractionCard(
           interaction: interaction,

@@ -131,6 +131,13 @@ struct CoachesListView: View {
         userId: authManager.user?.id ?? "",
         navigationPath: $navigationPath
       )
+    case .addSchool:
+      AddSchoolView(
+        schoolsService: SchoolsServiceImpl(supabaseManager: .shared),
+        familyUnitId: familyManager.familyUnitId ?? "",
+        userId: authManager.user?.id ?? "",
+        navigationPath: $navigationPath
+      )
     case .filteredBySchool(let schoolId):
       CoachesListView(prefilterSchoolId: schoolId)
     }
