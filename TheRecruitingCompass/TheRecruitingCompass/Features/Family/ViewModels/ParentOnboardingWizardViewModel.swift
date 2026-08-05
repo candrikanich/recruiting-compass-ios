@@ -25,8 +25,8 @@ final class ParentOnboardingWizardViewModel {
   var playerDateOfBirth: Date = Calendar.current.date(
     byAdding: .year,
     value: -16,
-    to: Date()
-  ) ?? Date()
+    to: .now
+  ) ?? .now
   var hasConfirmedDateOfBirth = false
 
   var inviteEmail: String = ""
@@ -124,6 +124,7 @@ final class ParentOnboardingWizardViewModel {
     } catch {
       logger.error("loadFamilyCode failed: \(error.localizedDescription, privacy: .public) — full error: \(String(describing: error), privacy: .private)")
       familyCode = nil
+      errorMessage = "Couldn't load your family code. Please try again."
     }
   }
 
@@ -160,6 +161,5 @@ final class ParentOnboardingWizardViewModel {
       errorMessage = (error as? FamilyError)?.errorDescription ?? "Failed to send invite. Please try again."
     }
   }
-
 
 }

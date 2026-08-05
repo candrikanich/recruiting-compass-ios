@@ -86,7 +86,7 @@ final class OnboardingServiceImpl: OnboardingManaging, Sendable {
       currentPhase: startingPhase,
       phaseMilestoneData: UpdatePayload.PhaseMilestonePayload(
         onboardingComplete: true,
-        onboardingCompletedAt: ISO8601DateFormatter().string(from: Date()),
+        onboardingCompletedAt: ISO8601DateFormatter().string(from: .now),
         assessmentResponses: UpdatePayload.PhaseMilestonePayload.AssessmentPayload(
           hasHighlightVideo: assessment.hasHighlightVideo,
           hasContactedCoaches: assessment.hasContactedCoaches,

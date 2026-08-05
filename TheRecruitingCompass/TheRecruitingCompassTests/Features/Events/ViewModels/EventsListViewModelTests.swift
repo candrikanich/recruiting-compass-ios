@@ -8,12 +8,15 @@ final class EventsListViewModelTests: XCTestCase {
   private var sut: EventsListViewModel!
   private var mockService: MockEventsService!
   private var mockAuth: MockAuthManager!
+  private var mockCache: InMemoryCache!
 
   override func setUp() {
     super.setUp()
     mockService = MockEventsService()
     mockAuth = MockAuthManager()
-    sut = EventsListViewModel(eventsService: mockService, authManager: mockAuth)
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
+    sut = EventsListViewModel(eventsService: mockService, authManager: mockAuth, cache: mockCache)
   }
 
   override func tearDown() {
@@ -21,6 +24,7 @@ final class EventsListViewModelTests: XCTestCase {
     sut = nil
     mockService = nil
     mockAuth = nil
+    mockCache = nil
     super.tearDown()
   }
 
@@ -29,7 +33,7 @@ final class EventsListViewModelTests: XCTestCase {
   func testInitialState_isEmpty() {
     XCTAssertTrue(sut.events.isEmpty)
     XCTAssertFalse(sut.isLoading)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertEqual(sut.statusFilter, .all)
     XCTAssertNil(sut.typeFilter)
     XCTAssertEqual(sut.searchText, "")
@@ -47,7 +51,7 @@ final class EventsListViewModelTests: XCTestCase {
     await sut.loadEvents()
 
     XCTAssertEqual(sut.events.count, 2)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertEqual(mockService.fetchEventsCallCount, 1)
     XCTAssertEqual(mockService.lastFetchEventsUserId, "user-1")
   }
@@ -59,7 +63,7 @@ final class EventsListViewModelTests: XCTestCase {
     await sut.loadEvents()
 
     XCTAssertTrue(sut.events.isEmpty)
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   func testLoadEvents_noUser_skipsLoad() async {
@@ -72,11 +76,11 @@ final class EventsListViewModelTests: XCTestCase {
 
   func testLoadEvents_clearsErrorBeforeLoad() async {
     mockAuth.user = userMock(id: "user-1")
-    sut.error = "Previous error"
+    sut.errorMessage = "Previous error"
 
     await sut.loadEvents()
 
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
   }
 
   func testLoadEvents_clearsLoadingAfterCompletion() async {
@@ -296,6 +300,96 @@ final class EventsListViewModelTests: XCTestCase {
     XCTAssertEqual(freshSut.sortBy, .dateDesc)
   }
 
+  // MARK: - Cached filteredEvents Staleness Tests
+  // filteredEvents is a cached stored property (Phase 3.3), recomputed via
+  // didSet on events/searchText/typeFilter/statusFilter/dateRangeFilter and
+  // sortBy's custom setter — not read live.
+
+  func testFilteredEvents_UpdatesWhenEventsReassigned_WithoutTouchingFilters() {
+    sut.events = [fullEventMock(id: "1", type: "showcase")]
+    sut.typeFilter = .showcase
+    XCTAssertEqual(sut.filteredEvents.count, 1)
+
+    sut.events = [
+      fullEventMock(id: "2", type: "showcase"),
+      fullEventMock(id: "3", type: "camp")
+    ]
+
+    XCTAssertEqual(sut.filteredEvents.count, 1)
+    XCTAssertEqual(sut.filteredEvents.first?.id, "2")
+  }
+
+  func testFilteredEvents_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    let keep = fullEventMock(id: "keep", type: "showcase")
+    let remove = fullEventMock(id: "remove", type: "showcase")
+    sut.events = [keep, remove]
+    sut.typeFilter = .showcase
+    XCTAssertEqual(sut.filteredEvents.count, 2)
+
+    await sut.deleteEvent(id: "remove")
+
+    XCTAssertEqual(sut.filteredEvents.count, 1)
+    XCTAssertEqual(sut.filteredEvents.first?.id, "keep")
+  }
+
+  func testFilteredEvents_UpdatesWhenSortByChangedAfterLoad() {
+    sut.events = [
+      fullEventMock(id: "1", name: "Zebra Camp"),
+      fullEventMock(id: "2", name: "Alpha Camp")
+    ]
+    sut.sortBy = .name
+
+    XCTAssertEqual(sut.filteredEvents.first?.name, "Alpha Camp")
+  }
+
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadEvents_SecondLoad_UsesCacheAndSkipsService() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [.mock(id: "e1", name: "Spring Showcase")]
+
+    await sut.loadEvents()
+    XCTAssertEqual(mockService.fetchEventsCallCount, 1)
+
+    mockService.stubbedEvents = [.mock(id: "e2", name: "Summer Camp")]
+    await sut.loadEvents()
+
+    XCTAssertEqual(mockService.fetchEventsCallCount, 1)
+    XCTAssertEqual(sut.events.first?.id, "e1")
+  }
+
+  func testDeleteEvent_InvalidatesListCache_NextLoadRefetches() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [.mock(id: "e1", name: "Event")]
+    await sut.loadEvents()
+    XCTAssertEqual(mockService.fetchEventsCallCount, 1)
+
+    await sut.deleteEvent(id: "e1")
+
+    mockService.stubbedEvents = []
+    await sut.loadEvents()
+
+    XCTAssertEqual(mockService.fetchEventsCallCount, 2)
+  }
+
+  func testEventDetailOrCreateViewModel_Mutation_InvalidatesEventsListCache() async {
+    mockAuth.user = userMock(id: "user-1")
+    mockService.stubbedEvents = [.mock(id: "e1", name: "Event")]
+    await sut.loadEvents()
+    XCTAssertEqual(mockService.fetchEventsCallCount, 1)
+
+    // Simulate what EventDetailViewModel/CreateEventViewModel do on
+    // edit/attended-toggle/create/delete: invalidate the same cache key via
+    // the shared ListCacheKeys builder.
+    await mockCache.remove(forKey: ListCacheKeys.events(userId: "user-1"))
+
+    mockService.stubbedEvents = [.mock(id: "e1", name: "Event"), .mock(id: "e2", name: "New Event")]
+    await sut.loadEvents()
+
+    XCTAssertEqual(mockService.fetchEventsCallCount, 2)
+    XCTAssertEqual(sut.events.count, 2)
+  }
+
   // MARK: - Delete
 
   func testDeleteEvent_removesEventFromList() async {
@@ -323,7 +417,7 @@ final class EventsListViewModelTests: XCTestCase {
     await sut.deleteEvent(id: "e1")
 
     XCTAssertEqual(sut.events.count, 1) // not removed on failure
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   func testDeleteEvent_callsServiceWithCorrectId() async {
@@ -432,6 +526,21 @@ final class EventsListViewModelTests: XCTestCase {
     let current = Calendar.current.dateComponents([.year, .month], from: sut.currentMonth)
     XCTAssertEqual(current.year, limit.year)
     XCTAssertEqual(current.month, limit.month)
+  }
+
+  // MARK: - Athlete Targeting
+
+  func testLoadEvents_parentViewingAthlete_usesAthleteUserId() async {
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuth)
+    sut = EventsListViewModel(
+      eventsService: mockService,
+      familyManager: familyManager,
+      authManager: mockAuth
+    )
+
+    await sut.loadEvents()
+
+    XCTAssertEqual(mockService.lastFetchEventsUserId, ParentViewingAthleteFixture.athleteUserId)
   }
 
   // MARK: - Helpers

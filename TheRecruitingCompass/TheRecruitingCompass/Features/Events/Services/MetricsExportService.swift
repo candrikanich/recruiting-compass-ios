@@ -10,7 +10,7 @@ struct MetricsExportService {
   func prepareCSV(metrics: [PerformanceMetric], eventName: String) throws -> URL {
     var rows: [String] = ["Metric Type,Value,Unit,Recorded Date,Verified,Notes"]
     for m in metrics {
-      let notesEscaped = (m.notes ?? "").replacingOccurrences(of: "\"", with: "\"\"")
+      let notesEscaped = (m.notes ?? "").replacing("\"", with: "\"\"")
       let notes = notesEscaped.isEmpty ? "" : "\"\(notesEscaped)\""
       let dateStr = DateFormatting.isoExportFormatter.string(from: m.recordedDate)
       rows.append("\(m.displayName),\(m.value),\(m.unit),\(dateStr),\(m.verified),\(notes)")
@@ -18,7 +18,7 @@ struct MetricsExportService {
     let csv = rows.joined(separator: "\n")
     let safeName = eventName
       .filter { $0.isLetter || $0.isNumber || $0 == " " }
-      .replacingOccurrences(of: " ", with: "-")
+      .replacing(" ", with: "-")
     let fileName = "event-metrics-\(safeName).csv"
     let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
     try csv.write(to: fileURL, atomically: true, encoding: .utf8)

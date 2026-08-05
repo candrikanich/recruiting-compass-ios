@@ -10,7 +10,7 @@ struct OtherSchoolSheet: View {
       Form {
         Section {
           TextField("School Name", text: $schoolName)
-            .accessibilityLabel("School name, not listed")
+            .accessibilityLabel(String(localized: "School name, not listed"))
         } header: {
           Text("Enter the school name")
         }

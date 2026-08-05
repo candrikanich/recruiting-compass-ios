@@ -201,7 +201,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
   ) async throws -> Document {
     logger.debug("Uploading document: \(title) type: \(type.rawValue)")
 
-    let timestamp = Int(Date().timeIntervalSince1970 * 1000)
+    let timestamp = Int(Date.now.timeIntervalSince1970 * 1000)
     let storagePath = "\(userId)/\(type.rawValue)/\(timestamp)_\(fileName)"
 
     _ = try await supabaseManager.client.storage

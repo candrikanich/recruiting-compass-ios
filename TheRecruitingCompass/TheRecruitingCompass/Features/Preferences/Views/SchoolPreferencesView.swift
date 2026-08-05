@@ -87,7 +87,7 @@ struct SchoolPreferencesView: View {
             Text("Add Custom Preference")
           }
         }
-        .accessibilityLabel("Add custom preference")
+        .accessibilityLabel(String(localized: "Add custom preference"))
       }
     }
     .navigationTitle("School Preferences")
@@ -96,7 +96,11 @@ struct SchoolPreferencesView: View {
       ToolbarItem(placement: .topBarLeading) {
         if viewModel.hasPreferences {
           EditButton()
-            .accessibilityLabel(editMode?.wrappedValue == .active ? "Done editing" : "Edit preferences")
+            .accessibilityLabel(
+              editMode?.wrappedValue == .active
+                ? String(localized: "Done editing")
+                : String(localized: "Edit preferences")
+            )
         }
       }
 
@@ -107,7 +111,7 @@ struct SchoolPreferencesView: View {
     .overlay {
       PreferenceLoadingOverlay(
         isLoading: viewModel.isLoading,
-        message: "Loading preferences..."
+        message: String(localized: "Loading preferences...")
       )
     }
     .alert("Replace Existing Preferences?", isPresented: $viewModel.showingTemplateWarning) {
@@ -121,6 +125,7 @@ struct SchoolPreferencesView: View {
       Text("Applying this template will replace your current preferences. This action cannot be undone.")
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
+    .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
     .sheet(isPresented: $viewModel.showingAddSheet) {
       AddPreferenceSheet(
         onAdd: { preference in

@@ -35,7 +35,7 @@ struct AnalyticsExportSheet: View {
                 .accessibilityHidden(true)
             }
           }
-          .accessibilityLabel("Export as \(format.displayName)")
+          .accessibilityLabel(String(localized: "Export as \(format.displayName)"))
           .accessibilityHint("Downloads analytics data as a .\(format.fileExtension) file")
         }
       }

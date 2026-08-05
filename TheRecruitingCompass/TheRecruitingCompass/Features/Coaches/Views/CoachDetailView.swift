@@ -69,10 +69,11 @@ struct CoachDetailView: View {
           .disabled(viewModel.isLoading || viewModel.isDeleting)
         } label: {
           Image(systemName: "ellipsis.circle")
-            .accessibilityLabel("Coach actions menu")
+            .accessibilityLabel(String(localized: "Coach actions menu"))
         }
       }
     }
+    .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
     .sheet(isPresented: $viewModel.isEditing) {
       if viewModel.editedCoach != nil {
         CoachEditForm(
@@ -134,7 +135,6 @@ struct CoachDetailView: View {
     }
     .padding()
   }
-
 
   @ViewBuilder
   private var recentInteractionsSection: some View {

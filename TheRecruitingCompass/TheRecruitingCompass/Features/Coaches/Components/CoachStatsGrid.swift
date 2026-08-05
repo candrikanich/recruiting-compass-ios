@@ -24,7 +24,8 @@ struct CoachStatsGrid: View {
       statCard(
         title: "Days Since Contact",
         value: stats.contactStatusText,
-        color: stats.contactStatusColor
+        color: stats.contactStatusColor,
+        icon: stats.contactStatusIconName
       )
 
       statCard(
@@ -37,13 +38,20 @@ struct CoachStatsGrid: View {
   }
 
   @ViewBuilder
-  private func statCard(title: String, value: String, color: Color) -> some View {
+  private func statCard(title: String, value: String, color: Color, icon: String? = nil) -> some View {
     VStack(spacing: 8) {
-      Text(value)
-        .font(sizeCategory.isAccessibilityCategory ? .title2.bold() : .title3.bold())
-        .foregroundStyle(color)
-        .lineLimit(1)
-        .minimumScaleFactor(0.8)
+      HStack(spacing: 4) {
+        if let icon {
+          Image(systemName: icon)
+            .font(.caption)
+            .accessibilityHidden(true)
+        }
+        Text(value)
+          .lineLimit(1)
+          .minimumScaleFactor(0.8)
+      }
+      .font(sizeCategory.isAccessibilityCategory ? .title2.bold() : .title3.bold())
+      .foregroundStyle(color)
 
       Text(title)
         .font(.caption.bold())
@@ -58,7 +66,11 @@ struct CoachStatsGrid: View {
     .background(Color(.systemGray6))
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(title): \(value)")
+    .accessibilityLabel(statAccessibilityLabel(title: title, value: value))
+  }
+
+  func statAccessibilityLabel(title: String, value: String) -> String {
+    String(localized: "\(title): \(value)")
   }
 }
 

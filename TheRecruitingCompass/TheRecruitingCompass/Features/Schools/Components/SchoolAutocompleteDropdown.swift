@@ -29,6 +29,13 @@ struct SchoolAutocompleteDropdown: View {
     .background(Color.Surface.card)
     .clipShape(.rect(cornerRadius: 8))
     .brandShadowSm()
+    .onChange(of: results) { _, newValue in
+      guard !isLoading else { return }
+      let message = newValue.isEmpty
+        ? "No colleges found"
+        : "\(newValue.count) college\(newValue.count == 1 ? "" : "s") found"
+      AccessibilityNotification.Announcement(message).post()
+    }
   }
 
   // MARK: - Loading View
@@ -38,7 +45,7 @@ struct SchoolAutocompleteDropdown: View {
     HStack {
       ProgressView()
         .progressViewStyle(.circular)
-        .accessibilityLabel("Searching colleges")
+        .accessibilityLabel(String(localized: "Searching colleges"))
 
       Text("Searching...")
         .foregroundStyle(.secondary)
@@ -83,7 +90,7 @@ struct SchoolAutocompleteDropdown: View {
     .padding()
     .frame(maxWidth: .infinity, alignment: .leading)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("No colleges found")
+    .accessibilityLabel(String(localized: "No colleges found"))
   }
 
   // MARK: - Results List
@@ -120,7 +127,7 @@ struct SchoolAutocompleteDropdown: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(college.name), \(college.location)")
+        .accessibilityLabel(String(localized: "\(college.name), \(college.location)"))
         .accessibilityHint("Select this college to auto-fill form")
         .accessibilityAddTraits(.isButton)
 
@@ -131,8 +138,7 @@ struct SchoolAutocompleteDropdown: View {
       }
     }
     .accessibilityElement(children: .contain)
-    .accessibilityLabel("\(results.count) college\(results.count == 1 ? "" : "s") found")
-    // TODO: Add live region announcement when search results change (requires custom implementation)
+    .accessibilityLabel(String(localized: "\(results.count) college\(results.count == 1 ? "" : "s") found"))
   }
 }
 

@@ -1,37 +1,5 @@
 import SwiftUI
 
-struct EditableCoachingPhilosophy: Sendable {
-  var coachingPhilosophy: String
-  var coachingStyle: String
-  var recruitingApproach: String
-  var communicationStyle: String
-  var successMetrics: String
-
-  init(
-    coachingPhilosophy: String = "",
-    coachingStyle: String = "",
-    recruitingApproach: String = "",
-    communicationStyle: String = "",
-    successMetrics: String = ""
-  ) {
-    self.coachingPhilosophy = coachingPhilosophy
-    self.coachingStyle = coachingStyle
-    self.recruitingApproach = recruitingApproach
-    self.communicationStyle = communicationStyle
-    self.successMetrics = successMetrics
-  }
-
-  static func from(school: School) -> EditableCoachingPhilosophy {
-    EditableCoachingPhilosophy(
-      coachingPhilosophy: school.coachingPhilosophy ?? "",
-      coachingStyle: school.coachingStyle ?? "",
-      recruitingApproach: school.recruitingApproach ?? "",
-      communicationStyle: school.communicationStyle ?? "",
-      successMetrics: school.successMetrics ?? ""
-    )
-  }
-}
-
 struct SchoolCoachingPhilosophySheet: View {
   @Binding var philosophy: EditableCoachingPhilosophy
   let onSave: () async -> Void
@@ -45,7 +13,7 @@ struct SchoolCoachingPhilosophySheet: View {
       Form {
         Section {
           PhilosophyField(
-            title: "Coaching Philosophy",
+            title: String(localized: "Coaching Philosophy"),
             text: $philosophy.coachingPhilosophy,
             placeholder: "What's the overall coaching approach?"
           )
@@ -53,7 +21,7 @@ struct SchoolCoachingPhilosophySheet: View {
 
         Section {
           PhilosophyField(
-            title: "Coaching Style",
+            title: String(localized: "Coaching Style"),
             text: $philosophy.coachingStyle,
             placeholder: "How does the coach interact with players?"
           )
@@ -61,7 +29,7 @@ struct SchoolCoachingPhilosophySheet: View {
 
         Section {
           PhilosophyField(
-            title: "Recruiting Approach",
+            title: String(localized: "Recruiting Approach"),
             text: $philosophy.recruitingApproach,
             placeholder: "What type of players do they recruit?"
           )
@@ -69,7 +37,7 @@ struct SchoolCoachingPhilosophySheet: View {
 
         Section {
           PhilosophyField(
-            title: "Communication Style",
+            title: String(localized: "Communication Style"),
             text: $philosophy.communicationStyle,
             placeholder: "How do they communicate with recruits and families?"
           )
@@ -77,7 +45,7 @@ struct SchoolCoachingPhilosophySheet: View {
 
         Section {
           PhilosophyField(
-            title: "Success Metrics",
+            title: String(localized: "Success Metrics"),
             text: $philosophy.successMetrics,
             placeholder: "How do they measure success?"
           )
@@ -104,7 +72,7 @@ struct SchoolCoachingPhilosophySheet: View {
             if isSaving {
               ProgressView()
                 .progressViewStyle(.circular)
-                .accessibilityLabel("Saving")
+                .accessibilityLabel(String(localized: "Saving"))
             } else {
               Text("Save")
             }

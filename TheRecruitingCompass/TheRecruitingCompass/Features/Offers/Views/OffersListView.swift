@@ -3,13 +3,6 @@ import SwiftUI
 struct OffersListView: View {
   @State private var viewModel = OffersListViewModel()
 
-  private var showErrorAlert: Binding<Bool> {
-    Binding(
-      get: { viewModel.errorMessage != nil },
-      set: { if !$0 { viewModel.errorMessage = nil } }
-    )
-  }
-
   var body: some View {
     Group {
       if viewModel.isLoading && viewModel.allOffers.isEmpty {
@@ -46,7 +39,7 @@ struct OffersListView: View {
         Text("Are you sure you want to delete this offer from \(viewModel.schoolName(for: offer.schoolId))? This action cannot be undone.")
       }
     }
-    .alert("Error", isPresented: showErrorAlert) {
+    .alert("Error", isPresented: $viewModel.isShowingErrorAlert) {
       Button("Retry") {
         viewModel.errorMessage = nil
         Task { await viewModel.loadOffers() }
@@ -68,7 +61,7 @@ struct OffersListView: View {
               .contentShape(Rectangle())
           }
           .accessibilityIdentifier("compare_button")
-          .accessibilityLabel("Compare \(viewModel.selectedOfferIds.count) offers")
+          .accessibilityLabel(String(localized: "Compare \(viewModel.selectedOfferIds.count) offers"))
           .accessibilityHint("Opens side-by-side comparison of selected offers")
         }
 
@@ -80,7 +73,7 @@ struct OffersListView: View {
             .contentShape(Rectangle())
         }
         .accessibilityIdentifier("add_offer_button")
-        .accessibilityLabel("Log new offer")
+        .accessibilityLabel(String(localized: "Log new offer"))
         .accessibilityHint("Opens form to log a new offer")
       }
     }

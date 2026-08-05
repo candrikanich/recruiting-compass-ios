@@ -8,11 +8,7 @@ final class DocumentDetailE2ETests: XCTestCase {
   override func setUpWithError() throws {
     continueAfterFailure = false
     app = XCUIApplication()
-    app.launchArguments = ["--uitesting"]
-    app.launchEnvironment = [
-      "SUPABASE_URL": ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? "",
-      "SUPABASE_ANON_KEY": ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] ?? ""
-    ]
+    E2ETestEnvironment.configure(app)
     app.launch()
     screen = DocumentDetailScreenObject(app: app)
   }

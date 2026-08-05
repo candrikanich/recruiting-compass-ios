@@ -60,14 +60,14 @@ struct RecentInteractionRow: View {
   }
 
   private var accessibilityText: String {
-    var text = "\(interaction.type.displayName) on \(interaction.displayDate.formatted(date: .abbreviated, time: .omitted))"
+    var text = String(localized: "\(interaction.type.displayName) on \(interaction.displayDate.formatted(date: .abbreviated, time: .omitted))")
 
     if let sentiment = interaction.sentiment {
-      text += ", \(sentiment.displayName)"
+      text += String(localized: ", \(sentiment.displayName)")
     }
 
     if let subject = interaction.subject, !subject.isEmpty {
-      text += ", \(subject)"
+      text += String(localized: ", \(subject)")
     }
 
     return text

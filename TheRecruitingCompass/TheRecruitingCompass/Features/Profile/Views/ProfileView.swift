@@ -1,6 +1,10 @@
 import SwiftUI
 import PhotosUI
 
+private enum ProfileDestination: Hashable {
+    case playerDetails
+}
+
 struct ProfileView: View {
     @Environment(AuthManager.self) private var authManager
     @State private var viewModel = ProfileViewModel()
@@ -17,17 +21,23 @@ struct ProfileView: View {
 
     var body: some View {
         List {
-            photoSection
-            personalInfoSection
-            emailSection
-            passwordSection
+            ProfilePhotoSection(viewModel: viewModel, user: user, selectedPhotoItem: $selectedPhotoItem)
+            ProfilePersonalInfoSection(viewModel: viewModel, isAthlete: isAthlete)
+            ProfileEmailSection(viewModel: viewModel, email: user?.email)
+            ProfilePasswordSection(viewModel: viewModel)
             if isAthlete {
-                athleteProfileSection
+                ProfileAthleteSection()
             }
-            dataPrivacySection
+            ProfileDataPrivacySection(viewModel: viewModel)
         }
         .navigationTitle("My Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(for: ProfileDestination.self) { destination in
+            switch destination {
+            case .playerDetails:
+                PlayerDetailsView(preferenceService: preferenceService, userRole: .player)
+            }
+        }
         .task {
             viewModel.loadInitialState()
             await viewModel.loadDeletionStatus()
@@ -36,15 +46,23 @@ struct ProfileView: View {
             guard let item else { return }
             Task {
                 do {
-                    guard let data = try await item.loadTransferable(type: Data.self),
-                          let image = UIImage(data: data) else {
+                    guard let data = try await item.loadTransferable(type: Data.self) else {
+                        viewModel.photoError = "Failed to load the selected photo. Please try again."
+                        selectedPhotoItem = nil
+                        return
+                    }
+                    // Decode off the main actor: UIImage(data:) on a full-resolution
+                    // photo can be expensive enough to visibly stall the UI.
+                    guard let image = await Task.detached(priority: .userInitiated, operation: {
+                        UIImage(data: data)
+                    }).value else {
                         viewModel.photoError = "Failed to load the selected photo. Please try again."
                         selectedPhotoItem = nil
                         return
                     }
                     await viewModel.uploadPhoto(image)
                 } catch {
-                    viewModel.photoError = error.localizedDescription
+                    viewModel.photoError = "Failed to load the selected photo. Please try again."
                 }
                 selectedPhotoItem = nil
             }
@@ -58,14 +76,19 @@ struct ProfileView: View {
             Text("Are you sure you want to remove your profile photo? You can upload a new one anytime.")
         }
     }
+}
 
-    // MARK: - Section 1: Profile Photo
+// MARK: - Section 1: Profile Photo
 
-    @ViewBuilder
-    private var photoSection: some View {
+private struct ProfilePhotoSection: View {
+    @Bindable var viewModel: ProfileViewModel
+    let user: User?
+    @Binding var selectedPhotoItem: PhotosPickerItem?
+
+    var body: some View {
         Section {
             HStack(spacing: 16) {
-                photoAvatar
+                ProfilePhotoAvatar(user: user)
                     .frame(width: 96, height: 96)
                     .clipShape(Circle())
 
@@ -80,14 +103,14 @@ struct ProfileView: View {
                                 .font(.subheadline.weight(.medium))
                         }
                         .buttonStyle(.bordered)
-                        .accessibilityLabel("Upload profile photo")
+                        .accessibilityLabel(String(localized: "Upload profile photo"))
 
                         if user?.profilePhotoUrl != nil {
                             Button("Remove", role: .destructive) {
                                 viewModel.showRemovePhotoConfirm = true
                             }
                             .font(.subheadline)
-                            .accessibilityLabel("Remove profile photo")
+                            .accessibilityLabel(String(localized: "Remove profile photo"))
                         }
                     }
 
@@ -104,9 +127,12 @@ struct ProfileView: View {
             .accessibilityElement(children: .contain)
         }
     }
+}
 
-    @ViewBuilder
-    private var photoAvatar: some View {
+private struct ProfilePhotoAvatar: View {
+    let user: User?
+
+    var body: some View {
         if let urlString = user?.profilePhotoUrl, let url = URL(string: urlString) {
             AsyncImage(url: url) { phase in
                 switch phase {
@@ -120,18 +146,22 @@ struct ProfileView: View {
             InitialsAvatar(initials: userInitials(from: user?.fullName))
         }
     }
+}
 
-    // MARK: - Section 2: Personal Information
+// MARK: - Section 2: Personal Information
 
-    @ViewBuilder
-    private var personalInfoSection: some View {
+private struct ProfilePersonalInfoSection: View {
+    @Bindable var viewModel: ProfileViewModel
+    let isAthlete: Bool
+
+    var body: some View {
         Section {
             TextField("Full Name", text: $viewModel.fullName)
-                .accessibilityLabel("Full name")
+                .accessibilityLabel(String(localized: "Full name"))
 
             TextField("Phone (optional)", text: $viewModel.phone)
                 .keyboardType(.phonePad)
-                .accessibilityLabel("Phone number")
+                .accessibilityLabel(String(localized: "Phone number"))
 
             if isAthlete {
                 DateOfBirthField(value: $viewModel.dateOfBirth)
@@ -141,7 +171,7 @@ struct ProfileView: View {
                 Label(msg.text, systemImage: msg.isSuccess ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                     .font(.subheadline)
                     .foregroundStyle(msg.isSuccess ? Color.primaryGreen : Color.errorRed)
-                    .accessibilityLabel(msg.isSuccess ? "Saved successfully" : "Error: \(msg.text)")
+                    .accessibilityLabel(msg.isSuccess ? "Saved successfully" : String(localized: "Error: \(msg.text)"))
             }
 
             Button {
@@ -157,26 +187,30 @@ struct ProfileView: View {
                 }
             }
             .disabled(viewModel.isSavingPersonalInfo || !viewModel.isPersonalInfoValid)
-            .accessibilityLabel(viewModel.isSavingPersonalInfo ? "Saving" : "Save personal information")
+            .accessibilityLabel(viewModel.isSavingPersonalInfo ? String(localized: "Saving") : String(localized: "Save personal information"))
 
         } header: {
             Text("Personal Information")
         }
     }
+}
 
-    // MARK: - Section 3: Email
+// MARK: - Section 3: Email
 
-    @ViewBuilder
-    private var emailSection: some View {
+private struct ProfileEmailSection: View {
+    @Bindable var viewModel: ProfileViewModel
+    let email: String?
+
+    var body: some View {
         Section {
-            if let email = user?.email {
+            if let email {
                 HStack {
                     Text("Current:")
                         .foregroundStyle(.secondary)
                     Text(email)
                 }
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel("Current email: \(email)")
+                .accessibilityLabel(String(localized: "Current email: \(email)"))
             }
 
             if viewModel.emailVerificationBannerVisible {
@@ -186,7 +220,7 @@ struct ProfileView: View {
                 )
                 .font(.subheadline)
                 .foregroundStyle(.blue)
-                .accessibilityLabel("Verification email sent. Check your inbox.")
+                .accessibilityLabel(String(localized: "Verification email sent. Check your inbox."))
             }
 
             if viewModel.isEmailFormExpanded {
@@ -195,17 +229,17 @@ struct ProfileView: View {
                     .textContentType(.emailAddress)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
-                    .accessibilityLabel("New email address")
+                    .accessibilityLabel(String(localized: "New email address"))
 
                 SecureField("Current Password", text: $viewModel.emailCurrentPassword)
                     .textContentType(.password)
-                    .accessibilityLabel("Current password to confirm email change")
+                    .accessibilityLabel(String(localized: "Current password to confirm email change"))
 
                 if let msg = viewModel.emailMessage {
                     Text(msg.text)
                         .font(.subheadline)
                         .foregroundStyle(Color.errorRed)
-                        .accessibilityLabel("Error: \(msg.text)")
+                        .accessibilityLabel(String(localized: "Error: \(msg.text)"))
                 }
 
                 HStack(spacing: 12) {
@@ -222,7 +256,7 @@ struct ProfileView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(viewModel.isSavingEmail)
-                    .accessibilityLabel(viewModel.isSavingEmail ? "Updating email" : "Update email")
+                    .accessibilityLabel(viewModel.isSavingEmail ? String(localized: "Updating email") : String(localized: "Update email"))
 
                     Button("Cancel") {
                         viewModel.isEmailFormExpanded = false
@@ -231,49 +265,52 @@ struct ProfileView: View {
                         viewModel.emailMessage = nil
                     }
                     .foregroundStyle(.secondary)
-                    .accessibilityLabel("Cancel email change")
+                    .accessibilityLabel(String(localized: "Cancel email change"))
                 }
             } else {
                 Button("Change Email") {
                     viewModel.isEmailFormExpanded = true
                 }
                 .buttonStyle(.bordered)
-                .accessibilityLabel("Change email address")
+                .accessibilityLabel(String(localized: "Change email address"))
             }
         } header: {
             Text("Email Address")
         }
     }
+}
 
-    // MARK: - Section 4: Password
+// MARK: - Section 4: Password
 
-    @ViewBuilder
-    private var passwordSection: some View {
+private struct ProfilePasswordSection: View {
+    @Bindable var viewModel: ProfileViewModel
+
+    var body: some View {
         Section {
             SecureField("Current Password", text: $viewModel.currentPassword)
                 .textContentType(.password)
-                .accessibilityLabel("Current password")
+                .accessibilityLabel(String(localized: "Current password"))
 
             SecureField("New Password (min 8 characters)", text: $viewModel.newPassword)
                 .textContentType(.newPassword)
-                .accessibilityLabel("New password, minimum 8 characters")
+                .accessibilityLabel(String(localized: "New password, minimum 8 characters"))
 
             SecureField("Confirm New Password", text: $viewModel.confirmPassword)
                 .textContentType(.newPassword)
-                .accessibilityLabel("Confirm new password")
+                .accessibilityLabel(String(localized: "Confirm new password"))
 
             if !viewModel.confirmPassword.isEmpty && !viewModel.passwordsMatch {
                 Text("Passwords do not match.")
                     .font(.subheadline)
                     .foregroundStyle(Color.errorRed)
-                    .accessibilityLabel("Error: Passwords do not match")
+                    .accessibilityLabel(String(localized: "Error: Passwords do not match"))
             }
 
             if let msg = viewModel.passwordMessage {
                 Label(msg.text, systemImage: msg.isSuccess ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                     .font(.subheadline)
                     .foregroundStyle(msg.isSuccess ? Color.primaryGreen : Color.errorRed)
-                    .accessibilityLabel(msg.isSuccess ? msg.text : "Error: \(msg.text)")
+                    .accessibilityLabel(msg.isSuccess ? msg.text : String(localized: "Error: \(msg.text)"))
             }
 
             Button {
@@ -289,21 +326,20 @@ struct ProfileView: View {
                 }
             }
             .disabled(viewModel.isSavingPassword || !viewModel.isPasswordFormValid)
-            .accessibilityLabel(viewModel.isSavingPassword ? "Updating password" : "Update password")
+            .accessibilityLabel(viewModel.isSavingPassword ? String(localized: "Updating password") : String(localized: "Update password"))
 
         } header: {
             Text("Password")
         }
     }
+}
 
-    // MARK: - Section 5: Athlete Profile (athletes only)
+// MARK: - Section 5: Athlete Profile (athletes only)
 
-    @ViewBuilder
-    private var athleteProfileSection: some View {
+private struct ProfileAthleteSection: View {
+    var body: some View {
         Section {
-            NavigationLink {
-                PlayerDetailsView(preferenceService: preferenceService, userRole: .player)
-            } label: {
+            NavigationLink(value: ProfileDestination.playerDetails) {
                 HStack(spacing: 12) {
                     Image(systemName: "trophy.fill")
                         .font(.title3)
@@ -324,41 +360,47 @@ struct ProfileView: View {
                 }
                 .padding(.vertical, 4)
             }
-            .accessibilityLabel("Athlete Profile: Manage your recruiting profile")
+            .accessibilityLabel(String(localized: "Athlete Profile: Manage your recruiting profile"))
         } header: {
             Text("Athlete Profile")
         }
     }
+}
 
-    // MARK: - Section 6: Data & Privacy
+// MARK: - Section 6: Data & Privacy
 
-    @ViewBuilder
-    private var dataPrivacySection: some View {
+private struct ProfileDataPrivacySection: View {
+    @Bindable var viewModel: ProfileViewModel
+
+    var body: some View {
         Section {
             switch viewModel.deletionState {
             case .noRequest:
-                deletionDefaultState
+                ProfileDeletionDefaultState(viewModel: viewModel)
 
             case .confirmStep:
-                deletionConfirmState
+                ProfileDeletionConfirmState(viewModel: viewModel)
 
             case .pending(let scheduledFor):
-                deletionPendingState(scheduledFor: scheduledFor)
+                ProfileDeletionPendingState(viewModel: viewModel, scheduledFor: scheduledFor)
             }
 
             if let error = viewModel.deletionError {
                 Text(error)
                     .font(.subheadline)
                     .foregroundStyle(Color.errorRed)
-                    .accessibilityLabel("Error: \(error)")
+                    .accessibilityLabel(String(localized: "Error: \(error)"))
             }
         } header: {
             Text("Data & Privacy")
         }
     }
+}
 
-    @ViewBuilder
-    private var deletionDefaultState: some View {
+private struct ProfileDeletionDefaultState: View {
+    @Bindable var viewModel: ProfileViewModel
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // swiftlint:disable:next line_length
             Text("You can request deletion of your account and all associated data. Your account will be permanently deleted 30 days after your request, giving you time to change your mind.")
@@ -375,13 +417,16 @@ struct ProfileView: View {
             }
             .buttonStyle(.bordered)
             .tint(.errorRed)
-            .accessibilityLabel("Request account deletion")
+            .accessibilityLabel(String(localized: "Request account deletion"))
         }
         .padding(.vertical, 4)
     }
+}
 
-    @ViewBuilder
-    private var deletionConfirmState: some View {
+private struct ProfileDeletionConfirmState: View {
+    @Bindable var viewModel: ProfileViewModel
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("This action cannot be easily undone.")
@@ -414,19 +459,31 @@ struct ProfileView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.errorRed)
                 .disabled(viewModel.isLoadingDeletion)
-                .accessibilityLabel("Confirm account deletion")
+                .accessibilityLabel(String(localized: "Confirm account deletion"))
 
                 Button("Cancel") {
                     viewModel.cancelDeletionConfirm()
                 }
                 .foregroundStyle(.secondary)
-                .accessibilityLabel("Cancel account deletion")
+                .accessibilityLabel(String(localized: "Cancel account deletion"))
             }
         }
         .padding(.vertical, 4)
     }
 
-    private func deletionPendingState(scheduledFor: Date) -> some View {
+    private func bulletItem(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 6) {
+            Text("•").foregroundStyle(Color.errorRed)
+            Text(text).font(.caption).foregroundStyle(.primary)
+        }
+    }
+}
+
+private struct ProfileDeletionPendingState: View {
+    @Bindable var viewModel: ProfileViewModel
+    let scheduledFor: Date
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Your account is scheduled for deletion on \(scheduledFor.formatted(date: .long, time: .omitted)).")
@@ -454,16 +511,9 @@ struct ProfileView: View {
             }
             .buttonStyle(.bordered)
             .disabled(viewModel.isLoadingDeletion)
-            .accessibilityLabel("Cancel account deletion request")
+            .accessibilityLabel(String(localized: "Cancel account deletion request"))
         }
         .padding(.vertical, 4)
-    }
-
-    private func bulletItem(_ text: String) -> some View {
-        HStack(alignment: .top, spacing: 6) {
-            Text("•").foregroundStyle(Color.errorRed)
-            Text(text).font(.caption).foregroundStyle(.primary)
-        }
     }
 }
 
@@ -492,7 +542,7 @@ private struct DateOfBirthField: View {
             in: ...Date.now,
             displayedComponents: .date
         )
-        .accessibilityLabel("Date of birth")
+        .accessibilityLabel(String(localized: "Date of birth"))
     }
 }
 

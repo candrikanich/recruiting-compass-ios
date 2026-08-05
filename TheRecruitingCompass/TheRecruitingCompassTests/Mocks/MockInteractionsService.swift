@@ -13,17 +13,21 @@ final class MockInteractionsService: InteractionsManaging, @unchecked Sendable {
   var cascadeDeleteCallCount = 0
   var createInteractionCallCount = 0
   var createCoachCallCount = 0
+  var fetchInteractionsCallCount = 0
+  var fetchInteractionsForUserCallCount = 0
   var lastDeletedId: String?
   var lastCascadeDeletedId: String?
   var lastCreatedInteractionRequest: InteractionCreateRequest?
   var lastCreatedCoachRequest: CoachCreateRequest?
 
   func fetchInteractions(familyUnitId: String) async throws -> [Interaction] {
+    fetchInteractionsCallCount += 1
     if !shouldSucceed { throw NSError(domain: "test", code: -1) }
     return mockInteractions
   }
 
   func fetchInteractionsForUser(userId: String) async throws -> [Interaction] {
+    fetchInteractionsForUserCallCount += 1
     if !shouldSucceed { throw NSError(domain: "test", code: -1) }
     return mockInteractions.filter { $0.loggedBy == userId }
   }
@@ -140,6 +144,8 @@ final class MockInteractionsService: InteractionsManaging, @unchecked Sendable {
     cascadeDeleteCallCount = 0
     createInteractionCallCount = 0
     createCoachCallCount = 0
+    fetchInteractionsCallCount = 0
+    fetchInteractionsForUserCallCount = 0
     lastDeletedId = nil
     lastCascadeDeletedId = nil
     lastCreatedInteractionRequest = nil

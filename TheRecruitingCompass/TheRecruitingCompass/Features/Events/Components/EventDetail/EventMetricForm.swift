@@ -19,33 +19,33 @@ struct EventMetricForm: View {
           Text(type.displayName).tag(type)
         }
       }
-      .accessibilityLabel("Metric type")
+      .accessibilityLabel(String(localized: "Metric type"))
       .accessibilityHint("Select the type of metric to record")
 
       HStack(spacing: Layout.contentSpacing) {
         TextField("Value", text: $data.valueText)
           .keyboardType(.decimalPad)
           .textFieldStyle(.roundedBorder)
-          .accessibilityLabel("Metric value")
+          .accessibilityLabel(String(localized: "Metric value"))
           .accessibilityHint("Enter a numeric value")
 
         TextField("Unit", text: $data.unit)
           .textFieldStyle(.roundedBorder)
           .frame(width: Layout.unitFieldWidth)
-          .accessibilityLabel("Unit of measurement")
+          .accessibilityLabel(String(localized: "Unit of measurement"))
           .accessibilityHint("Enter the unit, such as mph or seconds")
       }
 
       TextField("Notes (optional)", text: $data.notes, axis: .vertical)
         .lineLimit(2...4)
         .textFieldStyle(.roundedBorder)
-        .accessibilityLabel("Metric notes")
+        .accessibilityLabel(String(localized: "Metric notes"))
 
       HStack(spacing: Layout.contentSpacing) {
         Button("Cancel", action: onCancel)
           .buttonStyle(.bordered)
           .frame(minHeight: 44)
-          .accessibilityLabel("Cancel adding metric")
+          .accessibilityLabel(String(localized: "Cancel adding metric"))
 
         Button(action: onSave) {
           if isSaving {
@@ -57,7 +57,7 @@ struct EventMetricForm: View {
         .buttonStyle(.borderedProminent)
         .frame(minHeight: 44)
         .disabled(!data.isValid || isSaving)
-        .accessibilityLabel(isSaving ? "Saving metric" : "Save metric")
+        .accessibilityLabel(isSaving ? String(localized: "Saving metric") : String(localized: "Save metric"))
       }
     }
     .padding()

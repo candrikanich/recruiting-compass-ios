@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUI
 
 struct CommunicationTemplate: Codable, Identifiable, Sendable {
   let id: String
@@ -77,62 +76,6 @@ struct CommunicationTemplate: Codable, Identifiable, Sendable {
     case userId = "user_id"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
-  }
-}
-
-enum TemplateType: String, Codable, CaseIterable, Sendable {
-  case email
-  case text
-  case twitter
-
-  var displayName: String {
-    switch self {
-    case .email: return "Email"
-    case .text: return "Text"
-    case .twitter: return "Twitter"
-    }
-  }
-
-  var color: Color {
-    switch self {
-    case .email: return .accentBlue
-    case .text: return .successGreen
-    case .twitter: return .cyan
-    }
-  }
-}
-
-struct TemplateVariable {
-  let name: String
-  let key: String
-
-  static let all: [TemplateVariable] = [
-    TemplateVariable(name: "Coach Name", key: "coach_name"),
-    TemplateVariable(name: "Athlete Name", key: "athlete_name"),
-    TemplateVariable(name: "School Name", key: "school_name"),
-    TemplateVariable(name: "Sport", key: "sport"),
-    TemplateVariable(name: "Position", key: "position"),
-    TemplateVariable(name: "Graduation Year", key: "grad_year"),
-    TemplateVariable(name: "High School", key: "high_school"),
-  ]
-}
-
-struct TemplateFormData {
-  var name: String = ""
-  var type: TemplateType = .email
-  var body: String = ""
-
-  var isValid: Bool {
-    !name.trimmingCharacters(in: .whitespaces).isEmpty
-      && !body.trimmingCharacters(in: .whitespaces).isEmpty
-  }
-
-  init() {}
-
-  init(from template: CommunicationTemplate) {
-    self.name = template.name
-    self.type = template.type
-    self.body = template.body
   }
 }
 

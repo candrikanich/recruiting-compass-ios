@@ -14,15 +14,23 @@ private enum FilterStorage {
 final class TasksListViewModel {
 
   nonisolated deinit {}
-  var tasks: [TaskWithStatus] = []
+  var tasks: [TaskWithStatus] = [] {
+    didSet { recomputeFilteredTasks() }
+  }
   var isLoading = false
   var errorMessage: String?
   var currentGradeLevel: Int = 10
   var statusFilter: TaskStatusFilter = .all {
-    didSet { persistFilters() }
+    didSet {
+      persistFilters()
+      recomputeFilteredTasks()
+    }
   }
   var urgencyFilter: TaskUrgencyFilter = .all {
-    didSet { persistFilters() }
+    didSet {
+      persistFilters()
+      recomputeFilteredTasks()
+    }
   }
   var expandedTaskId: String?
   var showSuccessMessage = false
@@ -41,11 +49,16 @@ final class TasksListViewModel {
 
   // MARK: - Computed
 
-  var filteredTasks: [TaskWithStatus] {
+  /// Cached derived list — recomputed via `recomputeFilteredTasks()` whenever
+  /// `tasks`, `statusFilter`, or `urgencyFilter` change. Do not compute this
+  /// inline elsewhere; it would go stale silently.
+  private(set) var filteredTasks: [TaskWithStatus] = []
+
+  private func recomputeFilteredTasks() {
     var result = tasks
     result = result.filter { statusFilter.matches($0.effectiveStatus) }
     result = result.filter { urgencyFilter.matches($0.deadlineUrgency) }
-    return result.sorted { lhs, rhs in
+    filteredTasks = result.sorted { lhs, rhs in
       if lhs.required != rhs.required { return lhs.required }
       let uOrder: (TaskDeadlineUrgency) -> Int = { u in
         switch u {
@@ -63,7 +76,7 @@ final class TasksListViewModel {
   }
 
   var progressCompleted: Int {
-    tasks.filter { $0.effectiveStatus == .completed }.count
+    tasks.count(where: { $0.effectiveStatus == .completed })
   }
 
   var progressTotal: Int {
@@ -77,20 +90,36 @@ final class TasksListViewModel {
 
   // MARK: - Init
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached tasks list (seconds).
+  private static let tasksListCacheTTL: TimeInterval = 60
+
   init(
     tasksService: (any TasksManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
-    familyManager: FamilyManager? = nil
+    familyManager: FamilyManager? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.tasksService = tasksService ?? TasksServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.familyManager = familyManager ?? .shared
+    self.cache = cache
   }
 
   private func persistFilters() {
     guard let id = currentAthleteId else { return }
     UserDefaults.standard.set(statusFilter.rawValue, forKey: FilterStorage.statusKey(athleteId: id))
     UserDefaults.standard.set(urgencyFilter.rawValue, forKey: FilterStorage.urgencyKey(athleteId: id))
+  }
+
+  /// Invalidates the cached tasks list for the current grade level so the
+  /// next `loadTasks()` refetches. Call after any mutation (mark complete).
+  /// `TimelineViewModel.markComplete()` invalidates the same key (via
+  /// `ListCacheKeys.tasks`) for the completed task's grade level.
+  private func invalidateTasksListCache() async {
+    guard let athleteId = currentAthleteId else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.tasks(athleteId: athleteId, gradeLevel: currentGradeLevel))
   }
 
   func loadTasks() async {
@@ -102,7 +131,7 @@ final class TasksListViewModel {
     if let year = graduationYear {
       currentGradeLevel = GradeLevelHelper.calculateCurrentGrade(graduationYear: year)
     } else {
-      let defaultGradYear = Calendar.current.component(.year, from: Date()) + 2
+      let defaultGradYear = Calendar.current.component(.year, from: .now) + 2
       currentGradeLevel = GradeLevelHelper.calculateCurrentGrade(graduationYear: defaultGradYear)
     }
 
@@ -115,9 +144,19 @@ final class TasksListViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    let cacheKey = ListCacheKeys.tasks(athleteId: athleteId, gradeLevel: currentGradeLevel)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
     do {
-      tasks = try await tasksService.fetchTasksWithStatus(gradeLevel: currentGradeLevel, athleteId: athleteId)
-      logger.info("Loaded \(self.tasks.count) tasks for grade \(self.currentGradeLevel)")
+      if let cached = await cacheToUse.get([TaskWithStatus].self, forKey: cacheKey) {
+        tasks = cached
+        logger.info("Loaded \(self.tasks.count) tasks for grade \(self.currentGradeLevel) from cache")
+      } else {
+        let fetched = try await tasksService.fetchTasksWithStatus(gradeLevel: currentGradeLevel, athleteId: athleteId)
+        tasks = fetched
+        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.tasksListCacheTTL)
+        logger.info("Loaded \(self.tasks.count) tasks for grade \(self.currentGradeLevel)")
+      }
     } catch {
       logger.error("Failed to load tasks: \(error.localizedDescription)")
       errorMessage = "Failed to load tasks. Please try again."
@@ -156,6 +195,7 @@ final class TasksListViewModel {
     do {
       _ = try await tasksService.updateTaskStatus(taskId: taskId, status: .completed, userId: userId)
       showSuccessMessage = true
+      await invalidateTasksListCache()
       await refresh()
     } catch {
       logger.error("Failed to mark task complete: \(error.localizedDescription)")
@@ -166,6 +206,5 @@ final class TasksListViewModel {
   func clearSuccessMessage() {
     showSuccessMessage = false
   }
-
 
 }

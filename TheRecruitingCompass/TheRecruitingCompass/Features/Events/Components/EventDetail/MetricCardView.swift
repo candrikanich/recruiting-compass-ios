@@ -19,7 +19,7 @@ struct MetricCardView: View {
         if metric.verified {
           Image(systemName: "checkmark.seal.fill")
             .foregroundStyle(.green)
-            .accessibilityLabel("Verified")
+            .accessibilityLabel(String(localized: "Verified"))
         }
       }
 
@@ -49,7 +49,7 @@ struct MetricCardView: View {
   }
 
   private var metricAccessibilityLabel: String {
-    let verifiedStatus = metric.verified ? "Verified" : "Not verified"
-    return "\(metric.displayName), \(metric.formattedValue), \(verifiedStatus)"
+    let verifiedStatus = metric.verified ? String(localized: "Verified") : String(localized: "Not verified")
+    return String(localized: "\(metric.displayName), \(metric.formattedValue), \(verifiedStatus)")
   }
 }

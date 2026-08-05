@@ -9,7 +9,7 @@ struct FamilyMember: Codable, Identifiable, Sendable {
   let user: FamilyMemberUser?
 
   var isAthlete: Bool {
-    role == "athlete"
+    role == "player"
   }
 
   var isParent: Bool {

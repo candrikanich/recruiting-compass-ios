@@ -22,7 +22,7 @@ struct HelpCenterView: View {
               HelpOverviewCard(section: section)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(section.title)
+            .accessibilityLabel(String(localized: "\(section.title)"))
             .accessibilityHint("Opens \(section.title) help")
           }
         }
@@ -47,7 +47,7 @@ struct HelpCenterView: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Help Center. Everything you need to use The Recruiting Compass.")
+    .accessibilityLabel(String(localized: "Help Center. Everything you need to use The Recruiting Compass."))
   }
 }
 
@@ -84,7 +84,7 @@ private struct HelpOverviewCard: View {
         .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(section.title): \(section.description)")
+    .accessibilityLabel(String(localized: "\(section.title): \(section.description)"))
   }
 }
 

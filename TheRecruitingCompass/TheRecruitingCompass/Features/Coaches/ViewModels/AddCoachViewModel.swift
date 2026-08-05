@@ -31,6 +31,12 @@ final class AddCoachViewModel {
   var isSubmitting = false
   var submitError: String?
 
+  /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
+  var isShowingError: Bool {
+    get { submitError != nil }
+    set { if !newValue { submitError = nil } }
+  }
+
   // MARK: - Dependencies
 
   private let coachesService: CoachesManaging
@@ -49,7 +55,7 @@ final class AddCoachViewModel {
   }
 
   var submitButtonTitle: String {
-    isSubmitting ? "Adding..." : "Add Coach"
+    isSubmitting ? String(localized: "Adding...") : String(localized: "Add Coach")
   }
 
   // MARK: - Init
@@ -194,6 +200,10 @@ final class AddCoachViewModel {
       let newCoach = try await coachesService.createCoach(request: request)
       logger.info("Coach created successfully: \(newCoach.id)")
 
+      // Invalidate CoachesListViewModel's cached list (Phase 3.6) so the new
+      // coach appears immediately on next visit instead of waiting out the TTL.
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.coaches(familyUnitId: familyUnitId))
+
       // Success announcement with haptic feedback
       let announcement = "Coach \(newCoach.firstName) \(newCoach.lastName) added successfully"
       announcer.announce(announcement)
@@ -205,7 +215,7 @@ final class AddCoachViewModel {
       submitError = "Failed to create coach. Please try again."
 
       // Error announcement with haptic feedback
-      announcer.announce("Failed to create coach. \(error.localizedDescription)")
+      announcer.announce("Failed to create coach. Please try again.")
 
       return nil
     }
@@ -254,6 +264,5 @@ final class AddCoachViewModel {
     formErrors = CoachFormErrors.empty
     submitError = nil
   }
-
 
 }

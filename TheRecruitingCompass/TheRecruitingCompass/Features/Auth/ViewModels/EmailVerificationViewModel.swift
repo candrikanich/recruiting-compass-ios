@@ -30,6 +30,7 @@ final class EmailVerificationViewModel {
   private let maxConsecutiveErrors: Int
   private(set) var consecutiveErrors: Int = 0
   private let cooldownDuration: Int
+  private let cooldownInterval: TimeInterval
 
   private let authManager: any AuthManaging
 
@@ -42,11 +43,11 @@ final class EmailVerificationViewModel {
   var headlineText: String {
     switch verificationState {
     case .pending, .checking:
-      return "Verify Your Email"
+      return String(localized: "Verify Your Email")
     case .verified:
-      return "Verified!"
+      return String(localized: "Verified!")
     case .error:
-      return "Verification Issue"
+      return String(localized: "Verification Issue")
     }
   }
 
@@ -80,11 +81,11 @@ final class EmailVerificationViewModel {
 
   var accessibilityLabelForButton: String {
     if isVerified {
-      return "Continue to dashboard"
+      return String(localized: "Continue to dashboard")
     } else if verificationState == .checking {
-      return "Checking verification status"
+      return String(localized: "Checking verification status")
     } else {
-      return "Resend verification email"
+      return String(localized: "Resend verification email")
     }
   }
 
@@ -109,7 +110,8 @@ final class EmailVerificationViewModel {
     initialPollingInterval: TimeInterval = 2.0,
     maxPollingInterval: TimeInterval = 10.0,
     maxConsecutiveErrors: Int = 3,
-    cooldownDuration: Int = 60
+    cooldownDuration: Int = 60,
+    cooldownInterval: TimeInterval = 1.0
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.initialInterval = initialPollingInterval
@@ -117,6 +119,7 @@ final class EmailVerificationViewModel {
     self.maxInterval = maxPollingInterval
     self.maxConsecutiveErrors = maxConsecutiveErrors
     self.cooldownDuration = cooldownDuration
+    self.cooldownInterval = cooldownInterval
 
     // Check initial verification state
     if isVerified {
@@ -225,7 +228,7 @@ final class EmailVerificationViewModel {
 
     cooldownTask = Task {
       while resendCooldownSeconds > 0 && !Task.isCancelled {
-        try? await Task.sleep(for: .seconds(1))
+        try? await Task.sleep(for: .seconds(cooldownInterval))
         resendCooldownSeconds -= 1
       }
 

@@ -1,5 +1,10 @@
 import SwiftUI
 
+private enum InteractionDetailDestination: Hashable {
+  case school(id: String)
+  case coach(id: String)
+}
+
 struct InteractionDetailView: View {
   @State private var viewModel: InteractionDetailViewModel
   @Environment(\.dismiss) private var dismiss
@@ -38,6 +43,14 @@ struct InteractionDetailView: View {
     }
     .navigationTitle("Interaction")
     .navigationBarTitleDisplayMode(.inline)
+    .navigationDestination(for: InteractionDetailDestination.self) { destination in
+      switch destination {
+      case .school(let id):
+        SchoolDetailView(schoolId: id)
+      case .coach(let id):
+        CoachDetailView(coachId: id)
+      }
+    }
     .toolbar(.hidden, for: .tabBar)
     .toolbar {
       if viewModel.canExport || viewModel.canDelete {
@@ -62,7 +75,7 @@ struct InteractionDetailView: View {
             }
           } label: {
             Image(systemName: "ellipsis.circle")
-              .accessibilityLabel("Interaction actions menu")
+              .accessibilityLabel(String(localized: "Interaction actions menu"))
           }
         }
       }
@@ -129,7 +142,7 @@ struct InteractionDetailView: View {
       Text(viewModel.formattedDate)
         .font(.subheadline)
         .foregroundStyle(.secondary)
-        .accessibilityLabel("Occurred at \(viewModel.formattedDate)")
+        .accessibilityLabel(String(localized: "Occurred at \(viewModel.formattedDate)"))
     }
   }
 
@@ -178,7 +191,7 @@ struct InteractionDetailView: View {
         Text(content)
           .font(.body)
           .textSelection(.enabled)
-          .accessibilityLabel("Interaction content")
+          .accessibilityLabel(String(localized: "Interaction content"))
       }
     }
     .padding()
@@ -202,9 +215,7 @@ struct InteractionDetailView: View {
       ], spacing: 16) {
         // School - tappable if present
         if let school = viewModel.school {
-          NavigationLink {
-            SchoolDetailView(schoolId: school.id)
-          } label: {
+          NavigationLink(value: InteractionDetailDestination.school(id: school.id)) {
             DetailGridItem(
               title: "School",
               value: school.name,
@@ -213,7 +224,7 @@ struct InteractionDetailView: View {
             )
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("School: \(school.name), tap to view details")
+          .accessibilityLabel(String(localized: "School: \(school.name), tap to view details"))
         } else {
           DetailGridItem(
             title: "School",
@@ -225,13 +236,7 @@ struct InteractionDetailView: View {
 
         // Coach - tappable if present
         if let coach = viewModel.coach {
-          NavigationLink {
-            CoachDetailView(
-              coachId: coach.id,
-              allCoaches: viewModel.coach.map { [$0] } ?? [],
-              allSchools: viewModel.school.map { [$0] } ?? []
-            )
-          } label: {
+          NavigationLink(value: InteractionDetailDestination.coach(id: coach.id)) {
             DetailGridItem(
               title: "Coach",
               value: "\(coach.firstName) \(coach.lastName)",
@@ -240,7 +245,7 @@ struct InteractionDetailView: View {
             )
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("Coach: \(coach.firstName) \(coach.lastName), tap to view details")
+          .accessibilityLabel(String(localized: "Coach: \(coach.firstName) \(coach.lastName), tap to view details"))
         } else {
           DetailGridItem(
             title: "Coach",

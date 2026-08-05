@@ -52,9 +52,9 @@ struct CompactCoachCard: View {
   private var accessibilityLabelText: String {
     var parts = [coach.fullName, coach.role.displayName]
     if let lastContact = coach.lastContactDateParsed {
-      parts.append("Last contacted \(lastContact.formatted(date: .abbreviated, time: .omitted))")
+      parts.append(String(localized: "Last contacted \(lastContact.formatted(date: .abbreviated, time: .omitted))"))
     } else {
-      parts.append("Not yet contacted")
+      parts.append(String(localized: "Not yet contacted"))
     }
     return parts.joined(separator: ", ")
   }

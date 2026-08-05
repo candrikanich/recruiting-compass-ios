@@ -4,11 +4,7 @@ struct ParentPreviewBanner: View {
   let athleteName: String
   let onDismiss: () -> Void
 
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var fontSize: CGFloat {
-    sizeCategory >= .extraLarge ? 16 : 14
-  }
+  @ScaledMetric(relativeTo: .subheadline) private var fontSize: CGFloat = 14
 
   var body: some View {
     HStack(spacing: 12) {
@@ -37,7 +33,7 @@ struct ParentPreviewBanner: View {
           .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Exit preview mode")
+      .accessibilityLabel(String(localized: "Exit preview mode"))
       .accessibilityHint("Returns to your athlete selection view")
     }
     .padding()
@@ -49,7 +45,7 @@ struct ParentPreviewBanner: View {
       )
     )
     .accessibilityElement(children: .contain)
-    .accessibilityLabel("Parent preview mode active, viewing \(athleteName)'s dashboard")
+    .accessibilityLabel(String(localized: "Parent preview mode active, viewing \(athleteName)'s dashboard"))
   }
 }
 

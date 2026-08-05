@@ -4,7 +4,11 @@ struct TemplateEditorView: View {
   @Bindable var viewModel: CommunicationTemplatesViewModel
   @FocusState private var bodyFieldFocused: Bool
 
-  private var isEditing: Bool { viewModel.editingTemplate != nil }
+  var isEditing: Bool { viewModel.editingTemplate != nil }
+
+  var saveButtonLabel: String {
+    isEditing ? String(localized: "Save Changes") : String(localized: "Save Template")
+  }
 
   private var title: String {
     isEditing ? "Edit Template" : "Create Template"
@@ -33,7 +37,7 @@ struct TemplateEditorView: View {
 
       TextField("e.g. Initial Contact Email", text: $viewModel.formData.name)
         .textFieldStyle(.roundedBorder)
-        .accessibilityLabel("Template name")
+        .accessibilityLabel(String(localized: "Template name"))
         .accessibilityIdentifier("templateEditor.nameField")
     }
   }
@@ -51,7 +55,7 @@ struct TemplateEditorView: View {
         }
       }
       .pickerStyle(.segmented)
-      .accessibilityLabel("Template Type")
+      .accessibilityLabel(String(localized: "Template Type"))
       .accessibilityIdentifier("templateEditor.typePicker")
     }
   }
@@ -71,7 +75,7 @@ struct TemplateEditorView: View {
             .stroke(Color(.systemGray4), lineWidth: 1)
         }
         .focused($bodyFieldFocused)
-        .accessibilityLabel("Template body")
+        .accessibilityLabel(String(localized: "Template body"))
         .accessibilityIdentifier("templateEditor.bodyEditor")
     }
   }
@@ -101,7 +105,7 @@ struct TemplateEditorView: View {
               .clipShape(Capsule())
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("Insert \(variable.name) variable")
+          .accessibilityLabel(String(localized: "Insert \(variable.name) variable"))
         }
       }
     }
@@ -116,7 +120,7 @@ struct TemplateEditorView: View {
       Button {
         Task { await viewModel.saveTemplate() }
       } label: {
-        Text(isEditing ? "Save Changes" : "Save Template")
+        Text(saveButtonLabel)
           .font(.body.weight(.semibold))
           .foregroundStyle(.white)
           .frame(maxWidth: .infinity)
@@ -125,7 +129,7 @@ struct TemplateEditorView: View {
           .clipShape(RoundedRectangle(cornerRadius: 12))
       }
       .disabled(!viewModel.formData.isValid)
-      .accessibilityLabel(isEditing ? "Save Changes" : "Save Template")
+      .accessibilityLabel(saveButtonLabel)
       .accessibilityIdentifier("templateEditor.saveButton")
 
       Button {
@@ -137,7 +141,7 @@ struct TemplateEditorView: View {
           .frame(maxWidth: .infinity)
           .padding(.vertical, 14)
       }
-      .accessibilityLabel("Cancel")
+      .accessibilityLabel(String(localized: "Cancel"))
       .accessibilityIdentifier("templateEditor.cancelButton")
 
       if isEditing, let editingTemplate = viewModel.editingTemplate {
@@ -150,7 +154,7 @@ struct TemplateEditorView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
         }
-        .accessibilityLabel("Delete Template")
+        .accessibilityLabel(String(localized: "Delete Template"))
         .accessibilityIdentifier("templateEditor.deleteButton")
       }
     }

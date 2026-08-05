@@ -12,31 +12,51 @@ private let logger = Logger(
 final class ActivityFeedViewModel {
 
   nonisolated deinit {}
-  var activities: [ActivityEvent] = []
+  var activities: [ActivityEvent] = [] {
+    didSet { recomputeFilteredActivities() }
+  }
   var isLoading = false
   var errorMessage: String?
   var selectedType: ActivityEventType? {
-    didSet { if oldValue != selectedType { currentPage = 1 } }
+    didSet {
+      if oldValue != selectedType { currentPage = 1 }
+      recomputeFilteredActivities()
+    }
   }
   var selectedDateRange: ActivityDateRange = .all {
-    didSet { if oldValue != selectedDateRange { currentPage = 1 } }
+    didSet {
+      if oldValue != selectedDateRange { currentPage = 1 }
+      recomputeFilteredActivities()
+    }
   }
   var searchQuery: String = "" {
-    didSet { if oldValue != searchQuery { currentPage = 1 } }
+    didSet {
+      if oldValue != searchQuery { currentPage = 1 }
+      recomputeFilteredActivities()
+    }
   }
   var currentPage: Int = 1
   let pageSize: Int = 20
 
   private let activityService: any ActivityFeedManaging
+  private let familyManager: FamilyManager
   private let authManager: any AuthManaging
 
+  /// The user whose activity we read. When a parent is viewing an athlete,
+  /// activity belongs to the athlete (mirrors web + OffersListViewModel);
+  /// otherwise the logged-in user's own id.
   var userId: String? {
-    authManager.user?.id
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
   }
 
   // MARK: - Computed Properties
 
-  var filteredActivities: [ActivityEvent] {
+  /// Cached derived list — recomputed via `recomputeFilteredActivities()` whenever
+  /// `activities`, `selectedType`, `selectedDateRange`, or `searchQuery` change.
+  /// Do not compute this inline elsewhere; it would go stale silently.
+  private(set) var filteredActivities: [ActivityEvent] = []
+
+  private func recomputeFilteredActivities() {
     var result = activities
 
     if let type = selectedType {
@@ -44,19 +64,19 @@ final class ActivityFeedViewModel {
     }
 
     if let days = selectedDateRange.daysAgo {
-      let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+      let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: .now) ?? .now
       result = result.filter { $0.timestamp >= cutoff }
     }
 
     if !searchQuery.isEmpty {
-      let query = searchQuery.lowercased()
+      let query = searchQuery
       result = result.filter {
-        $0.title.lowercased().contains(query) ||
-        $0.description.lowercased().contains(query)
+        $0.title.localizedStandardContains(query) ||
+        $0.description.localizedStandardContains(query)
       }
     }
 
-    return result
+    filteredActivities = result
   }
 
   var paginatedActivities: [ActivityEvent] {
@@ -84,23 +104,35 @@ final class ActivityFeedViewModel {
 
   // MARK: - Initialization
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached activity feed (seconds). Short, and deliberately not
+  /// invalidated from the many VMs that create interactions/status-changes/
+  /// documents — this is an aggregated feed, not a primary source of truth
+  /// for any one entity, so a bounded staleness window is expected UX (same
+  /// tradeoff as any activity/social feed) rather than a correctness bug.
+  private static let activitiesCacheTTL: TimeInterval = 60
+
   init(
     activityService: (any ActivityFeedManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    familyManager: FamilyManager? = nil,
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.activityService = activityService ?? ActivityFeedServiceImpl(supabaseManager: .shared)
+    self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
   }
 
   // Prevent compiler-synthesized main-actor-isolated deinit.
   // @MainActor classes otherwise get a deinit that calls swift_task_deinitOnExecutorImpl,
   // which crashes when ARC deallocates the object outside a task context (e.g. in tests).
 
-
   // MARK: - Data Loading
 
   func loadActivities() async {
-    guard let userId = authManager.user?.id else {
+    guard let userId else {
       logger.warning("No user ID available for activity feed")
       errorMessage = "Unable to load activities. Please sign in."
       return
@@ -109,6 +141,16 @@ final class ActivityFeedViewModel {
     isLoading = true
     errorMessage = nil
     defer { isLoading = false }
+
+    let cacheKey = ListCacheKeys.activities(userId: userId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
+    if let cached = await cacheToUse.get([ActivityEvent].self, forKey: cacheKey) {
+      activities = cached
+      currentPage = 1
+      logger.info("Loaded \(cached.count) activity events from cache")
+      return
+    }
 
     do {
       async let interactionsTask = activityService.fetchInteractions(userId: userId)
@@ -152,6 +194,7 @@ final class ActivityFeedViewModel {
 
       activities = events
       currentPage = 1
+      await cacheToUse.set(events, forKey: cacheKey, ttlSeconds: Self.activitiesCacheTTL)
 
       logger.info("Loaded \(events.count) activity events")
     } catch {

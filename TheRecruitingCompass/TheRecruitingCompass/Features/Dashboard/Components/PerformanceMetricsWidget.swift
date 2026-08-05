@@ -1,12 +1,13 @@
 import SwiftUI
 
 struct PerformanceMetricsWidget: View {
-  let metrics: [PerformanceMetric]
+  /// Sorted once at init rather than re-sorted on every body evaluation.
+  private let recentMetrics: [PerformanceMetric]
 
   @State private var isShowingAll = false
 
-  private var recentMetrics: [PerformanceMetric] {
-    metrics.sorted(by: { $0.recordedDate > $1.recordedDate })
+  init(metrics: [PerformanceMetric]) {
+    self.recentMetrics = metrics.sorted(by: { $0.recordedDate > $1.recordedDate })
   }
 
   private var visibleMetrics: [PerformanceMetric] {
@@ -33,12 +34,12 @@ struct PerformanceMetricsWidget: View {
           }
         }
 
-        if metrics.count > 4 {
+        if recentMetrics.count > 4 {
           Button(action: { isShowingAll.toggle() }) {
             HStack(spacing: 4) {
               Text(isShowingAll
                 ? "Show less"
-                : "Show \(metrics.count - 4) more metrics")
+                : "Show \(recentMetrics.count - 4) more metrics")
                 .font(.caption)
               Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
                 .font(.caption)
@@ -46,9 +47,9 @@ struct PerformanceMetricsWidget: View {
             }
             .foregroundStyle(Color.accentBlue)
           }
-          .accessibilityLabel(isShowingAll
+          .accessibilityLabel(String(localized: isShowingAll
             ? "Show fewer metrics"
-            : "Show all \(metrics.count) metrics")
+            : "Show all \(recentMetrics.count) metrics"))
           .accessibilityHint(isShowingAll
             ? "Collapses the list to show only 4 metrics"
             : "Expands the list to show all metrics")
@@ -62,63 +63,6 @@ struct PerformanceMetricsWidget: View {
   }
 }
 
-struct MetricRow: View {
-  let metric: PerformanceMetric
-
-  private var dateFormatted: String {
-    metric.formattedDate
-  }
-
-  private var metricIcon: String {
-    switch metric.metricType {
-    case .velocity, .exitVelo: return "flame"
-    case .sixtyTime: return "timer"
-    case .popTime: return "stopwatch"
-    case .battingAvg: return "baseball"
-    case .era: return "chart.bar"
-    case .strikeouts: return "figure.strengthtraining.traditional"
-    case .other: return "chart.bar"
-    }
-  }
-
-  private var formattedValue: String {
-    metric.formattedValue
-  }
-
-  var body: some View {
-    HStack(spacing: 12) {
-      Image(systemName: metricIcon)
-        .font(.title3)
-        .foregroundStyle(Color.primaryGreen)
-        .frame(width: 32)
-        .accessibilityHidden(true)
-
-      VStack(alignment: .leading, spacing: 4) {
-        Text(metric.displayName)
-          .font(.subheadline)
-          .fontWeight(.semibold)
-
-        Text(formattedValue)
-          .font(.body)
-          .foregroundStyle(Color.darkSlate)
-
-        Text(dateFormatted)
-          .font(.caption)
-          .foregroundStyle(Color.secondaryText)
-      }
-
-      Spacer()
-    }
-    .padding(12)
-    .frame(minHeight: 44)
-    .background(Color(.secondarySystemBackground))
-    .clipShape(.rect(cornerRadius: 8))
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(metric.displayName): \(formattedValue)")
-    .accessibilityValue("Recorded \(dateFormatted)")
-  }
-}
-
 #Preview {
   PerformanceMetricsWidget(
     metrics: [
@@ -128,12 +72,12 @@ struct MetricRow: View {
         metricType: .sixtyTime,
         value: 4.5,
         unit: "sec",
-        recordedDate: Date(),
+        recordedDate: .now,
         eventId: nil,
         verified: false,
         notes: nil,
-        createdAt: Date(),
-        updatedAt: Date()
+        createdAt: .now,
+        updatedAt: .now
       ),
       PerformanceMetric(
         id: "2",
@@ -141,12 +85,12 @@ struct MetricRow: View {
         metricType: .velocity,
         value: 85.0,
         unit: "mph",
-        recordedDate: Date().addingTimeInterval(-86400 * 15),
+        recordedDate: Date.now.addingTimeInterval(-86400 * 15),
         eventId: nil,
         verified: true,
         notes: nil,
-        createdAt: Date(),
-        updatedAt: Date()
+        createdAt: .now,
+        updatedAt: .now
       ),
       PerformanceMetric(
         id: "3",
@@ -154,12 +98,12 @@ struct MetricRow: View {
         metricType: .exitVelo,
         value: 92.5,
         unit: "mph",
-        recordedDate: Date().addingTimeInterval(-86400 * 20),
+        recordedDate: Date.now.addingTimeInterval(-86400 * 20),
         eventId: nil,
         verified: false,
         notes: nil,
-        createdAt: Date(),
-        updatedAt: Date()
+        createdAt: .now,
+        updatedAt: .now
       )
     ]
   )

@@ -8,10 +8,13 @@ final class TasksListViewModelTests: XCTestCase {
   var mockService: MockTasksService!
   var mockAuthManager: MockAuthManager!
   var familyManager: FamilyManager!
+  var mockCache: InMemoryCache!
 
   override func setUp() async throws {
     mockService = MockTasksService()
     mockAuthManager = MockAuthManager()
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
     mockAuthManager.setMockUser(User(
       id: "athlete-1",
       email: "a@test.com",
@@ -28,7 +31,8 @@ final class TasksListViewModelTests: XCTestCase {
     viewModel = TasksListViewModel(
       tasksService: mockService,
       authManager: mockAuthManager,
-      familyManager: familyManager
+      familyManager: familyManager,
+      cache: mockCache
     )
   }
 
@@ -37,6 +41,7 @@ final class TasksListViewModelTests: XCTestCase {
     mockService = nil
     mockAuthManager = nil
     familyManager = nil
+    mockCache = nil
   }
 
   func testLoadTasks_Success() async {
@@ -68,6 +73,88 @@ final class TasksListViewModelTests: XCTestCase {
     let filtered = viewModel.filteredTasks
     XCTAssertEqual(filtered.count, 1)
     XCTAssertEqual(filtered.first?.id, "t2")
+  }
+
+  // MARK: - Cached filteredTasks Staleness Tests
+  // filteredTasks is a cached stored property (Phase 3.3), recomputed via
+  // didSet on tasks/statusFilter/urgencyFilter — not read live.
+
+  func testFilteredTasks_UpdatesWhenTasksReassigned_WithoutTouchingFilters() async {
+    mockService.stubbedTasks = [
+      TaskWithStatus(id: "t1", title: "A", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: false)
+    ]
+    await viewModel.loadTasks()
+    viewModel.setStatusFilter(.notStarted)
+    XCTAssertEqual(viewModel.filteredTasks.count, 1)
+
+    // Reassign tasks wholesale (e.g. a reload) without touching filters again.
+    viewModel.tasks = [
+      TaskWithStatus(id: "t2", title: "B", gradeLevel: 10, category: "c", required: true, athleteTask: AthleteTaskStatus(taskId: "t2", userId: "u", status: .completed, completedAt: nil), hasIncompletePrerequisites: false),
+      TaskWithStatus(id: "t3", title: "C", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: false)
+    ]
+
+    XCTAssertEqual(viewModel.filteredTasks.count, 1)
+    XCTAssertEqual(viewModel.filteredTasks.first?.id, "t3")
+  }
+
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadTasks_SecondLoad_UsesCacheAndSkipsService() async {
+    viewModel.graduationYear = 2027
+    mockService.stubbedTasks = [
+      TaskWithStatus(id: "t1", title: "Task 1", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: false)
+    ]
+
+    await viewModel.loadTasks()
+    XCTAssertEqual(mockService.fetchTasksCallCount, 1)
+
+    mockService.stubbedTasks = [
+      TaskWithStatus(id: "t2", title: "Task 2", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: false)
+    ]
+    await viewModel.loadTasks()
+
+    XCTAssertEqual(mockService.fetchTasksCallCount, 1)
+    XCTAssertEqual(viewModel.tasks.first?.id, "t1")
+  }
+
+  func testMarkComplete_InvalidatesListCache_RefreshRefetches() async {
+    viewModel.graduationYear = 2027
+    let task = TaskWithStatus(id: "t1", title: "Task 1", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: false)
+    mockService.stubbedTasks = [task]
+    await viewModel.loadTasks()
+    XCTAssertEqual(mockService.fetchTasksCallCount, 1)
+
+    mockService.stubbedTasks = [
+      TaskWithStatus(id: "t1", title: "Task 1", gradeLevel: 10, category: "c", required: true, athleteTask: AthleteTaskStatus(taskId: "t1", userId: "athlete-1", status: .completed, completedAt: nil), hasIncompletePrerequisites: false)
+    ]
+    await viewModel.markComplete(taskId: "t1")
+
+    // markComplete() already calls refresh() internally — assert it hit the
+    // service again (cache miss) rather than serving the pre-completion cache.
+    XCTAssertEqual(mockService.fetchTasksCallCount, 2)
+  }
+
+  func testTimelineViewModel_MarkComplete_InvalidatesTasksListCache() async {
+    viewModel.graduationYear = 2027
+    mockService.stubbedTasks = [
+      TaskWithStatus(id: "t1", title: "Task 1", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: false)
+    ]
+    await viewModel.loadTasks()
+    XCTAssertEqual(mockService.fetchTasksCallCount, 1)
+
+    // Simulate what TimelineViewModel.markComplete() does on completion from
+    // the Timeline screen: invalidate the same cache key via the shared
+    // ListCacheKeys builder.
+    await mockCache.remove(forKey: ListCacheKeys.tasks(athleteId: "athlete-1", gradeLevel: viewModel.currentGradeLevel))
+
+    mockService.stubbedTasks = [
+      TaskWithStatus(id: "t1", title: "Task 1", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: false),
+      TaskWithStatus(id: "t2", title: "Task 2", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: false)
+    ]
+    await viewModel.loadTasks()
+
+    XCTAssertEqual(mockService.fetchTasksCallCount, 2)
+    XCTAssertEqual(viewModel.tasks.count, 2)
   }
 
   func testMarkComplete_LockedTask_DoesNotCallService() async {

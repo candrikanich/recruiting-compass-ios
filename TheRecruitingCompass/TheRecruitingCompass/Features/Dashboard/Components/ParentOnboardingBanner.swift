@@ -57,22 +57,22 @@ struct ParentOnboardingBanner: View {
     HStack(spacing: 12) {
       Image(systemName: "person.badge.plus")
         .font(.title3)
-        .foregroundStyle(Color(hex: "B45309"))
+        .foregroundStyle(Color.amberGold)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
         Text("Connect your athlete to get started")
           .font(.subheadline.weight(.semibold))
-          .foregroundStyle(Color(hex: "78350F"))
+          .foregroundStyle(Color.warningBannerTitle)
 
         Text("Invite them to join your family or share your family code.")
           .font(.caption)
-          .foregroundStyle(Color(hex: "92400E"))
+          .foregroundStyle(Color.warningBannerBody)
       }
 
       Spacer()
 
-      if let onInviteTapped = onInviteTapped {
+      if let onInviteTapped {
         VStack(alignment: .trailing, spacing: 6) {
           Button {
             onInviteTapped()
@@ -82,17 +82,17 @@ struct ParentOnboardingBanner: View {
               .foregroundStyle(.white)
               .padding(.horizontal, 12)
               .padding(.vertical, 8)
-              .background(Color(hex: "D97706"))
+              .background(Color.Surface.warningCTA)
               .clipShape(RoundedRectangle(cornerRadius: 8))
           }
-          .accessibilityLabel("Invite athlete with player details")
+          .accessibilityLabel(String(localized: "Invite athlete with player details"))
 
           NavigationLink(value: DashboardDestination.familyManagement) {
             Text("Family Management")
               .font(.caption)
-              .foregroundStyle(Color(hex: "92400E"))
+              .foregroundStyle(Color.warningBannerBody)
           }
-          .accessibilityLabel("Open Family Management")
+          .accessibilityLabel(String(localized: "Open Family Management"))
         }
       } else {
         NavigationLink(value: DashboardDestination.familyManagement) {
@@ -101,22 +101,21 @@ struct ParentOnboardingBanner: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(Color(hex: "D97706"))
+            .background(Color.Surface.warningCTA)
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
-        .accessibilityLabel("Go to settings to invite athlete")
+        .accessibilityLabel(String(localized: "Go to settings to invite athlete"))
       }
     }
     .padding()
-    .background(Color(hex: "FFFBEB"))
+    .background(Color.Surface.warningTint)
     .overlay(alignment: .leading) {
       Rectangle()
-        .fill(Color(hex: "F59E0B"))
+        .fill(Color.Surface.warningAccent)
         .frame(width: 4)
     }
     .clipShape(RoundedRectangle(cornerRadius: 8))
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("Connect your athlete to get started. Invite them from Family Management.")
+    .accessibilityElement(children: .contain)
   }
 
   @ViewBuilder
@@ -124,22 +123,22 @@ struct ParentOnboardingBanner: View {
     HStack(spacing: 12) {
       Image(systemName: "checkmark.circle.fill")
         .font(.title3)
-        .foregroundStyle(Color(hex: "15803D"))
+        .foregroundStyle(Color.successBannerIcon)
         .accessibilityHidden(true)
 
       Text("You're connected! Your athlete has joined your family.")
         .font(.subheadline.weight(.medium))
-        .foregroundStyle(Color(hex: "14532D"))
+        .foregroundStyle(Color.successBannerText)
     }
     .padding()
-    .background(Color(hex: "F0FDF4"))
+    .background(Color.Surface.successTint)
     .overlay(alignment: .leading) {
       Rectangle()
-        .fill(Color(hex: "22C55E"))
+        .fill(Color.Surface.successAccent)
         .frame(width: 4)
     }
     .clipShape(RoundedRectangle(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("You're connected. Your athlete has joined your family.")
+    .accessibilityLabel(String(localized: "You're connected. Your athlete has joined your family."))
   }
 }

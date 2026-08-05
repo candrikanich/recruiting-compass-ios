@@ -232,12 +232,6 @@ final class CoachDetailComponentsTests: XCTestCase {
 
   // MARK: - NotesSection Tests
 
-
-
-
-
-
-
   // MARK: - LoadingStateView Tests
 
   func testLoadingStateView_rendersWithMessage() {

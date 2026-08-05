@@ -122,7 +122,7 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
   ) async throws -> School {
     logger.debug("Updating school status: \(id) from \(previousStatus.rawValue) to \(newStatus.rawValue)")
 
-    let now = Date()
+    let now = Date.now
     let iso8601Formatter = ISO8601DateFormatter()
     iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 

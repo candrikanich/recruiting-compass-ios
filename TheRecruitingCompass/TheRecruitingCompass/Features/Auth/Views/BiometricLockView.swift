@@ -35,12 +35,12 @@ struct BiometricLockView: View {
             Text("Use Face ID")
               .font(.callout.weight(.semibold))
               .frame(maxWidth: .infinity)
-              .frame(height: 48)
+              .frame(minHeight: 48)
               .foregroundStyle(.white)
               .background(Color.white.opacity(0.25))
               .clipShape(.rect(cornerRadius: 8))
           }
-          .accessibilityLabel("Sign in with Face ID")
+          .accessibilityLabel(String(localized: "Sign in with Face ID"))
 
           Button(action: onFailure) {
             Text("Use Password Instead")
@@ -48,7 +48,7 @@ struct BiometricLockView: View {
               .foregroundStyle(.white.opacity(0.8))
               .frame(minHeight: 44)
           }
-          .accessibilityLabel("Sign in with password")
+          .accessibilityLabel(String(localized: "Sign in with password"))
           .accessibilityHint("Returns to the login form")
         }
         .padding(.horizontal, 40)

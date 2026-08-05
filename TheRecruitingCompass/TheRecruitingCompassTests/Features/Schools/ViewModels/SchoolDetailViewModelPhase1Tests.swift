@@ -175,22 +175,10 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
   }
 
   func testLoadSchool_LoadsFitScoreInParallel() async {
-    // Given
-    let mockSchool = createMockSchool()
-    let mockFitScore = FitScoreResult(
-      score: 85.0,
-      tier: .safety,
-      breakdown: FitScoreBreakdown(
-        athleticFit: 90,
-        academicFit: 85,
-        opportunityFit: 80,
-        personalFit: 85
-      ),
-      missingDimensions: []
-    )
+    // Given - fit score comes from the stored school row (computed by web)
+    let mockSchool = createMockSchool(fitScore: 85.0, fitTier: "safety")
     mockSchoolsService.stubbedSchool = mockSchool
     mockSchoolsService.stubbedStatusHistory = []
-    mockFitScoreService.stubbedFitScore = mockFitScore
 
     // When
     await viewModel.loadSchool()
@@ -398,7 +386,9 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
 
   private func createMockSchool(
     status: String = "interested",
-    isFavorite: Bool = false
+    isFavorite: Bool = false,
+    fitScore: Double? = nil,
+    fitTier: String? = nil
   ) -> School {
     School(
       id: "school-1",
@@ -429,8 +419,8 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       recruitingApproach: nil,
       communicationStyle: nil,
       successMetrics: nil,
-      fitScore: nil,
-      fitTier: nil,
+      fitScore: fitScore,
+      fitTier: fitTier,
       familyUnitId: "family-1",
       createdBy: "user-1",
       updatedBy: "user-1",

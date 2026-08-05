@@ -90,6 +90,6 @@ struct DocumentCardView: View {
   }
 
   private var accessibilityLabel: String {
-    "\(document.title). \(document.type.label). \(document.isShared ? "Shared with \(document.sharedWithSchools.count) schools. " : "")Uploaded \(document.displayDate)."
+    String(localized: "\(document.title). \(document.type.label). \(document.isShared ? "Shared with \(document.sharedWithSchools.count) schools. " : "")Uploaded \(document.displayDate).")
   }
 }

@@ -34,7 +34,7 @@ struct Offer: Codable, Identifiable, Sendable {
   // MARK: - Date Parsing
 
   var displayOfferDate: Date {
-    Self.parseDate(offerDate) ?? Date()
+    Self.parseDate(offerDate) ?? .now
   }
 
   var displayDeadlineDate: Date? {
@@ -48,7 +48,7 @@ struct Offer: Codable, Identifiable, Sendable {
     guard let deadline = displayDeadlineDate else { return nil }
     var utcCal = Calendar(identifier: .gregorian)
     utcCal.timeZone = TimeZone(identifier: "UTC") ?? .current
-    let startToday = utcCal.startOfDay(for: Date())
+    let startToday = utcCal.startOfDay(for: .now)
     let startDeadline = utcCal.startOfDay(for: deadline)
     return utcCal.dateComponents([.day], from: startToday, to: startDeadline).day
   }
@@ -63,12 +63,16 @@ struct Offer: Codable, Identifiable, Sendable {
 
   // MARK: - Display Helpers
 
-  var formattedAmount: String? {
-    guard let amount = scholarshipAmount, amount > 0 else { return nil }
+  private static let amountFormatter: NumberFormatter = {
     let formatter = NumberFormatter()
     formatter.numberStyle = .currency
     formatter.maximumFractionDigits = 0
-    return formatter.string(from: NSNumber(value: amount))
+    return formatter
+  }()
+
+  var formattedAmount: String? {
+    guard let amount = scholarshipAmount, amount > 0 else { return nil }
+    return Self.amountFormatter.string(from: NSNumber(value: amount))
   }
 
   var formattedPercentage: String? {

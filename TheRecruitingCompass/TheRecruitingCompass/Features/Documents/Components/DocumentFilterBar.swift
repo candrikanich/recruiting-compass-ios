@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct DocumentFilterBar: View {
-  @Binding var searchQuery: String
   @Binding var sortBy: DocumentSortOption
   @Binding var viewMode: DocumentViewMode
   let hasActiveFilters: Bool
@@ -11,12 +10,7 @@ struct DocumentFilterBar: View {
 
   var body: some View {
     VStack(spacing: 12) {
-      HStack(spacing: 12) {
-        TextField("Search title or description...", text: $searchQuery)
-          .textFieldStyle(.roundedBorder)
-          .accessibilityLabel("Search documents")
-          .accessibilityHint("Filters by title or description")
-
+      HStack {
         Menu {
           ForEach(DocumentSortOption.allCases, id: \.self) { option in
             Button(option.label) {
@@ -35,8 +29,10 @@ struct DocumentFilterBar: View {
           .background(Color(.systemGray5))
           .clipShape(.rect(cornerRadius: 8))
         }
-        .accessibilityLabel("Sort documents")
+        .accessibilityLabel(String(localized: "Sort documents"))
         .accessibilityHint("Choose sort order")
+
+        Spacer()
       }
 
       HStack {
@@ -53,7 +49,7 @@ struct DocumentFilterBar: View {
           }
           .font(.subheadline)
         }
-        .accessibilityLabel(activeFilterCount > 0 ? "Filter documents. \(activeFilterCount) filters active." : "Filter documents")
+        .accessibilityLabel(String(localized: activeFilterCount > 0 ? "Filter documents. \(activeFilterCount) filters active." : "Filter documents"))
 
         Spacer()
 
@@ -67,7 +63,7 @@ struct DocumentFilterBar: View {
               .background(viewMode == .grid ? Color.blue : Color(.systemGray5))
               .clipShape(.rect(cornerRadius: 8))
           }
-          .accessibilityLabel("Grid view")
+          .accessibilityLabel(String(localized: "Grid view"))
           .accessibilityAddTraits(viewMode == .grid ? .isSelected : [])
 
           Button {
@@ -79,7 +75,7 @@ struct DocumentFilterBar: View {
               .background(viewMode == .list ? Color.blue : Color(.systemGray5))
               .clipShape(.rect(cornerRadius: 8))
           }
-          .accessibilityLabel("List view")
+          .accessibilityLabel(String(localized: "List view"))
           .accessibilityAddTraits(viewMode == .list ? .isSelected : [])
         }
       }

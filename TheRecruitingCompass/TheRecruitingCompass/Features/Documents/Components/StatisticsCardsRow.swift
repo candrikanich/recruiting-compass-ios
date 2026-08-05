@@ -33,7 +33,7 @@ struct DocumentStatisticsCardsRow: View {
     }
     .scrollIndicators(.hidden)
     .accessibilityElement(children: .contain)
-    .accessibilityLabel("Document statistics: \(statistics.total) total, \(statistics.shared) shared")
+    .accessibilityLabel(String(localized: "Document statistics: \(statistics.total) total, \(statistics.shared) shared"))
   }
 }
 
@@ -52,7 +52,7 @@ private struct DocumentStatCard: View {
         .bold()
         .foregroundStyle(color)
     }
-    .frame(width: 140, height: 80)
+    .frame(minWidth: 140, minHeight: 80)
     .padding(12)
     .background(Color.Surface.card)
     .clipShape(.rect(cornerRadius: 12))

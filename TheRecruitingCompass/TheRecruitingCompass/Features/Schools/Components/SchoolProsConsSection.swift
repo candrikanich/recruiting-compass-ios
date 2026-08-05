@@ -26,7 +26,7 @@ struct SchoolProsConsSection: View {
             .fontWeight(.semibold)
             .foregroundStyle(.green)
 
-          ForEach(Array(pros.enumerated()), id: \.offset) { index, pro in
+          ForEach(Array(pros.enumerated()), id: \.element) { index, pro in
             ProItem(text: pro) {
               Task { await onRemovePro(index) }
             }
@@ -39,7 +39,7 @@ struct SchoolProsConsSection: View {
                 Task { await onAddPro() }
               }
               .accessibilityIdentifier("pro-text-field")
-              .accessibilityLabel("Add pro input")
+              .accessibilityLabel(String(localized: "Add pro input"))
 
             Button {
               Task { await onAddPro() }
@@ -48,7 +48,7 @@ struct SchoolProsConsSection: View {
                 ProgressView()
                   .progressViewStyle(.circular)
                   .scaleEffect(0.8)
-                  .accessibilityLabel("Adding pro")
+                  .accessibilityLabel(String(localized: "Adding pro"))
               } else {
                 Image(systemName: "plus.circle.fill")
                   .foregroundStyle(.green)
@@ -59,7 +59,7 @@ struct SchoolProsConsSection: View {
             .accessibilityIdentifier("add-pro-button")
             .frame(minWidth: 44, minHeight: 44)
             .disabled(newPro.trimmingCharacters(in: .whitespaces).isEmpty || isAddingPro)
-            .accessibilityLabel(isAddingPro ? "Adding pro" : "Add pro")
+            .accessibilityLabel(isAddingPro ? String(localized: "Adding pro") : String(localized: "Add pro"))
           }
         }
         .frame(maxWidth: .infinity)
@@ -71,7 +71,7 @@ struct SchoolProsConsSection: View {
             .fontWeight(.semibold)
             .foregroundStyle(.red)
 
-          ForEach(Array(cons.enumerated()), id: \.offset) { index, con in
+          ForEach(Array(cons.enumerated()), id: \.element) { index, con in
             ConItem(text: con) {
               Task { await onRemoveCon(index) }
             }
@@ -84,7 +84,7 @@ struct SchoolProsConsSection: View {
                 Task { await onAddCon() }
               }
               .accessibilityIdentifier("con-text-field")
-              .accessibilityLabel("Add con input")
+              .accessibilityLabel(String(localized: "Add con input"))
 
             Button {
               Task { await onAddCon() }
@@ -93,7 +93,7 @@ struct SchoolProsConsSection: View {
                 ProgressView()
                   .progressViewStyle(.circular)
                   .scaleEffect(0.8)
-                  .accessibilityLabel("Adding con")
+                  .accessibilityLabel(String(localized: "Adding con"))
               } else {
                 Image(systemName: "plus.circle.fill")
                   .foregroundStyle(.red)
@@ -104,7 +104,7 @@ struct SchoolProsConsSection: View {
             .accessibilityIdentifier("add-con-button")
             .frame(minWidth: 44, minHeight: 44)
             .disabled(newCon.trimmingCharacters(in: .whitespaces).isEmpty || isAddingCon)
-            .accessibilityLabel(isAddingCon ? "Adding con" : "Add con")
+            .accessibilityLabel(isAddingCon ? String(localized: "Adding con") : String(localized: "Add con"))
           }
         }
         .frame(maxWidth: .infinity)

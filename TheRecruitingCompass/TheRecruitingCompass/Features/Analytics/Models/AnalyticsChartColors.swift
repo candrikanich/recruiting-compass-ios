@@ -21,9 +21,9 @@ enum AnalyticsChartColors {
   ]
 
   static let sentimentColors: [String: Color] = [
-    "Positive":      secondary,
+    "Positive": secondary,
     "Very Positive": Color.Brand.emerald600,
-    "Neutral":       Color.Brand.slate500,
-    "Negative":      quaternary
+    "Neutral": Color.Brand.slate500,
+    "Negative": quaternary
   ]
 }

@@ -22,7 +22,7 @@ struct CollegeDataSection: View {
             ProgressView()
               .progressViewStyle(.circular)
               .scaleEffect(0.8)
-              .accessibilityLabel("Looking up college data")
+              .accessibilityLabel(String(localized: "Looking up college data"))
           } else {
             Label("Lookup", systemImage: "magnifyingglass")
               .font(.subheadline)
@@ -30,7 +30,7 @@ struct CollegeDataSection: View {
         }
         .disabled(isLookingUp)
         .frame(minHeight: 44)
-        .accessibilityLabel("Lookup college data from College Scorecard")
+        .accessibilityLabel(String(localized: "Lookup college data from College Scorecard"))
       }
 
       if let error = lookupError {

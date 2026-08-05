@@ -24,6 +24,10 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
     static let shared = PushNotificationManager()
 
     private(set) var currentTokenString: String?
+    /// Most recent push-setup failure, surfaced in Notification Preferences.
+    /// Registration used to fail with only a log line — the user's device
+    /// never received push and nothing in the UI said so.
+    private(set) var lastError: String?
     private let supabaseManager: SupabaseManager
     private let authManager: any AuthManaging
 
@@ -46,6 +50,7 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
             if granted { UIApplication.shared.registerForRemoteNotifications() }
         } catch {
             logger.error("Push permission request failed: \(error.localizedDescription)")
+            lastError = "Couldn't request notification permission. Try again from Settings."
         }
     }
 
@@ -67,8 +72,10 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
                 )
                 .execute()
             logger.info("Device token upserted")
+            lastError = nil
         } catch {
             logger.error("Device token upsert failed: \(error.localizedDescription)")
+            lastError = "This device couldn't be registered for push notifications."
         }
     }
 

@@ -91,7 +91,7 @@ final class AuthManager: AuthManaging {
       self.errorMessage = nil
 
       // Save session to Keychain if signup returned a session
-      if let session = session {
+      if let session {
         try keychain.save(session, forKey: sessionKey)
       }
       logger.info("Signup successful for user: \(user.id, privacy: .private), session: \(session != nil)")
@@ -173,7 +173,12 @@ final class AuthManager: AuthManaging {
         user: user
       )
       self.session = session
-      try? keychain.save(session, forKey: sessionKey)
+      do {
+        try keychain.save(session, forKey: sessionKey)
+      } catch {
+        // Session stays valid in memory; the next launch will require re-login.
+        logger.error("Failed to persist session to Keychain: \(error.localizedDescription)")
+      }
     }
   }
 

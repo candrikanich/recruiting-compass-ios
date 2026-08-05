@@ -30,7 +30,7 @@ struct SchoolCoachesPanel: View {
               .font(.subheadline)
               .foregroundStyle(Color.accentBlue)
           }
-          .accessibilityLabel("See all \(coaches.count) coaches")
+          .accessibilityLabel(String(localized: "See all \(coaches.count) coaches"))
           .accessibilityHint("View complete list of coaches")
         }
       }
@@ -39,7 +39,7 @@ struct SchoolCoachesPanel: View {
         HStack {
           Spacer()
           ProgressView()
-            .accessibilityLabel("Loading coaches")
+            .accessibilityLabel(String(localized: "Loading coaches"))
           Spacer()
         }
         .padding(.vertical, 20)
@@ -86,7 +86,7 @@ private struct CoachesEmptyState: View {
     .frame(maxWidth: .infinity)
     .padding(.vertical, 32)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("No coaches added")
+    .accessibilityLabel(String(localized: "No coaches added"))
     .accessibilityHint("Use the manage coaches button to add recruiting contacts")
   }
 }

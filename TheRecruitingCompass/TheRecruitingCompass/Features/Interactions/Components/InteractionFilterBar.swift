@@ -37,7 +37,7 @@ struct InteractionFilterBar: View {
           )
         }
         .accessibilityLabel(typeFilterAccessibilityLabel)
-        .accessibilityHint("Opens menu to filter by interaction type")
+        .accessibilityHint(typeFilterAccessibilityHint)
 
         // Direction filter
         Menu {
@@ -200,35 +200,39 @@ struct InteractionFilterBar: View {
     return "Logged By"
   }
 
-  private var typeFilterAccessibilityLabel: String {
+  var typeFilterAccessibilityHint: String {
+    "Opens menu to filter by interaction type"
+  }
+
+  var typeFilterAccessibilityLabel: String {
     if let type = filters.type {
-      return "Filter by type: \(type.displayName) selected"
+      return String(localized: "Filter by type: \(type.displayName) selected")
     }
-    return "Filter by type"
+    return String(localized: "Filter by type")
   }
 
-  private var directionFilterAccessibilityLabel: String {
+  var directionFilterAccessibilityLabel: String {
     if let direction = filters.direction {
-      return "Filter by direction: \(direction.displayName) selected"
+      return String(localized: "Filter by direction: \(direction.displayName) selected")
     }
-    return "Filter by direction"
+    return String(localized: "Filter by direction")
   }
 
-  private var sentimentFilterAccessibilityLabel: String {
+  var sentimentFilterAccessibilityLabel: String {
     if let sentiment = filters.sentiment {
-      return "Filter by sentiment: \(sentiment.displayName) selected"
+      return String(localized: "Filter by sentiment: \(sentiment.displayName) selected")
     }
-    return "Filter by sentiment"
+    return String(localized: "Filter by sentiment")
   }
 
-  private var timePeriodFilterAccessibilityLabel: String {
+  var timePeriodFilterAccessibilityLabel: String {
     if let period = filters.timePeriod {
-      return "Filter by time period: \(period.displayName) selected"
+      return String(localized: "Filter by time period: \(period.displayName) selected")
     }
-    return "Filter by time period"
+    return String(localized: "Filter by time period")
   }
 
-  private var loggedByFilterAccessibilityLabel: String {
+  var loggedByFilterAccessibilityLabel: String {
     if let loggedBy = filters.loggedBy {
       let name: String
       if loggedBy == currentUserId {
@@ -238,9 +242,9 @@ struct InteractionFilterBar: View {
       } else {
         name = "Unknown"
       }
-      return "Filter by logged by: \(name) selected"
+      return String(localized: "Filter by logged by: \(name) selected")
     }
-    return "Filter by logged by"
+    return String(localized: "Filter by logged by")
   }
 }
 

@@ -16,10 +16,10 @@ struct CoachesPresentSection: View {
 
   private var emptyStateText: String? {
     if !isEventLinkedToSchool {
-      return "Event not linked to school"
+      return String(localized: "Event not linked to school")
     }
     if coachesAtEvent.isEmpty && availableCoaches.isEmpty {
-      return "No coaches recorded"
+      return String(localized: "No coaches recorded")
     }
     return nil
   }
@@ -35,7 +35,7 @@ struct CoachesPresentSection: View {
           .font(.subheadline)
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .accessibilityLabel("Event not linked to school")
+          .accessibilityLabel(String(localized: "Event not linked to school"))
       } else {
         if let emptyText = emptyStateText {
           Text(emptyText)
@@ -58,7 +58,7 @@ struct CoachesPresentSection: View {
             .buttonStyle(.plain)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
-            .accessibilityLabel("Remove \(coach.fullName)")
+            .accessibilityLabel(String(localized: "Remove \(coach.fullName)"))
           }
         }
 
@@ -72,7 +72,7 @@ struct CoachesPresentSection: View {
               Text(coach.fullName).tag(coach.id)
             }
           }
-          .accessibilityLabel("Add coach to event")
+          .accessibilityLabel(String(localized: "Add coach to event"))
           .onChange(of: selectedCoachId) { _, newValue in
             if newValue != nil {
               Task { await onAddCoach() }

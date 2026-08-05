@@ -37,7 +37,7 @@ enum ActivityEventFactory {
   ) -> ActivityEvent {
     let resolvedSchoolName = schoolName ?? "Unknown School"
     let formattedStatus = history.newStatus
-      .replacingOccurrences(of: "_", with: " ")
+      .replacing("_", with: " ")
       .capitalized
     let title = "\(resolvedSchoolName) - \(formattedStatus)"
     let description = history.notes ?? "Status changed to \(formattedStatus)"

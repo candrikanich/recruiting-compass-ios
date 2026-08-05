@@ -22,7 +22,7 @@ struct ConItem: View {
           .accessibilityHidden(true)
       }
       .frame(minWidth: 44, minHeight: 44)
-      .accessibilityLabel("Remove con: \(text)")
+      .accessibilityLabel(String(localized: "Remove con: \(text)"))
       .accessibilityHint("Double tap to remove this con")
     }
     .padding(.horizontal, 12)

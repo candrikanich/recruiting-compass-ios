@@ -22,7 +22,7 @@ struct NotificationPreferencesView: View {
           .onChange(of: viewModel.settings.enableFollowUpReminders) { _, _ in
             viewModel.markAsChanged()
           }
-          .accessibilityLabel("Enable coach follow-up reminders")
+          .accessibilityLabel(String(localized: "Enable coach follow-up reminders"))
 
         if viewModel.settings.enableFollowUpReminders {
           Stepper(
@@ -33,7 +33,7 @@ struct NotificationPreferencesView: View {
           .onChange(of: viewModel.settings.followUpReminderDays) { _, _ in
             viewModel.markAsChanged()
           }
-          .accessibilityLabel("Days between follow-up reminders")
+          .accessibilityLabel(String(localized: "Days between follow-up reminders"))
           .accessibilityValue("\(viewModel.settings.followUpReminderDays) days")
         }
 
@@ -41,19 +41,19 @@ struct NotificationPreferencesView: View {
           .onChange(of: viewModel.settings.enableDeadlineAlerts) { _, _ in
             viewModel.markAsChanged()
           }
-          .accessibilityLabel("Enable deadline alerts")
+          .accessibilityLabel(String(localized: "Enable deadline alerts"))
 
         Toggle("Daily Digest", isOn: $viewModel.settings.enableDailyDigest)
           .onChange(of: viewModel.settings.enableDailyDigest) { _, _ in
             viewModel.markAsChanged()
           }
-          .accessibilityLabel("Enable daily digest")
+          .accessibilityLabel(String(localized: "Enable daily digest"))
 
         Toggle("Inbound Contact Alerts", isOn: $viewModel.settings.enableInboundInteractionAlerts)
           .onChange(of: viewModel.settings.enableInboundInteractionAlerts) { _, _ in
             viewModel.markAsChanged()
           }
-          .accessibilityLabel("Enable inbound contact alerts")
+          .accessibilityLabel(String(localized: "Enable inbound contact alerts"))
       } header: {
         Text("In-App Notifications")
       }
@@ -64,14 +64,14 @@ struct NotificationPreferencesView: View {
           .onChange(of: viewModel.settings.enableEmailNotifications) { _, _ in
             viewModel.markAsChanged()
           }
-          .accessibilityLabel("Enable email notifications")
+          .accessibilityLabel(String(localized: "Enable email notifications"))
 
         if viewModel.settings.enableEmailNotifications {
           Toggle("High-Priority Only", isOn: $viewModel.settings.emailOnlyHighPriority)
             .onChange(of: viewModel.settings.emailOnlyHighPriority) { _, _ in
               viewModel.markAsChanged()
             }
-            .accessibilityLabel("Email high-priority notifications only")
+            .accessibilityLabel(String(localized: "Email high-priority notifications only"))
             .padding(.leading, 16)
         }
       } header: {
@@ -80,6 +80,11 @@ struct NotificationPreferencesView: View {
 
       // Push Notifications Section
       Section {
+        if let pushSetupError = viewModel.pushSetupError {
+          Label(pushSetupError, systemImage: "exclamationmark.triangle.fill")
+            .font(.subheadline)
+            .foregroundStyle(Color.errorRed)
+        }
         if pushAuthStatus == .denied {
           HStack {
             Image(systemName: "bell.slash")
@@ -95,8 +100,7 @@ struct NotificationPreferencesView: View {
             }
             .font(.subheadline)
           }
-          .accessibilityElement(children: .combine)
-          .accessibilityLabel("Push notifications disabled. Open Settings to enable.")
+          .accessibilityElement(children: .contain)
         } else {
           ForEach(NotificationType.allCases.filter { $0 != .unknown }, id: \.self) { type in
             Toggle(type.label, isOn: Binding(
@@ -106,7 +110,7 @@ struct NotificationPreferencesView: View {
                 Task { await viewModel.updatePushPreference(userId: userId, type: type, enabled: enabled) }
               }
             ))
-            .accessibilityLabel("Push notifications for \(type.label)")
+            .accessibilityLabel(String(localized: "Push notifications for \(type.label)"))
           }
         }
       } header: {
@@ -129,7 +133,7 @@ struct NotificationPreferencesView: View {
           }
         }
         .foregroundStyle(.red)
-        .accessibilityLabel("Reset notification preferences to defaults")
+        .accessibilityLabel(String(localized: "Reset notification preferences to defaults"))
         .disabled(viewModel.saveStatus == .saving)
       }
     }
@@ -143,10 +147,11 @@ struct NotificationPreferencesView: View {
     .overlay {
       PreferenceLoadingOverlay(
         isLoading: viewModel.isLoading,
-        message: "Loading preferences..."
+        message: String(localized: "Loading preferences...")
       )
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
+    .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
     .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
       Task {
         let settings = await UNUserNotificationCenter.current().notificationSettings()

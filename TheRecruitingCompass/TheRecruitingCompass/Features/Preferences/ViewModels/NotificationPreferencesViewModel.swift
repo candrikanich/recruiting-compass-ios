@@ -14,6 +14,8 @@ final class NotificationPreferencesViewModel {
   var errorMessage: String?
   var saveStatus: SaveStatus = .idle
   var pushPreferences: [NotificationType: Bool] = [:]
+  var pushSetupError: String?
+  var hapticSuccessTrigger = 0
 
   private let preferenceService: any PreferenceManaging
   private let pushPreferencesService: (any PushPreferencesManaging)?
@@ -41,6 +43,7 @@ final class NotificationPreferencesViewModel {
     logger.debug("Loading notification preferences")
     isLoading = true
     errorMessage = nil
+    defer { isLoading = false }
 
     do {
       if let savedSettings: NotificationSettings = try await preferenceService.fetchPreferences(category: .notifications) {
@@ -50,11 +53,9 @@ final class NotificationPreferencesViewModel {
         settings = .default
         logger.info("No existing preferences, using defaults")
       }
-      isLoading = false
     } catch {
       logger.error("Failed to load preferences: \(error.localizedDescription)")
       errorMessage = "Failed to load preferences. Please try again."
-      isLoading = false
     }
   }
 
@@ -68,7 +69,7 @@ final class NotificationPreferencesViewModel {
     do {
       _ = try await preferenceService.savePreferences(category: .notifications, data: settings)
       saveStatus = .saved
-      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      hapticSuccessTrigger += 1
       logger.info("Notification preferences saved")
       pendingStatusReset?.cancel()
       pendingStatusReset = Task {
@@ -110,6 +111,9 @@ final class NotificationPreferencesViewModel {
   // MARK: - Push Preferences
 
   func loadPushPreferences(userId: String) async {
+    // Surface any device-registration failure recorded by the push manager;
+    // without this the device silently never receives push.
+    pushSetupError = PushNotificationManager.shared.lastError
     guard let service = pushPreferencesService else { return }
     do {
       let prefs = try await service.fetchPreferences(userId: userId)

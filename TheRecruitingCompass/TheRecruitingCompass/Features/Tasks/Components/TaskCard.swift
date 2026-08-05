@@ -17,16 +17,16 @@ struct TaskCard: View {
   private var checkboxAccessibilityLabel: String {
     if task.isLocked {
       let prereqs = task.prerequisiteTasks.map(\.title).joined(separator: ", ")
-      return "Complete \(prereqs) to unlock"
+      return String(localized: "Complete \(prereqs) to unlock")
     }
-    return "Mark \(task.title) complete"
+    return String(localized: "Mark \(task.title) complete")
   }
 
   private var cardAccessibilityLabel: String {
     let status = task.effectiveStatus.displayName
     let locked = task.isLocked ? "Locked" : "Unlocked"
     let req = task.required ? "Required" : "Optional"
-    return "\(task.title), \(status), \(locked), \(req)"
+    return String(localized: "\(task.title), \(status), \(locked), \(req)")
   }
 
   var body: some View {
@@ -70,9 +70,14 @@ struct TaskCard: View {
                 .clipShape(Capsule())
                 .accessibilityHidden(true)
             }
-            Text(task.effectiveStatus.displayName)
-              .font(.caption)
-              .foregroundStyle(task.statusColor)
+            HStack(spacing: 3) {
+              Image(systemName: task.statusIconName)
+                .font(.caption2)
+                .accessibilityHidden(true)
+              Text(task.effectiveStatus.displayName)
+            }
+            .font(.caption)
+            .foregroundStyle(task.statusColor)
           }
 
           Text(task.title)

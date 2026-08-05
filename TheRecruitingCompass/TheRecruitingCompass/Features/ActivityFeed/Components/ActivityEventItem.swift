@@ -86,8 +86,10 @@ struct ActivityEventItem: View {
     }
   }
 
-  private var accessibilityLabel: String {
-    let relativeTime = RelativeDateTimeFormatter().localizedString(for: event.timestamp, relativeTo: Date())
+  private static let relativeTimeFormatter = RelativeDateTimeFormatter()
+
+  var accessibilityLabel: String {
+    let relativeTime = Self.relativeTimeFormatter.localizedString(for: event.timestamp, relativeTo: .now)
     var parts: [String] = []
     parts.append(event.type.label)
     parts.append(event.title)
@@ -95,7 +97,7 @@ struct ActivityEventItem: View {
       parts.append(event.description)
     }
     parts.append(relativeTime)
-    return parts.joined(separator: ", ")
+    return String(localized: "\(parts.joined(separator: ", "))")
   }
 }
 
@@ -105,7 +107,7 @@ struct ActivityEventItem: View {
       event: ActivityEvent(
         id: "interaction-1",
         type: .interaction,
-        timestamp: Date().addingTimeInterval(-7200),
+        timestamp: Date.now.addingTimeInterval(-7200),
         title: "Email with Arizona State",
         description: "Discussed camp schedule and upcoming visit dates",
         icon: "envelope.fill",
@@ -121,7 +123,7 @@ struct ActivityEventItem: View {
       event: ActivityEvent(
         id: "status-1",
         type: .schoolStatusChange,
-        timestamp: Date().addingTimeInterval(-86400),
+        timestamp: Date.now.addingTimeInterval(-86400),
         title: "Stanford - Interested",
         description: "Status changed to Interested",
         icon: "mappin.circle.fill",
@@ -137,7 +139,7 @@ struct ActivityEventItem: View {
       event: ActivityEvent(
         id: "doc-1",
         type: .documentUpload,
-        timestamp: Date().addingTimeInterval(-172800),
+        timestamp: Date.now.addingTimeInterval(-172800),
         title: "Uploaded: Transcript",
         description: "New document uploaded",
         icon: "doc.fill",

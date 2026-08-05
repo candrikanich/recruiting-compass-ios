@@ -21,7 +21,7 @@ struct ProItem: View {
           .font(.caption)
       }
       .frame(minWidth: 44, minHeight: 44)
-      .accessibilityLabel("Remove \(text)")
+      .accessibilityLabel(String(localized: "Remove \(text)"))
     }
     .padding(.horizontal, 12)
     .padding(.vertical, 8)

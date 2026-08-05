@@ -10,6 +10,7 @@ struct CommunicationTemplatesView: View {
     }
     .navigationTitle("Communication Templates")
     .navigationBarTitleDisplayMode(.large)
+    .searchable(text: $viewModel.searchQuery, prompt: "Search templates...")
     .task { await viewModel.loadTemplates() }
     .alert("Delete Template", isPresented: $viewModel.showDeleteConfirmation) {
       Button("Cancel", role: .cancel) {}
@@ -57,7 +58,7 @@ struct CommunicationTemplatesView: View {
         .background(isActive ? Color.accentBlue : Color(.tertiarySystemFill))
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
-    .accessibilityLabel(title)
+    .accessibilityLabel(String(localized: "\(title)"))
     .accessibilityAddTraits(isActive ? .isSelected : [])
     .accessibilityIdentifier(identifier)
   }
@@ -77,13 +78,14 @@ struct CommunicationTemplatesView: View {
     ScrollView {
       LazyVStack(spacing: 12) {
         if let error = viewModel.errorMessage {
-          errorBanner(message: error)
+          InlineErrorView(message: error, onRetry: { Task { await viewModel.loadTemplates() } })
+            .padding(.horizontal)
         }
 
         filterRow
 
         if viewModel.isLoading, viewModel.templates.isEmpty {
-          loadingPlaceholders
+          LoadingStateView(message: "Loading templates...")
         } else if viewModel.filteredTemplates.isEmpty {
           emptyState
         } else {
@@ -133,78 +135,27 @@ struct CommunicationTemplatesView: View {
         .background(isSelected ? Color.accentBlue : Color(.tertiarySystemFill))
         .clipShape(Capsule())
     }
-    .accessibilityLabel("Filter by \(label), \(count) templates")
+    .accessibilityLabel(String(localized: "Filter by \(label), \(count) templates"))
     .accessibilityAddTraits(isSelected ? .isSelected : [])
     .accessibilityIdentifier(identifier)
   }
 
   @ViewBuilder
   private var emptyState: some View {
-    VStack(spacing: 12) {
-      Image(systemName: "doc.text")
-        .font(.largeTitle)
-        .foregroundStyle(.secondary)
-        .accessibilityHidden(true)
-
-      Text("No templates yet")
-        .font(.headline)
-        .foregroundStyle(.primary)
-
-      Text("Create your first template to get started.")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-        .multilineTextAlignment(.center)
-
-      Button {
-        viewModel.switchToCreateTab()
-      } label: {
-        Text("Create Template")
-          .font(.body.weight(.medium))
-          .foregroundStyle(.white)
-          .padding(.horizontal, 24)
-          .padding(.vertical, 12)
-          .background(Color.accentBlue)
-          .clipShape(RoundedRectangle(cornerRadius: 10))
-      }
-      .padding(.top, 4)
-    }
-    .frame(maxWidth: .infinity)
-    .padding(.vertical, 40)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("No templates yet. Create your first template to get started.")
-  }
-
-  @ViewBuilder
-  private var loadingPlaceholders: some View {
-    VStack(spacing: 12) {
-      ForEach(0..<3, id: \.self) { _ in
-        RoundedRectangle(cornerRadius: 12)
-          .fill(Color(.tertiarySystemFill))
-          .frame(height: 100)
+    if !viewModel.searchQuery.isEmpty {
+      ContentUnavailableView.search(text: viewModel.searchQuery)
+    } else {
+      ContentUnavailableView {
+        Label("No Templates Yet", systemImage: "doc.text")
+      } description: {
+        Text("Create your first template to get started.")
+      } actions: {
+        Button("Create Template") {
+          viewModel.switchToCreateTab()
+        }
+        .buttonStyle(.borderedProminent)
       }
     }
-    .padding(.horizontal)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("Loading templates")
-  }
-
-  private func errorBanner(message: String) -> some View {
-    VStack(spacing: 8) {
-      Text(message)
-        .font(.subheadline)
-        .foregroundStyle(.primary)
-        .multilineTextAlignment(.center)
-
-      Button("Retry") {
-        Task { await viewModel.loadTemplates() }
-      }
-      .buttonStyle(.borderedProminent)
-    }
-    .padding()
-    .frame(maxWidth: .infinity)
-    .background(Color.errorRed.opacity(0.1))
-    .clipShape(RoundedRectangle(cornerRadius: 12))
-    .padding(.horizontal)
   }
 }
 

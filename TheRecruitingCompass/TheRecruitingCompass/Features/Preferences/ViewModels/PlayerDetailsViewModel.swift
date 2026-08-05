@@ -18,6 +18,7 @@ final class PlayerDetailsViewModel {
     var isReadOnly = false
     var showDeletePhotoConfirmation = false
     var saveStatus: SaveStatus = .idle
+    var hapticSuccessTrigger = 0
     var selectedTab: Int = 0
 
     // Backward-compat computed wrappers (existing tests use these)
@@ -56,13 +57,13 @@ final class PlayerDetailsViewModel {
             details.gpa != nil,
             details.satScore != nil,
             details.actScore != nil,
-            !(details.twitterHandle ?? "").isEmpty || !(details.instagramHandle ?? "").isEmpty,
+            !(details.twitterHandle ?? "").isEmpty || !(details.instagramHandle ?? "").isEmpty
         ]
         if isBaseballOrSoftball {
             fields.append(details.bats != nil)
             fields.append(details.throws_ != nil)
         }
-        let filled = fields.filter { $0 }.count
+        let filled = fields.count(where: { $0 })
         return Double(filled) / Double(fields.count)
     }
 
@@ -97,6 +98,7 @@ final class PlayerDetailsViewModel {
         logger.debug("Loading player details")
         isLoading = true
         errorMessage = nil
+        defer { isLoading = false }
         do {
             if let savedDetails: PlayerDetails = try await preferenceService.fetchPreferences(category: .player) {
                 details = savedDetails
@@ -106,11 +108,9 @@ final class PlayerDetailsViewModel {
                 logger.info("No existing details, using defaults")
             }
             saveStatus = .idle
-            isLoading = false
         } catch {
             logger.error("Failed to load details: \(error.localizedDescription)")
             errorMessage = "Failed to load player details. Please try again."
-            isLoading = false
         }
     }
 
@@ -122,7 +122,7 @@ final class PlayerDetailsViewModel {
         do {
             _ = try await preferenceService.savePreferences(category: .player, data: details)
             saveStatus = .saved
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            hapticSuccessTrigger += 1
             logger.info("Player details saved")
             pendingStatusReset?.cancel()
             pendingStatusReset = Task {
@@ -150,8 +150,14 @@ final class PlayerDetailsViewModel {
         logger.debug("Uploading profile photo")
         isUploadingPhoto = true
         errorMessage = nil
+        defer { isUploadingPhoto = false }
         do {
-            guard let compressedData = image.jpegData(compressionQuality: 0.7) else {
+            // Downsample + encode off the main actor: a full-resolution photo-picker
+            // image can take 300-800ms to encode, which would otherwise freeze the UI.
+            let compressedData = await Task.detached(priority: .userInitiated) {
+                ImageCompression.downsampledJPEGData(from: image, maxBytes: 5_000_000)
+            }.value
+            guard let compressedData else {
                 throw PhotoError.compressionFailed
             }
             guard compressedData.count <= 5_000_000 else {
@@ -160,11 +166,9 @@ final class PlayerDetailsViewModel {
             profileImage = image
             markChanged()
             logger.info("Profile photo uploaded successfully")
-            isUploadingPhoto = false
         } catch {
             logger.error("Failed to upload photo: \(error.localizedDescription)")
             errorMessage = "Failed to upload photo. Please try again."
-            isUploadingPhoto = false
         }
     }
 
@@ -229,16 +233,4 @@ final class PlayerDetailsViewModel {
 
     var heightFeet: Int { (details.heightInches ?? 0) / 12 }
     var heightInchesRemainder: Int { (details.heightInches ?? 0) % 12 }
-}
-
-enum PhotoError: LocalizedError {
-    case compressionFailed
-    case fileTooLarge
-
-    var errorDescription: String? {
-        switch self {
-        case .compressionFailed: return "Failed to compress photo"
-        case .fileTooLarge: return "Photo must be less than 5MB"
-        }
-    }
 }

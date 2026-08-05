@@ -3,8 +3,11 @@ import SwiftUI
 struct SchoolCardView: View {
   let school: School
   let onToggleFavorite: () -> Void
+  var onDelete: () -> Void = {}
 
   @Environment(\.sizeCategory) private var sizeCategory
+
+  var deleteAccessibilityLabel: String { String(localized: "Delete \(school.name)") }
 
   private var initialsSize: CGFloat {
     sizeCategory.isAccessibilityCategory ? 56 : 48
@@ -25,9 +28,9 @@ struct SchoolCardView: View {
     .background(Color.Surface.card)
     .overlay(
       RoundedRectangle(cornerRadius: 12)
-        .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
+        .stroke(Color(uiColor: .separator), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 12))
+    .clipShape(.rect(cornerRadius: 12))
     .brandShadowSm()
     .accessibilityElement(children: .contain)
   }
@@ -55,7 +58,22 @@ struct SchoolCardView: View {
       Spacer()
 
       FavoriteStarButton(isFavorite: school.isFavorite, action: onToggleFavorite)
+
+      deleteButton
     }
+  }
+
+  @ViewBuilder
+  private var deleteButton: some View {
+    Button(role: .destructive, action: onDelete) {
+      Image(systemName: "trash")
+        .font(.subheadline)
+        .foregroundStyle(Color.errorRed)
+        .frame(minWidth: 44, minHeight: 44)
+        .contentShape(Rectangle())
+    }
+    .accessibilityLabel(deleteAccessibilityLabel)
+    .accessibilityHint("Double tap to delete this school")
   }
 
   @ViewBuilder
@@ -132,7 +150,7 @@ struct SchoolCardView: View {
             .font(.subheadline)
             .foregroundStyle(.secondary)
         }
-        .accessibilityLabel("Conference: \(conference)")
+        .accessibilityLabel(String(localized: "Conference: \(conference)"))
       }
 
       if let notes = school.notes, !notes.isEmpty {
@@ -146,7 +164,7 @@ struct SchoolCardView: View {
             .foregroundStyle(.secondary)
             .lineLimit(2)
         }
-        .accessibilityLabel("Notes: \(notes)")
+        .accessibilityLabel(String(localized: "Notes: \(notes)"))
       }
     }
   }

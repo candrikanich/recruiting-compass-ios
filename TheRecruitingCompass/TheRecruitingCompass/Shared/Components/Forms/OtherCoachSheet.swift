@@ -12,7 +12,7 @@ struct OtherCoachSheet: View {
         Section("Coach Name") {
           TextField("Enter coach name", text: $coachName)
             .textContentType(.name)
-            .accessibilityLabel("Coach name field")
+            .accessibilityLabel(String(localized: "Coach name field"))
             .accessibilityHint("Enter the name of a coach not in the system")
         }
 

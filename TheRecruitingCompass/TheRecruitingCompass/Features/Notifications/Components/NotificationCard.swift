@@ -43,7 +43,7 @@ struct NotificationCard: View {
             .frame(width: 44, height: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Delete notification")
+        .accessibilityLabel(String(localized: "Delete notification"))
       }
       .padding()
       .background(notification.isRead ? Color.Surface.card : Color(hex: "#EFF6FF"))
@@ -64,15 +64,16 @@ struct NotificationCard: View {
     .accessibilityAddTraits(.isButton)
   }
 
-  private var accessibilityLabel: String {
+  var accessibilityLabel: String {
     let status = notification.isRead ? "Read" : "Unread"
     let priority = notification.priority == .high ? "High priority" : ""
     let type = notification.type.label
     let time = formatRelativeDate(notification.scheduledFor)
 
-    return [status, priority, type, notification.title, notification.message, time]
+    let joined = [status, priority, type, notification.title, notification.message, time]
       .filter { !$0.isEmpty }
       .joined(separator: ". ")
+    return String(localized: "\(joined)")
   }
 
   private static let isoParser: ISO8601DateFormatter = {
@@ -99,7 +100,7 @@ struct NotificationCard: View {
       return dateString
     }
 
-    let seconds = Date().timeIntervalSince(date)
+    let seconds = Date.now.timeIntervalSince(date)
 
     if seconds < 60 { return "just now" }
     if seconds < 3600 { return "\(Int(seconds / 60))m ago" }

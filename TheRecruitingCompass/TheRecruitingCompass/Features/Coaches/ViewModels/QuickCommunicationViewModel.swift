@@ -7,14 +7,6 @@ private let logger = Logger(
   category: "QuickCommunicationViewModel"
 )
 
-/// Context passed when presenting Quick Communication for a coach.
-struct QuickCommunicationContext: Identifiable {
-  let coach: Coach
-  let schoolName: String?
-
-  var id: String { coach.id }
-}
-
 @Observable
 @MainActor
 final class QuickCommunicationViewModel {
@@ -122,6 +114,5 @@ final class QuickCommunicationViewModel {
     let trimmed = String(body.prefix(Self.maxURLBodyLength - 30))
     return trimmed.trimmingCharacters(in: .whitespacesAndNewlines) + "\n\n[Message truncated — full text in app]"
   }
-
 
 }

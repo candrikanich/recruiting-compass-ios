@@ -449,7 +449,7 @@ final class CreateEventAccessibilityTests: XCTestCase {
     XCTAssertNotNil(eventId, "Should return event ID")
     XCTAssertFalse(viewModel.isSaving, "Should not be saving after completion")
     XCTAssertTrue(viewModel.validationErrors.isEmpty, "Should have no validation errors")
-    XCTAssertNil(viewModel.error, "Should have no error")
+    XCTAssertNil(viewModel.errorMessage, "Should have no error")
   }
 
   func testFullAccessibilityFlow_validationFailure() async {
@@ -481,7 +481,7 @@ final class CreateEventAccessibilityTests: XCTestCase {
     let result = await viewModel.createEvent()
 
     XCTAssertNil(result, "Should return nil on service failure")
-    XCTAssertNotNil(viewModel.error, "Should set error message on service failure")
+    XCTAssertNotNil(viewModel.errorMessage, "Should set error message on service failure")
     XCTAssertFalse(viewModel.isSaving, "Should not be saving after error")
     XCTAssertTrue(viewModel.validationErrors.isEmpty, "Validation should have passed")
   }

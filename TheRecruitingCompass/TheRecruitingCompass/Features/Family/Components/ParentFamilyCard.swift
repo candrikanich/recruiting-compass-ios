@@ -29,6 +29,10 @@ struct ParentFamilyCard: View {
     .background(Color(.secondarySystemBackground))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(family.familyName), code \(FamilyUtilities.formatCodeForVoiceOver(family.familyCode)), joined")
+    .accessibilityLabel(cardAccessibilityLabel)
+  }
+
+  var cardAccessibilityLabel: String {
+    String(localized: "\(family.familyName), code \(FamilyUtilities.formatCodeForVoiceOver(family.familyCode)), joined")
   }
 }

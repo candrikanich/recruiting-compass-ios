@@ -34,7 +34,7 @@ enum AuthError: LocalizedError {
     case .serverError:
       return "Server error. Please try again later."
     case .tooManyAttempts(let retryAfter):
-      if let retryAfter = retryAfter {
+      if let retryAfter {
         return "Too many login attempts. Please try again \(retryAfter)"
       }
       return "Too many login attempts. Please try again later."

@@ -75,6 +75,6 @@ struct MetricHistoryCard: View {
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .brandShadowSm()
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(metric.displayName), \(metric.formattedValue), recorded \(metric.formattedDate)")
+    .accessibilityLabel(String(localized: "\(metric.displayName), \(metric.formattedValue), recorded \(metric.formattedDate)"))
   }
 }

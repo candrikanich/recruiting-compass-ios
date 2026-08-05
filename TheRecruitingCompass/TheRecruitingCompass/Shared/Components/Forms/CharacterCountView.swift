@@ -18,7 +18,7 @@ struct CharacterCountView: View {
     Text("\(currentCount)/\(maxCount)")
       .font(.caption)
       .foregroundStyle(isOverLimit ? .red : (showWarning ? .orange : .secondary))
-      .accessibilityLabel("\(currentCount) of \(maxCount) characters")
+      .accessibilityLabel(String(localized: "\(currentCount) of \(maxCount) characters"))
       .accessibilityValue(isOverLimit ? "Limit exceeded" : "")
   }
 }

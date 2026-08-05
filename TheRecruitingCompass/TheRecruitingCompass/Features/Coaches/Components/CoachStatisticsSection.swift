@@ -56,7 +56,7 @@ struct CoachStatisticsSection: View {
             .font(.subheadline)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Next contact date: \(CoachStatisticsSection.dateFormatter.string(from: nextContact))")
+        .accessibilityLabel(String(localized: "Next contact date: \(CoachStatisticsSection.dateFormatter.string(from: nextContact))"))
       }
 
       HStack(spacing: 8) {
@@ -67,7 +67,7 @@ struct CoachStatisticsSection: View {
           .font(.subheadline)
           .foregroundStyle(.secondary)
       }
-      .accessibilityLabel("Follow-up threshold: \(coach.followUpThresholdDays ?? 21) days")
+      .accessibilityLabel(String(localized: "Follow-up threshold: \(coach.followUpThresholdDays ?? 21) days"))
     }
   }
 }

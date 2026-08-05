@@ -23,7 +23,7 @@ struct FitScoreSection: View {
             .font(.largeTitle)
             .bold()
             .foregroundStyle(fitScoreColor(fitScore.score))
-            .accessibilityLabel("Fit score: \(Int(fitScore.score)) out of 100")
+            .accessibilityLabel(String(localized: "Fit score: \(Int(fitScore.score)) out of 100"))
 
           Text("Fit Score")
             .font(.caption)
@@ -70,7 +70,7 @@ struct FitScoreSection: View {
             .foregroundStyle(.secondary)
         }
         .frame(width: 44, height: 44)
-        .accessibilityLabel(isExpanded ? "Hide breakdown" : "Show breakdown")
+        .accessibilityLabel(isExpanded ? String(localized: "Hide breakdown") : String(localized: "Show breakdown"))
       }
 
       // Breakdown (expandable)

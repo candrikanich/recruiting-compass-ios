@@ -33,7 +33,7 @@ struct TasksParentBanner: View {
           .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Exit preview mode")
+      .accessibilityLabel(String(localized: "Exit preview mode"))
       .accessibilityHint("Returns to athlete selection")
     }
     .padding()
@@ -45,7 +45,7 @@ struct TasksParentBanner: View {
       )
     )
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Parent preview mode, viewing \(athleteName)'s tasks, read only")
+    .accessibilityLabel(String(localized: "Parent preview mode, viewing \(athleteName)'s tasks, read only"))
   }
 }
 

@@ -1,12 +1,14 @@
 import SwiftUI
 
 struct UpcomingEventsWidget: View {
-  let events: [FullEvent]
+  /// Sorted once at init rather than re-sorted on every body evaluation
+  /// (this computed property used to be read up to 5 times per render).
+  private let sortedEvents: [FullEvent]
 
   @State private var isShowingAll = false
 
-  private var sortedEvents: [FullEvent] {
-    events.sorted { $0.startDate < $1.startDate }
+  init(events: [FullEvent]) {
+    self.sortedEvents = events.sorted { $0.startDate < $1.startDate }
   }
 
   private var visibleEvents: [FullEvent] {
@@ -46,9 +48,9 @@ struct UpcomingEventsWidget: View {
             }
             .foregroundStyle(Color.accentBlue)
           }
-          .accessibilityLabel(isShowingAll
+          .accessibilityLabel(String(localized: isShowingAll
             ? "Show fewer events"
-            : "Show all \(sortedEvents.count) events")
+            : "Show all \(sortedEvents.count) events"))
           .accessibilityHint(isShowingAll
             ? "Collapses the list to show only 3 events"
             : "Expands the list to show all events")
@@ -59,98 +61,6 @@ struct UpcomingEventsWidget: View {
     .background(Color.Surface.card)
     .clipShape(.rect(cornerRadius: 12))
     .brandShadowSm()
-  }
-}
-
-struct EventRow: View {
-  let event: FullEvent
-
-  private static let isoParser: ISO8601DateFormatter = {
-    let f = ISO8601DateFormatter()
-    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return f
-  }()
-
-  private static let isoParserFallback: ISO8601DateFormatter = {
-    let f = ISO8601DateFormatter()
-    f.formatOptions = [.withInternetDateTime]
-    return f
-  }()
-
-  private static let dateOnlyParser: DateFormatter = {
-    let f = DateFormatter()
-    f.dateFormat = "yyyy-MM-dd"
-    return f
-  }()
-
-  private static let dateOnlyDisplay: DateFormatter = {
-    let f = DateFormatter()
-    f.dateStyle = .medium
-    f.timeStyle = .none
-    return f
-  }()
-
-  private static let dateTimeDisplay: DateFormatter = {
-    let f = DateFormatter()
-    f.dateStyle = .medium
-    f.timeStyle = .short
-    return f
-  }()
-
-  private var eventDateFormatted: String {
-    if let date = EventRow.isoParser.date(from: event.startDate)
-      ?? EventRow.isoParserFallback.date(from: event.startDate) {
-      return EventRow.dateTimeDisplay.string(from: date)
-    }
-    if let d = EventRow.dateOnlyParser.date(from: event.startDate) {
-      return EventRow.dateOnlyDisplay.string(from: d)
-    }
-    return event.startDate
-  }
-
-  private var eventTypeIcon: String {
-    switch event.type {
-    case "visit", "official_visit", "unofficial_visit": return "building.2"
-    case "camp": return "figure.run"
-    case "showcase": return "star.circle"
-    case "game": return "sportscourt"
-    default: return "calendar"
-    }
-  }
-
-  var body: some View {
-    HStack(spacing: 12) {
-      Image(systemName: eventTypeIcon)
-        .font(.title3)
-        .foregroundStyle(Color.primaryGreen)
-        .frame(width: 32)
-        .accessibilityHidden(true)
-
-      VStack(alignment: .leading, spacing: 4) {
-        Text(event.name)
-          .font(.subheadline)
-          .fontWeight(.semibold)
-
-        Text(eventDateFormatted)
-          .font(.caption)
-          .foregroundStyle(Color.secondaryText)
-
-        if let location = event.location {
-          Text(location)
-            .font(.caption)
-            .foregroundStyle(Color.secondaryText)
-        }
-      }
-
-      Spacer()
-    }
-    .padding(12)
-    .frame(minHeight: 44)
-    .background(Color(.secondarySystemBackground))
-    .clipShape(.rect(cornerRadius: 8))
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(event.type): \(event.name)")
-    .accessibilityValue(eventDateFormatted)
   }
 }
 

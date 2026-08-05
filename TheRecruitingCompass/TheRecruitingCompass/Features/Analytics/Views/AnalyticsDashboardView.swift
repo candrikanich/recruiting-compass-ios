@@ -1,9 +1,13 @@
 import SwiftUI
 
+private struct IdentifiableURL: Identifiable {
+  let url: URL
+  var id: URL { url }
+}
+
 struct AnalyticsDashboardView: View {
   @State private var viewModel: AnalyticsDashboardViewModel
-  @State private var exportFileURL: URL?
-  @State private var showShareSheet = false
+  @State private var exportFileURL: IdentifiableURL?
 
   init(viewModel: AnalyticsDashboardViewModel? = nil) {
     _viewModel = State(initialValue: viewModel ?? AnalyticsDashboardViewModel())
@@ -30,7 +34,7 @@ struct AnalyticsDashboardView: View {
           } label: {
             Label("Export", systemImage: "square.and.arrow.up")
           }
-          .accessibilityLabel("Export analytics data")
+          .accessibilityLabel(String(localized: "Export analytics data"))
           .accessibilityHint("Opens export format options")
         }
       }
@@ -43,10 +47,12 @@ struct AnalyticsDashboardView: View {
     .sheet(isPresented: $viewModel.showDatePicker) {
       customDatePickerSheet
     }
-    .sheet(isPresented: $showShareSheet) {
-      if let url = exportFileURL {
-        ActivityShareSheet(activityItems: [url])
-      }
+    .sheet(item: $exportFileURL) { wrapped in
+      ActivityShareSheet(activityItems: [wrapped.url])
+    }
+    .alert("Export Failed", isPresented: $viewModel.showExportError) {
+    } message: {
+      Text(viewModel.exportError ?? "Couldn't create the export file. Please try again.")
     }
     .task {
       await viewModel.loadAllData()
@@ -144,21 +150,15 @@ struct AnalyticsDashboardView: View {
     }
     .padding(.horizontal)
     .accessibilityElement(children: .contain)
-    .accessibilityLabel("Summary statistics")
+    .accessibilityLabel(String(localized: "Summary statistics"))
   }
 
   // MARK: - States
 
   @ViewBuilder
   private var loadingView: some View {
-    VStack(spacing: 16) {
-      ProgressView()
-        .scaleEffect(1.2)
-      Text("Loading analytics...")
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .accessibilityLabel("Loading analytics dashboard")
+    LoadingStateView(message: "Loading analytics...")
+      .accessibilityLabel(String(localized: "Loading analytics dashboard"))
   }
 
   private func errorView(_ message: String) -> some View {
@@ -173,7 +173,7 @@ struct AnalyticsDashboardView: View {
         Label("Retry", systemImage: "arrow.clockwise")
       }
       .buttonStyle(.borderedProminent)
-      .accessibilityLabel("Retry loading analytics")
+      .accessibilityLabel(String(localized: "Retry loading analytics"))
       .accessibilityHint("Double tap to retry loading analytics data")
     }
   }
@@ -185,7 +185,7 @@ struct AnalyticsDashboardView: View {
     } description: {
       Text("Start adding schools and logging interactions to see analytics")
     }
-    .accessibilityLabel("No analytics data available yet")
+    .accessibilityLabel(String(localized: "No analytics data available yet"))
   }
 
   // MARK: - Custom Date Picker
@@ -200,7 +200,7 @@ struct AnalyticsDashboardView: View {
           in: ...Date.now,
           displayedComponents: .date
         )
-        .accessibilityLabel("Start date for custom range")
+        .accessibilityLabel(String(localized: "Start date for custom range"))
 
         DatePicker(
           "End Date",
@@ -208,7 +208,7 @@ struct AnalyticsDashboardView: View {
           in: ...Date.now,
           displayedComponents: .date
         )
-        .accessibilityLabel("End date for custom range")
+        .accessibilityLabel(String(localized: "End date for custom range"))
       }
       .navigationTitle("Custom Date Range")
       .navigationBarTitleDisplayMode(.inline)
@@ -233,8 +233,7 @@ struct AnalyticsDashboardView: View {
 
   private func handleExport(_ format: AnalyticsExportFormat) {
     if let url = viewModel.exportFileURL(format: format) {
-      exportFileURL = url
-      showShareSheet = true
+      exportFileURL = IdentifiableURL(url: url)
     }
   }
 }

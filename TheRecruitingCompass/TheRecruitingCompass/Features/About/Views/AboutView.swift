@@ -19,7 +19,7 @@ struct AboutView: View {
                         Text(subject.displayName).tag(subject)
                     }
                 }
-                .accessibilityLabel("Feedback subject")
+                .accessibilityLabel(String(localized: "Feedback subject"))
 
                 VStack(alignment: .leading, spacing: 4) {
                     TextField(
@@ -28,7 +28,7 @@ struct AboutView: View {
                         axis: .vertical
                     )
                     .lineLimit(6...12)
-                    .accessibilityLabel("Message")
+                    .accessibilityLabel(String(localized: "Message"))
                     .accessibilityHint("Enter your feedback message")
 
                     Text("\(viewModel.characterCount) / 5000")
@@ -42,13 +42,13 @@ struct AboutView: View {
                     Label("Thanks for your message — we'll be in touch soon.", systemImage: "checkmark.circle.fill")
                         .font(.subheadline)
                         .foregroundStyle(Color.primaryGreen)
-                        .accessibilityLabel("Message sent successfully")
+                        .accessibilityLabel(String(localized: "Message sent successfully"))
 
                 case .failure(let message):
                     Label(message, systemImage: "exclamationmark.circle.fill")
                         .font(.subheadline)
                         .foregroundStyle(Color.errorRed)
-                        .accessibilityLabel("Error: \(message)")
+                        .accessibilityLabel(String(localized: "Error: \(message)"))
 
                 case .idle:
                     EmptyView()
@@ -69,7 +69,7 @@ struct AboutView: View {
                     .frame(maxWidth: .infinity)
                 }
                 .disabled(viewModel.isLoading || !viewModel.isFormValid)
-                .accessibilityLabel(viewModel.isLoading ? "Sending message" : "Send message")
+                .accessibilityLabel(viewModel.isLoading ? String(localized: "Sending message") : String(localized: "Send message"))
                 .accessibilityHint(viewModel.isFormValid ? "Submit your feedback" : "Enter a message before sending")
 
             } header: {
@@ -81,7 +81,7 @@ struct AboutView: View {
                     Label("info@therecruitingcompass.com", systemImage: "envelope")
                         .font(.subheadline)
                 }
-                .accessibilityLabel("Email us at info@therecruitingcompass.com")
+                .accessibilityLabel(String(localized: "Email us at info@therecruitingcompass.com"))
             } header: {
                 Text("Direct Contact")
             }

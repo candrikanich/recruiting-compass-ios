@@ -21,7 +21,7 @@ struct InterestResultCard: View {
           .font(.headline)
           .foregroundStyle(level.badgeColor.foregroundColor)
 
-        if let description = description {
+        if let description {
           Text(description)
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -34,7 +34,7 @@ struct InterestResultCard: View {
     .background(level.badgeColor.backgroundColor.opacity(0.1))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Interest level: \(level.displayName). \(description ?? "")")
+    .accessibilityLabel(String(localized: "Interest level: \(level.displayName). \(description ?? "")"))
   }
 }
 

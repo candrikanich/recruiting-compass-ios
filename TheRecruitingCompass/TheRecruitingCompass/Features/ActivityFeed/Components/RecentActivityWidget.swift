@@ -27,7 +27,7 @@ struct RecentActivityWidget: View {
             .foregroundStyle(Color.accentBlue)
         }
         .frame(minWidth: 44, minHeight: 44)
-        .accessibilityLabel("Refresh activities")
+        .accessibilityLabel(refreshAccessibilityLabel)
         .accessibilityIdentifier("recent-activity-refresh")
       }
 
@@ -68,8 +68,8 @@ struct RecentActivityWidget: View {
           .foregroundStyle(Color.accentBlue)
         }
         .frame(minWidth: 44, minHeight: 44)
-        .accessibilityLabel("View all activity")
-        .accessibilityHint("Opens the full activity history page")
+        .accessibilityLabel(viewAllAccessibilityLabel)
+        .accessibilityHint(viewAllAccessibilityHint)
         .accessibilityIdentifier("recent-activity-view-all")
       }
     }
@@ -105,6 +105,12 @@ struct RecentActivityWidget: View {
       }
     }
   }
+
+  // MARK: - Accessibility
+
+  var refreshAccessibilityLabel: String { String(localized: "Refresh activities") }
+  var viewAllAccessibilityLabel: String { String(localized: "View all activity") }
+  var viewAllAccessibilityHint: String { "Opens the full activity history page" }
 
   // MARK: - Private Methods
 

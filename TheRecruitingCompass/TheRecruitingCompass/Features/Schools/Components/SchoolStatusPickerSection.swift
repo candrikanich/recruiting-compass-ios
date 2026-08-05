@@ -48,13 +48,13 @@ struct SchoolStatusPickerSection: View {
 
         if isUpdating {
           ProgressView()
-            .accessibilityLabel("Updating status")
+            .accessibilityLabel(String(localized: "Updating status"))
         }
       }
     }
     .padding(.horizontal)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Recruiting status: \(currentStatus.displayName)")
+    .accessibilityLabel(String(localized: "Recruiting status: \(currentStatus.displayName)"))
     .accessibilityHint("Double tap to change status")
   }
 }

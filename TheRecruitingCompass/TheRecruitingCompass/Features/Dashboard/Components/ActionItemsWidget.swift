@@ -45,7 +45,7 @@ struct ActionItemsWidget: View {
             .foregroundStyle(Color.accentBlue)
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("View all action items")
+          .accessibilityLabel(String(localized: "View all action items"))
           .accessibilityHint("Opens a complete list of suggested actions")
         }
       }

@@ -129,10 +129,17 @@ final class TasksServiceImpl: TasksManaging, Sendable {
 
   func fetchAllTasksWithStatus(athleteId: String) async throws -> [Int: [TaskWithStatus]] {
     let grades = [9, 10, 11, 12]
-    var result: [Int: [TaskWithStatus]] = [:]
-    for grade in grades {
-      let tasks = try await fetchTasksWithStatus(gradeLevel: grade, athleteId: athleteId)
-      result[grade] = tasks
+    let result = try await withThrowingTaskGroup(of: (Int, [TaskWithStatus]).self) { group in
+      for grade in grades {
+        group.addTask {
+          (grade, try await self.fetchTasksWithStatus(gradeLevel: grade, athleteId: athleteId))
+        }
+      }
+      var byGrade: [Int: [TaskWithStatus]] = [:]
+      for try await (grade, tasks) in group {
+        byGrade[grade] = tasks
+      }
+      return byGrade
     }
     logger.info("Fetched tasks for all grades, total: \(result.values.flatMap { $0 }.count)")
     return result
@@ -141,7 +148,7 @@ final class TasksServiceImpl: TasksManaging, Sendable {
   func updateTaskStatus(taskId: String, status: TaskStatus, userId: String) async throws -> AthleteTaskStatus {
     logger.info("Updating task \(taskId) status to \(status.rawValue) for user \(userId)")
 
-    let completedAt: String? = status == .completed ? taskIsoFormatterFractional.string(from: Date()) : nil
+    let completedAt: String? = status == .completed ? taskIsoFormatterFractional.string(from: .now) : nil
     let payload = AthleteTaskUpsert(taskId: taskId, athleteId: userId, status: status.rawValue, completedAt: completedAt)
 
     let result: AthleteTaskStatus = try await supabaseManager.client

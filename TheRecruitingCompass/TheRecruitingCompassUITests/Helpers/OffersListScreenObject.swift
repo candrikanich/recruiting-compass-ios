@@ -35,26 +35,28 @@ final class OffersListScreenObject {
   // SummaryCard uses .accessibilityElement(children: .combine)
   // with .accessibilityLabel("\(count) \(title) offer(s)")
 
+  // SummaryCard combines children but surfaces as a StaticText (label e.g.
+  // "2 Pending offers"), so query staticTexts rather than otherElements.
   var acceptedCard: XCUIElement {
-    app.otherElements.matching(NSPredicate(
+    app.staticTexts.matching(NSPredicate(
       format: "label CONTAINS 'Accepted offer'"
     )).firstMatch
   }
 
   var pendingCard: XCUIElement {
-    app.otherElements.matching(NSPredicate(
+    app.staticTexts.matching(NSPredicate(
       format: "label CONTAINS 'Pending offer'"
     )).firstMatch
   }
 
   var declinedCard: XCUIElement {
-    app.otherElements.matching(NSPredicate(
+    app.staticTexts.matching(NSPredicate(
       format: "label CONTAINS 'Declined offer'"
     )).firstMatch
   }
 
   var allSummaryCards: XCUIElementQuery {
-    app.otherElements.matching(NSPredicate(
+    app.staticTexts.matching(NSPredicate(
       format: "label CONTAINS 'Accepted offer' OR label CONTAINS 'Pending offer' OR label CONTAINS 'Declined offer'"
     ))
   }
@@ -88,7 +90,7 @@ final class OffersListScreenObject {
   // MARK: - Empty State
 
   var emptyStateTitle: XCUIElement {
-    app.staticTexts["No offers yet"]
+    app.staticTexts["No Offers Yet"]
   }
 
   var emptyStateSubtitle: XCUIElement {
@@ -140,19 +142,8 @@ final class OffersListScreenObject {
   // MARK: - Navigation Actions
 
   func navigateToOffers() -> Bool {
-    let offersTab = app.tabBars.buttons["Offers"]
-    if offersTab.waitForExistence(timeout: 3) {
-      offersTab.tap()
-      return waitForScreenToLoad()
-    }
-
-    let offersLink = app.buttons.matching(NSPredicate(
-      format: "label CONTAINS 'Offers' OR label CONTAINS 'View Offers'"
-    )).firstMatch
-    if offersLink.waitForExistence(timeout: 5) {
-      offersLink.tap()
-    }
-    return waitForScreenToLoad()
+    // Offers lives under the More tab as a NavigationLink labeled "Offers".
+    MainTabNavigator(app: app).goToMoreSection("Offers")
   }
 
   // MARK: - Wait Helpers

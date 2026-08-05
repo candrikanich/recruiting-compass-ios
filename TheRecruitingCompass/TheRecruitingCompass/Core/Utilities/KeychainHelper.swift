@@ -1,14 +1,6 @@
 import Foundation
 import Security
 
-enum KeychainError: Error {
-  case itemNotFound
-  case invalidData
-  case saveFailed(OSStatus)
-  case deleteFailed(OSStatus)
-  case unknown(Error)
-}
-
 /// @unchecked Sendable: Wraps Apple's Security framework Keychain APIs,
 /// which are C-based and not Sendable. The Security framework is thread-safe
 /// and all operations are synchronous atomic operations at the OS level.

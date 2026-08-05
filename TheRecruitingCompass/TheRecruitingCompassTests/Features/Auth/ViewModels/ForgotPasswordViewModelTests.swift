@@ -7,6 +7,14 @@ final class ForgotPasswordViewModelTests: XCTestCase {
   var sut: ForgotPasswordViewModel!
   var mockAuthManager: MockAuthManager!
 
+  /// Same durations as `.default` but a tiny tick interval so cooldown timer
+  /// tests advance in milliseconds instead of real seconds.
+  static let fastTimerConfig = PasswordResetConfig(
+    resendCooldownDuration: 60,
+    successCountdownDuration: 3,
+    timerInterval: 0.01
+  )
+
   override func setUp() {
     super.setUp()
     mockAuthManager = MockAuthManager()
@@ -182,6 +190,7 @@ final class ForgotPasswordViewModelTests: XCTestCase {
   // MARK: - Timer Behavior
 
   func testResendCooldownTimerCountsDown() async {
+    sut = ForgotPasswordViewModel(authManager: mockAuthManager, config: Self.fastTimerConfig)
     sut.state = .emailSent(submittedEmail: "user@example.com")
 
     await sut.resendResetLink()
@@ -189,20 +198,15 @@ final class ForgotPasswordViewModelTests: XCTestCase {
     XCTAssertEqual(sut.resendCooldownSeconds, 60)
     XCTAssertFalse(sut.canResendEmail)
 
-    let expectation = expectation(description: "Timer counts down")
+    // Several ticks at the fast test interval, well short of the full drain
+    try? await Task.sleep(nanoseconds: 150_000_000)
 
-    Task {
-      try? await Task.sleep(nanoseconds: 2_100_000_000)
-      expectation.fulfill()
-    }
-
-    await fulfillment(of: [expectation], timeout: 3.0)
-
-    XCTAssertLessThan(sut.resendCooldownSeconds, 60)
-    XCTAssertGreaterThanOrEqual(sut.resendCooldownSeconds, 57)
+    XCTAssertLessThan(sut.resendCooldownSeconds, 60, "Timer should have counted down")
+    XCTAssertGreaterThan(sut.resendCooldownSeconds, 0, "Cooldown should not have fully drained yet")
   }
 
   func testResendCooldownTimerStartsAndCountsDown() async {
+    sut = ForgotPasswordViewModel(authManager: mockAuthManager, config: Self.fastTimerConfig)
     sut.state = .emailSent(submittedEmail: "user@example.com")
 
     await sut.resendResetLink()
@@ -211,18 +215,12 @@ final class ForgotPasswordViewModelTests: XCTestCase {
     XCTAssertEqual(sut.resendCooldownSeconds, 60)
     XCTAssertFalse(sut.canResendEmail)
 
-    let expectation = expectation(description: "Timer counts down")
+    // Several ticks at the fast test interval, well short of the full drain
+    try? await Task.sleep(nanoseconds: 200_000_000)
 
-    Task {
-      try? await Task.sleep(nanoseconds: 3_100_000_000)
-      expectation.fulfill()
-    }
-
-    await fulfillment(of: [expectation], timeout: 4.0)
-
-    // After ~3 seconds, timer should have counted down
-    XCTAssertLessThan(sut.resendCooldownSeconds, 60)
-    XCTAssertGreaterThanOrEqual(sut.resendCooldownSeconds, 56)
+    // Timer should have counted down without draining
+    XCTAssertLessThan(sut.resendCooldownSeconds, 60, "Timer should have counted down")
+    XCTAssertGreaterThan(sut.resendCooldownSeconds, 0, "Cooldown should not have fully drained yet")
     XCTAssertFalse(sut.canResendEmail)
   }
 

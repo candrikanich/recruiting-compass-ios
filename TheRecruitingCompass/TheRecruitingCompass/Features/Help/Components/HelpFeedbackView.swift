@@ -6,27 +6,17 @@
 //
 
 import SwiftUI
-import OSLog
-
-private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "HelpFeedbackView")
 
 struct HelpFeedbackView: View {
-  let page: String
-
-  @Environment(AuthManager.self) private var authManager
-  @State private var submitted = false
-  @State private var isLoading = false
-
-  private let feedbackService: HelpFeedbackManaging
+  @State private var viewModel: HelpFeedbackViewModel
 
   init(page: String, feedbackService: HelpFeedbackManaging = HelpFeedbackServiceImpl()) {
-    self.page = page
-    self.feedbackService = feedbackService
+    self._viewModel = State(initialValue: HelpFeedbackViewModel(page: page, feedbackService: feedbackService))
   }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      if !submitted {
+      if !viewModel.submitted {
         VStack(alignment: .leading, spacing: 8) {
           Text("Was this page helpful?")
             .font(.body)
@@ -38,28 +28,35 @@ struct HelpFeedbackView: View {
 
           HStack(spacing: 12) {
             Button {
-              submit(helpful: true)
+              Task { await viewModel.submit(helpful: true) }
             } label: {
               Label("Yes", systemImage: "hand.thumbsup")
                 .font(.subheadline)
                 .fontWeight(.medium)
             }
             .buttonStyle(HelpFeedbackButtonStyle(highlight: true))
-            .disabled(isLoading)
-            .accessibilityLabel("Yes, this page was helpful")
+            .disabled(viewModel.isLoading)
+            .accessibilityLabel(String(localized: "Yes, this page was helpful"))
             .accessibilityHint("Submit positive feedback")
 
             Button {
-              submit(helpful: false)
+              Task { await viewModel.submit(helpful: false) }
             } label: {
               Label("No", systemImage: "hand.thumbsdown")
                 .font(.subheadline)
                 .fontWeight(.medium)
             }
             .buttonStyle(HelpFeedbackButtonStyle(highlight: false))
-            .disabled(isLoading)
-            .accessibilityLabel("No, this page was not helpful")
+            .disabled(viewModel.isLoading)
+            .accessibilityLabel(String(localized: "No, this page was not helpful"))
             .accessibilityHint("Submit negative feedback")
+          }
+
+          if let errorMessage = viewModel.errorMessage {
+            Text(errorMessage)
+              .font(.caption)
+              .foregroundStyle(Color.errorRed)
+              .accessibilityLabel(String(localized: "\(errorMessage)"))
           }
         }
       } else {
@@ -67,7 +64,7 @@ struct HelpFeedbackView: View {
           .font(.subheadline)
           .fontWeight(.medium)
           .foregroundStyle(Color.primaryGreen)
-          .accessibilityLabel("Thanks for your feedback!")
+          .accessibilityLabel(String(localized: "Thanks for your feedback!"))
       }
 
       supportLink
@@ -93,22 +90,7 @@ struct HelpFeedbackView: View {
       }
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Need more help? Contact support")
-  }
-
-  private func submit(helpful: Bool) {
-    guard let userId = authManager.user?.id else { return }
-    isLoading = true
-    Task {
-      do {
-        try await feedbackService.submitFeedback(page: page, helpful: helpful, userId: userId)
-        await MainActor.run { submitted = true }
-      } catch {
-        logger.error("Help feedback submit failed: \(error.localizedDescription)")
-        await MainActor.run { submitted = true }
-      }
-      await MainActor.run { isLoading = false }
-    }
+    .accessibilityLabel(String(localized: "Need more help? Contact support"))
   }
 }
 

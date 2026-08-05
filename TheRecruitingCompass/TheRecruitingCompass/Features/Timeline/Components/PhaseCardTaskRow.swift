@@ -41,7 +41,7 @@ struct PhaseCardTaskRow: View {
     }
     .padding(.vertical, 8)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(task.title), \(task.effectiveStatus.displayName)")
+    .accessibilityLabel(String(localized: "\(task.title), \(task.effectiveStatus.displayName)"))
     .accessibilityHint(task.isLocked ? "Locked until prerequisites complete" : "Double tap to mark complete")
   }
 }

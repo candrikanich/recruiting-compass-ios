@@ -23,7 +23,7 @@ struct SchoolMapView: View {
         .mapStyle(.standard)
         .frame(height: 200)
         .clipShape(.rect(cornerRadius: 12))
-        .accessibilityLabel("Map showing \(school.name) location")
+        .accessibilityLabel(String(localized: "Map showing \(school.name) location"))
         .accessibilityAddTraits(.allowsDirectInteraction)
         .accessibilityHint("Use two fingers to pan and pinch to zoom the map")
         .onAppear {
@@ -31,7 +31,7 @@ struct SchoolMapView: View {
         }
 
         // Distance from home
-        if let distance = distance {
+        if let distance {
           HStack(spacing: 6) {
             Image(systemName: "mappin.and.ellipse")
               .foregroundStyle(.secondary)
@@ -65,7 +65,7 @@ struct SchoolMapView: View {
         .background(Color(.systemGray6))
         .clipShape(.rect(cornerRadius: 12))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Location data not available. Use Lookup College Data to fetch location")
+        .accessibilityLabel(String(localized: "Location data not available. Use Lookup College Data to fetch location"))
       }
     }
   }

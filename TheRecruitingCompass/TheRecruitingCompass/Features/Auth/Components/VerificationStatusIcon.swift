@@ -3,27 +3,20 @@ import SwiftUI
 struct VerificationStatusIcon: View {
   let state: VerificationState
   @State private var isAnimating = false
-  @Environment(\.sizeCategory) var sizeCategory
   @Environment(\.accessibilityReduceMotion) var reduceMotion
-
-  private var backgroundSize: CGFloat {
-    sizeCategory >= .extraLarge ? 88 : 80
-  }
-
-  private var iconSize: CGFloat {
-    sizeCategory >= .extraLarge ? 44 : 40
-  }
+  @ScaledMetric(relativeTo: .largeTitle) private var backgroundSize: CGFloat = 80
+  @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = 40
 
   private var accessibilityLabelForState: String {
     switch state {
     case .pending:
-      return "Email verification pending"
+      return String(localized: "Email verification pending")
     case .checking:
-      return "Checking email verification status"
+      return String(localized: "Checking email verification status")
     case .verified:
-      return "Email verified successfully"
+      return String(localized: "Email verified successfully")
     case .error(let message):
-      return "Verification error: \(message)"
+      return String(localized: "Verification error: \(message)")
     }
   }
 
@@ -60,7 +53,7 @@ struct VerificationStatusIcon: View {
       ProgressView()
         .tint(Color.accentBlue)
         .scaleEffect(1.5)
-        .accessibilityLabel("Checking verification status")
+        .accessibilityLabel(String(localized: "Checking verification status"))
 
     case .verified:
       Image(systemName: "checkmark.circle.fill")

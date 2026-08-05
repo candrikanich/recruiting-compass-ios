@@ -7,6 +7,8 @@ struct NotificationEmptyState: View {
     sizeCategory.isAccessibilityCategory ? 56 : 48
   }
 
+  var emptyStateAccessibilityLabel: String { String(localized: "No notifications. You're all caught up!") }
+
   var body: some View {
     VStack(spacing: 16) {
       Image(systemName: "bell.badge.slash")
@@ -24,6 +26,6 @@ struct NotificationEmptyState: View {
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .accessibilityElement(children: .combine)
     .accessibilityIdentifier("No notifications")
-    .accessibilityLabel("No notifications. You're all caught up!")
+    .accessibilityLabel(emptyStateAccessibilityLabel)
   }
 }

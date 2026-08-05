@@ -1,7 +1,5 @@
 import SwiftUI
 
-// MARK: - Toast View
-
 struct Toast: View {
   let message: String
   let type: ToastType
@@ -32,7 +30,7 @@ struct Toast: View {
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
       }
-      .accessibilityLabel("Dismiss notification")
+      .accessibilityLabel(String(localized: "Dismiss notification"))
     }
     .padding(16)
     .background(Color.Surface.card, in: RoundedRectangle(cornerRadius: 12))
@@ -43,82 +41,6 @@ struct Toast: View {
     .accessibilityAddTraits(.updatesFrequently)
   }
 }
-
-enum ToastType {
-  case success
-  case error
-  case info
-  case warning
-
-  var iconName: String {
-    switch self {
-    case .success: return "checkmark.circle.fill"
-    case .error: return "exclamationmark.circle.fill"
-    case .info: return "info.circle.fill"
-    case .warning: return "exclamationmark.triangle.fill"
-    }
-  }
-
-  var iconColor: Color {
-    switch self {
-    case .success: return .successGreen
-    case .error: return .errorRed
-    case .info: return .accentBlue
-    case .warning: return Color(hex: "F59E0B") // Amber
-    }
-  }
-}
-
-// MARK: - Toast Modifier
-
-struct ToastModifier: ViewModifier {
-  @Binding var isShowing: Bool
-  @Binding var message: String?
-  let type: ToastType
-  let duration: TimeInterval
-
-  func body(content: Content) -> some View {
-    content.overlay(alignment: .top) {
-      if isShowing, let message {
-        Toast(message: message, type: type) {
-          withAnimation {
-            isShowing = false
-            self.message = nil
-          }
-        }
-        .padding(.top, 8)
-        .transition(.move(edge: .top).combined(with: .opacity))
-        .onAppear {
-          Task {
-            try? await Task.sleep(for: .seconds(duration))
-            withAnimation {
-              isShowing = false
-              self.message = nil
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-extension View {
-  func toast(
-    isShowing: Binding<Bool>,
-    message: Binding<String?>,
-    type: ToastType = .success,
-    duration: TimeInterval = 3.0
-  ) -> some View {
-    modifier(ToastModifier(
-      isShowing: isShowing,
-      message: message,
-      type: type,
-      duration: duration
-    ))
-  }
-}
-
-// MARK: - Previews
 
 #Preview {
   VStack(spacing: 16) {

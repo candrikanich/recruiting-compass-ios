@@ -10,11 +10,7 @@ struct StatCard: View {
   let isEnabled: Bool
   let destination: DashboardDestination?
 
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var iconSize: CGFloat {
-    sizeCategory >= .extraLarge ? 28 : 24
-  }
+  @ScaledMetric(relativeTo: .title2) private var iconSize: CGFloat = 24
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -37,25 +33,25 @@ struct StatCard: View {
 
         Text(title)
           .font(.subheadline.weight(.bold))
-          .foregroundStyle(.white.opacity(0.9))
+          .foregroundStyle(.white)
 
-        if let subtitle = subtitle {
+        if let subtitle {
           Text(subtitle)
             .font(.caption)
-            .foregroundStyle(.white.opacity(0.7))
+            .foregroundStyle(.white)
         }
 
-        if let description = description {
+        if let description {
           Text(description)
             .font(.caption)
-            .foregroundStyle(.white.opacity(0.85))
+            .foregroundStyle(.white)
         }
       }
     }
     .padding(.horizontal, 16)
     .padding(.top, 20)
     .padding(.bottom, 20)
-    .frame(maxWidth: .infinity, minHeight: 180, maxHeight: 180)
+    .frame(maxWidth: .infinity, minHeight: 180)
     .background(
       LinearGradient(
         gradient: Gradient(colors: gradientColors),
@@ -67,7 +63,7 @@ struct StatCard: View {
     .brandShadowSm()
     .opacity(isEnabled ? 1.0 : 0.7)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(title): \(count)")
+    .accessibilityLabel(String(localized: "\(title): \(count)"))
     .accessibilityValue([subtitle, description].compactMap { $0 }.joined(separator: ". "))
     .accessibilityAddTraits(isEnabled ? [.isButton] : [])
     .accessibilityHint(isEnabled ? "Tap to view \(title.lowercased())" : "")
@@ -81,7 +77,7 @@ struct StatCard: View {
     subtitle: nil,
     description: "View all coaches",
     icon: "person.2",
-    gradientColors: [Color(hex: "#3B82F6"), Color(hex: "#2563EB")],
+    gradientColors: [Color.Brand.blue600, Color.Brand.blue700],
     isEnabled: true,
     destination: .coaches
   )

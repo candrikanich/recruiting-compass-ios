@@ -9,14 +9,26 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 final class OffersListViewModel {
 
   nonisolated deinit {}
-  var allOffers: [Offer] = []
-  var schools: [School] = []
+  var allOffers: [Offer] = [] {
+    didSet { recomputeFilteredOffers() }
+  }
+  var schools: [School] = [] {
+    didSet { recomputeFilteredOffers() }
+  }
   var isLoading = false
   var errorMessage: String?
+
+  /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
+  var isShowingErrorAlert: Bool {
+    get { errorMessage != nil }
+    set { if !newValue { errorMessage = nil } }
+  }
   var showAddForm = false
   var showComparison = false
   var selectedOfferIds: Set<String> = []
-  var filters = OfferFilters()
+  var filters = OfferFilters() {
+    didSet { recomputeFilteredOffers() }
+  }
   var formState = NewOfferFormState()
   var isSubmitting = false
   var successMessage: String?
@@ -30,14 +42,18 @@ final class OffersListViewModel {
 
   // MARK: - Computed Properties
 
-  var filteredOffers: [Offer] {
+  /// Cached derived list — recomputed via `recomputeFilteredOffers()` whenever
+  /// `allOffers`, `schools` (schoolSearch reads schoolName(for:)), or `filters`
+  /// change. Do not compute this inline elsewhere; it would go stale silently.
+  private(set) var filteredOffers: [Offer] = []
+
+  private func recomputeFilteredOffers() {
     var result = allOffers
 
     if !filters.schoolSearch.isEmpty {
-      let query = filters.schoolSearch.lowercased()
+      let query = filters.schoolSearch
       result = result.filter { offer in
-        let name = schoolName(for: offer.schoolId).lowercased()
-        return name.contains(query)
+        schoolName(for: offer.schoolId).localizedStandardContains(query)
       }
     }
 
@@ -49,7 +65,7 @@ final class OffersListViewModel {
       result = result.filter { $0.offerType == offerType }
     }
 
-    return result.sorted { lhs, rhs in
+    filteredOffers = result.sorted { lhs, rhs in
       let ascending = filters.sortDirection == .ascending
       switch filters.sortBy {
       case .offerDate:
@@ -71,15 +87,15 @@ final class OffersListViewModel {
   }
 
   var acceptedCount: Int {
-    allOffers.filter { $0.status == .accepted }.count
+    allOffers.count(where: { $0.status == .accepted })
   }
 
   var pendingCount: Int {
-    allOffers.filter { $0.status == .pending }.count
+    allOffers.count(where: { $0.status == .pending })
   }
 
   var declinedCount: Int {
-    allOffers.filter { $0.status == .declined }.count
+    allOffers.count(where: { $0.status == .declined })
   }
 
   var selectedOffers: [Offer] {
@@ -96,20 +112,42 @@ final class OffersListViewModel {
 
   // MARK: - Initialization
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached offers list (seconds).
+  private static let offersListCacheTTL: TimeInterval = 60
+
   init(
     offersService: (any OffersManaging)? = nil,
     familyManager: FamilyManager? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.offersService = offersService ?? OffersServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
+  }
+
+  /// The user whose offers we read/write. When a parent is viewing an athlete,
+  /// offers belong to the athlete (mirrors web + DashboardViewModel); otherwise
+  /// the logged-in user's own id.
+  private var targetUserId: String? {
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
+  }
+
+  /// Invalidates the cached offers list so the next `loadOffers()` refetches.
+  /// Call after any mutation (create, delete). `OfferDetailViewModel`
+  /// invalidates the same key (via `ListCacheKeys.offers`) after edit/delete.
+  private func invalidateOffersListCache() async {
+    guard let userId = targetUserId else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.offers(userId: userId))
   }
 
   // MARK: - Data Loading
 
   func loadOffers() async {
-    guard let userId = authManager.user?.id else {
+    guard let userId = targetUserId else {
       logger.warning("No userId available")
       errorMessage = "Unable to load offers. Please try again."
       return
@@ -119,12 +157,23 @@ final class OffersListViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    let cacheKey = ListCacheKeys.offers(userId: userId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
     do {
       if let familyUnitId = familyManager.familyUnitId {
         schools = try await offersService.fetchSchools(familyUnitId: familyUnitId)
       }
-      allOffers = try await offersService.fetchOffers(userId: userId)
-      logger.info("Loaded \(self.allOffers.count) offers")
+
+      if let cachedOffers = await cacheToUse.get([Offer].self, forKey: cacheKey) {
+        allOffers = cachedOffers
+        logger.info("Loaded \(self.allOffers.count) offers from cache")
+      } else {
+        let fetched = try await offersService.fetchOffers(userId: userId)
+        allOffers = fetched
+        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.offersListCacheTTL)
+        logger.info("Loaded \(self.allOffers.count) offers")
+      }
     } catch {
       logger.error("Failed to load offers: \(error.localizedDescription)")
       errorMessage = "Failed to load offers. Please try again."
@@ -135,7 +184,7 @@ final class OffersListViewModel {
 
   func createOffer() async {
     guard formState.isValid else { return }
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = targetUserId else { return }
 
     isSubmitting = true
     defer { isSubmitting = false }
@@ -146,9 +195,10 @@ final class OffersListViewModel {
       allOffers.insert(newOffer, at: 0)
       formState.reset()
       showAddForm = false
-      successMessage = "Offer logged successfully"
+      successMessage = String(localized: "Offer logged successfully")
       showSuccessToast = true
       logger.info("Created offer: \(newOffer.id)")
+      await invalidateOffersListCache()
     } catch {
       logger.error("Failed to create offer: \(error.localizedDescription)")
       errorMessage = "Failed to save offer. Please try again."
@@ -174,8 +224,9 @@ final class OffersListViewModel {
       try await offersService.deleteOffer(id: offer.id)
       allOffers.removeAll { $0.id == offer.id }
       selectedOfferIds.remove(offer.id)
-      successMessage = "Offer deleted"
+      successMessage = String(localized: "Offer deleted")
       showSuccessToast = true
+      await invalidateOffersListCache()
       logger.info("Deleted offer: \(offer.id)")
     } catch {
       logger.error("Failed to delete offer: \(error.localizedDescription)")

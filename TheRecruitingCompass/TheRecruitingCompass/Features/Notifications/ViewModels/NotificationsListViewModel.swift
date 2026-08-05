@@ -15,14 +15,20 @@ final class NotificationsListViewModel {
   private static let isoFormatter = ISO8601DateFormatter()
   // MARK: - State
 
-  var notifications: [AppNotification] = []
+  var notifications: [AppNotification] = [] {
+    didSet { recomputeFilteredNotifications() }
+  }
   private(set) var isLoading = false
   var errorMessage: String?
 
   // MARK: - Filters & Search
 
-  var selectedTypeFilter: NotificationType?
-  var searchText: String = ""
+  var selectedTypeFilter: NotificationType? {
+    didSet { recomputeFilteredNotifications() }
+  }
+  var searchText: String = "" {
+    didSet { recomputeFilteredNotifications() }
+  }
 
   // MARK: - Navigation
 
@@ -30,7 +36,12 @@ final class NotificationsListViewModel {
 
   // MARK: - Computed Properties
 
-  var filteredNotifications: [AppNotification] {
+  /// Cached derived list — recomputed via `recomputeFilteredNotifications()`
+  /// whenever `notifications`, `selectedTypeFilter`, or `searchText` change.
+  /// Do not compute this inline elsewhere; it would go stale silently.
+  private(set) var filteredNotifications: [AppNotification] = []
+
+  private func recomputeFilteredNotifications() {
     var result = notifications
 
     if let filter = selectedTypeFilter {
@@ -38,18 +49,18 @@ final class NotificationsListViewModel {
     }
 
     if !searchText.isEmpty {
-      let query = searchText.lowercased()
+      let query = searchText
       result = result.filter {
-        $0.title.lowercased().contains(query) ||
-        $0.message.lowercased().contains(query)
+        $0.title.localizedStandardContains(query) ||
+        $0.message.localizedStandardContains(query)
       }
     }
 
-    return result
+    filteredNotifications = result
   }
 
   var unreadCount: Int {
-    notifications.filter { !$0.isRead }.count
+    notifications.count(where: { !$0.isRead })
   }
 
   var hasUnread: Bool {
@@ -75,15 +86,24 @@ final class NotificationsListViewModel {
 
   private let notificationsService: any NotificationsManaging
   private let authManager: any AuthManaging
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached notifications list (seconds). Short — notifications are
+  /// also created server-side (offer alerts, deadline reminders); a fresh
+  /// server-pushed notification won't appear until this TTL lapses, same as
+  /// any other externally-generated data behind a cache.
+  private static let notificationsListCacheTTL: TimeInterval = 60
 
   // MARK: - Initialization
 
   init(
     notificationsService: (any NotificationsManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.notificationsService = notificationsService ?? NotificationsServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
   }
 
   convenience init(
@@ -91,6 +111,13 @@ final class NotificationsListViewModel {
     authManager: any AuthManaging
   ) {
     self.init(notificationsService: notificationService, authManager: authManager)
+  }
+
+  /// Invalidates the cached notifications list so the next `fetchNotifications()`
+  /// refetches. Call after any local mutation (mark read, delete).
+  private func invalidateNotificationsListCache() async {
+    guard let userId = authManager.user?.id else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.notifications(userId: userId))
   }
 
   // MARK: - Methods
@@ -105,9 +132,18 @@ final class NotificationsListViewModel {
         throw NotificationServiceError.notAuthenticated
       }
 
-      let fetched = try await notificationsService.fetchNotifications(userId: userId)
-      notifications = fetched
-      logger.info("Loaded \(fetched.count) notifications")
+      let cacheKey = ListCacheKeys.notifications(userId: userId)
+      let cacheToUse = cache ?? InMemoryCache.shared
+
+      if let cached = await cacheToUse.get([AppNotification].self, forKey: cacheKey) {
+        notifications = cached
+        logger.info("Loaded \(cached.count) notifications from cache")
+      } else {
+        let fetched = try await notificationsService.fetchNotifications(userId: userId)
+        notifications = fetched
+        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.notificationsListCacheTTL)
+        logger.info("Loaded \(fetched.count) notifications")
+      }
     } catch {
       errorMessage = "Failed to load notifications. Please try again."
       logger.error("Failed to fetch notifications: \(error.localizedDescription)")
@@ -125,6 +161,7 @@ final class NotificationsListViewModel {
       if let index = notifications.firstIndex(where: { $0.id == id }) {
         notifications[index] = updated
       }
+      await invalidateNotificationsListCache()
     } catch {
       errorMessage = "Failed to mark notification as read"
       logger.error("Failed to mark as read: \(error.localizedDescription)")
@@ -145,6 +182,7 @@ final class NotificationsListViewModel {
       notifications = notifications.map { notification in
         notification.isRead ? notification : notification.markingAsRead(at: now)
       }
+      await invalidateNotificationsListCache()
     } catch {
       errorMessage = "Failed to mark all as read"
       logger.error("Failed to mark all as read: \(error.localizedDescription)")
@@ -155,6 +193,7 @@ final class NotificationsListViewModel {
     do {
       try await notificationsService.deleteNotification(id: id)
       notifications.removeAll { $0.id == id }
+      await invalidateNotificationsListCache()
     } catch {
       errorMessage = "Failed to delete notification"
       logger.error("Failed to delete notification: \(error.localizedDescription)")
@@ -171,6 +210,7 @@ final class NotificationsListViewModel {
     do {
       try await notificationsService.deleteAllRead(userId: userId)
       notifications.removeAll { $0.isRead }
+      await invalidateNotificationsListCache()
     } catch {
       errorMessage = "Failed to delete read notifications"
       logger.error("Failed to delete all read: \(error.localizedDescription)")

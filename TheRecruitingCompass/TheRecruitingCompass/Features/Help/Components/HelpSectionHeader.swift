@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HelpSectionHeader: View {
   let title: String
-  var badge: HelpBadge.BadgeType? = nil
+  var badge: HelpBadge.BadgeType?
 
   var body: some View {
     HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -24,7 +24,7 @@ struct HelpSectionHeader: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.bottom, 4)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(badge.map { "\(title), \($0.label) badge" } ?? title)
+    .accessibilityLabel(badge.map { String(localized: "\(title), \($0.label) badge") } ?? String(localized: "\(title)"))
   }
 }
 

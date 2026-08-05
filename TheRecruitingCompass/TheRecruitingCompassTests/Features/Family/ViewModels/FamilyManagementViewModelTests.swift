@@ -79,16 +79,6 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
   // MARK: - Initialization Tests
 
-  // Note: Skipping test with default dependencies as it requires SupabaseManager to be fully configured
-  // func testInit_defaultDependencies() {
-  //   let vm = FamilyManagementViewModel()
-  //   XCTAssertNotNil(vm)
-  //   XCTAssertFalse(vm.isLoading)
-  //   XCTAssertNil(vm.errorMessage)
-  //   XCTAssertNil(vm.familyCode)
-  //   XCTAssertTrue(vm.familyMembers.isEmpty)
-  // }
-
   func testInit_mockDependencies() {
     XCTAssertFalse(sut.isLoading)
     XCTAssertNil(sut.errorMessage)
@@ -185,7 +175,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
     mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
     mockFamilyService.stubbedFamilyMembers = [
       makeFamilyMember(id: "m1", role: "athlete"),
-      makeFamilyMember(id: "m2", role: "parent"),
+      makeFamilyMember(id: "m2", role: "parent")
     ]
 
     await sut.loadData()
@@ -328,7 +318,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
         familyCode: "FAM-ABC123",
         familyName: "Smith Family",
         codeGeneratedAt: "2024-01-01T00:00:00Z"
-      ),
+      )
     ]
 
     await sut.loadData()

@@ -8,54 +8,6 @@ private let logger = Logger(
   category: "SupabaseManager"
 )
 
-// Support for nested JSON objects in metadata
-struct AnyCodable: Codable {
-  let value: Any
-
-  init(value: Any) {
-    self.value = value
-  }
-
-  init(from decoder: Decoder) throws {
-    let container = try decoder.singleValueContainer()
-    if let intVal = try? container.decode(Int.self) {
-      value = intVal
-    } else if let doubleVal = try? container.decode(Double.self) {
-      value = doubleVal
-    } else if let boolVal = try? container.decode(Bool.self) {
-      value = boolVal
-    } else if let stringVal = try? container.decode(String.self) {
-      value = stringVal
-    } else if let arrayVal = try? container.decode([AnyCodable].self) {
-      value = arrayVal
-    } else if let dictVal = try? container.decode([String: AnyCodable].self) {
-      value = dictVal
-    } else {
-      value = NSNull()
-    }
-  }
-
-  func encode(to encoder: Encoder) throws {
-    var container = encoder.singleValueContainer()
-    switch value {
-    case let val as Int:
-      try container.encode(val)
-    case let val as Double:
-      try container.encode(val)
-    case let val as Bool:
-      try container.encode(val)
-    case let val as String:
-      try container.encode(val)
-    case let val as [AnyCodable]:
-      try container.encode(val)
-    case let val as [String: AnyCodable]:
-      try container.encode(val)
-    default:
-      try container.encodeNil()
-    }
-  }
-}
-
 /// @unchecked Sendable: Wraps the Supabase Swift SDK's SupabaseClient,
 /// which is not Sendable but is designed for concurrent use. All operations
 /// delegate to the underlying client which handles its own thread safety.
@@ -160,7 +112,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       "role": .string(role.rawValue)
     ]
 
-    if let familyCode = familyCode, !familyCode.trimmingCharacters(in: .whitespaces).isEmpty {
+    if let familyCode, !familyCode.trimmingCharacters(in: .whitespaces).isEmpty {
       metadata["family_code"] = .string(familyCode)
     }
 
@@ -269,11 +221,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     do {
       try await client.auth.resetPasswordForEmail(email)
     } catch {
-      let description = error.localizedDescription.lowercased()
-      if description.contains("not found") || description.contains("no user") {
-        throw AuthError.resetEmailNotFound
+      guard SupabaseAuthErrors.isUserNotFound(error) else {
+        throw AuthError.serverError("Failed to send password reset email")
       }
-      throw AuthError.serverError("Failed to send password reset email")
+      throw AuthError.resetEmailNotFound
     }
   }
 
@@ -281,11 +232,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     do {
       try await client.auth.update(user: UserAttributes(password: newPassword))
     } catch {
-      let description = error.localizedDescription.lowercased()
-      if description.contains("invalid") || description.contains("token") {
+      if SupabaseAuthErrors.isInvalidToken(error) {
         throw AuthError.invalidResetToken
       }
-      if description.contains("expired") {
+      if SupabaseAuthErrors.isExpiredToken(error) {
         throw AuthError.expiredResetToken
       }
       throw AuthError.serverError("Failed to update password")

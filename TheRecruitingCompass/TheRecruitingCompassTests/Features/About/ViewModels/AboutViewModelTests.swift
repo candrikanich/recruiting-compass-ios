@@ -4,7 +4,7 @@ import XCTest
 // MARK: - Mock
 
 final class MockFeedbackService: FeedbackManaging, @unchecked Sendable {
-    var shouldThrow: Error? = nil
+    var shouldThrow: Error?
     var submitCallCount = 0
     var lastSubject: FeedbackSubject?
     var lastMessage: String?

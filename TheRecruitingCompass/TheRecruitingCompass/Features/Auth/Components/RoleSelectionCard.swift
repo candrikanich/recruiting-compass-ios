@@ -4,15 +4,8 @@ struct RoleSelectionCard: View {
   let role: UserRole
   let isSelected: Bool
   let action: () -> Void
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var roleIconSize: CGFloat {
-    sizeCategory >= .extraLarge ? 30 : 28
-  }
-
-  private var checkmarkSize: CGFloat {
-    sizeCategory >= .extraLarge ? 26 : 24
-  }
+  @ScaledMetric(relativeTo: .title2) private var roleIconSize: CGFloat = 28
+  @ScaledMetric(relativeTo: .title2) private var checkmarkSize: CGFloat = 24
 
   var body: some View {
     Button(action: action) {
@@ -47,7 +40,7 @@ struct RoleSelectionCard: View {
         }
       }
       .padding(16)
-      .background(Color.white)
+      .background(Color.Surface.card)
       .border(
         isSelected ? Color.accentBlue : Color.borderGray,
         width: 2
@@ -55,7 +48,7 @@ struct RoleSelectionCard: View {
       .clipShape(.rect(cornerRadius: 8))
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(role.displayName) role")
+    .accessibilityLabel(String(localized: "\(role.displayName) role"))
     .accessibilityValue(isSelected ? "Selected" : "Not selected")
     .accessibilityHint(role.description)
     .accessibilityAddTraits(.isButton)

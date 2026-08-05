@@ -94,7 +94,7 @@ final class DocumentViewerAccessibilityTests: XCTestCase {
 
   func test_errorOverlay_retryButton_has44ptHitTarget() {
     let vm = makeViewModel()
-    vm.error = "Test error"
+    vm.errorMessage = "Test error"
     let view = DocumentViewerView(viewModel: vm)
     // Retry button must have 44pt minimum
     XCTAssertNotNil(view)
@@ -102,7 +102,7 @@ final class DocumentViewerAccessibilityTests: XCTestCase {
 
   func test_errorOverlay_closeButton_has44ptHitTarget() {
     let vm = makeViewModel()
-    vm.error = "Test error"
+    vm.errorMessage = "Test error"
     let view = DocumentViewerView(viewModel: vm)
     // Close button must have 44pt minimum
     XCTAssertNotNil(view)
@@ -128,7 +128,7 @@ final class DocumentViewerAccessibilityTests: XCTestCase {
 
   func test_errorOverlay_retryButton_hasAccessibilityLabel() {
     let vm = makeViewModel()
-    vm.error = "Test error"
+    vm.errorMessage = "Test error"
     let view = DocumentViewerView(viewModel: vm)
     // "Retry loading document"
     XCTAssertNotNil(view)
@@ -136,7 +136,7 @@ final class DocumentViewerAccessibilityTests: XCTestCase {
 
   func test_errorOverlay_closeButton_hasAccessibilityLabel() {
     let vm = makeViewModel()
-    vm.error = "Test error"
+    vm.errorMessage = "Test error"
     let view = DocumentViewerView(viewModel: vm)
     // "Close document viewer"
     XCTAssertNotNil(view)
@@ -144,7 +144,7 @@ final class DocumentViewerAccessibilityTests: XCTestCase {
 
   func test_errorOverlay_decorativeIcon_isHidden() {
     let vm = makeViewModel()
-    vm.error = "Test error"
+    vm.errorMessage = "Test error"
     let view = DocumentViewerView(viewModel: vm)
     // exclamationmark.triangle should be accessibilityHidden
     XCTAssertNotNil(view)

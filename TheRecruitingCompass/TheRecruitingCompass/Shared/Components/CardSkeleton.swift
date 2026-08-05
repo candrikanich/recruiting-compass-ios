@@ -43,7 +43,7 @@ struct CardSkeleton: View {
     )
     .onAppear { if !reduceMotion { isAnimating = true } }
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel("Loading")
+    .accessibilityLabel(String(localized: "Loading"))
     .accessibilityAddTraits(.updatesFrequently)
   }
 }

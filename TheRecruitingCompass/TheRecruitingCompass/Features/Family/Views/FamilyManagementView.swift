@@ -18,7 +18,6 @@ struct FamilyManagementView: View {
         get: { viewModel.errorMessage != nil },
         set: { if !$0 { viewModel.clearError() } }
       )) {
-        Button("OK") { viewModel.clearError() }
       } message: {
         if let error = viewModel.errorMessage {
           Text(error)

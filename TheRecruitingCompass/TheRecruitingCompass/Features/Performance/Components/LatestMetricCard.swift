@@ -39,6 +39,6 @@ struct LatestMetricCard: View {
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .brandShadowSm()
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(metric.displayName), \(metric.formattedValue), recorded \(metric.formattedDate)\(metric.verified ? ", verified" : "")")
+    .accessibilityLabel(String(localized: "\(metric.displayName), \(metric.formattedValue), recorded \(metric.formattedDate)\(metric.verified ? ", verified" : "")"))
   }
 }

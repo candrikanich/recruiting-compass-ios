@@ -8,11 +8,7 @@ final class SignupValidationE2ETests: XCTestCase {
     continueAfterFailure = false
 
     app = XCUIApplication()
-    app.launchArguments = ["--uitesting"]
-    app.launchEnvironment = [
-      "SUPABASE_URL": ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? "",
-      "SUPABASE_ANON_KEY": ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] ?? ""
-    ]
+    E2ETestEnvironment.configure(app)
     app.launch()
 
     screen = SignupScreenObject(app: app)
@@ -166,22 +162,5 @@ final class SignupValidationE2ETests: XCTestCase {
                   "Checkbox should be checked after tapping")
 
     add(app.takeScreenshot(name: "validation-07-terms-checked"))
-  }
-
-  // MARK: - Family Code Validation (skipped: family code not shown for either role)
-
-  @MainActor
-  func testInvalidFamilyCodeFormat() throws {
-    throw XCTSkip("Family code field is not shown in signup; both roles create their own family")
-  }
-
-  @MainActor
-  func testValidFamilyCodeFormat() throws {
-    throw XCTSkip("Family code field is not shown in signup; both roles create their own family")
-  }
-
-  @MainActor
-  func testEmptyFamilyCodeIsAccepted() throws {
-    throw XCTSkip("Family code field is not shown in signup; both roles create their own family")
   }
 }

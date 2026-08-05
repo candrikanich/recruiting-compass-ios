@@ -21,7 +21,7 @@ struct OfferSummaryCard: View {
     .background(color.opacity(0.1))
     .clipShape(.rect(cornerRadius: 10))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(count) \(title) offer\(count == 1 ? "" : "s")")
+    .accessibilityLabel(String(localized: "\(count) \(title) offer\(count == 1 ? "" : "s")"))
     .accessibilityAddTraits(.isHeader)
   }
 }

@@ -1,11 +1,5 @@
 import Foundation
 
-enum DeepLinkRoute: Equatable {
-  case resetPassword(token: String)
-  case joinInvite(token: String)
-  case unknown
-}
-
 enum DeepLinkHandler {
   static let scheme = "recruiting-compass"
   static let universalLinkHosts: Set<String> = {
@@ -58,7 +52,7 @@ enum DeepLinkHandler {
     // /invite/:token (path component)
     if url.path.hasPrefix("/invite/") {
       let token = url.path
-        .replacingOccurrences(of: "/invite/", with: "")
+        .replacing("/invite/", with: "")
         .trimmingCharacters(in: .whitespacesAndNewlines)
       if isValidInviteToken(token) {
         return .joinInvite(token: token)

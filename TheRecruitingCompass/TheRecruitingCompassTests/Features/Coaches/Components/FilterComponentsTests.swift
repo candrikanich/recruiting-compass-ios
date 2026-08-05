@@ -13,8 +13,6 @@ final class FilterComponentsTests: XCTestCase {
     XCTAssertNotNil(view)
   }
 
-
-
   func testCoachFilterBar_roleFilterUpdates() {
     var filters = CoachFilters()
     XCTAssertNil(filters.role)
@@ -37,10 +35,6 @@ final class FilterComponentsTests: XCTestCase {
     XCTAssertNil(filters.lastContactDays)
   }
 
-
-
-
-
   func testCoachFilterBar_roleMenuAccessibility() {
     let view = CoachFilterBar(filters: .constant(CoachFilters()))
     // Menu should have accessibility label and hint
@@ -53,10 +47,6 @@ final class FilterComponentsTests: XCTestCase {
     XCTAssertTrue(allRoles.contains(.assistant))
     XCTAssertTrue(allRoles.contains(.recruiting))
   }
-
-
-
-
 
   // MARK: - ActiveFilterChips Tests
 
@@ -84,10 +74,6 @@ final class FilterComponentsTests: XCTestCase {
     XCTAssertEqual(filters.activeFilterCount, 1)
   }
 
-
-
-
-
   func testActiveFilterChips_removeRoleChip() {
     var filters = CoachFilters()
     filters.role = .head
@@ -105,10 +91,6 @@ final class FilterComponentsTests: XCTestCase {
     filters.lastContactDays = nil
     XCTAssertEqual(filters.activeFilterCount, 0)
   }
-
-
-
-
 
   func testActiveFilterChips_clearAllButtonAccessibility() {
     let view = ActiveFilterChips(filters: .constant(CoachFilters(role: .head)))
@@ -224,8 +206,6 @@ final class FilterComponentsTests: XCTestCase {
 
   // MARK: - CoachSortOption Tests
 
-
-
   func testCoachSortOption_allCases() {
     let allOptions = CoachSortOption.allCases
     XCTAssertEqual(allOptions.count, 4)
@@ -254,8 +234,6 @@ final class FilterComponentsTests: XCTestCase {
     // Check chips are gone
     XCTAssertFalse(filters.hasActiveFilters)
   }
-
-
 
   func testIntegration_emptyStateWithFilters() {
     var filters = CoachFilters()

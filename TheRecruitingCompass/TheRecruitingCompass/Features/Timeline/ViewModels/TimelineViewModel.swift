@@ -38,7 +38,7 @@ final class TimelineViewModel {
   }
 
   var taskCompletedCount: Int {
-    allTasks.filter { $0.effectiveStatus == .completed }.count
+    allTasks.count(where: { $0.effectiveStatus == .completed })
   }
 
   var taskTotalCount: Int {
@@ -148,6 +148,14 @@ final class TimelineViewModel {
     do {
       _ = try await tasksService.updateTaskStatus(taskId: taskId, status: .completed, userId: userId)
       showSuccessMessage = true
+
+      // Invalidate TasksListViewModel's cached list (Phase 3.6) for this
+      // task's grade level so it shows correctly on next visit to the
+      // grade-level task list screen instead of waiting out the TTL.
+      if let athleteId = currentAthleteId {
+        await InMemoryCache.shared.remove(forKey: ListCacheKeys.tasks(athleteId: athleteId, gradeLevel: task.gradeLevel))
+      }
+
       await refresh()
     } catch {
       logger.error("Failed to mark task complete: \(error.localizedDescription)")
@@ -162,6 +170,5 @@ final class TimelineViewModel {
   private func allTasksFrom(_ dict: [Int: [TaskWithStatus]]) -> [TaskWithStatus] {
     dict.values.flatMap { $0 }
   }
-
 
 }

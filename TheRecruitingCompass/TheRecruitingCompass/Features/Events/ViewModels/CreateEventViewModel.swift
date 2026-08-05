@@ -20,7 +20,13 @@ final class CreateEventViewModel {
   var isLoading = false
   var isSaving = false
   var isSavingSchool = false
-  var error: String?
+  var errorMessage: String?
+
+  /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
+  var isShowingError: Bool {
+    get { errorMessage != nil }
+    set { if !newValue { errorMessage = nil } }
+  }
   var validationErrors: [String: String] = [:]
 
   // Modal state
@@ -64,7 +70,7 @@ final class CreateEventViewModel {
       logger.info("Loaded \(self.schools.count) schools")
     } catch {
       logger.error("Failed to load schools: \(error.localizedDescription)")
-      self.error = "Failed to load schools. Please try again."
+      self.errorMessage = "Failed to load schools. Please try again."
     }
   }
 
@@ -121,7 +127,7 @@ final class CreateEventViewModel {
       logger.info("New school created and selected: \(school.id)")
     } catch {
       logger.error("Failed to create school: \(error.localizedDescription)")
-      self.error = "Failed to add school. Please try again."
+      self.errorMessage = "Failed to add school. Please try again."
     }
   }
 
@@ -190,17 +196,22 @@ final class CreateEventViewModel {
 
     logger.debug("Creating event: \(self.formData.name)")
     isSaving = true
-    error = nil
+    errorMessage = nil
     defer { isSaving = false }
 
     let request = CreateEventRequest.from(formData: formData, userId: userId)
     do {
       let event = try await eventsService.createEvent(request)
       logger.info("Event created successfully: \(event.id)")
+
+      // Invalidate EventsListViewModel's cached list (Phase 3.6) so the new
+      // event appears immediately on next visit instead of waiting out the TTL.
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.events(userId: userId))
+
       return event.id
     } catch {
       logger.error("Failed to create event: \(error.localizedDescription)")
-      self.error = "Failed to create event. Please check your connection and try again."
+      self.errorMessage = "Failed to create event. Please check your connection and try again."
       return nil
     }
   }
@@ -222,16 +233,4 @@ final class CreateEventViewModel {
     return URL(string: "maps://?q=\(encoded)")
   }
 
-
-}
-
-enum EventError: LocalizedError {
-  case validationFailed
-
-  var errorDescription: String? {
-    switch self {
-    case .validationFailed:
-      return "Please complete all required fields"
-    }
-  }
 }

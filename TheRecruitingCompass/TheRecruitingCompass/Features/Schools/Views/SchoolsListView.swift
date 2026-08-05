@@ -11,16 +11,13 @@ struct SchoolsListView: View {
     self._externalNavigationPath = navigationPath ?? .constant(NavigationPath())
   }
 
-  private var isShowingDeleteError: Binding<Bool> {
-    Binding(
-      get: { viewModel.deleteErrorMessage != nil },
-      set: { if !$0 { viewModel.deleteErrorMessage = nil } }
-    )
-  }
-
   var body: some View {
     NavigationStack(path: $navigationPath) {
-      Group {
+      VStack(spacing: 0) {
+      if let loadError = viewModel.errorMessage {
+        ErrorBanner(message: loadError) { viewModel.errorMessage = nil }
+          .padding(.horizontal)
+      }
       if viewModel.isLoading && viewModel.allSchools.isEmpty {
         LoadingStateView(message: "Loading schools...")
       } else if viewModel.allSchools.isEmpty {
@@ -54,8 +51,7 @@ struct SchoolsListView: View {
         Text("Are you sure you want to delete \(school.name)? This action cannot be undone.")
       }
     }
-    .alert("Error", isPresented: isShowingDeleteError) {
-      Button("OK") { viewModel.deleteErrorMessage = nil }
+    .alert("Error", isPresented: $viewModel.isShowingDeleteError) {
     } message: {
       if let error = viewModel.deleteErrorMessage {
         Text(error)
@@ -70,7 +66,7 @@ struct SchoolsListView: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Add new school")
+        .accessibilityLabel(String(localized: "Add new school"))
         .accessibilityHint("Opens form to add a new school")
         }
       }
@@ -166,20 +162,13 @@ struct SchoolsListView: View {
           school: school,
           onToggleFavorite: {
             Task { await viewModel.toggleFavorite(school: school) }
-          }
+          },
+          onDelete: { viewModel.confirmDelete(school: school) }
         )
         .padding(.horizontal)
         .padding(.bottom, 12)
       }
       .buttonStyle(.plain)
-      .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-        Button(role: .destructive) {
-          viewModel.confirmDelete(school: school)
-        } label: {
-          Label("Delete", systemImage: "trash")
-        }
-        .accessibilityLabel("Delete \(school.name)")
-      }
     }
   }
 }

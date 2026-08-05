@@ -66,9 +66,9 @@ private struct AttributionRow: View {
 
   private var accessibilityText: String {
     if let userId {
-      return "\(label) \(formattedDate) by \(userId)"
+      return String(localized: "\(label) \(formattedDate) by \(userId)")
     } else {
-      return "\(label) \(formattedDate)"
+      return String(localized: "\(label) \(formattedDate)")
     }
   }
 }

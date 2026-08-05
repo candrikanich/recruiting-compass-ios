@@ -17,11 +17,13 @@ extension Color {
     static let emerald500 = Color(hex: "10b981")
     static let emerald600 = Color(hex: "059669")
     static let emerald700 = Color(hex: "047857")
+    static let emerald800 = Color(hex: "065f46")
     // Orange — warning, pending, reach
     static let orange100 = Color(hex: "ffedd5")
     static let orange500 = Color(hex: "f97316")
     static let orange600 = Color(hex: "ea580c")
     static let orange700 = Color(hex: "c2410c")
+    static let orange800 = Color(hex: "9a3412")
     // Purple — secondary, outbound, academic
     static let purple100 = Color(hex: "ede9fe")
     static let purple500 = Color(hex: "8b5cf6")
@@ -54,14 +56,16 @@ extension Color {
   }
 
   // MARK: - Legacy Aliases (bridge for existing callers)
+  // Text-role aliases are adaptive: the light value is unchanged, the dark
+  // value keeps WCAG AA contrast (>= 4.5:1) on Surface.card / Surface.background.
   static let primaryGreen = Color.Brand.emerald600
   static let darkEmerald = Color.Brand.emerald700
   static let emeraldGradientStart = Color.Brand.emerald500
   static let emeraldGradientEnd = Color.Brand.emerald600
-  static let darkSlate = Color.Brand.slate700
-  static let secondaryText = Color.Brand.slate500
-  static let tertiaryText = Color.Brand.slate600
-  static let nearBlack = Color(hex: "0d0d1a")
+  static let darkSlate = Color(light: Color.Brand.slate700, dark: Color(hex: "cbd5e1"))
+  static let secondaryText = Color(light: Color.Brand.slate500, dark: Color(hex: "94a3b8"))
+  static let tertiaryText = Color(light: Color.Brand.slate600, dark: Color(hex: "94a3b8"))
+  static let nearBlack = Color(light: Color(hex: "0d0d1a"), dark: Color(hex: "f2f2f7"))
   static let accentBlue = Color.Brand.blue600
   static let blueGradientStart = Color.Brand.blue500
   static let blueGradientEnd = Color.Brand.blue700
@@ -72,10 +76,15 @@ extension Color {
   static let warningBackground = Color.Brand.orange100
   static let warningBorder = Color(hex: "fed7aa")
   static let strengthOrange = Color.Brand.orange500
-  static let amberGold = Color(hex: "b45309")
+  static let amberGold = Color(light: Color(hex: "b45309"), dark: Color(hex: "fbbf24"))
   static let successGreen = Color.Brand.emerald600
-  static let iconGray = Color.Brand.slate500
-  static let borderGray = Color.Brand.slate100
+  // Warning/success banner text (e.g. ParentOnboardingBanner) — paired with Surface.warningTint/successTint.
+  static let warningBannerTitle = Color(light: Color(hex: "78350F"), dark: Color(hex: "FDE68A"))
+  static let warningBannerBody = Color(light: Color(hex: "92400E"), dark: Color(hex: "FCD34D"))
+  static let successBannerIcon = Color(light: Color(hex: "15803D"), dark: Color(hex: "4ADE80"))
+  static let successBannerText = Color(light: Color(hex: "14532D"), dark: Color(hex: "BBF7D0"))
+  static let iconGray = Color(light: Color.Brand.slate500, dark: Color(hex: "94a3b8"))
+  static let borderGray = Color(light: Color.Brand.slate100, dark: Color.white.opacity(0.12))
 
   // MARK: - Tinted Surface Tokens
   // Every neutral carries a trace of the brand blue (#2563EB) so the brand
@@ -86,6 +95,12 @@ extension Color {
     static let muted       = Color(light: Color(hex: "E8EDF5"), dark: Color(hex: "2A2A2A"))  // muted fills, disabled states
     static let border      = Color(light: Color(red: 30/255, green: 50/255, blue: 100/255).opacity(0.12), dark: Color.white.opacity(0.1))
     static let borderStrong = Color(light: Color(red: 30/255, green: 50/255, blue: 100/255).opacity(0.22), dark: Color.white.opacity(0.2))
+    // Tinted status banners (e.g. ParentOnboardingBanner) — light tint on light mode, dark low-luminance tint on dark mode.
+    static let warningTint   = Color(light: Color(hex: "FFFBEB"), dark: Color(hex: "3A2A0A"))
+    static let warningAccent = Color(light: Color(hex: "F59E0B"), dark: Color(hex: "D97706"))
+    static let warningCTA    = Color(light: Color(hex: "D97706"), dark: Color(hex: "F59E0B"))
+    static let successTint   = Color(light: Color(hex: "F0FDF4"), dark: Color(hex: "0F2E1C"))
+    static let successAccent = Color(light: Color(hex: "22C55E"), dark: Color(hex: "16A34A"))
   }
 
   // MARK: - Tinted Text Tokens

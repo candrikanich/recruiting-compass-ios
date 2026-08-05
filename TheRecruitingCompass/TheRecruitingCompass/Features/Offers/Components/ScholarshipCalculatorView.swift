@@ -91,7 +91,7 @@ struct ScholarshipCalculatorView: View {
           .fontWeight(.semibold)
       }
       .buttonStyle(.bordered)
-      .accessibilityLabel(isExpanded ? "Hide scholarship calculator" : "Scholarship Calculator")
+      .accessibilityLabel(isExpanded ? String(localized: "Hide scholarship calculator") : String(localized: "Scholarship Calculator"))
       .accessibilityHint(isExpanded ? "Collapses scholarship calculator" : "Expands scholarship calculator")
       .frame(minWidth: 44, minHeight: 44)
     }
@@ -101,25 +101,25 @@ struct ScholarshipCalculatorView: View {
   private var inputSection: some View {
     VStack(spacing: 12) {
       calculatorField(
-        label: "Total Annual Cost ($)",
+        label: String(localized: "Total Annual Cost ($)"),
         hint: "Tuition + room/board + fees",
         value: $annualCost
       )
 
       calculatorField(
-        label: "Scholarship Amount ($)",
+        label: String(localized: "Scholarship Amount ($)"),
         hint: "Leave blank to use percentage",
         value: $scholarshipAmount
       )
 
       calculatorField(
-        label: "Scholarship Percentage (%)",
+        label: String(localized: "Scholarship Percentage (%)"),
         hint: "Leave blank if using amount",
         value: $scholarshipPercentage
       )
 
       calculatorField(
-        label: "Additional Aid/Grants ($)",
+        label: String(localized: "Additional Aid/Grants ($)"),
         hint: "Non-scholarship aid",
         value: $additionalAid
       )
@@ -135,7 +135,7 @@ struct ScholarshipCalculatorView: View {
           }
         }
         .pickerStyle(.segmented)
-        .accessibilityLabel("Number of years")
+        .accessibilityLabel(String(localized: "Number of years"))
       }
     }
   }
@@ -187,9 +187,7 @@ struct ScholarshipCalculatorView: View {
         .padding(.vertical, 2)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
-          "Year \(year): Cost \(Self.formatCurrency(annualCost)), " +
-          "Scholarship \(Self.formatCurrency(annualScholarship)), " +
-          "Your cost \(Self.formatCurrency(annualNetCost))"
+          String(localized: "Year \(year): Cost \(Self.formatCurrency(annualCost)), Scholarship \(Self.formatCurrency(annualScholarship)), Your cost \(Self.formatCurrency(annualNetCost))")
         )
       }
     }
@@ -269,7 +267,7 @@ struct ScholarshipCalculatorView: View {
     .background(color.opacity(0.08))
     .clipShape(RoundedRectangle(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(label): \(Self.formatCurrency(value))")
+    .accessibilityLabel(String(localized: "\(label): \(Self.formatCurrency(value))"))
   }
 
   private static func formatCurrency(_ value: Double) -> String {

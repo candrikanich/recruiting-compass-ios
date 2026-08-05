@@ -18,28 +18,48 @@ final class CommunicationTemplatesViewModel {
     case create
   }
 
-  var templates: [CommunicationTemplate] = []
+  var templates: [CommunicationTemplate] = [] {
+    didSet { recomputeFilteredTemplates() }
+  }
   var isLoading = false
   var isSaving = false
   var errorMessage: String?
   var activeTab: Tab = .list
-  var filterType: TemplateType?
+  var filterType: TemplateType? {
+    didSet { recomputeFilteredTemplates() }
+  }
   var editingTemplate: CommunicationTemplate?
   var formData = TemplateFormData()
   var showDeleteConfirmation = false
   var templateToDeleteId: String?
+  var searchQuery = "" {
+    didSet { recomputeFilteredTemplates() }
+  }
 
   private let service: any CommunicationTemplatesServicing
 
-  var filteredTemplates: [CommunicationTemplate] {
-    guard let filterType else { return templates }
-    return templates.filter { $0.type == filterType }
+  /// Cached derived list — recomputed via `recomputeFilteredTemplates()` whenever
+  /// `templates`, `filterType`, or `searchQuery` change. Do not compute this
+  /// inline elsewhere; it would go stale silently.
+  private(set) var filteredTemplates: [CommunicationTemplate] = []
+
+  private func recomputeFilteredTemplates() {
+    var result = templates
+    if let filterType {
+      result = result.filter { $0.type == filterType }
+    }
+    if !searchQuery.isEmpty {
+      result = result.filter {
+        $0.name.localizedStandardContains(searchQuery) || $0.body.localizedStandardContains(searchQuery)
+      }
+    }
+    filteredTemplates = result
   }
 
   var typeCounts: [TemplateType?: Int] {
     var counts: [TemplateType?: Int] = [nil: templates.count]
     for type in TemplateType.allCases {
-      counts[type] = templates.filter { $0.type == type }.count
+      counts[type] = templates.count(where: { $0.type == type })
     }
     return counts
   }
@@ -136,6 +156,5 @@ final class CommunicationTemplatesViewModel {
     editingTemplate = nil
     formData = TemplateFormData()
   }
-
 
 }

@@ -7,14 +7,18 @@ final class ActivityFeedViewModelTests: XCTestCase {
   var sut: ActivityFeedViewModel!
   var mockService: MockActivityFeedService!
   var mockAuthManager: MockAuthManager!
+  var mockCache: InMemoryCache!
 
   override func setUp() {
     super.setUp()
     mockService = MockActivityFeedService()
     mockAuthManager = MockAuthManager()
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
     sut = ActivityFeedViewModel(
       activityService: mockService,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: mockCache
     )
   }
 
@@ -22,6 +26,7 @@ final class ActivityFeedViewModelTests: XCTestCase {
     sut = nil
     mockService = nil
     mockAuthManager = nil
+    mockCache = nil
     super.tearDown()
   }
 
@@ -586,6 +591,78 @@ final class ActivityFeedViewModelTests: XCTestCase {
     XCTAssertEqual(sut.currentPage, 1)
   }
 
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadActivities_SecondLoad_UsesCacheAndSkipsService() async {
+    authenticateUser()
+    setupMockDataForFullLoad()
+
+    await sut.loadActivities()
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+    let firstCount = sut.activities.count
+
+    mockService.mockInteractions = [createInteraction(id: "i3")]
+    await sut.loadActivities()
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+    XCTAssertEqual(sut.activities.count, firstCount)
+  }
+
+  func testAddRealtimeEvent_DoesNotForceARefetch_CacheStillServesUntilTTL() async {
+    // Realtime inserts write directly into `activities` (not the cache) — this
+    // documents the accepted tradeoff (see activitiesCacheTTL doc comment):
+    // the aggregated feed is eventually consistent, not invalidated on write.
+    authenticateUser()
+    setupMockDataForFullLoad()
+    await sut.loadActivities()
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+
+    let newEvent = ActivityEventFactory.fromInteraction(createInteraction(id: "realtime-1"), schoolName: nil)
+    sut.addRealtimeEvent(newEvent)
+    await sut.loadActivities()
+
+    // Still cached — the realtime insert didn't invalidate it.
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+  }
+
+  // MARK: - Cached filteredActivities Staleness Tests
+  // filteredActivities is a cached stored property (Phase 3.3), recomputed via
+  // didSet on activities/selectedType/selectedDateRange/searchQuery — not read live.
+
+  func testFilteredActivities_UpdatesWhenActivitiesReloaded_WithoutTouchingFilter() async {
+    authenticateUser()
+    setupMockDataForFullLoad()
+    await sut.loadActivities()
+    sut.selectedType = .interaction
+    XCTAssertEqual(sut.filteredActivities.count, 2)
+
+    // Reassign activities directly (e.g. a reload) without touching
+    // selectedType — this test targets filteredActivities staleness, not the
+    // fetch cache (see the "List Fetch Caching Tests" section for that).
+    sut.activities = [
+      ActivityEventFactory.fromInteraction(createInteraction(id: "i3"), schoolName: nil)
+    ]
+
+    XCTAssertEqual(sut.filteredActivities.count, 1)
+    XCTAssertTrue(sut.filteredActivities.allSatisfy { $0.type == .interaction })
+  }
+
+  func testFilteredActivities_UpdatesAfterRealtimeInsertWithoutExplicitRecompute() async {
+    authenticateUser()
+    setupMockDataForFullLoad()
+    await sut.loadActivities()
+    sut.selectedType = .interaction
+    XCTAssertEqual(sut.filteredActivities.count, 2)
+
+    let newEvent = ActivityEventFactory.fromInteraction(
+      createInteraction(id: "realtime-1"),
+      schoolName: nil
+    )
+    sut.addRealtimeEvent(newEvent)
+
+    XCTAssertEqual(sut.filteredActivities.count, 3)
+  }
+
   // MARK: - Combined Filters Tests
 
   func testCombinedFilters_TypeAndSearch() async {
@@ -997,5 +1074,25 @@ final class ActivityFeedViewModelTests: XCTestCase {
 
     // Then: page should NOT reset (didSet checks oldValue)
     XCTAssertEqual(sut.currentPage, 3)
+  }
+
+  // MARK: - Athlete Targeting Tests
+
+  func testLoadActivities_parentViewingAthlete_usesAthleteUserId() async {
+    // Given
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuthManager)
+    sut = ActivityFeedViewModel(
+      activityService: mockService,
+      familyManager: familyManager,
+      authManager: mockAuthManager
+    )
+
+    // When
+    await sut.loadActivities()
+
+    // Then
+    XCTAssertEqual(mockService.lastFetchInteractionsUserId, ParentViewingAthleteFixture.athleteUserId)
+    XCTAssertEqual(mockService.lastFetchStatusChangesUserId, ParentViewingAthleteFixture.athleteUserId)
+    XCTAssertEqual(mockService.lastFetchDocumentsUserId, ParentViewingAthleteFixture.athleteUserId)
   }
 }

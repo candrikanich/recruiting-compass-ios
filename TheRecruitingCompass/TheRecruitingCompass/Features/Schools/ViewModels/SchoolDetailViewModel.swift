@@ -14,6 +14,18 @@ final class SchoolDetailViewModel {
   var errorMessage: String?
   var activeAlert: AlertType?
 
+  /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
+  /// Suppressed while the delete confirmation dialog is up so the two don't overlap.
+  var isShowingErrorAlert: Bool {
+    get { errorMessage != nil && !showDeleteConfirmation }
+    set {
+      if !newValue {
+        errorMessage = nil
+        activeAlert = nil
+      }
+    }
+  }
+
   // Status management
   var statusHistory: [SchoolStatusHistory] = []
   var isUpdatingStatus = false
@@ -21,6 +33,7 @@ final class SchoolDetailViewModel {
   // MARK: - Notes (always-editable, auto-save on blur)
   var editedNotes = ""
   var saveStatus: SaveStatus = .idle
+  var hapticSuccessTrigger = 0
 
   @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
@@ -164,13 +177,19 @@ final class SchoolDetailViewModel {
     }
   }
 
-  /// Invalidates cached school and history so the next load refetches. Call after any mutation.
+  /// Invalidates cached school and history so the next load refetches, plus
+  /// SchoolsListViewModel's cached list (Phase 3.6) so an edited field (status,
+  /// favorite, etc.) shows correctly on next visit to the list screen instead
+  /// of waiting out the list cache's TTL. Call after any mutation.
   private func invalidateSchoolCache() async {
     let cacheKey = "school:\(schoolId)"
     let historyKey = "school:\(schoolId):history"
     let cacheToUse = cache ?? InMemoryCache.shared
     await cacheToUse.remove(forKey: cacheKey)
     await cacheToUse.remove(forKey: historyKey)
+    if let familyUnitId = familyManager.familyUnitId {
+      await cacheToUse.remove(forKey: ListCacheKeys.schools(familyUnitId: familyUnitId))
+    }
   }
 
   // MARK: - Status Update
@@ -233,7 +252,7 @@ final class SchoolDetailViewModel {
 
   private func markSaved() {
     saveStatus = .saved
-    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    hapticSuccessTrigger += 1
     pendingStatusReset?.cancel()
     pendingStatusReset = Task {
       try? await Task.sleep(for: .seconds(3))
@@ -371,24 +390,32 @@ final class SchoolDetailViewModel {
 
   // MARK: - Fit Score
 
+  /// Fit scores are computed by the web app and stored on the school row.
+  /// When no stored score exists the section stays hidden — we never show
+  /// a locally invented score.
   func loadFitScore() async {
     isLoadingFitScore = true
     defer { isLoadingFitScore = false }
 
-    do {
-      let result = try await fitScoreService.calculateFitScore(schoolId: schoolId)
-      self.fitScore = result
-
-      self.divisionRecommendation = fitScoreService.getDivisionRecommendations(
-        division: school?.division,
-        fitScore: result.score
-      )
-
-      logger.info("Fit score loaded: \(result.score)")
-    } catch {
-      // Non-critical - just hide section if calculation fails
-      logger.error("Failed to load fit score: \(error.localizedDescription)")
+    guard let storedScore = school?.fitScore else {
+      fitScore = nil
+      divisionRecommendation = nil
+      return
     }
+
+    fitScore = FitScoreResult(
+      score: storedScore,
+      tier: (school?.fitTier).flatMap(FitTier.init(rawValue:)) ?? FitTier(score: storedScore),
+      breakdown: FitScoreBreakdown(athleticFit: nil, academicFit: nil, opportunityFit: nil, personalFit: nil),
+      missingDimensions: []
+    )
+
+    divisionRecommendation = fitScoreService.getDivisionRecommendations(
+      division: school?.division,
+      fitScore: storedScore
+    )
+
+    logger.info("Fit score loaded from stored value: \(storedScore)")
   }
 
   // MARK: - College Scorecard Lookup

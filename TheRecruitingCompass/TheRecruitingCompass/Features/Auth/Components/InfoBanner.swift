@@ -3,15 +3,11 @@ import SwiftUI
 struct InfoBanner: View {
   let state: VerificationState
   let email: String?
-  @Environment(\.sizeCategory) var sizeCategory
+  @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 20
 
   init(state: VerificationState, email: String? = nil) {
     self.state = state
     self.email = email
-  }
-
-  private var iconSize: CGFloat {
-    sizeCategory >= .extraLarge ? 22 : 20
   }
 
   var body: some View {
@@ -58,7 +54,7 @@ struct InfoBanner: View {
     case .checking:
       ProgressView()
         .tint(Color.accentBlue)
-        .accessibilityLabel("Checking verification")
+        .accessibilityLabel(String(localized: "Checking verification"))
     case .verified:
       Image(systemName: "checkmark.circle.fill")
         .font(.system(size: iconSize))
@@ -71,11 +67,11 @@ struct InfoBanner: View {
   private var title: String {
     switch state {
     case .pending:
-      return "Email not verified"
+      return String(localized: "Email not verified")
     case .checking:
-      return "Checking verification..."
+      return String(localized: "Checking verification...")
     case .verified:
-      return "Email verified!"
+      return String(localized: "Email verified!")
     case .error:
       return ""
     }

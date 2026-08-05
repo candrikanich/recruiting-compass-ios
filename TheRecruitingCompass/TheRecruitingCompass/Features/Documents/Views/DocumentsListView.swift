@@ -1,25 +1,8 @@
 import SwiftUI
 
 struct DocumentsListView: View {
-  /// When false, content is used inside a parent NavigationStack (e.g. pushed from More menu).
-  var embedInNavigationStack: Bool = true
-
   @State private var viewModel = DocumentsListViewModel()
   @State private var documentToDelete: Document?
-
-  private var showErrorAlert: Binding<Bool> {
-    Binding(
-      get: { viewModel.error != nil },
-      set: { if !$0 { viewModel.error = nil } }
-    )
-  }
-
-  private var documentToViewBinding: Binding<Document?> {
-    Binding(
-      get: { viewModel.documentToView },
-      set: { viewModel.documentToView = $0 }
-    )
-  }
 
   private var showDeleteConfirmation: Binding<Bool> {
     Binding(
@@ -42,6 +25,7 @@ struct DocumentsListView: View {
     .refreshable {
       await viewModel.loadDocuments()
     }
+    .searchable(text: $viewModel.searchQuery, prompt: "Search title or description...")
     .task {
       await viewModel.loadDocuments()
       await viewModel.loadSchools()
@@ -55,7 +39,7 @@ struct DocumentsListView: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Upload new document")
+        .accessibilityLabel(String(localized: "Upload new document"))
         .accessibilityHint("Opens form to upload a document")
       }
     }
@@ -65,13 +49,13 @@ struct DocumentsListView: View {
     .sheet(isPresented: $viewModel.isFilterSheetPresented) {
       DocumentFilterSheet(viewModel: viewModel)
     }
-    .alert("Error", isPresented: showErrorAlert) {
+    .alert("Error", isPresented: $viewModel.isShowingErrorAlert) {
       Button("Retry") { Task { await viewModel.loadDocuments() } }
-      Button("OK", role: .cancel) { viewModel.error = nil }
+      Button("OK", role: .cancel) { viewModel.errorMessage = nil }
     } message: {
-      Text(viewModel.error ?? "")
+      Text(viewModel.errorMessage ?? "")
     }
-    .fullScreenCover(item: documentToViewBinding) { document in
+    .fullScreenCover(item: $viewModel.documentToView) { document in
       let docs = viewModel.sortedDocuments
       let idx = docs.firstIndex(where: { $0.id == document.id }) ?? 0
       let collection = DocumentCollection(documents: docs, currentIndex: idx)
@@ -97,22 +81,12 @@ struct DocumentsListView: View {
   }
 
   var body: some View {
-    if embedInNavigationStack {
-      NavigationStack {
-        content
-      }
-    } else {
-      content
-    }
+    content
   }
 
   @ViewBuilder
   private var loadingState: some View {
-    ContentUnavailableView {
-      ProgressView()
-    } description: {
-      Text("Loading documents...")
-    }
+    LoadingStateView(message: "Loading documents...")
   }
 
   @ViewBuilder
@@ -123,7 +97,6 @@ struct DocumentsListView: View {
           .padding(.vertical, 8)
 
         DocumentFilterBar(
-          searchQuery: $viewModel.searchQuery,
           sortBy: $viewModel.sortBy,
           viewMode: $viewModel.viewMode,
           hasActiveFilters: viewModel.hasActiveFilters,
@@ -152,7 +125,7 @@ struct DocumentsListView: View {
       uploadFAB
     }
     .overlay(alignment: .top) {
-      if viewModel.error != nil {
+      if viewModel.errorMessage != nil {
         errorBanner
       }
     }
@@ -173,7 +146,7 @@ struct DocumentsListView: View {
           .frame(maxWidth: .infinity, minHeight: 44)
       }
       .buttonStyle(.borderedProminent)
-      .accessibilityLabel("Upload your first document")
+      .accessibilityLabel(String(localized: "Upload your first document"))
       .accessibilityHint("Opens the form to upload a document")
     }
   }
@@ -234,14 +207,14 @@ struct DocumentsListView: View {
         .clipShape(Circle())
         .brandShadowSm()
     }
-    .accessibilityLabel("Upload new document")
+    .accessibilityLabel(String(localized: "Upload new document"))
     .accessibilityHint("Opens upload form")
   }
 
   @ViewBuilder
   private var errorBanner: some View {
     HStack {
-      Text(viewModel.error ?? "")
+      Text(viewModel.errorMessage ?? "")
         .font(.caption)
         .foregroundStyle(.white)
       Spacer()

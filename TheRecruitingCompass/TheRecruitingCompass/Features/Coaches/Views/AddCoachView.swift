@@ -29,13 +29,6 @@ struct AddCoachView: View {
 
   // MARK: - Computed Properties
 
-  private var isShowingError: Binding<Bool> {
-    Binding(
-      get: { viewModel.submitError != nil },
-      set: { if !$0 { viewModel.submitError = nil } }
-    )
-  }
-
   var body: some View {
     Form {
       schoolSelectionSection
@@ -57,14 +50,13 @@ struct AddCoachView: View {
         } label: {
           Label("Back", systemImage: "chevron.left")
         }
-          .accessibilityLabel("Back to coaches list")
+          .accessibilityLabel(String(localized: "Back to coaches list"))
         }
       }
       .task {
         await viewModel.loadSchools()
       }
-      .alert("Error", isPresented: isShowingError) {
-        Button("OK", role: .cancel) { }
+      .alert("Error", isPresented: $viewModel.isShowingError) {
       } message: {
         if let error = viewModel.submitError {
           Text(error)
@@ -84,10 +76,9 @@ struct AddCoachView: View {
           icon: "building.2.fill",
           title: "No Schools Found",
           message: "You need to add a school before adding a coach",
-          actionTitle: "Add School"
+          actionTitle: String(localized: "Add School")
         ) {
-          // TODO: Navigate to Add School
-          // This will be implemented in Phase 6 (Integration & Navigation)
+          navigationPath.append(CoachDestination.addSchool)
         }
       } else {
         SchoolPicker(
@@ -156,7 +147,7 @@ struct AddCoachView: View {
     }
     .padding(.vertical, 8)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Please select a school to continue adding a coach")
+    .accessibilityLabel(String(localized: "Please select a school to continue adding a coach"))
   }
 
   // MARK: - Submit Button
@@ -203,7 +194,7 @@ struct AddCoachView: View {
       dismiss()
     }
     .frame(minHeight: 44)
-    .accessibilityLabel("Cancel adding coach")
+    .accessibilityLabel(String(localized: "Cancel adding coach"))
     .accessibilityHint("Return to coaches list without saving")
   }
 

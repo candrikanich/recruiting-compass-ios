@@ -24,6 +24,6 @@ struct TrendCard: View {
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .brandShadowSm()
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(trend.type.displayName) is \(trend.trend.label). \(trend.count) records, average \(trend.average.formatted(.number.precision(.fractionLength(2)))) \(trend.unit)")
+    .accessibilityLabel(String(localized: "\(trend.type.displayName) is \(trend.trend.label). \(trend.count) records, average \(trend.average.formatted(.number.precision(.fractionLength(2)))) \(trend.unit)"))
   }
 }

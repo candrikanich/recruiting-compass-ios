@@ -42,7 +42,7 @@ struct DocumentVersionRow: View {
           .buttonStyle(.bordered)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
-          .accessibilityLabel("Restore version \(version.version)")
+          .accessibilityLabel(String(localized: "Restore version \(version.version)"))
           .accessibilityHint("Restores this version as the current document")
         }
       }

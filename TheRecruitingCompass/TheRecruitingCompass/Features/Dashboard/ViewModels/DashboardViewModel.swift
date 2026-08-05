@@ -16,6 +16,8 @@ final class DashboardViewModel {
   var suggestions: [Suggestion] = []
   /// Additional suggestions queued beyond the 3 returned (for "Show N more").
   var suggestionsPendingCount: Int = 0
+  var isSuggestionsLoading = false
+  var suggestionsError: String?
   var events: [FullEvent] = []
   var metrics: [PerformanceMetric] = []
   var interactionTrends: [InteractionTrend] = []
@@ -34,6 +36,14 @@ final class DashboardViewModel {
   private let taskStorage: QuickTaskStorage
   private let familyManager: FamilyManager
   private let preferenceService: any PreferenceManaging
+
+  /// The user whose recruiting data the dashboard shows. When a parent is
+  /// viewing an athlete, events/metrics/interactions belong to the athlete;
+  /// quick tasks stay keyed to the signed-in user (they are a personal,
+  /// device-local list).
+  private var targetUserId: String? {
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
+  }
 
   var userEmail: String {
     authManager.user?.email ?? "Unknown"
@@ -121,7 +131,7 @@ final class DashboardViewModel {
 
     await familyManager.loadFamilyData()
 
-    let targetUserId = familyManager.selectedAthleteId ?? userId
+    let targetUserId = familyManager.selectedAthlete?.userId ?? userId
 
     guard let familyUnitId = familyManager.familyUnitId else {
       // Mirrors web: no family yet — show empty state. User creates from Family tab when inviting parent.
@@ -242,6 +252,9 @@ final class DashboardViewModel {
 
   func fetchSuggestions() async {
     var token = authManager.session?.accessToken
+    isSuggestionsLoading = true
+    suggestionsError = nil
+    defer { isSuggestionsLoading = false }
     do {
       let result = try await dashboardService.fetchSuggestions(location: "dashboard", accessToken: token)
       suggestions = result.suggestions
@@ -257,9 +270,11 @@ final class DashboardViewModel {
         suggestionsPendingCount = result.pendingCount
       } catch {
         logger.warning("Failed to load suggestions after refresh: \(error.localizedDescription)")
+        suggestionsError = "Couldn't load action items. Pull to refresh."
       }
     } catch {
       logger.warning("Failed to load suggestions: \(error.localizedDescription)")
+      suggestionsError = "Couldn't load action items. Pull to refresh."
     }
   }
 
@@ -290,7 +305,7 @@ final class DashboardViewModel {
   }
 
   func fetchEvents() async {
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = targetUserId else { return }
     do {
       events = try await dashboardService.fetchEvents(userId: userId, limit: 10)
     } catch {
@@ -299,7 +314,7 @@ final class DashboardViewModel {
   }
 
   func fetchMetrics() async {
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = targetUserId else { return }
     do {
       metrics = try await dashboardService.fetchMetrics(userId: userId, limit: 10)
     } catch {
@@ -308,7 +323,7 @@ final class DashboardViewModel {
   }
 
   func fetchInteractionTrends() async {
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = targetUserId else { return }
     do {
       let interactions = try await dashboardService.fetchInteractions(userId: userId, limit: 30)
       let groupedByDate = Dictionary(grouping: interactions) { interaction -> String in
@@ -348,6 +363,5 @@ final class DashboardViewModel {
       logoutErrorMessage = "Failed to log out. Please try again."
     }
   }
-
 
 }

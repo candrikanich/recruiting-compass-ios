@@ -5,15 +5,6 @@ struct SignupView: View {
   @State private var presentedLegal: LegalDocument?
   @State private var navigateToLogin = false
   @Environment(\.dismiss) var dismiss
-  @Environment(\.sizeCategory) var sizeCategory
-
-  // Suppress iOS "Use Strong Password?" sheet during UI testing.
-  // Setting textContentType: nil doesn't help — iOS infers .newPassword from two
-  // adjacent SecureFields. .oneTimeCode overrides the inference and disables the
-  // sheet so XCUITest's typeText can deliver all characters uninterrupted.
-  private var passwordTextContentType: UITextContentType? {
-    ProcessInfo.processInfo.arguments.contains("--uitesting") ? .oneTimeCode : .newPassword
-  }
 
   var body: some View {
     ZStack {
@@ -21,15 +12,19 @@ struct SignupView: View {
       .ignoresSafeArea()
 
       VStack(spacing: 0) {
-        backButton
+        SignupBackButtonView(onBack: { dismiss() })
 
         HStack(spacing: 0) {
           Color.clear.frame(width: 24)
           ScrollView {
             if !viewModel.showForm {
-              roleSelectionContent
+              SignupRoleSelectionView(viewModel: viewModel)
             } else {
-              signupFormContent
+              SignupFormView(
+                viewModel: viewModel,
+                presentedLegal: $presentedLegal,
+                onSignIn: { navigateToLogin = true }
+              )
             }
           }
           // Disable immediate dismissal during UI testing so typeText can deliver
@@ -59,13 +54,16 @@ struct SignupView: View {
       LoginView()
     }
   }
+}
 
-  // MARK: - Back Button
+// MARK: - Back Button
 
-  @ViewBuilder
-  private var backButton: some View {
+private struct SignupBackButtonView: View {
+  let onBack: () -> Void
+
+  var body: some View {
     HStack {
-      Button(action: { dismiss() }) {
+      Button(action: onBack) {
         HStack(spacing: 4) {
           Image(systemName: "arrow.left")
             .font(.footnote.weight(.semibold))
@@ -75,17 +73,21 @@ struct SignupView: View {
         }
         .foregroundStyle(Color.darkSlate)
       }
-      .accessibilityLabel("Back to welcome screen")
+      .accessibilityLabel(String(localized: "Back to welcome screen"))
       Spacer()
     }
     .padding(.horizontal, 24)
     .padding(.vertical, 16)
   }
+}
 
-  // MARK: - Role Selection Step
+// MARK: - Role Selection Step
 
-  @ViewBuilder
-  private var roleSelectionContent: some View {
+private struct SignupRoleSelectionView: View {
+  @Bindable var viewModel: SignupViewModel
+  @Environment(\.sizeCategory) var sizeCategory
+
+  var body: some View {
     VStack(spacing: 24) {
       Image("LogoStacked")
         .resizable()
@@ -117,34 +119,42 @@ struct SignupView: View {
     }
     .padding(32)
   }
+}
 
-  // MARK: - Signup Form Step
+// MARK: - Signup Form Step
 
-  @ViewBuilder
-  private var signupFormContent: some View {
+private struct SignupFormView: View {
+  @Bindable var viewModel: SignupViewModel
+  @Binding var presentedLegal: LegalDocument?
+  let onSignIn: () -> Void
+
+  var body: some View {
     VStack(spacing: 24) {
-      roleHeader
-      errorBannerSection
-      firstNameField
-      lastNameField
-      emailField
+      SignupRoleHeaderView(viewModel: viewModel)
+      SignupErrorBannerView(viewModel: viewModel)
+      SignupFirstNameFieldView(viewModel: viewModel)
+      SignupLastNameFieldView(viewModel: viewModel)
+      SignupEmailFieldView(viewModel: viewModel)
       if viewModel.selectedRole == .player {
-        dateOfBirthField
+        SignupDateOfBirthFieldView(viewModel: viewModel)
       }
-      passwordSection
-      confirmPasswordField
-      familyCodeField
-      termsSection
-      createAccountButton
-      signInSection
+      SignupPasswordSectionView(viewModel: viewModel)
+      SignupConfirmPasswordFieldView(viewModel: viewModel)
+      SignupFamilyCodeFieldView(viewModel: viewModel)
+      SignupTermsSectionView(viewModel: viewModel, presentedLegal: $presentedLegal)
+      SignupCreateAccountButtonView(viewModel: viewModel)
+      SignupSignInSectionView(onSignIn: onSignIn)
     }
     .padding(32)
   }
+}
 
-  // MARK: - Form Sub-views
+// MARK: - Form Sub-views
 
-  @ViewBuilder
-  private var roleHeader: some View {
+private struct SignupRoleHeaderView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Button(action: { viewModel.backToRoleSelection() }) {
@@ -157,7 +167,7 @@ struct SignupView: View {
           }
           .foregroundStyle(Color.accentBlue)
         }
-        .accessibilityLabel("Change role selection")
+        .accessibilityLabel(String(localized: "Change role selection"))
         .accessibilityHint("Return to role selection screen")
 
         Spacer()
@@ -176,9 +186,12 @@ struct SignupView: View {
       .frame(minHeight: 44)
     }
   }
+}
 
-  @ViewBuilder
-  private var errorBannerSection: some View {
+private struct SignupErrorBannerView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  var body: some View {
     if let error = viewModel.errorMessage {
       ErrorBanner(
         message: error,
@@ -187,11 +200,14 @@ struct SignupView: View {
       .transition(.opacity)
     }
   }
+}
 
-  @ViewBuilder
-  private var firstNameField: some View {
+private struct SignupFirstNameFieldView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  var body: some View {
     LoginFormField(
-      label: "First Name",
+      label: String(localized: "First Name"),
       placeholder: "John",
       icon: "person",
       text: $viewModel.firstName,
@@ -202,11 +218,14 @@ struct SignupView: View {
       onBlur: viewModel.validateFirstName
     )
   }
+}
 
-  @ViewBuilder
-  private var lastNameField: some View {
+private struct SignupLastNameFieldView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  var body: some View {
     LoginFormField(
-      label: "Last Name",
+      label: String(localized: "Last Name"),
       placeholder: "Smith",
       icon: "person",
       text: $viewModel.lastName,
@@ -217,9 +236,12 @@ struct SignupView: View {
       onBlur: viewModel.validateLastName
     )
   }
+}
 
-  @ViewBuilder
-  private var dateOfBirthField: some View {
+private struct SignupDateOfBirthFieldView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 8) {
         Image(systemName: "calendar")
@@ -233,7 +255,7 @@ struct SignupView: View {
       DatePicker(
         "Date of Birth",
         selection: $viewModel.dateOfBirth,
-        in: ...Date(),
+        in: ...Date.now,
         displayedComponents: .date
       )
       .datePickerStyle(.compact)
@@ -249,11 +271,14 @@ struct SignupView: View {
       }
     }
   }
+}
 
-  @ViewBuilder
-  private var emailField: some View {
+private struct SignupEmailFieldView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  var body: some View {
     LoginFormField(
-      label: "Email",
+      label: String(localized: "Email"),
       placeholder: "your.email@example.com",
       icon: "envelope",
       text: $viewModel.email,
@@ -264,12 +289,23 @@ struct SignupView: View {
       onBlur: viewModel.validateEmail
     )
   }
+}
 
-  @ViewBuilder
-  private var passwordSection: some View {
+private struct SignupPasswordSectionView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  // Suppress iOS "Use Strong Password?" sheet during UI testing.
+  // Setting textContentType: nil doesn't help — iOS infers .newPassword from two
+  // adjacent SecureFields. .oneTimeCode overrides the inference and disables the
+  // sheet so XCUITest's typeText can deliver all characters uninterrupted.
+  private var passwordTextContentType: UITextContentType? {
+    ProcessInfo.processInfo.arguments.contains("--uitesting") ? .oneTimeCode : .newPassword
+  }
+
+  var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       LoginFormField(
-        label: "Password",
+        label: String(localized: "Password"),
         placeholder: "Create a strong password",
         icon: "lock",
         text: $viewModel.password,
@@ -285,11 +321,18 @@ struct SignupView: View {
         .padding(.top, 8)
     }
   }
+}
 
-  @ViewBuilder
-  private var confirmPasswordField: some View {
+private struct SignupConfirmPasswordFieldView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  private var passwordTextContentType: UITextContentType? {
+    ProcessInfo.processInfo.arguments.contains("--uitesting") ? .oneTimeCode : .newPassword
+  }
+
+  var body: some View {
     LoginFormField(
-      label: "Confirm Password",
+      label: String(localized: "Confirm Password"),
       placeholder: "Re-enter your password",
       icon: "lock.fill",
       text: $viewModel.confirmPassword,
@@ -300,12 +343,15 @@ struct SignupView: View {
       onBlur: viewModel.validateConfirmPassword
     )
   }
+}
 
-  @ViewBuilder
-  private var familyCodeField: some View {
+private struct SignupFamilyCodeFieldView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  var body: some View {
     if viewModel.selectedRole?.requiresFamilyCode == true {
       LoginFormField(
-        label: "Family Code (Optional)",
+        label: String(localized: "Family Code (Optional)"),
         placeholder: "FAM-XXXXXX",
         icon: "person.2",
         text: $viewModel.familyCode,
@@ -316,18 +362,25 @@ struct SignupView: View {
       )
     }
   }
+}
 
-  @ViewBuilder
-  private var termsSection: some View {
+private struct SignupTermsSectionView: View {
+  @Bindable var viewModel: SignupViewModel
+  @Binding var presentedLegal: LegalDocument?
+
+  var body: some View {
     TermsCheckbox(
       isChecked: $viewModel.termsAccepted,
       onTermsPressed: { presentedLegal = .termsOfService },
       onPrivacyPressed: { presentedLegal = .privacyPolicy }
     )
   }
+}
 
-  @ViewBuilder
-  private var createAccountButton: some View {
+private struct SignupCreateAccountButtonView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  var body: some View {
     Button(action: {
       Task {
         await viewModel.signup()
@@ -340,11 +393,11 @@ struct SignupView: View {
         if viewModel.isLoading {
           ProgressView()
             .tint(.white)
-            .accessibilityLabel("Creating account")
+            .accessibilityLabel(String(localized: "Creating account"))
         }
       }
       .frame(maxWidth: .infinity)
-      .frame(height: 48)
+      .frame(minHeight: 48)
       .foregroundStyle(.white)
       .background(
         LinearGradient.primaryButton
@@ -353,18 +406,21 @@ struct SignupView: View {
       .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
       .disabled(viewModel.isButtonDisabled)
     }
-    .accessibilityLabel(viewModel.isLoading ? "Creating account, please wait" : "Create account")
+    .accessibilityLabel(viewModel.isLoading ? String(localized: "Creating account, please wait") : String(localized: "Create account"))
     .accessibilityHint("Double tap to create your account")
   }
+}
 
-  @ViewBuilder
-  private var signInSection: some View {
+private struct SignupSignInSectionView: View {
+  let onSignIn: () -> Void
+
+  var body: some View {
     HStack {
       Text("Already have an account?")
         .font(.footnote)
         .foregroundStyle(Color.tertiaryText)
 
-      Button(action: { navigateToLogin = true }) {
+      Button(action: onSignIn) {
         HStack(spacing: 4) {
           Text("Sign In")
             .font(.footnote.weight(.semibold))
@@ -376,11 +432,13 @@ struct SignupView: View {
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }
-      .accessibilityLabel("Sign in to existing account")
+      .accessibilityLabel(String(localized: "Sign in to existing account"))
       .accessibilityHint("Navigate to login screen")
     }
   }
 }
+
+// MARK: - Preview
 
 #Preview {
   NavigationStack {

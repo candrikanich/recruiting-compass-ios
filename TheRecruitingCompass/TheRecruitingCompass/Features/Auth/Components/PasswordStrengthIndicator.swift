@@ -15,7 +15,7 @@ struct PasswordStrengthIndicator: View {
       password.contains(where: { $0.isLowercase }),
       password.contains(where: { $0.isNumber })
     ]
-    return Double(requirements.filter { $0 }.count) / Double(requirements.count)
+    return Double(requirements.count(where: { $0 })) / Double(requirements.count)
   }
 
   private var strengthColor: Color {
@@ -57,7 +57,7 @@ struct PasswordStrengthIndicator: View {
           .foregroundStyle(strengthColor)
       }
       .accessibilityElement(children: .combine)
-      .accessibilityLabel("Password strength: \(strengthText)")
+      .accessibilityLabel(String(localized: "Password strength: \(strengthText)"))
 
       ZStack(alignment: .leading) {
         RoundedRectangle(cornerRadius: 4)
@@ -89,7 +89,7 @@ struct PasswordStrengthIndicator: View {
           }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Password requirements: \(strengthResult.errors.joined(separator: ", "))")
+        .accessibilityLabel(String(localized: "Password requirements: \(strengthResult.errors.joined(separator: ", "))"))
       }
     }
   }

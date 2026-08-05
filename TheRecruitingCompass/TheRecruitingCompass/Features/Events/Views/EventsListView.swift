@@ -4,18 +4,12 @@ struct EventsListView: View {
   @Binding var path: [MorePath]
 
   @Environment(AuthManager.self) private var authManager
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var viewModel = EventsListViewModel()
   @State private var eventToDelete: FullEvent?
   @State private var showCreateEvent = false
   @State private var hapticWarningTrigger = 0
   @State private var hapticLightTrigger = 0
-
-  private var showErrorAlert: Binding<Bool> {
-    Binding(
-      get: { viewModel.error != nil },
-      set: { if !$0 { viewModel.error = nil } }
-    )
-  }
 
   private var showDeleteConfirmation: Binding<Bool> {
     Binding(
@@ -46,7 +40,7 @@ struct EventsListView: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Add new event")
+        .accessibilityLabel(String(localized: "Add new event"))
         .accessibilityHint("Opens form to create a new event")
       }
     }
@@ -56,9 +50,9 @@ struct EventsListView: View {
     .refreshable {
       await viewModel.loadEvents()
     }
-    .alert("Error", isPresented: showErrorAlert, presenting: viewModel.error) { _ in
+    .alert("Error", isPresented: $viewModel.isShowingErrorAlert, presenting: viewModel.errorMessage) { _ in
       Button("Retry") { Task { await viewModel.loadEvents() } }
-      Button("OK", role: .cancel) { viewModel.error = nil }
+      Button("OK", role: .cancel) { viewModel.errorMessage = nil }
     } message: { error in
       Text(error)
     }
@@ -86,7 +80,7 @@ struct EventsListView: View {
 
   @ViewBuilder
   private var createEventSheet: some View {
-    if let userId = authManager.user?.id {
+    if let userId = viewModel.targetUserId {
       NavigationStack {
         CreateEventView(
           eventsService: EventsServiceImpl(),
@@ -144,7 +138,11 @@ struct EventsListView: View {
       .onChange(of: viewModel.selectedCalendarDate) { _, date in
         guard let date else { return }
         if let id = viewModel.eventsForDate(date).first?.id {
-          withAnimation { proxy.scrollTo(id, anchor: .top) }
+          if reduceMotion {
+            proxy.scrollTo(id, anchor: .top)
+          } else {
+            withAnimation { proxy.scrollTo(id, anchor: .top) }
+          }
         }
       }
     }
@@ -181,27 +179,27 @@ struct EventsListView: View {
           Text(type.displayName).tag(EventType?.some(type))
         }
       }
-      .accessibilityLabel("Filter by event type")
+      .accessibilityLabel(String(localized: "Filter by event type"))
 
       Picker("Status", selection: $viewModel.statusFilter) {
         ForEach(StatusFilter.allCases, id: \.self) { status in
           Text(status.rawValue).tag(status)
         }
       }
-      .accessibilityLabel("Filter by registration status")
+      .accessibilityLabel(String(localized: "Filter by registration status"))
 
       Picker("Date Range", selection: $viewModel.dateRangeFilter) {
         ForEach(DateRangeFilter.allCases, id: \.self) { range in
           Text(range.rawValue).tag(range)
         }
       }
-      .accessibilityLabel("Filter by date range")
+      .accessibilityLabel(String(localized: "Filter by date range"))
 
       if viewModel.hasActiveFilters {
         Button("Clear Filters", role: .destructive) {
           viewModel.clearFilters()
         }
-        .accessibilityLabel("Clear all active filters")
+        .accessibilityLabel(String(localized: "Clear all active filters"))
       }
     } header: {
       Text("Filters")
@@ -224,7 +222,7 @@ struct EventsListView: View {
           }
         }
         .pickerStyle(.menu)
-        .accessibilityLabel("Sort events")
+        .accessibilityLabel(String(localized: "Sort events"))
       }
     }
   }
@@ -250,9 +248,8 @@ struct EventsListView: View {
 
   @ViewBuilder
   private var loadingState: some View {
-    ProgressView("Loading events...")
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .accessibilityLabel("Loading events")
+    LoadingStateView(message: "Loading events...")
+      .accessibilityLabel(String(localized: "Loading events"))
   }
 
   @ViewBuilder
@@ -296,6 +293,6 @@ struct EventsListView: View {
   private func rowAccessibilityLabel(_ event: FullEvent) -> String {
     let type = EventType(rawValue: event.type)?.displayName ?? event.type
     let status = event.attended ? "Attended" : event.registered ? "Registered" : "Not Registered"
-    return "\(type): \(event.name), \(event.startDate), \(status)"
+    return String(localized: "\(type): \(event.name), \(event.startDate), \(status)")
   }
 }

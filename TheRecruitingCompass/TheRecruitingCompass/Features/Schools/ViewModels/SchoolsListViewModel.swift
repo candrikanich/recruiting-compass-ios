@@ -10,14 +10,24 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 final class SchoolsListViewModel {
 
   nonisolated deinit {}
-  var allSchools: [School] = []
+  var allSchools: [School] = [] {
+    didSet { recomputeFilteredSchools() }
+  }
   var isLoading = false
   var errorMessage: String?
-  var filters = SchoolFilters()
+  var filters = SchoolFilters() {
+    didSet { recomputeFilteredSchools() }
+  }
   var showDeleteConfirmation = false
   var schoolToDelete: School?
   var isDeleting = false
   var deleteErrorMessage: String?
+
+  /// Drives the delete-error alert directly, without a view-local Binding(get:set:) wrapper.
+  var isShowingDeleteError: Bool {
+    get { deleteErrorMessage != nil }
+    set { if !newValue { deleteErrorMessage = nil } }
+  }
   var successMessage: String?
   var showSuccessToast = false
 
@@ -30,7 +40,10 @@ final class SchoolsListViewModel {
       }
       return homeLocationFromPreferences
     }
-    set { homeLocationFromPreferences = newValue }
+    set {
+      homeLocationFromPreferences = newValue
+      recomputeFilteredSchools()
+    }
   }
 
   /// Cached home location from user_preferences (Settings → Home Location). Loaded in loadSchools().
@@ -44,18 +57,23 @@ final class SchoolsListViewModel {
   private var distanceCacheOrderedKeys: [String] = []
   private static let maxDistanceCacheEntries = 300
 
-  var filteredSchools: [School] {
+  /// Cached derived list — recomputed via `recomputeFilteredSchools()` whenever
+  /// `allSchools`, `filters`, or `homeLocation` change (see their didSet/setter hooks).
+  /// Do not compute this inline elsewhere; it would go stale silently.
+  private(set) var filteredSchools: [School] = []
+
+  private func recomputeFilteredSchools() {
     var result = allSchools
 
     if !filters.searchText.isEmpty {
-      let query = filters.searchText.lowercased()
+      let query = filters.searchText
       result = result.filter { school in
-        school.name.lowercased().contains(query)
-          || (school.location?.lowercased().contains(query) ?? false)
-          || (school.city?.lowercased().contains(query) ?? false)
-          || (school.state?.lowercased().contains(query) ?? false)
-          || (school.conference?.lowercased().contains(query) ?? false)
-          || (school.notes?.lowercased().contains(query) ?? false)
+        school.name.localizedStandardContains(query)
+          || (school.location?.localizedStandardContains(query) ?? false)
+          || (school.city?.localizedStandardContains(query) ?? false)
+          || (school.state?.localizedStandardContains(query) ?? false)
+          || (school.conference?.localizedStandardContains(query) ?? false)
+          || (school.notes?.localizedStandardContains(query) ?? false)
       }
     }
 
@@ -90,7 +108,7 @@ final class SchoolsListViewModel {
       }
     }
 
-    return sorted(result)
+    filteredSchools = sorted(result)
   }
 
   var availableStates: [String] {
@@ -122,16 +140,33 @@ final class SchoolsListViewModel {
     )
   }
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached school list (seconds). Short — schools change relatively
+  /// often (status updates, new adds) and this only smooths back-navigation.
+  private static let schoolsListCacheTTL: TimeInterval = 60
+
   init(
     schoolsService: (any SchoolsManaging)? = nil,
     familyManager: FamilyManager? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
+  }
+
+  /// Invalidates the cached school list so the next `loadSchools()` refetches.
+  /// Call after any mutation (delete, favorite toggle) so a cached stale list
+  /// isn't served on next screen appearance. `AddSchoolViewModel` invalidates
+  /// the same key (via `ListCacheKeys.schools`) after creating a school.
+  private func invalidateSchoolsListCache() async {
+    guard let familyUnitId = familyManager.currentMember?.familyUnitId else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.schools(familyUnitId: familyUnitId))
   }
 
   func loadSchools() async {
@@ -147,9 +182,19 @@ final class SchoolsListViewModel {
     distanceCacheOrderedKeys.removeAll()
     defer { isLoading = false }
 
+    let cacheKey = ListCacheKeys.schools(familyUnitId: familyUnitId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
     do {
-      allSchools = try await schoolsService.fetchSchools(familyUnitId: familyUnitId)
-      logger.info("Loaded \(self.allSchools.count) schools")
+      if let cachedSchools = await cacheToUse.get([School].self, forKey: cacheKey) {
+        allSchools = cachedSchools
+        logger.info("Loaded \(self.allSchools.count) schools from cache")
+      } else {
+        let fetched = try await schoolsService.fetchSchools(familyUnitId: familyUnitId)
+        allSchools = fetched
+        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.schoolsListCacheTTL)
+        logger.info("Loaded \(self.allSchools.count) schools")
+      }
 
       // Load home location from Settings (user_preferences) when family unit has no coordinates
       if familyManager.familyUnit?.homeLatitude == nil || familyManager.familyUnit?.homeLongitude == nil {
@@ -162,6 +207,10 @@ final class SchoolsListViewModel {
             homeLocationFromPreferences = nil
           }
         } catch {
+          // intentionally silent: distance-based sort just falls back to
+          // having no reference point (schools sort as if distance is
+          // unknown) rather than blocking the schools list on a preferences
+          // fetch failure.
           logger.debug("Could not load home location from preferences: \(error.localizedDescription)")
           homeLocationFromPreferences = nil
         }
@@ -195,9 +244,10 @@ final class SchoolsListViewModel {
         allSchools.removeAll { $0.id == school.id }
         distanceCache.removeValue(forKey: school.id)
         distanceCacheOrderedKeys.removeAll { $0 == school.id }
-        successMessage = "School deleted successfully"
+        successMessage = String(localized: "School deleted successfully")
         showSuccessToast = true
         logger.info("School deleted: \(school.name)")
+        await invalidateSchoolsListCache()
       } catch {
         logger.warning("Simple delete failed, attempting cascade delete: \(error.localizedDescription)")
         let result = try await schoolsService.cascadeDeleteSchool(id: school.id)
@@ -206,10 +256,11 @@ final class SchoolsListViewModel {
         distanceCacheOrderedKeys.removeAll { $0 == school.id }
         let totalDeleted = result.deletedInteractions + result.deletedNotes
         successMessage = totalDeleted > 0
-          ? "School and \(totalDeleted) related items deleted"
-          : "School deleted successfully"
+          ? String(localized: "School and \(totalDeleted) related items deleted")
+          : String(localized: "School deleted successfully")
         showSuccessToast = true
         logger.info("Cascade delete successful: \(school.name)")
+        await invalidateSchoolsListCache()
       }
     } catch {
       logger.error("Delete failed: \(error.localizedDescription)")
@@ -228,6 +279,7 @@ final class SchoolsListViewModel {
     do {
       try await schoolsService.toggleFavorite(id: school.id, isFavorite: newFavoriteState)
       logger.info("Favorite toggled for school: \(school.name)")
+      await invalidateSchoolsListCache()
     } catch {
       logger.error("Failed to toggle favorite: \(error.localizedDescription)")
 
@@ -285,7 +337,6 @@ final class SchoolsListViewModel {
       }
     }
   }
-
 
 }
 

@@ -22,18 +22,29 @@ final class AnalyticsDashboardViewModel {
   var dateRange: AnalyticsDateRange = .last30Days
   var isLoading = false
   var errorMessage: String?
+  var exportError: String?
+  var showExportError = false
   var showExportSheet = false
   var showDatePicker = false
   var customStartDate = Calendar.current.date(byAdding: .day, value: -30, to: Date.now) ?? Date.now
   var customEndDate = Date.now
 
   private let serviceOverride: (any AnalyticsManaging)?
+  private let familyManager: FamilyManager
+  private let authManager: any AuthManaging
+
+  /// The user whose analytics we read. When a parent is viewing an athlete,
+  /// athlete-owned analytics belong to the athlete (mirrors web +
+  /// OffersListViewModel); otherwise the logged-in user's own id.
+  private var targetUserId: String? {
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
+  }
 
   private var analyticsService: any AnalyticsManaging {
     serviceOverride ?? AnalyticsServiceImpl(
       supabaseManager: .shared,
-      userId: AuthManager.shared.user?.id ?? "",
-      familyUnitId: FamilyManager.shared.familyUnitId ?? ""
+      userId: targetUserId ?? "",
+      familyUnitId: familyManager.familyUnitId ?? ""
     )
   }
 
@@ -99,8 +110,14 @@ final class AnalyticsDashboardViewModel {
 
   // MARK: - Init
 
-  init(analyticsService: (any AnalyticsManaging)? = nil) {
+  init(
+    analyticsService: (any AnalyticsManaging)? = nil,
+    familyManager: FamilyManager? = nil,
+    authManager: (any AuthManaging)? = nil
+  ) {
     self.serviceOverride = analyticsService
+    self.familyManager = familyManager ?? .shared
+    self.authManager = authManager ?? AuthManager.shared
   }
 
   // MARK: - Actions
@@ -132,6 +149,14 @@ final class AnalyticsDashboardViewModel {
 
   func retry() async {
     await loadAllData()
+  }
+
+  /// First failure wins; a section that fails after another already
+  /// reported keeps the original message.
+  private func reportSectionLoadFailure() {
+    if errorMessage == nil {
+      errorMessage = "Some analytics couldn't load. Pull to refresh."
+    }
   }
 
   // MARK: - Export
@@ -211,7 +236,7 @@ final class AnalyticsDashboardViewModel {
         )
         yOffset += 30
 
-        let dateGenerated = "Generated: \(Self.pdfDateFormatter.string(from: Date()))" as NSString
+        let dateGenerated = "Generated: \(Self.pdfDateFormatter.string(from: .now))" as NSString
         dateGenerated.draw(
           in: CGRect(x: margin, y: yOffset, width: contentWidth, height: 20),
           withAttributes: subtitleAttributes
@@ -327,6 +352,7 @@ final class AnalyticsDashboardViewModel {
         return fileURL
       } catch {
         logger.error("Failed to write CSV: \(error.localizedDescription)")
+        reportExportFailure()
         return nil
       }
     case .excel:
@@ -336,11 +362,21 @@ final class AnalyticsDashboardViewModel {
         return fileURL
       } catch {
         logger.error("Failed to write Excel export: \(error.localizedDescription)")
+        reportExportFailure()
         return nil
       }
     case .pdf:
-      return generatePDFExport(to: fileURL)
+      if let url = generatePDFExport(to: fileURL) {
+        return url
+      }
+      reportExportFailure()
+      return nil
     }
+  }
+
+  private func reportExportFailure() {
+    exportError = "Couldn't create the export file. Please try again."
+    showExportError = true
   }
 
   // MARK: - Private Loaders
@@ -381,6 +417,7 @@ final class AnalyticsDashboardViewModel {
       }
     } catch {
       logger.error("Failed to load interaction analytics: \(error.localizedDescription)")
+      reportSectionLoadFailure()
     }
   }
 
@@ -396,6 +433,7 @@ final class AnalyticsDashboardViewModel {
       }
     } catch {
       logger.error("Failed to load pipeline: \(error.localizedDescription)")
+      reportSectionLoadFailure()
     }
   }
 
@@ -411,6 +449,7 @@ final class AnalyticsDashboardViewModel {
       }
     } catch {
       logger.error("Failed to load school analytics: \(error.localizedDescription)")
+      reportSectionLoadFailure()
     }
   }
 
@@ -435,8 +474,8 @@ final class AnalyticsDashboardViewModel {
       }
     } catch {
       logger.error("Failed to load performance correlation: \(error.localizedDescription)")
+      reportSectionLoadFailure()
     }
   }
-
 
 }

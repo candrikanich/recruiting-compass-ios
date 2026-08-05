@@ -27,20 +27,13 @@ struct DocumentDetailView: View {
     ))
   }
 
-  private var showErrorAlert: Binding<Bool> {
-    Binding(
-      get: { viewModel.error != nil && viewModel.document != nil },
-      set: { if !$0 { viewModel.clearError() } }
-    )
-  }
-
   var body: some View {
     Group {
       if viewModel.isLoading && viewModel.document == nil {
         loadingState
       } else if viewModel.document == nil && viewModel.isNotFound {
         notFoundView
-      } else if let errorMessage = viewModel.error, viewModel.document == nil {
+      } else if let errorMessage = viewModel.errorMessage, viewModel.document == nil {
         errorState(message: errorMessage)
       } else if let document = viewModel.document {
         documentContent(document)
@@ -77,11 +70,11 @@ struct DocumentDetailView: View {
     } message: {
       Text("Restore this version? The current version will be marked as archived.")
     }
-    .alert("Error", isPresented: showErrorAlert) {
+    .alert("Error", isPresented: $viewModel.isShowingErrorAlert) {
       Button("Retry") { Task { await viewModel.loadDocument() } }
       Button("OK", role: .cancel) { viewModel.clearError() }
     } message: {
-      Text(viewModel.error ?? "")
+      Text(viewModel.errorMessage ?? "")
     }
     .onChange(of: viewModel.shouldDismiss) { _, shouldDismiss in
       if shouldDismiss { dismiss() }
@@ -101,7 +94,7 @@ struct DocumentDetailView: View {
           }
         }
       case .failure:
-        viewModel.error = "Failed to select file."
+        viewModel.errorMessage = "Failed to select file."
       }
     }
   }
@@ -136,7 +129,7 @@ struct DocumentDetailView: View {
       Text("This document may have been deleted or moved.")
     } actions: {
       Button("Return to Documents") { dismiss() }
-        .accessibilityLabel("Return to Documents")
+        .accessibilityLabel(String(localized: "Return to Documents"))
     }
   }
 
@@ -151,7 +144,7 @@ struct DocumentDetailView: View {
         .multilineTextAlignment(.center)
       Button("Retry") { Task { await viewModel.loadDocument() } }
         .buttonStyle(.bordered)
-        .accessibilityLabel("Retry loading document")
+        .accessibilityLabel(String(localized: "Retry loading document"))
     }
     .padding()
   }
@@ -162,7 +155,7 @@ struct DocumentDetailView: View {
   private var toolbarContent: some ToolbarContent {
     ToolbarItem(placement: .cancellationAction) {
       Button("Back to Documents") { dismiss() }
-        .accessibilityLabel("Back to Documents")
+        .accessibilityLabel(String(localized: "Back to Documents"))
     }
   }
 
@@ -171,7 +164,7 @@ struct DocumentDetailView: View {
   private func documentContent(_ document: Document) -> some View {
     ScrollView {
       VStack(alignment: .leading, spacing: Layout.cardSpacing) {
-        if let error = viewModel.error {
+        if let error = viewModel.errorMessage {
           DocumentErrorBanner(error: error) {
             Task { await viewModel.loadDocument() }
           }

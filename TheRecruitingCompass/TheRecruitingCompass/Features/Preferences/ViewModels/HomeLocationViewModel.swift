@@ -14,6 +14,7 @@ final class HomeLocationViewModel {
   var isLoading = false
   var errorMessage: String?
   var saveStatus: SaveStatus = .idle
+  var hapticSuccessTrigger = 0
 
   var isRequestingLocation = false
 
@@ -44,6 +45,7 @@ final class HomeLocationViewModel {
     logger.debug("Loading home location")
     isLoading = true
     errorMessage = nil
+    defer { isLoading = false }
 
     do {
       if let savedLocation: HomeLocation = try await preferenceService.fetchPreferences(category: .location) {
@@ -53,11 +55,9 @@ final class HomeLocationViewModel {
         location = .default
         logger.info("No existing location, using defaults")
       }
-      isLoading = false
     } catch {
       logger.error("Failed to load location: \(error.localizedDescription)")
       errorMessage = "Failed to load location settings. Please try again."
-      isLoading = false
     }
   }
 
@@ -69,7 +69,7 @@ final class HomeLocationViewModel {
     do {
       _ = try await preferenceService.savePreferences(category: .location, data: location)
       saveStatus = .saved
-      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      hapticSuccessTrigger += 1
       logger.info("Home location saved")
       pendingStatusReset?.cancel()
       pendingStatusReset = Task {
@@ -124,7 +124,7 @@ final class HomeLocationViewModel {
       }
 
       scheduleAutoSave()
-      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      hapticSuccessTrigger += 1
       logger.info("Current location applied: \(clLocation.coordinate.latitude), \(clLocation.coordinate.longitude)")
     } catch {
       logger.error("Current location failed: \(error.localizedDescription)")
@@ -252,16 +252,5 @@ final class HomeLocationViewModel {
       return "No coordinates set"
     }
     return String(format: "%.6f, %.6f", lat, lon)
-  }
-}
-
-enum GeocodingError: LocalizedError {
-  case noResults
-
-  var errorDescription: String? {
-    switch self {
-    case .noResults:
-      return "Could not find coordinates for this address"
-    }
   }
 }

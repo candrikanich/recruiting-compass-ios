@@ -7,7 +7,7 @@ enum OnboardingConstants {
   static let commonSports: [String] = [
     "Baseball", "Basketball", "Football", "Soccer", "Volleyball", "Softball",
     "Track & Field", "Swimming", "Cross Country", "Tennis", "Golf", "Lacrosse",
-    "Field Hockey", "Ice Hockey", "Wrestling", "Rowing", "Water Polo",
+    "Field Hockey", "Ice Hockey", "Wrestling", "Rowing", "Water Polo"
   ]
 
   static let sportPositions: [String: [String]] = [
@@ -28,7 +28,7 @@ enum OnboardingConstants {
     "Wrestling": ["Wrestler"],
     "Rowing": ["Rower"],
     "Water Polo": ["Field Player", "Goalkeeper"],
-    "Other": ["Other"],
+    "Other": ["Other"]
   ]
 
   static var graduationYears: [Int] {

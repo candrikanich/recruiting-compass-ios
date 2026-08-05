@@ -76,7 +76,7 @@ struct InteractionEmptyState: View {
             .background(Color.blue)
             .clipShape(.rect(cornerRadius: 8))
         }
-        .accessibilityLabel("Clear all filters")
+        .accessibilityLabel(String(localized: "Clear all filters"))
       } else if !isFilteredEmpty && !noCoaches, let onAddInteraction {
         Button(action: onAddInteraction) {
           Text("Log Your First Interaction")
@@ -85,7 +85,7 @@ struct InteractionEmptyState: View {
         }
         .buttonStyle(.borderedProminent)
         .padding(.horizontal)
-        .accessibilityLabel("Log your first interaction")
+        .accessibilityLabel(String(localized: "Log your first interaction"))
         .accessibilityHint("Opens the form to log an interaction")
       }
     }

@@ -4,8 +4,10 @@
 PROJECT_DIR := TheRecruitingCompass
 SCHEME := TheRecruitingCompass
 DESTINATION ?= platform=iOS Simulator,name=iPhone 17
+WEB_DIR := ../recruiting-compass-web
 
-.PHONY: build test test-ui test-unit test-unit-fast clean setup-hooks lint
+.PHONY: build test test-ui test-unit test-unit-fast clean setup-hooks lint \
+	e2e-precheck e2e-seed e2e-local
 
 build:
 	cd $(PROJECT_DIR) && xcodebuild build \
@@ -59,6 +61,27 @@ setup-hooks:
 # Run SwiftLint across the whole codebase
 lint:
 	swiftlint lint --config .swiftlint.yml --quiet
+
+# ---------------------------------------------------------------------------
+# E2E (UI tests) — always against the LOCAL Supabase stack, never production.
+# Requires Docker + `supabase start` in the web repo. See docs/E2E_TESTING.md.
+# ---------------------------------------------------------------------------
+
+# Fail fast with a helpful message if the local Supabase stack is not running.
+e2e-precheck:
+	@cd $(WEB_DIR) && supabase status >/dev/null 2>&1 || { \
+		echo "Local Supabase stack is not running."; \
+		echo "Start it:  cd $(WEB_DIR) && supabase start   (Docker required)"; \
+		exit 1; }
+	@echo "Local Supabase stack is up."
+
+# Seed the local stack with the canonical fixture (parent + linked player).
+e2e-seed: e2e-precheck
+	cd scripts && npm run seed:e2e
+
+# Full local E2E: ensure stack is up -> seed -> run UI tests against local Supabase.
+e2e-local: e2e-seed
+	./scripts/run_ui_tests_resilient.sh "$(PROJECT_DIR)" "$(SCHEME)" "$(DESTINATION)"
 
 # Override DESTINATION if needed (e.g. simulator resource limits):
 #   make test-unit DESTINATION='platform=iOS Simulator,name=iPhone 16e'

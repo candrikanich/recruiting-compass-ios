@@ -38,6 +38,21 @@ if (!SERVICE_ROLE_KEY) {
   process.exit(1);
 }
 
+// Safety guard: this script DELETES data (cleanupTestData). A developer's shell
+// may export SUPABASE_URL pointing at PRODUCTION (used for normal app runs), and
+// the .env.test loader above only sets vars that are not already present — so an
+// ambient prod URL would win. Refuse any non-local target unless explicitly
+// overridden, so we can never wipe prod by accident.
+const isLocalStack = /(?:127\.0\.0\.1|localhost)/.test(SUPABASE_URL);
+if (!isLocalStack && process.env.ALLOW_REMOTE_SEED !== "1") {
+  console.error(
+    `Refusing to seed a non-local Supabase target (${SUPABASE_URL}).\n` +
+      "This script deletes data. Point SUPABASE_URL at the local stack " +
+      "(http://127.0.0.1:54321) or set ALLOW_REMOTE_SEED=1 to override."
+  );
+  process.exit(1);
+}
+
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
@@ -48,6 +63,10 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 const TEST_EMAIL = "test@example.com";
 const TEST_PASSWORD = "TestPassword1";
 const TEST_DISPLAY_NAME = "Test Parent";
+
+const PLAYER_EMAIL = "player@example.com";
+const PLAYER_PASSWORD = "TestPassword1";
+const PLAYER_DISPLAY_NAME = "Test Player";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -102,22 +121,129 @@ async function resolveTestUser(): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// Step 2 — Patch users table row (created by DB trigger on auth.users insert)
+// Step 2 — Upsert public.users row.
+// Prod creates this via an auth.users trigger; the local stack has no such
+// trigger, so we insert it explicitly (id, email, role are NOT NULL). Upsert
+// on the primary key keeps reseeding idempotent.
 // ---------------------------------------------------------------------------
-async function patchUsersRow(userId: string): Promise<void> {
+async function patchUsersRow(
+  userId: string,
+  email: string,
+  fullName: string,
+  role: "parent" | "player"
+): Promise<void> {
   const { error } = await supabase
     .from("users")
-    .update({
-      role: "parent",
-      onboarding_completed: true,
-    })
-    .eq("id", userId);
+    .upsert(
+      {
+        id: userId,
+        email,
+        full_name: fullName,
+        role,
+        onboarding_completed: true,
+      },
+      { onConflict: "id" }
+    );
 
   if (error) {
-    console.warn("Could not update users row (trigger may not have fired yet):", error.message);
-  } else {
-    console.log("Patched users row: role=parent, onboarding_completed=true");
+    console.error("Failed to upsert users row:", error.message);
+    process.exit(1);
   }
+  console.log(`Upserted users row: role=${role}, onboarding_completed=true`);
+}
+
+// ---------------------------------------------------------------------------
+// Player (athlete) — auth user + public.users + family membership + profile.
+// The app is athlete-centric: a parent's dashboard renders the SELECTED
+// athlete's data. Offers/events/metrics/documents are owned by the athlete's
+// user_id (with family_unit_id for RLS visibility); schools/coaches/
+// interactions are family-owned. Without a linked player the parent sees the
+// onboarding banner and tabs are gated.
+// ---------------------------------------------------------------------------
+async function resolvePlayerUser(): Promise<string> {
+  const { data: createData, error: createError } =
+    await supabase.auth.admin.createUser({
+      email: PLAYER_EMAIL,
+      password: PLAYER_PASSWORD,
+      email_confirm: true,
+      user_metadata: { display_name: PLAYER_DISPLAY_NAME, role: "player" },
+    });
+
+  if (!createError) {
+    console.log("Created player user:", PLAYER_EMAIL);
+    return createData.user.id;
+  }
+
+  const msg = createError.message ?? "";
+  if (
+    msg.includes("already been registered") ||
+    msg.includes("already registered")
+  ) {
+    const { data: listData } = await supabase.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    const existing = listData?.users?.find((u) => u.email === PLAYER_EMAIL);
+    if (!existing) {
+      console.error("Player exists but could not be found via listUsers");
+      process.exit(1);
+    }
+    console.log("Player user already exists:", PLAYER_EMAIL);
+    return existing.id;
+  }
+
+  console.error("Failed to create player user:", createError.message);
+  process.exit(1);
+}
+
+async function linkPlayerToFamily(
+  playerUserId: string,
+  familyUnitId: string
+): Promise<void> {
+  // family_members membership (role must be 'player' per check constraint)
+  const { data: existingMember } = await supabase
+    .from("family_members")
+    .select("id")
+    .eq("user_id", playerUserId)
+    .eq("family_unit_id", familyUnitId)
+    .maybeSingle();
+
+  if (!existingMember) {
+    const { error: memberError } = await supabase
+      .from("family_members")
+      .insert({
+        family_unit_id: familyUnitId,
+        user_id: playerUserId,
+        role: "player",
+      });
+    if (memberError) {
+      console.error("Failed to add player family_member:", memberError.message);
+      process.exit(1);
+    }
+  }
+
+  // player_profiles (NOT NULL: user_id, family_unit_id, hash_slug)
+  const { data: existingProfile } = await supabase
+    .from("player_profiles")
+    .select("id")
+    .eq("user_id", playerUserId)
+    .maybeSingle();
+
+  if (!existingProfile) {
+    const { error: profileError } = await supabase
+      .from("player_profiles")
+      .insert({
+        user_id: playerUserId,
+        family_unit_id: familyUnitId,
+        hash_slug: "e2epl1",
+      });
+    if (profileError) {
+      console.error("Failed to create player_profile:", profileError.message);
+      process.exit(1);
+    }
+  }
+
+  console.log("Linked player to family:", familyUnitId);
 }
 
 // ---------------------------------------------------------------------------
@@ -161,6 +287,30 @@ async function resolveFamily(userId: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
+// Cleanup — delete prior E2E rows so reseeding is idempotent.
+// None of these tables have a unique constraint matching a natural key, so
+// upsert(onConflict) fails ("no unique constraint matching ON CONFLICT").
+// Delete-then-insert is constraint-independent. Order: children -> parents
+// to satisfy foreign keys. Family unit/membership is preserved (resolveFamily
+// is idempotent and the app's onboarding gate depends on it).
+// ---------------------------------------------------------------------------
+async function cleanupTestData(
+  parentUserId: string,
+  playerUserId: string
+): Promise<void> {
+  // Athlete-owned data lives under the player's user_id.
+  await supabase.from("interactions").delete().eq("logged_by", parentUserId);
+  await supabase.from("performance_metrics").delete().eq("user_id", playerUserId);
+  await supabase.from("offers").delete().eq("user_id", playerUserId);
+  await supabase.from("documents").delete().eq("user_id", playerUserId);
+  await supabase.from("notifications").delete().eq("user_id", parentUserId);
+  await supabase.from("events").delete().eq("user_id", playerUserId);
+  await supabase.from("coaches").delete().eq("user_id", parentUserId);
+  await supabase.from("schools").delete().eq("user_id", parentUserId);
+  console.log("Cleaned prior E2E data for parent + player");
+}
+
+// ---------------------------------------------------------------------------
 // Step 4 — Schools (2: one normal + one duplicate-name for duplicate detection)
 // ---------------------------------------------------------------------------
 async function seedSchools(
@@ -195,23 +345,15 @@ async function seedSchools(
 
   const { data, error } = await supabase
     .from("schools")
-    .upsert(schools, { onConflict: "user_id,name,family_unit_id", ignoreDuplicates: true })
+    .insert(schools)
     .select("id, name");
 
   if (error) {
     console.warn("Schools seed error:", error.message);
   }
 
-  // Fetch the seeded schools regardless (upsert with ignoreDuplicates returns partial results)
-  const { data: fetched } = await supabase
-    .from("schools")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("family_unit_id", familyUnitId)
-    .limit(2);
-
-  const ids = (fetched ?? []).map((r) => r.id as string);
-  console.log(`Schools: ${ids.length} found/created`);
+  const ids = (data ?? []).map((r) => r.id as string);
+  console.log(`Schools: ${ids.length} created`);
   return [ids[0] ?? "", ids[1] ?? ids[0] ?? ""];
 }
 
@@ -228,7 +370,7 @@ async function seedCoaches(
       school_id: schoolId,
       user_id: userId,
       family_unit_id: familyUnitId,
-      role: "Head Coach",
+      role: "head",
       first_name: "John",
       last_name: "Smith",
       email: "jsmith@duke.edu",
@@ -237,7 +379,7 @@ async function seedCoaches(
       school_id: schoolId,
       user_id: userId,
       family_unit_id: familyUnitId,
-      role: "Recruiting Coordinator",
+      role: "recruiting",
       first_name: "Mike",
       last_name: "Johnson",
       email: "mjohnson@duke.edu",
@@ -246,7 +388,7 @@ async function seedCoaches(
 
   const { data, error } = await supabase
     .from("coaches")
-    .upsert(coaches, { onConflict: "school_id,user_id,email", ignoreDuplicates: true })
+    .insert(coaches)
     .select("id");
 
   if (error) {
@@ -303,10 +445,7 @@ async function seedInteractions(
 
   const { error } = await supabase
     .from("interactions")
-    .upsert(interactions, {
-      onConflict: "family_unit_id,type,direction,occurred_at",
-      ignoreDuplicates: true,
-    });
+    .insert(interactions);
 
   if (error) {
     console.warn("Interactions seed error:", error.message);
@@ -320,10 +459,12 @@ async function seedInteractions(
 // ---------------------------------------------------------------------------
 async function seedEvents(
   schoolId: string,
-  userId: string
+  userId: string,
+  familyUnitId: string
 ): Promise<string> {
   const event = {
     user_id: userId,
+    family_unit_id: familyUnitId,
     name: "E2E Test — Summer Showcase",
     type: "showcase",
     school_id: schoolId,
@@ -337,21 +478,14 @@ async function seedEvents(
 
   const { data, error } = await supabase
     .from("events")
-    .upsert([event], { onConflict: "user_id,name,start_date", ignoreDuplicates: true })
+    .insert([event])
     .select("id");
 
   if (error) {
     console.warn("Events seed error:", error.message);
   }
 
-  const { data: fetched } = await supabase
-    .from("events")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("name", "E2E Test — Summer Showcase")
-    .maybeSingle();
-
-  const eventId = fetched?.id as string ?? "";
+  const eventId = (data?.[0]?.id as string) ?? "";
   console.log("Event seeded:", eventId);
   return eventId;
 }
@@ -361,11 +495,13 @@ async function seedEvents(
 // ---------------------------------------------------------------------------
 async function seedOffers(
   schoolId: string,
-  userId: string
+  userId: string,
+  familyUnitId: string
 ): Promise<void> {
   const offers = [
     {
       user_id: userId,
+      family_unit_id: familyUnitId,
       school_id: schoolId,
       offer_type: "partial",
       scholarship_percentage: 50,
@@ -375,6 +511,7 @@ async function seedOffers(
     },
     {
       user_id: userId,
+      family_unit_id: familyUnitId,
       school_id: schoolId,
       offer_type: "scholarship",
       scholarship_percentage: 75,
@@ -386,10 +523,7 @@ async function seedOffers(
 
   const { error } = await supabase
     .from("offers")
-    .upsert(offers, {
-      onConflict: "user_id,school_id,offer_date,offer_type",
-      ignoreDuplicates: true,
-    });
+    .insert(offers);
 
   if (error) {
     console.warn("Offers seed error:", error.message);
@@ -403,11 +537,13 @@ async function seedOffers(
 // ---------------------------------------------------------------------------
 async function seedPerformanceMetrics(
   userId: string,
-  eventId: string
+  eventId: string,
+  familyUnitId: string
 ): Promise<void> {
   const metrics = [
     {
       user_id: userId,
+      family_unit_id: familyUnitId,
       metric_type: "velocity",
       value: 88.5,
       unit: "mph",
@@ -418,6 +554,7 @@ async function seedPerformanceMetrics(
     },
     {
       user_id: userId,
+      family_unit_id: familyUnitId,
       metric_type: "exit_velo",
       value: 95.0,
       unit: "mph",
@@ -428,6 +565,7 @@ async function seedPerformanceMetrics(
     },
     {
       user_id: userId,
+      family_unit_id: familyUnitId,
       metric_type: "sixty_time",
       value: 6.8,
       unit: "sec",
@@ -440,10 +578,7 @@ async function seedPerformanceMetrics(
 
   const { error } = await supabase
     .from("performance_metrics")
-    .upsert(metrics, {
-      onConflict: "user_id,metric_type,recorded_date",
-      ignoreDuplicates: true,
-    });
+    .insert(metrics);
 
   if (error) {
     console.warn("Performance metrics seed error:", error.message);
@@ -453,20 +588,9 @@ async function seedPerformanceMetrics(
 }
 
 // ---------------------------------------------------------------------------
-// Step 10 — Notifications (2, different types) — no natural unique key,
-//            so skip if count >= 2 for this user already
+// Step 10 — Notifications (2, different types)
 // ---------------------------------------------------------------------------
 async function seedNotifications(userId: string): Promise<void> {
-  const { count } = await supabase
-    .from("notifications")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId);
-
-  if ((count ?? 0) >= 2) {
-    console.log(`Notifications: ${count} already exist — skipping`);
-    return;
-  }
-
   const notifications = [
     {
       user_id: userId,
@@ -498,9 +622,13 @@ async function seedNotifications(userId: string): Promise<void> {
 // ---------------------------------------------------------------------------
 // Step 11 — Documents (1 document)
 // ---------------------------------------------------------------------------
-async function seedDocuments(userId: string): Promise<void> {
+async function seedDocuments(
+  userId: string,
+  familyUnitId: string
+): Promise<void> {
   const document = {
     user_id: userId,
+    family_unit_id: familyUnitId,
     type: "resume",
     title: "E2E Test — Athlete Resume",
     description: "Sample athlete resume for E2E testing",
@@ -514,10 +642,7 @@ async function seedDocuments(userId: string): Promise<void> {
 
   const { error } = await supabase
     .from("documents")
-    .upsert([document], {
-      onConflict: "user_id,title,version",
-      ignoreDuplicates: true,
-    });
+    .insert([document]);
 
   if (error) {
     console.warn("Documents seed error:", error.message);
@@ -533,17 +658,27 @@ async function main(): Promise<void> {
   console.log("Seeding iOS E2E test data...");
 
   const userId = await resolveTestUser();
-  await patchUsersRow(userId);
+  await patchUsersRow(userId, TEST_EMAIL, TEST_DISPLAY_NAME, "parent");
   const familyUnitId = await resolveFamily(userId);
 
+  const playerUserId = await resolvePlayerUser();
+  await patchUsersRow(playerUserId, PLAYER_EMAIL, PLAYER_DISPLAY_NAME, "player");
+  await linkPlayerToFamily(playerUserId, familyUnitId);
+
+  await cleanupTestData(userId, playerUserId);
+
+  // Family-owned (visible to all members via family_unit_id): schools, coaches,
+  // interactions are created under the parent. Athlete-owned (filtered by the
+  // selected athlete's user_id): offers, events, metrics, documents go to the
+  // player, with family_unit_id set so the parent's session can read them.
   const [schoolId] = await seedSchools(userId, familyUnitId);
   const coachId = await seedCoaches(schoolId, userId, familyUnitId);
   await seedInteractions(schoolId, coachId, userId, familyUnitId);
-  const eventId = await seedEvents(schoolId, userId);
-  await seedOffers(schoolId, userId);
-  await seedPerformanceMetrics(userId, eventId);
+  const eventId = await seedEvents(schoolId, playerUserId, familyUnitId);
+  await seedOffers(schoolId, playerUserId, familyUnitId);
+  await seedPerformanceMetrics(playerUserId, eventId, familyUnitId);
   await seedNotifications(userId);
-  await seedDocuments(userId);
+  await seedDocuments(playerUserId, familyUnitId);
 
   console.log("iOS E2E seed complete.");
 }

@@ -15,13 +15,6 @@ struct CoachesListView: View {
     self._externalNavigationPath = navigationPath ?? .constant(NavigationPath())
   }
 
-  private var isShowingDeleteError: Binding<Bool> {
-    Binding(
-      get: { viewModel.deleteErrorMessage != nil },
-      set: { if !$0 { viewModel.deleteErrorMessage = nil } }
-    )
-  }
-
   var body: some View {
     NavigationStack(path: $navigationPath) {
       contentView
@@ -51,8 +44,7 @@ struct CoachesListView: View {
           Text("Are you sure you want to delete \(coach.fullName)? This action cannot be undone.")
         }
       }
-      .alert("Error", isPresented: isShowingDeleteError) {
-        Button("OK") { viewModel.deleteErrorMessage = nil }
+      .alert("Error", isPresented: $viewModel.isShowingDeleteError) {
       } message: {
         if let error = viewModel.deleteErrorMessage {
           Text(error)
@@ -67,7 +59,7 @@ struct CoachesListView: View {
               .frame(minWidth: 44, minHeight: 44)
               .contentShape(Rectangle())
           }
-          .accessibilityLabel("Add new coach")
+          .accessibilityLabel(String(localized: "Add new coach"))
           .accessibilityHint("Opens form to add a new coach")
         }
       }
@@ -95,7 +87,11 @@ struct CoachesListView: View {
 
   @ViewBuilder
   private var contentView: some View {
-    Group {
+    VStack(spacing: 0) {
+      if let loadError = viewModel.errorMessage {
+        ErrorBanner(message: loadError) { viewModel.errorMessage = nil }
+          .padding(.horizontal)
+      }
       if viewModel.isLoading && viewModel.allCoaches.isEmpty {
         LoadingStateView(message: "Loading coaches...")
       } else if viewModel.allSchools.isEmpty {
@@ -131,6 +127,13 @@ struct CoachesListView: View {
     case .add:
       AddCoachView(
         coachesService: viewModel.coachesService,
+        familyUnitId: familyManager.familyUnitId ?? "",
+        userId: authManager.user?.id ?? "",
+        navigationPath: $navigationPath
+      )
+    case .addSchool:
+      AddSchoolView(
+        schoolsService: SchoolsServiceImpl(supabaseManager: .shared),
         familyUnitId: familyManager.familyUnitId ?? "",
         userId: authManager.user?.id ?? "",
         navigationPath: $navigationPath
@@ -201,7 +204,8 @@ struct CoachesListView: View {
           schoolInitials: viewModel.schoolInitials(for: coach.schoolId),
           onQuickCommunication: { context in
             quickCommunicationContext = context
-          }
+          },
+          onDelete: { viewModel.confirmDelete(coach) }
         )
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
@@ -215,13 +219,6 @@ struct CoachesListView: View {
           )
         } label: {
           Label("Quick Communication", systemImage: "envelope.badge")
-        }
-      }
-      .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-        Button(role: .destructive) {
-          viewModel.confirmDelete(coach)
-        } label: {
-          Label("Delete", systemImage: "trash")
         }
       }
     }

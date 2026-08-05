@@ -18,6 +18,16 @@ enum TaskDeadlineUrgency: String, Codable, CaseIterable, Sendable {
     }
   }
 
+  /// Shape cue paired with `color`; nil for the states that render no label.
+  var iconName: String? {
+    switch self {
+    case .critical: return "exclamationmark.octagon.fill"
+    case .urgent: return "exclamationmark.triangle.fill"
+    case .upcoming: return "clock.fill"
+    case .future, .none: return nil
+    }
+  }
+
   var color: Color {
     switch self {
     case .critical: return .errorRed
@@ -28,7 +38,7 @@ enum TaskDeadlineUrgency: String, Codable, CaseIterable, Sendable {
   }
 
   /// Computes urgency from a deadline date and optional reference date (default: today).
-  static func from(deadline: Date?, reference: Date = Date()) -> TaskDeadlineUrgency {
+  static func from(deadline: Date?, reference: Date = .now) -> TaskDeadlineUrgency {
     guard let deadline else { return .none }
     let calendar = Calendar.current
     let startRef = calendar.startOfDay(for: reference)

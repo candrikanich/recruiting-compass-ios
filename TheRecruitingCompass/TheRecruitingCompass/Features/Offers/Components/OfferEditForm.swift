@@ -43,7 +43,7 @@ struct OfferEditForm: View {
         }
       }
       .pickerStyle(.menu)
-      .accessibilityLabel("Offer type")
+      .accessibilityLabel(String(localized: "Offer type"))
     }
   }
 
@@ -60,7 +60,7 @@ struct OfferEditForm: View {
         }
       }
       .pickerStyle(.menu)
-      .accessibilityLabel("Offer status")
+      .accessibilityLabel(String(localized: "Offer status"))
     }
   }
 
@@ -78,7 +78,7 @@ struct OfferEditForm: View {
       )
       .keyboardType(.numberPad)
       .textFieldStyle(.roundedBorder)
-      .accessibilityLabel("Scholarship amount in dollars")
+      .accessibilityLabel(String(localized: "Scholarship amount in dollars"))
     }
   }
 
@@ -96,7 +96,7 @@ struct OfferEditForm: View {
       )
       .keyboardType(.numberPad)
       .textFieldStyle(.roundedBorder)
-      .accessibilityLabel("Scholarship percentage, enter 0 to 100")
+      .accessibilityLabel(String(localized: "Scholarship percentage, enter 0 to 100"))
     }
   }
 
@@ -113,7 +113,7 @@ struct OfferEditForm: View {
         displayedComponents: .date
       )
       .labelsHidden()
-      .accessibilityLabel("Offer date")
+      .accessibilityLabel(String(localized: "Offer date"))
     }
   }
 
@@ -143,12 +143,12 @@ struct OfferEditForm: View {
           .foregroundStyle(.red)
         } else {
           Button("Set Deadline") {
-            editData.deadlineDate = Date()
+            editData.deadlineDate = .now
           }
           .font(.subheadline)
         }
       }
-      .accessibilityLabel("Deadline date")
+      .accessibilityLabel(String(localized: "Deadline date"))
     }
   }
 
@@ -162,7 +162,7 @@ struct OfferEditForm: View {
       TextField("Conditions or requirements...", text: $editData.conditions, axis: .vertical)
         .lineLimit(3...6)
         .textFieldStyle(.roundedBorder)
-        .accessibilityLabel("Offer conditions")
+        .accessibilityLabel(String(localized: "Offer conditions"))
     }
   }
 
@@ -176,7 +176,7 @@ struct OfferEditForm: View {
       TextField("Additional notes...", text: $editData.notes, axis: .vertical)
         .lineLimit(3...6)
         .textFieldStyle(.roundedBorder)
-        .accessibilityLabel("Offer notes")
+        .accessibilityLabel(String(localized: "Offer notes"))
     }
   }
 
@@ -202,7 +202,7 @@ struct OfferEditForm: View {
       .buttonStyle(.borderedProminent)
       .disabled(isUpdating)
       .accessibilityIdentifier("offer-save-button")
-      .accessibilityLabel("Save Changes")
+      .accessibilityLabel(String(localized: "Save Changes"))
       .accessibilityHint("Saves edits to this offer")
 
       Button {
@@ -216,7 +216,7 @@ struct OfferEditForm: View {
       .buttonStyle(.bordered)
       .disabled(isUpdating)
       .accessibilityIdentifier("offer-cancel-button")
-      .accessibilityLabel("Cancel")
+      .accessibilityLabel(String(localized: "Cancel"))
       .accessibilityHint("Discards changes and closes edit mode")
     }
   }

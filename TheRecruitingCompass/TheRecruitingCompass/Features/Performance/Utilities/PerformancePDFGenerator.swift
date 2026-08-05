@@ -4,7 +4,6 @@ import PDFKit
 
 final class PerformancePDFGenerator {
 
-
   private let pageWidth: CGFloat = 612.0  // 8.5 inches at 72 DPI
   private let pageHeight: CGFloat = 792.0 // 11 inches at 72 DPI
   private let margin: CGFloat = 50.0
@@ -76,13 +75,13 @@ final class PerformancePDFGenerator {
       .foregroundColor: UIColor.darkGray
     ]
 
-    if let userName = userName {
+    if let userName {
       let text = "Athlete: \(userName)"
       text.draw(at: CGPoint(x: margin, y: currentY), withAttributes: attributes)
       currentY += 20
     }
 
-    let dateText = "Generated: \(dateFormatter.string(from: Date()))"
+    let dateText = "Generated: \(dateFormatter.string(from: .now))"
     dateText.draw(at: CGPoint(x: margin, y: currentY), withAttributes: attributes)
 
     return currentY + 30

@@ -10,13 +10,6 @@ struct SchoolDetailView: View {
   @Environment(\.openURL) private var openURL
   @State private var navigationDestination: NavigationDestination?
 
-  private var showErrorAlert: Binding<Bool> {
-    Binding(
-      get: { viewModel.errorMessage != nil && !viewModel.showDeleteConfirmation },
-      set: { if !$0 { viewModel.errorMessage = nil; viewModel.activeAlert = nil } }
-    )
-  }
-
   init(schoolId: String) {
     self.schoolId = schoolId
     _viewModel = State(initialValue: SchoolDetailViewModel(schoolId: schoolId))
@@ -54,7 +47,7 @@ struct SchoolDetailView: View {
             Image(systemName: (viewModel.school?.isFavorite ?? false) ? "star.fill" : "star")
               .foregroundStyle((viewModel.school?.isFavorite ?? false) ? .yellow : .gray)
           }
-          .accessibilityLabel((viewModel.school?.isFavorite ?? false) ? "Unfavorite" : "Favorite")
+          .accessibilityLabel((viewModel.school?.isFavorite ?? false) ? String(localized: "Unfavorite") : String(localized: "Favorite"))
           .accessibilityIdentifier("favorite-button")
         }
       }
@@ -66,8 +59,7 @@ struct SchoolDetailView: View {
     .task {
       await viewModel.loadSchool()
     }
-    .alert("Error", isPresented: showErrorAlert, presenting: viewModel.errorMessage) { _ in
-      Button("OK") { viewModel.errorMessage = nil; viewModel.activeAlert = nil }
+    .alert("Error", isPresented: $viewModel.isShowingErrorAlert, presenting: viewModel.errorMessage) { _ in
     } message: { message in
       Text(message)
     }
@@ -144,7 +136,7 @@ struct SchoolDetailView: View {
             Spacer()
             ProgressView("Calculating fit score...")
               .padding()
-              .accessibilityLabel("Calculating fit score, please wait")
+              .accessibilityLabel(String(localized: "Calculating fit score, please wait"))
             Spacer()
           }
         }
@@ -241,11 +233,12 @@ struct SchoolDetailView: View {
         .accessibilityIdentifier("delete-school-button")
         .padding(.horizontal)
         .padding(.bottom, 24)
-        .accessibilityLabel("Delete school")
+        .accessibilityLabel(String(localized: "Delete school"))
         .accessibilityHint("Permanently remove this school and all related data")
       }
       .padding(.vertical)
     }
+    .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
     .sheet(isPresented: $viewModel.isEditingCoachingPhilosophy) {
       SchoolCoachingPhilosophySheet(
         philosophy: $viewModel.editedCoachingPhilosophy,

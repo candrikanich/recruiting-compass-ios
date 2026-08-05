@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUI
 
 struct Interaction: Identifiable, Codable, Sendable {
   let id: String
@@ -24,7 +23,7 @@ struct Interaction: Identifiable, Codable, Sendable {
     }
     if let date = Self.iso8601Formatter.date(from: createdAt) { return date }
     if let date = Self.iso8601FallbackFormatter.date(from: createdAt) { return date }
-    return Date()
+    return .now
   }
 
   var hasAttachments: Bool {
@@ -66,145 +65,5 @@ struct Interaction: Identifiable, Codable, Sendable {
     case familyUnitId = "family_unit_id"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
-  }
-}
-
-enum InteractionType: String, Codable, CaseIterable, Sendable {
-  case email
-  case phoneCall = "phone_call"
-  case text
-  case inPersonVisit = "in_person_visit"
-  case virtualMeeting = "virtual_meeting"
-  case camp
-  case showcase
-  case tweet
-  case directMessage = "dm"
-  case unknown
-
-  init(from decoder: Decoder) throws {
-    let container = try decoder.singleValueContainer()
-    let rawValue = try container.decode(String.self)
-    self = InteractionType(rawValue: rawValue) ?? .unknown
-  }
-
-  var displayName: String {
-    switch self {
-    case .email: return "Email"
-    case .phoneCall: return "Phone Call"
-    case .text: return "Text"
-    case .inPersonVisit: return "In-Person Visit"
-    case .virtualMeeting: return "Virtual Meeting"
-    case .camp: return "Camp"
-    case .showcase: return "Showcase"
-    case .tweet: return "Tweet"
-    case .directMessage: return "Direct Message"
-    case .unknown: return "Unknown"
-    }
-  }
-
-  var iconName: String {
-    switch self {
-    case .email: return "envelope.fill"
-    case .phoneCall: return "phone.fill"
-    case .text: return "bubble.left.fill"
-    case .inPersonVisit: return "person.2.fill"
-    case .virtualMeeting: return "video.fill"
-    case .camp: return "figure.run"
-    case .showcase: return "star.fill"
-    case .tweet: return "bubble.left.fill"
-    case .directMessage: return "paperplane.fill"
-    case .unknown: return "questionmark.circle.fill"
-    }
-  }
-
-  var tintColor: Color {
-    switch self {
-    case .email:          return Color.Brand.blue600
-    case .phoneCall:      return Color.Brand.purple600
-    case .text:           return Color.Brand.emerald600
-    case .inPersonVisit:  return Color.Brand.orange600
-    case .virtualMeeting: return Color.Brand.indigo600
-    case .camp:           return Color.Brand.orange600
-    case .showcase:       return Color.Brand.purple500
-    case .tweet:          return Color.Brand.blue500
-    case .directMessage:  return Color.Brand.purple600
-    case .unknown:        return Color.Brand.slate500
-    }
-  }
-
-  /// All interaction type badges use blue to maintain visual consistency.
-  /// Distinguishing 10 interaction types by color would create excessive visual noise;
-  /// the type label and icon carry semantic meaning instead.
-  var badgeColor: BadgeColor { .blue }
-}
-
-enum Direction: String, Codable, CaseIterable, Sendable {
-  case outbound
-  case inbound
-
-  var displayName: String {
-    switch self {
-    case .outbound: return "Outbound"
-    case .inbound: return "Inbound"
-    }
-  }
-
-  var subtitle: String {
-    switch self {
-    case .outbound: return "We initiated"
-    case .inbound: return "They initiated"
-    }
-  }
-
-  var badgeColor: BadgeColor {
-    switch self {
-    case .outbound: return .purple
-    case .inbound: return .emerald
-    }
-  }
-}
-
-enum Sentiment: String, Codable, CaseIterable, Sendable {
-  case veryPositive = "very_positive"
-  case positive
-  case neutral
-  case negative
-
-  var displayName: String {
-    switch self {
-    case .veryPositive: return "Very Positive"
-    case .positive: return "Positive"
-    case .neutral: return "Neutral"
-    case .negative: return "Negative"
-    }
-  }
-
-  var badgeColor: BadgeColor {
-    switch self {
-    case .veryPositive: return .emerald
-    case .positive:     return .blue
-    case .neutral:      return .slate
-    case .negative:     return .red
-    }
-  }
-
-  var isPositive: Bool {
-    self == .veryPositive || self == .positive
-  }
-}
-
-enum TimePeriod: Int, CaseIterable, Sendable {
-  case last7Days = 7
-  case last14Days = 14
-  case last30Days = 30
-  case last90Days = 90
-
-  var displayName: String {
-    switch self {
-    case .last7Days: return "Last 7 days"
-    case .last14Days: return "Last 14 days"
-    case .last30Days: return "Last 30 days"
-    case .last90Days: return "Last 90 days"
-    }
   }
 }

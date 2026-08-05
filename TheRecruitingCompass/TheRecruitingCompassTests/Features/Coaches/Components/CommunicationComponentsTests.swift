@@ -149,46 +149,6 @@ final class CommunicationComponentsTests: XCTestCase {
     XCTAssertNil(url)
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   // MARK: - Integration Tests
 
   func testIntegration_communicationButtonWithAllTypes() {
@@ -202,8 +162,6 @@ final class CommunicationComponentsTests: XCTestCase {
     XCTAssertNotNil(twitterButton)
     XCTAssertNotNil(instagramButton)
   }
-
-
 
   // MARK: - Edge Cases
 
@@ -230,6 +188,5 @@ final class CommunicationComponentsTests: XCTestCase {
     let url = CommunicationType.email(longEmail).url(for: longEmail)
     XCTAssertNotNil(url)
   }
-
 
 }

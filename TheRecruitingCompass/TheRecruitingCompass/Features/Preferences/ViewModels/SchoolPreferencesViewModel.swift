@@ -13,6 +13,7 @@ final class SchoolPreferencesViewModel {
   var isLoading = false
   var errorMessage: String?
   var saveStatus: SaveStatus = .idle
+  var hapticSuccessTrigger = 0
   var showingAddSheet = false
   var showingTemplateWarning = false
   var pendingTemplate: String?
@@ -36,6 +37,7 @@ final class SchoolPreferencesViewModel {
     logger.debug("Loading school preferences")
     isLoading = true
     errorMessage = nil
+    defer { isLoading = false }
 
     do {
       if let savedPreferences: SchoolPreferences = try await preferenceService.fetchPreferences(category: .school) {
@@ -45,11 +47,9 @@ final class SchoolPreferencesViewModel {
         preferences = .default
         logger.info("No existing preferences, using defaults")
       }
-      isLoading = false
     } catch {
       logger.error("Failed to load preferences: \(error.localizedDescription)")
       errorMessage = "Failed to load preferences. Please try again."
-      isLoading = false
     }
   }
 
@@ -57,12 +57,12 @@ final class SchoolPreferencesViewModel {
     logger.debug("Saving school preferences")
     saveStatus = .saving
     errorMessage = nil
-    preferences.lastUpdated = Date().ISO8601Format()
+    preferences.lastUpdated = Date.now.ISO8601Format()
 
     do {
       _ = try await preferenceService.savePreferences(category: .school, data: preferences)
       saveStatus = .saved
-      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      hapticSuccessTrigger += 1
       logger.info("School preferences saved")
       pendingStatusReset?.cancel()
       pendingStatusReset = Task {

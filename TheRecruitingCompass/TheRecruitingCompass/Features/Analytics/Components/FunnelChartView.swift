@@ -37,9 +37,9 @@ struct FunnelChartView: View {
 
   private var funnelAccessibilityLabel: String {
     if stages.isEmpty {
-      return "\(title) funnel chart. No pipeline data."
+      return String(localized: "\(title) funnel chart. No pipeline data.")
     }
-    return "\(title) funnel chart with \(stages.count) stages"
+    return String(localized: "\(title) funnel chart with \(stages.count) stages")
   }
 
   private var funnelAccessibilityValue: String {

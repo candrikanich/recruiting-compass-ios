@@ -5,12 +5,23 @@ struct SuggestionsListView: View {
 
   var body: some View {
     List {
-      if viewModel.suggestions.isEmpty {
-        ContentUnavailableView(
-          "No Action Items",
-          systemImage: "checkmark.circle",
-          description: Text("You're all caught up! Check back later for new suggestions.")
-        )
+      if let errorMessage = viewModel.suggestionsError {
+        ErrorBanner(message: errorMessage) { viewModel.suggestionsError = nil }
+          .listRowSeparator(.hidden)
+      }
+
+      if viewModel.isSuggestionsLoading && viewModel.suggestions.isEmpty {
+        LoadingStateView(message: "Loading action items…")
+          .frame(maxWidth: .infinity)
+          .listRowSeparator(.hidden)
+      } else if viewModel.suggestions.isEmpty {
+        if viewModel.suggestionsError == nil {
+          ContentUnavailableView(
+            "No Action Items",
+            systemImage: "checkmark.circle",
+            description: Text("You're all caught up! Check back later for new suggestions.")
+          )
+        }
       } else {
         ForEach(viewModel.suggestions) { suggestion in
           ActionItemCard(
@@ -35,6 +46,9 @@ struct SuggestionsListView: View {
     .listStyle(.plain)
     .navigationTitle("Action Items")
     .navigationBarTitleDisplayMode(.large)
+    .refreshable {
+      await viewModel.fetchSuggestions()
+    }
   }
 }
 

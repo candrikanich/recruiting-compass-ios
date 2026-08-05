@@ -60,7 +60,7 @@ struct CoachFormView: View {
       .onChange(of: formState.role) { _, newRole in
         onValidateRole(newRole)
       }
-      .accessibilityLabel("Role, required")
+      .accessibilityLabel(String(localized: "Role, required"))
       .accessibilityHint("Select the coach's role")
     }
   }
@@ -87,7 +87,7 @@ struct CoachFormView: View {
         .onSubmit {
           onValidateField(\.firstName, formState.firstName)
         }
-        .accessibilityLabel("First name, required")
+        .accessibilityLabel(String(localized: "First name, required"))
         .accessibilityHint("Enter coach's first name")
     }
   }
@@ -104,7 +104,7 @@ struct CoachFormView: View {
         .onSubmit {
           onValidateField(\.lastName, formState.lastName)
         }
-        .accessibilityLabel("Last name, required")
+        .accessibilityLabel(String(localized: "Last name, required"))
         .accessibilityHint("Enter coach's last name")
     }
   }
@@ -124,7 +124,7 @@ struct CoachFormView: View {
         .onSubmit {
           onValidateField(\.email, formState.email)
         }
-        .accessibilityLabel("Email, optional")
+        .accessibilityLabel(String(localized: "Email, optional"))
         .accessibilityHint("Enter coach's email address")
     }
   }
@@ -143,7 +143,7 @@ struct CoachFormView: View {
             onValidateField(\.phone, formState.phone)
           }
         }
-        .accessibilityLabel("Phone, optional")
+        .accessibilityLabel(String(localized: "Phone, optional"))
         .accessibilityHint("Enter coach's phone number")
     }
   }
@@ -169,7 +169,7 @@ struct CoachFormView: View {
         .onSubmit {
           onValidateField(\.twitterHandle, formState.twitterHandle)
         }
-        .accessibilityLabel("Twitter handle, optional")
+        .accessibilityLabel(String(localized: "Twitter handle, optional"))
         .accessibilityHint("Enter coach's Twitter handle")
     }
   }
@@ -185,7 +185,7 @@ struct CoachFormView: View {
         .onSubmit {
           onValidateField(\.instagramHandle, formState.instagramHandle)
         }
-        .accessibilityLabel("Instagram handle, optional")
+        .accessibilityLabel(String(localized: "Instagram handle, optional"))
         .accessibilityHint("Enter coach's Instagram handle")
     }
   }
@@ -218,7 +218,7 @@ struct CoachFormView: View {
           RoundedRectangle(cornerRadius: 8)
             .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
         }
-        .accessibilityLabel("Notes, optional")
+        .accessibilityLabel(String(localized: "Notes, optional"))
         .accessibilityHint("Enter any notes about this coach")
 
         HStack {

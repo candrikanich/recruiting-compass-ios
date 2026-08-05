@@ -7,7 +7,7 @@ struct ContactRow: View {
   let value: String
   let type: CommunicationType
   /// When set, row is a button that runs this action instead of opening the type's URL (e.g. to show Quick Communication).
-  var customAction: (() -> Void)? = nil
+  var customAction: (() -> Void)?
 
   var body: some View {
     Group {
@@ -15,17 +15,17 @@ struct ContactRow: View {
         Button(action: customAction) {
           rowContent(showLinkIndicator: true)
         }
-        .accessibilityLabel("\(label): \(value)")
+        .accessibilityLabel(String(localized: "\(label): \(value)"))
         .accessibilityHint("Opens Quick Communication with templates")
       } else if let url = type.url(for: value) {
         Link(destination: url) {
           rowContent(showLinkIndicator: true)
         }
-        .accessibilityLabel("\(label): \(value)")
+        .accessibilityLabel(String(localized: "\(label): \(value)"))
         .accessibilityHint("Opens \(type.appName)")
       } else {
         rowContent(showLinkIndicator: false)
-          .accessibilityLabel("\(label): \(value)")
+          .accessibilityLabel(String(localized: "\(label): \(value)"))
       }
     }
   }

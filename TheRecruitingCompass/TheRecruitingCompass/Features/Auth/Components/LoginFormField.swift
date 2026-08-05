@@ -23,15 +23,11 @@ struct LoginFormField: View {
   let isSecure: Bool
   let keyboardType: UIKeyboardType
   /// Semantic type for autofill/suggestions. Set to fix truncated or overlapping iOS suggestion bubbles.
-  var textContentType: UITextContentType? = nil
+  var textContentType: UITextContentType?
   /// Optional identifier for UI testing (E2E).
-  var accessibilityIdentifier: String? = nil
+  var accessibilityIdentifier: String?
   let onBlur: () -> Void
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var iconWidth: CGFloat {
-    sizeCategory >= .extraLarge ? 22 : 20
-  }
+  @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 20
 
   @ViewBuilder
   private var inputField: some View {
@@ -71,28 +67,28 @@ struct LoginFormField: View {
       .background(Color(uiColor: .secondarySystemBackground))
       .overlay(
         RoundedRectangle(cornerRadius: 8)
-          .strokeBorder(error != nil ? Color.red : Color(uiColor: .separator), lineWidth: 1)
+          .stroke(error != nil ? Color.red : Color(uiColor: .separator), lineWidth: 1)
       )
       .clipShape(.rect(cornerRadius: 8))
 
-      if let error = error {
+      if let error {
         Text(error)
           .font(.caption)
           .foregroundStyle(Color.errorRed)
-          .accessibilityLabel("Error: \(error)")
+          .accessibilityLabel(String(localized: "Error: \(error)"))
       }
     }
-    .accessibilityElement(children: .combine)
+    .accessibilityElement(children: .contain)
     .accessibilityIdentifier(accessibilityIdentifier ?? label)
   }
 }
 
 #Preview {
   @Previewable @State var text = ""
-  @Previewable @State var error: String? = nil
+  @Previewable @State var error: String?
 
   return LoginFormField(
-    label: "Email",
+    label: String(localized: "Email"),
     placeholder: "your.email@example.com",
     icon: "envelope",
     text: $text,

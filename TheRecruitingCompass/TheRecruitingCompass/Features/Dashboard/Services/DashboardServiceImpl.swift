@@ -47,7 +47,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       let schoolCount = schoolList.count
       let interactionCount = interactionList.count
       let totalOffers = offerList.count
-      let acceptedOffers = offerList.filter { $0.status == .accepted }.count
+      let acceptedOffers = offerList.count(where: { $0.status == .accepted })
       let acceptanceRate = totalOffers > 0 ? Double(acceptedOffers) / Double(totalOffers) : nil
 
       logger.info("fetchStats SUCCESS - schools: \(schoolCount), coaches: \(coachCount), interactions: \(interactionCount), offers: \(totalOffers)")
@@ -104,7 +104,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
         .eq("logged_by", value: userId)
         .order("created_at", ascending: false)
 
-      if let limit = limit {
+      if let limit {
         query = query.limit(limit)
       }
 
@@ -131,7 +131,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
         .eq("user_id", value: userId)
         .order("start_date", ascending: true)
 
-      if let limit = limit {
+      if let limit {
         query = query.limit(limit)
       }
 
@@ -147,7 +147,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
         .eq("user_id", value: userId)
         .order("recorded_date", ascending: false)
 
-      if let limit = limit {
+      if let limit {
         query = query.limit(limit)
       }
 
@@ -300,17 +300,5 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
 
     return csrfCookie.value
-  }
-}
-
-enum SuggestionsAPIError: Error, LocalizedError, Equatable {
-  case forbidden
-  case unauthorized
-
-  var errorDescription: String? {
-    switch self {
-    case .forbidden: return "You can't dismiss or complete action items when viewing another athlete's dashboard."
-    case .unauthorized: return "Session expired. Pull to refresh or sign in again."
-    }
   }
 }

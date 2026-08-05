@@ -38,7 +38,7 @@ final class TimelineStatusService: TimelineStatusManaging, Sendable {
     requiredTaskIds: [String]
   ) -> Double {
     guard !requiredTaskIds.isEmpty else { return 0 }
-    let completed = requiredTaskIds.filter { completedTaskIds.contains($0) }.count
+    let completed = requiredTaskIds.count(where: { completedTaskIds.contains($0) })
     return (Double(completed) / Double(requiredTaskIds.count)) * 100
   }
 

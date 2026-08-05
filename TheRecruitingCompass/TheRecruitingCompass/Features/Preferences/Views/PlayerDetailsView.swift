@@ -43,10 +43,11 @@ struct PlayerDetailsView: View {
         .overlay {
             PreferenceLoadingOverlay(
                 isLoading: viewModel.isLoading,
-                message: "Loading details..."
+                message: String(localized: "Loading details...")
             )
         }
         .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
+        .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
         .alert("Delete Profile Photo?", isPresented: $viewModel.showDeletePhotoConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {

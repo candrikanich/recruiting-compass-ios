@@ -129,6 +129,8 @@ final class InteractionDetailViewModel {
           logger.warning("School not found: \(schoolId)")
         }
       } catch {
+        // intentionally silent: the interaction itself loaded fine; the view
+        // already handles school == nil by simply not showing a school row.
         logger.error("Failed to load school: \(error.localizedDescription)")
       }
     }
@@ -142,6 +144,8 @@ final class InteractionDetailViewModel {
           logger.warning("Coach not found: \(coachId)")
         }
       } catch {
+        // intentionally silent: same as school above — coach == nil already
+        // has a defined, non-error presentation.
         logger.error("Failed to load coach: \(error.localizedDescription)")
       }
     }
@@ -151,6 +155,8 @@ final class InteractionDetailViewModel {
       do {
         loggedByName = try await interactionsService.fetchLoggedByUserName(userId: loggedBy)
       } catch {
+        // intentionally silent: falls back to a labeled placeholder rather
+        // than blocking display of the interaction the user came here to see.
         logger.error("Failed to load user name: \(error.localizedDescription)")
         loggedByName = "Unknown"
       }
@@ -180,6 +186,17 @@ final class InteractionDetailViewModel {
     return ([header] + rows).joined(separator: "\n")
   }
 
+  /// Invalidates InteractionsListViewModel's cached list (Phase 3.6) for both
+  /// possible fetch scopes (family/athlete) since this VM doesn't know which
+  /// one is currently cached for the viewing user.
+  private func invalidateInteractionsListCache() async {
+    let cacheToUse = InMemoryCache.shared
+    await cacheToUse.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+    if let userId = authManager.user?.id {
+      await cacheToUse.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: userId))
+    }
+  }
+
   // MARK: - Delete
 
   func deleteInteraction() async -> Bool {
@@ -203,20 +220,17 @@ final class InteractionDetailViewModel {
       // Try simple delete first
       try await interactionsService.deleteInteraction(id: interaction.id)
       logger.info("Deleted interaction: \(interaction.id)")
+      await invalidateInteractionsListCache()
       return true
     } catch {
-      let message = error.localizedDescription
-
       // Check for FK constraint error → try cascade
-      if message.contains("Cannot delete") ||
-         message.contains("violates foreign key constraint") ||
-         message.contains("still referenced") {
-
+      if isForeignKeyViolation(error) {
         logger.debug("Simple delete failed, trying cascade delete")
 
         do {
           let result = try await interactionsService.cascadeDeleteInteraction(id: interaction.id)
           logger.info("Cascade deleted interaction: \(interaction.id), notes: \(result.deletedNotes)")
+          await invalidateInteractionsListCache()
           return true
         } catch {
           logger.error("Cascade delete failed: \(error.localizedDescription)")
@@ -238,6 +252,5 @@ final class InteractionDetailViewModel {
   func cancelDelete() {
     showDeleteConfirmation = false
   }
-
 
 }

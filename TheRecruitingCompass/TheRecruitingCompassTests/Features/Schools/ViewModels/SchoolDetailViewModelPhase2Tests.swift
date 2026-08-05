@@ -106,12 +106,6 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
     XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
-
-
-
-
-
-
   // MARK: - Pros & Cons Tests
 
   func testAddPro_Success_ClearsInput() async {

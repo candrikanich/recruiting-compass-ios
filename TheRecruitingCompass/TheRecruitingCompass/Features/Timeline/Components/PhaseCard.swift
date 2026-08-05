@@ -11,7 +11,7 @@ struct PhaseCard: View {
   let onLockedTaskTap: (TaskWithStatus) -> Void
 
   private var completedCount: Int {
-    tasks.filter { $0.effectiveStatus == .completed }.count
+    tasks.count(where: { $0.effectiveStatus == .completed })
   }
 
   private var totalCount: Int { tasks.count }
@@ -93,7 +93,7 @@ struct PhaseCard: View {
     )
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(phase.displayLabel), \(completedCount) of \(totalCount) tasks complete")
+    .accessibilityLabel(String(localized: "\(phase.displayLabel), \(completedCount) of \(totalCount) tasks complete"))
     .accessibilityHint("Double tap to expand or collapse")
   }
 

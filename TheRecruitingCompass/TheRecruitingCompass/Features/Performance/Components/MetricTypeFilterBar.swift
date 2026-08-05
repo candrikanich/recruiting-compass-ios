@@ -21,14 +21,14 @@ struct MetricTypeFilterBar: View {
               .clipShape(Capsule())
           }
           .frame(minHeight: 44)
-          .accessibilityLabel("\(type.displayName) filter")
+          .accessibilityLabel(String(localized: "\(type.displayName) filter"))
           .accessibilityHint(isSelected(type) ? "Currently selected" : "Double tap to filter by \(type.displayName)")
           .accessibilityAddTraits(isSelected(type) ? .isSelected : [])
         }
       }
       .padding(.horizontal, 16)
       .accessibilityElement(children: .contain)
-      .accessibilityLabel("Metric type filters")
+      .accessibilityLabel(String(localized: "Metric type filters"))
     }
     .scrollIndicators(.hidden)
   }

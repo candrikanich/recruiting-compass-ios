@@ -26,8 +26,6 @@ final class AboutViewModel {
         self.feedbackService = feedbackService ?? FeedbackServiceImpl()
     }
 
-  
-
     var isFormValid: Bool {
         !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
@@ -40,6 +38,7 @@ final class AboutViewModel {
         guard isFormValid, !isLoading else { return }
         isLoading = true
         submissionState = .idle
+        defer { isLoading = false }
 
         do {
             try await feedbackService.submit(subject: selectedSubject, message: message)
@@ -52,7 +51,5 @@ final class AboutViewModel {
             logger.error("Feedback submission failed: \(error.localizedDescription)")
             submissionState = .failure(error.localizedDescription)
         }
-
-        isLoading = false
     }
 }

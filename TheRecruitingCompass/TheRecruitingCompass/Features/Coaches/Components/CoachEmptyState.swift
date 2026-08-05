@@ -70,7 +70,7 @@ struct CoachEmptyState: View {
         .frame(minHeight: 44)
         .background(Color.accentBlue)
         .clipShape(Capsule())
-        .accessibilityLabel("Clear filters")
+        .accessibilityLabel(String(localized: "Clear filters"))
         .accessibilityHint("Removes all active filters and search text")
       } else if !isFilteredEmpty && !noSchools, let onAddCoach {
         Button(action: onAddCoach) {
@@ -80,7 +80,7 @@ struct CoachEmptyState: View {
         }
         .buttonStyle(.borderedProminent)
         .padding(.horizontal)
-        .accessibilityLabel("Add your first coach")
+        .accessibilityLabel(String(localized: "Add your first coach"))
         .accessibilityHint("Opens the form to add a coach")
       }
     }

@@ -16,9 +16,9 @@ struct AddSchoolSheet: View {
       Form {
         Section {
           TextField("School Name", text: $schoolName)
-            .accessibilityLabel("School name, required")
+            .accessibilityLabel(String(localized: "School name, required"))
           TextField("Location (optional)", text: $schoolLocation)
-            .accessibilityLabel("School location, optional")
+            .accessibilityLabel(String(localized: "School location, optional"))
         } header: {
           Text("School Details")
         }
@@ -33,7 +33,7 @@ struct AddSchoolSheet: View {
         ToolbarItem(placement: .confirmationAction) {
           if isSaving {
             ProgressView()
-              .accessibilityLabel("Saving school")
+              .accessibilityLabel(String(localized: "Saving school"))
           } else {
             Button("Save School", action: onSave)
               .disabled(isSaveDisabled)

@@ -23,10 +23,10 @@ struct DocumentUploadSheet: View {
               Text("\(type.typeEmoji) \(type.label)").tag(type as DocumentType?)
             }
           }
-          .accessibilityLabel("Document type")
+          .accessibilityLabel(String(localized: "Document type"))
 
           TextField("Title", text: $viewModel.uploadTitle, prompt: Text("e.g., Freshman Highlights 2025"))
-            .accessibilityLabel("Document title")
+            .accessibilityLabel(String(localized: "Document title"))
         } header: {
           Text("Required")
         }
@@ -38,15 +38,15 @@ struct DocumentUploadSheet: View {
               Text(school.name).tag(school.id as String?)
             }
           }
-          .accessibilityLabel("School")
+          .accessibilityLabel(String(localized: "School"))
 
           Stepper("Version: \(viewModel.uploadVersion)", value: $viewModel.uploadVersion, in: 1...100)
-            .accessibilityLabel("Version number")
+            .accessibilityLabel(String(localized: "Version number"))
             .accessibilityValue("\(viewModel.uploadVersion)")
 
           TextField("Description", text: $viewModel.uploadDescription, axis: .vertical)
             .lineLimit(3...6)
-            .accessibilityLabel("Description")
+            .accessibilityLabel(String(localized: "Description"))
         } header: {
           Text("Optional")
         }
@@ -62,7 +62,7 @@ struct DocumentUploadSheet: View {
             }
           }
           .disabled(viewModel.uploadType == nil)
-          .accessibilityLabel("Select file")
+          .accessibilityLabel(String(localized: "Select file"))
           .accessibilityHint(viewModel.uploadType == nil ? "Select document type first" : "Opens file picker")
 
           if let type = viewModel.uploadType {

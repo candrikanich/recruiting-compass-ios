@@ -11,7 +11,7 @@ struct BasicsTab: View {
     ]
 
     private var currentYear: Int {
-        Calendar.current.component(.year, from: Date())
+        Calendar.current.component(.year, from: .now)
     }
 
     var body: some View {
@@ -31,10 +31,13 @@ struct BasicsTab: View {
         .onChange(of: selectedPhotoItem) { _, newItem in
             guard let newItem else { return }
             Task {
-                if let data = try? await newItem.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    await viewModel.uploadProfilePhoto(image)
-                }
+                guard let data = try? await newItem.loadTransferable(type: Data.self) else { return }
+                // Decode off the main actor: UIImage(data:) on a full-resolution
+                // photo can be expensive enough to visibly stall the UI.
+                guard let image = await Task.detached(priority: .userInitiated, operation: {
+                    UIImage(data: data)
+                }).value else { return }
+                await viewModel.uploadProfilePhoto(image)
             }
         }
     }
@@ -61,7 +64,7 @@ struct BasicsTab: View {
             PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                 Label("Choose Photo", systemImage: "photo")
             }
-            .accessibilityLabel("Choose profile photo")
+            .accessibilityLabel(String(localized: "Choose profile photo"))
             .disabled(viewModel.isReadOnly)
 
             if viewModel.profileImage != nil {

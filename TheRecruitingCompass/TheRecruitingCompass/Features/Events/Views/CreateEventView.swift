@@ -17,13 +17,6 @@ struct CreateEventView: View {
 
   // MARK: - Computed
 
-  private var isShowingError: Binding<Bool> {
-    Binding(
-      get: { viewModel.error != nil },
-      set: { if !$0 { viewModel.error = nil } }
-    )
-  }
-
   private var hasUnsavedChanges: Bool {
     viewModel.formData.type != nil ||
     !viewModel.formData.name.isEmpty ||
@@ -58,13 +51,12 @@ struct CreateEventView: View {
         } label: {
           Label("Back", systemImage: "chevron.left")
         }
-        .accessibilityLabel("Back to events list")
+        .accessibilityLabel(String(localized: "Back to events list"))
       }
     }
-    .alert("Error", isPresented: isShowingError) {
-      Button("OK", role: .cancel) { }
+    .alert("Error", isPresented: $viewModel.isShowingError) {
     } message: {
-      Text(viewModel.error ?? "")
+      Text(viewModel.errorMessage ?? "")
     }
     .alert("Discard Changes?", isPresented: $showDiscardAlert) {
       Button("Discard", role: .destructive) { dismiss() }
@@ -112,14 +104,14 @@ struct CreateEventView: View {
           Text(type.displayName).tag(EventType?.some(type))
         }
       }
-      .accessibilityLabel("Event type, required field")
+      .accessibilityLabel(String(localized: "Event type, required field"))
       .accessibilityIdentifier("event-type-picker")
       .overlay(alignment: .bottom) {
         validationMessage(for: "type")
       }
 
       TextField("Event Name *", text: $viewModel.formData.name)
-        .accessibilityLabel("Event name, required field")
+        .accessibilityLabel(String(localized: "Event name, required field"))
         .accessibilityIdentifier("event-name-field")
         .overlay(alignment: .bottom) {
           validationMessage(for: "name")
@@ -133,21 +125,21 @@ struct CreateEventView: View {
           Text(source.displayName).tag(EventSource?.some(source))
         }
       }
-      .accessibilityLabel("Event source, optional")
+      .accessibilityLabel(String(localized: "Event source, optional"))
 
       HStack {
         Text("$")
           .accessibilityHidden(true)
         TextField("Cost", text: $viewModel.formData.cost)
           .keyboardType(.decimalPad)
-          .accessibilityLabel("Event cost in dollars")
+          .accessibilityLabel(String(localized: "Event cost in dollars"))
       }
 
       TextField("Event URL", text: $viewModel.formData.url)
         .keyboardType(.URL)
         .textInputAutocapitalization(.never)
         .autocorrectionDisabled()
-        .accessibilityLabel("Event URL")
+        .accessibilityLabel(String(localized: "Event URL"))
         .overlay(alignment: .bottom) {
           validationMessage(for: "url")
         }
@@ -172,7 +164,7 @@ struct CreateEventView: View {
       Text("Other (not listed)").tag("other")
       Text("+ Add new school").tag("add_new")
     }
-    .accessibilityLabel("School, optional")
+    .accessibilityLabel(String(localized: "School, optional"))
     .accessibilityIdentifier("school-picker")
   }
 
@@ -184,12 +176,12 @@ struct CreateEventView: View {
       DatePicker(
         "Start Date *",
         selection: Binding(
-          get: { viewModel.formData.startDate ?? Date() },
+          get: { viewModel.formData.startDate ?? .now },
           set: { viewModel.handleStartDateChanged($0) }
         ),
         displayedComponents: .date
       )
-      .accessibilityLabel("Start date, required field")
+      .accessibilityLabel(String(localized: "Start date, required field"))
       .accessibilityIdentifier("start-date-picker")
       .overlay(alignment: .bottom) {
         validationMessage(for: "startDate")
@@ -197,14 +189,14 @@ struct CreateEventView: View {
 
       Toggle("Start Time", isOn: Binding(
         get: { viewModel.formData.startTime != nil },
-        set: { viewModel.formData.startTime = $0 ? Date() : nil }
+        set: { viewModel.formData.startTime = $0 ? .now : nil }
       ))
 
       if viewModel.formData.startTime != nil {
         DatePicker(
           "",
           selection: Binding(
-            get: { viewModel.formData.startTime ?? Date() },
+            get: { viewModel.formData.startTime ?? .now },
             set: { viewModel.handleStartTimeChanged($0) }
           ),
           displayedComponents: .hourAndMinute
@@ -215,14 +207,14 @@ struct CreateEventView: View {
 
       Toggle("End Date", isOn: Binding(
         get: { viewModel.formData.endDate != nil },
-        set: { viewModel.formData.endDate = $0 ? (viewModel.formData.startDate ?? Date()) : nil }
+        set: { viewModel.formData.endDate = $0 ? (viewModel.formData.startDate ?? .now) : nil }
       ))
 
       if viewModel.formData.endDate != nil {
         DatePicker(
           "",
           selection: Binding(
-            get: { viewModel.formData.endDate ?? Date() },
+            get: { viewModel.formData.endDate ?? .now },
             set: { viewModel.formData.endDate = $0 }
           ),
           displayedComponents: .date
@@ -236,14 +228,14 @@ struct CreateEventView: View {
 
       Toggle("End Time", isOn: Binding(
         get: { viewModel.formData.endTime != nil },
-        set: { viewModel.formData.endTime = $0 ? Date() : nil }
+        set: { viewModel.formData.endTime = $0 ? .now : nil }
       ))
 
       if viewModel.formData.endTime != nil {
         DatePicker(
           "",
           selection: Binding(
-            get: { viewModel.formData.endTime ?? Date() },
+            get: { viewModel.formData.endTime ?? .now },
             set: { viewModel.formData.endTime = $0 }
           ),
           displayedComponents: .hourAndMinute
@@ -254,14 +246,14 @@ struct CreateEventView: View {
 
       Toggle("Check-in Time", isOn: Binding(
         get: { viewModel.formData.checkinTime != nil },
-        set: { viewModel.formData.checkinTime = $0 ? Date() : nil }
+        set: { viewModel.formData.checkinTime = $0 ? .now : nil }
       ))
 
       if viewModel.formData.checkinTime != nil {
         DatePicker(
           "",
           selection: Binding(
-            get: { viewModel.formData.checkinTime ?? Date() },
+            get: { viewModel.formData.checkinTime ?? .now },
             set: { viewModel.formData.checkinTime = $0 }
           ),
           displayedComponents: .hourAndMinute
@@ -280,14 +272,14 @@ struct CreateEventView: View {
   private var locationSection: some View {
     Section {
       TextField("Street Address", text: $viewModel.formData.address)
-        .accessibilityLabel("Street address")
+        .accessibilityLabel(String(localized: "Street address"))
 
       TextField("City", text: $viewModel.formData.city)
-        .accessibilityLabel("City")
+        .accessibilityLabel(String(localized: "City"))
 
       TextField("State (e.g., GA)", text: $viewModel.formData.state)
         .textInputAutocapitalization(.characters)
-        .accessibilityLabel("State abbreviation")
+        .accessibilityLabel(String(localized: "State abbreviation"))
         .onChange(of: viewModel.formData.state) {
           if viewModel.formData.state.count > 2 {
             viewModel.formData.state = String(viewModel.formData.state.prefix(2))
@@ -302,7 +294,7 @@ struct CreateEventView: View {
         } label: {
           Label("Get Directions", systemImage: "map")
         }
-        .accessibilityLabel("Get directions to event location")
+        .accessibilityLabel(String(localized: "Get directions to event location"))
         .accessibilityHint("Opens Apple Maps with the event address")
         .accessibilityIdentifier("get-directions-button")
       }
@@ -318,13 +310,13 @@ struct CreateEventView: View {
     Section {
       TextField("Event Description", text: $viewModel.formData.description, axis: .vertical)
         .lineLimit(3...6)
-        .accessibilityLabel("Event description")
+        .accessibilityLabel(String(localized: "Event description"))
 
       Toggle("Registered", isOn: $viewModel.formData.registered)
-        .accessibilityLabel("Registered for event")
+        .accessibilityLabel(String(localized: "Registered for event"))
 
       Toggle("Attended", isOn: $viewModel.formData.attended)
-        .accessibilityLabel("Attended event")
+        .accessibilityLabel(String(localized: "Attended event"))
     } header: {
       Text("Event Details")
     }
@@ -337,7 +329,7 @@ struct CreateEventView: View {
     Section {
       TextField("Performance Notes", text: $viewModel.formData.performanceNotes, axis: .vertical)
         .lineLimit(4...8)
-        .accessibilityLabel("Performance notes")
+        .accessibilityLabel(String(localized: "Performance notes"))
     } header: {
       Text("Performance")
     }
@@ -372,7 +364,7 @@ struct CreateEventView: View {
       }
       .buttonStyle(.borderedProminent)
       .disabled(viewModel.isSubmitDisabled)
-      .accessibilityLabel(viewModel.isSaving ? "Creating event" : "Create event")
+      .accessibilityLabel(viewModel.isSaving ? String(localized: "Creating event") : String(localized: "Create event"))
       .accessibilityHint(viewModel.isSubmitDisabled ? "Complete all required fields first" : "Saves the event")
       .accessibilityIdentifier("create-event-button")
 
@@ -388,7 +380,7 @@ struct CreateEventView: View {
           .padding(.vertical, 12)
       }
       .buttonStyle(.bordered)
-      .accessibilityLabel("Cancel and return to events")
+      .accessibilityLabel(String(localized: "Cancel and return to events"))
       .accessibilityIdentifier("cancel-button")
     }
     .padding()
@@ -403,7 +395,7 @@ struct CreateEventView: View {
       Text(message)
         .font(.caption)
         .foregroundStyle(.red)
-        .accessibilityLabel("Error: \(message)")
+        .accessibilityLabel(String(localized: "Error: \(message)"))
     }
   }
 }

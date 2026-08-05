@@ -31,7 +31,7 @@ struct DivisionRecommendationBanner: View {
           .stroke(Color.blue.opacity(0.3), lineWidth: 1)
       }
       .accessibilityElement(children: .combine)
-      .accessibilityLabel("Division recommendation: \(recommendation.message)")
+      .accessibilityLabel(String(localized: "Division recommendation: \(recommendation.message)"))
     }
   }
 }

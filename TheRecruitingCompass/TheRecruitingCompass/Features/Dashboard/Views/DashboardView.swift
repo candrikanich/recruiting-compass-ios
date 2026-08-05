@@ -8,7 +8,7 @@ struct DashboardView: View {
   @Environment(AuthManager.self) private var authManager
 
   init(viewModel: DashboardViewModel? = nil) {
-    if let viewModel = viewModel {
+    if let viewModel {
       _viewModel = State(initialValue: viewModel)
     }
   }
@@ -217,7 +217,7 @@ private struct DashboardLogoutButton: View {
             .font(.callout.weight(.semibold))
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 48)
+        .frame(minHeight: 48)
         .foregroundStyle(.white)
         .background(Color.errorRed)
         .clipShape(.rect(cornerRadius: 8))
@@ -226,7 +226,7 @@ private struct DashboardLogoutButton: View {
     .disabled(isLoggingOut)
     .opacity(isLoggingOut ? 0.6 : 1)
     .padding(.horizontal)
-    .accessibilityLabel(isLoggingOut ? "Logging out" : "Log out")
+    .accessibilityLabel(isLoggingOut ? String(localized: "Logging out") : String(localized: "Log out"))
     .accessibilityHint("Ends your session and returns to the login screen")
   }
 }

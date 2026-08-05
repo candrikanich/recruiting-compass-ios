@@ -34,7 +34,7 @@ struct BreakdownRow: View {
         }
       }
       .frame(height: 6)
-      .accessibilityLabel("\(label): \(Int(score)) out of 100")
+      .accessibilityLabel(String(localized: "\(label): \(Int(score)) out of 100"))
       .accessibilityValue("\(Int(score)) percent")
     }
   }

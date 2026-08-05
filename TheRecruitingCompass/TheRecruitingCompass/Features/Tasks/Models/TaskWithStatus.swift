@@ -32,6 +32,15 @@ struct TaskWithStatus: Identifiable, Sendable {
     }
   }
 
+  /// Shape cue paired with `statusColor` so status reads without color.
+  var statusIconName: String {
+    switch athleteTask?.status {
+    case .completed: return "checkmark.circle.fill"
+    case .inProgress: return "clock.fill"
+    case .notStarted, .none: return "circle"
+    }
+  }
+
   /// Resolved status for display (defaults to notStarted when no athlete task).
   var effectiveStatus: TaskStatus {
     athleteTask?.status ?? .notStarted

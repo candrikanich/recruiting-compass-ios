@@ -25,7 +25,7 @@ struct QuickTaskWidget: View {
           }
           .font(.caption)
           .foregroundStyle(Color.accentBlue)
-          .accessibilityLabel("Clear completed tasks")
+          .accessibilityLabel(String(localized: "Clear completed tasks"))
           .accessibilityHint("Removes all completed tasks from the list")
         }
       }
@@ -36,7 +36,7 @@ struct QuickTaskWidget: View {
         TextField("Add a task...", text: $newTaskText)
           .focused($isInputFocused)
           .textFieldStyle(RoundedBorderTextFieldStyle())
-          .accessibilityLabel("New task")
+          .accessibilityLabel(String(localized: "New task"))
           .accessibilityHint("Type a task name, then press return or tap Add")
           .onSubmit {
             submitTask()
@@ -46,7 +46,7 @@ struct QuickTaskWidget: View {
           submitTask()
         }
         .disabled(newTaskText.isEmpty)
-        .accessibilityLabel("Add task")
+        .accessibilityLabel(String(localized: "Add task"))
         .accessibilityHint("Adds the typed task to your list")
       }
 

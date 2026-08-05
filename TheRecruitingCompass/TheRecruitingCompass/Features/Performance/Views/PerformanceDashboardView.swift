@@ -9,7 +9,12 @@ struct PerformanceDashboardView: View {
   }
 
   var body: some View {
-    Group {
+    VStack(spacing: 0) {
+      if let errorMessage = viewModel.errorMessage {
+        ErrorBanner(message: errorMessage) { viewModel.errorMessage = nil }
+          .padding(.horizontal)
+      }
+
       if viewModel.isLoading && viewModel.metrics.isEmpty {
         loadingView
       } else if viewModel.metrics.isEmpty {
@@ -27,7 +32,7 @@ struct PerformanceDashboardView: View {
           } label: {
             Label("Export", systemImage: "square.and.arrow.up")
           }
-          .accessibilityLabel("Export metrics")
+          .accessibilityLabel(String(localized: "Export metrics"))
         }
 
         Button {
@@ -35,7 +40,7 @@ struct PerformanceDashboardView: View {
         } label: {
           Label("Log Metric", systemImage: "plus")
         }
-        .accessibilityLabel("Log new metric")
+        .accessibilityLabel(String(localized: "Log new metric"))
       }
     }
     .sheet(isPresented: $viewModel.showAddForm) {
@@ -44,7 +49,7 @@ struct PerformanceDashboardView: View {
           MetricFormView(
             formState: $viewModel.addFormState,
             title: "Log Performance Metric",
-            submitLabel: "Log Metric",
+            submitLabel: String(localized: "Log Metric"),
             isSubmitting: viewModel.isSubmitting,
             onSubmit: { Task { await viewModel.addMetric() } },
             onCancel: { viewModel.showAddForm = false }
@@ -61,7 +66,7 @@ struct PerformanceDashboardView: View {
           MetricFormView(
             formState: $viewModel.editFormState,
             title: "Edit Performance Metric",
-            submitLabel: "Save Changes",
+            submitLabel: String(localized: "Save Changes"),
             isSubmitting: viewModel.isSubmitting,
             onSubmit: { Task { await viewModel.updateMetric() } },
             onCancel: {
@@ -141,14 +146,8 @@ struct PerformanceDashboardView: View {
 
   @ViewBuilder
   private var loadingView: some View {
-    VStack(spacing: 16) {
-      ProgressView()
-        .scaleEffect(1.2)
-      Text("Loading metrics...")
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .accessibilityLabel("Loading performance metrics")
+    LoadingStateView(message: "Loading metrics...")
+      .accessibilityLabel(String(localized: "Loading performance metrics"))
   }
 
   @ViewBuilder
@@ -166,7 +165,7 @@ struct PerformanceDashboardView: View {
           .frame(maxWidth: .infinity, minHeight: 44)
       }
       .buttonStyle(.borderedProminent)
-      .accessibilityLabel("Log your first metric")
+      .accessibilityLabel(String(localized: "Log your first metric"))
       .accessibilityHint("Opens the form to log a performance metric")
     }
   }
@@ -225,7 +224,14 @@ private struct PerformanceTrendsSection: View {
 }
 
 private struct PerformanceLatestMetricsSection: View {
-  let latestMetricsByType: [MetricType: PerformanceMetric]
+  /// Sorted once at init rather than re-sorted inside the ForEach initializer
+  /// on every body evaluation.
+  private let sortedMetrics: [PerformanceMetric]
+
+  init(latestMetricsByType: [MetricType: PerformanceMetric]) {
+    self.sortedMetrics = Array(latestMetricsByType.values)
+      .sorted(by: { $0.metricType.displayName < $1.metricType.displayName })
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -238,10 +244,7 @@ private struct PerformanceLatestMetricsSection: View {
         GridItem(.flexible()),
         GridItem(.flexible())
       ], spacing: 12) {
-        ForEach(
-          Array(latestMetricsByType.values)
-            .sorted(by: { $0.metricType.displayName < $1.metricType.displayName })
-        ) { metric in
+        ForEach(sortedMetrics) { metric in
           LatestMetricCard(metric: metric)
         }
       }

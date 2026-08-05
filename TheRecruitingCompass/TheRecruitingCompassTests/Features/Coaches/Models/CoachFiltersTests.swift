@@ -38,8 +38,6 @@ final class CoachFiltersTests: XCTestCase {
     XCTAssertEqual(filters.activeFilterCount, 0)
   }
 
-
-
   // MARK: - Equatable Tests
 
   func testEquality_SameSchoolId() {

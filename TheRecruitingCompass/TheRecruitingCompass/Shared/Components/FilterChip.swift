@@ -37,7 +37,7 @@ struct FilterChip: View {
           .frame(minWidth: 24, minHeight: 24)
           .contentShape(Rectangle())
       }
-      .accessibilityLabel("Remove \(label) filter")
+      .accessibilityLabel(String(localized: "Remove \(label) filter"))
       .accessibilityHint(style == .filled ? "Double tap to remove this filter" : "")
     }
     .foregroundStyle(foregroundColor)

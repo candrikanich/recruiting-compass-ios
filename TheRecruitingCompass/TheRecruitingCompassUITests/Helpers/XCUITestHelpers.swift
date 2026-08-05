@@ -109,22 +109,26 @@ extension XCUIApplication {
       signInButton.tap()
     }
 
-    // Fill in email and password
-    let emailField = textFields["Email"]
+    // Fill in email and password.
+    // LoginFormField uses .accessibilityElement(children: .combine), which
+    // collapses the inner field so it is NOT addressable by label ("Email"/
+    // "Password"). There is exactly one text field and one secure field on this
+    // screen, so firstMatch is unambiguous.
+    let emailField = textFields.firstMatch
     if emailField.waitForExistence(timeout: 5) {
       emailField.tap()
       emailField.typeText(email)
     }
 
-    let passwordField = secureTextFields["Password"]
-    if passwordField.exists {
+    let passwordField = secureTextFields.firstMatch
+    if passwordField.waitForExistence(timeout: 5) {
       passwordField.tap()
       passwordField.typeText(password)
     }
 
-    // Tap Sign In button
-    let submitButton = buttons["Sign in"]
-    if submitButton.exists {
+    // Submit. The button's accessibility label is "Sign in to account".
+    let submitButton = buttons["Sign in to account"]
+    if submitButton.waitForExistence(timeout: 5) {
       submitButton.tap()
     }
 

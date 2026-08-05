@@ -10,7 +10,7 @@ struct CoachEditForm: View {
   @Environment(\.sizeCategory) private var sizeCategory
 
   @State private var isNextContactEnabled: Bool = false
-  @State private var nextContactDateTemp: Date = Date()
+  @State private var nextContactDateTemp: Date = .now
 
   private var minFieldHeight: CGFloat {
     sizeCategory.isAccessibilityCategory ? 50 : 44
@@ -24,26 +24,26 @@ struct CoachEditForm: View {
             .textInputAutocapitalization(.words)
             .autocorrectionDisabled()
             .frame(minHeight: minFieldHeight)
-            .accessibilityLabel("First Name")
+            .accessibilityLabel(String(localized: "First Name"))
 
           if let error = validationErrors["firstName"] {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("First name error: \(error)")
+              .accessibilityLabel(String(localized: "First name error: \(error)"))
           }
 
           TextField("Last Name", text: $editedCoach.lastName)
             .textInputAutocapitalization(.words)
             .autocorrectionDisabled()
             .frame(minHeight: minFieldHeight)
-            .accessibilityLabel("Last Name")
+            .accessibilityLabel(String(localized: "Last Name"))
 
           if let error = validationErrors["lastName"] {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("Last name error: \(error)")
+              .accessibilityLabel(String(localized: "Last name error: \(error)"))
           }
 
           Picker("Role", selection: $editedCoach.position) {
@@ -52,7 +52,7 @@ struct CoachEditForm: View {
             Text("Recruiting Coordinator").tag("recruiting")
           }
           .frame(minHeight: minFieldHeight)
-          .accessibilityLabel("Coach role")
+          .accessibilityLabel(String(localized: "Coach role"))
         }
 
         Section("Contact Information") {
@@ -61,25 +61,25 @@ struct CoachEditForm: View {
             .keyboardType(.emailAddress)
             .autocorrectionDisabled()
             .frame(minHeight: minFieldHeight)
-            .accessibilityLabel("Email address")
+            .accessibilityLabel(String(localized: "Email address"))
 
           if let error = validationErrors["email"] {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("Email error: \(error)")
+              .accessibilityLabel(String(localized: "Email error: \(error)"))
           }
 
           TextField("Phone", text: $editedCoach.phone)
             .keyboardType(.phonePad)
             .frame(minHeight: minFieldHeight)
-            .accessibilityLabel("Phone number")
+            .accessibilityLabel(String(localized: "Phone number"))
 
           if let error = validationErrors["phone"] {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("Phone error: \(error)")
+              .accessibilityLabel(String(localized: "Phone error: \(error)"))
           }
         }
 
@@ -88,26 +88,26 @@ struct CoachEditForm: View {
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
             .frame(minHeight: minFieldHeight)
-            .accessibilityLabel("Twitter handle")
+            .accessibilityLabel(String(localized: "Twitter handle"))
 
           if let error = validationErrors["twitterHandle"] {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("Twitter error: \(error)")
+              .accessibilityLabel(String(localized: "Twitter error: \(error)"))
           }
 
           TextField("Instagram Handle", text: $editedCoach.instagramHandle)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
             .frame(minHeight: minFieldHeight)
-            .accessibilityLabel("Instagram handle")
+            .accessibilityLabel(String(localized: "Instagram handle"))
 
           if let error = validationErrors["instagramHandle"] {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("Instagram error: \(error)")
+              .accessibilityLabel(String(localized: "Instagram error: \(error)"))
           }
         }
 
@@ -119,7 +119,7 @@ struct CoachEditForm: View {
           )
           .frame(minHeight: minFieldHeight)
           .disabled(!isNextContactEnabled)
-          .accessibilityLabel("Next contact date")
+          .accessibilityLabel(String(localized: "Next contact date"))
 
           Toggle(
             isOn: $isNextContactEnabled
@@ -133,14 +133,14 @@ struct CoachEditForm: View {
               editedCoach.nextContactDate = nil
             }
           }
-          .accessibilityLabel("Toggle next contact date")
+          .accessibilityLabel(String(localized: "Toggle next contact date"))
 
           Stepper(
             "Follow-up in \(editedCoach.followUpThresholdDays) days",
             value: $editedCoach.followUpThresholdDays,
             in: 1...365
           )
-          .accessibilityLabel("Follow-up threshold: \(editedCoach.followUpThresholdDays) days")
+          .accessibilityLabel(String(localized: "Follow-up threshold: \(editedCoach.followUpThresholdDays) days"))
         }
       }
       .navigationTitle("Edit Coach")
@@ -154,7 +154,7 @@ struct CoachEditForm: View {
         ToolbarItem(placement: .confirmationAction) {
           if isSaving {
             ProgressView()
-              .accessibilityLabel("Saving changes")
+              .accessibilityLabel(String(localized: "Saving changes"))
           } else {
             Button("Save") {
               Task {
@@ -162,14 +162,14 @@ struct CoachEditForm: View {
               }
             }
             .disabled(isSaving)
-            .accessibilityLabel("Save coach changes")
+            .accessibilityLabel(String(localized: "Save coach changes"))
           }
         }
       }
       .disabled(isSaving)
       .onAppear {
         isNextContactEnabled = editedCoach.nextContactDate != nil
-        nextContactDateTemp = editedCoach.nextContactDate ?? Date()
+        nextContactDateTemp = editedCoach.nextContactDate ?? .now
       }
     }
   }

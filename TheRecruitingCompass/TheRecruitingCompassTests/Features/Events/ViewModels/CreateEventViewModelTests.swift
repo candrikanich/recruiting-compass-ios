@@ -353,7 +353,7 @@ final class CreateEventViewModelTests: XCTestCase {
     let eventId = await sut.createEvent()
 
     XCTAssertEqual(eventId, "new-event-123")
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
   }
 
   func testCreateEvent_onFailure_setsError() async {
@@ -365,7 +365,7 @@ final class CreateEventViewModelTests: XCTestCase {
     let eventId = await sut.createEvent()
 
     XCTAssertNil(eventId)
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   func testCreateEvent_preventsDuplicateSubmission() async {
@@ -459,7 +459,7 @@ final class CreateEventViewModelTests: XCTestCase {
     await sut.loadSchools()
 
     XCTAssertTrue(sut.schools.isEmpty)
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   // MARK: - Save New School Tests
@@ -506,7 +506,7 @@ final class CreateEventViewModelTests: XCTestCase {
 
     await sut.saveNewSchool()
 
-    XCTAssertNotNil(sut.error)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   func testSaveNewSchool_emptyName_doesNotCallService() async {
@@ -547,7 +547,7 @@ final class CreateEventViewModelTests: XCTestCase {
 
   func testInitialState_isNotLoading() {
     XCTAssertFalse(sut.isLoading)
-    XCTAssertNil(sut.error)
+    XCTAssertNil(sut.errorMessage)
     XCTAssertTrue(sut.validationErrors.isEmpty)
   }
 

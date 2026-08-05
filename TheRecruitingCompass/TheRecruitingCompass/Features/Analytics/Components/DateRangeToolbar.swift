@@ -23,7 +23,7 @@ struct DateRangeToolbar: View {
               .clipShape(Capsule())
           }
           .frame(minHeight: 44)
-          .accessibilityLabel("Filter by \(range.displayName)")
+          .accessibilityLabel(String(localized: "Filter by \(range.displayName)"))
           .accessibilityHint(isSelected(range) ? "Currently selected" : "Double tap to filter by \(range.displayName)")
           .accessibilityAddTraits(isSelected(range) ? .isSelected : [])
         }
@@ -44,13 +44,13 @@ struct DateRangeToolbar: View {
           .clipShape(Capsule())
         }
         .frame(minHeight: 44)
-        .accessibilityLabel("Select custom date range")
+        .accessibilityLabel(String(localized: "Select custom date range"))
         .accessibilityHint(isCustomSelected ? "Currently selected" : "Double tap to select a custom date range")
         .accessibilityAddTraits(isCustomSelected ? .isSelected : [])
       }
       .padding(.horizontal)
       .accessibilityElement(children: .contain)
-      .accessibilityLabel("Date range filters")
+      .accessibilityLabel(String(localized: "Date range filters"))
     }
     .scrollIndicators(.hidden)
   }

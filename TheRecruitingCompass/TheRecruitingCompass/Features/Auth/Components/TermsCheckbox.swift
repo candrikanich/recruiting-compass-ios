@@ -4,11 +4,7 @@ struct TermsCheckbox: View {
   @Binding var isChecked: Bool
   let onTermsPressed: () -> Void
   let onPrivacyPressed: () -> Void
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var checkboxSize: CGFloat {
-    sizeCategory >= .extraLarge ? 20 : 18
-  }
+  @ScaledMetric(relativeTo: .body) private var checkboxSize: CGFloat = 18
 
   var body: some View {
     HStack(alignment: .top, spacing: 10) {
@@ -22,7 +18,7 @@ struct TermsCheckbox: View {
           )
           .accessibilityHidden(true)
       }
-      .accessibilityLabel("I agree to the Terms of Service and Privacy Policy")
+      .accessibilityLabel(String(localized: "I agree to the Terms of Service and Privacy Policy"))
       .accessibilityValue(isChecked ? "Checked" : "Unchecked")
       .accessibilityAddTraits(.isButton)
       .accessibilityHint("Double tap to toggle agreement")
@@ -40,7 +36,7 @@ struct TermsCheckbox: View {
               .foregroundStyle(Color.accentBlue)
               .underline()
           }
-          .accessibilityLabel("Read Terms of Service")
+          .accessibilityLabel(String(localized: "Read Terms of Service"))
           .accessibilityHint("Opens Terms of Service")
 
           Text(" and ")
@@ -54,7 +50,7 @@ struct TermsCheckbox: View {
               .foregroundStyle(Color.accentBlue)
               .underline()
           }
-          .accessibilityLabel("Read Privacy Policy")
+          .accessibilityLabel(String(localized: "Read Privacy Policy"))
           .accessibilityHint("Opens Privacy Policy")
         }
       }

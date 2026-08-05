@@ -9,4 +9,3 @@ protocol LegalDocumentLoading {
   func load() async
   func retry() async
 }
-

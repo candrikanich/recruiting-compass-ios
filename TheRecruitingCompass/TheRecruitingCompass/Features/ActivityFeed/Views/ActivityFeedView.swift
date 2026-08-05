@@ -15,9 +15,19 @@ struct ActivityFeedView: View {
         activityListContent
       }
     }
-    .navigationTitle("Activity History")
+    .navigationTitle(navigationTitleText)
+    .searchable(text: $viewModel.searchQuery, prompt: "Search activities...")
     .refreshable { await viewModel.loadActivities() }
     .task { await viewModel.loadActivities() }
+  }
+
+  // MARK: - Accessibility
+
+  let navigationTitleText = "Activity History"
+  var clearSearchAccessibilityLabel: String { "Clear search" }
+
+  func pageIndicatorAccessibilityLabel(currentPage: Int, totalPages: Int) -> String {
+    String(localized: "Page \(currentPage) of \(totalPages)")
   }
 
   // MARK: - List Content
@@ -79,31 +89,6 @@ struct ActivityFeedView: View {
         }
       }
       .pickerStyle(.segmented)
-
-      HStack {
-        Image(systemName: "magnifyingglass")
-          .foregroundStyle(Color.iconGray)
-          .accessibilityHidden(true)
-
-        TextField("Search activities...", text: $viewModel.searchQuery)
-          .textFieldStyle(.plain)
-          .accessibilityIdentifier("activity-feed-search-field")
-
-        if !viewModel.searchQuery.isEmpty {
-          Button {
-            viewModel.searchQuery = ""
-          } label: {
-            Image(systemName: "xmark.circle.fill")
-              .foregroundStyle(Color.iconGray)
-          }
-          .frame(minWidth: 44, minHeight: 44)
-          .accessibilityLabel("Clear search")
-          .accessibilityIdentifier("activity-feed-clear-search")
-        }
-      }
-      .padding(10)
-      .background(Color(.systemGray6))
-      .clipShape(.rect(cornerRadius: 10))
     }
     .padding(16)
     .background(Color.Surface.card)
@@ -128,10 +113,11 @@ struct ActivityFeedView: View {
 
       Spacer()
 
-      Text("Page \(viewModel.currentPage) of \(viewModel.totalPages)")
+      Text(pageIndicatorAccessibilityLabel(currentPage: viewModel.currentPage, totalPages: viewModel.totalPages))
         .font(.subheadline)
         .foregroundStyle(.secondary)
-        .accessibilityLabel("Page \(viewModel.currentPage) of \(viewModel.totalPages)")
+        .accessibilityLabel(pageIndicatorAccessibilityLabel(
+          currentPage: viewModel.currentPage, totalPages: viewModel.totalPages))
         .accessibilityIdentifier("activity-feed-page-indicator")
 
       Spacer()

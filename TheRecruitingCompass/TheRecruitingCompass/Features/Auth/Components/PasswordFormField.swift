@@ -7,11 +7,7 @@ struct PasswordFormField: View {
   @Binding var error: String?
   @Binding var isPasswordVisible: Bool
   let onBlur: () -> Void
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var iconWidth: CGFloat {
-    sizeCategory >= .extraLarge ? 22 : 20
-  }
+  @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 20
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
@@ -51,35 +47,35 @@ struct PasswordFormField: View {
         }
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
-        .accessibilityLabel(isPasswordVisible ? "Hide password" : "Show password")
+        .accessibilityLabel(isPasswordVisible ? String(localized: "Hide password") : String(localized: "Show password"))
         .accessibilityHint("Toggle to \(isPasswordVisible ? "hide" : "show") password characters")
       }
       .padding(12)
       .background(Color(uiColor: .secondarySystemBackground))
       .overlay(
         RoundedRectangle(cornerRadius: 8)
-          .strokeBorder(error != nil ? Color.red : Color(uiColor: .separator), lineWidth: 1)
+          .stroke(error != nil ? Color.red : Color(uiColor: .separator), lineWidth: 1)
       )
       .clipShape(.rect(cornerRadius: 8))
 
-      if let error = error {
+      if let error {
         Text(error)
           .font(.caption)
           .foregroundStyle(Color.errorRed)
-          .accessibilityLabel("Error: \(error)")
+          .accessibilityLabel(String(localized: "Error: \(error)"))
       }
     }
-    .accessibilityElement(children: .combine)
+    .accessibilityElement(children: .contain)
   }
 }
 
 #Preview {
   @Previewable @State var text = ""
-  @Previewable @State var error: String? = nil
+  @Previewable @State var error: String?
   @Previewable @State var isVisible = false
 
   PasswordFormField(
-    label: "New Password",
+    label: String(localized: "New Password"),
     placeholder: "Enter your new password",
     text: $text,
     error: $error,

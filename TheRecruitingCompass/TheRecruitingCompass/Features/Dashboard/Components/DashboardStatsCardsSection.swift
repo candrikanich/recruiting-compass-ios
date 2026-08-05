@@ -19,12 +19,12 @@ struct DashboardStatsCardsSection: View {
             subtitle: nil,
             description: "View all coaches",
             icon: "person.2",
-            gradientColors: [Color(hex: "#3B82F6"), Color(hex: "#2563EB")],
+            gradientColors: [Color.Brand.blue600, Color.Brand.blue700],
             isEnabled: true,
             destination: .coaches
           )
         }
-        .accessibilityLabel("View all coaches, \(stats.coachCount) total")
+        .accessibilityLabel(String(localized: "View all coaches, \(stats.coachCount) total"))
         .accessibilityHint("Opens your coaches list")
         .buttonStyle(.plain)
       }
@@ -39,12 +39,12 @@ struct DashboardStatsCardsSection: View {
             subtitle: nil,
             description: "Manage schools",
             icon: "building.2",
-            gradientColors: [Color(hex: "#8B5CF6"), Color(hex: "#7C3AED")],
+            gradientColors: [Color.Brand.purple600, Color.Brand.purple700],
             isEnabled: true,
             destination: .schools
           )
         }
-        .accessibilityLabel("View all schools, \(stats.schoolCount) total")
+        .accessibilityLabel(String(localized: "View all schools, \(stats.schoolCount) total"))
         .accessibilityHint("Opens your schools list")
         .buttonStyle(.plain)
       }
@@ -59,12 +59,12 @@ struct DashboardStatsCardsSection: View {
             subtitle: nil,
             description: "Track interactions",
             icon: "bubble.left.and.bubble.right",
-            gradientColors: [Color(hex: "#10B981"), Color(hex: "#059669")],
+            gradientColors: [Color.Brand.emerald700, Color.Brand.emerald800],
             isEnabled: true,
             destination: .interactions
           )
         }
-        .accessibilityLabel("View all interactions, \(stats.interactionCount) total")
+        .accessibilityLabel(String(localized: "View all interactions, \(stats.interactionCount) total"))
         .accessibilityHint("Opens your interactions list")
         .buttonStyle(.plain)
       }
@@ -77,12 +77,12 @@ struct DashboardStatsCardsSection: View {
             subtitle: nil,
             description: "View all offers",
             icon: "gift",
-            gradientColors: [Color(hex: "#F97316"), Color(hex: "#EA580C")],
+            gradientColors: [Color.Brand.orange700, Color.Brand.orange800],
             isEnabled: true,
             destination: .offers
           )
         }
-        .accessibilityLabel("View all offers, \(stats.totalOffers) total")
+        .accessibilityLabel(String(localized: "View all offers, \(stats.totalOffers) total"))
         .accessibilityHint("Opens your offers list")
         .buttonStyle(.plain)
       }

@@ -60,7 +60,7 @@ struct FamilyManagementPlayerView: View {
             .padding(.vertical, FamilyConstants.Spacing.medium)
             .background(Color.gray.opacity(0.1))
             .clipShape(.rect(cornerRadius: 12))
-            .accessibilityLabel(FamilyUtilities.formatCodeForVoiceOver(code))
+            .accessibilityLabel(String(localized: "\(FamilyUtilities.formatCodeForVoiceOver(code))"))
 
           if let date = viewModel.formattedCodeGeneratedAt {
             Text("Created \(date)")
@@ -75,7 +75,7 @@ struct FamilyManagementPlayerView: View {
                   .frame(maxWidth: .infinity)
               }
               .buttonStyle(.bordered)
-              .accessibilityLabel("Copy family code to clipboard")
+              .accessibilityLabel(String(localized: "Copy family code to clipboard"))
 
               ShareLink(
                 item: "Join my family on The Recruiting Compass with code: \(code)",
@@ -85,7 +85,7 @@ struct FamilyManagementPlayerView: View {
                 }
               )
               .buttonStyle(.bordered)
-              .accessibilityLabel("Share family code")
+              .accessibilityLabel(String(localized: "Share family code"))
             }
 
             Button(action: { viewModel.confirmRegenerateCode() }) {
@@ -94,13 +94,13 @@ struct FamilyManagementPlayerView: View {
             }
             .buttonStyle(.bordered)
             .tint(.red)
-            .accessibilityLabel("Regenerate family code")
+            .accessibilityLabel(String(localized: "Regenerate family code"))
             .accessibilityHint("Creates a new code and invalidates the old one")
           }
         }
       } else {
         ProgressView()
-          .accessibilityLabel("Loading family code")
+          .accessibilityLabel(String(localized: "Loading family code"))
           .frame(maxWidth: .infinity)
           .padding(.vertical, FamilyConstants.Spacing.extraLarge)
       }
@@ -135,7 +135,7 @@ struct FamilyManagementPlayerView: View {
           .keyboardType(.emailAddress)
           .textContentType(.emailAddress)
           .autocapitalization(.none)
-          .accessibilityLabel("Parent email address")
+          .accessibilityLabel(String(localized: "Parent email address"))
 
         Button {
           Task { await viewModel.sendEmailInvite() }
@@ -152,7 +152,7 @@ struct FamilyManagementPlayerView: View {
         .foregroundStyle(.white)
         .clipShape(.rect(cornerRadius: 8))
         .disabled(!viewModel.isEmailInviteValid || viewModel.isLoading)
-        .accessibilityLabel("Send invite")
+        .accessibilityLabel(String(localized: "Send invite"))
         .accessibilityHint(viewModel.isEmailInviteValid
           ? "Send email invite to the entered address"
           : "Enter a valid email to enable")
@@ -192,7 +192,7 @@ struct FamilyManagementPlayerView: View {
             }
             .font(.caption)
             .buttonStyle(.bordered)
-            .accessibilityLabel("Resend invite to \(invite.invitedEmail)")
+            .accessibilityLabel(String(localized: "Resend invite to \(invite.invitedEmail)"))
 
             Button("Revoke") {
               Task { await viewModel.revokeInvitation(invite) }
@@ -201,7 +201,7 @@ struct FamilyManagementPlayerView: View {
             .foregroundStyle(.red)
             .buttonStyle(.bordered)
             .tint(.red)
-            .accessibilityLabel("Revoke invite to \(invite.invitedEmail)")
+            .accessibilityLabel(String(localized: "Revoke invite to \(invite.invitedEmail)"))
           }
           .padding(.vertical, 4)
         }
@@ -213,8 +213,10 @@ struct FamilyManagementPlayerView: View {
     }
   }
 
+  private static let expiryFormatter = ISO8601DateFormatter()
+
   private func formattedExpiry(_ isoString: String) -> String {
-    guard let date = ISO8601DateFormatter().date(from: isoString) else { return "unknown" }
+    guard let date = Self.expiryFormatter.date(from: isoString) else { return "unknown" }
     return DateFormatter.familyCodeDate.string(from: date)
   }
 
@@ -233,7 +235,7 @@ struct FamilyManagementPlayerView: View {
 
       if viewModel.loadingMembers {
         ProgressView()
-          .accessibilityLabel("Loading family members")
+          .accessibilityLabel(String(localized: "Loading family members"))
           .frame(maxWidth: .infinity)
           .padding(.vertical, FamilyConstants.Spacing.extraLarge)
       } else if viewModel.familyMembers.isEmpty {

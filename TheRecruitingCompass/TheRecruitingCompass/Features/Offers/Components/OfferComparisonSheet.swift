@@ -7,7 +7,7 @@ struct OfferComparisonSheet: View {
   var body: some View {
     NavigationStack {
       ScrollView(.horizontal) {
-        HStack(alignment: .top, spacing: 16) {
+        LazyHStack(alignment: .top, spacing: 16) {
           ForEach(offers) { offer in
             comparisonColumn(offer)
           }
@@ -58,6 +58,6 @@ struct OfferComparisonSheet: View {
         .foregroundStyle(.primary)
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(label): \(value)")
+    .accessibilityLabel(String(localized: "\(label): \(value)"))
   }
 }

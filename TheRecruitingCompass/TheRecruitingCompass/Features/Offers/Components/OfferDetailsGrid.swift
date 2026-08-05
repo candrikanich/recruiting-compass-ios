@@ -45,7 +45,7 @@ struct OfferDetailsGrid: View {
         .fontWeight(.semibold)
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(label): \(value)")
+    .accessibilityLabel(String(localized: "\(label): \(value)"))
   }
 }
 

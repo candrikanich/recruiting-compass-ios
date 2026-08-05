@@ -11,10 +11,6 @@ import UIKit
 import UserNotifications
 import os
 
-struct PendingInvite: Identifiable {
-  let id: String
-}
-
 @main
 struct TheRecruitingCompassApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate

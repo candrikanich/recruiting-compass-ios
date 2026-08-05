@@ -4,36 +4,6 @@ import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "FeedbackService")
 
-enum FeedbackSubject: String, CaseIterable {
-    case bug
-    case feature
-    case question
-    case general
-
-    var displayName: String {
-        switch self {
-        case .bug: return "Bug Report"
-        case .feature: return "Feature Request"
-        case .question: return "Question"
-        case .general: return "General Feedback"
-        }
-    }
-}
-
-enum FeedbackError: LocalizedError {
-    case notConfigured
-    case serverError
-    case networkError(Error)
-
-    var errorDescription: String? {
-        switch self {
-        case .notConfigured: return "Feedback service is not available."
-        case .serverError: return "Failed to send feedback. Please try again."
-        case .networkError: return "Network error. Please check your connection."
-        }
-    }
-}
-
 protocol FeedbackManaging: Sendable {
     func submit(subject: FeedbackSubject, message: String) async throws
 }

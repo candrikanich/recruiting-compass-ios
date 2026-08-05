@@ -25,4 +25,3 @@ protocol FamilyManaging: Sendable {
   func declineInvite(token: String) async throws
   func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws
 }
-

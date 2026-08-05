@@ -7,15 +7,19 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
   var viewModel: PerformanceDashboardViewModel!
   var mockService: MockPerformanceService!
   var mockAuthManager: MockAuthManager!
+  var mockCache: InMemoryCache!
 
   override func setUp() async throws {
     mockService = MockPerformanceService()
     mockAuthManager = MockAuthManager()
     mockAuthManager.user = createUser(id: "user-1")
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
 
     viewModel = PerformanceDashboardViewModel(
       performanceService: mockService,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: mockCache
     )
   }
 
@@ -23,6 +27,7 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
     viewModel = nil
     mockService = nil
     mockAuthManager = nil
+    mockCache = nil
   }
 
   // MARK: - Initialization Tests
@@ -260,6 +265,88 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
     XCTAssertEqual(latest.count, 2)
     XCTAssertEqual(latest[.velocity]?.id, "v-new")
     XCTAssertEqual(latest[.exitVelo]?.id, "e-1")
+  }
+
+  // MARK: - Cached Derived Metrics Staleness Tests
+  // sortedMetrics/availableMetricTypes/activeMetricType/chartMetrics/
+  // latestMetricsByType/metricTrends are cached stored properties (Phase 3.3),
+  // recomputed via didSet on metrics/selectedMetricType — not read live.
+
+  func testChartMetrics_UpdatesWhenMetricsReassigned_WithoutTouchingSelectedType() {
+    viewModel.metrics = [mockService.createTestMetric(id: "1", metricType: .velocity)]
+    viewModel.selectedMetricType = .velocity
+    XCTAssertEqual(viewModel.chartMetrics.count, 1)
+
+    // Reassign metrics wholesale (e.g. a reload) without touching selectedMetricType again.
+    viewModel.metrics = [
+      mockService.createTestMetric(id: "2", metricType: .velocity),
+      mockService.createTestMetric(id: "3", metricType: .velocity),
+      mockService.createTestMetric(id: "4", metricType: .exitVelo)
+    ]
+
+    XCTAssertEqual(viewModel.chartMetrics.count, 2)
+    XCTAssertTrue(viewModel.chartMetrics.allSatisfy { $0.metricType == .velocity })
+  }
+
+  func testActiveMetricType_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    let toDelete = mockService.createTestMetric(id: "del-1", metricType: .velocity)
+    viewModel.metrics = [
+      toDelete,
+      mockService.createTestMetric(id: "keep-1", metricType: .exitVelo)
+    ]
+    viewModel.selectedMetricType = .velocity
+    XCTAssertEqual(viewModel.activeMetricType, .velocity)
+
+    viewModel.confirmDelete(toDelete)
+    await viewModel.deleteMetric()
+
+    XCTAssertFalse(viewModel.availableMetricTypes.contains(.velocity))
+  }
+
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadMetrics_SecondLoad_UsesCacheAndSkipsService() async {
+    mockService.mockMetrics = [mockService.createTestMetric(id: "1")]
+
+    await viewModel.loadMetrics()
+    XCTAssertEqual(mockService.fetchMetricsCallCount, 1)
+
+    mockService.mockMetrics = [mockService.createTestMetric(id: "2")]
+    await viewModel.loadMetrics()
+
+    XCTAssertEqual(mockService.fetchMetricsCallCount, 1)
+    XCTAssertEqual(viewModel.metrics.first?.id, "1")
+  }
+
+  func testDeleteMetric_InvalidatesListCache_NextLoadRefetches() async {
+    let metric = mockService.createTestMetric(id: "1")
+    mockService.mockMetrics = [metric]
+    await viewModel.loadMetrics()
+    XCTAssertEqual(mockService.fetchMetricsCallCount, 1)
+
+    viewModel.confirmDelete(metric)
+    await viewModel.deleteMetric()
+
+    mockService.mockMetrics = []
+    await viewModel.loadMetrics()
+
+    XCTAssertEqual(mockService.fetchMetricsCallCount, 2)
+  }
+
+  func testEventDetailViewModel_AddMetric_InvalidatesMetricsListCache() async {
+    mockService.mockMetrics = [mockService.createTestMetric(id: "1")]
+    await viewModel.loadMetrics()
+    XCTAssertEqual(mockService.fetchMetricsCallCount, 1)
+
+    // Simulate what EventDetailViewModel.addMetric() does on metric creation:
+    // invalidate the same cache key via the shared ListCacheKeys builder.
+    await mockCache.remove(forKey: ListCacheKeys.metrics(userId: "user-1"))
+
+    mockService.mockMetrics = [mockService.createTestMetric(id: "1"), mockService.createTestMetric(id: "2")]
+    await viewModel.loadMetrics()
+
+    XCTAssertEqual(mockService.fetchMetricsCallCount, 2)
+    XCTAssertEqual(viewModel.metrics.count, 2)
   }
 
   // MARK: - addMetric Tests
@@ -846,6 +933,44 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
 
     // Then
     XCTAssertGreaterThan(pdfData.count, 0)
+  }
+
+  // MARK: - Athlete Targeting Tests
+
+  func testLoadMetrics_parentViewingAthlete_usesAthleteUserId() async {
+    // Given
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuthManager)
+    viewModel = PerformanceDashboardViewModel(
+      performanceService: mockService,
+      familyManager: familyManager,
+      authManager: mockAuthManager
+    )
+
+    // When
+    await viewModel.loadMetrics()
+
+    // Then
+    XCTAssertEqual(mockService.lastFetchUserId, ParentViewingAthleteFixture.athleteUserId)
+  }
+
+  func testAddMetric_parentViewingAthlete_usesAthleteUserId() async {
+    // Given
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuthManager)
+    viewModel = PerformanceDashboardViewModel(
+      performanceService: mockService,
+      familyManager: familyManager,
+      authManager: mockAuthManager
+    )
+    viewModel.addFormState.metricType = .velocity
+    viewModel.addFormState.value = "92.5"
+    viewModel.addFormState.unit = "mph"
+
+    // When
+    await viewModel.addMetric()
+
+    // Then
+    XCTAssertEqual(mockService.createMetricCallCount, 1)
+    XCTAssertEqual(mockService.lastCreateUserId, ParentViewingAthleteFixture.athleteUserId)
   }
 
   // MARK: - Helper Methods

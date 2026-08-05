@@ -192,15 +192,6 @@ final class CoachCardViewTests: XCTestCase {
     XCTAssertNil(coach.instagramHandle)
   }
 
-
-
-
-
-
-
-
-
-
   // MARK: - Last Contact Date Tests
 
   func testCoachCard_parsesLastContactDate() {
@@ -238,16 +229,30 @@ final class CoachCardViewTests: XCTestCase {
   }
 
   func testAccessibility_deleteButtonHasLabel() {
-    let coach = makeCoach()
+    let view = CoachCardView(
+      coach: makeCoach(firstName: "John", lastName: "Smith"),
+      schoolName: "State University",
+      schoolLogoUrl: nil,
+      schoolInitials: "SU",
+      onDelete: {}
+    )
+
+    XCTAssertEqual(view.deleteAccessibilityLabel, "Delete John Smith")
+  }
+
+  func testDelete_onDeleteClosureIsStored() {
+    var deleted = false
     let view = CoachCardView(
       coach: makeCoach(),
       schoolName: "State University",
       schoolLogoUrl: nil,
-      schoolInitials: "SU"
+      schoolInitials: "SU",
+      onDelete: { deleted = true }
     )
 
-    // Delete button should have "Delete coach" accessibility label
-    XCTAssertNotNil(view)
+    view.onDelete()
+
+    XCTAssertTrue(deleted, "Delete button must invoke the supplied onDelete closure")
   }
 
   // MARK: - Dynamic Type Tests
@@ -377,8 +382,5 @@ final class CoachCardViewTests: XCTestCase {
     let coach = makeCoach(firstName: "José", lastName: "O'Brien-Smith")
     XCTAssertEqual(coach.fullName, "José O'Brien-Smith")
   }
-
-
-
 
 }

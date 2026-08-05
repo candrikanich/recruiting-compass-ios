@@ -36,7 +36,7 @@ struct CoachFilterBar: View {
         style: .capsule
       )
     }
-    .accessibilityLabel("Filter by role")
+    .accessibilityLabel(String(localized: "Filter by role"))
     .accessibilityHint("Opens role filter options")
     .accessibilityValue(filters.role?.displayName ?? "All roles")
   }
@@ -62,7 +62,7 @@ struct CoachFilterBar: View {
         style: .capsule
       )
     }
-    .accessibilityLabel("Filter by last contact")
+    .accessibilityLabel(String(localized: "Filter by last contact"))
     .accessibilityHint("Opens time period filter options")
     .accessibilityValue(lastContactLabel)
   }
@@ -96,7 +96,7 @@ struct CoachFilterBar: View {
         style: .capsule
       )
     }
-    .accessibilityLabel("Sort coaches")
+    .accessibilityLabel(String(localized: "Sort coaches"))
     .accessibilityHint("Opens sort options")
     .accessibilityValue("Sorted by \(filters.sortBy.displayName)")
   }

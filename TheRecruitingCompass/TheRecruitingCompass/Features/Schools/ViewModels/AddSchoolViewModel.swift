@@ -29,6 +29,12 @@ final class AddSchoolViewModel {
   var isSubmitting = false
   var submitError: String?
 
+  /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
+  var isShowingError: Bool {
+    get { submitError != nil }
+    set { if !newValue { submitError = nil } }
+  }
+
   // Autocomplete state (moved from extension)
   var searchQuery: String = ""
   var searchResults: [CollegeSearchResult] = []
@@ -63,7 +69,7 @@ final class AddSchoolViewModel {
   }
 
   var submitButtonTitle: String {
-    isSubmitting ? "Adding..." : "Add School"
+    isSubmitting ? String(localized: "Adding...") : String(localized: "Add School")
   }
 
   // MARK: - Init
@@ -297,6 +303,5 @@ final class AddSchoolViewModel {
       return "Unable to search colleges. Please try again."
     }
   }
-
 
 }

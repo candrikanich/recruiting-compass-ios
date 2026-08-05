@@ -19,7 +19,7 @@ final class EventDetailViewModel {
   var schoolCoaches: [Coach] = []
   var metrics: [PerformanceMetric] = []
   var isLoading = false
-  var error: String?
+  var errorMessage: String?
   var isNotFound = false
   var shouldDismiss = false
 
@@ -73,14 +73,18 @@ final class EventDetailViewModel {
   // MARK: - Dependencies
 
   private let eventsService: any EventsManaging
+  private let familyManager: FamilyManager
   private let authManager: any AuthManaging
   private let exportService = MetricsExportService()
   let eventId: String
 
   // MARK: - Computed
 
+  /// The user whose event data we read/write. When a parent is viewing an
+  /// athlete, events and metrics belong to the athlete (mirrors web +
+  /// OffersListViewModel); otherwise the logged-in user's own id.
   private var userId: String? {
-    authManager.user?.id
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
   }
 
   var formattedDateRange: String {
@@ -123,34 +127,46 @@ final class EventDetailViewModel {
 
   var costAccessibilityLabel: String? {
     guard let event, let cost = event.cost else { return nil }
-    return cost == 0 ? "Free event" : "Cost: \(cost.formatted(.currency(code: "USD").precision(.fractionLength(2))))"
+    return cost == 0
+      ? String(localized: "Free event")
+      : String(localized: "Cost: \(cost.formatted(.currency(code: "USD").precision(.fractionLength(2))))")
   }
 
   // MARK: - Init
 
   init(
     eventsService: (any EventsManaging)? = nil,
+    familyManager: FamilyManager? = nil,
     authManager: (any AuthManaging)? = nil,
     eventId: String
   ) {
     self.eventsService = eventsService ?? EventsServiceImpl()
+    self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
     self.eventId = eventId
   }
 
   // MARK: - Loading Helper
 
+  /// Invalidates EventsListViewModel's cached list (Phase 3.6) so an edit,
+  /// attended-status change, or delete shows correctly on next visit to the
+  /// list screen instead of waiting out the TTL. Call after any mutation.
+  private func invalidateEventsListCache() async {
+    guard let userId else { return }
+    await InMemoryCache.shared.remove(forKey: ListCacheKeys.events(userId: userId))
+  }
+
   // MARK: - Load
 
   func loadAll() async {
     logger.debug("Loading event: \(self.eventId)")
     isLoading = true
-    error = nil
+    errorMessage = nil
     isNotFound = false
     defer { isLoading = false }
 
     guard let userId else {
-      self.error = "You must be signed in to view this event."
+      self.errorMessage = "You must be signed in to view this event."
       return
     }
 
@@ -163,16 +179,14 @@ final class EventDetailViewModel {
       logger.debug("Load event cancelled")
     } catch let error as URLError where error.code == .cancelled {
       logger.debug("Load event cancelled (request cancelled)")
-    } catch where error.localizedDescription.lowercased().contains("cancelled") {
-      logger.debug("Load event cancelled: \(error.localizedDescription)")
     } catch {
       logger.error("Failed to load event: \(error.localizedDescription)")
       if Self.isEventNotFound(error) {
         event = nil
         isNotFound = true
-        self.error = nil
+        self.errorMessage = nil
       } else {
-        self.error = "Failed to load event. Please try again."
+        self.errorMessage = "Failed to load event. Please try again."
       }
     }
   }
@@ -199,6 +213,8 @@ final class EventDetailViewModel {
       schoolCoaches = try await eventsService.fetchCoaches(schoolId: schoolId, userId: userId)
       logger.info("Loaded \(self.schoolCoaches.count) coaches")
     } catch {
+      // intentionally silent: the event itself loaded fine; an empty
+      // coaches-present list here just means the check-in picker is empty.
       logger.error("Failed to load coaches: \(error.localizedDescription)")
     }
   }
@@ -208,6 +224,8 @@ final class EventDetailViewModel {
       metrics = try await eventsService.fetchMetrics(eventId: eventId, userId: userId)
       logger.info("Loaded \(self.metrics.count) metrics")
     } catch {
+      // intentionally silent: secondary section on an already-loaded event;
+      // an empty metrics list here just means nothing to show, not an error.
       logger.error("Failed to load metrics: \(error.localizedDescription)")
     }
   }
@@ -222,11 +240,12 @@ final class EventDetailViewModel {
         let updated = try await eventsService.updateEvent(id: eventId, request: request)
         event = updated
         hapticSuccessTrigger += 1
-        showSuccess("Marked as attended")
+        showSuccess(String(localized: "Marked as attended"))
         showQuickLogSheet = true
         logger.info("Event marked as attended: \(self.eventId)")
+        await invalidateEventsListCache()
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -248,10 +267,11 @@ final class EventDetailViewModel {
         event = updated
         showEditSheet = false
         hapticSuccessTrigger += 1
-        showSuccess("Event updated")
+        showSuccess(String(localized: "Event updated"))
         logger.info("Event updated: \(self.eventId)")
+        await invalidateEventsListCache()
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to update event. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -271,8 +291,9 @@ final class EventDetailViewModel {
         hapticSuccessTrigger += 1
         shouldDismiss = true
         logger.info("Event deleted: \(self.eventId)")
+        await invalidateEventsListCache()
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to delete event. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to delete event. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -301,10 +322,17 @@ final class EventDetailViewModel {
         try await eventsService.createInteraction(request)
         showQuickLogSheet = false
         hapticSuccessTrigger += 1
-        showSuccess("Interaction logged")
+        showSuccess(String(localized: "Interaction logged"))
         logger.info("Interaction logged for event: \(self.eventId)")
+
+        // Invalidate InteractionsListViewModel's cached list (Phase 3.6) for
+        // both possible fetch scopes, plus this quick-log's own event cache.
+        await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: userId))
+        if let familyUnitId = familyManager.familyUnitId {
+          await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+        }
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to log interaction. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to log interaction. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -331,11 +359,11 @@ final class EventDetailViewModel {
       let updated = try await eventsService.updateEvent(id: eventId, request: request)
       self.event = updated
       hapticSuccessTrigger += 1
-      showSuccess("Coach added")
+      showSuccess(String(localized: "Coach added"))
       logger.info("Coach added to event: \(self.eventId)")
     } catch {
       logger.error("Failed to add coach: \(error.localizedDescription)")
-      self.error = "Failed to add coach. Please try again."
+      self.errorMessage = "Failed to add coach. Please try again."
       hapticErrorTrigger += 1
     }
   }
@@ -350,10 +378,10 @@ final class EventDetailViewModel {
         let updated = try await eventsService.updateEvent(id: eventId, request: request)
         self.event = updated
         hapticSuccessTrigger += 1
-        showSuccess("Coach removed")
+        showSuccess(String(localized: "Coach removed"))
         logger.info("Coach removed from event: \(self.eventId)")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to remove coach. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to remove coach. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -380,7 +408,7 @@ final class EventDetailViewModel {
           metricType: newMetricData.metricType.rawValue,
           value: value,
           unit: newMetricData.unit.isEmpty ? newMetricData.metricType.defaultUnit : newMetricData.unit,
-          recordedDate: DateFormatting.isoExportFormatter.string(from: Date()),
+          recordedDate: DateFormatting.isoExportFormatter.string(from: .now),
           eventId: eventId,
           verified: false,
           notes: newMetricData.notes.isEmpty ? nil : newMetricData.notes
@@ -390,10 +418,13 @@ final class EventDetailViewModel {
         showMetricForm = false
         newMetricData = NewMetricData()
         hapticSuccessTrigger += 1
-        showSuccess("Metric recorded")
+        showSuccess(String(localized: "Metric recorded"))
         logger.info("Metric created: \(metric.id)")
+
+        // Invalidate PerformanceDashboardViewModel's cached list (Phase 3.6).
+        await InMemoryCache.shared.remove(forKey: ListCacheKeys.metrics(userId: userId))
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to save metric. Please try again.", logger: logger) { self.error = $0 }
+        ViewModelHelpers.handleError(error, userMessage: "Failed to save metric. Please try again.", logger: logger) { self.errorMessage = $0 }
         hapticErrorTrigger += 1
       }
     }
@@ -404,11 +435,11 @@ final class EventDetailViewModel {
       try await eventsService.deleteMetric(id: metricId)
       metrics.removeAll { $0.id == metricId }
       hapticSuccessTrigger += 1
-      showSuccess("Metric deleted")
+      showSuccess(String(localized: "Metric deleted"))
       logger.info("Metric deleted: \(metricId)")
     } catch {
       logger.error("Failed to delete metric: \(error.localizedDescription)")
-      self.error = "Failed to delete metric. Please try again."
+      self.errorMessage = "Failed to delete metric. Please try again."
       hapticErrorTrigger += 1
     }
   }
@@ -421,7 +452,7 @@ final class EventDetailViewModel {
       exportFileURL = try exportService.prepareCSV(metrics: metrics, eventName: event.name)
     } catch {
       logger.error("Failed to write CSV: \(error.localizedDescription)")
-      self.error = "Failed to prepare export."
+      self.errorMessage = "Failed to prepare export."
     }
   }
 
@@ -459,6 +490,5 @@ final class EventDetailViewModel {
     successMessage = message
     showSuccessToast = true
   }
-
 
 }

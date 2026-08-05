@@ -265,8 +265,6 @@ final class PreferenceServiceTests: XCTestCase {
     XCTAssertEqual(decoded, original)
   }
 
-
-
   // MARK: - AnyCodableValue Tests
 
   func testAnyCodableValue_StringValue() throws {

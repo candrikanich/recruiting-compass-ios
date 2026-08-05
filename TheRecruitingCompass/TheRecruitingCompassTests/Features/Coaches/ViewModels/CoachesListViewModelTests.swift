@@ -10,11 +10,14 @@ final class CoachesListViewModelTests: XCTestCase {
   private var mockAuthManager: MockAuthManager!
   private var mockFamilyManager: FamilyManager!
   private var mockFamilyService: MockFamilyService!
+  private var mockCache: InMemoryCache!
 
   override func setUp() async throws {
     mockService = MockCoachesService()
     mockAuthManager = MockAuthManager()
     mockFamilyService = MockFamilyService()
+    // Fresh instance per test — InMemoryCache.shared would leak state across tests.
+    mockCache = InMemoryCache()
     mockFamilyManager = FamilyManager(
       familyService: mockFamilyService,
       authManager: mockAuthManager
@@ -42,7 +45,8 @@ final class CoachesListViewModelTests: XCTestCase {
     sut = CoachesListViewModel(
       coachesService: mockService,
       familyManager: mockFamilyManager,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      cache: mockCache
     )
   }
 
@@ -52,6 +56,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockAuthManager = nil
     mockFamilyManager = nil
     mockFamilyService = nil
+    mockCache = nil
   }
 
   // MARK: - Test Helpers
@@ -177,7 +182,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", firstName: "John", lastName: "Smith", email: "coach1@school.edu"),
-      makeCoach(id: "2", firstName: "Jane", lastName: "Doe", email: "coach2@school.edu"),
+      makeCoach(id: "2", firstName: "Jane", lastName: "Doe", email: "coach2@school.edu")
     ]
 
     await sut.loadCoaches()
@@ -191,7 +196,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", email: "john@school.edu"),
-      makeCoach(id: "2", email: "jane@university.edu"),
+      makeCoach(id: "2", email: "jane@university.edu")
     ]
 
     await sut.loadCoaches()
@@ -204,7 +209,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", phone: "555-1234"),
-      makeCoach(id: "2", phone: "555-9999"),
+      makeCoach(id: "2", phone: "555-9999")
     ]
 
     await sut.loadCoaches()
@@ -217,7 +222,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", notes: "Great recruiter"),
-      makeCoach(id: "2", notes: "Average"),
+      makeCoach(id: "2", notes: "Average")
     ]
 
     await sut.loadCoaches()
@@ -230,13 +235,41 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", twitterHandle: "@coachsmith"),
-      makeCoach(id: "2", twitterHandle: nil),
+      makeCoach(id: "2", twitterHandle: nil)
     ]
 
     await sut.loadCoaches()
     sut.filters.searchText = "coachsmith"
 
     XCTAssertEqual(sut.filteredCoaches.count, 1)
+  }
+
+  func testSearchFilter_diacriticInsensitive_plainQueryMatchesAccentedName() async {
+    mockService.stubbedSchools = [makeSchool()]
+    mockService.stubbedCoaches = [
+      makeCoach(id: "1", firstName: "Carlos", lastName: "Muñoz"),
+      makeCoach(id: "2", firstName: "Jane", lastName: "Doe")
+    ]
+
+    await sut.loadCoaches()
+    sut.filters.searchText = "munoz"
+
+    XCTAssertEqual(sut.filteredCoaches.count, 1)
+    XCTAssertEqual(sut.filteredCoaches.first?.lastName, "Muñoz")
+  }
+
+  func testSearchFilter_diacriticInsensitive_accentedQueryMatchesPlainName() async {
+    mockService.stubbedSchools = [makeSchool()]
+    mockService.stubbedCoaches = [
+      makeCoach(id: "1", firstName: "Carlos", lastName: "Munoz"),
+      makeCoach(id: "2", firstName: "Jane", lastName: "Doe")
+    ]
+
+    await sut.loadCoaches()
+    sut.filters.searchText = "muñoz"
+
+    XCTAssertEqual(sut.filteredCoaches.count, 1)
+    XCTAssertEqual(sut.filteredCoaches.first?.lastName, "Munoz")
   }
 
   func testSearchFilter_caseInsensitive() async {
@@ -256,7 +289,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedCoaches = [
       makeCoach(id: "1", position: "head"),
       makeCoach(id: "2", position: "assistant"),
-      makeCoach(id: "3", position: "recruiting"),
+      makeCoach(id: "3", position: "recruiting")
     ]
 
     await sut.loadCoaches()
@@ -272,7 +305,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", lastContactDate: ISO8601DateFormatter().string(from: Date())),
-      makeCoach(id: "2", lastContactDate: "2025-01-01T00:00:00Z"),
+      makeCoach(id: "2", lastContactDate: "2025-01-01T00:00:00Z")
     ]
 
     await sut.loadCoaches()
@@ -286,7 +319,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", lastContactDate: ISO8601DateFormatter().string(from: Date())),
-      makeCoach(id: "2", lastContactDate: nil),
+      makeCoach(id: "2", lastContactDate: nil)
     ]
 
     await sut.loadCoaches()
@@ -302,7 +335,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", lastName: "Zimmerman"),
-      makeCoach(id: "2", lastName: "Adams"),
+      makeCoach(id: "2", lastName: "Adams")
     ]
 
     await sut.loadCoaches()
@@ -318,7 +351,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [school1, school2]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", schoolId: "s1"),
-      makeCoach(id: "2", schoolId: "s2"),
+      makeCoach(id: "2", schoolId: "s2")
     ]
 
     await sut.loadCoaches()
@@ -331,7 +364,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", lastContactDate: "2026-01-01T00:00:00Z"),
-      makeCoach(id: "2", lastContactDate: "2026-02-01T00:00:00Z"),
+      makeCoach(id: "2", lastContactDate: "2026-02-01T00:00:00Z")
     ]
 
     await sut.loadCoaches()
@@ -366,6 +399,105 @@ final class CoachesListViewModelTests: XCTestCase {
     XCTAssertNil(sut.filters.role)
     XCTAssertNil(sut.filters.lastContactDays)
     XCTAssertEqual(sut.filters.sortBy, .name)
+  }
+
+  // MARK: - Cached filteredCoaches Staleness Tests
+  // filteredCoaches is a cached stored property (Phase 3.3), recomputed via
+  // didSet on allCoaches/allSchools/filters — not read live.
+
+  func testFilteredCoaches_UpdatesWhenAllCoachesReassigned_WithoutTouchingFilters() {
+    sut.allCoaches = [makeCoach(id: "1", position: "head")]
+    sut.filters.role = .head
+    XCTAssertEqual(sut.filteredCoaches.count, 1)
+
+    sut.allCoaches = [
+      makeCoach(id: "2", position: "head"),
+      makeCoach(id: "3", position: "assistant")
+    ]
+
+    XCTAssertEqual(sut.filteredCoaches.count, 1)
+    XCTAssertEqual(sut.filteredCoaches.first?.id, "2")
+  }
+
+  func testFilteredCoaches_UpdatesAfterDeleteWithoutExplicitRecompute() async {
+    let keep = makeCoach(id: "keep", position: "head")
+    let remove = makeCoach(id: "remove", position: "head")
+    sut.allCoaches = [keep, remove]
+    sut.filters.role = .head
+    XCTAssertEqual(sut.filteredCoaches.count, 2)
+
+    sut.confirmDelete(remove)
+    await sut.deleteCoach()
+
+    XCTAssertEqual(sut.filteredCoaches.count, 1)
+    XCTAssertEqual(sut.filteredCoaches.first?.id, "keep")
+  }
+
+  func testFilteredCoaches_SortBySchoolUpdatesWhenSchoolsAssignedAfterSortSet() {
+    sut.allCoaches = [
+      makeCoach(id: "1", lastName: "A", schoolId: "s1"),
+      makeCoach(id: "2", lastName: "B", schoolId: "s2")
+    ]
+    sut.filters.sortBy = .school
+    // No schools loaded yet — schoolName(for:) falls back to a placeholder, both equal.
+    let beforeOrder = sut.filteredCoaches.map(\.id)
+    XCTAssertEqual(Set(beforeOrder), ["1", "2"])
+
+    sut.allSchools = [
+      makeSchool(id: "s1", name: "Zeta University"),
+      makeSchool(id: "s2", name: "Alpha College")
+    ]
+
+    XCTAssertEqual(sut.filteredCoaches.map(\.id), ["2", "1"])
+  }
+
+  // MARK: - List Fetch Caching Tests (Phase 3.6)
+
+  func testLoadCoaches_SecondLoad_UsesCacheAndSkipsService() async {
+    mockService.stubbedSchools = [makeSchool()]
+    mockService.stubbedCoaches = [makeCoach(id: "1")]
+
+    await sut.loadCoaches()
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 1)
+
+    mockService.stubbedCoaches = [makeCoach(id: "2")]
+    await sut.loadCoaches()
+
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 1)
+    XCTAssertEqual(sut.allCoaches.first?.id, "1")
+  }
+
+  func testDeleteCoach_InvalidatesListCache_NextLoadRefetches() async {
+    let coach = makeCoach(id: "1")
+    mockService.stubbedSchools = [makeSchool()]
+    mockService.stubbedCoaches = [coach]
+    await sut.loadCoaches()
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 1)
+
+    sut.confirmDelete(coach)
+    await sut.deleteCoach()
+
+    mockService.stubbedCoaches = []
+    await sut.loadCoaches()
+
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 2)
+  }
+
+  func testAddCoachViewModel_CreateCoach_InvalidatesCoachesListCache() async {
+    mockService.stubbedSchools = [makeSchool()]
+    mockService.stubbedCoaches = [makeCoach(id: "1")]
+    await sut.loadCoaches()
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 1)
+
+    // Simulate what AddCoachViewModel/AddInteractionViewModel do on creation:
+    // invalidate the same cache key via the shared ListCacheKeys builder.
+    await mockCache.remove(forKey: ListCacheKeys.coaches(familyUnitId: "family-1"))
+
+    mockService.stubbedCoaches = [makeCoach(id: "1"), makeCoach(id: "2")]
+    await sut.loadCoaches()
+
+    XCTAssertEqual(mockService.fetchCoachesCallCount, 2)
+    XCTAssertEqual(sut.allCoaches.count, 2)
   }
 
   // MARK: - Delete Tests
@@ -442,7 +574,7 @@ final class CoachesListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool()]
     mockService.stubbedCoaches = [
       makeCoach(id: "1", firstName: "John", email: "coach1@school.edu"),
-      makeCoach(id: "2", firstName: "Jane", email: "coach2@school.edu"),
+      makeCoach(id: "2", firstName: "Jane", email: "coach2@school.edu")
     ]
 
     await sut.loadCoaches()

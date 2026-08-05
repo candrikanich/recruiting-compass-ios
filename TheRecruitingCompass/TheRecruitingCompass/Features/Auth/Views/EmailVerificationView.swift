@@ -66,7 +66,7 @@ struct EmailVerificationView: View {
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }
-      .accessibilityLabel("Back to welcome screen")
+      .accessibilityLabel(String(localized: "Back to welcome screen"))
       Spacer()
     }
     .padding(.horizontal, 24)
@@ -143,11 +143,11 @@ struct EmailVerificationView: View {
         if viewModel.verificationState == .checking {
           ProgressView()
             .tint(.white)
-            .accessibilityLabel("Checking verification")
+            .accessibilityLabel(String(localized: "Checking verification"))
         }
       }
       .frame(maxWidth: .infinity)
-      .frame(height: 48)
+      .frame(minHeight: 48)
       .foregroundStyle(.white)
       .background(LinearGradient.primaryButton)
       .clipShape(.rect(cornerRadius: 8))
@@ -165,7 +165,7 @@ struct EmailVerificationView: View {
         .font(.caption)
         .foregroundStyle(Color.secondaryText)
         .frame(maxWidth: .infinity, alignment: .center)
-        .accessibilityLabel("Resend available in \(viewModel.resendCooldownSeconds) seconds")
+        .accessibilityLabel(String(localized: "Resend available in \(viewModel.resendCooldownSeconds) seconds"))
     }
   }
 }

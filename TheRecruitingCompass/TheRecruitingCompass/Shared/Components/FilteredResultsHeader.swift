@@ -34,7 +34,7 @@ struct FilteredResultsHeader: View {
         .fontWeight(.semibold)
         .foregroundStyle(.secondary)
 
-      if let filterText = filterText {
+      if let filterText {
         Text(filterText)
           .font(.caption)
           .foregroundStyle(.secondary)
@@ -43,7 +43,9 @@ struct FilteredResultsHeader: View {
       Spacer()
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(resultCount) \(resultCount == 1 ? itemName : pluralName), \(activeFilterCount) filters active")
+    .accessibilityLabel(
+      String(localized: "\(resultCount) \(resultCount == 1 ? itemName : pluralName), \(activeFilterCount) filters active")
+    )
   }
 }
 

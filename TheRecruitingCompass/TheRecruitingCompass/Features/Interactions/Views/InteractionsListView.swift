@@ -11,13 +11,6 @@ struct InteractionsListView: View {
     self._externalNavigationPath = navigationPath ?? .constant(NavigationPath())
   }
 
-  private var showDeleteErrorAlert: Binding<Bool> {
-    Binding(
-      get: { viewModel.deleteErrorMessage != nil },
-      set: { if !$0 { viewModel.deleteErrorMessage = nil } }
-    )
-  }
-
   var body: some View {
     NavigationStack(path: $navigationPath) {
       contentView
@@ -34,8 +27,7 @@ struct InteractionsListView: View {
             Text("Are you sure you want to delete \"\(subject)\"? This action cannot be undone.")
           }
         }
-        .alert("Error", isPresented: showDeleteErrorAlert) {
-          Button("OK") { viewModel.deleteErrorMessage = nil }
+        .alert("Error", isPresented: $viewModel.isShowingDeleteError) {
         } message: {
           if let error = viewModel.deleteErrorMessage { Text(error) }
         }
@@ -48,7 +40,7 @@ struct InteractionsListView: View {
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
             }
-            .accessibilityLabel("Log new interaction")
+            .accessibilityLabel(String(localized: "Log new interaction"))
             .accessibilityHint("Opens form to log a new interaction")
           }
         }
@@ -83,18 +75,26 @@ struct InteractionsListView: View {
       } else {
         ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
       }
-    case .detail:
-      ContentUnavailableView(
-        "Detail View Coming Soon",
-        systemImage: "bubble.left.and.bubble.right",
-        description: Text("Interaction details will be available in a future update.")
-      )
+    case .detail(let interactionId):
+      if let familyUnitId = familyManager.currentMember?.familyUnitId {
+        InteractionDetailView(
+          interactionId: interactionId,
+          familyUnitId: familyUnitId,
+          interactionsService: viewModel.interactionsService
+        )
+      } else {
+        ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
+      }
     }
   }
 
   @ViewBuilder
   private var contentView: some View {
-    Group {
+    VStack(spacing: 0) {
+      if let loadError = viewModel.errorMessage {
+        ErrorBanner(message: loadError) { viewModel.errorMessage = nil }
+          .padding(.horizontal)
+      }
       if viewModel.isLoading && viewModel.allInteractions.isEmpty {
         LoadingStateView(message: "Loading interactions...")
       } else if viewModel.allInteractions.isEmpty && viewModel.allCoaches.isEmpty {
@@ -190,24 +190,18 @@ struct InteractionsListView: View {
   private var interactionCards: some View {
     ForEach(viewModel.filteredInteractions) { interaction in
       Button {
-        // TODO: Navigate to interaction detail
+        navigationPath.append(InteractionDestination.detail(interaction.id))
       } label: {
         InteractionCard(
           interaction: interaction,
           schoolName: viewModel.schoolName(for: interaction.schoolId),
-          coachName: viewModel.coachName(for: interaction.coachId)
+          coachName: viewModel.coachName(for: interaction.coachId),
+          onDelete: { viewModel.confirmDelete(interaction) }
         )
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
       }
       .buttonStyle(.plain)
-      .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-        Button(role: .destructive) {
-          viewModel.confirmDelete(interaction)
-        } label: {
-          Label("Delete", systemImage: "trash")
-        }
-      }
     }
   }
 }

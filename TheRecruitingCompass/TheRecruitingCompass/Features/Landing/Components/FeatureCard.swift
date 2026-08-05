@@ -1,41 +1,10 @@
 import SwiftUI
 
-struct FeatureCardData: Identifiable {
-  let id = UUID()
-  let icon: String
-  let title: String
-  let description: String
-}
-
-extension FeatureCardData {
-  static let landingFeatures: [FeatureCardData] = [
-    FeatureCardData(
-      icon: "shield.checkered",
-      title: "Track Schools",
-      description: "Organize and manage your target colleges in one place"
-    ),
-    FeatureCardData(
-      icon: "bubble.right.fill",
-      title: "Log Interactions",
-      description: "Keep track of every conversation with coaches"
-    ),
-    FeatureCardData(
-      icon: "chart.bar.fill",
-      title: "Monitor Progress",
-      description: "Visualize your recruiting journey with insights"
-    ),
-  ]
-}
-
 struct FeatureCard: View {
   let icon: String
   let title: String
   let description: String
-  @Environment(\.sizeCategory) var sizeCategory
-
-  private var iconSize: CGFloat {
-    sizeCategory >= .extraLarge ? 36 : 32
-  }
+  @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = 32
 
   var body: some View {
     VStack(spacing: 12) {
@@ -63,7 +32,7 @@ struct FeatureCard: View {
         .stroke(Color.white.opacity(0.2), lineWidth: 1)
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Feature: \(title)")
+    .accessibilityLabel(String(localized: "Feature: \(title)"))
     .accessibilityValue(description)
   }
 }

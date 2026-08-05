@@ -33,7 +33,7 @@ final class InviteJoinViewModel {
 
   var signupFirstName: String = ""
   var signupLastName: String = ""
-  var signupDateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
+  var signupDateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: .now) ?? .now
   var signupPassword: String = ""
   var signupConfirmPassword: String = ""
   var signupAgreeToTerms = false
@@ -154,10 +154,13 @@ final class InviteJoinViewModel {
         dateOfBirth: role == .player ? dobString : nil
       )
       try await familyService.acceptInvite(token: token)
-      await savePrefillPreferences(from: invite.prefill)
+      let prefillSaved = await savePrefillPreferences(from: invite.prefill)
       successMessage = "You're connected!"
       if inviteDetails?.emailMismatch == true {
         successMessage = "You're connected! (You used a different email than the invite.)"
+      }
+      if !prefillSaved {
+        successMessage = "You're connected! We couldn't save your player details — you can add them later in Preferences."
       }
       showSuccessToast = true
       try? await Task.sleep(for: .milliseconds(1500))
@@ -168,15 +171,23 @@ final class InviteJoinViewModel {
     }
   }
 
-  private func savePrefillPreferences(from prefill: InvitePrefill?) async {
+  /// Returns false when the user's player details could not be persisted, so the
+  /// caller can tell them instead of silently discarding what they entered.
+  private func savePrefillPreferences(from prefill: InvitePrefill?) async -> Bool {
     guard let prefill,
-          prefill.sport != nil || prefill.position != nil || prefill.graduationYear != nil else { return }
+          prefill.sport != nil || prefill.position != nil || prefill.graduationYear != nil else { return true }
     var details = PlayerDetails.default
     details.primarySport = prefill.sport
     details.primaryPosition = prefill.position
     details.graduationYear = prefill.graduationYear
-    _ = try? await preferenceService.savePreferences(category: .player, data: details)
-    logger.debug("Saved prefill player preferences from invite")
+    do {
+      try await preferenceService.savePreferences(category: .player, data: details)
+      logger.debug("Saved prefill player preferences from invite")
+      return true
+    } catch {
+      logger.error("Failed to save prefill player preferences: \(error.localizedDescription)")
+      return false
+    }
   }
 
   func decline() async {
@@ -190,6 +201,5 @@ final class InviteJoinViewModel {
       errorMessage = "Failed to decline invite. Please try again."
     }
   }
-
 
 }

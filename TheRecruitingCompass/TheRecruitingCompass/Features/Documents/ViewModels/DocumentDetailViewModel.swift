@@ -19,7 +19,14 @@ final class DocumentDetailViewModel {
   var versions: [DocumentVersion] = []
   var schools: [School] = []
   var isLoading = false
-  var error: String?
+  var errorMessage: String?
+
+  /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
+  /// Only shows once a document has loaded — a load failure has its own not-found/error UI.
+  var isShowingErrorAlert: Bool {
+    get { errorMessage != nil && document != nil }
+    set { if !newValue { clearError() } }
+  }
   var isNotFound = false
   var shouldDismiss = false
 
@@ -62,8 +69,11 @@ final class DocumentDetailViewModel {
 
   // MARK: - Computed
 
+  /// The user whose document we read/write. When a parent is viewing an
+  /// athlete, documents belong to the athlete (mirrors web +
+  /// OffersListViewModel); otherwise the logged-in user's own id.
   private var userId: String? {
-    authManager.user?.id
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
   }
 
   func schoolName(for schoolId: String?) -> String {
@@ -103,13 +113,13 @@ final class DocumentDetailViewModel {
 
   func loadDocument() async {
     guard authManager.user != nil else {
-      error = "You must be signed in to view this document."
+      errorMessage = "You must be signed in to view this document."
       return
     }
 
     logger.debug("Loading document: \(self.documentId)")
     isLoading = true
-    error = nil
+    errorMessage = nil
     isNotFound = false
     defer { isLoading = false }
 
@@ -135,11 +145,11 @@ final class DocumentDetailViewModel {
       if Self.isDocumentNotFound(error) {
         document = nil
         isNotFound = true
-        self.error = nil
+        self.errorMessage = nil
       } else if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Unable to load document details. Check your connection."
+        self.errorMessage = "Unable to load document details. Check your connection."
       }
     }
   }
@@ -166,7 +176,7 @@ final class DocumentDetailViewModel {
     } catch {
       logger.error("Logout failed: \(error.localizedDescription)")
     }
-    self.error = "Your session has expired. Please sign in again."
+    self.errorMessage = "Your session has expired. Please sign in again."
   }
 
   func loadSchools() async {
@@ -175,13 +185,22 @@ final class DocumentDetailViewModel {
     do {
       schools = try await schoolsService.fetchSchools(familyUnitId: familyUnitId)
     } catch {
+      // intentionally silent: schools only back the share sheet's picker; a
+      // failure here shouldn't overwrite the document detail's own error state.
+      // The picker simply shows no schools, which is self-evident in its UI.
       logger.error("Failed to load schools: \(error.localizedDescription)")
     }
   }
 
+  /// Invalidates this document's cache, plus DocumentsListViewModel's cached
+  /// list (Phase 3.6) so an edit/share/delete shows correctly on next visit
+  /// to the list screen. Call after any mutation.
   private func invalidateDocumentCache() async {
     let cacheToUse = cache ?? InMemoryCache.shared
     await cacheToUse.remove(forKey: "document:\(documentId)")
+    if let userId {
+      await cacheToUse.remove(forKey: ListCacheKeys.documents(userId: userId))
+    }
   }
 
   // MARK: - Edit
@@ -218,7 +237,7 @@ final class DocumentDetailViewModel {
       if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Failed to save changes. Please try again."
+        self.errorMessage = "Failed to save changes. Please try again."
       }
     }
   }
@@ -249,7 +268,7 @@ final class DocumentDetailViewModel {
         if Self.isUnauthorized(error) {
           await handleAuthErrorIfNeeded(error)
         } else {
-          self.error = "Failed to share document. Check your connection."
+          self.errorMessage = "Failed to share document. Check your connection."
         }
         return
       }
@@ -277,7 +296,7 @@ final class DocumentDetailViewModel {
       if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Failed to remove school access."
+        self.errorMessage = "Failed to remove school access."
       }
     }
   }
@@ -290,6 +309,9 @@ final class DocumentDetailViewModel {
     do {
       versions = try await documentsService.fetchVersionHistory(documentId: self.documentId, document: doc)
     } catch {
+      // intentionally silent: version history is a secondary detail section;
+      // the document itself loaded fine, and an empty list here reads as
+      // "no other versions" rather than an error worth interrupting the user for.
       logger.error("Failed to fetch versions: \(error.localizedDescription)")
       versions = []
     }
@@ -319,7 +341,7 @@ final class DocumentDetailViewModel {
         if Self.isUnauthorized(error) {
           await handleAuthErrorIfNeeded(error)
         } else {
-          self.error = "Failed to restore version. Please try again."
+          self.errorMessage = "Failed to restore version. Please try again."
         }
         return
       }
@@ -338,7 +360,7 @@ final class DocumentDetailViewModel {
       if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Failed to restore version. Please try again."
+        self.errorMessage = "Failed to restore version. Please try again."
       }
     }
   }
@@ -348,13 +370,13 @@ final class DocumentDetailViewModel {
 
     let ext = "." + file.pathExtension.lowercased()
     guard doc.type.allowedExtensions.contains(ext) else {
-      error = "Invalid file type. \(doc.type.label) requires \(doc.type.allowedExtensions.joined(separator: ", "))."
+      errorMessage = "Invalid file type. \(doc.type.label) requires \(doc.type.allowedExtensions.joined(separator: ", "))."
       return
     }
 
     let maxBytes = 100 * 1024 * 1024
     if let fileSize = try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize, fileSize > maxBytes {
-      error = "File exceeds 100MB limit."
+      errorMessage = "File exceeds 100MB limit."
       return
     }
 
@@ -392,7 +414,7 @@ final class DocumentDetailViewModel {
       if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Upload failed: \(error.localizedDescription)"
+        self.errorMessage = "Upload failed: \(error.localizedDescription)"
       }
     }
   }
@@ -436,7 +458,7 @@ final class DocumentDetailViewModel {
       if Self.isUnauthorized(error) {
         await handleAuthErrorIfNeeded(error)
       } else {
-        self.error = "Failed to delete document. Please try again."
+        self.errorMessage = "Failed to delete document. Please try again."
       }
     }
   }
@@ -444,8 +466,7 @@ final class DocumentDetailViewModel {
   // MARK: - Retry
 
   func clearError() {
-    error = nil
+    errorMessage = nil
   }
-
 
 }

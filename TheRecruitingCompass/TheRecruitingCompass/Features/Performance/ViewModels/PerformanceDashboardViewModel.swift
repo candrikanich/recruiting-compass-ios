@@ -12,7 +12,9 @@ private let logger = Logger(
 final class PerformanceDashboardViewModel {
 
   nonisolated deinit {}
-  var metrics: [PerformanceMetric] = []
+  var metrics: [PerformanceMetric] = [] {
+    didSet { recomputeDerivedMetrics() }
+  }
   var isLoading = false
   var errorMessage: String?
   var showAddForm = false
@@ -21,7 +23,9 @@ final class PerformanceDashboardViewModel {
   var showExportSheet = false
   var showDeleteConfirmation = false
   var metricToDelete: PerformanceMetric?
-  var selectedMetricType: MetricType?
+  var selectedMetricType: MetricType? {
+    didSet { recomputeDerivedMetrics() }
+  }
   var successMessage: String?
   var showSuccessToast = false
   var addFormState = MetricFormState()
@@ -30,7 +34,15 @@ final class PerformanceDashboardViewModel {
   var isDeleting = false
 
   let performanceService: any PerformanceManaging
+  private let familyManager: FamilyManager
   private let authManager: any AuthManaging
+
+  /// The user whose metrics we read/write. When a parent is viewing an
+  /// athlete, metrics belong to the athlete (mirrors web +
+  /// OffersListViewModel); otherwise the logged-in user's own id.
+  private var targetUserId: String? {
+    familyManager.selectedAthlete?.userId ?? authManager.user?.id
+  }
   private static let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
@@ -41,43 +53,44 @@ final class PerformanceDashboardViewModel {
 
   // MARK: - Computed Properties
 
-  var sortedMetrics: [PerformanceMetric] {
-    metrics.sorted { $0.recordedDate > $1.recordedDate }
-  }
-
-  var availableMetricTypes: [MetricType] {
-    let types = Set(metrics.map(\.metricType))
-    return MetricType.allCases.filter { types.contains($0) }
-  }
-
-  var activeMetricType: MetricType? {
-    selectedMetricType ?? availableMetricTypes.first
-  }
-
-  var chartMetrics: [PerformanceMetric] {
-    guard let type = activeMetricType else { return [] }
-    return metrics
-      .filter { $0.metricType == type }
-      .sorted { $0.recordedDate < $1.recordedDate }
-  }
+  /// Cached derived state — recomputed via `recomputeDerivedMetrics()` whenever
+  /// `metrics` or `selectedMetricType` change. Do not compute these inline
+  /// elsewhere; they would go stale silently.
+  private(set) var sortedMetrics: [PerformanceMetric] = []
+  private(set) var availableMetricTypes: [MetricType] = []
+  private(set) var activeMetricType: MetricType?
+  private(set) var chartMetrics: [PerformanceMetric] = []
+  private(set) var latestMetricsByType: [MetricType: PerformanceMetric] = [:]
+  private(set) var metricTrends: [MetricTrend] = []
 
   var hasEnoughDataForChart: Bool {
     chartMetrics.count >= 2
   }
 
-  var latestMetricsByType: [MetricType: PerformanceMetric] {
-    var result: [MetricType: PerformanceMetric] = [:]
-    let sorted = sortedMetrics
-    for metric in sorted where result[metric.metricType] == nil {
-      result[metric.metricType] = metric
+  private func recomputeDerivedMetrics() {
+    sortedMetrics = metrics.sorted { $0.recordedDate > $1.recordedDate }
+
+    let types = Set(metrics.map(\.metricType))
+    availableMetricTypes = MetricType.allCases.filter { types.contains($0) }
+
+    activeMetricType = selectedMetricType ?? availableMetricTypes.first
+
+    if let type = activeMetricType {
+      chartMetrics = metrics
+        .filter { $0.metricType == type }
+        .sorted { $0.recordedDate < $1.recordedDate }
+    } else {
+      chartMetrics = []
     }
-    return result
-  }
 
-  var metricTrends: [MetricTrend] {
+    var latest: [MetricType: PerformanceMetric] = [:]
+    for metric in sortedMetrics where latest[metric.metricType] == nil {
+      latest[metric.metricType] = metric
+    }
+    latestMetricsByType = latest
+
     let typeGroups = Dictionary(grouping: metrics, by: \.metricType)
-
-    return typeGroups
+    metricTrends = typeGroups
       .filter { $0.value.count >= 2 }
       .compactMap { type, records in
         let sorted = records.sorted { $0.recordedDate < $1.recordedDate }
@@ -105,18 +118,36 @@ final class PerformanceDashboardViewModel {
 
   // MARK: - Init
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached metrics list (seconds).
+  private static let metricsListCacheTTL: TimeInterval = 60
+
   init(
     performanceService: (any PerformanceManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    familyManager: FamilyManager? = nil,
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.performanceService = performanceService ?? PerformanceServiceImpl(supabaseManager: .shared)
+    self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
+  }
+
+  /// Invalidates the cached metrics list so the next `loadMetrics()` refetches.
+  /// Call after any mutation (create, update, delete). `EventDetailViewModel.addMetric()`
+  /// invalidates the same key (via `ListCacheKeys.metrics`) for metrics logged
+  /// inline from an event's quick-log form.
+  private func invalidateMetricsListCache() async {
+    guard let userId = targetUserId else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.metrics(userId: userId))
   }
 
   // MARK: - Actions
 
   func loadMetrics() async {
-    guard let userId = authManager.user?.id else {
+    guard let userId = targetUserId else {
       logger.warning("No authenticated user")
       errorMessage = "Please sign in to view performance metrics."
       return
@@ -126,9 +157,19 @@ final class PerformanceDashboardViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    let cacheKey = ListCacheKeys.metrics(userId: userId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
     do {
-      metrics = try await performanceService.fetchMetrics(userId: userId)
-      logger.info("Loaded \(self.metrics.count) metrics")
+      if let cached = await cacheToUse.get([PerformanceMetric].self, forKey: cacheKey) {
+        metrics = cached
+        logger.info("Loaded \(self.metrics.count) metrics from cache")
+      } else {
+        let fetched = try await performanceService.fetchMetrics(userId: userId)
+        metrics = fetched
+        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.metricsListCacheTTL)
+        logger.info("Loaded \(self.metrics.count) metrics")
+      }
     } catch {
       logger.error("Failed to load metrics: \(error.localizedDescription)")
       errorMessage = "Failed to load metrics. Please try again."
@@ -136,7 +177,7 @@ final class PerformanceDashboardViewModel {
   }
 
   func addMetric() async {
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = targetUserId else { return }
     guard addFormState.isValid, let parsedValue = addFormState.parsedValue else { return }
     guard let type = addFormState.metricType else { return }
 
@@ -157,9 +198,10 @@ final class PerformanceDashboardViewModel {
       metrics.append(newMetric)
       addFormState.reset()
       showAddForm = false
-      successMessage = "Metric logged successfully"
+      successMessage = String(localized: "Metric logged successfully")
       showSuccessToast = true
       logger.info("Metric added: \(newMetric.id)")
+      await invalidateMetricsListCache()
     } catch {
       logger.error("Failed to add metric: \(error.localizedDescription)")
       errorMessage = "Failed to log metric. Please try again."
@@ -196,9 +238,10 @@ final class PerformanceDashboardViewModel {
       }
       showEditSheet = false
       editingMetric = nil
-      successMessage = "Metric updated successfully"
+      successMessage = String(localized: "Metric updated successfully")
       showSuccessToast = true
       logger.info("Metric updated: \(metric.id)")
+      await invalidateMetricsListCache()
     } catch {
       logger.error("Failed to update metric: \(error.localizedDescription)")
       errorMessage = "Failed to update metric. Please try again."
@@ -222,9 +265,10 @@ final class PerformanceDashboardViewModel {
       metrics.removeAll { $0.id == metric.id }
       metricToDelete = nil
       showDeleteConfirmation = false
-      successMessage = "Metric deleted"
+      successMessage = String(localized: "Metric deleted")
       showSuccessToast = true
       logger.info("Metric deleted: \(metric.id)")
+      await invalidateMetricsListCache()
     } catch {
       logger.error("Failed to delete metric: \(error.localizedDescription)")
       errorMessage = "Failed to delete metric. Please try again."
@@ -259,7 +303,7 @@ final class PerformanceDashboardViewModel {
   func generateCSV() -> String {
     var csv = "Metric Type,Value,Unit,Date,Verified,Notes\n"
     for metric in sortedMetrics {
-      let notes = (metric.notes ?? "").replacingOccurrences(of: ",", with: ";")
+      let notes = (metric.notes ?? "").replacing(",", with: ";")
       csv += "\(metric.metricType.displayName),\(metric.value),\(metric.unit),\(metric.formattedDate),\(metric.verified),\(notes)\n"
     }
     return csv
@@ -270,6 +314,5 @@ final class PerformanceDashboardViewModel {
     let userName = authManager.user?.email
     return generator.generate(metrics: sortedMetrics, userName: userName)
   }
-
 
 }

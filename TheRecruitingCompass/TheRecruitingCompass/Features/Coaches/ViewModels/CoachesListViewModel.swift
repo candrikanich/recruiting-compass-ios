@@ -9,15 +9,27 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 final class CoachesListViewModel {
 
   nonisolated deinit {}
-  var allCoaches: [Coach] = []
-  var allSchools: [School] = []
+  var allCoaches: [Coach] = [] {
+    didSet { recomputeFilteredCoaches() }
+  }
+  var allSchools: [School] = [] {
+    didSet { recomputeFilteredCoaches() }
+  }
   var isLoading = false
   var errorMessage: String?
-  var filters = CoachFilters()
+  var filters = CoachFilters() {
+    didSet { recomputeFilteredCoaches() }
+  }
   var showDeleteConfirmation = false
   var coachToDelete: Coach?
   var isDeleting = false
   var deleteErrorMessage: String?
+
+  /// Drives the delete-error alert directly, without a view-local Binding(get:set:) wrapper.
+  var isShowingDeleteError: Bool {
+    get { deleteErrorMessage != nil }
+    set { if !newValue { deleteErrorMessage = nil } }
+  }
   var successMessage: String?
   var showSuccessToast = false
 
@@ -25,18 +37,23 @@ final class CoachesListViewModel {
   private let familyManager: FamilyManager
   private let authManager: any AuthManaging
 
-  var filteredCoaches: [Coach] {
+  /// Cached derived list — recomputed via `recomputeFilteredCoaches()` whenever
+  /// `allCoaches`, `allSchools` (sort-by-school reads schoolName(for:)), or
+  /// `filters` change. Do not compute this inline elsewhere; it would go stale silently.
+  private(set) var filteredCoaches: [Coach] = []
+
+  private func recomputeFilteredCoaches() {
     var result = allCoaches
 
     if !filters.searchText.isEmpty {
-      let query = filters.searchText.lowercased()
+      let query = filters.searchText
       result = result.filter { coach in
-        coach.fullName.lowercased().contains(query)
-          || (coach.email?.lowercased().contains(query) ?? false)
-          || (coach.phone?.lowercased().contains(query) ?? false)
-          || (coach.notes?.lowercased().contains(query) ?? false)
-          || (coach.twitterHandle?.lowercased().contains(query) ?? false)
-          || (coach.instagramHandle?.lowercased().contains(query) ?? false)
+        coach.fullName.localizedStandardContains(query)
+          || (coach.email?.localizedStandardContains(query) ?? false)
+          || (coach.phone?.localizedStandardContains(query) ?? false)
+          || (coach.notes?.localizedStandardContains(query) ?? false)
+          || (coach.twitterHandle?.localizedStandardContains(query) ?? false)
+          || (coach.instagramHandle?.localizedStandardContains(query) ?? false)
       }
     }
 
@@ -56,7 +73,7 @@ final class CoachesListViewModel {
       result = result.filter { $0.schoolId == schoolId }
     }
 
-    return sorted(result)
+    filteredCoaches = sorted(result)
   }
 
   var schoolNameMap: [String: String] {
@@ -86,7 +103,7 @@ final class CoachesListViewModel {
 
     return CoachAnalytics(
       totalCount: allCoaches.count,
-      headCoachCount: allCoaches.filter { $0.role == .head }.count,
+      headCoachCount: allCoaches.count(where: { $0.role == .head }),
       recentContactsCount: allCoaches.filter { coach in
         guard let date = coach.lastContactDateParsed else { return false }
         return date >= sevenDaysAgo
@@ -98,14 +115,30 @@ final class CoachesListViewModel {
     )
   }
 
+  private let cache: (any CacheManaging)?
+
+  /// TTL for cached coaches list (seconds).
+  private static let coachesListCacheTTL: TimeInterval = 60
+
   init(
     coachesService: (any CoachesManaging)? = nil,
     familyManager: FamilyManager? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    cache: (any CacheManaging)? = nil
   ) {
     self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
+    self.cache = cache
+  }
+
+  /// Invalidates the cached coaches list so the next `loadCoaches()`
+  /// refetches. Call after any mutation (delete). `AddCoachViewModel`,
+  /// `AddInteractionViewModel.createNewCoach()`, and `CoachDetailViewModel`
+  /// invalidate the same key (via `ListCacheKeys.coaches`) after create/edit.
+  private func invalidateCoachesListCache() async {
+    guard let familyUnitId = familyManager.currentMember?.familyUnitId else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.coaches(familyUnitId: familyUnitId))
   }
 
   func loadCoaches() async {
@@ -119,14 +152,23 @@ final class CoachesListViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    let cacheKey = ListCacheKeys.coaches(familyUnitId: familyUnitId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+
     do {
       let schools = try await coachesService.fetchSchools(familyUnitId: familyUnitId)
       allSchools = schools
 
-      let schoolIds = schools.map(\.id)
-      allCoaches = try await coachesService.fetchCoaches(schoolIds: schoolIds)
-
-      logger.info("Loaded \(self.allCoaches.count) coaches from \(schools.count) schools")
+      if let cachedCoaches = await cacheToUse.get([Coach].self, forKey: cacheKey) {
+        allCoaches = cachedCoaches
+        logger.info("Loaded \(self.allCoaches.count) coaches from cache")
+      } else {
+        let schoolIds = schools.map(\.id)
+        let fetched = try await coachesService.fetchCoaches(schoolIds: schoolIds)
+        allCoaches = fetched
+        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.coachesListCacheTTL)
+        logger.info("Loaded \(self.allCoaches.count) coaches from \(schools.count) schools")
+      }
     } catch {
       logger.error("Failed to load coaches: \(error.localizedDescription)")
       errorMessage = "Failed to load coaches. Please try again."
@@ -155,8 +197,9 @@ final class CoachesListViewModel {
       try await coachesService.deleteCoach(id: coach.id)
       allCoaches.removeAll { $0.id == coach.id }
       logger.info("Deleted coach: \(coachName)")
-      successMessage = "Coach deleted"
+      successMessage = String(localized: "Coach deleted")
       showSuccessToast = true
+      await invalidateCoachesListCache()
     } catch {
       logger.warning("Simple delete failed, attempting cascade: \(error.localizedDescription)")
       do {
@@ -167,11 +210,12 @@ final class CoachesListViewModel {
         // Build detailed success message
         let totalDeleted = result.deletedInteractions + result.deletedNotes
         if totalDeleted > 0 {
-          successMessage = "Coach and \(totalDeleted) related record\(totalDeleted == 1 ? "" : "s") deleted"
+          successMessage = String(localized: "Coach and \(totalDeleted) related record\(totalDeleted == 1 ? "" : "s") deleted")
         } else {
-          successMessage = "Coach deleted"
+          successMessage = String(localized: "Coach deleted")
         }
         showSuccessToast = true
+        await invalidateCoachesListCache()
       } catch {
         logger.error("Cascade delete failed: \(error.localizedDescription)")
         deleteErrorMessage = "Failed to delete coach. Please try again."
@@ -213,6 +257,5 @@ final class CoachesListViewModel {
       return coaches.sorted { $0.role.displayName < $1.role.displayName }
     }
   }
-
 
 }

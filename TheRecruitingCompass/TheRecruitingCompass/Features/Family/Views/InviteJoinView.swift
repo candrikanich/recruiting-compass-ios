@@ -7,7 +7,7 @@ struct InviteJoinView: View {
 
   var body: some View {
     NavigationStack {
-      stateContent
+      InviteJoinStateContent(viewModel: viewModel, presentedLegal: $presentedLegal, dismiss: dismiss)
         .navigationTitle("Join Family")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -34,23 +34,29 @@ struct InviteJoinView: View {
       duration: 2.0
     )
   }
+}
 
-  @ViewBuilder
-  private var stateContent: some View {
+private struct InviteJoinStateContent: View {
+  @Bindable var viewModel: InviteJoinViewModel
+  @Binding var presentedLegal: LegalDocument?
+  let dismiss: DismissAction
+
+  var body: some View {
     switch viewModel.state {
     case .loading:
-      loadingView
+      InviteJoinLoadingView()
     case .error(let err):
-      errorView(err)
+      InviteJoinErrorView(error: err, dismiss: dismiss)
     case .declined:
-      declinedView
+      InviteJoinDeclinedView(dismiss: dismiss)
     case .loaded(let invite):
-      inviteView(invite)
+      InviteJoinInviteContent(invite: invite, viewModel: viewModel, presentedLegal: $presentedLegal)
     }
   }
+}
 
-  @ViewBuilder
-  private var loadingView: some View {
+private struct InviteJoinLoadingView: View {
+  var body: some View {
     VStack(spacing: 16) {
       ProgressView()
       Text("Loading invite...")
@@ -58,9 +64,13 @@ struct InviteJoinView: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
+}
 
-  @ViewBuilder
-  private func errorView(_ error: InviteError) -> some View {
+private struct InviteJoinErrorView: View {
+  let error: InviteError
+  let dismiss: DismissAction
+
+  var body: some View {
     VStack(spacing: 16) {
       Image(systemName: iconForError(error))
         .font(.system(size: 48))
@@ -86,9 +96,12 @@ struct InviteJoinView: View {
     .padding(32)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
+}
 
-  @ViewBuilder
-  private var declinedView: some View {
+private struct InviteJoinDeclinedView: View {
+  let dismiss: DismissAction
+
+  var body: some View {
     VStack(spacing: 16) {
       Image(systemName: "hand.raised")
         .font(.system(size: 48))
@@ -112,34 +125,39 @@ struct InviteJoinView: View {
     .padding(32)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
+}
 
-  private func iconForError(_ error: InviteError) -> String {
-    switch error {
-    case .expired: return "clock.badge.xmark"
-    case .alreadyAccepted: return "checkmark.circle"
-    case .notFound: return "link.badge.plus"
-    case .serverError: return "exclamationmark.triangle"
-    }
+private func iconForError(_ error: InviteError) -> String {
+  switch error {
+  case .expired: return "clock.badge.xmark"
+  case .alreadyAccepted: return "checkmark.circle"
+  case .notFound: return "link.badge.plus"
+  case .serverError: return "exclamationmark.triangle"
   }
+}
 
-  private func colorForError(_ error: InviteError) -> Color {
-    switch error {
-    case .alreadyAccepted: return .green
-    default: return .orange
-    }
+private func colorForError(_ error: InviteError) -> Color {
+  switch error {
+  case .alreadyAccepted: return .green
+  default: return .orange
   }
+}
 
-  private func titleForError(_ error: InviteError) -> String {
-    switch error {
-    case .expired: return "This invite has expired"
-    case .alreadyAccepted: return "Already connected"
-    case .notFound: return "Invite not found"
-    case .serverError: return "Something went wrong"
-    }
+private func titleForError(_ error: InviteError) -> String {
+  switch error {
+  case .expired: return "This invite has expired"
+  case .alreadyAccepted: return "Already connected"
+  case .notFound: return "Invite not found"
+  case .serverError: return "Something went wrong"
   }
+}
 
-  @ViewBuilder
-  private func inviteView(_ invite: InviteDetails) -> some View {
+private struct InviteJoinInviteContent: View {
+  let invite: InviteDetails
+  @Bindable var viewModel: InviteJoinViewModel
+  @Binding var presentedLegal: LegalDocument?
+
+  var body: some View {
     ScrollView {
       VStack(spacing: 24) {
         VStack(spacing: 8) {
@@ -160,18 +178,23 @@ struct InviteJoinView: View {
         }
 
         if viewModel.isAuthenticated {
-          authenticatedConnectSection(invite: invite)
+          InviteJoinAuthenticatedConnectSection(invite: invite, viewModel: viewModel)
         } else if invite.emailExists {
-          unauthenticatedLoginSection(invite: invite)
+          InviteJoinLoginSection(invite: invite, viewModel: viewModel)
         } else {
-          unauthenticatedSignupSection(invite: invite)
+          InviteJoinSignupSection(invite: invite, viewModel: viewModel, presentedLegal: $presentedLegal)
         }
       }
       .padding(24)
     }
   }
+}
 
-  private func authenticatedConnectSection(invite: InviteDetails) -> some View {
+private struct InviteJoinAuthenticatedConnectSection: View {
+  let invite: InviteDetails
+  @Bindable var viewModel: InviteJoinViewModel
+
+  var body: some View {
     VStack(spacing: 12) {
       gradientButton(
         label: "Connect to \(invite.familyName)",
@@ -180,11 +203,18 @@ struct InviteJoinView: View {
         Task { await viewModel.accept() }
       }
 
-      declineButton(loading: viewModel.isDeclining)
+      declineButton(loading: viewModel.isDeclining) {
+        Task { await viewModel.decline() }
+      }
     }
   }
+}
 
-  private func unauthenticatedLoginSection(invite: InviteDetails) -> some View {
+private struct InviteJoinLoginSection: View {
+  let invite: InviteDetails
+  @Bindable var viewModel: InviteJoinViewModel
+
+  var body: some View {
     VStack(spacing: 16) {
       Text("Log in to connect your account.")
         .font(.subheadline)
@@ -192,7 +222,7 @@ struct InviteJoinView: View {
 
       VStack(spacing: 12) {
         LoginFormField(
-          label: "Email",
+          label: String(localized: "Email"),
           placeholder: invite.email,
           icon: "envelope",
           text: .constant(invite.email),
@@ -205,7 +235,7 @@ struct InviteJoinView: View {
         .disabled(true)
 
         LoginFormField(
-          label: "Password",
+          label: String(localized: "Password"),
           placeholder: "Your password",
           icon: "lock",
           text: $viewModel.loginPassword,
@@ -224,11 +254,19 @@ struct InviteJoinView: View {
         Task { await viewModel.accept() }
       }
 
-      declineButton(loading: viewModel.isDeclining)
+      declineButton(loading: viewModel.isDeclining) {
+        Task { await viewModel.decline() }
+      }
     }
   }
+}
 
-  private func unauthenticatedSignupSection(invite: InviteDetails) -> some View {
+private struct InviteJoinSignupSection: View {
+  let invite: InviteDetails
+  @Bindable var viewModel: InviteJoinViewModel
+  @Binding var presentedLegal: LegalDocument?
+
+  var body: some View {
     VStack(spacing: 16) {
       Text("Create an account to connect.")
         .font(.subheadline)
@@ -240,7 +278,7 @@ struct InviteJoinView: View {
 
       VStack(spacing: 12) {
         LoginFormField(
-          label: "First Name",
+          label: String(localized: "First Name"),
           placeholder: "John",
           icon: "person",
           text: $viewModel.signupFirstName,
@@ -252,7 +290,7 @@ struct InviteJoinView: View {
         )
 
         LoginFormField(
-          label: "Last Name",
+          label: String(localized: "Last Name"),
           placeholder: "Smith",
           icon: "person",
           text: $viewModel.signupLastName,
@@ -264,7 +302,7 @@ struct InviteJoinView: View {
         )
 
         LoginFormField(
-          label: "Email",
+          label: String(localized: "Email"),
           placeholder: invite.email,
           icon: "envelope",
           text: .constant(invite.email),
@@ -277,12 +315,12 @@ struct InviteJoinView: View {
         .disabled(true)
 
         if invite.role == "player" {
-          dateOfBirthField
+          InviteJoinDateOfBirthField(viewModel: viewModel)
         }
 
         VStack(alignment: .leading, spacing: 4) {
           LoginFormField(
-            label: "Password",
+            label: String(localized: "Password"),
             placeholder: "Create a strong password",
             icon: "lock",
             text: $viewModel.signupPassword,
@@ -299,7 +337,7 @@ struct InviteJoinView: View {
         }
 
         LoginFormField(
-          label: "Confirm Password",
+          label: String(localized: "Confirm Password"),
           placeholder: "Re-enter your password",
           icon: "lock.fill",
           text: $viewModel.signupConfirmPassword,
@@ -324,12 +362,17 @@ struct InviteJoinView: View {
         Task { await viewModel.signupAndConnect() }
       }
 
-      declineButton(loading: viewModel.isDeclining)
+      declineButton(loading: viewModel.isDeclining) {
+        Task { await viewModel.decline() }
+      }
     }
   }
+}
 
-  @ViewBuilder
-  private var dateOfBirthField: some View {
+private struct InviteJoinDateOfBirthField: View {
+  @Bindable var viewModel: InviteJoinViewModel
+
+  var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 8) {
         Image(systemName: "calendar")
@@ -343,50 +386,48 @@ struct InviteJoinView: View {
       DatePicker(
         "Date of Birth",
         selection: $viewModel.signupDateOfBirth,
-        in: ...Date(),
+        in: ...Date.now,
         displayedComponents: .date
       )
       .datePickerStyle(.compact)
       .labelsHidden()
     }
   }
+}
 
-  private func gradientButton(label: String, isLoading: Bool, action: @escaping () -> Void) -> some View {
-    Button(action: action) {
-      HStack {
-        Text(isLoading ? "Please wait..." : label)
-          .font(.callout.weight(.semibold))
-        if isLoading {
-          ProgressView()
-            .tint(.white)
-        }
+private func gradientButton(label: String, isLoading: Bool, action: @escaping () -> Void) -> some View {
+  Button(action: action) {
+    HStack {
+      Text(isLoading ? "Please wait..." : label)
+        .font(.callout.weight(.semibold))
+      if isLoading {
+        ProgressView()
+          .tint(.white)
       }
-      .frame(maxWidth: .infinity)
-      .frame(height: 48)
-      .foregroundStyle(.white)
-      .background(LinearGradient.primaryButton)
-      .clipShape(.rect(cornerRadius: 8))
-      .opacity(isLoading ? 0.7 : 1)
     }
-    .disabled(isLoading)
+    .frame(maxWidth: .infinity)
+    .frame(minHeight: 48)
+    .foregroundStyle(.white)
+    .background(LinearGradient.primaryButton)
+    .clipShape(.rect(cornerRadius: 8))
+    .opacity(isLoading ? 0.7 : 1)
   }
+  .disabled(isLoading)
+}
 
-  private func declineButton(loading: Bool) -> some View {
-    Button(role: .destructive) {
-      Task { await viewModel.decline() }
-    } label: {
-      Group {
-        if loading {
-          ProgressView().tint(.red)
-        } else {
-          Text("Decline invitation")
-        }
+private func declineButton(loading: Bool, action: @escaping () -> Void) -> some View {
+  Button(role: .destructive, action: action) {
+    Group {
+      if loading {
+        ProgressView().tint(.red)
+      } else {
+        Text("Decline invitation")
       }
-      .frame(maxWidth: .infinity)
-      .frame(height: 44)
     }
-    .buttonStyle(.bordered)
-    .tint(.red)
-    .disabled(loading)
+    .frame(maxWidth: .infinity)
+    .frame(minHeight: 44)
   }
+  .buttonStyle(.bordered)
+  .tint(.red)
+  .disabled(loading)
 }
