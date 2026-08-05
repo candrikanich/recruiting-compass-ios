@@ -64,7 +64,7 @@ final class InteractionDetailViewModel {
   }
 
   var formattedDate: String {
-    guard let interaction = interaction else { return "Unknown" }
+    guard let interaction = interaction else { return String(localized: "Unknown") }
     let date = interaction.displayDate
     let formatter = DateFormatter()
     formatter.dateStyle = .medium
@@ -80,7 +80,7 @@ final class InteractionDetailViewModel {
   }
 
   var displaySubject: String {
-    interaction?.displaySubject ?? "Interaction"
+    interaction?.displaySubject ?? String(localized: "Interaction")
   }
 
   var hasContent: Bool {
@@ -113,7 +113,7 @@ final class InteractionDetailViewModel {
       await loadRelatedData()
     } catch {
       logger.error("Failed to load interaction: \(error.localizedDescription)")
-      errorMessage = "Failed to load interaction. It may have been deleted."
+      errorMessage = String(localized: "Failed to load interaction. It may have been deleted.")
     }
   }
 
@@ -207,7 +207,7 @@ final class InteractionDetailViewModel {
 
     guard canDelete else {
       logger.warning("User cannot delete this interaction")
-      errorMessage = "You don't have permission to delete this interaction"
+      errorMessage = String(localized: "You don't have permission to delete this interaction")
       return false
     }
 
@@ -234,7 +234,7 @@ final class InteractionDetailViewModel {
           return true
         } catch {
           logger.error("Cascade delete failed: \(error.localizedDescription)")
-          errorMessage = "Failed to delete interaction. Please try again."
+          errorMessage = String(localized: "Failed to delete interaction. Please try again.")
           return false
         }
       } else {

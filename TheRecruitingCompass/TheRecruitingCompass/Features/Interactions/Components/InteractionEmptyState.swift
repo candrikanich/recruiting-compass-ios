@@ -33,15 +33,17 @@ struct InteractionEmptyState: View {
   }
 
   private var title: String {
-    if isFilteredEmpty { return "No interactions match your filters" }
-    if noCoaches { return "Add a coach first" }
-    return "No interactions yet"
+    if isFilteredEmpty { return String(localized: "No interactions match your filters") }
+    if noCoaches { return String(localized: "Add a coach first") }
+    return String(localized: "No interactions yet")
   }
 
   private var subtitle: String {
-    if isFilteredEmpty { return "Try adjusting your search or filters" }
-    if noCoaches { return "Interactions are linked to coaches. Visit a school's page to add coaches to your list." }
-    return "Start logging your recruiting communications with coaches."
+    if isFilteredEmpty { return String(localized: "Try adjusting your search or filters") }
+    if noCoaches {
+      return String(localized: "Interactions are linked to coaches. Visit a school's page to add coaches to your list.")
+    }
+    return String(localized: "Start logging your recruiting communications with coaches.")
   }
 
   var body: some View {

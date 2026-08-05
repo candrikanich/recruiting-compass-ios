@@ -6,15 +6,15 @@ enum Direction: String, Codable, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .outbound: return "Outbound"
-    case .inbound: return "Inbound"
+    case .outbound: return String(localized: "Outbound")
+    case .inbound: return String(localized: "Inbound")
     }
   }
 
   var subtitle: String {
     switch self {
-    case .outbound: return "We initiated"
-    case .inbound: return "They initiated"
+    case .outbound: return String(localized: "We initiated")
+    case .inbound: return String(localized: "They initiated")
     }
   }
 

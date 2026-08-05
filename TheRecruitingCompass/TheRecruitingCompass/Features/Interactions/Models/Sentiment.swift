@@ -8,10 +8,10 @@ enum Sentiment: String, Codable, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .veryPositive: return "Very Positive"
-    case .positive: return "Positive"
-    case .neutral: return "Neutral"
-    case .negative: return "Negative"
+    case .veryPositive: return String(localized: "Very Positive")
+    case .positive: return String(localized: "Positive")
+    case .neutral: return String(localized: "Neutral")
+    case .negative: return String(localized: "Negative")
     }
   }
 

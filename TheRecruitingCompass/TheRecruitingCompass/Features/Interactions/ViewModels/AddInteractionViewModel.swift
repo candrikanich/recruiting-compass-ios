@@ -94,7 +94,7 @@ final class AddInteractionViewModel {
       logger.info("Loaded \(self.schools.count) schools and \(self.allCoaches.count) coaches")
     } catch {
       logger.error("Failed to load form data: \(error.localizedDescription)")
-      errorMessage = "Failed to load schools and coaches. Please try again."
+      errorMessage = String(localized: "Failed to load schools and coaches. Please try again.")
     }
   }
 
@@ -104,19 +104,19 @@ final class AddInteractionViewModel {
     var errors: [String: String] = [:]
 
     if formState.schoolId.isEmpty {
-      errors["school"] = "Please select a school"
+      errors["school"] = String(localized: "Please select a school")
     }
 
     if formState.type == nil {
-      errors["type"] = "Please select an interaction type"
+      errors["type"] = String(localized: "Please select an interaction type")
     }
 
     if formState.subject.count > 500 {
-      errors["subject"] = "Subject must be 500 characters or less"
+      errors["subject"] = String(localized: "Subject must be 500 characters or less")
     }
 
     if formState.content.count > 10000 {
-      errors["content"] = "Content must be 10,000 characters or less"
+      errors["content"] = String(localized: "Content must be 10,000 characters or less")
     }
 
     return errors
@@ -132,7 +132,7 @@ final class AddInteractionViewModel {
 
     guard !formState.schoolId.isEmpty else {
       logger.warning("No school selected for new coach")
-      errorMessage = "Please select a school first"
+      errorMessage = String(localized: "Please select a school first")
       return false
     }
 
@@ -170,7 +170,7 @@ final class AddInteractionViewModel {
       return true
     } catch {
       logger.error("Failed to create coach: \(error.localizedDescription)")
-      errorMessage = "Failed to create coach. Please try again."
+      errorMessage = String(localized: "Failed to create coach. Please try again.")
       return false
     }
   }
@@ -227,7 +227,7 @@ final class AddInteractionViewModel {
     }
 
     guard let interactionType = formState.type else {
-      errorMessage = "Interaction type is required"
+      errorMessage = String(localized: "Interaction type is required")
       return false
     }
 
@@ -282,7 +282,7 @@ final class AddInteractionViewModel {
       return true
     } catch {
       logger.error("Failed to submit interaction: \(error.localizedDescription)")
-      errorMessage = "Failed to create interaction. Please try again."
+      errorMessage = String(localized: "Failed to create interaction. Please try again.")
       return false
     }
   }

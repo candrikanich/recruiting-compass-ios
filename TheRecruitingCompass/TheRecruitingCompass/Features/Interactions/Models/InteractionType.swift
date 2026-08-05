@@ -20,16 +20,16 @@ enum InteractionType: String, Codable, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .email: return "Email"
-    case .phoneCall: return "Phone Call"
-    case .text: return "Text"
-    case .inPersonVisit: return "In-Person Visit"
-    case .virtualMeeting: return "Virtual Meeting"
-    case .camp: return "Camp"
-    case .showcase: return "Showcase"
-    case .tweet: return "Tweet"
-    case .directMessage: return "Direct Message"
-    case .unknown: return "Unknown"
+    case .email: return String(localized: "Email")
+    case .phoneCall: return String(localized: "Phone Call")
+    case .text: return String(localized: "Text")
+    case .inPersonVisit: return String(localized: "In-Person Visit")
+    case .virtualMeeting: return String(localized: "Virtual Meeting")
+    case .camp: return String(localized: "Camp")
+    case .showcase: return String(localized: "Showcase")
+    case .tweet: return String(localized: "Tweet")
+    case .directMessage: return String(localized: "Direct Message")
+    case .unknown: return String(localized: "Unknown")
     }
   }
 

@@ -160,7 +160,7 @@ final class InteractionsListViewModel {
   func loadInteractions() async {
     guard let familyUnitId = familyManager.currentMember?.familyUnitId else {
       logger.warning("No familyUnitId available")
-      errorMessage = "Unable to load interactions. Please try again."
+      errorMessage = String(localized: "Unable to load interactions. Please try again.")
       return
     }
 
@@ -205,7 +205,7 @@ final class InteractionsListViewModel {
       }
     } catch {
       logger.error("Failed to load interactions: \(error.localizedDescription)")
-      errorMessage = "Failed to load interactions. Please try again."
+      errorMessage = String(localized: "Failed to load interactions. Please try again.")
     }
   }
 

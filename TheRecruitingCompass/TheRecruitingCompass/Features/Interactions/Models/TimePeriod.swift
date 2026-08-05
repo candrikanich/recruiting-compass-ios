@@ -8,10 +8,10 @@ enum TimePeriod: Int, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .last7Days: return "Last 7 days"
-    case .last14Days: return "Last 14 days"
-    case .last30Days: return "Last 30 days"
-    case .last90Days: return "Last 90 days"
+    case .last7Days: return String(localized: "Last 7 days")
+    case .last14Days: return String(localized: "Last 14 days")
+    case .last30Days: return String(localized: "Last 30 days")
+    case .last90Days: return String(localized: "Last 90 days")
     }
   }
 }
