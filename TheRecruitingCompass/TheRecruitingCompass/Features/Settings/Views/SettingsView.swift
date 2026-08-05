@@ -286,7 +286,10 @@ private struct SettingsRow: View {
     }
     .padding(.vertical, 4)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(badgeStatus.map { "\(title): \($0.label). \(description)" } ?? "\(title): \(description)")
+    .accessibilityLabel(
+        badgeStatus.map { String(localized: "\(title): \($0.label). \(description)") }
+            ?? String(localized: "\(title): \(description)")
+    )
   }
 }
 

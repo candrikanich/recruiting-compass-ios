@@ -73,11 +73,11 @@ struct FamilyMemberCard: View {
   }
 
   var cardAccessibilityLabel: String {
-    "\(displayName), \(member.role), joined \(formattedJoinDate)"
+    String(localized: "\(displayName), \(member.role), joined \(formattedJoinDate)")
   }
 
   var removeAccessibilityLabel: String {
-    "Remove \(displayName)"
+    String(localized: "Remove \(displayName)")
   }
 
   var displayName: String {

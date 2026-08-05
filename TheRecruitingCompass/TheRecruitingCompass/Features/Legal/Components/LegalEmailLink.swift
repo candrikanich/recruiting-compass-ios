@@ -22,7 +22,7 @@ struct LegalEmailLink: View {
         .foregroundStyle(Color.accentBlue)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
-        .accessibilityLabel("Email \(email.replacing("@", with: " at ").replacing(".", with: " dot "))")
+        .accessibilityLabel(String(localized: "Email \(email.replacing("@", with: " at ").replacing(".", with: " dot "))"))
         .accessibilityHint("Opens Mail app")
         .alert("Email not available on this device", isPresented: $showMailUnavailableAlert) {
         }

@@ -171,7 +171,7 @@ private struct ProfilePersonalInfoSection: View {
                 Label(msg.text, systemImage: msg.isSuccess ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                     .font(.subheadline)
                     .foregroundStyle(msg.isSuccess ? Color.primaryGreen : Color.errorRed)
-                    .accessibilityLabel(msg.isSuccess ? "Saved successfully" : "Error: \(msg.text)")
+                    .accessibilityLabel(msg.isSuccess ? "Saved successfully" : String(localized: "Error: \(msg.text)"))
             }
 
             Button {
@@ -310,7 +310,7 @@ private struct ProfilePasswordSection: View {
                 Label(msg.text, systemImage: msg.isSuccess ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                     .font(.subheadline)
                     .foregroundStyle(msg.isSuccess ? Color.primaryGreen : Color.errorRed)
-                    .accessibilityLabel(msg.isSuccess ? msg.text : "Error: \(msg.text)")
+                    .accessibilityLabel(msg.isSuccess ? msg.text : String(localized: "Error: \(msg.text)"))
             }
 
             Button {

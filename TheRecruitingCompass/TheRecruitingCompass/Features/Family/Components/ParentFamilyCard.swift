@@ -33,6 +33,6 @@ struct ParentFamilyCard: View {
   }
 
   var cardAccessibilityLabel: String {
-    "\(family.familyName), code \(FamilyUtilities.formatCodeForVoiceOver(family.familyCode)), joined"
+    String(localized: "\(family.familyName), code \(FamilyUtilities.formatCodeForVoiceOver(family.familyCode)), joined")
   }
 }

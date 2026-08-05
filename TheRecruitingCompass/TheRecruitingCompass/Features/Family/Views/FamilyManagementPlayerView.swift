@@ -60,7 +60,7 @@ struct FamilyManagementPlayerView: View {
             .padding(.vertical, FamilyConstants.Spacing.medium)
             .background(Color.gray.opacity(0.1))
             .clipShape(.rect(cornerRadius: 12))
-            .accessibilityLabel(FamilyUtilities.formatCodeForVoiceOver(code))
+            .accessibilityLabel(String(localized: "\(FamilyUtilities.formatCodeForVoiceOver(code))"))
 
           if let date = viewModel.formattedCodeGeneratedAt {
             Text("Created \(date)")
