@@ -27,7 +27,7 @@ struct HelpImageSlot: View {
         .foregroundStyle(.secondary)
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(caption)
+    .accessibilityLabel(String(localized: "\(caption)"))
   }
 }
 

@@ -6,8 +6,8 @@ struct NotificationBulkActions: View {
   let onMarkAllRead: () -> Void
   let onClearRead: () -> Void
 
-  var markAllReadAccessibilityLabel: String { "Mark all as read" }
-  var clearReadAccessibilityLabel: String { "Clear read notifications" }
+  var markAllReadAccessibilityLabel: String { String(localized: "Mark all as read") }
+  var clearReadAccessibilityLabel: String { String(localized: "Clear read notifications") }
 
   var body: some View {
     HStack(spacing: 12) {

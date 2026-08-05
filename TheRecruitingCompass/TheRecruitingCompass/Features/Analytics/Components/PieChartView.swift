@@ -35,9 +35,9 @@ struct PieChartView: View {
 
   private var chartAccessibilityLabel: String {
     if segments.isEmpty {
-      return "\(title) pie chart. No data available."
+      return String(localized: "\(title) pie chart. No data available.")
     }
-    return "\(title) pie chart with \(segments.count) segments, \(total) total"
+    return String(localized: "\(title) pie chart with \(segments.count) segments, \(total) total")
   }
 
   private var chartAccessibilityValue: String {

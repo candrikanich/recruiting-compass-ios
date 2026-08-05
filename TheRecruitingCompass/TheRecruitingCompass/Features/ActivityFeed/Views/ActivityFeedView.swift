@@ -27,7 +27,7 @@ struct ActivityFeedView: View {
   var clearSearchAccessibilityLabel: String { "Clear search" }
 
   func pageIndicatorAccessibilityLabel(currentPage: Int, totalPages: Int) -> String {
-    "Page \(currentPage) of \(totalPages)"
+    String(localized: "Page \(currentPage) of \(totalPages)")
   }
 
   // MARK: - List Content

@@ -55,10 +55,10 @@ struct TemplateCardView: View {
   }
 
   var cardAccessibilityLabel: String {
-    "\(template.name), \(template.typeDisplayName) template, Created \(template.formattedDate)"
+    String(localized: "\(template.name), \(template.typeDisplayName) template, Created \(template.formattedDate)")
   }
 
   var editAccessibilityLabel: String {
-    "Edit \(template.name) template"
+    String(localized: "Edit \(template.name) template")
   }
 }

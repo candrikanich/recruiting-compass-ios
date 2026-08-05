@@ -108,8 +108,8 @@ struct RecentActivityWidget: View {
 
   // MARK: - Accessibility
 
-  var refreshAccessibilityLabel: String { "Refresh activities" }
-  var viewAllAccessibilityLabel: String { "View all activity" }
+  var refreshAccessibilityLabel: String { String(localized: "Refresh activities") }
+  var viewAllAccessibilityLabel: String { String(localized: "View all activity") }
   var viewAllAccessibilityHint: String { "Opens the full activity history page" }
 
   // MARK: - Private Methods

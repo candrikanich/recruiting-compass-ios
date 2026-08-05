@@ -46,7 +46,7 @@ struct StatCardView: View {
         label += ", \(trend)"
       }
     }
-    return label
+    return String(localized: "\(label)")
   }
 
   @ViewBuilder

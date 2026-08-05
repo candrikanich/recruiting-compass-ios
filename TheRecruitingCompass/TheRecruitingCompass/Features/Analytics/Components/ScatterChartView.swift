@@ -63,9 +63,11 @@ struct ScatterChartView: View {
 
   private var scatterAccessibilityLabel: String {
     if dataSet.points.isEmpty {
-      return "\(title) scatter plot. No correlation data."
+      return String(localized: "\(title) scatter plot. No correlation data.")
     }
-    return "\(title) scatter plot. \(dataSet.label). \(dataSet.points.count) data points. \(dataSet.xAxisLabel) versus \(dataSet.yAxisLabel)."
+    return String(
+      localized: "\(title) scatter plot. \(dataSet.label). \(dataSet.points.count) data points. \(dataSet.xAxisLabel) versus \(dataSet.yAxisLabel)."
+    )
   }
 
   private var scatterAccessibilityValue: String {
@@ -161,7 +163,9 @@ struct ScatterChartView: View {
     .background(Color.Surface.card)
     .clipShape(RoundedRectangle(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(point.label), \(dataSet.xAxisLabel): \(point.x.formatted(.number.precision(.fractionLength(1)))), \(dataSet.yAxisLabel): \(point.y.formatted(.number.precision(.fractionLength(1))))")
+    .accessibilityLabel(String(
+      localized: "\(point.label), \(dataSet.xAxisLabel): \(point.x.formatted(.number.precision(.fractionLength(1)))), \(dataSet.yAxisLabel): \(point.y.formatted(.number.precision(.fractionLength(1))))"
+    ))
   }
 
   @ViewBuilder

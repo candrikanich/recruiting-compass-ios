@@ -6,7 +6,7 @@ struct NotificationToggleChip: View {
   let action: () -> Void
 
   static func accessibilityLabel(for label: String, isActive: Bool) -> String {
-    "\(label) filter\(isActive ? ", selected" : "")"
+    String(localized: "\(label) filter\(isActive ? ", selected" : "")")
   }
 
   var body: some View {

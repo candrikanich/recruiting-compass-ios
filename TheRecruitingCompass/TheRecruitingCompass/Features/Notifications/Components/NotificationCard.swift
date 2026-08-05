@@ -70,9 +70,10 @@ struct NotificationCard: View {
     let type = notification.type.label
     let time = formatRelativeDate(notification.scheduledFor)
 
-    return [status, priority, type, notification.title, notification.message, time]
+    let joined = [status, priority, type, notification.title, notification.message, time]
       .filter { !$0.isEmpty }
       .joined(separator: ". ")
+    return String(localized: "\(joined)")
   }
 
   private static let isoParser: ISO8601DateFormatter = {

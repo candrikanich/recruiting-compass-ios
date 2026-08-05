@@ -41,7 +41,7 @@ struct HelpBadge: View {
       .padding(.vertical, 4)
       .background(type.color)
       .clipShape(Capsule())
-      .accessibilityLabel(type.label)
+      .accessibilityLabel(String(localized: "\(type.label)"))
   }
 }
 

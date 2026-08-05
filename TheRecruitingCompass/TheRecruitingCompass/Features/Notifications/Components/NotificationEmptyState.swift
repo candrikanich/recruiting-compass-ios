@@ -7,7 +7,7 @@ struct NotificationEmptyState: View {
     sizeCategory.isAccessibilityCategory ? 56 : 48
   }
 
-  var emptyStateAccessibilityLabel: String { "No notifications. You're all caught up!" }
+  var emptyStateAccessibilityLabel: String { String(localized: "No notifications. You're all caught up!") }
 
   var body: some View {
     VStack(spacing: 16) {

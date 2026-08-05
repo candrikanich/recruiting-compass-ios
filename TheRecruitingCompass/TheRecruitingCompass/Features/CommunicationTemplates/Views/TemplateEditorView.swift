@@ -7,7 +7,7 @@ struct TemplateEditorView: View {
   var isEditing: Bool { viewModel.editingTemplate != nil }
 
   var saveButtonLabel: String {
-    isEditing ? "Save Changes" : "Save Template"
+    isEditing ? String(localized: "Save Changes") : String(localized: "Save Template")
   }
 
   private var title: String {
@@ -105,7 +105,7 @@ struct TemplateEditorView: View {
               .clipShape(Capsule())
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("Insert \(variable.name) variable")
+          .accessibilityLabel(String(localized: "Insert \(variable.name) variable"))
         }
       }
     }

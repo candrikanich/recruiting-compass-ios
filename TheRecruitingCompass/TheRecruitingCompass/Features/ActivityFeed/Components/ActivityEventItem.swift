@@ -97,7 +97,7 @@ struct ActivityEventItem: View {
       parts.append(event.description)
     }
     parts.append(relativeTime)
-    return parts.joined(separator: ", ")
+    return String(localized: "\(parts.joined(separator: ", "))")
   }
 }
 

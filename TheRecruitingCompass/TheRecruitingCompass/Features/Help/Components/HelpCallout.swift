@@ -73,7 +73,7 @@ struct HelpCallout: View {
     case .warning: typeLabel = "Warning"
     case .important: typeLabel = "Important"
     }
-    return "\(typeLabel): \(text)"
+    return String(localized: "\(typeLabel): \(text)")
   }
 }
 

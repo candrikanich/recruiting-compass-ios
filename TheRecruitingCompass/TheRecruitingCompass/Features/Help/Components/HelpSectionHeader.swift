@@ -24,7 +24,7 @@ struct HelpSectionHeader: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.bottom, 4)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(badge.map { "\(title), \($0.label) badge" } ?? title)
+    .accessibilityLabel(badge.map { String(localized: "\(title), \($0.label) badge") } ?? String(localized: "\(title)"))
   }
 }
 

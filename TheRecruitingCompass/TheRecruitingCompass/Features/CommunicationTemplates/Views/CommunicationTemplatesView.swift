@@ -58,7 +58,7 @@ struct CommunicationTemplatesView: View {
         .background(isActive ? Color.accentBlue : Color(.tertiarySystemFill))
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
-    .accessibilityLabel(title)
+    .accessibilityLabel(String(localized: "\(title)"))
     .accessibilityAddTraits(isActive ? .isSelected : [])
     .accessibilityIdentifier(identifier)
   }
@@ -135,7 +135,7 @@ struct CommunicationTemplatesView: View {
         .background(isSelected ? Color.accentBlue : Color(.tertiarySystemFill))
         .clipShape(Capsule())
     }
-    .accessibilityLabel("Filter by \(label), \(count) templates")
+    .accessibilityLabel(String(localized: "Filter by \(label), \(count) templates"))
     .accessibilityAddTraits(isSelected ? .isSelected : [])
     .accessibilityIdentifier(identifier)
   }

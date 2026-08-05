@@ -56,7 +56,7 @@ struct HelpFeedbackView: View {
             Text(errorMessage)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel(errorMessage)
+              .accessibilityLabel(String(localized: "\(errorMessage)"))
           }
         }
       } else {
