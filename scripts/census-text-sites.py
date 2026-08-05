@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 """Read-only census: classify every Text( call site in app source.
-Run with an optional path filter: python3 scripts/census-text-sites.py [subdir ...]
+Run with an optional path filter, relative to the app source root, e.g.:
+    python3 scripts/census-text-sites.py Features/Family Features/Timeline
+Works from any cwd — paths are resolved relative to this script's own
+location, not the caller's working directory.
 """
+import os
 import re
 import subprocess
 import sys
 import bisect
 
-ROOT = "TheRecruitingCompass/TheRecruitingCompass"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+ROOT = os.path.join(REPO_ROOT, "TheRecruitingCompass", "TheRecruitingCompass")
 CALL = re.compile(r'\bText\(')
 
 
@@ -40,16 +46,19 @@ def classify(arg):
 
 
 def main():
-    paths = sys.argv[1:] or [ROOT]
+    paths = [os.path.join(ROOT, p) for p in sys.argv[1:]] or [ROOT]
     result = subprocess.run(
         ["grep", "-rl", "Text(", *paths, "--include=*.swift"],
         capture_output=True, text=True,
     )
-    files = sorted(f for f in result.stdout.splitlines() if f and '_ScreenTemplate' not in f)
+    files = sorted(
+        f for f in result.stdout.splitlines() if f and '_ScreenTemplate' not in f
+    )
     counts = {}
     passthrough_sites = []
-    for path in files:
-        with open(path, encoding='utf-8') as f:
+    for abs_path in files:
+        display_path = os.path.relpath(abs_path, REPO_ROOT)
+        with open(abs_path, encoding='utf-8') as f:
             text = f.read()
         lines_start = [0]
         for idx, ch in enumerate(text):
@@ -64,7 +73,7 @@ def main():
             counts[bucket] = counts.get(bucket, 0) + 1
             if bucket == 'passthrough':
                 already = 'String(localized:' in arg
-                passthrough_sites.append((path, line_of(start), arg.strip()[:80], already))
+                passthrough_sites.append((display_path, line_of(start), arg.strip()[:80], already))
     print("=== Counts ===")
     for k, v in sorted(counts.items()):
         print(f"{k}: {v}")
