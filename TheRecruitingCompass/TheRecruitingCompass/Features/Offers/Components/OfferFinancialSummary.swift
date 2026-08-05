@@ -12,7 +12,7 @@ struct OfferFinancialSummary: View {
       financialCard(
         label: "Scholarship Amount",
         value: formattedAmount ?? "---",
-        accessibilityText: "Scholarship amount: \(formattedAmount ?? "Not specified")",
+        accessibilityText: String(localized: "Scholarship amount: \(formattedAmount ?? "Not specified")"),
         color: .primary,
         identifier: "offer-amount-card"
       )
@@ -20,7 +20,7 @@ struct OfferFinancialSummary: View {
       financialCard(
         label: "Scholarship %",
         value: formattedPercentage ?? "---",
-        accessibilityText: "Scholarship percentage: \(formattedPercentage ?? "Not specified")",
+        accessibilityText: String(localized: "Scholarship percentage: \(formattedPercentage ?? "Not specified")"),
         color: .primary,
         identifier: "offer-percentage-card"
       )
@@ -61,15 +61,15 @@ struct OfferFinancialSummary: View {
   private var deadlineAccessibilityLabel: String {
     switch deadlineUrgency {
     case .none:
-      return "No deadline set"
+      return String(localized: "No deadline set")
     case .normal:
-      return "Deadline in \(deadlineText), \(formattedDeadlineDate)"
+      return String(localized: "Deadline in \(deadlineText), \(formattedDeadlineDate)")
     case .urgent:
-      return "Urgent: Deadline in \(deadlineText), \(formattedDeadlineDate)"
+      return String(localized: "Urgent: Deadline in \(deadlineText), \(formattedDeadlineDate)")
     case .critical:
-      return "Critical: Deadline in \(deadlineText), \(formattedDeadlineDate)"
+      return String(localized: "Critical: Deadline in \(deadlineText), \(formattedDeadlineDate)")
     case .overdue:
-      return "Overdue: Deadline was \(deadlineText), \(formattedDeadlineDate)"
+      return String(localized: "Overdue: Deadline was \(deadlineText), \(formattedDeadlineDate)")
     }
   }
 

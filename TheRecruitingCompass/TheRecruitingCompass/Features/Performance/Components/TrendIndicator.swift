@@ -12,7 +12,7 @@ struct TrendIndicator: View {
       .background(backgroundColor)
       .foregroundStyle(foregroundColor)
       .clipShape(Capsule())
-      .accessibilityLabel("Trend: \(trend.label)")
+      .accessibilityLabel(String(localized: "Trend: \(trend.label)"))
   }
 
   private var backgroundColor: Color {

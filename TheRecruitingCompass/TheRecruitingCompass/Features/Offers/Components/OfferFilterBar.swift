@@ -50,15 +50,15 @@ struct OfferFilterBar: View {
     .padding(.horizontal, 16)
   }
 
-  var statusFilterLabel: String { "Filter by status" }
+  var statusFilterLabel: String { String(localized: "Filter by status") }
   var statusFilterHint: String { "Double tap to choose a status filter" }
 
-  var offerTypeFilterLabel: String { "Filter by offer type" }
+  var offerTypeFilterLabel: String { String(localized: "Filter by offer type") }
   var offerTypeFilterHint: String { "Double tap to choose an offer type filter" }
 
-  var sortByFieldLabel: String { "Sort by field" }
+  var sortByFieldLabel: String { String(localized: "Sort by field") }
   var sortByFieldHint: String { "Double tap to choose sort field" }
 
-  var sortDirectionLabel: String { "Sort direction" }
+  var sortDirectionLabel: String { String(localized: "Sort direction") }
   var sortDirectionHint: String { "Double tap to change sort direction" }
 }

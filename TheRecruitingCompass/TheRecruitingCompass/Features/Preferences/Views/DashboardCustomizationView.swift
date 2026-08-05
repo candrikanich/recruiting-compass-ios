@@ -167,7 +167,7 @@ struct DashboardCustomizationView: View {
     .overlay {
       PreferenceLoadingOverlay(
         isLoading: viewModel.isLoading,
-        message: "Loading settings..."
+        message: String(localized: "Loading settings...")
       )
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)

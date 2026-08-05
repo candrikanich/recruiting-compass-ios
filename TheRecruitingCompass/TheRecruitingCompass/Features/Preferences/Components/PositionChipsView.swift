@@ -76,7 +76,7 @@ private struct PositionChip: View {
                 .clipShape(Capsule())
         }
         .disabled(isDisabled)
-        .accessibilityLabel("\(title), \(isSelected ? "selected" : "not selected")")
+        .accessibilityLabel(String(localized: "\(title), \(isSelected ? "selected" : "not selected")"))
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }

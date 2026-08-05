@@ -39,7 +39,7 @@ struct AddOfferForm: View {
           .foregroundStyle(.secondary)
 
         Stepper("\(formState.scholarshipPercentage)%", value: $formState.scholarshipPercentage, in: 0...100, step: 5)
-          .accessibilityLabel("Scholarship percentage, \(formState.scholarshipPercentage) percent")
+          .accessibilityLabel(String(localized: "Scholarship percentage, \(formState.scholarshipPercentage) percent"))
       }
 
       VStack(alignment: .leading, spacing: 4) {
@@ -84,11 +84,11 @@ struct AddOfferForm: View {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("Error: \(error)")
+              .accessibilityLabel(String(localized: "Error: \(error)"))
           }
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Form errors: \(formState.validationErrors.joined(separator: ", "))")
+        .accessibilityLabel(String(localized: "Form errors: \(formState.validationErrors.joined(separator: ", "))"))
       }
 
       HStack {

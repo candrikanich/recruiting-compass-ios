@@ -43,7 +43,7 @@ struct PerformanceChartView: View {
         }
       }
       .frame(height: 320)
-      .accessibilityLabel("Performance chart for \(metricType?.displayName ?? "metrics"), showing \(metrics.count) data points")
+      .accessibilityLabel(String(localized: "Performance chart for \(metricType?.displayName ?? "metrics"), showing \(metrics.count) data points"))
     } else {
       ContentUnavailableView {
         Label("Not Enough Data", systemImage: "chart.xyaxis.line")

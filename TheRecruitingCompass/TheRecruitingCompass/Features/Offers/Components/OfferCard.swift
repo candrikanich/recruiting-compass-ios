@@ -107,20 +107,20 @@ struct OfferCard: View {
     .accessibilityIdentifier("offer_card_\(offer.id)")
   }
 
-  var checkboxAccessibilityLabel: String { "Select for comparison" }
+  var checkboxAccessibilityLabel: String { String(localized: "Select for comparison") }
   var checkboxAccessibilityValue: String { isSelected ? "Selected" : "Not selected" }
   var checkboxAccessibilityHint: String { isSelected ? "Double tap to deselect" : "Double tap to select" }
-  var deleteAccessibilityLabel: String { "Delete offer from \(schoolName)" }
+  var deleteAccessibilityLabel: String { String(localized: "Delete offer from \(schoolName)") }
 
   var cardAccessibilityLabel: String {
-    var parts = ["Offer from \(schoolName)", offer.status.displayName, offer.offerType.displayName]
+    var parts = [String(localized: "Offer from \(schoolName)"), offer.status.displayName, offer.offerType.displayName]
     if let amount = offer.formattedAmount { parts.append(amount) }
     if let pct = offer.formattedPercentage { parts.append(pct) }
     if let days = offer.daysUntilDeadline {
       if days < 0 {
-        parts.append("Overdue")
+        parts.append(String(localized: "Overdue"))
       } else {
-        parts.append("Deadline in \(days) day\(days == 1 ? "" : "s")")
+        parts.append(String(localized: "Deadline in \(days) day\(days == 1 ? "" : "s")"))
       }
     }
     return parts.joined(separator: ", ")
@@ -161,6 +161,6 @@ private struct OfferStatusBadge: View {
       .padding(.vertical, 4)
       .background(status.statusColor.opacity(0.1))
       .clipShape(.rect(cornerRadius: 6))
-      .accessibilityLabel("Status: \(status.displayName)")
+      .accessibilityLabel(String(localized: "Status: \(status.displayName)"))
   }
 }

@@ -18,6 +18,6 @@ struct AttachmentIndicator: View {
   }
 
   var accessibilityLabel: String {
-    "\(count) attachment\(count == 1 ? "" : "s")"
+    String(localized: "\(count) attachment\(count == 1 ? "" : "s")")
   }
 }

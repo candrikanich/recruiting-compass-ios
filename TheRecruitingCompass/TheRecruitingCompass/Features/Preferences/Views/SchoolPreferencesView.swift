@@ -96,7 +96,11 @@ struct SchoolPreferencesView: View {
       ToolbarItem(placement: .topBarLeading) {
         if viewModel.hasPreferences {
           EditButton()
-            .accessibilityLabel(editMode?.wrappedValue == .active ? "Done editing" : "Edit preferences")
+            .accessibilityLabel(
+              editMode?.wrappedValue == .active
+                ? String(localized: "Done editing")
+                : String(localized: "Edit preferences")
+            )
         }
       }
 
@@ -107,7 +111,7 @@ struct SchoolPreferencesView: View {
     .overlay {
       PreferenceLoadingOverlay(
         isLoading: viewModel.isLoading,
-        message: "Loading preferences..."
+        message: String(localized: "Loading preferences...")
       )
     }
     .alert("Replace Existing Preferences?", isPresented: $viewModel.showingTemplateWarning) {

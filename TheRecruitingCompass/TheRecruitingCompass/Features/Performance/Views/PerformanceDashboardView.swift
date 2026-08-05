@@ -49,7 +49,7 @@ struct PerformanceDashboardView: View {
           MetricFormView(
             formState: $viewModel.addFormState,
             title: "Log Performance Metric",
-            submitLabel: "Log Metric",
+            submitLabel: String(localized: "Log Metric"),
             isSubmitting: viewModel.isSubmitting,
             onSubmit: { Task { await viewModel.addMetric() } },
             onCancel: { viewModel.showAddForm = false }
@@ -66,7 +66,7 @@ struct PerformanceDashboardView: View {
           MetricFormView(
             formState: $viewModel.editFormState,
             title: "Edit Performance Metric",
-            submitLabel: "Save Changes",
+            submitLabel: String(localized: "Save Changes"),
             isSubmitting: viewModel.isSubmitting,
             onSubmit: { Task { await viewModel.updateMetric() } },
             onCancel: {

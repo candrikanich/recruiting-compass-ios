@@ -41,7 +41,7 @@ struct FormatOptionCard: View {
       )
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(format.rawValue) format, \(format.description)")
+    .accessibilityLabel(String(localized: "\(format.rawValue) format, \(format.description)"))
     .accessibilityAddTraits(isSelected ? [.isSelected] : [])
   }
 }

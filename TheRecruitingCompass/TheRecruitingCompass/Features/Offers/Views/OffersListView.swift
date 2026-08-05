@@ -61,7 +61,7 @@ struct OffersListView: View {
               .contentShape(Rectangle())
           }
           .accessibilityIdentifier("compare_button")
-          .accessibilityLabel("Compare \(viewModel.selectedOfferIds.count) offers")
+          .accessibilityLabel(String(localized: "Compare \(viewModel.selectedOfferIds.count) offers"))
           .accessibilityHint("Opens side-by-side comparison of selected offers")
         }
 

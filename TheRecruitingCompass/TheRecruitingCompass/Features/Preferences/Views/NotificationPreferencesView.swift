@@ -110,7 +110,7 @@ struct NotificationPreferencesView: View {
                 Task { await viewModel.updatePushPreference(userId: userId, type: type, enabled: enabled) }
               }
             ))
-            .accessibilityLabel("Push notifications for \(type.label)")
+            .accessibilityLabel(String(localized: "Push notifications for \(type.label)"))
           }
         }
       } header: {
@@ -147,7 +147,7 @@ struct NotificationPreferencesView: View {
     .overlay {
       PreferenceLoadingOverlay(
         isLoading: viewModel.isLoading,
-        message: "Loading preferences..."
+        message: String(localized: "Loading preferences...")
       )
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)

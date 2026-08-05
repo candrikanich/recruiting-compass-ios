@@ -43,7 +43,7 @@ struct PlayerDetailsView: View {
         .overlay {
             PreferenceLoadingOverlay(
                 isLoading: viewModel.isLoading,
-                message: "Loading details..."
+                message: String(localized: "Loading details...")
             )
         }
         .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)

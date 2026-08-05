@@ -9,7 +9,7 @@ struct InteractionCard: View {
   @Environment(\.sizeCategory) private var sizeCategory
   @ScaledMetric(relativeTo: .body) private var iconImageSize: CGFloat = 18
 
-  var deleteAccessibilityLabel: String { "Delete \(interaction.type.displayName) interaction" }
+  var deleteAccessibilityLabel: String { String(localized: "Delete \(interaction.type.displayName) interaction") }
 
   var body: some View {
     HStack(alignment: .top, spacing: 8) {
@@ -170,7 +170,7 @@ struct InteractionCard: View {
 
     parts.append(DateFormatting.mediumDateShortTime(interaction.displayDate))
 
-    return parts.joined(separator: ", ")
+    return String(localized: "\(parts.joined(separator: ", "))")
   }
 
 }

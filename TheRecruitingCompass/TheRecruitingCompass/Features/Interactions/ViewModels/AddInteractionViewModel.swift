@@ -56,7 +56,7 @@ final class AddInteractionViewModel {
   }
 
   var submitButtonTitle: String {
-    isSubmitting ? "Logging..." : "Log Interaction"
+    isSubmitting ? String(localized: "Logging...") : String(localized: "Log Interaction")
   }
 
   // MARK: - Init

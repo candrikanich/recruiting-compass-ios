@@ -50,7 +50,7 @@ struct PlayerCompletenessCard: View {
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Profile \(percentage)% complete")
+        .accessibilityLabel(String(localized: "Profile \(percentage)% complete"))
     }
 }
 

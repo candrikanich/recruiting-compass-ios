@@ -198,7 +198,7 @@ final class PerformanceDashboardViewModel {
       metrics.append(newMetric)
       addFormState.reset()
       showAddForm = false
-      successMessage = "Metric logged successfully"
+      successMessage = String(localized: "Metric logged successfully")
       showSuccessToast = true
       logger.info("Metric added: \(newMetric.id)")
       await invalidateMetricsListCache()
@@ -238,7 +238,7 @@ final class PerformanceDashboardViewModel {
       }
       showEditSheet = false
       editingMetric = nil
-      successMessage = "Metric updated successfully"
+      successMessage = String(localized: "Metric updated successfully")
       showSuccessToast = true
       logger.info("Metric updated: \(metric.id)")
       await invalidateMetricsListCache()
@@ -265,7 +265,7 @@ final class PerformanceDashboardViewModel {
       metrics.removeAll { $0.id == metric.id }
       metricToDelete = nil
       showDeleteConfirmation = false
-      successMessage = "Metric deleted"
+      successMessage = String(localized: "Metric deleted")
       showSuccessToast = true
       logger.info("Metric deleted: \(metric.id)")
       await invalidateMetricsListCache()

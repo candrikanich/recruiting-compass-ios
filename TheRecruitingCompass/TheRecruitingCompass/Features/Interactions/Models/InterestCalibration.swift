@@ -4,12 +4,12 @@ import Foundation
 struct InterestCalibration {
   /// Standard questions to assess coach interest level
   static let questions: [String] = [
-    "Did they ask about your schedule or upcoming events?",
-    "Did they mention visiting campus or suggest a visit?",
-    "Did they ask about your academic interests or major?",
-    "Did they provide their direct contact info (phone/email)?",
-    "Did they mention roster needs at your position?",
-    "Was this a personalized response (not a form letter)?"
+    String(localized: "Did they ask about your schedule or upcoming events?"),
+    String(localized: "Did they mention visiting campus or suggest a visit?"),
+    String(localized: "Did they ask about your academic interests or major?"),
+    String(localized: "Did they provide their direct contact info (phone/email)?"),
+    String(localized: "Did they mention roster needs at your position?"),
+    String(localized: "Was this a personalized response (not a form letter)?")
   ]
 
   /// Answers to the calibration questions (true = yes, false = no)

@@ -17,7 +17,7 @@ struct OfferHeaderView: View {
           .foregroundStyle(status.statusColor)
           .clipShape(Capsule())
           .accessibilityIdentifier("offer-status-badge")
-          .accessibilityLabel("Status: \(status.displayName)")
+          .accessibilityLabel(String(localized: "Status: \(status.displayName)"))
 
         Text(schoolName)
           .font(.title2)
@@ -29,12 +29,12 @@ struct OfferHeaderView: View {
       Text(offerType.displayName)
         .font(.subheadline)
         .foregroundStyle(.secondary)
-        .accessibilityLabel("Offer type: \(offerType.displayName)")
+        .accessibilityLabel(String(localized: "Offer type: \(offerType.displayName)"))
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding()
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(schoolName), Status: \(status.displayName), Offer type: \(offerType.displayName)")
+    .accessibilityLabel(String(localized: "\(schoolName), Status: \(status.displayName), Offer type: \(offerType.displayName)"))
     .accessibilityAddTraits(.isHeader)
   }
 }

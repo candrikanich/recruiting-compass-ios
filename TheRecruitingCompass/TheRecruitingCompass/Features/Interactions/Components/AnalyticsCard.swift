@@ -55,15 +55,15 @@ struct AnalyticsCard: View {
 
     switch title {
     case "Total":
-      return "\(value) total \(interactionWord)"
+      return String(localized: "\(value) total \(interactionWord)")
     case "Outbound":
-      return "\(value) outbound \(interactionWord)"
+      return String(localized: "\(value) outbound \(interactionWord)")
     case "Inbound":
-      return "\(value) inbound \(interactionWord)"
+      return String(localized: "\(value) inbound \(interactionWord)")
     case "This Week":
-      return "\(value) \(interactionWord) this week"
+      return String(localized: "\(value) \(interactionWord) this week")
     default:
-      return "\(value) \(title.lowercased()) \(interactionWord)"
+      return String(localized: "\(value) \(title.lowercased()) \(interactionWord)")
     }
   }
 }

@@ -142,7 +142,7 @@ struct InteractionDetailView: View {
       Text(viewModel.formattedDate)
         .font(.subheadline)
         .foregroundStyle(.secondary)
-        .accessibilityLabel("Occurred at \(viewModel.formattedDate)")
+        .accessibilityLabel(String(localized: "Occurred at \(viewModel.formattedDate)"))
     }
   }
 
@@ -224,7 +224,7 @@ struct InteractionDetailView: View {
             )
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("School: \(school.name), tap to view details")
+          .accessibilityLabel(String(localized: "School: \(school.name), tap to view details"))
         } else {
           DetailGridItem(
             title: "School",
@@ -245,7 +245,7 @@ struct InteractionDetailView: View {
             )
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("Coach: \(coach.firstName) \(coach.lastName), tap to view details")
+          .accessibilityLabel(String(localized: "Coach: \(coach.firstName) \(coach.lastName), tap to view details"))
         } else {
           DetailGridItem(
             title: "Coach",

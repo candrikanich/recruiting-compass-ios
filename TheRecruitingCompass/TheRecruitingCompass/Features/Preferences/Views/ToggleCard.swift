@@ -57,7 +57,11 @@ struct ToggleCard: View {
     }
     .buttonStyle(.plain)
     .disabled(isComingSoon)
-    .accessibilityLabel(isComingSoon ? "\(label) coming soon" : "\(label) \(isOn ? "enabled" : "disabled")")
+    .accessibilityLabel(
+      isComingSoon
+        ? String(localized: "\(label) coming soon")
+        : String(localized: "\(label) \(isOn ? "enabled" : "disabled")")
+    )
     .accessibilityHint(isComingSoon ? "Not yet available" : "Tap to toggle")
     .accessibilityAddTraits(isOn && !isComingSoon ? .isSelected : [])
   }

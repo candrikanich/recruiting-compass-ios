@@ -92,7 +92,7 @@ struct HomeLocationView: View {
             }
           }
           .accessibilityElement(children: .combine)
-          .accessibilityLabel("Coordinates ready: \(viewModel.coordinatesText)")
+          .accessibilityLabel(String(localized: "Coordinates ready: \(viewModel.coordinatesText)"))
         }
 
         if let latitude = viewModel.location.latitude, let longitude = viewModel.location.longitude {
@@ -116,8 +116,7 @@ struct HomeLocationView: View {
           .font(.subheadline)
           .accessibilityElement(children: .combine)
           .accessibilityLabel(
-            "Latitude \(latitude.formatted(.number.precision(.fractionLength(6)))), " +
-            "Longitude \(longitude.formatted(.number.precision(.fractionLength(6))))"
+            String(localized: "Latitude \(latitude.formatted(.number.precision(.fractionLength(6)))), Longitude \(longitude.formatted(.number.precision(.fractionLength(6))))")
           )
         }
       } header: {
@@ -137,7 +136,7 @@ struct HomeLocationView: View {
     .overlay {
       PreferenceLoadingOverlay(
         isLoading: viewModel.isLoading,
-        message: "Loading location..."
+        message: String(localized: "Loading location...")
       )
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)

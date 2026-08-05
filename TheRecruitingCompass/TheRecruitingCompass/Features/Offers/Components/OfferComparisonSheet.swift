@@ -58,6 +58,6 @@ struct OfferComparisonSheet: View {
         .foregroundStyle(.primary)
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(label): \(value)")
+    .accessibilityLabel(String(localized: "\(label): \(value)"))
   }
 }

@@ -34,7 +34,7 @@ struct TemplateCard: View {
       .padding(.vertical, 4)
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(title) template")
+    .accessibilityLabel(String(localized: "\(title) template"))
     .accessibilityHint(description)
   }
 }
