@@ -32,7 +32,7 @@ struct FeatureCard: View {
         .stroke(Color.white.opacity(0.2), lineWidth: 1)
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Feature: \(title)")
+    .accessibilityLabel(String(localized: "Feature: \(title)"))
     .accessibilityValue(description)
   }
 }

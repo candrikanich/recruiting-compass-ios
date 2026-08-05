@@ -45,7 +45,7 @@ struct HelpStepCard: View {
         .stroke(Color.accentBlue.opacity(0.3), lineWidth: isLast ? 0 : 1)
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Step \(step): \(title). \(bodyText)")
+    .accessibilityLabel(String(localized: "Step \(step): \(title). \(bodyText)"))
   }
 }
 

@@ -192,7 +192,7 @@ struct FamilyManagementPlayerView: View {
             }
             .font(.caption)
             .buttonStyle(.bordered)
-            .accessibilityLabel("Resend invite to \(invite.invitedEmail)")
+            .accessibilityLabel(String(localized: "Resend invite to \(invite.invitedEmail)"))
 
             Button("Revoke") {
               Task { await viewModel.revokeInvitation(invite) }
@@ -201,7 +201,7 @@ struct FamilyManagementPlayerView: View {
             .foregroundStyle(.red)
             .buttonStyle(.bordered)
             .tint(.red)
-            .accessibilityLabel("Revoke invite to \(invite.invitedEmail)")
+            .accessibilityLabel(String(localized: "Revoke invite to \(invite.invitedEmail)"))
           }
           .padding(.vertical, 4)
         }

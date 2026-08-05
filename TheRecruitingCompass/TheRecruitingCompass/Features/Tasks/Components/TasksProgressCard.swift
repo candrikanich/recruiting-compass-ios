@@ -28,7 +28,7 @@ struct TasksProgressCard: View {
     .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Completed \(completed) of \(total) tasks, \(percentage) percent complete")
+    .accessibilityLabel(String(localized: "Completed \(completed) of \(total) tasks, \(percentage) percent complete"))
   }
 }
 

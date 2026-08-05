@@ -210,7 +210,7 @@ private struct ProfileEmailSection: View {
                     Text(email)
                 }
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel("Current email: \(email)")
+                .accessibilityLabel(String(localized: "Current email: \(email)"))
             }
 
             if viewModel.emailVerificationBannerVisible {
@@ -239,7 +239,7 @@ private struct ProfileEmailSection: View {
                     Text(msg.text)
                         .font(.subheadline)
                         .foregroundStyle(Color.errorRed)
-                        .accessibilityLabel("Error: \(msg.text)")
+                        .accessibilityLabel(String(localized: "Error: \(msg.text)"))
                 }
 
                 HStack(spacing: 12) {
@@ -389,7 +389,7 @@ private struct ProfileDataPrivacySection: View {
                 Text(error)
                     .font(.subheadline)
                     .foregroundStyle(Color.errorRed)
-                    .accessibilityLabel("Error: \(error)")
+                    .accessibilityLabel(String(localized: "Error: \(error)"))
             }
         } header: {
             Text("Data & Privacy")

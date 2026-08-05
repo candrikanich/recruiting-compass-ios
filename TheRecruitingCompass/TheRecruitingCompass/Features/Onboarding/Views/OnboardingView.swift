@@ -107,7 +107,7 @@ private struct OnboardingHeaderView: View {
         .font(.footnote)
         .foregroundStyle(.tertiary)
         .padding(.top, 4)
-        .accessibilityLabel("Signed in as \(displayName)")
+        .accessibilityLabel(String(localized: "Signed in as \(displayName)"))
     }
   }
 }

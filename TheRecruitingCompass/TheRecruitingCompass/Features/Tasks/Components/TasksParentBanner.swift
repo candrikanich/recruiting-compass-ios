@@ -45,7 +45,7 @@ struct TasksParentBanner: View {
       )
     )
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Parent preview mode, viewing \(athleteName)'s tasks, read only")
+    .accessibilityLabel(String(localized: "Parent preview mode, viewing \(athleteName)'s tasks, read only"))
   }
 }
 

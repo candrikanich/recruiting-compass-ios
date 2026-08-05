@@ -23,7 +23,7 @@ struct DateRangeToolbar: View {
               .clipShape(Capsule())
           }
           .frame(minHeight: 44)
-          .accessibilityLabel("Filter by \(range.displayName)")
+          .accessibilityLabel(String(localized: "Filter by \(range.displayName)"))
           .accessibilityHint(isSelected(range) ? "Currently selected" : "Double tap to filter by \(range.displayName)")
           .accessibilityAddTraits(isSelected(range) ? .isSelected : [])
         }

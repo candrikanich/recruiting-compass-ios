@@ -49,7 +49,7 @@ struct TimelineStatPills: View {
     .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Status score \(statusScore) out of 100")
+    .accessibilityLabel(String(localized: "Status score \(statusScore) out of 100"))
   }
 
   @ViewBuilder
@@ -68,7 +68,7 @@ struct TimelineStatPills: View {
     .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Tasks \(taskCompleted) of \(taskTotal) complete, \(taskPercent) percent")
+    .accessibilityLabel(String(localized: "Tasks \(taskCompleted) of \(taskTotal) complete, \(taskPercent) percent"))
   }
 
   @ViewBuilder
@@ -85,7 +85,7 @@ struct TimelineStatPills: View {
     .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Milestones \(milestonesCompleted) of \(milestonesTotal) complete")
+    .accessibilityLabel(String(localized: "Milestones \(milestonesCompleted) of \(milestonesTotal) complete"))
   }
 }
 

@@ -93,7 +93,7 @@ struct PhaseCard: View {
     )
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(phase.displayLabel), \(completedCount) of \(totalCount) tasks complete")
+    .accessibilityLabel(String(localized: "\(phase.displayLabel), \(completedCount) of \(totalCount) tasks complete"))
     .accessibilityHint("Double tap to expand or collapse")
   }
 

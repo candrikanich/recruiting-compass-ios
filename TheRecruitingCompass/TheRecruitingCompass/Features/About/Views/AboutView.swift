@@ -48,7 +48,7 @@ struct AboutView: View {
                     Label(message, systemImage: "exclamationmark.circle.fill")
                         .font(.subheadline)
                         .foregroundStyle(Color.errorRed)
-                        .accessibilityLabel("Error: \(message)")
+                        .accessibilityLabel(String(localized: "Error: \(message)"))
 
                 case .idle:
                     EmptyView()

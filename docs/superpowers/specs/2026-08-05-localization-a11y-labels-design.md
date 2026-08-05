@@ -76,3 +76,19 @@ Existing accessibility unit tests assert on the *string value* of labels (see `M
 - ~~Ternary auto-extraction unconfirmed.~~ **Resolved:** auto-extraction doesn't fire via CLI builds at all, for any site shape. Moot — every site gets wrapped uniformly now (see Technical approach above).
 - **Catalog stays empty of real entries until a human builds via Xcode GUI (or runs `xcodebuild -exportLocalizations`) at least once.** That's an accepted, explicit gap in this plan's scope — not a defect to fix here.
 - **No visual/behavior change expected** — this is a mechanical string-plumbing change. Any snapshot/UI test relying on exact accessibility identifiers is unaffected (identifiers are separate from labels).
+
+## Localization conventions (added post-final-review)
+
+Going forward, the rule is: wrap the site if there's a literal template — even one with interpolation, e.g. `.accessibilityLabel("Step \(step) of \(total)")` — since a literal template gives `String(localized:)` something to key on. A fully-dynamic value with zero literal content (a bare pass-through parameter, e.g. `.accessibilityLabel(message)` or `.accessibilityLabel("\(value)")` where `value` carries the entire content) may be left as a plain pass-through *or* wrapped as `String(localized: "\(value)")` — both are acceptable for this English-only phase, since they produce identical runtime output. Prefer leaving it **unwrapped** when the value is truly dynamic runtime content (error messages, user-generated text): wrapping doesn't add value until real translation work begins, and an unwrapped pass-through avoids collapsing into a shared `"%@"` catalog key shared with other, unrelated call sites.
+
+The final whole-plan review found that ~14 sites in this plan wrapped a fully-dynamic value unnecessarily. This is a known, accepted inconsistency — not worth unwinding now (churn with no behavior change) — flagged as future cleanup whenever real translation extraction happens.
+
+Accepted exception list — sites deliberately left as unwrapped dynamic pass-throughs:
+- `PreferenceSuccessToast.swift` (dead code, no call sites)
+- `SchoolAutocompleteDropdown.swift:73`
+- `Toast.swift:40`
+- `LoadingStateView.swift:14`
+- `BadgeView.swift:32`
+- `PreferenceLoadingOverlay.swift:15`
+- `SuccessToast.swift:17`
+- `EventDetailView.swift:247`

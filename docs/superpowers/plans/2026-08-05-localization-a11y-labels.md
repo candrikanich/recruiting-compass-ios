@@ -194,7 +194,7 @@ by hand. Full build + unit suite verified green."
 - Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Settings/Views/SettingsView.swift` (line 289 only — line 57 already handled by Task 2)
 - Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Profile/Views/ProfileView.swift` (lines 174, 313 only — lines 190, 259, 329 already handled by Task 2)
 
-(Note: `Timeline`, `Landing`, `Onboarding` were also in scope for this batch per the design doc but have zero non-literal `accessibilityLabel` sites — confirmed via grep, no changes needed there. `AboutView.swift` had exactly one site, a pure-literal ternary, already handled by Task 2 — no changes needed here either.)
+(Note: `Timeline`, `Landing`, `Onboarding` were also in scope for this batch — an initial grep pass incorrectly reported zero non-literal `accessibilityLabel` sites for them due to a since-corrected grep blind spot (see the design doc's "Localization conventions" section); their actual sites were fixed in the final-review fix wave, not in this task's original commit. `AboutView.swift` had exactly one site, a pure-literal ternary, already handled by Task 2 — no changes needed here either.)
 
 **Interfaces:**
 - Consumes: catalog from Task 1, ternary decision from Task 2.

@@ -76,7 +76,7 @@ struct ParentOnboardingWizardView: View {
     }
     .padding(.horizontal, FamilyConstants.Spacing.medium)
     .padding(.vertical, FamilyConstants.Spacing.small)
-    .accessibilityLabel("Step \(viewModel.currentStep.rawValue + 1) of \(ParentOnboardingWizardViewModel.Step.allCases.count)")
+    .accessibilityLabel(String(localized: "Step \(viewModel.currentStep.rawValue + 1) of \(ParentOnboardingWizardViewModel.Step.allCases.count)"))
   }
 
   @ViewBuilder
