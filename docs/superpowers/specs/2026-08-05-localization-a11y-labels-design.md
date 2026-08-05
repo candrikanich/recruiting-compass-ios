@@ -20,24 +20,29 @@ The app has zero localization infrastructure: no `.xcstrings` catalog, `knownReg
 - Actually adding/shipping a second language.
 - Non-default catalog key naming (default: literal text is the key).
 
-## Technical approach
+## Technical approach — REVISED 2026-08-05 after Task 1 implementation
 
-The build already runs with `-emit-localized-strings` (confirmed in build logs — `SWIFT_EMIT_LOC_STRINGS` is on). This means Xcode's compiler-based extraction auto-populates a String Catalog from any argument typed as `LocalizedStringKey` that is a literal at the call site — **without any code change** at that call site, as long as the catalog file exists and is a target member.
+**Original assumption invalidated.** The build has `-emit-localized-strings` / `SWIFT_EMIT_LOC_STRINGS` / `LOCALIZATION_PREFERS_STRING_CATALOGS` all correctly set, but a from-scratch `xcodebuild clean build` did **not** auto-populate `Localizable.xcstrings` — 0 entries extracted, not even the confirmed-present literal `"Sign in to account"`. String Catalog auto-extraction is tied to Xcode's own GUI-driven incremental build database; this repo's workflow is CLI-only (`xcodebuild`, per `CLAUDE.md` — no step anywhere uses the Xcode app), so that mechanism never fires here. Root-caused by the `sdd-task1-impl` subagent (see `.superpowers/sdd/2026-08-05-localization-a11y-labels/task-1-report.md`), confirmed by inspecting `project.pbxproj` build settings directly.
+
+**Revised rule: wrap every `accessibilityLabel` argument in `String(localized:)`, unconditionally — literal, ternary, or interpolated.** This drops the three-bucket split (zero-touch / verify / rewrite) in favor of one uniform mechanical rule. Wrapping literals doesn't get them into the catalog any sooner via CLI than leaving them alone would (extraction still needs a GUI build or `xcodebuild -exportLocalizations` eventually, either way, out of scope for this plan) — but it's still correct and forward-compatible: `String(localized:)` is unambiguous, greppable, and behaves identically once a human does open Xcode and the catalog populates for real.
 
 Site breakdown (measured via grep across `TheRecruitingCompass/TheRecruitingCompass`):
 
 | Category | Count | Action |
 |---|---|---|
-| Literal-string `accessibilityLabel("...")` | 512 | Zero code change — auto-extracted once catalog exists |
-| Ternary of two literals (`cond ? "A" : "B"`) | 33 | Verify auto-extraction; leave as-is if catalog picks them up |
-| Interpolated / computed-property labels | 116 | Rewrite to `String(localized:)` with interpolation, so the *template* (not the runtime value) becomes the catalog key |
+| Literal-string `accessibilityLabel("...")` | 512 | Mechanical regex wrap — safe, no semantic judgment needed |
+| Ternary of two literals (`cond ? "A" : "B"`) | 33 | Wrap the whole ternary expression in `String(localized:)` |
+| Interpolated / computed-property labels | 116 | Hand-rewrite to `String(localized:)` with interpolation, feature batch by feature batch (unchanged from original plan) |
 
 Total 661.
 
 ### Step 1 — Add the catalog
 - Create `Localizable.xcstrings` in `TheRecruitingCompass/TheRecruitingCompass/Core/` (co-located with other cross-cutting resources, consistent with `Assets.xcassets` living near the app root).
 - Add it to the app target (file-system-synchronized group — no manual `.xcodeproj` edit needed, per this repo's existing convention).
-- Clean build, then inspect the generated catalog to confirm literal strings from a couple of known files (e.g. `LoginView.swift`) appear as entries. This validates the auto-extraction assumption before doing any manual work.
+- Clean build; confirm it succeeds. Do **not** assert on catalog contents — CLI builds don't populate it (see above). That's a known, accepted gap, not a blocker.
+
+### Step 1b — Mechanical wrap of literal + ternary-of-literal sites (545 sites)
+A precise, reviewable script transform (Python, not raw `sed`, for correct regex semantics) rewrites every `.accessibilityLabel("...")` and `.accessibilityLabel(cond ? "A" : "B")` call site to wrap its argument in `String(localized:)`. Run project-wide in one pass, build, run the full unit suite (touches many files — worth the full gate once), commit.
 
 ### Step 2 — Fix non-literal sites, feature by feature
 Rewrite each interpolated/computed accessibility label to use `String(localized:)` with a format-style interpolation, e.g.:
@@ -68,5 +73,6 @@ Existing accessibility unit tests assert on the *string value* of labels (see `M
 
 ## Risks / open questions
 
-- **Ternary auto-extraction unconfirmed.** If Xcode's extractor does *not* pick up ternaries-of-literals despite `LocalizedStringKey` typing, those 33 sites move into the manual-rewrite bucket (Step 2 pattern). Verify in Step 1 before committing to "zero-touch" for that subset.
+- ~~Ternary auto-extraction unconfirmed.~~ **Resolved:** auto-extraction doesn't fire via CLI builds at all, for any site shape. Moot — every site gets wrapped uniformly now (see Technical approach above).
+- **Catalog stays empty of real entries until a human builds via Xcode GUI (or runs `xcodebuild -exportLocalizations`) at least once.** That's an accepted, explicit gap in this plan's scope — not a defect to fix here.
 - **No visual/behavior change expected** — this is a mechanical string-plumbing change. Any snapshot/UI test relying on exact accessibility identifiers is unaffected (identifiers are separate from labels).

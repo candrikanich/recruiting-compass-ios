@@ -4,7 +4,7 @@
 
 **Goal:** Add a `Localizable.xcstrings` String Catalog to the app target and make every `accessibilityLabel` call site catalog-backed, staying English-only.
 
-**Architecture:** The build already runs `-emit-localized-strings`, so Xcode auto-extracts literal-string `LocalizedStringKey` arguments into the catalog with zero code change once it exists. The only code changes needed are for the ~149 `accessibilityLabel` sites whose argument is not a plain string literal (interpolated strings, ternaries, or references to computed properties/functions that build a label) — those get rewritten to route through `String(localized:)` so the *interpolation template*, not the runtime value, becomes the catalog key.
+**Architecture:** Every `accessibilityLabel` argument — literal, ternary, or interpolated — gets wrapped in `String(localized:)`, uniformly. (Originally the plan assumed literal-string sites needed zero code change via Xcode's build-time auto-extraction; Task 1's implementation run disproved that for this repo's CLI-only `xcodebuild` workflow — see the design doc's "REVISED 2026-08-05" section. Auto-extraction only fires through Xcode's GUI-driven incremental build, never plain `xcodebuild`, so the catalog stays structurally present but empty of real entries until someone opens Xcode at least once — an accepted, explicit gap, not this plan's job to fix.) 545 sites (512 literals + 33 ternaries-of-literals) get a mechanical regex wrap in one pass; the remaining ~116 interpolated/computed-property sites get hand-rewritten feature batch by feature batch, unchanged from the original plan.
 
 **Tech Stack:** Swift 5, SwiftUI, Xcode String Catalogs (`.xcstrings`), existing `xcodebuild` build/test commands.
 
@@ -21,13 +21,13 @@
 
 ---
 
-### Task 1: Add the String Catalog and verify literal auto-extraction
+### Task 1: Add the String Catalog
 
 **Files:**
 - Create: `TheRecruitingCompass/TheRecruitingCompass/Core/Localizable.xcstrings`
 
 **Interfaces:**
-- Produces: a target-member `.xcstrings` catalog file that all later tasks rely on existing (no code depends on its Swift API — it's a build-time resource).
+- Produces: a target-member `.xcstrings` catalog file. No later task depends on its *contents* — CLI builds don't populate it (confirmed: a from-scratch `xcodebuild clean build` produces zero entries, even for known-present literals like `"Sign in to account"`). It exists as the structural placeholder a future Xcode-GUI build or `xcodebuild -exportLocalizations` run will populate. Do not attempt to verify or force population in this task — that's out of scope.
 
 - [ ] **Step 1: Create the catalog file**
 
@@ -41,69 +41,144 @@ Create `TheRecruitingCompass/TheRecruitingCompass/Core/Localizable.xcstrings` wi
 }
 ```
 
-- [ ] **Step 2: Clean build to trigger extraction**
+- [ ] **Step 2: Clean build to confirm the catalog doesn't break anything**
 
 Run: `cd TheRecruitingCompass && xcodebuild clean build -scheme TheRecruitingCompass -destination 'platform=iOS Simulator,name=iPhone 17' -quiet`
 
-Expected: build succeeds with no new errors (same warnings as before are fine).
+Expected: build succeeds with no new errors (same warnings as before are fine). Do not check the catalog's contents — an empty catalog after this build is expected and correct, not a failure.
 
-- [ ] **Step 3: Verify literal strings were auto-extracted**
-
-Run: `grep -c '"extractionState"' TheRecruitingCompass/TheRecruitingCompass/Core/Localizable.xcstrings`
-
-Expected: a large number (500+), confirming Xcode populated the catalog from existing `LocalizedStringKey` literals (both `Text("...")` and `accessibilityLabel("...")` call sites) without any other code change.
-
-Then spot-check one known literal exists, e.g.:
-
-Run: `grep -q '"Sign in to account"' TheRecruitingCompass/TheRecruitingCompass/Core/Localizable.xcstrings && echo FOUND`
-
-Expected: `FOUND` (this string is the Login submit button label, confirmed to exist in `LoginView.swift` per project memory).
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add TheRecruitingCompass/TheRecruitingCompass/Core/Localizable.xcstrings
 git commit -m "feat: add Localizable.xcstrings String Catalog
 
-Enables auto-extraction of literal-string accessibilityLabel/Text
-call sites into the catalog at build time (SWIFT_EMIT_LOC_STRINGS
-already on). No source changes needed for literal sites."
+Structural placeholder for future localization. Auto-extraction only
+fires through Xcode's GUI-driven incremental build, never plain
+xcodebuild (confirmed empirically) — catalog stays empty of real
+entries until someone builds via Xcode.app or runs
+xcodebuild -exportLocalizations, both out of this plan's scope."
 ```
 
 ---
 
-### Task 2: Verify ternary-of-literals extraction behavior
+### Task 2: Mechanical wrap of literal + ternary-of-literal accessibilityLabel sites
 
 **Files:**
-- Modify: none yet — this is a verification-only task that decides how Task 3 handles ternary sites.
-- Reference: `TheRecruitingCompass/TheRecruitingCompass/Features/Settings/Views/SettingsView.swift:57`
+- Create (temporary, delete after use): a one-off Python script, e.g. `scripts/wrap-a11y-literals.py`
+- Modify: every `.swift` file under `TheRecruitingCompass/TheRecruitingCompass` containing a plain-literal or pure-literal-ternary `accessibilityLabel(...)` call (512 + 33 = 545 sites, discovered by the script itself — do not hand-enumerate).
 
 **Interfaces:**
-- Consumes: the catalog from Task 1.
-- Produces: a documented decision (recorded in this task's commit message) that Task 3+ follow: either "ternaries need no change" or "ternaries need the same `String(localized:)` rewrite as interpolated sites."
+- Consumes: nothing from Task 1 except the catalog's existence (this task doesn't touch it).
+- Produces: nothing consumed by later tasks — this task and the feature-batch tasks (3-8) touch disjoint sets of call sites (this task's regex only matches sites where every branch is a plain string literal with no interpolation or escaped quotes; anything else is untouched and remains for the feature-batch tasks).
 
-- [ ] **Step 1: Inspect the catalog for a known ternary site**
+- [ ] **Step 1: Write the transform script**
 
-`SettingsView.swift:57` has:
-```swift
-.accessibilityLabel(showCodeCopied ? "Copied to clipboard" : "Copy family code")
+Create `scripts/wrap-a11y-literals.py`:
+
+```python
+#!/usr/bin/env python3
+"""One-off mechanical transform: wrap accessibilityLabel literal and
+pure-literal-ternary arguments in String(localized:). Run once, then delete.
+"""
+import re
+import subprocess
+import sys
+
+ROOT = "TheRecruitingCompass/TheRecruitingCompass"
+
+# Matches: .accessibilityLabel("literal") — no backslashes/interpolation inside the string
+LITERAL = re.compile(r'\.accessibilityLabel\("([^"\\]*)"\)')
+
+# Matches: .accessibilityLabel(cond ? "literal A" : "literal B")
+# cond may be any expression not itself containing a top-level '?' or ':' outside brackets —
+# keep this conservative: only match when cond has no parens/brackets, to avoid
+# misparsing nested ternaries or function calls as the condition.
+TERNARY = re.compile(
+    r'\.accessibilityLabel\(([A-Za-z_][A-Za-z0-9_.]*)\s*\?\s*"([^"\\]*)"\s*:\s*"([^"\\]*)"\)'
+)
+
+def wrap_literal(m):
+    return f'.accessibilityLabel(String(localized: "{m.group(1)}"))'
+
+def wrap_ternary(m):
+    cond, a, b = m.group(1), m.group(2), m.group(3)
+    return f'.accessibilityLabel({cond} ? String(localized: "{a}") : String(localized: "{b}"))'
+
+def process_file(path):
+    with open(path, "r", encoding="utf-8") as f:
+        original = f.read()
+    text = TERNARY.sub(wrap_ternary, original)
+    text = LITERAL.sub(wrap_literal, text)
+    if text != original:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(text)
+        return True
+    return False
+
+def main():
+    result = subprocess.run(
+        ["grep", "-rl", "-E", r"accessibilityLabel\(", ROOT, "--include=*.swift"],
+        capture_output=True, text=True,
+    )
+    files = [f for f in result.stdout.splitlines() if f]
+    changed = 0
+    for path in files:
+        if process_file(path):
+            changed += 1
+    print(f"Modified {changed} files")
+
+if __name__ == "__main__":
+    main()
 ```
 
-Run: `grep -q '"Copied to clipboard"' TheRecruitingCompass/TheRecruitingCompass/Core/Localizable.xcstrings && echo FOUND_A; grep -q '"Copy family code"' TheRecruitingCompass/TheRecruitingCompass/Core/Localizable.xcstrings && echo FOUND_B`
+- [ ] **Step 2: Run the script**
 
-- [ ] **Step 2: Record the decision**
+Run: `python3 scripts/wrap-a11y-literals.py`
 
-If both `FOUND_A` and `FOUND_B` printed: ternaries-of-literals auto-extract correctly (Swift types the ternary as `LocalizedStringKey` from the call-site context). Treat all "ternary of two string literals" sites as **zero-code-change**, same as plain literals, in every later task.
+Expected: prints `Modified N files` where N is roughly 150-250 (many files have multiple sites, some sites in the same file).
 
-If either is missing: ternary sites need the same `String(localized:)` rewrite as Step 2 of Task 3 (wrap the whole ternary expression: `String(localized: showCodeCopied ? "Copied to clipboard" : "Copy family code")`). Apply that pattern to every ternary site in later tasks instead of leaving them untouched.
+- [ ] **Step 3: Sanity-check the diff before building**
 
-- [ ] **Step 3: Commit the decision as a doc note**
+Run: `git diff --stat` and skim `git diff | head -200`. Every changed line should show a `.accessibilityLabel("...")` becoming `.accessibilityLabel(String(localized: "..."))`, or a ternary's two branches each individually wrapped — the string content inside the quotes must be byte-for-byte unchanged from before. If anything looks wrong (a literal's text altered, a non-accessibilityLabel line touched, a computed-property call like `.accessibilityLabel(cardAccessibilityLabel)` incorrectly matched), STOP: `git checkout -- .`, fix the script's regex, and re-run from Step 2. Do not proceed to build with a bad diff.
 
-Append one line to `docs/superpowers/specs/2026-08-05-localization-a11y-labels-design.md` under "Risks / open questions", replacing the "unconfirmed" wording with the confirmed outcome, then:
+- [ ] **Step 4: Confirm expected count**
+
+Run: `grep -rc 'accessibilityLabel(String(localized:' TheRecruitingCompass/TheRecruitingCompass --include="*.swift" | awk -F: '{sum+=$2} END {print sum}'`
+
+Expected: a number in the 500s (should land close to 545 — literal sites plus pure-literal-ternary sites the regex matched; some ternaries with more complex conditions may not match this conservative regex and will remain for manual handling in the feature-batch tasks, which is fine).
+
+- [ ] **Step 5: Delete the script**
+
+The script is a one-off — it must not remain in the repo (it has no ongoing purpose and running it again on already-wrapped code would double-wrap).
+
+Run: `rm scripts/wrap-a11y-literals.py`
+
+- [ ] **Step 6: Build**
+
+Run: `cd TheRecruitingCompass && xcodebuild build -scheme TheRecruitingCompass -destination 'platform=iOS Simulator,name=iPhone 17' -quiet`
+
+Expected: no new errors. `String(localized:)` returns `String`, matching what `.accessibilityLabel(_:)` already accepted for these literal `LocalizedStringKey`-typed calls — this is a mechanical, type-safe substitution.
+
+- [ ] **Step 7: Run the full unit suite**
+
+This touches ~150-250 files across the whole app — worth the full gate once, rather than guessing which tests are affected.
+
+Run: `cd TheRecruitingCompass && xcodebuild test -scheme TheRecruitingCompass -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:TheRecruitingCompassTests`
+
+Expected: `** TEST SUCCEEDED **`, same pass count as before this task (3720/3720 as of this plan's writing). If the sim-launch flake (`RBSRequestErrorDomain Code=5`) recurs, follow the Global Constraints retry guidance before treating anything as a real failure.
+
+- [ ] **Step 8: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-08-05-localization-a11y-labels-design.md
-git commit -m "docs: confirm ternary-of-literals auto-extraction behavior"
+git add -A
+git commit -m "refactor: mechanically wrap literal a11y labels in String(localized:)
+
+Wraps every accessibilityLabel(\"literal\") and accessibilityLabel(cond
+? \"A\" : \"B\") call site (~545 sites) in String(localized:), applied
+via a one-off script (deleted after running). Uniform with the
+interpolated/computed sites the following feature-batch tasks handle
+by hand. Full build + unit suite verified green."
 ```
 
 ---
@@ -116,11 +191,10 @@ git commit -m "docs: confirm ternary-of-literals auto-extraction behavior"
 - Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Family/Views/ParentOnboardingWizardView.swift`
 - Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Family/Views/FamilyManagementPlayerView.swift`
 - Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Legal/Components/LegalEmailLink.swift`
-- Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Settings/Views/SettingsView.swift`
-- Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Profile/Views/ProfileView.swift`
-- Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/About/Views/AboutView.swift`
+- Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Settings/Views/SettingsView.swift` (line 289 only — line 57 already handled by Task 2)
+- Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Profile/Views/ProfileView.swift` (lines 174, 313 only — lines 190, 259, 329 already handled by Task 2)
 
-(Note: `Timeline`, `Landing`, `Onboarding` were also in scope for this batch per the design doc but have zero non-literal `accessibilityLabel` sites — confirmed via grep, no changes needed there.)
+(Note: `Timeline`, `Landing`, `Onboarding` were also in scope for this batch per the design doc but have zero non-literal `accessibilityLabel` sites — confirmed via grep, no changes needed there. `AboutView.swift` had exactly one site, a pure-literal ternary, already handled by Task 2 — no changes needed here either.)
 
 **Interfaces:**
 - Consumes: catalog from Task 1, ternary decision from Task 2.
@@ -160,7 +234,7 @@ return String(localized: "\(member.name), \(member.role)")
 .accessibilityLabel(String(localized: "Email \(email.replacing("@", with: " at ").replacing(".", with: " dot "))"))
 ```
 
-`SettingsView.swift:57` (ternary — apply per Task 2's decision) and `SettingsView.swift:289`:
+`SettingsView.swift:57` — a pure-literal ternary, already wrapped by Task 2's mechanical pass; skip it. `SettingsView.swift:289` is not pure-literal (uses `.map { }` with interpolation) so Task 2's regex didn't touch it — still needs the manual rewrite below:
 
 ```swift
 // Before (line 289)
@@ -173,7 +247,7 @@ return String(localized: "\(member.name), \(member.role)")
 )
 ```
 
-`ProfileView.swift` (5 sites, all ternaries of the form `condition ? "Literal A" : "Literal B or interpolated"`) — for each, if Task 2 confirmed ternaries auto-extract AND both branches are pure literals, leave unchanged; if either branch interpolates (lines 174, 313 do: `"Error: \(msg.text)"`), wrap that branch:
+`ProfileView.swift` — 5 ternary sites. Lines 190, 259, 329 are pure-literal ternaries, already wrapped by Task 2's mechanical pass; skip them. Lines 174 and 313 have an interpolated branch (`"Error: \(msg.text)"`), which Task 2's regex doesn't match — still need the manual rewrite:
 
 ```swift
 // Before (line 174)
@@ -183,9 +257,9 @@ return String(localized: "\(member.name), \(member.role)")
 .accessibilityLabel(msg.isSuccess ? "Saved successfully" : String(localized: "Error: \(msg.text)"))
 ```
 
-Lines 190, 259, 329 are ternaries of two pure literals — leave unchanged if Task 2 confirmed auto-extraction, otherwise wrap the whole ternary in `String(localized:)`.
+(line 313 follows the identical pattern.)
 
-`AboutView.swift:72` — ternary of two pure literals, same rule as above.
+`AboutView.swift:72` — pure-literal ternary, already wrapped by Task 2's mechanical pass; skip it.
 
 - [ ] **Step 2: Build**
 
@@ -200,8 +274,8 @@ Expected: PASS, no failures.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add TheRecruitingCompass/TheRecruitingCompass/Features/Family TheRecruitingCompass/TheRecruitingCompass/Features/Legal TheRecruitingCompass/TheRecruitingCompass/Features/Settings TheRecruitingCompass/TheRecruitingCompass/Features/Profile TheRecruitingCompass/TheRecruitingCompass/Features/About
-git commit -m "refactor: route Family/Legal/Settings/Profile/About a11y labels through String(localized:)"
+git add TheRecruitingCompass/TheRecruitingCompass/Features/Family TheRecruitingCompass/TheRecruitingCompass/Features/Legal TheRecruitingCompass/TheRecruitingCompass/Features/Settings TheRecruitingCompass/TheRecruitingCompass/Features/Profile
+git commit -m "refactor: route Family/Legal/Settings/Profile a11y labels through String(localized:)"
 ```
 
 ---
@@ -374,7 +448,7 @@ Apply the same two-shape rule as Task 4 Step 1. Notable concrete cases to get ex
 .accessibilityLabel(String(localized: "\(count) \(title) offer\(count == 1 ? "" : "s")"))
 ```
 
-`ScholarshipCalculatorView.swift:94` (ternary — apply per Task 2's decision; `"Hide scholarship calculator"` / `"Scholarship Calculator"` are both pure literals).
+`ScholarshipCalculatorView.swift:94` — pure-literal ternary (`"Hide scholarship calculator"` / `"Scholarship Calculator"`), already wrapped by Task 2's mechanical pass; skip it.
 
 `ToggleCard.swift:60`:
 ```swift
@@ -398,7 +472,7 @@ Apply the same two-shape rule as Task 4 Step 1. Notable concrete cases to get ex
 .accessibilityLabel(String(localized: "\(title), \(isSelected ? "selected" : "not selected")"))
 ```
 
-`PreferenceRow.swift:43`, `SchoolPreferencesView.swift:99`, `DashboardCustomizationView.swift:61,141` — ternaries of two pure literals, apply per Task 2's decision.
+`PreferenceRow.swift:43`, `SchoolPreferencesView.swift:99`, `DashboardCustomizationView.swift:61,141` — ternaries of two pure literals, already wrapped by Task 2's mechanical pass; skip them.
 
 All remaining sites in this batch (`InteractionFilterBar`, `AttachmentIndicator`, `AddInteractionView`, `AnalyticsCard`, `InteractionCard`, `SuccessToast`, `MetricFormView`, `OfferFilterBar`, `OfferCard`, `OfferFinancialSummary`, `PreferenceLoadingOverlay`, `PreferenceSuccessToast`, `HomeLocationView`) reference computed properties or plain `let`/parameter values — apply the "wrap at definition" or "wrap at call site" rule from Task 4 Step 1 depending on which shape each one is.
 
@@ -436,7 +510,7 @@ Run: `grep -rnE 'accessibilityLabel\(' TheRecruitingCompass/TheRecruitingCompass
 For each result, classify and fix using the exact two rules established in Task 4 Step 1 / Task 5 Step 1:
 - Reference to a computed property (`.accessibilityLabel(someAccessibilityLabel)`) → open that file, find the property, wrap its returned string expression in `String(localized:)`.
 - Direct interpolated literal, ternary, or function/static-method call → wrap at the call site (or at the function's return statement) in `String(localized:)`, preserving the exact interpolation content — do not alter the wording, only wrap it.
-- Pure-literal ternary → apply per Task 2's decision (no change if auto-extraction confirmed).
+- Pure-literal ternary → already wrapped by Task 2's mechanical pass; if grep still shows one unwrapped here, Task 2's regex missed it (e.g. a condition with a dotted path or parens) — wrap it manually following the same pattern.
 
 Read each flagged file with the Read tool before editing to get the exact surrounding code (property name, indentation, exact literal text) — do not guess at content not shown by the grep output.
 
@@ -541,7 +615,7 @@ Expected: `** TEST SUCCEEDED **`, same pass count as the pre-migration baseline 
 
 Run: `grep -rnE 'accessibilityLabel\(' TheRecruitingCompass/TheRecruitingCompass --include="*.swift" | grep -v 'accessibilityLabel("[^"]*")' | grep -v 'String(localized:'`
 
-Expected: only pure-literal ternaries remain unwrapped (if Task 2 confirmed those need no change) — every interpolated/computed/function-call site should now show `String(localized:` in its line. If anything unexpected remains, go back and fix it (do not close out with known gaps).
+Expected: **zero matches**. Every `accessibilityLabel` call site — literal, ternary, interpolated, or computed-property-backed — should now show `String(localized:` somewhere in its line or (for computed properties) at the property's definition. If anything remains, go back and fix it (do not close out with known gaps).
 
 - [ ] **Step 4: Update project memory**
 
@@ -554,7 +628,9 @@ git add -A
 git commit -m "chore: Phase 6a complete — localization catalog + a11y-label migration verified
 
 Full clean build + unit suite green (3720/3720). All accessibilityLabel
-call sites now catalog-backed (literal auto-extraction + manual
-String(localized:) wrapping for interpolated/computed sites).
+call sites now route through String(localized:) (mechanical wrap for
+literals/ternaries, hand-rewrite for interpolated/computed sites).
+Catalog population still requires a future Xcode-GUI build or
+xcodebuild -exportLocalizations — out of this plan's scope.
 Text() call sites (645) remain out of scope — future phase."
 ```
