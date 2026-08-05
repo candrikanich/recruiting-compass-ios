@@ -38,8 +38,8 @@ struct PerformanceMetricsWidget: View {
           Button(action: { isShowingAll.toggle() }) {
             HStack(spacing: 4) {
               Text(isShowingAll
-                ? "Show less"
-                : "Show \(recentMetrics.count - 4) more metrics")
+                ? String(localized: "Show less")
+                : String(localized: "Show \(recentMetrics.count - 4) more metrics"))
                 .font(.caption)
               Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
                 .font(.caption)

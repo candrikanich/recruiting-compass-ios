@@ -148,7 +148,9 @@ private struct DashboardHeaderSection: View {
           .bold()
           .accessibilityAddTraits(.isHeader)
       } else {
-        Text(isEmpty ? "Welcome, \(userFirstName)!" : "Welcome back, \(userFirstName)!")
+        Text(isEmpty
+          ? String(localized: "Welcome, \(userFirstName)!")
+          : String(localized: "Welcome back, \(userFirstName)!"))
           .font(.title2)
           .bold()
           .accessibilityAddTraits(.isHeader)
@@ -177,7 +179,7 @@ private struct DashboardLoadingSection: View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
       ForEach(0..<6, id: \.self) { _ in
         StatCard(
-          title: "Loading",
+          title: String(localized: "Loading"),
           count: 0,
           subtitle: nil,
           description: nil,
@@ -213,7 +215,7 @@ private struct DashboardLogoutButton: View {
         HStack {
           Image(systemName: "rectangle.portrait.and.arrow.right")
             .accessibilityHidden(true)
-          Text(isLoggingOut ? "Logging out..." : "Log Out")
+          Text(isLoggingOut ? String(localized: "Logging out...") : String(localized: "Log Out"))
             .font(.callout.weight(.semibold))
         }
         .frame(maxWidth: .infinity)

@@ -14,10 +14,10 @@ struct DashboardStatsCardsSection: View {
           switchTab(.coaches)
         } label: {
           StatCard(
-            title: "Coaches",
+            title: String(localized: "Coaches"),
             count: stats.coachCount,
             subtitle: nil,
-            description: "View all coaches",
+            description: String(localized: "View all coaches"),
             icon: "person.2",
             gradientColors: [Color.Brand.blue600, Color.Brand.blue700],
             isEnabled: true,
@@ -34,10 +34,10 @@ struct DashboardStatsCardsSection: View {
           switchTab(.schools)
         } label: {
           StatCard(
-            title: "Schools",
+            title: String(localized: "Schools"),
             count: stats.schoolCount,
             subtitle: nil,
-            description: "Manage schools",
+            description: String(localized: "Manage schools"),
             icon: "building.2",
             gradientColors: [Color.Brand.purple600, Color.Brand.purple700],
             isEnabled: true,
@@ -54,10 +54,10 @@ struct DashboardStatsCardsSection: View {
           switchTab(.interactions)
         } label: {
           StatCard(
-            title: "Interactions",
+            title: String(localized: "Interactions"),
             count: stats.interactionCount,
             subtitle: nil,
-            description: "Track interactions",
+            description: String(localized: "Track interactions"),
             icon: "bubble.left.and.bubble.right",
             gradientColors: [Color.Brand.emerald700, Color.Brand.emerald800],
             isEnabled: true,
@@ -72,10 +72,10 @@ struct DashboardStatsCardsSection: View {
       if visibility.offers {
         NavigationLink(value: DashboardDestination.offers) {
           StatCard(
-            title: "Offers",
+            title: String(localized: "Offers"),
             count: stats.totalOffers,
             subtitle: nil,
-            description: "View all offers",
+            description: String(localized: "View all offers"),
             icon: "gift",
             gradientColors: [Color.Brand.orange700, Color.Brand.orange800],
             isEnabled: true,

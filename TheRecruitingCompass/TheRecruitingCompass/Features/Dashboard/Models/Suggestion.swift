@@ -26,6 +26,14 @@ struct Suggestion: Codable, Identifiable, Sendable {
       case .low: return .accentBlue
       }
     }
+
+    var displayName: String {
+      switch self {
+      case .high: return String(localized: "High")
+      case .medium: return String(localized: "Medium")
+      case .low: return String(localized: "Low")
+      }
+    }
   }
 
   enum CodingKeys: String, CodingKey {

@@ -15,7 +15,7 @@ struct ActionItemCard: View {
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
-        Text(suggestion.urgency.rawValue.capitalized)
+        Text(suggestion.urgency.displayName)
           .font(.caption)
           .padding(.horizontal, 6)
           .padding(.vertical, 2)

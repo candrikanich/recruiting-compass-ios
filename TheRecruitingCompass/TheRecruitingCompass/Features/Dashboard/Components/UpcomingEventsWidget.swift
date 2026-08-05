@@ -39,8 +39,8 @@ struct UpcomingEventsWidget: View {
           Button(action: { isShowingAll.toggle() }) {
             HStack(spacing: 4) {
               Text(isShowingAll
-                ? "Show less"
-                : "Show \(sortedEvents.count - 3) more events")
+                ? String(localized: "Show less")
+                : String(localized: "Show \(sortedEvents.count - 3) more events"))
                 .font(.caption)
               Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
                 .font(.caption)
