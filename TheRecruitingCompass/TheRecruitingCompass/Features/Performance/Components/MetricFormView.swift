@@ -78,7 +78,7 @@ struct MetricFormView: View {
 
       HStack(spacing: 12) {
         Button(action: onSubmit) {
-          Text(isSubmitting ? "Saving..." : submitLabel)
+          Text(isSubmitting ? String(localized: "Saving...") : submitLabel)
             .fontWeight(.semibold)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)

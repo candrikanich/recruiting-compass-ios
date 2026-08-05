@@ -14,7 +14,7 @@ struct FormatOptionCard: View {
           .frame(width: 40)
 
         VStack(alignment: .leading, spacing: 4) {
-          Text(format.rawValue)
+          Text(format.displayName)
             .font(.headline)
             .foregroundStyle(.primary)
 
@@ -41,7 +41,7 @@ struct FormatOptionCard: View {
       )
     }
     .buttonStyle(.plain)
-    .accessibilityLabel(String(localized: "\(format.rawValue) format, \(format.description)"))
+    .accessibilityLabel(String(localized: "\(format.displayName) format, \(format.description)"))
     .accessibilityAddTraits(isSelected ? [.isSelected] : [])
   }
 }

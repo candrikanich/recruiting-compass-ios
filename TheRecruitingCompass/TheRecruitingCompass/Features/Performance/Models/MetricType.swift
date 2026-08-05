@@ -14,14 +14,14 @@ enum MetricType: String, Codable, CaseIterable, Identifiable {
 
   var displayName: String {
     switch self {
-    case .velocity: return "Fastball Velocity"
-    case .exitVelo: return "Exit Velocity"
-    case .sixtyTime: return "60-Yard Dash"
-    case .popTime: return "Pop Time"
-    case .battingAvg: return "Batting Average"
-    case .era: return "ERA"
-    case .strikeouts: return "Strikeouts"
-    case .other: return "Other Metric"
+    case .velocity: return String(localized: "Fastball Velocity")
+    case .exitVelo: return String(localized: "Exit Velocity")
+    case .sixtyTime: return String(localized: "60-Yard Dash")
+    case .popTime: return String(localized: "Pop Time")
+    case .battingAvg: return String(localized: "Batting Average")
+    case .era: return String(localized: "ERA")
+    case .strikeouts: return String(localized: "Strikeouts")
+    case .other: return String(localized: "Other Metric")
     }
   }
 
