@@ -46,7 +46,7 @@ final class DashboardCustomizationViewModel {
       }
     } catch {
       logger.error("Failed to load visibility: \(error.localizedDescription)")
-      errorMessage = "Failed to load settings. Please try again."
+      errorMessage = String(localized: "Failed to load settings. Please try again.")
     }
   }
 
@@ -68,7 +68,7 @@ final class DashboardCustomizationViewModel {
       }
     } catch {
       logger.error("Failed to save visibility: \(error.localizedDescription)")
-      errorMessage = "Failed to save settings. Please try again."
+      errorMessage = String(localized: "Failed to save settings. Please try again.")
       saveStatus = .idle
     }
   }

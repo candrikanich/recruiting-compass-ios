@@ -65,16 +65,16 @@ struct PreferenceRow: View {
 
   private var preferenceLabel: String {
     switch preference.type {
-    case "max_distance_miles": return "Max Distance"
-    case "preferred_regions": return "Preferred Regions"
-    case "preferred_states": return "Preferred States"
-    case "min_academic_rating": return "Min Academic Rating"
-    case "school_size": return "School Size"
-    case "division": return "Division"
-    case "conference_type": return "Conference Type"
-    case "scholarship_required": return "Scholarship Required"
-    case "must_have": return "Must Have"
-    case "nice_to_have": return "Nice to Have"
+    case "max_distance_miles": return String(localized: "Max Distance")
+    case "preferred_regions": return String(localized: "Preferred Regions")
+    case "preferred_states": return String(localized: "Preferred States")
+    case "min_academic_rating": return String(localized: "Min Academic Rating")
+    case "school_size": return String(localized: "School Size")
+    case "division": return String(localized: "Division")
+    case "conference_type": return String(localized: "Conference Type")
+    case "scholarship_required": return String(localized: "Scholarship Required")
+    case "must_have": return String(localized: "Must Have")
+    case "nice_to_have": return String(localized: "Nice to Have")
     default: return preference.type
     }
   }
@@ -85,11 +85,11 @@ struct PreferenceRow: View {
       return str
     case .int(let num):
       if preference.type == "max_distance_miles" {
-        return "\(num) miles"
+        return String(localized: "\(num) miles")
       }
       return "\(num)"
     case .bool(let bool):
-      return bool ? "Yes" : "No"
+      return bool ? String(localized: "Yes") : String(localized: "No")
     case .stringArray(let arr):
       return arr.joined(separator: ", ")
     }

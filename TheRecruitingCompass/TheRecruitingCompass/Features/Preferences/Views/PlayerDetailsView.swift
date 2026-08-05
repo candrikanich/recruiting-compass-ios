@@ -10,7 +10,12 @@ struct PlayerDetailsView: View {
         ))
     }
 
-    private static let tabTitles = ["Basics", "Athletics", "Academics", "History"]
+    private static let tabTitles = [
+        String(localized: "Basics"),
+        String(localized: "Athletics"),
+        String(localized: "Academics"),
+        String(localized: "History")
+    ]
 
     var body: some View {
         VStack(spacing: 0) {

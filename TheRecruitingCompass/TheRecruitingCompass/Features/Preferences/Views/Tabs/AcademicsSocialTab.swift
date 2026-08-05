@@ -6,33 +6,50 @@ struct AcademicsSocialTab: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                cardSection("Academics") {
+                cardSection(String(localized: "Academics")) {
                     VStack(spacing: 0) {
-                        numericRow("GPA", keyPath: \.gpa)
+                        numericRow(String(localized: "GPA"), keyPath: \.gpa)
                         divider
-                        intRow("SAT Score", keyPath: \.satScore)
+                        intRow(String(localized: "SAT Score"), keyPath: \.satScore)
                         divider
-                        intRow("ACT Score", keyPath: \.actScore)
+                        intRow(String(localized: "ACT Score"), keyPath: \.actScore)
                     }
                 }
 
-                cardSection("Social Media") {
+                cardSection(String(localized: "Social Media")) {
                     VStack(spacing: 0) {
-                        textRow("Twitter", placeholder: "@username", keyPath: \.twitterHandle)
+                        textRow(
+                            String(localized: "Twitter"),
+                            placeholder: String(localized: "@username"),
+                            keyPath: \.twitterHandle
+                        )
                         divider
-                        textRow("Instagram", placeholder: "@username", keyPath: \.instagramHandle)
+                        textRow(
+                            String(localized: "Instagram"),
+                            placeholder: String(localized: "@username"),
+                            keyPath: \.instagramHandle
+                        )
                         divider
-                        textRow("TikTok", placeholder: "@username", keyPath: \.tiktokHandle)
+                        textRow(
+                            String(localized: "TikTok"),
+                            placeholder: String(localized: "@username"),
+                            keyPath: \.tiktokHandle
+                        )
                         divider
-                        textRow("Facebook URL", placeholder: "https://...", keyPath: \.facebookUrl, keyboardType: .URL)
+                        textRow(
+                            String(localized: "Facebook URL"),
+                            placeholder: String(localized: "https://..."),
+                            keyPath: \.facebookUrl,
+                            keyboardType: .URL
+                        )
                     }
                 }
 
-                cardSection("Privacy") {
+                cardSection(String(localized: "Privacy")) {
                     VStack(spacing: 0) {
-                        toggleRow("Share phone with coaches", keyPath: \.allowSharePhone)
+                        toggleRow(String(localized: "Share phone with coaches"), keyPath: \.allowSharePhone)
                         divider
-                        toggleRow("Share email with coaches", keyPath: \.allowShareEmail)
+                        toggleRow(String(localized: "Share email with coaches"), keyPath: \.allowShareEmail)
                     }
                 }
             }

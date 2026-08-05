@@ -6,11 +6,11 @@ struct AthleticsTab: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                cardSection("Physical Stats") {
+                cardSection(String(localized: "Physical Stats")) {
                     physicalStatsCard
                 }
 
-                cardSection("Positions") {
+                cardSection(String(localized: "Positions")) {
                     PositionChipsView(
                         sport: viewModel.details.primarySport,
                         selectedPositions: Binding(
@@ -26,14 +26,14 @@ struct AthleticsTab: View {
                 }
 
                 if viewModel.isBaseballOrSoftball {
-                    cardSection("Baseball / Softball") {
+                    cardSection(String(localized: "Baseball / Softball")) {
                         baseballCard
                     }
                     .animation(.easeInOut, value: viewModel.isBaseballOrSoftball)
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
-                cardSection("External IDs") {
+                cardSection(String(localized: "External IDs")) {
                     externalIdsCard
                 }
             }
@@ -119,7 +119,7 @@ struct AthleticsTab: View {
     private var baseballCard: some View {
         VStack(spacing: 0) {
             segmentedRow(
-                "Bats",
+                String(localized: "Bats"),
                 selection: Binding<String>(
                     get: { viewModel.details.bats ?? "" },
                     set: {
@@ -127,11 +127,16 @@ struct AthleticsTab: View {
                         viewModel.markChanged()
                     }
                 ),
-                tags: [("", "–"), ("R", "Right (R)"), ("L", "Left (L)"), ("S", "Switch (S)")]
+                tags: [
+                    ("", String(localized: "–")),
+                    ("R", String(localized: "Right (R)")),
+                    ("L", String(localized: "Left (L)")),
+                    ("S", String(localized: "Switch (S)"))
+                ]
             )
             divider
             segmentedRow(
-                "Throws",
+                String(localized: "Throws"),
                 selection: Binding<String>(
                     get: { viewModel.details.throws_ ?? "" },
                     set: {
@@ -139,7 +144,11 @@ struct AthleticsTab: View {
                         viewModel.markChanged()
                     }
                 ),
-                tags: [("", "–"), ("R", "Right (R)"), ("L", "Left (L)")]
+                tags: [
+                    ("", String(localized: "–")),
+                    ("R", String(localized: "Right (R)")),
+                    ("L", String(localized: "Left (L)"))
+                ]
             )
         }
     }
@@ -150,12 +159,12 @@ struct AthleticsTab: View {
     private var externalIdsCard: some View {
         VStack(spacing: 0) {
             if viewModel.isBaseballOrSoftball {
-                textRow("Perfect Game ID", keyPath: \.perfectGameId)
+                textRow(String(localized: "Perfect Game ID"), keyPath: \.perfectGameId)
                 divider
-                textRow("Prep Baseball ID", keyPath: \.prepBaseballId)
+                textRow(String(localized: "Prep Baseball ID"), keyPath: \.prepBaseballId)
                 divider
             }
-            textRow("NCAA ID", keyPath: \.ncaaId)
+            textRow(String(localized: "NCAA ID"), keyPath: \.ncaaId)
         }
     }
 

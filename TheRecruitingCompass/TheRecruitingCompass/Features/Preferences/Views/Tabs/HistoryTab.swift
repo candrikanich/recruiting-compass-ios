@@ -6,25 +6,29 @@ struct HistoryTab: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                cardSection("High School Career") {
+                cardSection(String(localized: "High School Career")) {
                     VStack(spacing: 0) {
-                        gradeSection("9th Grade", team: \.ninthGradeTeam, coach: \.ninthGradeCoach)
+                        gradeSection(String(localized: "9th Grade"), team: \.ninthGradeTeam, coach: \.ninthGradeCoach)
                         Divider()
-                        gradeSection("10th Grade", team: \.tenthGradeTeam, coach: \.tenthGradeCoach)
+                        gradeSection(String(localized: "10th Grade"), team: \.tenthGradeTeam, coach: \.tenthGradeCoach)
                         Divider()
-                        gradeSection("11th Grade", team: \.eleventhGradeTeam, coach: \.eleventhGradeCoach)
+                        gradeSection(
+                            String(localized: "11th Grade"), team: \.eleventhGradeTeam, coach: \.eleventhGradeCoach
+                        )
                         Divider()
-                        gradeSection("12th Grade", team: \.twelfthGradeTeam, coach: \.twelfthGradeCoach)
+                        gradeSection(
+                            String(localized: "12th Grade"), team: \.twelfthGradeTeam, coach: \.twelfthGradeCoach
+                        )
                     }
                 }
 
-                cardSection("Travel Team") {
+                cardSection(String(localized: "Travel Team")) {
                     VStack(spacing: 0) {
                         travelYearRow
                         divider
-                        textRow("Team Name", keyPath: \.travelTeamName)
+                        textRow(String(localized: "Team Name"), keyPath: \.travelTeamName)
                         divider
-                        textRow("Coach Name", keyPath: \.travelTeamCoach)
+                        textRow(String(localized: "Coach Name"), keyPath: \.travelTeamCoach)
                     }
                 }
             }
@@ -92,9 +96,9 @@ struct HistoryTab: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
                 .padding(.top, 10)
-            textRow("Team", keyPath: team)
+            textRow(String(localized: "Team"), keyPath: team)
             Divider().padding(.leading)
-            textRow("Coach", keyPath: coach)
+            textRow(String(localized: "Coach"), keyPath: coach)
         }
     }
 

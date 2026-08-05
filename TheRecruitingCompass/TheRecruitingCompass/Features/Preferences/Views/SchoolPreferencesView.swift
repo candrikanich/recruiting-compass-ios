@@ -13,32 +13,32 @@ struct SchoolPreferencesView: View {
       // Templates Section
       Section {
         TemplateCard(
-          title: "D1 Power Conference",
-          description: "Focus on top-tier D1 programs",
+          title: String(localized: "D1 Power Conference"),
+          description: String(localized: "Focus on top-tier D1 programs"),
           icon: "star.fill"
         ) {
           viewModel.requestTemplateApplication("D1 Power Conference")
         }
 
         TemplateCard(
-          title: "Academic Excellence",
-          description: "Prioritize academics and fit",
+          title: String(localized: "Academic Excellence"),
+          description: String(localized: "Prioritize academics and fit"),
           icon: "graduationcap.fill"
         ) {
           viewModel.requestTemplateApplication("Academic Excellence")
         }
 
         TemplateCard(
-          title: "Close to Home",
-          description: "Stay within 300 miles",
+          title: String(localized: "Close to Home"),
+          description: String(localized: "Stay within 300 miles"),
           icon: "house.fill"
         ) {
           viewModel.requestTemplateApplication("Close to Home")
         }
 
         TemplateCard(
-          title: "Best Fit (Balanced)",
-          description: "Balance distance, academics, and division",
+          title: String(localized: "Best Fit (Balanced)"),
+          description: String(localized: "Balance distance, academics, and division"),
           icon: "scale.3d"
         ) {
           viewModel.requestTemplateApplication("Best Fit (Balanced)")

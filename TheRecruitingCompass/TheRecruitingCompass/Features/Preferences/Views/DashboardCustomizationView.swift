@@ -19,36 +19,60 @@ struct DashboardCustomizationView: View {
         LazyVGrid(columns: columns, spacing: 12) {
           ToggleCard(
             icon: "person.3.fill",
-            label: "Coaches",
+            label: String(localized: "Coaches"),
             isOn: $viewModel.visibility.statsCards.coaches,
             onChange: { viewModel.markChanged() }
           )
 
           ToggleCard(
             icon: "building.2.fill",
-            label: "Schools",
+            label: String(localized: "Schools"),
             isOn: $viewModel.visibility.statsCards.schools,
             onChange: { viewModel.markChanged() }
           )
 
           ToggleCard(
             icon: "bubble.left.and.bubble.right.fill",
-            label: "Interactions",
+            label: String(localized: "Interactions"),
             isOn: $viewModel.visibility.statsCards.interactions,
             onChange: { viewModel.markChanged() }
           )
 
           ToggleCard(
             icon: "doc.text.fill",
-            label: "Offers",
+            label: String(localized: "Offers"),
             isOn: $viewModel.visibility.statsCards.offers,
             onChange: { viewModel.markChanged() }
           )
 
-          ToggleCard(icon: "calendar", label: "Events", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "chart.bar.fill", label: "Performance", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "bell.fill", label: "Notifications", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "at", label: "Social Media", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(
+            icon: "calendar",
+            label: String(localized: "Events"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "chart.bar.fill",
+            label: String(localized: "Performance"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "bell.fill",
+            label: String(localized: "Notifications"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "at",
+            label: String(localized: "Social Media"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
         }
       } header: {
         HStack {
@@ -70,65 +94,137 @@ struct DashboardCustomizationView: View {
         LazyVGrid(columns: columns, spacing: 12) {
           ToggleCard(
             icon: "sparkles",
-            label: "Action Items",
+            label: String(localized: "Action Items"),
             isOn: $viewModel.visibility.widgets.actionItems,
             onChange: { viewModel.markChanged() }
           )
 
           ToggleCard(
             icon: "checkmark.circle.fill",
-            label: "Quick Tasks",
+            label: String(localized: "Quick Tasks"),
             isOn: $viewModel.visibility.widgets.quickTasks,
             onChange: { viewModel.markChanged() }
           )
 
           ToggleCard(
             icon: "eye.fill",
-            label: "At A Glance",
+            label: String(localized: "At A Glance"),
             isOn: $viewModel.visibility.widgets.atAGlanceSummary,
             onChange: { viewModel.markChanged() }
           )
 
           ToggleCard(
             icon: "chart.line.uptrend.xyaxis",
-            label: "Interaction Trend",
+            label: String(localized: "Interaction Trend"),
             isOn: $viewModel.visibility.widgets.interactionTrendChart,
             onChange: { viewModel.markChanged() }
           )
 
           ToggleCard(
             icon: "calendar.badge.clock",
-            label: "Events Summary",
+            label: String(localized: "Events Summary"),
             isOn: $viewModel.visibility.widgets.eventsSummary,
             onChange: { viewModel.markChanged() }
           )
 
           ToggleCard(
             icon: "chart.bar.doc.horizontal",
-            label: "Performance",
+            label: String(localized: "Performance"),
             isOn: $viewModel.visibility.widgets.performanceSummary,
             onChange: { viewModel.markChanged() }
           )
 
           ToggleCard(
             icon: "clock.arrow.circlepath",
-            label: "Recent Activity",
+            label: String(localized: "Recent Activity"),
             isOn: $viewModel.visibility.widgets.recentActivity,
             onChange: { viewModel.markChanged() }
           )
 
-          ToggleCard(icon: "bell.badge.fill", label: "Notifications", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "link", label: "Linked Accounts", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "calendar", label: "Recruiting Calendar", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "doc.badge.ellipsis", label: "Offer Status", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "chart.pie.fill", label: "School Interest", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "map.fill", label: "School Map", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "person.wave.2.fill", label: "Coach Follow-up", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "doc.richtext", label: "Recent Docs", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "chart.bar.xaxis", label: "Interaction Stats", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "building.columns.fill", label: "School Status", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "clock.badge.checkmark", label: "Coach Response", isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "exclamationmark.triangle.fill", label: "Deadlines", isOn: .constant(false), onChange: {}, isComingSoon: true)
+          ToggleCard(
+            icon: "bell.badge.fill",
+            label: String(localized: "Notifications"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "link",
+            label: String(localized: "Linked Accounts"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "calendar",
+            label: String(localized: "Recruiting Calendar"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "doc.badge.ellipsis",
+            label: String(localized: "Offer Status"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "chart.pie.fill",
+            label: String(localized: "School Interest"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "map.fill",
+            label: String(localized: "School Map"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "person.wave.2.fill",
+            label: String(localized: "Coach Follow-up"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "doc.richtext",
+            label: String(localized: "Recent Docs"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "chart.bar.xaxis",
+            label: String(localized: "Interaction Stats"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "building.columns.fill",
+            label: String(localized: "School Status"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "clock.badge.checkmark",
+            label: String(localized: "Coach Response"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
+          ToggleCard(
+            icon: "exclamationmark.triangle.fill",
+            label: String(localized: "Deadlines"),
+            isOn: .constant(false),
+            onChange: {},
+            isComingSoon: true
+          )
         }
       } header: {
         HStack {

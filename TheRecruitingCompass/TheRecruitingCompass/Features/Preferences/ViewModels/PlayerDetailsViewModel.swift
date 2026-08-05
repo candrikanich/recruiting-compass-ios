@@ -110,7 +110,7 @@ final class PlayerDetailsViewModel {
             saveStatus = .idle
         } catch {
             logger.error("Failed to load details: \(error.localizedDescription)")
-            errorMessage = "Failed to load player details. Please try again."
+            errorMessage = String(localized: "Failed to load player details. Please try again.")
         }
     }
 
@@ -132,7 +132,7 @@ final class PlayerDetailsViewModel {
             }
         } catch {
             logger.error("Failed to save details: \(error.localizedDescription)")
-            errorMessage = "Failed to save player details. Please try again."
+            errorMessage = String(localized: "Failed to save player details. Please try again.")
             saveStatus = .idle
         }
     }
@@ -168,7 +168,7 @@ final class PlayerDetailsViewModel {
             logger.info("Profile photo uploaded successfully")
         } catch {
             logger.error("Failed to upload photo: \(error.localizedDescription)")
-            errorMessage = "Failed to upload photo. Please try again."
+            errorMessage = String(localized: "Failed to upload photo. Please try again.")
         }
     }
 

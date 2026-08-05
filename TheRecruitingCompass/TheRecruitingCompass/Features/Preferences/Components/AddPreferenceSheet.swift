@@ -89,16 +89,16 @@ struct AddPreferenceSheet: View {
 
   private func typeLabel(_ type: String) -> String {
     switch type {
-    case "max_distance_miles": return "Max Distance (miles)"
-    case "preferred_regions": return "Preferred Regions"
-    case "preferred_states": return "Preferred States"
-    case "min_academic_rating": return "Min Academic Rating (1-5)"
-    case "school_size": return "School Size"
-    case "division": return "Division"
-    case "conference_type": return "Conference Type"
-    case "scholarship_required": return "Scholarship Required"
-    case "must_have": return "Must Have"
-    case "nice_to_have": return "Nice to Have"
+    case "max_distance_miles": return String(localized: "Max Distance (miles)")
+    case "preferred_regions": return String(localized: "Preferred Regions")
+    case "preferred_states": return String(localized: "Preferred States")
+    case "min_academic_rating": return String(localized: "Min Academic Rating (1-5)")
+    case "school_size": return String(localized: "School Size")
+    case "division": return String(localized: "Division")
+    case "conference_type": return String(localized: "Conference Type")
+    case "scholarship_required": return String(localized: "Scholarship Required")
+    case "must_have": return String(localized: "Must Have")
+    case "nice_to_have": return String(localized: "Nice to Have")
     default: return type
     }
   }

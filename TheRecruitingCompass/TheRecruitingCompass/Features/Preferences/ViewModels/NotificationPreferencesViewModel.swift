@@ -55,7 +55,7 @@ final class NotificationPreferencesViewModel {
       }
     } catch {
       logger.error("Failed to load preferences: \(error.localizedDescription)")
-      errorMessage = "Failed to load preferences. Please try again."
+      errorMessage = String(localized: "Failed to load preferences. Please try again.")
     }
   }
 
@@ -79,7 +79,7 @@ final class NotificationPreferencesViewModel {
       }
     } catch {
       logger.error("Failed to save preferences: \(error.localizedDescription)")
-      errorMessage = "Failed to save preferences. Please try again."
+      errorMessage = String(localized: "Failed to save preferences. Please try again.")
       saveStatus = .idle
     }
   }
@@ -119,7 +119,7 @@ final class NotificationPreferencesViewModel {
       let prefs = try await service.fetchPreferences(userId: userId)
       pushPreferences = prefs.filter { $0.key != .unknown }
     } catch {
-      errorMessage = "Failed to load push preferences."
+      errorMessage = String(localized: "Failed to load push preferences.")
       logger.error("loadPushPreferences failed: \(error.localizedDescription)")
     }
   }
@@ -135,7 +135,7 @@ final class NotificationPreferencesViewModel {
       } catch {
         guard !Task.isCancelled else { return }
         pushPreferences[type] = !enabled  // revert
-        errorMessage = "Failed to update push preference."
+        errorMessage = String(localized: "Failed to update push preference.")
         logger.error("updatePushPreference failed: \(error.localizedDescription)")
       }
     }

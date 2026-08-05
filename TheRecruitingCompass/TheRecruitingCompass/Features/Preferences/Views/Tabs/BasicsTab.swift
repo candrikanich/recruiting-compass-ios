@@ -17,11 +17,11 @@ struct BasicsTab: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                cardSection("Profile Photo") {
+                cardSection(String(localized: "Profile Photo")) {
                     photoCard
                 }
 
-                cardSection("Basic Information") {
+                cardSection(String(localized: "Basic Information")) {
                     basicInfoCard
                 }
             }
@@ -89,11 +89,11 @@ struct BasicsTab: View {
             divider
             primarySportRow
             divider
-            textRow("High School", keyPath: \.highSchool)
+            textRow(String(localized: "High School"), keyPath: \.highSchool)
             divider
-            textRow("City", keyPath: \.schoolCity)
+            textRow(String(localized: "City"), keyPath: \.schoolCity)
             divider
-            textRow("State", keyPath: \.schoolState, autocapitalization: .characters)
+            textRow(String(localized: "State"), keyPath: \.schoolState, autocapitalization: .characters)
         }
     }
 

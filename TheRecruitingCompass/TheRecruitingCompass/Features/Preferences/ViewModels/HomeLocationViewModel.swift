@@ -57,7 +57,7 @@ final class HomeLocationViewModel {
       }
     } catch {
       logger.error("Failed to load location: \(error.localizedDescription)")
-      errorMessage = "Failed to load location settings. Please try again."
+      errorMessage = String(localized: "Failed to load location settings. Please try again.")
     }
   }
 
@@ -79,7 +79,7 @@ final class HomeLocationViewModel {
       }
     } catch {
       logger.error("Failed to save location: \(error.localizedDescription)")
-      errorMessage = "Failed to save location. Please try again."
+      errorMessage = String(localized: "Failed to save location. Please try again.")
       saveStatus = .idle
     }
   }
@@ -140,7 +140,7 @@ final class HomeLocationViewModel {
 
   func geocodeAddress() async {
     guard hasValidAddress else {
-      errorMessage = "Please enter at least a city and state"
+      errorMessage = String(localized: "Please enter at least a city and state")
       return
     }
 
@@ -164,7 +164,7 @@ final class HomeLocationViewModel {
       isGeocoding = false
     } catch {
       logger.error("Geocoding failed: \(error.localizedDescription)")
-      errorMessage = "Unable to find that location. Please enter a more specific address."
+      errorMessage = String(localized: "Unable to find that location. Please enter a more specific address.")
       isGeocoding = false
     }
   }
@@ -249,7 +249,7 @@ final class HomeLocationViewModel {
 
   var coordinatesText: String {
     guard let lat = location.latitude, let lon = location.longitude else {
-      return "No coordinates set"
+      return String(localized: "No coordinates set")
     }
     return String(format: "%.6f, %.6f", lat, lon)
   }
