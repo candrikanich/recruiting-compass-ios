@@ -233,7 +233,7 @@ final class InteractionsListViewModel {
       try await interactionsService.deleteInteraction(id: interaction.id)
       allInteractions.removeAll { $0.id == interaction.id }
       logger.info("Deleted interaction: \(interactionSubject)")
-      successMessage = "Interaction deleted"
+      successMessage = String(localized: "Interaction deleted")
       showSuccessToast = true
       await invalidateInteractionsListCache()
     } catch {
@@ -246,9 +246,9 @@ final class InteractionsListViewModel {
         // Build detailed success message
         let totalDeleted = result.deletedInteractions + result.deletedNotes
         if totalDeleted > 0 {
-          successMessage = "Interaction and \(totalDeleted) related record\(totalDeleted == 1 ? "" : "s") deleted"
+          successMessage = String(localized: "Interaction and \(totalDeleted) related record\(totalDeleted == 1 ? "" : "s") deleted")
         } else {
-          successMessage = "Interaction deleted"
+          successMessage = String(localized: "Interaction deleted")
         }
         showSuccessToast = true
         await invalidateInteractionsListCache()

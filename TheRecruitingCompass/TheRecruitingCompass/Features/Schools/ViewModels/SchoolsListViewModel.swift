@@ -244,7 +244,7 @@ final class SchoolsListViewModel {
         allSchools.removeAll { $0.id == school.id }
         distanceCache.removeValue(forKey: school.id)
         distanceCacheOrderedKeys.removeAll { $0 == school.id }
-        successMessage = "School deleted successfully"
+        successMessage = String(localized: "School deleted successfully")
         showSuccessToast = true
         logger.info("School deleted: \(school.name)")
         await invalidateSchoolsListCache()
@@ -256,8 +256,8 @@ final class SchoolsListViewModel {
         distanceCacheOrderedKeys.removeAll { $0 == school.id }
         let totalDeleted = result.deletedInteractions + result.deletedNotes
         successMessage = totalDeleted > 0
-          ? "School and \(totalDeleted) related items deleted"
-          : "School deleted successfully"
+          ? String(localized: "School and \(totalDeleted) related items deleted")
+          : String(localized: "School deleted successfully")
         showSuccessToast = true
         logger.info("Cascade delete successful: \(school.name)")
         await invalidateSchoolsListCache()

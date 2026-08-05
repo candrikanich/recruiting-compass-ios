@@ -76,7 +76,7 @@ struct AddCoachView: View {
           icon: "building.2.fill",
           title: "No Schools Found",
           message: "You need to add a school before adding a coach",
-          actionTitle: "Add School"
+          actionTitle: String(localized: "Add School")
         ) {
           navigationPath.append(CoachDestination.addSchool)
         }

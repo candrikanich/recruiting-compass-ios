@@ -197,7 +197,7 @@ final class CoachesListViewModel {
       try await coachesService.deleteCoach(id: coach.id)
       allCoaches.removeAll { $0.id == coach.id }
       logger.info("Deleted coach: \(coachName)")
-      successMessage = "Coach deleted"
+      successMessage = String(localized: "Coach deleted")
       showSuccessToast = true
       await invalidateCoachesListCache()
     } catch {
@@ -210,9 +210,9 @@ final class CoachesListViewModel {
         // Build detailed success message
         let totalDeleted = result.deletedInteractions + result.deletedNotes
         if totalDeleted > 0 {
-          successMessage = "Coach and \(totalDeleted) related record\(totalDeleted == 1 ? "" : "s") deleted"
+          successMessage = String(localized: "Coach and \(totalDeleted) related record\(totalDeleted == 1 ? "" : "s") deleted")
         } else {
-          successMessage = "Coach deleted"
+          successMessage = String(localized: "Coach deleted")
         }
         showSuccessToast = true
         await invalidateCoachesListCache()

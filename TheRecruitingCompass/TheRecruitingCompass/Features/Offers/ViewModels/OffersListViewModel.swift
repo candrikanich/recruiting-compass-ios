@@ -195,7 +195,7 @@ final class OffersListViewModel {
       allOffers.insert(newOffer, at: 0)
       formState.reset()
       showAddForm = false
-      successMessage = "Offer logged successfully"
+      successMessage = String(localized: "Offer logged successfully")
       showSuccessToast = true
       logger.info("Created offer: \(newOffer.id)")
       await invalidateOffersListCache()
@@ -224,7 +224,7 @@ final class OffersListViewModel {
       try await offersService.deleteOffer(id: offer.id)
       allOffers.removeAll { $0.id == offer.id }
       selectedOfferIds.remove(offer.id)
-      successMessage = "Offer deleted"
+      successMessage = String(localized: "Offer deleted")
       showSuccessToast = true
       await invalidateOffersListCache()
       logger.info("Deleted offer: \(offer.id)")

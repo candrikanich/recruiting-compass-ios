@@ -60,7 +60,7 @@ struct FormFieldWrapper<Content: View>: View {
 
   /// Builds an accessible label combining field name, required status, and error
   private func buildAccessibilityLabel() -> String {
-    var accessibleLabel = label
+    var accessibleLabel = String(localized: "\(label)")
 
     if isRequired {
       accessibleLabel += String(localized: ", required")
