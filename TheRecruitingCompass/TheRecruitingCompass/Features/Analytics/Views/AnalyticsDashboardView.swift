@@ -52,7 +52,7 @@ struct AnalyticsDashboardView: View {
     }
     .alert("Export Failed", isPresented: $viewModel.showExportError) {
     } message: {
-      Text(viewModel.exportError ?? "Couldn't create the export file. Please try again.")
+      Text(viewModel.exportError ?? String(localized: "Couldn't create the export file. Please try again."))
     }
     .task {
       await viewModel.loadAllData()
