@@ -58,8 +58,8 @@ enum AppError: Equatable, Identifiable {
                 iconName: "magnifyingglass",
                 iconBackground: Color(hex: "EFF6FF"),
                 iconForeground: Color(hex: "3B82F6"),
-                primaryButtonLabel: "Go to Dashboard",
-                secondaryButtonLabel: "Search Schools",
+                primaryButtonLabel: String(localized: "Go to Dashboard"),
+                secondaryButtonLabel: String(localized: "Search Schools"),
                 statusCode: nil
             )
         case .unauthorized:
@@ -69,8 +69,8 @@ enum AppError: Equatable, Identifiable {
                 iconName: "lock.fill",
                 iconBackground: Color(hex: "FFFBEB"),
                 iconForeground: Color(hex: "F59E0B"),
-                primaryButtonLabel: "Sign In",
-                secondaryButtonLabel: "Create Account",
+                primaryButtonLabel: String(localized: "Sign In"),
+                secondaryButtonLabel: String(localized: "Create Account"),
                 statusCode: nil
             )
         case .forbidden:
@@ -80,7 +80,7 @@ enum AppError: Equatable, Identifiable {
                 iconName: "shield.slash.fill",
                 iconBackground: Color(hex: "FEF2F2"),
                 iconForeground: Color(hex: "EF4444"),
-                primaryButtonLabel: "Go to Dashboard",
+                primaryButtonLabel: String(localized: "Go to Dashboard"),
                 secondaryButtonLabel: nil,
                 statusCode: nil
             )
@@ -91,8 +91,8 @@ enum AppError: Equatable, Identifiable {
                 iconName: "exclamationmark.triangle.fill",
                 iconBackground: Color(hex: "FEF2F2"),
                 iconForeground: Color(hex: "EF4444"),
-                primaryButtonLabel: "Try Again",
-                secondaryButtonLabel: "Go Home",
+                primaryButtonLabel: String(localized: "Try Again"),
+                secondaryButtonLabel: String(localized: "Go Home"),
                 statusCode: code
             )
         case .serviceUnavailable:
@@ -102,8 +102,8 @@ enum AppError: Equatable, Identifiable {
                 iconName: "clock.fill",
                 iconBackground: Color(hex: "F8FAFC"),
                 iconForeground: Color(hex: "64748B"),
-                primaryButtonLabel: "Try Again",
-                secondaryButtonLabel: "Go Home",
+                primaryButtonLabel: String(localized: "Try Again"),
+                secondaryButtonLabel: String(localized: "Go Home"),
                 statusCode: nil
             )
         case .networkOffline:
@@ -113,7 +113,7 @@ enum AppError: Equatable, Identifiable {
                 iconName: "wifi.slash",
                 iconBackground: Color(hex: "F8FAFC"),
                 iconForeground: Color(hex: "64748B"),
-                primaryButtonLabel: "Try Again",
+                primaryButtonLabel: String(localized: "Try Again"),
                 secondaryButtonLabel: nil,
                 statusCode: nil
             )
@@ -124,7 +124,7 @@ enum AppError: Equatable, Identifiable {
                 iconName: "clock.badge.exclamationmark.fill",
                 iconBackground: Color(hex: "FFFBEB"),
                 iconForeground: Color(hex: "F59E0B"),
-                primaryButtonLabel: "Sign In Again",
+                primaryButtonLabel: String(localized: "Sign In Again"),
                 secondaryButtonLabel: nil,
                 statusCode: nil
             )
@@ -135,8 +135,8 @@ enum AppError: Equatable, Identifiable {
                 iconName: "exclamationmark.circle.fill",
                 iconBackground: Color(hex: "F8FAFC"),
                 iconForeground: Color(hex: "64748B"),
-                primaryButtonLabel: "Try Again",
-                secondaryButtonLabel: "Go Home",
+                primaryButtonLabel: String(localized: "Try Again"),
+                secondaryButtonLabel: String(localized: "Go Home"),
                 statusCode: nil
             )
         }

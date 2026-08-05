@@ -61,7 +61,7 @@ struct FilterMenuButton: View {
 
   var accessibilityLabel: String {
     if isActive {
-      return "\(label), active"
+      return String(localized: "\(label), active")
     }
     return label
   }

@@ -43,7 +43,9 @@ struct FilteredResultsHeader: View {
       Spacer()
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(resultCount) \(resultCount == 1 ? itemName : pluralName), \(activeFilterCount) filters active")
+    .accessibilityLabel(
+      String(localized: "\(resultCount) \(resultCount == 1 ? itemName : pluralName), \(activeFilterCount) filters active")
+    )
   }
 }
 

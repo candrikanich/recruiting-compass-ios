@@ -18,7 +18,7 @@ struct InfoRow: View {
         .multilineTextAlignment(.trailing)
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(label): \(value)")
+    .accessibilityLabel(String(localized: "\(label): \(value)"))
   }
 }
 

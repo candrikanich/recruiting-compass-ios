@@ -40,7 +40,7 @@ struct DetailGridItem: View {
     .background(Color(uiColor: .tertiarySystemBackground))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(title): \(value)")
+    .accessibilityLabel(String(localized: "\(title): \(value)"))
     .accessibilityAddTraits(isTappable ? [.isButton] : [])
   }
 }

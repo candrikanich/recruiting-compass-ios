@@ -25,7 +25,7 @@ struct FieldError: View {
           .fixedSize(horizontal: false, vertical: true)
       }
       .accessibilityElement(children: .combine)
-      .accessibilityLabel("Error: \(error)")
+      .accessibilityLabel(String(localized: "Error: \(error)"))
     }
   }
 }

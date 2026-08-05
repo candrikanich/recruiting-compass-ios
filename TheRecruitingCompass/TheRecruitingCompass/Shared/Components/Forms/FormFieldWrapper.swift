@@ -63,11 +63,11 @@ struct FormFieldWrapper<Content: View>: View {
     var accessibleLabel = label
 
     if isRequired {
-      accessibleLabel += ", required"
+      accessibleLabel += String(localized: ", required")
     }
 
     if let error {
-      accessibleLabel += ", error: \(error)"
+      accessibleLabel += String(localized: ", error: \(error)")
     }
 
     return accessibleLabel

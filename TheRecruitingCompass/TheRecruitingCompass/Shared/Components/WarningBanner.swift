@@ -34,7 +34,7 @@ struct WarningBanner: View {
     .background(color.opacity(0.1))
     .clipShape(RoundedRectangle(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Warning: \(title). \(message)")
+    .accessibilityLabel(String(localized: "Warning: \(title). \(message)"))
   }
 }
 

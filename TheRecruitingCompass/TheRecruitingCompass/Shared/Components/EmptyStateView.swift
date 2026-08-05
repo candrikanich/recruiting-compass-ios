@@ -69,7 +69,7 @@ struct EmptyStateView: View {
     .padding()
     .frame(maxWidth: .infinity)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(title). \(message)")
+    .accessibilityLabel(String(localized: "\(title). \(message)"))
   }
 }
 

@@ -34,7 +34,7 @@ struct InterestResultCard: View {
     .background(level.badgeColor.backgroundColor.opacity(0.1))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Interest level: \(level.displayName). \(description ?? "")")
+    .accessibilityLabel(String(localized: "Interest level: \(level.displayName). \(description ?? "")"))
   }
 }
 
