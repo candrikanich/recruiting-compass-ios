@@ -16,21 +16,21 @@ struct CoachStatsGrid: View {
   var body: some View {
     LazyVGrid(columns: gridColumns, spacing: 16) {
       statCard(
-        title: "Total Interactions",
+        title: String(localized: "Total Interactions"),
         value: "\(stats.totalInteractions)",
         color: .accentBlue
       )
 
       statCard(
-        title: "Days Since Contact",
+        title: String(localized: "Days Since Contact"),
         value: stats.contactStatusText,
         color: stats.contactStatusColor,
         icon: stats.contactStatusIconName
       )
 
       statCard(
-        title: "Preferred Method",
-        value: stats.preferredMethod ?? "N/A",
+        title: String(localized: "Preferred Method"),
+        value: stats.preferredMethod ?? String(localized: "N/A"),
         color: .purple
       )
     }

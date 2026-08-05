@@ -22,8 +22,8 @@ struct CoachStats: Sendable {
   }
 
   var contactStatusText: String {
-    guard let days = daysSinceContact else { return "Never" }
-    if days == 0 { return "Today" }
-    return "\(days) days ago"
+    guard let days = daysSinceContact else { return String(localized: "Never") }
+    if days == 0 { return String(localized: "Today") }
+    return String(localized: "\(days) days ago")
   }
 }

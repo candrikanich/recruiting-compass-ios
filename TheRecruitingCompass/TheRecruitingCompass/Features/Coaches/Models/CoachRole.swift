@@ -7,9 +7,9 @@ enum CoachRole: String, Codable, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .head: return "Head Coach"
-    case .assistant: return "Assistant Coach"
-    case .recruiting: return "Recruiting Coordinator"
+    case .head: return String(localized: "Head Coach")
+    case .assistant: return String(localized: "Assistant Coach")
+    case .recruiting: return String(localized: "Recruiting Coordinator")
     }
   }
 

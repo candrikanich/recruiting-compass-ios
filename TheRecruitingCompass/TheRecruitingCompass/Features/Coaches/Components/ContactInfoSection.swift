@@ -15,7 +15,7 @@ struct ContactInfoSection: View {
       if let email = coach.email {
         ContactRow(
           icon: "envelope",
-          label: "Email",
+          label: String(localized: "Email"),
           value: email,
           type: .email(email),
           customAction: onEmailTap
@@ -25,7 +25,7 @@ struct ContactInfoSection: View {
       if let phone = coach.phone {
         ContactRow(
           icon: "phone",
-          label: "Phone",
+          label: String(localized: "Phone"),
           value: phone,
           type: .phone(phone),
           customAction: onPhoneTap
@@ -33,11 +33,11 @@ struct ContactInfoSection: View {
       }
 
       if let twitter = coach.twitterHandle {
-        ContactRow(icon: "at", label: "Twitter", value: twitter, type: .twitter(twitter))
+        ContactRow(icon: "at", label: String(localized: "Twitter"), value: twitter, type: .twitter(twitter))
       }
 
       if let instagram = coach.instagramHandle {
-        ContactRow(icon: "camera", label: "Instagram", value: instagram, type: .instagram(instagram))
+        ContactRow(icon: "camera", label: String(localized: "Instagram"), value: instagram, type: .instagram(instagram))
       }
     }
   }

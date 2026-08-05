@@ -8,10 +8,10 @@ enum CoachSortOption: String, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .name: return "Name"
-    case .school: return "School"
-    case .lastContacted: return "Last Contacted"
-    case .role: return "Role"
+    case .name: return String(localized: "Name")
+    case .school: return String(localized: "School")
+    case .lastContacted: return String(localized: "Last Contacted")
+    case .role: return String(localized: "Role")
     }
   }
 }

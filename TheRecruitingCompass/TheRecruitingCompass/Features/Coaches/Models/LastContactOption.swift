@@ -8,10 +8,10 @@ enum LastContactOption: Int, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .sevenDays: return "Last 7 days"
-    case .thirtyDays: return "Last 30 days"
-    case .sixtyDays: return "Last 60 days"
-    case .ninetyDays: return "Last 90 days"
+    case .sevenDays: return String(localized: "Last 7 days")
+    case .thirtyDays: return String(localized: "Last 30 days")
+    case .sixtyDays: return String(localized: "Last 60 days")
+    case .ninetyDays: return String(localized: "Last 90 days")
     }
   }
 }

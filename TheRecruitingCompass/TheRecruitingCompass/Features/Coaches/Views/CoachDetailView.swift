@@ -165,7 +165,7 @@ struct CoachDetailView: View {
   @ViewBuilder
   private var sharedNotesSection: some View {
     NotesSection(
-      title: "Shared Notes",
+      title: String(localized: "Shared Notes"),
       notes: $viewModel.editedSharedNotes,
       onBlur: { await viewModel.saveSharedNotes() }
     )

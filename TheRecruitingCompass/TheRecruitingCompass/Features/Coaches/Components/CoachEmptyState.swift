@@ -31,15 +31,17 @@ struct CoachEmptyState: View {
   }
 
   private var title: String {
-    if isFilteredEmpty { return "No matching coaches" }
-    if noSchools { return "Add schools first" }
-    return "No coaches yet"
+    if isFilteredEmpty { return String(localized: "No matching coaches") }
+    if noSchools { return String(localized: "Add schools first") }
+    return String(localized: "No coaches yet")
   }
 
   private var subtitle: String {
-    if isFilteredEmpty { return "Try adjusting your search or filters" }
-    if noSchools { return "Coaches are added through school pages. Add a school to start tracking coaches there." }
-    return "Visit a school's page to add coaches from their staff."
+    if isFilteredEmpty { return String(localized: "Try adjusting your search or filters") }
+    if noSchools {
+      return String(localized: "Coaches are added through school pages. Add a school to start tracking coaches there.")
+    }
+    return String(localized: "Visit a school's page to add coaches from their staff.")
   }
 
   var body: some View {
