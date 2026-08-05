@@ -17,13 +17,13 @@ enum NotificationType: String, Codable, CaseIterable, Sendable {
 
   var label: String {
     switch self {
-    case .followUpReminder: return "Follow-ups"
-    case .deadlineAlert: return "Deadlines"
-    case .weeklyDigest: return "Digest"
-    case .inboundInteraction: return "Inbound"
-    case .offer: return "Offers"
-    case .event: return "Events"
-    case .unknown: return "Other"
+    case .followUpReminder: return String(localized: "Follow-ups")
+    case .deadlineAlert: return String(localized: "Deadlines")
+    case .weeklyDigest: return String(localized: "Digest")
+    case .inboundInteraction: return String(localized: "Inbound")
+    case .offer: return String(localized: "Offers")
+    case .event: return String(localized: "Events")
+    case .unknown: return String(localized: "Other")
     }
   }
 

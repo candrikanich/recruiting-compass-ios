@@ -106,7 +106,7 @@ struct PieChartView: View {
 
   @ViewBuilder
   private var emptyState: some View {
-    ChartEmptyStateView(iconName: "chart.pie", message: "No data available")
+    ChartEmptyStateView(iconName: "chart.pie", message: String(localized: "No data available"))
   }
 
   private var segmentAngles: [(start: Angle, end: Angle)] {

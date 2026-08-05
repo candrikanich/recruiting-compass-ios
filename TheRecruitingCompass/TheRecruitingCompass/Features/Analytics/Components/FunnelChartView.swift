@@ -106,6 +106,6 @@ struct FunnelChartView: View {
 
   @ViewBuilder
   private var emptyState: some View {
-    ChartEmptyStateView(iconName: "chart.bar.doc.horizontal", message: "No pipeline data")
+    ChartEmptyStateView(iconName: "chart.bar.doc.horizontal", message: String(localized: "No pipeline data"))
   }
 }

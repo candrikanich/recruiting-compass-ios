@@ -9,10 +9,10 @@ enum TaskUrgencyFilter: String, Codable, CaseIterable {
 
   var displayName: String {
     switch self {
-    case .all: return "All"
-    case .critical: return "Overdue / Due Soon"
-    case .urgent: return "Due This Week"
-    case .upcoming: return "Due In 2 Weeks"
+    case .all: return String(localized: "All")
+    case .critical: return String(localized: "Overdue / Due Soon")
+    case .urgent: return String(localized: "Due This Week")
+    case .upcoming: return String(localized: "Due In 2 Weeks")
     }
   }
 

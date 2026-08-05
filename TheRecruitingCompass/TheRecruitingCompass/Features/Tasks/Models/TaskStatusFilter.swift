@@ -9,10 +9,10 @@ enum TaskStatusFilter: String, Codable, CaseIterable {
 
   var displayName: String {
     switch self {
-    case .all: return "All"
-    case .notStarted: return "Not Started"
-    case .inProgress: return "In Progress"
-    case .completed: return "Completed"
+    case .all: return String(localized: "All")
+    case .notStarted: return String(localized: "Not Started")
+    case .inProgress: return String(localized: "In Progress")
+    case .completed: return String(localized: "Completed")
     }
   }
 

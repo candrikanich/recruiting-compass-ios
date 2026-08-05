@@ -22,9 +22,9 @@ struct TasksListView: View {
 
   private var headerTitle: String {
     if viewModel.isViewingAsParent, let athlete = familyManager.selectedAthlete {
-      return "\(athlete.user?.fullName ?? "Athlete")'s Tasks"
+      return String(localized: "\(athlete.user?.fullName ?? "Athlete")'s Tasks")
     }
-    return "My Tasks"
+    return String(localized: "My Tasks")
   }
 
   var body: some View {

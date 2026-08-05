@@ -78,28 +78,28 @@ final class AnalyticsDashboardViewModel {
   var summaryCards: [SummaryCard] {
     [
       SummaryCard(
-        title: "Total Schools",
+        title: String(localized: "Total Schools"),
         value: summary.totalSchools,
         iconName: "building.2.fill",
         color: AnalyticsChartColors.primary,
         trend: summary.trends?.schoolsTrendLabel
       ),
       SummaryCard(
-        title: "Interactions",
+        title: String(localized: "Interactions"),
         value: summary.totalInteractions,
         iconName: "bubble.left.and.bubble.right.fill",
         color: AnalyticsChartColors.secondary,
         trend: summary.trends?.interactionsTrendLabel
       ),
       SummaryCard(
-        title: "Offers",
+        title: String(localized: "Offers"),
         value: summary.totalOffers,
         iconName: "envelope.open.fill",
         color: AnalyticsChartColors.tertiary,
         trend: summary.trends?.offersTrendLabel
       ),
       SummaryCard(
-        title: "Commitments",
+        title: String(localized: "Commitments"),
         value: summary.commitments,
         iconName: "checkmark.seal.fill",
         color: AnalyticsChartColors.quaternary,
@@ -468,8 +468,8 @@ final class AnalyticsDashboardViewModel {
         performanceData = ScatterDataSet(
           label: first.label,
           points: points,
-          xAxisLabel: "Exit Velocity (mph)",
-          yAxisLabel: "Distance (ft)"
+          xAxisLabel: String(localized: "Exit Velocity (mph)"),
+          yAxisLabel: String(localized: "Distance (ft)")
         )
       }
     } catch {

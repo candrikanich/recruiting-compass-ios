@@ -9,9 +9,9 @@ enum AnalyticsExportFormat: String, CaseIterable, Identifiable, Sendable {
 
   var displayName: String {
     switch self {
-    case .csv: return "CSV"
-    case .excel: return "Excel"
-    case .pdf: return "PDF"
+    case .csv: return String(localized: "CSV")
+    case .excel: return String(localized: "Excel")
+    case .pdf: return String(localized: "PDF")
     }
   }
 

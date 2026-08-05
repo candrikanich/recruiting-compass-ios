@@ -170,7 +170,7 @@ struct ScatterChartView: View {
 
   @ViewBuilder
   private var emptyState: some View {
-    ChartEmptyStateView(iconName: "chart.dots.scatter", message: "No correlation data")
+    ChartEmptyStateView(iconName: "chart.dots.scatter", message: String(localized: "No correlation data"))
   }
 
   private func normalizeX(_ value: Double) -> CGFloat {

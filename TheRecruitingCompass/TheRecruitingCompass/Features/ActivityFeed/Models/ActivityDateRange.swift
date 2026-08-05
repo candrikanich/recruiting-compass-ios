@@ -8,10 +8,10 @@ enum ActivityDateRange: String, CaseIterable, Sendable {
 
   var label: String {
     switch self {
-    case .all: return "All Time"
-    case .week: return "Last 7 Days"
-    case .month: return "Last 30 Days"
-    case .quarter: return "Last 90 Days"
+    case .all: return String(localized: "All Time")
+    case .week: return String(localized: "Last 7 Days")
+    case .month: return String(localized: "Last 30 Days")
+    case .quarter: return String(localized: "Last 90 Days")
     }
   }
 

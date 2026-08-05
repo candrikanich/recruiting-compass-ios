@@ -7,9 +7,9 @@ enum TemplateType: String, Codable, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .email: return "Email"
-    case .text: return "Text"
-    case .twitter: return "Twitter"
+    case .email: return String(localized: "Email")
+    case .text: return String(localized: "Text")
+    case .twitter: return String(localized: "Twitter")
     }
   }
 

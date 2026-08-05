@@ -8,10 +8,10 @@ enum AnalyticsDateRange: Equatable, Sendable {
 
   var displayName: String {
     switch self {
-    case .last7Days: return "Last 7 Days"
-    case .last30Days: return "Last 30 Days"
-    case .last90Days: return "Last 90 Days"
-    case .custom: return "Custom Range"
+    case .last7Days: return String(localized: "Last 7 Days")
+    case .last30Days: return String(localized: "Last 30 Days")
+    case .last90Days: return String(localized: "Last 90 Days")
+    case .custom: return String(localized: "Custom Range")
     }
   }
 

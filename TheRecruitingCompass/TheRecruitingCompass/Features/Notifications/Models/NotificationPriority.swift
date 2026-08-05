@@ -11,4 +11,13 @@ enum NotificationPriority: String, Codable, Sendable {
     let rawValue = try container.decode(String.self)
     self = NotificationPriority(rawValue: rawValue) ?? .unknown
   }
+
+  var label: String {
+    switch self {
+    case .low: return String(localized: "LOW")
+    case .normal: return String(localized: "NORMAL")
+    case .high: return String(localized: "HIGH")
+    case .unknown: return String(localized: "UNKNOWN")
+    }
+  }
 }

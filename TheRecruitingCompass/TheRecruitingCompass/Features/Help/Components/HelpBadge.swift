@@ -15,9 +15,9 @@ struct HelpBadge: View {
 
     var label: String {
       switch self {
-      case .new: return "New"
-      case .required: return "Required"
-      case .optional: return "Optional"
+      case .new: return String(localized: "New")
+      case .required: return String(localized: "Required")
+      case .optional: return String(localized: "Optional")
       }
     }
 

@@ -83,7 +83,7 @@ struct AnalyticsDashboardView: View {
         if viewModel.hasInteractionData {
           PieChartView(
             segments: viewModel.interactionTypesData,
-            title: "Interaction Types"
+            title: String(localized: "Interaction Types")
           )
           .padding(.horizontal)
         }
@@ -91,7 +91,7 @@ struct AnalyticsDashboardView: View {
         if viewModel.hasSentimentData {
           PieChartView(
             segments: viewModel.sentimentData,
-            title: "Sentiment Breakdown"
+            title: String(localized: "Sentiment Breakdown")
           )
           .padding(.horizontal)
         }
@@ -99,7 +99,7 @@ struct AnalyticsDashboardView: View {
         if viewModel.hasPipelineData {
           FunnelChartView(
             stages: viewModel.pipelineData,
-            title: "Recruiting Pipeline"
+            title: String(localized: "Recruiting Pipeline")
           )
           .padding(.horizontal)
         }
@@ -107,7 +107,7 @@ struct AnalyticsDashboardView: View {
         if viewModel.hasSchoolData {
           PieChartView(
             segments: viewModel.schoolStatusData,
-            title: "School Status Distribution"
+            title: String(localized: "School Status Distribution")
           )
           .padding(.horizontal)
         }
@@ -115,7 +115,7 @@ struct AnalyticsDashboardView: View {
         if let scatterData = viewModel.performanceData, viewModel.hasPerformanceData {
           ScatterChartView(
             dataSet: scatterData,
-            title: "Performance Correlation"
+            title: String(localized: "Performance Correlation")
           )
           .padding(.horizontal)
         }

@@ -26,7 +26,7 @@ struct AnalyticsSummary: Codable, Equatable, Sendable {
 
     private func formatTrend(_ value: Double) -> String {
       let sign = value >= 0 ? "+" : ""
-      return "\(sign)\(Int(value))% vs last period"
+      return String(localized: "\(sign)\(Int(value))% vs last period")
     }
   }
 

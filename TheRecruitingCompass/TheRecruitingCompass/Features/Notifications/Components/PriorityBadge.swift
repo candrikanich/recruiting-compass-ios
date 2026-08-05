@@ -22,7 +22,7 @@ struct PriorityBadge: View {
   }
 
   var body: some View {
-    Text(priority.rawValue.uppercased())
+    Text(priority.label)
       .font(.caption.weight(.bold))
       .foregroundStyle(textColor)
       .padding(.horizontal, 6)

@@ -22,7 +22,7 @@ struct HelpImageSlot: View {
         }
         .accessibilityHidden(true)
 
-      Text(caption)
+      Text(String(localized: "\(caption)"))
         .font(.caption)
         .foregroundStyle(.secondary)
     }

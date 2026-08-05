@@ -13,7 +13,7 @@ struct HelpSectionHeader: View {
 
   var body: some View {
     HStack(alignment: .firstTextBaseline, spacing: 8) {
-      Text(title)
+      Text(String(localized: "\(title)"))
         .font(.headline)
         .foregroundStyle(.primary)
 

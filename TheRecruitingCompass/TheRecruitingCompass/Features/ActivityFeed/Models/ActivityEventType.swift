@@ -7,9 +7,9 @@ enum ActivityEventType: String, CaseIterable, Sendable, Codable {
 
   var label: String {
     switch self {
-    case .interaction: return "Interactions"
-    case .schoolStatusChange: return "School Status Changes"
-    case .documentUpload: return "Documents"
+    case .interaction: return String(localized: "Interactions")
+    case .schoolStatusChange: return String(localized: "School Status Changes")
+    case .documentUpload: return String(localized: "Documents")
     }
   }
 }
