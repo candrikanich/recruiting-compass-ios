@@ -6,8 +6,8 @@ enum SettingsBadgeStatus {
 
   var label: String {
     switch self {
-    case .complete: return "Complete"
-    case .incomplete: return "Incomplete"
+    case .complete: return String(localized: "Complete")
+    case .incomplete: return String(localized: "Incomplete")
     }
   }
 

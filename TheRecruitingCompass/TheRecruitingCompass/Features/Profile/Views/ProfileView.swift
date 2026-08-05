@@ -434,10 +434,10 @@ private struct ProfileDeletionConfirmState: View {
                     .foregroundStyle(Color.errorRed)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    bulletItem("All your schools, coaches, interactions, and notes will be deleted")
-                    bulletItem("You will be removed from any shared family units")
-                    bulletItem("Your account will be permanently deleted after 30 days")
-                    bulletItem("You may cancel within the 30-day window")
+                    bulletItem(String(localized: "All your schools, coaches, interactions, and notes will be deleted"))
+                    bulletItem(String(localized: "You will be removed from any shared family units"))
+                    bulletItem(String(localized: "Your account will be permanently deleted after 30 days"))
+                    bulletItem(String(localized: "You may cancel within the 30-day window"))
                 }
             }
             .padding(12)

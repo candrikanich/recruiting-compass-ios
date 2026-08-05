@@ -49,7 +49,7 @@ struct SettingsView: View {
                   showCodeCopied = false
                 }
               } label: {
-                Text(showCodeCopied ? "Copied!" : "Copy")
+                Text(showCodeCopied ? String(localized: "Copied!") : String(localized: "Copy"))
                   .font(.caption.weight(.medium))
               }
               .buttonStyle(.bordered)
@@ -62,8 +62,8 @@ struct SettingsView: View {
           NavigationLink(value: SettingsDestination.familyManagement) {
             SettingsRow(
               icon: "person.3.fill",
-              title: "Family Management",
-              description: "Manage family members and share recruiting data",
+              title: String(localized: "Family Management"),
+              description: String(localized: "Manage family members and share recruiting data"),
               color: .red
             )
           }
@@ -76,8 +76,8 @@ struct SettingsView: View {
           NavigationLink(value: SettingsDestination.profile) {
             SettingsRow(
               icon: "person.circle.fill",
-              title: "My Profile",
-              description: "Photo, name, email, password, and account settings",
+              title: String(localized: "My Profile"),
+              description: String(localized: "Photo, name, email, password, and account settings"),
               color: .blue
             )
           }
@@ -85,8 +85,8 @@ struct SettingsView: View {
           NavigationLink(value: SettingsDestination.homeLocation) {
             SettingsRow(
               icon: "house.fill",
-              title: "Home Location",
-              description: "Set your home address to calculate distances to schools",
+              title: String(localized: "Home Location"),
+              description: String(localized: "Set your home address to calculate distances to schools"),
               color: .blue,
               badgeStatus: viewModel.homeLocationStatus
             )
@@ -95,8 +95,8 @@ struct SettingsView: View {
           NavigationLink(value: SettingsDestination.playerDetails) {
             SettingsRow(
               icon: "person.fill",
-              title: "Player Details",
-              description: "Graduation year, positions, stats, and athletic profile",
+              title: String(localized: "Player Details"),
+              description: String(localized: "Graduation year, positions, stats, and athletic profile"),
               color: .green,
               badgeStatus: viewModel.playerDetailsStatus
             )
@@ -110,8 +110,8 @@ struct SettingsView: View {
           NavigationLink(value: SettingsDestination.schoolPreferences) {
             SettingsRow(
               icon: "target",
-              title: "School Preferences",
-              description: "Set criteria for finding your ideal schools",
+              title: String(localized: "School Preferences"),
+              description: String(localized: "Set criteria for finding your ideal schools"),
               color: .purple,
               badgeStatus: viewModel.schoolPreferencesStatus
             )
@@ -125,8 +125,8 @@ struct SettingsView: View {
           NavigationLink(value: SettingsDestination.dashboardCustomization) {
             SettingsRow(
               icon: "slider.horizontal.3",
-              title: "Dashboard Customization",
-              description: "Show or hide dashboard widgets",
+              title: String(localized: "Dashboard Customization"),
+              description: String(localized: "Show or hide dashboard widgets"),
               color: .blue
             )
           }
@@ -139,8 +139,8 @@ struct SettingsView: View {
           NavigationLink(value: SettingsDestination.notificationPreferences) {
             SettingsRow(
               icon: "bell.fill",
-              title: "Notifications",
-              description: "Configure alerts for follow-ups, deadlines, and updates",
+              title: String(localized: "Notifications"),
+              description: String(localized: "Configure alerts for follow-ups, deadlines, and updates"),
               color: .orange
             )
           }
@@ -148,8 +148,8 @@ struct SettingsView: View {
           NavigationLink(value: SettingsDestination.communicationTemplates) {
             SettingsRow(
               icon: "doc.text.fill",
-              title: "Communication Templates",
-              description: "Create and manage email, text, and social media templates",
+              title: String(localized: "Communication Templates"),
+              description: String(localized: "Create and manage email, text, and social media templates"),
               color: .accentBlue
             )
           }
@@ -164,8 +164,8 @@ struct SettingsView: View {
           } label: {
             SettingsRow(
               icon: "doc.text",
-              title: "Terms of Service",
-              description: "Read the terms and conditions for using the app",
+              title: String(localized: "Terms of Service"),
+              description: String(localized: "Read the terms and conditions for using the app"),
               color: .iconGray
             )
           }
@@ -176,8 +176,8 @@ struct SettingsView: View {
           } label: {
             SettingsRow(
               icon: "hand.raised",
-              title: "Privacy Policy",
-              description: "How we collect, use, and protect your data",
+              title: String(localized: "Privacy Policy"),
+              description: String(localized: "How we collect, use, and protect your data"),
               color: .iconGray
             )
           }
@@ -191,8 +191,8 @@ struct SettingsView: View {
           NavigationLink(value: SettingsDestination.about) {
             SettingsRow(
               icon: "info.circle.fill",
-              title: "About & Feedback",
-              description: "Our mission, and a way to send us feedback or report issues",
+              title: String(localized: "About & Feedback"),
+              description: String(localized: "Our mission, and a way to send us feedback or report issues"),
               color: .iconGray
             )
           }

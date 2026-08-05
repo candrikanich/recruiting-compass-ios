@@ -145,10 +145,10 @@ private func colorForError(_ error: InviteError) -> Color {
 
 private func titleForError(_ error: InviteError) -> String {
   switch error {
-  case .expired: return "This invite has expired"
-  case .alreadyAccepted: return "Already connected"
-  case .notFound: return "Invite not found"
-  case .serverError: return "Something went wrong"
+  case .expired: return String(localized: "This invite has expired")
+  case .alreadyAccepted: return String(localized: "Already connected")
+  case .notFound: return String(localized: "Invite not found")
+  case .serverError: return String(localized: "Something went wrong")
   }
 }
 
@@ -197,7 +197,7 @@ private struct InviteJoinAuthenticatedConnectSection: View {
   var body: some View {
     VStack(spacing: 12) {
       gradientButton(
-        label: "Connect to \(invite.familyName)",
+        label: String(localized: "Connect to \(invite.familyName)"),
         isLoading: viewModel.isAccepting
       ) {
         Task { await viewModel.accept() }
@@ -248,7 +248,7 @@ private struct InviteJoinLoginSection: View {
       }
 
       gradientButton(
-        label: "Log in and connect",
+        label: String(localized: "Log in and connect"),
         isLoading: viewModel.isAccepting
       ) {
         Task { await viewModel.accept() }
@@ -356,7 +356,7 @@ private struct InviteJoinSignupSection: View {
       }
 
       gradientButton(
-        label: "Create account and connect",
+        label: String(localized: "Create account and connect"),
         isLoading: viewModel.isAccepting
       ) {
         Task { await viewModel.signupAndConnect() }
@@ -398,7 +398,7 @@ private struct InviteJoinDateOfBirthField: View {
 private func gradientButton(label: String, isLoading: Bool, action: @escaping () -> Void) -> some View {
   Button(action: action) {
     HStack {
-      Text(isLoading ? "Please wait..." : label)
+      Text(isLoading ? String(localized: "Please wait...") : label)
         .font(.callout.weight(.semibold))
       if isLoading {
         ProgressView()

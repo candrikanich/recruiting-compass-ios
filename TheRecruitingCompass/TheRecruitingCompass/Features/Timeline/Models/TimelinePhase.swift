@@ -20,21 +20,21 @@ enum TimelinePhase: String, Codable, CaseIterable, Sendable {
 
   var displayLabel: String {
     switch self {
-    case .freshman: return "Freshman Year"
-    case .sophomore: return "Sophomore Year"
-    case .junior: return "Junior Year"
-    case .senior: return "Senior Year"
-    case .committed: return "Committed"
+    case .freshman: return String(localized: "Freshman Year")
+    case .sophomore: return String(localized: "Sophomore Year")
+    case .junior: return String(localized: "Junior Year")
+    case .senior: return String(localized: "Senior Year")
+    case .committed: return String(localized: "Committed")
     }
   }
 
   var theme: String {
     switch self {
-    case .freshman: return "Foundation & Awareness"
-    case .sophomore: return "Exposure & Communication"
-    case .junior: return "Evaluation & Relationship Building"
-    case .senior: return "Commitment & Transition"
-    case .committed: return "Post-Commitment"
+    case .freshman: return String(localized: "Foundation & Awareness")
+    case .sophomore: return String(localized: "Exposure & Communication")
+    case .junior: return String(localized: "Evaluation & Relationship Building")
+    case .senior: return String(localized: "Commitment & Transition")
+    case .committed: return String(localized: "Post-Commitment")
     }
   }
 

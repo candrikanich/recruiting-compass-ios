@@ -7,9 +7,9 @@ struct RecruitingTimelineView: View {
 
   private var headerTitle: String {
     if viewModel.isViewingAsParent, let athlete = familyManager.selectedAthlete {
-      return "\(athlete.user?.fullName ?? "Athlete")'s Timeline"
+      return String(localized: "\(athlete.user?.fullName ?? "Athlete")'s Timeline")
     }
-    return "Recruiting Timeline"
+    return String(localized: "Recruiting Timeline")
   }
 
   private var showLockedTaskAlert: Binding<Bool> {

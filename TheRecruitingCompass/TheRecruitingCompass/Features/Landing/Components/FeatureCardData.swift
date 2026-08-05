@@ -11,18 +11,18 @@ extension FeatureCardData {
   static let landingFeatures: [FeatureCardData] = [
     FeatureCardData(
       icon: "shield.checkered",
-      title: "Track Schools",
-      description: "Organize and manage your target colleges in one place"
+      title: String(localized: "Track Schools"),
+      description: String(localized: "Organize and manage your target colleges in one place")
     ),
     FeatureCardData(
       icon: "bubble.right.fill",
-      title: "Log Interactions",
-      description: "Keep track of every conversation with coaches"
+      title: String(localized: "Log Interactions"),
+      description: String(localized: "Keep track of every conversation with coaches")
     ),
     FeatureCardData(
       icon: "chart.bar.fill",
-      title: "Monitor Progress",
-      description: "Visualize your recruiting journey with insights"
+      title: String(localized: "Monitor Progress"),
+      description: String(localized: "Visualize your recruiting journey with insights")
     )
   ]
 }

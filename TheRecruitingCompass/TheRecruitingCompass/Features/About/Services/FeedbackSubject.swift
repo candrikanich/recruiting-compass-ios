@@ -8,10 +8,10 @@ enum FeedbackSubject: String, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .bug: return "Bug Report"
-        case .feature: return "Feature Request"
-        case .question: return "Question"
-        case .general: return "General Feedback"
+        case .bug: return String(localized: "Bug Report")
+        case .feature: return String(localized: "Feature Request")
+        case .question: return String(localized: "Question")
+        case .general: return String(localized: "General Feedback")
         }
     }
 }
