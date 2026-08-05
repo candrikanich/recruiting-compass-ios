@@ -14,7 +14,7 @@ struct QuickTaskRow: View {
           .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Task: \(task.text)")
+      .accessibilityLabel(String(localized: "Task: \(task.text)"))
       .accessibilityValue(task.isCompleted ? "Completed" : "Not completed")
       .accessibilityHint("Double tap to toggle completion")
 
@@ -32,7 +32,7 @@ struct QuickTaskRow: View {
           .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Delete task: \(task.text)")
+      .accessibilityLabel(String(localized: "Delete task: \(task.text)"))
       .accessibilityHint("Permanently removes this task")
     }
   }

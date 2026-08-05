@@ -24,7 +24,7 @@ struct DashboardStatsCardsSection: View {
             destination: .coaches
           )
         }
-        .accessibilityLabel("View all coaches, \(stats.coachCount) total")
+        .accessibilityLabel(String(localized: "View all coaches, \(stats.coachCount) total"))
         .accessibilityHint("Opens your coaches list")
         .buttonStyle(.plain)
       }
@@ -44,7 +44,7 @@ struct DashboardStatsCardsSection: View {
             destination: .schools
           )
         }
-        .accessibilityLabel("View all schools, \(stats.schoolCount) total")
+        .accessibilityLabel(String(localized: "View all schools, \(stats.schoolCount) total"))
         .accessibilityHint("Opens your schools list")
         .buttonStyle(.plain)
       }
@@ -64,7 +64,7 @@ struct DashboardStatsCardsSection: View {
             destination: .interactions
           )
         }
-        .accessibilityLabel("View all interactions, \(stats.interactionCount) total")
+        .accessibilityLabel(String(localized: "View all interactions, \(stats.interactionCount) total"))
         .accessibilityHint("Opens your interactions list")
         .buttonStyle(.plain)
       }
@@ -82,7 +82,7 @@ struct DashboardStatsCardsSection: View {
             destination: .offers
           )
         }
-        .accessibilityLabel("View all offers, \(stats.totalOffers) total")
+        .accessibilityLabel(String(localized: "View all offers, \(stats.totalOffers) total"))
         .accessibilityHint("Opens your offers list")
         .buttonStyle(.plain)
       }

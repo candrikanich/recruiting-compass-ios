@@ -63,7 +63,7 @@ struct StatCard: View {
     .brandShadowSm()
     .opacity(isEnabled ? 1.0 : 0.7)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(title): \(count)")
+    .accessibilityLabel(String(localized: "\(title): \(count)"))
     .accessibilityValue([subtitle, description].compactMap { $0 }.joined(separator: ". "))
     .accessibilityAddTraits(isEnabled ? [.isButton] : [])
     .accessibilityHint(isEnabled ? "Tap to view \(title.lowercased())" : "")

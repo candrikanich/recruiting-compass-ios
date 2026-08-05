@@ -175,7 +175,7 @@ struct DocumentViewerView: View {
       HStack {
         DocumentViewerIconButton(
           systemName: "xmark.circle.fill",
-          accessibilityLabel: "Close document viewer",
+          accessibilityLabel: String(localized: "Close document viewer"),
           accessibilityIdentifier: "document-viewer-close",
           action: { dismiss() }
         )
@@ -193,7 +193,7 @@ struct DocumentViewerView: View {
         HStack(spacing: 16) {
           DocumentViewerIconButton(
             systemName: "square.and.arrow.up",
-            accessibilityLabel: "Share document",
+            accessibilityLabel: String(localized: "Share document"),
             accessibilityIdentifier: "document-viewer-share",
             isEnabled: !viewModel.shareItems.isEmpty,
             action: { viewModel.shareDocument() }
@@ -201,7 +201,7 @@ struct DocumentViewerView: View {
 
           DocumentViewerIconButton(
             systemName: "arrow.down.circle",
-            accessibilityLabel: "Download document to device",
+            accessibilityLabel: String(localized: "Download document to device"),
             accessibilityIdentifier: "document-viewer-download",
             isEnabled: viewModel.document != nil && !viewModel.isDownloading,
             action: { Task { await viewModel.downloadDocument() } }
@@ -240,7 +240,7 @@ struct DocumentViewerView: View {
         HStack {
           DocumentViewerIconButton(
             systemName: "chevron.left",
-            accessibilityLabel: "View previous document",
+            accessibilityLabel: String(localized: "View previous document"),
             isEnabled: viewModel.hasPrevious,
             action: { viewModel.previousDocument() }
           )
@@ -250,13 +250,13 @@ struct DocumentViewerView: View {
           Text("\(viewModel.currentIndex + 1) of \(coll.documents.count)")
             .font(.subheadline)
             .foregroundStyle(.white)
-            .accessibilityLabel("Document \(viewModel.currentIndex + 1) of \(coll.documents.count)")
+            .accessibilityLabel(String(localized: "Document \(viewModel.currentIndex + 1) of \(coll.documents.count)"))
 
           Spacer()
 
           DocumentViewerIconButton(
             systemName: "chevron.right",
-            accessibilityLabel: "View next document",
+            accessibilityLabel: String(localized: "View next document"),
             isEnabled: viewModel.hasNext,
             action: { viewModel.nextDocument() }
           )

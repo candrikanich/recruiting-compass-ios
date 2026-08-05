@@ -29,11 +29,11 @@ enum CommunicationType: Sendable {
 
   var accessibilityLabel: String {
     switch self {
-    case .email: return "Email coach"
-    case .phone: return "Text coach"
-    case .call: return "Call coach"
-    case .twitter: return "View Twitter profile"
-    case .instagram: return "View Instagram profile"
+    case .email: return String(localized: "Email coach")
+    case .phone: return String(localized: "Text coach")
+    case .call: return String(localized: "Call coach")
+    case .twitter: return String(localized: "View Twitter profile")
+    case .instagram: return String(localized: "View Instagram profile")
     }
   }
 

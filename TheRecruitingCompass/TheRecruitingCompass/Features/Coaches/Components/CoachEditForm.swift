@@ -30,7 +30,7 @@ struct CoachEditForm: View {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("First name error: \(error)")
+              .accessibilityLabel(String(localized: "First name error: \(error)"))
           }
 
           TextField("Last Name", text: $editedCoach.lastName)
@@ -43,7 +43,7 @@ struct CoachEditForm: View {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("Last name error: \(error)")
+              .accessibilityLabel(String(localized: "Last name error: \(error)"))
           }
 
           Picker("Role", selection: $editedCoach.position) {
@@ -67,7 +67,7 @@ struct CoachEditForm: View {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("Email error: \(error)")
+              .accessibilityLabel(String(localized: "Email error: \(error)"))
           }
 
           TextField("Phone", text: $editedCoach.phone)
@@ -79,7 +79,7 @@ struct CoachEditForm: View {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("Phone error: \(error)")
+              .accessibilityLabel(String(localized: "Phone error: \(error)"))
           }
         }
 
@@ -94,7 +94,7 @@ struct CoachEditForm: View {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("Twitter error: \(error)")
+              .accessibilityLabel(String(localized: "Twitter error: \(error)"))
           }
 
           TextField("Instagram Handle", text: $editedCoach.instagramHandle)
@@ -107,7 +107,7 @@ struct CoachEditForm: View {
             Text(error)
               .font(.caption)
               .foregroundStyle(Color.errorRed)
-              .accessibilityLabel("Instagram error: \(error)")
+              .accessibilityLabel(String(localized: "Instagram error: \(error)"))
           }
         }
 
@@ -140,7 +140,7 @@ struct CoachEditForm: View {
             value: $editedCoach.followUpThresholdDays,
             in: 1...365
           )
-          .accessibilityLabel("Follow-up threshold: \(editedCoach.followUpThresholdDays) days")
+          .accessibilityLabel(String(localized: "Follow-up threshold: \(editedCoach.followUpThresholdDays) days"))
         }
       }
       .navigationTitle("Edit Coach")

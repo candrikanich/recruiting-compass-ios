@@ -50,6 +50,6 @@ struct MetricCardView: View {
 
   private var metricAccessibilityLabel: String {
     let verifiedStatus = metric.verified ? "Verified" : "Not verified"
-    return "\(metric.displayName), \(metric.formattedValue), \(verifiedStatus)"
+    return String(localized: "\(metric.displayName), \(metric.formattedValue), \(verifiedStatus)")
   }
 }

@@ -75,7 +75,7 @@ struct LoginFormField: View {
         Text(error)
           .font(.caption)
           .foregroundStyle(Color.errorRed)
-          .accessibilityLabel("Error: \(error)")
+          .accessibilityLabel(String(localized: "Error: \(error)"))
       }
     }
     .accessibilityElement(children: .contain)
@@ -88,7 +88,7 @@ struct LoginFormField: View {
   @Previewable @State var error: String?
 
   return LoginFormField(
-    label: "Email",
+    label: String(localized: "Email"),
     placeholder: "your.email@example.com",
     icon: "envelope",
     text: $text,

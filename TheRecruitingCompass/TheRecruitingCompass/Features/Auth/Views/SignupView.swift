@@ -207,7 +207,7 @@ private struct SignupFirstNameFieldView: View {
 
   var body: some View {
     LoginFormField(
-      label: "First Name",
+      label: String(localized: "First Name"),
       placeholder: "John",
       icon: "person",
       text: $viewModel.firstName,
@@ -225,7 +225,7 @@ private struct SignupLastNameFieldView: View {
 
   var body: some View {
     LoginFormField(
-      label: "Last Name",
+      label: String(localized: "Last Name"),
       placeholder: "Smith",
       icon: "person",
       text: $viewModel.lastName,
@@ -278,7 +278,7 @@ private struct SignupEmailFieldView: View {
 
   var body: some View {
     LoginFormField(
-      label: "Email",
+      label: String(localized: "Email"),
       placeholder: "your.email@example.com",
       icon: "envelope",
       text: $viewModel.email,
@@ -305,7 +305,7 @@ private struct SignupPasswordSectionView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       LoginFormField(
-        label: "Password",
+        label: String(localized: "Password"),
         placeholder: "Create a strong password",
         icon: "lock",
         text: $viewModel.password,
@@ -332,7 +332,7 @@ private struct SignupConfirmPasswordFieldView: View {
 
   var body: some View {
     LoginFormField(
-      label: "Confirm Password",
+      label: String(localized: "Confirm Password"),
       placeholder: "Re-enter your password",
       icon: "lock.fill",
       text: $viewModel.confirmPassword,
@@ -351,7 +351,7 @@ private struct SignupFamilyCodeFieldView: View {
   var body: some View {
     if viewModel.selectedRole?.requiresFamilyCode == true {
       LoginFormField(
-        label: "Family Code (Optional)",
+        label: String(localized: "Family Code (Optional)"),
         placeholder: "FAM-XXXXXX",
         icon: "person.2",
         text: $viewModel.familyCode,

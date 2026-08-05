@@ -67,11 +67,11 @@ struct InfoBanner: View {
   private var title: String {
     switch state {
     case .pending:
-      return "Email not verified"
+      return String(localized: "Email not verified")
     case .checking:
-      return "Checking verification..."
+      return String(localized: "Checking verification...")
     case .verified:
-      return "Email verified!"
+      return String(localized: "Email verified!")
     case .error:
       return ""
     }

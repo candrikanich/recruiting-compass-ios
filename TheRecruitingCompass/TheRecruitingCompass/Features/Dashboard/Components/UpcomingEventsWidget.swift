@@ -48,9 +48,9 @@ struct UpcomingEventsWidget: View {
             }
             .foregroundStyle(Color.accentBlue)
           }
-          .accessibilityLabel(isShowingAll
+          .accessibilityLabel(String(localized: isShowingAll
             ? "Show fewer events"
-            : "Show all \(sortedEvents.count) events")
+            : "Show all \(sortedEvents.count) events"))
           .accessibilityHint(isShowingAll
             ? "Collapses the list to show only 3 events"
             : "Expands the list to show all events")

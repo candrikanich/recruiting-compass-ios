@@ -395,7 +395,7 @@ struct CreateEventView: View {
       Text(message)
         .font(.caption)
         .foregroundStyle(.red)
-        .accessibilityLabel("Error: \(message)")
+        .accessibilityLabel(String(localized: "Error: \(message)"))
     }
   }
 }

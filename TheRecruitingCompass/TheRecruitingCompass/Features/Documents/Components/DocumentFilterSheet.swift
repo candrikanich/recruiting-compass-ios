@@ -20,7 +20,7 @@ struct DocumentFilterSheet: View {
                 }
               }
             }
-            .accessibilityLabel("\(type.label) filter")
+            .accessibilityLabel(String(localized: "\(type.label) filter"))
             .accessibilityAddTraits(viewModel.selectedTypes.contains(type) ? .isSelected : [])
           }
         }

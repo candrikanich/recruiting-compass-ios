@@ -6,7 +6,7 @@ struct DocumentListViewRow: View {
   let onTap: () -> Void
   let onDelete: () -> Void
 
-  var deleteAccessibilityLabel: String { "Delete \(document.title)" }
+  var deleteAccessibilityLabel: String { String(localized: "Delete \(document.title)") }
 
   var body: some View {
     HStack(spacing: 0) {
@@ -88,6 +88,6 @@ struct DocumentListViewRow: View {
   }
 
   private var accessibilityLabel: String {
-    "\(document.title). \(document.type.label). \(document.isShared ? "Shared with \(document.sharedWithSchools.count) schools. " : "")Uploaded \(document.displayDate)."
+    String(localized: "\(document.title). \(document.type.label). \(document.isShared ? "Shared with \(document.sharedWithSchools.count) schools. " : "")Uploaded \(document.displayDate).")
   }
 }

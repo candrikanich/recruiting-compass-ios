@@ -15,7 +15,7 @@ struct DocumentShareSheet: View {
               Task { await viewModel.removeShare(schoolId: schoolId) }
             }
             .font(.caption)
-            .accessibilityLabel("Remove \(viewModel.schoolName(for: schoolId))")
+            .accessibilityLabel(String(localized: "Remove \(viewModel.schoolName(for: schoolId))"))
           }
         }
       }
@@ -56,7 +56,7 @@ struct DocumentShareSheet: View {
       .frame(minHeight: 44)
       .contentShape(Rectangle())
     }
-    .accessibilityLabel(school.name)
+    .accessibilityLabel(String(localized: "\(school.name)"))
     .accessibilityHint(viewModel.selectedSchoolIds.contains(school.id) ? "Selected. Double tap to deselect." : "Double tap to add")
   }
 

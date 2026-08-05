@@ -97,7 +97,7 @@ struct ResetPasswordView: View {
       }
 
       PasswordFormField(
-        label: "New Password",
+        label: String(localized: "New Password"),
         placeholder: "Enter your new password",
         text: $viewModel.newPassword,
         error: viewModel.errorBinding(for: .newPassword),
@@ -110,7 +110,7 @@ struct ResetPasswordView: View {
         .padding(.horizontal, 16)
 
       PasswordFormField(
-        label: "Confirm Password",
+        label: String(localized: "Confirm Password"),
         placeholder: "Re-enter your new password",
         text: $viewModel.confirmPassword,
         error: viewModel.errorBinding(for: .confirmPassword),
@@ -197,7 +197,7 @@ struct ResetPasswordView: View {
       Text("Redirecting to login in \(viewModel.successCountdown)s...")
         .font(.caption)
         .foregroundStyle(Color.secondaryText)
-        .accessibilityLabel("Redirecting to login in \(viewModel.successCountdown) seconds")
+        .accessibilityLabel(String(localized: "Redirecting to login in \(viewModel.successCountdown) seconds"))
 
       Button(action: { dismiss() }) {
         Text("Sign In Now")

@@ -48,7 +48,7 @@ struct RoleSelectionCard: View {
       .clipShape(.rect(cornerRadius: 8))
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(role.displayName) role")
+    .accessibilityLabel(String(localized: "\(role.displayName) role"))
     .accessibilityValue(isSelected ? "Selected" : "Not selected")
     .accessibilityHint(role.description)
     .accessibilityAddTraits(.isButton)

@@ -45,7 +45,7 @@ struct CoachDetailHeader: View {
           .padding(.vertical, 6)
           .background(coach.role.badgeColor)
           .clipShape(Capsule())
-          .accessibilityLabel("Role: \(coach.role.displayName)")
+          .accessibilityLabel(String(localized: "Role: \(coach.role.displayName)"))
 
         if let school {
           Text(school.name)

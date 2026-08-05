@@ -87,7 +87,7 @@ struct EventRow: View {
     .background(Color(.secondarySystemBackground))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(event.type): \(event.name)")
+    .accessibilityLabel(String(localized: "\(event.type): \(event.name)"))
     .accessibilityValue(eventDateFormatted)
   }
 }

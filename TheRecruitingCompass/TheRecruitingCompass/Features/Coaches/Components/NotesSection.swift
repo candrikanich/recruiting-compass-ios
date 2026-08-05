@@ -32,7 +32,7 @@ struct NotesSection: View {
             .stroke(isFocused ? Color.accentBlue : Color.borderGray, lineWidth: isFocused ? 2 : 1)
         )
         .focused($isFocused)
-        .accessibilityLabel("\(title) editor")
+        .accessibilityLabel(String(localized: "\(title) editor"))
         .onChange(of: isFocused) { _, focused in
           if !focused {
             Task { await onBlur() }

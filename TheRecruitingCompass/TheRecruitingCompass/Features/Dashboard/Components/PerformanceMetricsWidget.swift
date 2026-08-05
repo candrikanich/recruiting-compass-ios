@@ -47,9 +47,9 @@ struct PerformanceMetricsWidget: View {
             }
             .foregroundStyle(Color.accentBlue)
           }
-          .accessibilityLabel(isShowingAll
+          .accessibilityLabel(String(localized: isShowingAll
             ? "Show fewer metrics"
-            : "Show all \(recentMetrics.count) metrics")
+            : "Show all \(recentMetrics.count) metrics"))
           .accessibilityHint(isShowingAll
             ? "Collapses the list to show only 4 metrics"
             : "Expands the list to show all metrics")

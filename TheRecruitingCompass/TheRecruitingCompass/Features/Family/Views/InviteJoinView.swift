@@ -222,7 +222,7 @@ private struct InviteJoinLoginSection: View {
 
       VStack(spacing: 12) {
         LoginFormField(
-          label: "Email",
+          label: String(localized: "Email"),
           placeholder: invite.email,
           icon: "envelope",
           text: .constant(invite.email),
@@ -235,7 +235,7 @@ private struct InviteJoinLoginSection: View {
         .disabled(true)
 
         LoginFormField(
-          label: "Password",
+          label: String(localized: "Password"),
           placeholder: "Your password",
           icon: "lock",
           text: $viewModel.loginPassword,
@@ -278,7 +278,7 @@ private struct InviteJoinSignupSection: View {
 
       VStack(spacing: 12) {
         LoginFormField(
-          label: "First Name",
+          label: String(localized: "First Name"),
           placeholder: "John",
           icon: "person",
           text: $viewModel.signupFirstName,
@@ -290,7 +290,7 @@ private struct InviteJoinSignupSection: View {
         )
 
         LoginFormField(
-          label: "Last Name",
+          label: String(localized: "Last Name"),
           placeholder: "Smith",
           icon: "person",
           text: $viewModel.signupLastName,
@@ -302,7 +302,7 @@ private struct InviteJoinSignupSection: View {
         )
 
         LoginFormField(
-          label: "Email",
+          label: String(localized: "Email"),
           placeholder: invite.email,
           icon: "envelope",
           text: .constant(invite.email),
@@ -320,7 +320,7 @@ private struct InviteJoinSignupSection: View {
 
         VStack(alignment: .leading, spacing: 4) {
           LoginFormField(
-            label: "Password",
+            label: String(localized: "Password"),
             placeholder: "Create a strong password",
             icon: "lock",
             text: $viewModel.signupPassword,
@@ -337,7 +337,7 @@ private struct InviteJoinSignupSection: View {
         }
 
         LoginFormField(
-          label: "Confirm Password",
+          label: String(localized: "Confirm Password"),
           placeholder: "Re-enter your password",
           icon: "lock.fill",
           text: $viewModel.signupConfirmPassword,

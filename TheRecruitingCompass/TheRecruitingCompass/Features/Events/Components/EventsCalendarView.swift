@@ -22,7 +22,7 @@ struct EventsCalendarView: View {
     .padding()
     .background(Color(.systemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .accessibilityLabel("Calendar showing \(title)")
+    .accessibilityLabel(String(localized: "Calendar showing \(title)"))
   }
 
   @ViewBuilder
@@ -141,6 +141,6 @@ private struct DayCellView: View {
     formatter.dateStyle = .full
     let dateStr = formatter.string(from: date)
     let eventInfo = hasEvent ? "Has events" : "No events"
-    return "\(dateStr). \(eventInfo)."
+    return String(localized: "\(dateStr). \(eventInfo).")
   }
 }

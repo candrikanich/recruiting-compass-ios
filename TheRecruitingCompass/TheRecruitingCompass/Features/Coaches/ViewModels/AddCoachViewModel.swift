@@ -55,7 +55,7 @@ final class AddCoachViewModel {
   }
 
   var submitButtonTitle: String {
-    isSubmitting ? "Adding..." : "Add Coach"
+    isSubmitting ? String(localized: "Adding...") : String(localized: "Add Coach")
   }
 
   // MARK: - Init

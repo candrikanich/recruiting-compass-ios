@@ -49,7 +49,7 @@ struct DocumentFilterBar: View {
           }
           .font(.subheadline)
         }
-        .accessibilityLabel(activeFilterCount > 0 ? "Filter documents. \(activeFilterCount) filters active." : "Filter documents")
+        .accessibilityLabel(String(localized: activeFilterCount > 0 ? "Filter documents. \(activeFilterCount) filters active." : "Filter documents"))
 
         Spacer()
 

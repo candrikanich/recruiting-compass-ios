@@ -116,7 +116,7 @@ struct LoginView: View {
   @ViewBuilder
   private var emailField: some View {
     LoginFormField(
-      label: "Email",
+      label: String(localized: "Email"),
       placeholder: "your.email@example.com",
       icon: "envelope",
       text: $viewModel.email,
@@ -132,7 +132,7 @@ struct LoginView: View {
   @ViewBuilder
   private var passwordField: some View {
     LoginFormField(
-      label: "Password",
+      label: String(localized: "Password"),
       placeholder: "Enter your password",
       icon: "lock",
       text: $viewModel.password,

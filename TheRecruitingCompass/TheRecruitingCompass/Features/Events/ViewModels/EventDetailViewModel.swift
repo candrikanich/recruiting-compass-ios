@@ -127,7 +127,9 @@ final class EventDetailViewModel {
 
   var costAccessibilityLabel: String? {
     guard let event, let cost = event.cost else { return nil }
-    return cost == 0 ? "Free event" : "Cost: \(cost.formatted(.currency(code: "USD").precision(.fractionLength(2))))"
+    return cost == 0
+      ? String(localized: "Free event")
+      : String(localized: "Cost: \(cost.formatted(.currency(code: "USD").precision(.fractionLength(2))))")
   }
 
   // MARK: - Init
@@ -238,7 +240,7 @@ final class EventDetailViewModel {
         let updated = try await eventsService.updateEvent(id: eventId, request: request)
         event = updated
         hapticSuccessTrigger += 1
-        showSuccess("Marked as attended")
+        showSuccess(String(localized: "Marked as attended"))
         showQuickLogSheet = true
         logger.info("Event marked as attended: \(self.eventId)")
         await invalidateEventsListCache()
@@ -265,7 +267,7 @@ final class EventDetailViewModel {
         event = updated
         showEditSheet = false
         hapticSuccessTrigger += 1
-        showSuccess("Event updated")
+        showSuccess(String(localized: "Event updated"))
         logger.info("Event updated: \(self.eventId)")
         await invalidateEventsListCache()
       } catch {
@@ -320,7 +322,7 @@ final class EventDetailViewModel {
         try await eventsService.createInteraction(request)
         showQuickLogSheet = false
         hapticSuccessTrigger += 1
-        showSuccess("Interaction logged")
+        showSuccess(String(localized: "Interaction logged"))
         logger.info("Interaction logged for event: \(self.eventId)")
 
         // Invalidate InteractionsListViewModel's cached list (Phase 3.6) for
@@ -357,7 +359,7 @@ final class EventDetailViewModel {
       let updated = try await eventsService.updateEvent(id: eventId, request: request)
       self.event = updated
       hapticSuccessTrigger += 1
-      showSuccess("Coach added")
+      showSuccess(String(localized: "Coach added"))
       logger.info("Coach added to event: \(self.eventId)")
     } catch {
       logger.error("Failed to add coach: \(error.localizedDescription)")
@@ -376,7 +378,7 @@ final class EventDetailViewModel {
         let updated = try await eventsService.updateEvent(id: eventId, request: request)
         self.event = updated
         hapticSuccessTrigger += 1
-        showSuccess("Coach removed")
+        showSuccess(String(localized: "Coach removed"))
         logger.info("Coach removed from event: \(self.eventId)")
       } catch {
         ViewModelHelpers.handleError(error, userMessage: "Failed to remove coach. Please try again.", logger: logger) { self.errorMessage = $0 }
@@ -416,7 +418,7 @@ final class EventDetailViewModel {
         showMetricForm = false
         newMetricData = NewMetricData()
         hapticSuccessTrigger += 1
-        showSuccess("Metric recorded")
+        showSuccess(String(localized: "Metric recorded"))
         logger.info("Metric created: \(metric.id)")
 
         // Invalidate PerformanceDashboardViewModel's cached list (Phase 3.6).
@@ -433,7 +435,7 @@ final class EventDetailViewModel {
       try await eventsService.deleteMetric(id: metricId)
       metrics.removeAll { $0.id == metricId }
       hapticSuccessTrigger += 1
-      showSuccess("Metric deleted")
+      showSuccess(String(localized: "Metric deleted"))
       logger.info("Metric deleted: \(metricId)")
     } catch {
       logger.error("Failed to delete metric: \(error.localizedDescription)")

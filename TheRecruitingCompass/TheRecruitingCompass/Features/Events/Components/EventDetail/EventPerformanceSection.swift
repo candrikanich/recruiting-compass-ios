@@ -7,7 +7,7 @@ struct EventPerformanceSection: View {
     Section {
       if let notes = event.performanceNotes, !notes.isEmpty {
         Text(notes)
-          .accessibilityLabel("Performance notes: \(notes)")
+          .accessibilityLabel(String(localized: "Performance notes: \(notes)"))
       }
     } header: {
       Text("Performance Notes")

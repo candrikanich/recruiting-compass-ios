@@ -10,13 +10,13 @@ struct VerificationStatusIcon: View {
   private var accessibilityLabelForState: String {
     switch state {
     case .pending:
-      return "Email verification pending"
+      return String(localized: "Email verification pending")
     case .checking:
-      return "Checking email verification status"
+      return String(localized: "Checking email verification status")
     case .verified:
-      return "Email verified successfully"
+      return String(localized: "Email verified successfully")
     case .error(let message):
-      return "Verification error: \(message)"
+      return String(localized: "Verification error: \(message)")
     }
   }
 

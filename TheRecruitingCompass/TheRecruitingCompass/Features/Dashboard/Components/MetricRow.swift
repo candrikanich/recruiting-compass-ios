@@ -52,7 +52,7 @@ struct MetricRow: View {
     .background(Color(.secondarySystemBackground))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(metric.displayName): \(formattedValue)")
+    .accessibilityLabel(String(localized: "\(metric.displayName): \(formattedValue)"))
     .accessibilityValue("Recorded \(dateFormatted)")
   }
 }

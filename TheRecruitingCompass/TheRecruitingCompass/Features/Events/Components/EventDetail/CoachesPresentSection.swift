@@ -16,10 +16,10 @@ struct CoachesPresentSection: View {
 
   private var emptyStateText: String? {
     if !isEventLinkedToSchool {
-      return "Event not linked to school"
+      return String(localized: "Event not linked to school")
     }
     if coachesAtEvent.isEmpty && availableCoaches.isEmpty {
-      return "No coaches recorded"
+      return String(localized: "No coaches recorded")
     }
     return nil
   }
@@ -58,7 +58,7 @@ struct CoachesPresentSection: View {
             .buttonStyle(.plain)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
-            .accessibilityLabel("Remove \(coach.fullName)")
+            .accessibilityLabel(String(localized: "Remove \(coach.fullName)"))
           }
         }
 

@@ -111,7 +111,7 @@ private struct MoreMenuSectionRow: View {
         badgeCount: section == .notifications && unreadCount > 0 ? unreadCount : nil
       )
     }
-    .accessibilityLabel(section.title)
+    .accessibilityLabel(String(localized: "\(section.title)"))
     .accessibilityHint("Opens \(section.title)")
   }
 }
@@ -159,7 +159,7 @@ private struct MoreMenuRow: View {
     }
     .padding(.vertical, 4)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(badgeCount.map { "\(title), \($0) unread" } ?? "\(title): \(description)")
+    .accessibilityLabel(badgeCount.map { String(localized: "\(title), \($0) unread") } ?? String(localized: "\(title): \(description)"))
   }
 }
 

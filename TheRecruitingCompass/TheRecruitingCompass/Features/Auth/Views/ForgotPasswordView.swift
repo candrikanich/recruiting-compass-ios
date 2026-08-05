@@ -87,7 +87,7 @@ struct ForgotPasswordView: View {
       }
 
       LoginFormField(
-        label: "Email",
+        label: String(localized: "Email"),
         placeholder: "your.email@example.com",
         icon: "envelope",
         text: $viewModel.email,

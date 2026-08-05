@@ -86,7 +86,7 @@ private struct QuickCommRecipientSection: View {
     .background(Color(uiColor: .tertiarySystemFill))
     .clipShape(RoundedRectangle(cornerRadius: 10))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Recipient: \(recipientLine)")
+    .accessibilityLabel(String(localized: "Recipient: \(recipientLine)"))
   }
 }
 
@@ -128,7 +128,7 @@ private struct QuickCommTemplatePicker: View {
 
   var body: some View {
     LazyVStack(spacing: 0) {
-      templateOption(nil, label: "None")
+      templateOption(nil, label: String(localized: "None"))
       ForEach(emailTemplates) { template in
         templateOption(template, label: template.name)
       }
@@ -191,7 +191,7 @@ private struct QuickCommBodyPreviewSection: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Message preview: \(filledBody)")
+    .accessibilityLabel(String(localized: "Message preview: \(filledBody)"))
   }
 }
 
@@ -215,7 +215,7 @@ private struct QuickCommActionsSection: View {
             .padding(.vertical, 12)
         }
         .buttonStyle(.borderedProminent)
-        .accessibilityLabel("Send email to \(coachEmail)")
+        .accessibilityLabel(String(localized: "Send email to \(coachEmail)"))
         .accessibilityHint("Opens Mail with recipient and optional message body")
       }
 

@@ -14,17 +14,17 @@ struct EventHeaderSection: View {
         EventStatusBadge(registered: event.registered, attended: event.attended)
       }
       .accessibilityElement(children: .combine)
-      .accessibilityLabel("\(event.name), \(EventType(rawValue: event.type)?.displayName ?? event.type), \(formattedDateRange), \(statusLabel)")
+      .accessibilityLabel(String(localized: "\(event.name), \(EventType(rawValue: event.type)?.displayName ?? event.type), \(formattedDateRange), \(statusLabel)"))
 
       Label(formattedDateRange, systemImage: "calendar")
-        .accessibilityLabel("Date: \(formattedDateRange)")
+        .accessibilityLabel(String(localized: "Date: \(formattedDateRange)"))
       if let startTime = event.startTime, !startTime.isEmpty {
         Label(timeRange(start: startTime, end: event.endTime), systemImage: "clock")
-          .accessibilityLabel("Time: \(timeRange(start: startTime, end: event.endTime))")
+          .accessibilityLabel(String(localized: "Time: \(timeRange(start: startTime, end: event.endTime))"))
       }
       if let checkinTime = event.checkinTime, !checkinTime.isEmpty {
         Label("Check-in: \(checkinTime)", systemImage: "checkmark.circle")
-          .accessibilityLabel("Check-in time: \(checkinTime)")
+          .accessibilityLabel(String(localized: "Check-in time: \(checkinTime)"))
       }
       if let costText = formattedCost {
         Label(costText, systemImage: "dollarsign.circle")
@@ -33,7 +33,7 @@ struct EventHeaderSection: View {
       if let source = event.eventSource, !source.isEmpty {
         Label(EventSource(rawValue: source)?.displayName ?? source, systemImage: "pin")
           .foregroundStyle(.secondary)
-          .accessibilityLabel("Source: \(EventSource(rawValue: source)?.displayName ?? source)")
+          .accessibilityLabel(String(localized: "Source: \(EventSource(rawValue: source)?.displayName ?? source)"))
       }
     } header: {
       Text("Event Info")

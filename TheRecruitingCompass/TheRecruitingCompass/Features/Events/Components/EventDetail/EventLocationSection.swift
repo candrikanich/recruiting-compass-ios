@@ -10,15 +10,15 @@ struct EventLocationSection: View {
     Section {
       if let address = event.address, !address.isEmpty {
         Label(address, systemImage: "mappin")
-          .accessibilityLabel("Address: \(address)")
+          .accessibilityLabel(String(localized: "Address: \(address)"))
       }
       if let locationLine = formattedLocation {
         Label(locationLine, systemImage: "location")
-          .accessibilityLabel("Location: \(locationLine)")
+          .accessibilityLabel(String(localized: "Location: \(locationLine)"))
       }
       if let venueName = event.location, !venueName.isEmpty {
         Label(venueName, systemImage: "building.2")
-          .accessibilityLabel("Venue: \(venueName)")
+          .accessibilityLabel(String(localized: "Venue: \(venueName)"))
       }
       if hasLocation {
         Button {
@@ -26,7 +26,7 @@ struct EventLocationSection: View {
         } label: {
           Label("Get Directions", systemImage: "map")
         }
-        .accessibilityLabel("Get directions to \(event.location ?? "event location")")
+        .accessibilityLabel(String(localized: "Get directions to \(event.location ?? "event location")"))
         .accessibilityHint("Opens Apple Maps")
       }
     } header: {

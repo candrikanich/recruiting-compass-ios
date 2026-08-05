@@ -45,7 +45,7 @@ struct ParentPreviewBanner: View {
       )
     )
     .accessibilityElement(children: .contain)
-    .accessibilityLabel("Parent preview mode active, viewing \(athleteName)'s dashboard")
+    .accessibilityLabel(String(localized: "Parent preview mode active, viewing \(athleteName)'s dashboard"))
   }
 }
 

@@ -165,7 +165,7 @@ struct EmailVerificationView: View {
         .font(.caption)
         .foregroundStyle(Color.secondaryText)
         .frame(maxWidth: .infinity, alignment: .center)
-        .accessibilityLabel("Resend available in \(viewModel.resendCooldownSeconds) seconds")
+        .accessibilityLabel(String(localized: "Resend available in \(viewModel.resendCooldownSeconds) seconds"))
     }
   }
 }

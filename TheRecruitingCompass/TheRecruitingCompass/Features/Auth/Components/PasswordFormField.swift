@@ -62,7 +62,7 @@ struct PasswordFormField: View {
         Text(error)
           .font(.caption)
           .foregroundStyle(Color.errorRed)
-          .accessibilityLabel("Error: \(error)")
+          .accessibilityLabel(String(localized: "Error: \(error)"))
       }
     }
     .accessibilityElement(children: .contain)
@@ -75,7 +75,7 @@ struct PasswordFormField: View {
   @Previewable @State var isVisible = false
 
   PasswordFormField(
-    label: "New Password",
+    label: String(localized: "New Password"),
     placeholder: "Enter your new password",
     text: $text,
     error: $error,

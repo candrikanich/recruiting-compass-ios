@@ -37,7 +37,7 @@ struct EventCoachCard: View {
     var parts = [coach.fullName, coach.role.displayName]
     if let email = coach.email, !email.isEmpty { parts.append(email) }
     if let phone = coach.phone, !phone.isEmpty { parts.append(phone) }
-    return parts.joined(separator: ", ")
+    return String(localized: "\(parts.joined(separator: ", "))")
   }
 
   @ViewBuilder
@@ -63,7 +63,7 @@ struct EventCoachCard: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Email \(coach.fullName)")
+        .accessibilityLabel(String(localized: "Email \(coach.fullName)"))
       }
 
       if let phone = coach.phone, !phone.isEmpty,
@@ -74,7 +74,7 @@ struct EventCoachCard: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Call \(coach.fullName)")
+        .accessibilityLabel(String(localized: "Call \(coach.fullName)"))
       }
     }
     .foregroundStyle(Color.accentColor)

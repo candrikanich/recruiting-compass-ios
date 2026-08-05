@@ -15,17 +15,17 @@ struct ContactRow: View {
         Button(action: customAction) {
           rowContent(showLinkIndicator: true)
         }
-        .accessibilityLabel("\(label): \(value)")
+        .accessibilityLabel(String(localized: "\(label): \(value)"))
         .accessibilityHint("Opens Quick Communication with templates")
       } else if let url = type.url(for: value) {
         Link(destination: url) {
           rowContent(showLinkIndicator: true)
         }
-        .accessibilityLabel("\(label): \(value)")
+        .accessibilityLabel(String(localized: "\(label): \(value)"))
         .accessibilityHint("Opens \(type.appName)")
       } else {
         rowContent(showLinkIndicator: false)
-          .accessibilityLabel("\(label): \(value)")
+          .accessibilityLabel(String(localized: "\(label): \(value)"))
       }
     }
   }

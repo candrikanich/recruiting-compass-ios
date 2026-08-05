@@ -67,6 +67,6 @@ struct Banner: View {
     .border(style.borderColor, width: 1)
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(style == .error ? "Error: \(message)" : "Warning: \(message)")
+    .accessibilityLabel(String(localized: style == .error ? "Error: \(message)" : "Warning: \(message)"))
   }
 }

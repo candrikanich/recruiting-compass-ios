@@ -24,7 +24,7 @@ struct MetricCard: View {
     .background(Color.Surface.card)
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(title): \(value)")
+    .accessibilityLabel(String(localized: "\(title): \(value)"))
     .accessibilityHint(metricHint)
   }
 

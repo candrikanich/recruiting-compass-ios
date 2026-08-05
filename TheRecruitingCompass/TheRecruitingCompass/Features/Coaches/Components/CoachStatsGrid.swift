@@ -70,7 +70,7 @@ struct CoachStatsGrid: View {
   }
 
   func statAccessibilityLabel(title: String, value: String) -> String {
-    "\(title): \(value)"
+    String(localized: "\(title): \(value)")
   }
 }
 

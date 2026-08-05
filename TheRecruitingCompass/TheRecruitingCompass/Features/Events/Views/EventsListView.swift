@@ -293,6 +293,6 @@ struct EventsListView: View {
   private func rowAccessibilityLabel(_ event: FullEvent) -> String {
     let type = EventType(rawValue: event.type)?.displayName ?? event.type
     let status = event.attended ? "Attended" : event.registered ? "Registered" : "Not Registered"
-    return "\(type): \(event.name), \(event.startDate), \(status)"
+    return String(localized: "\(type): \(event.name), \(event.startDate), \(status)")
   }
 }

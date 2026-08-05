@@ -36,7 +36,7 @@ struct AthleteRow: View {
     }
     .buttonStyle(.plain)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(athlete.role.capitalized) - ID: \(athlete.userId.prefix(8))")
+    .accessibilityLabel(String(localized: "\(athlete.role.capitalized) - ID: \(athlete.userId.prefix(8))"))
     .accessibilityValue(isSelected ? "Selected" : "Not selected")
     .accessibilityHint("Double tap to select this athlete")
   }

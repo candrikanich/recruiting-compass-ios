@@ -15,11 +15,11 @@ struct EventDetailsSection: View {
           Text(description).font(.body)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Description: \(description)")
+        .accessibilityLabel(String(localized: "Description: \(description)"))
       }
       if let url = event.url, !url.isEmpty, let linkURL = URL(string: url) {
         Link(url, destination: linkURL)
-          .accessibilityLabel("Event link: \(url)")
+          .accessibilityLabel(String(localized: "Event link: \(url)"))
       }
     } header: {
       Text("Details")

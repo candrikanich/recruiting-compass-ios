@@ -134,7 +134,7 @@ private struct CoachCardRoleBadge: View {
       .padding(.vertical, 4)
       .background(role.badgeColor)
       .clipShape(Capsule())
-      .accessibilityLabel("Role: \(role.displayName)")
+      .accessibilityLabel(String(localized: "Role: \(role.displayName)"))
       .accessibilityAddTraits(.isStaticText)
   }
 }
@@ -212,7 +212,7 @@ private struct CoachCardDeleteButton: View {
   let coach: Coach
   var onDelete: () -> Void = {}
 
-  private var deleteAccessibilityLabel: String { "Delete \(coach.fullName)" }
+  private var deleteAccessibilityLabel: String { String(localized: "Delete \(coach.fullName)") }
 
   var body: some View {
     Button(role: .destructive, action: onDelete) {
@@ -240,7 +240,7 @@ private struct CoachCardCommunicationButtons: View {
         quickCommunicationTriggerButton(
           icon: "envelope.fill",
           color: Color.accentBlue,
-          label: "Email coach",
+          label: String(localized: "Email coach"),
           hint: "Opens Quick Communication with templates"
         ) {
           onQuickCommunication(QuickCommunicationContext(coach: coach, schoolName: schoolName))
@@ -254,7 +254,7 @@ private struct CoachCardCommunicationButtons: View {
         quickCommunicationTriggerButton(
           icon: "message.fill",
           color: .successGreen,
-          label: "Text coach",
+          label: String(localized: "Text coach"),
           hint: "Opens Quick Communication with templates"
         ) {
           onQuickCommunication(QuickCommunicationContext(coach: coach, schoolName: schoolName))
