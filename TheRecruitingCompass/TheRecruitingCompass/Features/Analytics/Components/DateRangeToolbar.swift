@@ -44,13 +44,13 @@ struct DateRangeToolbar: View {
           .clipShape(Capsule())
         }
         .frame(minHeight: 44)
-        .accessibilityLabel("Select custom date range")
+        .accessibilityLabel(String(localized: "Select custom date range"))
         .accessibilityHint(isCustomSelected ? "Currently selected" : "Double tap to select a custom date range")
         .accessibilityAddTraits(isCustomSelected ? .isSelected : [])
       }
       .padding(.horizontal)
       .accessibilityElement(children: .contain)
-      .accessibilityLabel("Date range filters")
+      .accessibilityLabel(String(localized: "Date range filters"))
     }
     .scrollIndicators(.hidden)
   }

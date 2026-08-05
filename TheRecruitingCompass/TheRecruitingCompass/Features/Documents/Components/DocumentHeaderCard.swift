@@ -39,7 +39,7 @@ struct DocumentHeaderCard: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(.accentBlue)
-        .accessibilityLabel("Edit document metadata")
+        .accessibilityLabel(String(localized: "Edit document metadata"))
 
         Button(action: onShare) {
           Label("Share", systemImage: "square.and.arrow.up")
@@ -48,7 +48,7 @@ struct DocumentHeaderCard: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(.primaryGreen)
-        .accessibilityLabel("Share document with schools")
+        .accessibilityLabel(String(localized: "Share document with schools"))
 
         Button(role: .destructive, action: onDelete) {
           Label("Delete", systemImage: "trash")
@@ -57,7 +57,7 @@ struct DocumentHeaderCard: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(.errorRed)
-        .accessibilityLabel("Delete document")
+        .accessibilityLabel(String(localized: "Delete document"))
         .accessibilityHint("This action cannot be undone")
       }
     }

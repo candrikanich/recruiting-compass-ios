@@ -72,7 +72,7 @@ struct LoginView: View {
         }
         .foregroundStyle(Color.darkSlate)
       }
-      .accessibilityLabel("Back to welcome screen")
+      .accessibilityLabel(String(localized: "Back to welcome screen"))
       .accessibilityHint("Returns to the login screen")
       Spacer()
     }
@@ -165,7 +165,7 @@ struct LoginView: View {
         }
         .frame(minHeight: 44)
       }
-      .accessibilityLabel("Remember me")
+      .accessibilityLabel(String(localized: "Remember me"))
       .accessibilityValue(viewModel.rememberMe ? "checked" : "unchecked")
       .accessibilityHint("Check to save your email for next login")
 
@@ -178,7 +178,7 @@ struct LoginView: View {
           .frame(minHeight: 44)
           .contentShape(Rectangle())
       }
-      .accessibilityLabel("Forgot password")
+      .accessibilityLabel(String(localized: "Forgot password"))
       .accessibilityHint("Opens password recovery screen")
       .navigationDestination(isPresented: $showForgotPassword) {
         ForgotPasswordView()
@@ -210,7 +210,7 @@ struct LoginView: View {
       .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
       .disabled(viewModel.isButtonDisabled)
     }
-    .accessibilityLabel(viewModel.isLoading ? "Signing in" : "Sign in to account")
+    .accessibilityLabel(viewModel.isLoading ? String(localized: "Signing in") : String(localized: "Sign in to account"))
     .accessibilityHint(viewModel.isLoading ? "Please wait while we verify your credentials" : "Sign in with your email and password")
   }
 
@@ -247,7 +247,7 @@ struct LoginView: View {
           .frame(minHeight: 44)
           .contentShape(Rectangle())
         }
-        .accessibilityLabel("Create account")
+        .accessibilityLabel(String(localized: "Create account"))
         .accessibilityHint("Opens the account creation form")
         .navigationDestination(isPresented: $showSignup) {
           SignupView()

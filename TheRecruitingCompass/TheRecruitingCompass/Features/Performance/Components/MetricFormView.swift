@@ -30,7 +30,7 @@ struct MetricFormView: View {
           .padding(8)
           .background(Color(.systemGray6))
           .clipShape(RoundedRectangle(cornerRadius: 8))
-          .accessibilityLabel("Metric type selector")
+          .accessibilityLabel(String(localized: "Metric type selector"))
         }
 
         VStack(alignment: .leading, spacing: 4) {
@@ -40,7 +40,7 @@ struct MetricFormView: View {
           TextField("0.00", text: $formState.value)
             .keyboardType(.decimalPad)
             .textFieldStyle(.roundedBorder)
-            .accessibilityLabel("Metric value")
+            .accessibilityLabel(String(localized: "Metric value"))
         }
 
         VStack(alignment: .leading, spacing: 4) {
@@ -49,7 +49,7 @@ struct MetricFormView: View {
             .fontWeight(.medium)
           DatePicker("Date", selection: $formState.recordedDate, displayedComponents: .date)
             .labelsHidden()
-            .accessibilityLabel("Recording date")
+            .accessibilityLabel(String(localized: "Recording date"))
         }
 
         VStack(alignment: .leading, spacing: 4) {
@@ -58,12 +58,12 @@ struct MetricFormView: View {
             .fontWeight(.medium)
           TextField("e.g., mph, sec, avg", text: $formState.unit)
             .textFieldStyle(.roundedBorder)
-            .accessibilityLabel("Unit of measurement")
+            .accessibilityLabel(String(localized: "Unit of measurement"))
         }
 
         Toggle("Verified by third party", isOn: $formState.verified)
           .font(.subheadline)
-          .accessibilityLabel("Verified by third party")
+          .accessibilityLabel(String(localized: "Verified by third party"))
 
         VStack(alignment: .leading, spacing: 4) {
           Text("Notes")
@@ -72,7 +72,7 @@ struct MetricFormView: View {
           TextField("Additional context...", text: $formState.notes, axis: .vertical)
             .lineLimit(3...5)
             .textFieldStyle(.roundedBorder)
-            .accessibilityLabel("Notes")
+            .accessibilityLabel(String(localized: "Notes"))
         }
       }
 
@@ -94,7 +94,7 @@ struct MetricFormView: View {
             .padding(.vertical, 12)
         }
         .buttonStyle(.bordered)
-        .accessibilityLabel("Cancel")
+        .accessibilityLabel(String(localized: "Cancel"))
       }
     }
     .padding()

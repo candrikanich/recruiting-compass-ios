@@ -75,7 +75,7 @@ struct InteractionDetailView: View {
             }
           } label: {
             Image(systemName: "ellipsis.circle")
-              .accessibilityLabel("Interaction actions menu")
+              .accessibilityLabel(String(localized: "Interaction actions menu"))
           }
         }
       }
@@ -191,7 +191,7 @@ struct InteractionDetailView: View {
         Text(content)
           .font(.body)
           .textSelection(.enabled)
-          .accessibilityLabel("Interaction content")
+          .accessibilityLabel(String(localized: "Interaction content"))
       }
     }
     .padding()

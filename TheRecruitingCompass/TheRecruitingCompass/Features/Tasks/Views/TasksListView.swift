@@ -113,7 +113,7 @@ struct TasksListView: View {
           .font(.subheadline.weight(.medium))
           .foregroundStyle(Color.successGreen)
           .padding(.vertical, 6)
-          .accessibilityLabel("Great job")
+          .accessibilityLabel(String(localized: "Great job"))
       }
 
       if viewModel.filteredTasks.isEmpty {

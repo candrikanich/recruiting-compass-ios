@@ -129,7 +129,7 @@ struct DocumentDetailView: View {
       Text("This document may have been deleted or moved.")
     } actions: {
       Button("Return to Documents") { dismiss() }
-        .accessibilityLabel("Return to Documents")
+        .accessibilityLabel(String(localized: "Return to Documents"))
     }
   }
 
@@ -144,7 +144,7 @@ struct DocumentDetailView: View {
         .multilineTextAlignment(.center)
       Button("Retry") { Task { await viewModel.loadDocument() } }
         .buttonStyle(.bordered)
-        .accessibilityLabel("Retry loading document")
+        .accessibilityLabel(String(localized: "Retry loading document"))
     }
     .padding()
   }
@@ -155,7 +155,7 @@ struct DocumentDetailView: View {
   private var toolbarContent: some ToolbarContent {
     ToolbarItem(placement: .cancellationAction) {
       Button("Back to Documents") { dismiss() }
-        .accessibilityLabel("Back to Documents")
+        .accessibilityLabel(String(localized: "Back to Documents"))
     }
   }
 

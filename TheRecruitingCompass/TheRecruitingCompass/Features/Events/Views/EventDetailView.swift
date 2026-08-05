@@ -36,7 +36,7 @@ struct EventDetailView: View {
     Group {
       if viewModel.isLoading && viewModel.event == nil {
         ProgressView("Loading event...")
-          .accessibilityLabel("Loading event details")
+          .accessibilityLabel(String(localized: "Loading event details"))
       } else if viewModel.event == nil && viewModel.isNotFound {
         notFoundView
       } else if let errorMessage = viewModel.errorMessage, viewModel.event == nil {
@@ -106,7 +106,7 @@ struct EventDetailView: View {
   private var loadingOrEmptyState: some View {
     VStack(spacing: Layout.errorSpacing) {
       ProgressView("Loading event...")
-        .accessibilityLabel("Loading event details")
+        .accessibilityLabel(String(localized: "Loading event details"))
       Button("Retry") { Task { await viewModel.loadAll() } }
         .buttonStyle(.bordered)
     }
@@ -129,7 +129,7 @@ struct EventDetailView: View {
         dismiss()
       }
       .buttonStyle(.bordered)
-      .accessibilityLabel("Return to Events")
+      .accessibilityLabel(String(localized: "Return to Events"))
       .accessibilityHint("Dismisses this screen and returns to the events list")
     }
     .padding()
@@ -164,7 +164,7 @@ struct EventDetailView: View {
           .accessibilityHint("Permanently deletes this event")
         } label: {
           Image(systemName: "ellipsis.circle")
-            .accessibilityLabel("Event actions")
+            .accessibilityLabel(String(localized: "Event actions"))
         }
       }
     }

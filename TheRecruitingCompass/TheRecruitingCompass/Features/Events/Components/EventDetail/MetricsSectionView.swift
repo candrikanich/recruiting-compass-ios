@@ -45,7 +45,7 @@ struct MetricsSectionView: View {
         } label: {
           Label("Add Metric", systemImage: "plus.circle")
         }
-        .accessibilityLabel("Add a new performance metric")
+        .accessibilityLabel(String(localized: "Add a new performance metric"))
       }
     } header: {
       HStack {
@@ -58,7 +58,7 @@ struct MetricsSectionView: View {
             Image(systemName: "square.and.arrow.up")
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("Export metrics")
+          .accessibilityLabel(String(localized: "Export metrics"))
           .accessibilityHint("Exports metrics as CSV file")
         }
         Text("\(metrics.count)")

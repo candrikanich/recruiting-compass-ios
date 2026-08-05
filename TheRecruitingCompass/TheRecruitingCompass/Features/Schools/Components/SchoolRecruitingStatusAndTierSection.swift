@@ -16,7 +16,7 @@ struct SchoolRecruitingStatusAndTierSection: View {
         if isUpdatingStatus {
           ProgressView()
             .scaleEffect(0.8)
-            .accessibilityLabel("Updating")
+            .accessibilityLabel(String(localized: "Updating"))
         }
 
         Spacer()

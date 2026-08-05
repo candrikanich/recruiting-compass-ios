@@ -37,7 +37,7 @@ struct TemplateEditorView: View {
 
       TextField("e.g. Initial Contact Email", text: $viewModel.formData.name)
         .textFieldStyle(.roundedBorder)
-        .accessibilityLabel("Template name")
+        .accessibilityLabel(String(localized: "Template name"))
         .accessibilityIdentifier("templateEditor.nameField")
     }
   }
@@ -55,7 +55,7 @@ struct TemplateEditorView: View {
         }
       }
       .pickerStyle(.segmented)
-      .accessibilityLabel("Template Type")
+      .accessibilityLabel(String(localized: "Template Type"))
       .accessibilityIdentifier("templateEditor.typePicker")
     }
   }
@@ -75,7 +75,7 @@ struct TemplateEditorView: View {
             .stroke(Color(.systemGray4), lineWidth: 1)
         }
         .focused($bodyFieldFocused)
-        .accessibilityLabel("Template body")
+        .accessibilityLabel(String(localized: "Template body"))
         .accessibilityIdentifier("templateEditor.bodyEditor")
     }
   }
@@ -141,7 +141,7 @@ struct TemplateEditorView: View {
           .frame(maxWidth: .infinity)
           .padding(.vertical, 14)
       }
-      .accessibilityLabel("Cancel")
+      .accessibilityLabel(String(localized: "Cancel"))
       .accessibilityIdentifier("templateEditor.cancelButton")
 
       if isEditing, let editingTemplate = viewModel.editingTemplate {
@@ -154,7 +154,7 @@ struct TemplateEditorView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
         }
-        .accessibilityLabel("Delete Template")
+        .accessibilityLabel(String(localized: "Delete Template"))
         .accessibilityIdentifier("templateEditor.deleteButton")
       }
     }

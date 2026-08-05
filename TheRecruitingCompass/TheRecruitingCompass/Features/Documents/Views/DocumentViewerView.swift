@@ -305,7 +305,7 @@ struct DocumentViewerView: View {
         .tint(.white)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
-        .accessibilityLabel("Retry loading document")
+        .accessibilityLabel(String(localized: "Retry loading document"))
 
         Button("Close") {
           dismiss()
@@ -313,7 +313,7 @@ struct DocumentViewerView: View {
         .foregroundStyle(.white)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
-        .accessibilityLabel("Close document viewer")
+        .accessibilityLabel(String(localized: "Close document viewer"))
       }
       .padding(32)
     }

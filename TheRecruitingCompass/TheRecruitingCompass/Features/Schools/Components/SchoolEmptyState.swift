@@ -38,7 +38,7 @@ struct SchoolEmptyState: View {
             .foregroundStyle(.white)
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
-        .accessibilityLabel("Clear all filters")
+        .accessibilityLabel(String(localized: "Clear all filters"))
         .accessibilityHint("Double tap to remove all active filters")
       } else if let onAddSchool {
         Button(action: onAddSchool) {
@@ -48,7 +48,7 @@ struct SchoolEmptyState: View {
         }
         .buttonStyle(.borderedProminent)
         .padding(.horizontal)
-        .accessibilityLabel("Add your first school")
+        .accessibilityLabel(String(localized: "Add your first school"))
         .accessibilityHint("Opens the form to add a school")
       }
     }

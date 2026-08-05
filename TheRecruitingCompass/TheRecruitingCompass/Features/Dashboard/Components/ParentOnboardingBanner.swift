@@ -85,14 +85,14 @@ struct ParentOnboardingBanner: View {
               .background(Color.Surface.warningCTA)
               .clipShape(RoundedRectangle(cornerRadius: 8))
           }
-          .accessibilityLabel("Invite athlete with player details")
+          .accessibilityLabel(String(localized: "Invite athlete with player details"))
 
           NavigationLink(value: DashboardDestination.familyManagement) {
             Text("Family Management")
               .font(.caption)
               .foregroundStyle(Color.warningBannerBody)
           }
-          .accessibilityLabel("Open Family Management")
+          .accessibilityLabel(String(localized: "Open Family Management"))
         }
       } else {
         NavigationLink(value: DashboardDestination.familyManagement) {
@@ -104,7 +104,7 @@ struct ParentOnboardingBanner: View {
             .background(Color.Surface.warningCTA)
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
-        .accessibilityLabel("Go to settings to invite athlete")
+        .accessibilityLabel(String(localized: "Go to settings to invite athlete"))
       }
     }
     .padding()
@@ -139,6 +139,6 @@ struct ParentOnboardingBanner: View {
     }
     .clipShape(RoundedRectangle(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("You're connected. Your athlete has joined your family.")
+    .accessibilityLabel(String(localized: "You're connected. Your athlete has joined your family."))
   }
 }

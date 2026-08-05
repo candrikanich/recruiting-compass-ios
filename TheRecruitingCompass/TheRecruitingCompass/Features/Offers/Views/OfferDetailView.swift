@@ -157,7 +157,7 @@ struct OfferDetailView: View {
           }
           .buttonStyle(.borderedProminent)
           .accessibilityIdentifier("offer-edit-button")
-          .accessibilityLabel("Edit offer")
+          .accessibilityLabel(String(localized: "Edit offer"))
           .accessibilityHint("Opens edit form for this offer")
 
           Button(role: .destructive) {
@@ -170,7 +170,7 @@ struct OfferDetailView: View {
           .buttonStyle(.bordered)
           .tint(.red)
           .accessibilityIdentifier("offer-delete-button")
-          .accessibilityLabel("Delete offer")
+          .accessibilityLabel(String(localized: "Delete offer"))
           .accessibilityHint("Permanently removes this offer")
         }
         .padding(.horizontal)

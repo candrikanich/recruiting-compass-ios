@@ -13,7 +13,7 @@ struct TasksFilterBar: View {
           }
         }
         .pickerStyle(.menu)
-        .accessibilityLabel("Filter by status")
+        .accessibilityLabel(String(localized: "Filter by status"))
         .accessibilityHint("Double tap to choose status filter")
 
         Picker("Urgency", selection: $urgencyFilter) {
@@ -22,7 +22,7 @@ struct TasksFilterBar: View {
           }
         }
         .pickerStyle(.menu)
-        .accessibilityLabel("Filter by urgency")
+        .accessibilityLabel(String(localized: "Filter by urgency"))
         .accessibilityHint("Double tap to choose urgency filter")
       }
     }

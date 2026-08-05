@@ -40,7 +40,7 @@ struct PreferenceRow: View {
           .foregroundStyle(preference.isDealbreaker ? .red : .gray)
       }
       .buttonStyle(.plain)
-      .accessibilityLabel(preference.isDealbreaker ? "Remove dealbreaker" : "Mark as dealbreaker")
+      .accessibilityLabel(preference.isDealbreaker ? String(localized: "Remove dealbreaker") : String(localized: "Mark as dealbreaker"))
     }
     .accessibilityElement(children: .contain)
   }

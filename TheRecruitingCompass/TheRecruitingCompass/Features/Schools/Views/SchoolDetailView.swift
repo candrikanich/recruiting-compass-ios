@@ -136,7 +136,7 @@ struct SchoolDetailView: View {
             Spacer()
             ProgressView("Calculating fit score...")
               .padding()
-              .accessibilityLabel("Calculating fit score, please wait")
+              .accessibilityLabel(String(localized: "Calculating fit score, please wait"))
             Spacer()
           }
         }
@@ -233,7 +233,7 @@ struct SchoolDetailView: View {
         .accessibilityIdentifier("delete-school-button")
         .padding(.horizontal)
         .padding(.bottom, 24)
-        .accessibilityLabel("Delete school")
+        .accessibilityLabel(String(localized: "Delete school"))
         .accessibilityHint("Permanently remove this school and all related data")
       }
       .padding(.vertical)

@@ -64,7 +64,7 @@ struct BasicsTab: View {
             PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                 Label("Choose Photo", systemImage: "photo")
             }
-            .accessibilityLabel("Choose profile photo")
+            .accessibilityLabel(String(localized: "Choose profile photo"))
             .disabled(viewModel.isReadOnly)
 
             if viewModel.profileImage != nil {

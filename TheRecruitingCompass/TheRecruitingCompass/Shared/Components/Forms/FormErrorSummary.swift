@@ -35,7 +35,7 @@ struct FormErrorSummary: View {
               .foregroundStyle(.white.opacity(0.7))
               .frame(minWidth: 44, minHeight: 44)
           }
-          .accessibilityLabel("Dismiss error summary")
+          .accessibilityLabel(String(localized: "Dismiss error summary"))
         }
 
         VStack(alignment: .leading, spacing: 6) {
@@ -57,7 +57,7 @@ struct FormErrorSummary: View {
       .background(Color.red)
       .clipShape(.rect(cornerRadius: 12))
       .accessibilityElement(children: .combine)
-      .accessibilityLabel("Form errors")
+      .accessibilityLabel(String(localized: "Form errors"))
       .accessibilityValue("\(errors.count) error\(errors.count == 1 ? "" : "s"): \(errors.joined(separator: ", "))")
       .accessibilityAddTraits(.updatesFrequently)
       .onChange(of: errors) { oldValue, newValue in

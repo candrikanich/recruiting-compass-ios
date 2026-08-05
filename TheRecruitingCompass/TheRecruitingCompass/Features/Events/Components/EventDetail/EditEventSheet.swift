@@ -39,7 +39,7 @@ struct EditEventSheet: View {
   private var basicInfoSection: some View {
     Section {
       TextField("Event Name", text: $editData.name)
-        .accessibilityLabel("Event name, required")
+        .accessibilityLabel(String(localized: "Event name, required"))
 
       Picker("Type", selection: Binding(
         get: { editData.type ?? .showcase },
@@ -49,7 +49,7 @@ struct EditEventSheet: View {
           Text(type.displayName).tag(type)
         }
       }
-      .accessibilityLabel("Event type")
+      .accessibilityLabel(String(localized: "Event type"))
     } header: {
       Text("Basic Info")
     }
@@ -59,15 +59,15 @@ struct EditEventSheet: View {
   private var dateTimeSection: some View {
     Section {
       TextField("Start Date (YYYY-MM-DD)", text: $editData.startDate)
-        .accessibilityLabel("Start date")
+        .accessibilityLabel(String(localized: "Start date"))
       TextField("End Date (YYYY-MM-DD)", text: $editData.endDate)
-        .accessibilityLabel("End date")
+        .accessibilityLabel(String(localized: "End date"))
       TextField("Start Time", text: $editData.startTime)
-        .accessibilityLabel("Start time")
+        .accessibilityLabel(String(localized: "Start time"))
       TextField("End Time", text: $editData.endTime)
-        .accessibilityLabel("End time")
+        .accessibilityLabel(String(localized: "End time"))
       TextField("Check-in Time", text: $editData.checkinTime)
-        .accessibilityLabel("Check-in time")
+        .accessibilityLabel(String(localized: "Check-in time"))
     } header: {
       Text("Date & Time")
     }
@@ -77,13 +77,13 @@ struct EditEventSheet: View {
   private var locationSection: some View {
     Section {
       TextField("Venue / Location Name", text: $editData.location)
-        .accessibilityLabel("Venue name")
+        .accessibilityLabel(String(localized: "Venue name"))
       TextField("Address", text: $editData.address)
-        .accessibilityLabel("Street address")
+        .accessibilityLabel(String(localized: "Street address"))
       TextField("City", text: $editData.city)
-        .accessibilityLabel("City")
+        .accessibilityLabel(String(localized: "City"))
       TextField("State", text: $editData.state)
-        .accessibilityLabel("State")
+        .accessibilityLabel(String(localized: "State"))
     } header: {
       Text("Location")
     }
@@ -95,10 +95,10 @@ struct EditEventSheet: View {
       TextField("Event URL", text: $editData.url)
         .keyboardType(.URL)
         .textInputAutocapitalization(.never)
-        .accessibilityLabel("Event URL")
+        .accessibilityLabel(String(localized: "Event URL"))
       TextField("Description", text: $editData.description, axis: .vertical)
         .lineLimit(3...6)
-        .accessibilityLabel("Event description")
+        .accessibilityLabel(String(localized: "Event description"))
 
       Picker("Source", selection: Binding(
         get: { editData.eventSource ?? .other },
@@ -108,11 +108,11 @@ struct EditEventSheet: View {
           Text(source.displayName).tag(source)
         }
       }
-      .accessibilityLabel("Event source")
+      .accessibilityLabel(String(localized: "Event source"))
 
       TextField("Cost", text: $editData.cost)
         .keyboardType(.decimalPad)
-        .accessibilityLabel("Event cost")
+        .accessibilityLabel(String(localized: "Event cost"))
     } header: {
       Text("Details")
     }
@@ -122,9 +122,9 @@ struct EditEventSheet: View {
   private var statusSection: some View {
     Section {
       Toggle("Registered", isOn: $editData.registered)
-        .accessibilityLabel("Registered for event")
+        .accessibilityLabel(String(localized: "Registered for event"))
       Toggle("Attended", isOn: $editData.attended)
-        .accessibilityLabel("Attended event")
+        .accessibilityLabel(String(localized: "Attended event"))
     } header: {
       Text("Status")
     }
@@ -135,7 +135,7 @@ struct EditEventSheet: View {
     Section {
       TextField("Performance Notes", text: $editData.performanceNotes, axis: .vertical)
         .lineLimit(3...6)
-        .accessibilityLabel("Performance notes")
+        .accessibilityLabel(String(localized: "Performance notes"))
     } header: {
       Text("Performance")
     }

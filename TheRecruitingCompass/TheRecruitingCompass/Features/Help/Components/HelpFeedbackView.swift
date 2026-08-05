@@ -36,7 +36,7 @@ struct HelpFeedbackView: View {
             }
             .buttonStyle(HelpFeedbackButtonStyle(highlight: true))
             .disabled(viewModel.isLoading)
-            .accessibilityLabel("Yes, this page was helpful")
+            .accessibilityLabel(String(localized: "Yes, this page was helpful"))
             .accessibilityHint("Submit positive feedback")
 
             Button {
@@ -48,7 +48,7 @@ struct HelpFeedbackView: View {
             }
             .buttonStyle(HelpFeedbackButtonStyle(highlight: false))
             .disabled(viewModel.isLoading)
-            .accessibilityLabel("No, this page was not helpful")
+            .accessibilityLabel(String(localized: "No, this page was not helpful"))
             .accessibilityHint("Submit negative feedback")
           }
 
@@ -64,7 +64,7 @@ struct HelpFeedbackView: View {
           .font(.subheadline)
           .fontWeight(.medium)
           .foregroundStyle(Color.primaryGreen)
-          .accessibilityLabel("Thanks for your feedback!")
+          .accessibilityLabel(String(localized: "Thanks for your feedback!"))
       }
 
       supportLink
@@ -90,7 +90,7 @@ struct HelpFeedbackView: View {
       }
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Need more help? Contact support")
+    .accessibilityLabel(String(localized: "Need more help? Contact support"))
   }
 }
 

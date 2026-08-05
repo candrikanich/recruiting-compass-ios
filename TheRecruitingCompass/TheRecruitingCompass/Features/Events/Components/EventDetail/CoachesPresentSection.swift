@@ -35,7 +35,7 @@ struct CoachesPresentSection: View {
           .font(.subheadline)
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .accessibilityLabel("Event not linked to school")
+          .accessibilityLabel(String(localized: "Event not linked to school"))
       } else {
         if let emptyText = emptyStateText {
           Text(emptyText)
@@ -72,7 +72,7 @@ struct CoachesPresentSection: View {
               Text(coach.fullName).tag(coach.id)
             }
           }
-          .accessibilityLabel("Add coach to event")
+          .accessibilityLabel(String(localized: "Add coach to event"))
           .onChange(of: selectedCoachId) { _, newValue in
             if newValue != nil {
               Task { await onAddCoach() }

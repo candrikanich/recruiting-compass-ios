@@ -36,7 +36,7 @@ struct SelectedCollegeCard: View {
             ProgressView()
               .progressViewStyle(.circular)
               .scaleEffect(0.8)
-              .accessibilityLabel("Loading college data")
+              .accessibilityLabel(String(localized: "Loading college data"))
 
             Text("Fetching college data...")
               .font(.caption)
@@ -67,7 +67,7 @@ struct SelectedCollegeCard: View {
           .foregroundStyle(.gray)
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Clear selection")
+      .accessibilityLabel(String(localized: "Clear selection"))
       .accessibilityHint("Remove selected college and clear auto-filled fields")
     }
     .padding()

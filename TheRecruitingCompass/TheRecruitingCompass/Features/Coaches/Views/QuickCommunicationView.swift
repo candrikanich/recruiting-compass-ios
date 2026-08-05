@@ -230,7 +230,7 @@ private struct QuickCommActionsSection: View {
             .padding(.vertical, 12)
         }
         .buttonStyle(.bordered)
-        .accessibilityLabel("Send text to coach")
+        .accessibilityLabel(String(localized: "Send text to coach"))
         .accessibilityHint("Opens Messages with optional message body")
       }
     }

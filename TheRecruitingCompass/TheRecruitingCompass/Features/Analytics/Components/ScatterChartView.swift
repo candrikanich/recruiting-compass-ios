@@ -153,7 +153,7 @@ struct ScatterChartView: View {
         Image(systemName: "xmark.circle.fill")
           .foregroundStyle(Color.iconGray)
       }
-      .accessibilityLabel("Dismiss data point details")
+      .accessibilityLabel(String(localized: "Dismiss data point details"))
       .frame(minWidth: 44, minHeight: 44)
       .contentShape(Rectangle())
     }

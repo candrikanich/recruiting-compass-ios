@@ -38,7 +38,7 @@ struct FamilyManagementParentView: View {
           .onChange(of: viewModel.codeInput) { _, _ in
             viewModel.formatCodeInput()
           }
-          .accessibilityLabel("Enter family code")
+          .accessibilityLabel(String(localized: "Enter family code"))
           .accessibilityHint("Enter a code like FAM-XXXXXX")
 
         Button(action: { Task { await viewModel.joinFamily() } }) {
@@ -56,7 +56,7 @@ struct FamilyManagementParentView: View {
         .foregroundStyle(.white)
         .clipShape(.rect(cornerRadius: 8))
         .disabled(!viewModel.isCodeInputValid || viewModel.isLoading)
-        .accessibilityLabel("Join family button")
+        .accessibilityLabel(String(localized: "Join family button"))
         .accessibilityHint(viewModel.isCodeInputValid ? "Join the family using the entered code" : "Enter a valid family code to enable")
       }
     }
@@ -90,7 +90,7 @@ struct FamilyManagementParentView: View {
           .keyboardType(.emailAddress)
           .textContentType(.emailAddress)
           .autocapitalization(.none)
-          .accessibilityLabel("Player email address")
+          .accessibilityLabel(String(localized: "Player email address"))
 
         Button {
           Task { await viewModel.sendEmailInvite() }
@@ -107,7 +107,7 @@ struct FamilyManagementParentView: View {
         .foregroundStyle(.white)
         .clipShape(.rect(cornerRadius: 8))
         .disabled(!viewModel.isEmailInviteValid || viewModel.isLoading)
-        .accessibilityLabel("Send invite")
+        .accessibilityLabel(String(localized: "Send invite"))
         .accessibilityHint(viewModel.isEmailInviteValid
           ? "Send email invite to the entered address"
           : "Enter a valid email to enable")
@@ -190,7 +190,7 @@ struct FamilyManagementParentView: View {
 
       if viewModel.isLoading && viewModel.parentFamilies.isEmpty {
         ProgressView()
-          .accessibilityLabel("Loading families")
+          .accessibilityLabel(String(localized: "Loading families"))
           .frame(maxWidth: .infinity)
           .padding(.vertical, FamilyConstants.Spacing.extraLarge)
       } else if viewModel.parentFamilies.isEmpty {

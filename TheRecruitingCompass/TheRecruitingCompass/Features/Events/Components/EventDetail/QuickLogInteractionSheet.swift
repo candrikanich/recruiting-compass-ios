@@ -44,7 +44,7 @@ struct QuickLogInteractionSheet: View {
             .tag(type)
         }
       }
-      .accessibilityLabel("Interaction type")
+      .accessibilityLabel(String(localized: "Interaction type"))
     } header: {
       Text("Interaction Type")
     }
@@ -59,7 +59,7 @@ struct QuickLogInteractionSheet: View {
         }
       }
       .pickerStyle(.segmented)
-      .accessibilityLabel("Interaction direction")
+      .accessibilityLabel(String(localized: "Interaction direction"))
     } header: {
       Text("Direction")
     }
@@ -73,7 +73,7 @@ struct QuickLogInteractionSheet: View {
           Text(sentiment.displayName).tag(sentiment)
         }
       }
-      .accessibilityLabel("Interaction sentiment")
+      .accessibilityLabel(String(localized: "Interaction sentiment"))
     } header: {
       Text("Sentiment")
     }
@@ -92,7 +92,7 @@ struct QuickLogInteractionSheet: View {
             Text(coach.fullName).tag(coach.id)
           }
         }
-        .accessibilityLabel("Associated coach")
+        .accessibilityLabel(String(localized: "Associated coach"))
       } header: {
         Text("Coach (Optional)")
       }
@@ -104,7 +104,7 @@ struct QuickLogInteractionSheet: View {
     Section {
       TextField("Notes", text: $data.notes, axis: .vertical)
         .lineLimit(3...6)
-        .accessibilityLabel("Interaction notes")
+        .accessibilityLabel(String(localized: "Interaction notes"))
     } header: {
       Text("Notes (Optional)")
     }

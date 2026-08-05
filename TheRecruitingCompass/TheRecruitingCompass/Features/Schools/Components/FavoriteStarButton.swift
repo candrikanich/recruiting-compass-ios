@@ -11,7 +11,7 @@ struct FavoriteStarButton: View {
         .accessibilityHidden(true)
     }
     .frame(width: 44, height: 44)
-    .accessibilityLabel(isFavorite ? "Remove from favorites" : "Add to favorites")
+    .accessibilityLabel(isFavorite ? String(localized: "Remove from favorites") : String(localized: "Add to favorites"))
     .accessibilityHint("Double tap to toggle favorite status")
     .accessibilityValue(isFavorite ? "Favorited" : "Not favorited")
     .accessibilityAddTraits(.isButton)

@@ -54,7 +54,7 @@ struct SettingsView: View {
               }
               .buttonStyle(.bordered)
               .disabled(showCodeCopied)
-              .accessibilityLabel(showCodeCopied ? "Copied to clipboard" : "Copy family code")
+              .accessibilityLabel(showCodeCopied ? String(localized: "Copied to clipboard") : String(localized: "Copy family code"))
             }
             .padding(.vertical, 4)
           }

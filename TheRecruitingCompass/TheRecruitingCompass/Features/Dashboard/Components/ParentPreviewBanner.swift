@@ -33,7 +33,7 @@ struct ParentPreviewBanner: View {
           .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Exit preview mode")
+      .accessibilityLabel(String(localized: "Exit preview mode"))
       .accessibilityHint("Returns to your athlete selection view")
     }
     .padding()

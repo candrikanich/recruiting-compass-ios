@@ -36,7 +36,7 @@ struct AddInteractionView: View {
           dismiss()
         }
         .disabled(viewModel.isSubmitting)
-        .accessibilityLabel("Cancel and return to school details")
+        .accessibilityLabel(String(localized: "Cancel and return to school details"))
       }
     }
     .alert("Error", isPresented: $viewModel.isShowingErrorAlert) {
@@ -107,7 +107,7 @@ struct AddInteractionView: View {
           Text(school.name).tag(school.id)
         }
       }
-      .accessibilityLabel("School picker")
+      .accessibilityLabel(String(localized: "School picker"))
       .accessibilityHint("Required. Select the school for this interaction")
       .onChange(of: viewModel.formState.schoolId) { _, _ in
         viewModel.onSchoolChange()
@@ -139,7 +139,7 @@ struct AddInteractionView: View {
         Text("Other coach (not listed)").tag("other" as String?)
         Text("+ Add new coach").tag("add_new" as String?)
       }
-      .accessibilityLabel("Coach picker")
+      .accessibilityLabel(String(localized: "Coach picker"))
       .accessibilityHint("Optional. Select a coach or add a new one")
       .disabled(viewModel.formState.schoolId.isEmpty)
       .onChange(of: viewModel.formState.coachId) { _, newValue in
@@ -167,7 +167,7 @@ struct AddInteractionView: View {
             .tag(type as InteractionType?)
         }
       }
-      .accessibilityLabel("Interaction type picker")
+      .accessibilityLabel(String(localized: "Interaction type picker"))
       .accessibilityHint("Required. Select the type of interaction")
     } header: {
       HStack {
@@ -194,7 +194,7 @@ struct AddInteractionView: View {
         }
       }
       .pickerStyle(.segmented)
-      .accessibilityLabel("Direction picker")
+      .accessibilityLabel(String(localized: "Direction picker"))
       .accessibilityHint("Select outbound (we initiated) or inbound (they initiated)")
       .onChange(of: viewModel.formState.direction) { _, _ in
         viewModel.onDirectionOrSentimentChange()
@@ -217,7 +217,7 @@ struct AddInteractionView: View {
         selection: $viewModel.formState.occurredAt,
         displayedComponents: [.date, .hourAndMinute]
       )
-      .accessibilityLabel("Date and time picker")
+      .accessibilityLabel(String(localized: "Date and time picker"))
       .accessibilityHint("When this interaction occurred")
     }
   }
@@ -229,7 +229,7 @@ struct AddInteractionView: View {
     Section("Details (Optional)") {
       TextField("Subject", text: $viewModel.formState.subject, axis: .vertical)
         .lineLimit(2...4)
-        .accessibilityLabel("Subject field")
+        .accessibilityLabel(String(localized: "Subject field"))
         .accessibilityHint("Optional. Email subject, call topic, etc. Max 500 characters")
 
       if viewModel.formState.subject.count > 450 {
@@ -241,7 +241,7 @@ struct AddInteractionView: View {
 
       TextEditor(text: $viewModel.formState.content)
         .frame(minHeight: 100)
-        .accessibilityLabel("Content field")
+        .accessibilityLabel(String(localized: "Content field"))
         .accessibilityHint("Optional. Details about the interaction. Max 10,000 characters")
 
       if viewModel.formState.content.count > 9500 {
@@ -265,7 +265,7 @@ struct AddInteractionView: View {
           Text(sentiment.displayName).tag(sentiment as Sentiment?)
         }
       }
-      .accessibilityLabel("Sentiment picker")
+      .accessibilityLabel(String(localized: "Sentiment picker"))
       .accessibilityHint("Optional. Rate the tone of this interaction")
       .onChange(of: viewModel.formState.sentiment) { _, _ in
         viewModel.onDirectionOrSentimentChange()

@@ -53,7 +53,7 @@ struct VerificationStatusIcon: View {
       ProgressView()
         .tint(Color.accentBlue)
         .scaleEffect(1.5)
-        .accessibilityLabel("Checking verification status")
+        .accessibilityLabel(String(localized: "Checking verification status"))
 
     case .verified:
       Image(systemName: "checkmark.circle.fill")

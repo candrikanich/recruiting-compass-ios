@@ -33,12 +33,12 @@ struct DocumentFilterSheet: View {
               Text(school.name).tag(school.id as String?)
             }
           }
-          .accessibilityLabel("Filter by school")
+          .accessibilityLabel(String(localized: "Filter by school"))
         }
 
         Section("Status") {
           Toggle("Shared only", isOn: $viewModel.showSharedOnly)
-            .accessibilityLabel("Show only shared documents")
+            .accessibilityLabel(String(localized: "Show only shared documents"))
         }
       }
       .navigationTitle("Filter Documents")

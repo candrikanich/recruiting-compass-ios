@@ -24,14 +24,14 @@ struct AddOfferForm: View {
           Text(type.displayName).tag(type)
         }
       }
-      .accessibilityLabel("Offer type")
+      .accessibilityLabel(String(localized: "Offer type"))
 
       Picker("Status", selection: $formState.status) {
         ForEach(OfferStatus.allCases, id: \.self) { status in
           Text(status.displayName).tag(status)
         }
       }
-      .accessibilityLabel("Offer status")
+      .accessibilityLabel(String(localized: "Offer status"))
 
       VStack(alignment: .leading, spacing: 4) {
         Text("Scholarship %")
@@ -50,18 +50,18 @@ struct AddOfferForm: View {
         TextField("e.g. 50000", text: $formState.scholarshipAmount)
           .keyboardType(.decimalPad)
           .textFieldStyle(.roundedBorder)
-          .accessibilityLabel("Scholarship amount in dollars")
+          .accessibilityLabel(String(localized: "Scholarship amount in dollars"))
       }
 
       DatePicker("Offer Date", selection: $formState.offerDate, displayedComponents: .date)
-        .accessibilityLabel("Offer date")
+        .accessibilityLabel(String(localized: "Offer date"))
 
       Toggle("Has Deadline", isOn: $formState.hasDeadline)
-        .accessibilityLabel("Offer has a deadline")
+        .accessibilityLabel(String(localized: "Offer has a deadline"))
 
       if formState.hasDeadline {
         DatePicker("Deadline", selection: $formState.deadlineDate, displayedComponents: .date)
-          .accessibilityLabel("Deadline date")
+          .accessibilityLabel(String(localized: "Deadline date"))
       }
 
       VStack(alignment: .leading, spacing: 4) {
@@ -75,7 +75,7 @@ struct AddOfferForm: View {
             RoundedRectangle(cornerRadius: 8)
               .stroke(Color(.systemGray4), lineWidth: 1)
           )
-          .accessibilityLabel("Offer notes")
+          .accessibilityLabel(String(localized: "Offer notes"))
       }
 
       if !formState.validationErrors.isEmpty {
@@ -96,7 +96,7 @@ struct AddOfferForm: View {
           onCancel()
         }
         .frame(minHeight: 44)
-        .accessibilityLabel("Cancel adding offer")
+        .accessibilityLabel(String(localized: "Cancel adding offer"))
 
         Spacer()
 
@@ -113,7 +113,7 @@ struct AddOfferForm: View {
           }
         }
         .disabled(!formState.isValid || isSubmitting)
-        .accessibilityLabel("Save offer")
+        .accessibilityLabel(String(localized: "Save offer"))
         .accessibilityHint(isSubmitting ? "Saving in progress" : "Double tap to save offer")
       }
     }

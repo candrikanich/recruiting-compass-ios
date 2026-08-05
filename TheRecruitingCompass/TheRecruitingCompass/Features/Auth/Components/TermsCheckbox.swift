@@ -18,7 +18,7 @@ struct TermsCheckbox: View {
           )
           .accessibilityHidden(true)
       }
-      .accessibilityLabel("I agree to the Terms of Service and Privacy Policy")
+      .accessibilityLabel(String(localized: "I agree to the Terms of Service and Privacy Policy"))
       .accessibilityValue(isChecked ? "Checked" : "Unchecked")
       .accessibilityAddTraits(.isButton)
       .accessibilityHint("Double tap to toggle agreement")
@@ -36,7 +36,7 @@ struct TermsCheckbox: View {
               .foregroundStyle(Color.accentBlue)
               .underline()
           }
-          .accessibilityLabel("Read Terms of Service")
+          .accessibilityLabel(String(localized: "Read Terms of Service"))
           .accessibilityHint("Opens Terms of Service")
 
           Text(" and ")
@@ -50,7 +50,7 @@ struct TermsCheckbox: View {
               .foregroundStyle(Color.accentBlue)
               .underline()
           }
-          .accessibilityLabel("Read Privacy Policy")
+          .accessibilityLabel(String(localized: "Read Privacy Policy"))
           .accessibilityHint("Opens Privacy Policy")
         }
       }

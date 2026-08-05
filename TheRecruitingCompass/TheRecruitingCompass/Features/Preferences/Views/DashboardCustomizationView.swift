@@ -58,7 +58,7 @@ struct DashboardCustomizationView: View {
             viewModel.toggleAllStatsCards(!viewModel.allStatsCardsEnabled)
           }
           .font(.caption)
-          .accessibilityLabel(viewModel.allStatsCardsEnabled ? "Deselect all stats cards" : "Select all stats cards")
+          .accessibilityLabel(viewModel.allStatsCardsEnabled ? String(localized: "Deselect all stats cards") : String(localized: "Select all stats cards"))
         }
       } footer: {
         Text("Choose which summary statistics appear on your dashboard.")
@@ -138,7 +138,7 @@ struct DashboardCustomizationView: View {
             viewModel.toggleAllWidgets(!viewModel.allWidgetsEnabled)
           }
           .font(.caption)
-          .accessibilityLabel(viewModel.allWidgetsEnabled ? "Deselect all widgets" : "Select all widgets")
+          .accessibilityLabel(viewModel.allWidgetsEnabled ? String(localized: "Deselect all widgets") : String(localized: "Select all widgets"))
         }
       } footer: {
         Text("Choose which widgets appear on your dashboard.")
@@ -153,7 +153,7 @@ struct DashboardCustomizationView: View {
           }
         }
         .foregroundStyle(.red)
-        .accessibilityLabel("Reset dashboard settings to defaults")
+        .accessibilityLabel(String(localized: "Reset dashboard settings to defaults"))
         .disabled(viewModel.saveStatus == .saving)
       }
     }

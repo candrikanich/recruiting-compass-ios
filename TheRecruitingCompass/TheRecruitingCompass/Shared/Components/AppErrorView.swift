@@ -122,7 +122,7 @@ struct AppErrorView: View {
         )
         .font(.footnote)
         .foregroundStyle(.white.opacity(0.7))
-        .accessibilityLabel("Contact support")
+        .accessibilityLabel(String(localized: "Contact support"))
         .accessibilityHint("Opens email to support@therecruitingcompass.com")
     }
 }

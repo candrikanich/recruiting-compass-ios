@@ -98,7 +98,7 @@ struct ParentOnboardingWizardView: View {
         TextField("First name", text: $viewModel.playerFirstName)
           .textFieldStyle(.roundedBorder)
           .textContentType(.givenName)
-          .accessibilityLabel("Athlete first name")
+          .accessibilityLabel(String(localized: "Athlete first name"))
 
         Text("Player's date of birth")
           .font(.subheadline.weight(.medium))
@@ -109,7 +109,7 @@ struct ParentOnboardingWizardView: View {
         )
         .labelsHidden()
         .datePickerStyle(.compact)
-        .accessibilityLabel("Player date of birth")
+        .accessibilityLabel(String(localized: "Player date of birth"))
         .onChange(of: viewModel.playerDateOfBirth) { _, _ in
           viewModel.onDateOfBirthChange()
         }
@@ -131,7 +131,7 @@ struct ParentOnboardingWizardView: View {
           }
         }
         .pickerStyle(.menu)
-        .accessibilityLabel("Athlete sport")
+        .accessibilityLabel(String(localized: "Athlete sport"))
         .onChange(of: viewModel.playerSport) { _, _ in
           viewModel.onSportChange()
         }
@@ -146,7 +146,7 @@ struct ParentOnboardingWizardView: View {
             }
           }
           .pickerStyle(.menu)
-          .accessibilityLabel("Athlete position")
+          .accessibilityLabel(String(localized: "Athlete position"))
         }
 
         Text("Graduation year (optional)")
@@ -161,7 +161,7 @@ struct ParentOnboardingWizardView: View {
           }
         }
         .pickerStyle(.menu)
-        .accessibilityLabel("Athlete graduation year")
+        .accessibilityLabel(String(localized: "Athlete graduation year"))
       }
     }
   }
@@ -187,7 +187,7 @@ struct ParentOnboardingWizardView: View {
           .keyboardType(.emailAddress)
           .textContentType(.emailAddress)
           .autocapitalization(.none)
-          .accessibilityLabel("Player email for invite")
+          .accessibilityLabel(String(localized: "Player email for invite"))
       }
 
       Button {
@@ -202,7 +202,7 @@ struct ParentOnboardingWizardView: View {
       .frame(maxWidth: .infinity)
       .buttonStyle(.borderedProminent)
       .disabled(!viewModel.isInviteStepValid || viewModel.isLoading)
-      .accessibilityLabel("Send invite")
+      .accessibilityLabel(String(localized: "Send invite"))
 
       Text("Or share your family code")
         .font(.subheadline.weight(.medium))
@@ -221,7 +221,7 @@ struct ParentOnboardingWizardView: View {
         .background(Color(.tertiarySystemFill))
         .clipShape(.rect(cornerRadius: 8))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Loading family code")
+        .accessibilityLabel(String(localized: "Loading family code"))
       } else if let code = viewModel.familyCode {
         VStack(spacing: FamilyConstants.Spacing.small) {
           Text(code)
@@ -240,7 +240,7 @@ struct ParentOnboardingWizardView: View {
               .frame(maxWidth: .infinity)
           }
           .buttonStyle(.bordered)
-          .accessibilityLabel("Copy family code")
+          .accessibilityLabel(String(localized: "Copy family code"))
           Text("Your player enters this code during their signup.")
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -254,7 +254,7 @@ struct ParentOnboardingWizardView: View {
             Task { await viewModel.loadFamilyCode() }
           }
           .buttonStyle(.bordered)
-          .accessibilityLabel("Retry loading family code")
+          .accessibilityLabel(String(localized: "Retry loading family code"))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(FamilyConstants.Spacing.small)
@@ -268,7 +268,7 @@ struct ParentOnboardingWizardView: View {
       .buttonStyle(.bordered)
       .frame(maxWidth: .infinity)
       .padding(.top, FamilyConstants.Spacing.small)
-      .accessibilityLabel("Skip invite for now")
+      .accessibilityLabel(String(localized: "Skip invite for now"))
     }
     .task(id: viewModel.currentStep) {
       if viewModel.currentStep == .sendInvite {
@@ -285,7 +285,7 @@ struct ParentOnboardingWizardView: View {
           viewModel.previousStep()
         }
         .buttonStyle(.bordered)
-        .accessibilityLabel("Previous step")
+        .accessibilityLabel(String(localized: "Previous step"))
       }
       Spacer()
       if viewModel.currentStep == .playerDetails {
@@ -294,7 +294,7 @@ struct ParentOnboardingWizardView: View {
         }
         .buttonStyle(.borderedProminent)
         .disabled(!viewModel.isPlayerDetailsValid)
-        .accessibilityLabel("Next step")
+        .accessibilityLabel(String(localized: "Next step"))
       }
       // Step 2: primary action (Send Invite) is in sendInviteStep content; only Back in bar
     }

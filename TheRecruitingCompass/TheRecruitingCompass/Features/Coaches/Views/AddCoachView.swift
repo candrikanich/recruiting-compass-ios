@@ -50,7 +50,7 @@ struct AddCoachView: View {
         } label: {
           Label("Back", systemImage: "chevron.left")
         }
-          .accessibilityLabel("Back to coaches list")
+          .accessibilityLabel(String(localized: "Back to coaches list"))
         }
       }
       .task {
@@ -147,7 +147,7 @@ struct AddCoachView: View {
     }
     .padding(.vertical, 8)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Please select a school to continue adding a coach")
+    .accessibilityLabel(String(localized: "Please select a school to continue adding a coach"))
   }
 
   // MARK: - Submit Button
@@ -194,7 +194,7 @@ struct AddCoachView: View {
       dismiss()
     }
     .frame(minHeight: 44)
-    .accessibilityLabel("Cancel adding coach")
+    .accessibilityLabel(String(localized: "Cancel adding coach"))
     .accessibilityHint("Return to coaches list without saving")
   }
 

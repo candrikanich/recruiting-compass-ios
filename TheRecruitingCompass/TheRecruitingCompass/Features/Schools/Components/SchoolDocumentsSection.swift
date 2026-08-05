@@ -26,7 +26,7 @@ struct SchoolDocumentsSection: View {
           .foregroundStyle(.secondary)
         }
         .disabled(true)
-        .accessibilityLabel("Upload documents")
+        .accessibilityLabel(String(localized: "Upload documents"))
         .accessibilityHint("This feature is coming soon")
       }
 
@@ -60,7 +60,7 @@ private struct DocumentsEmptyState: View {
     .frame(maxWidth: .infinity)
     .padding(.vertical, 32)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("No documents")
+    .accessibilityLabel(String(localized: "No documents"))
     .accessibilityHint("Document upload feature is coming soon")
   }
 }

@@ -18,7 +18,7 @@ struct SchoolBasicInfoDisplaySection: View {
         Button("Edit") {
           onEdit()
         }
-        .accessibilityLabel("Edit school information")
+        .accessibilityLabel(String(localized: "Edit school information"))
       }
 
       if let info = school.academicInfo {

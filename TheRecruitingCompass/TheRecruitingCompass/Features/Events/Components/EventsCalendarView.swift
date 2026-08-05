@@ -33,7 +33,7 @@ struct EventsCalendarView: View {
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
       }
-      .accessibilityLabel("Previous month")
+      .accessibilityLabel(String(localized: "Previous month"))
 
       Spacer()
 
@@ -48,7 +48,7 @@ struct EventsCalendarView: View {
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
       }
-      .accessibilityLabel("Next month")
+      .accessibilityLabel(String(localized: "Next month"))
     }
   }
 

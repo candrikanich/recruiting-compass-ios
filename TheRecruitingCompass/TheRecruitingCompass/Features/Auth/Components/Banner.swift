@@ -59,7 +59,7 @@ struct Banner: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Close message")
+        .accessibilityLabel(String(localized: "Close message"))
       }
     }
     .padding(12)

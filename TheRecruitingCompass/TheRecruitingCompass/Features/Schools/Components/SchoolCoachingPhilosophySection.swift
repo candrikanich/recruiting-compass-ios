@@ -28,7 +28,7 @@ struct SchoolCoachingPhilosophySection: View {
             .font(.subheadline)
             .foregroundStyle(Color.accentBlue)
         }
-        .accessibilityLabel("Edit coaching philosophy")
+        .accessibilityLabel(String(localized: "Edit coaching philosophy"))
         .accessibilityHint("Opens form to edit coaching philosophy details")
       }
 
@@ -86,7 +86,7 @@ struct SchoolCoachingPhilosophySection: View {
             .padding(.vertical, 12)
           }
           .buttonStyle(.plain)
-          .accessibilityLabel(isExpanded ? "Show less philosophy details" : "Show more philosophy details")
+          .accessibilityLabel(isExpanded ? String(localized: "Show less philosophy details") : String(localized: "Show more philosophy details"))
         }
       }
     }
@@ -157,7 +157,7 @@ private struct PhilosophyEmptyState: View {
     .frame(maxWidth: .infinity)
     .padding(.vertical, 32)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("No coaching philosophy added")
+    .accessibilityLabel(String(localized: "No coaching philosophy added"))
     .accessibilityHint("Use the edit button to add coaching philosophy details")
   }
 }

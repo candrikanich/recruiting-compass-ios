@@ -91,7 +91,7 @@ struct ScholarshipCalculatorView: View {
           .fontWeight(.semibold)
       }
       .buttonStyle(.bordered)
-      .accessibilityLabel(isExpanded ? "Hide scholarship calculator" : "Scholarship Calculator")
+      .accessibilityLabel(isExpanded ? String(localized: "Hide scholarship calculator") : String(localized: "Scholarship Calculator"))
       .accessibilityHint(isExpanded ? "Collapses scholarship calculator" : "Expands scholarship calculator")
       .frame(minWidth: 44, minHeight: 44)
     }
@@ -135,7 +135,7 @@ struct ScholarshipCalculatorView: View {
           }
         }
         .pickerStyle(.segmented)
-        .accessibilityLabel("Number of years")
+        .accessibilityLabel(String(localized: "Number of years"))
       }
     }
   }

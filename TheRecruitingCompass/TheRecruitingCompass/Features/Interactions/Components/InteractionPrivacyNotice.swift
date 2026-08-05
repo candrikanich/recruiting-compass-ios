@@ -19,7 +19,7 @@ struct InteractionPrivacyNotice: View {
     .background(Color.blue.opacity(0.1))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Privacy notice: Your recruiting interactions are visible to your linked parents")
+    .accessibilityLabel(String(localized: "Privacy notice: Your recruiting interactions are visible to your linked parents"))
   }
 }
 

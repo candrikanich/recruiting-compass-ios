@@ -73,7 +73,7 @@ struct OffersListView: View {
             .contentShape(Rectangle())
         }
         .accessibilityIdentifier("add_offer_button")
-        .accessibilityLabel("Log new offer")
+        .accessibilityLabel(String(localized: "Log new offer"))
         .accessibilityHint("Opens form to log a new offer")
       }
     }

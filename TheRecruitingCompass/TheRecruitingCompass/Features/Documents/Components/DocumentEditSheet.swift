@@ -8,7 +8,7 @@ struct DocumentEditSheet: View {
       Form {
         Section {
           TextField("Document title", text: $viewModel.editTitle, prompt: Text("e.g., Freshman Highlights 2025"))
-            .accessibilityLabel("Document title")
+            .accessibilityLabel(String(localized: "Document title"))
             .onChange(of: viewModel.editTitle) { _, newValue in
               if newValue.count > 100 {
                 viewModel.editTitle = String(newValue.prefix(100))
@@ -33,11 +33,11 @@ struct DocumentEditSheet: View {
               Text(school.name).tag(school.id as String?)
             }
           }
-          .accessibilityLabel("School")
+          .accessibilityLabel(String(localized: "School"))
 
           TextField("Description", text: $viewModel.editDescription, axis: .vertical)
             .lineLimit(3...6)
-            .accessibilityLabel("Description")
+            .accessibilityLabel(String(localized: "Description"))
             .onChange(of: viewModel.editDescription) { _, newValue in
               if newValue.count > 500 {
                 viewModel.editDescription = String(newValue.prefix(500))

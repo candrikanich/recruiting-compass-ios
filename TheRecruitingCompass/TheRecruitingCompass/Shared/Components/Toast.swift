@@ -30,7 +30,7 @@ struct Toast: View {
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
       }
-      .accessibilityLabel("Dismiss notification")
+      .accessibilityLabel(String(localized: "Dismiss notification"))
     }
     .padding(16)
     .background(Color.Surface.card, in: RoundedRectangle(cornerRadius: 12))

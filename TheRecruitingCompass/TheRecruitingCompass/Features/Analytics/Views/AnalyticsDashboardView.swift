@@ -34,7 +34,7 @@ struct AnalyticsDashboardView: View {
           } label: {
             Label("Export", systemImage: "square.and.arrow.up")
           }
-          .accessibilityLabel("Export analytics data")
+          .accessibilityLabel(String(localized: "Export analytics data"))
           .accessibilityHint("Opens export format options")
         }
       }
@@ -150,7 +150,7 @@ struct AnalyticsDashboardView: View {
     }
     .padding(.horizontal)
     .accessibilityElement(children: .contain)
-    .accessibilityLabel("Summary statistics")
+    .accessibilityLabel(String(localized: "Summary statistics"))
   }
 
   // MARK: - States
@@ -158,7 +158,7 @@ struct AnalyticsDashboardView: View {
   @ViewBuilder
   private var loadingView: some View {
     LoadingStateView(message: "Loading analytics...")
-      .accessibilityLabel("Loading analytics dashboard")
+      .accessibilityLabel(String(localized: "Loading analytics dashboard"))
   }
 
   private func errorView(_ message: String) -> some View {
@@ -173,7 +173,7 @@ struct AnalyticsDashboardView: View {
         Label("Retry", systemImage: "arrow.clockwise")
       }
       .buttonStyle(.borderedProminent)
-      .accessibilityLabel("Retry loading analytics")
+      .accessibilityLabel(String(localized: "Retry loading analytics"))
       .accessibilityHint("Double tap to retry loading analytics data")
     }
   }
@@ -185,7 +185,7 @@ struct AnalyticsDashboardView: View {
     } description: {
       Text("Start adding schools and logging interactions to see analytics")
     }
-    .accessibilityLabel("No analytics data available yet")
+    .accessibilityLabel(String(localized: "No analytics data available yet"))
   }
 
   // MARK: - Custom Date Picker
@@ -200,7 +200,7 @@ struct AnalyticsDashboardView: View {
           in: ...Date.now,
           displayedComponents: .date
         )
-        .accessibilityLabel("Start date for custom range")
+        .accessibilityLabel(String(localized: "Start date for custom range"))
 
         DatePicker(
           "End Date",
@@ -208,7 +208,7 @@ struct AnalyticsDashboardView: View {
           in: ...Date.now,
           displayedComponents: .date
         )
-        .accessibilityLabel("End date for custom range")
+        .accessibilityLabel(String(localized: "End date for custom range"))
       }
       .navigationTitle("Custom Date Range")
       .navigationBarTitleDisplayMode(.inline)

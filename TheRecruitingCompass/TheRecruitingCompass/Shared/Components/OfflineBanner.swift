@@ -16,7 +16,7 @@ struct OfflineBanner: View {
     .padding(.vertical, 10)
     .background(Color.secondaryText)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("No internet connection")
+    .accessibilityLabel(String(localized: "No internet connection"))
   }
 }
 

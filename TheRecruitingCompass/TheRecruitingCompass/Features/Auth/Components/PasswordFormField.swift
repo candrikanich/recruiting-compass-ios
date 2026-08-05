@@ -47,7 +47,7 @@ struct PasswordFormField: View {
         }
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
-        .accessibilityLabel(isPasswordVisible ? "Hide password" : "Show password")
+        .accessibilityLabel(isPasswordVisible ? String(localized: "Hide password") : String(localized: "Show password"))
         .accessibilityHint("Toggle to \(isPasswordVisible ? "hide" : "show") password characters")
       }
       .padding(12)

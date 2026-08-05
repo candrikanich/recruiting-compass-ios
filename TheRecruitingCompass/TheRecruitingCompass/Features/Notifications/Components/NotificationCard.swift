@@ -43,7 +43,7 @@ struct NotificationCard: View {
             .frame(width: 44, height: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Delete notification")
+        .accessibilityLabel(String(localized: "Delete notification"))
       }
       .padding()
       .background(notification.isRead ? Color.Surface.card : Color(hex: "#EFF6FF"))

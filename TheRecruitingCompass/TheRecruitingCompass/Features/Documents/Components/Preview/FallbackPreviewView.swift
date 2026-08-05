@@ -21,7 +21,7 @@ struct DownloadFallbackView: View {
             .font(.subheadline.weight(.medium))
         }
         .buttonStyle(.borderedProminent)
-        .accessibilityLabel("Download to view")
+        .accessibilityLabel(String(localized: "Download to view"))
         .accessibilityHint("Opens the file in the default app")
       }
     }

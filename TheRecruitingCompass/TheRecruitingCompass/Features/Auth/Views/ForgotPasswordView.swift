@@ -27,7 +27,7 @@ struct ForgotPasswordView: View {
             }
             .foregroundStyle(Color.darkSlate)
           }
-          .accessibilityLabel("Back to login screen")
+          .accessibilityLabel(String(localized: "Back to login screen"))
           .accessibilityHint("Returns to the sign in screen")
           Spacer()
         }
@@ -123,7 +123,7 @@ struct ForgotPasswordView: View {
         .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
         .disabled(viewModel.isButtonDisabled)
       }
-      .accessibilityLabel(viewModel.isLoading ? "Sending reset link" : "Send password reset link")
+      .accessibilityLabel(viewModel.isLoading ? String(localized: "Sending reset link") : String(localized: "Send password reset link"))
       .accessibilityHint("Sends a password reset email to your address")
     }
     .padding(32)
@@ -194,7 +194,7 @@ struct ForgotPasswordView: View {
           .frame(minHeight: 44)
           .contentShape(Rectangle())
       }
-      .accessibilityLabel("Use a different email address")
+      .accessibilityLabel(String(localized: "Use a different email address"))
       .accessibilityHint("Returns to the email form")
 
       Button(action: { dismiss() }) {
@@ -209,7 +209,7 @@ struct ForgotPasswordView: View {
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }
-      .accessibilityLabel("Back to login screen")
+      .accessibilityLabel(String(localized: "Back to login screen"))
     }
     .padding(32)
   }

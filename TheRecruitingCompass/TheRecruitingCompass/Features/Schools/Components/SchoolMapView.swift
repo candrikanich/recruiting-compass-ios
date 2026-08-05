@@ -65,7 +65,7 @@ struct SchoolMapView: View {
         .background(Color(.systemGray6))
         .clipShape(.rect(cornerRadius: 12))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Location data not available. Use Lookup College Data to fetch location")
+        .accessibilityLabel(String(localized: "Location data not available. Use Lookup College Data to fetch location"))
       }
     }
   }

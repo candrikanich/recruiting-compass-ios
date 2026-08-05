@@ -31,7 +31,7 @@ struct ResetPasswordView: View {
             .frame(minHeight: 44)
             .contentShape(Rectangle())
           }
-          .accessibilityLabel("Back to previous screen")
+          .accessibilityLabel(String(localized: "Back to previous screen"))
           Spacer()
         }
         .padding(.horizontal, 24)
@@ -147,7 +147,7 @@ struct ResetPasswordView: View {
         .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
         .disabled(viewModel.isButtonDisabled)
       }
-      .accessibilityLabel(viewModel.isLoading ? "Resetting password" : "Reset password")
+      .accessibilityLabel(viewModel.isLoading ? String(localized: "Resetting password") : String(localized: "Reset password"))
       .accessibilityHint("Sets your new password")
     }
     .padding(32)
@@ -171,7 +171,7 @@ struct ResetPasswordView: View {
           : Color.errorRed)
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(viewModel.passwordsMatch ? "Passwords match" : "Passwords do not match")
+    .accessibilityLabel(viewModel.passwordsMatch ? String(localized: "Passwords match") : String(localized: "Passwords do not match"))
   }
 
   // MARK: - Success State
@@ -210,7 +210,7 @@ struct ResetPasswordView: View {
           )
           .clipShape(.rect(cornerRadius: 8))
       }
-      .accessibilityLabel("Sign in now")
+      .accessibilityLabel(String(localized: "Sign in now"))
       .accessibilityHint("Navigate to the login screen")
     }
     .padding(32)
@@ -249,7 +249,7 @@ struct ResetPasswordView: View {
           )
           .clipShape(.rect(cornerRadius: 8))
       }
-      .accessibilityLabel("Request a new password reset link")
+      .accessibilityLabel(String(localized: "Request a new password reset link"))
 
       Button(action: { dismiss() }) {
         HStack(spacing: 4) {
@@ -263,7 +263,7 @@ struct ResetPasswordView: View {
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }
-      .accessibilityLabel("Back to login screen")
+      .accessibilityLabel(String(localized: "Back to login screen"))
     }
     .padding(32)
   }

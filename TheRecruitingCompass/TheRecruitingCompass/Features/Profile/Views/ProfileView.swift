@@ -103,14 +103,14 @@ private struct ProfilePhotoSection: View {
                                 .font(.subheadline.weight(.medium))
                         }
                         .buttonStyle(.bordered)
-                        .accessibilityLabel("Upload profile photo")
+                        .accessibilityLabel(String(localized: "Upload profile photo"))
 
                         if user?.profilePhotoUrl != nil {
                             Button("Remove", role: .destructive) {
                                 viewModel.showRemovePhotoConfirm = true
                             }
                             .font(.subheadline)
-                            .accessibilityLabel("Remove profile photo")
+                            .accessibilityLabel(String(localized: "Remove profile photo"))
                         }
                     }
 
@@ -157,11 +157,11 @@ private struct ProfilePersonalInfoSection: View {
     var body: some View {
         Section {
             TextField("Full Name", text: $viewModel.fullName)
-                .accessibilityLabel("Full name")
+                .accessibilityLabel(String(localized: "Full name"))
 
             TextField("Phone (optional)", text: $viewModel.phone)
                 .keyboardType(.phonePad)
-                .accessibilityLabel("Phone number")
+                .accessibilityLabel(String(localized: "Phone number"))
 
             if isAthlete {
                 DateOfBirthField(value: $viewModel.dateOfBirth)
@@ -187,7 +187,7 @@ private struct ProfilePersonalInfoSection: View {
                 }
             }
             .disabled(viewModel.isSavingPersonalInfo || !viewModel.isPersonalInfoValid)
-            .accessibilityLabel(viewModel.isSavingPersonalInfo ? "Saving" : "Save personal information")
+            .accessibilityLabel(viewModel.isSavingPersonalInfo ? String(localized: "Saving") : String(localized: "Save personal information"))
 
         } header: {
             Text("Personal Information")
@@ -220,7 +220,7 @@ private struct ProfileEmailSection: View {
                 )
                 .font(.subheadline)
                 .foregroundStyle(.blue)
-                .accessibilityLabel("Verification email sent. Check your inbox.")
+                .accessibilityLabel(String(localized: "Verification email sent. Check your inbox."))
             }
 
             if viewModel.isEmailFormExpanded {
@@ -229,11 +229,11 @@ private struct ProfileEmailSection: View {
                     .textContentType(.emailAddress)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
-                    .accessibilityLabel("New email address")
+                    .accessibilityLabel(String(localized: "New email address"))
 
                 SecureField("Current Password", text: $viewModel.emailCurrentPassword)
                     .textContentType(.password)
-                    .accessibilityLabel("Current password to confirm email change")
+                    .accessibilityLabel(String(localized: "Current password to confirm email change"))
 
                 if let msg = viewModel.emailMessage {
                     Text(msg.text)
@@ -256,7 +256,7 @@ private struct ProfileEmailSection: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(viewModel.isSavingEmail)
-                    .accessibilityLabel(viewModel.isSavingEmail ? "Updating email" : "Update email")
+                    .accessibilityLabel(viewModel.isSavingEmail ? String(localized: "Updating email") : String(localized: "Update email"))
 
                     Button("Cancel") {
                         viewModel.isEmailFormExpanded = false
@@ -265,14 +265,14 @@ private struct ProfileEmailSection: View {
                         viewModel.emailMessage = nil
                     }
                     .foregroundStyle(.secondary)
-                    .accessibilityLabel("Cancel email change")
+                    .accessibilityLabel(String(localized: "Cancel email change"))
                 }
             } else {
                 Button("Change Email") {
                     viewModel.isEmailFormExpanded = true
                 }
                 .buttonStyle(.bordered)
-                .accessibilityLabel("Change email address")
+                .accessibilityLabel(String(localized: "Change email address"))
             }
         } header: {
             Text("Email Address")
@@ -289,21 +289,21 @@ private struct ProfilePasswordSection: View {
         Section {
             SecureField("Current Password", text: $viewModel.currentPassword)
                 .textContentType(.password)
-                .accessibilityLabel("Current password")
+                .accessibilityLabel(String(localized: "Current password"))
 
             SecureField("New Password (min 8 characters)", text: $viewModel.newPassword)
                 .textContentType(.newPassword)
-                .accessibilityLabel("New password, minimum 8 characters")
+                .accessibilityLabel(String(localized: "New password, minimum 8 characters"))
 
             SecureField("Confirm New Password", text: $viewModel.confirmPassword)
                 .textContentType(.newPassword)
-                .accessibilityLabel("Confirm new password")
+                .accessibilityLabel(String(localized: "Confirm new password"))
 
             if !viewModel.confirmPassword.isEmpty && !viewModel.passwordsMatch {
                 Text("Passwords do not match.")
                     .font(.subheadline)
                     .foregroundStyle(Color.errorRed)
-                    .accessibilityLabel("Error: Passwords do not match")
+                    .accessibilityLabel(String(localized: "Error: Passwords do not match"))
             }
 
             if let msg = viewModel.passwordMessage {
@@ -326,7 +326,7 @@ private struct ProfilePasswordSection: View {
                 }
             }
             .disabled(viewModel.isSavingPassword || !viewModel.isPasswordFormValid)
-            .accessibilityLabel(viewModel.isSavingPassword ? "Updating password" : "Update password")
+            .accessibilityLabel(viewModel.isSavingPassword ? String(localized: "Updating password") : String(localized: "Update password"))
 
         } header: {
             Text("Password")
@@ -360,7 +360,7 @@ private struct ProfileAthleteSection: View {
                 }
                 .padding(.vertical, 4)
             }
-            .accessibilityLabel("Athlete Profile: Manage your recruiting profile")
+            .accessibilityLabel(String(localized: "Athlete Profile: Manage your recruiting profile"))
         } header: {
             Text("Athlete Profile")
         }
@@ -417,7 +417,7 @@ private struct ProfileDeletionDefaultState: View {
             }
             .buttonStyle(.bordered)
             .tint(.errorRed)
-            .accessibilityLabel("Request account deletion")
+            .accessibilityLabel(String(localized: "Request account deletion"))
         }
         .padding(.vertical, 4)
     }
@@ -459,13 +459,13 @@ private struct ProfileDeletionConfirmState: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.errorRed)
                 .disabled(viewModel.isLoadingDeletion)
-                .accessibilityLabel("Confirm account deletion")
+                .accessibilityLabel(String(localized: "Confirm account deletion"))
 
                 Button("Cancel") {
                     viewModel.cancelDeletionConfirm()
                 }
                 .foregroundStyle(.secondary)
-                .accessibilityLabel("Cancel account deletion")
+                .accessibilityLabel(String(localized: "Cancel account deletion"))
             }
         }
         .padding(.vertical, 4)
@@ -511,7 +511,7 @@ private struct ProfileDeletionPendingState: View {
             }
             .buttonStyle(.bordered)
             .disabled(viewModel.isLoadingDeletion)
-            .accessibilityLabel("Cancel account deletion request")
+            .accessibilityLabel(String(localized: "Cancel account deletion request"))
         }
         .padding(.vertical, 4)
     }
@@ -542,7 +542,7 @@ private struct DateOfBirthField: View {
             in: ...Date.now,
             displayedComponents: .date
         )
-        .accessibilityLabel("Date of birth")
+        .accessibilityLabel(String(localized: "Date of birth"))
     }
 }
 

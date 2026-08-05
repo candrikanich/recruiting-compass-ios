@@ -109,7 +109,7 @@ private struct SchoolFormNameField: View {
             onNcaaLookup?(formState.name)
           }
         }
-        .accessibilityLabel("School name, required")
+        .accessibilityLabel(String(localized: "School name, required"))
         .accessibilityHint("Enter the school's full name")
     }
   }
@@ -162,7 +162,7 @@ private struct SchoolFormCityField: View {
         .onSubmit {
           onValidateField(\.city, formState.city)
         }
-        .accessibilityLabel("City, optional")
+        .accessibilityLabel(String(localized: "City, optional"))
         .accessibilityHint("Enter the city where the school is located")
     }
   }
@@ -186,7 +186,7 @@ private struct SchoolFormStateField: View {
         .onSubmit {
           onValidateField(\.state, formState.state)
         }
-        .accessibilityLabel("State, optional")
+        .accessibilityLabel(String(localized: "State, optional"))
         .accessibilityHint("Enter the state where the school is located")
     }
   }
@@ -238,7 +238,7 @@ private struct SchoolFormConferenceField: View {
         .onSubmit {
           onValidateField(\.conference, formState.conference)
         }
-        .accessibilityLabel("Conference, optional")
+        .accessibilityLabel(String(localized: "Conference, optional"))
         .accessibilityHint("Enter the athletic conference name")
     }
   }
@@ -265,7 +265,7 @@ private struct SchoolFormWebsiteField: View {
         .onSubmit {
           onValidateField(\.website, formState.website)
         }
-        .accessibilityLabel("Website, optional")
+        .accessibilityLabel(String(localized: "Website, optional"))
         .accessibilityHint("Enter the school's website URL")
     }
   }
@@ -317,7 +317,7 @@ private struct SchoolFormTwitterField: View {
         .onSubmit {
           onValidateField(\.twitterHandle, formState.twitterHandle)
         }
-        .accessibilityLabel("Twitter handle, optional")
+        .accessibilityLabel(String(localized: "Twitter handle, optional"))
         .accessibilityHint("Enter the school's Twitter handle")
     }
   }
@@ -340,7 +340,7 @@ private struct SchoolFormInstagramField: View {
         .onSubmit {
           onValidateField(\.instagramHandle, formState.instagramHandle)
         }
-        .accessibilityLabel("Instagram handle, optional")
+        .accessibilityLabel(String(localized: "Instagram handle, optional"))
         .accessibilityHint("Enter the school's Instagram handle")
     }
   }
@@ -385,7 +385,7 @@ private struct SchoolFormNotesField: View {
           RoundedRectangle(cornerRadius: 6)
             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
         )
-        .accessibilityLabel("Notes, optional")
+        .accessibilityLabel(String(localized: "Notes, optional"))
         .accessibilityHint("Enter any notes about this school")
 
         // Character count

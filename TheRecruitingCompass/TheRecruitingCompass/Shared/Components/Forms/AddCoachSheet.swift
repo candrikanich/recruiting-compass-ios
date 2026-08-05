@@ -15,18 +15,18 @@ struct AddCoachSheet: View {
         Section("Coach Information") {
           TextField("First Name", text: $firstName)
             .textContentType(.givenName)
-            .accessibilityLabel("First name field")
+            .accessibilityLabel(String(localized: "First name field"))
 
           TextField("Last Name", text: $lastName)
             .textContentType(.familyName)
-            .accessibilityLabel("Last name field")
+            .accessibilityLabel(String(localized: "Last name field"))
 
           Picker("Role", selection: $role) {
             ForEach(CoachRole.allCases, id: \.self) { coachRole in
               Text(coachRole.displayName).tag(coachRole)
             }
           }
-          .accessibilityLabel("Coach role picker")
+          .accessibilityLabel(String(localized: "Coach role picker"))
         }
 
         Section {

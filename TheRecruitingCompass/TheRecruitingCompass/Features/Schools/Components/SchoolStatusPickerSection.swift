@@ -48,7 +48,7 @@ struct SchoolStatusPickerSection: View {
 
         if isUpdating {
           ProgressView()
-            .accessibilityLabel("Updating status")
+            .accessibilityLabel(String(localized: "Updating status"))
         }
       }
     }

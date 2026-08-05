@@ -39,7 +39,7 @@ struct DocumentsListView: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Upload new document")
+        .accessibilityLabel(String(localized: "Upload new document"))
         .accessibilityHint("Opens form to upload a document")
       }
     }
@@ -146,7 +146,7 @@ struct DocumentsListView: View {
           .frame(maxWidth: .infinity, minHeight: 44)
       }
       .buttonStyle(.borderedProminent)
-      .accessibilityLabel("Upload your first document")
+      .accessibilityLabel(String(localized: "Upload your first document"))
       .accessibilityHint("Opens the form to upload a document")
     }
   }
@@ -207,7 +207,7 @@ struct DocumentsListView: View {
         .clipShape(Circle())
         .brandShadowSm()
     }
-    .accessibilityLabel("Upload new document")
+    .accessibilityLabel(String(localized: "Upload new document"))
     .accessibilityHint("Opens upload form")
   }
 

@@ -87,7 +87,7 @@ struct SchoolPreferencesView: View {
             Text("Add Custom Preference")
           }
         }
-        .accessibilityLabel("Add custom preference")
+        .accessibilityLabel(String(localized: "Add custom preference"))
       }
     }
     .navigationTitle("School Preferences")

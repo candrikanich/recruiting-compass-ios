@@ -69,7 +69,7 @@ struct CoachDetailView: View {
           .disabled(viewModel.isLoading || viewModel.isDeleting)
         } label: {
           Image(systemName: "ellipsis.circle")
-            .accessibilityLabel("Coach actions menu")
+            .accessibilityLabel(String(localized: "Coach actions menu"))
         }
       }
     }

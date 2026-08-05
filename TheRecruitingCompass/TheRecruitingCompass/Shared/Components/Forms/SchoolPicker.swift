@@ -40,7 +40,7 @@ struct SchoolPicker: View {
       }
       .pickerStyle(.menu)
       .disabled(isDisabled)
-      .accessibilityLabel("School, required")
+      .accessibilityLabel(String(localized: "School, required"))
       .accessibilityHint("Select a school to add a coach to")
     }
   }

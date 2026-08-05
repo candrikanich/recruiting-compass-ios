@@ -127,7 +127,7 @@ struct CollegeScorecardDataDisplay: View {
     .background(Color.blue.opacity(0.05))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .contain)
-    .accessibilityLabel("College Scorecard academic data")
+    .accessibilityLabel(String(localized: "College Scorecard academic data"))
   }
 
   // MARK: - Data Item

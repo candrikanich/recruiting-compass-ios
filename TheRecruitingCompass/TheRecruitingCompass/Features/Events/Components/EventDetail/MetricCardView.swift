@@ -19,7 +19,7 @@ struct MetricCardView: View {
         if metric.verified {
           Image(systemName: "checkmark.seal.fill")
             .foregroundStyle(.green)
-            .accessibilityLabel("Verified")
+            .accessibilityLabel(String(localized: "Verified"))
         }
       }
 

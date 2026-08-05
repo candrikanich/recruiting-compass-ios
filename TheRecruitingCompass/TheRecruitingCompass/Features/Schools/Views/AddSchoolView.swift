@@ -82,7 +82,7 @@ struct AddSchoolView: View {
         } label: {
           Label("Back", systemImage: "chevron.left")
         }
-        .accessibilityLabel("Back to schools list")
+        .accessibilityLabel(String(localized: "Back to schools list"))
       }
     }
     .alert("Error", isPresented: $viewModel.isShowingError) {
@@ -152,7 +152,7 @@ private struct AddSchoolAutocompleteToggleSection: View {
     Section {
       // Phase 2: Enable toggle (was disabled in MVP)
       Toggle("Search college database", isOn: $formState.isAutocompleteEnabled)
-        .accessibilityLabel("Search college database")
+        .accessibilityLabel(String(localized: "Search college database"))
         .accessibilityHint("Enable to search and auto-fill from college database")
         .accessibilityAddTraits(.isButton)
 
@@ -177,7 +177,7 @@ private struct AddSchoolAutocompleteToggleSection: View {
               .textFieldStyle(.roundedBorder)
               .textContentType(.organizationName)
               .autocapitalization(.words)
-              .accessibilityLabel("College search")
+              .accessibilityLabel(String(localized: "College search"))
               .accessibilityHint("Type at least 3 characters to search")
               .onChange(of: searchQuery) { _, newValue in
                 onSearchQueryChanged(newValue)
@@ -207,10 +207,10 @@ private struct AddSchoolAutocompleteToggleSection: View {
     } footer: {
       if formState.isAutocompleteEnabled {
         Text("Search by college name to auto-fill school information")
-          .accessibilityLabel("Search by college name to auto-fill")
+          .accessibilityLabel(String(localized: "Search by college name to auto-fill"))
       } else {
         Text("Enable database search to auto-fill school information")
-          .accessibilityLabel("Enable database search to auto-fill")
+          .accessibilityLabel(String(localized: "Enable database search to auto-fill"))
       }
     }
   }
@@ -311,7 +311,7 @@ private struct AddSchoolCancelButton: View {
       onTap()
     }
     .frame(minHeight: 44)
-    .accessibilityLabel("Cancel adding school")
+    .accessibilityLabel(String(localized: "Cancel adding school"))
     .accessibilityHint("Return to schools list without saving")
   }
 }

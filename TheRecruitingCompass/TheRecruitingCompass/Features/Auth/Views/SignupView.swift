@@ -73,7 +73,7 @@ private struct SignupBackButtonView: View {
         }
         .foregroundStyle(Color.darkSlate)
       }
-      .accessibilityLabel("Back to welcome screen")
+      .accessibilityLabel(String(localized: "Back to welcome screen"))
       Spacer()
     }
     .padding(.horizontal, 24)
@@ -167,7 +167,7 @@ private struct SignupRoleHeaderView: View {
           }
           .foregroundStyle(Color.accentBlue)
         }
-        .accessibilityLabel("Change role selection")
+        .accessibilityLabel(String(localized: "Change role selection"))
         .accessibilityHint("Return to role selection screen")
 
         Spacer()
@@ -393,7 +393,7 @@ private struct SignupCreateAccountButtonView: View {
         if viewModel.isLoading {
           ProgressView()
             .tint(.white)
-            .accessibilityLabel("Creating account")
+            .accessibilityLabel(String(localized: "Creating account"))
         }
       }
       .frame(maxWidth: .infinity)
@@ -406,7 +406,7 @@ private struct SignupCreateAccountButtonView: View {
       .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
       .disabled(viewModel.isButtonDisabled)
     }
-    .accessibilityLabel(viewModel.isLoading ? "Creating account, please wait" : "Create account")
+    .accessibilityLabel(viewModel.isLoading ? String(localized: "Creating account, please wait") : String(localized: "Create account"))
     .accessibilityHint("Double tap to create your account")
   }
 }
@@ -432,7 +432,7 @@ private struct SignupSignInSectionView: View {
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }
-      .accessibilityLabel("Sign in to existing account")
+      .accessibilityLabel(String(localized: "Sign in to existing account"))
       .accessibilityHint("Navigate to login screen")
     }
   }

@@ -80,7 +80,7 @@ struct SchoolDetailHeader: View {
       }
       .scrollIndicators(.hidden)
       .accessibilityElement(children: .contain)
-      .accessibilityLabel("School details badges")
+      .accessibilityLabel(String(localized: "School details badges"))
       .accessibilityHint("Swipe to navigate through school attributes")
     }
     .padding()

@@ -25,32 +25,32 @@ struct HomeLocationView: View {
           }
         }
         .disabled(viewModel.isRequestingLocation)
-        .accessibilityLabel("Use current location")
+        .accessibilityLabel(String(localized: "Use current location"))
         .accessibilityHint("Fills in your address using your current GPS location")
 
         TextField("Street Address", text: $viewModel.address)
           .textContentType(.streetAddressLine1)
           .autocapitalization(.words)
-          .accessibilityLabel("Street address")
+          .accessibilityLabel(String(localized: "Street address"))
 
         HStack(spacing: 12) {
           TextField("City", text: $viewModel.city)
             .textContentType(.addressCity)
             .autocapitalization(.words)
-            .accessibilityLabel("City")
+            .accessibilityLabel(String(localized: "City"))
 
           TextField("State", text: $viewModel.state)
             .textContentType(.addressState)
             .autocapitalization(.allCharacters)
             .frame(width: 60)
-            .accessibilityLabel("State (2 letters)")
+            .accessibilityLabel(String(localized: "State (2 letters)"))
             .accessibilityHint("Enter 2-letter state code")
         }
 
         TextField("ZIP Code", text: $viewModel.zip)
           .textContentType(.postalCode)
           .keyboardType(.numberPad)
-          .accessibilityLabel("ZIP code")
+          .accessibilityLabel(String(localized: "ZIP code"))
       } header: {
         Text("Address")
       } footer: {
@@ -75,7 +75,7 @@ struct HomeLocationView: View {
           }
         }
         .disabled(!viewModel.hasValidAddress || viewModel.isGeocoding)
-        .accessibilityLabel("Lookup coordinates from address")
+        .accessibilityLabel(String(localized: "Lookup coordinates from address"))
         .accessibilityHint(viewModel.hasValidAddress ? "Tap to geocode address" : "Enter city and state first")
 
         if viewModel.hasCoordinates {

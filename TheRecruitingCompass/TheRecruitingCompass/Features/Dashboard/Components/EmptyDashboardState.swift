@@ -34,7 +34,7 @@ struct EmptyDashboardState: View {
       }
       .buttonStyle(.borderedProminent)
       .padding(.horizontal)
-      .accessibilityLabel("Add your first school")
+      .accessibilityLabel(String(localized: "Add your first school"))
       .accessibilityHint("Opens the form to add a school")
     }
     .padding()

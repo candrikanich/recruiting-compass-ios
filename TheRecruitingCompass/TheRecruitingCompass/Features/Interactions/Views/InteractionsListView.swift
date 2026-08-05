@@ -40,7 +40,7 @@ struct InteractionsListView: View {
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
             }
-            .accessibilityLabel("Log new interaction")
+            .accessibilityLabel(String(localized: "Log new interaction"))
             .accessibilityHint("Opens form to log a new interaction")
           }
         }

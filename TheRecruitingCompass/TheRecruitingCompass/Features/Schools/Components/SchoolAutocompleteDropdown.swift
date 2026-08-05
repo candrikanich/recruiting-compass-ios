@@ -45,7 +45,7 @@ struct SchoolAutocompleteDropdown: View {
     HStack {
       ProgressView()
         .progressViewStyle(.circular)
-        .accessibilityLabel("Searching colleges")
+        .accessibilityLabel(String(localized: "Searching colleges"))
 
       Text("Searching...")
         .foregroundStyle(.secondary)
@@ -90,7 +90,7 @@ struct SchoolAutocompleteDropdown: View {
     .padding()
     .frame(maxWidth: .infinity, alignment: .leading)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("No colleges found")
+    .accessibilityLabel(String(localized: "No colleges found"))
   }
 
   // MARK: - Results List

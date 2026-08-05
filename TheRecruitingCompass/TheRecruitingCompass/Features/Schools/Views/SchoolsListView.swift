@@ -66,7 +66,7 @@ struct SchoolsListView: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Add new school")
+        .accessibilityLabel(String(localized: "Add new school"))
         .accessibilityHint("Opens form to add a new school")
         }
       }

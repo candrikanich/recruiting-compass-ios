@@ -15,7 +15,7 @@ struct AutoFilledBadge: View {
     Text("(auto-filled)")
       .font(.caption)
       .foregroundStyle(.blue)
-      .accessibilityLabel("auto-filled")
+      .accessibilityLabel(String(localized: "auto-filled"))
       .accessibilityAddTraits(.isStaticText)
   }
 }

@@ -61,7 +61,7 @@ struct SchoolFilterBar: View {
         style: .capsule
       )
     }
-    .accessibilityLabel("Division filter")
+    .accessibilityLabel(String(localized: "Division filter"))
     .accessibilityValue(filters.division?.displayName ?? "All")
     .accessibilityHint("Double tap to change division filter")
   }
@@ -85,7 +85,7 @@ struct SchoolFilterBar: View {
         style: .capsule
       )
     }
-    .accessibilityLabel("Status filter")
+    .accessibilityLabel(String(localized: "Status filter"))
     .accessibilityValue(filters.status?.displayName ?? "All")
     .accessibilityHint("Double tap to change status filter")
   }
@@ -109,7 +109,7 @@ struct SchoolFilterBar: View {
         style: .capsule
       )
     }
-    .accessibilityLabel("State filter")
+    .accessibilityLabel(String(localized: "State filter"))
     .accessibilityValue(filters.state ?? "All")
     .accessibilityHint("Double tap to change state filter")
   }
@@ -131,7 +131,7 @@ struct SchoolFilterBar: View {
       .background(filters.isFavoritesOnly ? Color.blue : Color(.systemGray5))
       .clipShape(Capsule())
     }
-    .accessibilityLabel("Favorites filter")
+    .accessibilityLabel(String(localized: "Favorites filter"))
     .accessibilityValue(filters.isFavoritesOnly ? "Active" : "Inactive")
     .accessibilityHint("Double tap to toggle favorites filter")
     .accessibilityAddTraits(.isButton)
@@ -164,7 +164,7 @@ struct SchoolFilterBar: View {
         style: .capsule
       )
     }
-    .accessibilityLabel("Sort order")
+    .accessibilityLabel(String(localized: "Sort order"))
     .accessibilityValue(filters.sortBy.displayName)
     .accessibilityHint("Double tap to change sort order")
   }
@@ -200,7 +200,7 @@ struct SchoolFilterBar: View {
             in: 0...100,
             step: 5
           )
-          .accessibilityLabel("Minimum fit score")
+          .accessibilityLabel(String(localized: "Minimum fit score"))
           .accessibilityValue("\(Int(filters.fitScoreMin ?? 0))")
         }
 
@@ -217,7 +217,7 @@ struct SchoolFilterBar: View {
             in: 0...100,
             step: 5
           )
-          .accessibilityLabel("Maximum fit score")
+          .accessibilityLabel(String(localized: "Maximum fit score"))
           .accessibilityValue("\(Int(filters.fitScoreMax ?? 100))")
         }
       }
@@ -256,7 +256,7 @@ struct SchoolFilterBar: View {
         in: 0...500,
         step: 25
       )
-      .accessibilityLabel("Maximum distance")
+      .accessibilityLabel(String(localized: "Maximum distance"))
       .accessibilityValue(filters.maxDistance.map { "\(Int($0)) miles" } ?? "No limit")
     }
     .padding(.horizontal, 4)
@@ -274,7 +274,7 @@ struct SchoolFilterBar: View {
         .foregroundStyle(.secondary)
     }
     .padding(.horizontal, 4)
-    .accessibilityLabel("Distance filter disabled")
+    .accessibilityLabel(String(localized: "Distance filter disabled"))
     .accessibilityHint("Set home location in settings to enable distance filtering")
   }
 

@@ -47,7 +47,7 @@ struct HelpCenterView: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Help Center. Everything you need to use The Recruiting Compass.")
+    .accessibilityLabel(String(localized: "Help Center. Everything you need to use The Recruiting Compass."))
   }
 }
 

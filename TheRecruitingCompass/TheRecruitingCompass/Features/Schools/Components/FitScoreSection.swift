@@ -70,7 +70,7 @@ struct FitScoreSection: View {
             .foregroundStyle(.secondary)
         }
         .frame(width: 44, height: 44)
-        .accessibilityLabel(isExpanded ? "Hide breakdown" : "Show breakdown")
+        .accessibilityLabel(isExpanded ? String(localized: "Hide breakdown") : String(localized: "Show breakdown"))
       }
 
       // Breakdown (expandable)

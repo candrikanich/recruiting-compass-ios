@@ -43,7 +43,7 @@ struct ActionItemCard: View {
               .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("Complete suggestion")
+          .accessibilityLabel(String(localized: "Complete suggestion"))
           .accessibilityHint("Mark this suggestion as done")
 
           Button(action: onDismiss) {
@@ -54,7 +54,7 @@ struct ActionItemCard: View {
               .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("Dismiss suggestion")
+          .accessibilityLabel(String(localized: "Dismiss suggestion"))
           .accessibilityHint("Hide this suggestion without completing it")
         }
       }

@@ -174,7 +174,7 @@ private struct TimelineMainContent: View {
           .font(.subheadline.weight(.medium))
           .foregroundStyle(Color.successGreen)
           .padding(.vertical, 6)
-          .accessibilityLabel("Great job")
+          .accessibilityLabel(String(localized: "Great job"))
       }
 
       ForEach(phaseOrder, id: \.0) { grade, phase in

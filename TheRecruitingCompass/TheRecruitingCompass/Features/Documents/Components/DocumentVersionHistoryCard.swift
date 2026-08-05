@@ -27,7 +27,7 @@ struct DocumentVersionHistoryCard: View {
           .font(.subheadline.weight(.medium))
           .frame(maxWidth: .infinity, minHeight: 44)
       }
-      .accessibilityLabel("Upload New Version")
+      .accessibilityLabel(String(localized: "Upload New Version"))
       .accessibilityHint("Select a file to add a new version")
       .buttonStyle(.borderedProminent)
       .disabled(isUploadingNewVersion)

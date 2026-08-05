@@ -46,7 +46,7 @@ struct LandingView: View {
     }
     .padding(.bottom, 12)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("The Recruiting Compass")
+    .accessibilityLabel(String(localized: "The Recruiting Compass"))
   }
 
   @ViewBuilder
@@ -65,7 +65,7 @@ struct LandingView: View {
           .clipShape(.rect(cornerRadius: 12))
           .shadow(radius: 5)
       }
-      .accessibilityLabel("Sign in to your account")
+      .accessibilityLabel(String(localized: "Sign in to your account"))
       .accessibilityHint("Enter your email and password")
       .navigationDestination(isPresented: $showLogin) {
         LoginView()
@@ -84,7 +84,7 @@ struct LandingView: View {
           .clipShape(.rect(cornerRadius: 12))
           .shadow(radius: 5)
       }
-      .accessibilityLabel("Create a new account")
+      .accessibilityLabel(String(localized: "Create a new account"))
       .accessibilityHint("Set up a new account with your information")
       .navigationDestination(isPresented: $showSignup) {
         SignupView()

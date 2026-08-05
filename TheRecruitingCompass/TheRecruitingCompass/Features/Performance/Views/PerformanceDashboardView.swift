@@ -32,7 +32,7 @@ struct PerformanceDashboardView: View {
           } label: {
             Label("Export", systemImage: "square.and.arrow.up")
           }
-          .accessibilityLabel("Export metrics")
+          .accessibilityLabel(String(localized: "Export metrics"))
         }
 
         Button {
@@ -40,7 +40,7 @@ struct PerformanceDashboardView: View {
         } label: {
           Label("Log Metric", systemImage: "plus")
         }
-        .accessibilityLabel("Log new metric")
+        .accessibilityLabel(String(localized: "Log new metric"))
       }
     }
     .sheet(isPresented: $viewModel.showAddForm) {
@@ -147,7 +147,7 @@ struct PerformanceDashboardView: View {
   @ViewBuilder
   private var loadingView: some View {
     LoadingStateView(message: "Loading metrics...")
-      .accessibilityLabel("Loading performance metrics")
+      .accessibilityLabel(String(localized: "Loading performance metrics"))
   }
 
   @ViewBuilder
@@ -165,7 +165,7 @@ struct PerformanceDashboardView: View {
           .frame(maxWidth: .infinity, minHeight: 44)
       }
       .buttonStyle(.borderedProminent)
-      .accessibilityLabel("Log your first metric")
+      .accessibilityLabel(String(localized: "Log your first metric"))
       .accessibilityHint("Opens the form to log a performance metric")
     }
   }

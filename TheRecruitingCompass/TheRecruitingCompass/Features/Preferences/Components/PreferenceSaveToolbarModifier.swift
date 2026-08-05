@@ -16,7 +16,7 @@ struct PreferenceSaveToolbarModifier: ViewModifier {
             }
           }
           .disabled(!hasUnsavedChanges || isSaving)
-          .accessibilityLabel("Save preferences")
+          .accessibilityLabel(String(localized: "Save preferences"))
         }
       }
   }

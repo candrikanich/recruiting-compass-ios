@@ -40,7 +40,7 @@ struct EventsListView: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .accessibilityLabel("Add new event")
+        .accessibilityLabel(String(localized: "Add new event"))
         .accessibilityHint("Opens form to create a new event")
       }
     }
@@ -179,27 +179,27 @@ struct EventsListView: View {
           Text(type.displayName).tag(EventType?.some(type))
         }
       }
-      .accessibilityLabel("Filter by event type")
+      .accessibilityLabel(String(localized: "Filter by event type"))
 
       Picker("Status", selection: $viewModel.statusFilter) {
         ForEach(StatusFilter.allCases, id: \.self) { status in
           Text(status.rawValue).tag(status)
         }
       }
-      .accessibilityLabel("Filter by registration status")
+      .accessibilityLabel(String(localized: "Filter by registration status"))
 
       Picker("Date Range", selection: $viewModel.dateRangeFilter) {
         ForEach(DateRangeFilter.allCases, id: \.self) { range in
           Text(range.rawValue).tag(range)
         }
       }
-      .accessibilityLabel("Filter by date range")
+      .accessibilityLabel(String(localized: "Filter by date range"))
 
       if viewModel.hasActiveFilters {
         Button("Clear Filters", role: .destructive) {
           viewModel.clearFilters()
         }
-        .accessibilityLabel("Clear all active filters")
+        .accessibilityLabel(String(localized: "Clear all active filters"))
       }
     } header: {
       Text("Filters")
@@ -222,7 +222,7 @@ struct EventsListView: View {
           }
         }
         .pickerStyle(.menu)
-        .accessibilityLabel("Sort events")
+        .accessibilityLabel(String(localized: "Sort events"))
       }
     }
   }
@@ -249,7 +249,7 @@ struct EventsListView: View {
   @ViewBuilder
   private var loadingState: some View {
     LoadingStateView(message: "Loading events...")
-      .accessibilityLabel("Loading events")
+      .accessibilityLabel(String(localized: "Loading events"))
   }
 
   @ViewBuilder

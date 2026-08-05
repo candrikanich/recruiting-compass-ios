@@ -7,7 +7,7 @@ struct TimeoutBanner: View {
       message: "You were logged out due to inactivity. Please log in again.",
       onDismiss: nil
     )
-    .accessibilityLabel("Session timeout warning")
+    .accessibilityLabel(String(localized: "Session timeout warning"))
     .accessibilityAddTraits(.isHeader)
   }
 }

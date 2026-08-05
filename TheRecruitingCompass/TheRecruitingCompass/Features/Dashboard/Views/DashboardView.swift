@@ -226,7 +226,7 @@ private struct DashboardLogoutButton: View {
     .disabled(isLoggingOut)
     .opacity(isLoggingOut ? 0.6 : 1)
     .padding(.horizontal)
-    .accessibilityLabel(isLoggingOut ? "Logging out" : "Log out")
+    .accessibilityLabel(isLoggingOut ? String(localized: "Logging out") : String(localized: "Log out"))
     .accessibilityHint("Ends your session and returns to the login screen")
   }
 }

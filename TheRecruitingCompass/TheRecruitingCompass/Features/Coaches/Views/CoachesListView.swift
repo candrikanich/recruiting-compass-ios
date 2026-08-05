@@ -59,7 +59,7 @@ struct CoachesListView: View {
               .frame(minWidth: 44, minHeight: 44)
               .contentShape(Rectangle())
           }
-          .accessibilityLabel("Add new coach")
+          .accessibilityLabel(String(localized: "Add new coach"))
           .accessibilityHint("Opens form to add a new coach")
         }
       }

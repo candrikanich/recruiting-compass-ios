@@ -34,7 +34,7 @@ struct InlineErrorView: View {
         Button("Retry", action: onRetry)
           .buttonStyle(.borderedProminent)
           .frame(minWidth: 44, minHeight: 44)
-          .accessibilityLabel("Retry")
+          .accessibilityLabel(String(localized: "Retry"))
           .accessibilityHint(retryAccessibilityHint ?? "Attempts to load again")
       }
     }

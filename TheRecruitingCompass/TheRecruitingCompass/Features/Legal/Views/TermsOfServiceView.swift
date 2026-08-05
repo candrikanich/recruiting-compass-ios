@@ -19,7 +19,7 @@ struct TermsOfServiceView: View {
           ToolbarItem(placement: .cancellationAction) {
             Button("Back") { dismiss() }
               .foregroundStyle(Color.darkSlate)
-              .accessibilityLabel("Back")
+              .accessibilityLabel(String(localized: "Back"))
               .accessibilityHint("Dismiss Terms and Conditions")
           }
         }

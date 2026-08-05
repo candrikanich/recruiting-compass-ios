@@ -28,7 +28,7 @@ struct MetricTypeFilterBar: View {
       }
       .padding(.horizontal, 16)
       .accessibilityElement(children: .contain)
-      .accessibilityLabel("Metric type filters")
+      .accessibilityLabel(String(localized: "Metric type filters"))
     }
     .scrollIndicators(.hidden)
   }

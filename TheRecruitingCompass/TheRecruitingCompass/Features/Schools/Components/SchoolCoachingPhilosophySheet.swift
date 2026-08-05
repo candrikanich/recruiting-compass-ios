@@ -72,7 +72,7 @@ struct SchoolCoachingPhilosophySheet: View {
             if isSaving {
               ProgressView()
                 .progressViewStyle(.circular)
-                .accessibilityLabel("Saving")
+                .accessibilityLabel(String(localized: "Saving"))
             } else {
               Text("Save")
             }

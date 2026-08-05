@@ -45,7 +45,7 @@ struct FilterChipContainer<Content: View>: View {
     .font(.subheadline)
     .fontWeight(style == .filled ? .medium : .regular)
     .foregroundStyle(clearAllColor)
-    .accessibilityLabel("Clear all filters")
+    .accessibilityLabel(String(localized: "Clear all filters"))
     .accessibilityHint("Removes all active filters")
   }
 

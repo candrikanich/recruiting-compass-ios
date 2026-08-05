@@ -29,7 +29,7 @@ struct DocumentFilterBar: View {
           .background(Color(.systemGray5))
           .clipShape(.rect(cornerRadius: 8))
         }
-        .accessibilityLabel("Sort documents")
+        .accessibilityLabel(String(localized: "Sort documents"))
         .accessibilityHint("Choose sort order")
 
         Spacer()
@@ -63,7 +63,7 @@ struct DocumentFilterBar: View {
               .background(viewMode == .grid ? Color.blue : Color(.systemGray5))
               .clipShape(.rect(cornerRadius: 8))
           }
-          .accessibilityLabel("Grid view")
+          .accessibilityLabel(String(localized: "Grid view"))
           .accessibilityAddTraits(viewMode == .grid ? .isSelected : [])
 
           Button {
@@ -75,7 +75,7 @@ struct DocumentFilterBar: View {
               .background(viewMode == .list ? Color.blue : Color(.systemGray5))
               .clipShape(.rect(cornerRadius: 8))
           }
-          .accessibilityLabel("List view")
+          .accessibilityLabel(String(localized: "List view"))
           .accessibilityAddTraits(viewMode == .list ? .isSelected : [])
         }
       }
