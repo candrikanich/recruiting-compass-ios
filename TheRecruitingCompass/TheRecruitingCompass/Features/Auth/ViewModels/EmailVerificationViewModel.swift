@@ -43,11 +43,11 @@ final class EmailVerificationViewModel {
   var headlineText: String {
     switch verificationState {
     case .pending, .checking:
-      return "Verify Your Email"
+      return String(localized: "Verify Your Email")
     case .verified:
-      return "Verified!"
+      return String(localized: "Verified!")
     case .error:
-      return "Verification Issue"
+      return String(localized: "Verification Issue")
     }
   }
 
@@ -81,11 +81,11 @@ final class EmailVerificationViewModel {
 
   var accessibilityLabelForButton: String {
     if isVerified {
-      return "Continue to dashboard"
+      return String(localized: "Continue to dashboard")
     } else if verificationState == .checking {
-      return "Checking verification status"
+      return String(localized: "Checking verification status")
     } else {
-      return "Resend verification email"
+      return String(localized: "Resend verification email")
     }
   }
 

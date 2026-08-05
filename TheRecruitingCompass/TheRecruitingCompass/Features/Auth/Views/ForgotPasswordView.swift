@@ -223,9 +223,9 @@ struct ForgotPasswordView: View {
 
   private var resendButtonAccessibilityLabel: String {
     if !viewModel.canResendEmail {
-      return "Send another reset link, available in \(viewModel.resendCooldownSeconds) seconds"
+      return String(localized: "Send another reset link, available in \(viewModel.resendCooldownSeconds) seconds")
     }
-    return "Send another reset link"
+    return String(localized: "Send another reset link")
   }
 }
 
