@@ -11,7 +11,3 @@ struct ActivityDestination: Hashable {
     self.clickUrl = event.clickUrl
   }
 }
-
-enum ActivityFeedDestination: Hashable {
-  case fullPage
-}

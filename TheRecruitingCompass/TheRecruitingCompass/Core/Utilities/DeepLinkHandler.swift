@@ -1,11 +1,5 @@
 import Foundation
 
-enum DeepLinkRoute: Equatable {
-  case resetPassword(token: String)
-  case joinInvite(token: String)
-  case unknown
-}
-
 enum DeepLinkHandler {
   static let scheme = "recruiting-compass"
   static let universalLinkHosts: Set<String> = {
