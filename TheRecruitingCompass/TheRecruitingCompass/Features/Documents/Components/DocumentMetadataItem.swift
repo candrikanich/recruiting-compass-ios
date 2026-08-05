@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DocumentMetadataItem: View {
-  let label: String
+  let label: LocalizedStringKey
   let value: String
 
   var body: some View {

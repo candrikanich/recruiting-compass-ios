@@ -9,11 +9,11 @@ enum DocumentSortOption: String, CaseIterable {
 
   var label: String {
     switch self {
-    case .newest: return "Newest First"
-    case .oldest: return "Oldest First"
-    case .name: return "Name (A-Z)"
-    case .type: return "Type"
-    case .shared: return "Most Shared"
+    case .newest: return String(localized: "Newest First")
+    case .oldest: return String(localized: "Oldest First")
+    case .name: return String(localized: "Name (A-Z)")
+    case .type: return String(localized: "Type")
+    case .shared: return String(localized: "Most Shared")
     }
   }
 }

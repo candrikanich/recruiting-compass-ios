@@ -57,7 +57,7 @@ struct DocumentUploadSheet: View {
           } label: {
             HStack {
               Image(systemName: "doc.badge.plus")
-              Text(viewModel.selectedFileName ?? "Select file")
+              Text(viewModel.selectedFileName ?? String(localized: "Select file"))
                 .foregroundStyle(viewModel.selectedFileURL == nil ? .secondary : .primary)
             }
           }
@@ -81,7 +81,7 @@ struct DocumentUploadSheet: View {
               }
               Text(viewModel.uploadProgress > 0 && viewModel.uploadProgress < 1
                 ? "\(Int(viewModel.uploadProgress * 100))%"
-                : "Uploading...")
+                : String(localized: "Uploading..."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }

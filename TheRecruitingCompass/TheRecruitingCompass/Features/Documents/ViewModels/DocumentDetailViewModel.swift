@@ -77,8 +77,8 @@ final class DocumentDetailViewModel {
   }
 
   func schoolName(for schoolId: String?) -> String {
-    guard let id = schoolId else { return "General" }
-    return schools.first { $0.id == id }?.name ?? "Unknown"
+    guard let id = schoolId else { return String(localized: "General") }
+    return schools.first { $0.id == id }?.name ?? String(localized: "Unknown")
   }
 
   var availableSchoolsForShare: [School] {

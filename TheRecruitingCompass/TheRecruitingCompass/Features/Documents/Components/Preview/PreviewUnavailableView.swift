@@ -4,7 +4,7 @@ import SwiftUI
 
 struct PreviewUnavailableView: View {
   let icon: String
-  let message: String
+  let message: LocalizedStringKey
 
   var body: some View {
     VStack(spacing: 8) {

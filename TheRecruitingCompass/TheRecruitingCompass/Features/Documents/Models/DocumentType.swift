@@ -10,12 +10,12 @@ enum DocumentType: String, Codable, CaseIterable, Sendable {
 
   var label: String {
     switch self {
-    case .highlightVideo: return "Highlight Video"
-    case .transcript: return "Transcript"
-    case .resume: return "Resume"
-    case .recLetter: return "Recommendation Letter"
-    case .questionnaire: return "Questionnaire"
-    case .statsSheet: return "Stats Sheet"
+    case .highlightVideo: return String(localized: "Highlight Video")
+    case .transcript: return String(localized: "Transcript")
+    case .resume: return String(localized: "Resume")
+    case .recLetter: return String(localized: "Recommendation Letter")
+    case .questionnaire: return String(localized: "Questionnaire")
+    case .statsSheet: return String(localized: "Stats Sheet")
     }
   }
 

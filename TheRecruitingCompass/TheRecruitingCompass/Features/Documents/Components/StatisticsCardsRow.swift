@@ -38,7 +38,7 @@ struct DocumentStatisticsCardsRow: View {
 }
 
 private struct DocumentStatCard: View {
-  let label: String
+  let label: LocalizedStringKey
   let value: String
   let color: Color
 

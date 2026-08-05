@@ -182,7 +182,7 @@ struct DocumentViewerView: View {
 
         Spacer()
 
-        Text(viewModel.document?.title ?? "Document")
+        Text(viewModel.document?.title ?? String(localized: "Document"))
           .font(.headline)
           .foregroundStyle(.white)
           .lineLimit(1)
@@ -292,7 +292,7 @@ struct DocumentViewerView: View {
           .foregroundStyle(.white)
           .accessibilityHidden(true)
 
-        Text(viewModel.errorMessage ?? "Something went wrong")
+        Text(viewModel.errorMessage ?? String(localized: "Something went wrong"))
           .font(.subheadline)
           .foregroundStyle(.white)
           .multilineTextAlignment(.center)
