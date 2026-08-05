@@ -129,7 +129,7 @@ struct ResetPasswordView: View {
         }
       }) {
         HStack {
-          Text(viewModel.isLoading ? "Resetting..." : "Reset Password")
+          Text(viewModel.isLoading ? String(localized: "Resetting...") : String(localized: "Reset Password"))
             .font(.callout.weight(.semibold))
 
           if viewModel.isLoading {
@@ -164,7 +164,7 @@ struct ResetPasswordView: View {
           : Color.errorRed)
         .accessibilityHidden(true)
 
-      Text(viewModel.passwordsMatch ? "Passwords match" : "Passwords do not match")
+      Text(viewModel.passwordsMatch ? String(localized: "Passwords match") : String(localized: "Passwords do not match"))
         .font(.caption)
         .foregroundStyle(viewModel.passwordsMatch
           ? Color.successGreen

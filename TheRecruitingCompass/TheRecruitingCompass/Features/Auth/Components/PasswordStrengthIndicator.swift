@@ -32,13 +32,13 @@ struct PasswordStrengthIndicator: View {
 
   private var strengthText: String {
     if password.isEmpty {
-      return "No password"
+      return String(localized: "No password")
     } else if strengthPercentage < 0.5 {
-      return "Weak"
+      return String(localized: "Weak")
     } else if strengthPercentage < 1.0 {
-      return "Fair"
+      return String(localized: "Fair")
     } else {
-      return "Strong"
+      return String(localized: "Strong")
     }
   }
 

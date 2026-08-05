@@ -105,7 +105,7 @@ struct ForgotPasswordView: View {
         }
       }) {
         HStack {
-          Text(viewModel.isLoading ? "Sending..." : "Send Reset Link")
+          Text(viewModel.isLoading ? String(localized: "Sending...") : String(localized: "Send Reset Link"))
             .font(.callout.weight(.semibold))
 
           if viewModel.isLoading {
@@ -216,9 +216,9 @@ struct ForgotPasswordView: View {
 
   private var resendButtonText: String {
     if !viewModel.canResendEmail {
-      return "Send Another (\(viewModel.resendCooldownSeconds)s)"
+      return String(localized: "Send Another (\(viewModel.resendCooldownSeconds)s)")
     }
-    return "Send Another"
+    return String(localized: "Send Another")
   }
 
   private var resendButtonAccessibilityLabel: String {

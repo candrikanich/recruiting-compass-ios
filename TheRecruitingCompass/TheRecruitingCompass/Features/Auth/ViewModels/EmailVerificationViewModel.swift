@@ -54,23 +54,23 @@ final class EmailVerificationViewModel {
   var subtitleText: String {
     switch verificationState {
     case .pending:
-      return "We've sent a verification link to your email. Click it to verify your account."
+      return String(localized: "We've sent a verification link to your email. Click it to verify your account.")
     case .checking:
-      return "Checking your email verification status..."
+      return String(localized: "Checking your email verification status...")
     case .verified:
-      return "Your email has been verified successfully! You can now access the app."
+      return String(localized: "Your email has been verified successfully! You can now access the app.")
     case .error:
-      return "We encountered an issue verifying your email. Please try again."
+      return String(localized: "We encountered an issue verifying your email. Please try again.")
     }
   }
 
   var actionButtonText: String {
     if isVerified {
-      return "Continue to Dashboard"
+      return String(localized: "Continue to Dashboard")
     } else if !canResendEmail {
-      return "Resend Email (Cooldown)"
+      return String(localized: "Resend Email (Cooldown)")
     } else {
-      return "Resend Verification Email"
+      return String(localized: "Resend Verification Email")
     }
   }
 

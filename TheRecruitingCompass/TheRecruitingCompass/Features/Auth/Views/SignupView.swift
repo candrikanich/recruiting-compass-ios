@@ -387,7 +387,7 @@ private struct SignupCreateAccountButtonView: View {
       }
     }) {
       HStack {
-        Text(viewModel.isLoading ? "Creating Account..." : "Create Account")
+        Text(viewModel.isLoading ? String(localized: "Creating Account...") : String(localized: "Create Account"))
           .font(.callout.weight(.semibold))
 
         if viewModel.isLoading {

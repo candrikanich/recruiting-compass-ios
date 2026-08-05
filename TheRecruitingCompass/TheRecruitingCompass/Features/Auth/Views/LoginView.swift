@@ -194,7 +194,7 @@ struct LoginView: View {
       }
     }) {
       HStack {
-        Text(viewModel.isLoading ? "Signing in..." : "Sign In")
+        Text(viewModel.isLoading ? String(localized: "Signing in...") : String(localized: "Sign In"))
           .font(.callout.weight(.semibold))
 
         if viewModel.isLoading {

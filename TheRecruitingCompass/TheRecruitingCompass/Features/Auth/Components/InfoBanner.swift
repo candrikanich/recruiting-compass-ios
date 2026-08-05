@@ -81,13 +81,13 @@ struct InfoBanner: View {
     switch state {
     case .pending:
       if let email {
-        return "Check \(email) for verification link"
+        return String(localized: "Check \(email) for verification link")
       }
-      return "Check your email for a verification link"
+      return String(localized: "Check your email for a verification link")
     case .checking:
-      return "Polling for verification status..."
+      return String(localized: "Polling for verification status...")
     case .verified:
-      return "You can now access the app"
+      return String(localized: "You can now access the app")
     case .error:
       return ""
     }
