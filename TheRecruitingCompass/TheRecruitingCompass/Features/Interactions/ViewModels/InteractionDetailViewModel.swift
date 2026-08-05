@@ -74,7 +74,7 @@ final class InteractionDetailViewModel {
 
   var loggedByDisplay: String {
     if interaction?.loggedBy == authManager.user?.id {
-      return "You"
+      return String(localized: "You")
     }
     return loggedByName
   }
@@ -239,7 +239,7 @@ final class InteractionDetailViewModel {
         }
       } else {
         logger.error("Delete failed: \(error.localizedDescription)")
-        errorMessage = "Failed to delete interaction. Please try again."
+        errorMessage = String(localized: "Failed to delete interaction. Please try again.")
         return false
       }
     }

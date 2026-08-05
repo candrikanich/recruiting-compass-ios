@@ -15,9 +15,9 @@ enum OfferAlertType: Identifiable {
 
   var title: String {
     switch self {
-    case .error: return "Error"
-    case .deleteConfirmation: return "Delete Offer?"
-    case .deleteError: return "Delete Failed"
+    case .error: return String(localized: "Error")
+    case .deleteConfirmation: return String(localized: "Delete Offer?")
+    case .deleteError: return String(localized: "Delete Failed")
     }
   }
 }

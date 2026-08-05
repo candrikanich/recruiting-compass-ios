@@ -9,10 +9,10 @@ enum InterestLevel: String, Codable, Sendable {
 
   var displayName: String {
     switch self {
-    case .high: return "High Interest"
-    case .medium: return "Medium Interest"
-    case .low: return "Low Interest"
-    case .notSet: return "Not Set"
+    case .high: return String(localized: "High Interest")
+    case .medium: return String(localized: "Medium Interest")
+    case .low: return String(localized: "Low Interest")
+    case .notSet: return String(localized: "Not Set")
     }
   }
 

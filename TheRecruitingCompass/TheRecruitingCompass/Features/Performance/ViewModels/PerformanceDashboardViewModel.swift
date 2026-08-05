@@ -149,7 +149,7 @@ final class PerformanceDashboardViewModel {
   func loadMetrics() async {
     guard let userId = targetUserId else {
       logger.warning("No authenticated user")
-      errorMessage = "Please sign in to view performance metrics."
+      errorMessage = String(localized: "Please sign in to view performance metrics.")
       return
     }
 
@@ -172,7 +172,7 @@ final class PerformanceDashboardViewModel {
       }
     } catch {
       logger.error("Failed to load metrics: \(error.localizedDescription)")
-      errorMessage = "Failed to load metrics. Please try again."
+      errorMessage = String(localized: "Failed to load metrics. Please try again.")
     }
   }
 
@@ -204,7 +204,7 @@ final class PerformanceDashboardViewModel {
       await invalidateMetricsListCache()
     } catch {
       logger.error("Failed to add metric: \(error.localizedDescription)")
-      errorMessage = "Failed to log metric. Please try again."
+      errorMessage = String(localized: "Failed to log metric. Please try again.")
     }
   }
 
@@ -244,7 +244,7 @@ final class PerformanceDashboardViewModel {
       await invalidateMetricsListCache()
     } catch {
       logger.error("Failed to update metric: \(error.localizedDescription)")
-      errorMessage = "Failed to update metric. Please try again."
+      errorMessage = String(localized: "Failed to update metric. Please try again.")
     }
   }
 
@@ -271,7 +271,7 @@ final class PerformanceDashboardViewModel {
       await invalidateMetricsListCache()
     } catch {
       logger.error("Failed to delete metric: \(error.localizedDescription)")
-      errorMessage = "Failed to delete metric. Please try again."
+      errorMessage = String(localized: "Failed to delete metric. Please try again.")
     }
   }
 

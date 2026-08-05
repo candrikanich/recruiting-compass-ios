@@ -104,7 +104,7 @@ final class OfferDetailViewModel {
 
       await loadSchoolForOffer(fetchedOffer, cache: cacheToUse)
     } catch {
-      errorMessage = "Failed to load offer details"
+      errorMessage = String(localized: "Failed to load offer details")
       logger.error("Failed to load offer: \(error.localizedDescription)")
     }
   }
