@@ -234,15 +234,3 @@ final class PlayerDetailsViewModel {
     var heightFeet: Int { (details.heightInches ?? 0) / 12 }
     var heightInchesRemainder: Int { (details.heightInches ?? 0) % 12 }
 }
-
-enum PhotoError: LocalizedError {
-    case compressionFailed
-    case fileTooLarge
-
-    var errorDescription: String? {
-        switch self {
-        case .compressionFailed: return "Failed to compress photo"
-        case .fileTooLarge: return "Photo must be less than 5MB"
-        }
-    }
-}
