@@ -50,7 +50,7 @@ struct SchoolRecruitingStatusAndTierSection: View {
         .clipShape(.rect(cornerRadius: 8))
       }
       .accessibilityIdentifier("status-picker-button")
-      .accessibilityLabel("Recruiting status: \(currentStatus.displayName)")
+      .accessibilityLabel(String(localized: "Recruiting status: \(currentStatus.displayName)"))
       .accessibilityHint("Double tap to change status")
       .disabled(isUpdatingStatus)
     }

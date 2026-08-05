@@ -16,6 +16,6 @@ struct DivisionBadge: View {
       .background(badgeColor.backgroundColor)
       .foregroundStyle(badgeColor.foregroundColor)
       .clipShape(Capsule())
-      .accessibilityLabel("Division: \(division)")
+      .accessibilityLabel(String(localized: "Division: \(division)"))
   }
 }

@@ -15,7 +15,7 @@ struct SchoolQuickActions: View {
       HStack(spacing: 12) {
         QuickActionButton(
           icon: "plus.message.fill",
-          title: "Log Interaction",
+          title: String(localized: "Log Interaction"),
           gradient: LinearGradient(
             colors: [Color.accentBlue, Color.accentBlue.opacity(0.7)],
             startPoint: .topLeading,
@@ -26,7 +26,7 @@ struct SchoolQuickActions: View {
 
         QuickActionButton(
           icon: "envelope.fill",
-          title: "Send Email",
+          title: String(localized: "Send Email"),
           gradient: LinearGradient(
             colors: [Color.successGreen, Color.successGreen.opacity(0.7)],
             startPoint: .topLeading,
@@ -37,7 +37,7 @@ struct SchoolQuickActions: View {
 
         QuickActionButton(
           icon: "person.2.fill",
-          title: "Manage Coaches",
+          title: String(localized: "Manage Coaches"),
           gradient: LinearGradient(
             colors: [Color.purple, Color.purple.opacity(0.7)],
             startPoint: .topLeading,

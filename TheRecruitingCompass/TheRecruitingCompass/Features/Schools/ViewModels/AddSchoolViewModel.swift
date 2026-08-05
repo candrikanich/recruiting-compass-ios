@@ -69,7 +69,7 @@ final class AddSchoolViewModel {
   }
 
   var submitButtonTitle: String {
-    isSubmitting ? "Adding..." : "Add School"
+    isSubmitting ? String(localized: "Adding...") : String(localized: "Add School")
   }
 
   // MARK: - Init

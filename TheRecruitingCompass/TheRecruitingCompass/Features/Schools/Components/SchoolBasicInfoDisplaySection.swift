@@ -69,7 +69,7 @@ struct SchoolBasicInfoDisplaySection: View {
           }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Website: \(website). Tap to open in browser.")
+        .accessibilityLabel(String(localized: "Website: \(website). Tap to open in browser."))
       }
     }
     .padding()

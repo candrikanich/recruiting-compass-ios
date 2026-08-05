@@ -78,7 +78,7 @@ struct SelectedCollegeCard: View {
         .stroke(Color.green, lineWidth: 1)
     )
     .accessibilityElement(children: .contain)
-    .accessibilityLabel("Selected college: \(college.name), \(college.location)")
+    .accessibilityLabel(String(localized: "Selected college: \(college.name), \(college.location)"))
   }
 }
 

@@ -394,7 +394,7 @@ private struct SchoolFormNotesField: View {
           Text("\(formState.notes.count) / \(SchoolFormState.notesCharacterLimit)")
             .font(.caption)
             .foregroundStyle(formState.notes.count > SchoolFormState.notesCharacterLimit ? .red : .secondary)
-            .accessibilityLabel("\(formState.notes.count) characters entered, limit \(SchoolFormState.notesCharacterLimit)")
+            .accessibilityLabel(String(localized: "\(formState.notes.count) characters entered, limit \(SchoolFormState.notesCharacterLimit)"))
         }
       }
     }

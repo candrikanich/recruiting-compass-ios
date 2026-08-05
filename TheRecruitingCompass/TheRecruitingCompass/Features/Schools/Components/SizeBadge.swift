@@ -12,6 +12,6 @@ struct SizeBadge: View {
       .background(Color.gray.opacity(0.15))
       .foregroundStyle(.secondary)
       .clipShape(Capsule())
-      .accessibilityLabel("Size: \(size.displayName)")
+      .accessibilityLabel(String(localized: "Size: \(size.displayName)"))
   }
 }

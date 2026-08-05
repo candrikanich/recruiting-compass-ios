@@ -50,14 +50,14 @@ struct StatusHistoryRow: View {
   }
 
   private var accessibilityText: String {
-    var text = "Status changed"
+    var text = String(localized: "Status changed")
     if let previous = entry.previousStatus {
-      text += " from \(previous)"
+      text += String(localized: " from \(previous)")
     }
-    text += " to \(entry.newStatus)"
-    text += ", \(entry.changedAt.formatted(.relative(presentation: .named)))"
+    text += String(localized: " to \(entry.newStatus)")
+    text += String(localized: ", \(entry.changedAt.formatted(.relative(presentation: .named)))")
     if let notes = entry.notes, !notes.isEmpty {
-      text += ", note: \(notes)"
+      text += String(localized: ", note: \(notes)")
     }
     return text
   }

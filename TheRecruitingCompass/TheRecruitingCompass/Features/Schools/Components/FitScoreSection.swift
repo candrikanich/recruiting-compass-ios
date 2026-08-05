@@ -23,7 +23,7 @@ struct FitScoreSection: View {
             .font(.largeTitle)
             .bold()
             .foregroundStyle(fitScoreColor(fitScore.score))
-            .accessibilityLabel("Fit score: \(Int(fitScore.score)) out of 100")
+            .accessibilityLabel(String(localized: "Fit score: \(Int(fitScore.score)) out of 100"))
 
           Text("Fit Score")
             .font(.caption)

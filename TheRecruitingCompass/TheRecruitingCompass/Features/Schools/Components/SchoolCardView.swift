@@ -7,7 +7,7 @@ struct SchoolCardView: View {
 
   @Environment(\.sizeCategory) private var sizeCategory
 
-  var deleteAccessibilityLabel: String { "Delete \(school.name)" }
+  var deleteAccessibilityLabel: String { String(localized: "Delete \(school.name)") }
 
   private var initialsSize: CGFloat {
     sizeCategory.isAccessibilityCategory ? 56 : 48
@@ -150,7 +150,7 @@ struct SchoolCardView: View {
             .font(.subheadline)
             .foregroundStyle(.secondary)
         }
-        .accessibilityLabel("Conference: \(conference)")
+        .accessibilityLabel(String(localized: "Conference: \(conference)"))
       }
 
       if let notes = school.notes, !notes.isEmpty {
@@ -164,7 +164,7 @@ struct SchoolCardView: View {
             .foregroundStyle(.secondary)
             .lineLimit(2)
         }
-        .accessibilityLabel("Notes: \(notes)")
+        .accessibilityLabel(String(localized: "Notes: \(notes)"))
       }
     }
   }

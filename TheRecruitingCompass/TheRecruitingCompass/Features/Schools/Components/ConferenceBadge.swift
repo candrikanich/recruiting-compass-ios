@@ -12,6 +12,6 @@ struct ConferenceBadge: View {
       .background(Color.gray.opacity(0.1))
       .foregroundStyle(.secondary)
       .clipShape(Capsule())
-      .accessibilityLabel("Conference: \(conference)")
+      .accessibilityLabel(String(localized: "Conference: \(conference)"))
   }
 }

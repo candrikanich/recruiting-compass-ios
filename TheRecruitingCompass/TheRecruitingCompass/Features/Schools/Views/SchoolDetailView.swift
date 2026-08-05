@@ -47,7 +47,7 @@ struct SchoolDetailView: View {
             Image(systemName: (viewModel.school?.isFavorite ?? false) ? "star.fill" : "star")
               .foregroundStyle((viewModel.school?.isFavorite ?? false) ? .yellow : .gray)
           }
-          .accessibilityLabel((viewModel.school?.isFavorite ?? false) ? "Unfavorite" : "Favorite")
+          .accessibilityLabel((viewModel.school?.isFavorite ?? false) ? String(localized: "Unfavorite") : String(localized: "Favorite"))
           .accessibilityIdentifier("favorite-button")
         }
       }

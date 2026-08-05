@@ -30,7 +30,7 @@ struct SchoolCoachesPanel: View {
               .font(.subheadline)
               .foregroundStyle(Color.accentBlue)
           }
-          .accessibilityLabel("See all \(coaches.count) coaches")
+          .accessibilityLabel(String(localized: "See all \(coaches.count) coaches"))
           .accessibilityHint("View complete list of coaches")
         }
       }

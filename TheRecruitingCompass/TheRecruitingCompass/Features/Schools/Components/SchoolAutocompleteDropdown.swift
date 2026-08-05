@@ -127,7 +127,7 @@ struct SchoolAutocompleteDropdown: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(college.name), \(college.location)")
+        .accessibilityLabel(String(localized: "\(college.name), \(college.location)"))
         .accessibilityHint("Select this college to auto-fill form")
         .accessibilityAddTraits(.isButton)
 
@@ -138,7 +138,7 @@ struct SchoolAutocompleteDropdown: View {
       }
     }
     .accessibilityElement(children: .contain)
-    .accessibilityLabel("\(results.count) college\(results.count == 1 ? "" : "s") found")
+    .accessibilityLabel(String(localized: "\(results.count) college\(results.count == 1 ? "" : "s") found"))
   }
 }
 

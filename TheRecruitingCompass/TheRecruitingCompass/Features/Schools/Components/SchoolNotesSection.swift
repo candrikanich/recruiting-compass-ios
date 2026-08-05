@@ -28,7 +28,7 @@ struct SchoolNotesSection: View {
         )
         .focused($isFocused)
         .accessibilityIdentifier("\(title.lowercased().replacing(" ", with: "-"))-text-editor")
-        .accessibilityLabel("\(title) text editor")
+        .accessibilityLabel(String(localized: "\(title) text editor"))
         .accessibilityHint("Enter your \(title.lowercased())")
         .accessibilityValue(notes.isEmpty ? "Empty" : notes)
         .onChange(of: isFocused) { _, focused in

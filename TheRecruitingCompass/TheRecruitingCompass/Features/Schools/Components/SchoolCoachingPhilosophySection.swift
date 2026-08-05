@@ -127,7 +127,7 @@ private struct PhilosophyRow: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.vertical, 8)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(label): \(displayValue)")
+    .accessibilityLabel(String(localized: "\(label): \(displayValue)"))
 
     if !isLast {
       Divider()

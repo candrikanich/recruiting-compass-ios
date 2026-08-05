@@ -12,6 +12,6 @@ struct StatusBadge: View {
       .background(status.badgeColor.backgroundColor)
       .foregroundStyle(status.badgeColor.foregroundColor)
       .clipShape(Capsule())
-      .accessibilityLabel("Status: \(status.displayName)")
+      .accessibilityLabel(String(localized: "Status: \(status.displayName)"))
   }
 }

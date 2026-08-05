@@ -13,7 +13,7 @@ struct SchoolCoachingPhilosophySheet: View {
       Form {
         Section {
           PhilosophyField(
-            title: "Coaching Philosophy",
+            title: String(localized: "Coaching Philosophy"),
             text: $philosophy.coachingPhilosophy,
             placeholder: "What's the overall coaching approach?"
           )
@@ -21,7 +21,7 @@ struct SchoolCoachingPhilosophySheet: View {
 
         Section {
           PhilosophyField(
-            title: "Coaching Style",
+            title: String(localized: "Coaching Style"),
             text: $philosophy.coachingStyle,
             placeholder: "How does the coach interact with players?"
           )
@@ -29,7 +29,7 @@ struct SchoolCoachingPhilosophySheet: View {
 
         Section {
           PhilosophyField(
-            title: "Recruiting Approach",
+            title: String(localized: "Recruiting Approach"),
             text: $philosophy.recruitingApproach,
             placeholder: "What type of players do they recruit?"
           )
@@ -37,7 +37,7 @@ struct SchoolCoachingPhilosophySheet: View {
 
         Section {
           PhilosophyField(
-            title: "Communication Style",
+            title: String(localized: "Communication Style"),
             text: $philosophy.communicationStyle,
             placeholder: "How do they communicate with recruits and families?"
           )
@@ -45,7 +45,7 @@ struct SchoolCoachingPhilosophySheet: View {
 
         Section {
           PhilosophyField(
-            title: "Success Metrics",
+            title: String(localized: "Success Metrics"),
             text: $philosophy.successMetrics,
             placeholder: "How do they measure success?"
           )
