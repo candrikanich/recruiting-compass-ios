@@ -53,8 +53,8 @@ enum AppError: Equatable, Identifiable {
         switch self {
         case .notFound:
             return AppErrorConfig(
-                headline: "That page ran a different route.",
-                body: "We couldn't find what you're looking for. It may have moved, or the link might be off.",
+                headline: String(localized: "That page ran a different route."),
+                body: String(localized: "We couldn't find what you're looking for. It may have moved, or the link might be off."),
                 iconName: "magnifyingglass",
                 iconBackground: Color(hex: "EFF6FF"),
                 iconForeground: Color(hex: "3B82F6"),
@@ -64,8 +64,8 @@ enum AppError: Equatable, Identifiable {
             )
         case .unauthorized:
             return AppErrorConfig(
-                headline: "You'll need to sign in first.",
-                body: "This page requires an account. Log in to pick up where you left off.",
+                headline: String(localized: "You'll need to sign in first."),
+                body: String(localized: "This page requires an account. Log in to pick up where you left off."),
                 iconName: "lock.fill",
                 iconBackground: Color(hex: "FFFBEB"),
                 iconForeground: Color(hex: "F59E0B"),
@@ -75,8 +75,8 @@ enum AppError: Equatable, Identifiable {
             )
         case .forbidden:
             return AppErrorConfig(
-                headline: "This isn't your playbook.",
-                body: "You don't have access to this page. If you think that's a mistake, reach out to the account owner.",
+                headline: String(localized: "This isn't your playbook."),
+                body: String(localized: "You don't have access to this page. If you think that's a mistake, reach out to the account owner."),
                 iconName: "shield.slash.fill",
                 iconBackground: Color(hex: "FEF2F2"),
                 iconForeground: Color(hex: "EF4444"),
@@ -86,8 +86,8 @@ enum AppError: Equatable, Identifiable {
             )
         case .serverError(let code):
             return AppErrorConfig(
-                headline: "We fumbled. It's on us.",
-                body: "Something went wrong on our end. Your data is safe, but we hit an unexpected snag. Our team has been notified.",
+                headline: String(localized: "We fumbled. It's on us."),
+                body: String(localized: "Something went wrong on our end. Your data is safe, but we hit an unexpected snag. Our team has been notified."),
                 iconName: "exclamationmark.triangle.fill",
                 iconBackground: Color(hex: "FEF2F2"),
                 iconForeground: Color(hex: "EF4444"),
@@ -97,8 +97,8 @@ enum AppError: Equatable, Identifiable {
             )
         case .serviceUnavailable:
             return AppErrorConfig(
-                headline: "We're taking a timeout.",
-                body: "Something on our end isn't cooperating right now. Your recruiting data is safe — we're just temporarily offline. Try again in a few minutes.",
+                headline: String(localized: "We're taking a timeout."),
+                body: String(localized: "Something on our end isn't cooperating right now. Your recruiting data is safe — we're just temporarily offline. Try again in a few minutes."),
                 iconName: "clock.fill",
                 iconBackground: Color(hex: "F8FAFC"),
                 iconForeground: Color(hex: "64748B"),
@@ -108,8 +108,8 @@ enum AppError: Equatable, Identifiable {
             )
         case .networkOffline:
             return AppErrorConfig(
-                headline: "Looks like the connection dropped.",
-                body: "We can't reach our servers right now. Check your connection and try again.",
+                headline: String(localized: "Looks like the connection dropped."),
+                body: String(localized: "We can't reach our servers right now. Check your connection and try again."),
                 iconName: "wifi.slash",
                 iconBackground: Color(hex: "F8FAFC"),
                 iconForeground: Color(hex: "64748B"),
@@ -119,8 +119,8 @@ enum AppError: Equatable, Identifiable {
             )
         case .sessionExpired:
             return AppErrorConfig(
-                headline: "You've been away for a while.",
-                body: "For your security, we signed you out after a period of inactivity. Log back in to continue.",
+                headline: String(localized: "You've been away for a while."),
+                body: String(localized: "For your security, we signed you out after a period of inactivity. Log back in to continue."),
                 iconName: "clock.badge.exclamationmark.fill",
                 iconBackground: Color(hex: "FFFBEB"),
                 iconForeground: Color(hex: "F59E0B"),
@@ -130,8 +130,8 @@ enum AppError: Equatable, Identifiable {
             )
         case .unknown:
             return AppErrorConfig(
-                headline: "Something went sideways.",
-                body: "We hit an unexpected snag. Your data is safe — try refreshing or head back home.",
+                headline: String(localized: "Something went sideways."),
+                body: String(localized: "We hit an unexpected snag. Your data is safe — try refreshing or head back home."),
                 iconName: "exclamationmark.circle.fill",
                 iconBackground: Color(hex: "F8FAFC"),
                 iconForeground: Color(hex: "64748B"),

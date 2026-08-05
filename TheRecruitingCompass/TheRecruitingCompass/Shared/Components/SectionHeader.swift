@@ -2,7 +2,7 @@ import SwiftUI
 
 /// A reusable section header with consistent styling and accessibility traits.
 struct SectionHeader: View {
-  let title: String
+  let title: LocalizedStringKey
 
   var body: some View {
     Text(title)
