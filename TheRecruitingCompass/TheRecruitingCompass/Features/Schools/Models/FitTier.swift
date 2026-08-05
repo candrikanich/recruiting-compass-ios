@@ -19,10 +19,10 @@ enum FitTier: String, Codable, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .reach: return "Reach"
-    case .match: return "Match"
-    case .safety: return "Safety"
-    case .unlikely: return "Unlikely"
+    case .reach: return String(localized: "Reach")
+    case .match: return String(localized: "Match")
+    case .safety: return String(localized: "Safety")
+    case .unlikely: return String(localized: "Unlikely")
     }
   }
 
@@ -38,13 +38,13 @@ enum FitTier: String, Codable, CaseIterable, Sendable {
   var description: String {
     switch self {
     case .reach:
-      return "This school is a reach - admission is competitive"
+      return String(localized: "This school is a reach - admission is competitive")
     case .match:
-      return "This school is a good match for your profile"
+      return String(localized: "This school is a good match for your profile")
     case .safety:
-      return "This school is a safety - high likelihood of admission"
+      return String(localized: "This school is a safety - high likelihood of admission")
     case .unlikely:
-      return "This school may be outside your target range"
+      return String(localized: "This school may be outside your target range")
     }
   }
 }

@@ -133,7 +133,7 @@ final class SchoolDetailViewModel {
     defer { isLoading = false }
 
     guard let familyId = familyManager.familyUnitId else {
-      errorMessage = "No active family"
+      errorMessage = String(localized: "No active family")
       logger.warning("Cannot load school: no active family")
       return
     }
@@ -173,7 +173,7 @@ final class SchoolDetailViewModel {
 
     } catch {
       logger.error("Failed to load school \(self.schoolId): \(error.localizedDescription)")
-      errorMessage = "Failed to load school details. Please try again."
+      errorMessage = String(localized: "Failed to load school details. Please try again.")
     }
   }
 
@@ -217,7 +217,7 @@ final class SchoolDetailViewModel {
       await invalidateSchoolCache()
       logger.info("Status updated to \(newStatus.displayName)")
     } catch {
-      errorMessage = "Failed to update status"
+      errorMessage = String(localized: "Failed to update status")
       logger.error("Failed to update status: \(error.localizedDescription)")
     }
   }
@@ -239,7 +239,7 @@ final class SchoolDetailViewModel {
     } catch {
       // Revert on error
       self.school = school.with(isFavorite: !newValue)
-      errorMessage = "Failed to update favorite"
+      errorMessage = String(localized: "Failed to update favorite")
       logger.error("Failed to toggle favorite: \(error.localizedDescription)")
     }
   }
@@ -271,7 +271,7 @@ final class SchoolDetailViewModel {
       markSaved()
       logger.info("Notes saved successfully")
     } catch {
-      ViewModelHelpers.handleError(error, userMessage: "Failed to save notes", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+      ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to save notes"), logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       saveStatus = .idle
     }
   }
@@ -281,7 +281,7 @@ final class SchoolDetailViewModel {
   func addPro() async {
     guard !newPro.trimmingCharacters(in: .whitespaces).isEmpty else { return }
     guard let familyId = familyManager.familyUnitId else {
-      errorMessage = "No active family"
+      errorMessage = String(localized: "No active family")
       return
     }
 
@@ -296,14 +296,14 @@ final class SchoolDetailViewModel {
         await invalidateSchoolCache()
         logger.info("Pro added successfully")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to add pro", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to add pro"), logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       }
     }
   }
 
   func removePro(at index: Int) async {
     guard let familyId = familyManager.familyUnitId else {
-      errorMessage = "No active family"
+      errorMessage = String(localized: "No active family")
       return
     }
 
@@ -313,7 +313,7 @@ final class SchoolDetailViewModel {
       await invalidateSchoolCache()
       logger.info("Pro removed successfully")
     } catch {
-      errorMessage = "Failed to remove pro"
+      errorMessage = String(localized: "Failed to remove pro")
       logger.error("Failed to remove pro: \(error.localizedDescription)")
     }
   }
@@ -321,7 +321,7 @@ final class SchoolDetailViewModel {
   func addCon() async {
     guard !newCon.trimmingCharacters(in: .whitespaces).isEmpty else { return }
     guard let familyId = familyManager.familyUnitId else {
-      errorMessage = "No active family"
+      errorMessage = String(localized: "No active family")
       return
     }
 
@@ -336,14 +336,14 @@ final class SchoolDetailViewModel {
         await invalidateSchoolCache()
         logger.info("Con added successfully")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to add con", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to add con"), logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       }
     }
   }
 
   func removeCon(at index: Int) async {
     guard let familyId = familyManager.familyUnitId else {
-      errorMessage = "No active family"
+      errorMessage = String(localized: "No active family")
       return
     }
 
@@ -353,7 +353,7 @@ final class SchoolDetailViewModel {
       await invalidateSchoolCache()
       logger.info("Con removed successfully")
     } catch {
-      errorMessage = "Failed to remove con"
+      errorMessage = String(localized: "Failed to remove con")
       logger.error("Failed to remove con: \(error.localizedDescription)")
     }
   }
@@ -383,7 +383,7 @@ final class SchoolDetailViewModel {
         await invalidateSchoolCache()
         logger.info("Basic info saved successfully")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to save information", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to save information"), logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       }
     }
   }
@@ -429,7 +429,7 @@ final class SchoolDetailViewModel {
 
     do {
       guard let data = try await collegeService.lookupCollege(name: schoolName) else {
-        collegeDataError = "School not found in database"
+        collegeDataError = String(localized: "School not found in database")
         logger.warning("College not found: \(schoolName)")
         return
       }
@@ -447,7 +447,7 @@ final class SchoolDetailViewModel {
       collegeDataError = error.errorDescription
       logger.error("College data error: \(error.errorDescription ?? "unknown")")
     } catch {
-      collegeDataError = "Failed to lookup college data"
+      collegeDataError = String(localized: "Failed to lookup college data")
       logger.error("Failed to lookup college data: \(error.localizedDescription)")
     }
   }
@@ -492,7 +492,7 @@ final class SchoolDetailViewModel {
         await invalidateSchoolCache()
         logger.info("Coaching philosophy saved successfully")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: "Failed to save coaching philosophy", logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to save coaching philosophy"), logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
       }
     }
   }
@@ -515,7 +515,7 @@ final class SchoolDetailViewModel {
       try await performDelete()
       onSuccess()
     } catch {
-      let errorMsg = "Failed to delete school. Please try again."
+      let errorMsg = String(localized: "Failed to delete school. Please try again.")
       deleteErrorMessage = errorMsg
       activeAlert = .deleteError(errorMsg)
       logger.error("Delete failed: \(error.localizedDescription)")

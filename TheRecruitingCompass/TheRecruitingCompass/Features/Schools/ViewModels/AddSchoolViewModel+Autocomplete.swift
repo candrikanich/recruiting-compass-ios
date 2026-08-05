@@ -57,7 +57,7 @@ extension AddSchoolViewModel {
 
     } catch {
       autocompleteLogger.error("Unexpected error: \(error.localizedDescription)")
-      searchError = "Unable to search colleges. Please try again."
+      searchError = String(localized: "Unable to search colleges. Please try again.")
       searchResults = []
     }
   }

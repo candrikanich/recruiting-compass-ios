@@ -10,15 +10,15 @@ enum SchoolSize: String, Codable, CaseIterable, Sendable {
   var displayName: String {
     switch self {
     case .verySmall:
-      return "Very Small"
+      return String(localized: "Very Small")
     case .small:
-      return "Small"
+      return String(localized: "Small")
     case .medium:
-      return "Medium"
+      return String(localized: "Medium")
     case .large:
-      return "Large"
+      return String(localized: "Large")
     case .veryLarge:
-      return "Very Large"
+      return String(localized: "Very Large")
     }
   }
 

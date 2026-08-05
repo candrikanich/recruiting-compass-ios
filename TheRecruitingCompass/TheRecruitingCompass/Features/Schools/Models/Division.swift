@@ -8,7 +8,13 @@ enum Division: String, Codable, CaseIterable, Sendable {
   case juco = "JUCO"
 
   var displayName: String {
-    rawValue
+    switch self {
+    case .d1:   return String(localized: "D1")
+    case .d2:   return String(localized: "D2")
+    case .d3:   return String(localized: "D3")
+    case .naia: return String(localized: "NAIA")
+    case .juco: return String(localized: "JUCO")
+    }
   }
 
   var badgeColor: BadgeColor {

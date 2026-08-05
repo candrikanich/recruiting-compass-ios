@@ -198,7 +198,7 @@ struct SchoolDetailView: View {
 
         // 10. Notes
         SchoolNotesSection(
-          title: "Notes",
+          title: String(localized: "Notes"),
           notes: $viewModel.editedNotes,
           onBlur: { await viewModel.saveNotes() }
         )

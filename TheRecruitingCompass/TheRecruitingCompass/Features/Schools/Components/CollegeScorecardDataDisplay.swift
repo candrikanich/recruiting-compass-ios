@@ -35,7 +35,7 @@ struct CollegeScorecardDataDisplay: View {
         // Student Size
         if let studentSize = data.studentSize {
           dataItem(
-            label: "Student Size",
+            label: String(localized: "Student Size"),
             value: formatNumber(studentSize),
             icon: "person.3.fill"
           )
@@ -44,7 +44,7 @@ struct CollegeScorecardDataDisplay: View {
         // Total Enrollment (web: enrollmentAll)
         if let enrollmentAll = data.enrollmentAll {
           dataItem(
-            label: "Total Enrollment",
+            label: String(localized: "Total Enrollment"),
             value: formatNumber(enrollmentAll),
             icon: "person.3.fill"
           )
@@ -53,7 +53,7 @@ struct CollegeScorecardDataDisplay: View {
         // Size Category
         if let sizeCategory = data.carnegieSize {
           dataItem(
-            label: "Size Category",
+            label: String(localized: "Size Category"),
             value: sizeCategory,
             icon: "chart.pie.fill"
           )
@@ -62,7 +62,7 @@ struct CollegeScorecardDataDisplay: View {
         // Admission Rate
         if let admissionRate = data.admissionRate {
           dataItem(
-            label: "Admission Rate",
+            label: String(localized: "Admission Rate"),
             value: formatPercentage(admissionRate),
             icon: "checkmark.seal.fill"
           )
@@ -71,7 +71,7 @@ struct CollegeScorecardDataDisplay: View {
         // Student-Faculty Ratio (web: studentFacultyRatio)
         if let ratio = data.studentFacultyRatio {
           dataItem(
-            label: "Student-Faculty Ratio",
+            label: String(localized: "Student-Faculty Ratio"),
             value: "\(ratio.formatted(.number.precision(.fractionLength(1)))):1",
             icon: "person.2.fill"
           )
@@ -80,7 +80,7 @@ struct CollegeScorecardDataDisplay: View {
         // Tuition In-State
         if let tuition = data.tuitionInState {
           dataItem(
-            label: "Tuition (In-State)",
+            label: String(localized: "Tuition (In-State)"),
             value: formatCurrency(Int(tuition)),
             icon: "dollarsign.circle.fill"
           )
@@ -89,7 +89,7 @@ struct CollegeScorecardDataDisplay: View {
         // Tuition Out-of-State
         if let tuition = data.tuitionOutOfState {
           dataItem(
-            label: "Tuition (Out-of-State)",
+            label: String(localized: "Tuition (Out-of-State)"),
             value: formatCurrency(Int(tuition)),
             icon: "dollarsign.circle.fill"
           )
@@ -98,7 +98,7 @@ struct CollegeScorecardDataDisplay: View {
         // Avg Net Price
         if let avgNetPrice = data.avgNetPrice {
           dataItem(
-            label: "Avg Net Price",
+            label: String(localized: "Avg Net Price"),
             value: "\(formatCurrency(avgNetPrice))/yr",
             icon: "dollarsign.circle.fill"
           )
@@ -107,7 +107,7 @@ struct CollegeScorecardDataDisplay: View {
         // Graduation Rate
         if let graduationRate = data.graduationRate {
           dataItem(
-            label: "Graduation Rate",
+            label: String(localized: "Graduation Rate"),
             value: "\(Int(graduationRate * 100))%",
             icon: "graduationcap.fill"
           )
@@ -116,7 +116,7 @@ struct CollegeScorecardDataDisplay: View {
         // Map Coordinates
         if data.latitude != nil && data.longitude != nil {
           dataItem(
-            label: "Location",
+            label: String(localized: "Location"),
             value: "✓ Map coordinates available",
             icon: "map.fill"
           )

@@ -31,7 +31,7 @@ final class FitScoreService: FitScoreManaging, Sendable {
       return DivisionRecommendation(
         shouldConsiderOtherDivisions: true,
         recommendedDivisions: recommendations,
-        message: "Based on your fit score, you may want to consider schools in \(recommendations.joined(separator: ", "))."
+        message: String(localized: "Based on your fit score, you may want to consider schools in \(recommendations.joined(separator: ", ")).")
       )
     }
 

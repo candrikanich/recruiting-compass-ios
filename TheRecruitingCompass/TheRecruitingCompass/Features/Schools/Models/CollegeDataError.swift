@@ -15,23 +15,23 @@ enum CollegeDataError: LocalizedError {
   var errorDescription: String? {
     switch self {
     case .nameTooShort:
-      return "School name must be at least 3 characters"
+      return String(localized: "School name must be at least 3 characters")
     case .apiKeyMissing:
-      return "College Scorecard API is not configured"
+      return String(localized: "College Scorecard API is not configured")
     case .sessionMissing:
-      return "You must be signed in to search colleges"
+      return String(localized: "You must be signed in to search colleges")
     case .invalidApiKey:
-      return "Invalid API key"
+      return String(localized: "Invalid API key")
     case .rateLimited:
-      return "Too many requests. Please try again in a few moments."
+      return String(localized: "Too many requests. Please try again in a few moments.")
     case .schoolNotFound:
-      return "School not found in College Scorecard database"
+      return String(localized: "School not found in College Scorecard database")
     case .invalidResponse:
-      return "Invalid response from College Scorecard API"
+      return String(localized: "Invalid response from College Scorecard API")
     case .serverError(let code):
-      return "Server error (\(code)). Please try again later."
+      return String(localized: "Server error (\(code)). Please try again later.")
     case .networkError(let error):
-      return "Network error: \(error.localizedDescription)"
+      return String(localized: "Network error: \(error.localizedDescription)")
     }
   }
 

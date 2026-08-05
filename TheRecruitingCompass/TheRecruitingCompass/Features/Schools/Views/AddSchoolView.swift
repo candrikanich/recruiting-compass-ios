@@ -121,12 +121,12 @@ struct AddSchoolView: View {
 
   /// Builds an accessible message for the duplicate school dialog
   private func buildDuplicateMessage(duplicate: School, matchType: DuplicateMatchType) -> String {
-    var message = "A school already exists that matches your entry:\n\n"
+    var message = String(localized: "A school already exists that matches your entry:\n\n")
     message += "\(duplicate.name)\n\n"
-    message += "Match Type: \(matchType.displayLabel)\n"
+    message += String(localized: "Match Type: \(matchType.displayLabel)\n")
 
     if let location = duplicate.location {
-      message += "Location: \(location)"
+      message += String(localized: "Location: \(location)")
     }
 
     return message

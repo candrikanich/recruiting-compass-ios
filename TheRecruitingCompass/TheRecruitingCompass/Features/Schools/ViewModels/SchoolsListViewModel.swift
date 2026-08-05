@@ -172,7 +172,7 @@ final class SchoolsListViewModel {
   func loadSchools() async {
     guard let familyUnitId = familyManager.currentMember?.familyUnitId else {
       logger.warning("No familyUnitId available")
-      errorMessage = "Unable to load schools. Please try again."
+      errorMessage = String(localized: "Unable to load schools. Please try again.")
       return
     }
 
@@ -219,7 +219,7 @@ final class SchoolsListViewModel {
       }
     } catch {
       logger.error("Failed to load schools: \(error.localizedDescription)")
-      errorMessage = "Failed to load schools. Please try again."
+      errorMessage = String(localized: "Failed to load schools. Please try again.")
     }
   }
 
@@ -264,7 +264,7 @@ final class SchoolsListViewModel {
       }
     } catch {
       logger.error("Delete failed: \(error.localizedDescription)")
-      deleteErrorMessage = "Failed to delete school. Please try again."
+      deleteErrorMessage = String(localized: "Failed to delete school. Please try again.")
     }
   }
 
@@ -287,7 +287,7 @@ final class SchoolsListViewModel {
         allSchools[index] = originalSchool
       }
 
-      errorMessage = "Failed to update favorite. Please try again."
+      errorMessage = String(localized: "Failed to update favorite. Please try again.")
     }
   }
 

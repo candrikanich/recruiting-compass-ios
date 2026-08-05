@@ -18,12 +18,12 @@ struct SchoolEmptyState: View {
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
-      Text(isFiltered ? "No matching schools" : "No schools found")
+      Text(isFiltered ? String(localized: "No matching schools") : String(localized: "No schools found"))
         .font(.title2)
         .fontWeight(.semibold)
         .accessibilityAddTraits(.isHeader)
 
-      Text(isFiltered ? "Try adjusting your filters" : "Add your first school to get started")
+      Text(isFiltered ? String(localized: "Try adjusting your filters") : String(localized: "Add your first school to get started"))
         .font(.body)
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)

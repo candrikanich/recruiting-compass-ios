@@ -13,13 +13,13 @@ struct SchoolAttributionSection: View {
 
       VStack(alignment: .leading, spacing: 4) {
         AttributionRow(
-          label: "Created",
+          label: String(localized: "Created"),
           userId: createdBy,
           date: createdAt
         )
 
         AttributionRow(
-          label: "Updated",
+          label: String(localized: "Updated"),
           userId: updatedBy,
           date: updatedAt
         )
@@ -40,7 +40,7 @@ private struct AttributionRow: View {
 
   private var formattedDate: String {
     guard let parsedDate = ISO8601DateFormatter().date(from: date) else {
-      return "Unknown"
+      return String(localized: "Unknown")
     }
 
     let formatter = DateFormatter()

@@ -83,16 +83,16 @@ struct FitScoreSection: View {
             .padding(.top, 8)
 
           if let athletic = fitScore.breakdown.athleticFit {
-            BreakdownRow(label: "Athletic Fit", score: athletic, color: Color.Brand.blue500)
+            BreakdownRow(label: String(localized: "Athletic Fit"), score: athletic, color: Color.Brand.blue500)
           }
           if let academic = fitScore.breakdown.academicFit {
-            BreakdownRow(label: "Academic Fit", score: academic, color: Color.Brand.purple500)
+            BreakdownRow(label: String(localized: "Academic Fit"), score: academic, color: Color.Brand.purple500)
           }
           if let opportunity = fitScore.breakdown.opportunityFit {
-            BreakdownRow(label: "Opportunity Fit", score: opportunity, color: Color.Brand.emerald500)
+            BreakdownRow(label: String(localized: "Opportunity Fit"), score: opportunity, color: Color.Brand.emerald500)
           }
           if let personal = fitScore.breakdown.personalFit {
-            BreakdownRow(label: "Personal Fit", score: personal, color: Color.Brand.orange500)
+            BreakdownRow(label: String(localized: "Personal Fit"), score: personal, color: Color.Brand.orange500)
           }
 
           if !fitScore.missingDimensions.isEmpty {

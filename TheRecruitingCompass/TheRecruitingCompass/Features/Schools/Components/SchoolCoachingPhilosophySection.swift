@@ -37,31 +37,31 @@ struct SchoolCoachingPhilosophySection: View {
       } else {
         VStack(spacing: 0) {
           PhilosophyRow(
-            label: "Coaching Philosophy",
+            label: String(localized: "Coaching Philosophy"),
             value: philosophy.coachingPhilosophy,
             isExpanded: isExpanded
           )
 
           PhilosophyRow(
-            label: "Coaching Style",
+            label: String(localized: "Coaching Style"),
             value: philosophy.coachingStyle,
             isExpanded: isExpanded
           )
 
           PhilosophyRow(
-            label: "Recruiting Approach",
+            label: String(localized: "Recruiting Approach"),
             value: philosophy.recruitingApproach,
             isExpanded: isExpanded
           )
 
           PhilosophyRow(
-            label: "Communication Style",
+            label: String(localized: "Communication Style"),
             value: philosophy.communicationStyle,
             isExpanded: isExpanded
           )
 
           PhilosophyRow(
-            label: "Success Metrics",
+            label: String(localized: "Success Metrics"),
             value: philosophy.successMetrics,
             isExpanded: isExpanded,
             isLast: true
@@ -73,7 +73,7 @@ struct SchoolCoachingPhilosophySection: View {
             }
           } label: {
             HStack {
-              Text(isExpanded ? "Show Less" : "Show More")
+              Text(isExpanded ? String(localized: "Show Less") : String(localized: "Show More"))
                 .font(.subheadline)
                 .foregroundStyle(Color.accentBlue)
 
@@ -104,7 +104,7 @@ private struct PhilosophyRow: View {
   var isLast: Bool = false
 
   private var displayValue: String {
-    value.isEmpty ? "Not set" : value
+    value.isEmpty ? String(localized: "Not set") : value
   }
 
   private var valueColor: Color {

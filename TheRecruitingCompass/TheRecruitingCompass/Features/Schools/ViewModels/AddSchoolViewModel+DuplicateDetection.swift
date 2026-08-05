@@ -122,7 +122,7 @@ extension AddSchoolViewModel {
 
     } catch {
       duplicateLogger.error("Failed to create school: \(error.localizedDescription)")
-      submitError = "Failed to create school. Please try again."
+      submitError = String(localized: "Failed to create school. Please try again.")
 
       // Error announcement with haptic feedback
       announcer.announce("Failed to create school. Please try again.")

@@ -288,19 +288,19 @@ final class AddSchoolViewModel {
   func mapCollegeDataError(_ error: CollegeDataError) -> String? {
     switch error {
     case .apiKeyMissing:
-      return "College search is not configured. Please enter the school manually."
+      return String(localized: "College search is not configured. Please enter the school manually.")
     case .nameTooShort:
       return nil // Silent
     case .rateLimited:
-      return "Too many requests. Please try again in a moment."
+      return String(localized: "Too many requests. Please try again in a moment.")
     case .invalidApiKey:
-      return "College search is not configured correctly."
+      return String(localized: "College search is not configured correctly.")
     case .networkError:
-      return "Unable to search colleges. Check your internet connection."
+      return String(localized: "Unable to search colleges. Check your internet connection.")
     case .serverError:
-      return "College search service is temporarily unavailable."
+      return String(localized: "College search service is temporarily unavailable.")
     default:
-      return "Unable to search colleges. Please try again."
+      return String(localized: "Unable to search colleges. Please try again.")
     }
   }
 

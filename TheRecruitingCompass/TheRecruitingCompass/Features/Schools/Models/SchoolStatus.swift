@@ -21,25 +21,25 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
   var displayName: String {
     switch self {
     case .interested:
-      return "Interested"
+      return String(localized: "Interested")
     case .contacted:
-      return "Contacted"
+      return String(localized: "Contacted")
     case .campInvite:
-      return "Camp Invite"
+      return String(localized: "Camp Invite")
     case .recruited:
-      return "Recruited"
+      return String(localized: "Recruited")
     case .officialVisitInvited:
-      return "Official Visit Invited"
+      return String(localized: "Official Visit Invited")
     case .officialVisitScheduled:
-      return "Official Visit Scheduled"
+      return String(localized: "Official Visit Scheduled")
     case .offerReceived:
-      return "Offer Received"
+      return String(localized: "Offer Received")
     case .committed:
-      return "Committed"
+      return String(localized: "Committed")
     case .notPursuing:
-      return "Not Pursuing"
+      return String(localized: "Not Pursuing")
     case .unknown:
-      return "Unknown"
+      return String(localized: "Unknown")
     }
   }
 

@@ -8,9 +8,9 @@ enum DuplicateMatchType: String, CaseIterable, Sendable {
 
   var displayLabel: String {
     switch self {
-    case .name: return "Name Match"
-    case .domain: return "Website Domain"
-    case .ncaaId: return "NCAA ID"
+    case .name: return String(localized: "Name Match")
+    case .domain: return String(localized: "Website Domain")
+    case .ncaaId: return String(localized: "NCAA ID")
     }
   }
 
