@@ -64,7 +64,9 @@ struct EventRowView: View {
 
   @ViewBuilder
   private var statusBadge: some View {
-    let label = event.attended ? "Attended" : event.registered ? "Registered" : "Not Registered"
+    let label = event.attended
+      ? String(localized: "Attended")
+      : event.registered ? String(localized: "Registered") : String(localized: "Not Registered")
     let color: Color = event.attended ? .green : event.registered ? .blue : .gray
     return Text(label)
       .font(.caption)

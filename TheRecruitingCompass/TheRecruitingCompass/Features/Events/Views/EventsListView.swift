@@ -183,14 +183,14 @@ struct EventsListView: View {
 
       Picker("Status", selection: $viewModel.statusFilter) {
         ForEach(StatusFilter.allCases, id: \.self) { status in
-          Text(status.rawValue).tag(status)
+          Text(status.displayName).tag(status)
         }
       }
       .accessibilityLabel(String(localized: "Filter by registration status"))
 
       Picker("Date Range", selection: $viewModel.dateRangeFilter) {
         ForEach(DateRangeFilter.allCases, id: \.self) { range in
-          Text(range.rawValue).tag(range)
+          Text(range.displayName).tag(range)
         }
       }
       .accessibilityLabel(String(localized: "Filter by date range"))
@@ -218,7 +218,7 @@ struct EventsListView: View {
         Spacer()
         Picker("Sort", selection: $viewModel.sortBy) {
           ForEach(SortOption.allCases, id: \.self) { option in
-            Text(option.rawValue).tag(option)
+            Text(option.displayName).tag(option)
           }
         }
         .pickerStyle(.menu)
@@ -292,7 +292,9 @@ struct EventsListView: View {
 
   private func rowAccessibilityLabel(_ event: FullEvent) -> String {
     let type = EventType(rawValue: event.type)?.displayName ?? event.type
-    let status = event.attended ? "Attended" : event.registered ? "Registered" : "Not Registered"
+    let status = event.attended
+      ? String(localized: "Attended")
+      : event.registered ? String(localized: "Registered") : String(localized: "Not Registered")
     return String(localized: "\(type): \(event.name), \(event.startDate), \(status)")
   }
 }

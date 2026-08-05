@@ -9,11 +9,11 @@ enum EventType: String, CaseIterable, Codable, Sendable {
 
   var displayName: String {
     switch self {
-    case .showcase: return "Showcase"
-    case .camp: return "Camp"
-    case .officialVisit: return "Official Visit"
-    case .unofficialVisit: return "Unofficial Visit"
-    case .game: return "Game"
+    case .showcase: return String(localized: "Showcase")
+    case .camp: return String(localized: "Camp")
+    case .officialVisit: return String(localized: "Official Visit")
+    case .unofficialVisit: return String(localized: "Unofficial Visit")
+    case .game: return String(localized: "Game")
     }
   }
 }

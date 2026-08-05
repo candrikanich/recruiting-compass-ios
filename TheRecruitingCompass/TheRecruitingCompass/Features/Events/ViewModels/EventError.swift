@@ -6,7 +6,7 @@ enum EventError: LocalizedError {
   var errorDescription: String? {
     switch self {
     case .validationFailed:
-      return "Please complete all required fields"
+      return String(localized: "Please complete all required fields")
     }
   }
 }

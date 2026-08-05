@@ -10,12 +10,12 @@ enum EventSource: String, CaseIterable, Codable, Sendable {
 
   var displayName: String {
     switch self {
-    case .email: return "Email"
-    case .flyer: return "Flyer"
-    case .webSearch: return "Web Search"
-    case .recommendation: return "Recommendation"
-    case .friend: return "Friend"
-    case .other: return "Other"
+    case .email: return String(localized: "Email")
+    case .flyer: return String(localized: "Flyer")
+    case .webSearch: return String(localized: "Web Search")
+    case .recommendation: return String(localized: "Recommendation")
+    case .friend: return String(localized: "Friend")
+    case .other: return String(localized: "Other")
     }
   }
 }

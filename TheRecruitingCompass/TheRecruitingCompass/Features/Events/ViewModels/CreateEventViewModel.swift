@@ -70,7 +70,7 @@ final class CreateEventViewModel {
       logger.info("Loaded \(self.schools.count) schools")
     } catch {
       logger.error("Failed to load schools: \(error.localizedDescription)")
-      self.errorMessage = "Failed to load schools. Please try again."
+      self.errorMessage = String(localized: "Failed to load schools. Please try again.")
     }
   }
 
@@ -127,7 +127,7 @@ final class CreateEventViewModel {
       logger.info("New school created and selected: \(school.id)")
     } catch {
       logger.error("Failed to create school: \(error.localizedDescription)")
-      self.errorMessage = "Failed to add school. Please try again."
+      self.errorMessage = String(localized: "Failed to add school. Please try again.")
     }
   }
 
@@ -161,27 +161,27 @@ final class CreateEventViewModel {
     validationErrors = [:]
 
     if formData.type == nil {
-      validationErrors["type"] = "Event type is required"
+      validationErrors["type"] = String(localized: "Event type is required")
     }
 
     if formData.name.trimmingCharacters(in: .whitespaces).isEmpty {
-      validationErrors["name"] = "Event name is required"
+      validationErrors["name"] = String(localized: "Event name is required")
     }
 
     if formData.startDate == nil {
-      validationErrors["startDate"] = "Start date is required"
+      validationErrors["startDate"] = String(localized: "Start date is required")
     }
 
     if let endDate = formData.endDate, let startDate = formData.startDate,
        endDate < startDate {
-      validationErrors["endDate"] = "End date must be after start date"
+      validationErrors["endDate"] = String(localized: "End date must be after start date")
     }
 
     if !formData.url.isEmpty {
       let trimmed = formData.url.trimmingCharacters(in: .whitespaces)
       let hasValidScheme = trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://")
       if !hasValidScheme || URL(string: trimmed) == nil {
-        validationErrors["url"] = "Please enter a valid URL (e.g., https://...)"
+        validationErrors["url"] = String(localized: "Please enter a valid URL (e.g., https://...)")
       }
     }
 
@@ -211,7 +211,7 @@ final class CreateEventViewModel {
       return event.id
     } catch {
       logger.error("Failed to create event: \(error.localizedDescription)")
-      self.errorMessage = "Failed to create event. Please check your connection and try again."
+      self.errorMessage = String(localized: "Failed to create event. Please check your connection and try again.")
       return nil
     }
   }

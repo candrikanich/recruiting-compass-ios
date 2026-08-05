@@ -263,7 +263,7 @@ final class EventsListViewModel {
       logger.debug("Load events cancelled (URL cancelled)")
     } catch {
       logger.error("Failed to load events: \(error.localizedDescription)")
-      self.errorMessage = "Failed to load events. Please try again."
+      self.errorMessage = String(localized: "Failed to load events. Please try again.")
     }
   }
 
@@ -281,7 +281,7 @@ final class EventsListViewModel {
       await invalidateEventsListCache()
     } catch {
       logger.error("Failed to delete event \(id): \(error.localizedDescription)")
-      self.errorMessage = "Failed to delete event. Please try again."
+      self.errorMessage = String(localized: "Failed to delete event. Please try again.")
     }
   }
 

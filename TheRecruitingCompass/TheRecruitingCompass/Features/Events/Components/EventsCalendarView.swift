@@ -11,7 +11,15 @@ struct EventsCalendarView: View {
   let onNextMonth: () -> Void
 
   private let columns = Array(repeating: GridItem(.flexible()), count: 7)
-  private let weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+  private let weekdays = [
+    String(localized: "Sun"),
+    String(localized: "Mon"),
+    String(localized: "Tue"),
+    String(localized: "Wed"),
+    String(localized: "Thu"),
+    String(localized: "Fri"),
+    String(localized: "Sat")
+  ]
 
   var body: some View {
     VStack(spacing: 12) {

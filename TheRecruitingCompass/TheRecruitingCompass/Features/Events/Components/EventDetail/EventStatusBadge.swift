@@ -9,9 +9,9 @@ struct EventStatusBadge: View {
   }
 
   private var label: String {
-    if attended { return "Attended" }
-    if registered { return "Registered" }
-    return "Not Registered"
+    if attended { return String(localized: "Attended") }
+    if registered { return String(localized: "Registered") }
+    return String(localized: "Not Registered")
   }
 
   private var color: Color {
