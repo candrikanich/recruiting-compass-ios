@@ -55,7 +55,7 @@ final class OfferDetailViewModel {
   // MARK: - Computed Properties
 
   var schoolName: String {
-    school?.name ?? "Unknown School"
+    school?.name ?? String(localized: "Unknown School")
   }
 
   var formattedOfferDate: String {
@@ -64,15 +64,15 @@ final class OfferDetailViewModel {
   }
 
   var formattedDeadlineDate: String {
-    guard let offer else { return "No deadline set" }
-    guard let deadline = offer.displayDeadlineDate else { return "No deadline set" }
+    guard let offer else { return String(localized: "No deadline set") }
+    guard let deadline = offer.displayDeadlineDate else { return String(localized: "No deadline set") }
     return DateFormatting.mediumDate(deadline)
   }
 
   var deadlineDisplayText: String {
-    guard let days = offer?.daysUntilDeadline else { return "---" }
-    if days < 0 { return "\(abs(days))d overdue" }
-    return "\(days)d"
+    guard let days = offer?.daysUntilDeadline else { return String(localized: "---") }
+    if days < 0 { return String(localized: "\(abs(days))d overdue") }
+    return String(localized: "\(days)d")
   }
 
   // MARK: - Loading
@@ -161,7 +161,7 @@ final class OfferDetailViewModel {
         isEditing = false
         logger.info("Offer updated successfully")
       } catch {
-        handleError(error, userMessage: "Failed to save changes")
+        handleError(error, userMessage: String(localized: "Failed to save changes"))
       }
     }
   }
@@ -180,7 +180,7 @@ final class OfferDetailViewModel {
         logger.info("Offer deleted successfully")
         onSuccess()
       } catch {
-        activeAlert = .deleteError("Failed to delete offer. Please try again.")
+        activeAlert = .deleteError(String(localized: "Failed to delete offer. Please try again."))
         logger.error("Failed to delete offer: \(error.localizedDescription)")
       }
     }

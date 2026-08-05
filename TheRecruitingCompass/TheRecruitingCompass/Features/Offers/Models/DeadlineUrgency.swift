@@ -17,9 +17,9 @@ enum DeadlineUrgency: Sendable {
 
   var label: String? {
     switch self {
-    case .overdue: return "Overdue"
-    case .critical: return "Deadline Soon"
-    case .urgent: return "Upcoming"
+    case .overdue: return String(localized: "Overdue")
+    case .critical: return String(localized: "Deadline Soon")
+    case .urgent: return String(localized: "Upcoming")
     case .normal, .none: return nil
     }
   }

@@ -86,7 +86,7 @@ struct ScholarshipCalculatorView: View {
       Button {
         withAnimation { isExpanded.toggle() }
       } label: {
-        Text(isExpanded ? "Hide" : "Calculate")
+        Text(isExpanded ? String(localized: "Hide") : String(localized: "Calculate"))
           .font(.subheadline)
           .fontWeight(.semibold)
       }
@@ -102,25 +102,25 @@ struct ScholarshipCalculatorView: View {
     VStack(spacing: 12) {
       calculatorField(
         label: String(localized: "Total Annual Cost ($)"),
-        hint: "Tuition + room/board + fees",
+        hint: String(localized: "Tuition + room/board + fees"),
         value: $annualCost
       )
 
       calculatorField(
         label: String(localized: "Scholarship Amount ($)"),
-        hint: "Leave blank to use percentage",
+        hint: String(localized: "Leave blank to use percentage"),
         value: $scholarshipAmount
       )
 
       calculatorField(
         label: String(localized: "Scholarship Percentage (%)"),
-        hint: "Leave blank if using amount",
+        hint: String(localized: "Leave blank if using amount"),
         value: $scholarshipPercentage
       )
 
       calculatorField(
         label: String(localized: "Additional Aid/Grants ($)"),
-        hint: "Non-scholarship aid",
+        hint: String(localized: "Non-scholarship aid"),
         value: $additionalAid
       )
 
@@ -143,10 +143,10 @@ struct ScholarshipCalculatorView: View {
   @ViewBuilder
   private var resultsSection: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-      resultCard(label: "Annual Scholarship", value: annualScholarship, color: .blue)
-      resultCard(label: "Annual Net Cost", value: annualNetCost, color: .orange)
-      resultCard(label: "Total Scholarship (\(years)yr)", value: totalScholarship, color: .green)
-      resultCard(label: "Total Net Cost (\(years)yr)", value: totalNetCost, color: .red)
+      resultCard(label: String(localized: "Annual Scholarship"), value: annualScholarship, color: .blue)
+      resultCard(label: String(localized: "Annual Net Cost"), value: annualNetCost, color: .orange)
+      resultCard(label: String(localized: "Total Scholarship (\(years)yr)"), value: totalScholarship, color: .green)
+      resultCard(label: String(localized: "Total Net Cost (\(years)yr)"), value: totalNetCost, color: .red)
     }
   }
 

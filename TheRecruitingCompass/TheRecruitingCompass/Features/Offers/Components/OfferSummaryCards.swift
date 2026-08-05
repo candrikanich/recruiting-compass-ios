@@ -7,9 +7,9 @@ struct OfferSummaryCards: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      OfferSummaryCard(title: "Accepted", count: acceptedCount, color: OfferStatus.accepted.statusColor)
-      OfferSummaryCard(title: "Pending", count: pendingCount, color: OfferStatus.pending.statusColor)
-      OfferSummaryCard(title: "Declined", count: declinedCount, color: OfferStatus.declined.statusColor)
+      OfferSummaryCard(title: String(localized: "Accepted"), count: acceptedCount, color: OfferStatus.accepted.statusColor)
+      OfferSummaryCard(title: String(localized: "Pending"), count: pendingCount, color: OfferStatus.pending.statusColor)
+      OfferSummaryCard(title: String(localized: "Declined"), count: declinedCount, color: OfferStatus.declined.statusColor)
     }
     .padding(.horizontal, 16)
   }

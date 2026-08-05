@@ -14,13 +14,13 @@ struct NewOfferFormState: Sendable {
   var validationErrors: [String] {
     var errors: [String] = []
     if schoolId == nil {
-      errors.append("Please select a school")
+      errors.append(String(localized: "Please select a school"))
     }
     if scholarshipPercentage < 0 || scholarshipPercentage > 100 {
-      errors.append("Scholarship percentage must be 0-100")
+      errors.append(String(localized: "Scholarship percentage must be 0-100"))
     }
     if !scholarshipAmount.isEmpty, Double(scholarshipAmount) == nil {
-      errors.append("Scholarship amount must be a valid number")
+      errors.append(String(localized: "Scholarship amount must be a valid number"))
     }
     return errors
   }

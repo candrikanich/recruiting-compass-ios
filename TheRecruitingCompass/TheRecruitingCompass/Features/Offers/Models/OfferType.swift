@@ -16,12 +16,12 @@ enum OfferType: String, Codable, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .fullRide: return "Full Ride"
-    case .partial: return "Partial"
-    case .scholarship: return "Scholarship"
-    case .recruitedWalkOn: return "Recruited Walk-On"
-    case .preferredWalkOn: return "Preferred Walk-On"
-    case .unknown: return "Unknown"
+    case .fullRide: return String(localized: "Full Ride")
+    case .partial: return String(localized: "Partial")
+    case .scholarship: return String(localized: "Scholarship")
+    case .recruitedWalkOn: return String(localized: "Recruited Walk-On")
+    case .preferredWalkOn: return String(localized: "Preferred Walk-On")
+    case .unknown: return String(localized: "Unknown")
     }
   }
 }

@@ -16,16 +16,16 @@ struct OfferDetailsGrid: View {
         GridItem(.flexible()),
         GridItem(.flexible())
       ], alignment: .leading, spacing: 16) {
-        detailItem(label: "Offer Date", value: offerDate)
-        detailItem(label: "Deadline Date", value: deadlineDate)
+        detailItem(label: String(localized: "Offer Date"), value: offerDate)
+        detailItem(label: String(localized: "Deadline Date"), value: deadlineDate)
       }
 
       if let conditions, !conditions.isEmpty {
-        detailItem(label: "Conditions", value: conditions)
+        detailItem(label: String(localized: "Conditions"), value: conditions)
       }
 
       if let notes, !notes.isEmpty {
-        detailItem(label: "Notes", value: notes)
+        detailItem(label: String(localized: "Notes"), value: notes)
       }
     }
     .padding()

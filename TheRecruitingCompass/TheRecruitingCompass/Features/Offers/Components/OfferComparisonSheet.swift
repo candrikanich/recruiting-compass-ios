@@ -29,16 +29,16 @@ struct OfferComparisonSheet: View {
       Divider()
         .accessibilityHidden(true)
 
-      comparisonRow("Type", value: offer.offerType.displayName)
-      comparisonRow("Status", value: offer.status.displayName)
-      comparisonRow("Percentage", value: offer.formattedPercentage ?? "N/A")
-      comparisonRow("Amount", value: offer.formattedAmount ?? "N/A")
-      comparisonRow("Offer Date", value: DateFormatting.mediumDate(offer.displayOfferDate))
+      comparisonRow(String(localized: "Type"), value: offer.offerType.displayName)
+      comparisonRow(String(localized: "Status"), value: offer.status.displayName)
+      comparisonRow(String(localized: "Percentage"), value: offer.formattedPercentage ?? String(localized: "N/A"))
+      comparisonRow(String(localized: "Amount"), value: offer.formattedAmount ?? String(localized: "N/A"))
+      comparisonRow(String(localized: "Offer Date"), value: DateFormatting.mediumDate(offer.displayOfferDate))
 
       if let deadline = offer.displayDeadlineDate {
-        comparisonRow("Deadline", value: DateFormatting.mediumDate(deadline))
+        comparisonRow(String(localized: "Deadline"), value: DateFormatting.mediumDate(deadline))
       } else {
-        comparisonRow("Deadline", value: "None")
+        comparisonRow(String(localized: "Deadline"), value: String(localized: "None"))
       }
     }
     .frame(width: 200)

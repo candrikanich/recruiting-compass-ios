@@ -15,11 +15,11 @@ enum OfferStatus: String, Codable, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .pending: return "Pending"
-    case .accepted: return "Accepted"
-    case .declined: return "Declined"
-    case .expired: return "Expired"
-    case .unknown: return "Unknown"
+    case .pending: return String(localized: "Pending")
+    case .accepted: return String(localized: "Accepted")
+    case .declined: return String(localized: "Declined")
+    case .expired: return String(localized: "Expired")
+    case .unknown: return String(localized: "Unknown")
     }
   }
 

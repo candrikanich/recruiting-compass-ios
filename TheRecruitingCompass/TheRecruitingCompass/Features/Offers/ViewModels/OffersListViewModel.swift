@@ -149,7 +149,7 @@ final class OffersListViewModel {
   func loadOffers() async {
     guard let userId = targetUserId else {
       logger.warning("No userId available")
-      errorMessage = "Unable to load offers. Please try again."
+      errorMessage = String(localized: "Unable to load offers. Please try again.")
       return
     }
 
@@ -176,7 +176,7 @@ final class OffersListViewModel {
       }
     } catch {
       logger.error("Failed to load offers: \(error.localizedDescription)")
-      errorMessage = "Failed to load offers. Please try again."
+      errorMessage = String(localized: "Failed to load offers. Please try again.")
     }
   }
 
@@ -201,7 +201,7 @@ final class OffersListViewModel {
       await invalidateOffersListCache()
     } catch {
       logger.error("Failed to create offer: \(error.localizedDescription)")
-      errorMessage = "Failed to save offer. Please try again."
+      errorMessage = String(localized: "Failed to save offer. Please try again.")
     }
   }
 
@@ -230,7 +230,7 @@ final class OffersListViewModel {
       logger.info("Deleted offer: \(offer.id)")
     } catch {
       logger.error("Failed to delete offer: \(error.localizedDescription)")
-      errorMessage = "Failed to delete offer. Please try again."
+      errorMessage = String(localized: "Failed to delete offer. Please try again.")
     }
   }
 

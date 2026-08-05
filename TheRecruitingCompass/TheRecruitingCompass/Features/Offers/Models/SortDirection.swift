@@ -6,8 +6,8 @@ enum SortDirection: String, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .ascending: return "Ascending"
-    case .descending: return "Descending"
+    case .ascending: return String(localized: "Ascending")
+    case .descending: return String(localized: "Descending")
     }
   }
 }

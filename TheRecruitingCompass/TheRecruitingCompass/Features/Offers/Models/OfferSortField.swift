@@ -8,10 +8,10 @@ enum OfferSortField: String, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
-    case .offerDate: return "Offer Date"
-    case .deadline: return "Deadline"
-    case .percentage: return "Percentage"
-    case .amount: return "Amount"
+    case .offerDate: return String(localized: "Offer Date")
+    case .deadline: return String(localized: "Deadline")
+    case .percentage: return String(localized: "Percentage")
+    case .amount: return String(localized: "Amount")
     }
   }
 }

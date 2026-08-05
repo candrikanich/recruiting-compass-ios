@@ -10,16 +10,16 @@ struct OfferFinancialSummary: View {
   var body: some View {
     HStack(spacing: 12) {
       financialCard(
-        label: "Scholarship Amount",
-        value: formattedAmount ?? "---",
+        label: String(localized: "Scholarship Amount"),
+        value: formattedAmount ?? String(localized: "---"),
         accessibilityText: String(localized: "Scholarship amount: \(formattedAmount ?? "Not specified")"),
         color: .primary,
         identifier: "offer-amount-card"
       )
 
       financialCard(
-        label: "Scholarship %",
-        value: formattedPercentage ?? "---",
+        label: String(localized: "Scholarship %"),
+        value: formattedPercentage ?? String(localized: "---"),
         accessibilityText: String(localized: "Scholarship percentage: \(formattedPercentage ?? "Not specified")"),
         color: .primary,
         identifier: "offer-percentage-card"
