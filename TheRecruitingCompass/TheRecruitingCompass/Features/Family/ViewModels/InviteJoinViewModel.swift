@@ -181,7 +181,7 @@ final class InviteJoinViewModel {
     details.primaryPosition = prefill.position
     details.graduationYear = prefill.graduationYear
     do {
-      try await preferenceService.savePreferences(category: .player, data: details)
+      _ = try await preferenceService.savePreferences(category: .player, data: details)
       logger.debug("Saved prefill player preferences from invite")
       return true
     } catch {

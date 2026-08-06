@@ -8,6 +8,13 @@ enum AppTab: Int {
   case more = 4
 }
 
+private struct SwitchTabKey: EnvironmentKey {
+  static let defaultValue: (AppTab) -> Void = { _ in }
+}
+
 extension EnvironmentValues {
-  @Entry var switchTab: (AppTab) -> Void = { _ in }
+  var switchTab: (AppTab) -> Void {
+    get { self[SwitchTabKey.self] }
+    set { self[SwitchTabKey.self] = newValue }
+  }
 }

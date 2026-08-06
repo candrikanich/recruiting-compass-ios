@@ -1,7 +1,7 @@
 import Foundation
 
 final class UserDefaultsTaskStorage: QuickTaskStorage {
-  private let userDefaults: UserDefaults
+  nonisolated(unsafe) private let userDefaults: UserDefaults
 
   init(userDefaults: UserDefaults = .standard) {
     self.userDefaults = userDefaults

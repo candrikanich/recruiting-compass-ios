@@ -3,10 +3,10 @@ import Foundation
 /// In-memory cache with TTL. Implementations must be thread-safe.
 protocol CacheManaging: Sendable {
   /// Returns cached value if present and not expired.
-  func get<T: Decodable>(_ type: T.Type, forKey key: String) async -> T?
+  func get<T: Decodable & Sendable>(_ type: T.Type, forKey key: String) async -> T?
 
   /// Stores value with TTL. Overwrites existing.
-  func set<T: Encodable>(_ value: T, forKey key: String, ttlSeconds: TimeInterval) async
+  func set<T: Encodable & Sendable>(_ value: T, forKey key: String, ttlSeconds: TimeInterval) async
 
   /// Removes entry for key.
   func remove(forKey key: String) async
@@ -45,7 +45,7 @@ final class InMemoryCache: CacheManaging {
     self.maxEntries = max(1, maxEntries)
   }
 
-  func get<T: Decodable>(_ type: T.Type, forKey key: String) async -> T? {
+  func get<T: Decodable & Sendable>(_ type: T.Type, forKey key: String) async -> T? {
     let now = Date.now
     if let obj = objectCache[key], obj.expiresAt > now, let value = obj.value as? T {
       return value
@@ -58,7 +58,7 @@ final class InMemoryCache: CacheManaging {
     return decoded
   }
 
-  func set<T: Encodable>(_ value: T, forKey key: String, ttlSeconds: TimeInterval) async {
+  func set<T: Encodable & Sendable>(_ value: T, forKey key: String, ttlSeconds: TimeInterval) async {
     guard let data = try? encoder.encode(value) else { return }
     let expiresAt = Date.now.addingTimeInterval(ttlSeconds)
     if let idx = orderedKeys.firstIndex(of: key) {

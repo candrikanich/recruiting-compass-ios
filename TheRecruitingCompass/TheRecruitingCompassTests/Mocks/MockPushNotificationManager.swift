@@ -1,8 +1,8 @@
 import Foundation
 @testable import TheRecruitingCompass
 
-// @unchecked Sendable required: protocol is Sendable but test mock uses mutable state
-final class MockPushNotificationManager: PushNotificationManaging, @unchecked Sendable {
+@MainActor
+final class MockPushNotificationManager: PushNotificationManaging {
     var requestPermissionCalled = false
     var registeredTokenData: Data?
     var deleteDeviceTokenCalled = false

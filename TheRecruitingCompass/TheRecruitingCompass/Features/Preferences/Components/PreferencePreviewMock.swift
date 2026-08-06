@@ -14,7 +14,7 @@ import Foundation
 /// }
 /// ```
 final class PreferencePreviewMock<T: Codable>: PreferenceManaging {
-  private let defaultValue: T?
+  nonisolated(unsafe) private let defaultValue: T?
 
   init(defaultValue: T? = nil) {
     self.defaultValue = defaultValue

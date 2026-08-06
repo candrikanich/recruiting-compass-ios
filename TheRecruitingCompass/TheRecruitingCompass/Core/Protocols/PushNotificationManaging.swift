@@ -1,6 +1,7 @@
 import Foundation
 import UserNotifications
 
+@MainActor
 protocol PushNotificationManaging: AnyObject, Sendable {
     func requestPermission() async
     func registerDeviceToken(_ token: Data) async
