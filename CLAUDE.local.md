@@ -36,11 +36,6 @@ gap.
 
 ## Known follow-ups (deliberately out of scope for Phase 6b — not gaps)
 
-- **Cross-feature enum `displayName`/`.description` still passthrough:**
-  `UserRole` (Core/Models, blocks RoleSelectionCard/SignupView),
-  `InteractionType`/`Sentiment` (blocks Coaches/Events), `MetricType` (blocks
-  Events/Dashboard). Each is used from 2+ features — wrapping needs a
-  cross-feature-owner decision, not a single batch's call.
 - **`FamilyMember.role`** (Dashboard's AthleteRow) — plain `String` used for
   identity comparisons elsewhere in the codebase, not a display-only enum;
   wrapping risks breaking equality checks. Flagged, not touched.
@@ -87,3 +82,28 @@ gap.
 - `scripts/census-text-sites.py` deleted — one-off migration-guidance tool, its
   job is done; keeping it risks going stale and misleading a future audit that
   doesn't deliberately re-validate it.
+
+## Final-review fix wave (2026-08-06)
+
+- **Shared "%@" catalog-key collision (10 sites):** `Text(String(localized:
+  "\(param)"))` where `param` is a plain `String` parameter collapses onto a
+  shared `"%@"` catalog key instead of keying on the real English text. Fixed
+  per-site:
+  - **Group A (param type → `LocalizedStringKey`, callers verified
+    literal-only):** `HelpSectionDetailView.swift` — `phaseCard`,
+    `letterStatusRow`, `notificationPriorityRow` (5 Text call sites, lines
+    358/365/377/385/393).
+  - **Group B (reverted to plain `Text(param)`, param stays `String` — a11y
+    label interpolates the same param, same collision risk Task 7 already
+    found for 5 Shared/Components):** `CommunicationTemplatesView.swift:53`,
+    `HelpSectionHeader.swift:16`, `HelpImageSlot.swift:25`, and both
+    `HelpStepCard.swift` sites (28, 33) — its `accessibilityLabel` interpolates
+    both `title` and `bodyText`, so it's Group B, not Group A as originally
+    guessed.
+- **`UserRole` wrapped** (`Core/Models/UserRole.swift`) — `displayName` and
+  `description` now `String(localized:)`, matching the `InteractionType`
+  pattern. Deferral reason (cross-feature ownership) didn't hold up on review;
+  `rawValue`/persistence untouched. Removed from the deferred-items list above.
+- Build clean, `RoleSelectionCardTests` /
+  `CommunicationTemplatesAccessibilityTests` / `CommunicationTemplatesViewModelTests`
+  pass.
