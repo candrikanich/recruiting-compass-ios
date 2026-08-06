@@ -58,3 +58,6 @@ scripts/dist/
 
 # Runtime lock for scheduled agent tasks
 .claude/scheduled_tasks.lock
+
+# Session scratch memory (local-only)
+CLAUDE.local.md
