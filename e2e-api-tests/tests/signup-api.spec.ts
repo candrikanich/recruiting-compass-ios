@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import { createAnonClient } from '../helpers/supabase-client'
 import { createTestUser } from '../helpers/test-data'
 import { deleteTestUser, getUserMetadata } from '../helpers/cleanup'
+import { isEmailAutoconfirmEnabled } from '../helpers/auth-settings'
 
 test.describe('Signup API - Parent Flow', () => {
   const createdEmails: string[] = []
@@ -43,6 +44,10 @@ test.describe('Signup API - Parent Flow', () => {
   })
 
   test('should return user without confirmed email on signup', async () => {
+    test.skip(
+      await isEmailAutoconfirmEnabled(),
+      'Stack auto-confirms email (mailer_autoconfirm); no unverified state to assert'
+    )
     const client = createAnonClient()
     const user = createTestUser({ role: 'parent' })
     createdEmails.push(user.email)

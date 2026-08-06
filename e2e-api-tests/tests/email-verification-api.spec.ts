@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import { createAnonClient } from '../helpers/supabase-client'
 import { createTestUser } from '../helpers/test-data'
 import { deleteTestUser, confirmUserEmail } from '../helpers/cleanup'
+import { isEmailAutoconfirmEnabled } from '../helpers/auth-settings'
 
 test.describe('Email Verification API', () => {
   const createdEmails: string[] = []
@@ -17,6 +18,10 @@ test.describe('Email Verification API', () => {
   })
 
   test('newly signed up user should have unverified email', async () => {
+    test.skip(
+      await isEmailAutoconfirmEnabled(),
+      'Stack auto-confirms email (mailer_autoconfirm); no unverified state to assert'
+    )
     const client = createAnonClient()
     const user = createTestUser({ role: 'parent' })
     createdEmails.push(user.email)
