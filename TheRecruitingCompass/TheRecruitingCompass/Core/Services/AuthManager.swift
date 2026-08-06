@@ -31,12 +31,15 @@ final class AuthManager: AuthManaging {
   init(supabaseManager: (any SupabaseManaging)? = nil, biometricService: (any BiometricServiceProtocol)? = nil) {
     self.supabaseManager = supabaseManager ?? SupabaseManager.shared
     self.biometricService = biometricService ?? BiometricService()
+    #if DEBUG
     if ProcessInfo.processInfo.arguments.contains("--uitesting") {
-      // Clear persisted session so UI tests always start from the landing screen
+      // Clear persisted session so UI tests always start from the landing screen.
+      // Debug-only: a Release binary must never honor this session-wiping flag.
       try? KeychainHelper.shared.delete(forKey: "savedSession")
       isCheckingSession = false
       return
     }
+    #endif
     // Unstructured Task is intentional: @Observable classes cannot have async init.
     // @MainActor ensures session restoration runs on the main thread.
     Task {

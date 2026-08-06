@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Base Info.plist for Release builds. Xcode merges the generated keys and
+	  INFOPLIST_KEY_* build settings on top of this (GENERATE_INFOPLIST_FILE stays YES).
+	  Unlike the Debug plist (Config/Info.plist), this deliberately omits the
+	  NSAppTransportSecurity local-networking exception — that exists only so E2E
+	  tests can reach a local Supabase stack and must never ship.
+
+	  ITSAppUsesNonExemptEncryption: the app uses only standard HTTPS/ATS
+	  encryption (exempt), so App Store Connect skips the export-compliance
+	  questionnaire on every upload.
+	-->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+</dict>
+</plist>

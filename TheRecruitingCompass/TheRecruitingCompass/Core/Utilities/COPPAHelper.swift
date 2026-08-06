@@ -18,13 +18,15 @@ enum COPPAHelper {
   }()
 
   /// Returns true if the given date of birth indicates the user is under 13.
+  /// Fails closed: a date string that parses as neither format is treated as under-age,
+  /// so a malformed DOB can never bypass the age gate.
   /// - Parameter dateOfBirth: ISO8601 date string or "YYYY-MM-DD".
   static func isUnderAge(_ dateOfBirth: String) -> Bool {
     var date = iso8601Formatter.date(from: dateOfBirth)
     if date == nil {
       date = fallbackFormatter.date(from: dateOfBirth)
     }
-    guard let dob = date else { return false }
+    guard let dob = date else { return true }
     let calendar = Calendar.current
     let age = calendar.dateComponents([.year], from: dob, to: Date.now).year ?? 0
     return age < minimumAge

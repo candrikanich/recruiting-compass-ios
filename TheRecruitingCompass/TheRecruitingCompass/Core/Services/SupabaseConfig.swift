@@ -12,8 +12,13 @@ private let productionAnonKey = ""
 
 /// True when launched by the UI test runner. Lets E2E tests point the app at a
 /// local Supabase stack via launchEnvironment instead of the embedded prod creds.
+/// Debug-only: a Release binary must never honor a backend override.
 private var isUITesting: Bool {
+  #if DEBUG
   ProcessInfo.processInfo.arguments.contains("--uitesting")
+  #else
+  false
+  #endif
 }
 
 /// Reads Supabase URL from (1) embedded Swift, (2) env, (3) Info.plist, (4) plist, (5) production fallback.

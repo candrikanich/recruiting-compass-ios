@@ -23,6 +23,7 @@ Update status as you go: `[ ]` → `[~]` (in progress) → `[x]` (done).
 - [x] 🟢 **PrivacyInfo.xcprivacy created** (UserDefaults declared, CA92.1)
 - [ ] 🔴 Version number set to shipping version (currently `1.0` — confirm this is intentional)
 - [ ] 🔴 Build number bumped before each upload (currently `1`)
+- [x] 🟢 ITSAppUsesNonExemptEncryption = NO (Config/Info.plist + Config/Info-Release.plist) — no export-compliance prompt per upload
 - [ ] 🟡 Release.xcconfig has real production credentials (not placeholders)
 - [ ] 🟡 Archive build tested on a physical device before submission
 - [ ] 🟡 No DEBUG-only code paths reachable in release build
@@ -67,8 +68,9 @@ Update status as you go: `[ ]` → `[~]` (in progress) → `[x]` (done).
   - [ ] User ID (Supabase auth UID — linked to user)
   - [ ] Usage Data (if Supabase logs queries — check with Supabase data practices)
   - [ ] Crash Data (if using any crash reporter)
+  - [ ] Location (NSLocationWhenInUseUsageDescription is set for the Home Location quick-set — declare Location if collected/sent to backend)
 - [ ] 🟡 PHPickerViewController confirmed as only photo access (no NSPhotoLibraryUsageDescription needed ✅)
-- [ ] 🟡 CoreLocation/MapKit used for geocoding only — no location permission requested ✅
+- [ ] 🟡 Location permission IS requested (When In Use, Home Location quick-set in Settings) — verify purpose string wording before submission
 
 ---
 
@@ -113,12 +115,13 @@ Update status as you go: `[ ]` → `[~]` (in progress) → `[x]` (done).
 | NSFaceIDUsageDescription | ✅ |
 | PrivacyInfo.xcprivacy | ✅ (created 2026-03-08) |
 | Release.xcconfig gitignored | ✅ |
-| SupabaseConfig.generated.swift gitignored | ✅ |
+| SupabaseConfig.generated.swift committed as placeholder stub — build phase injects real values; never commit generated output | ✅ (fixed 2026-08-06: real values had been committed) |
+| ATS local-networking exception Debug-only (Release uses Config/Info-Release.plist) | ✅ (2026-08-06) |
 | Entitlements (associated domains) | ✅ |
 | No ATT framework needed | ✅ |
 | Bundle ID / Team ID | ✅ |
 
 ---
 
-*Last updated: 2026-03-08*
+*Last updated: 2026-08-06 (audit-fix pass: encryption exemption, ATS split, generated-config stub, location-permission correction)*
 *Next review: Before TestFlight external beta*
