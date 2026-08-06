@@ -20,7 +20,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
 
   // MARK: - Database Models
 
-  private struct DatabaseUser: Codable {
+  private nonisolated struct DatabaseUser: Codable {
     let id: String
     let email: String
     let emailConfirmedAt: String?

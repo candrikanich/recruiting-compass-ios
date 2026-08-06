@@ -4,7 +4,7 @@ import UIKit
 /// `UIGraphicsImageRenderer` and `jpegData` are CPU-bound and, on a full-resolution
 /// photo-picker image, expensive enough (300-800ms) to visibly freeze the UI if run
 /// on the main actor — call this from a background context (e.g. `Task.detached`).
-enum ImageCompression {
+nonisolated enum ImageCompression {
   static func downsampledJPEGData(
     from image: UIImage,
     maxDimension: CGFloat = 1024,

@@ -48,7 +48,6 @@ struct PieChartView: View {
     }.joined(separator: "; ")
   }
 
-  @ViewBuilder
   private var pieRing: some View {
     let diameter: CGFloat = 160
     let radius = diameter / 2
