@@ -7,9 +7,9 @@ enum UserRole: String, Codable, CaseIterable, Sendable {
   var displayName: String {
     switch self {
     case .parent:
-      return "Parent"
+      return String(localized: "Parent")
     case .player:
-      return "Player"
+      return String(localized: "Player")
     }
   }
 
@@ -25,9 +25,9 @@ enum UserRole: String, Codable, CaseIterable, Sendable {
   var description: String {
     switch self {
     case .parent:
-      return "Manage your family's recruiting profile"
+      return String(localized: "Manage your family's recruiting profile")
     case .player:
-      return "Track your athletic performance and recruiting status"
+      return String(localized: "Track your athletic performance and recruiting status")
     }
   }
 

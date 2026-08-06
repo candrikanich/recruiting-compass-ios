@@ -25,12 +25,12 @@ struct HelpStepCard: View {
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
-        Text(String(localized: "\(title)"))
+        Text(title)
           .font(.body)
           .fontWeight(.semibold)
           .foregroundStyle(.primary)
 
-        Text(String(localized: "\(bodyText)"))
+        Text(bodyText)
           .font(.subheadline)
           .foregroundStyle(.secondary)
           .fixedSize(horizontal: false, vertical: true)

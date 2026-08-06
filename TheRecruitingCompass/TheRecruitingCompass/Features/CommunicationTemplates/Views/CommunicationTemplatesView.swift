@@ -50,7 +50,7 @@ struct CommunicationTemplatesView: View {
         viewModel.activeTab = tab
       }
     } label: {
-      Text(String(localized: "\(title)"))
+      Text(title)
         .font(.subheadline.weight(.medium))
         .foregroundStyle(isActive ? .white : .primary)
         .frame(maxWidth: .infinity)

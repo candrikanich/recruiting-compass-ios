@@ -352,17 +352,17 @@ private func interactionTypeRow(icon: String, title: String, detail: String) -> 
   }
 }
 
-private func phaseCard(title: String, badge: HelpBadge.BadgeType?, text: String) -> some View {
+private func phaseCard(title: LocalizedStringKey, badge: HelpBadge.BadgeType?, text: LocalizedStringKey) -> some View {
   VStack(alignment: .leading, spacing: 8) {
     HStack(alignment: .firstTextBaseline, spacing: 8) {
-      Text(String(localized: "\(title)"))
+      Text(title)
         .font(.headline)
         .foregroundStyle(.primary)
       if let badge {
         HelpBadge(type: badge)
       }
     }
-    Text(String(localized: "\(text)"))
+    Text(text)
       .font(.subheadline)
       .foregroundStyle(.secondary)
   }
@@ -372,9 +372,9 @@ private func phaseCard(title: String, badge: HelpBadge.BadgeType?, text: String)
   .clipShape(RoundedRectangle(cornerRadius: 12))
 }
 
-private func letterStatusRow(label: String, color: Color, text: String) -> some View {
+private func letterStatusRow(label: LocalizedStringKey, color: Color, text: LocalizedStringKey) -> some View {
   HStack(alignment: .top, spacing: 12) {
-    Text(String(localized: "\(label)"))
+    Text(label)
       .font(.caption)
       .fontWeight(.medium)
       .foregroundStyle(color)
@@ -382,15 +382,15 @@ private func letterStatusRow(label: String, color: Color, text: String) -> some 
       .padding(.vertical, 4)
       .background(color.opacity(0.2))
       .clipShape(Capsule())
-    Text(String(localized: "\(text)"))
+    Text(text)
       .font(.subheadline)
       .foregroundStyle(.secondary)
   }
 }
 
-private func notificationPriorityRow(title: String, items: [String]) -> some View {
+private func notificationPriorityRow(title: LocalizedStringKey, items: [String]) -> some View {
   VStack(alignment: .leading, spacing: 4) {
-    Text(String(localized: "\(title)"))
+    Text(title)
       .font(.subheadline)
       .fontWeight(.semibold)
       .foregroundStyle(.primary)
