@@ -1,3 +1,4 @@
+import MessageUI
 import SwiftUI
 
 /// Quick Communication sheet: contact a coach with optional template, Send Email/Text, and link to Manage Templates.
@@ -5,8 +6,14 @@ struct QuickCommunicationView: View {
   let context: QuickCommunicationContext
 
   @State private var viewModel: QuickCommunicationViewModel
+  @State private var activeComposer: ActiveComposer?
+  @State private var showSuccessToast = false
+  @State private var showInfoToast = false
+  @State private var infoMessage: String?
   @Environment(\.openURL) private var openURL
   @Environment(\.dismiss) private var dismiss
+  @Environment(FamilyManager.self) private var familyManager
+  @Environment(AuthManager.self) private var authManager
 
   init(context: QuickCommunicationContext) {
     self.context = context
@@ -14,6 +21,11 @@ struct QuickCommunicationView: View {
       coach: context.coach,
       schoolName: context.schoolName
     ))
+  }
+
+  private enum ActiveComposer: Identifiable {
+    case mail, message
+    var id: Self { self }
   }
 
   var body: some View {
@@ -33,17 +45,22 @@ struct QuickCommunicationView: View {
             QuickCommBodyPreviewSection(filledBody: viewModel.filledBody)
           }
           QuickCommActionsSection(
-            mailtoURL: viewModel.mailtoURL(),
-            smsURL: viewModel.smsURL(),
+            showEmail: viewModel.mailtoURL() != nil,
+            showText: viewModel.smsURL() != nil,
             coachEmail: context.coach.email ?? "",
-            onOpenURL: { openURL($0) },
-            onDismiss: { dismiss() }
+            onSendEmail: handleSendEmail,
+            onSendText: handleSendText
           )
         }
         .padding()
       }
       .navigationTitle("Quick Communication")
       .navigationBarTitleDisplayMode(.inline)
+      .sheet(item: $activeComposer) { composer in
+        composerSheet(for: composer)
+      }
+      .toast(isShowing: $showSuccessToast, message: $viewModel.successMessage, type: .success, duration: 3.0)
+      .toast(isShowing: $showInfoToast, message: $infoMessage, type: .info, duration: 3.0)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
           Button("Done") { dismiss() }
@@ -60,8 +77,78 @@ struct QuickCommunicationView: View {
           CommunicationTemplatesView()
         }
       }
-      .task { await viewModel.loadTemplates() }
+      .task {
+        viewModel.configureContext(
+          loggedBy: authManager.user?.id,
+          familyUnitId: familyManager.currentMember?.familyUnitId
+        )
+        await viewModel.loadTemplates()
+      }
       .accessibilityIdentifier("quickCommunicationView")
+    }
+  }
+
+  // MARK: - Send handling
+
+  /// Present the in-app mail composer when the device can send mail; otherwise fall back to the
+  /// `mailto:` hand-off and log NOTHING (an external hand-off can't confirm the send).
+  private func handleSendEmail() {
+    if MFMailComposeViewController.canSendMail() {
+      activeComposer = .mail
+    } else if let url = viewModel.mailtoURL() {
+      openURL(url)
+      infoMessage = String(localized: "Log it from Interactions once sent.")
+      showInfoToast = true
+    }
+  }
+
+  /// Present the in-app message composer when the device can send texts; otherwise fall back to the
+  /// `sms:` hand-off and log NOTHING.
+  private func handleSendText() {
+    if MFMessageComposeViewController.canSendText() {
+      activeComposer = .message
+    } else if let url = viewModel.smsURL() {
+      openURL(url)
+      infoMessage = String(localized: "Log it from Interactions once sent.")
+      showInfoToast = true
+    }
+  }
+
+  @ViewBuilder
+  private func composerSheet(for composer: ActiveComposer) -> some View {
+    switch composer {
+    case .mail:
+      MailComposeView(
+        recipients: [context.coach.email].compactMap { $0 },
+        subject: viewModel.selectedTemplate?.name,
+        body: viewModel.filledBody,
+        onResult: { result, _ in handleMailResult(result) }
+      )
+      .ignoresSafeArea()
+    case .message:
+      MessageComposeView(
+        recipients: [context.coach.phone].compactMap { $0 },
+        body: viewModel.filledBody,
+        onResult: { handleMessageResult($0) }
+      )
+      .ignoresSafeArea()
+    }
+  }
+
+  /// Log ONLY on a confirmed `.sent`. `.cancelled`/`.saved`/`.failed` log nothing.
+  private func handleMailResult(_ result: MFMailComposeResult) {
+    guard result == .sent else { return }
+    Task {
+      await viewModel.logSend(.email)
+      if viewModel.didLogSend { showSuccessToast = true }
+    }
+  }
+
+  private func handleMessageResult(_ result: MessageComposeResult) {
+    guard result == .sent else { return }
+    Task {
+      await viewModel.logSend(.text)
+      if viewModel.didLogSend { showSuccessToast = true }
     }
   }
 }
@@ -196,19 +283,16 @@ private struct QuickCommBodyPreviewSection: View {
 }
 
 private struct QuickCommActionsSection: View {
-  let mailtoURL: URL?
-  let smsURL: URL?
+  let showEmail: Bool
+  let showText: Bool
   let coachEmail: String
-  let onOpenURL: (URL) -> Void
-  let onDismiss: () -> Void
+  let onSendEmail: () -> Void
+  let onSendText: () -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      if let mailto = mailtoURL {
-        Button {
-          onOpenURL(mailto)
-          onDismiss()
-        } label: {
+      if showEmail {
+        Button(action: onSendEmail) {
           Label("Send Email", systemImage: "envelope.fill")
             .font(.body.weight(.medium))
             .frame(maxWidth: .infinity)
@@ -216,14 +300,11 @@ private struct QuickCommActionsSection: View {
         }
         .buttonStyle(.borderedProminent)
         .accessibilityLabel(String(localized: "Send email to \(coachEmail)"))
-        .accessibilityHint("Opens Mail with recipient and optional message body")
+        .accessibilityHint("Opens Mail to compose; the message is logged only when sent")
       }
 
-      if let sms = smsURL {
-        Button {
-          onOpenURL(sms)
-          onDismiss()
-        } label: {
+      if showText {
+        Button(action: onSendText) {
           Label("Send Text", systemImage: "message.fill")
             .font(.body.weight(.medium))
             .frame(maxWidth: .infinity)
@@ -231,7 +312,7 @@ private struct QuickCommActionsSection: View {
         }
         .buttonStyle(.bordered)
         .accessibilityLabel(String(localized: "Send text to coach"))
-        .accessibilityHint("Opens Messages with optional message body")
+        .accessibilityHint("Opens Messages to compose; the message is logged only when sent")
       }
     }
   }
@@ -258,4 +339,6 @@ private struct QuickCommActionsSection: View {
       schoolName: "The College of Wooster"
     )
   )
+  .environment(FamilyManager.shared)
+  .environment(AuthManager.shared)
 }

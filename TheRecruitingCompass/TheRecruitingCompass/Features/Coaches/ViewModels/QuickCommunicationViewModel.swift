@@ -17,10 +17,30 @@ final class QuickCommunicationViewModel {
   var isLoading = false
   var errorMessage: String?
 
+  /// Set true after a confirmed send is logged. Drives the parent success toast.
+  var didLogSend = false
+  /// Success toast copy for a confirmed, logged send (nil until one is logged).
+  var successMessage: String?
+
   let coach: Coach
   let schoolName: String?
 
+  /// Channel a confirmed send used, so logging picks the matching interaction type.
+  enum SendChannel { case email, text }
+
   private let templatesService: any CommunicationTemplatesServicing
+  private let interactionsService: any InteractionsManaging
+  private let coachesService: any CoachesManaging
+  private var loggedBy: String?
+  private var familyUnitId: String?
+
+  /// Supply the signed-in user + family context resolved from the environment at the
+  /// presentation site (the sheet call sites don't inject the ViewModel). Safe to call
+  /// before any send; no-ops nothing already set by `init` for tests.
+  func configureContext(loggedBy: String?, familyUnitId: String?) {
+    self.loggedBy = loggedBy
+    self.familyUnitId = familyUnitId
+  }
 
   var recipientLine: String {
     "\(coach.fullName) – \(coach.role.displayName)"
@@ -52,11 +72,19 @@ final class QuickCommunicationViewModel {
   init(
     coach: Coach,
     schoolName: String? = nil,
-    templatesService: (any CommunicationTemplatesServicing)? = nil
+    templatesService: (any CommunicationTemplatesServicing)? = nil,
+    interactionsService: (any InteractionsManaging)? = nil,
+    coachesService: (any CoachesManaging)? = nil,
+    loggedBy: String? = nil,
+    familyUnitId: String? = nil
   ) {
     self.coach = coach
     self.schoolName = schoolName
     self.templatesService = templatesService ?? CommunicationTemplatesServiceImpl()
+    self.interactionsService = interactionsService ?? InteractionsServiceImpl(supabaseManager: .shared)
+    self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
+    self.loggedBy = loggedBy
+    self.familyUnitId = familyUnitId
   }
 
   func loadTemplates() async {
@@ -113,6 +141,59 @@ final class QuickCommunicationViewModel {
     if body.count <= Self.maxURLBodyLength { return body }
     let trimmed = String(body.prefix(Self.maxURLBodyLength - 30))
     return trimmed.trimmingCharacters(in: .whitespacesAndNewlines) + "\n\n[Message truncated — full text in app]"
+  }
+
+  // MARK: - Send logging
+
+  /// Log an outbound interaction for a message the in-app composer confirmed as `.sent`.
+  /// Call ONLY on a confirmed send — never on `.cancelled`/`.saved`/`.failed` or the no-account
+  /// fallback, so the app never records a message that wasn't actually sent.
+  func logSend(_ channel: SendChannel) async {
+    guard let loggedBy, let familyUnitId else {
+      logger.error("Cannot log sent interaction: missing user or family context")
+      errorMessage = String(localized: "Message sent, but logging it failed.")
+      return
+    }
+
+    do {
+      let request = InteractionCreateRequest(
+        schoolId: coach.schoolId,
+        coachId: coach.id,
+        type: channel == .email ? .email : .text,
+        direction: .outbound,
+        occurredAt: Date(),
+        subject: selectedTemplate?.name,
+        content: filledBody.isEmpty ? nil : filledBody,
+        sentiment: nil,
+        loggedBy: loggedBy,
+        familyUnitId: familyUnitId
+      )
+      _ = try await interactionsService.createInteraction(request)
+      await updateLastContactDate()
+
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: loggedBy))
+
+      successMessage = channel == .email
+        ? String(localized: "Logged email to Coach \(coach.fullName).")
+        : String(localized: "Logged text to Coach \(coach.fullName).")
+      didLogSend = true
+      logger.info("Logged \(channel == .email ? "email" : "text") send to coach \(self.coach.id, privacy: .public)")
+    } catch {
+      logger.error("Failed to log sent interaction: \(error.localizedDescription)")
+      errorMessage = String(localized: "Message sent, but logging it failed.")
+    }
+  }
+
+  /// Stamp the coach's `last_contact_date` (parity with web; no DB trigger sets it).
+  /// A failure here does not fail the send-log — the interaction row is the source of truth.
+  private func updateLastContactDate() async {
+    do {
+      let iso = ISO8601DateFormatter().string(from: Date())
+      _ = try await coachesService.updateCoach(id: coach.id, updates: CoachUpdateRequest(lastContactDate: iso))
+    } catch {
+      logger.error("Failed to update last_contact_date: \(error.localizedDescription)")
+    }
   }
 
 }
