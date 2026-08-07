@@ -10,7 +10,7 @@
 import SwiftUI
 
 struct MoreMenuView: View {
-  @State private var path: [MorePath] = []
+  @State private var path = NavigationPath()
   @Binding var externalPath: [MorePath]
   var notificationsViewModel: NotificationsListViewModel
 
@@ -30,7 +30,8 @@ struct MoreMenuView: View {
     }
     .onChange(of: externalPath) { _, newPath in
       guard !newPath.isEmpty else { return }
-      path = newPath
+      path = NavigationPath()
+      newPath.forEach { path.append($0) }
       externalPath = []
     }
   }
@@ -74,7 +75,7 @@ struct MoreMenuView: View {
     case .timeline:
       RecruitingTimelineView()
     case .events:
-      EventsListView(path: $path)
+      EventsListView()
     case .documents:
       DocumentsListView()
     case .offers:

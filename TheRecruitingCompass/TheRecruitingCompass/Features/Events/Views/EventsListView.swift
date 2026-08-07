@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct EventsListView: View {
-  @Binding var path: [MorePath]
-
   @Environment(AuthManager.self) private var authManager
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var viewModel = EventsListViewModel()
