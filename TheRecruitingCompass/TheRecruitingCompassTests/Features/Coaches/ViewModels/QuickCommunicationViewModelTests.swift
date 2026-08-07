@@ -165,6 +165,110 @@ final class QuickCommunicationViewModelTests: XCTestCase {
     XCTAssertNil(sut.smsURL())
   }
 
+  // MARK: - logSend (log on confirmed send only)
+
+  /// The View calls `logSend` ONLY on a confirmed composer `.sent`; `.cancelled`/`.saved`/`.failed`
+  /// and the no-account fallback never reach it (view-level `guard result == .sent`). These tests
+  /// verify the ViewModel side: a confirmed send logs exactly one outbound interaction + stamps the
+  /// coach, and a missing user/family context logs nothing.
+
+  func testLogSend_email_createsOneOutboundInteractionWithEmailType() async {
+    let interactions = MockInteractionsService()
+    let coaches = MockCoachesService()
+    coaches.stubbedUpdatedCoach = makeCoach()
+    let sut = makeLoggingSut(interactions: interactions, coaches: coaches)
+
+    await sut.logSend(.email)
+
+    XCTAssertEqual(interactions.createInteractionCallCount, 1)
+    XCTAssertEqual(interactions.lastCreatedInteractionRequest?.type, "email")
+    XCTAssertEqual(interactions.lastCreatedInteractionRequest?.direction, "outbound")
+    XCTAssertEqual(interactions.lastCreatedInteractionRequest?.coachId, "coach-1")
+    XCTAssertEqual(interactions.lastCreatedInteractionRequest?.loggedBy, "user-1")
+    XCTAssertEqual(interactions.lastCreatedInteractionRequest?.familyUnitId, "family-1")
+    XCTAssertTrue(sut.didLogSend)
+    XCTAssertEqual(sut.successMessage, "Logged email to Coach Jane Smith.")
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  func testLogSend_text_createsInteractionWithTextType() async {
+    let interactions = MockInteractionsService()
+    let coaches = MockCoachesService()
+    coaches.stubbedUpdatedCoach = makeCoach()
+    let sut = makeLoggingSut(interactions: interactions, coaches: coaches)
+
+    await sut.logSend(.text)
+
+    XCTAssertEqual(interactions.createInteractionCallCount, 1)
+    XCTAssertEqual(interactions.lastCreatedInteractionRequest?.type, "text")
+    XCTAssertEqual(sut.successMessage, "Logged text to Coach Jane Smith.")
+  }
+
+  func testLogSend_stampsLastContactDateOnce() async {
+    let interactions = MockInteractionsService()
+    let coaches = MockCoachesService()
+    coaches.stubbedUpdatedCoach = makeCoach()
+    let sut = makeLoggingSut(interactions: interactions, coaches: coaches)
+
+    await sut.logSend(.email)
+
+    XCTAssertEqual(coaches.updateCoachCallCount, 1)
+    XCTAssertEqual(coaches.lastUpdateCoachId, "coach-1")
+    XCTAssertNotNil(coaches.lastUpdateCoachUpdates?.lastContactDate)
+    XCTAssertNil(coaches.lastUpdateCoachUpdates?.notes)
+    XCTAssertNil(coaches.lastUpdateCoachUpdates?.nextContactDate)
+  }
+
+  func testLogSend_missingContext_logsNothing() async {
+    let interactions = MockInteractionsService()
+    let coaches = MockCoachesService()
+    // No loggedBy / familyUnitId injected.
+    let sut = QuickCommunicationViewModel(
+      coach: makeCoach(),
+      schoolName: "Test University",
+      templatesService: mockService,
+      interactionsService: interactions,
+      coachesService: coaches
+    )
+
+    await sut.logSend(.email)
+
+    XCTAssertEqual(interactions.createInteractionCallCount, 0)
+    XCTAssertEqual(coaches.updateCoachCallCount, 0)
+    XCTAssertFalse(sut.didLogSend)
+    XCTAssertEqual(sut.errorMessage, "Message sent, but logging it failed.")
+  }
+
+  func testLogSend_createInteractionFails_setsErrorAndDoesNotConfirm() async {
+    let interactions = MockInteractionsService()
+    interactions.shouldSucceed = false
+    let coaches = MockCoachesService()
+    let sut = makeLoggingSut(interactions: interactions, coaches: coaches)
+
+    await sut.logSend(.email)
+
+    XCTAssertFalse(sut.didLogSend)
+    XCTAssertNil(sut.successMessage)
+    XCTAssertEqual(coaches.updateCoachCallCount, 0)
+    XCTAssertEqual(sut.errorMessage, "Message sent, but logging it failed.")
+  }
+
+  private func makeLoggingSut(
+    interactions: MockInteractionsService,
+    coaches: MockCoachesService
+  ) -> QuickCommunicationViewModel {
+    let sut = QuickCommunicationViewModel(
+      coach: makeCoach(),
+      schoolName: "Test University",
+      templatesService: mockService,
+      interactionsService: interactions,
+      coachesService: coaches,
+      loggedBy: "user-1",
+      familyUnitId: "family-1"
+    )
+    return sut
+  }
+
   // MARK: - Helpers
 
   private func makeCoach(email: String? = "coach@example.com", phone: String? = "555-123-4567") -> Coach {
