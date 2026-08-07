@@ -29,7 +29,7 @@ final class SettingsViewModel {
       loc.latitude != nil && loc.longitude != nil
     }
     playerDetailsStatus = await fetchForStatus(category: .player) { (details: PlayerDetails) in
-      details.graduationYear != nil || details.positions?.isEmpty == false
+      details.isComplete
     }
     schoolPreferencesStatus = await fetchForStatus(category: .school) { (prefs: SchoolPreferences) in
       !prefs.preferences.isEmpty

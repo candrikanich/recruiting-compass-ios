@@ -73,18 +73,24 @@ final class SettingsViewModelTests: XCTestCase {
 
   // MARK: - Player Details
 
-  func testPlayerDetailsStatus_WithGraduationYear_IsComplete() async {
+  func testPlayerDetailsStatus_WithGraduationYearOnly_IsIncomplete() async {
     var details = PlayerDetails()
     details.graduationYear = 2027
     mockService.results[.player] = details
     await viewModel.loadCompletionStatus()
-    XCTAssertEqual(viewModel.playerDetailsStatus, .complete)
+    XCTAssertEqual(viewModel.playerDetailsStatus, .incomplete)
   }
 
-  func testPlayerDetailsStatus_WithPositions_IsComplete() async {
+  func testPlayerDetailsStatus_WithPositionsOnly_IsIncomplete() async {
     var details = PlayerDetails()
     details.positions = ["Pitcher", "Outfield"]
     mockService.results[.player] = details
+    await viewModel.loadCompletionStatus()
+    XCTAssertEqual(viewModel.playerDetailsStatus, .incomplete)
+  }
+
+  func testPlayerDetailsStatus_AllRequiredFieldsFilled_IsComplete() async {
+    mockService.results[.player] = PlayerDetails.fullyComplete
     await viewModel.loadCompletionStatus()
     XCTAssertEqual(viewModel.playerDetailsStatus, .complete)
   }
@@ -142,8 +148,7 @@ final class SettingsViewModelTests: XCTestCase {
   // MARK: - Parallel loading
 
   func testLoadCompletionStatus_AllThreeLoaded_AllStatusesSet() async {
-    var details = PlayerDetails()
-    details.graduationYear = 2028
+    let details = PlayerDetails.fullyComplete
     mockService.results[.location] = HomeLocation(
       address: nil, city: nil, state: nil, zip: nil,
       latitude: 30.27, longitude: -97.74
@@ -156,5 +161,24 @@ final class SettingsViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.homeLocationStatus, .complete)
     XCTAssertEqual(viewModel.playerDetailsStatus, .complete)
     XCTAssertEqual(viewModel.schoolPreferencesStatus, .incomplete)
+  }
+}
+
+extension PlayerDetails {
+  /// A non-baseball profile with every required completeness field filled (score == 1.0).
+  static var fullyComplete: PlayerDetails {
+    var details = PlayerDetails()
+    details.graduationYear = 2027
+    details.highSchool = "Central High"
+    details.primarySport = "Soccer"
+    details.schoolName = "Central High School"
+    details.schoolCity = "Austin"
+    details.schoolState = "TX"
+    details.heightInches = 70
+    details.weightLbs = 160
+    details.gpa = 3.8
+    details.satScore = 1350
+    details.instagramHandle = "@player"
+    return details
   }
 }
