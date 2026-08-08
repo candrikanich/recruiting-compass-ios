@@ -5,7 +5,7 @@ import CoreLocation
 final class DistanceCalculatorTests: XCTestCase {
   nonisolated deinit {}
 
-  // Winston-Salem, NC (Wake Forest area) -> a home ~372 mi away.
+  // Winston-Salem, NC (Wake Forest area) -> a home ~464 mi away (NYC).
   // Reference pair validated against web utils/distance.ts (R = 3958.8, Math.round).
   private let wakeForest = CLLocationCoordinate2D(latitude: 36.1330, longitude: -80.2770)
   private let home = CLLocationCoordinate2D(latitude: 40.7128, longitude: -74.0060) // NYC
