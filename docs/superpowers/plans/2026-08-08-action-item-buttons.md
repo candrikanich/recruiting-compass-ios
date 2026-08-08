@@ -541,9 +541,11 @@ git commit -m "feat: add SuggestionHelpModal Learn More sheet"
 
 **Interfaces:**
 - Consumes: `AddSchoolView`, `AddInteractionView`, `SchoolsServiceImpl`, `InteractionsServiceImpl`, `SchoolDestination`.
-- Produces: `struct AddSchoolSheet: View { let familyUnitId, userId: String }` and `struct AddInteractionSheet: View { let familyUnitId, userId: String }` — each wraps its add view in its own `NavigationStack`.
+- Produces: `struct ActionItemAddSchoolSheet: View { let familyUnitId, userId: String }` and `struct ActionItemAddInteractionSheet: View { let familyUnitId, userId: String }` — each wraps its add view in its own `NavigationStack`.
 
 This mirrors the existing `private struct DashboardAddSchoolSheet` in `DashboardView.swift:238-259`. No independently testable logic — verified by build. (Leave the existing `DashboardAddSchoolSheet` as-is; this task does not refactor `DashboardView`.)
+
+**Naming note:** the names are `ActionItem`-prefixed to avoid a collision with the existing `struct AddSchoolSheet` in `Features/Events/Components/AddSchoolSheet.swift` (same app module — an unprefixed `AddSchoolSheet` is a redeclaration error). Do NOT rename or touch the Events file.
 
 - [ ] **Step 1: Create `ActionItemSheets.swift`**
 
@@ -552,7 +554,7 @@ import SwiftUI
 
 /// Presents the Add School flow in its own navigation stack (for action-item CTAs).
 /// Mirrors DashboardView's DashboardAddSchoolSheet so it can be reused from the card.
-struct AddSchoolSheet: View {
+struct ActionItemAddSchoolSheet: View {
   let familyUnitId: String
   let userId: String
 
@@ -576,7 +578,7 @@ struct AddSchoolSheet: View {
 }
 
 /// Presents the Log Interaction flow in its own navigation stack (for action-item CTAs).
-struct AddInteractionSheet: View {
+struct ActionItemAddInteractionSheet: View {
   let familyUnitId: String
   let userId: String
 
@@ -699,7 +701,7 @@ This task changes `ActionItemCard`'s signature, so its two call sites and the wi
 - Modify: `TheRecruitingCompass/TheRecruitingCompass/Features/Suggestions/Views/SuggestionsListView.swift` (card call)
 
 **Interfaces:**
-- Consumes: `ActionItemCTA` (Task 2), `SuggestionHelpModal` (Task 4), `AddSchoolSheet`/`AddInteractionSheet` (Task 5), `DashboardViewModel.actingUserId`/`currentFamilyUnitId` (Task 6).
+- Consumes: `ActionItemCTA` (Task 2), `SuggestionHelpModal` (Task 4), `ActionItemAddSchoolSheet`/`ActionItemAddInteractionSheet` (Task 5), `DashboardViewModel.actingUserId`/`currentFamilyUnitId` (Task 6).
 - Produces: `ActionItemCard(suggestion:familyUnitId:userId:onDismiss:onComplete:onActionCompleted:)` — no `canDismissOrComplete`; Complete/Dismiss always shown.
 
 - [ ] **Step 1: Rewrite `ActionItemCard.swift`**
@@ -767,9 +769,9 @@ struct ActionItemCard: View {
     .sheet(item: $activeSheet, onDismiss: onActionCompleted) { sheet in
       switch sheet {
       case .addSchool:
-        AddSchoolSheet(familyUnitId: familyUnitId, userId: userId)
+        ActionItemAddSchoolSheet(familyUnitId: familyUnitId, userId: userId)
       case .addInteraction:
-        AddInteractionSheet(familyUnitId: familyUnitId, userId: userId)
+        ActionItemAddInteractionSheet(familyUnitId: familyUnitId, userId: userId)
       }
     }
   }
