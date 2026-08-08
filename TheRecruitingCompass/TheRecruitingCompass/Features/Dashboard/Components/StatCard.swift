@@ -14,7 +14,7 @@ struct StatCard: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      HStack {
+      HStack(spacing: 12) {
         Image(systemName: icon)
           .font(.system(size: iconSize))
           .foregroundStyle(.white)
@@ -23,14 +23,14 @@ struct StatCard: View {
           .clipShape(.rect(cornerRadius: 8))
           .accessibilityHidden(true)
 
-        Spacer()
-      }
-
-      VStack(alignment: .leading, spacing: 4) {
         Text("\(count)")
           .font(.largeTitle.weight(.bold))
           .foregroundStyle(.white)
 
+        Spacer()
+      }
+
+      VStack(alignment: .leading, spacing: 4) {
         Text(title)
           .font(.subheadline.weight(.bold))
           .foregroundStyle(.white)
@@ -51,7 +51,7 @@ struct StatCard: View {
     .padding(.horizontal, 16)
     .padding(.top, 20)
     .padding(.bottom, 20)
-    .frame(maxWidth: .infinity, minHeight: 180)
+    .frame(maxWidth: .infinity, minHeight: 140)
     .background(
       LinearGradient(
         gradient: Gradient(colors: gradientColors),
