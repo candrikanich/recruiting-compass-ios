@@ -31,15 +31,9 @@ final class SchoolsListViewModel {
   var successMessage: String?
   var showSuccessToast = false
 
-  /// Home location for distance filter and sort. Uses family unit coordinates when present, otherwise location saved in Settings (user_preferences).
+  /// Home location for distance filter and sort, from Settings (user_preferences).
   var homeLocation: CLLocationCoordinate2D? {
-    get {
-      if let lat = familyManager.familyUnit?.homeLatitude,
-         let lon = familyManager.familyUnit?.homeLongitude {
-        return CLLocationCoordinate2D(latitude: lat, longitude: lon)
-      }
-      return homeLocationFromPreferences
-    }
+    get { homeLocationFromPreferences }
     set {
       homeLocationFromPreferences = newValue
       recomputeFilteredSchools()
@@ -196,25 +190,21 @@ final class SchoolsListViewModel {
         logger.info("Loaded \(self.allSchools.count) schools")
       }
 
-      // Load home location from Settings (user_preferences) when family unit has no coordinates
-      if familyManager.familyUnit?.homeLatitude == nil || familyManager.familyUnit?.homeLongitude == nil {
-        do {
-          if let location: HomeLocation = try await preferenceService.fetchPreferences(category: .location),
-             let lat = location.latitude, let lon = location.longitude {
-            homeLocationFromPreferences = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-            logger.debug("Using home location from preferences")
-          } else {
-            homeLocationFromPreferences = nil
-          }
-        } catch {
-          // intentionally silent: distance-based sort just falls back to
-          // having no reference point (schools sort as if distance is
-          // unknown) rather than blocking the schools list on a preferences
-          // fetch failure.
-          logger.debug("Could not load home location from preferences: \(error.localizedDescription)")
+      // Load home location from Settings (user_preferences).
+      do {
+        if let location: HomeLocation = try await preferenceService.fetchPreferences(category: .location),
+           let lat = location.latitude, let lon = location.longitude {
+          homeLocationFromPreferences = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+          logger.debug("Using home location from preferences")
+        } else {
           homeLocationFromPreferences = nil
         }
-      } else {
+      } catch {
+        // intentionally silent: distance-based sort just falls back to
+        // having no reference point (schools sort as if distance is
+        // unknown) rather than blocking the schools list on a preferences
+        // fetch failure.
+        logger.debug("Could not load home location from preferences: \(error.localizedDescription)")
         homeLocationFromPreferences = nil
       }
     } catch {
