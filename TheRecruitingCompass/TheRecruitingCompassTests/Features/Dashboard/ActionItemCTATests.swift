@@ -14,10 +14,20 @@ final class ActionItemCTATests: XCTestCase {
     XCTAssertEqual(cta.label, "Log Interaction")
   }
 
-  func test_videoAndUnknownAndNil_mapToNoneWithNilLabel() {
-    XCTAssertEqual(ActionItemCTA(actionType: "add_video"), .none)
-    XCTAssertEqual(ActionItemCTA(actionType: "update_video"), .none)
-    XCTAssertEqual(ActionItemCTA(actionType: "something_new"), .none)
+  func test_addVideoMapsToAddVideoWithLabel() {
+    let cta = ActionItemCTA(actionType: "add_video")
+    XCTAssertEqual(cta, .addVideo)
+    XCTAssertEqual(cta.label, String(localized: "Add Video"))
+  }
+
+  func test_updateVideoMapsToUpdateVideoWithLabel() {
+    let cta = ActionItemCTA(actionType: "update_video")
+    XCTAssertEqual(cta, .updateVideo)
+    XCTAssertEqual(cta.label, String(localized: "Update Video"))
+  }
+
+  func test_unknownAndNilMapToNoneWithNilLabel() {
+    XCTAssertEqual(ActionItemCTA(actionType: "wat"), .none)
     XCTAssertEqual(ActionItemCTA(actionType: nil), .none)
     XCTAssertNil(ActionItemCTA(actionType: nil).label)
   }

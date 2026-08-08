@@ -40,3 +40,17 @@ struct ActionItemAddInteractionSheet: View {
     }
   }
 }
+
+/// Presents the video-links editor in its own navigation stack (for action-item CTAs).
+/// `userId` is the acting user's id; for a player acting on their own suggestion this
+/// IS the athlete, so it's passed as `athleteUserId`.
+struct ActionItemVideoLinksSheet: View {
+  let userId: String
+  var familyUnitId: String?
+
+  var body: some View {
+    NavigationStack {
+      VideoLinksEditorView(athleteUserId: userId, familyUnitId: familyUnitId, isReadOnly: false)
+    }
+  }
+}

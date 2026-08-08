@@ -15,6 +15,7 @@ struct ActionItemCard: View {
   private enum CardSheet: Identifiable {
     case addSchool
     case addInteraction
+    case videoLinks
     var id: Int { hashValue }
   }
 
@@ -63,6 +64,8 @@ struct ActionItemCard: View {
         ActionItemAddSchoolSheet(familyUnitId: familyUnitId, userId: userId)
       case .addInteraction:
         ActionItemAddInteractionSheet(familyUnitId: familyUnitId, userId: userId)
+      case .videoLinks:
+        ActionItemVideoLinksSheet(userId: userId, familyUnitId: familyUnitId)
       }
     }
   }
@@ -116,6 +119,7 @@ struct ActionItemCard: View {
     switch cta {
     case .addSchool: activeSheet = .addSchool
     case .logInteraction: activeSheet = .addInteraction
+    case .addVideo, .updateVideo: activeSheet = .videoLinks
     case .none: break
     }
   }
