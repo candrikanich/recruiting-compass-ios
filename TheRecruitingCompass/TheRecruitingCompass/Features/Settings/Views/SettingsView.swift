@@ -9,6 +9,7 @@ private enum SettingsDestination: Hashable {
   case dashboardCustomization
   case notificationPreferences
   case communicationTemplates
+  case videoLinks
   case about
 }
 
@@ -99,6 +100,15 @@ struct SettingsView: View {
               description: String(localized: "Graduation year, positions, stats, and athletic profile"),
               color: .green,
               badgeStatus: viewModel.playerDetailsStatus
+            )
+          }
+
+          NavigationLink(value: SettingsDestination.videoLinks) {
+            SettingsRow(
+              icon: "play.rectangle.fill",
+              title: String(localized: "Video Links"),
+              description: String(localized: "Highlight and film links coaches can watch"),
+              color: .blue
             )
           }
         } header: {
@@ -223,6 +233,12 @@ struct SettingsView: View {
           NotificationPreferencesView(preferenceService: preferenceService)
         case .communicationTemplates:
           CommunicationTemplatesView()
+        case .videoLinks:
+          VideoLinksEditorView(
+            athleteUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id ?? "",
+            familyUnitId: familyManager.currentMember?.familyUnitId,
+            isReadOnly: familyManager.currentMember?.isParent == true
+          )
         case .about:
           AboutView()
         }
