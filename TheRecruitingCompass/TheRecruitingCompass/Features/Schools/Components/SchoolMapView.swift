@@ -4,12 +4,32 @@ import MapKit
 struct SchoolMapView: View {
   let school: School
   let homeLocation: CLLocationCoordinate2D?
+  var onSetHomeLocation: () -> Void = {}
 
-  @State private var distance: Double?
+  enum MapState: Equatable {
+    case distance(String)
+    case setHomeCTA
+    case noSchoolCoords
+  }
+
+  /// Testable view state derived from the school + home coordinates.
+  var mapState: MapState {
+    guard let lat = school.academicInfo?.latitude,
+          let lon = school.academicInfo?.longitude else {
+      return .noSchoolCoords
+    }
+    guard let home = homeLocation else {
+      return .setHomeCTA
+    }
+    let miles = DistanceCalculator.milesRounded(
+      from: home,
+      to: CLLocationCoordinate2D(latitude: lat, longitude: lon)
+    )
+    return .distance(DistanceCalculator.formatMiles(miles))
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      // Map
       if let lat = school.academicInfo?.latitude,
          let lon = school.academicInfo?.longitude {
         let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
@@ -26,26 +46,44 @@ struct SchoolMapView: View {
         .accessibilityLabel(String(localized: "Map showing \(school.name) location"))
         .accessibilityAddTraits(.allowsDirectInteraction)
         .accessibilityHint("Use two fingers to pan and pinch to zoom the map")
-        .onAppear {
-          distance = calculateDistance()
-        }
 
-        // Distance from home
-        if let distance {
+        switch mapState {
+        case .distance(let label):
           HStack(spacing: 6) {
             Image(systemName: "mappin.and.ellipse")
               .foregroundStyle(.secondary)
               .font(.caption)
               .accessibilityHidden(true)
 
-            Text("Distance from Home: \(Int(distance)) miles")
+            Text("Distance from Home: \(label)")
               .font(.subheadline)
               .foregroundStyle(.secondary)
           }
           .padding(.top, 4)
+          .accessibilityElement(children: .combine)
+          .accessibilityLabel(String(localized: "Distance from Home: \(label)"))
+
+        case .setHomeCTA:
+          Button(action: onSetHomeLocation) {
+            HStack(spacing: 6) {
+              Image(systemName: "mappin.and.ellipse")
+                .font(.caption)
+                .accessibilityHidden(true)
+              Text("Set your home location to see distance")
+                .font(.subheadline)
+            }
+            .frame(minHeight: 44)
+          }
+          .buttonStyle(.plain)
+          .foregroundStyle(.tint)
+          .padding(.top, 4)
+          .accessibilityLabel(String(localized: "Set your home location to see distance to schools"))
+          .accessibilityAddTraits(.isButton)
+
+        case .noSchoolCoords:
+          EmptyView()
         }
       } else {
-        // No coordinates available
         VStack(spacing: 8) {
           Image(systemName: "map")
             .font(.largeTitle)
@@ -68,16 +106,6 @@ struct SchoolMapView: View {
         .accessibilityLabel(String(localized: "Location data not available. Use Lookup College Data to fetch location"))
       }
     }
-  }
-
-  private func calculateDistance() -> Double? {
-    guard let homeLoc = homeLocation,
-          let lat = school.academicInfo?.latitude,
-          let lon = school.academicInfo?.longitude else { return nil }
-
-    let home = CLLocation(latitude: homeLoc.latitude, longitude: homeLoc.longitude)
-    let schoolLoc = CLLocation(latitude: lat, longitude: lon)
-    return home.distance(from: schoolLoc) / 1609.34 // meters to miles
   }
 }
 
