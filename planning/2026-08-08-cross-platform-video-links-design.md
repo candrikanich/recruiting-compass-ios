@@ -135,6 +135,13 @@ updates health, packet/profile/comms surface links from the table.
 
 **Repo:** `recruiting-compass-ios` (source double-nested under `TheRecruitingCompass/TheRecruitingCompass/`)
 
+> **Branch decision (2026-08-08):** Phase C is **folded into the existing `feature/action-item-buttons`
+> branch/spec** (see `planning/` action-item-buttons spec), NOT a separate branch. That branch already
+> owns the action-item CTA/Learn-More/ungate-parents work, which is the same CTA router item 3 below
+> needs. Author the Phase C plan as an EXTENSION of that spec: reconcile item 3 with its existing CTA
+> design (don't build a second router), then add items 1/2/4 (video-links model+service, settings editor,
+> comms var). Read that spec + branch state before authoring.
+
 1. **Model + service:** `VideoLink` Codable model + `VideoLinksManaging` protocol & impl doing Supabase
    CRUD on `video_links` (mirror `DocumentsServiceImpl`, snake_case CodingKeys, `@MainActor` VM /
    `Sendable` service, `nonisolated deinit`). NOT via preferences JSONB.
