@@ -26,17 +26,11 @@ struct SuggestionsListView: View {
         ForEach(viewModel.suggestions) { suggestion in
           ActionItemCard(
             suggestion: suggestion,
-            canDismissOrComplete: !viewModel.isParentPreviewMode,
-            onDismiss: {
-              Task {
-                await viewModel.dismissSuggestion(suggestion.id)
-              }
-            },
-            onComplete: {
-              Task {
-                await viewModel.completeSuggestion(suggestion.id)
-              }
-            }
+            familyUnitId: viewModel.currentFamilyUnitId,
+            userId: viewModel.actingUserId,
+            onDismiss: { Task { await viewModel.dismissSuggestion(suggestion.id) } },
+            onComplete: { Task { await viewModel.completeSuggestion(suggestion.id) } },
+            onActionCompleted: { Task { await viewModel.fetchSuggestions() } }
           )
           .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
           .listRowSeparator(.hidden)
