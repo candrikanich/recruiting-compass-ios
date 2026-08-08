@@ -92,6 +92,9 @@ final class DashboardViewModel {
     familyManager.isParentViewingAthlete
   }
 
+  var actingUserId: String { authManager.user?.id ?? "" }
+  var currentFamilyUnitId: String { familyManager.currentMember?.familyUnitId ?? "" }
+
   var selectedAthleteName: String {
     if let athlete = familyManager.selectedAthlete {
       return athlete.user?.fullName ?? "Athlete"
@@ -279,7 +282,6 @@ final class DashboardViewModel {
   }
 
   func dismissSuggestion(_ id: String) async {
-    guard !isParentPreviewMode else { return }
     let token = authManager.session?.accessToken
     do {
       try await dashboardService.dismissSuggestion(id: id, accessToken: token)
@@ -292,7 +294,6 @@ final class DashboardViewModel {
   }
 
   func completeSuggestion(_ id: String) async {
-    guard !isParentPreviewMode else { return }
     let token = authManager.session?.accessToken
     do {
       try await dashboardService.completeSuggestion(id: id, accessToken: token)
