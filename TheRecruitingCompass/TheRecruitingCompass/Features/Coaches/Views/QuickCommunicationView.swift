@@ -80,9 +80,11 @@ struct QuickCommunicationView: View {
       .task {
         viewModel.configureContext(
           loggedBy: authManager.user?.id,
-          familyUnitId: familyManager.currentMember?.familyUnitId
+          familyUnitId: familyManager.currentMember?.familyUnitId,
+          athleteUserId: familyManager.selectedAthlete?.userId
         )
         await viewModel.loadTemplates()
+        await viewModel.loadVideoLinks()
       }
       .accessibilityIdentifier("quickCommunicationView")
     }

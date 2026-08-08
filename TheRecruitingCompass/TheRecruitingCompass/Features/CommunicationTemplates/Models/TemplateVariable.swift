@@ -11,6 +11,8 @@ struct TemplateVariable {
     TemplateVariable(name: "Sport", key: "sport"),
     TemplateVariable(name: "Position", key: "position"),
     TemplateVariable(name: "Graduation Year", key: "grad_year"),
-    TemplateVariable(name: "High School", key: "high_school")
+    TemplateVariable(name: "High School", key: "high_school"),
+    TemplateVariable(name: "Film Links", key: "film_links"),
+    TemplateVariable(name: "Primary Film Link", key: "primary_film_link")
   ]
 }
