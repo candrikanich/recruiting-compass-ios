@@ -3,9 +3,11 @@ import SwiftUI
 struct ActionItemsWidget: View {
   let suggestions: [Suggestion]
   let pendingCount: Int
-  let canDismissOrComplete: Bool
+  let familyUnitId: String
+  let userId: String
   let onDismiss: (String) -> Void
   let onComplete: (String) -> Void
+  let onActionCompleted: () -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -25,9 +27,11 @@ struct ActionItemsWidget: View {
           ForEach(suggestions.prefix(3)) { suggestion in
             ActionItemCard(
               suggestion: suggestion,
-              canDismissOrComplete: canDismissOrComplete,
+              familyUnitId: familyUnitId,
+              userId: userId,
               onDismiss: { onDismiss(suggestion.id) },
-              onComplete: { onComplete(suggestion.id) }
+              onComplete: { onComplete(suggestion.id) },
+              onActionCompleted: onActionCompleted
             )
           }
         }
@@ -86,9 +90,11 @@ struct ActionItemsWidget: View {
       )
     ],
     pendingCount: 1,
-    canDismissOrComplete: true,
+    familyUnitId: "fam-1",
+    userId: "user-1",
     onDismiss: { _ in },
-    onComplete: { _ in }
+    onComplete: { _ in },
+    onActionCompleted: {}
   )
   .padding()
 }

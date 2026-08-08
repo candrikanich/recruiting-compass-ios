@@ -6,10 +6,12 @@ struct DashboardWidgetsSection: View {
   let visibility: WidgetVisibility
   let suggestions: [Suggestion]
   let pendingCount: Int
-  let canDismissOrCompleteSuggestions: Bool
+  let familyUnitId: String
+  let userId: String
   @Binding var quickTasks: [QuickTask]
   let onDismissSuggestion: (String) -> Void
   let onCompleteSuggestion: (String) -> Void
+  let onActionCompleted: () -> Void
   let onAddTask: (String) -> Void
   let onToggleTask: (String) -> Void
   let onDeleteTask: (String) -> Void
@@ -21,9 +23,11 @@ struct DashboardWidgetsSection: View {
         ActionItemsWidget(
           suggestions: suggestions,
           pendingCount: pendingCount,
-          canDismissOrComplete: canDismissOrCompleteSuggestions,
+          familyUnitId: familyUnitId,
+          userId: userId,
           onDismiss: onDismissSuggestion,
-          onComplete: onCompleteSuggestion
+          onComplete: onCompleteSuggestion,
+          onActionCompleted: onActionCompleted
         )
       }
 

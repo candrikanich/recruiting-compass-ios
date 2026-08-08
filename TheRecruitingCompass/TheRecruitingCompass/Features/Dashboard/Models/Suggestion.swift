@@ -34,6 +34,15 @@ struct Suggestion: Codable, Identifiable, Sendable {
       case .low: return String(localized: "Low")
       }
     }
+
+    /// Sort priority: high surfaces first.
+    var sortWeight: Int {
+      switch self {
+      case .high: return 0
+      case .medium: return 1
+      case .low: return 2
+      }
+    }
   }
 
   enum CodingKeys: String, CodingKey {

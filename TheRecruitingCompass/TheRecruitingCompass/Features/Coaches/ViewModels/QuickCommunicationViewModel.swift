@@ -31,15 +31,40 @@ final class QuickCommunicationViewModel {
   private let templatesService: any CommunicationTemplatesServicing
   private let interactionsService: any InteractionsManaging
   private let coachesService: any CoachesManaging
+  private let videoLinksService: any VideoLinksManaging
   private var loggedBy: String?
   private var familyUnitId: String?
+  private var athleteUserId: String?
+
+  /// Cached film-link substitution values, populated by `loadVideoLinks()`. Kept as stored
+  /// properties (not fetched inline in `substitutionValues`) since that computed property
+  /// must stay synchronous for `filledBody`/`mailtoURL`/`smsURL` call sites.
+  private var filmLinksValue: String = ""
+  private var primaryFilmLinkValue: String = ""
 
   /// Supply the signed-in user + family context resolved from the environment at the
   /// presentation site (the sheet call sites don't inject the ViewModel). Safe to call
   /// before any send; no-ops nothing already set by `init` for tests.
-  func configureContext(loggedBy: String?, familyUnitId: String?) {
+  func configureContext(loggedBy: String?, familyUnitId: String?, athleteUserId: String? = nil) {
     self.loggedBy = loggedBy
     self.familyUnitId = familyUnitId
+    self.athleteUserId = athleteUserId
+  }
+
+  /// Loads the athlete's video links (if `athleteUserId` was supplied via `configureContext`)
+  /// so `{{film_links}}`/`{{primary_film_link}}` can be filled in `filledBody`. Best-effort:
+  /// leaves the values empty (falling back to `[Variable Name]` placeholders) on failure.
+  func loadVideoLinks() async {
+    guard let athleteUserId else { return }
+    do {
+      let links = try await videoLinksService.fetchVideoLinks(userId: athleteUserId)
+      primaryFilmLinkValue = (links.first { $0.healthStatus == .healthy } ?? links.first)?.url ?? ""
+      filmLinksValue = links
+        .map { "\($0.title ?? $0.url) (\($0.platform.displayName.uppercased())): \($0.url)" }
+        .joined(separator: "\n")
+    } catch {
+      logger.error("Failed to load video links for film-link template variables: \(error.localizedDescription)")
+    }
   }
 
   var recipientLine: String {
@@ -66,6 +91,8 @@ final class QuickCommunicationViewModel {
     if let name = schoolName, !name.trimmingCharacters(in: .whitespaces).isEmpty {
       result["school_name"] = name
     }
+    result["film_links"] = filmLinksValue
+    result["primary_film_link"] = primaryFilmLinkValue
     return result
   }
 
@@ -75,6 +102,7 @@ final class QuickCommunicationViewModel {
     templatesService: (any CommunicationTemplatesServicing)? = nil,
     interactionsService: (any InteractionsManaging)? = nil,
     coachesService: (any CoachesManaging)? = nil,
+    videoLinksService: (any VideoLinksManaging)? = nil,
     loggedBy: String? = nil,
     familyUnitId: String? = nil
   ) {
@@ -83,6 +111,7 @@ final class QuickCommunicationViewModel {
     self.templatesService = templatesService ?? CommunicationTemplatesServiceImpl()
     self.interactionsService = interactionsService ?? InteractionsServiceImpl(supabaseManager: .shared)
     self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
+    self.videoLinksService = videoLinksService ?? VideoLinksServiceImpl()
     self.loggedBy = loggedBy
     self.familyUnitId = familyUnitId
   }

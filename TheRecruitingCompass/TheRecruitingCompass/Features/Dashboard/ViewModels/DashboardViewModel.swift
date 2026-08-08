@@ -92,6 +92,9 @@ final class DashboardViewModel {
     familyManager.isParentViewingAthlete
   }
 
+  var actingUserId: String { authManager.user?.id ?? "" }
+  var currentFamilyUnitId: String { familyManager.currentMember?.familyUnitId ?? "" }
+
   var selectedAthleteName: String {
     if let athlete = familyManager.selectedAthlete {
       return athlete.user?.fullName ?? "Athlete"
@@ -257,7 +260,7 @@ final class DashboardViewModel {
     defer { isSuggestionsLoading = false }
     do {
       let result = try await dashboardService.fetchSuggestions(location: "dashboard", accessToken: token)
-      suggestions = result.suggestions
+      suggestions = result.suggestions.sorted { $0.urgency.sortWeight < $1.urgency.sortWeight }
       suggestionsPendingCount = result.pendingCount
     } catch let err as SuggestionsAPIError where err == .unauthorized {
       // Token may be expired; refresh session once and retry with new access token (JWT)
@@ -266,7 +269,7 @@ final class DashboardViewModel {
         token = authManager.session?.accessToken
         logger.debug("Retrying suggestions after session refresh (token present: \(token != nil))")
         let result = try await dashboardService.fetchSuggestions(location: "dashboard", accessToken: token)
-        suggestions = result.suggestions
+        suggestions = result.suggestions.sorted { $0.urgency.sortWeight < $1.urgency.sortWeight }
         suggestionsPendingCount = result.pendingCount
       } catch {
         logger.warning("Failed to load suggestions after refresh: \(error.localizedDescription)")
@@ -279,7 +282,6 @@ final class DashboardViewModel {
   }
 
   func dismissSuggestion(_ id: String) async {
-    guard !isParentPreviewMode else { return }
     let token = authManager.session?.accessToken
     do {
       try await dashboardService.dismissSuggestion(id: id, accessToken: token)
@@ -292,7 +294,6 @@ final class DashboardViewModel {
   }
 
   func completeSuggestion(_ id: String) async {
-    guard !isParentPreviewMode else { return }
     let token = authManager.session?.accessToken
     do {
       try await dashboardService.completeSuggestion(id: id, accessToken: token)
