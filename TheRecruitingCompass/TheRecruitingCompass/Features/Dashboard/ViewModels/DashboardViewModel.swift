@@ -257,7 +257,7 @@ final class DashboardViewModel {
     defer { isSuggestionsLoading = false }
     do {
       let result = try await dashboardService.fetchSuggestions(location: "dashboard", accessToken: token)
-      suggestions = result.suggestions
+      suggestions = result.suggestions.sorted { $0.urgency.sortWeight < $1.urgency.sortWeight }
       suggestionsPendingCount = result.pendingCount
     } catch let err as SuggestionsAPIError where err == .unauthorized {
       // Token may be expired; refresh session once and retry with new access token (JWT)
@@ -266,7 +266,7 @@ final class DashboardViewModel {
         token = authManager.session?.accessToken
         logger.debug("Retrying suggestions after session refresh (token present: \(token != nil))")
         let result = try await dashboardService.fetchSuggestions(location: "dashboard", accessToken: token)
-        suggestions = result.suggestions
+        suggestions = result.suggestions.sorted { $0.urgency.sortWeight < $1.urgency.sortWeight }
         suggestionsPendingCount = result.pendingCount
       } catch {
         logger.warning("Failed to load suggestions after refresh: \(error.localizedDescription)")
