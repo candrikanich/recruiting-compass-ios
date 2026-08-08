@@ -1,5 +1,4 @@
 import SwiftUI
-import CoreLocation
 
 struct SchoolDetailView: View {
   let schoolId: String
@@ -9,6 +8,8 @@ struct SchoolDetailView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.openURL) private var openURL
   @State private var navigationDestination: NavigationDestination?
+  @State private var showHomeLocationSheet = false
+  private let preferenceService: any PreferenceManaging = PreferenceServiceImpl(supabaseManager: .shared)
 
   init(schoolId: String) {
     self.schoolId = schoolId
@@ -58,6 +59,7 @@ struct SchoolDetailView: View {
     }
     .task {
       await viewModel.loadSchool()
+      await viewModel.loadHomeLocation()
     }
     .alert("Error", isPresented: $viewModel.isShowingErrorAlert, presenting: viewModel.errorMessage) { _ in
     } message: { message in
@@ -75,14 +77,13 @@ struct SchoolDetailView: View {
     } message: {
       Text("This will permanently delete the school and all related data. This action cannot be undone.")
     }
-  }
-
-  private var homeLocation: CLLocationCoordinate2D? {
-    guard let lat = familyManager.familyUnit?.homeLatitude,
-          let lon = familyManager.familyUnit?.homeLongitude else {
-      return nil
+    .sheet(isPresented: $showHomeLocationSheet, onDismiss: {
+      Task { await viewModel.loadHomeLocation() }
+    }) {
+      NavigationStack {
+        HomeLocationView(preferenceService: preferenceService)
+      }
     }
-    return CLLocationCoordinate2D(latitude: lat, longitude: lon)
   }
 
   @ViewBuilder
@@ -108,7 +109,8 @@ struct SchoolDetailView: View {
         // 2. Map
         SchoolMapView(
           school: school,
-          homeLocation: homeLocation
+          homeLocation: viewModel.homeCoordinate,
+          onSetHomeLocation: { showHomeLocationSheet = true }
         )
         .padding(.horizontal)
 
