@@ -2,6 +2,7 @@ import Observation
 import Foundation
 import OSLog
 import SwiftUI
+import CoreLocation
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "SchoolDetailViewModel")
 
@@ -57,6 +58,9 @@ final class SchoolDetailViewModel {
   var isLookingUpCollegeData = false
   var collegeDataError: String?
 
+  // MARK: - Home Location (for distance)
+  private(set) var homeCoordinate: CLLocationCoordinate2D?
+
   // MARK: - Coaches
   var coaches: [Coach] = []
   var isLoadingCoaches = false
@@ -79,6 +83,7 @@ final class SchoolDetailViewModel {
   private let fitScoreService: any FitScoreManaging
   private let collegeService: any CollegeScorecardManaging
   private let coachesService: any CoachesManaging
+  private let preferenceService: any PreferenceManaging
   private let cache: (any CacheManaging)?
 
   /// TTL for cached school and status history (seconds).
@@ -92,6 +97,7 @@ final class SchoolDetailViewModel {
     fitScoreService: (any FitScoreManaging)? = nil,
     collegeService: (any CollegeScorecardManaging)? = nil,
     coachesService: (any CoachesManaging)? = nil,
+    preferenceService: (any PreferenceManaging)? = nil,
     cache: (any CacheManaging)? = nil
   ) {
     self.schoolId = schoolId
@@ -101,6 +107,8 @@ final class SchoolDetailViewModel {
     self.fitScoreService = fitScoreService ?? FitScoreService()
     self.collegeService = collegeService ?? CollegeScorecardService()
     self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: SupabaseManager.shared)
+    self.preferenceService = preferenceService
+      ?? PreferenceServiceImpl(supabaseManager: SupabaseManager.shared)
     self.cache = cache
   }
 
@@ -174,6 +182,25 @@ final class SchoolDetailViewModel {
     } catch {
       logger.error("Failed to load school \(self.schoolId): \(error.localizedDescription)")
       errorMessage = String(localized: "Failed to load school details. Please try again.")
+    }
+  }
+
+  /// Loads the player's home coordinate from user_preferences (category `location`),
+  /// the same store the web app and the Home Location settings screen use.
+  /// Silent on failure: a preferences fetch error must not block the detail view —
+  /// distance simply won't show.
+  func loadHomeLocation() async {
+    do {
+      if let location: HomeLocation = try await preferenceService.fetchPreferences(category: .location),
+         let lat = location.latitude,
+         let lon = location.longitude {
+        homeCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+      } else {
+        homeCoordinate = nil
+      }
+    } catch {
+      logger.debug("Could not load home location: \(error.localizedDescription)")
+      homeCoordinate = nil
     }
   }
 

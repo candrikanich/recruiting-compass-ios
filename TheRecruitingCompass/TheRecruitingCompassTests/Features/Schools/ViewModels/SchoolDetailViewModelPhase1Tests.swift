@@ -1,4 +1,5 @@
 import XCTest
+import CoreLocation
 @testable import TheRecruitingCompass
 
 @MainActor
@@ -10,6 +11,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
   var mockFamilyManager: FamilyManager!
   var mockFitScoreService: MockFitScoreService!
   var mockCoachesService: MockCoachesService!
+  var mockPreferenceService: MockPreferenceManager!
 
   override func setUp() async throws {
     mockSchoolsService = MockSchoolsService()
@@ -17,6 +19,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     mockFamilyManager = FamilyManager.shared
     mockFitScoreService = MockFitScoreService()
     mockCoachesService = MockCoachesService()
+    mockPreferenceService = MockPreferenceManager()
 
     // Set up authenticated user
     mockAuthManager.user = User(
@@ -52,6 +55,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       familyManager: mockFamilyManager,
       fitScoreService: mockFitScoreService,
       coachesService: mockCoachesService,
+      preferenceService: mockPreferenceService,
       cache: InMemoryCache()
     )
   }
@@ -63,6 +67,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     mockFamilyManager.familyUnit = nil
     mockFitScoreService = nil
     mockCoachesService = nil
+    mockPreferenceService = nil
   }
 
   // MARK: - Load School Tests
@@ -380,6 +385,50 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
 
     // Then
     XCTAssertEqual(mockSchoolsService.toggleFavoriteCallCount, 0)
+  }
+
+  // MARK: - Load Home Location Tests
+
+  func testLoadHomeLocation_setsCoordinate_whenPreferencesHaveLatLon() async {
+    mockPreferenceService.fetchPreferencesResult = .success(
+      HomeLocation(address: nil, city: nil, state: nil, zip: nil,
+                   latitude: 40.7128, longitude: -74.0060)
+    )
+
+    await viewModel.loadHomeLocation()
+
+    XCTAssertEqual(viewModel.homeCoordinate?.latitude, 40.7128)
+    XCTAssertEqual(viewModel.homeCoordinate?.longitude, -74.0060)
+    XCTAssertTrue(mockPreferenceService.fetchPreferencesCalls.contains(.location))
+  }
+
+  func testLoadHomeLocation_nil_whenLongitudeMissing() async {
+    mockPreferenceService.fetchPreferencesResult = .success(
+      HomeLocation(address: nil, city: nil, state: nil, zip: nil,
+                   latitude: 40.7128, longitude: nil)
+    )
+
+    await viewModel.loadHomeLocation()
+
+    XCTAssertNil(viewModel.homeCoordinate)
+  }
+
+  func testLoadHomeLocation_nil_whenNoPreferences() async {
+    mockPreferenceService.fetchPreferencesResult = .success(Optional<HomeLocation>.none as Any?)
+
+    await viewModel.loadHomeLocation()
+
+    XCTAssertNil(viewModel.homeCoordinate)
+  }
+
+  func testLoadHomeLocation_nil_andDoesNotThrow_whenFetchFails() async {
+    mockPreferenceService.fetchPreferencesResult = .failure(
+      NSError(domain: "test", code: 1)
+    )
+
+    await viewModel.loadHomeLocation()
+
+    XCTAssertNil(viewModel.homeCoordinate)
   }
 
   // MARK: - Helper Methods
