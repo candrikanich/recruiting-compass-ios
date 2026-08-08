@@ -64,6 +64,39 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     PlayerDetails()
   }
 
+  var isBaseballOrSoftball: Bool {
+    guard let sport = primarySport?.lowercased() else { return false }
+    return sport == "baseball" || sport == "softball"
+  }
+
+  /// Fraction (0.0–1.0) of required profile fields that are filled. Single source
+  /// of truth for both the Player Details completeness card and the Settings badge.
+  /// SAT and ACT count as one field — most athletes take only one.
+  var completenessScore: Double {
+    var fields: [Bool] = [
+      graduationYear != nil,
+      !(highSchool ?? "").isEmpty,
+      !(primarySport ?? "").isEmpty,
+      !(schoolName ?? "").isEmpty,
+      !(schoolCity ?? "").isEmpty,
+      !(schoolState ?? "").isEmpty,
+      heightInches != nil,
+      weightLbs != nil,
+      gpa != nil,
+      satScore != nil || actScore != nil,
+      !(twitterHandle ?? "").isEmpty || !(instagramHandle ?? "").isEmpty
+    ]
+    if isBaseballOrSoftball {
+      fields.append(bats != nil)
+      fields.append(throws_ != nil)
+    }
+    let filled = fields.count(where: { $0 })
+    return Double(filled) / Double(fields.count)
+  }
+
+  /// True only when every required field is filled. Drives the Settings "Complete" badge.
+  var isComplete: Bool { completenessScore >= 1.0 }
+
   enum CodingKeys: String, CodingKey {
     case graduationYear = "graduation_year"
     case highSchool = "high_school"

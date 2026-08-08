@@ -44,33 +44,9 @@ final class PlayerDetailsViewModel {
 
     // MARK: - Completeness
 
-    var completenessScore: Double {
-        var fields: [Bool] = [
-            details.graduationYear != nil,
-            !(details.highSchool ?? "").isEmpty,
-            !(details.primarySport ?? "").isEmpty,
-            !(details.schoolName ?? "").isEmpty,
-            !(details.schoolCity ?? "").isEmpty,
-            !(details.schoolState ?? "").isEmpty,
-            details.heightInches != nil,
-            details.weightLbs != nil,
-            details.gpa != nil,
-            details.satScore != nil,
-            details.actScore != nil,
-            !(details.twitterHandle ?? "").isEmpty || !(details.instagramHandle ?? "").isEmpty
-        ]
-        if isBaseballOrSoftball {
-            fields.append(details.bats != nil)
-            fields.append(details.throws_ != nil)
-        }
-        let filled = fields.count(where: { $0 })
-        return Double(filled) / Double(fields.count)
-    }
+    var completenessScore: Double { details.completenessScore }
 
-    var isBaseballOrSoftball: Bool {
-        guard let sport = details.primarySport?.lowercased() else { return false }
-        return sport == "baseball" || sport == "softball"
-    }
+    var isBaseballOrSoftball: Bool { details.isBaseballOrSoftball }
 
     // MARK: - Auto-Save
 
