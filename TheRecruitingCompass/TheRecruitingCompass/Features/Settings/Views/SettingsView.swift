@@ -72,17 +72,8 @@ struct SettingsView: View {
           Text("Family")
         }
 
-        // Profile & Player Info Section
+        // Player Info Section
         Section {
-          NavigationLink(value: SettingsDestination.profile) {
-            SettingsRow(
-              icon: "person.circle.fill",
-              title: String(localized: "My Profile"),
-              description: String(localized: "Photo, name, email, password, and account settings"),
-              color: .blue
-            )
-          }
-
           NavigationLink(value: SettingsDestination.homeLocation) {
             SettingsRow(
               icon: "house.fill",
@@ -112,7 +103,7 @@ struct SettingsView: View {
             )
           }
         } header: {
-          Text("Profile & Player Info")
+          Text("Player Info")
         }
 
         // School Preferences Section
@@ -165,6 +156,20 @@ struct SettingsView: View {
           }
         } header: {
           Text("Communication & Social")
+        }
+
+        // User Settings Section
+        Section {
+          NavigationLink(value: SettingsDestination.profile) {
+            SettingsRow(
+              icon: "person.circle.fill",
+              title: String(localized: "User Settings"),
+              description: String(localized: "Photo, name, email, password, and account settings"),
+              color: .blue
+            )
+          }
+        } header: {
+          Text("User Settings")
         }
 
         // Legal Section
