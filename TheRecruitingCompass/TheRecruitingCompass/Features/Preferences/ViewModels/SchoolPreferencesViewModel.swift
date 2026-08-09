@@ -19,11 +19,14 @@ final class SchoolPreferencesViewModel {
   var pendingTemplate: String?
 
   private let preferenceService: any PreferenceManaging
+  /// Whose school prefs this VM reads/writes. `nil` = current user; a parent passes the athlete's id.
+  private let targetUserId: String?
   @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
   @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
-  init(preferenceService: any PreferenceManaging) {
+  init(preferenceService: any PreferenceManaging, targetUserId: String? = nil) {
     self.preferenceService = preferenceService
+    self.targetUserId = targetUserId
   }
 
   nonisolated deinit {
@@ -40,7 +43,7 @@ final class SchoolPreferencesViewModel {
     defer { isLoading = false }
 
     do {
-      if let savedPreferences: SchoolPreferences = try await preferenceService.fetchPreferences(category: .school) {
+      if let savedPreferences: SchoolPreferences = try await preferenceService.fetchPreferences(category: .school, userId: targetUserId) {
         preferences = savedPreferences
         logger.info("Loaded existing school preferences")
       } else {
@@ -60,7 +63,7 @@ final class SchoolPreferencesViewModel {
     preferences.lastUpdated = Date.now.ISO8601Format()
 
     do {
-      _ = try await preferenceService.savePreferences(category: .school, data: preferences)
+      _ = try await preferenceService.savePreferences(category: .school, userId: targetUserId, data: preferences)
       saveStatus = .saved
       hapticSuccessTrigger += 1
       logger.info("School preferences saved")

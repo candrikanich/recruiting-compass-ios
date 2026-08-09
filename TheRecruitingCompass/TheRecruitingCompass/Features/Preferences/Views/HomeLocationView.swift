@@ -3,8 +3,9 @@ import SwiftUI
 struct HomeLocationView: View {
   @State private var viewModel: HomeLocationViewModel
 
-  init(preferenceService: PreferenceManaging) {
-    _viewModel = State(initialValue: HomeLocationViewModel(preferenceService: preferenceService))
+  init(preferenceService: PreferenceManaging, targetUserId: String? = nil) {
+    _viewModel = State(initialValue: HomeLocationViewModel(
+      preferenceService: preferenceService, targetUserId: targetUserId))
   }
 
   var body: some View {

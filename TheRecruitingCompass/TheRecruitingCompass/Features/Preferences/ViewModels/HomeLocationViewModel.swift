@@ -19,6 +19,8 @@ final class HomeLocationViewModel {
   var isRequestingLocation = false
 
   private let preferenceService: any PreferenceManaging
+  /// Whose location this VM reads/writes. `nil` = current user; a parent passes the athlete's id.
+  private let targetUserId: String?
   private let geocoder: CLGeocoder
   private let locationService: any CurrentLocationProviding
   @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
@@ -26,10 +28,12 @@ final class HomeLocationViewModel {
 
   init(
     preferenceService: any PreferenceManaging,
+    targetUserId: String? = nil,
     geocoder: CLGeocoder = CLGeocoder(),
     locationService: (any CurrentLocationProviding)? = nil
   ) {
     self.preferenceService = preferenceService
+    self.targetUserId = targetUserId
     self.geocoder = geocoder
     self.locationService = locationService ?? CoreLocationService()
   }
@@ -48,7 +52,7 @@ final class HomeLocationViewModel {
     defer { isLoading = false }
 
     do {
-      if let savedLocation: HomeLocation = try await preferenceService.fetchPreferences(category: .location) {
+      if let savedLocation: HomeLocation = try await preferenceService.fetchPreferences(category: .location, userId: targetUserId) {
         location = savedLocation
         logger.info("Loaded existing home location")
       } else {
@@ -67,7 +71,7 @@ final class HomeLocationViewModel {
     errorMessage = nil
 
     do {
-      _ = try await preferenceService.savePreferences(category: .location, data: location)
+      _ = try await preferenceService.savePreferences(category: .location, userId: targetUserId, data: location)
       saveStatus = .saved
       hapticSuccessTrigger += 1
       logger.info("Home location saved")

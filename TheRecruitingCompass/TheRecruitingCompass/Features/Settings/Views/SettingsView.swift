@@ -224,7 +224,10 @@ struct SettingsView: View {
         case .profile:
           ProfileView(preferenceService: preferenceService)
         case .homeLocation:
-          HomeLocationView(preferenceService: preferenceService)
+          HomeLocationView(
+            preferenceService: preferenceService,
+            targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+          )
         case .playerDetails:
           PlayerDetailsView(
             preferenceService: preferenceService,
@@ -232,7 +235,10 @@ struct SettingsView: View {
             targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
           )
         case .schoolPreferences:
-          SchoolPreferencesView(preferenceService: preferenceService)
+          SchoolPreferencesView(
+            preferenceService: preferenceService,
+            targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+          )
         case .dashboardCustomization:
           DashboardCustomizationView(preferenceService: preferenceService)
         case .notificationPreferences:

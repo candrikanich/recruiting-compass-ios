@@ -4,8 +4,9 @@ struct SchoolPreferencesView: View {
   @State private var viewModel: SchoolPreferencesViewModel
   @Environment(\.editMode) private var editMode
 
-  init(preferenceService: PreferenceManaging) {
-    _viewModel = State(initialValue: SchoolPreferencesViewModel(preferenceService: preferenceService))
+  init(preferenceService: PreferenceManaging, targetUserId: String? = nil) {
+    _viewModel = State(initialValue: SchoolPreferencesViewModel(
+      preferenceService: preferenceService, targetUserId: targetUserId))
   }
 
   var body: some View {
