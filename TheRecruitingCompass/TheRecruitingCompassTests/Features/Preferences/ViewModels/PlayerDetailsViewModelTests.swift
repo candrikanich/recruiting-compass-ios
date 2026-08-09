@@ -358,21 +358,69 @@ final class PlayerDetailsViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.completenessScore, 0.0)
   }
 
-  func testCompletenessScore_WithManyFieldsFilled_IsHigh() {
+  func testCompletenessScore_AllCanonicalFieldsFilled_IsOne() {
     viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
     viewModel.details.graduationYear = 2026
-    viewModel.details.highSchool = "Test High"
     viewModel.details.primarySport = "Soccer"
+    viewModel.details.primaryPosition = "Forward"
+    viewModel.details.gpa = 3.8
+    viewModel.details.satScore = 1350
+    viewModel.details.heightInches = 72
+    viewModel.details.weightLbs = 180
+    viewModel.details.phone = "555-1234"
+    viewModel.hasHighlightVideo = true
+    viewModel.hasHomeLocation = true
+    XCTAssertEqual(viewModel.completenessScore, 1.0, accuracy: 0.0001)
+  }
+
+  func testCompletenessScore_IgnoresNonCanonicalFields() {
+    // School/social/physical-bats fields are NOT part of the canonical formula.
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.highSchool = "Test High"
     viewModel.details.schoolName = "Test School"
     viewModel.details.schoolCity = "Austin"
     viewModel.details.schoolState = "TX"
-    viewModel.details.heightInches = 72
-    viewModel.details.weightLbs = 180
-    viewModel.details.gpa = 3.8
-    viewModel.details.satScore = 1350
-    viewModel.details.actScore = 30
     viewModel.details.twitterHandle = "@test"
-    XCTAssertGreaterThan(viewModel.completenessScore, 0.8)
+    viewModel.details.bats = "R"
+    XCTAssertEqual(viewModel.completenessScore, 0.0, accuracy: 0.0001)
+  }
+
+  func testLoadCompletenessInputs_WiresVideoAndLocationFromStores() async throws {
+    let mockVideo = MockVideoLinksService()
+    _ = try await mockVideo.createVideoLink(
+      VideoLinkCreateRequest(
+        userId: "athlete1", familyUnitId: nil, platform: .youtube,
+        url: "https://youtu.be/x", title: nil, position: 0))
+    mockService.fetchPreferencesResult = .success(HomeLocation(zip: "60601"))
+
+    viewModel = PlayerDetailsViewModel(
+      preferenceService: mockService, userRole: .parent,
+      targetUserId: "athlete1", photoService: mockPhoto, videoLinksService: mockVideo)
+
+    await viewModel.loadCompletenessInputs()
+
+    XCTAssertTrue(viewModel.hasHomeLocation)
+    XCTAssertTrue(viewModel.hasHighlightVideo)
+  }
+
+  func testLoadCompletenessInputs_AbsentStores_LeaveFlagsFalse() async {
+    let mockVideo = MockVideoLinksService()  // no links
+    mockService.fetchPreferencesResult = .success(nil)  // no location
+    viewModel = PlayerDetailsViewModel(
+      preferenceService: mockService, userRole: .parent,
+      targetUserId: "athlete1", photoService: mockPhoto, videoLinksService: mockVideo)
+
+    await viewModel.loadCompletenessInputs()
+
+    XCTAssertFalse(viewModel.hasHomeLocation)
+    XCTAssertFalse(viewModel.hasHighlightVideo)
+  }
+
+  func testCompletenessScore_VideoAndLocationContributeWeights() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.hasHighlightVideo = true  // 15%
+    viewModel.hasHomeLocation = true    // 10%
+    XCTAssertEqual(viewModel.completenessScore, 0.25, accuracy: 0.0001)
   }
 
   func testNormalizePositions_TitleCasesAll() {

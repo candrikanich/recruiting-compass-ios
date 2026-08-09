@@ -69,33 +69,34 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     return sport == "baseball" || sport == "softball"
   }
 
-  /// Fraction (0.0–1.0) of required profile fields that are filled. Single source
-  /// of truth for both the Player Details completeness card and the Settings badge.
-  /// SAT and ACT count as one field — most athletes take only one.
-  var completenessScore: Double {
-    var fields: [Bool] = [
-      graduationYear != nil,
-      !(highSchool ?? "").isEmpty,
-      !(primarySport ?? "").isEmpty,
-      !(schoolName ?? "").isEmpty,
-      !(schoolCity ?? "").isEmpty,
-      !(schoolState ?? "").isEmpty,
-      heightInches != nil,
-      weightLbs != nil,
-      gpa != nil,
-      satScore != nil || actScore != nil,
-      !(twitterHandle ?? "").isEmpty || !(instagramHandle ?? "").isEmpty
-    ]
-    if isBaseballOrSoftball {
-      fields.append(bats != nil)
-      fields.append(throws_ != nil)
+  /// Weighted profile completeness (0.0–1.0). Canonical formula shared with the web
+  /// app — see `planning/2026-08-09-profile-completeness-canonical-spec.md`.
+  ///
+  /// `hasHighlightVideo` and `hasHomeLocation` live outside the player-prefs blob
+  /// (the `video_links` table and the location store), so the caller fetches them
+  /// and passes them in — keeping this function pure and unit-testable.
+  func completenessScore(hasHighlightVideo: Bool, hasHomeLocation: Bool) -> Double {
+    func filled(_ s: String?) -> Bool {
+      !(s ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
-    let filled = fields.count(where: { $0 })
-    return Double(filled) / Double(fields.count)
+    var score = 0.0
+    if graduationYear != nil { score += 0.10 }
+    if filled(primarySport) { score += 0.10 }
+    if filled(primaryPosition) { score += 0.10 }
+    if hasHomeLocation { score += 0.10 }
+    if gpa != nil { score += 0.15 }
+    if satScore != nil || actScore != nil { score += 0.10 }
+    if hasHighlightVideo { score += 0.15 }
+    if heightInches != nil { score += 0.05 }
+    if weightLbs != nil { score += 0.05 }
+    if filled(phone) { score += 0.10 }
+    return score
   }
 
-  /// True only when every required field is filled. Drives the Settings "Complete" badge.
-  var isComplete: Bool { completenessScore >= 1.0 }
+  /// True only when every canonical field is filled. Drives the Settings "Complete" badge.
+  func isComplete(hasHighlightVideo: Bool, hasHomeLocation: Bool) -> Bool {
+    completenessScore(hasHighlightVideo: hasHighlightVideo, hasHomeLocation: hasHomeLocation) >= 1.0
+  }
 
   enum CodingKeys: String, CodingKey {
     case graduationYear = "graduation_year"
