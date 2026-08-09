@@ -24,6 +24,12 @@ final class PlayerDetailsViewModel {
     var hapticSuccessTrigger = 0
     var selectedTab: Int = 0
 
+    /// Whether the athlete has ≥1 highlight video (`video_links` table) — feeds the
+    /// canonical completeness score. Fetched on load; defaults false.
+    var hasHighlightVideo = false
+    /// Whether the athlete's home location is set — feeds the completeness score.
+    var hasHomeLocation = false
+
     // Backward-compat computed wrappers (existing tests use these)
     var isSaving: Bool { saveStatus == .saving }
     var hasUnsavedChanges: Bool { saveStatus == .saving }
@@ -31,10 +37,16 @@ final class PlayerDetailsViewModel {
 
     private let preferenceService: any PreferenceManaging
     private let photoService: any ProfilePhotoManaging
+    private let videoLinksService: any VideoLinksManaging
+    private let authManager: any AuthManaging
     /// Whose player profile this VM reads/writes. `nil` = the current user's own row.
     /// A parent viewing the family athlete passes the athlete's user id so the whole
     /// family reads and edits the single canonical player row (RLS-gated).
     private let targetUserId: String?
+
+    /// The athlete whose video/location we score: the explicit target, else the
+    /// signed-in user (a player viewing their own profile).
+    private var effectiveUserId: String? { targetUserId ?? authManager.user?.id }
     @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
     @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
@@ -42,10 +54,14 @@ final class PlayerDetailsViewModel {
         preferenceService: any PreferenceManaging,
         userRole: UserRole,
         targetUserId: String? = nil,
-        photoService: any ProfilePhotoManaging = ProfilePhotoServiceImpl()
+        photoService: any ProfilePhotoManaging = ProfilePhotoServiceImpl(),
+        videoLinksService: any VideoLinksManaging = VideoLinksServiceImpl(),
+        authManager: any AuthManaging = AuthManager.shared
     ) {
         self.preferenceService = preferenceService
         self.photoService = photoService
+        self.videoLinksService = videoLinksService
+        self.authManager = authManager
         self.targetUserId = targetUserId
         // Parents and players collaborate on the same player profile; everyone can edit.
         self.isReadOnly = false
@@ -58,7 +74,9 @@ final class PlayerDetailsViewModel {
 
     // MARK: - Completeness
 
-    var completenessScore: Double { details.completenessScore }
+    var completenessScore: Double {
+        details.completenessScore(hasHighlightVideo: hasHighlightVideo, hasHomeLocation: hasHomeLocation)
+    }
 
     var isBaseballOrSoftball: Bool { details.isBaseballOrSoftball }
 
@@ -103,6 +121,32 @@ final class PlayerDetailsViewModel {
             errorMessage = String(localized: "Failed to load player details. Please try again.")
         }
         await loadPhoto()
+        await loadCompletenessInputs()
+    }
+
+    /// Fetches the two completeness signals that live outside the player-prefs blob:
+    /// a highlight video (`video_links` table) and a set home location. Failures are
+    /// non-fatal — the score just treats the signal as absent.
+    func loadCompletenessInputs() async {
+        do {
+            let loc: HomeLocation? = try await preferenceService.fetchPreferences(
+                category: .location, userId: targetUserId)
+            hasHomeLocation = loc?.isSet ?? false
+        } catch {
+            logger.error("Failed to load home location for completeness: \(error.localizedDescription)")
+            hasHomeLocation = false
+        }
+
+        guard let userId = effectiveUserId else {
+            hasHighlightVideo = false
+            return
+        }
+        do {
+            hasHighlightVideo = try await !videoLinksService.fetchVideoLinks(userId: userId).isEmpty
+        } catch {
+            logger.error("Failed to load video links for completeness: \(error.localizedDescription)")
+            hasHighlightVideo = false
+        }
     }
 
     /// Loads the athlete's persisted, family-shared profile photo URL for display.

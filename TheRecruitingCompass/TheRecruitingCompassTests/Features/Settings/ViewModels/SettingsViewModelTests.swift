@@ -23,17 +23,35 @@ final class SettingsViewModelTests: XCTestCase {
   nonisolated deinit {}
   var viewModel: SettingsViewModel!
   var mockService: MockPerCategoryPreferenceManager!
+  var mockVideo: MockVideoLinksService!
+  var mockAuth: MockAuthManager!
 
   override func setUp() async throws {
     try await super.setUp()
     mockService = MockPerCategoryPreferenceManager()
-    viewModel = SettingsViewModel(preferenceService: mockService)
+    mockVideo = MockVideoLinksService()
+    mockAuth = MockAuthManager()
+    viewModel = SettingsViewModel(
+      preferenceService: mockService, videoLinksService: mockVideo, authManager: mockAuth)
   }
 
   override func tearDown() {
     viewModel = nil
     mockService = nil
+    mockVideo = nil
+    mockAuth = nil
     super.tearDown()
+  }
+
+  /// Marks the signed-in athlete as having a highlight video (feeds the "Complete" badge).
+  private func giveAthleteHighlightVideo(userId: String = "athlete-1") async throws {
+    mockAuth.user = User(
+      id: userId, email: "a@example.com", emailConfirmedAt: nil, phone: nil,
+      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", role: .player)
+    _ = try await mockVideo.createVideoLink(
+      VideoLinkCreateRequest(
+        userId: userId, familyUnitId: nil, platform: .youtube,
+        url: "https://youtu.be/x", title: nil, position: 0))
   }
 
   // MARK: - Initial state
@@ -89,10 +107,24 @@ final class SettingsViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.playerDetailsStatus, .incomplete)
   }
 
-  func testPlayerDetailsStatus_AllRequiredFieldsFilled_IsComplete() async {
+  func testPlayerDetailsStatus_AllRequiredFieldsFilled_IsComplete() async throws {
+    // Canonical completeness also needs a home location and a highlight video —
+    // both live outside the player-prefs blob.
     mockService.results[.player] = PlayerDetails.fullyComplete
+    mockService.results[.location] = HomeLocation(
+      address: nil, city: nil, state: nil, zip: "60601", latitude: nil, longitude: nil)
+    try await giveAthleteHighlightVideo()
     await viewModel.loadCompletionStatus()
     XCTAssertEqual(viewModel.playerDetailsStatus, .complete)
+  }
+
+  func testPlayerDetailsStatus_AllFieldsButNoVideo_IsIncomplete() async {
+    mockService.results[.player] = PlayerDetails.fullyComplete
+    mockService.results[.location] = HomeLocation(
+      address: nil, city: nil, state: nil, zip: "60601", latitude: nil, longitude: nil)
+    // no video, no auth user
+    await viewModel.loadCompletionStatus()
+    XCTAssertEqual(viewModel.playerDetailsStatus, .incomplete)
   }
 
   func testPlayerDetailsStatus_EmptyDetails_IsIncomplete() async {
@@ -147,7 +179,7 @@ final class SettingsViewModelTests: XCTestCase {
 
   // MARK: - Parallel loading
 
-  func testLoadCompletionStatus_AllThreeLoaded_AllStatusesSet() async {
+  func testLoadCompletionStatus_AllThreeLoaded_AllStatusesSet() async throws {
     let details = PlayerDetails.fullyComplete
     mockService.results[.location] = HomeLocation(
       address: nil, city: nil, state: nil, zip: nil,
@@ -155,6 +187,7 @@ final class SettingsViewModelTests: XCTestCase {
     )
     mockService.results[.player] = details
     mockService.results[.school] = SchoolPreferences(preferences: [], templateUsed: nil, lastUpdated: nil)
+    try await giveAthleteHighlightVideo()
 
     await viewModel.loadCompletionStatus()
 
@@ -169,16 +202,13 @@ extension PlayerDetails {
   static var fullyComplete: PlayerDetails {
     var details = PlayerDetails()
     details.graduationYear = 2027
-    details.highSchool = "Central High"
     details.primarySport = "Soccer"
-    details.schoolName = "Central High School"
-    details.schoolCity = "Austin"
-    details.schoolState = "TX"
+    details.primaryPosition = "Forward"
     details.heightInches = 70
     details.weightLbs = 160
     details.gpa = 3.8
     details.satScore = 1350
-    details.instagramHandle = "@player"
+    details.phone = "555-1234"
     return details
   }
 }
