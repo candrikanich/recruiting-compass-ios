@@ -45,6 +45,11 @@ struct ActionItemCard: View {
             .fontWeight(.medium)
             .foregroundStyle(Color.primary)
             .lineLimit(3)
+
+          Button(String(localized: "Learn More")) { showHelp = true }
+            .font(.subheadline)
+            .foregroundStyle(Color.accentBlue)
+            .accessibilityHint("Shows detailed guidance for this suggestion")
         }
 
         Spacer()
@@ -72,10 +77,12 @@ struct ActionItemCard: View {
 
   @ViewBuilder
   private var actionRow: some View {
-    HStack(spacing: 16) {
+    HStack(spacing: 12) {
       if let label = cta.label {
         Button(label) { presentCTA() }
           .font(.subheadline.weight(.semibold))
+          .lineLimit(1)
+          .fixedSize(horizontal: true, vertical: false)
           .padding(.horizontal, 14)
           .padding(.vertical, 8)
           .background(suggestion.urgency.color)
@@ -84,35 +91,46 @@ struct ActionItemCard: View {
           .accessibilityHint("Opens the screen to complete this action")
       }
 
-      Button(String(localized: "Learn More")) { showHelp = true }
-        .font(.subheadline)
-        .foregroundStyle(Color.accentBlue)
-        .accessibilityHint("Shows detailed guidance for this suggestion")
+      Spacer(minLength: 8)
 
-      Spacer()
-
-      Button(action: onComplete) {
-        Image(systemName: "checkmark.circle.fill")
-          .foregroundStyle(Color.accentBlue)
-          .font(.title3)
-          .frame(minWidth: 44, minHeight: 44)
-          .contentShape(Rectangle())
-      }
-      .buttonStyle(.plain)
+      iconLabelButton(
+        systemName: "checkmark.circle.fill",
+        title: String(localized: "Done"),
+        tint: Color.accentBlue,
+        action: onComplete
+      )
       .accessibilityLabel(String(localized: "Complete suggestion"))
       .accessibilityHint("Mark this suggestion as done")
 
-      Button(action: onDismiss) {
-        Image(systemName: "xmark.circle.fill")
-          .foregroundStyle(Color.gray)
-          .font(.title3)
-          .frame(minWidth: 44, minHeight: 44)
-          .contentShape(Rectangle())
-      }
-      .buttonStyle(.plain)
+      iconLabelButton(
+        systemName: "xmark.circle.fill",
+        title: String(localized: "Dismiss"),
+        tint: Color.gray,
+        action: onDismiss
+      )
       .accessibilityLabel(String(localized: "Dismiss suggestion"))
       .accessibilityHint("Hide this suggestion without completing it")
     }
+  }
+
+  private func iconLabelButton(
+    systemName: String,
+    title: String,
+    tint: Color,
+    action: @escaping () -> Void
+  ) -> some View {
+    Button(action: action) {
+      VStack(spacing: 2) {
+        Image(systemName: systemName)
+          .font(.title3)
+        Text(title)
+          .font(.caption2)
+      }
+      .foregroundStyle(tint)
+      .frame(minWidth: 52, minHeight: 44)
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
   }
 
   private func presentCTA() {
