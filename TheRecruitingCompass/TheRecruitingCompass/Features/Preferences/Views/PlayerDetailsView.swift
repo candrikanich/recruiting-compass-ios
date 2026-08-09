@@ -3,10 +3,11 @@ import SwiftUI
 struct PlayerDetailsView: View {
     @State private var viewModel: PlayerDetailsViewModel
 
-    init(preferenceService: any PreferenceManaging, userRole: UserRole) {
+    init(preferenceService: any PreferenceManaging, userRole: UserRole, targetUserId: String? = nil) {
         _viewModel = State(initialValue: PlayerDetailsViewModel(
             preferenceService: preferenceService,
-            userRole: userRole
+            userRole: userRole,
+            targetUserId: targetUserId
         ))
     }
 

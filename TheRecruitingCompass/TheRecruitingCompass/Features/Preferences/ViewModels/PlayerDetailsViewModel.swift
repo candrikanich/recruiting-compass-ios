@@ -14,7 +14,10 @@ final class PlayerDetailsViewModel {
     var isLoading = false
     var isUploadingPhoto = false
     var errorMessage: String?
+    /// Optimistic local preview of a just-picked image (before/while it uploads).
     var profileImage: UIImage?
+    /// Persisted, family-shared photo URL for the athlete (`users.profile_photo_url`).
+    var photoUrl: String?
     var isReadOnly = false
     var showDeletePhotoConfirmation = false
     var saveStatus: SaveStatus = .idle
@@ -27,14 +30,25 @@ final class PlayerDetailsViewModel {
     var successMessage: String? { saveStatus == .saved ? "Saved" : nil }
 
     private let preferenceService: any PreferenceManaging
-    private let userRole: UserRole
+    private let photoService: any ProfilePhotoManaging
+    /// Whose player profile this VM reads/writes. `nil` = the current user's own row.
+    /// A parent viewing the family athlete passes the athlete's user id so the whole
+    /// family reads and edits the single canonical player row (RLS-gated).
+    private let targetUserId: String?
     @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
     @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
-    init(preferenceService: any PreferenceManaging, userRole: UserRole) {
+    init(
+        preferenceService: any PreferenceManaging,
+        userRole: UserRole,
+        targetUserId: String? = nil,
+        photoService: any ProfilePhotoManaging = ProfilePhotoServiceImpl()
+    ) {
         self.preferenceService = preferenceService
-        self.userRole = userRole
-        self.isReadOnly = (userRole == .parent)
+        self.photoService = photoService
+        self.targetUserId = targetUserId
+        // Parents and players collaborate on the same player profile; everyone can edit.
+        self.isReadOnly = false
     }
 
     nonisolated deinit {
@@ -76,7 +90,7 @@ final class PlayerDetailsViewModel {
         errorMessage = nil
         defer { isLoading = false }
         do {
-            if let savedDetails: PlayerDetails = try await preferenceService.fetchPreferences(category: .player) {
+            if let savedDetails: PlayerDetails = try await preferenceService.fetchPreferences(category: .player, userId: targetUserId) {
                 details = savedDetails
                 logger.info("Loaded existing player details")
             } else {
@@ -88,6 +102,17 @@ final class PlayerDetailsViewModel {
             logger.error("Failed to load details: \(error.localizedDescription)")
             errorMessage = String(localized: "Failed to load player details. Please try again.")
         }
+        await loadPhoto()
+    }
+
+    /// Loads the athlete's persisted, family-shared profile photo URL for display.
+    func loadPhoto() async {
+        guard let userId = targetUserId else { return }
+        do {
+            photoUrl = try await photoService.currentPhotoURL(userId: userId)
+        } catch {
+            logger.error("Failed to load profile photo: \(error.localizedDescription)")
+        }
     }
 
     func saveDetails() async {
@@ -96,7 +121,7 @@ final class PlayerDetailsViewModel {
         saveStatus = .saving
         normalizePositions()
         do {
-            _ = try await preferenceService.savePreferences(category: .player, data: details)
+            _ = try await preferenceService.savePreferences(category: .player, userId: targetUserId, data: details)
             saveStatus = .saved
             hapticSuccessTrigger += 1
             logger.info("Player details saved")
@@ -122,37 +147,34 @@ final class PlayerDetailsViewModel {
     // MARK: - Photo Upload
 
     func uploadProfilePhoto(_ image: UIImage) async {
-        guard !isReadOnly else { return }
+        guard !isReadOnly, let userId = targetUserId else { return }
         logger.debug("Uploading profile photo")
         isUploadingPhoto = true
         errorMessage = nil
         defer { isUploadingPhoto = false }
         do {
-            // Downsample + encode off the main actor: a full-resolution photo-picker
-            // image can take 300-800ms to encode, which would otherwise freeze the UI.
-            let compressedData = await Task.detached(priority: .userInitiated) {
-                ImageCompression.downsampledJPEGData(from: image, maxBytes: 5_000_000)
-            }.value
-            guard let compressedData else {
-                throw PhotoError.compressionFailed
-            }
-            guard compressedData.count <= 5_000_000 else {
-                throw PhotoError.fileTooLarge
-            }
-            profileImage = image
-            markChanged()
+            profileImage = image  // optimistic preview while the upload runs
+            let url = try await photoService.upload(image: image, userId: userId)
+            photoUrl = url
             logger.info("Profile photo uploaded successfully")
         } catch {
+            profileImage = nil
             logger.error("Failed to upload photo: \(error.localizedDescription)")
             errorMessage = String(localized: "Failed to upload photo. Please try again.")
         }
     }
 
     func deleteProfilePhoto() async {
-        guard !isReadOnly else { return }
-        profileImage = nil
-        markChanged()
-        logger.info("Profile photo deleted")
+        guard !isReadOnly, let userId = targetUserId else { return }
+        do {
+            try await photoService.delete(userId: userId, currentPhotoURL: photoUrl ?? "")
+            profileImage = nil
+            photoUrl = nil
+            logger.info("Profile photo deleted")
+        } catch {
+            logger.error("Failed to delete photo: \(error.localizedDescription)")
+            errorMessage = String(localized: "Failed to remove photo. Please try again.")
+        }
     }
 
     // MARK: - Field Updates

@@ -192,7 +192,7 @@ final class SchoolsListViewModel {
 
       // Load home location from Settings (user_preferences).
       do {
-        if let location: HomeLocation = try await preferenceService.fetchPreferences(category: .location),
+        if let location: HomeLocation = try await preferenceService.fetchPreferences(category: .location, userId: familyManager.selectedAthlete?.userId),
            let lat = location.latitude, let lon = location.longitude {
           homeLocationFromPreferences = CLLocationCoordinate2D(latitude: lat, longitude: lon)
           logger.debug("Using home location from preferences")

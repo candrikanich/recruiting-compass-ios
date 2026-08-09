@@ -72,17 +72,8 @@ struct SettingsView: View {
           Text("Family")
         }
 
-        // Profile & Player Info Section
+        // Player Info Section
         Section {
-          NavigationLink(value: SettingsDestination.profile) {
-            SettingsRow(
-              icon: "person.circle.fill",
-              title: String(localized: "My Profile"),
-              description: String(localized: "Photo, name, email, password, and account settings"),
-              color: .blue
-            )
-          }
-
           NavigationLink(value: SettingsDestination.homeLocation) {
             SettingsRow(
               icon: "house.fill",
@@ -112,7 +103,7 @@ struct SettingsView: View {
             )
           }
         } header: {
-          Text("Profile & Player Info")
+          Text("Player Info")
         }
 
         // School Preferences Section
@@ -167,6 +158,20 @@ struct SettingsView: View {
           Text("Communication & Social")
         }
 
+        // User Settings Section
+        Section {
+          NavigationLink(value: SettingsDestination.profile) {
+            SettingsRow(
+              icon: "person.circle.fill",
+              title: String(localized: "User Settings"),
+              description: String(localized: "Photo, name, email, password, and account settings"),
+              color: .blue
+            )
+          }
+        } header: {
+          Text("User Settings")
+        }
+
         // Legal Section
         Section {
           Button {
@@ -219,14 +224,21 @@ struct SettingsView: View {
         case .profile:
           ProfileView(preferenceService: preferenceService)
         case .homeLocation:
-          HomeLocationView(preferenceService: preferenceService)
+          HomeLocationView(
+            preferenceService: preferenceService,
+            targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+          )
         case .playerDetails:
           PlayerDetailsView(
             preferenceService: preferenceService,
-            userRole: authManager.user?.role ?? .player
+            userRole: authManager.user?.role ?? .player,
+            targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
           )
         case .schoolPreferences:
-          SchoolPreferencesView(preferenceService: preferenceService)
+          SchoolPreferencesView(
+            preferenceService: preferenceService,
+            targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+          )
         case .dashboardCustomization:
           DashboardCustomizationView(preferenceService: preferenceService)
         case .notificationPreferences:

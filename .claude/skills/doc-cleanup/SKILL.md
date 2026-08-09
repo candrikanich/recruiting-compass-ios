@@ -98,9 +98,32 @@ Log your classification and reasoning briefly for each file.
 | filename.md | domain | one-line summary |
 ```
 
-Then commit everything:
+Then commit **only the docs this run touched**. NEVER use `git add -A` / `git add .` — a blanket stage sweeps in unrelated working changes: in-progress feature code, build-generated files, and secrets. Specifically, `SupabaseConfig.generated.swift` is regenerated with the **real Supabase key on every build** and must never be committed.
+
+**1. Stage only doc paths this run deleted or wrote** — the two output files plus the exact manifest paths processed in passes 1–3 (each scoped with an explicit `--` pathspec, never a bare `git add`):
 
 ```bash
-git add -A
+git add -- docs/history/ COMPLETED_WORK.md
+# Plus each file this run deleted/compressed, by exact path:
+git add -- "<path from manifest.autoDelete / compress / review that this run touched>"
+# ...repeat one -- pathspec per touched file (records deletions too)
+```
+
+**2. Safety gate — abort if anything out of scope is staged.** Doc cleanup only ever touches `.md` files. If any non-`.md` file (or the generated Supabase config) is staged, unstage and STOP without committing:
+
+```bash
+staged=$(git diff --cached --name-only)
+offenders=$(echo "$staged" | grep -vE '\.md$')
+if [ -n "$offenders" ] || echo "$staged" | grep -q 'SupabaseConfig.generated.swift'; then
+  echo "ABORT: doc-cleanup must not commit non-doc files (code/config/secrets):"
+  echo "$offenders"
+  git reset -q
+  exit 1
+fi
+```
+
+**3. Commit** only after the gate passes:
+
+```bash
 git commit -m "chore: doc cleanup run YYYY-MM-DD"
 ```

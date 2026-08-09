@@ -6,12 +6,12 @@ final class MockPerCategoryPreferenceManager: PreferenceManaging, @unchecked Sen
   var results: [PreferenceCategory: Any?] = [:]
   var shouldThrow = false
 
-  func fetchPreferences<T: Codable>(category: PreferenceCategory) async throws -> T? {
+  func fetchPreferences<T: Codable>(category: PreferenceCategory, userId: String?) async throws -> T? {
     if shouldThrow { throw NSError(domain: "Test", code: 0) }
     return results[category] as? T
   }
 
-  func savePreferences<T: Codable>(category: PreferenceCategory, data: T) async throws -> T {
+  func savePreferences<T: Codable>(category: PreferenceCategory, userId: String?, data: T) async throws -> T {
     return data
   }
 

@@ -20,11 +20,11 @@ final class PreferencePreviewMock<T: Codable>: PreferenceManaging {
     self.defaultValue = defaultValue
   }
 
-  func fetchPreferences<U: Codable>(category: PreferenceCategory) async throws -> U? {
+  func fetchPreferences<U: Codable>(category: PreferenceCategory, userId: String?) async throws -> U? {
     return defaultValue as? U
   }
 
-  func savePreferences<U: Codable>(category: PreferenceCategory, data: U) async throws -> U {
+  func savePreferences<U: Codable>(category: PreferenceCategory, userId: String?, data: U) async throws -> U {
     return data
   }
 

@@ -191,7 +191,7 @@ final class SchoolDetailViewModel {
   /// distance simply won't show.
   func loadHomeLocation() async {
     do {
-      if let location: HomeLocation = try await preferenceService.fetchPreferences(category: .location),
+      if let location: HomeLocation = try await preferenceService.fetchPreferences(category: .location, userId: familyManager.selectedAthlete?.userId),
          let lat = location.latitude,
          let lon = location.longitude {
         homeCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)

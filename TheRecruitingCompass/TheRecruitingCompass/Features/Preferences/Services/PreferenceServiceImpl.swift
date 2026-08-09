@@ -137,11 +137,11 @@ final class PreferenceServiceImpl: PreferenceManaging, Sendable {
     self.supabaseManager = supabaseManager
   }
 
-  func fetchPreferences<T: Codable>(category: PreferenceCategory) async throws -> T? {
+  func fetchPreferences<T: Codable>(category: PreferenceCategory, userId requestedUserId: String?) async throws -> T? {
     logger.debug("Fetching preferences for category: \(category.rawValue)")
 
     do {
-      let userId = try await getCurrentUserId()
+      let userId = try await resolveUserId(requestedUserId)
 
       let rows: [PreferenceResponse] = try await supabaseManager.client
         .from("user_preferences")
@@ -199,11 +199,11 @@ final class PreferenceServiceImpl: PreferenceManaging, Sendable {
     return try? JSONSerialization.data(withJSONObject: dict)
   }
 
-  func savePreferences<T: Codable>(category: PreferenceCategory, data: T) async throws -> T {
+  func savePreferences<T: Codable>(category: PreferenceCategory, userId requestedUserId: String?, data: T) async throws -> T {
     logger.debug("Saving preferences for category: \(category.rawValue)")
 
     do {
-      let userId = try await getCurrentUserId()
+      let userId = try await resolveUserId(requestedUserId)
 
       // Encode data to JSON dictionary
       let jsonData = try JSONEncoder().encode(data)
@@ -278,6 +278,12 @@ final class PreferenceServiceImpl: PreferenceManaging, Sendable {
   }
 
   // MARK: - Private Helpers
+
+  /// Resolves whose preferences to operate on: an explicit target, else the current user.
+  private func resolveUserId(_ requestedUserId: String?) async throws -> String {
+    if let requestedUserId { return requestedUserId }
+    return try await getCurrentUserId()
+  }
 
   private func getCurrentUserId() async throws -> String {
     guard let session = try await supabaseManager.getCurrentSession() else {

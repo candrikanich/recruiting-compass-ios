@@ -53,6 +53,18 @@ struct BasicsTab: View {
                     .scaledToFill()
                     .frame(width: 120, height: 120)
                     .clipShape(Circle())
+            } else if let urlString = viewModel.photoUrl, let url = URL(string: urlString) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    default:
+                        Image(systemName: "person.crop.circle.fill")
+                            .resizable().scaledToFit().foregroundStyle(.tertiary)
+                    }
+                }
+                .frame(width: 120, height: 120)
+                .clipShape(Circle())
             } else {
                 Image(systemName: "person.crop.circle.fill")
                     .resizable()
@@ -67,7 +79,7 @@ struct BasicsTab: View {
             .accessibilityLabel(String(localized: "Choose profile photo"))
             .disabled(viewModel.isReadOnly)
 
-            if viewModel.profileImage != nil {
+            if viewModel.profileImage != nil || viewModel.photoUrl != nil {
                 Button(role: .destructive) {
                     viewModel.showDeletePhotoConfirmation = true
                 } label: {

@@ -6,15 +6,18 @@ final class PlayerDetailsViewModelTests: XCTestCase {
   nonisolated deinit {}
   var viewModel: PlayerDetailsViewModel!
   var mockService: MockPreferenceManager!
+  var mockPhoto: MockProfilePhotoService!
 
   override func setUp() async throws {
     try await super.setUp()
     mockService = MockPreferenceManager()
+    mockPhoto = MockProfilePhotoService()
   }
 
   override func tearDown() {
     viewModel = nil
     mockService = nil
+    mockPhoto = nil
     super.tearDown()
   }
 
@@ -75,14 +78,15 @@ final class PlayerDetailsViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.saveStatus, .saved)
   }
 
-  // MARK: - Role-Based Access Tests
+  // MARK: - Family Collaboration Tests
+  // Parents and players collaborate on one shared player profile; everyone can edit.
 
-  func testInit_WhenParentRole_SetsReadOnly() {
+  func testInit_WhenParentRole_IsNotReadOnly() {
     // When
     viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .parent)
 
     // Then
-    XCTAssertTrue(viewModel.isReadOnly)
+    XCTAssertFalse(viewModel.isReadOnly)
   }
 
   func testInit_WhenPlayerRole_NotReadOnly() {
@@ -93,18 +97,22 @@ final class PlayerDetailsViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.isReadOnly)
   }
 
-  func testSaveDetails_WhenParentRole_DoesNotSave() async {
-    // Given
-    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .parent)
+  func testSaveDetails_WhenParentRole_SavesToAthleteRow() async {
+    // Given a parent editing the athlete's profile
+    viewModel = PlayerDetailsViewModel(
+      preferenceService: mockService, userRole: .parent, targetUserId: "athlete-123")
+    mockService.savePreferencesResult = .success(viewModel.details)
 
     // When
     await viewModel.saveDetails()
 
-    // Then
-    XCTAssertEqual(mockService.savePreferencesCalls.count, 0)
+    // Then it saves, targeting the athlete's user id
+    XCTAssertEqual(mockService.savePreferencesCalls.count, 1)
+    XCTAssertEqual(mockService.savePreferencesCalls.first?.userId, "athlete-123")
+    XCTAssertEqual(mockService.savePreferencesCalls.first?.category, .player)
   }
 
-  func testMarkChanged_WhenParentRole_DoesNotMarkChanges() {
+  func testMarkChanged_WhenParentRole_MarksChanges() {
     // Given
     viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .parent)
 
@@ -112,48 +120,86 @@ final class PlayerDetailsViewModelTests: XCTestCase {
     viewModel.markChanged()
 
     // Then
-    XCTAssertFalse(viewModel.hasUnsavedChanges)
+    XCTAssertTrue(viewModel.hasUnsavedChanges)
+  }
+
+  func testLoadDetails_WithTargetUserId_FetchesAthleteRow() async {
+    // Given a parent viewing the athlete's profile
+    viewModel = PlayerDetailsViewModel(
+      preferenceService: mockService, userRole: .parent, targetUserId: "athlete-123",
+      photoService: mockPhoto)
+    mockService.fetchPreferencesResult = .success(nil)
+
+    // When
+    await viewModel.loadDetails()
+
+    // Then the fetch targets the athlete's user id
+    XCTAssertEqual(mockService.fetchPreferencesCalls.first?.userId, "athlete-123")
+    XCTAssertEqual(mockService.fetchPreferencesCalls.first?.category, .player)
+  }
+
+  func testLoadDetails_WithoutTargetUserId_FetchesOwnRow() async {
+    // Given a player viewing their own profile (no explicit target)
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    mockService.fetchPreferencesResult = .success(nil)
+
+    // When
+    await viewModel.loadDetails()
+
+    // Then the fetch uses nil (current user)
+    XCTAssertNil(mockService.fetchPreferencesCalls.first?.userId)
   }
 
   // MARK: - Photo Upload Tests
 
-  func testUploadProfilePhoto_WithValidImage_UploadsSuccessfully() async {
+  func testUploadProfilePhoto_WithValidImage_PersistsToTargetUser() async {
     // Given
-    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel = PlayerDetailsViewModel(
+      preferenceService: mockService, userRole: .player, targetUserId: "self-1",
+      photoService: mockPhoto)
+    mockPhoto.stubbedUploadURL = "https://example.com/new.jpg"
     let testImage = UIImage(systemName: "person.fill")!
 
     // When
     await viewModel.uploadProfilePhoto(testImage)
 
-    // Then
+    // Then it persists via the photo service, targeting the resolved user id
     XCTAssertNotNil(viewModel.profileImage)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertEqual(viewModel.photoUrl, "https://example.com/new.jpg")
+    XCTAssertEqual(mockPhoto.lastUploadUserId, "self-1")
     XCTAssertFalse(viewModel.isUploadingPhoto)
   }
 
   func testDeleteProfilePhoto_RemovesPhoto() async {
     // Given
-    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel = PlayerDetailsViewModel(
+      preferenceService: mockService, userRole: .player, targetUserId: "self-1",
+      photoService: mockPhoto)
     viewModel.profileImage = UIImage(systemName: "person.fill")
+    viewModel.photoUrl = "https://example.com/old.jpg"
 
     // When
     await viewModel.deleteProfilePhoto()
 
     // Then
     XCTAssertNil(viewModel.profileImage)
-    XCTAssertTrue(viewModel.hasUnsavedChanges)
+    XCTAssertNil(viewModel.photoUrl)
+    XCTAssertEqual(mockPhoto.lastDeleteUserId, "self-1")
   }
 
-  func testUploadProfilePhoto_WhenReadOnly_DoesNotUpload() async {
-    // Given
-    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .parent)
+  func testUploadProfilePhoto_WhenParentRole_PersistsToAthlete() async {
+    // Given a parent editing the athlete's profile (parents can now edit)
+    viewModel = PlayerDetailsViewModel(
+      preferenceService: mockService, userRole: .parent, targetUserId: "athlete-123",
+      photoService: mockPhoto)
     let testImage = UIImage(systemName: "person.fill")!
 
     // When
     await viewModel.uploadProfilePhoto(testImage)
 
-    // Then
-    XCTAssertNil(viewModel.profileImage)
+    // Then the upload targets the athlete's user id
+    XCTAssertNotNil(viewModel.profileImage)
+    XCTAssertEqual(mockPhoto.lastUploadUserId, "athlete-123")
   }
 
   // MARK: - Field Validation Tests

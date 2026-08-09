@@ -83,7 +83,7 @@ final class TimelineViewModel {
     defer { isLoading = false }
 
     do {
-      let prefs: PlayerDetails? = try await preferenceService.fetchPreferences(category: .player)
+      let prefs: PlayerDetails? = try await preferenceService.fetchPreferences(category: .player, userId: currentAthleteId)
       let tasksByGradeResult = try await tasksService.fetchAllTasksWithStatus(athleteId: athleteId)
       graduationYear = prefs?.graduationYear
       tasksByGrade = tasksByGradeResult

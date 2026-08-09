@@ -108,6 +108,7 @@ struct DashboardView: View {
         }
       }
       .navigationTitle("Dashboard")
+      .navigationBarTitleDisplayMode(.inline)
       .sheet(isPresented: $showParentWizard) {
         ParentOnboardingWizardView(
           viewModel: ParentOnboardingWizardViewModel(),

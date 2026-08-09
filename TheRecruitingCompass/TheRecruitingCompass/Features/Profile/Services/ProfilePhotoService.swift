@@ -30,6 +30,8 @@ enum ProfilePhotoError: LocalizedError {
 protocol ProfilePhotoManaging: Sendable {
     func upload(image: UIImage, userId: String) async throws -> String
     func delete(userId: String, currentPhotoURL: String) async throws
+    /// The current profile photo URL for a user (self or a family athlete, RLS-gated).
+    func currentPhotoURL(userId: String) async throws -> String?
 }
 
 final class ProfilePhotoServiceImpl: ProfilePhotoManaging, Sendable {
@@ -63,11 +65,7 @@ final class ProfilePhotoServiceImpl: ProfilePhotoManaging, Sendable {
             .getPublicURL(path: path))?.absoluteString ?? ""
 
         do {
-            try await supabaseManager.client
-                .from("users")
-                .update(["profile_photo_url": publicURL])
-                .eq("id", value: userId)
-                .execute()
+            try await setProfilePhotoURL(userId: userId, url: .string(publicURL))
         } catch {
             logger.error("Failed to update profile_photo_url: \(error.localizedDescription)")
             throw ProfilePhotoError.updateRecordFailed(error)
@@ -91,11 +89,7 @@ final class ProfilePhotoServiceImpl: ProfilePhotoManaging, Sendable {
         }
 
         do {
-            try await supabaseManager.client
-                .from("users")
-                .update(["profile_photo_url": AnyJSON.null])
-                .eq("id", value: userId)
-                .execute()
+            try await setProfilePhotoURL(userId: userId, url: .null)
         } catch {
             logger.error("Failed to clear profile_photo_url: \(error.localizedDescription)")
             throw ProfilePhotoError.deleteFailed(error)
@@ -104,7 +98,27 @@ final class ProfilePhotoServiceImpl: ProfilePhotoManaging, Sendable {
         logger.info("Profile photo removed for user \(userId, privacy: .private)")
     }
 
+    func currentPhotoURL(userId: String) async throws -> String? {
+        struct Row: Decodable { let profile_photo_url: String? }
+        let row: Row = try await supabaseManager.client
+            .from("users")
+            .select("profile_photo_url")
+            .eq("id", value: userId)
+            .single()
+            .execute()
+            .value
+        return row.profile_photo_url
+    }
+
     // MARK: - Private helpers
+
+    /// Persists profile_photo_url via a SECURITY DEFINER RPC so a parent can set a family
+    /// athlete's photo (and a user their own). Column-scoped; RLS on `users` stays self-only.
+    private func setProfilePhotoURL(userId: String, url: AnyJSON) async throws {
+        try await supabaseManager.client
+            .rpc("set_athlete_profile_photo", params: ["athlete_id": AnyJSON.string(userId), "photo_url": url])
+            .execute()
+    }
 
     private func compress(_ image: UIImage) -> Data? {
         ImageCompression.downsampledJPEGData(from: image)

@@ -172,10 +172,10 @@ struct NotificationPreferencesView: View {
 #Preview {
   // Simple preview mock
   final class PreviewMock: PreferenceManaging {
-    func fetchPreferences<T: Codable>(category: PreferenceCategory) async throws -> T? {
+    func fetchPreferences<T: Codable>(category: PreferenceCategory, userId: String?) async throws -> T? {
       return NotificationSettings.default as? T
     }
-    func savePreferences<T: Codable>(category: PreferenceCategory, data: T) async throws -> T { data }
+    func savePreferences<T: Codable>(category: PreferenceCategory, userId: String?, data: T) async throws -> T { data }
     func deletePreferences(category: PreferenceCategory) async throws {}
   }
 
