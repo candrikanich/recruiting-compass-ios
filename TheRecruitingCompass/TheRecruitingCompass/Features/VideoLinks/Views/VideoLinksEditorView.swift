@@ -95,6 +95,7 @@ struct VideoLinksEditorView: View {
 
   // MARK: - Links List
 
+  @ViewBuilder
   private var linksList: some View {
     List {
       ForEach(viewModel.links) { link in

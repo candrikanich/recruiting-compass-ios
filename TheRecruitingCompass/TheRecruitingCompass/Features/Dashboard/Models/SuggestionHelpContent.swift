@@ -94,6 +94,7 @@ struct SuggestionHelpContent {
     ),
     "official-visit": SuggestionHelpContent(
       title: String(localized: "Schedule Official Visits"),
+      // swiftlint:disable:next line_length
       whyItMatters: String(localized: "Official visits are critical for late-stage recruiting (junior/senior year). They give coaches the chance to evaluate you academically and athletically at their campus, and they give you the chance to assess whether the school is truly a fit. Many scholarship decisions happen during or after official visits."),
       howToComplete: [
         String(localized: "Identify your top 3-5 schools based on fit and genuine interest"),
