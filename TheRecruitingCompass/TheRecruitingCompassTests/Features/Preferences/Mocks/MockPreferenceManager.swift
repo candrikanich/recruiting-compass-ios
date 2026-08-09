@@ -27,7 +27,7 @@ final class MockPreferenceManager: PreferenceManaging, @unchecked Sendable {
     if let result = savePreferencesResult {
       switch result {
       case .success(let value):
-        return value as! T
+        return (value as? T) ?? data
       case .failure(let error):
         throw error
       }
