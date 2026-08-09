@@ -6,12 +6,12 @@ final class MockPreferenceManager: PreferenceManaging, @unchecked Sendable {
   var savePreferencesResult: Result<Any, Error>?
   var deletePreferencesCalled = false
 
-  var fetchPreferencesCalls: [PreferenceCategory] = []
-  var savePreferencesCalls: [(category: PreferenceCategory, data: Any)] = []
+  var fetchPreferencesCalls: [(category: PreferenceCategory, userId: String?)] = []
+  var savePreferencesCalls: [(category: PreferenceCategory, userId: String?, data: Any)] = []
   var deletePreferencesCalls: [PreferenceCategory] = []
 
-  func fetchPreferences<T: Codable>(category: PreferenceCategory) async throws -> T? {
-    fetchPreferencesCalls.append(category)
+  func fetchPreferences<T: Codable>(category: PreferenceCategory, userId: String?) async throws -> T? {
+    fetchPreferencesCalls.append((category: category, userId: userId))
 
     switch fetchPreferencesResult {
     case .success(let value):
@@ -21,8 +21,8 @@ final class MockPreferenceManager: PreferenceManaging, @unchecked Sendable {
     }
   }
 
-  func savePreferences<T: Codable>(category: PreferenceCategory, data: T) async throws -> T {
-    savePreferencesCalls.append((category: category, data: data))
+  func savePreferences<T: Codable>(category: PreferenceCategory, userId: String?, data: T) async throws -> T {
+    savePreferencesCalls.append((category: category, userId: userId, data: data))
 
     if let result = savePreferencesResult {
       switch result {

@@ -59,7 +59,7 @@ struct NotificationPreferencesPushTests {
 
 // Minimal mock for PreferenceManaging (already tested elsewhere)
 private final class MockPreferenceManaging: PreferenceManaging {
-    func fetchPreferences<T: Codable>(category: PreferenceCategory) async throws -> T? { nil }
-    func savePreferences<T: Codable>(category: PreferenceCategory, data: T) async throws -> T { data }
+    func fetchPreferences<T: Codable>(category: PreferenceCategory, userId: String?) async throws -> T? { nil }
+    func savePreferences<T: Codable>(category: PreferenceCategory, userId: String?, data: T) async throws -> T { data }
     func deletePreferences(category: PreferenceCategory) async throws {}
 }

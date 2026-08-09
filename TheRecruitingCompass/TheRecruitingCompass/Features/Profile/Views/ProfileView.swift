@@ -7,6 +7,7 @@ private enum ProfileDestination: Hashable {
 
 struct ProfileView: View {
     @Environment(AuthManager.self) private var authManager
+    @Environment(FamilyManager.self) private var familyManager
     @State private var viewModel = ProfileViewModel()
     @State private var selectedPhotoItem: PhotosPickerItem?
 
@@ -35,7 +36,11 @@ struct ProfileView: View {
         .navigationDestination(for: ProfileDestination.self) { destination in
             switch destination {
             case .playerDetails:
-                PlayerDetailsView(preferenceService: preferenceService, userRole: .player)
+                PlayerDetailsView(
+                    preferenceService: preferenceService,
+                    userRole: user?.role ?? .player,
+                    targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+                )
             }
         }
         .task {
@@ -579,5 +584,6 @@ private struct InitialsAvatar: View {
     NavigationStack {
         ProfileView()
             .environment(AuthManager.shared)
+            .environment(FamilyManager.shared)
     }
 }

@@ -162,10 +162,10 @@ struct HomeLocationView: View {
   final class PreviewMock: PreferenceManaging {
     let location: HomeLocation
     init(location: HomeLocation) { self.location = location }
-    func fetchPreferences<T: Codable>(category: PreferenceCategory) async throws -> T? {
+    func fetchPreferences<T: Codable>(category: PreferenceCategory, userId: String?) async throws -> T? {
       return location as? T
     }
-    func savePreferences<T: Codable>(category: PreferenceCategory, data: T) async throws -> T { data }
+    func savePreferences<T: Codable>(category: PreferenceCategory, userId: String?, data: T) async throws -> T { data }
     func deletePreferences(category: PreferenceCategory) async throws {}
   }
 

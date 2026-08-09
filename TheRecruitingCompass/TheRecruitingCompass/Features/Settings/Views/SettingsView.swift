@@ -228,7 +228,8 @@ struct SettingsView: View {
         case .playerDetails:
           PlayerDetailsView(
             preferenceService: preferenceService,
-            userRole: authManager.user?.role ?? .player
+            userRole: authManager.user?.role ?? .player,
+            targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
           )
         case .schoolPreferences:
           SchoolPreferencesView(preferenceService: preferenceService)

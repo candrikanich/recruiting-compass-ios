@@ -29,7 +29,7 @@ final class PreferenceServiceTests: XCTestCase {
     // Then
     XCTAssertEqual(result, expectedSettings)
     XCTAssertEqual(mockManager.fetchPreferencesCalls.count, 1)
-    XCTAssertEqual(mockManager.fetchPreferencesCalls.first, .notifications)
+    XCTAssertEqual(mockManager.fetchPreferencesCalls.first?.category, .notifications)
   }
 
   func testFetchPreferences_WhenNoPreferences_ReturnsNil() async throws {

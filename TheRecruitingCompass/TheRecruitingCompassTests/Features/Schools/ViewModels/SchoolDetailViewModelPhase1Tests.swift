@@ -399,7 +399,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
 
     XCTAssertEqual(viewModel.homeCoordinate?.latitude, 40.7128)
     XCTAssertEqual(viewModel.homeCoordinate?.longitude, -74.0060)
-    XCTAssertTrue(mockPreferenceService.fetchPreferencesCalls.contains(.location))
+    XCTAssertTrue(mockPreferenceService.fetchPreferencesCalls.contains { $0.category == .location })
   }
 
   func testLoadHomeLocation_nil_whenLongitudeMissing() async {
