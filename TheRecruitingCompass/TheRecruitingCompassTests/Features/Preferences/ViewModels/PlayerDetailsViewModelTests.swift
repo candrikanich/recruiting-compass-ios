@@ -423,11 +423,13 @@ final class PlayerDetailsViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.completenessScore, 0.25, accuracy: 0.0001)
   }
 
-  func testNormalizePositions_TitleCasesAll() {
+  func testNormalizePositions_SportScopedCanonicalization() {
     viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.primarySport = "Baseball"
     viewModel.details.positions = ["pitcher", "FIRST BASE", "outfielder"]
     viewModel.normalizePositions()
-    XCTAssertEqual(viewModel.details.positions, ["Pitcher", "First Base", "Outfielder"])
+    // Sport-scoped: canonical casing snap + coarse bucket ("outfielder") → Utility.
+    XCTAssertEqual(viewModel.details.positions, ["Pitcher", "First Base", "Utility"])
   }
 
   func testNormalizePositions_NilPositions_StaysNil() {
