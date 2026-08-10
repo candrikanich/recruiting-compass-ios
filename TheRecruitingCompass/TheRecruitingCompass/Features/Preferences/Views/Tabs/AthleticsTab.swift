@@ -10,6 +10,12 @@ struct AthleticsTab: View {
                     physicalStatsCard
                 }
 
+                if viewModel.isBaseballOrSoftball {
+                    cardSection(sportSectionTitle) {
+                        battingThrowingCard
+                    }
+                }
+
                 cardSection(String(localized: "Positions You Play")) {
                     PositionChipsView(
                         sport: viewModel.details.primarySport,
@@ -46,39 +52,53 @@ struct AthleticsTab: View {
             heightRow
             divider
             weightRow
-            if viewModel.isBaseballOrSoftball {
-                divider
-                choiceRow(
-                    String(localized: "Bats"),
-                    options: [
-                        ("R", String(localized: "Right")),
-                        ("L", String(localized: "Left")),
-                        ("S", String(localized: "Switch"))
-                    ],
-                    selection: Binding(
-                        get: { viewModel.details.bats },
-                        set: {
-                            viewModel.details.bats = $0
-                            viewModel.markChanged()
-                        }
-                    )
+        }
+    }
+
+    // MARK: - Batting & Throwing Card (baseball/softball only)
+
+    /// Section title keyed to the athlete's primary sport (e.g. "Baseball"),
+    /// falling back to a sport-agnostic label if none is set.
+    private var sportSectionTitle: String {
+        guard let sport = viewModel.details.primarySport, !sport.isEmpty else {
+            return String(localized: "Batting & Throwing")
+        }
+        return sport.capitalized
+    }
+
+    @ViewBuilder
+    private var battingThrowingCard: some View {
+        VStack(spacing: 0) {
+            choiceRow(
+                String(localized: "Bats"),
+                options: [
+                    ("R", String(localized: "Right")),
+                    ("L", String(localized: "Left")),
+                    ("S", String(localized: "Switch"))
+                ],
+                selection: Binding(
+                    get: { viewModel.details.bats },
+                    set: {
+                        viewModel.details.bats = $0
+                        viewModel.markChanged()
+                    }
                 )
-                divider
-                choiceRow(
-                    String(localized: "Throws"),
-                    options: [
-                        ("R", String(localized: "Right")),
-                        ("L", String(localized: "Left"))
-                    ],
-                    selection: Binding(
-                        get: { viewModel.details.throws_ },
-                        set: {
-                            viewModel.details.throws_ = $0
-                            viewModel.markChanged()
-                        }
-                    )
+            )
+            divider
+            choiceRow(
+                String(localized: "Throws"),
+                options: [
+                    ("R", String(localized: "Right")),
+                    ("L", String(localized: "Left"))
+                ],
+                selection: Binding(
+                    get: { viewModel.details.throws_ },
+                    set: {
+                        viewModel.details.throws_ = $0
+                        viewModel.markChanged()
+                    }
                 )
-            }
+            )
         }
         .animation(.easeInOut, value: viewModel.isBaseballOrSoftball)
     }

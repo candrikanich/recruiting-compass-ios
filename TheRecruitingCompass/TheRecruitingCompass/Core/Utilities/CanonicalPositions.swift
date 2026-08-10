@@ -61,6 +61,15 @@ enum CanonicalPositions {
     return raw
   }
 
+  /// Canonical → short abbreviation for the sport (e.g. "Third Base" → "3B").
+  /// Falls back to the full name when the sport has no abbreviation table or the
+  /// value isn't a known canonical position.
+  static func abbreviation(sport: String?, _ canonical: String) -> String {
+    let sportKey = sport?.lowercased() ?? ""
+    guard let table = abbreviations[sportKey] else { return canonical }
+    return table.first { $0.value.caseInsensitiveCompare(canonical) == .orderedSame }?.key ?? canonical
+  }
+
   // MARK: - Private
 
   private static let coarseBuckets: Set<String> = ["infielder", "outfielder", "infield", "outfield", "if", "of"]
