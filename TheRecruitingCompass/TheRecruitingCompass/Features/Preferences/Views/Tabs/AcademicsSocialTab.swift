@@ -6,6 +6,16 @@ struct AcademicsSocialTab: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                cardSection(String(localized: "High School")) {
+                    VStack(spacing: 0) {
+                        textRow(String(localized: "High School"), keyPath: \.highSchool)
+                        divider
+                        textRow(String(localized: "City"), keyPath: \.schoolCity)
+                        divider
+                        textRow(String(localized: "State"), keyPath: \.schoolState, autocapitalization: .characters)
+                    }
+                }
+
                 cardSection(String(localized: "Academics")) {
                     VStack(spacing: 0) {
                         numericRow(String(localized: "GPA"), keyPath: \.gpa)
@@ -16,41 +26,17 @@ struct AcademicsSocialTab: View {
                     }
                 }
 
-                cardSection(String(localized: "Social Media")) {
-                    VStack(spacing: 0) {
-                        textRow(
-                            String(localized: "Twitter"),
-                            placeholder: String(localized: "@username"),
-                            keyPath: \.twitterHandle
-                        )
-                        divider
-                        textRow(
-                            String(localized: "Instagram"),
-                            placeholder: String(localized: "@username"),
-                            keyPath: \.instagramHandle
-                        )
-                        divider
-                        textRow(
-                            String(localized: "TikTok"),
-                            placeholder: String(localized: "@username"),
-                            keyPath: \.tiktokHandle
-                        )
-                        divider
-                        textRow(
-                            String(localized: "Facebook URL"),
-                            placeholder: String(localized: "https://..."),
-                            keyPath: \.facebookUrl,
-                            keyboardType: .URL
-                        )
-                    }
-                }
-
-                cardSection(String(localized: "Privacy")) {
-                    VStack(spacing: 0) {
-                        toggleRow(String(localized: "Share phone with coaches"), keyPath: \.allowSharePhone)
-                        divider
-                        toggleRow(String(localized: "Share email with coaches"), keyPath: \.allowShareEmail)
-                    }
+                cardSection(String(localized: "Core Courses")) {
+                    CoreCoursesEditor(
+                        courses: Binding(
+                            get: { viewModel.details.coreCourses ?? [] },
+                            set: {
+                                viewModel.details.coreCourses = $0.isEmpty ? nil : $0
+                                viewModel.markChanged()
+                            }
+                        ),
+                        isDisabled: viewModel.isReadOnly
+                    )
                 }
             }
             .padding()
@@ -64,7 +50,8 @@ struct AcademicsSocialTab: View {
         _ label: String,
         placeholder: String = "",
         keyPath: WritableKeyPath<PlayerDetails, String?>,
-        keyboardType: UIKeyboardType = .default
+        keyboardType: UIKeyboardType = .default,
+        autocapitalization: TextInputAutocapitalization = .sentences
     ) -> some View {
         HStack {
             Text(label).font(.body)
@@ -79,8 +66,7 @@ struct AcademicsSocialTab: View {
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
             .keyboardType(keyboardType)
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
+            .textInputAutocapitalization(autocapitalization)
             .disabled(viewModel.isReadOnly)
         }
         .padding(.horizontal)
@@ -125,19 +111,6 @@ struct AcademicsSocialTab: View {
             .disabled(viewModel.isReadOnly)
             .frame(width: 80)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 12)
-    }
-
-    private func toggleRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, Bool?>) -> some View {
-        Toggle(label, isOn: Binding(
-            get: { viewModel.details[keyPath: keyPath] ?? false },
-            set: {
-                viewModel.details[keyPath: keyPath] = $0
-                viewModel.markChanged()
-            }
-        ))
-        .disabled(viewModel.isReadOnly)
         .padding(.horizontal)
         .padding(.vertical, 12)
     }

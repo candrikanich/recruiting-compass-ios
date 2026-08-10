@@ -21,6 +21,7 @@ struct PlayerDetails: Codable, Equatable, Sendable {
   var gpa: Double? // 0.0-5.0
   var satScore: Int? // 400-1600
   var actScore: Int? // 1-36
+  var coreCourses: [String]? // AP/honors/notable courses (max 20)
 
   // External IDs
   var ncaaId: String?
@@ -38,6 +39,12 @@ struct PlayerDetails: Codable, Equatable, Sendable {
   var email: String?
   var allowSharePhone: Bool?
   var allowShareEmail: Bool?
+
+  // College Preferences (fit analysis) — canonical enums shared with web:
+  // campusSizePreference: "small" | "medium" | "large"
+  // costSensitivity: "high" | "medium" | "low"
+  var campusSizePreference: String?
+  var costSensitivity: String?
 
   // School Info
   var schoolName: String?
@@ -112,6 +119,7 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     case gpa
     case satScore = "sat_score"
     case actScore = "act_score"
+    case coreCourses = "core_courses"
     case ncaaId = "ncaa_id"
     case perfectGameId = "perfect_game_id"
     case prepBaseballId = "prep_baseball_id"
@@ -123,6 +131,8 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     case email
     case allowSharePhone = "allow_share_phone"
     case allowShareEmail = "allow_share_email"
+    case campusSizePreference = "campus_size_preference"
+    case costSensitivity = "cost_sensitivity"
     case schoolName = "school_name"
     case schoolAddress = "school_address"
     case schoolCity = "school_city"

@@ -36,30 +36,4 @@ enum FamilyConstants {
       "Other"
     ]
   }
-
-  /// Positions list for parent onboarding (common across sports; replicate from web as needed).
-  enum Positions {
-    static let all: [String] = [
-      "Pitcher",
-      "Catcher",
-      "Infielder",
-      "Outfielder",
-      "Guard",
-      "Forward",
-      "Center",
-      "Quarterback",
-      "Running Back",
-      "Wide Receiver",
-      "Linebacker",
-      "Defensive Back",
-      "Lineman",
-      "Midfielder",
-      "Defender",
-      "Goalkeeper",
-      "Setter",
-      "Outside Hitter",
-      "Libero",
-      "Other"
-    ]
-  }
 }

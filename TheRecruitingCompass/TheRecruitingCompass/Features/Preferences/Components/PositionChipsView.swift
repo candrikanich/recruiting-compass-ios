@@ -6,20 +6,7 @@ struct PositionChipsView: View {
     let isDisabled: Bool
 
     private var availablePositions: [String] {
-        switch sport?.lowercased() {
-        case "baseball", "softball":
-            return ["Pitcher", "Catcher", "First Base", "Second Base", "Third Base",
-                    "Shortstop", "Left Field", "Center Field", "Right Field", "Designated Hitter"]
-        case "basketball":
-            return ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"]
-        case "football":
-            return ["Quarterback", "Running Back", "Wide Receiver", "Tight End", "Offensive Line",
-                    "Defensive Line", "Linebacker", "Cornerback", "Safety", "Kicker", "Punter"]
-        case "soccer":
-            return ["Goalkeeper", "Defender", "Midfielder", "Forward", "Winger", "Sweeper"]
-        default:
-            return []
-        }
+        CanonicalPositions.positions(for: sport)
     }
 
     var body: some View {

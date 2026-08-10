@@ -6,11 +6,11 @@ struct AthleticsTab: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                cardSection(String(localized: "Physical Stats")) {
+                cardSection(String(localized: "Physical Profile")) {
                     physicalStatsCard
                 }
 
-                cardSection(String(localized: "Positions")) {
+                cardSection(String(localized: "Positions You Play")) {
                     PositionChipsView(
                         sport: viewModel.details.primarySport,
                         selectedPositions: Binding(
@@ -25,16 +25,12 @@ struct AthleticsTab: View {
                     .padding()
                 }
 
-                if viewModel.isBaseballOrSoftball {
-                    cardSection(String(localized: "Baseball / Softball")) {
-                        baseballCard
-                    }
-                    .animation(.easeInOut, value: viewModel.isBaseballOrSoftball)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                cardSection(String(localized: "Recruiting Database IDs")) {
+                    externalIdsCard
                 }
 
-                cardSection(String(localized: "External IDs")) {
-                    externalIdsCard
+                cardSection(String(localized: "Video Links")) {
+                    videoLinksRow
                 }
             }
             .padding()
@@ -50,7 +46,41 @@ struct AthleticsTab: View {
             heightRow
             divider
             weightRow
+            if viewModel.isBaseballOrSoftball {
+                divider
+                choiceRow(
+                    String(localized: "Bats"),
+                    options: [
+                        ("R", String(localized: "Right")),
+                        ("L", String(localized: "Left")),
+                        ("S", String(localized: "Switch"))
+                    ],
+                    selection: Binding(
+                        get: { viewModel.details.bats },
+                        set: {
+                            viewModel.details.bats = $0
+                            viewModel.markChanged()
+                        }
+                    )
+                )
+                divider
+                choiceRow(
+                    String(localized: "Throws"),
+                    options: [
+                        ("R", String(localized: "Right")),
+                        ("L", String(localized: "Left"))
+                    ],
+                    selection: Binding(
+                        get: { viewModel.details.throws_ },
+                        set: {
+                            viewModel.details.throws_ = $0
+                            viewModel.markChanged()
+                        }
+                    )
+                )
+            }
         }
+        .animation(.easeInOut, value: viewModel.isBaseballOrSoftball)
     }
 
     @ViewBuilder
@@ -113,44 +143,37 @@ struct AthleticsTab: View {
         .padding(.vertical, 12)
     }
 
-    // MARK: - Baseball Card
+    // MARK: - Video Links
 
+    /// Row pushing the shared Video Links editor. The editor owns its own toolbar
+    /// "Add" button, so it must be pushed rather than embedded inline.
     @ViewBuilder
-    private var baseballCard: some View {
-        VStack(spacing: 0) {
-            segmentedRow(
-                String(localized: "Bats"),
-                selection: Binding<String>(
-                    get: { viewModel.details.bats ?? "" },
-                    set: {
-                        viewModel.details.bats = $0.isEmpty ? nil : $0
-                        viewModel.markChanged()
-                    }
-                ),
-                tags: [
-                    ("", String(localized: "–")),
-                    ("R", String(localized: "Right (R)")),
-                    ("L", String(localized: "Left (L)")),
-                    ("S", String(localized: "Switch (S)"))
-                ]
+    private var videoLinksRow: some View {
+        NavigationLink {
+            VideoLinksEditorView(
+                athleteUserId: viewModel.athleteUserId,
+                familyUnitId: FamilyManager.shared.currentMember?.familyUnitId,
+                isReadOnly: viewModel.isReadOnly
             )
-            divider
-            segmentedRow(
-                String(localized: "Throws"),
-                selection: Binding<String>(
-                    get: { viewModel.details.throws_ ?? "" },
-                    set: {
-                        viewModel.details.throws_ = $0.isEmpty ? nil : $0
-                        viewModel.markChanged()
-                    }
-                ),
-                tags: [
-                    ("", String(localized: "–")),
-                    ("R", String(localized: "Right (R)")),
-                    ("L", String(localized: "Left (L)"))
-                ]
-            )
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Video Links")
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                    Text("Hudl, YouTube, or Vimeo highlight reels")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding()
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
     }
 
     // MARK: - External IDs Card
@@ -189,18 +212,37 @@ struct AthleticsTab: View {
         .padding(.vertical, 12)
     }
 
-    private func segmentedRow<Tag: Hashable>(_ label: String, selection: Binding<Tag>, tags: [(Tag, String)]) -> some View {
-        HStack {
-            Text(label).font(.body)
-            Spacer()
-            Picker(label, selection: selection) {
-                ForEach(Array(tags.enumerated()), id: \.offset) { _, pair in
-                    Text(pair.1).tag(pair.0)
+    /// Web-parity segmented selector: selected option gets a filled accent highlight
+    /// (the system `.segmented` style rendered selection too subtly to read).
+    private func choiceRow(
+        _ label: String,
+        options: [(value: String, label: String)],
+        selection: Binding<String?>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                ForEach(options, id: \.value) { opt in
+                    let isSelected = selection.wrappedValue == opt.value
+                    Button {
+                        selection.wrappedValue = opt.value
+                    } label: {
+                        Text(opt.label)
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(isSelected ? Color.accentColor : Color(.tertiarySystemFill))
+                            .foregroundStyle(isSelected ? Color.white : Color.primary)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(viewModel.isReadOnly)
+                    .accessibilityLabel("\(label): \(opt.label)")
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
                 }
             }
-            .pickerStyle(.segmented)
-            .fixedSize()
-            .disabled(viewModel.isReadOnly)
         }
         .padding(.horizontal)
         .padding(.vertical, 12)

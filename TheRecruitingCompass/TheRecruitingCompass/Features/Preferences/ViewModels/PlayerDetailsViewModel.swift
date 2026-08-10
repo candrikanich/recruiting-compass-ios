@@ -47,6 +47,10 @@ final class PlayerDetailsViewModel {
     /// The athlete whose video/location we score: the explicit target, else the
     /// signed-in user (a player viewing their own profile).
     private var effectiveUserId: String? { targetUserId ?? authManager.user?.id }
+
+    /// Canonical athlete id for child editors (e.g. Video Links). Empty when no
+    /// user is resolvable yet — the editor treats that as an empty, read-only list.
+    var athleteUserId: String { effectiveUserId ?? "" }
     @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
     @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
@@ -110,6 +114,7 @@ final class PlayerDetailsViewModel {
         do {
             if let savedDetails: PlayerDetails = try await preferenceService.fetchPreferences(category: .player, userId: targetUserId) {
                 details = savedDetails
+                normalizePositions()
                 logger.info("Loaded existing player details")
             } else {
                 details = .default
@@ -263,11 +268,15 @@ final class PlayerDetailsViewModel {
         markChanged()
     }
 
+    /// Snap stored positions to the canonical, sport-scoped vocabulary (expands
+    /// abbreviations, collapses legacy "Infielder"/"Outfielder" → "Utility",
+    /// preserves unknowns). Runs on load and before save so legacy values
+    /// round-trip identically to web.
     func normalizePositions() {
-        details.positions = details.positions?.map { pos in
-            pos.split(separator: " ")
-                .map { $0.prefix(1).uppercased() + $0.dropFirst().lowercased() }
-                .joined(separator: " ")
+        let sport = details.primarySport
+        details.primaryPosition = CanonicalPositions.normalize(sport: sport, details.primaryPosition)
+        details.positions = details.positions?.compactMap {
+            CanonicalPositions.normalize(sport: sport, $0)
         }
     }
 

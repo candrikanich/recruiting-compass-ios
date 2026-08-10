@@ -67,7 +67,9 @@ final class OnboardingViewModel {
     guard let existing: PlayerDetails = try? await preferenceService.fetchPreferences(category: .player) else { return }
     if let year = existing.graduationYear { graduationYear = year }
     if let sport = existing.primarySport, !sport.isEmpty { primarySport = sport }
-    if let position = existing.primaryPosition, !position.isEmpty { primaryPosition = position }
+    if let position = existing.primaryPosition, !position.isEmpty {
+      primaryPosition = CanonicalPositions.normalize(sport: existing.primarySport, position) ?? position
+    }
     logger.debug("Pre-filled onboarding from existing player preferences")
   }
 
