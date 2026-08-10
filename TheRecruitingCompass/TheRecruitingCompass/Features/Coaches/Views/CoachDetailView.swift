@@ -1,5 +1,10 @@
 import SwiftUI
 
+private struct ShareURL: Identifiable {
+  let id = UUID()
+  let url: URL
+}
+
 struct CoachDetailView: View {
   let coachId: String
   let allCoaches: [Coach]
@@ -7,6 +12,11 @@ struct CoachDetailView: View {
 
   @State private var viewModel: CoachDetailViewModel
   @State private var quickCommunicationContext: QuickCommunicationContext?
+  @State private var sendProfileVM = SendProfileViewModel(
+    service: PublicProfileServiceImpl(),
+    authManager: AuthManager.shared
+  )
+  @State private var shareItem: ShareURL?
   @Environment(\.sizeCategory) private var sizeCategory
   @Environment(\.dismiss) private var dismiss
 
@@ -88,6 +98,19 @@ struct CoachDetailView: View {
     .sheet(item: $quickCommunicationContext) { context in
       QuickCommunicationView(context: context)
     }
+    .sheet(item: $shareItem) { item in
+      ShareLink(item: item.url)
+        .padding()
+        .presentationDetents([.medium])
+    }
+    .alert(
+      "Profile Not Published",
+      isPresented: $sendProfileVM.notPublishedPrompt
+    ) {
+      Button("OK") { sendProfileVM.notPublishedPrompt = false }
+    } message: {
+      Text("Publish your profile before sending it to a coach.")
+    }
     .confirmationDialog("Delete Coach", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
       Button("Delete", role: .destructive) {
         Task {
@@ -130,10 +153,26 @@ struct CoachDetailView: View {
       }
 
       CoachStatisticsSection(coach: coach)
+      sendProfileButton
       recentInteractionsSection
       sharedNotesSection
     }
     .padding()
+  }
+
+  private var sendProfileButton: some View {
+    Button {
+      Task {
+        if let url = await sendProfileVM.shareURL(forCoachId: coachId) {
+          shareItem = ShareURL(url: url)
+        }
+      }
+    } label: {
+      Label("Send Profile", systemImage: "square.and.arrow.up")
+        .font(.body)
+    }
+    .buttonStyle(.bordered)
+    .accessibilityLabel(String(localized: "Send Profile"))
   }
 
   @ViewBuilder
