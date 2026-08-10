@@ -71,16 +71,28 @@ final class PublicProfileViewModel {
     }
 
     func save() async {
-        slugError = nil
-        validateSlug()
-        if slugError != nil { return }
+        // Slug validity is independent of the other fields: an invalid/reserved local slug
+        // must not block persisting bio/publish/visibility/color. Only the vanity_slug key
+        // itself is conditional; when invalid it's omitted so the server keeps the existing slug.
+        var slugToSend: String??
+        switch SlugValidator.validate(vanitySlug) {
+        case .empty, .valid:
+            slugError = nil
+            slugToSend = .some(vanitySlug.isEmpty ? nil : vanitySlug)
+        case .invalidFormat:
+            slugError = String(localized: "Use lowercase letters, numbers, and hyphens only.")
+            slugToSend = nil
+        case .reserved:
+            slugError = String(localized: "That custom URL is reserved.")
+            slugToSend = nil
+        }
         let payload = UpdateProfilePayload(
             bio: .some(bio.isEmpty ? nil : bio),
             isPublished: isPublished,
             showAcademics: showAcademics, showAthletic: showAthletic,
             showFilm: showFilm, showSchools: showSchools,
             headerColor: headerColor.rawValue,
-            vanitySlug: .some(vanitySlug.isEmpty ? nil : vanitySlug)
+            vanitySlug: slugToSend
         )
         do {
             try await service.updateProfile(payload, accessToken: token)
@@ -106,9 +118,12 @@ final class PublicProfileViewModel {
         }
     }
 
+    /// Built from persisted server truth (`profile`), not the live-editable `vanitySlug` field,
+    /// so Copy never hands out a not-yet-accepted slug.
     var shareURL: URL? {
         guard let profile, let base = SupabaseConfig.apiBaseURL else { return nil }
-        let slug = vanitySlug.isEmpty ? profile.hashSlug : vanitySlug
+        let persistedSlug = profile.vanitySlug
+        let slug = (persistedSlug?.isEmpty == false) ? persistedSlug! : profile.hashSlug
         return base.appendingPathComponent("p").appendingPathComponent(slug)
     }
 

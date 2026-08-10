@@ -8,6 +8,7 @@ import UIKit
 struct PublicTab: View {
     let viewModel: PlayerDetailsViewModel
     @State private var vm: PublicProfileViewModel
+    @State private var bioSaveTask: Task<Void, Never>?
 
     private let bioCharacterLimit = 300
 
@@ -127,6 +128,7 @@ struct PublicTab: View {
                     if newValue.count > bioCharacterLimit {
                         vm.bio = String(newValue.prefix(bioCharacterLimit))
                     }
+                    scheduleBioSave()
                 }
                 .onSubmit { commit() }
             Text("\(vm.bio.count)/\(bioCharacterLimit)")
@@ -137,6 +139,19 @@ struct PublicTab: View {
 
     private func commit() {
         Task {
+            await vm.save()
+            await vm.assembleCard()
+        }
+    }
+
+    /// Debounced auto-save for bio-only edits, since `TextEditor` has no reliable commit
+    /// event (`.onSubmit` never fires for multi-line text) and would otherwise lose edits
+    /// unless another control happens to be touched afterward.
+    private func scheduleBioSave() {
+        bioSaveTask?.cancel()
+        bioSaveTask = Task {
+            try? await Task.sleep(nanoseconds: 700_000_000)
+            if Task.isCancelled { return }
             await vm.save()
             await vm.assembleCard()
         }

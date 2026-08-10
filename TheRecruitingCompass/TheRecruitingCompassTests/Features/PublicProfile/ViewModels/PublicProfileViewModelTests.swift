@@ -48,6 +48,25 @@ final class PublicProfileViewModelTests: XCTestCase {
         XCTAssertNotNil(vm.slugError)
     }
 
+    func testSaveWithReservedLocalSlugStillPersistsOtherFields() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        let payloadCountBefore = mock.updatedPayloads.count
+
+        vm.vanitySlug = "admin"
+        vm.isPublished = true
+        vm.bio = "updated despite bad slug"
+        await vm.save()
+
+        XCTAssertEqual(mock.updatedPayloads.count, payloadCountBefore + 1)
+        XCTAssertNotNil(vm.slugError)
+        XCTAssertEqual(mock.updatedPayloads.last?.isPublished, true)
+        XCTAssertEqual(mock.updatedPayloads.last?.bio, "updated despite bad slug")
+        XCTAssertNil(mock.updatedPayloads.last?.vanitySlug)
+    }
+
     func testValidateSlugFlagsReserved() async {
         let mock = MockPublicProfileManaging()
         let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
