@@ -25,6 +25,14 @@ struct BasicsTab: View {
                     basicInfoCard
                 }
 
+                cardSection(String(localized: "Contact")) {
+                    contactCard
+                }
+
+                cardSection(String(localized: "Social")) {
+                    socialCard
+                }
+
                 cardSection(String(localized: "College Preferences")) {
                     collegePrefsCard
                 }
@@ -112,13 +120,79 @@ struct BasicsTab: View {
             gradYearRow
             divider
             primarySportRow
-            divider
-            textRow(String(localized: "High School"), keyPath: \.highSchool)
-            divider
-            textRow(String(localized: "City"), keyPath: \.schoolCity)
-            divider
-            textRow(String(localized: "State"), keyPath: \.schoolState, autocapitalization: .characters)
         }
+    }
+
+    // MARK: - Contact Card
+
+    @ViewBuilder
+    private var contactCard: some View {
+        VStack(spacing: 0) {
+            handleRow(String(localized: "Phone"), placeholder: String(localized: "Phone"),
+                      keyPath: \.phone, keyboardType: .phonePad)
+            divider
+            handleRow(String(localized: "Email"), placeholder: String(localized: "Email"),
+                      keyPath: \.email, keyboardType: .emailAddress)
+            divider
+            toggleRow(String(localized: "Share phone with coaches"), keyPath: \.allowSharePhone)
+            divider
+            toggleRow(String(localized: "Share email with coaches"), keyPath: \.allowShareEmail)
+        }
+    }
+
+    // MARK: - Social Card
+
+    @ViewBuilder
+    private var socialCard: some View {
+        VStack(spacing: 0) {
+            handleRow(String(localized: "Twitter"), placeholder: String(localized: "@username"), keyPath: \.twitterHandle)
+            divider
+            handleRow(String(localized: "Instagram"), placeholder: String(localized: "@username"), keyPath: \.instagramHandle)
+            divider
+            handleRow(String(localized: "TikTok"), placeholder: String(localized: "@username"), keyPath: \.tiktokHandle)
+            divider
+            handleRow(String(localized: "Facebook URL"), placeholder: String(localized: "https://..."), keyPath: \.facebookUrl, keyboardType: .URL)
+        }
+    }
+
+    private func handleRow(
+        _ label: String,
+        placeholder: String = "",
+        keyPath: WritableKeyPath<PlayerDetails, String?>,
+        keyboardType: UIKeyboardType = .default
+    ) -> some View {
+        HStack {
+            Text(label).font(.body)
+            Spacer()
+            TextField(placeholder.isEmpty ? label : placeholder, text: Binding(
+                get: { viewModel.details[keyPath: keyPath] ?? "" },
+                set: {
+                    viewModel.details[keyPath: keyPath] = $0.isEmpty ? nil : $0
+                    viewModel.markChanged()
+                }
+            ))
+            .multilineTextAlignment(.trailing)
+            .foregroundStyle(.secondary)
+            .keyboardType(keyboardType)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .disabled(viewModel.isReadOnly)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+    }
+
+    private func toggleRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, Bool?>) -> some View {
+        Toggle(label, isOn: Binding(
+            get: { viewModel.details[keyPath: keyPath] ?? false },
+            set: {
+                viewModel.details[keyPath: keyPath] = $0
+                viewModel.markChanged()
+            }
+        ))
+        .disabled(viewModel.isReadOnly)
+        .padding(.horizontal)
+        .padding(.vertical, 12)
     }
 
     // MARK: - College Preferences Card
@@ -226,29 +300,6 @@ struct BasicsTab: View {
                     Text(sport).tag(sport)
                 }
             }
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 12)
-    }
-
-    private func textRow(
-        _ label: String,
-        keyPath: WritableKeyPath<PlayerDetails, String?>,
-        autocapitalization: TextInputAutocapitalization = .sentences
-    ) -> some View {
-        HStack {
-            Text(label)
-            Spacer()
-            TextField(label, text: Binding(
-                get: { viewModel.details[keyPath: keyPath] ?? "" },
-                set: {
-                    viewModel.details[keyPath: keyPath] = $0.isEmpty ? nil : $0
-                    viewModel.markChanged()
-                }
-            ))
-            .multilineTextAlignment(.trailing)
-            .foregroundStyle(.secondary)
-            .textInputAutocapitalization(autocapitalization)
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
