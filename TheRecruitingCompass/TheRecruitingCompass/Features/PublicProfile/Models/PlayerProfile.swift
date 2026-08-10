@@ -71,10 +71,14 @@ struct UpdateProfilePayload: Encodable, Equatable {
         showFilm: Bool? = nil, showSchools: Bool? = nil,
         headerColor: String? = nil, vanitySlug: String?? = nil
     ) {
-        self.bio = bio; self.isPublished = isPublished
-        self.showAcademics = showAcademics; self.showAthletic = showAthletic
-        self.showFilm = showFilm; self.showSchools = showSchools
-        self.headerColor = headerColor; self.vanitySlug = vanitySlug
+        self.bio = bio
+        self.isPublished = isPublished
+        self.showAcademics = showAcademics
+        self.showAthletic = showAthletic
+        self.showFilm = showFilm
+        self.showSchools = showSchools
+        self.headerColor = headerColor
+        self.vanitySlug = vanitySlug
     }
 
     enum CodingKeys: String, CodingKey {

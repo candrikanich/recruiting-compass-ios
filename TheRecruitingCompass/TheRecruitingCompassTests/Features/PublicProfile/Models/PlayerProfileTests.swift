@@ -40,5 +40,22 @@ final class PlayerProfileTests: XCTestCase {
         let link = try JSONDecoder().decode(ProfileTrackingLink.self, from: json)
         XCTAssertEqual(link.refToken, "a1b2c3d4")
         XCTAssertEqual(link.viewCount, 3)
+        XCTAssertNil(link.lastViewedAt)
+    }
+
+    func testUpdatePayloadEmitsNullWhenInnerNil() throws {
+        let data = try JSONEncoder().encode(UpdateProfilePayload(bio: .some(nil)))
+        let obj = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+        XCTAssertTrue(obj.keys.contains("bio"))
+        XCTAssertTrue(obj["bio"] is NSNull)
+    }
+
+    func testUpdatePayloadEmitsNullForVanitySlugWhenInnerNil() throws {
+        let data = try JSONEncoder().encode(
+            UpdateProfilePayload(vanitySlug: .some(nil))
+        )
+        let obj = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+        XCTAssertTrue(obj.keys.contains("vanity_slug"))
+        XCTAssertTrue(obj["vanity_slug"] is NSNull)
     }
 }
