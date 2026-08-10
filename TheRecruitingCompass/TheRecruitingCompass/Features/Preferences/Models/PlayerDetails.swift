@@ -21,6 +21,7 @@ struct PlayerDetails: Codable, Equatable, Sendable {
   var gpa: Double? // 0.0-5.0
   var satScore: Int? // 400-1600
   var actScore: Int? // 1-36
+  var coreCourses: [String]? // AP/honors/notable courses (max 20)
 
   // External IDs
   var ncaaId: String?
@@ -118,6 +119,7 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     case gpa
     case satScore = "sat_score"
     case actScore = "act_score"
+    case coreCourses = "core_courses"
     case ncaaId = "ncaa_id"
     case perfectGameId = "perfect_game_id"
     case prepBaseballId = "prep_baseball_id"
