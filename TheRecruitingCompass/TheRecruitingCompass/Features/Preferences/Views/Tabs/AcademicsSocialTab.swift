@@ -12,7 +12,7 @@ struct AcademicsSocialTab: View {
                         divider
                         textRow(String(localized: "City"), keyPath: \.schoolCity)
                         divider
-                        textRow(String(localized: "State"), keyPath: \.schoolState)
+                        textRow(String(localized: "State"), keyPath: \.schoolState, autocapitalization: .characters)
                     }
                 }
 
@@ -50,7 +50,8 @@ struct AcademicsSocialTab: View {
         _ label: String,
         placeholder: String = "",
         keyPath: WritableKeyPath<PlayerDetails, String?>,
-        keyboardType: UIKeyboardType = .default
+        keyboardType: UIKeyboardType = .default,
+        autocapitalization: TextInputAutocapitalization = .sentences
     ) -> some View {
         HStack {
             Text(label).font(.body)
@@ -65,8 +66,7 @@ struct AcademicsSocialTab: View {
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
             .keyboardType(keyboardType)
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
+            .textInputAutocapitalization(autocapitalization)
             .disabled(viewModel.isReadOnly)
         }
         .padding(.horizontal)
