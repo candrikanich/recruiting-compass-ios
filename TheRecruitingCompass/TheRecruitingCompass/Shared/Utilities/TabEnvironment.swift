@@ -18,3 +18,16 @@ extension EnvironmentValues {
     set { self[SwitchTabKey.self] = newValue }
   }
 }
+
+/// Switches to the More tab and drills into a specific section (e.g. Timeline),
+/// which otherwise isn't reachable from other tabs.
+private struct OpenMoreSectionKey: EnvironmentKey {
+  static let defaultValue: (MoreMenuSection) -> Void = { _ in }
+}
+
+extension EnvironmentValues {
+  var openMoreSection: (MoreMenuSection) -> Void {
+    get { self[OpenMoreSectionKey.self] }
+    set { self[OpenMoreSectionKey.self] = newValue }
+  }
+}

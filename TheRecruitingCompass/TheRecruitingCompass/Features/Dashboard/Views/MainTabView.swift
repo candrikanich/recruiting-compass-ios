@@ -56,6 +56,10 @@ struct MainTabView: View {
       .badge(notificationsViewModel.unreadCount > 0 ? notificationsViewModel.unreadCount : 0)
     }
     .environment(\.switchTab, { selectedTab = $0 })
+    .environment(\.openMoreSection, { section in
+      morePath = [.section(section)]
+      selectedTab = .more
+    })
     .task {
       await notificationsViewModel.fetchNotifications()
     }

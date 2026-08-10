@@ -56,6 +56,13 @@ final class TimelineViewModel {
   var statusLabel: StatusLabel? { statusScore?.label }
   var statusScoreValue: Int { statusScore?.score ?? 0 }
 
+  /// The single "next step" surfaced on the dashboard summary — the current
+  /// phase's top-priority pending task. Mirrors the web dashboard's
+  /// `getWhatMattersNow`. See [WhatMattersNow].
+  var nextRecommendedTask: TaskWithStatus? {
+    WhatMattersNow.topPriority(phase: currentPhase, tasks: allTasks)
+  }
+
   init(
     tasksService: (any TasksManaging)? = nil,
     phaseService: (any TimelinePhaseManaging)? = nil,
