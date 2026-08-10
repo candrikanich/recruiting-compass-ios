@@ -51,6 +51,10 @@ final class PlayerDetailsViewModel {
     /// Canonical athlete id for child editors (e.g. Video Links). Empty when no
     /// user is resolvable yet — the editor treats that as an empty, read-only list.
     var athleteUserId: String { effectiveUserId ?? "" }
+
+    /// Public read accessor so other views (e.g. `PublicTab`) can pass the athlete
+    /// context through without exposing write access to `targetUserId`.
+    var publicTargetUserId: String? { targetUserId }
     @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
     @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
