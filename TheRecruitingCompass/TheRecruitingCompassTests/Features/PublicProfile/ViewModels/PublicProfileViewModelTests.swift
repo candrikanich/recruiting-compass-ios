@@ -72,11 +72,11 @@ final class PublicProfileViewModelTests: XCTestCase {
         )
 
         let videoLinksService = MockVideoLinksService()
-        videoLinksService.stubbedVideoLinks = [
+        videoLinksService.links = [
             VideoLink(
-                id: "v1", userId: "u1", familyUnitId: nil, platform: .hudl,
-                url: "https://hudl.com/x", title: "Highlights", position: 0,
-                healthStatus: .healthy, lastHealthCheck: nil, createdAt: nil, updatedAt: nil
+                id: "v1", userId: "u1", familyUnitId: "f1", platform: .youtube,
+                url: "https://youtube.com/x", title: "Highlights", position: 0,
+                healthStatus: .unknown, lastHealthCheck: nil, createdAt: nil, updatedAt: nil
             )
         ]
 
