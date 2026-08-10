@@ -179,16 +179,16 @@ final class PublicProfileViewModel {
         )
     }
 
-    private func apply(_ p: PlayerProfile) {
-        profile = p
-        bio = p.bio ?? ""
-        vanitySlug = p.vanitySlug ?? ""
-        isPublished = p.isPublished
-        headerColor = HeaderColor.from(p.headerColor)
-        showAcademics = p.showAcademics
-        showAthletic = p.showAthletic
-        showFilm = p.showFilm
-        showSchools = p.showSchools
+    private func apply(_ profile: PlayerProfile) {
+        self.profile = profile
+        bio = profile.bio ?? ""
+        vanitySlug = profile.vanitySlug ?? ""
+        isPublished = profile.isPublished
+        headerColor = HeaderColor.from(profile.headerColor)
+        showAcademics = profile.showAcademics
+        showAthletic = profile.showAthletic
+        showFilm = profile.showFilm
+        showSchools = profile.showSchools
     }
 
     @discardableResult

@@ -19,16 +19,14 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
     }
 
     func fetchTrackingLink(coachId: String, accessToken: String?) async throws
-        -> ProfileTrackingLink?
-    {
+        -> ProfileTrackingLink? {
         if let errorToThrow { throw errorToThrow }
         fetchedTrackingCoachIds.append(coachId)
         return stubTrackingLink
     }
 
     func createTrackingLink(coachId: String, accessToken: String?) async throws
-        -> ProfileTrackingLink
-    {
+        -> ProfileTrackingLink {
         if let errorToThrow { throw errorToThrow }
         createdCoachIds.append(coachId)
         guard let stub = stubTrackingLink else {

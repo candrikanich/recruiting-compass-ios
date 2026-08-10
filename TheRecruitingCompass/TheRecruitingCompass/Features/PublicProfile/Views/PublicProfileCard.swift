@@ -42,6 +42,7 @@ struct PublicProfileCard: View {
 
     // MARK: - Header
 
+    @ViewBuilder
     private var header: some View {
         HStack(alignment: .top, spacing: 16) {
             headerPhoto
@@ -107,6 +108,7 @@ struct PublicProfileCard: View {
 
     // MARK: - Footer
 
+    @ViewBuilder
     var footer: some View {
         Text("Powered by The Recruiting Compass")
             .font(.caption)

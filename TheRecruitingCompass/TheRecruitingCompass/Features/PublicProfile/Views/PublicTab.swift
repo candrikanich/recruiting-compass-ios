@@ -44,6 +44,7 @@ struct PublicTab: View {
         }
     }
 
+    @ViewBuilder
     private var unconfiguredNotice: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Public profile not available"))
@@ -60,6 +61,7 @@ struct PublicTab: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
+    @ViewBuilder
     private var editor: some View {
         VStack(alignment: .leading, spacing: 16) {
             Toggle(String(localized: "Publish public profile"), isOn: $vm.isPublished)
@@ -91,6 +93,7 @@ struct PublicTab: View {
         }
     }
 
+    @ViewBuilder
     private var vanitySlugField: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(String(localized: "Custom URL"))
@@ -109,6 +112,7 @@ struct PublicTab: View {
         }
     }
 
+    @ViewBuilder
     private var bioField: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(String(localized: "Bio"))

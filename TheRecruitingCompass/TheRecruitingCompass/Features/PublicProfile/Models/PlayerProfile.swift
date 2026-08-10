@@ -93,15 +93,15 @@ struct UpdateProfilePayload: Encodable, Equatable {
     }
 
     func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
+        var container = encoder.container(keyedBy: CodingKeys.self)
         // Double-optional: outer nil = omit; inner nil = send JSON null (clears field).
-        if let bio { try c.encode(bio, forKey: .bio) }
-        try c.encodeIfPresent(isPublished, forKey: .isPublished)
-        try c.encodeIfPresent(showAcademics, forKey: .showAcademics)
-        try c.encodeIfPresent(showAthletic, forKey: .showAthletic)
-        try c.encodeIfPresent(showFilm, forKey: .showFilm)
-        try c.encodeIfPresent(showSchools, forKey: .showSchools)
-        try c.encodeIfPresent(headerColor, forKey: .headerColor)
-        if let vanitySlug { try c.encode(vanitySlug, forKey: .vanitySlug) }
+        if let bio { try container.encode(bio, forKey: .bio) }
+        try container.encodeIfPresent(isPublished, forKey: .isPublished)
+        try container.encodeIfPresent(showAcademics, forKey: .showAcademics)
+        try container.encodeIfPresent(showAthletic, forKey: .showAthletic)
+        try container.encodeIfPresent(showFilm, forKey: .showFilm)
+        try container.encodeIfPresent(showSchools, forKey: .showSchools)
+        try container.encodeIfPresent(headerColor, forKey: .headerColor)
+        if let vanitySlug { try container.encode(vanitySlug, forKey: .vanitySlug) }
     }
 }
