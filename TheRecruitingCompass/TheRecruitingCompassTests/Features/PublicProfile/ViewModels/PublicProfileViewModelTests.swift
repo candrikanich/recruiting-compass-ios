@@ -55,4 +55,70 @@ final class PublicProfileViewModelTests: XCTestCase {
         vm.validateSlug()
         XCTAssertNotNil(vm.slugError)
     }
+
+    func testAssembleCardGatesSectionsOnLiveToggles() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile() // showAthletic: false, everything else: true
+
+        let authManager = MockAuthManager()
+        authManager.setMockUser(User(
+            id: "u1", email: "jordan@example.com", emailConfirmedAt: nil, phone: nil,
+            fullName: "Jordan Smith", createdAt: "", updatedAt: "", role: nil, dateOfBirth: nil
+        ))
+
+        let preferenceService = MockPreferenceService()
+        preferenceService.stubbedPlayerDetails = PlayerDetails(
+            graduationYear: 2027, highSchool: "Central High", gpa: 3.8, satScore: 1300
+        )
+
+        let videoLinksService = MockVideoLinksService()
+        videoLinksService.stubbedVideoLinks = [
+            VideoLink(
+                id: "v1", userId: "u1", familyUnitId: nil, platform: .hudl,
+                url: "https://hudl.com/x", title: "Highlights", position: 0,
+                healthStatus: .healthy, lastHealthCheck: nil, createdAt: nil, updatedAt: nil
+            )
+        ]
+
+        let schoolsService = MockSchoolsService()
+        schoolsService.stubbedSchools = [makeSchool(id: "s1", name: "State U")]
+
+        let photoService = MockProfilePhotoService()
+        photoService.stubbedCurrentURL = "https://example.com/p.jpg"
+
+        let vm = PublicProfileViewModel(
+            service: mock,
+            authManager: authManager,
+            familyUnitId: "family-1",
+            preferenceService: preferenceService,
+            schoolsService: schoolsService,
+            videoLinksService: videoLinksService,
+            photoService: photoService
+        )
+        await vm.load()
+        XCTAssertFalse(vm.showAthletic) // sanity: live toggle came from the loaded profile
+
+        await vm.assembleCard()
+
+        XCTAssertEqual(vm.cardData?.playerName, "Jordan Smith")
+        XCTAssertEqual(vm.cardData?.photoUrl, "https://example.com/p.jpg")
+        XCTAssertEqual(vm.cardData?.academics?.highSchool, "Central High")
+        XCTAssertNil(vm.cardData?.athletic) // gated off: showAthletic is false
+        XCTAssertEqual(vm.cardData?.film?.first?.title, "Highlights")
+        XCTAssertEqual(vm.cardData?.schools?.first?.name, "State U")
+    }
+
+    private func makeSchool(id: String, name: String) -> School {
+        School(
+            id: id, userId: "u1", name: name, location: nil, city: nil, state: nil,
+            division: nil, conference: nil, ranking: nil, isFavorite: false, website: nil,
+            faviconUrl: nil, twitterHandle: nil, instagramHandle: nil, ncaaId: nil,
+            status: "active", statusChangedAt: nil, notes: nil, pros: [], cons: [],
+            offerDetails: nil, academicInfo: nil, amenities: nil, coachingPhilosophy: nil,
+            coachingStyle: nil, recruitingApproach: nil, communicationStyle: nil,
+            successMetrics: nil, fitScore: nil, fitTier: nil, familyUnitId: "family-1",
+            createdBy: nil, updatedBy: nil, createdAt: "2025-01-01T00:00:00Z",
+            updatedAt: "2025-01-01T00:00:00Z"
+        )
+    }
 }
