@@ -29,6 +29,13 @@ struct PublicTab: View {
                     unconfiguredNotice
                 } else {
                     editor
+                    if let saveError = vm.saveError {
+                        Text(saveError)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityLabel(Text(saveError))
+                    }
                     Divider()
                     Text(String(localized: "What coaches see"))
                         .font(.headline)

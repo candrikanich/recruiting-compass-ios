@@ -26,6 +26,7 @@ final class PublicProfileViewModel {
     var showSchools = true
     var isLoading = false
     var slugError: String?
+    var saveError: String?
     private(set) var cardData: PublicProfileData?
 
     var isConfigured: Bool { SupabaseConfig.apiBaseURL != nil }
@@ -71,6 +72,7 @@ final class PublicProfileViewModel {
     }
 
     func save() async {
+        saveError = nil
         // Slug validity is independent of the other fields: an invalid/reserved local slug
         // must not block persisting bio/publish/visibility/color. Only the vanity_slug key
         // itself is conditional; when invalid it's omitted so the server keeps the existing slug.
@@ -101,10 +103,33 @@ final class PublicProfileViewModel {
         } catch PublicProfileAPIError.slugInvalid {
             slugError = String(localized: "That custom URL is invalid or reserved.")
         } catch PublicProfileAPIError.unauthorized {
-            _ = try? await authManager.refreshSession()
-            try? await service.updateProfile(payload, accessToken: token)
+            await retrySaveAfterRefresh(payload)
         } catch {
-            // transient; keep local state
+            saveError = Self.saveErrorMessage(for: error)
+        }
+    }
+
+    /// Retries a failed save once after a token refresh. Unlike a bare `try?`, a slug
+    /// conflict or server error on the retry is surfaced to the user rather than dropped.
+    private func retrySaveAfterRefresh(_ payload: UpdateProfilePayload) async {
+        _ = try? await authManager.refreshSession()
+        do {
+            try await service.updateProfile(payload, accessToken: token)
+        } catch PublicProfileAPIError.slugTaken {
+            slugError = String(localized: "That custom URL is already taken.")
+        } catch PublicProfileAPIError.slugInvalid {
+            slugError = String(localized: "That custom URL is invalid or reserved.")
+        } catch {
+            saveError = Self.saveErrorMessage(for: error)
+        }
+    }
+
+    private static func saveErrorMessage(for error: Error) -> String {
+        switch error {
+        case PublicProfileAPIError.notMember:
+            return String(localized: "You don't have permission to edit this profile.")
+        default:
+            return String(localized: "Couldn't save changes. Please try again.")
         }
     }
 
@@ -136,20 +161,23 @@ final class PublicProfileViewModel {
             return
         }
 
+        let isSelf = uid == authManager.user?.id
+        let selfName = authManager.user?.fullName
+
         async let detailsTask: PlayerDetails? = try? preferenceService.fetchPreferences(
             category: .player, userId: uid
         )
         async let photoTask: String? = try? photoService.currentPhotoURL(userId: uid)
         async let filmTask: [VideoLink] = (try? videoLinksService.fetchVideoLinks(userId: uid)) ?? []
         async let schoolsTask: [School] = fetchSchoolsData()
+        // A parent viewing an athlete's card has no self name to use; look it up (RLS-gated).
+        async let nameTask: String? = isSelf ? selfName : (try? await photoService.fullName(userId: uid))
 
         let details = await detailsTask
         let photoUrl = await photoTask
         let videos = await filmTask
         let schools = await schoolsTask
-
-        // Best-effort only: no extra users-table lookup for a non-self targetUserId in this task.
-        let name = uid == authManager.user?.id ? (authManager.user?.fullName ?? "") : ""
+        let name = (await nameTask) ?? ""
 
         cardData = PublicProfileData(
             playerName: name,

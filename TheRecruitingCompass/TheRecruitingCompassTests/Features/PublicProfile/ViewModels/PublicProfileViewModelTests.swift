@@ -67,6 +67,68 @@ final class PublicProfileViewModelTests: XCTestCase {
         XCTAssertNil(mock.updatedPayloads.last?.vanitySlug)
     }
 
+    func testSaveSurfacesServerErrorMessage() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        await vm.save()
+        XCTAssertNotNil(vm.saveError)
+    }
+
+    func testSaveSurfacesNotMemberErrorMessage() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = PublicProfileAPIError.notMember
+        await vm.save()
+        XCTAssertNotNil(vm.saveError)
+    }
+
+    func testSaveClearsPreviousSaveErrorOnSuccess() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        await vm.save()
+        XCTAssertNotNil(vm.saveError)
+        mock.errorToThrow = nil
+        await vm.save()
+        XCTAssertNil(vm.saveError)
+    }
+
+    func testAssembleCardLooksUpTargetNameWhenNotSelf() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+
+        let authManager = MockAuthManager()
+        authManager.setMockUser(User(
+            id: "parent-1", email: "parent@example.com", emailConfirmedAt: nil, phone: nil,
+            fullName: "Parent Smith", createdAt: "", updatedAt: "", role: nil, dateOfBirth: nil
+        ))
+
+        let photoService = MockProfilePhotoService()
+        photoService.stubbedFullName = "Athlete Smith"
+
+        let vm = PublicProfileViewModel(
+            service: mock,
+            authManager: authManager,
+            targetUserId: "athlete-9",
+            preferenceService: MockPreferenceService(),
+            schoolsService: MockSchoolsService(),
+            videoLinksService: MockVideoLinksService(),
+            photoService: photoService
+        )
+        await vm.load()
+        await vm.assembleCard()
+
+        XCTAssertEqual(vm.cardData?.playerName, "Athlete Smith")
+        XCTAssertEqual(photoService.lastFullNameUserId, "athlete-9")
+    }
+
     func testValidateSlugFlagsReserved() async {
         let mock = MockPublicProfileManaging()
         let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())

@@ -8,6 +8,7 @@ final class MockProfilePhotoService: ProfilePhotoManaging, @unchecked Sendable {
 
   var stubbedUploadURL = "https://example.com/photo.jpg"
   var stubbedCurrentURL: String?
+  var stubbedFullName: String?
 
   var uploadCallCount = 0
   var lastUploadUserId: String?
@@ -35,5 +36,14 @@ final class MockProfilePhotoService: ProfilePhotoManaging, @unchecked Sendable {
     currentPhotoURLCallCount += 1
     lastCurrentPhotoURLUserId = userId
     return stubbedCurrentURL
+  }
+
+  var fullNameCallCount = 0
+  var lastFullNameUserId: String?
+
+  func fullName(userId: String) async throws -> String? {
+    fullNameCallCount += 1
+    lastFullNameUserId = userId
+    return stubbedFullName
   }
 }

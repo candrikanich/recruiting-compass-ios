@@ -25,17 +25,7 @@ struct PlayerDetailsView: View {
                 .padding(.horizontal)
                 .padding(.top, 8)
 
-            Picker("Section", selection: $viewModel.selectedTab) {
-                ForEach(Array(Self.tabTitles.enumerated()), id: \.offset) { index, title in
-                    Text(title).tag(index)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
-            .padding(.vertical, 8)
-            .onChange(of: viewModel.selectedTab) { _, _ in
-                viewModel.triggerFitScoreRecalculation()
-            }
+            tabSelector
 
             tabContent
         }
@@ -67,6 +57,42 @@ struct PlayerDetailsView: View {
             await viewModel.loadDetails()
         }
         .onDisappear {
+            viewModel.triggerFitScoreRecalculation()
+        }
+    }
+
+    /// Horizontally scrollable segment control. Replaces `.pickerStyle(.segmented)`, which
+    /// truncates the 9-char labels ("Academics"/"Athletics") to "Academ…" on narrow devices
+    /// once there are five segments. Scrolling keeps every label fully readable at any width.
+    @ViewBuilder
+    private var tabSelector: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(Array(Self.tabTitles.enumerated()), id: \.offset) { index, title in
+                    let isSelected = viewModel.selectedTab == index
+                    Button {
+                        viewModel.selectedTab = index
+                    } label: {
+                        Text(title)
+                            .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                            .foregroundStyle(isSelected ? Color.white : Color.primary)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 16)
+                            .background(
+                                Capsule().fill(
+                                    isSelected ? Color.accentColor : Color(.tertiarySystemBackground)
+                                )
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text(title))
+                    .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+                }
+            }
+            .padding(.horizontal)
+        }
+        .padding(.vertical, 8)
+        .onChange(of: viewModel.selectedTab) { _, _ in
             viewModel.triggerFitScoreRecalculation()
         }
     }

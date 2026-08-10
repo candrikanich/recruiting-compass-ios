@@ -32,6 +32,8 @@ protocol ProfilePhotoManaging: Sendable {
     func delete(userId: String, currentPhotoURL: String) async throws
     /// The current profile photo URL for a user (self or a family athlete, RLS-gated).
     func currentPhotoURL(userId: String) async throws -> String?
+    /// The display name (`full_name`) for a user (self or a family athlete, RLS-gated).
+    func fullName(userId: String) async throws -> String?
 }
 
 final class ProfilePhotoServiceImpl: ProfilePhotoManaging, Sendable {
@@ -108,6 +110,18 @@ final class ProfilePhotoServiceImpl: ProfilePhotoManaging, Sendable {
             .execute()
             .value
         return row.profile_photo_url
+    }
+
+    func fullName(userId: String) async throws -> String? {
+        struct Row: Decodable { let full_name: String? }
+        let row: Row = try await supabaseManager.client
+            .from("users")
+            .select("full_name")
+            .eq("id", value: userId)
+            .single()
+            .execute()
+            .value
+        return row.full_name
     }
 
     // MARK: - Private helpers

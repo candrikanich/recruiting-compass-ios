@@ -99,9 +99,7 @@ struct CoachDetailView: View {
       QuickCommunicationView(context: context)
     }
     .sheet(item: $shareItem) { item in
-      ShareLink(item: item.url)
-        .padding()
-        .presentationDetents([.medium])
+      ActivityShareSheet(activityItems: [item.url])
     }
     .alert(
       "Profile Not Published",
@@ -160,6 +158,7 @@ struct CoachDetailView: View {
     .padding()
   }
 
+  @ViewBuilder
   private var sendProfileButton: some View {
     Button {
       Task {
