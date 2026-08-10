@@ -22,14 +22,8 @@ struct HistoryTab: View {
                     }
                 }
 
-                cardSection(String(localized: "Travel Team")) {
-                    VStack(spacing: 0) {
-                        travelYearRow
-                        divider
-                        textRow(String(localized: "Team Name"), keyPath: \.travelTeamName)
-                        divider
-                        textRow(String(localized: "Coach Name"), keyPath: \.travelTeamCoach)
-                    }
+                cardSection(String(localized: "Travel Teams")) {
+                    travelTeamsCard
                 }
             }
             .padding()
@@ -37,19 +31,90 @@ struct HistoryTab: View {
         .background(Color(.secondarySystemBackground))
     }
 
-    // MARK: - Travel Year Row
+    // MARK: - Travel Teams
 
     @ViewBuilder
-    private var travelYearRow: some View {
+    private var travelTeamsCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Add each org you've played for — most recent shows on your profile.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+
+            let teams = viewModel.details.travelTeams ?? []
+            if teams.isEmpty {
+                Divider().padding(.leading)
+                Text("No travel teams added yet.")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+            } else {
+                ForEach(teams.indices, id: \.self) { index in
+                    Divider().padding(.leading)
+                    travelTeamRow(index: index)
+                }
+            }
+
+            Divider().padding(.leading)
+            Button {
+                viewModel.addTravelTeam()
+            } label: {
+                Label("Add Travel Team", systemImage: "plus.circle.fill")
+                    .font(.body)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+            .disabled(viewModel.isReadOnly)
+        }
+    }
+
+    @ViewBuilder
+    private func travelTeamRow(index: Int) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("Team \(index + 1)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button(role: .destructive) {
+                    viewModel.removeTravelTeam(at: index)
+                } label: {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(String(localized: "Remove travel team \(index + 1)"))
+                .disabled(viewModel.isReadOnly)
+            }
+            .padding(.horizontal)
+            .padding(.top, 10)
+
+            travelYearRow(index: index)
+            Divider().padding(.leading)
+            travelTextRow(String(localized: "Organization"), index: index, field: \.name)
+            Divider().padding(.leading)
+            travelTextRow(String(localized: "Head Coach"), index: index, field: \.coach)
+        }
+    }
+
+    private func team(at index: Int) -> TravelTeam? {
+        guard let teams = viewModel.details.travelTeams, teams.indices.contains(index) else { return nil }
+        return teams[index]
+    }
+
+    private func travelYearRow(index: Int) -> some View {
         HStack {
-            Text("Year").font(.body)
+            Text("Season Year").font(.body)
             Spacer()
             TextField(
-                "Year",
+                "Season Year",
                 value: Binding(
-                    get: { viewModel.details.travelTeamYear },
+                    get: { team(at: index)?.year },
                     set: {
-                        viewModel.details.travelTeamYear = $0
+                        guard viewModel.details.travelTeams?.indices.contains(index) == true else { return }
+                        viewModel.details.travelTeams?[index].year = $0
                         viewModel.markChanged()
                     }
                 ),
@@ -58,6 +123,30 @@ struct HistoryTab: View {
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
             .keyboardType(.numberPad)
+            .disabled(viewModel.isReadOnly)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+    }
+
+    private func travelTextRow(
+        _ label: String,
+        index: Int,
+        field: WritableKeyPath<TravelTeam, String?>
+    ) -> some View {
+        HStack {
+            Text(label).font(.body)
+            Spacer()
+            TextField(label, text: Binding(
+                get: { team(at: index)?[keyPath: field] ?? "" },
+                set: {
+                    guard viewModel.details.travelTeams?.indices.contains(index) == true else { return }
+                    viewModel.details.travelTeams?[index][keyPath: field] = $0.isEmpty ? nil : $0
+                    viewModel.markChanged()
+                }
+            ))
+            .multilineTextAlignment(.trailing)
+            .foregroundStyle(.secondary)
             .disabled(viewModel.isReadOnly)
         }
         .padding(.horizontal)

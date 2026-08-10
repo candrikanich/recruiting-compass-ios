@@ -183,11 +183,31 @@ struct AthleticsTab: View {
         VStack(spacing: 0) {
             if viewModel.isBaseballOrSoftball {
                 textRow(String(localized: "Perfect Game ID"), keyPath: \.perfectGameId)
+                helperLink(String(localized: "Get your Perfect Game profile"), "https://www.perfectgame.org/")
                 divider
                 textRow(String(localized: "Prep Baseball ID"), keyPath: \.prepBaseballId)
+                helperLink(String(localized: "Get your Prep Baseball Report profile"),
+                           "https://www.prepbaseballreport.com/")
                 divider
             }
             textRow(String(localized: "NCAA ID"), keyPath: \.ncaaId)
+            helperLink(String(localized: "Register at NCAA Eligibility Center"), "https://web3.ncaa.org/ecwr3/")
+        }
+    }
+
+    @ViewBuilder
+    private func helperLink(_ title: String, _ urlString: String) -> some View {
+        if let url = URL(string: urlString) {
+            Link(destination: url) {
+                HStack(spacing: 4) {
+                    Text(title)
+                    Image(systemName: "arrow.up.right.square")
+                }
+                .font(.caption)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+            .padding(.bottom, 12)
         }
     }
 

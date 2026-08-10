@@ -1,7 +1,10 @@
 import Foundation
 
 enum VideoLinkPlatform: String, Codable, Sendable, CaseIterable {
-  case hudl, youtube, vimeo, unknown
+  case hudl, youtube, vimeo, other
+  /// Decode-only fallback for raw values not in the DB CHECK vocabulary
+  /// (`hudl`/`youtube`/`vimeo`/`other`). Never written back.
+  case unknown
 
   init(from decoder: Decoder) throws {
     let raw = try decoder.singleValueContainer().decode(String.self)
@@ -13,12 +16,13 @@ enum VideoLinkPlatform: String, Codable, Sendable, CaseIterable {
     case .hudl: return String(localized: "Hudl")
     case .youtube: return String(localized: "YouTube")
     case .vimeo: return String(localized: "Vimeo")
-    case .unknown: return String(localized: "Other")
+    case .other, .unknown: return String(localized: "Other")
     }
   }
 
-  /// Platforms a user may pick when creating a link (excludes `.unknown`).
-  static var selectable: [VideoLinkPlatform] { [.hudl, .youtube, .vimeo] }
+  /// Platforms a user may pick when creating a link (excludes `.unknown`, the
+  /// decode-only catch-all — user-chosen "Other" persists as `.other`).
+  static var selectable: [VideoLinkPlatform] { [.hudl, .youtube, .vimeo, .other] }
 }
 
 enum VideoLinkHealth: String, Codable, Sendable {
