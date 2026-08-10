@@ -45,7 +45,9 @@ final class PublicProfileServiceImplTests: XCTestCase {
             """.data(using: .utf8)!
             return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, body)
         }
-        let service = PublicProfileServiceImpl(session: makeSession(), baseURLOverride: URL(string: "https://test.local")!)
+        let service = PublicProfileServiceImpl(
+            session: makeSession(), baseURLOverride: URL(string: "https://test.local")!
+        )
         let result = try await service.fetchProfile(accessToken: "tok")
         XCTAssertEqual(result?.headerColor, "blue")
         XCTAssertTrue(result?.isPublished == true)
@@ -56,11 +58,16 @@ final class PublicProfileServiceImplTests: XCTestCase {
         StubURLProtocol.handler = { request in
             // csrf-token GET then PUT: return 200 for csrf, 409 for the PUT
             if request.url!.path.hasSuffix("/csrf-token") {
-                return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, Data("{}".utf8))
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data("{}".utf8)
+                )
             }
             return (HTTPURLResponse(url: request.url!, statusCode: 409, httpVersion: nil, headerFields: nil)!, Data())
         }
-        let service = PublicProfileServiceImpl(session: makeSession(), baseURLOverride: URL(string: "https://test.local")!)
+        let service = PublicProfileServiceImpl(
+            session: makeSession(), baseURLOverride: URL(string: "https://test.local")!
+        )
         do {
             try await service.updateProfile(UpdateProfilePayload(vanitySlug: "taken"), accessToken: "tok")
             XCTFail("expected throw")

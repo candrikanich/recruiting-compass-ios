@@ -93,7 +93,10 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
 
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             logger.error("CSRF token request failed")
-            throw NSError(domain: "PublicProfileService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get CSRF token"])
+            throw NSError(
+                domain: "PublicProfileService", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to get CSRF token"]
+            )
         }
 
         // Cookie may be scoped to /api; ask for cookies that would be sent to an API path
@@ -101,7 +104,10 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         guard let cookies = HTTPCookieStorage.shared.cookies(for: apiURL),
               let csrfCookie = cookies.first(where: { $0.name == "csrf-token" }) else {
             logger.error("No csrf-token cookie in storage after GET /api/csrf-token")
-            throw NSError(domain: "PublicProfileService", code: -1, userInfo: [NSLocalizedDescriptionKey: "No CSRF token in response"])
+            throw NSError(
+                domain: "PublicProfileService", code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "No CSRF token in response"]
+            )
         }
 
         return csrfCookie.value
