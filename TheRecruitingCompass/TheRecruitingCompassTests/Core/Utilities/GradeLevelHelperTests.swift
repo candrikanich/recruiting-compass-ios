@@ -51,12 +51,25 @@ final class GradeLevelHelperTests: XCTestCase {
     // June 2026: still 2025-26, end 2026. Grad 2026 -> 12.
     let refJune = date(2026, 6, 15)
     XCTAssertEqual(GradeLevelHelper.calculateCurrentGrade(graduationYear: 2026, referenceDate: refJune), 12)
-    // July 2026: 2026-27 hasn't started; end year = 2026 (summer after June).
+    // July 2026: July 1 roll pivot -> rising into 2026-27, end year 2027. Grad 2027 -> 12.
     let refJuly = date(2026, 7, 1)
-    XCTAssertEqual(GradeLevelHelper.calculateCurrentGrade(graduationYear: 2026, referenceDate: refJuly), 12)
+    XCTAssertEqual(GradeLevelHelper.calculateCurrentGrade(graduationYear: 2027, referenceDate: refJuly), 12)
     // Sept 2026: 2026-27, end 2027. Grad 2027 -> 12.
     let refSept26 = date(2026, 9, 1)
     XCTAssertEqual(GradeLevelHelper.calculateCurrentGrade(graduationYear: 2027, referenceDate: refSept26), 12)
+  }
+
+  // Regression: rising junior in summer must read as junior, not sophomore (July 1 pivot).
+  // Owen, grad 2028, viewed Aug 2026 -> grade 11 (was 10 under old Sept pivot).
+  func testCalculateCurrentGrade_August_RisingJunior_IsJunior() {
+    let refAug = date(2026, 8, 10)
+    XCTAssertEqual(GradeLevelHelper.calculateCurrentGrade(graduationYear: 2028, referenceDate: refAug), 11)
+  }
+
+  // June still counts the just-finished grade (pivot is July 1, not June).
+  func testCalculateCurrentGrade_June_RisingJunior_StillSophomore() {
+    let refJune = date(2026, 6, 15)
+    XCTAssertEqual(GradeLevelHelper.calculateCurrentGrade(graduationYear: 2028, referenceDate: refJune), 10)
   }
 
   func testCalculateCurrentGrade_Clamped_DoesNotExceed12() {
