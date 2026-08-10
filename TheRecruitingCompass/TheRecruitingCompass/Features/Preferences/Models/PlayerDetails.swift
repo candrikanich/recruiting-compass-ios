@@ -1,5 +1,14 @@
 import Foundation
 
+/// One travel/club team an athlete has played for. These keys are plain
+/// (year/name/coach) because they are object keys INSIDE the `travel_teams`
+/// JSON array — only top-level prefs keys are snake_cased.
+struct TravelTeam: Codable, Equatable, Sendable {
+  var year: Int?
+  var name: String?
+  var coach: String?
+}
+
 struct PlayerDetails: Codable, Equatable, Sendable {
   // Basic Info
   var graduationYear: Int?
@@ -62,10 +71,13 @@ struct PlayerDetails: Codable, Equatable, Sendable {
   var twelfthGradeTeam: String?
   var twelfthGradeCoach: String?
 
-  // Travel Team
+  // Travel Team — legacy scalars mirror the most-recent team; kept because the
+  // coach-outreach template resolver and profile edit-history read them.
   var travelTeamYear: Int?
   var travelTeamName: String?
   var travelTeamCoach: String?
+  // Full repeatable list; scalars above always mirror the highest-year row.
+  var travelTeams: [TravelTeam]?
 
   static var `default`: PlayerDetails {
     PlayerDetails()
@@ -148,5 +160,6 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     case travelTeamYear = "travel_team_year"
     case travelTeamName = "travel_team_name"
     case travelTeamCoach = "travel_team_coach"
+    case travelTeams = "travel_teams"
   }
 }
