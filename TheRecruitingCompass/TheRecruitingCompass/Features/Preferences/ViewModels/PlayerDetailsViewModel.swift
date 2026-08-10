@@ -47,6 +47,10 @@ final class PlayerDetailsViewModel {
     /// The athlete whose video/location we score: the explicit target, else the
     /// signed-in user (a player viewing their own profile).
     private var effectiveUserId: String? { targetUserId ?? authManager.user?.id }
+
+    /// Canonical athlete id for child editors (e.g. Video Links). Empty when no
+    /// user is resolvable yet — the editor treats that as an empty, read-only list.
+    var athleteUserId: String { effectiveUserId ?? "" }
     @ObservationIgnored nonisolated(unsafe) private var pendingAutoSave: Task<Void, Never>?
     @ObservationIgnored nonisolated(unsafe) private var pendingStatusReset: Task<Void, Never>?
 
