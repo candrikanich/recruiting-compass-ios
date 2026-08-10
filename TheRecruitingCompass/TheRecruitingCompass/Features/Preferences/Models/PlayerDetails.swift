@@ -39,6 +39,12 @@ struct PlayerDetails: Codable, Equatable, Sendable {
   var allowSharePhone: Bool?
   var allowShareEmail: Bool?
 
+  // College Preferences (fit analysis) — canonical enums shared with web:
+  // campusSizePreference: "small" | "medium" | "large"
+  // costSensitivity: "high" | "medium" | "low"
+  var campusSizePreference: String?
+  var costSensitivity: String?
+
   // School Info
   var schoolName: String?
   var schoolAddress: String?
@@ -123,6 +129,8 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     case email
     case allowSharePhone = "allow_share_phone"
     case allowShareEmail = "allow_share_email"
+    case campusSizePreference = "campus_size_preference"
+    case costSensitivity = "cost_sensitivity"
     case schoolName = "school_name"
     case schoolAddress = "school_address"
     case schoolCity = "school_city"
