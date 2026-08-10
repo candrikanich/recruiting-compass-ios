@@ -34,4 +34,22 @@ final class VideoLinkModelTests: XCTestCase {
     XCTAssertNil(link.title)
     XCTAssertNil(link.familyUnitId)
   }
+
+  func test_decodesOtherPlatform() throws {
+    let link = try decode("""
+    {"id":"v3","user_id":"u1","family_unit_id":null,"platform":"other",
+     "url":"https://drive.example/x","title":null,"position":0,"health_status":"healthy",
+     "last_health_check":null,"created_at":null,"updated_at":null}
+    """)
+    XCTAssertEqual(link.platform, .other)
+    XCTAssertEqual(link.platform.displayName, "Other")
+  }
+
+  func test_otherPlatformEncodesToDBAllowedRawValue() throws {
+    // DB CHECK allows only hudl/youtube/vimeo/other — the user-chosen catch-all
+    // must persist as "other", never "unknown".
+    XCTAssertEqual(VideoLinkPlatform.other.rawValue, "other")
+    XCTAssertTrue(VideoLinkPlatform.selectable.contains(.other))
+    XCTAssertFalse(VideoLinkPlatform.selectable.contains(.unknown))
+  }
 }

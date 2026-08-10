@@ -119,6 +119,7 @@ final class PlayerDetailsViewModel {
             if let savedDetails: PlayerDetails = try await preferenceService.fetchPreferences(category: .player, userId: targetUserId) {
                 details = savedDetails
                 normalizePositions()
+                seedTravelTeams()
                 logger.info("Loaded existing player details")
             } else {
                 details = .default
@@ -173,6 +174,7 @@ final class PlayerDetailsViewModel {
         logger.debug("Saving player details")
         saveStatus = .saving
         normalizePositions()
+        pruneAndMirrorTravelTeams()
         do {
             _ = try await preferenceService.savePreferences(category: .player, userId: targetUserId, data: details)
             saveStatus = .saved
@@ -282,6 +284,63 @@ final class PlayerDetailsViewModel {
         details.positions = details.positions?.compactMap {
             CanonicalPositions.normalize(sport: sport, $0)
         }
+    }
+
+    // MARK: - Travel Teams
+
+    /// Whether a travel-team row carries any user data (mirrors web's blank filter).
+    private func isNonEmpty(_ team: TravelTeam) -> Bool {
+        team.year != nil
+            || !(team.name ?? "").isEmpty
+            || !(team.coach ?? "").isEmpty
+    }
+
+    /// On load, seed the repeatable list from the legacy scalars the first time an
+    /// athlete opens the new UI (no `travel_teams` stored yet). Mirrors web
+    /// `buildLegacyTravelTeam`: if all three scalars are empty, the list stays empty.
+    private func seedTravelTeams() {
+        if let existing = details.travelTeams, !existing.isEmpty { return }
+        if details.travelTeamYear == nil
+            && (details.travelTeamName ?? "").isEmpty
+            && (details.travelTeamCoach ?? "").isEmpty {
+            details.travelTeams = []
+            return
+        }
+        details.travelTeams = [
+            TravelTeam(
+                year: details.travelTeamYear,
+                name: details.travelTeamName ?? "",
+                coach: details.travelTeamCoach ?? ""
+            )
+        ]
+    }
+
+    /// Before save: drop fully-blank rows, sort by year descending, and mirror the
+    /// most-recent surviving row back onto the legacy scalar fields so downstream
+    /// readers (edit-history labels, coach-outreach template resolver) keep working.
+    private func pruneAndMirrorTravelTeams() {
+        let surviving = (details.travelTeams ?? [])
+            .filter(isNonEmpty)
+            .sorted { ($0.year ?? 0) > ($1.year ?? 0) }
+        details.travelTeams = surviving
+        let latest = surviving.first
+        details.travelTeamYear = latest?.year
+        details.travelTeamName = latest?.name ?? ""
+        details.travelTeamCoach = latest?.coach ?? ""
+    }
+
+    /// Appends a blank row. Deliberately does NOT autosave — an immediate save
+    /// would prune the empty row before the user types (matches web `addTravelTeam`).
+    func addTravelTeam() {
+        guard !isReadOnly else { return }
+        details.travelTeams = (details.travelTeams ?? []) + [TravelTeam(year: nil, name: "", coach: "")]
+    }
+
+    func removeTravelTeam(at index: Int) {
+        guard !isReadOnly, var teams = details.travelTeams, teams.indices.contains(index) else { return }
+        teams.remove(at: index)
+        details.travelTeams = teams
+        markChanged()
     }
 
     // MARK: - Computed

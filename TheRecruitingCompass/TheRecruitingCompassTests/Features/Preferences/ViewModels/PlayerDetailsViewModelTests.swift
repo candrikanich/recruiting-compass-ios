@@ -462,4 +462,115 @@ final class PlayerDetailsViewModelTests: XCTestCase {
     viewModel.details.primarySport = nil
     XCTAssertFalse(viewModel.isBaseballOrSoftball)
   }
+
+  // MARK: - Travel Teams
+
+  func testLoadDetails_seedsTravelTeamsFromLegacyScalars() async {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    mockService.fetchPreferencesResult = .success(
+      PlayerDetails(travelTeamYear: 2024, travelTeamName: "Elite", travelTeamCoach: "Smith"))
+
+    await viewModel.loadDetails()
+
+    XCTAssertEqual(viewModel.details.travelTeams?.count, 1)
+    XCTAssertEqual(viewModel.details.travelTeams?.first,
+                   TravelTeam(year: 2024, name: "Elite", coach: "Smith"))
+  }
+
+  func testLoadDetails_whenNoLegacyScalars_seedsEmptyTravelTeams() async {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    mockService.fetchPreferencesResult = .success(PlayerDetails(graduationYear: 2026))
+
+    await viewModel.loadDetails()
+
+    XCTAssertEqual(viewModel.details.travelTeams, [])
+  }
+
+  func testLoadDetails_whenTravelTeamsPresent_doesNotOverwriteFromScalars() async {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    let stored = [TravelTeam(year: 2023, name: "A", coach: "X"),
+                  TravelTeam(year: 2024, name: "B", coach: "Y")]
+    mockService.fetchPreferencesResult = .success(
+      PlayerDetails(travelTeamYear: 1999, travelTeamName: "Legacy", travelTeams: stored))
+
+    await viewModel.loadDetails()
+
+    XCTAssertEqual(viewModel.details.travelTeams, stored)
+  }
+
+  func testSaveDetails_prunesFullyBlankRows() async {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.travelTeams = [
+      TravelTeam(year: 2024, name: "Kept", coach: nil),
+      TravelTeam(year: nil, name: "", coach: nil),
+      TravelTeam(year: nil, name: nil, coach: "OnlyCoach"),
+    ]
+
+    await viewModel.saveDetails()
+
+    XCTAssertEqual(viewModel.details.travelTeams?.count, 2)
+    XCTAssertFalse(viewModel.details.travelTeams?.contains(where: {
+      $0.year == nil && ($0.name ?? "").isEmpty && ($0.coach ?? "").isEmpty
+    }) ?? true)
+  }
+
+  func testSaveDetails_sortsDescendingAndMirrorsLatestToScalars() async {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.travelTeams = [
+      TravelTeam(year: 2022, name: "Old", coach: "OldCoach"),
+      TravelTeam(year: 2024, name: "New", coach: "NewCoach"),
+      TravelTeam(year: 2023, name: "Mid", coach: "MidCoach"),
+    ]
+
+    await viewModel.saveDetails()
+
+    XCTAssertEqual(viewModel.details.travelTeams?.map(\.year), [2024, 2023, 2022])
+    XCTAssertEqual(viewModel.details.travelTeamYear, 2024)
+    XCTAssertEqual(viewModel.details.travelTeamName, "New")
+    XCTAssertEqual(viewModel.details.travelTeamCoach, "NewCoach")
+  }
+
+  func testSaveDetails_whenAllRowsBlank_clearsScalars() async {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.travelTeamName = "Stale"
+    viewModel.details.travelTeams = [TravelTeam(year: nil, name: "", coach: nil)]
+
+    await viewModel.saveDetails()
+
+    XCTAssertEqual(viewModel.details.travelTeams, [])
+    XCTAssertNil(viewModel.details.travelTeamYear)
+    XCTAssertEqual(viewModel.details.travelTeamName, "")
+  }
+
+  func testAddTravelTeam_appendsBlankRow() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.travelTeams = []
+
+    viewModel.addTravelTeam()
+
+    XCTAssertEqual(viewModel.details.travelTeams?.count, 1)
+    XCTAssertEqual(viewModel.details.travelTeams?.first, TravelTeam(year: nil, name: "", coach: ""))
+  }
+
+  func testRemoveTravelTeam_removesRowAtIndex() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.travelTeams = [
+      TravelTeam(year: 2023, name: "A", coach: "X"),
+      TravelTeam(year: 2024, name: "B", coach: "Y"),
+    ]
+
+    viewModel.removeTravelTeam(at: 0)
+
+    XCTAssertEqual(viewModel.details.travelTeams?.count, 1)
+    XCTAssertEqual(viewModel.details.travelTeams?.first?.name, "B")
+  }
+
+  func testRemoveTravelTeam_outOfBounds_noCrash() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.travelTeams = [TravelTeam(year: 2024, name: "A", coach: "X")]
+
+    viewModel.removeTravelTeam(at: 9)
+
+    XCTAssertEqual(viewModel.details.travelTeams?.count, 1)
+  }
 }
