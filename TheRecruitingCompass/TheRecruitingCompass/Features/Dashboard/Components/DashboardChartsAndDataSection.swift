@@ -6,6 +6,8 @@ struct DashboardChartsAndDataSection: View {
   let visibility: WidgetVisibility
   let interactionTrends: [InteractionTrend]
   let events: [FullEvent]
+  let coachesNeedingFollowup: [Coach]
+  let allSchools: [School]
   let metrics: [PerformanceMetric]
   let schoolsWithOffersPercentage: String
   let interactionsThisMonth: Int
@@ -20,6 +22,10 @@ struct DashboardChartsAndDataSection: View {
 
       if visibility.eventsSummary && !events.isEmpty {
         UpcomingEventsWidget(events: events)
+      }
+
+      if visibility.coachFollowupWidget && !coachesNeedingFollowup.isEmpty {
+        CoachFollowupWidget(coaches: coachesNeedingFollowup, schools: allSchools)
       }
 
       if visibility.recentActivity {
@@ -47,6 +53,8 @@ struct DashboardChartsAndDataSection: View {
       visibility: .default,
       interactionTrends: [],
       events: [],
+      coachesNeedingFollowup: [],
+      allSchools: [],
       metrics: [],
       schoolsWithOffersPercentage: "25%",
       interactionsThisMonth: 4,

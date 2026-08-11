@@ -98,6 +98,8 @@ struct DashboardView: View {
                 visibility: viewModel.widgetVisibility.widgets,
                 interactionTrends: viewModel.interactionTrends,
                 events: viewModel.events,
+                coachesNeedingFollowup: viewModel.coachesNeedingFollowup,
+                allSchools: viewModel.allSchools,
                 metrics: viewModel.metrics,
                 schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
                 interactionsThisMonth: viewModel.interactionsThisMonth,

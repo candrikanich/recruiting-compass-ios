@@ -128,6 +128,13 @@ struct DashboardCustomizationView: View {
           )
 
           ToggleCard(
+            icon: "person.wave.2.fill",
+            label: String(localized: "Coaches Follow-up"),
+            isOn: $viewModel.visibility.widgets.coachFollowupWidget,
+            onChange: { viewModel.markChanged() }
+          )
+
+          ToggleCard(
             icon: "chart.bar.doc.horizontal",
             label: String(localized: "Performance"),
             isOn: $viewModel.visibility.widgets.performanceSummary,
