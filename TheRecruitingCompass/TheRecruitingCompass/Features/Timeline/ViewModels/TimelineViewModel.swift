@@ -103,7 +103,15 @@ final class TimelineViewModel {
       let status = try await statusResult
       statusScore = StatusScore(score: status.score, label: status.label, breakdown: status.breakdown)
 
-      currentTask = try await whatMattersResult.first
+      // Non-fatal: a missing/failing what-matters-now endpoint must degrade to
+      // "no pending priorities", not abort the whole timeline load. The card
+      // already renders on statusScore alone.
+      do {
+        currentTask = try await whatMattersResult.first
+      } catch {
+        logger.error("what-matters-now failed (non-fatal): \(error.localizedDescription)")
+        currentTask = nil
+      }
 
       if expandedPhaseGrade == nil {
         expandedPhaseGrade = currentPhase.gradeLevel
