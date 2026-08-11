@@ -33,6 +33,7 @@ struct CoachFollowupRow: View {
               .font(.caption)
           }
           .buttonStyle(.bordered)
+          .frame(minHeight: 44)
           .accessibilityLabel(String(localized: "Email \(coach.fullName)"))
         }
         if coach.phone != nil {
@@ -41,6 +42,7 @@ struct CoachFollowupRow: View {
               .font(.caption)
           }
           .buttonStyle(.bordered)
+          .frame(minHeight: 44)
           .accessibilityLabel(String(localized: "Text \(coach.fullName)"))
         }
         Spacer()

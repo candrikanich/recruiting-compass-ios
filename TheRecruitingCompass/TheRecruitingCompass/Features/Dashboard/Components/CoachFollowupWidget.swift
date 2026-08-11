@@ -4,13 +4,11 @@ struct CoachFollowupWidget: View {
   let coaches: [Coach]
   let schools: [School]
 
-  @State private var isShowingAll = false
   @State private var quickCommContext: QuickCommunicationContext?
   @State private var profileCoachId: String?
   @State private var isShowingAllCoaches = false
 
   private var schoolNameMap: [String: String] { EntityNameLookup.schoolNameMap(from: schools) }
-  private var visibleCoaches: [Coach] { isShowingAll ? coaches : Array(coaches.prefix(5)) }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -41,8 +39,9 @@ struct CoachFollowupWidget: View {
         }
         .padding(.vertical)
       } else {
+        let visible = Array(coaches.prefix(5))
         VStack(spacing: 8) {
-          ForEach(visibleCoaches) { coach in
+          ForEach(visible) { coach in
             CoachFollowupRow(
               coach: coach,
               schoolName: EntityNameLookup.schoolName(for: coach.schoolId, in: schoolNameMap),
@@ -50,7 +49,7 @@ struct CoachFollowupWidget: View {
               onText: { presentQuickComm(coach) },
               onProfile: { profileCoachId = coach.id }
             )
-            if coach.id != visibleCoaches.last?.id { Divider() }
+            if coach.id != visible.last?.id { Divider() }
           }
         }
 
@@ -62,6 +61,7 @@ struct CoachFollowupWidget: View {
               .font(.caption)
               .foregroundStyle(Color.accentBlue)
           }
+          .frame(minHeight: 44)
         }
       }
     }
