@@ -6,6 +6,9 @@ import SwiftUI
 struct DashboardTimelineSummaryCard: View {
   let phase: TimelinePhase
   let statusScore: Int
+  /// Status-dot color, from the server's `label`/`color` (via `StatusScore.color`).
+  /// The card no longer re-thresholds the raw score locally.
+  let statusColor: Color
   let taskTitle: String?
   let taskWhyItMatters: String?
   let onViewTimeline: () -> Void
@@ -21,13 +24,6 @@ struct DashboardTimelineSummaryCard: View {
     }
   }
 
-  /// Score dot color from the raw score (web thresholds: ≥70 green, ≥50 amber, else red).
-  private var scoreDotColor: Color {
-    if statusScore >= 70 { return .successGreen }
-    if statusScore >= 50 { return Color(hex: "F59E0B") }
-    return .errorRed
-  }
-
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(spacing: 12) {
@@ -41,7 +37,7 @@ struct DashboardTimelineSummaryCard: View {
 
         HStack(spacing: 6) {
           Circle()
-            .fill(scoreDotColor)
+            .fill(statusColor)
             .frame(width: 10, height: 10)
           (Text("\(statusScore)").fontWeight(.bold)
             + Text("/100").foregroundColor(.secondary))
@@ -113,6 +109,7 @@ struct DashboardTimelineSummaryCard: View {
     DashboardTimelineSummaryCard(
       phase: .junior,
       statusScore: 20,
+      statusColor: .errorRed,
       taskTitle: "Take Official SAT or ACT",
       taskWhyItMatters: "Official test scores are required for college eligibility.",
       onViewTimeline: {}
@@ -120,6 +117,7 @@ struct DashboardTimelineSummaryCard: View {
     DashboardTimelineSummaryCard(
       phase: .senior,
       statusScore: 88,
+      statusColor: .successGreen,
       taskTitle: nil,
       taskWhyItMatters: nil,
       onViewTimeline: {}

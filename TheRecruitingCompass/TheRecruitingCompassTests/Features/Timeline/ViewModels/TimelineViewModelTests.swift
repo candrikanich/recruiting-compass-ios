@@ -7,16 +7,14 @@ final class TimelineViewModelTests: XCTestCase {
 
   var viewModel: TimelineViewModel!
   var mockTasksService: MockTasksService!
-  var mockPhaseService: MockTimelinePhaseService!
-  var mockStatusService: MockTimelineStatusService!
+  var mockAPIService: MockTimelineAPIService!
   var mockPreferenceManager: MockPreferenceManager!
   var mockAuthManager: MockAuthManager!
   var familyManager: FamilyManager!
 
   override func setUp() async throws {
     mockTasksService = MockTasksService()
-    mockPhaseService = MockTimelinePhaseService()
-    mockStatusService = MockTimelineStatusService()
+    mockAPIService = MockTimelineAPIService()
     mockPreferenceManager = MockPreferenceManager()
     mockAuthManager = MockAuthManager()
     mockAuthManager.setMockUser(userMock(id: "solo-user-1"))
@@ -24,8 +22,7 @@ final class TimelineViewModelTests: XCTestCase {
 
     viewModel = TimelineViewModel(
       tasksService: mockTasksService,
-      phaseService: mockPhaseService,
-      statusService: mockStatusService,
+      apiService: mockAPIService,
       preferenceService: mockPreferenceManager,
       authManager: mockAuthManager,
       familyManager: familyManager
@@ -35,8 +32,7 @@ final class TimelineViewModelTests: XCTestCase {
   override func tearDown() {
     viewModel = nil
     mockTasksService = nil
-    mockPhaseService = nil
-    mockStatusService = nil
+    mockAPIService = nil
     mockPreferenceManager = nil
     mockAuthManager = nil
     familyManager = nil
@@ -53,8 +49,7 @@ final class TimelineViewModelTests: XCTestCase {
     let parentFamilyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: parentAuth)
     let sut = TimelineViewModel(
       tasksService: mockTasksService,
-      phaseService: mockPhaseService,
-      statusService: mockStatusService,
+      apiService: mockAPIService,
       preferenceService: mockPreferenceManager,
       authManager: parentAuth,
       familyManager: parentFamilyManager
@@ -65,8 +60,11 @@ final class TimelineViewModelTests: XCTestCase {
 
     await sut.load()
 
-    XCTAssertEqual(mockPhaseService.lastAthleteId, ParentViewingAthleteFixture.athleteUserId)
-    XCTAssertEqual(mockStatusService.lastAthleteId, ParentViewingAthleteFixture.athleteUserId)
+    // The athlete id drives the local tasks fetch; the endpoints resolve
+    // viewer→athlete server-side, so they receive only the bearer token.
+    XCTAssertEqual(mockTasksService.lastFetchAthleteId, ParentViewingAthleteFixture.athleteUserId)
+    XCTAssertEqual(mockAPIService.phaseCallCount, 1)
+    XCTAssertEqual(mockAPIService.statusCallCount, 1)
   }
 
   // MARK: - load()
@@ -77,8 +75,8 @@ final class TimelineViewModelTests: XCTestCase {
     await viewModel.load()
 
     XCTAssertEqual(viewModel.errorMessage, "Unable to load timeline.")
-    XCTAssertEqual(mockPhaseService.fetchCallCount, 0)
-    XCTAssertEqual(mockStatusService.fetchCallCount, 0)
+    XCTAssertEqual(mockAPIService.phaseCallCount, 0)
+    XCTAssertEqual(mockAPIService.statusCallCount, 0)
   }
 
   func testLoad_success_populatesAllState() async {
@@ -87,9 +85,10 @@ final class TimelineViewModelTests: XCTestCase {
       9: [makeTask(id: "t1", gradeLevel: 9, required: true)],
       10: [], 11: [], 12: []
     ]
-    mockPhaseService.stubbedPhase = .sophomore
-    mockPhaseService.stubbedCanAdvance = true
-    mockStatusService.stubbedStatusScore = StatusScore(score: 72, label: .onTrack)
+    mockAPIService.stubbedPhase = .sophomore
+    mockAPIService.stubbedCanAdvance = true
+    mockAPIService.stubbedStatusScore = 72
+    mockAPIService.stubbedStatusLabel = .onTrack
 
     await viewModel.load()
 
@@ -106,7 +105,7 @@ final class TimelineViewModelTests: XCTestCase {
 
   func testLoad_setsExpandedPhaseToCurrentPhase_whenNotAlreadySet() async {
     viewModel.expandedPhaseGrade = nil
-    mockPhaseService.stubbedPhase = .junior
+    mockAPIService.stubbedPhase = .junior
 
     await viewModel.load()
 
@@ -115,7 +114,7 @@ final class TimelineViewModelTests: XCTestCase {
 
   func testLoad_preservesExplicitExpandedPhase() async {
     viewModel.setExpandedPhase(grade: 11)
-    mockPhaseService.stubbedPhase = .senior
+    mockAPIService.stubbedPhase = .senior
 
     await viewModel.load()
 
@@ -123,7 +122,7 @@ final class TimelineViewModelTests: XCTestCase {
   }
 
   func testLoad_phaseServiceThrows_setsErrorMessage() async {
-    mockPhaseService.shouldThrowError = true
+    mockAPIService.shouldThrowError = true
 
     await viewModel.load()
 
@@ -138,20 +137,39 @@ final class TimelineViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.errorMessage, "Failed to load timeline. Please try again.")
   }
 
-  func testLoad_derivesCompletedAndRequiredTaskIds_forPhaseAndStatusServices() async {
-    mockTasksService.stubbedTasksByGrade = [
-      9: [
-        makeTask(id: "t1", gradeLevel: 9, required: true, status: .completed),
-        makeTask(id: "t2", gradeLevel: 9, required: true, status: .notStarted),
-        makeTask(id: "t3", gradeLevel: 9, required: false, status: .completed)
-      ]
+  func testLoad_setsCurrentTaskFromWhatMattersNowFirstItem() async {
+    mockAPIService.stubbedWhatMatters = [
+      WhatMattersItem(
+        taskId: "wm1",
+        title: "Take Official SAT or ACT",
+        whyItMatters: "Required for eligibility.",
+        category: "academic",
+        priority: 10,
+        isRequired: true
+      ),
+      WhatMattersItem(
+        taskId: "wm2",
+        title: "Second priority",
+        whyItMatters: "Lower.",
+        category: "training",
+        priority: 5,
+        isRequired: true
+      )
     ]
 
     await viewModel.load()
 
-    XCTAssertEqual(Set(mockPhaseService.lastCompletedTaskIds ?? []), ["t1", "t3"])
-    XCTAssertEqual(Set(mockStatusService.lastCompletedTaskIds ?? []), ["t1", "t3"])
-    XCTAssertEqual(mockStatusService.lastAllRequiredTaskIds, ["t1", "t2"])
+    XCTAssertEqual(viewModel.currentTask?.taskId, "wm1")
+    XCTAssertEqual(viewModel.currentTask?.title, "Take Official SAT or ACT")
+    XCTAssertEqual(mockAPIService.whatMattersCallCount, 1)
+  }
+
+  func testLoad_emptyWhatMattersNow_leavesCurrentTaskNil() async {
+    mockAPIService.stubbedWhatMatters = []
+
+    await viewModel.load()
+
+    XCTAssertNil(viewModel.currentTask)
   }
 
   // MARK: - Computed Properties
@@ -183,7 +201,7 @@ final class TimelineViewModelTests: XCTestCase {
   }
 
   func testMilestonesCounts_readFromMilestoneProgress() async {
-    mockPhaseService.stubbedMilestoneProgress = MilestoneProgress(
+    mockAPIService.stubbedMilestoneProgress = MilestoneProgress(
       phase: .freshman,
       required: ["m1", "m2", "m3"],
       completed: ["m1"],
@@ -223,8 +241,7 @@ final class TimelineViewModelTests: XCTestCase {
     let parentFamilyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: parentAuth)
     let sut = TimelineViewModel(
       tasksService: mockTasksService,
-      phaseService: mockPhaseService,
-      statusService: mockStatusService,
+      apiService: mockAPIService,
       preferenceService: mockPreferenceManager,
       authManager: parentAuth,
       familyManager: parentFamilyManager

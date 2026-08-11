@@ -64,12 +64,12 @@ final class PlayerDetailsViewModel {
         targetUserId: String? = nil,
         photoService: any ProfilePhotoManaging = ProfilePhotoServiceImpl(),
         videoLinksService: any VideoLinksManaging = VideoLinksServiceImpl(),
-        authManager: any AuthManaging = AuthManager.shared
+        authManager: (any AuthManaging)? = nil
     ) {
         self.preferenceService = preferenceService
         self.photoService = photoService
         self.videoLinksService = videoLinksService
-        self.authManager = authManager
+        self.authManager = authManager ?? AuthManager.shared
         self.targetUserId = targetUserId
         // Parents and players collaborate on the same player profile; everyone can edit.
         self.isReadOnly = false

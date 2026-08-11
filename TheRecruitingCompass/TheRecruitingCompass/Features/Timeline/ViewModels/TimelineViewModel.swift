@@ -20,6 +20,10 @@ final class TimelineViewModel {
   var expandedPhaseGrade: Int? = 9
   var showSuccessMessage = false
 
+  /// Top-priority "what matters now" task for the current phase, from the shared
+  /// web endpoint. Drives the dashboard summary card's current-task.
+  var currentTask: WhatMattersItem?
+
   var isViewingAsParent: Bool { familyManager.isParentViewingAthlete }
   var currentAthleteId: String? {
     if let athlete = familyManager.selectedAthlete { return athlete.userId }
@@ -27,8 +31,7 @@ final class TimelineViewModel {
   }
 
   private let tasksService: any TasksManaging
-  private let phaseService: any TimelinePhaseManaging
-  private let statusService: any TimelineStatusManaging
+  private let apiService: any TimelineAPIManaging
   private let preferenceService: any PreferenceManaging
   private let authManager: any AuthManaging
   private let familyManager: FamilyManager
@@ -56,24 +59,15 @@ final class TimelineViewModel {
   var statusLabel: StatusLabel? { statusScore?.label }
   var statusScoreValue: Int { statusScore?.score ?? 0 }
 
-  /// The single "next step" surfaced on the dashboard summary — the current
-  /// phase's top-priority pending task. Mirrors the web dashboard's
-  /// `getWhatMattersNow`. See [WhatMattersNow].
-  var nextRecommendedTask: TaskWithStatus? {
-    WhatMattersNow.topPriority(phase: currentPhase, tasks: allTasks)
-  }
-
   init(
     tasksService: (any TasksManaging)? = nil,
-    phaseService: (any TimelinePhaseManaging)? = nil,
-    statusService: (any TimelineStatusManaging)? = nil,
+    apiService: (any TimelineAPIManaging)? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
     familyManager: FamilyManager? = nil
   ) {
     self.tasksService = tasksService ?? TasksServiceImpl(supabaseManager: .shared)
-    self.phaseService = phaseService ?? TimelinePhaseService()
-    self.statusService = statusService ?? TimelineStatusService()
+    self.apiService = apiService ?? TimelineAPIService()
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.familyManager = familyManager ?? .shared
@@ -90,34 +84,34 @@ final class TimelineViewModel {
     defer { isLoading = false }
 
     do {
-      let prefs: PlayerDetails? = try await preferenceService.fetchPreferences(category: .player, userId: currentAthleteId)
-      let tasksByGradeResult = try await tasksService.fetchAllTasksWithStatus(athleteId: athleteId)
-      graduationYear = prefs?.graduationYear
-      tasksByGrade = tasksByGradeResult
+      let token = authManager.session?.accessToken
 
-      let completedTaskIds = allTasksFrom(tasksByGradeResult)
-        .filter { $0.effectiveStatus == .completed }
-        .map(\.id)
-      let allRequiredTaskIds = allTasksFrom(tasksByGradeResult)
-        .filter(\.required)
-        .map(\.id)
+      async let prefsResult = preferenceService.fetchPreferences(category: .player, userId: currentAthleteId) as PlayerDetails?
+      async let tasksResult = tasksService.fetchAllTasksWithStatus(athleteId: athleteId)
+      async let phaseResult = apiService.fetchPhase(accessToken: token)
+      async let statusResult = apiService.fetchStatus(accessToken: token)
+      async let whatMattersResult = apiService.fetchWhatMattersNow(accessToken: token)
 
-      async let phaseResult = phaseService.fetchPhaseAndMilestoneProgress(
-        graduationYear: graduationYear,
-        completedTaskIds: completedTaskIds,
-        athleteId: athleteId
-      )
-      async let statusResult = statusService.fetchStatusScore(
-        athleteId: athleteId,
-        completedTaskIds: completedTaskIds,
-        allRequiredTaskIds: allRequiredTaskIds
-      )
+      graduationYear = try await prefsResult?.graduationYear
+      tasksByGrade = try await tasksResult
 
-      let (phaseData, status) = try await (phaseResult, statusResult)
+      let phaseData = try await phaseResult
       currentPhase = phaseData.phase
       milestoneProgress = phaseData.milestoneProgress
       canAdvancePhase = phaseData.canAdvance
-      statusScore = status
+
+      let status = try await statusResult
+      statusScore = StatusScore(score: status.score, label: status.label, breakdown: status.breakdown)
+
+      // Non-fatal: a missing/failing what-matters-now endpoint must degrade to
+      // "no pending priorities", not abort the whole timeline load. The card
+      // already renders on statusScore alone.
+      do {
+        currentTask = try await whatMattersResult.first
+      } catch {
+        logger.error("what-matters-now failed (non-fatal): \(error.localizedDescription)")
+        currentTask = nil
+      }
 
       if expandedPhaseGrade == nil {
         expandedPhaseGrade = currentPhase.gradeLevel
@@ -172,10 +166,6 @@ final class TimelineViewModel {
 
   func clearSuccessMessage() {
     showSuccessMessage = false
-  }
-
-  private func allTasksFrom(_ dict: [Int: [TaskWithStatus]]) -> [TaskWithStatus] {
-    dict.values.flatMap { $0 }
   }
 
 }

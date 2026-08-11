@@ -52,7 +52,7 @@ struct EventRowView: View {
   @ViewBuilder
   private var typeBadge: some View {
     let eventType = EventType(rawValue: event.type)
-    return Text(eventType?.displayName ?? event.type)
+    Text(eventType?.displayName ?? event.type)
       .font(.caption)
       .fontWeight(.semibold)
       .padding(.horizontal, 8)
@@ -68,7 +68,7 @@ struct EventRowView: View {
       ? String(localized: "Attended")
       : event.registered ? String(localized: "Registered") : String(localized: "Not Registered")
     let color: Color = event.attended ? .green : event.registered ? .blue : .gray
-    return Text(label)
+    Text(label)
       .font(.caption)
       .fontWeight(.semibold)
       .padding(.horizontal, 8)
