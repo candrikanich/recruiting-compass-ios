@@ -1,7 +1,7 @@
 import Foundation
 
 /// Progress toward advancing from current phase to the next.
-struct MilestoneProgress: Sendable {
+struct MilestoneProgress: Decodable, Sendable {
   let phase: TimelinePhase
   let required: [String]
   let completed: [String]

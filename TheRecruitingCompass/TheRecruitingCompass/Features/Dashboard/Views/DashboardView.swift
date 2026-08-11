@@ -47,8 +47,9 @@ struct DashboardView: View {
               DashboardTimelineSummaryCard(
                 phase: timelineViewModel.currentPhase,
                 statusScore: timelineViewModel.statusScoreValue,
-                taskTitle: timelineViewModel.nextRecommendedTask?.title,
-                taskWhyItMatters: timelineViewModel.nextRecommendedTask?.whyItMatters,
+                statusColor: timelineViewModel.statusScore?.color ?? .secondary,
+                taskTitle: timelineViewModel.currentTask?.title,
+                taskWhyItMatters: timelineViewModel.currentTask?.whyItMatters,
                 onViewTimeline: { openMoreSection(.timeline) }
               )
             }
