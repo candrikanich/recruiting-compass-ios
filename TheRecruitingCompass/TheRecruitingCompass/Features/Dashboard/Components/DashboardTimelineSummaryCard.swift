@@ -25,8 +25,8 @@ struct DashboardTimelineSummaryCard: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack(spacing: 12) {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 10) {
         Text(phase.displayLabel)
           .font(.caption.weight(.semibold))
           .foregroundStyle(badgeColor)
@@ -45,22 +45,25 @@ struct DashboardTimelineSummaryCard: View {
             .monospacedDigit()
         }
 
-        Spacer(minLength: 0)
+        Spacer(minLength: 8)
+
+        Button(action: onViewTimeline) {
+          HStack(spacing: 3) {
+            Text("Timeline")
+            Image(systemName: "arrow.right")
+              .accessibilityHidden(true)
+          }
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(Color.accentBlue)
+          .padding(.vertical, 4)
+          .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("View timeline")
+        .fixedSize()
       }
 
       taskSection
-
-      Button(action: onViewTimeline) {
-        HStack(spacing: 4) {
-          Text("View timeline")
-          Image(systemName: "arrow.right")
-            .accessibilityHidden(true)
-        }
-        .font(.subheadline.weight(.medium))
-        .foregroundStyle(Color.accentBlue)
-      }
-      .buttonStyle(.plain)
-      .frame(maxWidth: .infinity, alignment: .trailing)
     }
     .padding()
     .frame(maxWidth: .infinity, alignment: .leading)
