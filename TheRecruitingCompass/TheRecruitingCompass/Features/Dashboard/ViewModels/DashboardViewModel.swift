@@ -19,6 +19,8 @@ final class DashboardViewModel {
   var isSuggestionsLoading = false
   var suggestionsError: String?
   var events: [FullEvent] = []
+  var coachesNeedingFollowup: [Coach] = []
+  var allSchools: [School] = []
   var metrics: [PerformanceMetric] = []
   var interactionTrends: [InteractionTrend] = []
   var isLoading = false
@@ -179,7 +181,8 @@ final class DashboardViewModel {
       async let eventsTask: () = fetchEvents()
       async let metricsTask: () = fetchMetrics()
       async let trendsTask: () = fetchInteractionTrends()
-      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask)
+      async let coachesTask: () = fetchCoachesFollowup()
+      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask, coachesTask)
     } catch {
       logger.error("Failed to load dashboard data: \(error.localizedDescription)")
       errorMessage = "Failed to load dashboard. Pull to refresh."
@@ -311,6 +314,27 @@ final class DashboardViewModel {
       events = try await dashboardService.fetchEvents(userId: userId, limit: 10)
     } catch {
       logger.warning("Failed to load events: \(error.localizedDescription)")
+    }
+  }
+
+  func fetchCoachesFollowup() async {
+    guard let familyUnitId = familyManager.familyUnitId else {
+      coachesNeedingFollowup = []
+      allSchools = []
+      return
+    }
+    do {
+      let schools = try await dashboardService.fetchSchools(familyUnitId: familyUnitId)
+      allSchools = schools
+      let schoolIds = schools.map(\.id)
+      guard !schoolIds.isEmpty else {
+        coachesNeedingFollowup = []
+        return
+      }
+      let coaches = try await dashboardService.fetchCoaches(schoolIds: schoolIds)
+      coachesNeedingFollowup = CoachFollowup.stale(coaches, asOf: Date.now)
+    } catch {
+      logger.warning("Failed to load coaches follow-up: \(error.localizedDescription)")
     }
   }
 
