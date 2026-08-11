@@ -23,11 +23,11 @@ final class SettingsViewModel {
   init(
     preferenceService: any PreferenceManaging,
     videoLinksService: any VideoLinksManaging = VideoLinksServiceImpl(),
-    authManager: any AuthManaging = AuthManager.shared
+    authManager: (any AuthManaging)? = nil
   ) {
     self.preferenceService = preferenceService
     self.videoLinksService = videoLinksService
-    self.authManager = authManager
+    self.authManager = authManager ?? AuthManager.shared
   }
 
   func loadCompletionStatus() async {

@@ -53,7 +53,7 @@ struct PieChartView: View {
     let diameter: CGFloat = 160
     let radius = diameter / 2
 
-    return ZStack {
+    ZStack {
       ForEach(Array(segmentAngles.enumerated()), id: \.offset) { index, angles in
         PieSlice(
           startAngle: angles.start,
