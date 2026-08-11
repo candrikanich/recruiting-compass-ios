@@ -2,10 +2,12 @@ import SwiftUI
 
 struct DashboardView: View {
   @State private var viewModel = DashboardViewModel()
+  @State private var timelineViewModel = TimelineViewModel()
   @State private var showParentWizard = false
   @State private var showAddSchool = false
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
+  @Environment(\.openMoreSection) private var openMoreSection
 
   init(viewModel: DashboardViewModel? = nil) {
     if let viewModel {
@@ -40,6 +42,16 @@ struct DashboardView: View {
               isEmpty: viewModel.isEmpty,
               userFirstName: viewModel.userFirstName
             )
+
+            if timelineViewModel.statusScore != nil {
+              DashboardTimelineSummaryCard(
+                phase: timelineViewModel.currentPhase,
+                statusScore: timelineViewModel.statusScoreValue,
+                taskTitle: timelineViewModel.nextRecommendedTask?.title,
+                taskWhyItMatters: timelineViewModel.nextRecommendedTask?.whyItMatters,
+                onViewTimeline: { openMoreSection(.timeline) }
+              )
+            }
 
             if familyManager.currentMember?.isParent == true && !viewModel.isParentPreviewMode {
               DashboardAthleteSelectorSection(
@@ -105,6 +117,7 @@ struct DashboardView: View {
         }
         .refreshable {
           await viewModel.refresh()
+          await timelineViewModel.refresh()
         }
       }
       .navigationTitle("Dashboard")
@@ -130,6 +143,12 @@ struct DashboardView: View {
       )
       .task {
         await viewModel.fetchDashboardData()
+      }
+      .task {
+        await timelineViewModel.load()
+      }
+      .onChange(of: familyManager.selectedAthleteId) { _, _ in
+        Task { await timelineViewModel.load() }
       }
   }
 

@@ -118,7 +118,7 @@ struct HistoryTab: View {
                         viewModel.markChanged()
                     }
                 ),
-                format: .number
+                format: .number.grouping(.never)
             )
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)

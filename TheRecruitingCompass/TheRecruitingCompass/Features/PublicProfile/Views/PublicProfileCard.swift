@@ -98,12 +98,26 @@ struct PublicProfileCard: View {
         }
     }
 
+    /// Header subtitle: `Grad Year · Primary Sport · Positions (abbrev) · GPA`.
+    /// Each segment is optional; missing pieces are dropped, not shown blank.
     private var sportPositionLine: String? {
-        guard let sport = data.athletic?.primarySport else { return nil }
-        if let position = data.athletic?.primaryPosition {
-            return "\(sport) · \(position)"
+        var parts: [String] = []
+
+        if let gradYear = data.academics?.graduationYear {
+            parts.append(String(gradYear))
         }
-        return sport
+        if let sport = data.athletic?.primarySport {
+            parts.append(sport)
+        }
+        if let positions = data.athletic?.positions, !positions.isEmpty {
+            let sport = data.athletic?.primarySport
+            parts.append(positions.map { CanonicalPositions.abbreviation(sport: sport, $0) }.joined(separator: "/"))
+        }
+        if let gpa = data.academics?.gpa {
+            parts.append(String(format: "%.2f GPA", gpa))
+        }
+
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     // MARK: - Footer
