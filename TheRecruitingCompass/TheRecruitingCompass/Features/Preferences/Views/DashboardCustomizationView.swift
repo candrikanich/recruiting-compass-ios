@@ -191,13 +191,6 @@ struct DashboardCustomizationView: View {
             isComingSoon: true
           )
           ToggleCard(
-            icon: "person.wave.2.fill",
-            label: String(localized: "Coach Follow-up"),
-            isOn: .constant(false),
-            onChange: {},
-            isComingSoon: true
-          )
-          ToggleCard(
             icon: "doc.richtext",
             label: String(localized: "Recent Docs"),
             isOn: .constant(false),
