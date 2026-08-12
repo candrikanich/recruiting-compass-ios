@@ -454,14 +454,20 @@ final class SchoolsListViewModelTests: XCTestCase {
   // MARK: - Filter/Sort Tests: Personal Fit
 
   func testFilter_minimumStrength_excludesWeakerAndUnknown() async {
+    // state: nil (with no academicInfo either) makes all three signals .unknown ->
+    // overallFit(for:) is nil, not just a weak strength — this exercises the
+    // `guard let fit = overallFit(for: school) else { return false }` branch.
+    let unknownSchool = makeSchool(id: "unknown", state: nil)
     mockService.stubbedSchools = [
       makeSchool(id: "strong", state: "OH", studentSize: 3000, tuitionOOS: 10000),
       makeSchool(id: "stretch", state: "MI", studentSize: 40000, tuitionOOS: 60000),
-      makeSchool(id: "unknown") // no academic_info -> no signals
+      unknownSchool
     ]
     mockPreferenceService.fetchPreferencesResult = .success(
       PlayerDetails.fixture(schoolState: "OH", campusSizePreference: "small", costSensitivity: "high"))
     await sut.loadSchools()
+
+    XCTAssertNil(sut.overallFit(for: unknownSchool))
 
     sut.filters.minPersonalFit = .strong
 
