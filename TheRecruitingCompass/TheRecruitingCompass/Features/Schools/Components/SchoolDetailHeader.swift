@@ -7,6 +7,9 @@ struct SchoolDetailHeader: View {
   @Environment(\.sizeCategory) private var sizeCategory
 
   private var displayLocation: String? {
+    if let full = fullCampusAddress {
+      return full
+    }
     if let location = school.location, !location.isEmpty {
       return location
     }
@@ -14,13 +17,29 @@ struct SchoolDetailHeader: View {
     if !cityState.isEmpty {
       return cityState.joined(separator: ", ")
     }
-    if let address = school.academicInfo?.address, !address.isEmpty {
-      return address
-    }
     if let state = school.state, !state.isEmpty {
       return state
     }
     return nil
+  }
+
+  /// Complete campus address ("401 College Avenue, Ashland, OH") assembled from
+  /// college data, falling back to the school's own city/state where the lookup is sparse.
+  private var fullCampusAddress: String? {
+    let info = school.academicInfo
+    let street = trimmed(info?.address)
+    let city = trimmed(info?.city ?? school.city)
+    let state = trimmed(info?.state ?? school.state)
+    let cityState = [city, state].compactMap { $0 }.joined(separator: ", ")
+    let parts = [street, cityState.isEmpty ? nil : cityState].compactMap { $0 }
+    return parts.isEmpty ? nil : parts.joined(separator: ", ")
+  }
+
+  private func trimmed(_ value: String?) -> String? {
+    guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else {
+      return nil
+    }
+    return value
   }
 
   var body: some View {
@@ -66,6 +85,8 @@ struct SchoolDetailHeader: View {
               Text(location)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             } icon: {
               Image(systemName: "mappin.circle.fill")
                 .foregroundStyle(.secondary)
