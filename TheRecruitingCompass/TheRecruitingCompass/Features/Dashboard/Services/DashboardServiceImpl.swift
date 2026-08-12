@@ -49,6 +49,14 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       let totalOffers = offerList.count
       let acceptedOffers = offerList.count(where: { $0.status == .accepted })
       let acceptanceRate = totalOffers > 0 ? Double(acceptedOffers) / Double(totalOffers) : nil
+      // Distinct schools that received ≥1 offer — the true "schools with offers", vs totalOffers (rows).
+      let schoolsWithOffers = Set(offerList.map(\.schoolId)).count
+      // Interactions in the current UTC month. occurredAt/createdAt are stored ISO8601 UTC strings,
+      // so a "yyyy-MM" prefix match scopes to this month without parsing full dates.
+      let currentMonthPrefix = Self.currentMonthPrefix()
+      let interactionsThisMonth = interactionList.count(where: {
+        ($0.occurredAt ?? $0.createdAt).hasPrefix(currentMonthPrefix)
+      })
 
       logger.info("fetchStats SUCCESS - schools: \(schoolCount), coaches: \(coachCount), interactions: \(interactionCount), offers: \(totalOffers)")
 
@@ -58,7 +66,9 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
         interactionCount: interactionCount,
         totalOffers: totalOffers,
         acceptedOffers: acceptedOffers,
-        acceptanceRate: acceptanceRate
+        acceptanceRate: acceptanceRate,
+        schoolsWithOffers: schoolsWithOffers,
+        interactionsThisMonth: interactionsThisMonth
       )
     } catch {
       logger.error("fetchStats FAILED: \(error.localizedDescription)")
@@ -67,6 +77,15 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       }
       throw error
     }
+  }
+
+  /// "yyyy-MM" for the current UTC month, matched against stored ISO8601 timestamp prefixes.
+  private static func currentMonthPrefix(now: Date = .now) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(identifier: "UTC")
+    formatter.dateFormat = "yyyy-MM"
+    return formatter.string(from: now)
   }
 
   func fetchSchools(familyUnitId: String) async throws -> [School] {

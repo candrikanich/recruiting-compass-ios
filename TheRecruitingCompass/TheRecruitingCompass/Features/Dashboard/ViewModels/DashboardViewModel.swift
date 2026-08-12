@@ -68,7 +68,8 @@ final class DashboardViewModel {
 
   var schoolsWithOffers: Int {
     guard let stats = stats else { return 0 }
-    return stats.totalOffers > 0 && stats.schoolCount > 0 ? min(stats.totalOffers, stats.schoolCount) : 0
+    // Clamp to schoolCount so orphan offers (offer without a tracked school) can't exceed 100%.
+    return min(stats.schoolsWithOffers, stats.schoolCount)
   }
 
   var schoolsWithOffersPercentage: String {
@@ -78,8 +79,7 @@ final class DashboardViewModel {
   }
 
   var interactionsThisMonth: Int {
-    // TODO: Filter by current month once ActivityFeedService supports date-range queries
-    return stats?.interactionCount ?? 0
+    stats?.interactionsThisMonth ?? 0
   }
 
   var daysUntilGraduation: Int? {

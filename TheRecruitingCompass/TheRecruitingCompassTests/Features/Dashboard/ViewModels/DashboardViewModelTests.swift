@@ -535,20 +535,54 @@ final class DashboardViewModelTests: XCTestCase {
       coachCount: 5,
       schoolCount: 10,
       interactionCount: 20,
-      totalOffers: 3,
+      totalOffers: 5,
       acceptedOffers: 1,
-      acceptanceRate: nil
+      acceptanceRate: nil,
+      schoolsWithOffers: 3
     )
     mockDashboardService.stubbedStats = stats
 
     // When
     await sut.fetchDashboardData()
 
-    // Then
+    // Then: 3 distinct schools with offers / 10 schools = 30% (not driven by the 5 offer rows)
     let percentage = sut.schoolsWithOffersPercentage
     XCTAssertTrue(percentage.hasSuffix("%"))
-    // Should calculate 3/10 = 30%
     XCTAssertEqual(percentage, "30%")
+    XCTAssertEqual(sut.schoolsWithOffers, 3)
+  }
+
+  func testSchoolsWithOffersClampedToSchoolCount() async {
+    // Given: more distinct offer-schools than tracked schools (orphan offers)
+    authenticateUser()
+    setupFamilyContext()
+    mockDashboardService.stubbedStats = DashboardStats(
+      coachCount: 0, schoolCount: 2, interactionCount: 0, totalOffers: 4,
+      acceptedOffers: 0, acceptanceRate: nil, schoolsWithOffers: 4
+    )
+
+    // When
+    await sut.fetchDashboardData()
+
+    // Then: clamped so it never exceeds 100%
+    XCTAssertEqual(sut.schoolsWithOffers, 2)
+    XCTAssertEqual(sut.schoolsWithOffersPercentage, "100%")
+  }
+
+  func testInteractionsThisMonthReadsScopedStat() async {
+    // Given: all-time count differs from this-month count
+    authenticateUser()
+    setupFamilyContext()
+    mockDashboardService.stubbedStats = DashboardStats(
+      coachCount: 0, schoolCount: 1, interactionCount: 50, totalOffers: 0,
+      acceptedOffers: 0, acceptanceRate: nil, interactionsThisMonth: 7
+    )
+
+    // When
+    await sut.fetchDashboardData()
+
+    // Then: card uses the month-scoped stat, not the all-time interactionCount
+    XCTAssertEqual(sut.interactionsThisMonth, 7)
   }
 
   func testSchoolsWithOffersPercentageWhenNoOffers() async {
