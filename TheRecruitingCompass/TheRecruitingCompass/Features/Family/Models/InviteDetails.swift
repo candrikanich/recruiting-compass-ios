@@ -14,6 +14,8 @@ struct InviteDetails: Codable, Sendable, Equatable {
   /// When true, logged-in email differs from invite email; accept still succeeds. Informational only.
   let emailMismatch: Bool?
 
+  var memberRole: UserRole? { UserRole(rawValue: role) }
+
   enum CodingKeys: String, CodingKey {
     case invitationId
     case email
