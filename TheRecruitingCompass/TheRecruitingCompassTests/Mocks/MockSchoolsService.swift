@@ -223,7 +223,11 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     return stubbedSchool!
   }
 
-  func updateBasicInfo(id: String, info: EditableBasicInfo) async throws -> School {
+  func updateBasicInfo(
+    id: String,
+    info: EditableBasicInfo,
+    existingAcademicInfo: AcademicInfo?
+  ) async throws -> School {
     updateBasicInfoCallCount += 1
     lastUpdatedBasicInfo = info
     if shouldThrowError {

@@ -1,15 +1,56 @@
 import SwiftUI
 import Foundation
 
-/// Section displaying school basic information with edit capability
+/// Section displaying school contact & social information with edit capability
 struct SchoolBasicInfoDisplaySection: View {
   let school: School
   let onEdit: () -> Void
 
+  private func isPresent(_ value: String?) -> Bool {
+    guard let value else { return false }
+    return !value.isEmpty
+  }
+
+  private var hasContactInfo: Bool {
+    isPresent(school.academicInfo?.address)
+      || isPresent(school.phone)
+      || isPresent(school.website)
+      || isPresent(school.twitterHandle)
+      || isPresent(school.instagramHandle)
+  }
+
+  @ViewBuilder
+  private func socialRow(label: String, handle: String?, baseURL: String) -> some View {
+    if let handle, !handle.isEmpty {
+      let stripped = handle.hasPrefix("@") ? String(handle.dropFirst()) : handle
+      HStack(alignment: .top) {
+        Text("\(label):")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+        Spacer()
+        if let url = URL(string: "\(baseURL)\(stripped)") {
+          Link(destination: url) {
+            HStack(spacing: 4) {
+              Text(handle)
+                .font(.subheadline)
+              Image(systemName: "safari")
+                .font(.subheadline)
+            }
+          }
+        } else {
+          Text(handle)
+            .font(.subheadline)
+        }
+      }
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel(String(localized: "\(label): \(handle). Tap to open."))
+    }
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
-        Text("Information")
+        Text("Contact & Social")
           .font(.headline)
           .accessibilityAddTraits(.isHeader)
 
@@ -18,27 +59,38 @@ struct SchoolBasicInfoDisplaySection: View {
         Button("Edit") {
           onEdit()
         }
-        .accessibilityLabel(String(localized: "Edit school information"))
+        .accessibilityLabel(String(localized: "Edit contact and social"))
       }
 
-      if let info = school.academicInfo {
-        VStack(alignment: .leading, spacing: 8) {
-          if let address = info.address {
-            InfoRow(label: "Campus Address", value: address)
-          }
+      if let address = school.academicInfo?.address, !address.isEmpty {
+        InfoRow(label: "Campus Address", value: address)
+      }
 
-          if let facility = info.baseballFacilityAddress {
-            InfoRow(label: "Baseball Facility", value: facility)
-          }
-
-          if let mascot = info.mascot {
-            InfoRow(label: "Mascot", value: mascot)
-          }
-
-          if let size = info.undergradSize {
-            InfoRow(label: "Undergrad Size", value: size)
+      if let phone = school.phone, !phone.isEmpty {
+        HStack(alignment: .top) {
+          Text("Phone:")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+          Spacer()
+          if let url = URL(string: "tel:\(phone.filter { !$0.isWhitespace })") {
+            Link(phone, destination: url)
+              .font(.subheadline)
+          } else {
+            Text(phone)
+              .font(.subheadline)
           }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "Phone: \(phone). Tap to call."))
+      }
+
+      socialRow(label: "Twitter", handle: school.twitterHandle, baseURL: "https://twitter.com/")
+      socialRow(label: "Instagram", handle: school.instagramHandle, baseURL: "https://instagram.com/")
+
+      if !hasContactInfo {
+        Text("No contact info yet. Tap Edit to add a website, socials, or phone.")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
       }
 
       if let website = school.website, !website.isEmpty {

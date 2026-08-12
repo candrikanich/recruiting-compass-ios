@@ -16,6 +16,7 @@ struct School: Codable, Identifiable, Sendable {
   let faviconUrl: String?
   let twitterHandle: String?
   let instagramHandle: String?
+  let phone: String?
   let ncaaId: String?
   let status: String
   let statusChangedAt: String?
@@ -36,6 +37,80 @@ struct School: Codable, Identifiable, Sendable {
   let createdAt: String
   let updatedAt: String
 
+  // Explicit memberwise init so adding `phone` (defaulted) does not break the
+  // dozens of existing labeled call sites that predate the field.
+  init(
+    id: String,
+    userId: String,
+    name: String,
+    location: String?,
+    city: String?,
+    state: String?,
+    division: String?,
+    conference: String?,
+    ranking: Int?,
+    isFavorite: Bool,
+    website: String?,
+    faviconUrl: String?,
+    twitterHandle: String?,
+    instagramHandle: String?,
+    phone: String? = nil,
+    ncaaId: String?,
+    status: String,
+    statusChangedAt: String?,
+    notes: String?,
+    pros: [String],
+    cons: [String],
+    offerDetails: OfferDetails?,
+    academicInfo: AcademicInfo?,
+    amenities: Amenities?,
+    coachingPhilosophy: String?,
+    coachingStyle: String?,
+    recruitingApproach: String?,
+    communicationStyle: String?,
+    successMetrics: String?,
+    familyUnitId: String,
+    createdBy: String?,
+    updatedBy: String?,
+    createdAt: String,
+    updatedAt: String
+  ) {
+    self.id = id
+    self.userId = userId
+    self.name = name
+    self.location = location
+    self.city = city
+    self.state = state
+    self.division = division
+    self.conference = conference
+    self.ranking = ranking
+    self.isFavorite = isFavorite
+    self.website = website
+    self.faviconUrl = faviconUrl
+    self.twitterHandle = twitterHandle
+    self.instagramHandle = instagramHandle
+    self.phone = phone
+    self.ncaaId = ncaaId
+    self.status = status
+    self.statusChangedAt = statusChangedAt
+    self.notes = notes
+    self.pros = pros
+    self.cons = cons
+    self.offerDetails = offerDetails
+    self.academicInfo = academicInfo
+    self.amenities = amenities
+    self.coachingPhilosophy = coachingPhilosophy
+    self.coachingStyle = coachingStyle
+    self.recruitingApproach = recruitingApproach
+    self.communicationStyle = communicationStyle
+    self.successMetrics = successMetrics
+    self.familyUnitId = familyUnitId
+    self.createdBy = createdBy
+    self.updatedBy = updatedBy
+    self.createdAt = createdAt
+    self.updatedAt = updatedAt
+  }
+
   enum CodingKeys: String, CodingKey {
     case id
     case userId = "user_id"
@@ -45,6 +120,7 @@ struct School: Codable, Identifiable, Sendable {
     case faviconUrl = "favicon_url"
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
+    case phone
     case ncaaId = "ncaa_id"
     case status
     case statusChangedAt = "status_changed_at"
@@ -115,6 +191,7 @@ struct School: Codable, Identifiable, Sendable {
       faviconUrl: faviconUrl,
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
+      phone: phone,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -153,6 +230,7 @@ struct School: Codable, Identifiable, Sendable {
       faviconUrl: faviconUrl,
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
+      phone: phone,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -191,6 +269,7 @@ struct School: Codable, Identifiable, Sendable {
       faviconUrl: faviconUrl,
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
+      phone: phone,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -229,6 +308,7 @@ struct School: Codable, Identifiable, Sendable {
       faviconUrl: faviconUrl,
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
+      phone: phone,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -267,6 +347,7 @@ struct School: Codable, Identifiable, Sendable {
       faviconUrl: faviconUrl,
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
+      phone: phone,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -305,6 +386,7 @@ struct School: Codable, Identifiable, Sendable {
       faviconUrl: faviconUrl,
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
+      phone: phone,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -347,6 +429,7 @@ extension School {
     faviconUrl = try container.decodeIfPresent(String.self, forKey: .faviconUrl)
     twitterHandle = try container.decodeIfPresent(String.self, forKey: .twitterHandle)
     instagramHandle = try container.decodeIfPresent(String.self, forKey: .instagramHandle)
+    phone = try container.decodeIfPresent(String.self, forKey: .phone)
     ncaaId = try container.decodeIfPresent(String.self, forKey: .ncaaId)
     status = try container.decode(String.self, forKey: .status)
     statusChangedAt = try container.decodeIfPresent(String.self, forKey: .statusChangedAt)

@@ -11,22 +11,14 @@ struct SchoolBasicInfoSheet: View {
   var body: some View {
     NavigationStack {
       Form {
-        Section("Location") {
+        Section("Contact & Social") {
           TextField("Campus Address", text: $info.address)
             .textContentType(.fullStreetAddress)
 
-          TextField("Baseball Facility Address", text: $info.baseballFacilityAddress)
-            .textContentType(.fullStreetAddress)
-        }
+          TextField("Phone", text: $info.phone)
+            .textContentType(.telephoneNumber)
+            .keyboardType(.phonePad)
 
-        Section("School Details") {
-          TextField("Mascot", text: $info.mascot)
-
-          TextField("Undergrad Size", text: $info.undergradSize)
-            .keyboardType(.numberPad)
-        }
-
-        Section("Online Presence") {
           TextField("Website", text: $info.website)
             .textContentType(.URL)
             .keyboardType(.URL)
@@ -39,7 +31,7 @@ struct SchoolBasicInfoSheet: View {
             .autocapitalization(.none)
         }
       }
-      .navigationTitle("Edit Information")
+      .navigationTitle("Edit Contact & Social")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
@@ -75,9 +67,7 @@ struct SchoolBasicInfoSheet: View {
   SchoolBasicInfoSheet(
     info: .constant(EditableBasicInfo(
       address: "123 University Ave",
-      baseballFacilityAddress: "456 Stadium Dr",
-      mascot: "Longhorns",
-      undergradSize: "40000",
+      phone: "(512) 471-3333",
       website: "utexas.edu",
       twitterHandle: "@TexasBaseball",
       instagramHandle: "@texasbaseball"

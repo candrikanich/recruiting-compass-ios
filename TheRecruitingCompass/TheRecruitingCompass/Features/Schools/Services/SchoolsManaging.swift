@@ -41,8 +41,13 @@ protocol SchoolsManaging: Sendable {
   func addCon(id: String, familyUnitId: String, text: String) async throws -> School
   /// Removes the con at the given zero-based index from the school's cons list.
   func removeCon(id: String, familyUnitId: String, index: Int) async throws -> School
-  /// Updates structured fields such as division, location, and enrollment info.
-  func updateBasicInfo(id: String, info: EditableBasicInfo) async throws -> School
+  /// Updates the school's Contact & Social fields (address, phone, website, socials).
+  /// `existingAcademicInfo` is merged so lookup-populated fields are preserved.
+  func updateBasicInfo(
+    id: String,
+    info: EditableBasicInfo,
+    existingAcademicInfo: AcademicInfo?
+  ) async throws -> School
 
   // MARK: - Phase 3 Methods (College Data)
   /// Merges externally sourced college data (e.g. from a college-data API lookup) into the school record.

@@ -255,48 +255,37 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
     return updated
   }
 
-  func updateBasicInfo(id: String, info: EditableBasicInfo) async throws -> School {
+  func updateBasicInfo(
+    id: String,
+    info: EditableBasicInfo,
+    existingAcademicInfo: AcademicInfo?
+  ) async throws -> School {
     logger.debug("Updating basic info for school: \(id)")
 
-    // Build update dictionary with non-empty values only
-    var update: [String: String] = [:]
-
-    if !info.website.isEmpty {
-      update["website"] = info.website
-    }
-    if !info.twitterHandle.isEmpty {
-      update["twitter_handle"] = info.twitterHandle
-    }
-    if !info.instagramHandle.isEmpty {
-      update["instagram_handle"] = info.instagramHandle
+    // Empty string means the user cleared the field → store null. The form is
+    // pre-populated from the school, so an unchanged field carries its value.
+    func nilIfEmpty(_ value: String) -> String? {
+      value.isEmpty ? nil : value
     }
 
-    // For academic_info nested fields, build a JSON object
-    var academicInfo: [String: String] = [:]
-    if !info.address.isEmpty {
-      academicInfo["address"] = info.address
-    }
-    if !info.baseballFacilityAddress.isEmpty {
-      academicInfo["baseball_facility_address"] = info.baseballFacilityAddress
-    }
-    if !info.mascot.isEmpty {
-      academicInfo["mascot"] = info.mascot
-    }
-    if !info.undergradSize.isEmpty {
-      academicInfo["undergrad_size"] = info.undergradSize
-    }
+    // Merge the edited address into the existing academic_info so lookup-populated
+    // fields (lat/long, tuition, student_size, …) are preserved rather than wiped.
+    let mergedAcademicInfo = mergeAddress(
+      into: existingAcademicInfo,
+      address: nilIfEmpty(info.address)
+    )
 
-    // Add academic_info as JSON if there are updates
-    if !academicInfo.isEmpty {
-      if let jsonData = try? JSONSerialization.data(withJSONObject: academicInfo),
-         let jsonString = String(data: jsonData, encoding: .utf8) {
-        update["academic_info"] = jsonString
-      }
-    }
+    let payload = BasicInfoUpdatePayload(
+      website: nilIfEmpty(info.website),
+      twitter_handle: nilIfEmpty(info.twitterHandle),
+      instagram_handle: nilIfEmpty(info.instagramHandle),
+      phone: nilIfEmpty(info.phone),
+      academic_info: mergedAcademicInfo
+    )
 
     let updated: School = try await supabaseManager.client
       .from("schools")
-      .update(update)
+      .update(payload)
       .eq("id", value: id)
       .select()
       .single()
@@ -305,6 +294,32 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
 
     logger.info("Basic info updated for school: \(id)")
     return updated
+  }
+
+  /// Returns a copy of `existing` with `address` overridden, preserving every
+  /// other academic_info field. Returns nil only when there is nothing to store.
+  private func mergeAddress(into existing: AcademicInfo?, address: String?) -> AcademicInfo? {
+    guard existing != nil || address != nil else { return nil }
+    return AcademicInfo(
+      gpaRequirement: existing?.gpaRequirement,
+      satRequirement: existing?.satRequirement,
+      actRequirement: existing?.actRequirement,
+      additionalRequirements: existing?.additionalRequirements,
+      address: address ?? existing?.address,
+      city: existing?.city,
+      state: existing?.state,
+      latitude: existing?.latitude,
+      longitude: existing?.longitude,
+      studentSize: existing?.studentSize,
+      baseballFacilityAddress: existing?.baseballFacilityAddress,
+      mascot: existing?.mascot,
+      undergradSize: existing?.undergradSize,
+      carnegieSize: existing?.carnegieSize,
+      tuitionInState: existing?.tuitionInState,
+      tuitionOutOfState: existing?.tuitionOutOfState,
+      admissionRate: existing?.admissionRate,
+      distanceFromHome: existing?.distanceFromHome
+    )
   }
 
   // MARK: - Phase 3: College Data Merge
@@ -438,6 +453,34 @@ private struct SchoolsInsertPayload: Encodable {
 }
 
 // MARK: - College Data Merge Payloads
+
+/// Contact & Social update. Nil fields are omitted (patch semantics — a cleared
+/// field keeps its prior value); academic_info is sent as a JSON object so JSONB
+/// stores it correctly and the returned School decodes.
+private struct BasicInfoUpdatePayload: Encodable {
+  let website: String?
+  let twitter_handle: String?
+  let instagram_handle: String?
+  let phone: String?
+  let academic_info: AcademicInfo?
+
+  enum CodingKeys: String, CodingKey {
+    case website
+    case twitter_handle
+    case instagram_handle
+    case phone
+    case academic_info
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encodeIfPresent(website, forKey: .website)
+    try c.encodeIfPresent(twitter_handle, forKey: .twitter_handle)
+    try c.encodeIfPresent(instagram_handle, forKey: .instagram_handle)
+    try c.encodeIfPresent(phone, forKey: .phone)
+    try c.encodeIfPresent(academic_info, forKey: .academic_info)
+  }
+}
 
 /// Encodable payload so academic_info is sent as a JSON object (not a string); required for JSONB and for decoding the updated School.
 private struct CollegeDataMergePayload: Encodable {

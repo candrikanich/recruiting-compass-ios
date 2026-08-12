@@ -397,7 +397,8 @@ final class SchoolDetailViewModel {
       do {
         let updated = try await schoolsService.updateBasicInfo(
           id: schoolId,
-          info: editedBasicInfo
+          info: editedBasicInfo,
+          existingAcademicInfo: school?.academicInfo
         )
         school = updated
         isEditingBasicInfo = false
