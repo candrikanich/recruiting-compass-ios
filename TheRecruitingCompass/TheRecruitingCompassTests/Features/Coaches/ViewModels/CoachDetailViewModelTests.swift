@@ -81,8 +81,7 @@ final class CoachDetailViewModelTests: XCTestCase {
       statusChangedAt: nil, notes: nil,
       pros: [], cons: [], offerDetails: nil,
       academicInfo: nil, amenities: nil, coachingPhilosophy: nil, coachingStyle: nil,
-      recruitingApproach: nil, communicationStyle: nil, successMetrics: nil, fitScore: nil,
-      fitTier: nil, familyUnitId: "family-1", createdBy: nil, updatedBy: nil,
+      recruitingApproach: nil, communicationStyle: nil, successMetrics: nil, familyUnitId: "family-1", createdBy: nil, updatedBy: nil,
       createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z"
     )
   }

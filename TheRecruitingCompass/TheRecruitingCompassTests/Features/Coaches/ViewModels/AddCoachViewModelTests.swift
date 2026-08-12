@@ -598,8 +598,6 @@ extension School {
       recruitingApproach: nil,
       communicationStyle: nil,
       successMetrics: nil,
-      fitScore: nil,
-      fitTier: nil,
       familyUnitId: "test-family",
       createdBy: nil,
       updatedBy: nil,

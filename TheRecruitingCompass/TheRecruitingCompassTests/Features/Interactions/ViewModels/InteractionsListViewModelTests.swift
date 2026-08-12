@@ -795,8 +795,6 @@ final class InteractionsListViewModelTests: XCTestCase {
       recruitingApproach: nil,
       communicationStyle: nil,
       successMetrics: nil,
-      fitScore: nil,
-      fitTier: nil,
       familyUnitId: "family1",
       createdBy: nil,
       updatedBy: nil,

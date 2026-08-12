@@ -23,7 +23,7 @@ final class SchoolMapViewTests: XCTestCase {
       ),
       amenities: nil, coachingPhilosophy: nil, coachingStyle: nil,
       recruitingApproach: nil, communicationStyle: nil, successMetrics: nil,
-      fitScore: nil, fitTier: nil, familyUnitId: "f1", createdBy: nil,
+      familyUnitId: "f1", createdBy: nil,
       updatedBy: nil, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z"
     )
   }

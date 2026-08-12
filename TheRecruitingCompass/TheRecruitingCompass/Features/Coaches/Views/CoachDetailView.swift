@@ -262,8 +262,6 @@ struct CoachDetailView: View {
           recruitingApproach: nil,
           communicationStyle: nil,
           successMetrics: nil,
-          fitScore: nil,
-          fitTier: nil,
           familyUnitId: "family-1",
           createdBy: nil,
           updatedBy: nil,

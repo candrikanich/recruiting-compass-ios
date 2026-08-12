@@ -556,8 +556,6 @@ extension School {
       recruitingApproach: nil,
       communicationStyle: nil,
       successMetrics: nil,
-      fitScore: nil,
-      fitTier: nil,
       familyUnitId: "family",
       createdBy: "user",
       updatedBy: "user",

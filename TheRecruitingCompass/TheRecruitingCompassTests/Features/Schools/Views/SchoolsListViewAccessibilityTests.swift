@@ -29,22 +29,6 @@ final class SchoolsListViewAccessibilityTests: XCTestCase {
     XCTAssertNotNil(mirror)
   }
 
-  // MARK: - FitScoreBadge Tests
-
-  func testFitScoreBadge_HasAccessibilityLabel() {
-    let badge = FitScoreBadge(score: 85)
-    let mirror = Mirror(reflecting: badge)
-
-    XCTAssertNotNil(mirror)
-  }
-
-  func testFitScoreBadge_NilScore_NoAccessibility() {
-    let badge = FitScoreBadge(score: nil)
-    let mirror = Mirror(reflecting: badge)
-
-    XCTAssertNotNil(mirror)
-  }
-
   // MARK: - BadgeView Tests
 
   func testBadgeView_UsesAccessibilityLabel() {
@@ -273,8 +257,6 @@ final class SchoolsListViewAccessibilityTests: XCTestCase {
       recruitingApproach: nil,
       communicationStyle: nil,
       successMetrics: nil,
-      fitScore: 85,
-      fitTier: nil,
       familyUnitId: "family-1",
       createdBy: nil,
       updatedBy: nil,

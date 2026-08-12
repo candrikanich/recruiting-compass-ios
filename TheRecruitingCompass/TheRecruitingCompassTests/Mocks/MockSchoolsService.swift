@@ -290,8 +290,6 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
       recruitingApproach: philosophy.recruitingApproach.isEmpty ? nil : philosophy.recruitingApproach,
       communicationStyle: philosophy.communicationStyle.isEmpty ? nil : philosophy.communicationStyle,
       successMetrics: philosophy.successMetrics.isEmpty ? nil : philosophy.successMetrics,
-      fitScore: school.fitScore,
-      fitTier: school.fitTier,
       familyUnitId: school.familyUnitId,
       createdBy: school.createdBy,
       updatedBy: school.updatedBy,

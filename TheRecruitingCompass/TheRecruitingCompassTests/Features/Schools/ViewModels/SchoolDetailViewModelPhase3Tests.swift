@@ -151,9 +151,7 @@ final class SchoolDetailViewModelPhase3Tests: XCTestCase {
 
   private func createMockSchool(
     name: String = "Test School",
-    division: String = "D1",
-    fitScore: Double? = nil,
-    fitTier: String? = nil
+    division: String = "D1"
   ) -> School {
     School(
       id: "school-1",
@@ -184,8 +182,6 @@ final class SchoolDetailViewModelPhase3Tests: XCTestCase {
       recruitingApproach: nil,
       communicationStyle: nil,
       successMetrics: nil,
-      fitScore: fitScore,
-      fitTier: fitTier,
       familyUnitId: "family-1",
       createdBy: nil,
       updatedBy: nil,

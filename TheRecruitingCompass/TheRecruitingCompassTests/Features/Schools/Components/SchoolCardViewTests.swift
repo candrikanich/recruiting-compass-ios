@@ -89,24 +89,6 @@ final class SchoolCardViewTests: XCTestCase {
     XCTAssertNotNil(mirror)
   }
 
-  func testDisplaysFitScoreBadge() {
-    let school = makeSchool(fitScore: 85)
-    let card = SchoolCardView(school: school, onToggleFavorite: {})
-    let mirror = Mirror(reflecting: card)
-
-    XCTAssertEqual(school.fitScore, 85)
-    XCTAssertNotNil(mirror)
-  }
-
-  func testHidesFitScoreBadgeWhenNil() {
-    let school = makeSchool(fitScore: nil)
-    let card = SchoolCardView(school: school, onToggleFavorite: {})
-    let mirror = Mirror(reflecting: card)
-
-    XCTAssertNil(school.fitScore)
-    XCTAssertNotNil(mirror)
-  }
-
   func testDisplaysSizeBadge() {
     let school = makeSchool(studentSize: 17000)
     let card = SchoolCardView(school: school, onToggleFavorite: {})
@@ -217,7 +199,6 @@ final class SchoolCardViewTests: XCTestCase {
     conference: String? = "Pac-12",
     status: String = "interested",
     isFavorite: Bool = false,
-    fitScore: Double? = 85,
     notes: String? = nil,
     faviconUrl: String? = nil,
     studentSize: Int? = 17000
@@ -270,8 +251,6 @@ final class SchoolCardViewTests: XCTestCase {
       recruitingApproach: nil,
       communicationStyle: nil,
       successMetrics: nil,
-      fitScore: fitScore,
-      fitTier: nil,
       familyUnitId: "family-1",
       createdBy: nil,
       updatedBy: nil,

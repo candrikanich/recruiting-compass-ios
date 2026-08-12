@@ -201,8 +201,6 @@ struct SchoolCardView: View {
     recruitingApproach: nil,
     communicationStyle: nil,
     successMetrics: nil,
-    fitScore: 85,
-    fitTier: nil,
     familyUnitId: "family-1",
     createdBy: nil,
     updatedBy: nil,

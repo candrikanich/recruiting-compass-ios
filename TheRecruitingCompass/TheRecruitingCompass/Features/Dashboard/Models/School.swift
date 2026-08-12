@@ -30,8 +30,6 @@ struct School: Codable, Identifiable, Sendable {
   let recruitingApproach: String?
   let communicationStyle: String?
   let successMetrics: String?
-  let fitScore: Double?
-  let fitTier: String?
   let familyUnitId: String
   let createdBy: String?
   let updatedBy: String?
@@ -60,8 +58,6 @@ struct School: Codable, Identifiable, Sendable {
     case recruitingApproach = "recruiting_approach"
     case communicationStyle = "communication_style"
     case successMetrics = "success_metrics"
-    case fitScore = "fit_score"
-    case fitTier = "fit_tier"
     case familyUnitId = "family_unit_id"
     case createdBy = "created_by"
     case updatedBy = "updated_by"
@@ -133,8 +129,6 @@ struct School: Codable, Identifiable, Sendable {
       recruitingApproach: recruitingApproach,
       communicationStyle: communicationStyle,
       successMetrics: successMetrics,
-      fitScore: fitScore,
-      fitTier: fitTier,
       familyUnitId: familyUnitId,
       createdBy: createdBy,
       updatedBy: updatedBy,
@@ -173,8 +167,6 @@ struct School: Codable, Identifiable, Sendable {
       recruitingApproach: recruitingApproach,
       communicationStyle: communicationStyle,
       successMetrics: successMetrics,
-      fitScore: fitScore,
-      fitTier: fitTier,
       familyUnitId: familyUnitId,
       createdBy: createdBy,
       updatedBy: updatedBy,
@@ -213,8 +205,6 @@ struct School: Codable, Identifiable, Sendable {
       recruitingApproach: recruitingApproach,
       communicationStyle: communicationStyle,
       successMetrics: successMetrics,
-      fitScore: fitScore,
-      fitTier: fitTier,
       familyUnitId: familyUnitId,
       createdBy: createdBy,
       updatedBy: updatedBy,
@@ -253,8 +243,6 @@ struct School: Codable, Identifiable, Sendable {
       recruitingApproach: recruitingApproach,
       communicationStyle: communicationStyle,
       successMetrics: successMetrics,
-      fitScore: fitScore,
-      fitTier: fitTier,
       familyUnitId: familyUnitId,
       createdBy: createdBy,
       updatedBy: updatedBy,
@@ -293,8 +281,6 @@ struct School: Codable, Identifiable, Sendable {
       recruitingApproach: recruitingApproach,
       communicationStyle: communicationStyle,
       successMetrics: successMetrics,
-      fitScore: fitScore,
-      fitTier: fitTier,
       familyUnitId: familyUnitId,
       createdBy: createdBy,
       updatedBy: updatedBy,
@@ -333,8 +319,6 @@ struct School: Codable, Identifiable, Sendable {
       recruitingApproach: recruitingApproach,
       communicationStyle: communicationStyle,
       successMetrics: successMetrics,
-      fitScore: fitScore,
-      fitTier: fitTier,
       familyUnitId: familyUnitId,
       createdBy: createdBy,
       updatedBy: updatedBy,
@@ -377,8 +361,6 @@ extension School {
     recruitingApproach = try container.decodeIfPresent(String.self, forKey: .recruitingApproach)
     communicationStyle = try container.decodeIfPresent(String.self, forKey: .communicationStyle)
     successMetrics = try container.decodeIfPresent(String.self, forKey: .successMetrics)
-    fitScore = try container.decodeIfPresent(Double.self, forKey: .fitScore)
-    fitTier = try container.decodeIfPresent(String.self, forKey: .fitTier)
     familyUnitId = try container.decode(String.self, forKey: .familyUnitId)
     createdBy = try container.decodeIfPresent(String.self, forKey: .createdBy)
     updatedBy = try container.decodeIfPresent(String.self, forKey: .updatedBy)

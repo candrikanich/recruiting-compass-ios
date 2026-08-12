@@ -439,9 +439,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
 
   private func createMockSchool(
     status: String = "interested",
-    isFavorite: Bool = false,
-    fitScore: Double? = nil,
-    fitTier: String? = nil
+    isFavorite: Bool = false
   ) -> School {
     School(
       id: "school-1",
@@ -472,8 +470,6 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       recruitingApproach: nil,
       communicationStyle: nil,
       successMetrics: nil,
-      fitScore: fitScore,
-      fitTier: fitTier,
       familyUnitId: "family-1",
       createdBy: "user-1",
       updatedBy: "user-1",
@@ -518,8 +514,6 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       recruitingApproach: nil,
       communicationStyle: nil,
       successMetrics: nil,
-      fitScore: nil,
-      fitTier: nil,
       familyUnitId: "family-1",
       createdBy: "user-1",
       updatedBy: "user-1",
