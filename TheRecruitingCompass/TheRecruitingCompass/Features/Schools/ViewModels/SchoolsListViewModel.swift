@@ -238,6 +238,7 @@ final class SchoolsListViewModel {
       // Load athlete profile for Personal Fit signals.
       athleteProfile = try? await preferenceService.fetchPreferences(
         category: .player, userId: familyManager.selectedAthlete?.userId)
+      recomputeFilteredSchools()
     } catch {
       logger.error("Failed to load schools: \(error.localizedDescription)")
       errorMessage = String(localized: "Failed to load schools. Please try again.")

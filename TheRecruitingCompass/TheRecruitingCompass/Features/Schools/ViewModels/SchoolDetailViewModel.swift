@@ -445,6 +445,7 @@ final class SchoolDetailViewModel {
       // Merge data into school's academic_info
       let updated = try await schoolsService.mergeCollegeData(id: schoolId, data: data)
       self.school = updated
+      await loadPersonalFit()
       await invalidateSchoolCache()
       collegeDataError = nil
       logger.info("College data merged successfully")

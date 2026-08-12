@@ -11,6 +11,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
   var mockFamilyManager: FamilyManager!
   var mockCoachesService: MockCoachesService!
   var mockPreferenceService: MockPreferenceManager!
+  var mockCollegeService: MockCollegeScorecardService!
 
   override func setUp() async throws {
     mockSchoolsService = MockSchoolsService()
@@ -18,6 +19,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     mockFamilyManager = FamilyManager.shared
     mockCoachesService = MockCoachesService()
     mockPreferenceService = MockPreferenceManager()
+    mockCollegeService = MockCollegeScorecardService()
 
     // Set up authenticated user
     mockAuthManager.user = User(
@@ -51,6 +53,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       schoolsService: mockSchoolsService,
       authManager: mockAuthManager,
       familyManager: mockFamilyManager,
+      collegeService: mockCollegeService,
       coachesService: mockCoachesService,
       preferenceService: mockPreferenceService,
       cache: InMemoryCache()
@@ -64,6 +67,7 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     mockFamilyManager.familyUnit = nil
     mockCoachesService = nil
     mockPreferenceService = nil
+    mockCollegeService = nil
   }
 
   // MARK: - Load School Tests
@@ -196,6 +200,47 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     await viewModel.loadSchool()
 
     XCTAssertEqual(viewModel.personalFit?.availableSignals, 0)
+  }
+
+  func testLookupCollegeData_recomputesPersonalFit() async {
+    // Given a school missing size/tuition (campus + cost signals start unknown)
+    // and an athlete profile that already has preferences set for all three signals.
+    mockSchoolsService.stubbedSchool = makeSchool(state: "OH")
+    mockSchoolsService.stubbedStatusHistory = []
+    mockPreferenceService.fetchPreferencesResult = .success(
+      PlayerDetails.fixture(schoolState: "OH", campusSizePreference: "small", costSensitivity: "high"))
+
+    await viewModel.loadSchool()
+
+    XCTAssertEqual(viewModel.personalFit?.availableSignals, 1, "only location is known before the lookup")
+    XCTAssertEqual(viewModel.personalFit?.campusSize.strength, .unknown)
+    XCTAssertEqual(viewModel.personalFit?.cost.strength, .unknown)
+
+    // When College Scorecard lookup succeeds and merges size/tuition into the school
+    mockCollegeService.stubbedResult = CollegeDataResult(
+      id: "1",
+      name: "Test University",
+      website: nil,
+      address: nil,
+      city: nil,
+      state: "OH",
+      studentSize: 3000,
+      carnegieSize: nil,
+      admissionRate: nil,
+      tuitionInState: nil,
+      tuitionOutOfState: 15000,
+      latitude: nil,
+      longitude: nil
+    )
+    mockSchoolsService.stubbedSchool = makeSchool(state: "OH", studentSize: 3000, tuitionOOS: 15000)
+
+    await viewModel.lookupCollegeData()
+
+    // Then Personal Fit is recomputed against the now-populated academic info,
+    // without requiring the screen to be re-entered.
+    XCTAssertEqual(viewModel.personalFit?.availableSignals, 3)
+    XCTAssertNotEqual(viewModel.personalFit?.campusSize.strength, .unknown)
+    XCTAssertNotEqual(viewModel.personalFit?.cost.strength, .unknown)
   }
 
   func testLoadSchool_LoadsCoachesInParallel() async {
