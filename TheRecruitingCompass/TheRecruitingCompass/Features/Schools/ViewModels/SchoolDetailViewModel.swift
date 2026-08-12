@@ -49,10 +49,9 @@ final class SchoolDetailViewModel {
   var editedBasicInfo = EditableBasicInfo()
   var isSavingBasicInfo = false
 
-  // MARK: - Fit Score
-  var fitScore: FitScoreResult?
-  var divisionRecommendation: DivisionRecommendation?
-  var isLoadingFitScore = false
+  // MARK: - Personal Fit
+  private(set) var personalFit: PersonalFitAnalysis?
+  private var athleteProfile: PlayerDetails?
 
   // MARK: - College Scorecard
   var isLookingUpCollegeData = false
@@ -80,7 +79,6 @@ final class SchoolDetailViewModel {
   private let schoolsService: any SchoolsManaging
   private let authManager: any AuthManaging
   private let familyManager: FamilyManager
-  private let fitScoreService: any FitScoreManaging
   private let collegeService: any CollegeScorecardManaging
   private let coachesService: any CoachesManaging
   private let preferenceService: any PreferenceManaging
@@ -94,7 +92,6 @@ final class SchoolDetailViewModel {
     schoolsService: (any SchoolsManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
     familyManager: FamilyManager? = nil,
-    fitScoreService: (any FitScoreManaging)? = nil,
     collegeService: (any CollegeScorecardManaging)? = nil,
     coachesService: (any CoachesManaging)? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
@@ -104,7 +101,6 @@ final class SchoolDetailViewModel {
     self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: SupabaseManager.shared)
     self.authManager = authManager ?? AuthManager.shared
     self.familyManager = familyManager ?? .shared
-    self.fitScoreService = fitScoreService ?? FitScoreService()
     self.collegeService = collegeService ?? CollegeScorecardService()
     self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: SupabaseManager.shared)
     self.preferenceService = preferenceService
@@ -157,7 +153,7 @@ final class SchoolDetailViewModel {
       statusHistory = cachedHistory
       initializeNoteFields(from: cachedSchool)
       logger.info("Loaded school from cache: \(cachedSchool.name)")
-      await loadFitScore()
+      await loadPersonalFit()
       await loadCoaches()
       return
     }
@@ -176,7 +172,7 @@ final class SchoolDetailViewModel {
       await cacheToUse.set(loadedHistory, forKey: historyKey, ttlSeconds: Self.schoolCacheTTL)
 
       logger.info("Loaded school: \(loadedSchool.name)")
-      await loadFitScore()
+      await loadPersonalFit()
       await loadCoaches()
 
     } catch {
@@ -415,34 +411,17 @@ final class SchoolDetailViewModel {
     }
   }
 
-  // MARK: - Fit Score
+  // MARK: - Personal Fit
 
-  /// Fit scores are computed by the web app and stored on the school row.
-  /// When no stored score exists the section stays hidden — we never show
-  /// a locally invented score.
-  func loadFitScore() async {
-    isLoadingFitScore = true
-    defer { isLoadingFitScore = false }
-
-    guard let storedScore = school?.fitScore else {
-      fitScore = nil
-      divisionRecommendation = nil
-      return
+  /// Computes on-device Personal Fit signals from the athlete profile + school.
+  /// Signals are transparent comparisons — never an invented composite score.
+  func loadPersonalFit() async {
+    if athleteProfile == nil {
+      athleteProfile = try? await preferenceService.fetchPreferences(
+        category: .player, userId: familyManager.selectedAthlete?.userId)
     }
-
-    fitScore = FitScoreResult(
-      score: storedScore,
-      tier: (school?.fitTier).flatMap(FitTier.init(rawValue:)) ?? FitTier(score: storedScore),
-      breakdown: FitScoreBreakdown(athleticFit: nil, academicFit: nil, opportunityFit: nil, personalFit: nil),
-      missingDimensions: []
-    )
-
-    divisionRecommendation = fitScoreService.getDivisionRecommendations(
-      division: school?.division,
-      fitScore: storedScore
-    )
-
-    logger.info("Fit score loaded from stored value: \(storedScore)")
+    guard let school else { personalFit = nil; return }
+    personalFit = PersonalFitCalculator.calculate(athlete: athleteProfile, school: school)
   }
 
   // MARK: - College Scorecard Lookup

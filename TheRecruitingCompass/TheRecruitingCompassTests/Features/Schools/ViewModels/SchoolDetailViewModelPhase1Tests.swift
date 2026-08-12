@@ -9,7 +9,6 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
   var mockSchoolsService: MockSchoolsService!
   var mockAuthManager: MockAuthManager!
   var mockFamilyManager: FamilyManager!
-  var mockFitScoreService: MockFitScoreService!
   var mockCoachesService: MockCoachesService!
   var mockPreferenceService: MockPreferenceManager!
 
@@ -17,7 +16,6 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     mockSchoolsService = MockSchoolsService()
     mockAuthManager = MockAuthManager()
     mockFamilyManager = FamilyManager.shared
-    mockFitScoreService = MockFitScoreService()
     mockCoachesService = MockCoachesService()
     mockPreferenceService = MockPreferenceManager()
 
@@ -53,7 +51,6 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       schoolsService: mockSchoolsService,
       authManager: mockAuthManager,
       familyManager: mockFamilyManager,
-      fitScoreService: mockFitScoreService,
       coachesService: mockCoachesService,
       preferenceService: mockPreferenceService,
       cache: InMemoryCache()
@@ -65,7 +62,6 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     mockSchoolsService = nil
     mockAuthManager = nil
     mockFamilyManager.familyUnit = nil
-    mockFitScoreService = nil
     mockCoachesService = nil
     mockPreferenceService = nil
   }
@@ -179,19 +175,27 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     XCTAssertEqual(viewModel.statusHistory[1].id, "history-2")
   }
 
-  func testLoadSchool_LoadsFitScoreInParallel() async {
-    // Given - fit score comes from the stored school row (computed by web)
-    let mockSchool = createMockSchool(fitScore: 85.0, fitTier: "safety")
-    mockSchoolsService.stubbedSchool = mockSchool
+  func testLoadPersonalFit_computesFromProfileAndSchool() async {
+    // Given a school in OH with size/tuition, and an in-state athlete
+    mockSchoolsService.stubbedSchool = makeSchool(state: "OH", studentSize: 3000, tuitionOOS: 15000)
     mockSchoolsService.stubbedStatusHistory = []
+    mockPreferenceService.fetchPreferencesResult = .success(
+      PlayerDetails.fixture(schoolState: "OH", campusSizePreference: "small", costSensitivity: "high"))
 
-    // When
     await viewModel.loadSchool()
 
-    // Then
-    XCTAssertNotNil(viewModel.school)
-    XCTAssertNotNil(viewModel.fitScore)
-    XCTAssertEqual(viewModel.fitScore?.score, 85.0)
+    XCTAssertEqual(viewModel.personalFit?.availableSignals, 3)
+    XCTAssertEqual(viewModel.personalFit?.location.strength, .strong)
+  }
+
+  func testLoadPersonalFit_noProfile_signalsUnknown() async {
+    mockSchoolsService.stubbedSchool = makeSchool(state: "OH", studentSize: 3000, tuitionOOS: 15000)
+    mockSchoolsService.stubbedStatusHistory = []
+    mockPreferenceService.fetchPreferencesResult = .success(Optional<PlayerDetails>.none)
+
+    await viewModel.loadSchool()
+
+    XCTAssertEqual(viewModel.personalFit?.availableSignals, 0)
   }
 
   func testLoadSchool_LoadsCoachesInParallel() async {
@@ -478,6 +482,52 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     )
   }
 
+  /// Personal Fit test fixture: a school with the academic-info fields the calculator reads.
+  private func makeSchool(
+    state: String? = nil,
+    studentSize: Int? = nil,
+    tuitionOOS: Double? = nil
+  ) -> School {
+    let info = AcademicInfo(state: state, studentSize: studentSize, tuitionOutOfState: tuitionOOS)
+    return School(
+      id: "school-1",
+      userId: "user-1",
+      name: "Test University",
+      location: "Test City, TS",
+      city: "Test City",
+      state: state,
+      division: "D1",
+      conference: "Test Conference",
+      ranking: 10,
+      isFavorite: false,
+      website: "test.edu",
+      faviconUrl: nil,
+      twitterHandle: nil,
+      instagramHandle: nil,
+      ncaaId: nil,
+      status: "interested",
+      statusChangedAt: "2025-01-01T00:00:00Z",
+      notes: nil,
+      pros: [],
+      cons: [],
+      offerDetails: nil,
+      academicInfo: info,
+      amenities: nil,
+      coachingPhilosophy: nil,
+      coachingStyle: nil,
+      recruitingApproach: nil,
+      communicationStyle: nil,
+      successMetrics: nil,
+      fitScore: nil,
+      fitTier: nil,
+      familyUnitId: "family-1",
+      createdBy: "user-1",
+      updatedBy: "user-1",
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2024-01-01T00:00:00Z"
+    )
+  }
+
   private func createMockStatusHistory(
     id: String,
     previousStatus: String?,
@@ -496,5 +546,20 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
       notes: nil,
       createdAt: date
     )
+  }
+}
+
+private extension PlayerDetails {
+  /// Test-only fixture for the Personal Fit signals this VM reads from the athlete profile.
+  static func fixture(
+    schoolState: String? = nil,
+    campusSizePreference: String? = nil,
+    costSensitivity: String? = nil
+  ) -> PlayerDetails {
+    var details = PlayerDetails()
+    details.schoolState = schoolState
+    details.campusSizePreference = campusSizePreference
+    details.costSensitivity = costSensitivity
+    return details
   }
 }

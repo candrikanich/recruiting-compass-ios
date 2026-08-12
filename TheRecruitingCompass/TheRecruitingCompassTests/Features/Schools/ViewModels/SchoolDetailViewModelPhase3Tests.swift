@@ -6,12 +6,10 @@ final class SchoolDetailViewModelPhase3Tests: XCTestCase {
   nonisolated deinit {}
   var viewModel: SchoolDetailViewModel!
   var mockSchoolsService: MockSchoolsService!
-  var mockFitScoreService: MockFitScoreService!
   var mockCollegeService: MockCollegeScorecardService!
 
   override func setUp() async throws {
     mockSchoolsService = MockSchoolsService()
-    mockFitScoreService = MockFitScoreService()
     mockCollegeService = MockCollegeScorecardService()
 
     // Set up FamilyManager.shared with test data
@@ -32,7 +30,6 @@ final class SchoolDetailViewModelPhase3Tests: XCTestCase {
       schoolId: "school-1",
       schoolsService: mockSchoolsService,
       authManager: MockAuthManager(),
-      fitScoreService: mockFitScoreService,
       collegeService: mockCollegeService,
       cache: InMemoryCache()
     )
@@ -41,68 +38,8 @@ final class SchoolDetailViewModelPhase3Tests: XCTestCase {
   override func tearDown() async throws {
     viewModel = nil
     mockSchoolsService = nil
-    mockFitScoreService = nil
     mockCollegeService = nil
     FamilyManager.shared.familyUnit = nil
-  }
-
-  // MARK: - Fit Score Tests
-
-  func testLoadFitScore_Success() async throws {
-    // Given - fit scores come from the stored school row (computed by web)
-    mockSchoolsService.stubbedSchool = createMockSchool(fitScore: 85.0, fitTier: "safety")
-
-    // When
-    await viewModel.loadSchool()
-
-    // Then
-    XCTAssertEqual(viewModel.fitScore?.score, 85.0)
-    XCTAssertEqual(viewModel.fitScore?.tier, .safety)
-    XCTAssertFalse(viewModel.isLoadingFitScore)
-  }
-
-  func testLoadFitScore_DerivesTierFromScoreWhenNotStored() async throws {
-    // Given - stored score but no stored tier: tier falls back to thresholds
-    mockSchoolsService.stubbedSchool = createMockSchool(fitScore: 75.0)
-
-    // When
-    await viewModel.loadSchool()
-
-    // Then
-    XCTAssertEqual(viewModel.fitScore?.tier, .match)
-    XCTAssertFalse(viewModel.isLoadingFitScore)
-  }
-
-  func testLoadFitScore_WithDivisionRecommendation() async throws {
-    // Given
-    let recommendation = DivisionRecommendation(
-      shouldConsiderOtherDivisions: true,
-      recommendedDivisions: ["D2", "D3"],
-      message: "Based on your fit score, you may want to consider schools in D2, D3."
-    )
-    mockFitScoreService.stubbedRecommendation = recommendation
-    mockSchoolsService.stubbedSchool = createMockSchool(division: "D1", fitScore: 45.0)
-
-    // When
-    await viewModel.loadSchool()
-
-    // Then
-    XCTAssertNotNil(viewModel.fitScore)
-    XCTAssertNotNil(viewModel.divisionRecommendation)
-    XCTAssertEqual(viewModel.divisionRecommendation?.shouldConsiderOtherDivisions, true)
-  }
-
-  func testLoadFitScore_NoStoredScore_HidesSection() async throws {
-    // Given - no stored fit score on the school row
-    mockSchoolsService.stubbedSchool = createMockSchool()
-
-    // When
-    await viewModel.loadSchool()
-
-    // Then - no locally invented score; section stays hidden
-    XCTAssertNil(viewModel.fitScore)
-    XCTAssertNil(viewModel.divisionRecommendation)
-    XCTAssertFalse(viewModel.isLoadingFitScore)
   }
 
   // MARK: - College Data Tests
@@ -208,21 +145,6 @@ final class SchoolDetailViewModelPhase3Tests: XCTestCase {
 
     // Then
     XCTAssertNil(viewModel.collegeDataError)
-  }
-
-  // MARK: - Integration Tests
-
-  func testLoadSchool_LoadsFitScoreAutomatically() async throws {
-    // Given
-    mockSchoolsService.stubbedSchool = createMockSchool(fitScore: 80.0, fitTier: "safety")
-
-    // When
-    await viewModel.loadSchool()
-
-    // Then
-    XCTAssertNotNil(viewModel.school)
-    XCTAssertNotNil(viewModel.fitScore)
-    XCTAssertEqual(viewModel.fitScore?.score, 80.0)
   }
 
   // MARK: - Helper

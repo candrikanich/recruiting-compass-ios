@@ -129,22 +129,9 @@ struct SchoolDetailView: View {
         )
         .padding(.horizontal)
 
-        // 5. School Fit analysis
-        if let fitScore = viewModel.fitScore {
-          FitScoreSection(fitScore: fitScore)
-            .padding(.horizontal)
-        } else if viewModel.isLoadingFitScore {
-          HStack {
-            Spacer()
-            ProgressView("Calculating fit score...")
-              .padding()
-              .accessibilityLabel(String(localized: "Calculating fit score, please wait"))
-            Spacer()
-          }
-        }
-
-        if let recommendation = viewModel.divisionRecommendation {
-          DivisionRecommendationBanner(recommendation: recommendation)
+        // 5. Personal Fit analysis
+        if let analysis = viewModel.personalFit {
+          PersonalFitCard(analysis: analysis)
             .padding(.horizontal)
         }
 
