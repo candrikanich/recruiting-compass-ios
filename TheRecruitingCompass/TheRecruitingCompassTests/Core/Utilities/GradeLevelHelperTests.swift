@@ -84,6 +84,32 @@ final class GradeLevelHelperTests: XCTestCase {
     XCTAssertEqual(grade, 9)
   }
 
+  // MARK: - daysUntilGraduation
+
+  func testDaysUntilGraduation_CountsToJune1() {
+    let ref = date(2026, 6, 1)
+    // 2027 graduation, one year out: 2026-06-01 → 2027-06-01 = 365 days (2027 is not a leap year)
+    XCTAssertEqual(GradeLevelHelper.daysUntilGraduation(graduationYear: 2027, referenceDate: ref), 365)
+  }
+
+  func testDaysUntilGraduation_SameDayIsZero() {
+    let ref = date(2027, 6, 1)
+    XCTAssertEqual(GradeLevelHelper.daysUntilGraduation(graduationYear: 2027, referenceDate: ref), 0)
+  }
+
+  func testDaysUntilGraduation_IgnoresTimeOfDay() {
+    var comps = DateComponents()
+    comps.year = 2026; comps.month = 6; comps.day = 1; comps.hour = 23; comps.minute = 59
+    let ref = calendar.date(from: comps)!
+    // Whole-day granularity: late on 2026-06-01 still counts a full 365 to 2027-06-01
+    XCTAssertEqual(GradeLevelHelper.daysUntilGraduation(graduationYear: 2027, referenceDate: ref), 365)
+  }
+
+  func testDaysUntilGraduation_PastGraduationReturnsNil() {
+    let ref = date(2027, 6, 2)
+    XCTAssertNil(GradeLevelHelper.daysUntilGraduation(graduationYear: 2027, referenceDate: ref))
+  }
+
   private func date(_ year: Int, _ month: Int, _ day: Int) -> Date {
     var comps = DateComponents()
     comps.year = year

@@ -572,33 +572,31 @@ final class DashboardViewModelTests: XCTestCase {
   }
 
   func testDaysUntilGraduationFormattedWhenNil() async {
-    // Given: no stats
-    sut.stats = nil
+    // Given: no graduation year loaded
+    sut.graduationYear = nil
 
     // Then
     XCTAssertEqual(sut.daysUntilGraduationFormatted, "--")
   }
 
   func testDaysUntilGraduationFormattedWhenSet() async {
-    // Given: stats exist
-    authenticateUser()
-    let stats = DashboardStats(
-      coachCount: 5,
-      schoolCount: 10,
-      interactionCount: 20,
-      totalOffers: 3,
-      acceptedOffers: 1,
-      acceptanceRate: nil
-    )
-    mockDashboardService.stubbedStats = stats
+    // Given: a future graduation year
+    let futureYear = Calendar.current.component(.year, from: Date.now) + 2
+    sut.graduationYear = futureYear
 
-    // When
-    await sut.fetchDashboardData()
+    // Then: matches the shared helper's real countdown, not a placeholder
+    let expected = GradeLevelHelper.daysUntilGraduation(graduationYear: futureYear)
+    XCTAssertNotNil(expected)
+    XCTAssertEqual(sut.daysUntilGraduationFormatted, "\(expected!)")
+    XCTAssertNotEqual(sut.daysUntilGraduationFormatted, "--")
+  }
 
-    // Then: should return a number (placeholder is 365)
-    let formatted = sut.daysUntilGraduationFormatted
-    XCTAssertNotEqual(formatted, "--")
-    XCTAssertEqual(formatted, "365")
+  func testDaysUntilGraduationFormattedWhenGraduationPassed() async {
+    // Given: a graduation year already in the past
+    sut.graduationYear = Calendar.current.component(.year, from: Date.now) - 1
+
+    // Then: no negative countdown — shows "--"
+    XCTAssertEqual(sut.daysUntilGraduationFormatted, "--")
   }
 
   // Note: testInteractionsThisMonthFiltersCorrectly removed - tested deprecated Activity type

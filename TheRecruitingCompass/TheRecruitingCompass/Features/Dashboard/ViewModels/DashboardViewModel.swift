@@ -11,6 +11,9 @@ final class DashboardViewModel {
 
   nonisolated deinit {}
   var stats: DashboardStats?
+  /// Target athlete's graduation year, sourced from their player preferences. nil until loaded
+  /// (or when unset), which surfaces as "--" in the At-a-Glance graduation countdown.
+  var graduationYear: Int?
   var widgetVisibility: DashboardWidgetVisibility = .default
   var quickTasks: [QuickTask] = []
   var suggestions: [Suggestion] = []
@@ -80,9 +83,8 @@ final class DashboardViewModel {
   }
 
   var daysUntilGraduation: Int? {
-    // TODO: Requires graduationDate field on User model
-    guard stats != nil else { return nil }
-    return 365  // Placeholder when stats exist
+    guard let year = graduationYear else { return nil }
+    return GradeLevelHelper.daysUntilGraduation(graduationYear: year)
   }
 
   var daysUntilGraduationFormatted: String {
@@ -156,7 +158,8 @@ final class DashboardViewModel {
       async let eventsTask: () = fetchEvents()
       async let metricsTask: () = fetchMetrics()
       async let trendsTask: () = fetchInteractionTrends()
-      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask)
+      async let gradYearTask: () = fetchGraduationYear()
+      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask, gradYearTask)
       return
     }
 
@@ -182,7 +185,8 @@ final class DashboardViewModel {
       async let metricsTask: () = fetchMetrics()
       async let trendsTask: () = fetchInteractionTrends()
       async let coachesTask: () = fetchCoachesFollowup()
-      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask, coachesTask)
+      async let gradYearTask: () = fetchGraduationYear()
+      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask, coachesTask, gradYearTask)
     } catch {
       logger.error("Failed to load dashboard data: \(error.localizedDescription)")
       errorMessage = "Failed to load dashboard. Pull to refresh."
@@ -370,6 +374,19 @@ final class DashboardViewModel {
       }
     } catch {
       logger.debug("Could not load widget visibility, using defaults: \(error.localizedDescription)")
+    }
+  }
+
+  /// Loads the target athlete's graduation year from their player preferences. Player prefs are
+  /// keyed to the user, not a family unit, so this works before any family exists. Errors are
+  /// tolerated (leaves the countdown as "--"), mirroring fetchWidgetVisibility.
+  func fetchGraduationYear() async {
+    guard let userId = targetUserId else { return }
+    do {
+      let details: PlayerDetails? = try await preferenceService.fetchPreferences(category: .player, userId: userId)
+      graduationYear = details?.graduationYear
+    } catch {
+      logger.debug("Could not load graduation year: \(error.localizedDescription)")
     }
   }
 
