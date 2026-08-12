@@ -47,6 +47,13 @@ final class SchoolsListViewModel {
   private let familyManager: FamilyManager
   private let preferenceService: any PreferenceManaging
   private let authManager: any AuthManaging
+  private let interactionsService: any InteractionsManaging
+  private let eventsService: any EventsManaging
+
+  /// School IDs with a real logged visit — a visit-type interaction or a past-dated
+  /// visit event. Drives the "Visited" stat (see `analytics`); populated in `loadSchools()`.
+  /// Status is deliberately NOT a visit signal (invited/scheduled ≠ visited).
+  private(set) var visitedSchoolIds: Set<String> = []
   private var distanceCache: [String: Double] = [:]
   private var distanceCacheOrderedKeys: [String] = []
   private static let maxDistanceCacheEntries = 300
@@ -127,10 +134,7 @@ final class SchoolsListViewModel {
     SchoolAnalytics(
       totalCount: allSchools.count,
       favoritesCount: allSchools.filter(\.isFavorite).count,
-      visitedCount: allSchools.filter { school in
-        school.status == SchoolStatus.officialVisitScheduled.rawValue
-          || school.status == SchoolStatus.officialVisitInvited.rawValue
-      }.count,
+      visitedCount: allSchools.filter { visitedSchoolIds.contains($0.id) }.count,
       contactedCount: allSchools.filter { $0.status == SchoolStatus.contacted.rawValue }.count
     )
   }
@@ -146,12 +150,16 @@ final class SchoolsListViewModel {
     familyManager: FamilyManager? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
+    interactionsService: (any InteractionsManaging)? = nil,
+    eventsService: (any EventsManaging)? = nil,
     cache: (any CacheManaging)? = nil
   ) {
     self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.interactionsService = interactionsService ?? InteractionsServiceImpl(supabaseManager: .shared)
+    self.eventsService = eventsService ?? EventsServiceImpl(supabaseManager: .shared)
     self.cache = cache
   }
 
@@ -191,6 +199,8 @@ final class SchoolsListViewModel {
         logger.info("Loaded \(self.allSchools.count) schools")
       }
 
+      await refreshVisitedSchoolIds(familyUnitId: familyUnitId)
+
       // Load home location from Settings (user_preferences).
       do {
         if let location: HomeLocation = try await preferenceService.fetchPreferences(category: .location, userId: familyManager.selectedAthlete?.userId),
@@ -213,6 +223,65 @@ final class SchoolsListViewModel {
       errorMessage = String(localized: "Failed to load schools. Please try again.")
     }
   }
+
+  /// Recomputes `visitedSchoolIds` from real visit signals — a visit-type interaction
+  /// or a past-dated visit event. Fetches run independently so a failure in one (or a
+  /// missing athlete for events) never blocks the schools list; we union what succeeds.
+  private func refreshVisitedSchoolIds(familyUnitId: String) async {
+    async let interactions = fetchVisitInteractions(familyUnitId: familyUnitId)
+    async let events = fetchVisitEvents(userId: familyManager.selectedAthlete?.userId)
+
+    var visited: Set<String> = []
+    for interaction in await interactions where interaction.type == .inPersonVisit {
+      if let schoolId = interaction.schoolId { visited.insert(schoolId) }
+    }
+    let now = Date()
+    for event in await events {
+      guard event.type == EventType.officialVisit.rawValue
+        || event.type == EventType.unofficialVisit.rawValue,
+        let schoolId = event.schoolId,
+        let start = Self.parseDate(event.startDate), start <= now
+      else { continue }
+      visited.insert(schoolId)
+    }
+    visitedSchoolIds = visited
+  }
+
+  private func fetchVisitInteractions(familyUnitId: String) async -> [Interaction] {
+    do {
+      return try await interactionsService.fetchInteractions(familyUnitId: familyUnitId)
+    } catch {
+      logger.debug("Could not load interactions for visit signal: \(error.localizedDescription)")
+      return []
+    }
+  }
+
+  private func fetchVisitEvents(userId: String?) async -> [FullEvent] {
+    guard let userId else { return [] }
+    do {
+      return try await eventsService.fetchEvents(userId: userId)
+    } catch {
+      logger.debug("Could not load events for visit signal: \(error.localizedDescription)")
+      return []
+    }
+  }
+
+  /// Parses an event `start_date`, tolerating ISO8601 (with/without fractional seconds)
+  /// and plain `yyyy-MM-dd` date-only values.
+  private static func parseDate(_ value: String) -> Date? {
+    if let date = Interaction.iso8601Formatter.date(from: value) { return date }
+    if let date = Interaction.iso8601FallbackFormatter.date(from: value) { return date }
+    return dateOnlyFormatter.date(from: value)
+  }
+
+  private static let dateOnlyFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.calendar = Calendar(identifier: .iso8601)
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(identifier: "UTC")
+    formatter.dateFormat = "yyyy-MM-dd"
+    return formatter
+  }()
 
   func confirmDelete(school: School) {
     schoolToDelete = school

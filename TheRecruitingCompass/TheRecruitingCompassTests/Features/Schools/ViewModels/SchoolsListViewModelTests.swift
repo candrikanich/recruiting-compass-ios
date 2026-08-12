@@ -11,12 +11,16 @@ final class SchoolsListViewModelTests: XCTestCase {
   private var mockAuthManager: MockAuthManager!
   private var mockFamilyManager: FamilyManager!
   private var mockFamilyService: MockFamilyService!
+  private var mockInteractionsService: MockInteractionsService!
+  private var mockEventsService: MockEventsService!
   private var mockCache: InMemoryCache!
 
   override func setUp() async throws {
     mockService = MockSchoolsService()
     mockAuthManager = MockAuthManager()
     mockFamilyService = MockFamilyService()
+    mockInteractionsService = MockInteractionsService()
+    mockEventsService = MockEventsService()
     // Fresh instance per test — InMemoryCache.shared would leak state across tests.
     mockCache = InMemoryCache()
     mockFamilyManager = FamilyManager(
@@ -34,7 +38,7 @@ final class SchoolsListViewModelTests: XCTestCase {
       role: nil
     ))
 
-    mockFamilyManager.currentMember = FamilyMember(
+    let athleteMember = FamilyMember(
       id: "member-1",
       userId: "user-1",
       familyUnitId: "family-1",
@@ -42,11 +46,17 @@ final class SchoolsListViewModelTests: XCTestCase {
       addedAt: "2024-01-01T00:00:00Z",
       user: nil
     )
+    mockFamilyManager.currentMember = athleteMember
+    // Enables `selectedAthlete` so the Visited event fetch (keyed by athlete userId) resolves.
+    mockFamilyManager.familyMembers = [athleteMember]
+    mockFamilyManager.selectedAthleteId = athleteMember.id
 
     sut = SchoolsListViewModel(
       schoolsService: mockService,
       familyManager: mockFamilyManager,
       authManager: mockAuthManager,
+      interactionsService: mockInteractionsService,
+      eventsService: mockEventsService,
       cache: mockCache
     )
   }
@@ -57,6 +67,8 @@ final class SchoolsListViewModelTests: XCTestCase {
     mockAuthManager = nil
     mockFamilyManager = nil
     mockFamilyService = nil
+    mockInteractionsService = nil
+    mockEventsService = nil
     mockCache = nil
   }
 
@@ -133,6 +145,90 @@ final class SchoolsListViewModelTests: XCTestCase {
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z"
     )
+  }
+
+  // MARK: - Visited Analytics (real visits, not status)
+
+  private func makeVisitInteraction(
+    id: String = UUID().uuidString,
+    schoolId: String,
+    type: InteractionType = .inPersonVisit
+  ) -> Interaction {
+    Interaction(
+      id: id,
+      type: type,
+      direction: .inbound,
+      schoolId: schoolId,
+      coachId: nil,
+      subject: nil,
+      content: nil,
+      sentiment: nil,
+      occurredAt: "2026-02-01T10:00:00Z",
+      loggedBy: "user-1",
+      attachments: nil,
+      familyUnitId: "family-1",
+      createdAt: "2026-02-01T10:00:00Z",
+      updatedAt: nil
+    )
+  }
+
+  func testVisitedCount_statusAloneNotCounted() async {
+    mockService.stubbedSchools = [
+      makeSchool(id: "1", status: "official_visit_scheduled"),
+      makeSchool(id: "2", status: "committed"),
+      makeSchool(id: "3", status: "official_visit_invited")
+    ]
+
+    await sut.loadSchools()
+
+    XCTAssertEqual(sut.analytics.visitedCount, 0)
+  }
+
+  func testVisitedCount_countsInPersonVisitInteraction() async {
+    mockService.stubbedSchools = [makeSchool(id: "1"), makeSchool(id: "2")]
+    mockInteractionsService.mockInteractions = [makeVisitInteraction(schoolId: "1")]
+
+    await sut.loadSchools()
+
+    XCTAssertEqual(sut.analytics.visitedCount, 1)
+    XCTAssertTrue(sut.visitedSchoolIds.contains("1"))
+  }
+
+  func testVisitedCount_excludesVirtualMeeting() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    mockInteractionsService.mockInteractions = [
+      makeVisitInteraction(schoolId: "1", type: .virtualMeeting)
+    ]
+
+    await sut.loadSchools()
+
+    XCTAssertEqual(sut.analytics.visitedCount, 0)
+  }
+
+  func testVisitedCount_pastVisitEventCounts_futureDoesNot() async {
+    mockService.stubbedSchools = [makeSchool(id: "1"), makeSchool(id: "2")]
+    mockEventsService.stubbedEvents = [
+      FullEvent.mock(id: "e1", type: "official_visit", startDate: "2020-01-01", schoolId: "1"),
+      FullEvent.mock(id: "e2", type: "unofficial_visit", startDate: "2999-01-01", schoolId: "2")
+    ]
+
+    await sut.loadSchools()
+
+    XCTAssertEqual(sut.analytics.visitedCount, 1)
+    XCTAssertTrue(sut.visitedSchoolIds.contains("1"))
+    XCTAssertFalse(sut.visitedSchoolIds.contains("2"))
+  }
+
+  func testVisitedCount_dedupesInteractionAndEvent() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    mockInteractionsService.mockInteractions = [makeVisitInteraction(schoolId: "1")]
+    mockEventsService.stubbedEvents = [
+      FullEvent.mock(id: "e1", type: "official_visit", startDate: "2020-01-01", schoolId: "1")
+    ]
+
+    await sut.loadSchools()
+
+    XCTAssertEqual(sut.analytics.visitedCount, 1)
   }
 
   // MARK: - Loading Tests
