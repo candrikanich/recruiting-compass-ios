@@ -107,7 +107,7 @@ extension CommunicationTemplate {
       let replacement = values[key]
         ?? keyToDisplayName[key].map { "[\($0)]" }
         ?? "[\(key)]"
-      let placeholderRange = Range(match.range, in: result)!
+      guard let placeholderRange = Range(match.range, in: result) else { break }
       result.replaceSubrange(placeholderRange, with: replacement)
     }
     return result

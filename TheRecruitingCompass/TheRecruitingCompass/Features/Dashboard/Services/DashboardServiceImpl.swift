@@ -182,11 +182,11 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
 
     guard var components = URLComponents(url: baseURL.appendingPathComponent("api/suggestions"), resolvingAgainstBaseURL: false) else {
-      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid API base URL configuration"])
+      throw SuggestionsAPIError.notConfigured
     }
     components.queryItems = [URLQueryItem(name: "location", value: location)]
     guard let url = components.url else {
-      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid suggestions URL"])
+      throw SuggestionsAPIError.notConfigured
     }
 
     var request = URLRequest(url: url)
@@ -197,7 +197,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     let (data, response) = try await URLSession.shared.data(for: request)
 
     guard let http = response as? HTTPURLResponse else {
-      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
+      throw SuggestionsAPIError.invalidResponse
     }
 
     guard http.statusCode == 200 else {
@@ -205,7 +205,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       if http.statusCode == 401 {
         throw SuggestionsAPIError.unauthorized
       }
-      throw NSError(domain: "DashboardService", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Suggestions failed (\(http.statusCode))"])
+      throw SuggestionsAPIError.serverError(http.statusCode)
     }
 
     // Empty response (e.g. HTML error page, empty body) often causes "data is missing" decode error
@@ -250,13 +250,13 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     let (_, response) = try await URLSession.shared.data(for: request)
 
     guard let http = response as? HTTPURLResponse else {
-      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
+      throw SuggestionsAPIError.invalidResponse
     }
     if http.statusCode == 403 {
       throw SuggestionsAPIError.forbidden
     }
     guard http.statusCode == 200 else {
-      throw NSError(domain: "DashboardService", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Dismiss failed (\(http.statusCode))"])
+      throw SuggestionsAPIError.serverError(http.statusCode)
     }
     logger.info("Suggestion \(id) dismissed")
   }
@@ -284,13 +284,13 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     let (_, response) = try await URLSession.shared.data(for: request)
 
     guard let http = response as? HTTPURLResponse else {
-      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
+      throw SuggestionsAPIError.invalidResponse
     }
     if http.statusCode == 403 {
       throw SuggestionsAPIError.forbidden
     }
     guard http.statusCode == 200 else {
-      throw NSError(domain: "DashboardService", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Complete failed (\(http.statusCode))"])
+      throw SuggestionsAPIError.serverError(http.statusCode)
     }
     logger.info("Suggestion \(id) completed")
   }
@@ -307,7 +307,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
 
     guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
       logger.error("CSRF token request failed")
-      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get CSRF token"])
+      throw SuggestionsAPIError.csrfFailed
     }
 
     // Cookie may be scoped to /api; ask for cookies that would be sent to an API path
@@ -315,7 +315,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     guard let cookies = HTTPCookieStorage.shared.cookies(for: apiURL),
           let csrfCookie = cookies.first(where: { $0.name == "csrf-token" }) else {
       logger.error("No csrf-token cookie in storage after GET /api/csrf-token")
-      throw NSError(domain: "DashboardService", code: -1, userInfo: [NSLocalizedDescriptionKey: "No CSRF token in response"])
+      throw SuggestionsAPIError.csrfFailed
     }
 
     return csrfCookie.value

@@ -128,7 +128,7 @@ private struct VideoLinkRow: View {
   var body: some View {
     HStack(spacing: 12) {
       VStack(alignment: .leading, spacing: 4) {
-        Text(link.title?.isEmpty == false ? link.title! : link.platform.displayName)
+        Text(link.title.flatMap { $0.isEmpty ? nil : $0 } ?? link.platform.displayName)
           .font(.body)
           .fontWeight(.medium)
 

@@ -13,7 +13,6 @@ final class SchoolDetailViewModel {
   var school: School?
   var isLoading = false
   var errorMessage: String?
-  var activeAlert: AlertType?
 
   /// Drives the error alert directly, without a view-local Binding(get:set:) wrapper.
   /// Suppressed while the delete confirmation dialog is up so the two don't overlap.
@@ -22,7 +21,6 @@ final class SchoolDetailViewModel {
     set {
       if !newValue {
         errorMessage = nil
-        activeAlert = nil
       }
     }
   }
@@ -294,7 +292,7 @@ final class SchoolDetailViewModel {
       markSaved()
       logger.info("Notes saved successfully")
     } catch {
-      ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to save notes"), logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+      ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to save notes"), logger: logger) { self.errorMessage = $0 }
       saveStatus = .idle
     }
   }
@@ -319,7 +317,7 @@ final class SchoolDetailViewModel {
         await invalidateSchoolCache()
         logger.info("Pro added successfully")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to add pro"), logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to add pro"), logger: logger) { self.errorMessage = $0 }
       }
     }
   }
@@ -359,7 +357,7 @@ final class SchoolDetailViewModel {
         await invalidateSchoolCache()
         logger.info("Con added successfully")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to add con"), logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to add con"), logger: logger) { self.errorMessage = $0 }
       }
     }
   }
@@ -406,7 +404,7 @@ final class SchoolDetailViewModel {
         await invalidateSchoolCache()
         logger.info("Basic info saved successfully")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to save information"), logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to save information"), logger: logger) { self.errorMessage = $0 }
       }
     }
   }
@@ -499,7 +497,7 @@ final class SchoolDetailViewModel {
         await invalidateSchoolCache()
         logger.info("Coaching philosophy saved successfully")
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to save coaching philosophy"), logger: logger) { self.errorMessage = $0; self.activeAlert = .error($0) }
+        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to save coaching philosophy"), logger: logger) { self.errorMessage = $0 }
       }
     }
   }
@@ -510,7 +508,8 @@ final class SchoolDetailViewModel {
     showDeleteConfirmation = true
   }
 
-  func deleteSchool(onSuccess: @escaping () -> Void) async {
+  @discardableResult
+  func deleteSchool() async -> Bool {
     isDeleting = true
     deleteErrorMessage = nil
     defer {
@@ -520,12 +519,12 @@ final class SchoolDetailViewModel {
 
     do {
       try await performDelete()
-      onSuccess()
+      return true
     } catch {
       let errorMsg = String(localized: "Failed to delete school. Please try again.")
       deleteErrorMessage = errorMsg
-      activeAlert = .deleteError(errorMsg)
       logger.error("Delete failed: \(error.localizedDescription)")
+      return false
     }
   }
 

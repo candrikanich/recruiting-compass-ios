@@ -33,28 +33,8 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
     return result
   }
 
-  // MARK: - Private Helpers
-
-  private func fetch<T: Decodable>(
-    _ label: String,
-    query: () async throws -> [T]
-  ) async throws -> [T] {
-    logger.debug("Fetching \(label)")
-    do {
-      let result = try await query()
-      logger.info("Fetched \(result.count) \(label)")
-      return result
-    } catch {
-      logger.error("Failed to fetch \(label): \(error.localizedDescription)")
-      if let decodingError = error as? DecodingError {
-        logger.error("Decoding error: \(String(describing: decodingError))")
-      }
-      throw error
-    }
-  }
-
   func fetchSchools(familyUnitId: String) async throws -> [School] {
-    try await fetch("schools") {
+    try await logger.fetch("schools") {
       try await supabaseManager.client
         .from("schools")
         .select()
@@ -157,7 +137,7 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
   }
 
   func fetchStatusHistory(schoolId: String) async throws -> [SchoolStatusHistory] {
-    try await fetch("status history") {
+    try await logger.fetch("status history") {
       try await supabaseManager.client
         .from("school_status_history")
         .select()

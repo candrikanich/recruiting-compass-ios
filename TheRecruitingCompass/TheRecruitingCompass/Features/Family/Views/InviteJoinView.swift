@@ -314,7 +314,7 @@ private struct InviteJoinSignupSection: View {
         )
         .disabled(true)
 
-        if invite.role == "player" {
+        if invite.memberRole == .player {
           InviteJoinDateOfBirthField(viewModel: viewModel)
         }
 

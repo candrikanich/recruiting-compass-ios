@@ -6,6 +6,23 @@ struct SchoolDetailHeader: View {
 
   @Environment(\.sizeCategory) private var sizeCategory
 
+  private var displayLocation: String? {
+    if let location = school.location, !location.isEmpty {
+      return location
+    }
+    let cityState = [school.city, school.state].compactMap { $0 }.filter { !$0.isEmpty }
+    if !cityState.isEmpty {
+      return cityState.joined(separator: ", ")
+    }
+    if let address = school.academicInfo?.address, !address.isEmpty {
+      return address
+    }
+    if let state = school.state, !state.isEmpty {
+      return state
+    }
+    return nil
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(alignment: .top, spacing: 16) {
@@ -44,7 +61,7 @@ struct SchoolDetailHeader: View {
             .lineLimit(2)
             .minimumScaleFactor(0.9)
 
-          if let location = school.location {
+          if let location = displayLocation {
             Label {
               Text(location)
                 .font(.subheadline)

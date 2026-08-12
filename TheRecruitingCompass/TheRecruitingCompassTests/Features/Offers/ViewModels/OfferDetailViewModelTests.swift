@@ -230,19 +230,17 @@ final class OfferDetailViewModelTests: XCTestCase {
 
   // MARK: - deleteOffer Tests
 
-  func testDeleteOffer_Success_CallsOnSuccess() async {
-    var onSuccessCalled = false
+  func testDeleteOffer_Success_ReturnsTrue() async {
+    let success = await sut.deleteOffer()
 
-    await sut.deleteOffer(onSuccess: { onSuccessCalled = true })
-
-    XCTAssertTrue(onSuccessCalled)
+    XCTAssertTrue(success)
     XCTAssertEqual(mockService.deleteOfferCallCount, 1)
   }
 
   func testDeleteOffer_Failure_SetsActiveAlert() async {
     mockService.shouldThrowDeleteError = true
 
-    await sut.deleteOffer(onSuccess: {})
+    await sut.deleteOffer()
 
     if case .deleteError = sut.activeAlert {
       // expected
@@ -251,19 +249,18 @@ final class OfferDetailViewModelTests: XCTestCase {
     }
   }
 
-  func testDeleteOffer_Failure_DoesNotCallOnSuccess() async {
+  func testDeleteOffer_Failure_ReturnsFalse() async {
     mockService.shouldThrowDeleteError = true
-    var onSuccessCalled = false
 
-    await sut.deleteOffer(onSuccess: { onSuccessCalled = true })
+    let success = await sut.deleteOffer()
 
-    XCTAssertFalse(onSuccessCalled)
+    XCTAssertFalse(success)
   }
 
   func testDeleteOffer_ManagesIsDeleting() async {
     XCTAssertFalse(sut.isDeleting)
 
-    await sut.deleteOffer(onSuccess: {})
+    await sut.deleteOffer()
 
     XCTAssertFalse(sut.isDeleting)
   }

@@ -71,7 +71,7 @@ struct SchoolDetailView: View {
       titleVisibility: .visible
     ) {
       Button("Delete", role: .destructive) {
-        Task { await viewModel.deleteSchool { dismiss() } }
+        Task { if await viewModel.deleteSchool() { dismiss() } }
       }
       Button("Cancel", role: .cancel) {}
     } message: {

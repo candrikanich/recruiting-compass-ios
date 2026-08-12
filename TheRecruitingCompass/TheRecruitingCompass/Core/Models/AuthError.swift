@@ -1,24 +1,48 @@
 import Foundation
 
+/// Domain-specific authentication errors thrown by `AuthManager` and surfaced to the UI.
+///
+/// All cases provide user-facing `errorDescription` and `recoverySuggestion` strings
+/// via `LocalizedError` conformance.
 enum AuthError: LocalizedError {
+  /// The supplied email address does not match a valid format.
   case invalidEmail
+  /// The password contains fewer than 8 characters.
   case passwordTooShort
+  /// The email or password did not match any account.
   case invalidCredentials
+  /// A network-layer failure; the associated value contains a human-readable description.
   case networkError(String)
+  /// The backend returned an unexpected error; the associated value contains details.
   case serverError(String)
+  /// The account was temporarily locked after too many failed login attempts.
+  /// - Parameter retryAfter: Localised time string indicating when the lock lifts, or `nil` if unknown.
   case tooManyAttempts(retryAfter: String?)
+  /// No account was found for the given email address.
   case userNotFound
+  /// The account exists but the email address has not been verified.
   case emailNotVerified
+  /// An account already exists for this email address.
   case emailAlreadyRegistered
+  /// The password does not meet the minimum strength requirements.
   case passwordTooWeak
+  /// The confirmation password field does not match the primary password field.
   case passwordsDoNotMatch
+  /// The family invite code is malformed or does not match any active family unit.
   case invalidFamilyCode
+  /// The user did not accept the terms and conditions before proceeding.
   case termsNotAccepted
+  /// The password-reset deep-link token is not recognised by the backend.
   case invalidResetToken
+  /// The password-reset deep-link token has passed its expiry window.
   case expiredResetToken
+  /// No account was found for the given email during a password-reset request.
   case resetEmailNotFound
+  /// The stored session is no longer valid and the user must sign in again.
   case sessionInvalid
+  /// The user's date of birth places them below the COPPA minimum age of 13.
   case coppaUnderAge
+  /// An unexpected error occurred; the associated value wraps the underlying `Error`.
   case unknown(Error)
 
   var errorDescription: String? {

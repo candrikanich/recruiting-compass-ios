@@ -27,7 +27,7 @@ final class SendProfileViewModel {
             return nil
         }
         guard let base = SupabaseConfig.apiBaseURL else { return nil }
-        let slug = profile.vanitySlug?.isEmpty == false ? profile.vanitySlug! : profile.hashSlug
+        let slug = profile.vanitySlug.flatMap { $0.isEmpty ? nil : $0 } ?? profile.hashSlug
         var comps = URLComponents(
             url: base.appendingPathComponent("p").appendingPathComponent(slug),
             resolvingAgainstBaseURL: false

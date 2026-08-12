@@ -12,26 +12,8 @@ final class CoachesServiceImpl: CoachesManaging, Sendable {
     self.supabaseManager = supabaseManager
   }
 
-  private func fetch<T: Decodable>(
-    _ label: String,
-    query: () async throws -> [T]
-  ) async throws -> [T] {
-    logger.debug("Fetching \(label)")
-    do {
-      let result = try await query()
-      logger.info("Fetched \(result.count) \(label)")
-      return result
-    } catch {
-      logger.error("Failed to fetch \(label): \(error.localizedDescription)")
-      if let decodingError = error as? DecodingError {
-        logger.error("Decoding error: \(String(describing: decodingError))")
-      }
-      throw error
-    }
-  }
-
   func fetchSchools(familyUnitId: String) async throws -> [School] {
-    try await fetch("schools") {
+    try await logger.fetch("schools") {
       try await supabaseManager.client
         .from("schools")
         .select()
@@ -47,7 +29,7 @@ final class CoachesServiceImpl: CoachesManaging, Sendable {
       return []
     }
 
-    return try await fetch("coaches") {
+    return try await logger.fetch("coaches") {
       try await supabaseManager.client
         .from("coaches")
         .select()
@@ -123,7 +105,7 @@ final class CoachesServiceImpl: CoachesManaging, Sendable {
   }
 
   func fetchInteractions(coachId: String, limit: Int) async throws -> [Interaction] {
-    try await fetch("interactions for coach \(coachId)") {
+    try await logger.fetch("interactions for coach \(coachId)") {
       try await supabaseManager.client
         .from("interactions")
         .select()

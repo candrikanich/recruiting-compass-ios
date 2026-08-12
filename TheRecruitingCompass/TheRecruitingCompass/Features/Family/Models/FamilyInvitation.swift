@@ -73,7 +73,14 @@ struct FamilyInvitation: Codable, Identifiable, Sendable {
 
   private static let isoFormatter = ISO8601DateFormatter()
 
-  var isPending: Bool { status == "pending" }
+  enum Status: String {
+    case pending, accepted, declined
+  }
+
+  var invitationStatus: Status? { Status(rawValue: status) }
+  var memberRole: UserRole? { UserRole(rawValue: role) }
+
+  var isPending: Bool { invitationStatus == .pending }
   var isExpired: Bool {
     guard let exp = expiresAt, !exp.isEmpty, let date = Self.isoFormatter.date(from: exp) else { return false }
     return date < .now

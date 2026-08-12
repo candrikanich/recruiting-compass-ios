@@ -8,13 +8,11 @@ struct FamilyMember: Codable, Identifiable, Sendable {
   let addedAt: String?
   let user: FamilyMemberUser?
 
-  var isAthlete: Bool {
-    role == "player"
-  }
+  var memberRole: UserRole? { UserRole(rawValue: role) }
 
-  var isParent: Bool {
-    role == "parent"
-  }
+  var isAthlete: Bool { memberRole == .player }
+
+  var isParent: Bool { memberRole == .parent }
 
   enum CodingKeys: String, CodingKey {
     case id

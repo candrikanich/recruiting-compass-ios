@@ -172,16 +172,18 @@ final class OfferDetailViewModel {
     activeAlert = .deleteConfirmation
   }
 
-  func deleteOffer(onSuccess: @escaping () -> Void) async {
+  @discardableResult
+  func deleteOffer() async -> Bool {
     await ViewModelHelpers.withLoading(set: { self.isDeleting = $0 }) {
       do {
         try await offersService.deleteOffer(id: offerId)
         await invalidateOfferCache()
         logger.info("Offer deleted successfully")
-        onSuccess()
+        return true
       } catch {
         activeAlert = .deleteError(String(localized: "Failed to delete offer. Please try again."))
         logger.error("Failed to delete offer: \(error.localizedDescription)")
+        return false
       }
     }
   }

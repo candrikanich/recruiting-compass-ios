@@ -105,7 +105,8 @@ final class PublicProfileViewModel {
         } catch PublicProfileAPIError.unauthorized {
             await retrySaveAfterRefresh(payload)
         } catch {
-            saveError = Self.saveErrorMessage(for: error)
+            saveError = (error as? LocalizedError)?.errorDescription
+                ?? String(localized: "Couldn't save changes. Please try again.")
         }
     }
 
@@ -120,16 +121,8 @@ final class PublicProfileViewModel {
         } catch PublicProfileAPIError.slugInvalid {
             slugError = String(localized: "That custom URL is invalid or reserved.")
         } catch {
-            saveError = Self.saveErrorMessage(for: error)
-        }
-    }
-
-    private static func saveErrorMessage(for error: Error) -> String {
-        switch error {
-        case PublicProfileAPIError.notMember:
-            return String(localized: "You don't have permission to edit this profile.")
-        default:
-            return String(localized: "Couldn't save changes. Please try again.")
+            saveError = (error as? LocalizedError)?.errorDescription
+                ?? String(localized: "Couldn't save changes. Please try again.")
         }
     }
 
@@ -148,7 +141,7 @@ final class PublicProfileViewModel {
     var shareURL: URL? {
         guard let profile, let base = SupabaseConfig.apiBaseURL else { return nil }
         let persistedSlug = profile.vanitySlug
-        let slug = (persistedSlug?.isEmpty == false) ? persistedSlug! : profile.hashSlug
+        let slug = persistedSlug.flatMap { $0.isEmpty ? nil : $0 } ?? profile.hashSlug
         return base.appendingPathComponent("p").appendingPathComponent(slug)
     }
 

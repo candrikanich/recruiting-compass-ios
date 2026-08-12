@@ -46,7 +46,7 @@ struct OfferDetailView: View {
       case .deleteConfirmation:
         Button("Delete", role: .destructive) {
           Task {
-            await viewModel.deleteOffer {
+            if await viewModel.deleteOffer() {
               dismiss()
             }
           }
