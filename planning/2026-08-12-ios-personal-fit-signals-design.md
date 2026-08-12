@@ -224,13 +224,18 @@ transparent comparisons, not invented scores, so this principle is preserved).
 - Reviving any numeric fit score or the dropped column.
 - Web-side changes (web already ships the signal model).
 
-## Open Questions
+## Resolved Decisions (2026-08-12)
 
-1. **Rollup semantics** — mean (proposed) vs. worst-signal; the three cutoffs/labels. (Review flag above.)
-2. **Filter multiplicity** — multi-select strength set vs. a single "minimum strength" picker.
-   Recommendation: single "minimum strength" (Strong / Good+ / Any) — simpler, matches how
-   users think ("show me at least good fits").
-3. **`DivisionRecommendation`** — confirm during implementation it's driven solely by the dead
-   numeric score; if it has independent value, keep and re-source it rather than delete.
-4. **PlayerDetails injection** — confirm the existing provider path into the Schools VMs before
-   implementation (assumed to exist from the Preferences feature).
+1. **Rollup semantics** — **mean** (rank strong=2/good=1/stretch=0 over available signals),
+   cutoffs mean ≥1.5 Strong / ≥0.75 Good / else Stretch, as specified above. Confirmed.
+2. **Filter shape** — **single "minimum strength" picker** (`Any` / `Good+` / `Strong`), not a
+   multi-select set. `SchoolFilters` carries one `minPersonalFit: OverallPersonalFit.Strength?`
+   (nil = Any). Schools with `availableSignals == 0` are excluded only when a minimum is set.
+
+3. **`DivisionRecommendation` / `FitScoreService`** — verified: only callers are the Schools fit
+   subsystem (`SchoolDetailViewModel` + `DivisionRecommendationBanner`). No independent value →
+   **delete** with the rest of the numeric scaffolding.
+4. **PlayerDetails injection** — verified: both `SchoolsListViewModel` and `SchoolDetailViewModel`
+   already store `preferenceService: any PreferenceManaging`. Load via
+   `fetchPreferences(category: .player, userId: familyManager.selectedAthlete?.userId)`, mirroring
+   the existing home-location load. No new plumbing.
