@@ -15,6 +15,7 @@ struct SchoolFilterBar: View {
     VStack(spacing: 12) {
       row1
       row2
+      row3
       if hasHomeLocation {
         row4
       } else {
@@ -166,6 +167,35 @@ struct SchoolFilterBar: View {
     .accessibilityLabel(String(localized: "Sort order"))
     .accessibilityValue(filters.sortBy.displayName)
     .accessibilityHint("Double tap to change sort order")
+  }
+
+  // MARK: - Row 3: Minimum Personal Fit
+
+  @ViewBuilder
+  private var row3: some View {
+    HStack {
+      Text("Minimum Personal Fit").font(.subheadline).fontWeight(.medium)
+      Spacer()
+      Menu {
+        Button("Any") { filters.minPersonalFit = nil }
+        Button("Good or better") { filters.minPersonalFit = .good }
+        Button("Strong only") { filters.minPersonalFit = .strong }
+      } label: {
+        Text(minFitLabel).font(.subheadline)
+          .padding(.horizontal, 12).padding(.vertical, 8)
+          .background(Color(.systemGray6)).clipShape(.rect(cornerRadius: 8))
+      }
+      .accessibilityLabel(String(localized: "Minimum personal fit filter"))
+    }
+    .padding(.horizontal, 4)
+  }
+
+  private var minFitLabel: String {
+    switch filters.minPersonalFit {
+    case .strong: return String(localized: "Strong only")
+    case .good: return String(localized: "Good or better")
+    case .stretch, nil: return String(localized: "Any")
+    }
   }
 
   // MARK: - Row 4: Distance Slider

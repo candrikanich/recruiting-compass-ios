@@ -4,6 +4,7 @@ struct SchoolCardView: View {
   let school: School
   let onToggleFavorite: () -> Void
   var onDelete: () -> Void = {}
+  var overall: OverallPersonalFit? = nil
 
   @Environment(\.sizeCategory) private var sizeCategory
 
@@ -127,7 +128,7 @@ struct SchoolCardView: View {
         BadgeView(text: statusEnum.displayName, color: statusEnum.badgeColor)
       }
 
-      FitScoreBadge(score: school.fitScore)
+      PersonalFitPill(overall: overall)
 
       if let size = school.size {
         BadgeView(text: size.displayName, color: .slate)
