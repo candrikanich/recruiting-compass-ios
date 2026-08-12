@@ -43,6 +43,17 @@ struct SchoolAnalyticsCards: View {
           ? "1 school visited"
           : "\(analytics.visitedCount) schools visited"
       )
+
+      AnalyticsCard(
+        title: "Contacted",
+        value: analytics.contactedCount,
+        icon: "bubble.left.and.bubble.right.fill",
+        backgroundColor: Color.purple.opacity(0.1),
+        iconColor: .purple,
+        accessibilityLabelOverride: analytics.contactedCount == 1
+          ? "1 school contacted"
+          : "\(analytics.contactedCount) schools contacted"
+      )
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
@@ -54,7 +65,8 @@ struct SchoolAnalyticsCards: View {
     analytics: SchoolAnalytics(
       totalCount: 35,
       favoritesCount: 8,
-      visitedCount: 3
+      visitedCount: 3,
+      contactedCount: 12
     )
   )
   .padding()

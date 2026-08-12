@@ -130,7 +130,8 @@ final class SchoolsListViewModel {
       visitedCount: allSchools.filter { school in
         school.status == SchoolStatus.officialVisitScheduled.rawValue
           || school.status == SchoolStatus.officialVisitInvited.rawValue
-      }.count
+      }.count,
+      contactedCount: allSchools.filter { $0.status == SchoolStatus.contacted.rawValue }.count
     )
   }
 
