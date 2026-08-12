@@ -40,7 +40,7 @@ struct DashboardTimelineSummaryCard: View {
             .fill(statusColor)
             .frame(width: 10, height: 10)
           (Text("\(statusScore)").fontWeight(.bold)
-            + Text("/100").foregroundColor(.secondary))
+            + Text("/100").foregroundStyle(.secondary))
             .font(.headline)
             .monospacedDigit()
         }
