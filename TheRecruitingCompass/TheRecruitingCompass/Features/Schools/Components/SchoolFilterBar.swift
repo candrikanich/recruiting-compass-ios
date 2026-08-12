@@ -15,7 +15,6 @@ struct SchoolFilterBar: View {
     VStack(spacing: 12) {
       row1
       row2
-      row3
       if hasHomeLocation {
         row4
       } else {
@@ -167,62 +166,6 @@ struct SchoolFilterBar: View {
     .accessibilityLabel(String(localized: "Sort order"))
     .accessibilityValue(filters.sortBy.displayName)
     .accessibilityHint("Double tap to change sort order")
-  }
-
-  // MARK: - Row 3: Fit Score Sliders
-
-  @ViewBuilder
-  private var row3: some View {
-    VStack(spacing: 12) {
-      HStack {
-        Text("Fit Score Range")
-          .font(.subheadline)
-          .fontWeight(.medium)
-
-        Spacer()
-
-        Text("\(Int(filters.fitScoreMin ?? 0)) - \(Int(filters.fitScoreMax ?? 100))")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
-
-      HStack(spacing: 16) {
-        VStack(alignment: .leading, spacing: 4) {
-          Text("Min")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-
-          Slider(
-            value: Binding(
-              get: { filters.fitScoreMin ?? 0 },
-              set: { filters.fitScoreMin = $0 }
-            ),
-            in: 0...100,
-            step: 5
-          )
-          .accessibilityLabel(String(localized: "Minimum fit score"))
-          .accessibilityValue("\(Int(filters.fitScoreMin ?? 0))")
-        }
-
-        VStack(alignment: .leading, spacing: 4) {
-          Text("Max")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-
-          Slider(
-            value: Binding(
-              get: { filters.fitScoreMax ?? 100 },
-              set: { filters.fitScoreMax = $0 }
-            ),
-            in: 0...100,
-            step: 5
-          )
-          .accessibilityLabel(String(localized: "Maximum fit score"))
-          .accessibilityValue("\(Int(filters.fitScoreMax ?? 100))")
-        }
-      }
-    }
-    .padding(.horizontal, 4)
   }
 
   // MARK: - Row 4: Distance Slider

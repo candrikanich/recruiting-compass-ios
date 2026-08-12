@@ -42,13 +42,8 @@ struct SchoolActiveFilterChips: View {
       result.append(("Favorites", { filters.isFavoritesOnly = false }))
     }
 
-    if filters.fitScoreMin != nil || filters.fitScoreMax != nil {
-      let minScore = Int(filters.fitScoreMin ?? 0)
-      let maxScore = Int(filters.fitScoreMax ?? 100)
-      result.append(("Fit: \(minScore)-\(maxScore)", {
-        filters.fitScoreMin = nil
-        filters.fitScoreMax = nil
-      }))
+    if let fit = filters.minPersonalFit {
+      result.append(("Fit: \(fit.label)", { filters.minPersonalFit = nil }))
     }
 
     if let maxDistance = filters.maxDistance {
@@ -65,7 +60,6 @@ struct SchoolActiveFilterChips: View {
       searchText: "Stanford",
       division: .d1,
       isFavoritesOnly: true,
-      fitScoreMin: 70,
       maxDistance: 200
     )),
     onClearAll: {}

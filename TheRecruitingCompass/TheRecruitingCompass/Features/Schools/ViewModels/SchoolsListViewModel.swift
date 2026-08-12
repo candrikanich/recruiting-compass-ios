@@ -43,6 +43,22 @@ final class SchoolsListViewModel {
   /// Cached home location from user_preferences (Settings → Home Location). Loaded in loadSchools().
   private var homeLocationFromPreferences: CLLocationCoordinate2D?
 
+  /// Cached athlete profile for Personal Fit signals. Loaded in loadSchools().
+  private var athleteProfile: PlayerDetails?
+
+  func overallFit(for school: School) -> OverallPersonalFit? {
+    PersonalFitCalculator.overall(PersonalFitCalculator.calculate(athlete: athleteProfile, school: school))
+  }
+
+  private func rank(_ strength: OverallPersonalFit.Strength?) -> Int {
+    switch strength {
+    case .strong: return 2
+    case .good: return 1
+    case .stretch: return 0
+    case nil: return -1
+    }
+  }
+
   let schoolsService: any SchoolsManaging
   private let familyManager: FamilyManager
   private let preferenceService: any PreferenceManaging
@@ -94,12 +110,12 @@ final class SchoolsListViewModel {
       result = result.filter { $0.isFavorite }
     }
 
-    if let minScore = filters.fitScoreMin {
-      result = result.filter { ($0.fitScore ?? 0) >= minScore }
-    }
-
-    if let maxScore = filters.fitScoreMax {
-      result = result.filter { ($0.fitScore ?? 100) <= maxScore }
+    if let minFit = filters.minPersonalFit {
+      let threshold = rank(minFit)
+      result = result.filter { school in
+        guard let fit = overallFit(for: school) else { return false }
+        return rank(fit.strength) >= threshold
+      }
     }
 
     if let maxDistance = filters.maxDistance, let home = homeLocation {
@@ -218,6 +234,10 @@ final class SchoolsListViewModel {
         logger.debug("Could not load home location from preferences: \(error.localizedDescription)")
         homeLocationFromPreferences = nil
       }
+
+      // Load athlete profile for Personal Fit signals.
+      athleteProfile = try? await preferenceService.fetchPreferences(
+        category: .player, userId: familyManager.selectedAthlete?.userId)
     } catch {
       logger.error("Failed to load schools: \(error.localizedDescription)")
       errorMessage = String(localized: "Failed to load schools. Please try again.")
@@ -378,8 +398,8 @@ final class SchoolsListViewModel {
     case .nameAZ:
       return schools.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
 
-    case .fitScore:
-      return schools.sorted { ($0.fitScore ?? 0) > ($1.fitScore ?? 0) }
+    case .personalFit:
+      return schools.sorted { rank(overallFit(for: $0)?.strength) > rank(overallFit(for: $1)?.strength) }
 
     case .distance:
       guard let home = homeLocation else { return schools }
@@ -398,18 +418,4 @@ final class SchoolsListViewModel {
     }
   }
 
-}
-
-extension SchoolFilters {
-  var activeFilterCount: Int {
-    var count = 0
-    if !searchText.isEmpty { count += 1 }
-    if division != nil { count += 1 }
-    if status != nil { count += 1 }
-    if state != nil { count += 1 }
-    if isFavoritesOnly { count += 1 }
-    if fitScoreMin != nil || fitScoreMax != nil { count += 1 }
-    if maxDistance != nil { count += 1 }
-    return count
-  }
 }

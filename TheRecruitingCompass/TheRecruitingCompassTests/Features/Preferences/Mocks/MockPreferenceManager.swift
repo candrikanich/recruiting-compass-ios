@@ -3,6 +3,8 @@ import Foundation
 
 final class MockPreferenceManager: PreferenceManaging, @unchecked Sendable {
   var fetchPreferencesResult: Result<Any?, Error> = .success(nil)
+  /// Per-category overrides — takes precedence over `fetchPreferencesResult` when set.
+  var fetchPreferencesResultByCategory: [PreferenceCategory: Result<Any?, Error>] = [:]
   var savePreferencesResult: Result<Any, Error>?
   var deletePreferencesCalled = false
 
@@ -13,7 +15,8 @@ final class MockPreferenceManager: PreferenceManaging, @unchecked Sendable {
   func fetchPreferences<T: Codable>(category: PreferenceCategory, userId: String?) async throws -> T? {
     fetchPreferencesCalls.append((category: category, userId: userId))
 
-    switch fetchPreferencesResult {
+    let result = fetchPreferencesResultByCategory[category] ?? fetchPreferencesResult
+    switch result {
     case .success(let value):
       return value as? T
     case .failure(let error):
@@ -43,6 +46,7 @@ final class MockPreferenceManager: PreferenceManaging, @unchecked Sendable {
 
   func reset() {
     fetchPreferencesResult = .success(nil)
+    fetchPreferencesResultByCategory.removeAll()
     savePreferencesResult = nil
     deletePreferencesCalled = false
     fetchPreferencesCalls.removeAll()

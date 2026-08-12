@@ -14,6 +14,7 @@ final class SchoolsListViewModelTests: XCTestCase {
   private var mockInteractionsService: MockInteractionsService!
   private var mockEventsService: MockEventsService!
   private var mockCache: InMemoryCache!
+  private var mockPreferenceService: MockPreferenceManager!
 
   override func setUp() async throws {
     mockService = MockSchoolsService()
@@ -21,6 +22,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     mockFamilyService = MockFamilyService()
     mockInteractionsService = MockInteractionsService()
     mockEventsService = MockEventsService()
+    mockPreferenceService = MockPreferenceManager()
     // Fresh instance per test — InMemoryCache.shared would leak state across tests.
     mockCache = InMemoryCache()
     mockFamilyManager = FamilyManager(
@@ -54,6 +56,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     sut = SchoolsListViewModel(
       schoolsService: mockService,
       familyManager: mockFamilyManager,
+      preferenceService: mockPreferenceService,
       authManager: mockAuthManager,
       interactionsService: mockInteractionsService,
       eventsService: mockEventsService,
@@ -70,6 +73,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     mockInteractionsService = nil
     mockEventsService = nil
     mockCache = nil
+    mockPreferenceService = nil
   }
 
   // MARK: - Test Helpers
@@ -86,10 +90,13 @@ final class SchoolsListViewModelTests: XCTestCase {
     status: String = "interested",
     notes: String? = nil,
     fitScore: Double? = 85,
-    latitude: Double? = 37.4275,
-    longitude: Double? = -122.1697
+    latitude: Double? = nil,
+    longitude: Double? = nil,
+    studentSize: Int? = nil,
+    tuitionOOS: Double? = nil
   ) -> School {
-    School(
+    let hasAcademicInfo = latitude != nil || longitude != nil || studentSize != nil || tuitionOOS != nil
+    return School(
       id: id,
       userId: "user-1",
       name: name,
@@ -111,7 +118,7 @@ final class SchoolsListViewModelTests: XCTestCase {
       pros: [],
       cons: [],
       offerDetails: nil,
-      academicInfo: latitude != nil && longitude != nil ? AcademicInfo(
+      academicInfo: hasAcademicInfo ? AcademicInfo(
         gpaRequirement: nil,
         satRequirement: nil,
         actRequirement: nil,
@@ -121,13 +128,13 @@ final class SchoolsListViewModelTests: XCTestCase {
         state: state,
         latitude: latitude,
         longitude: longitude,
-        studentSize: 17000,
+        studentSize: studentSize,
         baseballFacilityAddress: nil,
         mascot: nil,
         undergradSize: nil,
         carnegieSize: nil,
         tuitionInState: nil,
-        tuitionOutOfState: nil,
+        tuitionOutOfState: tuitionOOS,
         admissionRate: nil,
         distanceFromHome: nil
       ) : nil,
@@ -402,48 +409,6 @@ final class SchoolsListViewModelTests: XCTestCase {
     XCTAssertTrue(sut.filteredSchools.allSatisfy { $0.isFavorite })
   }
 
-  // MARK: - Filter Tests: Fit Score
-
-  func testFilter_FitScoreMin() {
-    sut.allSchools = [
-      makeSchool(id: "1", fitScore: 85),
-      makeSchool(id: "2", fitScore: 65),
-      makeSchool(id: "3", fitScore: 45)
-    ]
-
-    sut.filters.fitScoreMin = 70
-
-    XCTAssertEqual(sut.filteredSchools.count, 1)
-    XCTAssertEqual(sut.filteredSchools.first?.fitScore, 85)
-  }
-
-  func testFilter_FitScoreMax() {
-    sut.allSchools = [
-      makeSchool(id: "1", fitScore: 85),
-      makeSchool(id: "2", fitScore: 65),
-      makeSchool(id: "3", fitScore: 45)
-    ]
-
-    sut.filters.fitScoreMax = 70
-
-    XCTAssertEqual(sut.filteredSchools.count, 2)
-    XCTAssertTrue(sut.filteredSchools.allSatisfy { ($0.fitScore ?? 0) <= 70 })
-  }
-
-  func testFilter_FitScoreRange() {
-    sut.allSchools = [
-      makeSchool(id: "1", fitScore: 85),
-      makeSchool(id: "2", fitScore: 65),
-      makeSchool(id: "3", fitScore: 45)
-    ]
-
-    sut.filters.fitScoreMin = 50
-    sut.filters.fitScoreMax = 70
-
-    XCTAssertEqual(sut.filteredSchools.count, 1)
-    XCTAssertEqual(sut.filteredSchools.first?.fitScore, 65)
-  }
-
   // MARK: - Filter Tests: Distance
 
   func testFilter_Distance_WithHomeLocation() {
@@ -486,17 +451,35 @@ final class SchoolsListViewModelTests: XCTestCase {
     XCTAssertEqual(names, ["Harvard", "MIT", "Yale"])
   }
 
-  func testSort_FitScore() {
-    sut.allSchools = [
-      makeSchool(id: "1", fitScore: 65),
-      makeSchool(id: "2", fitScore: 85),
-      makeSchool(id: "3", fitScore: 45)
+  // MARK: - Filter/Sort Tests: Personal Fit
+
+  func testFilter_minimumStrength_excludesWeakerAndUnknown() async {
+    mockService.stubbedSchools = [
+      makeSchool(id: "strong", state: "OH", studentSize: 3000, tuitionOOS: 10000),
+      makeSchool(id: "stretch", state: "MI", studentSize: 40000, tuitionOOS: 60000),
+      makeSchool(id: "unknown") // no academic_info -> no signals
     ]
+    mockPreferenceService.fetchPreferencesResult = .success(
+      PlayerDetails.fixture(schoolState: "OH", campusSizePreference: "small", costSensitivity: "high"))
+    await sut.loadSchools()
 
-    sut.filters.sortBy = .fitScore
+    sut.filters.minPersonalFit = .strong
 
-    let scores = sut.filteredSchools.compactMap { $0.fitScore }
-    XCTAssertEqual(scores, [85, 65, 45])
+    XCTAssertEqual(sut.filteredSchools.map(\.id), ["strong"])
+  }
+
+  func testSort_personalFit_ordersStrongFirst() async {
+    mockService.stubbedSchools = [
+      makeSchool(id: "stretch", state: "MI", studentSize: 40000, tuitionOOS: 60000),
+      makeSchool(id: "strong", state: "OH", studentSize: 3000, tuitionOOS: 10000)
+    ]
+    mockPreferenceService.fetchPreferencesResult = .success(
+      PlayerDetails.fixture(schoolState: "OH", campusSizePreference: "small", costSensitivity: "high"))
+    await sut.loadSchools()
+
+    sut.filters.sortBy = .personalFit
+
+    XCTAssertEqual(sut.filteredSchools.first?.id, "strong")
   }
 
   func testSort_Distance() {
@@ -589,7 +572,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     sut.filters.status = .contacted
     sut.filters.state = "CA"
     sut.filters.isFavoritesOnly = true
-    sut.filters.fitScoreMin = 70
+    sut.filters.minPersonalFit = .strong
     sut.filters.maxDistance = 100
     let originalSort = sut.filters.sortBy
 
@@ -600,7 +583,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     XCTAssertNil(sut.filters.status)
     XCTAssertNil(sut.filters.state)
     XCTAssertFalse(sut.filters.isFavoritesOnly)
-    XCTAssertNil(sut.filters.fitScoreMin)
+    XCTAssertNil(sut.filters.minPersonalFit)
     XCTAssertNil(sut.filters.maxDistance)
     XCTAssertEqual(sut.filters.sortBy, originalSort)
   }
@@ -645,6 +628,9 @@ final class SchoolsListViewModelTests: XCTestCase {
 
     sut.filters.isFavoritesOnly = true
     XCTAssertEqual(sut.activeFilterCount, 3)
+
+    sut.filters.minPersonalFit = .strong
+    XCTAssertEqual(sut.activeFilterCount, 4)
   }
 
   func testShowWarningBanner() {
@@ -777,6 +763,39 @@ final class SchoolsListViewModelTests: XCTestCase {
     XCTAssertEqual(sut.allSchools.count, 2)
   }
 
+  // MARK: - Preference Loading Tests
+
+  func testLoadSchools_loadsHomeLocation_whenLocationCategoryReturnsCoordinates() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    var homeLocation = HomeLocation()
+    homeLocation.latitude = 37.3861
+    homeLocation.longitude = -122.0839
+    mockPreferenceService.fetchPreferencesResultByCategory[.location] = .success(homeLocation)
+
+    await sut.loadSchools()
+
+    XCTAssertNotNil(sut.homeLocation)
+    XCTAssertEqual(sut.homeLocation?.latitude ?? 0, 37.3861, accuracy: 0.0001)
+  }
+
+  func testLoadSchools_fetchesBothLocationAndPlayerCategories() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    var homeLocation = HomeLocation()
+    homeLocation.latitude = 37.3861
+    homeLocation.longitude = -122.0839
+    mockPreferenceService.fetchPreferencesResultByCategory[.location] = .success(homeLocation)
+    mockPreferenceService.fetchPreferencesResultByCategory[.player] = .success(
+      PlayerDetails.fixture(schoolState: "CA"))
+
+    await sut.loadSchools()
+
+    let categories = mockPreferenceService.fetchPreferencesCalls.map(\.category)
+    XCTAssertTrue(categories.contains(.location), "Expected .location category to be fetched")
+    XCTAssertTrue(categories.contains(.player), "Expected .player category to be fetched")
+    // Both stubs applied independently — home location populated despite player stub also being set.
+    XCTAssertNotNil(sut.homeLocation)
+  }
+
   // MARK: - Distance Caching Tests
 
   func testCachedDistance() {
@@ -788,5 +807,20 @@ final class SchoolsListViewModelTests: XCTestCase {
 
     XCTAssertNotNil(distance1)
     XCTAssertEqual(distance1, distance2)
+  }
+}
+
+private extension PlayerDetails {
+  /// Test-only fixture for the Personal Fit signals `SchoolsListViewModel` reads from the athlete profile.
+  static func fixture(
+    schoolState: String? = nil,
+    campusSizePreference: String? = nil,
+    costSensitivity: String? = nil
+  ) -> PlayerDetails {
+    var details = PlayerDetails()
+    details.schoolState = schoolState
+    details.campusSizePreference = campusSizePreference
+    details.costSensitivity = costSensitivity
+    return details
   }
 }

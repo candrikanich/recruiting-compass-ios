@@ -2,7 +2,7 @@ import Foundation
 
 enum SchoolSortOption: String, CaseIterable, Sendable {
   case nameAZ = "name_az"
-  case fitScore = "fit_score"
+  case personalFit = "personal_fit"
   case distance
   case lastContact = "last_contact"
 
@@ -10,8 +10,8 @@ enum SchoolSortOption: String, CaseIterable, Sendable {
     switch self {
     case .nameAZ:
       return "Name (A-Z)"
-    case .fitScore:
-      return "Fit Score"
+    case .personalFit:
+      return String(localized: "Personal Fit")
     case .distance:
       return "Distance"
     case .lastContact:
