@@ -52,10 +52,6 @@ struct CollegeDataSection: View {
             InfoRow(label: "Undergrad Size", value: size)
           }
 
-          if let carnegie = info.carnegieSize {
-            InfoRow(label: "Carnegie Size", value: carnegie)
-          }
-
           if let admissionRate = info.admissionRate {
             InfoRow(label: "Admission Rate", value: "\(Int(admissionRate * 100))%")
           }
