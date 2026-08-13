@@ -26,17 +26,20 @@ enum AcademicFitCalculator {
         label: test, value: nil, strength: .unknown,
         explanation: String(localized: "No \(test) data available for this school."))
     }
+    let sc = String(score)
+    let lo = String(p25)
+    let hi = String(p75)
     let strength: TestScoreStrength
     let phrase: String
     if score >= p75 {
       strength = .above
-      phrase = String(localized: "\(score) is above their 75th percentile (\(p25)–\(p75)).")
+      phrase = String(localized: "\(sc) is above their 75th percentile (\(lo)–\(hi)).")
     } else if score >= p25 {
       strength = .inRange
-      phrase = String(localized: "\(score) falls within their typical range (\(p25)–\(p75)).")
+      phrase = String(localized: "\(sc) falls within their typical range (\(lo)–\(hi)).")
     } else {
       strength = .below
-      phrase = String(localized: "\(score) is below their 25th percentile (\(p25)–\(p75)).")
+      phrase = String(localized: "\(sc) is below their 25th percentile (\(lo)–\(hi)).")
     }
     return AcademicFitSignal(label: test, value: nil, strength: strength, explanation: phrase)
   }
