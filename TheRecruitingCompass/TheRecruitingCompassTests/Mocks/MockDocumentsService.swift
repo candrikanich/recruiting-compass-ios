@@ -29,6 +29,13 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
   var lastUpdateDocumentIsCurrentId: String?
   var lastUpdateDocumentIsCurrentValue: Bool?
 
+  var shareDocumentCallCount = 0
+  var lastShareDocumentId: String?
+  var lastShareDocumentSchoolId: String?
+  var revokeShareCallCount = 0
+  var lastRevokeShareDocumentId: String?
+  var lastRevokeShareSchoolId: String?
+
   var stubbedDocuments: [Document] = []
   var stubbedUploadedDocument: Document?
   var stubbedDocument: Document?
@@ -115,12 +122,18 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
   }
 
   func shareDocument(documentId: String, schoolId: String) async throws {
+    shareDocumentCallCount += 1
+    lastShareDocumentId = documentId
+    lastShareDocumentSchoolId = schoolId
     if shouldThrowShareDocument {
       throw NSError(domain: "MockDocumentsService", code: 11, userInfo: [NSLocalizedDescriptionKey: "Mock share error"])
     }
   }
 
   func revokeShare(documentId: String, schoolId: String) async throws {
+    revokeShareCallCount += 1
+    lastRevokeShareDocumentId = documentId
+    lastRevokeShareSchoolId = schoolId
     if shouldThrowRevokeShare {
       throw NSError(domain: "MockDocumentsService", code: 12, userInfo: [NSLocalizedDescriptionKey: "Mock revoke error"])
     }

@@ -118,6 +118,10 @@ final class DocumentsListViewModel {
       result = result.filter { $0.isShared }
     }
 
+    if let scope = schoolScopeId {
+      result = result.filter { $0.sharedWithSchools.contains(scope) }
+    }
+
     filteredDocuments = result
 
     sortedDocuments = result.sorted { a, b in
@@ -170,6 +174,12 @@ final class DocumentsListViewModel {
   private let authManager: any AuthManaging
   private let familyManager: FamilyManager
 
+  /// When set, this view model is scoped to a single school's detail page:
+  /// the list shows only documents whose `sharedWithSchools` contains this id,
+  /// uploads auto-share to it (web parity — the array is the link, not `school_id`),
+  /// and removal unshares rather than deletes. Nil = the full Documents tab.
+  let schoolScopeId: String?
+
   /// The user whose documents we read/write. When a parent is viewing an
   /// athlete, documents belong to the athlete (mirrors web +
   /// OffersListViewModel); otherwise the logged-in user's own id.
@@ -189,13 +199,15 @@ final class DocumentsListViewModel {
     schoolsService: (any SchoolsManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
     familyManager: FamilyManager? = nil,
-    cache: (any CacheManaging)? = nil
+    cache: (any CacheManaging)? = nil,
+    schoolScopeId: String? = nil
   ) {
     self.documentsService = documentsService ?? DocumentsServiceImpl()
     self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.familyManager = familyManager ?? FamilyManager.shared
     self.cache = cache
+    self.schoolScopeId = schoolScopeId
     let sortRaw = UserDefaults.standard.string(forKey: documentsSortByKey)
     self._sortBy = DocumentSortOption(rawValue: sortRaw ?? "") ?? .newest
     let viewRaw = UserDefaults.standard.string(forKey: documentsViewModeKey)
@@ -331,8 +343,15 @@ final class DocumentsListViewModel {
       )
 
       uploadProgress = 1
-      documents.insert(doc, at: 0)
-      await invalidateDocumentsListCache()
+      if let scope = schoolScopeId {
+        // Web parity: upload general, then append school to shared_with_schools[].
+        try await documentsService.shareDocument(documentId: doc.id, schoolId: scope)
+        await invalidateDocumentsListCache()
+        await loadDocuments()
+      } else {
+        documents.insert(doc, at: 0)
+        await invalidateDocumentsListCache()
+      }
       dismissUploadForm()
     } catch {
       logger.error("Upload failed: \(error.localizedDescription)")
@@ -368,6 +387,21 @@ final class DocumentsListViewModel {
     } catch {
       logger.error("Delete failed: \(error.localizedDescription)")
       self.errorMessage = "Failed to delete document. Please try again."
+    }
+  }
+
+  /// Revokes this school's share (school-scoped view only). The document is
+  /// preserved in the library; only the link to `schoolScopeId` is removed.
+  func unshareFromScope(id: String) async {
+    guard let scope = schoolScopeId else { return }
+
+    do {
+      try await documentsService.revokeShare(documentId: id, schoolId: scope)
+      documents.removeAll { $0.id == id }
+      await invalidateDocumentsListCache()
+    } catch {
+      logger.error("Unshare failed: \(error.localizedDescription)")
+      self.errorMessage = "Failed to remove document. Please try again."
     }
   }
 

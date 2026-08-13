@@ -19,6 +19,20 @@ extension EnvironmentValues {
   }
 }
 
+/// Switches to the Coaches tab and pre-filters the list to a single school.
+/// Used by "Manage Coaches" / "See all" from a school detail page, avoiding a
+/// nested NavigationStack from pushing the tab-root CoachesListView inline.
+private struct FilterCoachesBySchoolKey: EnvironmentKey {
+  static let defaultValue: (String) -> Void = { _ in }
+}
+
+extension EnvironmentValues {
+  var filterCoachesBySchool: (String) -> Void {
+    get { self[FilterCoachesBySchoolKey.self] }
+    set { self[FilterCoachesBySchoolKey.self] = newValue }
+  }
+}
+
 /// Switches to the More tab and drills into a specific section (e.g. Timeline),
 /// which otherwise isn't reachable from other tabs.
 private struct OpenMoreSectionKey: EnvironmentKey {

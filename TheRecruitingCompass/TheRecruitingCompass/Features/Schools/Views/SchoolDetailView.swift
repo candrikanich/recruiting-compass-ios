@@ -7,6 +7,7 @@ struct SchoolDetailView: View {
   @Environment(FamilyManager.self) private var familyManager
   @Environment(\.dismiss) private var dismiss
   @Environment(\.openURL) private var openURL
+  @Environment(\.filterCoachesBySchool) private var filterCoachesBySchool
   @State private var navigationDestination: NavigationDestination?
   @State private var showHomeLocationSheet = false
   private let preferenceService: any PreferenceManaging = PreferenceServiceImpl(supabaseManager: .shared)
@@ -17,7 +18,6 @@ struct SchoolDetailView: View {
   }
 
   private enum NavigationDestination: Hashable {
-    case coaches(schoolId: String)
     case addInteraction(schoolId: String)
   }
 
@@ -148,7 +148,7 @@ struct SchoolDetailView: View {
             }
           },
           onManageCoaches: {
-            navigationDestination = .coaches(schoolId: schoolId)
+            filterCoachesBySchool(schoolId)
           }
         )
         .padding(.horizontal)
@@ -158,7 +158,7 @@ struct SchoolDetailView: View {
           coaches: viewModel.coaches,
           isLoading: viewModel.isLoadingCoaches,
           onSeeAll: {
-            navigationDestination = .coaches(schoolId: schoolId)
+            filterCoachesBySchool(schoolId)
           }
         )
         .padding(.horizontal)
@@ -194,7 +194,7 @@ struct SchoolDetailView: View {
         .padding(.horizontal)
 
         // 11. Documents
-        SchoolDocumentsSection()
+        SchoolDocumentsSection(schoolId: school.id)
           .padding(.horizontal)
 
         SchoolStatusHistorySection(history: viewModel.statusHistory)
@@ -238,8 +238,6 @@ struct SchoolDetailView: View {
     }
     .navigationDestination(item: $navigationDestination) { destination in
       switch destination {
-      case .coaches(let schoolId):
-        CoachesListView(prefilterSchoolId: schoolId)
       case .addInteraction:
         if let familyUnitId = familyManager.familyUnitId, let userId = viewModel.currentUserId {
           AddInteractionView(
