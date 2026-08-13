@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ActiveFilterChips: View {
   @Binding var filters: CoachFilters
+  var schoolName: ((String) -> String)?
 
   var body: some View {
     FilterChipContainer(
@@ -22,12 +23,18 @@ struct ActiveFilterChips: View {
         }
       }
 
+      if let schoolId = filters.schoolId {
+        FilterChip(label: schoolName?(schoolId) ?? String(localized: "School"), style: .outlined) {
+          filters.schoolId = nil
+        }
+      }
     }
   }
 
   private func clearAllFilters() {
     filters.role = nil
     filters.lastContactDays = nil
+    filters.schoolId = nil
   }
 }
 

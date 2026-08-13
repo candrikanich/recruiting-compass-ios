@@ -44,7 +44,7 @@ struct MainTabView: View {
       }
 
       Tab("Coaches", systemImage: "person.2", value: AppTab.coaches) {
-        CoachesListView(prefilterSchoolId: coachesPrefilterSchoolId, navigationPath: $coachesPath)
+        CoachesListView(prefilterSchoolId: $coachesPrefilterSchoolId, navigationPath: $coachesPath)
       }
 
       Tab("Interactions", systemImage: "bubble.left.and.bubble.right", value: AppTab.interactions) {

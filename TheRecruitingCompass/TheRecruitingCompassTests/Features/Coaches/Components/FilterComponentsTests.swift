@@ -92,6 +92,32 @@ final class FilterComponentsTests: XCTestCase {
     XCTAssertEqual(filters.activeFilterCount, 0)
   }
 
+  func testActiveFilterChips_showsSchoolChip() {
+    var filters = CoachFilters()
+    filters.schoolId = "school-123"
+    // A school-only prefilter (from "Manage Coaches") must register as active so
+    // a removable chip renders — otherwise the filter is stuck with no way to clear.
+    XCTAssertTrue(filters.hasActiveFilters)
+    XCTAssertEqual(filters.activeFilterCount, 1)
+  }
+
+  func testActiveFilterChips_removeSchoolChip() {
+    var filters = CoachFilters()
+    filters.schoolId = "school-123"
+    XCTAssertEqual(filters.activeFilterCount, 1)
+
+    filters.schoolId = nil
+    XCTAssertEqual(filters.activeFilterCount, 0)
+  }
+
+  func testActiveFilterChips_rendersSchoolChipWithNameResolver() {
+    let view = ActiveFilterChips(
+      filters: .constant(CoachFilters(schoolId: "school-123")),
+      schoolName: { _ in "Ashland University" }
+    )
+    XCTAssertNotNil(view)
+  }
+
   func testActiveFilterChips_clearAllButtonAccessibility() {
     let view = ActiveFilterChips(filters: .constant(CoachFilters(role: .head)))
     // Clear all button should have accessibility label and hint

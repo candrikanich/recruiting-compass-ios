@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CoachesListView: View {
-  let prefilterSchoolId: String?
+  private let prefilterSchoolId: Binding<String?>?
 
   @State private var viewModel = CoachesListViewModel()
   @State private var quickCommunicationContext: QuickCommunicationContext?
@@ -10,9 +10,18 @@ struct CoachesListView: View {
   @State private var navigationPath = NavigationPath()
   @Binding private var externalNavigationPath: NavigationPath
 
-  init(prefilterSchoolId: String? = nil, navigationPath: Binding<NavigationPath>? = nil) {
+  init(prefilterSchoolId: Binding<String?>? = nil, navigationPath: Binding<NavigationPath>? = nil) {
     self.prefilterSchoolId = prefilterSchoolId
     self._externalNavigationPath = navigationPath ?? .constant(NavigationPath())
+  }
+
+  /// Applies an incoming school prefilter to the view model, then clears the
+  /// source binding so the one-shot command can't get stuck (re-tapping "Manage
+  /// Coaches" for the same school re-fires because the value changes from nil).
+  private func consumePrefilterSchool() {
+    guard let schoolId = prefilterSchoolId?.wrappedValue else { return }
+    viewModel.filters.schoolId = schoolId
+    prefilterSchoolId?.wrappedValue = nil
   }
 
   var body: some View {
@@ -26,14 +35,10 @@ struct CoachesListView: View {
       .refreshable { await viewModel.loadCoaches() }
       .task {
         await viewModel.loadCoaches()
-        if let schoolId = prefilterSchoolId {
-          viewModel.filters.schoolId = schoolId
-        }
+        consumePrefilterSchool()
       }
-      .onChange(of: prefilterSchoolId) { _, newSchoolId in
-        if let newSchoolId {
-          viewModel.filters.schoolId = newSchoolId
-        }
+      .onChange(of: prefilterSchoolId?.wrappedValue) { _, _ in
+        consumePrefilterSchool()
       }
       .confirmationDialog(
         "Delete Coach",
@@ -144,7 +149,7 @@ struct CoachesListView: View {
         navigationPath: $navigationPath
       )
     case .filteredBySchool(let schoolId):
-      CoachesListView(prefilterSchoolId: schoolId)
+      CoachesListView(prefilterSchoolId: .constant(schoolId))
     }
   }
 
@@ -162,7 +167,7 @@ struct CoachesListView: View {
         filterSection
 
         if viewModel.filters.hasActiveFilters {
-          ActiveFilterChips(filters: $viewModel.filters)
+          ActiveFilterChips(filters: $viewModel.filters, schoolName: viewModel.schoolName(for:))
             .padding(.vertical, 8)
         }
 
