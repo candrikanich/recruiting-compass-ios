@@ -28,6 +28,7 @@ enum TestScoreStrength: String, Sendable, Equatable {
 
 struct AcademicFitSignal: Sendable, Equatable {
   let label: String
+  /// Reserved web-parity placeholder — not populated for academic signals; the display text lives in `explanation`.
   let value: String?
   let strength: TestScoreStrength
   let explanation: String

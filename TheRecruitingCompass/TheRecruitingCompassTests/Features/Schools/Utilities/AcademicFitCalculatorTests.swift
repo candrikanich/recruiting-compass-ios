@@ -59,6 +59,12 @@ final class AcademicFitCalculatorTests: XCTestCase {
     XCTAssertFalse(a.hasSchoolData)
   }
 
+  func test_noAthleteScoreAndNoSchoolRange_prefersProfilePrompt() {
+    let a = AcademicFitCalculator.calculate(athlete: athlete(sat: nil), school: school())
+    XCTAssertEqual(a.sat.strength, .unknown)
+    XCTAssertEqual(a.sat.explanation, "Add your SAT score to your profile.")
+  }
+
   func test_hasSchoolDataTrueWhenOnlyActRangePresent() {
     let a = AcademicFitCalculator.calculate(athlete: athlete(), school: school(act25: 24, act75: 30))
     XCTAssertTrue(a.hasSchoolData)

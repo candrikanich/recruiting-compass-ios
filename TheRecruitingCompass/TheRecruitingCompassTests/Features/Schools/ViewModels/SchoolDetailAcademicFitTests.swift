@@ -5,9 +5,12 @@ private final class MockEnricher: SchoolEnriching, @unchecked Sendable {
   var matches: [ScorecardMatch] = []
   var confirmInfo = AcademicInfo(sat25th: 1120, sat75th: 1330)
   var searchCalls = 0, confirmCalls = 0
+  var searchError: Error?
   func searchMatches(schoolId: String, schoolName: String,
                      accessToken: String?) async throws -> [ScorecardMatch] {
-    searchCalls += 1; return matches
+    searchCalls += 1
+    if let searchError { throw searchError }
+    return matches
   }
   func confirm(schoolId: String, scorecardId: Int,
                accessToken: String?) async throws -> AcademicInfo {
@@ -122,6 +125,14 @@ final class SchoolDetailAcademicFitTests: XCTestCase {
     let vm = await makeVM(enricher: mock)
     await vm.lookupAcademicData()
     XCTAssertNotNil(vm.enrichError)
+    XCTAssertFalse(vm.isEnriching)
+  }
+
+  func test_forbiddenErrorShowsAthletesOnlyMessage() async {
+    let mock = MockEnricher(); mock.searchError = SchoolEnrichmentError.forbidden
+    let vm = await makeVM(enricher: mock)
+    await vm.lookupAcademicData()
+    XCTAssertEqual(vm.enrichError, "Only athlete accounts can look up academic data.")
     XCTAssertFalse(vm.isEnriching)
   }
 
