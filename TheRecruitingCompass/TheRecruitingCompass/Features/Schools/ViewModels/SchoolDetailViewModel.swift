@@ -428,7 +428,7 @@ final class SchoolDetailViewModel {
       athleteProfile = try? await preferenceService.fetchPreferences(
         category: .player, userId: familyManager.selectedAthlete?.userId)
     }
-    guard let school else { personalFit = nil; return }
+    guard let school else { personalFit = nil; academicFit = nil; return }
     personalFit = PersonalFitCalculator.calculate(athlete: athleteProfile, school: school)
     academicFit = AcademicFitCalculator.calculate(athlete: athleteProfile, school: school)
   }

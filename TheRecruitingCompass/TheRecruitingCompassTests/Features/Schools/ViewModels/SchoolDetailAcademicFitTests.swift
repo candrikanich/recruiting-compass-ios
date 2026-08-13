@@ -124,4 +124,21 @@ final class SchoolDetailAcademicFitTests: XCTestCase {
     XCTAssertNotNil(vm.enrichError)
     XCTAssertFalse(vm.isEnriching)
   }
+
+  func test_loadPersonalFit_clearsBothFitsWhenSchoolIsNil() async {
+    let mockSchoolsService = MockSchoolsService()
+    let vm = SchoolDetailViewModel(
+      schoolId: "school-1",
+      schoolsService: mockSchoolsService,
+      authManager: MockAuthManager(),
+      enrichService: MockEnricher(),
+      cache: InMemoryCache()
+    )
+    // No loadSchool() call — vm.school stays nil.
+
+    await vm.loadPersonalFit()
+
+    XCTAssertNil(vm.personalFit)
+    XCTAssertNil(vm.academicFit)
+  }
 }
