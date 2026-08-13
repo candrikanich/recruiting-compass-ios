@@ -214,6 +214,45 @@ struct School: Codable, Identifiable, Sendable {
     )
   }
 
+  func with(academicInfo: AcademicInfo?) -> School {
+    School(
+      id: id,
+      userId: userId,
+      name: name,
+      location: location,
+      city: city,
+      state: state,
+      division: division,
+      conference: conference,
+      ranking: ranking,
+      isFavorite: isFavorite,
+      website: website,
+      faviconUrl: faviconUrl,
+      twitterHandle: twitterHandle,
+      instagramHandle: instagramHandle,
+      phone: phone,
+      ncaaId: ncaaId,
+      status: status,
+      statusChangedAt: statusChangedAt,
+      notes: notes,
+      pros: pros,
+      cons: cons,
+      offerDetails: offerDetails,
+      academicInfo: academicInfo,
+      amenities: amenities,
+      coachingPhilosophy: coachingPhilosophy,
+      coachingStyle: coachingStyle,
+      recruitingApproach: recruitingApproach,
+      communicationStyle: communicationStyle,
+      successMetrics: successMetrics,
+      familyUnitId: familyUnitId,
+      createdBy: createdBy,
+      updatedBy: updatedBy,
+      createdAt: createdAt,
+      updatedAt: updatedAt
+    )
+  }
+
   func with(status: String) -> School {
     School(
       id: id,

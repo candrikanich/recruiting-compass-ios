@@ -84,6 +84,16 @@ struct SchoolDetailView: View {
         HomeLocationView(preferenceService: preferenceService)
       }
     }
+    .sheet(isPresented: Binding(
+      get: { !viewModel.enrichMatches.isEmpty },
+      set: { if !$0 { viewModel.enrichMatches = [] } }
+    )) {
+      SchoolMatchChooserSheet(
+        matches: viewModel.enrichMatches,
+        onSelect: { match in Task { await viewModel.confirmEnrich(match) } },
+        onCancel: { viewModel.enrichMatches = [] }
+      )
+    }
   }
 
   @ViewBuilder
@@ -129,11 +139,14 @@ struct SchoolDetailView: View {
         )
         .padding(.horizontal)
 
-        // 5. Personal Fit analysis
-        if let analysis = viewModel.personalFit {
-          PersonalFitCard(analysis: analysis)
-            .padding(.horizontal)
-        }
+        // 5. School Fit (Personal + Academic)
+        SchoolFitSection(
+          personalFit: viewModel.personalFit,
+          academicFit: viewModel.academicFit,
+          isEnriching: viewModel.isEnriching,
+          enrichError: viewModel.enrichError,
+          onLookup: { Task { await viewModel.lookupAcademicData() } }
+        )
 
         // 6. Quick actions
         SchoolQuickActions(
