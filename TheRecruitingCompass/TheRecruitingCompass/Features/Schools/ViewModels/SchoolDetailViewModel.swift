@@ -51,6 +51,12 @@ final class SchoolDetailViewModel {
   private(set) var personalFit: PersonalFitAnalysis?
   private var athleteProfile: PlayerDetails?
 
+  // MARK: - Academic Fit
+  var academicFit: AcademicFitAnalysis?
+  var isEnriching = false
+  var enrichMatches: [ScorecardMatch] = []
+  var enrichError: String?
+
   // MARK: - College Scorecard
   var isLookingUpCollegeData = false
   var collegeDataError: String?
@@ -80,6 +86,7 @@ final class SchoolDetailViewModel {
   private let collegeService: any CollegeScorecardManaging
   private let coachesService: any CoachesManaging
   private let preferenceService: any PreferenceManaging
+  private let enrichService: any SchoolEnriching
   private let cache: (any CacheManaging)?
 
   /// TTL for cached school and status history (seconds).
@@ -93,6 +100,7 @@ final class SchoolDetailViewModel {
     collegeService: (any CollegeScorecardManaging)? = nil,
     coachesService: (any CoachesManaging)? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
+    enrichService: (any SchoolEnriching)? = nil,
     cache: (any CacheManaging)? = nil
   ) {
     self.schoolId = schoolId
@@ -103,6 +111,7 @@ final class SchoolDetailViewModel {
     self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: SupabaseManager.shared)
     self.preferenceService = preferenceService
       ?? PreferenceServiceImpl(supabaseManager: SupabaseManager.shared)
+    self.enrichService = enrichService ?? SchoolEnrichmentServiceImpl()
     self.cache = cache
   }
 
@@ -421,6 +430,54 @@ final class SchoolDetailViewModel {
     }
     guard let school else { personalFit = nil; return }
     personalFit = PersonalFitCalculator.calculate(athlete: athleteProfile, school: school)
+    academicFit = AcademicFitCalculator.calculate(athlete: athleteProfile, school: school)
+  }
+
+  // MARK: - Academic Data Lookup (enrich)
+
+  private var accessToken: String? { authManager.session?.accessToken }
+
+  func lookupAcademicData() async {
+    guard let schoolName = school?.name else { return }
+    isEnriching = true
+    enrichError = nil
+    do {
+      let matches = try await enrichService.searchMatches(
+        schoolId: schoolId, schoolName: schoolName, accessToken: accessToken)
+      if matches.isEmpty {
+        enrichError = String(localized: "No matching schools found in College Scorecard.")
+        isEnriching = false
+      } else if matches.count == 1 {
+        await confirmEnrich(matches[0])
+      } else {
+        enrichMatches = matches
+        isEnriching = false
+      }
+    } catch SchoolEnrichmentError.forbidden {
+      enrichError = String(localized: "Only athlete accounts can look up academic data.")
+      isEnriching = false
+    } catch {
+      enrichError = String(localized: "Failed to look up academic data. Please try again.")
+      logger.error("Enrich search failed: \(error.localizedDescription)")
+      isEnriching = false
+    }
+  }
+
+  func confirmEnrich(_ match: ScorecardMatch) async {
+    isEnriching = true
+    enrichError = nil
+    enrichMatches = []
+    do {
+      let info = try await enrichService.confirm(
+        schoolId: schoolId, scorecardId: match.scorecardId, accessToken: accessToken)
+      if let school { self.school = school.with(academicInfo: info) }
+      await loadPersonalFit()   // recomputes personalFit AND academicFit
+      await invalidateSchoolCache()
+    } catch {
+      enrichError = String(localized: "Failed to save academic data. Please try again.")
+      logger.error("Enrich confirm failed: \(error.localizedDescription)")
+    }
+    isEnriching = false
   }
 
   // MARK: - College Scorecard Lookup
