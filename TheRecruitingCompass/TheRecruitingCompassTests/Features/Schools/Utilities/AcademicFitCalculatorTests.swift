@@ -27,6 +27,7 @@ final class AcademicFitCalculatorTests: XCTestCase {
     let a = AcademicFitCalculator.calculate(athlete: athlete(sat: 1400),
                                             school: school(sat25: 1120, sat75: 1330))
     XCTAssertEqual(a.sat.strength, .above)
+    XCTAssertEqual(a.sat.explanation, "1400 is above their 75th percentile (1120–1330).")
     XCTAssertTrue(a.hasSchoolData)
   }
 
@@ -34,12 +35,14 @@ final class AcademicFitCalculatorTests: XCTestCase {
     let a = AcademicFitCalculator.calculate(athlete: athlete(sat: 1200),
                                             school: school(sat25: 1120, sat75: 1330))
     XCTAssertEqual(a.sat.strength, .inRange)
+    XCTAssertEqual(a.sat.explanation, "1200 falls within their typical range (1120–1330).")
   }
 
   func test_satBelowRange() {
     let a = AcademicFitCalculator.calculate(athlete: athlete(sat: 1000),
                                             school: school(sat25: 1120, sat75: 1330))
     XCTAssertEqual(a.sat.strength, .below)
+    XCTAssertEqual(a.sat.explanation, "1000 is below their 25th percentile (1120–1330).")
   }
 
   func test_noAthleteScoreIsUnknownWithProfilePrompt() {
@@ -59,6 +62,18 @@ final class AcademicFitCalculatorTests: XCTestCase {
   func test_hasSchoolDataTrueWhenOnlyActRangePresent() {
     let a = AcademicFitCalculator.calculate(athlete: athlete(), school: school(act25: 24, act75: 30))
     XCTAssertTrue(a.hasSchoolData)
+  }
+
+  func test_satExactlyAt75thIsAbove() {
+    let a = AcademicFitCalculator.calculate(athlete: athlete(sat: 1330),
+                                            school: school(sat25: 1120, sat75: 1330))
+    XCTAssertEqual(a.sat.strength, .above)
+  }
+
+  func test_satExactlyAt25thIsInRange() {
+    let a = AcademicFitCalculator.calculate(athlete: athlete(sat: 1120),
+                                            school: school(sat25: 1120, sat75: 1330))
+    XCTAssertEqual(a.sat.strength, .inRange)
   }
 
   func test_admissionRatePassedThrough() {
