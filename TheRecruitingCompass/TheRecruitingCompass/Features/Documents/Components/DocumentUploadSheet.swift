@@ -32,13 +32,15 @@ struct DocumentUploadSheet: View {
         }
 
         Section {
-          Picker("School", selection: $viewModel.uploadSchoolId) {
-            Text("General / Not School-Specific").tag(nil as String?)
-            ForEach(viewModel.schools, id: \.id) { school in
-              Text(school.name).tag(school.id as String?)
+          if viewModel.schoolScopeId == nil {
+            Picker("School", selection: $viewModel.uploadSchoolId) {
+              Text("General / Not School-Specific").tag(nil as String?)
+              ForEach(viewModel.schools, id: \.id) { school in
+                Text(school.name).tag(school.id as String?)
+              }
             }
+            .accessibilityLabel(String(localized: "School"))
           }
-          .accessibilityLabel(String(localized: "School"))
 
           Stepper("Version: \(viewModel.uploadVersion)", value: $viewModel.uploadVersion, in: 1...100)
             .accessibilityLabel(String(localized: "Version number"))

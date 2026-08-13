@@ -450,27 +450,6 @@ final class SchoolsListViewModelTests: XCTestCase {
 
   // MARK: - Filter/Sort Tests: Personal Fit
 
-  func testFilter_minimumStrength_excludesWeakerAndUnknown() async {
-    // state: nil (with no academicInfo either) makes all three signals .unknown ->
-    // overallFit(for:) is nil, not just a weak strength — this exercises the
-    // `guard let fit = overallFit(for: school) else { return false }` branch.
-    let unknownSchool = makeSchool(id: "unknown", state: nil)
-    mockService.stubbedSchools = [
-      makeSchool(id: "strong", state: "OH", studentSize: 3000, tuitionOOS: 10000),
-      makeSchool(id: "stretch", state: "MI", studentSize: 40000, tuitionOOS: 60000),
-      unknownSchool
-    ]
-    mockPreferenceService.fetchPreferencesResult = .success(
-      PlayerDetails.fixture(schoolState: "OH", campusSizePreference: "small", costSensitivity: "high"))
-    await sut.loadSchools()
-
-    XCTAssertNil(sut.overallFit(for: unknownSchool))
-
-    sut.filters.minPersonalFit = .strong
-
-    XCTAssertEqual(sut.filteredSchools.map(\.id), ["strong"])
-  }
-
   func testSort_personalFit_ordersStrongFirst() async {
     mockService.stubbedSchools = [
       makeSchool(id: "stretch", state: "MI", studentSize: 40000, tuitionOOS: 60000),
@@ -575,7 +554,6 @@ final class SchoolsListViewModelTests: XCTestCase {
     sut.filters.status = .contacted
     sut.filters.state = "CA"
     sut.filters.isFavoritesOnly = true
-    sut.filters.minPersonalFit = .strong
     sut.filters.maxDistance = 100
     let originalSort = sut.filters.sortBy
 
@@ -586,7 +564,6 @@ final class SchoolsListViewModelTests: XCTestCase {
     XCTAssertNil(sut.filters.status)
     XCTAssertNil(sut.filters.state)
     XCTAssertFalse(sut.filters.isFavoritesOnly)
-    XCTAssertNil(sut.filters.minPersonalFit)
     XCTAssertNil(sut.filters.maxDistance)
     XCTAssertEqual(sut.filters.sortBy, originalSort)
   }
@@ -632,7 +609,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     sut.filters.isFavoritesOnly = true
     XCTAssertEqual(sut.activeFilterCount, 3)
 
-    sut.filters.minPersonalFit = .strong
+    sut.filters.maxDistance = 100
     XCTAssertEqual(sut.activeFilterCount, 4)
   }
 

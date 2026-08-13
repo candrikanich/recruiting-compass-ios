@@ -422,4 +422,95 @@ final class DocumentsListViewModelTests: XCTestCase {
 
     XCTAssertEqual(sut.uploadError, "Please enter a title.")
   }
+
+  // MARK: - School Scope (school detail page)
+
+  private func makeScopedSut(schoolId: String) -> DocumentsListViewModel {
+    DocumentsListViewModel(
+      documentsService: mockDocuments,
+      schoolsService: mockSchools,
+      authManager: mockAuth,
+      familyManager: mockFamilyManager,
+      cache: mockCache,
+      schoolScopeId: schoolId
+    )
+  }
+
+  private func makeTempVideoFile() -> URL {
+    let url = FileManager.default.temporaryDirectory
+      .appendingPathComponent("scope-\(UUID().uuidString).mp4")
+    try? Data(count: 1).write(to: url)
+    return url
+  }
+
+  func testScope_filtersListToDocumentsSharedWithScopeSchool() async {
+    let scoped = makeScopedSut(schoolId: "school-A")
+    mockDocuments.stubbedDocuments = [
+      .mock(id: "shared", sharedWithSchools: ["school-A"]),
+      .mock(id: "other", sharedWithSchools: ["school-B"]),
+      .mock(id: "unshared", sharedWithSchools: [])
+    ]
+
+    await scoped.loadDocuments()
+
+    XCTAssertEqual(scoped.sortedDocuments.map(\.id), ["shared"])
+    // Underlying list is unfiltered; only the derived views are scoped.
+    XCTAssertEqual(scoped.documents.count, 3)
+  }
+
+  func testUploadDocument_inScope_sharesUploadedDocToScopeSchool() async {
+    let scoped = makeScopedSut(schoolId: "school-9")
+    let tempFile = makeTempVideoFile()
+    defer { try? FileManager.default.removeItem(at: tempFile) }
+    mockDocuments.stubbedUploadedDocument = .mock(id: "up-1", sharedWithSchools: [])
+    scoped.uploadType = .highlightVideo
+    scoped.uploadTitle = "Highlights"
+    scoped.setSelectedFile(tempFile)
+
+    await scoped.uploadDocument()
+
+    XCTAssertNil(scoped.uploadError)
+    XCTAssertEqual(mockDocuments.uploadDocumentCallCount, 1)
+    XCTAssertEqual(mockDocuments.shareDocumentCallCount, 1)
+    XCTAssertEqual(mockDocuments.lastShareDocumentId, "up-1")
+    XCTAssertEqual(mockDocuments.lastShareDocumentSchoolId, "school-9")
+  }
+
+  func testUploadDocument_noScope_doesNotShare() async {
+    let tempFile = makeTempVideoFile()
+    defer { try? FileManager.default.removeItem(at: tempFile) }
+    mockDocuments.stubbedUploadedDocument = .mock(id: "up-2")
+    sut.uploadType = .highlightVideo
+    sut.uploadTitle = "General Clip"
+    sut.setSelectedFile(tempFile)
+
+    await sut.uploadDocument()
+
+    XCTAssertNil(sut.uploadError)
+    XCTAssertEqual(mockDocuments.shareDocumentCallCount, 0)
+    XCTAssertTrue(sut.documents.contains { $0.id == "up-2" })
+  }
+
+  func testUnshareFromScope_revokesShareAndRemovesLocally() async {
+    let scoped = makeScopedSut(schoolId: "school-A")
+    mockDocuments.stubbedDocuments = [.mock(id: "d1", sharedWithSchools: ["school-A"])]
+    await scoped.loadDocuments()
+
+    await scoped.unshareFromScope(id: "d1")
+
+    XCTAssertEqual(mockDocuments.revokeShareCallCount, 1)
+    XCTAssertEqual(mockDocuments.lastRevokeShareDocumentId, "d1")
+    XCTAssertEqual(mockDocuments.lastRevokeShareSchoolId, "school-A")
+    XCTAssertFalse(scoped.documents.contains { $0.id == "d1" })
+  }
+
+  func testUnshareFromScope_whenNotScoped_isNoOp() async {
+    mockDocuments.stubbedDocuments = [.mock(id: "d1", sharedWithSchools: ["s"])]
+    await sut.loadDocuments()
+
+    await sut.unshareFromScope(id: "d1")
+
+    XCTAssertEqual(mockDocuments.revokeShareCallCount, 0)
+    XCTAssertTrue(sut.documents.contains { $0.id == "d1" })
+  }
 }

@@ -194,7 +194,7 @@ struct SchoolDetailView: View {
         .padding(.horizontal)
 
         // 11. Documents
-        SchoolDocumentsSection()
+        SchoolDocumentsSection(schoolId: school.id)
           .padding(.horizontal)
 
         SchoolStatusHistorySection(history: viewModel.statusHistory)
