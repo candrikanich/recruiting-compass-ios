@@ -30,6 +30,11 @@ struct CoachesListView: View {
           viewModel.filters.schoolId = schoolId
         }
       }
+      .onChange(of: prefilterSchoolId) { _, newSchoolId in
+        if let newSchoolId {
+          viewModel.filters.schoolId = newSchoolId
+        }
+      }
       .confirmationDialog(
         "Delete Coach",
         isPresented: $viewModel.showDeleteConfirmation,
