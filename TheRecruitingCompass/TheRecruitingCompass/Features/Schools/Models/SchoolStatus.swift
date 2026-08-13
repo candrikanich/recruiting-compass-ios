@@ -1,6 +1,7 @@
 import Foundation
 
 enum SchoolStatus: String, Codable, CaseIterable, Sendable {
+  case researching
   case interested
   case contacted
   case campInvite = "camp_invite"
@@ -20,6 +21,8 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
 
   var displayName: String {
     switch self {
+    case .researching:
+      return String(localized: "Researching")
     case .interested:
       return String(localized: "Interested")
     case .contacted:
@@ -45,6 +48,7 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
 
   var badgeColor: BadgeColor {
     switch self {
+    case .researching:            return .slate
     case .interested:             return .slate
     case .contacted:              return .blue
     case .campInvite:             return .purple
