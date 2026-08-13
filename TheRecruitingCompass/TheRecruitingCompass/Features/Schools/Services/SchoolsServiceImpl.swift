@@ -277,6 +277,7 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
 
     let payload = BasicInfoUpdatePayload(
       website: nilIfEmpty(info.website),
+      athletics_url: nilIfEmpty(info.athleticsUrl),
       twitter_handle: nilIfEmpty(info.twitterHandle),
       instagram_handle: nilIfEmpty(info.instagramHandle),
       phone: nilIfEmpty(info.phone),
@@ -459,6 +460,7 @@ private struct SchoolsInsertPayload: Encodable {
 /// stores it correctly and the returned School decodes.
 private struct BasicInfoUpdatePayload: Encodable {
   let website: String?
+  let athletics_url: String?
   let twitter_handle: String?
   let instagram_handle: String?
   let phone: String?
@@ -466,6 +468,7 @@ private struct BasicInfoUpdatePayload: Encodable {
 
   enum CodingKeys: String, CodingKey {
     case website
+    case athletics_url
     case twitter_handle
     case instagram_handle
     case phone
@@ -475,6 +478,7 @@ private struct BasicInfoUpdatePayload: Encodable {
   func encode(to encoder: Encoder) throws {
     var c = encoder.container(keyedBy: CodingKeys.self)
     try c.encodeIfPresent(website, forKey: .website)
+    try c.encodeIfPresent(athletics_url, forKey: .athletics_url)
     try c.encodeIfPresent(twitter_handle, forKey: .twitter_handle)
     try c.encodeIfPresent(instagram_handle, forKey: .instagram_handle)
     try c.encodeIfPresent(phone, forKey: .phone)

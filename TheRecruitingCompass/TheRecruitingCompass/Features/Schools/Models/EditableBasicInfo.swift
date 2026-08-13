@@ -7,6 +7,7 @@ struct EditableBasicInfo {
   var address: String = ""
   var phone: String = ""
   var website: String = ""
+  var athleticsUrl: String = ""
   var twitterHandle: String = ""
   var instagramHandle: String = ""
 
@@ -18,6 +19,7 @@ struct EditableBasicInfo {
       address: school.academicInfo?.address ?? "",
       phone: school.phone ?? "",
       website: school.website ?? "",
+      athleticsUrl: school.athleticsUrl ?? "",
       twitterHandle: school.twitterHandle ?? "",
       instagramHandle: school.instagramHandle ?? ""
     )

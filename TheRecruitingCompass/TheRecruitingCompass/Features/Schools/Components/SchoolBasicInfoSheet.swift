@@ -24,6 +24,11 @@ struct SchoolBasicInfoSheet: View {
             .keyboardType(.URL)
             .autocapitalization(.none)
 
+          TextField("Athletics Website", text: $info.athleticsUrl)
+            .textContentType(.URL)
+            .keyboardType(.URL)
+            .autocapitalization(.none)
+
           TextField("Twitter Handle", text: $info.twitterHandle)
             .autocapitalization(.none)
 
@@ -69,6 +74,7 @@ struct SchoolBasicInfoSheet: View {
       address: "123 University Ave",
       phone: "(512) 471-3333",
       website: "utexas.edu",
+      athleticsUrl: "texassports.com",
       twitterHandle: "@TexasBaseball",
       instagramHandle: "@texasbaseball"
     )),

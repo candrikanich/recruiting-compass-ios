@@ -15,6 +15,7 @@ struct SchoolBasicInfoDisplaySection: View {
     isPresent(school.academicInfo?.address)
       || isPresent(school.phone)
       || isPresent(school.website)
+      || isPresent(school.athleticsUrl)
       || isPresent(school.twitterHandle)
       || isPresent(school.instagramHandle)
   }
@@ -122,6 +123,37 @@ struct SchoolBasicInfoDisplaySection: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(String(localized: "Website: \(website). Tap to open in browser."))
+      }
+
+      if let athleticsUrl = school.athleticsUrl, !athleticsUrl.isEmpty {
+        let urlString = (athleticsUrl.hasPrefix("http://") || athleticsUrl.hasPrefix("https://"))
+          ? athleticsUrl
+          : "https://\(athleticsUrl)"
+        HStack(alignment: .top) {
+          Text("Athletics:")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+          Spacer()
+          if let url = URL(string: urlString) {
+            Link(destination: url) {
+              HStack(spacing: 4) {
+                Text(athleticsUrl)
+                  .font(.subheadline)
+                  .multilineTextAlignment(.trailing)
+                  .lineLimit(2)
+                  .truncationMode(.middle)
+                Image(systemName: "safari")
+                  .font(.subheadline)
+              }
+            }
+          } else {
+            Text(athleticsUrl)
+              .font(.subheadline)
+              .multilineTextAlignment(.trailing)
+          }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "Athletics website: \(athleticsUrl). Tap to open in browser."))
       }
     }
     .padding()

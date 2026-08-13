@@ -17,6 +17,7 @@ struct School: Codable, Identifiable, Sendable {
   let twitterHandle: String?
   let instagramHandle: String?
   let phone: String?
+  let athleticsUrl: String?
   let ncaaId: String?
   let status: String
   let statusChangedAt: String?
@@ -55,6 +56,7 @@ struct School: Codable, Identifiable, Sendable {
     twitterHandle: String?,
     instagramHandle: String?,
     phone: String? = nil,
+    athleticsUrl: String? = nil,
     ncaaId: String?,
     status: String,
     statusChangedAt: String?,
@@ -90,6 +92,7 @@ struct School: Codable, Identifiable, Sendable {
     self.twitterHandle = twitterHandle
     self.instagramHandle = instagramHandle
     self.phone = phone
+    self.athleticsUrl = athleticsUrl
     self.ncaaId = ncaaId
     self.status = status
     self.statusChangedAt = statusChangedAt
@@ -121,6 +124,7 @@ struct School: Codable, Identifiable, Sendable {
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
     case phone
+    case athleticsUrl = "athletics_url"
     case ncaaId = "ncaa_id"
     case status
     case statusChangedAt = "status_changed_at"
@@ -192,6 +196,7 @@ struct School: Codable, Identifiable, Sendable {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       phone: phone,
+      athleticsUrl: athleticsUrl,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -231,6 +236,7 @@ struct School: Codable, Identifiable, Sendable {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       phone: phone,
+      athleticsUrl: athleticsUrl,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -270,6 +276,7 @@ struct School: Codable, Identifiable, Sendable {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       phone: phone,
+      athleticsUrl: athleticsUrl,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -309,6 +316,7 @@ struct School: Codable, Identifiable, Sendable {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       phone: phone,
+      athleticsUrl: athleticsUrl,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -348,6 +356,7 @@ struct School: Codable, Identifiable, Sendable {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       phone: phone,
+      athleticsUrl: athleticsUrl,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -387,6 +396,7 @@ struct School: Codable, Identifiable, Sendable {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       phone: phone,
+      athleticsUrl: athleticsUrl,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -426,6 +436,7 @@ struct School: Codable, Identifiable, Sendable {
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
       phone: phone,
+      athleticsUrl: athleticsUrl,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -469,6 +480,7 @@ extension School {
     twitterHandle = try container.decodeIfPresent(String.self, forKey: .twitterHandle)
     instagramHandle = try container.decodeIfPresent(String.self, forKey: .instagramHandle)
     phone = try container.decodeIfPresent(String.self, forKey: .phone)
+    athleticsUrl = try container.decodeIfPresent(String.self, forKey: .athleticsUrl)
     ncaaId = try container.decodeIfPresent(String.self, forKey: .ncaaId)
     status = try container.decode(String.self, forKey: .status)
     statusChangedAt = try container.decodeIfPresent(String.self, forKey: .statusChangedAt)
