@@ -42,11 +42,6 @@ struct SchoolActiveFilterChips: View {
       result.append(("Favorites", { filters.isFavoritesOnly = false }))
     }
 
-    if let minFit = filters.minPersonalFit {
-      let text = minFit == .strong ? "Fit: Strong" : "Fit: Good+"
-      result.append((text, { filters.minPersonalFit = nil }))
-    }
-
     if let maxDistance = filters.maxDistance {
       result.append(("Within \(Int(maxDistance))mi", { filters.maxDistance = nil }))
     }

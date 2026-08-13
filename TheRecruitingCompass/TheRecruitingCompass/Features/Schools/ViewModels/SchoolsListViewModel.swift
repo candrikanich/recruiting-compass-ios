@@ -110,14 +110,6 @@ final class SchoolsListViewModel {
       result = result.filter { $0.isFavorite }
     }
 
-    if let minFit = filters.minPersonalFit {
-      let threshold = rank(minFit)
-      result = result.filter { school in
-        guard let fit = overallFit(for: school) else { return false }
-        return rank(fit.strength) >= threshold
-      }
-    }
-
     if let maxDistance = filters.maxDistance, let home = homeLocation {
       result = result.filter { school in
         guard let distance = cachedDistance(for: school, from: home) else { return false }

@@ -6,7 +6,6 @@ struct SchoolFilters: Sendable {
   var status: SchoolStatus?
   var state: String?
   var isFavoritesOnly: Bool = false
-  var minPersonalFit: OverallPersonalFit.Strength?
   var maxDistance: Double?
   var sortBy: SchoolSortOption = .nameAZ
 
@@ -17,7 +16,6 @@ struct SchoolFilters: Sendable {
     if status != nil { count += 1 }
     if state != nil { count += 1 }
     if isFavoritesOnly { count += 1 }
-    if minPersonalFit != nil { count += 1 }
     if maxDistance != nil { count += 1 }
     return count
   }
