@@ -36,9 +36,19 @@ final class QuickCommunicationViewModel {
   private let contextService: any TemplateContextProviding
   private let schoolsService: any SchoolsManaging
   private let contactWindowService: any ContactWindowServicing
+  private let athleteMessagesService: any AthleteMessagesServicing
   private var loggedBy: String?
   private var familyUnitId: String?
   private var athleteUserId: String?
+  private var accessToken: String?
+
+  // MARK: - Phase 3 send guardrails
+
+  enum GuardrailChannel { case email, text }
+  /// Pre-send guardrail message (block reason or two-step warning); nil when clear.
+  var sendWarning: String?
+  /// Armed after a two-step warning so the next send tap proceeds.
+  private var sendArmed = false
 
   // MARK: - Phase 2a resolution engine
 
@@ -67,10 +77,58 @@ final class QuickCommunicationViewModel {
   /// Supply the signed-in user + family context resolved from the environment at the
   /// presentation site (the sheet call sites don't inject the ViewModel). Safe to call
   /// before any send; no-ops nothing already set by `init` for tests.
-  func configureContext(loggedBy: String?, familyUnitId: String?, athleteUserId: String? = nil) {
+  func configureContext(loggedBy: String?, familyUnitId: String?,
+                        athleteUserId: String? = nil, accessToken: String? = nil) {
     self.loggedBy = loggedBy
     self.familyUnitId = familyUnitId
     self.athleteUserId = athleteUserId
+    self.accessToken = accessToken
+  }
+
+  /// Pre-send guardrails (1:1 with web `passesSendGuardrails`). Returns true when the send may
+  /// proceed. Fails OPEN — no athlete or any lookup error never blocks a legit send.
+  func evaluateGuardrails(_ channel: GuardrailChannel) async -> Bool {
+    guard let athleteUserId else { return true }
+    guard let check = try? await athleteMessagesService.checkSend(
+      SendCheckInput(athleteUserId: athleteUserId, schoolId: coach.schoolId,
+                     programNote: authoredValues["programNote"]),
+      accessToken: accessToken) else {
+      sendWarning = nil
+      return true
+    }
+    if check.programNoteReused {
+      sendWarning = String(localized: """
+        Your reason for reaching out was already sent to another program. Coaches notice \
+        reused messages — make it specific to this program before sending.
+        """)
+      return false
+    }
+    if !sendArmed && (check.recentContact || check.messageCountToSchool >= 2) {
+      sendWarning = check.recentContact
+        ? String(localized: """
+          You last messaged this program \(check.daysSinceLastContact ?? 0) day(s) ago. \
+          Tap Send again to send anyway.
+          """)
+        : String(localized: """
+          You've already sent \(check.messageCountToSchool) messages here — consider adding \
+          more programs. Tap Send again to send anyway.
+          """)
+      sendArmed = true
+      return false
+    }
+    sendWarning = nil
+    return true
+  }
+
+  /// Best-effort API send log on a confirmed send (in addition to the interaction log).
+  func logMessageSend(_ channel: GuardrailChannel) async {
+    guard let athleteUserId else { return }
+    try? await athleteMessagesService.logSend(LogMessageInput(
+      athleteUserId: athleteUserId, schoolId: coach.schoolId, coachId: coach.id,
+      templateSlug: selectedTemplate?.slug, channel: channel == .email ? "email" : "text",
+      programNote: authoredValues["programNote"], updateHook: authoredValues["updateHook"],
+      subject: channel == .email ? effectiveSubject : nil, body: effectiveBody),
+      accessToken: accessToken)
   }
 
   /// Loads the athlete's video links (if `athleteUserId` was supplied via `configureContext`)
@@ -218,6 +276,7 @@ final class QuickCommunicationViewModel {
     contextService: (any TemplateContextProviding)? = nil,
     schoolsService: (any SchoolsManaging)? = nil,
     contactWindowService: (any ContactWindowServicing)? = nil,
+    athleteMessagesService: (any AthleteMessagesServicing)? = nil,
     loggedBy: String? = nil,
     familyUnitId: String? = nil
   ) {
@@ -231,6 +290,7 @@ final class QuickCommunicationViewModel {
     self.contextService = contextService ?? TemplateContextService()
     self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
     self.contactWindowService = contactWindowService ?? ContactWindowServiceImpl()
+    self.athleteMessagesService = athleteMessagesService ?? AthleteMessagesServiceImpl()
     self.loggedBy = loggedBy
     self.familyUnitId = familyUnitId
   }
@@ -256,6 +316,8 @@ final class QuickCommunicationViewModel {
     selectedTemplate = template
     editedSubject = nil
     editedBody = nil
+    sendWarning = nil
+    sendArmed = false
   }
 
   /// Maximum body length for mailto/sms URLs. Launch Services fails (-10814) when URLs exceed system limits.
