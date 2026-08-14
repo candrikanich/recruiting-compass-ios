@@ -35,6 +35,7 @@ final class QuickCommunicationViewModel {
   private let templateVariablesService: any TemplateVariablesServicing
   private let contextService: any TemplateContextProviding
   private let schoolsService: any SchoolsManaging
+  private let contactWindowService: any ContactWindowServicing
   private var loggedBy: String?
   private var familyUnitId: String?
   private var athleteUserId: String?
@@ -45,6 +46,8 @@ final class QuickCommunicationViewModel {
   private(set) var registry: [TemplateVariableDef] = []
   /// Gathered athlete/coach/school context (built via `loadResolverInputs`).
   private(set) var resolvedContext: ResolverContext?
+  /// Global contact-window rules (loaded once via `loadResolverInputs`, fail-open []).
+  private(set) var contactWindowRules: [ContactWindowRule] = []
   /// Per-message authored values (empty in 2a; the variables panel writes here in 2b).
   var authoredValues: [String: String] = [:]
 
@@ -98,6 +101,24 @@ final class QuickCommunicationViewModel {
     resolvedContext = await contextService.buildContext(
       coach: coach, school: school, athleteUserId: athleteUserId,
       authored: authoredValues, now: Date())
+    if contactWindowRules.isEmpty {
+      contactWindowRules = (try? await contactWindowService.fetchRules()) ?? []
+    }
+  }
+
+  /// Current pre/open window state for this athlete+school (fail-open `.open`).
+  var contactWindowState: ContactWindowState {
+    guard let ctx = resolvedContext else { return .open }
+    return ContactWindow.evaluate(rules: contactWindowRules, input: ContactWindowInput(
+      sport: ctx.derived["sport"],
+      division: ctx.tables["schools"]?["division"],
+      gradYear: ctx.tables["users"]?["graduation_year"].flatMap(Int.init),
+      today: Date())).state
+  }
+
+  private func windowFiltered(_ list: [CommunicationTemplate]) -> [CommunicationTemplate] {
+    ContactWindow.filterByWindow(list, state: contactWindowState,
+      group: { "\($0.type.rawValue):\($0.stage ?? "")" }, window: { $0.contactWindow })
   }
 
   private func resolvedValues() -> [String: String] {
@@ -162,11 +183,11 @@ final class QuickCommunicationViewModel {
   }
 
   var emailTemplates: [CommunicationTemplate] {
-    templates.filter { $0.type == .email }
+    windowFiltered(templates.filter { $0.type == .email })
   }
 
   var textTemplates: [CommunicationTemplate] {
-    templates.filter { $0.type == .message }
+    windowFiltered(templates.filter { $0.type == .message })
   }
 
   /// Body with template variables substituted for this coach/school. Uses selected template or empty.
@@ -196,6 +217,7 @@ final class QuickCommunicationViewModel {
     templateVariablesService: (any TemplateVariablesServicing)? = nil,
     contextService: (any TemplateContextProviding)? = nil,
     schoolsService: (any SchoolsManaging)? = nil,
+    contactWindowService: (any ContactWindowServicing)? = nil,
     loggedBy: String? = nil,
     familyUnitId: String? = nil
   ) {
@@ -208,6 +230,7 @@ final class QuickCommunicationViewModel {
     self.templateVariablesService = templateVariablesService ?? TemplateVariablesServiceImpl()
     self.contextService = contextService ?? TemplateContextService()
     self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
+    self.contactWindowService = contactWindowService ?? ContactWindowServiceImpl()
     self.loggedBy = loggedBy
     self.familyUnitId = familyUnitId
   }
