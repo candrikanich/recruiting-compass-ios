@@ -50,7 +50,7 @@ struct TemplateEditorView: View {
         .foregroundStyle(.primary)
 
       Picker("Type", selection: $viewModel.formData.type) {
-        ForEach(TemplateType.allCases, id: \.self) { type in
+        ForEach(TemplateType.selectable, id: \.self) { type in
           Text(type.displayName).tag(type)
         }
       }

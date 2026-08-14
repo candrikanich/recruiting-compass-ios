@@ -58,7 +58,7 @@ final class CommunicationTemplatesViewModel {
 
   var typeCounts: [TemplateType?: Int] {
     var counts: [TemplateType?: Int] = [nil: templates.count]
-    for type in TemplateType.allCases {
+    for type in TemplateType.selectable {
       counts[type] = templates.count(where: { $0.type == type })
     }
     return counts

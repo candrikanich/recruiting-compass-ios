@@ -33,7 +33,7 @@ final class QuickCommunicationViewModelTests: XCTestCase {
   func testLoadTemplates_success_populatesTemplates() async {
     mockService.mockTemplates = [
       makeTemplate(id: "t1", type: .email),
-      makeTemplate(id: "t2", type: .text)
+      makeTemplate(id: "t2", type: .message)
     ]
 
     await viewModel.loadTemplates()
@@ -79,7 +79,7 @@ final class QuickCommunicationViewModelTests: XCTestCase {
   func testEmailTemplates_filtersToEmailType() async {
     mockService.mockTemplates = [
       makeTemplate(id: "e1", type: .email),
-      makeTemplate(id: "s1", type: .text),
+      makeTemplate(id: "s1", type: .message),
       makeTemplate(id: "e2", type: .email)
     ]
     await viewModel.loadTemplates()
@@ -90,7 +90,7 @@ final class QuickCommunicationViewModelTests: XCTestCase {
   func testTextTemplates_filtersToTextType() async {
     mockService.mockTemplates = [
       makeTemplate(id: "e1", type: .email),
-      makeTemplate(id: "s1", type: .text)
+      makeTemplate(id: "s1", type: .message)
     ]
     await viewModel.loadTemplates()
 

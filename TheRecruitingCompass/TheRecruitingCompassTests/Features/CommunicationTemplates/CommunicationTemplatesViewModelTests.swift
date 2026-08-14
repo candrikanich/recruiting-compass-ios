@@ -77,9 +77,9 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
   func testFilteredTemplates_EmailFilter_ReturnsOnlyEmail() async {
     mockService.mockTemplates = [
       makeTemplate(id: "1", type: .email),
-      makeTemplate(id: "2", type: .text),
+      makeTemplate(id: "2", type: .message),
       makeTemplate(id: "3", type: .email),
-      makeTemplate(id: "4", type: .twitter)
+      makeTemplate(id: "4", type: .social)
     ]
     await viewModel.loadTemplates()
 
@@ -92,29 +92,29 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
   func testFilteredTemplates_TextFilter_ReturnsOnlyText() async {
     mockService.mockTemplates = [
       makeTemplate(id: "1", type: .email),
-      makeTemplate(id: "2", type: .text),
-      makeTemplate(id: "3", type: .text)
+      makeTemplate(id: "2", type: .message),
+      makeTemplate(id: "3", type: .message)
     ]
     await viewModel.loadTemplates()
 
-    viewModel.filterType = .text
+    viewModel.filterType = .message
 
     XCTAssertEqual(viewModel.filteredTemplates.count, 2)
-    XCTAssertTrue(viewModel.filteredTemplates.allSatisfy { $0.type == .text })
+    XCTAssertTrue(viewModel.filteredTemplates.allSatisfy { $0.type == .message })
   }
 
   func testFilteredTemplates_TwitterFilter_ReturnsOnlyTwitter() async {
     mockService.mockTemplates = [
-      makeTemplate(id: "1", type: .twitter),
+      makeTemplate(id: "1", type: .social),
       makeTemplate(id: "2", type: .email),
-      makeTemplate(id: "3", type: .twitter)
+      makeTemplate(id: "3", type: .social)
     ]
     await viewModel.loadTemplates()
 
-    viewModel.filterType = .twitter
+    viewModel.filterType = .social
 
     XCTAssertEqual(viewModel.filteredTemplates.count, 2)
-    XCTAssertTrue(viewModel.filteredTemplates.allSatisfy { $0.type == .twitter })
+    XCTAssertTrue(viewModel.filteredTemplates.allSatisfy { $0.type == .social })
   }
 
   func testFilteredTemplates_FilterWithNoMatches_ReturnsEmpty() async {
@@ -124,7 +124,7 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
     ]
     await viewModel.loadTemplates()
 
-    viewModel.filterType = .twitter
+    viewModel.filterType = .social
 
     XCTAssertTrue(viewModel.filteredTemplates.isEmpty)
   }
@@ -136,7 +136,7 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
   func testFilteredTemplates_UpdatesWhenReloadedWithoutTouchingFilter() async {
     mockService.mockTemplates = [
       makeTemplate(id: "1", type: .email),
-      makeTemplate(id: "2", type: .text)
+      makeTemplate(id: "2", type: .message)
     ]
     await viewModel.loadTemplates()
     viewModel.filterType = .email
@@ -172,16 +172,16 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
     mockService.mockTemplates = [
       makeTemplate(id: "1", type: .email),
       makeTemplate(id: "2", type: .email),
-      makeTemplate(id: "3", type: .text),
-      makeTemplate(id: "4", type: .twitter)
+      makeTemplate(id: "3", type: .message),
+      makeTemplate(id: "4", type: .social)
     ]
     await viewModel.loadTemplates()
 
     let counts = viewModel.typeCounts
     XCTAssertEqual(counts[nil], 4)
     XCTAssertEqual(counts[.email], 2)
-    XCTAssertEqual(counts[.text], 1)
-    XCTAssertEqual(counts[.twitter], 1)
+    XCTAssertEqual(counts[.message], 1)
+    XCTAssertEqual(counts[.social], 1)
   }
 
   // MARK: - saveTemplate Tests
@@ -278,14 +278,14 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
     let template = makeTemplate(
       id: "t-1",
       name: "Intro Email",
-      type: .text,
+      type: .message,
       body: "Hi there"
     )
 
     viewModel.startEditing(template: template)
 
     XCTAssertEqual(viewModel.formData.name, "Intro Email")
-    XCTAssertEqual(viewModel.formData.type, .text)
+    XCTAssertEqual(viewModel.formData.type, .message)
     XCTAssertEqual(viewModel.formData.body, "Hi there")
     XCTAssertEqual(viewModel.editingTemplate?.id, "t-1")
     XCTAssertEqual(viewModel.activeTab, .create)

@@ -76,7 +76,7 @@ final class QuickCommunicationViewModel {
   }
 
   var textTemplates: [CommunicationTemplate] {
-    templates.filter { $0.type == .text }
+    templates.filter { $0.type == .message }
   }
 
   /// Body with template variables substituted for this coach/school. Uses selected template or empty.

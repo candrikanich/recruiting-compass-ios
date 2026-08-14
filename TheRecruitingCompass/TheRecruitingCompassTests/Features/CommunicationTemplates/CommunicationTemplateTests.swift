@@ -38,13 +38,13 @@ final class CommunicationTemplateTests: XCTestCase {
   }
 
   func testTypeDisplayName_Text() {
-    let template = makeTemplate(type: .text)
+    let template = makeTemplate(type: .message)
     XCTAssertEqual(template.typeDisplayName, "Text")
   }
 
-  func testTypeDisplayName_Twitter() {
-    let template = makeTemplate(type: .twitter)
-    XCTAssertEqual(template.typeDisplayName, "Twitter")
+  func testTypeDisplayName_Social() {
+    let template = makeTemplate(type: .social)
+    XCTAssertEqual(template.typeDisplayName, "Social")
   }
 
   // MARK: - formattedDate Tests
@@ -57,22 +57,23 @@ final class CommunicationTemplateTests: XCTestCase {
   // MARK: - TemplateType Tests
 
   func testTemplateType_AllCasesExist() {
-    XCTAssertEqual(TemplateType.allCases.count, 3)
+    XCTAssertEqual(TemplateType.allCases.count, 4)
     XCTAssertTrue(TemplateType.allCases.contains(.email))
-    XCTAssertTrue(TemplateType.allCases.contains(.text))
-    XCTAssertTrue(TemplateType.allCases.contains(.twitter))
+    XCTAssertTrue(TemplateType.allCases.contains(.message))
+    XCTAssertTrue(TemplateType.allCases.contains(.social))
+    XCTAssertTrue(TemplateType.allCases.contains(.unknown))
   }
 
   func testTemplateType_RawValues() {
     XCTAssertEqual(TemplateType.email.rawValue, "email")
-    XCTAssertEqual(TemplateType.text.rawValue, "text")
-    XCTAssertEqual(TemplateType.twitter.rawValue, "twitter")
+    XCTAssertEqual(TemplateType.message.rawValue, "message")
+    XCTAssertEqual(TemplateType.social.rawValue, "social")
   }
 
   func testTemplateType_DisplayNames() {
     XCTAssertEqual(TemplateType.email.displayName, "Email")
-    XCTAssertEqual(TemplateType.text.displayName, "Text")
-    XCTAssertEqual(TemplateType.twitter.displayName, "Twitter")
+    XCTAssertEqual(TemplateType.message.displayName, "Text")
+    XCTAssertEqual(TemplateType.social.displayName, "Social")
   }
 
   // MARK: - TemplateFormData Tests
@@ -127,12 +128,12 @@ final class CommunicationTemplateTests: XCTestCase {
   func testFormData_InitFromTemplate_PopulatesCorrectly() {
     let template = makeTemplate(
       name: "Recruiting Email",
-      type: .text,
+      type: .message,
       body: "Hey {{coach_name}}, I am interested."
     )
     let formData = TemplateFormData(from: template)
     XCTAssertEqual(formData.name, "Recruiting Email")
-    XCTAssertEqual(formData.type, .text)
+    XCTAssertEqual(formData.type, .message)
     XCTAssertEqual(formData.body, "Hey {{coach_name}}, I am interested.")
   }
 

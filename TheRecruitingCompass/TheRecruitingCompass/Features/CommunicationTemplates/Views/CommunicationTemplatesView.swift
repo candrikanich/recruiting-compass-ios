@@ -108,7 +108,7 @@ struct CommunicationTemplatesView: View {
     ScrollView(.horizontal) {
       HStack(spacing: 8) {
         filterPill(label: "All", count: viewModel.typeCounts[nil] ?? 0, type: nil, identifier: "typeFilter.all")
-        ForEach(TemplateType.allCases, id: \.self) { type in
+        ForEach(TemplateType.selectable, id: \.self) { type in
           filterPill(
             label: type.displayName,
             count: viewModel.typeCounts[type] ?? 0,
