@@ -41,11 +41,27 @@ struct QuickCommunicationView: View {
             selectedTemplate: viewModel.selectedTemplate,
             onSelect: { viewModel.selectTemplate($0) }
           )
-          if viewModel.selectedTemplate?.type == .email, !viewModel.resolvedSubject.isEmpty {
-            QuickCommSubjectPreview(subject: viewModel.resolvedSubject)
+          if !viewModel.referencedVariables.isEmpty {
+            QuickCommVariablesPanel(
+              variables: viewModel.referencedVariables,
+              isParent: familyManager.currentMember?.isParent == true,
+              authoredBinding: { viewModel.authoredBinding(for: $0) }
+            )
           }
-          if viewModel.selectedTemplate != nil, !viewModel.messageBody.isEmpty {
-            QuickCommBodyPreviewSection(filledBody: viewModel.messageBody)
+          if viewModel.selectedTemplate?.type == .email {
+            QuickCommSubjectField(subject: subjectBinding)
+          }
+          if viewModel.selectedTemplate != nil {
+            QuickCommBodyComposeSection(
+              preview: UnresolvedTokenHighlighter.attributed(
+                viewModel.effectiveBody, tokenColor: .warningOrange),
+              plainBody: viewModel.effectiveBody,
+              text: bodyBinding,
+              isTextMessage: viewModel.selectedTemplate?.type == .message,
+              characterCount: viewModel.effectiveBody.count,
+              limit: QuickCommunicationViewModel.textLimit,
+              overLimit: viewModel.textBodyOverLimit
+            )
           }
           if viewModel.isSendBlocked {
             Text("Fill these before sending: \(viewModel.unresolvedKeys.joined(separator: ", "))")
@@ -100,6 +116,18 @@ struct QuickCommunicationView: View {
       }
       .accessibilityIdentifier("quickCommunicationView")
     }
+  }
+
+  // MARK: - Edit bindings
+
+  /// Writes user edits into the VM overrides; reads the effective (edited-or-resolved) text.
+  private var subjectBinding: Binding<String> {
+    Binding(get: { viewModel.effectiveSubject },
+            set: { viewModel.editedSubject = $0 })
+  }
+  private var bodyBinding: Binding<String> {
+    Binding(get: { viewModel.effectiveBody },
+            set: { viewModel.editedBody = $0 })
   }
 
   // MARK: - Send handling
@@ -275,42 +303,141 @@ private struct QuickCommTemplatePicker: View {
   }
 }
 
-private struct QuickCommSubjectPreview: View {
-  let subject: String
+/// Lists the selected template's referenced variables: editable inputs for authored ones,
+/// read-only rows for resolved profile values, and a "complete in your profile" hint for
+/// missing profile-backed ones. Authored inputs are read-only for a parent viewing the athlete.
+private struct QuickCommVariablesPanel: View {
+  let variables: [ReferencedVariable]
+  let isParent: Bool
+  let authoredBinding: (String) -> Binding<String>
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Fill in the details")
+        .font(.subheadline.weight(.medium))
+        .foregroundStyle(.secondary)
+      ForEach(variables) { variable in
+        row(for: variable)
+      }
+    }
+    .padding(12)
+    .background(Color(uiColor: .secondarySystemBackground))
+    .clipShape(RoundedRectangle(cornerRadius: 10))
+    .accessibilityIdentifier("quickCommVariablesPanel")
+  }
+
+  @ViewBuilder
+  private func row(for variable: ReferencedVariable) -> some View {
+    if variable.isAuthored {
+      authoredRow(variable)
+    } else if variable.isResolved {
+      resolvedRow(variable)
+    } else {
+      missingRow(variable)
+    }
+  }
+
+  private func authoredRow(_ variable: ReferencedVariable) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Text(variable.label)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+      TextField(variable.label, text: authoredBinding(variable.key), axis: .vertical)
+        .textFieldStyle(.roundedBorder)
+        .disabled(isParent)
+      if isParent {
+        Text("Ask the athlete to fill this")
+          .font(.caption2)
+          .foregroundStyle(.tertiary)
+      }
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(String(localized: "\(variable.label) input"))
+  }
+
+  private func resolvedRow(_ variable: ReferencedVariable) -> some View {
+    HStack(alignment: .firstTextBaseline) {
+      Text(variable.label)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+      Spacer()
+      Text(variable.resolvedValue ?? "")
+        .font(.caption.weight(.medium))
+        .foregroundStyle(.primary)
+        .multilineTextAlignment(.trailing)
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(String(localized: "\(variable.label): \(variable.resolvedValue ?? "")"))
+  }
+
+  private func missingRow(_ variable: ReferencedVariable) -> some View {
+    VStack(alignment: .leading, spacing: 2) {
+      Text(variable.label)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+      Text("Complete in your profile")
+        .font(.caption2)
+        .foregroundStyle(Color.warningOrange)
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(String(localized: "\(variable.label): complete in your profile"))
+  }
+}
+
+/// Editable subject line for email templates (reads effective, writes the VM override).
+private struct QuickCommSubjectField: View {
+  @Binding var subject: String
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Subject")
         .font(.caption)
         .foregroundStyle(.secondary)
-      Text(subject)
-        .font(.subheadline.weight(.semibold))
-        .foregroundStyle(.primary)
-        .frame(maxWidth: .infinity, alignment: .leading)
+      TextField(String(localized: "Subject"), text: $subject)
+        .textFieldStyle(.roundedBorder)
+        .font(.subheadline)
     }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "Subject: \(subject)"))
+    .accessibilityIdentifier("quickCommSubjectField")
   }
 }
 
-private struct QuickCommBodyPreviewSection: View {
-  let filledBody: String
+/// Amber-highlighted preview of the effective body plus an editable text area and, for text
+/// messages, a 160-char counter that turns red when over the SMS cap.
+private struct QuickCommBodyComposeSection: View {
+  let preview: AttributedString
+  let plainBody: String
+  @Binding var text: String
+  let isTextMessage: Bool
+  let characterCount: Int
+  let limit: Int
+  let overLimit: Bool
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Message preview")
         .font(.caption)
         .foregroundStyle(.secondary)
-      Text(filledBody)
+      Text(preview)
         .font(.caption)
-        .foregroundStyle(.primary)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(8)
         .background(Color(uiColor: .tertiarySystemFill))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityLabel(String(localized: "Message preview: \(plainBody)"))
+      TextEditor(text: $text)
+        .font(.caption)
+        .frame(minHeight: 120)
+        .padding(4)
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(uiColor: .separator)))
+        .accessibilityIdentifier("quickCommBodyEditor")
+      if isTextMessage {
+        Text("\(characterCount)/\(limit)")
+          .font(.caption2.monospacedDigit())
+          .foregroundStyle(overLimit ? Color.errorRed : Color.secondary)
+          .frame(maxWidth: .infinity, alignment: .trailing)
+          .accessibilityLabel(String(localized: "\(characterCount) of \(limit) characters"))
+      }
     }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "Message preview: \(filledBody)"))
   }
 }
 
