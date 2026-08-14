@@ -36,6 +36,14 @@ struct Coach: Codable, Identifiable, Sendable {
     return CoachRole(rawValue: position.lowercased()) ?? .assistant
   }
 
+  /// Contact fields arrive from the backend as empty strings rather than null,
+  /// so `if let` alone would still render an icon with no value. These collapse
+  /// blank/whitespace-only values to nil.
+  var contactEmail: String? { email.nonBlankTrimmed }
+  var contactPhone: String? { phone.nonBlankTrimmed }
+  var contactTwitter: String? { twitterHandle.nonBlankTrimmed }
+  var contactInstagram: String? { instagramHandle.nonBlankTrimmed }
+
   private static let iso8601WithFractional: ISO8601DateFormatter = {
     let f = ISO8601DateFormatter()
     f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -153,4 +161,13 @@ struct Coach: Codable, Identifiable, Sendable {
     // role is decoding-only (database may return role or position)
   }
 
+}
+
+extension Optional where Wrapped == String {
+  /// Trimmed value, or nil when absent, empty, or whitespace-only.
+  var nonBlankTrimmed: String? {
+    guard let trimmed = self?.trimmingCharacters(in: .whitespacesAndNewlines),
+          !trimmed.isEmpty else { return nil }
+    return trimmed
+  }
 }

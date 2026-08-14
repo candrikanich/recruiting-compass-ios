@@ -146,11 +146,11 @@ private struct CoachCardContentSection: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      if let email = coach.email {
+      if let email = coach.contactEmail {
         contactRow(icon: "envelope", text: email)
       }
 
-      if let phone = coach.phone {
+      if let phone = coach.contactPhone {
         contactRow(icon: "phone", text: phone)
       }
 
@@ -235,7 +235,7 @@ private struct CoachCardCommunicationButtons: View {
   @Environment(\.sizeCategory) private var sizeCategory
 
   var body: some View {
-    if let email = coach.email {
+    if let email = coach.contactEmail {
       if let onQuickCommunication {
         quickCommunicationTriggerButton(
           icon: "envelope.fill",
@@ -249,7 +249,7 @@ private struct CoachCardCommunicationButtons: View {
         CommunicationButton(type: .email(email), value: email)
       }
     }
-    if let phone = coach.phone {
+    if let phone = coach.contactPhone {
       if let onQuickCommunication {
         quickCommunicationTriggerButton(
           icon: "message.fill",
@@ -263,10 +263,10 @@ private struct CoachCardCommunicationButtons: View {
         CommunicationButton(type: .phone(phone), value: phone)
       }
     }
-    if let twitter = coach.twitterHandle {
+    if let twitter = coach.contactTwitter {
       CommunicationButton(type: .twitter(twitter), value: twitter)
     }
-    if let instagram = coach.instagramHandle {
+    if let instagram = coach.contactInstagram {
       CommunicationButton(type: .instagram(instagram), value: instagram)
     }
   }

@@ -17,6 +17,16 @@ enum CommunicationType: Sendable {
     }
   }
 
+  /// Bundled brand-mark asset (template-rendered) used instead of an SF Symbol,
+  /// nil for types that use `iconName`.
+  var brandAssetName: String? {
+    switch self {
+    case .twitter: return "LogoX"
+    case .instagram: return "LogoInstagram"
+    case .email, .phone, .call: return nil
+    }
+  }
+
   var iconColor: Color {
     switch self {
     case .email: return .accentBlue

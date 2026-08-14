@@ -11,15 +11,29 @@ struct CommunicationButton: View {
     sizeCategory.isAccessibilityCategory ? 24 : 18
   }
 
+  @ViewBuilder
+  private var iconImage: some View {
+    if let assetName = type.brandAssetName {
+      Image(assetName)
+        .renderingMode(.template)
+        .resizable()
+        .scaledToFit()
+        .frame(width: iconSize, height: iconSize)
+        .foregroundStyle(type.iconColor)
+    } else {
+      Image(systemName: type.iconName)
+        .font(.system(size: iconSize))
+        .foregroundStyle(type.iconColor)
+    }
+  }
+
   var body: some View {
     Button {
       if let url = type.url(for: value) {
         openURL(url)
       }
     } label: {
-      Image(systemName: type.iconName)
-        .font(.system(size: iconSize))
-        .foregroundStyle(type.iconColor)
+      iconImage
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
     }
