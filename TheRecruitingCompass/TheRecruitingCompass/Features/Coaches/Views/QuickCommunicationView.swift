@@ -69,15 +69,22 @@ struct QuickCommunicationView: View {
               .foregroundStyle(Color.warningOrange)
               .accessibilityIdentifier("quickCommUnresolvedNotice")
           }
+          if let warning = viewModel.sendWarning {
+            Text(warning)
+              .font(.caption)
+              .foregroundStyle(Color.warningOrange)
+              .accessibilityIdentifier("quickCommSendWarning")
+          }
           QuickCommActionsSection(
             showEmail: viewModel.mailtoURL() != nil,
             showText: viewModel.smsURL() != nil,
             coachEmail: context.coach.email ?? "",
+            instagramHandle: context.coach.contactInstagram,
+            sendDisabled: viewModel.isSendBlocked,
             onSendEmail: handleSendEmail,
-            onSendText: handleSendText
+            onSendText: handleSendText,
+            onOpenInstagram: { openURL($0) }
           )
-          .disabled(viewModel.isSendBlocked)
-          .opacity(viewModel.isSendBlocked ? 0.5 : 1)
         }
         .padding()
       }
@@ -108,7 +115,8 @@ struct QuickCommunicationView: View {
         viewModel.configureContext(
           loggedBy: authManager.user?.id,
           familyUnitId: familyManager.currentMember?.familyUnitId,
-          athleteUserId: familyManager.selectedAthlete?.userId
+          athleteUserId: familyManager.selectedAthlete?.userId,
+          accessToken: authManager.session?.accessToken
         )
         await viewModel.loadTemplates()
         await viewModel.loadVideoLinks()
@@ -135,24 +143,30 @@ struct QuickCommunicationView: View {
   /// Present the in-app mail composer when the device can send mail; otherwise fall back to the
   /// `mailto:` hand-off and log NOTHING (an external hand-off can't confirm the send).
   private func handleSendEmail() {
-    if MFMailComposeViewController.canSendMail() {
-      activeComposer = .mail
-    } else if let url = viewModel.mailtoURL() {
-      openURL(url)
-      infoMessage = String(localized: "Log it from Interactions once sent.")
-      showInfoToast = true
+    Task {
+      guard await viewModel.evaluateGuardrails(.email) else { return }  // blocked or armed → stop
+      if MFMailComposeViewController.canSendMail() {
+        activeComposer = .mail
+      } else if let url = viewModel.mailtoURL() {
+        openURL(url)
+        infoMessage = String(localized: "Log it from Interactions once sent.")
+        showInfoToast = true
+      }
     }
   }
 
   /// Present the in-app message composer when the device can send texts; otherwise fall back to the
   /// `sms:` hand-off and log NOTHING.
   private func handleSendText() {
-    if MFMessageComposeViewController.canSendText() {
-      activeComposer = .message
-    } else if let url = viewModel.smsURL() {
-      openURL(url)
-      infoMessage = String(localized: "Log it from Interactions once sent.")
-      showInfoToast = true
+    Task {
+      guard await viewModel.evaluateGuardrails(.text) else { return }
+      if MFMessageComposeViewController.canSendText() {
+        activeComposer = .message
+      } else if let url = viewModel.smsURL() {
+        openURL(url)
+        infoMessage = String(localized: "Log it from Interactions once sent.")
+        showInfoToast = true
+      }
     }
   }
 
@@ -162,7 +176,7 @@ struct QuickCommunicationView: View {
     case .mail:
       MailComposeView(
         recipients: [context.coach.email].compactMap { $0 },
-        subject: viewModel.resolvedSubject.isEmpty ? viewModel.selectedTemplate?.name : viewModel.resolvedSubject,
+        subject: viewModel.effectiveSubject.isEmpty ? viewModel.selectedTemplate?.name : viewModel.effectiveSubject,
         body: viewModel.messageBody,
         onResult: { result, _ in handleMailResult(result) }
       )
@@ -181,7 +195,8 @@ struct QuickCommunicationView: View {
   private func handleMailResult(_ result: MFMailComposeResult) {
     guard result == .sent else { return }
     Task {
-      await viewModel.logSend(.email)
+      await viewModel.logMessageSend(.email)   // best-effort API log (Phase 3)
+      await viewModel.logSend(.email)          // existing interaction log
       if viewModel.didLogSend { showSuccessToast = true }
     }
   }
@@ -189,6 +204,7 @@ struct QuickCommunicationView: View {
   private func handleMessageResult(_ result: MessageComposeResult) {
     guard result == .sent else { return }
     Task {
+      await viewModel.logMessageSend(.text)
       await viewModel.logSend(.text)
       if viewModel.didLogSend { showSuccessToast = true }
     }
@@ -445,33 +461,55 @@ private struct QuickCommActionsSection: View {
   let showEmail: Bool
   let showText: Bool
   let coachEmail: String
+  let instagramHandle: String?
+  let sendDisabled: Bool
   let onSendEmail: () -> Void
   let onSendText: () -> Void
+  let onOpenInstagram: (URL) -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      if showEmail {
-        Button(action: onSendEmail) {
-          Label("Send Email", systemImage: "envelope.fill")
-            .font(.body.weight(.medium))
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
+      // Email/text sends respect the token/guardrail gate; Instagram is a profile open, never gated.
+      Group {
+        if showEmail {
+          Button(action: onSendEmail) {
+            Label("Send Email", systemImage: "envelope.fill")
+              .font(.body.weight(.medium))
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 12)
+          }
+          .buttonStyle(.borderedProminent)
+          .accessibilityLabel(String(localized: "Send email to \(coachEmail)"))
+          .accessibilityHint("Opens Mail to compose; the message is logged only when sent")
         }
-        .buttonStyle(.borderedProminent)
-        .accessibilityLabel(String(localized: "Send email to \(coachEmail)"))
-        .accessibilityHint("Opens Mail to compose; the message is logged only when sent")
-      }
 
-      if showText {
-        Button(action: onSendText) {
-          Label("Send Text", systemImage: "message.fill")
+        if showText {
+          Button(action: onSendText) {
+            Label("Send Text", systemImage: "message.fill")
+              .font(.body.weight(.medium))
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 12)
+          }
+          .buttonStyle(.bordered)
+          .accessibilityLabel(String(localized: "Send text to coach"))
+          .accessibilityHint("Opens Messages to compose; the message is logged only when sent")
+        }
+      }
+      .disabled(sendDisabled)
+      .opacity(sendDisabled ? 0.5 : 1)
+
+      if let handle = instagramHandle {
+        Button {
+          let clean = handle.hasPrefix("@") ? String(handle.dropFirst()) : handle
+          if let url = URL(string: "https://instagram.com/\(clean)") { onOpenInstagram(url) }
+        } label: {
+          Label("Open Instagram", systemImage: "camera.fill")
             .font(.body.weight(.medium))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
         }
         .buttonStyle(.bordered)
-        .accessibilityLabel(String(localized: "Send text to coach"))
-        .accessibilityHint("Opens Messages to compose; the message is logged only when sent")
+        .accessibilityLabel(String(localized: "Open Instagram profile @\(handle)"))
       }
     }
   }
