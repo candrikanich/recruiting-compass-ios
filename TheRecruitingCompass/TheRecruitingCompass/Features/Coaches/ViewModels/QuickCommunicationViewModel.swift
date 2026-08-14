@@ -32,9 +32,21 @@ final class QuickCommunicationViewModel {
   private let interactionsService: any InteractionsManaging
   private let coachesService: any CoachesManaging
   private let videoLinksService: any VideoLinksManaging
+  private let templateVariablesService: any TemplateVariablesServicing
+  private let contextService: any TemplateContextProviding
+  private let schoolsService: any SchoolsManaging
   private var loggedBy: String?
   private var familyUnitId: String?
   private var athleteUserId: String?
+
+  // MARK: - Phase 2a resolution engine
+
+  /// The global variable registry (loaded once via `loadResolverInputs`).
+  private(set) var registry: [TemplateVariableDef] = []
+  /// Gathered athlete/coach/school context (built via `loadResolverInputs`).
+  private(set) var resolvedContext: ResolverContext?
+  /// Per-message authored values (empty in 2a; the variables panel writes here in 2b).
+  var authoredValues: [String: String] = [:]
 
   /// Cached film-link substitution values, populated by `loadVideoLinks()`. Kept as stored
   /// properties (not fetched inline in `substitutionValues`) since that computed property
@@ -66,6 +78,54 @@ final class QuickCommunicationViewModel {
       logger.error("Failed to load video links for film-link template variables: \(error.localizedDescription)")
     }
   }
+
+  /// Load the variable registry + gather athlete/coach/school context once (best-effort).
+  func loadResolverInputs() async {
+    if registry.isEmpty {
+      registry = (try? await templateVariablesService.fetchRegistry()) ?? []
+    }
+    var school: School?
+    if let familyUnitId {
+      school = try? await schoolsService.fetchSchool(id: coach.schoolId, familyUnitId: familyUnitId)
+    }
+    resolvedContext = await contextService.buildContext(
+      coach: coach, school: school, athleteUserId: athleteUserId,
+      authored: authoredValues, now: Date())
+  }
+
+  private func resolvedValues() -> [String: String] {
+    guard var ctx = resolvedContext else { return [:] }
+    ctx.authored = authoredValues
+    return TemplateResolver.buildValues(registry: registry, context: ctx)
+  }
+
+  /// Selected template subject with registry variables filled (empty when none/no subject).
+  var resolvedSubject: String {
+    guard let subject = selectedTemplate?.subject, !subject.isEmpty else { return "" }
+    return TemplateResolver.render(subject, values: resolvedValues())
+  }
+
+  /// Selected template body with registry variables filled.
+  var resolvedBody: String {
+    guard let body = selectedTemplate?.body else { return "" }
+    return TemplateResolver.render(body, values: resolvedValues())
+  }
+
+  /// The body used for send/preview: resolver output when the registry is active, else the
+  /// legacy 4-var fill (keeps back-compat when `loadResolverInputs` hasn't run).
+  var messageBody: String {
+    registry.isEmpty ? filledBody : resolvedBody
+  }
+
+  /// Tokens still unresolved in the resolved subject+body (deduped). Empty unless the
+  /// registry is active — the legacy path is never gated.
+  var unresolvedKeys: [String] {
+    guard !registry.isEmpty, selectedTemplate != nil else { return [] }
+    return TemplateResolver.findUnresolved(resolvedSubject + "\n" + resolvedBody)
+  }
+
+  /// True when the resolver is active and required/unfilled tokens remain — blocks send.
+  var isSendBlocked: Bool { !unresolvedKeys.isEmpty }
 
   var recipientLine: String {
     "\(coach.fullName) – \(coach.role.displayName)"
@@ -103,6 +163,9 @@ final class QuickCommunicationViewModel {
     interactionsService: (any InteractionsManaging)? = nil,
     coachesService: (any CoachesManaging)? = nil,
     videoLinksService: (any VideoLinksManaging)? = nil,
+    templateVariablesService: (any TemplateVariablesServicing)? = nil,
+    contextService: (any TemplateContextProviding)? = nil,
+    schoolsService: (any SchoolsManaging)? = nil,
     loggedBy: String? = nil,
     familyUnitId: String? = nil
   ) {
@@ -112,6 +175,9 @@ final class QuickCommunicationViewModel {
     self.interactionsService = interactionsService ?? InteractionsServiceImpl(supabaseManager: .shared)
     self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
     self.videoLinksService = videoLinksService ?? VideoLinksServiceImpl()
+    self.templateVariablesService = templateVariablesService ?? TemplateVariablesServiceImpl()
+    self.contextService = contextService ?? TemplateContextService()
+    self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
     self.loggedBy = loggedBy
     self.familyUnitId = familyUnitId
   }
@@ -145,8 +211,8 @@ final class QuickCommunicationViewModel {
   func mailtoURL() -> URL? {
     guard let email = coach.email?.trimmingCharacters(in: .whitespaces), !email.isEmpty else { return nil }
     var components = URLComponents(string: "mailto:\(email)")
-    if !filledBody.isEmpty {
-      let body = truncateBodyForURL(filledBody)
+    if !messageBody.isEmpty {
+      let body = truncateBodyForURL(messageBody)
       components?.queryItems = [URLQueryItem(name: "body", value: body)]
     }
     return components?.url
@@ -159,8 +225,8 @@ final class QuickCommunicationViewModel {
     let cleaned = phone.filter { $0.isNumber || $0 == "+" }
     guard !cleaned.isEmpty else { return nil }
     var components = URLComponents(string: "sms:\(cleaned)")
-    if !filledBody.isEmpty {
-      let body = truncateBodyForURL(filledBody)
+    if !messageBody.isEmpty {
+      let body = truncateBodyForURL(messageBody)
       components?.queryItems = [URLQueryItem(name: "body", value: body)]
     }
     return components?.url
@@ -192,7 +258,7 @@ final class QuickCommunicationViewModel {
         direction: .outbound,
         occurredAt: Date(),
         subject: selectedTemplate?.name,
-        content: filledBody.isEmpty ? nil : filledBody,
+        content: messageBody.isEmpty ? nil : messageBody,
         sentiment: nil,
         loggedBy: loggedBy,
         familyUnitId: familyUnitId

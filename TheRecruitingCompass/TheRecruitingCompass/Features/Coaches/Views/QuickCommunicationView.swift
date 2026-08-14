@@ -41,8 +41,17 @@ struct QuickCommunicationView: View {
             selectedTemplate: viewModel.selectedTemplate,
             onSelect: { viewModel.selectTemplate($0) }
           )
-          if viewModel.selectedTemplate != nil, !viewModel.filledBody.isEmpty {
-            QuickCommBodyPreviewSection(filledBody: viewModel.filledBody)
+          if viewModel.selectedTemplate?.type == .email, !viewModel.resolvedSubject.isEmpty {
+            QuickCommSubjectPreview(subject: viewModel.resolvedSubject)
+          }
+          if viewModel.selectedTemplate != nil, !viewModel.messageBody.isEmpty {
+            QuickCommBodyPreviewSection(filledBody: viewModel.messageBody)
+          }
+          if viewModel.isSendBlocked {
+            Text("Fill these before sending: \(viewModel.unresolvedKeys.joined(separator: ", "))")
+              .font(.caption)
+              .foregroundStyle(Color.warningOrange)
+              .accessibilityIdentifier("quickCommUnresolvedNotice")
           }
           QuickCommActionsSection(
             showEmail: viewModel.mailtoURL() != nil,
@@ -51,6 +60,8 @@ struct QuickCommunicationView: View {
             onSendEmail: handleSendEmail,
             onSendText: handleSendText
           )
+          .disabled(viewModel.isSendBlocked)
+          .opacity(viewModel.isSendBlocked ? 0.5 : 1)
         }
         .padding()
       }
@@ -85,6 +96,7 @@ struct QuickCommunicationView: View {
         )
         await viewModel.loadTemplates()
         await viewModel.loadVideoLinks()
+        await viewModel.loadResolverInputs()
       }
       .accessibilityIdentifier("quickCommunicationView")
     }
@@ -122,15 +134,15 @@ struct QuickCommunicationView: View {
     case .mail:
       MailComposeView(
         recipients: [context.coach.email].compactMap { $0 },
-        subject: viewModel.selectedTemplate?.name,
-        body: viewModel.filledBody,
+        subject: viewModel.resolvedSubject.isEmpty ? viewModel.selectedTemplate?.name : viewModel.resolvedSubject,
+        body: viewModel.messageBody,
         onResult: { result, _ in handleMailResult(result) }
       )
       .ignoresSafeArea()
     case .message:
       MessageComposeView(
         recipients: [context.coach.phone].compactMap { $0 },
-        body: viewModel.filledBody,
+        body: viewModel.messageBody,
         onResult: { handleMessageResult($0) }
       )
       .ignoresSafeArea()
@@ -260,6 +272,24 @@ private struct QuickCommTemplatePicker: View {
     .accessibilityLabel(label)
     .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     .accessibilityHint(isSelected ? "Selected" : "Select to pre-fill message")
+  }
+}
+
+private struct QuickCommSubjectPreview: View {
+  let subject: String
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Text("Subject")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+      Text(subject)
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(.primary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(String(localized: "Subject: \(subject)"))
   }
 }
 
