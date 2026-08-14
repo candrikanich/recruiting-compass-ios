@@ -7,6 +7,14 @@ private let logger = Logger(
   category: "CommunicationTemplatesService"
 )
 
+/// True when an error indicates the templates table is absent (feature-flag-off tolerance).
+/// Web returns [] on PGRST205; mirror that so an un-migrated backend degrades, not crashes.
+func isMissingTableError(_ error: Error) -> Bool {
+  let text = error.localizedDescription.lowercased()
+  return text.contains("pgrst205")
+    || (text.contains("communication_templates") && text.contains("does not exist"))
+}
+
 protocol CommunicationTemplatesServicing: Sendable {
   func fetchTemplates() async throws -> [CommunicationTemplate]
   func createTemplate(formData: TemplateFormData) async throws -> CommunicationTemplate
@@ -43,15 +51,24 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
   func fetchTemplates() async throws -> [CommunicationTemplate] {
     logger.debug("Fetching communication templates")
     do {
+      let userId = (try? await supabaseManager.client.auth.session.user.id.uuidString) ?? ""
+      let orFilter = userId.isEmpty
+        ? "is_predefined.eq.true"
+        : "user_id.eq.\(userId),is_predefined.eq.true"
       let templates: [CommunicationTemplate] = try await supabaseManager.client
         .from("communication_templates")
         .select()
+        .or(orFilter)
         .order("updated_at", ascending: false)
         .execute()
         .value
       logger.info("Fetched \(templates.count) templates")
       return templates
     } catch {
+      if isMissingTableError(error) {
+        logger.warning("communication_templates table absent; returning [] (fail-soft)")
+        return []
+      }
       logger.error("fetchTemplates failed: \(error.localizedDescription)")
       throw error
     }
