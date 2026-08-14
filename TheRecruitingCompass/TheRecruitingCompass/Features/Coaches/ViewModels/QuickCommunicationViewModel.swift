@@ -48,6 +48,13 @@ final class QuickCommunicationViewModel {
   /// Per-message authored values (empty in 2a; the variables panel writes here in 2b).
   var authoredValues: [String: String] = [:]
 
+  /// User overrides of the resolved subject/body — nil until edited, then they drive
+  /// preview + send. Cleared on every `selectTemplate` (fresh template → fresh text).
+  var editedSubject: String?
+  var editedBody: String?
+  /// SMS body cap (parity with web); `.message` sends are gated over this.
+  static let textLimit = 160
+
   /// Cached film-link substitution values, populated by `loadVideoLinks()`. Kept as stored
   /// properties (not fetched inline in `substitutionValues`) since that computed property
   /// must stay synchronous for `filledBody`/`mailtoURL`/`smsURL` call sites.
@@ -111,21 +118,44 @@ final class QuickCommunicationViewModel {
     return TemplateResolver.render(body, values: resolvedValues())
   }
 
-  /// The body used for send/preview: resolver output when the registry is active, else the
-  /// legacy 4-var fill (keeps back-compat when `loadResolverInputs` hasn't run).
-  var messageBody: String {
-    registry.isEmpty ? filledBody : resolvedBody
+  /// Preview/send subject+body after applying any user edit over the resolver output.
+  var effectiveSubject: String { editedSubject ?? resolvedSubject }
+  var effectiveBody: String { editedBody ?? resolvedBody }
+
+  /// The selected template's referenced variables (authored/resolved-tagged) for the panel.
+  var referencedVariables: [ReferencedVariable] {
+    guard let template = selectedTemplate else { return [] }
+    return TemplateVariableExtractor.referenced(
+      subject: template.subject, body: template.body,
+      registry: registry, resolvedValues: resolvedValues())
   }
 
-  /// Tokens still unresolved in the resolved subject+body (deduped). Empty unless the
+  /// Two-way binding into `authoredValues` for a panel input.
+  func authoredBinding(for key: String) -> Binding<String> {
+    Binding(get: { [weak self] in self?.authoredValues[key] ?? "" },
+            set: { [weak self] in self?.authoredValues[key] = $0 })
+  }
+
+  /// True when a text (`.message`) template's effective body exceeds the SMS cap.
+  var textBodyOverLimit: Bool {
+    selectedTemplate?.type == .message && effectiveBody.count > Self.textLimit
+  }
+
+  /// The body used for send/preview: resolver output (with edits) when the registry is active,
+  /// else the legacy 4-var fill (keeps back-compat when `loadResolverInputs` hasn't run).
+  var messageBody: String {
+    registry.isEmpty ? filledBody : effectiveBody
+  }
+
+  /// Tokens still unresolved in the effective subject+body (deduped). Empty unless the
   /// registry is active — the legacy path is never gated.
   var unresolvedKeys: [String] {
     guard !registry.isEmpty, selectedTemplate != nil else { return [] }
-    return TemplateResolver.findUnresolved(resolvedSubject + "\n" + resolvedBody)
+    return TemplateResolver.findUnresolved(effectiveSubject + "\n" + effectiveBody)
   }
 
-  /// True when the resolver is active and required/unfilled tokens remain — blocks send.
-  var isSendBlocked: Bool { !unresolvedKeys.isEmpty }
+  /// True when required tokens remain or a text body is over the cap — blocks send.
+  var isSendBlocked: Bool { !unresolvedKeys.isEmpty || textBodyOverLimit }
 
   var recipientLine: String {
     "\(coach.fullName) – \(coach.role.displayName)"
@@ -201,6 +231,8 @@ final class QuickCommunicationViewModel {
 
   func selectTemplate(_ template: CommunicationTemplate?) {
     selectedTemplate = template
+    editedSubject = nil
+    editedBody = nil
   }
 
   /// Maximum body length for mailto/sms URLs. Launch Services fails (-10814) when URLs exceed system limits.
