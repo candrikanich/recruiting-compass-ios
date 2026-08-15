@@ -120,6 +120,7 @@ final class AddCoachViewModel {
 
     do {
       schools = try await coachesService.fetchSchools(familyUnitId: familyUnitId)
+        .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
       logger.info("Loaded \(self.schools.count) schools")
 
       if schools.isEmpty {
