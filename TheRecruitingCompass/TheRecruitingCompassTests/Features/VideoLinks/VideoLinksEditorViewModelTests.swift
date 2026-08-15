@@ -61,4 +61,26 @@ final class VideoLinksEditorViewModelTests: XCTestCase {
     XCTAssertTrue(ok)
     XCTAssertEqual(vm.links.map(\.id), ["b"])
   }
+
+  func test_updateMutatesLinkInPlace() async {
+    let (vm, _) = makeVM(seed: [link("a", 0), link("b", 1)])
+    await vm.load()
+    let ok = await vm.updateLink(id: "a", platform: .youtube,
+                                 url: "https://youtu.be/new", title: "Reel")
+    XCTAssertTrue(ok)
+    let updated = vm.links.first { $0.id == "a" }
+    XCTAssertEqual(updated?.platform, .youtube)
+    XCTAssertEqual(updated?.url, "https://youtu.be/new")
+    XCTAssertEqual(updated?.title, "Reel")
+    XCTAssertEqual(vm.links.map(\.id), ["a", "b"], "update keeps order/count")
+  }
+
+  func test_updateBlockedForReadOnlyParent() async {
+    let (vm, _) = makeVM(readOnly: true, seed: [link("a", 0)])
+    await vm.load()
+    let ok = await vm.updateLink(id: "a", platform: .vimeo, url: "https://vimeo.com/x", title: nil)
+    XCTAssertFalse(ok)
+    XCTAssertEqual(vm.links.first?.platform, .hudl, "unchanged")
+    XCTAssertNotNil(vm.errorMessage)
+  }
 }
