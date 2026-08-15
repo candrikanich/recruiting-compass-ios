@@ -39,6 +39,8 @@ extension Color {
     static let slate500 = Color(hex: "64748b")
     static let slate600 = Color(hex: "475569")
     static let slate700 = Color(hex: "334155")
+    // Pink — Instagram brand mark tint (web brand-pink-500)
+    static let pink500 = Color(hex: "ec4899")
     // Indigo — accent (reserved for future button use)
     static let indigo100 = Color(hex: "e0e7ff")
     static let indigo500 = Color(hex: "6366f1")

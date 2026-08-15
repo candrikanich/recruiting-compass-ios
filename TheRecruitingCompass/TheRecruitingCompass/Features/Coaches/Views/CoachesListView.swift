@@ -40,26 +40,6 @@ struct CoachesListView: View {
       .onChange(of: prefilterSchoolId?.wrappedValue) { _, _ in
         consumePrefilterSchool()
       }
-      .confirmationDialog(
-        "Delete Coach",
-        isPresented: $viewModel.showDeleteConfirmation,
-        titleVisibility: .visible
-      ) {
-        Button("Delete", role: .destructive) {
-          Task { await viewModel.deleteCoach() }
-        }
-        Button("Cancel", role: .cancel) {}
-      } message: {
-        if let coach = viewModel.coachToDelete {
-          Text("Are you sure you want to delete \(coach.fullName)? This action cannot be undone.")
-        }
-      }
-      .alert("Error", isPresented: $viewModel.isShowingDeleteError) {
-      } message: {
-        if let error = viewModel.deleteErrorMessage {
-          Text(error)
-        }
-      }
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
           Button {
@@ -209,13 +189,14 @@ struct CoachesListView: View {
       NavigationLink(value: CoachDestination.detail(coach.id)) {
         CoachCardView(
           coach: coach,
+          variant: .full,
+          showSchoolMeta: viewModel.filters.schoolId == nil,
           schoolName: viewModel.schoolName(for: coach.schoolId),
           schoolLogoUrl: viewModel.schoolLogoUrl(for: coach.schoolId),
           schoolInitials: viewModel.schoolInitials(for: coach.schoolId),
           onQuickCommunication: { context in
             quickCommunicationContext = context
-          },
-          onDelete: { viewModel.confirmDelete(coach) }
+          }
         )
         .padding(.horizontal, 16)
         .padding(.vertical, 4)

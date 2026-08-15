@@ -48,7 +48,10 @@ struct SchoolCoachesPanel: View {
       } else {
         VStack(spacing: 0) {
           ForEach(displayedCoaches) { coach in
-            CompactCoachCard(coach: coach)
+            NavigationLink(value: CoachDestination.detail(coach.id)) {
+              CoachCardView(coach: coach, variant: .compact)
+            }
+            .buttonStyle(.plain)
 
             if coach.id != displayedCoaches.last?.id {
               Divider()

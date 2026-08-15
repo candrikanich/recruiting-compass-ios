@@ -1,22 +1,65 @@
 import SwiftUI
 
+enum CoachCardVariant: Sendable {
+  case compact
+  case full
+}
+
 struct CoachCardView: View {
   let coach: Coach
-  let schoolName: String
-  let schoolLogoUrl: String?
-  let schoolInitials: String
+  var variant: CoachCardVariant = .full
+  /// Show the school logo + name subtitle. Only meaningful for `.full`
+  /// (true in the cross-school directory, false in the same-school manage list).
+  var showSchoolMeta: Bool = false
+  var schoolName: String = ""
+  var schoolLogoUrl: String?
+  var schoolInitials: String = ""
 
-  /// When set, email and phone buttons open Quick Communication sheet instead of Mail/Messages.
+  /// When set, email and text buttons open Quick Communication sheet instead of Mail/Messages.
   var onQuickCommunication: ((QuickCommunicationContext) -> Void)?
-  var onDelete: () -> Void = {}
-
-  var deleteAccessibilityLabel: String { "Delete \(coach.fullName)" }
 
   var body: some View {
+    switch variant {
+    case .compact: compactBody
+    case .full: fullBody
+    }
+  }
+
+  // MARK: - Compact (school-sidebar): name + role badge + icons only
+
+  @ViewBuilder private var compactBody: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 8) {
+        Text(coach.fullName)
+          .font(.body)
+          .fontWeight(.medium)
+          .foregroundStyle(.primary)
+
+        Spacer()
+
+        CoachCardRoleBadge(role: coach.role)
+      }
+
+      CoachCardActionsSection(coach: coach, schoolName: schoolName, onQuickCommunication: onQuickCommunication)
+    }
+    .padding(12)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .contain)
+  }
+
+  // MARK: - Full (directory / manage): header + contact rows + icons
+
+  @ViewBuilder private var fullBody: some View {
     VStack(alignment: .leading, spacing: 12) {
-      CoachCardHeaderSection(coach: coach, schoolName: schoolName, schoolLogoUrl: schoolLogoUrl, schoolInitials: schoolInitials)
+      CoachCardHeaderSection(
+        coach: coach,
+        showSchoolMeta: showSchoolMeta,
+        schoolName: schoolName,
+        schoolLogoUrl: schoolLogoUrl,
+        schoolInitials: schoolInitials
+      )
       CoachCardContentSection(coach: coach)
-      CoachCardActionsSection(coach: coach, schoolName: schoolName, onQuickCommunication: onQuickCommunication, onDelete: onDelete)
+      CoachCardActionsSection(coach: coach, schoolName: schoolName, onQuickCommunication: onQuickCommunication)
     }
     .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -35,23 +78,28 @@ struct CoachCardView: View {
 
 private struct CoachCardHeaderSection: View {
   let coach: Coach
+  let showSchoolMeta: Bool
   let schoolName: String
   let schoolLogoUrl: String?
   let schoolInitials: String
 
   var body: some View {
     HStack(spacing: 12) {
-      CoachCardSchoolLogoView(schoolLogoUrl: schoolLogoUrl, schoolInitials: schoolInitials)
-        .accessibilityHidden(true)
+      if showSchoolMeta {
+        CoachCardSchoolLogoView(schoolLogoUrl: schoolLogoUrl, schoolInitials: schoolInitials)
+          .accessibilityHidden(true)
+      }
 
       VStack(alignment: .leading, spacing: 4) {
         Text(coach.fullName)
           .font(.headline)
           .foregroundStyle(.primary)
 
-        Text(schoolName)
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
+        if showSchoolMeta {
+          Text(schoolName)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+        }
       }
 
       Spacer()
@@ -189,45 +237,9 @@ private func lastContactRow(date: Date) -> some View {
   }
 }
 
-// MARK: - Actions
+// MARK: - Actions (canonical 5: Email, Text, Call, X, Instagram)
 
 private struct CoachCardActionsSection: View {
-  let coach: Coach
-  let schoolName: String
-  var onQuickCommunication: ((QuickCommunicationContext) -> Void)?
-  var onDelete: () -> Void = {}
-
-  var body: some View {
-    HStack(spacing: 4) {
-      CoachCardCommunicationButtons(coach: coach, schoolName: schoolName, onQuickCommunication: onQuickCommunication)
-
-      Spacer()
-
-      CoachCardDeleteButton(coach: coach, onDelete: onDelete)
-    }
-  }
-}
-
-private struct CoachCardDeleteButton: View {
-  let coach: Coach
-  var onDelete: () -> Void = {}
-
-  private var deleteAccessibilityLabel: String { String(localized: "Delete \(coach.fullName)") }
-
-  var body: some View {
-    Button(role: .destructive, action: onDelete) {
-      Image(systemName: "trash")
-        .font(.subheadline)
-        .foregroundStyle(Color.errorRed)
-        .frame(minWidth: 44, minHeight: 44)
-        .contentShape(Rectangle())
-    }
-    .accessibilityLabel(deleteAccessibilityLabel)
-    .accessibilityHint("Double tap to delete this coach")
-  }
-}
-
-private struct CoachCardCommunicationButtons: View {
   let coach: Coach
   let schoolName: String
   var onQuickCommunication: ((QuickCommunicationContext) -> Void)?
@@ -235,39 +247,49 @@ private struct CoachCardCommunicationButtons: View {
   @Environment(\.sizeCategory) private var sizeCategory
 
   var body: some View {
-    if let email = coach.contactEmail {
-      if let onQuickCommunication {
-        quickCommunicationTriggerButton(
-          icon: "envelope.fill",
-          color: Color.accentBlue,
-          label: String(localized: "Email coach"),
-          hint: "Opens Quick Communication with templates"
-        ) {
-          onQuickCommunication(QuickCommunicationContext(coach: coach, schoolName: schoolName))
+    HStack(spacing: 4) {
+      if let email = coach.contactEmail {
+        if let onQuickCommunication {
+          quickCommunicationTriggerButton(
+            icon: "envelope.fill",
+            color: Color.accentBlue,
+            label: String(localized: "Email coach"),
+            hint: "Opens Quick Communication with templates"
+          ) {
+            onQuickCommunication(QuickCommunicationContext(coach: coach, schoolName: schoolName))
+          }
+        } else {
+          CommunicationButton(type: .email(email), value: email)
         }
-      } else {
-        CommunicationButton(type: .email(email), value: email)
       }
-    }
-    if let phone = coach.contactPhone {
-      if let onQuickCommunication {
-        quickCommunicationTriggerButton(
-          icon: "message.fill",
-          color: .successGreen,
-          label: String(localized: "Text coach"),
-          hint: "Opens Quick Communication with templates"
-        ) {
-          onQuickCommunication(QuickCommunicationContext(coach: coach, schoolName: schoolName))
+
+      if let phone = coach.contactPhone {
+        if let onQuickCommunication {
+          quickCommunicationTriggerButton(
+            icon: "message.fill",
+            color: .successGreen,
+            label: String(localized: "Text coach"),
+            hint: "Opens Quick Communication with templates"
+          ) {
+            onQuickCommunication(QuickCommunicationContext(coach: coach, schoolName: schoolName))
+          }
+        } else {
+          CommunicationButton(type: .phone(phone), value: phone)
         }
-      } else {
-        CommunicationButton(type: .phone(phone), value: phone)
+
+        // Call is always the OS dialer, never the Quick Communication modal.
+        CommunicationButton(type: .call(phone), value: phone)
       }
-    }
-    if let twitter = coach.contactTwitter {
-      CommunicationButton(type: .twitter(twitter), value: twitter)
-    }
-    if let instagram = coach.contactInstagram {
-      CommunicationButton(type: .instagram(instagram), value: instagram)
+
+      if let twitter = coach.contactTwitter {
+        CommunicationButton(type: .twitter(twitter), value: twitter)
+      }
+
+      if let instagram = coach.contactInstagram {
+        CommunicationButton(type: .instagram(instagram), value: instagram)
+      }
+
+      Spacer()
     }
   }
 
@@ -290,7 +312,7 @@ private struct CoachCardCommunicationButtons: View {
   }
 }
 
-#Preview {
+#Preview("Full — directory (school meta)") {
   CoachCardView(
     coach: Coach(
       id: "1",
@@ -307,9 +329,33 @@ private struct CoachCardCommunicationButtons: View {
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2026-01-15T10:00:00Z"
     ),
+    variant: .full,
+    showSchoolMeta: true,
     schoolName: "State University",
     schoolLogoUrl: nil,
     schoolInitials: "SU"
+  )
+  .padding()
+}
+
+#Preview("Compact — school sidebar") {
+  CoachCardView(
+    coach: Coach(
+      id: "2",
+      firstName: "Jane",
+      lastName: "Doe",
+      email: "jane@university.edu",
+      phone: "555-0199",
+      position: "assistant",
+      schoolId: "school-1",
+      twitterHandle: nil,
+      instagramHandle: nil,
+      notes: nil,
+      lastContactDate: nil,
+      createdAt: "2025-01-01T00:00:00Z",
+      updatedAt: "2026-01-15T10:00:00Z"
+    ),
+    variant: .compact
   )
   .padding()
 }

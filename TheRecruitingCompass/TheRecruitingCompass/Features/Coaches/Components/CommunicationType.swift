@@ -13,7 +13,8 @@ enum CommunicationType: Sendable {
     case .phone: return "message.fill"
     case .call: return "phone.fill"
     case .twitter: return "at"
-    case .instagram: return "camera.fill"
+    // twitter/instagram render their brand asset; this is an unreached fallback.
+    case .instagram: return "link"
     }
   }
 
@@ -31,9 +32,9 @@ enum CommunicationType: Sendable {
     switch self {
     case .email: return .accentBlue
     case .phone: return .successGreen
-    case .call: return .successGreen
-    case .twitter: return Color(hex: "1DA1F2")
-    case .instagram: return Color(hex: "E4405F")
+    case .call: return Color.Brand.purple600
+    case .twitter: return Color.Brand.slate700
+    case .instagram: return Color.Brand.pink500
     }
   }
 

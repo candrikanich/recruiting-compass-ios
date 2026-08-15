@@ -228,33 +228,6 @@ final class CoachCardViewTests: XCTestCase {
     XCTAssertEqual(coach.role.displayName, "Head Coach")
   }
 
-  func testAccessibility_deleteButtonHasLabel() {
-    let view = CoachCardView(
-      coach: makeCoach(firstName: "John", lastName: "Smith"),
-      schoolName: "State University",
-      schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: {}
-    )
-
-    XCTAssertEqual(view.deleteAccessibilityLabel, "Delete John Smith")
-  }
-
-  func testDelete_onDeleteClosureIsStored() {
-    var deleted = false
-    let view = CoachCardView(
-      coach: makeCoach(),
-      schoolName: "State University",
-      schoolLogoUrl: nil,
-      schoolInitials: "SU",
-      onDelete: { deleted = true }
-    )
-
-    view.onDelete()
-
-    XCTAssertTrue(deleted, "Delete button must invoke the supplied onDelete closure")
-  }
-
   // MARK: - Dynamic Type Tests
 
   func testDynamicType_supportsAccessibilitySizes() {

@@ -249,6 +249,15 @@ struct SchoolDetailView: View {
         isSaving: viewModel.isSavingCoachingPhilosophy
       )
     }
+    .navigationDestination(for: CoachDestination.self) { destination in
+      if case .detail(let coachId) = destination {
+        CoachDetailView(
+          coachId: coachId,
+          allCoaches: viewModel.coaches,
+          allSchools: [school]
+        )
+      }
+    }
     .navigationDestination(item: $navigationDestination) { destination in
       switch destination {
       case .addInteraction:
