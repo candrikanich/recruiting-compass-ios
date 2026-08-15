@@ -109,9 +109,14 @@ struct PublicProfileCard: View {
         if let sport = data.athletic?.primarySport {
             parts.append(sport)
         }
-        if let positions = data.athletic?.positions, !positions.isEmpty {
-            let sport = data.athletic?.primarySport
-            parts.append(positions.map { CanonicalPositions.abbreviation(sport: sport, $0) }.joined(separator: "/"))
+        // Coach-facing primary/secondary only (e.g. "3B/SS") from the entered,
+        // ordered positions[]; not the full list.
+        let positionShort = CanonicalPositions.formatPositionsShort(
+            sport: data.athletic?.primarySport,
+            positions: data.athletic?.positions,
+            fallback: data.athletic?.primaryPosition)
+        if !positionShort.isEmpty {
+            parts.append(positionShort)
         }
         if let gpa = data.academics?.gpa {
             parts.append(String(format: "%.2f GPA", gpa))

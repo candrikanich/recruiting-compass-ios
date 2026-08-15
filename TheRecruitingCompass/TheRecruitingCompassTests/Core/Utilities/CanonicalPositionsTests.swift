@@ -17,7 +17,7 @@ final class CanonicalPositionsTests: XCTestCase {
 
     func testNoPickerListsCoarseBuckets() {
         for positions in CanonicalPositions.bySport.values {
-            for coarse in ["Infielder", "Outfielder", "Guard", "Lineman"] {
+            for coarse in ["Infielder", "Outfielder", "Utility", "Guard", "Lineman"] {
                 XCTAssertFalse(positions.contains(coarse), "Found coarse bucket \(coarse)")
             }
         }
@@ -28,14 +28,14 @@ final class CanonicalPositionsTests: XCTestCase {
         XCTAssertTrue(CanonicalPositions.positions(for: nil).isEmpty)
     }
 
-    // MARK: - normalize coarse buckets → Utility
+    // MARK: - vague catch-alls no longer resolve (preserved raw, not fabricated)
 
-    func testInfielderCollapsesToUtility() {
-        XCTAssertEqual(CanonicalPositions.normalize(sport: "Baseball", "Infielder"), "Utility")
-    }
-
-    func testOutfielderCollapsesToUtility() {
-        XCTAssertEqual(CanonicalPositions.normalize(sport: "Baseball", "OF"), "Utility")
+    func testCoarseBucketsNoLongerResolve() {
+        // Recruiting output must name a specific position — these preserve raw
+        // (so backfill migrates them) instead of resolving to a fake "Utility".
+        XCTAssertEqual(CanonicalPositions.normalize(sport: "Baseball", "Infielder"), "Infielder")
+        XCTAssertEqual(CanonicalPositions.normalize(sport: "Baseball", "Outfielder"), "Outfielder")
+        XCTAssertEqual(CanonicalPositions.normalize(sport: "Baseball", "Utility"), "Utility")
     }
 
     // MARK: - abbreviation expansion + sport-scoped collisions
@@ -76,5 +76,46 @@ final class CanonicalPositionsTests: XCTestCase {
     func testNilAndEmptyPassThrough() {
         XCTAssertNil(CanonicalPositions.normalize(sport: "Baseball", nil))
         XCTAssertEqual(CanonicalPositions.normalize(sport: "Baseball", "   "), "   ")
+    }
+
+    // MARK: - abbreviation
+
+    func testAbbreviationBaseball() {
+        XCTAssertEqual(CanonicalPositions.abbreviation(sport: "Baseball", "Third Base"), "3B")
+        XCTAssertEqual(CanonicalPositions.abbreviation(sport: "Softball", "Shortstop"), "SS")
+    }
+
+    func testAbbreviationFallsBackToFullNameForUnmappedSport() {
+        // Volleyball has no abbreviation table → full name is returned as-is.
+        XCTAssertEqual(CanonicalPositions.abbreviation(sport: "Volleyball", "Outside Hitter"), "Outside Hitter")
+    }
+
+    // MARK: - formatPositionsShort (ordered primary/secondary)
+
+    func testFormatPositionsShortJoinsFirstTwoAbbreviated() {
+        XCTAssertEqual(
+            CanonicalPositions.formatPositionsShort(
+                sport: "Baseball", positions: ["Third Base", "Shortstop", "Pitcher"], fallback: nil),
+            "3B/SS")
+    }
+
+    func testFormatPositionsShortPrimaryOnlyWhenNoSecondary() {
+        XCTAssertEqual(
+            CanonicalPositions.formatPositionsShort(
+                sport: "Baseball", positions: ["Third Base"], fallback: nil),
+            "3B")
+    }
+
+    func testFormatPositionsShortUsesFallbackWhenArrayEmpty() {
+        XCTAssertEqual(
+            CanonicalPositions.formatPositionsShort(
+                sport: "Baseball", positions: [], fallback: "Shortstop"),
+            "SS")
+    }
+
+    func testFormatPositionsShortEmptyWhenNothingEntered() {
+        XCTAssertEqual(
+            CanonicalPositions.formatPositionsShort(sport: "Baseball", positions: nil, fallback: nil),
+            "")
     }
 }

@@ -428,13 +428,35 @@ final class PlayerDetailsViewModelTests: XCTestCase {
     viewModel.details.primarySport = "Baseball"
     viewModel.details.positions = ["pitcher", "FIRST BASE", "outfielder"]
     viewModel.normalizePositions()
-    // Sport-scoped: canonical casing snap + coarse bucket ("outfielder") → Utility.
-    XCTAssertEqual(viewModel.details.positions, ["Pitcher", "First Base", "Utility"])
+    // Casing snap; "outfielder" is a vague catch-all so it's PRESERVED raw
+    // (not fabricated into "Utility").
+    XCTAssertEqual(viewModel.details.positions, ["Pitcher", "First Base", "outfielder"])
+  }
+
+  func testNormalizePositions_MirrorsPositionZeroToPrimary() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.primarySport = "Baseball"
+    viewModel.details.primaryPosition = "Utility" // stale
+    viewModel.details.positions = ["3B", "SS"]
+    viewModel.normalizePositions()
+    XCTAssertEqual(viewModel.details.positions, ["Third Base", "Shortstop"])
+    XCTAssertEqual(viewModel.details.primaryPosition, "Third Base")
+  }
+
+  func testMovePosition_SwapsAdjacentAndMirrors() {
+    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
+    viewModel.details.primarySport = "Baseball"
+    viewModel.details.positions = ["Third Base", "Shortstop", "Pitcher"]
+    viewModel.movePosition(1, .up) // SS -> primary
+    XCTAssertEqual(viewModel.details.positions, ["Shortstop", "Third Base", "Pitcher"])
+    viewModel.movePosition(0, .up) // no-op at top
+    XCTAssertEqual(viewModel.details.positions, ["Shortstop", "Third Base", "Pitcher"])
   }
 
   func testNormalizePositions_NilPositions_StaysNil() {
     viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
     viewModel.details.positions = nil
+    viewModel.details.primaryPosition = nil
     viewModel.normalizePositions()
     XCTAssertNil(viewModel.details.positions)
   }

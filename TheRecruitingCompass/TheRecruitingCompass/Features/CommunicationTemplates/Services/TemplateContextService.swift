@@ -41,6 +41,7 @@ struct TemplateContextService: TemplateContextProviding {
     // Athlete-owned data (all best-effort; any failure → empty).
     var usersTable: [String: String] = [:]
     var prefs: [String: String] = [:]
+    var positions: [String] = []
     var metrics: [TemplateMetricRow] = []
     var events: [EventLite] = []
     var gradYear: Int?
@@ -51,7 +52,9 @@ struct TemplateContextService: TemplateContextProviding {
     if let uid = athleteUserId {
       usersTable = (try? await fetchRowDict(table: "users", idColumn: "id", id: uid)) ?? [:]
       gradYear = usersTable["graduation_year"].flatMap { Int($0) }
-      prefs = (try? await fetchPlayerPrefs(userId: uid)) ?? [:]
+      let fetchedPrefs = (try? await fetchPlayerPrefs(userId: uid)) ?? (scalars: [:], positions: [])
+      prefs = fetchedPrefs.scalars
+      positions = fetchedPrefs.positions
       metrics = (try? await fetchMetrics(userId: uid)) ?? []
       events = (try? await fetchEvents(userId: uid)) ?? []
       profileSlug = try? await fetchProfileSlug(userId: uid)
@@ -62,7 +65,7 @@ struct TemplateContextService: TemplateContextProviding {
     }
 
     let derived = TemplateContextBuilder.buildDerived(
-      prefs: prefs, metrics: metrics, events: events, profileSlug: profileSlug,
+      prefs: prefs, positions: positions, metrics: metrics, events: events, profileSlug: profileSlug,
       transcriptURL: transcriptURL, videoPrimaryURL: videoPrimaryURL, gradYear: gradYear, now: now)
 
     return ResolverContext(
@@ -82,16 +85,29 @@ struct TemplateContextService: TemplateContextProviding {
     }
   }
 
-  private func fetchPlayerPrefs(userId: String) async throws -> [String: String] {
+  /// Flattened scalar prefs plus the ordered `positions[]` array (dropped by the
+  /// scalar flatten, but needed for coach-facing "3B/SS" position rendering).
+  private func fetchPlayerPrefs(userId: String) async throws -> (scalars: [String: String], positions: [String]) {
     struct PrefRow: Decodable { let data: JSONObject }
     let rows: [PrefRow] = try await supabaseManager.client
       .from("user_preferences").select("data")
       .eq("user_id", value: userId).eq("category", value: "player")
       .execute().value
-    guard let data = rows.first?.data else { return [:] }
-    return data.reduce(into: [:]) { acc, kv in
+    guard let data = rows.first?.data else { return ([:], []) }
+    let scalars = data.reduce(into: [String: String]()) { acc, kv in
       if let scalar = Self.scalarString(kv.value) { acc[kv.key] = scalar }
     }
+    var positions: [String] = []
+    if case let .array(items)? = data["positions"] {
+      positions = items.compactMap { item in
+        if case let .string(s) = item {
+          let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+          return t.isEmpty ? nil : t
+        }
+        return nil
+      }
+    }
+    return (scalars, positions)
   }
 
   private func fetchMetrics(userId: String) async throws -> [TemplateMetricRow] {

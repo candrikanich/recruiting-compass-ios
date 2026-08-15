@@ -31,6 +31,12 @@ struct AthleticsTab: View {
                     .padding()
                 }
 
+                if let positions = viewModel.details.positions, !positions.isEmpty {
+                    cardSection(String(localized: "Position Priority")) {
+                        positionPriorityCard(positions)
+                    }
+                }
+
                 cardSection(String(localized: "Recruiting Database IDs")) {
                     externalIdsCard
                 }
@@ -229,6 +235,85 @@ struct AthleticsTab: View {
             .padding(.horizontal)
             .padding(.bottom, 12)
         }
+    }
+
+    // MARK: - Position Priority
+
+    /// Selected positions in priority order — index 0 = primary, 1 = secondary.
+    /// This ordering is what coach outreach, the recruiting packet, and the
+    /// public profile display, so athletes control it explicitly here.
+    @ViewBuilder
+    private func positionPriorityCard(_ positions: [String]) -> some View {
+        VStack(spacing: 0) {
+            Text("Order matters — your first pick is what coaches see (they recruit for specific positions).")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+                .padding(.top, 12)
+                .padding(.bottom, 4)
+            ForEach(Array(positions.enumerated()), id: \.element) { index, pos in
+                positionPriorityRow(index: index, pos: pos, count: positions.count)
+                if index < positions.count - 1 { divider }
+            }
+        }
+    }
+
+    private func positionPriorityRow(index: Int, pos: String, count: Int) -> some View {
+        HStack(spacing: 12) {
+            priorityBadge(index)
+            Text(pos).font(.body)
+            Text(CanonicalPositions.abbreviation(sport: viewModel.details.primarySport, pos))
+                .font(.caption.monospaced())
+                .foregroundStyle(.tertiary)
+            Spacer()
+            Button {
+                viewModel.movePosition(index, .up)
+            } label: {
+                Image(systemName: "chevron.up")
+            }
+            .buttonStyle(.plain)
+            .disabled(index == 0 || viewModel.isReadOnly)
+            .accessibilityLabel(String(localized: "Move \(pos) up"))
+
+            Button {
+                viewModel.movePosition(index, .down)
+            } label: {
+                Image(systemName: "chevron.down")
+            }
+            .buttonStyle(.plain)
+            .disabled(index == count - 1 || viewModel.isReadOnly)
+            .accessibilityLabel(String(localized: "Move \(pos) down"))
+        }
+        .font(.footnote.weight(.semibold))
+        .foregroundStyle(.secondary)
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+    }
+
+    @ViewBuilder
+    private func priorityBadge(_ index: Int) -> some View {
+        switch index {
+        case 0:
+            badgeLabel(String(localized: "PRIMARY"), background: Color.accentColor, foreground: .white)
+        case 1:
+            badgeLabel(String(localized: "SECONDARY"), background: Color(.tertiarySystemFill), foreground: .primary)
+        default:
+            Text("\(index + 1)")
+                .font(.caption.bold())
+                .foregroundStyle(.tertiary)
+                .frame(width: 28)
+        }
+    }
+
+    private func badgeLabel(_ text: String, background: Color, foreground: Color) -> some View {
+        Text(text)
+            .font(.caption2.bold())
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(background)
+            .foregroundStyle(foreground)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 
     // MARK: - Row Helpers

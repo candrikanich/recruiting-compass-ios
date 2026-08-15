@@ -1,10 +1,13 @@
 import Foundation
 
 /// Canonical, sport-scoped athlete positions. Swift mirror of web
-/// `utils/positions/canonical.ts` (shipped in web PR #354). Web is the source of
-/// truth; the shared DB is already backfilled to these full-name values.
+/// `utils/positions/canonical.ts`. Web is the source of truth; the shared DB is
+/// already backfilled to these full-name values.
 ///
-/// "Infielder"/"Outfielder" are not real positions — they collapse to `Utility`.
+/// Recruiting output must name a SPECIFIC position, so vague catch-alls are
+/// gone: "Utility"/"Infielder"/"Outfielder" no longer resolve to a canonical
+/// value. Unknown/legacy values are PRESERVED on read (never dropped) — backfill
+/// migrates them.
 enum CanonicalPositions {
   /// One canonical vocabulary per sport (full names, granular). Keys match the
   /// sport strings used across onboarding/preferences.
@@ -32,7 +35,7 @@ enum CanonicalPositions {
 
   private static let baseball = ["Pitcher", "Catcher", "First Base", "Second Base", "Third Base",
                                  "Shortstop", "Left Field", "Center Field", "Right Field",
-                                 "Designated Hitter", "Utility"]
+                                 "Designated Hitter"]
 
   /// Canonical options for a sport (case-insensitive lookup). Empty when the
   /// sport is nil/unknown (e.g. "Other").
@@ -41,15 +44,14 @@ enum CanonicalPositions {
     return lookup(sport) ?? []
   }
 
-  /// Sport-scoped normalization: expand abbreviations, collapse coarse buckets
-  /// (`Infielder`/`Outfielder`) to `Utility`, snap already-canonical values to
-  /// canonical casing, and PRESERVE unknown values (never drop). Collisions are
+  /// Sport-scoped normalization: expand abbreviations, snap already-canonical
+  /// values to canonical casing, and PRESERVE unknown values (never drop) —
+  /// including de-canonicalized legacy "Utility"/"Infielder"/"Outfielder", which
+  /// no longer resolve to anything (backfill migrates them). Collisions are
   /// resolved by sport — `C` = Catcher (baseball) vs Center (basketball), `P` =
   /// Pitcher (baseball) vs Punter (football).
   static func normalize(sport: String?, _ value: String?) -> String? {
     guard let raw = value?.trimmingCharacters(in: .whitespaces), !raw.isEmpty else { return value }
-
-    if coarseBuckets.contains(raw.lowercased()) { return "Utility" }
 
     let sportKey = sport?.lowercased() ?? ""
     if let expanded = abbreviations[sportKey]?[raw.uppercased()] { return expanded }
@@ -70,9 +72,28 @@ enum CanonicalPositions {
     return table.first { $0.value.caseInsensitiveCompare(canonical) == .orderedSame }?.key ?? canonical
   }
 
-  // MARK: - Private
+  /// Ordered primary/secondary from an athlete's ENTERED positions, with the
+  /// legacy `primaryPosition` string as a last-resort fallback. Index 0 is
+  /// primary; the first later entry that differs is secondary.
+  static func primaryAndSecondary(_ positions: [String]?, fallback: String?) -> (primary: String, secondary: String) {
+    let list = (positions ?? []).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+    let primary = (list.first ?? fallback?.trimmingCharacters(in: .whitespaces) ?? "")
+    let secondary = list.first { $0 != primary } ?? ""
+    return (primary, secondary)
+  }
 
-  private static let coarseBuckets: Set<String> = ["infielder", "outfielder", "infield", "outfield", "if", "of"]
+  /// Coach-facing short string from entered positions: first two, abbreviated,
+  /// primary first, joined with "/" (e.g. "3B/SS"). Empty when nothing is
+  /// entered and no fallback is given.
+  static func formatPositionsShort(sport: String?, positions: [String]?, fallback: String?) -> String {
+    let (primary, secondary) = primaryAndSecondary(positions, fallback: fallback)
+    return [primary, secondary]
+      .filter { !$0.isEmpty }
+      .map { abbreviation(sport: sport, $0) }
+      .joined(separator: "/")
+  }
+
+  // MARK: - Private
 
   private static func lookup(_ sport: String) -> [String]? {
     bySport.first { $0.key.caseInsensitiveCompare(sport) == .orderedSame }?.value
@@ -94,6 +115,6 @@ enum CanonicalPositions {
   private static let baseballAbbrev: [String: String] = [
     "P": "Pitcher", "C": "Catcher", "1B": "First Base", "2B": "Second Base", "3B": "Third Base",
     "SS": "Shortstop", "LF": "Left Field", "CF": "Center Field", "RF": "Right Field",
-    "DH": "Designated Hitter", "UTIL": "Utility"
+    "DH": "Designated Hitter"
   ]
 }

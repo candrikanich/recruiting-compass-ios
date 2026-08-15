@@ -275,16 +275,34 @@ final class PlayerDetailsViewModel {
     }
 
     /// Snap stored positions to the canonical, sport-scoped vocabulary (expands
-    /// abbreviations, collapses legacy "Infielder"/"Outfielder" → "Utility",
-    /// preserves unknowns). Runs on load and before save so legacy values
-    /// round-trip identically to web.
+    /// abbreviations, preserves unknowns; vague catch-alls no longer resolve).
+    /// `positions` is the ordered source of truth (index 0 = primary), so mirror
+    /// `positions[0]` back onto the legacy `primaryPosition` string — this keeps
+    /// every downstream reader (template resolver, completeness, public profile)
+    /// in sync and matches web. Runs on load and before save.
     func normalizePositions() {
         let sport = details.primarySport
-        details.primaryPosition = CanonicalPositions.normalize(sport: sport, details.primaryPosition)
-        details.positions = details.positions?.compactMap {
+        let normalized = details.positions?.compactMap {
             CanonicalPositions.normalize(sport: sport, $0)
         }
+        details.positions = normalized
+        details.primaryPosition =
+            normalized?.first
+            ?? CanonicalPositions.normalize(sport: sport, details.primaryPosition)
     }
+
+    /// Reorder the selected positions — index 0 is the athlete's primary, index 1
+    /// their secondary. Marks the form dirty so the change autosaves.
+    func movePosition(_ index: Int, _ direction: MoveDirection) {
+        guard var list = details.positions else { return }
+        let target = direction == .up ? index - 1 : index + 1
+        guard index >= 0, index < list.count, target >= 0, target < list.count else { return }
+        list.swapAt(index, target)
+        details.positions = list
+        markChanged()
+    }
+
+    enum MoveDirection { case up, down }
 
     // MARK: - Travel Teams
 

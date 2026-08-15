@@ -29,7 +29,7 @@ struct TemplateContextBuilder {
   }
 
   static func buildDerived(
-    prefs: [String: String], metrics: [TemplateMetricRow], events: [EventLite],
+    prefs: [String: String], positions: [String], metrics: [TemplateMetricRow], events: [EventLite],
     profileSlug: String?, transcriptURL: String?, videoPrimaryURL: String?,
     gradYear: Int?, now: Date
   ) -> [String: String] {
@@ -37,8 +37,15 @@ struct TemplateContextBuilder {
     func put(_ key: String, _ value: String?) {
       if let v = value?.trimmingCharacters(in: .whitespacesAndNewlines), !v.isEmpty { d[key] = v }
     }
-    put("sport", prefs["primary_sport"])
-    put("position", prefs["primary_position"])
+    let sport = prefs["primary_sport"]
+    put("sport", sport)
+    // Coach-facing "3B/SS" from the entered, ordered positions[] (index 0 =
+    // primary); the legacy primary_position string is only a fallback.
+    put("position", CanonicalPositions.formatPositionsShort(
+      sport: sport, positions: positions, fallback: prefs["primary_position"]))
+    let secondary = CanonicalPositions.primaryAndSecondary(
+      positions, fallback: prefs["primary_position"]).secondary
+    put("positionSecondary", secondary.isEmpty ? nil : CanonicalPositions.abbreviation(sport: sport, secondary))
     put("hsCoachName", pickHsCoach(prefs, gradYear: gradYear, now: now))
     put("profileLink", profileSlug.map { "/\($0)" })
     put("transcriptLink", transcriptURL)

@@ -127,7 +127,11 @@ final class OnboardingViewModel {
         var details = PlayerDetails.default
         details.graduationYear = graduationYear
         details.primarySport = primarySport.isEmpty ? nil : primarySport
+        // Seed the ordered positions[] from the onboarding pick so the array
+        // (source of truth for coach-facing output) and primaryPosition agree
+        // from account creation — prevents the two stores drifting apart.
         details.primaryPosition = primaryPosition.isEmpty ? nil : primaryPosition
+        details.positions = primaryPosition.isEmpty ? nil : [primaryPosition]
         _ = try await preferenceService.savePreferences(category: .player, data: details)
       } else if currentStep == 3 {
         var location = HomeLocation.default
