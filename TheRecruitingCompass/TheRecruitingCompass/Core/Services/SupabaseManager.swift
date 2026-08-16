@@ -52,10 +52,12 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     let email: String
     let fullName: String
     let role: String
+    let dateOfBirth: String?
 
     enum CodingKeys: String, CodingKey {
       case id, email, role
       case fullName = "full_name"
+      case dateOfBirth = "date_of_birth"
     }
   }
 
@@ -105,7 +107,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     password: String,
     fullName: String,
     role: UserRole,
-    familyCode: String?
+    familyCode: String?,
+    dateOfBirth: String? = nil
   ) async throws -> (user: User, session: Session?) {
     var metadata: [String: AnyJSON] = [
       "full_name": .string(fullName),
@@ -114,6 +117,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
 
     if let familyCode, !familyCode.trimmingCharacters(in: .whitespaces).isEmpty {
       metadata["family_code"] = .string(familyCode)
+    }
+
+    if let dateOfBirth, !dateOfBirth.isEmpty {
+      metadata["date_of_birth"] = .string(dateOfBirth)
     }
 
     do {
@@ -134,7 +141,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
             id: userId,
             email: userEmail,
             fullName: fullName,
-            role: role.rawValue
+            role: role.rawValue,
+            dateOfBirth: dateOfBirth
           ),
           onConflict: "id"
         )
@@ -302,7 +310,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
             id: user.id,
             email: user.email,
             fullName: user.fullName ?? "",
-            role: user.role?.rawValue ?? UserRole.player.rawValue
+            role: user.role?.rawValue ?? UserRole.player.rawValue,
+            dateOfBirth: user.dateOfBirth
           ),
           onConflict: "id"
         )
@@ -340,6 +349,11 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       return nil
     }
 
+    let dateOfBirth: String? = metadata["date_of_birth"].flatMap { data in
+      if case let s as String = data.value { return s }
+      return nil
+    }
+
     return User(
       id: userId,
       email: email,
@@ -349,7 +363,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       createdAt: Self.isoFormatter.string(from: Date.now),
       updatedAt: Self.isoFormatter.string(from: Date.now),
       role: role,
-      dateOfBirth: nil
+      dateOfBirth: dateOfBirth
     )
   }
 

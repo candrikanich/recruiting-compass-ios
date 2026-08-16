@@ -114,7 +114,7 @@ struct ParentOnboardingWizardView: View {
           viewModel.onDateOfBirthChange()
         }
 
-        Text("Players must be 13 or older to create an account.")
+        Text("Recruiting Compass is for ages 13 and up. By entering a date of birth, you confirm the player is 13 or older.")
           .font(.caption)
           .foregroundStyle(
             viewModel.hasConfirmedDateOfBirth && viewModel.isPlayerUnderAge

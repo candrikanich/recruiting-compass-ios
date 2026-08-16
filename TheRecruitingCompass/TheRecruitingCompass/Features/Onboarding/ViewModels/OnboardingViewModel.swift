@@ -63,14 +63,27 @@ final class OnboardingViewModel {
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
   }
 
+  /// Pre-fills onboarding from the athlete's canonical DB preferences (`player` + `location`).
+  /// Fill-if-empty: a field the user has already set locally is never overwritten. This is the
+  /// cross-platform prefill path — parent-entered data hydrated into canonical prefs (web) surfaces
+  /// here on the player's iOS onboarding via a DB read, with no query-param/local-state transport.
   func loadExistingData() async {
-    guard let existing: PlayerDetails = try? await preferenceService.fetchPreferences(category: .player) else { return }
-    if let year = existing.graduationYear { graduationYear = year }
-    if let sport = existing.primarySport, !sport.isEmpty { primarySport = sport }
-    if let position = existing.primaryPosition, !position.isEmpty {
-      primaryPosition = CanonicalPositions.normalize(sport: existing.primarySport, position) ?? position
+    if let existing: PlayerDetails = try? await preferenceService.fetchPreferences(category: .player) {
+      if graduationYear == nil, let year = existing.graduationYear { graduationYear = year }
+      if primarySport.isEmpty, let sport = existing.primarySport, !sport.isEmpty { primarySport = sport }
+      if primaryPosition.isEmpty, let position = existing.primaryPosition, !position.isEmpty {
+        primaryPosition = CanonicalPositions.normalize(sport: existing.primarySport, position) ?? position
+      }
+      if gpa == nil { gpa = existing.gpa }
+      if satScore == nil { satScore = existing.satScore }
+      if actScore == nil { actScore = existing.actScore }
     }
-    logger.debug("Pre-filled onboarding from existing player preferences")
+    if zipCode.isEmpty,
+       let location: HomeLocation = try? await preferenceService.fetchPreferences(category: .location),
+       let zip = location.zip, !zip.isEmpty {
+      zipCode = zip
+    }
+    logger.debug("Pre-filled onboarding from existing canonical preferences")
   }
 
   func sendParentInvite() async {

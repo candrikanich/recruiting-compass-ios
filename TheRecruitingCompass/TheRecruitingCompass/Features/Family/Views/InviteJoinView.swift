@@ -391,6 +391,10 @@ private struct InviteJoinDateOfBirthField: View {
       )
       .datePickerStyle(.compact)
       .labelsHidden()
+
+      Text("Recruiting Compass is for ages 13 and up. By entering a date of birth, you confirm you are 13 or older.")
+        .font(.caption)
+        .foregroundStyle(Color.secondary)
     }
   }
 }

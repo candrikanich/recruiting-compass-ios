@@ -1,11 +1,13 @@
 import Foundation
 
-/// Graduation year and grade-level helpers. Aligns with web: allowed years = current year through current+4 (no players under 13).
+/// Graduation year and grade-level helpers. Aligns with web `getGraduationYearOptions()`: current year through current+5.
 enum GradeLevelHelper {
-  /// Allowed graduation years for pickers: current year through current+4 (5 years). Matches web; excludes years that would imply under-13.
+  /// Allowed graduation years for pickers: current year through current+5 (6 years). Matches web canonical
+  /// `utils/graduationYears.ts`; the +5 upper bound lets rising 8th graders (13+) pick their class. Age
+  /// eligibility is enforced separately by the 13+ COPPA gate, not by this range.
   static var allowedGraduationYears: [Int] {
     let year = Calendar.current.component(.year, from: Date.now)
-    return Array(year...(year + 4))
+    return Array(year...(year + 5))
   }
 
   /// Returns current grade (9–12) for the given graduation year, using a July 1 roll pivot.

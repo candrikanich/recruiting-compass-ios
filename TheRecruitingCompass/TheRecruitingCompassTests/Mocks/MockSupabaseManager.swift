@@ -20,14 +20,18 @@ final class MockSupabaseManager: SupabaseManaging {
     try signInResult.get()
   }
 
+  private(set) var capturedSignUpDateOfBirth: String?
+
   func signUp(
     email: String,
     password: String,
     fullName: String,
     role: UserRole,
-    familyCode: String?
+    familyCode: String?,
+    dateOfBirth: String?
   ) async throws -> (user: User, session: Session?) {
-    try signUpResult.get()
+    capturedSignUpDateOfBirth = dateOfBirth
+    return try signUpResult.get()
   }
 
   func signOut() async throws {

@@ -5,11 +5,12 @@ final class GradeLevelHelperTests: XCTestCase {
 
   var calendar: Calendar { Calendar.current }
 
-  func testAllowedGraduationYears_IsCurrentThroughCurrentPlus4() {
+  func testAllowedGraduationYears_IsCurrentThroughCurrentPlus5() {
     let years = GradeLevelHelper.allowedGraduationYears
     let current = calendar.component(.year, from: Date())
-    XCTAssertEqual(years.count, 5, "Should show current year + 4 (5 years total)")
-    XCTAssertEqual(years, Array(current...(current + 4)), "Should be consecutive from current through current+4")
+    XCTAssertEqual(years.count, 6, "Should show current year + 5 (6 years total) — web parity, lets rising 8th graders pick")
+    XCTAssertEqual(years, Array(current...(current + 5)), "Should be consecutive from current through current+5")
+    XCTAssertEqual(years.last, current + 5, "Upper bound must be current+5")
   }
 
   func testCalculateCurrentGrade_ReturnsValueIn9To12() {

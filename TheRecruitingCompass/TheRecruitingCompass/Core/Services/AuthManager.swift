@@ -86,7 +86,8 @@ final class AuthManager: AuthManaging {
         password: password,
         fullName: fullName,
         role: role,
-        familyCode: familyCode
+        familyCode: familyCode,
+        dateOfBirth: dateOfBirth
       )
       self.user = user
       self.session = session

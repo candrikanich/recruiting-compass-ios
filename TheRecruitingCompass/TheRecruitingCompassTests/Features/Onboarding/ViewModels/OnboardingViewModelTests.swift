@@ -62,6 +62,40 @@ final class OnboardingViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.primarySport, "")
   }
 
+  func testLoadExistingData_prefillsAcademicsAndZipFromCanonical() async {
+    var player = PlayerDetails.default
+    player.gpa = 3.8
+    player.satScore = 1300
+    player.actScore = 29
+    var location = HomeLocation.default
+    location.zip = "43004"
+    mockPreferenceManager.fetchPreferencesResultByCategory[.player] = .success(player)
+    mockPreferenceManager.fetchPreferencesResultByCategory[.location] = .success(location)
+
+    await viewModel.loadExistingData()
+
+    XCTAssertEqual(viewModel.gpa, 3.8)
+    XCTAssertEqual(viewModel.satScore, 1300)
+    XCTAssertEqual(viewModel.actScore, 29)
+    XCTAssertEqual(viewModel.zipCode, "43004")
+  }
+
+  func testLoadExistingData_fillIfEmpty_doesNotOverwriteUserEntries() async {
+    viewModel.gpa = 4.0
+    viewModel.zipCode = "10001"
+    var player = PlayerDetails.default
+    player.gpa = 3.0
+    var location = HomeLocation.default
+    location.zip = "43004"
+    mockPreferenceManager.fetchPreferencesResultByCategory[.player] = .success(player)
+    mockPreferenceManager.fetchPreferencesResultByCategory[.location] = .success(location)
+
+    await viewModel.loadExistingData()
+
+    XCTAssertEqual(viewModel.gpa, 4.0, "Already-set GPA must not be overwritten")
+    XCTAssertEqual(viewModel.zipCode, "10001", "Already-set zip must not be overwritten")
+  }
+
   // MARK: - isEmailInviteValid
 
   func testIsEmailInviteValid_missingAtSign_isFalse() {

@@ -12,7 +12,8 @@ protocol SupabaseManaging: Sendable {
     password: String,
     fullName: String,
     role: UserRole,
-    familyCode: String?
+    familyCode: String?,
+    dateOfBirth: String?
   ) async throws -> (user: User, session: Session?)
   /// Invalidates the current session on the Supabase backend.
   func signOut() async throws
