@@ -222,6 +222,29 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertTrue(sut.isFormValid)
   }
 
+  func testIsFormInvalidForMinorPlayer13to17() {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+
+    XCTAssertFalse(sut.isFormValid, "A 13-17 player must not be able to complete a standalone signup")
+    XCTAssertTrue(sut.minorRequiresGuardian)
+  }
+
+  func testMinorRequiresGuardianFalseForAdultPlayer() {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -20, to: .now)!
+
+    XCTAssertFalse(sut.minorRequiresGuardian)
+    XCTAssertTrue(sut.isFormValid)
+  }
+
+  func testMinorRequiresGuardianFalseForParent() {
+    fillValidForm(role: .parent)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+
+    XCTAssertFalse(sut.minorRequiresGuardian, "The guardian gate applies only to the player role")
+  }
+
   func testIsFormInvalidWhenPasswordsDoNotMatch() {
     fillValidForm(role: .parent)
     sut.confirmPassword = "DifferentPass123"

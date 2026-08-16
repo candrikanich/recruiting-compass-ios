@@ -8,7 +8,7 @@ final class PrivacyPolicyTests: XCTestCase {
   func testBundledPolicyExists() {
     let policy = PrivacyPolicy.bundled
 
-    XCTAssertEqual(policy.lastUpdated, Date(timeIntervalSince1970: 1739404800))
+    XCTAssertEqual(policy.lastUpdated, LegalRevision.lastUpdated)
   }
 
   func testFormattedDateReturnsNonEmptyString() {
@@ -31,8 +31,7 @@ final class PrivacyPolicyTests: XCTestCase {
   }
 
   func testBundledContentLastUpdatedTimestamp() {
-    let expected = Date(timeIntervalSince1970: 1739404800)
-    XCTAssertEqual(PrivacyPolicy.bundled.lastUpdated, expected)
+    XCTAssertEqual(PrivacyPolicy.bundled.lastUpdated, LegalRevision.lastUpdated)
   }
 
   func testBundledContentFormattedDate() {
