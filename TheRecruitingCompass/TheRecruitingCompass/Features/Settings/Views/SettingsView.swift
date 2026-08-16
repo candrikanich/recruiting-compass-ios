@@ -242,14 +242,17 @@ struct SettingsView: View {
         case .dashboardCustomization:
           DashboardCustomizationView(preferenceService: preferenceService)
         case .notificationPreferences:
-          NotificationPreferencesView(preferenceService: preferenceService)
+          NotificationPreferencesView(
+            preferenceService: preferenceService,
+            pushPreferencesService: PushPreferencesServiceImpl(supabaseManager: .shared)
+          )
         case .communicationTemplates:
           CommunicationTemplatesView()
         case .videoLinks:
           VideoLinksEditorView(
             athleteUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id ?? "",
             familyUnitId: familyManager.currentMember?.familyUnitId,
-            isReadOnly: familyManager.currentMember?.isParent == true
+            isReadOnly: false
           )
         case .about:
           AboutView()
@@ -257,7 +260,7 @@ struct SettingsView: View {
       }
       .task {
         await familyManager.loadFamilyData()
-        await viewModel.loadCompletionStatus()
+        await viewModel.loadCompletionStatus(targetUserId: familyManager.selectedAthlete?.userId)
       }
       .sheet(item: $presentedLegal) { doc in
         doc.view

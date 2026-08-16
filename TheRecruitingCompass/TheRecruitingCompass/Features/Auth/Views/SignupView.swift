@@ -273,6 +273,21 @@ private struct SignupDateOfBirthFieldView: View {
           .font(.caption)
           .foregroundStyle(.red)
       }
+
+      if viewModel.minorRequiresGuardian {
+        HStack(alignment: .top, spacing: 8) {
+          Image(systemName: "person.2.fill")
+            .foregroundStyle(.orange)
+          Text(
+            "Players under 18 join through a parent or guardian. Ask your parent to create the account and invite you to their family unit."
+          )
+          .font(.caption)
+          .foregroundStyle(.secondary)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+      }
     }
   }
 }

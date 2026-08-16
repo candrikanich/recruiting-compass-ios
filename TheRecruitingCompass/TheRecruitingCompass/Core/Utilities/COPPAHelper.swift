@@ -4,6 +4,9 @@ enum COPPAHelper {
   /// Minimum age allowed to create an account (COPPA).
   static let minimumAge = 13
 
+  /// Age at which a player may hold a standalone (unsupervised) account.
+  static let adultAge = 18
+
   private static let iso8601Formatter: ISO8601DateFormatter = {
     let f = ISO8601DateFormatter()
     f.formatOptions = [.withFullDate]
@@ -30,5 +33,20 @@ enum COPPAHelper {
     let calendar = Calendar.current
     let age = calendar.dateComponents([.year], from: dob, to: Date.now).year ?? 0
     return age < minimumAge
+  }
+
+  /// Returns true when the date of birth indicates ages 13-17 (inclusive) — a minor
+  /// who may use the app only through a parent/guardian family invite, never a
+  /// standalone signup. Returns false for unparseable dates (the under-13 gate
+  /// handles those); the app's DOB comes from a date picker, so dates are well-formed.
+  /// - Parameter dateOfBirth: ISO8601 date string or "YYYY-MM-DD".
+  static func requiresGuardianInvite(_ dateOfBirth: String) -> Bool {
+    var date = iso8601Formatter.date(from: dateOfBirth)
+    if date == nil {
+      date = fallbackFormatter.date(from: dateOfBirth)
+    }
+    guard let dob = date else { return false }
+    let age = Calendar.current.dateComponents([.year], from: dob, to: Date.now).year ?? 0
+    return age >= minimumAge && age < adultAge
   }
 }

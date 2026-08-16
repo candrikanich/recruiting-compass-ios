@@ -40,4 +40,26 @@ final class COPPAHelperTests: XCTestCase {
     XCTAssertTrue(COPPAHelper.isUnderAge(""), "Empty DOB must be treated as under-age (fail closed)")
     XCTAssertTrue(COPPAHelper.isUnderAge("13"), "Bare number must be treated as under-age (fail closed)")
   }
+
+  // MARK: - requiresGuardianInvite (13-17 band)
+
+  func testRequiresGuardianInvite_Under13_IsFalse() {
+    XCTAssertFalse(COPPAHelper.requiresGuardianInvite(dobString(yearsAgo: 10)))
+  }
+
+  func testRequiresGuardianInvite_ThirteenToSeventeen_IsTrue() {
+    XCTAssertTrue(COPPAHelper.requiresGuardianInvite(dobString(yearsAgo: 13)))
+    XCTAssertTrue(COPPAHelper.requiresGuardianInvite(dobString(yearsAgo: 15)))
+    XCTAssertTrue(COPPAHelper.requiresGuardianInvite(dobString(yearsAgo: 17)))
+  }
+
+  func testRequiresGuardianInvite_EighteenAndOver_IsFalse() {
+    XCTAssertFalse(COPPAHelper.requiresGuardianInvite(dobString(yearsAgo: 18)))
+    XCTAssertFalse(COPPAHelper.requiresGuardianInvite(dobString(yearsAgo: 25)))
+  }
+
+  func testRequiresGuardianInvite_UnparseableDOB_IsFalse() {
+    XCTAssertFalse(COPPAHelper.requiresGuardianInvite("not-a-date"))
+    XCTAssertFalse(COPPAHelper.requiresGuardianInvite(""))
+  }
 }

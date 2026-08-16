@@ -80,8 +80,11 @@ final class SignupViewModel {
     let passwordsMatch = password == confirmPassword
     let termsChecked = termsAccepted
     let passwordStrengthValid = formValidator.validatePasswordStrength(password).isValid
-    // DOB is only required for players (COPPA); parents don't provide their own DOB at signup
-    let hasValidDOB = role == .player ? !COPPAHelper.isUnderAge(dobString) : true
+    // DOB is only required for players (COPPA); parents don't provide their own DOB at signup.
+    // Players 13-17 must join via a parent/guardian invite, so a standalone signup is invalid.
+    let hasValidDOB = role == .player
+      ? (!COPPAHelper.isUnderAge(dobString) && !COPPAHelper.requiresGuardianInvite(dobString))
+      : true
     let noFieldErrors = fieldErrors.isEmpty
 
     let familyCodeValid = if role.requiresFamilyCode {
@@ -105,6 +108,13 @@ final class SignupViewModel {
 
   var isButtonDisabled: Bool {
     isLoading || !isFormValid
+  }
+
+  /// True when the selected player's DOB puts them in the 13-17 band, meaning they
+  /// must join through a parent/guardian family invite rather than a standalone signup.
+  /// Drives the guardian notice shown in the signup form.
+  var minorRequiresGuardian: Bool {
+    selectedRole == .player && COPPAHelper.requiresGuardianInvite(dobString)
   }
 
   init(authManager: (any AuthManaging)? = nil, familyService: (any FamilyManaging)? = nil) {

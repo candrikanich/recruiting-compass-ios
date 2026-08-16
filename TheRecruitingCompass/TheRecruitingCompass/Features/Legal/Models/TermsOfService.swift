@@ -8,8 +8,6 @@ struct TermsOfService {
   }
 
   static var bundled: TermsOfService {
-    TermsOfService(
-      lastUpdated: Date(timeIntervalSince1970: 1739404800) // February 19, 2026
-    )
+    TermsOfService(lastUpdated: LegalRevision.lastUpdated)
   }
 }
