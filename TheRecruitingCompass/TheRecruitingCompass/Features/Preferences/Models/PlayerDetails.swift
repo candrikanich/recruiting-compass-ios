@@ -112,9 +112,10 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     return score
   }
 
-  /// True only when every canonical field is filled. Drives the Settings "Complete" badge.
-  func isComplete(hasHighlightVideo: Bool, hasHomeLocation: Bool) -> Bool {
-    completenessScore(hasHighlightVideo: hasHighlightVideo, hasHomeLocation: hasHomeLocation) >= 1.0
+  /// True when all core profile fields are filled. Drives the Settings "Complete" badge.
+  /// Video is excluded — it lives in its own Settings row and is not required for the badge.
+  func isComplete(hasHomeLocation: Bool) -> Bool {
+    completenessScore(hasHighlightVideo: false, hasHomeLocation: hasHomeLocation) >= 0.85
   }
 
   enum CodingKeys: String, CodingKey {

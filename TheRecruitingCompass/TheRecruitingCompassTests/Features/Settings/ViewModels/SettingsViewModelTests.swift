@@ -23,35 +23,17 @@ final class SettingsViewModelTests: XCTestCase {
   nonisolated deinit {}
   var viewModel: SettingsViewModel!
   var mockService: MockPerCategoryPreferenceManager!
-  var mockVideo: MockVideoLinksService!
-  var mockAuth: MockAuthManager!
 
   override func setUp() async throws {
     try await super.setUp()
     mockService = MockPerCategoryPreferenceManager()
-    mockVideo = MockVideoLinksService()
-    mockAuth = MockAuthManager()
-    viewModel = SettingsViewModel(
-      preferenceService: mockService, videoLinksService: mockVideo, authManager: mockAuth)
+    viewModel = SettingsViewModel(preferenceService: mockService)
   }
 
   override func tearDown() {
     viewModel = nil
     mockService = nil
-    mockVideo = nil
-    mockAuth = nil
     super.tearDown()
-  }
-
-  /// Marks the signed-in athlete as having a highlight video (feeds the "Complete" badge).
-  private func giveAthleteHighlightVideo(userId: String = "athlete-1") async throws {
-    mockAuth.user = User(
-      id: userId, email: "a@example.com", emailConfirmedAt: nil, phone: nil,
-      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", role: .player)
-    _ = try await mockVideo.createVideoLink(
-      VideoLinkCreateRequest(
-        userId: userId, familyUnitId: nil, platform: .youtube,
-        url: "https://youtu.be/x", title: nil, position: 0))
   }
 
   // MARK: - Initial state
@@ -73,7 +55,16 @@ final class SettingsViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.homeLocationStatus, .complete)
   }
 
-  func testHomeLocationStatus_WithoutCoordinates_IsIncomplete() async {
+  func testHomeLocationStatus_WithZipNoCoordinates_IsComplete() async {
+    mockService.results[.location] = HomeLocation(
+      address: nil, city: "Olmsted Township", state: "OH", zip: "44138",
+      latitude: nil, longitude: nil
+    )
+    await viewModel.loadCompletionStatus()
+    XCTAssertEqual(viewModel.homeLocationStatus, .complete)
+  }
+
+  func testHomeLocationStatus_WithoutZipOrCoordinates_IsIncomplete() async {
     mockService.results[.location] = HomeLocation(
       address: nil, city: "Austin", state: "TX", zip: nil,
       latitude: nil, longitude: nil
@@ -107,24 +98,22 @@ final class SettingsViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.playerDetailsStatus, .incomplete)
   }
 
-  func testPlayerDetailsStatus_AllRequiredFieldsFilled_IsComplete() async throws {
-    // Canonical completeness also needs a home location and a highlight video —
-    // both live outside the player-prefs blob.
+  func testPlayerDetailsStatus_AllRequiredFieldsFilled_IsComplete() async {
+    // Home location is the only external signal needed — video is excluded from the badge.
     mockService.results[.player] = PlayerDetails.fullyComplete
     mockService.results[.location] = HomeLocation(
       address: nil, city: nil, state: nil, zip: "60601", latitude: nil, longitude: nil)
-    try await giveAthleteHighlightVideo()
     await viewModel.loadCompletionStatus()
     XCTAssertEqual(viewModel.playerDetailsStatus, .complete)
   }
 
-  func testPlayerDetailsStatus_AllFieldsButNoVideo_IsIncomplete() async {
+  func testPlayerDetailsStatus_AllFieldsNoVideo_IsComplete() async {
+    // Video is excluded from the badge — absence of video does not make the badge Incomplete.
     mockService.results[.player] = PlayerDetails.fullyComplete
     mockService.results[.location] = HomeLocation(
       address: nil, city: nil, state: nil, zip: "60601", latitude: nil, longitude: nil)
-    // no video, no auth user
     await viewModel.loadCompletionStatus()
-    XCTAssertEqual(viewModel.playerDetailsStatus, .incomplete)
+    XCTAssertEqual(viewModel.playerDetailsStatus, .complete)
   }
 
   func testPlayerDetailsStatus_EmptyDetails_IsIncomplete() async {
@@ -179,7 +168,7 @@ final class SettingsViewModelTests: XCTestCase {
 
   // MARK: - Parallel loading
 
-  func testLoadCompletionStatus_AllThreeLoaded_AllStatusesSet() async throws {
+  func testLoadCompletionStatus_AllThreeLoaded_AllStatusesSet() async {
     let details = PlayerDetails.fullyComplete
     mockService.results[.location] = HomeLocation(
       address: nil, city: nil, state: nil, zip: nil,
@@ -187,7 +176,6 @@ final class SettingsViewModelTests: XCTestCase {
     )
     mockService.results[.player] = details
     mockService.results[.school] = SchoolPreferences(preferences: [], templateUsed: nil, lastUpdated: nil)
-    try await giveAthleteHighlightVideo()
 
     await viewModel.loadCompletionStatus()
 

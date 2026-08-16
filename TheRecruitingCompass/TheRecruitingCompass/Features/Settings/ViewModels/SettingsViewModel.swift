@@ -17,29 +17,23 @@ final class SettingsViewModel {
   var schoolPreferencesStatus: SettingsBadgeStatus?
 
   private let preferenceService: any PreferenceManaging
-  private let videoLinksService: any VideoLinksManaging
-  private let authManager: any AuthManaging
 
-  init(
-    preferenceService: any PreferenceManaging,
-    videoLinksService: any VideoLinksManaging = VideoLinksServiceImpl(),
-    authManager: (any AuthManaging)? = nil
-  ) {
+  init(preferenceService: any PreferenceManaging) {
     self.preferenceService = preferenceService
-    self.videoLinksService = videoLinksService
-    self.authManager = authManager ?? AuthManager.shared
   }
 
-  func loadCompletionStatus() async {
-    logger.debug("Loading completion status for settings badges")
+  // targetUserId: nil = current user; parent passes selectedAthlete.userId
+  func loadCompletionStatus(targetUserId: String? = nil) async {
+    logger.debug("Loading completion status for settings badges (targetUserId: \(targetUserId ?? "self"))")
 
-    // Fetch location once: drives both the location badge (needs coordinates) and
-    // the player-completeness home-location signal (zip OR coordinates). A fetch
-    // error leaves the badge nil (hidden), matching the other badges' semantics.
+    // Fetch location once: drives both the location badge and the player-completeness
+    // home-location signal. Both use HomeLocation.isSet (zip OR coordinates) as the
+    // canonical "complete" criterion. A fetch error leaves the badge nil (hidden).
     var hasHomeLocation = false
     do {
-      let location: HomeLocation? = try await preferenceService.fetchPreferences(category: .location)
-      homeLocationStatus = location.map { ($0.latitude != nil && $0.longitude != nil) ? .complete : .incomplete }
+      let location: HomeLocation? = try await preferenceService.fetchPreferences(
+        category: .location, userId: targetUserId)
+      homeLocationStatus = location.map { $0.isSet ? .complete : .incomplete }
         ?? .incomplete
       hasHomeLocation = location?.isSet ?? false
     } catch {
@@ -47,11 +41,10 @@ final class SettingsViewModel {
       homeLocationStatus = nil
     }
 
-    let hasHighlightVideo = await fetchHasHighlightVideo()
-    playerDetailsStatus = await fetchForStatus(category: .player) { (details: PlayerDetails) in
-      details.isComplete(hasHighlightVideo: hasHighlightVideo, hasHomeLocation: hasHomeLocation)
+    playerDetailsStatus = await fetchForStatus(category: .player, userId: targetUserId) { (details: PlayerDetails) in
+      details.isComplete(hasHomeLocation: hasHomeLocation)
     }
-    schoolPreferencesStatus = await fetchForStatus(category: .school) { (prefs: SchoolPreferences) in
+    schoolPreferencesStatus = await fetchForStatus(category: .school, userId: targetUserId) { (prefs: SchoolPreferences) in
       !prefs.preferences.isEmpty
     }
 
@@ -63,24 +56,14 @@ final class SettingsViewModel {
 
   // MARK: - Private
 
-  /// Whether the signed-in athlete has ≥1 highlight video. Non-fatal on failure.
-  private func fetchHasHighlightVideo() async -> Bool {
-    guard let userId = authManager.user?.id else { return false }
-    do {
-      return try await !videoLinksService.fetchVideoLinks(userId: userId).isEmpty
-    } catch {
-      logger.error("Failed to fetch video links for badge: \(error.localizedDescription)")
-      return false
-    }
-  }
-
   /// Returns nil if fetch throws (badge stays hidden), .incomplete if no data, .complete/.incomplete based on predicate
   private func fetchForStatus<T: Codable>(
     category: PreferenceCategory,
+    userId: String?,
     isComplete: (T) -> Bool
   ) async -> SettingsBadgeStatus? {
     do {
-      let value: T? = try await preferenceService.fetchPreferences(category: category)
+      let value: T? = try await preferenceService.fetchPreferences(category: category, userId: userId)
       return value.map { isComplete($0) ? .complete : .incomplete } ?? .incomplete
     } catch {
       logger.error("Failed to fetch \(category.rawValue) badge status: \(error.localizedDescription)")

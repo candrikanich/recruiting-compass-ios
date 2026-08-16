@@ -53,15 +53,25 @@ final class PlayerDetailsCompletenessTests: XCTestCase {
       heightInches: 70, weightLbs: 160, gpa: 3.5, satScore: 1200, phone: "555-1234"
     )
     XCTAssertEqual(score(d, video: true, location: true), 1.0, accuracy: 0.0001)
-    XCTAssertTrue(d.isComplete(hasHighlightVideo: true, hasHomeLocation: true))
   }
 
-  func testIsCompleteFalseWhenAnyMissing() {
+  func testIsCompleteWithoutVideo() {
+    // Video (15%) is excluded from the badge — all other fields filled → complete.
     let d = PlayerDetails(
       graduationYear: 2026, primarySport: "Soccer", primaryPosition: "Forward",
       heightInches: 70, weightLbs: 160, gpa: 3.5, satScore: 1200, phone: "555-1234"
     )
-    XCTAssertFalse(d.isComplete(hasHighlightVideo: false, hasHomeLocation: true))
+    XCTAssertTrue(d.isComplete(hasHomeLocation: true))
+  }
+
+  func testIsCompleteFalseWhenNonVideoFieldMissing() {
+    // Missing phone (10%) drops score below 0.85 → incomplete.
+    let d = PlayerDetails(
+      graduationYear: 2026, primarySport: "Soccer", primaryPosition: "Forward",
+      heightInches: 70, weightLbs: 160, gpa: 3.5, satScore: 1200
+      // phone: nil
+    )
+    XCTAssertFalse(d.isComplete(hasHomeLocation: true))
   }
 }
 
