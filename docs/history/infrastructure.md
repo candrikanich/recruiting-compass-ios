@@ -1,5 +1,8 @@
 # Infrastructure History
 
+## 2026-08-08 — Video Links Phase A (DB)
+Created canonical `video_links` table (schema, owner/family RLS, max-5 insert trigger, health columns) plus idempotent JSONB backfill via two web Supabase migrations. Applied to live DB 2026-08-09; not recorded in schema_migrations (MCP drift) — verify with `to_regclass`.
+
 ## Swift 6 Concurrency Fix — COMPLETE (2026-02-10)
 Resolved 50+ Swift 6 strict concurrency warnings across 17 files by removing `nonisolated init` and replacing `@MainActor` singleton default parameters with optional `nil` parameters resolved via `??` inside the init body. Pattern: `init(service: (any ServiceManaging)? = nil) { self.service = service ?? ServiceImpl.shared }`. All ViewModels remain fully testable via protocol-based DI.
 

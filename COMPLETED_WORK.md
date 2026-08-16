@@ -34,3 +34,12 @@
 | docs/design/components.md | ui | Kept — design-system reference (BadgeView). |
 | docs/design/states.md | ui | Kept — design-system reference (state→color mapping). |
 | docs/design/tokens.md | ui | Kept — design-system reference (brand palette tokens). |
+
+## Doc Cleanup Run — 2026-08-16
+- Deleted: 1 file (CoachOutreach send-confirmation handoff — session debris)
+- Compressed: 1 file → docs/history/infrastructure.md (1 domain)
+- Kept: 24 files (active plans, open specs/checklists, standing references: notifications system, app-store launch checklist, design tokens, code patterns)
+
+| Domain | Compressed | Summary |
+|--------|-----------|---------|
+| infrastructure | 1 | Video Links Phase A DB plan — canonical video_links table + JSONB backfill, applied live 2026-08-09 |
