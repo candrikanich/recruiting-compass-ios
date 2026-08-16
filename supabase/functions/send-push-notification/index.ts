@@ -12,6 +12,8 @@ interface NotificationRow {
   type: string;
   title: string;
   message: string;
+  priority?: string;
+  action_url?: string;
   related_entity_type?: string;
   related_entity_id?: string;
 }
@@ -25,19 +27,24 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // 1. Check push preference (no row = send by default)
+    // Per-type delivery preferences (no row = deliver by default on both channels).
     const { data: pref } = await supabase
       .from("notification_preferences")
-      .select("push_enabled")
+      .select("push_enabled, email_enabled")
       .eq("user_id", notification.user_id)
       .eq("notification_type", notification.type)
       .maybeSingle();
+
+    // Email is independent of push: send it even when the user has no iOS device.
+    if (pref?.email_enabled !== false) {
+      await sendEmail(supabase, notification);
+    }
 
     if (pref?.push_enabled === false) {
       return new Response("push disabled for type", { status: 200 });
     }
 
-    // 2. Fetch device tokens
+    // Fetch device tokens
     const { data: tokens } = await supabase
       .from("device_tokens")
       .select("token")
@@ -48,17 +55,15 @@ Deno.serve(async (req) => {
       return new Response("no device tokens", { status: 200 });
     }
 
-    // 3. Unread badge count
+    // Unread badge count
     const { count: badgeCount } = await supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
       .eq("user_id", notification.user_id)
       .is("read_at", null);
 
-    // 4. Build APNs JWT
     const apnsJwt = await buildApnsJwt();
 
-    // 5. Send to each device token
     let atLeastOneSuccess = false;
     const staleTokens: string[] = [];
 
@@ -89,7 +94,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 6. Clean up stale tokens
+    // Clean up stale tokens
     if (staleTokens.length) {
       await supabase
         .from("device_tokens")
@@ -98,7 +103,7 @@ Deno.serve(async (req) => {
         .in("token", staleTokens);
     }
 
-    // 7. Mark sent_at if at least one delivery succeeded
+    // Mark sent_at if at least one delivery succeeded
     if (atLeastOneSuccess) {
       await supabase
         .from("notifications")
@@ -112,6 +117,61 @@ Deno.serve(async (req) => {
     return new Response("internal error", { status: 500 });
   }
 });
+
+// MARK: - Email
+
+// deno-lint-ignore no-explicit-any
+async function sendEmail(supabase: any, notification: NotificationRow): Promise<void> {
+  try {
+    const webBase = Deno.env.get("WEB_BASE_URL");
+    const cronSecret = Deno.env.get("CRON_SECRET");
+    if (!webBase || !cronSecret) {
+      console.log("email skipped: WEB_BASE_URL or CRON_SECRET not configured");
+      return;
+    }
+
+    const { data: user } = await supabase
+      .from("users")
+      .select("email")
+      .eq("id", notification.user_id)
+      .maybeSingle();
+
+    if (!user?.email) return;
+
+    const actionUrl = notification.action_url &&
+        /^https?:\/\//.test(notification.action_url)
+      ? notification.action_url
+      : undefined;
+
+    const resp = await fetch(`${webBase}/api/notifications/email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${cronSecret}`,
+      },
+      body: JSON.stringify({
+        to: user.email,
+        subject: notification.title,
+        title: notification.title,
+        message: notification.message,
+        priority: notification.priority ?? "normal",
+        ...(actionUrl ? { actionUrl } : {}),
+        idempotencyKey: `notif-${notification.id}`,
+      }),
+    });
+
+    if (resp.ok) {
+      await supabase
+        .from("notifications")
+        .update({ email_sent: true, email_sent_at: new Date().toISOString() })
+        .eq("id", notification.id);
+    } else {
+      console.error(`email send failed ${resp.status}: ${await resp.text().catch(() => "")}`);
+    }
+  } catch (err) {
+    console.error("email step error:", err);
+  }
+}
 
 // MARK: - APNs Helpers
 
