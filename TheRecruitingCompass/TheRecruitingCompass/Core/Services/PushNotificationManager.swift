@@ -43,14 +43,26 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
     func requestPermission() async {
         let center = UNUserNotificationCenter.current()
         let settings = await center.notificationSettings()
-        guard settings.authorizationStatus == .notDetermined else { return }
-        do {
-            let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-            logger.info("Push permission granted: \(granted)")
-            if granted { UIApplication.shared.registerForRemoteNotifications() }
-        } catch {
-            logger.error("Push permission request failed: \(error.localizedDescription)")
-            lastError = "Couldn't request notification permission. Try again from Settings."
+        switch settings.authorizationStatus {
+        case .notDetermined:
+            do {
+                let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+                logger.info("Push permission granted: \(granted)")
+                if granted { UIApplication.shared.registerForRemoteNotifications() }
+            } catch {
+                logger.error("Push permission request failed: \(error.localizedDescription)")
+                lastError = "Couldn't request notification permission. Try again from Settings."
+            }
+        case .authorized, .provisional, .ephemeral:
+            // Already authorized: re-register on every launch so the stored device
+            // token stays current after a reinstall, device restore, or APNs
+            // environment change. Without this, a stale token lingers forever and
+            // APNs rejects delivery with BadDeviceToken.
+            UIApplication.shared.registerForRemoteNotifications()
+        case .denied:
+            break
+        @unknown default:
+            break
         }
     }
 

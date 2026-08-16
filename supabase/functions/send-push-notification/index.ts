@@ -62,6 +62,8 @@ Deno.serve(async (req) => {
     let atLeastOneSuccess = false;
     const staleTokens: string[] = [];
 
+    console.log(`send-push: host=${APNS_HOST} tokens=${tokens.length} type=${notification.type}`);
+
     for (const { token } of tokens) {
       const result = await sendApnsPush({
         deviceToken: token,
@@ -78,10 +80,12 @@ Deno.serve(async (req) => {
 
       if (result.status === 200) {
         atLeastOneSuccess = true;
+        console.log(`APNs 200 for token ${token.slice(0, 8)}...`);
       } else if (result.status === 410) {
         staleTokens.push(token);
       } else {
-        console.error(`APNs error ${result.status} for token ${token.slice(0, 8)}...`);
+        const reason = await result.text().catch(() => "");
+        console.error(`APNs error ${result.status} for token ${token.slice(0, 8)}... reason=${reason}`);
       }
     }
 
@@ -111,12 +115,25 @@ Deno.serve(async (req) => {
 
 // MARK: - APNs Helpers
 
+// Reconstruct a clean PKCS#8 PEM even if the stored secret had its base64
+// newlines replaced by spaces, escaped as \n, or wrapped in quotes.
+function normalizePkcs8(raw: string): string {
+  let s = raw.replace(/\\n/g, "\n").replace(/^["']|["']$/g, "").trim();
+  const m = s.match(/-----BEGIN PRIVATE KEY-----([\s\S]*?)-----END PRIVATE KEY-----/);
+  if (m) {
+    const b64 = m[1].replace(/\s+/g, "");
+    const wrapped = b64.match(/.{1,64}/g)?.join("\n") ?? b64;
+    s = `-----BEGIN PRIVATE KEY-----\n${wrapped}\n-----END PRIVATE KEY-----`;
+  }
+  return s;
+}
+
 async function buildApnsJwt(): Promise<string> {
   const keyId   = Deno.env.get("APNS_KEY_ID")!;
   const teamId  = Deno.env.get("APNS_TEAM_ID")!;
   const rawKey  = Deno.env.get("APNS_PRIVATE_KEY")!;
 
-  const privateKey = await importPKCS8(rawKey, "ES256");
+  const privateKey = await importPKCS8(normalizePkcs8(rawKey), "ES256");
   return new SignJWT({})
     .setProtectedHeader({ alg: "ES256", kid: keyId })
     .setIssuer(teamId)
