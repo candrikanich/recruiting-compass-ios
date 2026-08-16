@@ -22,14 +22,30 @@ final class FeedbackServiceImpl: FeedbackManaging, Sendable {
         }
 
         let url = baseURL.appendingPathComponent("api/feedback")
-        let token = try await supabaseManager.client.auth.session.accessToken
+        let session = try await supabaseManager.client.auth.session
+        let token = session.accessToken
+
+        // Web `feedbackSchema` requires `email` and `feedbackType` (bug|feature|other);
+        // `name` is optional but included so the notification email has a sender.
+        let email = session.user.email ?? ""
+        let name: String? = session.user.userMetadata["full_name"].flatMap { value in
+            if case let string as String = value.value { return string }
+            return nil
+        }
 
         struct Body: Encodable {
-            let subject: String
+            let name: String?
+            let email: String
+            let feedbackType: String
             let message: String
         }
 
-        let body = Body(subject: subject.rawValue, message: message)
+        let body = Body(
+            name: name,
+            email: email,
+            feedbackType: subject.feedbackType,
+            message: message
+        )
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

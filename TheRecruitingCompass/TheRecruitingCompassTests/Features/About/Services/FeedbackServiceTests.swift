@@ -27,6 +27,23 @@ final class FeedbackServiceTests: XCTestCase {
         XCTAssertEqual(FeedbackSubject.allCases.count, 4)
     }
 
+    // MARK: - feedbackType (web `feedbackSchema` contract: bug | feature | other)
+
+    func testFeedbackSubject_FeedbackType_MapsToWebEnum() {
+        XCTAssertEqual(FeedbackSubject.bug.feedbackType, "bug")
+        XCTAssertEqual(FeedbackSubject.feature.feedbackType, "feature")
+        XCTAssertEqual(FeedbackSubject.question.feedbackType, "other")
+        XCTAssertEqual(FeedbackSubject.general.feedbackType, "other")
+    }
+
+    func testFeedbackSubject_FeedbackType_OnlyEmitsWebAllowedValues() {
+        let allowed: Set<String> = ["bug", "feature", "other"]
+        for subject in FeedbackSubject.allCases {
+            XCTAssertTrue(allowed.contains(subject.feedbackType),
+                          "\(subject) emits '\(subject.feedbackType)', not in web enum")
+        }
+    }
+
     // MARK: - FeedbackError descriptions
 
     func testFeedbackError_NotConfigured_HasDescription() {
