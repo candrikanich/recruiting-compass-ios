@@ -13,7 +13,7 @@ private struct TaskRow: Codable {
   let category: String
   let division: String?
   let required: Bool
-  let deadlineDate: String?
+  let deadlineOffsetMonths: Int?
   let whyItMatters: String?
   let failureRisk: String?
   let dependencyTaskIds: [String]?
@@ -21,10 +21,19 @@ private struct TaskRow: Codable {
   enum CodingKeys: String, CodingKey {
     case id, title, description, category, division, required
     case gradeLevel = "grade_level"
-    case deadlineDate = "deadline_date"
+    case deadlineOffsetMonths = "deadline_offset_months"
     case whyItMatters = "why_it_matters"
     case failureRisk = "failure_risk"
     case dependencyTaskIds = "dependency_task_ids"
+  }
+}
+
+/// Raw row for reading the athlete's graduation year from `users`.
+private struct GraduationYearRow: Decodable {
+  let graduationYear: Int?
+
+  enum CodingKeys: String, CodingKey {
+    case graduationYear = "graduation_year"
   }
 }
 
@@ -49,20 +58,6 @@ private let taskIsoFormatterFractional: ISO8601DateFormatter = {
   return f
 }()
 
-private let taskIsoFormatterBasic = ISO8601DateFormatter()
-
-private let taskDateOnlyFormatter: DateFormatter = {
-  let f = DateFormatter()
-  f.dateFormat = "yyyy-MM-dd"
-  return f
-}()
-
-private func parseTaskDate(_ string: String) -> Date? {
-  taskIsoFormatterFractional.date(from: string)
-    ?? taskIsoFormatterBasic.date(from: string)
-    ?? taskDateOnlyFormatter.date(from: string)
-}
-
 final class TasksServiceImpl: TasksManaging, Sendable {
   private let supabaseManager: SupabaseManager
 
@@ -71,6 +66,29 @@ final class TasksServiceImpl: TasksManaging, Sendable {
   }
 
   func fetchTasksWithStatus(gradeLevel: Int, athleteId: String) async throws -> [TaskWithStatus] {
+    let graduationYear = try await fetchGraduationYear(athleteId: athleteId)
+    return try await fetchTasksWithStatus(
+      gradeLevel: gradeLevel, athleteId: athleteId, graduationYear: graduationYear
+    )
+  }
+
+  /// Reads the athlete's graduation year (from `users`) once so deadlines can be
+  /// computed from each task's `deadline_offset_months`, mirroring the web
+  /// server's `/api/tasks` handler.
+  private func fetchGraduationYear(athleteId: String) async throws -> Int? {
+    let rows: [GraduationYearRow] = try await supabaseManager.client
+      .from("users")
+      .select("graduation_year")
+      .eq("id", value: athleteId)
+      .limit(1)
+      .execute()
+      .value
+    return rows.first?.graduationYear
+  }
+
+  private func fetchTasksWithStatus(
+    gradeLevel: Int, athleteId: String, graduationYear: Int?
+  ) async throws -> [TaskWithStatus] {
     logger.info("Fetching tasks for grade \(gradeLevel), athlete \(athleteId)")
 
     async let rowsResult: [TaskRow] = supabaseManager.client
@@ -102,7 +120,9 @@ final class TasksServiceImpl: TasksManaging, Sendable {
       let completedTaskIds = Set(athleteTasks.filter { $0.status == .completed }.map(\.taskId))
       let hasIncompletePrerequisites = (row.dependencyTaskIds ?? []).contains { !completedTaskIds.contains($0) }
 
-      let deadlineDate: Date? = row.deadlineDate.flatMap { parseTaskDate($0) }
+      let deadlineDate = TaskDeadlineCalculator.deadlineDate(
+        graduationYear: graduationYear, offsetMonths: row.deadlineOffsetMonths
+      )
 
       let task = TaskWithStatus(
         id: row.id,
@@ -129,10 +149,13 @@ final class TasksServiceImpl: TasksManaging, Sendable {
 
   func fetchAllTasksWithStatus(athleteId: String) async throws -> [Int: [TaskWithStatus]] {
     let grades = [9, 10, 11, 12]
+    let graduationYear = try await fetchGraduationYear(athleteId: athleteId)
     let result = try await withThrowingTaskGroup(of: (Int, [TaskWithStatus]).self) { group in
       for grade in grades {
         group.addTask {
-          (grade, try await self.fetchTasksWithStatus(gradeLevel: grade, athleteId: athleteId))
+          (grade, try await self.fetchTasksWithStatus(
+            gradeLevel: grade, athleteId: athleteId, graduationYear: graduationYear
+          ))
         }
       }
       var byGrade: [Int: [TaskWithStatus]] = [:]
