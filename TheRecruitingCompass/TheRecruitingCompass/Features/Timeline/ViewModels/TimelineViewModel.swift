@@ -141,13 +141,15 @@ final class TimelineViewModel {
   }
 
   func markComplete(taskId: String) async {
-    guard !isViewingAsParent else { return }
-    guard let userId = authManager.user?.id else { return }
+    // Write against the athlete being viewed. For a player this is their own id;
+    // for a parent helping their athlete it's the linked athlete's id, so the
+    // athlete_task row is keyed to the athlete, not the parent.
+    guard let athleteId = currentAthleteId else { return }
 
     guard let task = allTasks.first(where: { $0.id == taskId }), !task.isLocked else { return }
 
     do {
-      _ = try await tasksService.updateTaskStatus(taskId: taskId, status: .completed, userId: userId)
+      _ = try await tasksService.updateTaskStatus(taskId: taskId, status: .completed, userId: athleteId)
       showSuccessMessage = true
 
       // Invalidate TasksListViewModel's cached list (Phase 3.6) for this

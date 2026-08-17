@@ -236,7 +236,7 @@ final class TimelineViewModelTests: XCTestCase {
 
   // MARK: - markComplete
 
-  func testMarkComplete_viewingAsParent_isNoOp() async {
+  func testMarkComplete_viewingAsParent_completesForAthleteUserId() async {
     let parentAuth = MockAuthManager()
     let parentFamilyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: parentAuth)
     let sut = TimelineViewModel(
@@ -251,7 +251,13 @@ final class TimelineViewModelTests: XCTestCase {
 
     await sut.markComplete(taskId: "t1")
 
-    XCTAssertEqual(mockTasksService.updateTaskStatusCallCount, 0)
+    // A parent helping their athlete completes the task keyed to the athlete's
+    // userId, not the signed-in parent's.
+    XCTAssertEqual(mockTasksService.updateTaskStatusCallCount, 1)
+    XCTAssertEqual(mockTasksService.lastUpdateTaskId, "t1")
+    XCTAssertEqual(mockTasksService.lastUpdateStatus, .completed)
+    XCTAssertEqual(mockTasksService.lastUpdateUserId, ParentViewingAthleteFixture.athleteUserId)
+    XCTAssertTrue(sut.showSuccessMessage)
   }
 
   func testMarkComplete_taskNotFound_isNoOp() async {
