@@ -23,28 +23,6 @@ struct SchoolAnalyticsCards: View {
       )
 
       AnalyticsCard(
-        title: "Favorites",
-        value: analytics.favoritesCount,
-        icon: "star.circle.fill",
-        backgroundColor: Color.orange.opacity(0.1),
-        iconColor: .orange,
-        accessibilityLabelOverride: analytics.favoritesCount == 1
-          ? "1 favorite school"
-          : "\(analytics.favoritesCount) favorite schools"
-      )
-
-      AnalyticsCard(
-        title: "Visited",
-        value: analytics.visitedCount,
-        icon: "map.circle.fill",
-        backgroundColor: Color.green.opacity(0.1),
-        iconColor: .green,
-        accessibilityLabelOverride: analytics.visitedCount == 1
-          ? "1 school visited"
-          : "\(analytics.visitedCount) schools visited"
-      )
-
-      AnalyticsCard(
         title: "Contacted",
         value: analytics.contactedCount,
         icon: "bubble.left.and.bubble.right.fill",

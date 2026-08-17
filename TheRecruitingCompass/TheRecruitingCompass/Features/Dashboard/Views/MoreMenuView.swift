@@ -40,8 +40,8 @@ struct MoreMenuView: View {
   private var moreMenuList: some View {
     List {
       menuSectionView("Recruiting", items: [.timeline, .events, .documents, .offers, .performance, .analytics, .activity])
-      menuSectionView("Support", items: [.helpCenter])
       menuSectionView("Account", items: [.notifications, .settings])
+      menuSectionView("Support", items: [.helpCenter])
     }
   }
 

@@ -23,28 +23,6 @@ struct CoachAnalyticsCards: View {
       )
 
       AnalyticsCard(
-        title: "Head Coaches",
-        value: analytics.headCoachCount,
-        icon: "star.circle.fill",
-        backgroundColor: Color.purple.opacity(0.1),
-        iconColor: .purple,
-        accessibilityLabelOverride: analytics.headCoachCount == 1
-          ? "1 head coach"
-          : "\(analytics.headCoachCount) head coaches"
-      )
-
-      AnalyticsCard(
-        title: "Recent Contacts",
-        value: analytics.recentContactsCount,
-        icon: "bubble.left.circle.fill",
-        backgroundColor: Color.green.opacity(0.1),
-        iconColor: .green,
-        accessibilityLabelOverride: analytics.recentContactsCount == 1
-          ? "1 recent contact"
-          : "\(analytics.recentContactsCount) recent contacts"
-      )
-
-      AnalyticsCard(
         title: "Need Follow-up",
         value: analytics.needFollowUpCount,
         icon: "clock.circle.fill",
