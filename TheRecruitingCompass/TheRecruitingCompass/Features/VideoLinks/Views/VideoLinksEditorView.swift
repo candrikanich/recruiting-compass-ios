@@ -65,32 +65,17 @@ struct VideoLinksEditorView: View {
 
   @ViewBuilder
   private var emptyState: some View {
-    VStack(spacing: 16) {
-      Image(systemName: "play.rectangle")
-        .font(.system(size: 48))
-        .foregroundStyle(.secondary)
-        .accessibilityHidden(true)
-
-      Text("No video links yet")
-        .font(.headline)
-
-      Text("Add links to Hudl, YouTube, or Vimeo highlight film for coaches to watch.")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-        .multilineTextAlignment(.center)
-        .padding(.horizontal, 32)
-
-      if showsAddButton {
-        Button {
-          editingLink = nil
-          isShowingAddSheet = true
-        } label: {
-          Text("Add your first video link")
-        }
-        .buttonStyle(.borderedProminent)
-      }
+    EmptyStateView(
+      icon: "play.rectangle",
+      title: String(localized: "No video links yet"),
+      message: String(localized: "Add links to Hudl, YouTube, or Vimeo highlight film for coaches to watch."),
+      actionTitle: showsAddButton ? String(localized: "Add your first video link") : nil,
+      actionHint: showsAddButton ? String(localized: "Opens the form to add a video link") : nil
+    ) {
+      editingLink = nil
+      isShowingAddSheet = true
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .frame(maxHeight: .infinity)
   }
 
   // MARK: - Links List

@@ -18,14 +18,6 @@ struct InteractionEmptyState: View {
     self.onAddInteraction = onAddInteraction
   }
 
-  @Environment(\.sizeCategory) private var sizeCategory
-
-  private var iconSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 72 : 60
-  }
-
-  // MARK: - Computed Properties
-
   private var icon: String {
     if isFilteredEmpty { return "magnifyingglass" }
     if noCoaches { return "person.2.slash" }
@@ -46,74 +38,43 @@ struct InteractionEmptyState: View {
     return String(localized: "Start logging your recruiting communications with coaches.")
   }
 
+  private var actionTitle: String? {
+    if isFilteredEmpty { return onClearFilters != nil ? String(localized: "Clear Filters") : nil }
+    if noCoaches { return nil }
+    return onAddInteraction != nil ? String(localized: "Log Your First Interaction") : nil
+  }
+
+  private var actionHint: String? {
+    if isFilteredEmpty { return String(localized: "Removes all active filters and search text") }
+    return String(localized: "Opens the form to log an interaction")
+  }
+
+  private var action: (() -> Void)? {
+    if isFilteredEmpty { return onClearFilters }
+    if noCoaches { return nil }
+    return onAddInteraction
+  }
+
   var body: some View {
-    VStack(spacing: 20) {
-      Image(systemName: icon)
-        .font(.system(size: iconSize))
-        .foregroundStyle(.gray.opacity(0.5))
-        .accessibilityHidden(true)
-
-      VStack(spacing: 8) {
-        Text(title)
-          .font(.headline)
-          .foregroundStyle(.primary)
-
-        Text(subtitle)
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-          .multilineTextAlignment(.center)
-      }
-
-      if isFilteredEmpty, let onClearFilters {
-        Button {
-          onClearFilters()
-        } label: {
-          Text("Clear Filters")
-            .font(.subheadline)
-            .fontWeight(.medium)
-            .foregroundStyle(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-            .frame(minHeight: 44)
-            .background(Color.blue)
-            .clipShape(.rect(cornerRadius: 8))
-        }
-        .accessibilityLabel(String(localized: "Clear all filters"))
-      } else if !isFilteredEmpty && !noCoaches, let onAddInteraction {
-        Button(action: onAddInteraction) {
-          Text("Log Your First Interaction")
-            .fontWeight(.semibold)
-            .frame(maxWidth: .infinity, minHeight: 44)
-        }
-        .buttonStyle(.borderedProminent)
-        .padding(.horizontal)
-        .accessibilityLabel(String(localized: "Log your first interaction"))
-        .accessibilityHint("Opens the form to log an interaction")
-      }
-    }
-    .padding(40)
-    .frame(maxWidth: .infinity)
+    EmptyStateView(
+      icon: icon,
+      title: title,
+      message: subtitle,
+      actionTitle: actionTitle,
+      actionHint: actionHint,
+      action: action
+    )
   }
 }
 
 #Preview("No Data") {
-  InteractionEmptyState(
-    isFilteredEmpty: false,
-    onClearFilters: nil
-  )
+  InteractionEmptyState(isFilteredEmpty: false, onClearFilters: nil, onAddInteraction: {})
 }
 
 #Preview("No Coaches") {
-  InteractionEmptyState(
-    isFilteredEmpty: false,
-    noCoaches: true,
-    onClearFilters: nil
-  )
+  InteractionEmptyState(isFilteredEmpty: false, noCoaches: true, onClearFilters: nil)
 }
 
 #Preview("Filtered Empty") {
-  InteractionEmptyState(
-    isFilteredEmpty: true,
-    onClearFilters: {}
-  )
+  InteractionEmptyState(isFilteredEmpty: true, onClearFilters: {})
 }

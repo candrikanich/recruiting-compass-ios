@@ -145,16 +145,16 @@ struct CommunicationTemplatesView: View {
     if !viewModel.searchQuery.isEmpty {
       ContentUnavailableView.search(text: viewModel.searchQuery)
     } else {
-      ContentUnavailableView {
-        Label("No Templates Yet", systemImage: "doc.text")
-      } description: {
-        Text("Create your first template to get started.")
-      } actions: {
-        Button("Create Template") {
-          viewModel.switchToCreateTab()
-        }
-        .buttonStyle(.borderedProminent)
+      EmptyStateView(
+        icon: "doc.text",
+        title: String(localized: "No Templates Yet"),
+        message: String(localized: "Create your first template to get started."),
+        actionTitle: String(localized: "Create Your First Template"),
+        actionHint: String(localized: "Opens the form to create a template")
+      ) {
+        viewModel.switchToCreateTab()
       }
+      .frame(maxHeight: .infinity)
     }
   }
 }

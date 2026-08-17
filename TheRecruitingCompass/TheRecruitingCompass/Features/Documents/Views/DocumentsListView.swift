@@ -133,21 +133,14 @@ struct DocumentsListView: View {
 
   @ViewBuilder
   private var emptyState: some View {
-    ContentUnavailableView {
-      Label("No documents yet", systemImage: "doc")
-    } description: {
-      Text("Upload videos, transcripts, and other documents to share with coaches")
-    } actions: {
-      Button {
-        viewModel.presentUploadForm()
-      } label: {
-        Text("Upload Your First Document")
-          .fontWeight(.semibold)
-          .frame(maxWidth: .infinity, minHeight: 44)
-      }
-      .buttonStyle(.borderedProminent)
-      .accessibilityLabel(String(localized: "Upload your first document"))
-      .accessibilityHint("Opens the form to upload a document")
+    EmptyStateView(
+      icon: "doc",
+      title: String(localized: "No documents yet"),
+      message: String(localized: "Upload videos, transcripts, and other documents to share with coaches"),
+      actionTitle: String(localized: "Upload Your First Document"),
+      actionHint: String(localized: "Opens the form to upload a document")
+    ) {
+      viewModel.presentUploadForm()
     }
   }
 

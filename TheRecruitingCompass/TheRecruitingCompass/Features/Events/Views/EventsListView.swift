@@ -252,20 +252,16 @@ struct EventsListView: View {
 
   @ViewBuilder
   private var emptyState: some View {
-    ContentUnavailableView {
-      Label("No Events Yet", systemImage: "calendar")
-    } description: {
-      Text("Create your first event to track camps, showcases, visits, and games.")
-    } actions: {
-      Button {
-        showCreateEvent = true
-      } label: {
-        Text("Add Your First Event")
-          .fontWeight(.semibold)
-          .frame(maxWidth: .infinity, minHeight: 44)
-      }
-      .buttonStyle(.borderedProminent)
+    EmptyStateView(
+      icon: "calendar",
+      title: String(localized: "No Events Yet"),
+      message: String(localized: "Create your first event to track camps, showcases, visits, and games."),
+      actionTitle: String(localized: "Add Your First Event"),
+      actionHint: String(localized: "Opens the form to create an event")
+    ) {
+      showCreateEvent = true
     }
+    .frame(maxHeight: .infinity)
   }
 
   @ViewBuilder

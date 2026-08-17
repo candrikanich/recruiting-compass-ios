@@ -7,18 +7,22 @@
 
 import SwiftUI
 
-/// A reusable empty state component with icon, title, message, and optional action button
+/// A reusable empty state component with icon, title, message, and optional action button.
+///
+/// The action button renders full-width, semibold, and bordered-prominent with a 44pt
+/// minimum hit target, so every "your first …" empty state across the app is visually identical.
 struct EmptyStateView: View {
   let icon: String
   let title: String
   let message: String
   let actionTitle: String?
+  let actionHint: String?
   let action: (() -> Void)?
 
   @Environment(\.sizeCategory) private var sizeCategory
 
   private var iconSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 56 : 48
+    sizeCategory.isAccessibilityCategory ? 72 : 60
   }
 
   init(
@@ -26,23 +30,25 @@ struct EmptyStateView: View {
     title: String,
     message: String,
     actionTitle: String? = nil,
+    actionHint: String? = nil,
     action: (() -> Void)? = nil
   ) {
     self.icon = icon
     self.title = title
     self.message = message
     self.actionTitle = actionTitle
+    self.actionHint = actionHint
     self.action = action
   }
 
   var body: some View {
-    VStack(spacing: 16) {
+    VStack(spacing: 20) {
       Image(systemName: icon)
         .font(.system(size: iconSize))
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
-      VStack(spacing: 4) {
+      VStack(spacing: 8) {
         Text(title)
           .font(.headline)
           .foregroundStyle(.primary)
@@ -54,35 +60,36 @@ struct EmptyStateView: View {
           .multilineTextAlignment(.center)
           .fixedSize(horizontal: false, vertical: true)
       }
+      .accessibilityElement(children: .combine)
 
       if let actionTitle, let action {
-        Button {
-          action()
-        } label: {
-          Label(actionTitle, systemImage: "plus.circle")
+        Button(action: action) {
+          Text(actionTitle)
+            .fontWeight(.semibold)
+            .frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)
-        .frame(minHeight: 44)
+        .padding(.horizontal)
         .accessibilityLabel(actionTitle)
+        .accessibilityHint(actionHint ?? "")
       }
     }
-    .padding()
+    .padding(40)
     .frame(maxWidth: .infinity)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "\(title). \(message)"))
   }
 }
 
-#Preview("No Schools") {
+#Preview("With Action") {
   EmptyStateView(
-    icon: "building.2.fill",
-    title: "No Schools Found",
-    message: "You need to add a school before adding a coach",
-    actionTitle: "Add School"
+    icon: "calendar",
+    title: "No Events Yet",
+    message: "Create your first event to track camps, showcases, visits, and games.",
+    actionTitle: "Add Your First Event",
+    actionHint: "Opens the form to create an event"
   ) {}
 }
 
-#Preview("No Coaches") {
+#Preview("No Action") {
   EmptyStateView(
     icon: "person.2.slash",
     title: "No Coaches Yet",

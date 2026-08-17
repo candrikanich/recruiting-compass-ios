@@ -152,22 +152,16 @@ struct PerformanceDashboardView: View {
 
   @ViewBuilder
   private var emptyStateView: some View {
-    ContentUnavailableView {
-      Label("No Metrics Logged", systemImage: "chart.xyaxis.line")
-    } description: {
-      Text("Start tracking your performance to build a historical record")
-    } actions: {
-      Button {
-        viewModel.showAddForm = true
-      } label: {
-        Text("Log Your First Metric")
-          .fontWeight(.semibold)
-          .frame(maxWidth: .infinity, minHeight: 44)
-      }
-      .buttonStyle(.borderedProminent)
-      .accessibilityLabel(String(localized: "Log your first metric"))
-      .accessibilityHint("Opens the form to log a performance metric")
+    EmptyStateView(
+      icon: "chart.xyaxis.line",
+      title: String(localized: "No Metrics Logged"),
+      message: String(localized: "Start tracking your performance to build a historical record"),
+      actionTitle: String(localized: "Log Your First Metric"),
+      actionHint: String(localized: "Opens the form to log a performance metric")
+    ) {
+      viewModel.showAddForm = true
     }
+    .frame(maxHeight: .infinity)
   }
 }
 
