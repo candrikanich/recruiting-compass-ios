@@ -5,19 +5,22 @@ struct AthleteTaskStatus: Codable, Sendable {
   let userId: String
   let status: TaskStatus
   let completedAt: Date?
+  let isRecoveryTask: Bool
 
   enum CodingKeys: String, CodingKey {
     case taskId = "task_id"
     case userId = "athlete_id"
     case status
     case completedAt = "completed_at"
+    case isRecoveryTask = "is_recovery_task"
   }
 
-  init(taskId: String, userId: String, status: TaskStatus, completedAt: Date?) {
+  init(taskId: String, userId: String, status: TaskStatus, completedAt: Date?, isRecoveryTask: Bool = false) {
     self.taskId = taskId
     self.userId = userId
     self.status = status
     self.completedAt = completedAt
+    self.isRecoveryTask = isRecoveryTask
   }
 
   init(from decoder: Decoder) throws {
@@ -26,6 +29,7 @@ struct AthleteTaskStatus: Codable, Sendable {
     userId = try c.decode(String.self, forKey: .userId)
     status = try c.decode(TaskStatus.self, forKey: .status)
     completedAt = try Self.decodeOptionalDate(c, forKey: .completedAt)
+    isRecoveryTask = try c.decodeIfPresent(Bool.self, forKey: .isRecoveryTask) ?? false
   }
 
   private static let isoFormatterFractional: ISO8601DateFormatter = {

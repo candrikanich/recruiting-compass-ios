@@ -17,9 +17,9 @@ struct PhaseCardTaskRow: View {
           onCheckboxTap()
         }
       } label: {
-        Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+        Image(systemName: task.statusIconName)
           .font(.title3)
-          .foregroundStyle(isCompleted ? Color.successGreen : .secondary)
+          .foregroundStyle(task.statusColor)
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
       }
@@ -39,7 +39,11 @@ struct PhaseCardTaskRow: View {
         badgeRow
 
         if let why = task.whyItMatters, !why.isEmpty, !isCompleted {
-          whyItMattersCallout(why)
+          calloutBox(title: String(localized: "Why It Matters"), text: why, color: Color.accentBlue)
+        }
+
+        if let risk = task.failureRisk, !risk.isEmpty, !isCompleted {
+          calloutBox(title: String(localized: "Don't Miss This"), text: risk, color: .errorRed)
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
@@ -55,6 +59,9 @@ struct PhaseCardTaskRow: View {
     HStack(spacing: 6) {
       if task.isLocked {
         badge(String(localized: "Locked"), color: .orange)
+      }
+      if task.athleteTask?.isRecoveryTask == true {
+        badge(String(localized: "Recovery"), color: Color.Brand.orange600, icon: "arrow.clockwise")
       }
       if let urgency = deadlineBadge {
         badge(urgency.text, color: urgency.color, icon: urgency.icon)
@@ -88,20 +95,20 @@ struct PhaseCardTaskRow: View {
     .accessibilityHidden(true)
   }
 
-  private func whyItMattersCallout(_ text: String) -> some View {
+  private func calloutBox(title: String, text: String, color: Color) -> some View {
     VStack(alignment: .leading, spacing: 2) {
-      Text("Why It Matters")
+      Text(title)
         .font(.caption2.weight(.bold))
-        .foregroundStyle(Color.accentBlue)
+        .foregroundStyle(color)
       Text(text)
         .font(.caption)
         .foregroundStyle(.secondary)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(10)
-    .background(Color.accentBlue.opacity(0.08))
+    .background(color.opacity(0.08))
     .overlay(alignment: .leading) {
-      Rectangle().fill(Color.accentBlue).frame(width: 3)
+      Rectangle().fill(color).frame(width: 3)
     }
     .clipShape(RoundedRectangle(cornerRadius: 6))
   }
