@@ -162,7 +162,7 @@ struct AddInteractionView: View {
       Picker("Type", selection: $viewModel.formState.type) {
         Text("Select type").tag(nil as InteractionType?)
 
-        ForEach(InteractionType.allCases, id: \.self) { type in
+        ForEach(InteractionType.selectableCases, id: \.self) { type in
           Label(type.displayName, systemImage: type.iconName)
             .tag(type as InteractionType?)
         }

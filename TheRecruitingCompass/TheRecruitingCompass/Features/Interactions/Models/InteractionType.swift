@@ -10,12 +10,22 @@ enum InteractionType: String, Codable, CaseIterable, Sendable {
   case showcase
   case tweet
   case directMessage = "dm"
+  case game
+  case unofficialVisit = "unofficial_visit"
+  case officialVisit = "official_visit"
+  case other
   case unknown
 
   init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
     let rawValue = try container.decode(String.self)
     self = InteractionType(rawValue: rawValue) ?? .unknown
+  }
+
+  /// User-selectable types. Excludes `unknown` — it's a decode-only fallback
+  /// for values absent from the DB `interaction_type` enum, not a real choice.
+  static var selectableCases: [InteractionType] {
+    allCases.filter { $0 != .unknown }
   }
 
   var displayName: String {
@@ -29,6 +39,10 @@ enum InteractionType: String, Codable, CaseIterable, Sendable {
     case .showcase: return String(localized: "Showcase")
     case .tweet: return String(localized: "Tweet")
     case .directMessage: return String(localized: "Direct Message")
+    case .game: return String(localized: "Game")
+    case .unofficialVisit: return String(localized: "Unofficial Visit")
+    case .officialVisit: return String(localized: "Official Visit")
+    case .other: return String(localized: "Other")
     case .unknown: return String(localized: "Unknown")
     }
   }
@@ -44,6 +58,10 @@ enum InteractionType: String, Codable, CaseIterable, Sendable {
     case .showcase: return "star.fill"
     case .tweet: return "bubble.left.fill"
     case .directMessage: return "paperplane.fill"
+    case .game: return "sportscourt.fill"
+    case .unofficialVisit: return "building.columns.fill"
+    case .officialVisit: return "checkmark.seal.fill"
+    case .other: return "ellipsis.circle.fill"
     case .unknown: return "questionmark.circle.fill"
     }
   }
@@ -59,6 +77,10 @@ enum InteractionType: String, Codable, CaseIterable, Sendable {
     case .showcase:       return Color.Brand.purple500
     case .tweet:          return Color.Brand.blue500
     case .directMessage:  return Color.Brand.purple600
+    case .game:           return Color.Brand.emerald600
+    case .unofficialVisit: return Color.Brand.indigo600
+    case .officialVisit:  return Color.Brand.blue600
+    case .other:          return Color.Brand.slate500
     case .unknown:        return Color.Brand.slate500
     }
   }

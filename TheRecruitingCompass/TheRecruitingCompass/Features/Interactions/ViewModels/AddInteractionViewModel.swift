@@ -89,6 +89,7 @@ final class AddInteractionViewModel {
       async let coachesTask = interactionsService.fetchCoaches(familyUnitId: familyUnitId)
 
       schools = try await schoolsTask
+        .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
       allCoaches = try await coachesTask
 
       logger.info("Loaded \(self.schools.count) schools and \(self.allCoaches.count) coaches")
