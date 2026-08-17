@@ -93,7 +93,7 @@ final class TimelineViewModel {
       async let whatMattersResult = apiService.fetchWhatMattersNow(accessToken: token)
 
       graduationYear = try await prefsResult?.graduationYear
-      tasksByGrade = try await tasksResult
+      tasksByGrade = try await tasksResult.mapValues { TimelineTaskSort.sorted($0) }
 
       let phaseData = try await phaseResult
       currentPhase = phaseData.phase

@@ -74,6 +74,7 @@ struct PhaseCard: View {
           ForEach(tasks) { task in
             PhaseCardTaskRow(
               task: task,
+              phaseProgress: percentComplete,
               isViewingAsParent: isViewingAsParent,
               onCheckboxTap: { onTaskCheckboxTap(task.id) },
               onLockedTap: { onLockedTaskTap(task) }

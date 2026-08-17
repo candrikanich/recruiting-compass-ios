@@ -2,11 +2,16 @@ import SwiftUI
 
 struct PhaseCardTaskRow: View {
   let task: TaskWithStatus
+  let phaseProgress: Int
   let isViewingAsParent: Bool
   let onCheckboxTap: () -> Void
   let onLockedTap: () -> Void
 
   private var isCompleted: Bool { task.effectiveStatus == .completed }
+
+  /// Web parity (`components/Timeline/TaskItem.vue`): the failure-risk callout
+  /// only surfaces as a phase nears completion, not on every open task.
+  private var showFailureRisk: Bool { !isCompleted && phaseProgress >= 75 }
 
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
@@ -42,8 +47,8 @@ struct PhaseCardTaskRow: View {
           calloutBox(title: String(localized: "Why It Matters"), text: why, color: Color.accentBlue)
         }
 
-        if let risk = task.failureRisk, !risk.isEmpty, !isCompleted {
-          calloutBox(title: String(localized: "Don't Miss This"), text: risk, color: .errorRed)
+        if let risk = task.failureRisk, !risk.isEmpty, showFailureRisk {
+          calloutBox(title: String(localized: "Don't Miss This"), text: risk, color: Color.amberGold)
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)

@@ -58,21 +58,7 @@ final class TasksListViewModel {
     var result = tasks
     result = result.filter { statusFilter.matches($0.effectiveStatus) }
     result = result.filter { urgencyFilter.matches($0.deadlineUrgency) }
-    filteredTasks = result.sorted { lhs, rhs in
-      if lhs.required != rhs.required { return lhs.required }
-      let uOrder: (TaskDeadlineUrgency) -> Int = { u in
-        switch u {
-        case .critical: return 0
-        case .urgent: return 1
-        case .upcoming: return 2
-        case .future: return 3
-        case .none: return 4
-        }
-      }
-      let lu = uOrder(lhs.deadlineUrgency), ru = uOrder(rhs.deadlineUrgency)
-      if lu != ru { return lu < ru }
-      return lhs.title.localizedCaseInsensitiveCompare(rhs.title) == .orderedAscending
-    }
+    filteredTasks = TimelineTaskSort.sorted(result)
   }
 
   var progressCompleted: Int {
