@@ -1,11 +1,14 @@
 import MessageUI
 import SwiftUI
 
-/// Quick Communication sheet: contact a coach with optional template, Send Email/Text, and link to Manage Templates.
+/// Quick Communication sheet: a channel-first wizard. Step 1 picks the channel (Email / Text /
+/// Instagram), Step 2 composes (template + variables + editor), Step 3 previews and sends. Splitting
+/// the flow across pushed screens keeps each screen short instead of one endless scroll.
 struct QuickCommunicationView: View {
   let context: QuickCommunicationContext
 
   @State private var viewModel: QuickCommunicationViewModel
+  @State private var path = NavigationPath()
   @State private var activeComposer: ActiveComposer?
   @State private var showSuccessToast = false
   @State private var showInfoToast = false
@@ -29,65 +32,14 @@ struct QuickCommunicationView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      ScrollView {
-        VStack(alignment: .leading, spacing: 20) {
-          QuickCommRecipientSection(recipientLine: viewModel.recipientLine)
-          QuickCommTemplateSection(
-            isLoading: viewModel.isLoading,
-            templates: viewModel.templates,
-            emailTemplates: viewModel.emailTemplates,
-            textTemplates: viewModel.textTemplates,
-            selectedTemplate: viewModel.selectedTemplate,
-            onSelect: { viewModel.selectTemplate($0) }
-          )
-          if !viewModel.referencedVariables.isEmpty {
-            QuickCommVariablesPanel(
-              variables: viewModel.referencedVariables,
-              isParent: familyManager.currentMember?.isParent == true,
-              authoredBinding: { viewModel.authoredBinding(for: $0) }
-            )
-          }
-          if viewModel.selectedTemplate?.type == .email {
-            QuickCommSubjectField(subject: subjectBinding)
-          }
-          if viewModel.selectedTemplate != nil {
-            QuickCommBodyComposeSection(
-              preview: UnresolvedTokenHighlighter.attributed(
-                viewModel.effectiveBody, tokenColor: .warningOrange),
-              plainBody: viewModel.effectiveBody,
-              text: bodyBinding,
-              isTextMessage: viewModel.selectedTemplate?.type == .message,
-              characterCount: viewModel.effectiveBody.count,
-              limit: QuickCommunicationViewModel.textLimit,
-              overLimit: viewModel.textBodyOverLimit
-            )
-          }
-          if viewModel.isSendBlocked {
-            Text("Fill these before sending: \(viewModel.unresolvedKeys.joined(separator: ", "))")
-              .font(.caption)
-              .foregroundStyle(Color.warningOrange)
-              .accessibilityIdentifier("quickCommUnresolvedNotice")
-          }
-          if let warning = viewModel.sendWarning {
-            Text(warning)
-              .font(.caption)
-              .foregroundStyle(Color.warningOrange)
-              .accessibilityIdentifier("quickCommSendWarning")
-          }
-          QuickCommActionsSection(
-            showEmail: viewModel.mailtoURL() != nil,
-            showText: viewModel.smsURL() != nil,
-            coachEmail: context.coach.email ?? "",
-            instagramHandle: context.coach.contactInstagram,
-            sendDisabled: viewModel.isSendBlocked,
-            onSendEmail: handleSendEmail,
-            onSendText: handleSendText,
-            onOpenInstagram: { openURL($0) }
-          )
-        }
-        .padding()
-      }
+    NavigationStack(path: $path) {
+      QuickCommChannelScreen(
+        recipientLine: viewModel.recipientLine,
+        showEmail: viewModel.mailtoURL() != nil,
+        showText: viewModel.smsURL() != nil,
+        instagramHandle: context.coach.contactInstagram,
+        onOpenInstagram: { openURL($0) }
+      )
       .navigationTitle("Quick Communication")
       .navigationBarTitleDisplayMode(.inline)
       .sheet(item: $activeComposer) { composer in
@@ -111,6 +63,14 @@ struct QuickCommunicationView: View {
           CommunicationTemplatesView()
         }
       }
+      .navigationDestination(for: QuickCommStep.self) { step in
+        switch step {
+        case .compose(let channel):
+          composeScreen(channel: channel)
+        case .preview(let channel):
+          previewScreen(channel: channel)
+        }
+      }
       .task {
         viewModel.configureContext(
           loggedBy: authManager.user?.id,
@@ -123,6 +83,106 @@ struct QuickCommunicationView: View {
         await viewModel.loadResolverInputs()
       }
       .accessibilityIdentifier("quickCommunicationView")
+    }
+  }
+
+  // MARK: - Step 2: Compose
+
+  @ViewBuilder
+  private func composeScreen(channel: QuickCommChannel) -> some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: 20) {
+        QuickCommTemplateSection(
+          isLoading: viewModel.isLoading,
+          templates: channel == .email ? viewModel.emailTemplates : viewModel.textTemplates,
+          selectedTemplate: viewModel.selectedTemplate,
+          onSelect: { viewModel.selectTemplate($0) }
+        )
+        if channel == .email {
+          QuickCommSubjectField(subject: subjectBinding)
+        }
+        if !viewModel.referencedVariables.isEmpty {
+          QuickCommVariablesPanel(
+            variables: viewModel.referencedVariables,
+            isParent: familyManager.currentMember?.isParent == true,
+            authoredBinding: { viewModel.authoredBinding(for: $0) }
+          )
+        }
+        if viewModel.selectedTemplate != nil {
+          QuickCommBodyEditor(
+            text: bodyBinding,
+            isTextMessage: channel == .text,
+            characterCount: viewModel.effectiveBody.count,
+            limit: QuickCommunicationViewModel.textLimit,
+            overLimit: viewModel.textBodyOverLimit
+          )
+        }
+      }
+      .padding()
+    }
+    .navigationTitle(channel == .email ? "Compose Email" : "Compose Text")
+    .navigationBarTitleDisplayMode(.inline)
+    .safeAreaInset(edge: .bottom) {
+      NavigationLink(value: QuickCommStep.preview(channel)) {
+        Text("Preview & Send")
+          .font(.body.weight(.medium))
+          .frame(maxWidth: .infinity)
+          .padding(.vertical, 12)
+      }
+      .buttonStyle(.borderedProminent)
+      .padding()
+      .background(.bar)
+      .accessibilityIdentifier("quickCommPreviewLink")
+    }
+    .onAppear {
+      // Dropping into a channel whose type doesn't match the carried-over template clears it,
+      // so the picker's selection state matches the templates actually shown.
+      if let selected = viewModel.selectedTemplate,
+         selected.type != channel.templateType {
+        viewModel.selectTemplate(nil)
+      }
+    }
+  }
+
+  // MARK: - Step 3: Preview & Send
+
+  @ViewBuilder
+  private func previewScreen(channel: QuickCommChannel) -> some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: 16) {
+        QuickCommBodyPreview(
+          preview: UnresolvedTokenHighlighter.attributed(
+            viewModel.effectiveBody, tokenColor: .warningOrange),
+          plainBody: viewModel.effectiveBody
+        )
+        if viewModel.isSendBlocked {
+          Text("Fill these before sending: \(viewModel.unresolvedKeys.joined(separator: ", "))")
+            .font(.caption)
+            .foregroundStyle(Color.warningOrange)
+            .accessibilityIdentifier("quickCommUnresolvedNotice")
+        }
+        if let warning = viewModel.sendWarning {
+          Text(warning)
+            .font(.caption)
+            .foregroundStyle(Color.warningOrange)
+            .accessibilityIdentifier("quickCommSendWarning")
+        }
+      }
+      .padding()
+    }
+    .navigationTitle("Preview")
+    .navigationBarTitleDisplayMode(.inline)
+    .safeAreaInset(edge: .bottom) {
+      QuickCommActionsSection(
+        showEmail: channel == .email,
+        showText: channel == .text,
+        coachEmail: context.coach.email ?? "",
+        sendDisabled: viewModel.isSendBlocked,
+        onSendEmail: handleSendEmail,
+        onSendText: handleSendText
+      )
+      .padding()
+      .background(.bar)
     }
   }
 
@@ -211,11 +271,91 @@ struct QuickCommunicationView: View {
   }
 }
 
+/// Compose channels that carry a template + editor. Instagram is a terminal profile-open on the
+/// root screen, not a compose channel, so it's intentionally absent here.
+private enum QuickCommChannel: Hashable {
+  case email, text
+
+  var templateType: TemplateType {
+    self == .email ? .email : .message
+  }
+}
+
+private enum QuickCommStep: Hashable {
+  case compose(QuickCommChannel)
+  case preview(QuickCommChannel)
+}
+
 private enum QuickCommDestination: Hashable {
   case manageTemplates
 }
 
 // MARK: - Private Subviews
+
+/// Step 1 root: recipient header + one row per available channel. Email/Text push the compose
+/// wizard; Instagram opens the coach's profile directly (never templated).
+private struct QuickCommChannelScreen: View {
+  let recipientLine: String
+  let showEmail: Bool
+  let showText: Bool
+  let instagramHandle: String?
+  let onOpenInstagram: (URL) -> Void
+
+  var body: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: 12) {
+        QuickCommRecipientSection(recipientLine: recipientLine)
+
+        if showEmail {
+          NavigationLink(value: QuickCommStep.compose(.email)) {
+            channelRow(title: String(localized: "Send Email"), systemImage: "envelope.fill")
+          }
+          .accessibilityIdentifier("quickCommChannelEmail")
+        }
+        if showText {
+          NavigationLink(value: QuickCommStep.compose(.text)) {
+            channelRow(title: String(localized: "Send Text"), systemImage: "message.fill")
+          }
+          .accessibilityIdentifier("quickCommChannelText")
+        }
+        if let handle = instagramHandle {
+          Button {
+            let clean = handle.hasPrefix("@") ? String(handle.dropFirst()) : handle
+            if let url = URL(string: "https://instagram.com/\(clean)") { onOpenInstagram(url) }
+          } label: {
+            channelRow(title: String(localized: "DM on Instagram"), systemImage: "camera.fill")
+          }
+          .accessibilityLabel(String(localized: "Open Instagram profile @\(handle)"))
+          .accessibilityIdentifier("quickCommChannelInstagram")
+        }
+      }
+      .padding()
+    }
+  }
+
+  private func channelRow(title: String, systemImage: String) -> some View {
+    HStack(spacing: 12) {
+      Image(systemName: systemImage)
+        .font(.body)
+        .foregroundStyle(Color.accentBlue)
+        .frame(width: 28)
+        .accessibilityHidden(true)
+      Text(title)
+        .font(.body.weight(.medium))
+        .foregroundStyle(.primary)
+      Spacer()
+      Image(systemName: "chevron.right")
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(.tertiary)
+        .accessibilityHidden(true)
+    }
+    .padding(16)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Color(uiColor: .secondarySystemBackground))
+    .clipShape(RoundedRectangle(cornerRadius: 12))
+    .contentShape(Rectangle())
+  }
+}
 
 private struct QuickCommRecipientSection: View {
   let recipientLine: String
@@ -235,11 +375,10 @@ private struct QuickCommRecipientSection: View {
   }
 }
 
+/// Template picker for a single channel: "None" plus that channel's templates as a flat list.
 private struct QuickCommTemplateSection: View {
   let isLoading: Bool
   let templates: [CommunicationTemplate]
-  let emailTemplates: [CommunicationTemplate]
-  let textTemplates: [CommunicationTemplate]
   let selectedTemplate: CommunicationTemplate?
   let onSelect: (CommunicationTemplate?) -> Void
 
@@ -255,8 +394,7 @@ private struct QuickCommTemplateSection: View {
           .padding(.vertical, 8)
       } else {
         QuickCommTemplatePicker(
-          emailTemplates: emailTemplates,
-          textTemplates: textTemplates,
+          templates: templates,
           selectedTemplate: selectedTemplate,
           onSelect: onSelect
         )
@@ -266,26 +404,15 @@ private struct QuickCommTemplateSection: View {
 }
 
 private struct QuickCommTemplatePicker: View {
-  let emailTemplates: [CommunicationTemplate]
-  let textTemplates: [CommunicationTemplate]
+  let templates: [CommunicationTemplate]
   let selectedTemplate: CommunicationTemplate?
   let onSelect: (CommunicationTemplate?) -> Void
 
   var body: some View {
     LazyVStack(spacing: 0) {
       templateOption(nil, label: String(localized: "None"))
-      ForEach(emailTemplates) { template in
+      ForEach(templates) { template in
         templateOption(template, label: template.name)
-      }
-      if !textTemplates.isEmpty {
-        Divider().padding(.vertical, 4)
-        Text("Text templates")
-          .font(.caption)
-          .foregroundStyle(.tertiary)
-          .frame(maxWidth: .infinity, alignment: .leading)
-        ForEach(textTemplates) { template in
-          templateOption(template, label: template.name)
-        }
       }
     }
     .padding(12)
@@ -417,11 +544,9 @@ private struct QuickCommSubjectField: View {
   }
 }
 
-/// Amber-highlighted preview of the effective body plus an editable text area and, for text
-/// messages, a 160-char counter that turns red when over the SMS cap.
-private struct QuickCommBodyComposeSection: View {
-  let preview: AttributedString
-  let plainBody: String
+/// Editable message area (Step 2) plus, for text messages, a 160-char counter that turns red
+/// when over the SMS cap. The rendered preview lives on its own screen (Step 3).
+private struct QuickCommBodyEditor: View {
   @Binding var text: String
   let isTextMessage: Bool
   let characterCount: Int
@@ -430,19 +555,12 @@ private struct QuickCommBodyComposeSection: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
-      Text("Message preview")
+      Text("Message")
         .font(.caption)
         .foregroundStyle(.secondary)
-      Text(preview)
-        .font(.caption)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(8)
-        .background(Color(uiColor: .tertiarySystemFill))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .accessibilityLabel(String(localized: "Message preview: \(plainBody)"))
       TextEditor(text: $text)
         .font(.caption)
-        .frame(minHeight: 120)
+        .frame(minHeight: 160)
         .padding(4)
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(uiColor: .separator)))
         .accessibilityIdentifier("quickCommBodyEditor")
@@ -457,19 +575,38 @@ private struct QuickCommBodyComposeSection: View {
   }
 }
 
+/// Amber-highlighted, read-only render of the effective body — what the coach will see (Step 3).
+private struct QuickCommBodyPreview: View {
+  let preview: AttributedString
+  let plainBody: String
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Text("Preview — what the coach sees")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+      Text(preview)
+        .font(.caption)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(8)
+        .background(Color(uiColor: .tertiarySystemFill))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityLabel(String(localized: "Message preview: \(plainBody)"))
+    }
+  }
+}
+
 private struct QuickCommActionsSection: View {
   let showEmail: Bool
   let showText: Bool
   let coachEmail: String
-  let instagramHandle: String?
   let sendDisabled: Bool
   let onSendEmail: () -> Void
   let onSendText: () -> Void
-  let onOpenInstagram: (URL) -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      // Email/text sends respect the token/guardrail gate; Instagram is a profile open, never gated.
+      // Email/text sends respect the token/guardrail gate.
       Group {
         if showEmail {
           Button(action: onSendEmail) {
@@ -490,52 +627,13 @@ private struct QuickCommActionsSection: View {
               .frame(maxWidth: .infinity)
               .padding(.vertical, 12)
           }
-          .buttonStyle(.bordered)
+          .buttonStyle(.borderedProminent)
           .accessibilityLabel(String(localized: "Send text to coach"))
           .accessibilityHint("Opens Messages to compose; the message is logged only when sent")
         }
       }
       .disabled(sendDisabled)
       .opacity(sendDisabled ? 0.5 : 1)
-
-      if let handle = instagramHandle {
-        Button {
-          let clean = handle.hasPrefix("@") ? String(handle.dropFirst()) : handle
-          if let url = URL(string: "https://instagram.com/\(clean)") { onOpenInstagram(url) }
-        } label: {
-          Label("Open Instagram", systemImage: "camera.fill")
-            .font(.body.weight(.medium))
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-        }
-        .buttonStyle(.bordered)
-        .accessibilityLabel(String(localized: "Open Instagram profile @\(handle)"))
-      }
     }
   }
-}
-
-#Preview {
-  QuickCommunicationView(
-    context: QuickCommunicationContext(
-      coach: Coach(
-        id: "1",
-        firstName: "Assist",
-        lastName: "Coach",
-        email: "assistant.coach@wooster.edu",
-        phone: "555-0123",
-        position: "assistant",
-        schoolId: "school-1",
-        twitterHandle: nil,
-        instagramHandle: nil,
-        notes: nil,
-        lastContactDate: nil,
-        createdAt: "",
-        updatedAt: ""
-      ),
-      schoolName: "The College of Wooster"
-    )
-  )
-  .environment(FamilyManager.shared)
-  .environment(AuthManager.shared)
 }
