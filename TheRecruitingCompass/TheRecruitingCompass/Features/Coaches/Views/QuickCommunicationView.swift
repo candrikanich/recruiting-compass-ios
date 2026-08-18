@@ -65,8 +65,10 @@ struct QuickCommunicationView: View {
       }
       .navigationDestination(for: QuickCommStep.self) { step in
         switch step {
-        case .compose(let channel):
-          composeScreen(channel: channel)
+        case .template(let channel):
+          templateScreen(channel: channel)
+        case .details(let channel):
+          detailsScreen(channel: channel)
         case .preview(let channel):
           previewScreen(channel: channel)
         }
@@ -86,10 +88,10 @@ struct QuickCommunicationView: View {
     }
   }
 
-  // MARK: - Step 2: Compose
+  // MARK: - Step 2: Pick template
 
   @ViewBuilder
-  private func composeScreen(channel: QuickCommChannel) -> some View {
+  private func templateScreen(channel: QuickCommChannel) -> some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
         QuickCommTemplateSection(
@@ -98,6 +100,39 @@ struct QuickCommunicationView: View {
           selectedTemplate: viewModel.selectedTemplate,
           onSelect: { viewModel.selectTemplate($0) }
         )
+      }
+      .padding()
+    }
+    .navigationTitle(channel == .email ? "Email Template" : "Text Template")
+    .navigationBarTitleDisplayMode(.inline)
+    .safeAreaInset(edge: .bottom) {
+      NavigationLink(value: QuickCommStep.details(channel)) {
+        Text("Next")
+          .font(.body.weight(.medium))
+          .frame(maxWidth: .infinity)
+          .padding(.vertical, 12)
+      }
+      .buttonStyle(.borderedProminent)
+      .padding()
+      .background(.bar)
+      .accessibilityIdentifier("quickCommTemplateNext")
+    }
+    .onAppear {
+      // Dropping into a channel whose type doesn't match the carried-over template clears it,
+      // so the picker's selection state matches the templates actually shown.
+      if let selected = viewModel.selectedTemplate,
+         selected.type != channel.templateType {
+        viewModel.selectTemplate(nil)
+      }
+    }
+  }
+
+  // MARK: - Step 3: Fill in details
+
+  @ViewBuilder
+  private func detailsScreen(channel: QuickCommChannel) -> some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: 20) {
         if channel == .email {
           QuickCommSubjectField(subject: subjectBinding)
         }
@@ -108,19 +143,17 @@ struct QuickCommunicationView: View {
             authoredBinding: { viewModel.authoredBinding(for: $0) }
           )
         }
-        if viewModel.selectedTemplate != nil {
-          QuickCommBodyEditor(
-            text: bodyBinding,
-            isTextMessage: channel == .text,
-            characterCount: viewModel.effectiveBody.count,
-            limit: QuickCommunicationViewModel.textLimit,
-            overLimit: viewModel.textBodyOverLimit
-          )
-        }
+        QuickCommBodyEditor(
+          text: bodyBinding,
+          isTextMessage: channel == .text,
+          characterCount: viewModel.effectiveBody.count,
+          limit: QuickCommunicationViewModel.textLimit,
+          overLimit: viewModel.textBodyOverLimit
+        )
       }
       .padding()
     }
-    .navigationTitle(channel == .email ? "Compose Email" : "Compose Text")
+    .navigationTitle("Fill in the Details")
     .navigationBarTitleDisplayMode(.inline)
     .safeAreaInset(edge: .bottom) {
       NavigationLink(value: QuickCommStep.preview(channel)) {
@@ -133,14 +166,6 @@ struct QuickCommunicationView: View {
       .padding()
       .background(.bar)
       .accessibilityIdentifier("quickCommPreviewLink")
-    }
-    .onAppear {
-      // Dropping into a channel whose type doesn't match the carried-over template clears it,
-      // so the picker's selection state matches the templates actually shown.
-      if let selected = viewModel.selectedTemplate,
-         selected.type != channel.templateType {
-        viewModel.selectTemplate(nil)
-      }
     }
   }
 
@@ -282,7 +307,8 @@ private enum QuickCommChannel: Hashable {
 }
 
 private enum QuickCommStep: Hashable {
-  case compose(QuickCommChannel)
+  case template(QuickCommChannel)
+  case details(QuickCommChannel)
   case preview(QuickCommChannel)
 }
 
@@ -307,13 +333,13 @@ private struct QuickCommChannelScreen: View {
         QuickCommRecipientSection(recipientLine: recipientLine)
 
         if showEmail {
-          NavigationLink(value: QuickCommStep.compose(.email)) {
+          NavigationLink(value: QuickCommStep.template(.email)) {
             channelRow(title: String(localized: "Send Email"), systemImage: "envelope.fill")
           }
           .accessibilityIdentifier("quickCommChannelEmail")
         }
         if showText {
-          NavigationLink(value: QuickCommStep.compose(.text)) {
+          NavigationLink(value: QuickCommStep.template(.text)) {
             channelRow(title: String(localized: "Send Text"), systemImage: "message.fill")
           }
           .accessibilityIdentifier("quickCommChannelText")
