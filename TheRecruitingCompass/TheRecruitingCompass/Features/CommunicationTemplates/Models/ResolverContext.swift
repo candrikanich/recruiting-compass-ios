@@ -59,9 +59,23 @@ struct EventLite: Sendable {
 struct ResolverContext: Sendable {
   var tables: [String: [String: String]]   // "users"/"schools"/"coaches"/"events"
   var prefs: [String: String]               // player prefs jsonb, flattened
+  var locationPrefs: [String: String]       // location prefs jsonb (home city/state/zip), flattened
   var authored: [String: String]            // per-message typed values (empty in 2a)
   var derived: [String: String]             // computed-in-context values (sport, hsCoachName, …)
   var metrics: [TemplateMetricRow]
   var events: [EventLite]
   var now: Date
+
+  init(tables: [String: [String: String]], prefs: [String: String],
+       locationPrefs: [String: String] = [:], authored: [String: String],
+       derived: [String: String], metrics: [TemplateMetricRow], events: [EventLite], now: Date) {
+    self.tables = tables
+    self.prefs = prefs
+    self.locationPrefs = locationPrefs
+    self.authored = authored
+    self.derived = derived
+    self.metrics = metrics
+    self.events = events
+    self.now = now
+  }
 }

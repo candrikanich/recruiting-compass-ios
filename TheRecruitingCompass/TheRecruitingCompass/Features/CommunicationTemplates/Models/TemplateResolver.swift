@@ -42,7 +42,7 @@ enum TemplateResolver {
   static let computed: [String: @Sendable (ResolverContext) -> String?] =
     TemplateComputed.scalars.merging(TemplateComputed.metrics) { a, _ in a }
 
-  /// `column:<table>.<col>` (KNOWN_TABLES only) or `pref:player.<key>`; else nil.
+  /// `column:<table>.<col>` (KNOWN_TABLES only), `pref:player.<key>`, or `pref:location.<key>`; else nil.
   static func resolveSourcePath(_ path: String?, _ ctx: ResolverContext) -> String? {
     guard let path else { return nil }
     if let body = path.stripping(prefix: "column:") {
@@ -52,6 +52,9 @@ enum TemplateResolver {
     }
     if let key = path.stripping(prefix: "pref:player.") {
       return ctx.prefs[key]
+    }
+    if let key = path.stripping(prefix: "pref:location.") {
+      return ctx.locationPrefs[key]
     }
     return nil
   }

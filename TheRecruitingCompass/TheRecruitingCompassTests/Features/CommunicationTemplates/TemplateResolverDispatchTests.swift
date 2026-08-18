@@ -4,9 +4,11 @@ import XCTest
 final class TemplateResolverDispatchTests: XCTestCase {
   private func ctx(
     tables: [String: [String: String]] = [:], prefs: [String: String] = [:],
+    locationPrefs: [String: String] = [:],
     authored: [String: String] = [:], derived: [String: String] = [:]
   ) -> ResolverContext {
-    ResolverContext(tables: tables, prefs: prefs, authored: authored, derived: derived,
+    ResolverContext(tables: tables, prefs: prefs, locationPrefs: locationPrefs,
+                    authored: authored, derived: derived,
                     metrics: [], events: [], now: Date(timeIntervalSince1970: 0))
   }
 
@@ -23,6 +25,20 @@ final class TemplateResolverDispatchTests: XCTestCase {
   func test_prefSourceResolvesFromPrefs() {
     let c = ctx(prefs: ["ncaa_id": "1902"])
     XCTAssertEqual(TemplateResolver.resolveSourcePath("pref:player.ncaa_id", c), "1902")
+  }
+
+  func test_prefLocationSourceResolvesFromLocationPrefs() {
+    let c = ctx(prefs: ["school_city": "Olmsted Falls"],
+                locationPrefs: ["city": "Olmsted Township", "state": "OH"])
+    XCTAssertEqual(TemplateResolver.resolveSourcePath("pref:location.city", c), "Olmsted Township")
+    XCTAssertEqual(TemplateResolver.resolveSourcePath("pref:location.state", c), "OH")
+  }
+
+  func test_prefLocationDoesNotCollideWithPlayerPrefs() {
+    // Player prefs carry their own school_city; location.city must read the location map.
+    let c = ctx(prefs: ["city": "PLAYER"], locationPrefs: ["city": "HOME"])
+    XCTAssertEqual(TemplateResolver.resolveSourcePath("pref:location.city", c), "HOME")
+    XCTAssertEqual(TemplateResolver.resolveSourcePath("pref:player.city", c), "PLAYER")
   }
 
   func test_buildValuesOmitsEmptyAndDispatchesBySourceType() {

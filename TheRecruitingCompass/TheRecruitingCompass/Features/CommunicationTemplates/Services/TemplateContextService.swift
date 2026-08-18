@@ -41,6 +41,7 @@ struct TemplateContextService: TemplateContextProviding {
     // Athlete-owned data (all best-effort; any failure → empty).
     var usersTable: [String: String] = [:]
     var prefs: [String: String] = [:]
+    var locationPrefs: [String: String] = [:]
     var positions: [String] = []
     var metrics: [TemplateMetricRow] = []
     var events: [EventLite] = []
@@ -55,6 +56,7 @@ struct TemplateContextService: TemplateContextProviding {
       let fetchedPrefs = (try? await fetchPlayerPrefs(userId: uid)) ?? (scalars: [:], positions: [])
       prefs = fetchedPrefs.scalars
       positions = fetchedPrefs.positions
+      locationPrefs = (try? await fetchCategoryPrefs(userId: uid, category: "location")) ?? [:]
       metrics = (try? await fetchMetrics(userId: uid)) ?? []
       events = (try? await fetchEvents(userId: uid)) ?? []
       profileSlug = try? await fetchProfileSlug(userId: uid)
@@ -70,7 +72,7 @@ struct TemplateContextService: TemplateContextProviding {
 
     return ResolverContext(
       tables: ["users": usersTable, "coaches": coachTable, "schools": schoolTable, "events": [:]],
-      prefs: prefs, authored: authored, derived: derived,
+      prefs: prefs, locationPrefs: locationPrefs, authored: authored, derived: derived,
       metrics: metrics, events: events, now: now)
   }
 
@@ -108,6 +110,19 @@ struct TemplateContextService: TemplateContextProviding {
       }
     }
     return (scalars, positions)
+  }
+
+  /// Flattened scalar prefs for any single category (e.g. "location" → home city/state/zip).
+  private func fetchCategoryPrefs(userId: String, category: String) async throws -> [String: String] {
+    struct PrefRow: Decodable { let data: JSONObject }
+    let rows: [PrefRow] = try await supabaseManager.client
+      .from("user_preferences").select("data")
+      .eq("user_id", value: userId).eq("category", value: category)
+      .execute().value
+    guard let data = rows.first?.data else { return [:] }
+    return data.reduce(into: [String: String]()) { acc, kv in
+      if let scalar = Self.scalarString(kv.value) { acc[kv.key] = scalar }
+    }
   }
 
   private func fetchMetrics(userId: String) async throws -> [TemplateMetricRow] {
