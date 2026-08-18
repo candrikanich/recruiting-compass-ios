@@ -34,6 +34,27 @@ final class QuickCommunicationResolveTests: XCTestCase {
     XCTAssertTrue(vm.isSendBlocked)
   }
 
+  func test_optionalUnresolvedDoesNotBlockAndLineDropped() async {
+    let defs = [
+      TemplateVariableDef(key: "coachSalutation", label: "", category: "program", sourceType: .computed),
+      TemplateVariableDef(key: "videoLink", label: "", category: "metrics",
+                          sourceType: .computed, isRequiredDefault: false)]
+    let vm = QuickCommunicationViewModel(
+      coach: coach(), schoolName: nil,
+      templatesService: StubTemplates(),
+      templateVariablesService: StubRegistry(defs: defs),
+      contextService: StubContext(derived: ["coachSalutation": "Coach Smith"]))
+    await vm.loadResolverInputs()
+    vm.selectTemplate(CommunicationTemplate(
+      id: "t1", userId: "", name: "Intro", type: .email,
+      body: "{{coachSalutation}},\nFilm: {{videoLink}}\nThanks", variables: nil,
+      createdAt: "", updatedAt: ""))
+
+    XCTAssertTrue(vm.unresolvedKeys.isEmpty, "optional videoLink must not gate")
+    XCTAssertFalse(vm.isSendBlocked)
+    XCTAssertEqual(vm.cleanBody, "Coach Smith,\nThanks", "empty Film line dropped")
+  }
+
   func test_authoredValueUnblocksSend() async {
     let vm = QuickCommunicationViewModel(
       coach: coach(), schoolName: nil,

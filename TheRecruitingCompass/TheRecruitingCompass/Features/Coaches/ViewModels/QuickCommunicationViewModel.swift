@@ -127,7 +127,7 @@ final class QuickCommunicationViewModel {
       athleteUserId: athleteUserId, schoolId: coach.schoolId, coachId: coach.id,
       templateSlug: selectedTemplate?.slug, channel: channel == .email ? "email" : "text",
       programNote: authoredValues["programNote"], updateHook: authoredValues["updateHook"],
-      subject: channel == .email ? effectiveSubject : nil, body: effectiveBody),
+      subject: channel == .email ? cleanSubject : nil, body: cleanBody),
       accessToken: accessToken)
   }
 
@@ -201,6 +201,21 @@ final class QuickCommunicationViewModel {
   var effectiveSubject: String { editedSubject ?? resolvedSubject }
   var effectiveBody: String { editedBody ?? resolvedBody }
 
+  /// Registry keys marked required — the ONLY ones that block send when unresolved.
+  /// Optional unresolved tokens are stripped by `renderClean`, not gated.
+  private var requiredKeys: Set<String> {
+    Set(registry.filter { $0.isRequiredDefault }.map { $0.key })
+  }
+
+  /// Subject/body with optional-empty tokens stripped (and label-only lines dropped);
+  /// required unresolved tokens remain so they show in preview and gate the send.
+  var cleanSubject: String {
+    TemplateResolver.renderClean(effectiveSubject, values: resolvedValues(), requiredKeys: requiredKeys)
+  }
+  var cleanBody: String {
+    TemplateResolver.renderClean(effectiveBody, values: resolvedValues(), requiredKeys: requiredKeys)
+  }
+
   /// The selected template's referenced variables (authored/resolved-tagged) for the panel.
   var referencedVariables: [ReferencedVariable] {
     guard let template = selectedTemplate else { return [] }
@@ -215,22 +230,22 @@ final class QuickCommunicationViewModel {
             set: { [weak self] in self?.authoredValues[key] = $0 })
   }
 
-  /// True when a text (`.message`) template's effective body exceeds the SMS cap.
+  /// True when a text (`.message`) template's SENT body exceeds the SMS cap.
   var textBodyOverLimit: Bool {
-    selectedTemplate?.type == .message && effectiveBody.count > Self.textLimit
+    selectedTemplate?.type == .message && cleanBody.count > Self.textLimit
   }
 
-  /// The body used for send/preview: resolver output (with edits) when the registry is active,
-  /// else the legacy 4-var fill (keeps back-compat when `loadResolverInputs` hasn't run).
+  /// The body used for send/preview: cleaned resolver output (optional-empty tokens/lines
+  /// removed) when the registry is active, else the legacy 4-var fill.
   var messageBody: String {
-    registry.isEmpty ? filledBody : effectiveBody
+    registry.isEmpty ? filledBody : cleanBody
   }
 
-  /// Tokens still unresolved in the effective subject+body (deduped). Empty unless the
-  /// registry is active — the legacy path is never gated.
+  /// REQUIRED tokens still unresolved in the cleaned subject+body (deduped). After
+  /// `renderClean`, optional tokens are already stripped, so only required ones can remain.
   var unresolvedKeys: [String] {
     guard !registry.isEmpty, selectedTemplate != nil else { return [] }
-    return TemplateResolver.findUnresolved(effectiveSubject + "\n" + effectiveBody)
+    return TemplateResolver.findUnresolved(cleanSubject + "\n" + cleanBody)
   }
 
   /// True when required tokens remain or a text body is over the cap — blocks send.

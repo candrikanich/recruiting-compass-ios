@@ -177,8 +177,8 @@ struct QuickCommunicationView: View {
       VStack(alignment: .leading, spacing: 16) {
         QuickCommBodyPreview(
           preview: UnresolvedTokenHighlighter.attributed(
-            viewModel.effectiveBody, tokenColor: .warningOrange),
-          plainBody: viewModel.effectiveBody
+            viewModel.cleanBody, tokenColor: .warningOrange),
+          plainBody: viewModel.cleanBody
         )
         if viewModel.isSendBlocked {
           Text("Fill these before sending: \(viewModel.unresolvedKeys.joined(separator: ", "))")
@@ -261,7 +261,7 @@ struct QuickCommunicationView: View {
     case .mail:
       MailComposeView(
         recipients: [context.coach.email].compactMap { $0 },
-        subject: viewModel.effectiveSubject.isEmpty ? viewModel.selectedTemplate?.name : viewModel.effectiveSubject,
+        subject: viewModel.cleanSubject.isEmpty ? viewModel.selectedTemplate?.name : viewModel.cleanSubject,
         body: viewModel.messageBody,
         onResult: { result, _ in handleMailResult(result) }
       )

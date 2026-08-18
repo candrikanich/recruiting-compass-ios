@@ -15,7 +15,8 @@ final class QuickCommunicationPanelTests: XCTestCase {
       coach: coach(), schoolName: nil, templatesService: PanelStubTemplates(),
       templateVariablesService: PanelStubRegistry(defs: [
         .init(key: "coachSalutation", label: "Coach Salutation", category: "", sourceType: .computed),
-        .init(key: "programNote", label: "Program Note", category: "", sourceType: .authored)]),
+        .init(key: "programNote", label: "Program Note", category: "",
+              sourceType: .authored, isRequiredDefault: true)]),
       contextService: PanelStubContext(derived: ["coachSalutation": "Coach Smith"]))
     await v.loadResolverInputs()
     return v

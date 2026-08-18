@@ -21,6 +21,47 @@ enum TemplateResolver {
     return result
   }
 
+  /// Render, then gracefully handle OPTIONAL unresolved tokens: strip the token, and if its
+  /// line collapses to just a label + separators, drop the whole line. REQUIRED unresolved
+  /// tokens are left intact so they still show in preview and gate the send.
+  /// Mirrors web `renderClean` — keep the two byte-identical.
+  static func renderClean(_ body: String, values: [String: String], requiredKeys: Set<String>) -> String {
+    let rendered = render(body, values: values)
+    var kept: [String] = []
+    for line in rendered.components(separatedBy: "\n") {
+      let optional = findUnresolved(line).filter { !requiredKeys.contains($0) }
+      guard !optional.isEmpty else { kept.append(line); continue }
+      var cleaned = line
+      for key in optional { cleaned = cleaned.replacingOccurrences(of: "{{\(key)}}", with: "") }
+      if isLabelOnly(cleaned) { continue }
+      kept.append(tidyLine(cleaned))
+    }
+    let joined = kept.joined(separator: "\n")
+      .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
+    return joined.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
+  private static let lineSeparators = CharacterSet(charactersIn: " \t—-|,·•")
+
+  /// True when — after removing a leading "Label:" and all separators/space — nothing
+  /// meaningful remains, and no other `{{token}}` sits on the line.
+  private static func isLabelOnly(_ line: String) -> Bool {
+    if line.contains("{{") { return false }
+    var probe = line
+    if let r = probe.range(of: #"^\s*[A-Za-z][A-Za-z ]*:"#, options: .regularExpression) {
+      probe.removeSubrange(r)
+    }
+    return probe.unicodeScalars.allSatisfy { lineSeparators.contains($0) }
+  }
+
+  /// Collapse runs of spaces and strip dangling leading/trailing separators.
+  private static func tidyLine(_ line: String) -> String {
+    var s = line.replacingOccurrences(of: #"[ \t]{2,}"#, with: " ", options: .regularExpression)
+    s = s.replacingOccurrences(of: #"^[ \t—\-|,·•]+"#, with: "", options: .regularExpression)
+    s = s.replacingOccurrences(of: #"[ \t—\-|,·•]+$"#, with: "", options: .regularExpression)
+    return s
+  }
+
   static func findUnresolved(_ text: String) -> [String] {
     guard let regex = try? NSRegularExpression(pattern: tokenPattern) else { return [] }
     var seen = Set<String>()
