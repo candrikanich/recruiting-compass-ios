@@ -16,6 +16,15 @@ final class TemplateComputedScalarTests: XCTestCase {
     XCTAssertEqual(TemplateResolver.computed["playerFirstName"]?(ctx(users: ["full_name": "Jordan Lee"])), "Jordan")
   }
 
+  func test_usPhoneFormatting() {
+    XCTAssertEqual(TemplateComputed.usPhone("216-534-8996"), "(216) 534-8996")
+    XCTAssertEqual(TemplateComputed.usPhone("2165348996"), "(216) 534-8996")
+    XCTAssertEqual(TemplateComputed.usPhone("+1 (216) 534.8996"), "(216) 534-8996")
+    XCTAssertEqual(TemplateComputed.usPhone("12165348996"), "(216) 534-8996")
+    XCTAssertEqual(TemplateComputed.usPhone("555-1234"), "555-1234", "non-10-digit left as-is")
+    XCTAssertNil(TemplateComputed.usPhone("  "))
+  }
+
   func test_heightInchesToFeetInches() {
     XCTAssertEqual(TemplateResolver.computed["height"]?(ctx(users: ["height_inches": "74"])), "6'2\"")
     XCTAssertNil(TemplateResolver.computed["height"]?(ctx(users: [:])))

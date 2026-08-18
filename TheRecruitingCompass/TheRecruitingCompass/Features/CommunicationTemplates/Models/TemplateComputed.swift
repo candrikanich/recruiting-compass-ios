@@ -11,6 +11,21 @@ enum TemplateComputed {
   private static let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
+  /// US 10-digit phone → "(216) 534-8996" (also handles a leading country-code 1);
+  /// anything else is returned trimmed and unchanged. Mirrors web `formatUsPhone`.
+  static func usPhone(_ raw: String?) -> String? {
+    guard let raw = s(raw) else { return nil }
+    let digits = raw.filter(\.isNumber)
+    let core: String
+    if digits.count == 11, digits.hasPrefix("1") { core = String(digits.dropFirst()) }
+    else if digits.count == 10 { core = digits }
+    else { return raw }
+    let area = core.prefix(3)
+    let mid = core.dropFirst(3).prefix(3)
+    let last = core.dropFirst(6)
+    return "(\(area)) \(mid)-\(last)"
+  }
+
   private static func utcCalendar() -> Calendar {
     var cal = Calendar(identifier: .gregorian)
     cal.timeZone = TimeZone(identifier: "UTC")!

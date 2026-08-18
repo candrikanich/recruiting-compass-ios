@@ -55,6 +55,7 @@ struct TemplateContextService: TemplateContextProviding {
       gradYear = usersTable["graduation_year"].flatMap { Int($0) }
       let fetchedPrefs = (try? await fetchPlayerPrefs(userId: uid)) ?? (scalars: [:], positions: [])
       prefs = fetchedPrefs.scalars
+      if let phone = prefs["phone"] { prefs["phone"] = TemplateComputed.usPhone(phone) }
       positions = fetchedPrefs.positions
       locationPrefs = (try? await fetchCategoryPrefs(userId: uid, category: "location")) ?? [:]
       metrics = (try? await fetchMetrics(userId: uid)) ?? []
