@@ -2,6 +2,10 @@ import Foundation
 
 /// Pure derived-value computation (ported from composables/useTemplateResolver.ts).
 struct TemplateContextBuilder {
+  /// Public base for athlete profile links shared with coaches. Absolute so the URL is
+  /// clickable in email/SMS (parity with web's `origin + /p/<slug>`).
+  static let publicProfileBase = "https://myrecruitingcompass.com"
+
   private static let gradeWords: [Int: String] = [12: "twelfth", 11: "eleventh", 10: "tenth", 9: "ninth"]
 
   private static func currentGrade(_ gradYear: Int?, now: Date) -> Int? {
@@ -47,7 +51,7 @@ struct TemplateContextBuilder {
       positions, fallback: prefs["primary_position"]).secondary
     put("positionSecondary", secondary.isEmpty ? nil : CanonicalPositions.abbreviation(sport: sport, secondary))
     put("hsCoachName", pickHsCoach(prefs, gradYear: gradYear, now: now))
-    put("profileLink", profileSlug.map { "/\($0)" })
+    put("profileLink", profileSlug.map { "\(publicProfileBase)/p/\($0)" })
     put("transcriptLink", transcriptURL)
     put("videoLink", videoPrimaryURL)
     put("eventSchedule", TemplateComputed.renderEventSchedule(events, now: now))

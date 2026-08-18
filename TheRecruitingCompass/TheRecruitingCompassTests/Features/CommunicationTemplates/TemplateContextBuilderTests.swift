@@ -31,7 +31,7 @@ final class TemplateContextBuilderTests: XCTestCase {
       prefs: [:], positions: [], metrics: [], events: [], profileSlug: "jordan-lee",
       transcriptURL: "https://x/tr.pdf", videoPrimaryURL: "https://x/film",
       gradYear: nil, now: now)
-    XCTAssertEqual(d["profileLink"], "/jordan-lee")
+    XCTAssertEqual(d["profileLink"], "https://myrecruitingcompass.com/p/jordan-lee")
     XCTAssertEqual(d["transcriptLink"], "https://x/tr.pdf")
     XCTAssertEqual(d["videoLink"], "https://x/film")
   }
