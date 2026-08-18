@@ -72,9 +72,64 @@ Legend: ✅ resolves · 🐞 bug · ✍️ authored (typed per-message, fine by 
    `specificMoment`, `updateHook`); everything else would become non-blocking
    once the engine reads the flag.
 
-## Suggested order
+## Status (2026-08-18)
 
-1. `profileLink` full URL (needs prod domain) + `videoLink` source fix — small, high value.
-2. Investigate the `users.*`-mirror drift (correctness of what actually sends).
-3. Optional-var engine (design → plan → build, both repos).
-4. Decide which authored vars graduate to profile-backed.
+- ✅ **profileLink** — absolute `https://myrecruitingcompass.com/p/<slug>`. iOS
+  `feat/quick-comm-wizard`@69e4066c; web `feat/hometown-location-prefs`@d948bfe9.
+- ✅ **Optional-var engine** — `renderClean` on both platforms (byte-identical, 8
+  shared vectors). Optional-empty tokens/lines dropped; only `is_required_default`
+  gates send. iOS@ee67b554; web@ecdedbfd.
+- 🟡 **videoLink** — CODE ready both sides (iOS already derives; web now queries
+  `video_links` → `derived.videoLink`, web@792f8c7b). **Registry flip pending** (see
+  Coordinated steps).
+- 🟡 **users.* drift** — root cause found (below); fix is a source-of-truth decision.
+- ⬜ **authored → profile-backed** (`intendedMajor`/`academicHonors`/`classRank`).
+
+## #3 drift — ROOT CAUSE
+
+Trigger `sync_player_prefs_to_users()` (web migration
+`20260816000000_coach_outreach_phase0_1.sql:158-198`):
+- fires only on `user_preferences.category = 'player'`;
+- syncs just 5 fields: `height_inches, weight_lbs, high_school, club_team, dominant_side`.
+
+Writers:
+- Web `PATCH /api/user/preferences/player-details` writes `category='player_details'`
+  → **trigger never fires** → users.* goes stale on web edits.
+- Web `PATCH /api/athlete/profile-field` writes `users.*` **directly** (inline edits),
+  no reverse sync back to prefs.
+- iOS writes `category='player'` → trigger fires (for its 5 fields only).
+- `gpa/act_score/sat_score/graduation_year/jersey_number` are in NO sync path.
+
+Net: `users.*` is a **broken mirror**; player prefs is the store athletes actually edit.
+That's why templates (which read `column:users.*`) send stale values.
+
+### Fix options (pick one — architectural, not auto-applied)
+- **A. Tactical — repair the sync.** Make the trigger fire on the category web writes
+  (align web to `'player'` OR broaden the trigger), add the 5 missing fields, and
+  backfill drifted rows. Retire/redirect the direct `profile-field` writer or make it
+  also update prefs. Keeps template mappings as-is.
+- **B. Strategic — prefs as sole source of truth.** Repoint the mirrored template vars
+  from `column:users.*` to `pref:player.*` (consistent with playerEmail/phone/ncaaId),
+  add computed rewrites for `height`/`weight`/`testLabel`/`testScore` to read prefs.
+  `dominantSide`/`jerseyNumber` have no prefs key (would need one or stay on users).
+  Bigger, but removes the mirror from the template path entirely.
+
+Recommendation: **B** long-term (matches the hometown/email fixes we just shipped);
+**A** as a stopgap if a fast correctness patch is needed before B lands.
+
+## #5 authored → profile-backed (proposal)
+
+`intendedMajor`, `academicHonors`, `classRank` are stable athlete facts retyped every
+message. To auto-fill: add them to player prefs (`pref:player.intended_major`, etc.),
+add fields to the player-details editor (iOS + web), repoint the 3 registry rows from
+`authored` → `column`/`pref:player.*`. Small DB + form work per platform; deferred
+pending go-ahead.
+
+## Coordinated steps (deploy-ordered, NOT yet applied)
+
+1. **videoLink registry flip** — after BOTH platforms deploy the videoLink derive
+   (iOS already; web@792f8c7b), run:
+   `update template_variables set source_type='computed', source_path=null where key='videoLink';`
+   Flipping earlier makes videoLink briefly empty on whichever side hasn't deployed.
+2. **#3 fix** — per decision A or B above.
+3. **#5** — after the profile fields ship.
