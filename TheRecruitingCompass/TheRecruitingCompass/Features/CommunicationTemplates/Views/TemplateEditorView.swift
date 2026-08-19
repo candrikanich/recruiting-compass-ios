@@ -17,6 +17,12 @@ struct TemplateEditorView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
+        if let error = viewModel.errorMessage {
+          InlineErrorView(message: error, onRetry: { Task { await viewModel.saveTemplate() } })
+        }
+        if viewModel.isCustomizingPredefined {
+          predefinedCopyBanner
+        }
         nameField
         typePicker
         bodyEditor
@@ -26,6 +32,23 @@ struct TemplateEditorView: View {
       .padding()
     }
     .accessibilityIdentifier("templateEditorView")
+  }
+
+  @ViewBuilder
+  private var predefinedCopyBanner: some View {
+    HStack(alignment: .top, spacing: 8) {
+      Image(systemName: "doc.on.doc")
+        .foregroundStyle(Color.accentBlue)
+        .accessibilityHidden(true)
+      Text("You're customizing a copy. The built-in template stays unchanged; Save creates your own editable version.")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    }
+    .padding(12)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Color.accentBlue.opacity(0.08))
+    .clipShape(RoundedRectangle(cornerRadius: 10))
+    .accessibilityElement(children: .combine)
   }
 
   @ViewBuilder

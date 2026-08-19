@@ -118,6 +118,34 @@ enum TemplateComputed {
     return "\(months[cal.component(.month, from: d) - 1]) \(cal.component(.year, from: d))"
   }
 
+  /// Collapses multiple rows of the same metric_type down to the single most
+  /// recent by `recorded_date`. Ties fall back to verified, then primary, then
+  /// input order — so an athlete with several 60-times shows only their latest.
+  private static func dedupeMostRecentPerType(_ metrics: [TemplateMetricRow]) -> [TemplateMetricRow] {
+    var best: [String: (offset: Int, row: TemplateMetricRow)] = [:]
+    for (idx, m) in metrics.enumerated() {
+      let typeKey = m.metricType ?? ""
+      guard let existing = best[typeKey] else {
+        best[typeKey] = (idx, m)
+        continue
+      }
+      let e = existing.row
+      let mDate = m.recordedDate ?? "", eDate = e.recordedDate ?? ""
+      let mWins: Bool
+      if mDate != eDate {
+        mWins = mDate > eDate
+      } else if (m.verified ?? false) != (e.verified ?? false) {
+        mWins = m.verified ?? false
+      } else if (m.isPrimary ?? false) != (e.isPrimary ?? false) {
+        mWins = m.isPrimary ?? false
+      } else {
+        mWins = false   // keep the earlier row (stable)
+      }
+      if mWins { best[typeKey] = (idx, m) }
+    }
+    return best.values.sorted { $0.offset < $1.offset }.map(\.row)
+  }
+
   private static func rankMetrics(_ metrics: [TemplateMetricRow]) -> [TemplateMetricRow] {
     metrics.enumerated().sorted { lhs, rhs in
       let a = lhs.element, b = rhs.element
@@ -130,7 +158,7 @@ enum TemplateComputed {
   }
 
   static func renderMetrics(_ metrics: [TemplateMetricRow], cap: Int = 4) -> String {
-    rankMetrics(metrics).prefix(cap).map { m in
+    rankMetrics(dedupeMostRecentPerType(metrics)).prefix(cap).map { m in
       let label = humanizeMetricLabel(m.metricType)
       let provenance = [m.source, monthYear(m.recordedDate)].compactMap { $0 }.joined(separator: ", ")
       let tail = provenance.isEmpty ? "" : " (\(provenance))"
