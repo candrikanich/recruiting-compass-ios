@@ -180,8 +180,20 @@ final class PublicProfileViewModel {
             academics: showAcademics ? academicsSection(from: details) : nil,
             athletic: showAthletic ? athleticSection(from: details) : nil,
             film: showFilm ? videos.map { PublicProfileData.FilmItem(title: $0.title, url: $0.url) } : nil,
-            schools: showSchools ? schools.map { PublicProfileData.SchoolItem(id: $0.id, name: $0.name) } : nil
+            schools: showSchools ? schools.map { PublicProfileData.SchoolItem(id: $0.id, name: $0.name) } : nil,
+            social: socialSection(from: details)
         )
+    }
+
+    private func socialSection(from details: PlayerDetails?) -> PublicProfileData.SocialSection? {
+        guard let details else { return nil }
+        let section = PublicProfileData.SocialSection(
+            twitterHandle: details.twitterHandle,
+            instagramHandle: details.instagramHandle,
+            tiktokHandle: details.tiktokHandle,
+            facebookUrl: details.facebookUrl
+        )
+        return section.isEmpty ? nil : section
     }
 
     private func fetchSchoolsData() async -> [School] {

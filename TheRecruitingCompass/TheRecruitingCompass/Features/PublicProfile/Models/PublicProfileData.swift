@@ -11,6 +11,7 @@ struct PublicProfileData: Equatable, Sendable {
     let athletic: AthleticSection?
     let film: [FilmItem]?
     let schools: [SchoolItem]?
+    let social: SocialSection?
 
     struct AcademicsSection: Equatable, Sendable {
         let gpa: Double?
@@ -40,5 +41,17 @@ struct PublicProfileData: Equatable, Sendable {
     struct SchoolItem: Equatable, Sendable {
         let id: String
         let name: String
+    }
+
+    struct SocialSection: Equatable, Sendable {
+        let twitterHandle: String?
+        let instagramHandle: String?
+        let tiktokHandle: String?
+        let facebookUrl: String?
+
+        var isEmpty: Bool {
+            [twitterHandle, instagramHandle, tiktokHandle, facebookUrl]
+                .allSatisfy { $0?.trimmingCharacters(in: .whitespaces).isEmpty ?? true }
+        }
     }
 }

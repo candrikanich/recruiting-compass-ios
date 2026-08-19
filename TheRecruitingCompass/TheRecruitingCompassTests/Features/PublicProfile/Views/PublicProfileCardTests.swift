@@ -11,13 +11,24 @@ final class PublicProfileCardTests: XCTestCase {
             athletic: .init(primarySport: "Baseball", primaryPosition: "SS",
                             positions: ["SS"], heightInches: 72, weightLbs: 180,
                             ncaaId: nil, perfectGameId: nil, prepBaseballId: nil),
-            film: nil, schools: nil
+            film: nil, schools: nil, social: nil
         )
         let sections = PublicProfileCard.visibleSections(for: data)
         XCTAssertTrue(sections.contains(.athletic))
         XCTAssertFalse(sections.contains(.academics))
         XCTAssertFalse(sections.contains(.film))
         XCTAssertFalse(sections.contains(.schools))
+        XCTAssertFalse(sections.contains(.social))
+    }
+
+    func testVisibleSectionsExcludesEmptySocial() {
+        let data = PublicProfileData(
+            playerName: "Jordan", photoUrl: nil, headerColor: .slate, bio: nil,
+            academics: nil, athletic: nil, film: nil, schools: nil,
+            social: .init(twitterHandle: "  ", instagramHandle: nil,
+                          tiktokHandle: nil, facebookUrl: "")
+        )
+        XCTAssertFalse(PublicProfileCard.visibleSections(for: data).contains(.social))
     }
 
     func testVisibleSectionsIncludesAllWhenPopulated() {
@@ -29,7 +40,9 @@ final class PublicProfileCardTests: XCTestCase {
                             positions: ["SS", "2B"], heightInches: 72, weightLbs: 180,
                             ncaaId: "123", perfectGameId: nil, prepBaseballId: nil),
             film: [.init(title: "Highlights", url: "https://example.com/video")],
-            schools: [.init(id: "1", name: "State University")]
+            schools: [.init(id: "1", name: "State University")],
+            social: .init(twitterHandle: "@rileyplays", instagramHandle: nil,
+                          tiktokHandle: nil, facebookUrl: nil)
         )
         let sections = PublicProfileCard.visibleSections(for: data)
         XCTAssertEqual(sections, Set(PublicProfileCard.Section.allCases))
