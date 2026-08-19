@@ -15,6 +15,7 @@ final class MockPerformanceService: PerformanceManaging, @unchecked Sendable {
   var fetchMetricsCallCount = 0
   var createMetricCallCount = 0
   var updateMetricCallCount = 0
+  var setPrimaryMetricCallCount = 0
   var deleteMetricCallCount = 0
 
   var lastFetchUserId: String?
@@ -22,6 +23,7 @@ final class MockPerformanceService: PerformanceManaging, @unchecked Sendable {
   var lastCreateRequest: MetricCreateRequest?
   var lastUpdateId: String?
   var lastUpdateRequest: MetricUpdateRequest?
+  var lastSetPrimaryId: String?
   var lastDeletedId: String?
 
   // MARK: - PerformanceManaging Methods
@@ -76,6 +78,17 @@ final class MockPerformanceService: PerformanceManaging, @unchecked Sendable {
     return existing
   }
 
+  func setPrimaryMetric(id: String) async throws {
+    setPrimaryMetricCallCount += 1
+    lastSetPrimaryId = id
+
+    if !shouldSucceed {
+      throw mockError
+    }
+
+    mockMetrics = mockMetrics.map { $0.withIsPrimary($0.id == id) }
+  }
+
   func deleteMetric(id: String) async throws {
     deleteMetricCallCount += 1
     lastDeletedId = id
@@ -98,6 +111,7 @@ final class MockPerformanceService: PerformanceManaging, @unchecked Sendable {
     fetchMetricsCallCount = 0
     createMetricCallCount = 0
     updateMetricCallCount = 0
+    setPrimaryMetricCallCount = 0
     deleteMetricCallCount = 0
 
     lastFetchUserId = nil
@@ -105,6 +119,7 @@ final class MockPerformanceService: PerformanceManaging, @unchecked Sendable {
     lastCreateRequest = nil
     lastUpdateId = nil
     lastUpdateRequest = nil
+    lastSetPrimaryId = nil
     lastDeletedId = nil
   }
 
@@ -120,6 +135,7 @@ final class MockPerformanceService: PerformanceManaging, @unchecked Sendable {
     eventId: String? = nil,
     verified: Bool = false,
     notes: String? = nil,
+    isPrimary: Bool = false,
     createdAt: Date = Date(),
     updatedAt: Date = Date()
   ) -> PerformanceMetric {
@@ -133,6 +149,7 @@ final class MockPerformanceService: PerformanceManaging, @unchecked Sendable {
       eventId: eventId,
       verified: verified,
       notes: notes,
+      isPrimary: isPrimary,
       createdAt: createdAt,
       updatedAt: updatedAt
     )

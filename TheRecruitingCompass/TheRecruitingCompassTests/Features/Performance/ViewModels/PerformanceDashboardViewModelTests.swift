@@ -973,6 +973,71 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
     XCTAssertEqual(mockService.lastCreateUserId, ParentViewingAthleteFixture.athleteUserId)
   }
 
+  // MARK: - togglePrimary Tests
+
+  func testTogglePrimary_PromotesMetric_CallsRPCAndUpdatesLocalState() async {
+    mockService.mockMetrics = [
+      mockService.createTestMetric(id: "1", metricType: .velocity, value: 90.0),
+      mockService.createTestMetric(id: "2", metricType: .exitVelo, value: 105.0)
+    ]
+    await viewModel.loadMetrics()
+
+    await viewModel.togglePrimary(viewModel.metrics.first { $0.id == "2" }!)
+
+    XCTAssertEqual(mockService.setPrimaryMetricCallCount, 1)
+    XCTAssertEqual(mockService.lastSetPrimaryId, "2")
+    XCTAssertEqual(mockService.updateMetricCallCount, 0)
+    XCTAssertEqual(viewModel.primaryMetric?.id, "2")
+    XCTAssertTrue(viewModel.metrics.first { $0.id == "2" }!.isPrimary)
+    XCTAssertFalse(viewModel.metrics.first { $0.id == "1" }!.isPrimary)
+    XCTAssertTrue(viewModel.showSuccessToast)
+  }
+
+  func testTogglePrimary_SwitchingPrimary_ClearsPriorPrimaryLocally() async {
+    mockService.mockMetrics = [
+      mockService.createTestMetric(id: "1", metricType: .velocity, value: 90.0, isPrimary: true),
+      mockService.createTestMetric(id: "2", metricType: .exitVelo, value: 105.0)
+    ]
+    await viewModel.loadMetrics()
+    XCTAssertEqual(viewModel.primaryMetric?.id, "1")
+
+    await viewModel.togglePrimary(viewModel.metrics.first { $0.id == "2" }!)
+
+    XCTAssertEqual(viewModel.primaryMetric?.id, "2")
+    XCTAssertFalse(viewModel.metrics.first { $0.id == "1" }!.isPrimary)
+  }
+
+  func testTogglePrimary_OnCurrentPrimary_ClearsViaUpdate() async {
+    mockService.mockMetrics = [
+      mockService.createTestMetric(id: "1", metricType: .velocity, value: 90.0, isPrimary: true)
+    ]
+    mockService.mockUpdatedMetric = mockService.createTestMetric(
+      id: "1", metricType: .velocity, value: 90.0, isPrimary: false
+    )
+    await viewModel.loadMetrics()
+
+    await viewModel.togglePrimary(viewModel.metrics.first { $0.id == "1" }!)
+
+    XCTAssertEqual(mockService.updateMetricCallCount, 1)
+    XCTAssertEqual(mockService.lastUpdateId, "1")
+    XCTAssertEqual(mockService.lastUpdateRequest?.isPrimary, false)
+    XCTAssertEqual(mockService.setPrimaryMetricCallCount, 0)
+    XCTAssertNil(viewModel.primaryMetric)
+  }
+
+  func testTogglePrimary_ServiceError_SetsErrorMessage() async {
+    mockService.mockMetrics = [
+      mockService.createTestMetric(id: "1", metricType: .velocity, value: 90.0)
+    ]
+    await viewModel.loadMetrics()
+    mockService.shouldSucceed = false
+
+    await viewModel.togglePrimary(viewModel.metrics.first { $0.id == "1" }!)
+
+    XCTAssertNotNil(viewModel.errorMessage)
+    XCTAssertNil(viewModel.primaryMetric)
+  }
+
   // MARK: - Helper Methods
 
   private func createUser(id: String) -> User {

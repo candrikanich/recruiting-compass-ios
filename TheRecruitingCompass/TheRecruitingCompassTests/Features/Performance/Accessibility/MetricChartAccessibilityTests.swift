@@ -290,7 +290,7 @@ final class MetricChartAccessibilityTests: XCTestCase {
 
   func testMetricHistoryCard_usesContainChildren() {
     let metric = makeMetric()
-    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {})
+    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {}, onTogglePrimary: {})
 
     // Card uses .accessibilityElement(children: .contain)
     // so Edit and Delete buttons remain individually accessible
@@ -299,7 +299,7 @@ final class MetricChartAccessibilityTests: XCTestCase {
 
   func testMetricHistoryCard_editButtonHasLabel() {
     let metric = makeMetric(metricType: .velocity)
-    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {})
+    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {}, onTogglePrimary: {})
 
     // Edit should announce "Edit Fastball Velocity metric"
     XCTAssertNotNil(card)
@@ -308,7 +308,7 @@ final class MetricChartAccessibilityTests: XCTestCase {
 
   func testMetricHistoryCard_deleteButtonHasLabel() {
     let metric = makeMetric(metricType: .exitVelo)
-    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {})
+    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {}, onTogglePrimary: {})
 
     // Delete should announce "Delete Exit Velocity metric"
     XCTAssertNotNil(card)
@@ -317,7 +317,7 @@ final class MetricChartAccessibilityTests: XCTestCase {
 
   func testMetricHistoryCard_editButtonMeetsHitTarget() {
     let metric = makeMetric()
-    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {})
+    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {}, onTogglePrimary: {})
 
     // Edit button should have .frame(minWidth: 44, minHeight: 44)
     XCTAssertNotNil(card)
@@ -325,7 +325,7 @@ final class MetricChartAccessibilityTests: XCTestCase {
 
   func testMetricHistoryCard_deleteButtonMeetsHitTarget() {
     let metric = makeMetric()
-    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {})
+    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {}, onTogglePrimary: {})
 
     // Delete button should have .frame(minWidth: 44, minHeight: 44)
     XCTAssertNotNil(card)
@@ -333,7 +333,7 @@ final class MetricChartAccessibilityTests: XCTestCase {
 
   func testMetricHistoryCard_includesVerifiedInSummary() {
     let metric = makeMetric(verified: true)
-    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {})
+    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {}, onTogglePrimary: {})
 
     // Summary label should include "verified"
     XCTAssertNotNil(card)
@@ -342,7 +342,7 @@ final class MetricChartAccessibilityTests: XCTestCase {
 
   func testMetricHistoryCard_includesNotesInSummary() {
     let metric = makeMetric(notes: "Showcase event")
-    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {})
+    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {}, onTogglePrimary: {})
 
     // Summary label should include "Notes: Showcase event"
     XCTAssertNotNil(card)
@@ -351,7 +351,7 @@ final class MetricChartAccessibilityTests: XCTestCase {
 
   func testMetricHistoryCard_valueAndStatusHidden() {
     let metric = makeMetric(verified: true)
-    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {})
+    let card = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {}, onTogglePrimary: {})
 
     // Value and Status sections should be .accessibilityHidden(true)
     // because this info is already in the summary label
@@ -381,7 +381,7 @@ final class MetricChartAccessibilityTests: XCTestCase {
         .environment(\.sizeCategory, size)
       let trendCard = TrendCard(trend: trend)
         .environment(\.sizeCategory, size)
-      let historyCard = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {})
+      let historyCard = MetricHistoryCard(metric: metric, onEdit: {}, onDelete: {}, onTogglePrimary: {})
         .environment(\.sizeCategory, size)
       let chartView = PerformanceChartView(metrics: [metric, metric], metricType: .velocity)
         .environment(\.sizeCategory, size)

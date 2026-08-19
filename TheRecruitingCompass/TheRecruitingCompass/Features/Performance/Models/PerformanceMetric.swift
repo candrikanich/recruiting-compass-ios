@@ -10,6 +10,7 @@ struct PerformanceMetric: Codable, Identifiable, Equatable, Sendable {
   let eventId: String?
   let verified: Bool
   let notes: String?
+  let isPrimary: Bool
   let createdAt: Date
   let updatedAt: Date
 
@@ -23,6 +24,7 @@ struct PerformanceMetric: Codable, Identifiable, Equatable, Sendable {
     eventId: String?,
     verified: Bool,
     notes: String?,
+    isPrimary: Bool = false,
     createdAt: Date,
     updatedAt: Date
   ) {
@@ -35,6 +37,7 @@ struct PerformanceMetric: Codable, Identifiable, Equatable, Sendable {
     self.eventId = eventId
     self.verified = verified
     self.notes = notes
+    self.isPrimary = isPrimary
     self.createdAt = createdAt
     self.updatedAt = updatedAt
   }
@@ -50,6 +53,7 @@ struct PerformanceMetric: Codable, Identifiable, Equatable, Sendable {
     eventId = try container.decodeIfPresent(String.self, forKey: .eventId)
     verified = try container.decode(Bool.self, forKey: .verified)
     notes = try container.decodeIfPresent(String.self, forKey: .notes)
+    isPrimary = try container.decodeIfPresent(Bool.self, forKey: .isPrimary) ?? false
     createdAt = try Self.decodeFlexibleDate(container, key: .createdAt)
     // updated_at may be absent in some DB rows; fall back to createdAt
     updatedAt = Self.decodeOptionalDate(container, key: .updatedAt) ?? createdAt
@@ -89,6 +93,25 @@ struct PerformanceMetric: Codable, Identifiable, Equatable, Sendable {
     return dateOnly.date(from: string)
   }
 
+  /// Returns a copy with `isPrimary` toggled — used for optimistic local updates
+  /// after the `set_primary_metric` RPC, which also clears the prior primary row.
+  func withIsPrimary(_ value: Bool) -> PerformanceMetric {
+    PerformanceMetric(
+      id: id,
+      userId: userId,
+      metricType: metricType,
+      value: self.value,
+      unit: unit,
+      recordedDate: recordedDate,
+      eventId: eventId,
+      verified: verified,
+      notes: notes,
+      isPrimary: value,
+      createdAt: createdAt,
+      updatedAt: updatedAt
+    )
+  }
+
   var displayName: String {
     metricType.displayName
   }
@@ -115,6 +138,7 @@ struct PerformanceMetric: Codable, Identifiable, Equatable, Sendable {
     case eventId = "event_id"
     case verified
     case notes
+    case isPrimary = "is_primary"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
   }

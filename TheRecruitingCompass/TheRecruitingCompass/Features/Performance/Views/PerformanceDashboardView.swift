@@ -135,7 +135,8 @@ struct PerformanceDashboardView: View {
         PerformanceHistorySection(
           sortedMetrics: viewModel.sortedMetrics,
           onEdit: { viewModel.startEditing($0) },
-          onDelete: { viewModel.confirmDelete($0) }
+          onDelete: { viewModel.confirmDelete($0) },
+          onTogglePrimary: { metric in Task { await viewModel.togglePrimary(metric) } }
         )
       }
       .padding()
@@ -250,6 +251,7 @@ private struct PerformanceHistorySection: View {
   let sortedMetrics: [PerformanceMetric]
   let onEdit: (PerformanceMetric) -> Void
   let onDelete: (PerformanceMetric) -> Void
+  let onTogglePrimary: (PerformanceMetric) -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -261,7 +263,8 @@ private struct PerformanceHistorySection: View {
         MetricHistoryCard(
           metric: metric,
           onEdit: { onEdit(metric) },
-          onDelete: { onDelete(metric) }
+          onDelete: { onDelete(metric) },
+          onTogglePrimary: { onTogglePrimary(metric) }
         )
       }
     }
