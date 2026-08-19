@@ -125,6 +125,42 @@ add fields to the player-details editor (iOS + web), repoint the 3 registry rows
 `authored` → `column`/`pref:player.*`. Small DB + form work per platform; deferred
 pending go-ahead.
 
+## #3 drift — RESOLVED (2026-08-18)
+
+Decision: **player-prefs jsonb is the source of truth for templates.** Ground truth —
+there is NO `player_details` category; all player data lives in `user_preferences`
+category `player`. The drift was `users.*` columns (written by a separate inline
+`/api/athlete/profile-field` writer + partial trigger) diverging from the `player` jsonb
+(written by the full profile editors + iOS).
+
+Fix shipped both platforms: computed `height`/`weight`/`testLabel`/`testScore` read
+`ctx.prefs`; registry repoints `gpaUnweighted`/`clubTeam`(→travel_team_name)/`highSchool`/
+`gradYear` to `pref:player.*`. `dominantSide`/`jerseyNumber` stay on `users` (no prefs
+key). iOS `7f1b927c`; web `d03fadf2`. Edge accounts with data only in `users.*` degrade
+gracefully (optional-engine drops empty lines).
+
+Follow-up (separate): the inline `profile-field` API still writes `users.*` only — retire
+it or make it also write the `player` jsonb so the two never re-diverge.
+
+## Feature build 2026-08-18 — status
+
+- #1 phone `(xxx) xxx-xxxx`: iOS `762f0930` + web `f6d8b97c` ✅
+- #2 Intended Major: iOS `0b717ad0` (Academics field) + web field/type/migration `d20352f5` ✅
+  (web auto-fill now works too — #3 drift resolved, prefs is truth).
+- #3 metrics CTA: iOS `396839b6` ✅. **Web: TODO** (CommunicationPanel nudge).
+- #4 why-program/why-fit: iOS `1fb2a48c` (compose focused step + prefill/save + school
+  detail) ✅. DB migration + registry ✅. **Web: TODO** (see below).
+
+### Remaining WEB parity (needs runtime verification by a human)
+1. #3 — metrics-empty CTA in `components/CommunicationPanel.vue` linking to the metrics editor.
+2. #4 — add `why_program`/`fit_reason` to the web `School` type (`types/models.ts:62`);
+   prefill `programNote`/`fitReason` in CommunicationPanel from the school + save back on send;
+   optional focused "make it specific" step (iOS has one; web could keep the panel inputs).
+3. #4 — editable "Why this program / Why it fits" fields on `pages/schools/[id]/index.vue`
+   (reuse `SchoolNotesCard.vue`), patched via the school update endpoint.
+   iOS is the reference implementation (`QuickCommunicationView` specificity step +
+   `SchoolDetailView` fields + `SchoolsManaging.fetch/updateOutreachNotes`).
+
 ## Coordinated steps (deploy-ordered, NOT yet applied)
 
 1. **videoLink registry flip** — after BOTH platforms deploy the videoLink derive
