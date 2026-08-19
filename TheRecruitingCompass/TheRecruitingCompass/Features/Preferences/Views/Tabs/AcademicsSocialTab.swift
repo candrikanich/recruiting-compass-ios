@@ -23,6 +23,8 @@ struct AcademicsSocialTab: View {
                         intRow(String(localized: "SAT Score"), keyPath: \.satScore)
                         divider
                         intRow(String(localized: "ACT Score"), keyPath: \.actScore)
+                        divider
+                        textRow(String(localized: "Intended Major"), keyPath: \.intendedMajor)
                     }
                 }
 
