@@ -157,6 +157,55 @@ extension PublicProfileCard {
         }
     }
 
+    // MARK: - Social
+
+    @ViewBuilder
+    func socialSection(_ social: PublicProfileData.SocialSection) -> some View {
+        if !social.isEmpty {
+            sectionContainer(title: String(localized: "Social")) {
+                VStack(alignment: .leading, spacing: 8) {
+                    socialRow(label: String(localized: "Twitter"), handle: social.twitterHandle,
+                              url: SocialLinkBuilder.twitterURL(social.twitterHandle))
+                    socialRow(label: String(localized: "Instagram"), handle: social.instagramHandle,
+                              url: SocialLinkBuilder.instagramURL(social.instagramHandle))
+                    socialRow(label: String(localized: "TikTok"), handle: social.tiktokHandle,
+                              url: SocialLinkBuilder.tiktokURL(social.tiktokHandle))
+                    socialRow(label: String(localized: "Facebook"), handle: social.facebookUrl,
+                              url: SocialLinkBuilder.facebookURL(social.facebookUrl))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func socialRow(label: String, handle: String?, url: URL?) -> some View {
+        if let handle, !handle.trimmingCharacters(in: .whitespaces).isEmpty {
+            HStack {
+                Text(label)
+                    .font(.footnote)
+                    .foregroundStyle(Color.Text.muted)
+                Spacer()
+                if let url {
+                    Link(destination: url) {
+                        HStack(spacing: 4) {
+                            Text(handle)
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption2)
+                        }
+                        .font(.footnote)
+                        .fontWeight(.medium)
+                    }
+                    .accessibilityLabel(String(localized: "Open \(label) profile \(handle)"))
+                } else {
+                    Text(handle)
+                        .font(.footnote)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Color.Text.primary)
+                }
+            }
+        }
+    }
+
     // MARK: - Shared building blocks
 
     @ViewBuilder

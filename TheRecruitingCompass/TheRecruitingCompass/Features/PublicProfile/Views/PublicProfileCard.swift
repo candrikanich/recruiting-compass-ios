@@ -8,7 +8,7 @@ struct PublicProfileCard: View {
     let data: PublicProfileData
 
     enum Section: CaseIterable {
-        case athletic, academics, film, schools
+        case athletic, academics, film, schools, social
     }
 
     /// Pure gating logic, unit-testable without rendering the view.
@@ -18,6 +18,7 @@ struct PublicProfileCard: View {
         if data.academics != nil { sections.insert(.academics) }
         if data.film != nil { sections.insert(.film) }
         if data.schools != nil { sections.insert(.schools) }
+        if let social = data.social, !social.isEmpty { sections.insert(.social) }
         return sections
     }
 
@@ -29,6 +30,7 @@ struct PublicProfileCard: View {
             if let academics = data.academics { academicsSection(academics) }
             if let film = data.film { filmSection(film) }
             if let schools = data.schools { schoolsSection(schools) }
+            if let social = data.social { socialSection(social) }
 
             footer
         }
