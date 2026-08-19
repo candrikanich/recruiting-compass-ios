@@ -292,6 +292,59 @@ final class QuickCommunicationViewModelTests: XCTestCase {
     )
   }
 
+  // MARK: - Intended-major pre-send prompt
+
+  func testSaveIntendedMajor_persistsToAthletePrefsAndMarksHandled() async {
+    let prefs = MockPreferenceService()
+    prefs.stubbedPlayerDetails = PlayerDetails()
+    let vm = QuickCommunicationViewModel(
+      coach: makeCoach(), schoolName: "Test University",
+      templatesService: mockService, preferenceService: prefs
+    )
+    vm.configureContext(loggedBy: "parent-1", familyUnitId: "fam-1", athleteUserId: "athlete-9")
+    vm.intendedMajorDraft = "  Biology  "
+
+    await vm.saveIntendedMajor()
+
+    XCTAssertEqual(prefs.saveCallCount, 1)
+    XCTAssertEqual(prefs.savedUserIds, ["athlete-9"], "writes to the athlete's prefs row")
+    XCTAssertEqual(prefs.savedPlayerDetails?.intendedMajor, "Biology", "trimmed value saved")
+  }
+
+  func testSaveIntendedMajor_emptyDraft_doesNotWrite() async {
+    let prefs = MockPreferenceService()
+    let vm = QuickCommunicationViewModel(
+      coach: makeCoach(), templatesService: mockService, preferenceService: prefs
+    )
+    vm.intendedMajorDraft = "   "
+
+    await vm.saveIntendedMajor()
+
+    XCTAssertEqual(prefs.saveCallCount, 0)
+  }
+
+  func testSaveIntendedMajor_preservesOtherPlayerPrefs() async {
+    let prefs = MockPreferenceService()
+    var existing = PlayerDetails()
+    existing.highSchool = "Olmsted Falls"
+    prefs.stubbedPlayerDetails = existing
+    let vm = QuickCommunicationViewModel(
+      coach: makeCoach(), templatesService: mockService, preferenceService: prefs
+    )
+    vm.intendedMajorDraft = "Kinesiology"
+
+    await vm.saveIntendedMajor()
+
+    XCTAssertEqual(prefs.savedPlayerDetails?.highSchool, "Olmsted Falls", "existing prefs kept")
+    XCTAssertEqual(prefs.savedPlayerDetails?.intendedMajor, "Kinesiology")
+  }
+
+  func testShouldPromptIntendedMajor_falseAfterSkip() {
+    let vm = QuickCommunicationViewModel(coach: makeCoach(), templatesService: mockService)
+    vm.skipIntendedMajorPrompt()
+    XCTAssertFalse(vm.shouldPromptIntendedMajor, "skip marks the prompt handled")
+  }
+
   private func makeTemplate(id: String, type: TemplateType, body: String = "Hi {{coach_name}}") -> CommunicationTemplate {
     CommunicationTemplate(
       id: id,

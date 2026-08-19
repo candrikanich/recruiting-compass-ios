@@ -37,6 +37,7 @@ final class QuickCommunicationViewModel {
   private let schoolsService: any SchoolsManaging
   private let contactWindowService: any ContactWindowServicing
   private let athleteMessagesService: any AthleteMessagesServicing
+  private let preferenceService: any PreferenceManaging
   private var loggedBy: String?
   private var familyUnitId: String?
   private var athleteUserId: String?
@@ -263,6 +264,48 @@ final class QuickCommunicationViewModel {
     }
   }
 
+  // MARK: - Intended-major pre-send prompt
+
+  /// Draft the athlete types into the pre-send "add your intended major" prompt.
+  var intendedMajorDraft = ""
+  /// Presents the intended-major prompt (bound to the compose sheet).
+  var showIntendedMajorPrompt = false
+  /// Set once the prompt has been answered or skipped, so a second Send tap sends
+  /// instead of re-prompting.
+  private var intendedMajorPromptHandled = false
+
+  /// True when the template references `{{intendedMajor}}`, it's unset, and we haven't
+  /// prompted yet — the send handlers stop and surface the prompt first.
+  var shouldPromptIntendedMajor: Bool {
+    guard !intendedMajorPromptHandled else { return false }
+    return referencedVariables.contains { $0.key == "intendedMajor" && !$0.isResolved }
+  }
+
+  /// Save the typed major to the athlete's player prefs (fetch-modify-save so other
+  /// prefs are preserved), then re-resolve so `{{intendedMajor}}` fills in. Marks the
+  /// prompt handled either way so the ensuing send proceeds.
+  func saveIntendedMajor() async {
+    intendedMajorPromptHandled = true
+    let major = intendedMajorDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !major.isEmpty else { return }
+    do {
+      var details: PlayerDetails =
+        (try await preferenceService.fetchPreferences(category: .player, userId: athleteUserId))
+        ?? PlayerDetails()
+      details.intendedMajor = major
+      _ = try await preferenceService.savePreferences(category: .player, userId: athleteUserId, data: details)
+      await loadResolverInputs()
+    } catch {
+      logger.error("Failed to save intended major: \(error.localizedDescription)")
+    }
+  }
+
+  /// Athlete chose to skip — proceed without a major; the `[[intendedMajor|…]]` segment
+  /// drops the clause from the sent message.
+  func skipIntendedMajorPrompt() {
+    intendedMajorPromptHandled = true
+  }
+
   /// The selected template's referenced variables (authored/resolved-tagged) for the panel.
   var referencedVariables: [ReferencedVariable] {
     guard let template = selectedTemplate else { return [] }
@@ -345,6 +388,7 @@ final class QuickCommunicationViewModel {
     schoolsService: (any SchoolsManaging)? = nil,
     contactWindowService: (any ContactWindowServicing)? = nil,
     athleteMessagesService: (any AthleteMessagesServicing)? = nil,
+    preferenceService: (any PreferenceManaging)? = nil,
     loggedBy: String? = nil,
     familyUnitId: String? = nil
   ) {
@@ -359,6 +403,7 @@ final class QuickCommunicationViewModel {
     self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
     self.contactWindowService = contactWindowService ?? ContactWindowServiceImpl()
     self.athleteMessagesService = athleteMessagesService ?? AthleteMessagesServiceImpl()
+    self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.loggedBy = loggedBy
     self.familyUnitId = familyUnitId
   }
@@ -386,6 +431,7 @@ final class QuickCommunicationViewModel {
     editedBody = nil
     sendWarning = nil
     sendArmed = false
+    intendedMajorPromptHandled = false
   }
 
   /// Maximum body length for mailto/sms URLs. Launch Services fails (-10814) when URLs exceed system limits.
