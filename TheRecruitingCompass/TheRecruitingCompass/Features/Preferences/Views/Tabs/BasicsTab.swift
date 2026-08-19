@@ -128,8 +128,8 @@ struct BasicsTab: View {
     @ViewBuilder
     private var contactCard: some View {
         VStack(spacing: 0) {
-            handleRow(String(localized: "Phone"), placeholder: String(localized: "Phone"),
-                      keyPath: \.phone, keyboardType: .phonePad)
+            phoneRow(String(localized: "Phone"), placeholder: String(localized: "(555) 123-4567"),
+                     keyPath: \.phone)
             divider
             handleRow(String(localized: "Email"), placeholder: String(localized: "Email"),
                       keyPath: \.email, keyboardType: .emailAddress)
@@ -182,6 +182,30 @@ struct BasicsTab: View {
         .padding(.vertical, 12)
     }
 
+    private func phoneRow(
+        _ label: String,
+        placeholder: String = "",
+        keyPath: WritableKeyPath<PlayerDetails, String?>
+    ) -> some View {
+        HStack {
+            Text(label).font(.body)
+            Spacer()
+            TextField(placeholder.isEmpty ? label : placeholder, text: Binding(
+                get: { PhoneFormatter.formatNational(viewModel.details[keyPath: keyPath] ?? "") },
+                set: {
+                    viewModel.details[keyPath: keyPath] = PhoneFormatter.toStored($0)
+                    viewModel.markChanged()
+                }
+            ))
+            .multilineTextAlignment(.trailing)
+            .foregroundStyle(.secondary)
+            .keyboardType(.phonePad)
+            .disabled(viewModel.isReadOnly)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+    }
+
     private func toggleRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, Bool?>) -> some View {
         Toggle(label, isOn: Binding(
             get: { viewModel.details[keyPath: keyPath] ?? false },
@@ -226,6 +250,9 @@ struct BasicsTab: View {
         }
     }
 
+    /// Web-parity segmented selector matching `AthleticsTab.choiceRow`: the
+    /// selected option gets a filled accent highlight. Tapping the selected
+    /// option again clears it (these preferences are optional).
     private func segmentedRow(
         _ label: String,
         options: [(value: String, label: String)],
@@ -233,20 +260,29 @@ struct BasicsTab: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
-            Picker(label, selection: Binding(
-                get: { viewModel.details[keyPath: keyPath] ?? "" },
-                set: {
-                    viewModel.details[keyPath: keyPath] = $0.isEmpty ? nil : $0
-                    viewModel.markChanged()
-                }
-            )) {
-                Text("—").tag("")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
                 ForEach(options, id: \.value) { opt in
-                    Text(opt.label).tag(opt.value)
+                    let isSelected = viewModel.details[keyPath: keyPath] == opt.value
+                    Button {
+                        viewModel.details[keyPath: keyPath] = isSelected ? nil : opt.value
+                        viewModel.markChanged()
+                    } label: {
+                        Text(opt.label)
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(isSelected ? Color.accentColor : Color(.tertiarySystemFill))
+                            .foregroundStyle(isSelected ? Color.white : Color.primary)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(viewModel.isReadOnly)
+                    .accessibilityLabel("\(label): \(opt.label)")
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
                 }
             }
-            .pickerStyle(.segmented)
-            .disabled(viewModel.isReadOnly)
 
             Text("Used for personal fit analysis")
                 .font(.caption)

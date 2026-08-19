@@ -106,7 +106,7 @@ struct AcademicsSocialTab: View {
                     viewModel.details[keyPath: keyPath] = $0
                     viewModel.markChanged()
                 }
-            ), format: .number)
+            ), format: .number.grouping(.never))
             .keyboardType(.numberPad)
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
