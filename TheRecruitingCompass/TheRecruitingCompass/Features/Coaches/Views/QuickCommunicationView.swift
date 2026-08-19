@@ -13,6 +13,7 @@ struct QuickCommunicationView: View {
   @State private var showSuccessToast = false
   @State private var showInfoToast = false
   @State private var infoMessage: String?
+  @State private var showMetricsSheet = false
   @Environment(\.openURL) private var openURL
   @Environment(\.dismiss) private var dismiss
   @Environment(FamilyManager.self) private var familyManager
@@ -136,6 +137,9 @@ struct QuickCommunicationView: View {
         if channel == .email {
           QuickCommSubjectField(subject: subjectBinding)
         }
+        if viewModel.suggestsAddingMetrics {
+          QuickCommAddMetricCTA { showMetricsSheet = true }
+        }
         if !viewModel.referencedVariables.isEmpty {
           QuickCommVariablesPanel(
             variables: viewModel.referencedVariables,
@@ -155,6 +159,11 @@ struct QuickCommunicationView: View {
     }
     .navigationTitle("Fill in the Details")
     .navigationBarTitleDisplayMode(.inline)
+    .sheet(isPresented: $showMetricsSheet, onDismiss: {
+      Task { await viewModel.loadResolverInputs() }  // pick up any metric just added
+    }) {
+      NavigationStack { PerformanceDashboardView() }
+    }
     .safeAreaInset(edge: .bottom) {
       NavigationLink(value: QuickCommStep.preview(channel)) {
         Text("Preview & Send")
@@ -567,6 +576,43 @@ private struct QuickCommSubjectField: View {
         .font(.subheadline)
     }
     .accessibilityIdentifier("quickCommSubjectField")
+  }
+}
+
+/// Nudge shown when the template wants stats but the athlete has none yet — opens the
+/// metrics editor so a number can be added before sending.
+private struct QuickCommAddMetricCTA: View {
+  let onTap: () -> Void
+
+  var body: some View {
+    Button(action: onTap) {
+      HStack(spacing: 12) {
+        Image(systemName: "chart.bar.fill")
+          .foregroundStyle(Color.accentBlue)
+          .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 2) {
+          Text("Add a metric to strengthen this email")
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(.primary)
+          Text("Coaches look for numbers — a 60 time, exit velo, etc.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        Spacer()
+        Image(systemName: "chevron.right")
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(.tertiary)
+          .accessibilityHidden(true)
+      }
+      .padding(12)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(Color.accentBlue.opacity(0.08))
+      .clipShape(RoundedRectangle(cornerRadius: 10))
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityIdentifier("quickCommAddMetricCTA")
+    .accessibilityHint("Opens the metrics editor")
   }
 }
 

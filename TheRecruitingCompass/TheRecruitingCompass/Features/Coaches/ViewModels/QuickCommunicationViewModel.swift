@@ -216,6 +216,14 @@ final class QuickCommunicationViewModel {
     TemplateResolver.renderClean(effectiveBody, values: resolvedValues(), requiredKeys: requiredKeys)
   }
 
+  /// True when the template leans on the athlete's stats (`{{metrics}}`/`{{carryingTool}}`)
+  /// but none resolve yet — surfaces an "add a metric" nudge in the compose flow.
+  var suggestsAddingMetrics: Bool {
+    referencedVariables.contains {
+      ($0.key == "metrics" || $0.key == "carryingTool") && !$0.isResolved
+    }
+  }
+
   /// The selected template's referenced variables (authored/resolved-tagged) for the panel.
   var referencedVariables: [ReferencedVariable] {
     guard let template = selectedTemplate else { return [] }
