@@ -3,9 +3,10 @@ import XCTest
 
 final class TemplateComputedScalarTests: XCTestCase {
   private func ctx(users: [String: String] = [:], coaches: [String: String] = [:],
-                   schools: [String: String] = [:], now: Date = Date(timeIntervalSince1970: 0)) -> ResolverContext {
+                   schools: [String: String] = [:], prefs: [String: String] = [:],
+                   now: Date = Date(timeIntervalSince1970: 0)) -> ResolverContext {
     ResolverContext(tables: ["users": users, "coaches": coaches, "schools": schools],
-                    prefs: [:], authored: [:], derived: [:], metrics: [], events: [], now: now)
+                    prefs: prefs, authored: [:], derived: [:], metrics: [], events: [], now: now)
   }
 
   private func iso(_ s: String) -> Date {
@@ -26,12 +27,12 @@ final class TemplateComputedScalarTests: XCTestCase {
   }
 
   func test_heightInchesToFeetInches() {
-    XCTAssertEqual(TemplateResolver.computed["height"]?(ctx(users: ["height_inches": "74"])), "6'2\"")
-    XCTAssertNil(TemplateResolver.computed["height"]?(ctx(users: [:])))
+    XCTAssertEqual(TemplateResolver.computed["height"]?(ctx(prefs: ["height_inches": "74"])), "6'2\"")
+    XCTAssertNil(TemplateResolver.computed["height"]?(ctx(prefs: [:])))
   }
 
   func test_weight() {
-    XCTAssertEqual(TemplateResolver.computed["weight"]?(ctx(users: ["weight_lbs": "185"])), "185 lbs")
+    XCTAssertEqual(TemplateResolver.computed["weight"]?(ctx(prefs: ["weight_lbs": "185"])), "185 lbs")
   }
 
   func test_coachSalutation() {
@@ -45,10 +46,10 @@ final class TemplateComputedScalarTests: XCTestCase {
   }
 
   func test_testLabelAndScorePreferACT() {
-    let c = ctx(users: ["act_score": "31", "sat_score": "1350"])
+    let c = ctx(prefs: ["act_score": "31", "sat_score": "1350"])
     XCTAssertEqual(TemplateResolver.computed["testLabel"]?(c), "ACT")
     XCTAssertEqual(TemplateResolver.computed["testScore"]?(c), "31")
-    let satOnly = ctx(users: ["sat_score": "1350"])
+    let satOnly = ctx(prefs: ["sat_score": "1350"])
     XCTAssertEqual(TemplateResolver.computed["testLabel"]?(satOnly), "SAT")
     XCTAssertEqual(TemplateResolver.computed["testScore"]?(satOnly), "1350")
   }

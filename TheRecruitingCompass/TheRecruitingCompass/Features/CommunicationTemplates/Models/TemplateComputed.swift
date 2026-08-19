@@ -40,12 +40,12 @@ enum TemplateComputed {
       return full.split(whereSeparator: { $0.isWhitespace }).first.map(String.init)
     },
     "height": { c in
-      guard let raw = c.tables["users"]?["height_inches"], let d = Double(raw) else { return nil }
+      guard let raw = c.prefs["height_inches"], let d = Double(raw) else { return nil }
       let n = Int(d)
       return "\(n / 12)'\(n % 12)\""
     },
     "weight": { c in
-      guard let w = s(c.tables["users"]?["weight_lbs"]) else { return nil }
+      guard let w = s(c.prefs["weight_lbs"]) else { return nil }
       return "\(w) lbs"
     },
     "coachSalutation": { c in
@@ -61,12 +61,12 @@ enum TemplateComputed {
       return stripped.isEmpty ? name.split(whereSeparator: { $0.isWhitespace }).first.map(String.init) : stripped
     },
     "testLabel": { c in
-      if s(c.tables["users"]?["act_score"]) != nil { return "ACT" }
-      if s(c.tables["users"]?["sat_score"]) != nil { return "SAT" }
+      if s(c.prefs["act_score"]) != nil { return "ACT" }
+      if s(c.prefs["sat_score"]) != nil { return "SAT" }
       return nil
     },
     "testScore": { c in
-      s(c.tables["users"]?["act_score"]) ?? s(c.tables["users"]?["sat_score"])
+      s(c.prefs["act_score"]) ?? s(c.prefs["sat_score"])
     },
     "seasonLabel": { c in
       let m = utcCalendar().component(.month, from: c.now) - 1   // 0-indexed to match JS getUTCMonth()
