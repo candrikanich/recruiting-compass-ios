@@ -162,6 +162,37 @@ final class QuickCommunicationViewModel {
     if contactWindowRules.isEmpty {
       contactWindowRules = (try? await contactWindowService.fetchRules()) ?? []
     }
+    await prefillOutreachNotes()
+  }
+
+  /// Saved per-school "why program / why fit" answers, so `persistOutreachNotes` only
+  /// writes when the athlete actually changed them.
+  private var savedOutreach: SchoolOutreachNotes?
+
+  /// Prefill `{{programNote}}` / `{{fitReason}}` from the school's saved answers when the
+  /// athlete hasn't already typed something for this message.
+  private func prefillOutreachNotes() async {
+    guard let notes = try? await schoolsService.fetchOutreachNotes(id: coach.schoolId) else { return }
+    savedOutreach = notes
+    if (authoredValues["programNote"] ?? "").isEmpty,
+       let w = notes.whyProgram, !w.isEmpty { authoredValues["programNote"] = w }
+    if (authoredValues["fitReason"] ?? "").isEmpty,
+       let f = notes.fitReason, !f.isEmpty { authoredValues["fitReason"] = f }
+  }
+
+  /// Persist the athlete's answers back to the school so they prefill next time and show on
+  /// school detail. No-op when unchanged or empty. Best-effort — never fails a send.
+  func persistOutreachNotes() async {
+    func clean(_ s: String?) -> String? {
+      let t = s?.trimmingCharacters(in: .whitespacesAndNewlines)
+      return (t?.isEmpty == false) ? t : nil
+    }
+    let updated = SchoolOutreachNotes(whyProgram: clean(authoredValues["programNote"]),
+                                      fitReason: clean(authoredValues["fitReason"]))
+    guard !updated.isEmpty, updated != savedOutreach else { return }
+    try? await schoolsService.updateOutreachNotes(
+      id: coach.schoolId, whyProgram: updated.whyProgram, fitReason: updated.fitReason)
+    savedOutreach = updated
   }
 
   /// Current pre/open window state for this athlete+school (fail-open `.open`).
@@ -216,6 +247,14 @@ final class QuickCommunicationViewModel {
     TemplateResolver.renderClean(effectiveBody, values: resolvedValues(), requiredKeys: requiredKeys)
   }
 
+  /// True when the template asks "why this program / why it fits" but the athlete hasn't
+  /// answered — triggers the focused specificity step before preview.
+  var needsSpecificityPrompt: Bool {
+    referencedVariables.contains {
+      ($0.key == "programNote" || $0.key == "fitReason") && !$0.isResolved
+    }
+  }
+
   /// True when the template leans on the athlete's stats (`{{metrics}}`/`{{carryingTool}}`)
   /// but none resolve yet — surfaces an "add a metric" nudge in the compose flow.
   var suggestsAddingMetrics: Bool {
@@ -261,6 +300,12 @@ final class QuickCommunicationViewModel {
 
   var recipientLine: String {
     "\(coach.fullName) – \(coach.role.displayName)"
+  }
+
+  /// School name for prompts, falling back to a generic phrase when unknown.
+  var schoolDisplayName: String {
+    let name = schoolName?.trimmingCharacters(in: .whitespaces)
+    return (name?.isEmpty == false) ? name! : String(localized: "this program")
   }
 
   var emailTemplates: [CommunicationTemplate] {
@@ -384,6 +429,7 @@ final class QuickCommunicationViewModel {
   /// Call ONLY on a confirmed send — never on `.cancelled`/`.saved`/`.failed` or the no-account
   /// fallback, so the app never records a message that wasn't actually sent.
   func logSend(_ channel: SendChannel) async {
+    await persistOutreachNotes()  // save the athlete's why-program / why-fit answers to the school
     guard let loggedBy, let familyUnitId else {
       logger.error("Cannot log sent interaction: missing user or family context")
       errorMessage = String(localized: "Message sent, but logging it failed.")

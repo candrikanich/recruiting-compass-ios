@@ -33,6 +33,10 @@ protocol SchoolsManaging: Sendable {
   // MARK: - Phase 2 Methods (Editing & Notes)
   /// Replaces the free-text notes on a school and returns the updated entity.
   func updateNotes(id: String, notes: String) async throws -> School
+  /// Reads the per-school coach-outreach answers (why-program / why-fit).
+  func fetchOutreachNotes(id: String) async throws -> SchoolOutreachNotes
+  /// Saves the per-school coach-outreach answers (nil clears a field).
+  func updateOutreachNotes(id: String, whyProgram: String?, fitReason: String?) async throws
   /// Appends a pro to the school's pros list.
   func addPro(id: String, familyUnitId: String, text: String) async throws -> School
   /// Removes the pro at the given zero-based index from the school's pros list.

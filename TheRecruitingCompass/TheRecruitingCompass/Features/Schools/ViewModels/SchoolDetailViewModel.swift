@@ -31,6 +31,11 @@ final class SchoolDetailViewModel {
 
   // MARK: - Notes (always-editable, auto-save on blur)
   var editedNotes = ""
+  /// Per-school coach-outreach answers (also collected in Quick Comm; backs
+  /// {{programNote}} / {{fitReason}}).
+  var editedWhyProgram = ""
+  var editedFitReason = ""
+  private var savedOutreach = SchoolOutreachNotes(whyProgram: nil, fitReason: nil)
   var saveStatus: SaveStatus = .idle
   var hapticSuccessTrigger = 0
 
@@ -159,6 +164,7 @@ final class SchoolDetailViewModel {
       school = cachedSchool
       statusHistory = cachedHistory
       initializeNoteFields(from: cachedSchool)
+      await loadOutreachNotes()
       logger.info("Loaded school from cache: \(cachedSchool.name)")
       await loadPersonalFit()
       await loadCoaches()
@@ -174,6 +180,7 @@ final class SchoolDetailViewModel {
       school = loadedSchool
       statusHistory = loadedHistory
       initializeNoteFields(from: loadedSchool)
+      await loadOutreachNotes()
 
       await cacheToUse.set(loadedSchool, forKey: cacheKey, ttlSeconds: Self.schoolCacheTTL)
       await cacheToUse.set(loadedHistory, forKey: historyKey, ttlSeconds: Self.schoolCacheTTL)
@@ -288,6 +295,32 @@ final class SchoolDetailViewModel {
       try? await Task.sleep(for: .seconds(3))
       guard !Task.isCancelled else { return }
       if self.saveStatus == .saved { self.saveStatus = .idle }
+    }
+  }
+
+  func loadOutreachNotes() async {
+    guard let notes = try? await schoolsService.fetchOutreachNotes(id: schoolId) else { return }
+    savedOutreach = notes
+    editedWhyProgram = notes.whyProgram ?? ""
+    editedFitReason = notes.fitReason ?? ""
+  }
+
+  func saveOutreachNotes() async {
+    func clean(_ s: String) -> String? {
+      let t = DataSanitizer.stripHtmlTags(s.trimmingCharacters(in: .whitespacesAndNewlines))
+      return t.isEmpty ? nil : t
+    }
+    let updated = SchoolOutreachNotes(whyProgram: clean(editedWhyProgram), fitReason: clean(editedFitReason))
+    guard updated != savedOutreach else { return }
+    saveStatus = .saving
+    do {
+      try await schoolsService.updateOutreachNotes(
+        id: schoolId, whyProgram: updated.whyProgram, fitReason: updated.fitReason)
+      savedOutreach = updated
+      markSaved()
+    } catch {
+      ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to save"), logger: logger) { self.errorMessage = $0 }
+      saveStatus = .idle
     }
   }
 

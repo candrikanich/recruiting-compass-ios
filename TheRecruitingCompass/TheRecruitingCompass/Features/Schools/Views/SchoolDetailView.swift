@@ -198,6 +198,20 @@ struct SchoolDetailView: View {
         )
         .padding(.horizontal)
 
+        // 9b. Coach-outreach answers — reused to prefill Quick Comm ({{programNote}} / {{fitReason}}).
+        SchoolNotesSection(
+          title: String(localized: "Why this program"),
+          notes: $viewModel.editedWhyProgram,
+          onBlur: { await viewModel.saveOutreachNotes() }
+        )
+        .padding(.horizontal)
+        SchoolNotesSection(
+          title: String(localized: "Why it fits you"),
+          notes: $viewModel.editedFitReason,
+          onBlur: { await viewModel.saveOutreachNotes() }
+        )
+        .padding(.horizontal)
+
         // 10. Notes
         SchoolNotesSection(
           title: String(localized: "Notes"),

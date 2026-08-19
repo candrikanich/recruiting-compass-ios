@@ -166,6 +166,28 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
     return updated
   }
 
+  func fetchOutreachNotes(id: String) async throws -> SchoolOutreachNotes {
+    let notes: SchoolOutreachNotes = try await supabaseManager.client
+      .from("schools")
+      .select("why_program, fit_reason")
+      .eq("id", value: id)
+      .single()
+      .execute()
+      .value
+    return notes
+  }
+
+  func updateOutreachNotes(id: String, whyProgram: String?, fitReason: String?) async throws {
+    struct OutreachUpdate: Encodable { let why_program: String?; let fit_reason: String? }
+    logger.debug("Updating outreach notes for school: \(id)")
+    _ = try await supabaseManager.client
+      .from("schools")
+      .update(OutreachUpdate(why_program: whyProgram, fit_reason: fitReason))
+      .eq("id", value: id)
+      .execute()
+    logger.info("Outreach notes updated for school: \(id)")
+  }
+
   func addPro(id: String, familyUnitId: String, text: String) async throws -> School {
     logger.debug("Adding pro to school: \(id)")
 

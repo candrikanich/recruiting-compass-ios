@@ -70,6 +70,8 @@ struct QuickCommunicationView: View {
           templateScreen(channel: channel)
         case .details(let channel):
           detailsScreen(channel: channel)
+        case .specificity(let channel):
+          specificityScreen(channel: channel)
         case .preview(let channel):
           previewScreen(channel: channel)
         }
@@ -165,7 +167,11 @@ struct QuickCommunicationView: View {
       NavigationStack { PerformanceDashboardView() }
     }
     .safeAreaInset(edge: .bottom) {
-      NavigationLink(value: QuickCommStep.preview(channel)) {
+      Button {
+        // Route through the focused "why this program" step when it's still unanswered.
+        path.append(viewModel.needsSpecificityPrompt
+          ? QuickCommStep.specificity(channel) : QuickCommStep.preview(channel))
+      } label: {
         Text("Preview & Send")
           .font(.body.weight(.medium))
           .frame(maxWidth: .infinity)
@@ -175,6 +181,57 @@ struct QuickCommunicationView: View {
       .padding()
       .background(.bar)
       .accessibilityIdentifier("quickCommPreviewLink")
+    }
+  }
+
+  // MARK: - Step 3b: Make it specific (why this program / why it fits)
+
+  @ViewBuilder
+  private func specificityScreen(channel: QuickCommChannel) -> some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: 16) {
+        Text("Make it specific to \(viewModel.schoolDisplayName)")
+          .font(.headline)
+        Text("Coaches ignore generic emails. A sentence or two on why this program — "
+          + "and why you fit — makes yours stand out. You can skip and send without it.")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+
+        QuickCommSpecificityField(
+          title: String(localized: "Why this program?"),
+          prompt: String(localized: "What draws you to this program specifically?"),
+          text: viewModel.authoredBinding(for: "programNote"),
+          disabled: familyManager.currentMember?.isParent == true)
+        QuickCommSpecificityField(
+          title: String(localized: "Why does it fit you?"),
+          prompt: String(localized: "How do you fit their style, level, or needs?"),
+          text: viewModel.authoredBinding(for: "fitReason"),
+          disabled: familyManager.currentMember?.isParent == true)
+
+        if familyManager.currentMember?.isParent == true {
+          Text("Ask the athlete to answer these.")
+            .font(.caption2)
+            .foregroundStyle(.tertiary)
+        }
+      }
+      .padding()
+    }
+    .navigationTitle("Make It Specific")
+    .navigationBarTitleDisplayMode(.inline)
+    .safeAreaInset(edge: .bottom) {
+      HStack(spacing: 12) {
+        Button("Skip for now") { path.append(QuickCommStep.preview(channel)) }
+          .buttonStyle(.bordered)
+          .accessibilityIdentifier("quickCommSpecificitySkip")
+        Button {
+          path.append(QuickCommStep.preview(channel))
+        } label: {
+          Text("Continue").frame(maxWidth: .infinity).padding(.vertical, 4)
+        }
+        .buttonStyle(.borderedProminent)
+      }
+      .padding()
+      .background(.bar)
     }
   }
 
@@ -318,6 +375,7 @@ private enum QuickCommChannel: Hashable {
 private enum QuickCommStep: Hashable {
   case template(QuickCommChannel)
   case details(QuickCommChannel)
+  case specificity(QuickCommChannel)
   case preview(QuickCommChannel)
 }
 
@@ -559,6 +617,27 @@ private struct QuickCommVariablesPanel: View {
     }
     .accessibilityElement(children: .combine)
     .accessibilityLabel(String(localized: "\(variable.label): complete in your profile"))
+  }
+}
+
+/// One labeled multi-line answer on the "make it specific" step (why-program / why-fit).
+private struct QuickCommSpecificityField: View {
+  let title: String
+  let prompt: String
+  @Binding var text: String
+  let disabled: Bool
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Text(title)
+        .font(.subheadline.weight(.medium))
+      TextField(prompt, text: $text, axis: .vertical)
+        .textFieldStyle(.roundedBorder)
+        .lineLimit(3...6)
+        .disabled(disabled)
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(title)
   }
 }
 
