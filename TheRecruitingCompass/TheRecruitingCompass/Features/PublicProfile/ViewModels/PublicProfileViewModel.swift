@@ -157,20 +157,18 @@ final class PublicProfileViewModel {
         let isSelf = uid == authManager.user?.id
         let selfName = authManager.user?.fullName
 
-        async let detailsTask: PlayerDetails? = try? preferenceService.fetchPreferences(
+        // Fetched sequentially rather than via concurrent `async let`: the shared,
+        // non-Sendable service/mock instances aborted under the CI simulator's
+        // stricter concurrency runtime (SIGABRT). Card assembly is a one-off user
+        // action, so the small added latency is an acceptable trade for stability.
+        let details: PlayerDetails? = try? await preferenceService.fetchPreferences(
             category: .player, userId: uid
         )
-        async let photoTask: String? = try? photoService.currentPhotoURL(userId: uid)
-        async let filmTask: [VideoLink] = (try? videoLinksService.fetchVideoLinks(userId: uid)) ?? []
-        async let schoolsTask: [School] = fetchSchoolsData()
+        let photoUrl = try? await photoService.currentPhotoURL(userId: uid)
+        let videos = (try? await videoLinksService.fetchVideoLinks(userId: uid)) ?? []
+        let schools = await fetchSchoolsData()
         // A parent viewing an athlete's card has no self name to use; look it up (RLS-gated).
-        async let nameTask: String? = isSelf ? selfName : (try? await photoService.fullName(userId: uid))
-
-        let details = await detailsTask
-        let photoUrl = await photoTask
-        let videos = await filmTask
-        let schools = await schoolsTask
-        let name = (await nameTask) ?? ""
+        let name = (isSelf ? selfName : (try? await photoService.fullName(userId: uid))) ?? ""
 
         cardData = PublicProfileData(
             playerName: name,
