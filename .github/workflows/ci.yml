@@ -79,17 +79,19 @@ jobs:
           # retry loop, resetting the simulator stack between attempts. Parallel
           # test clones are disabled to reduce simulator churn (a common trigger).
           run_tests() {
+            rm -rf "TestResults-$1.xcresult"
             xcodebuild test \
               -scheme TheRecruitingCompass \
               -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
               -skip-testing:TheRecruitingCompassUITests \
               -parallel-testing-enabled NO \
               -retry-tests-on-failure -test-iterations 2 \
+              -resultBundlePath "TestResults-$1.xcresult" \
               -quiet
           }
           for attempt in 1 2; do
             echo "::group::Unit test attempt $attempt"
-            if run_tests; then
+            if run_tests "$attempt"; then
               echo "::endgroup::"
               exit 0
             fi
@@ -101,6 +103,14 @@ jobs:
           done
           echo "Unit tests failed after 2 full attempts."
           exit 1
+
+      - name: Upload unit-test xcresult
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcresult-unit
+          path: TheRecruitingCompass/TestResults-*.xcresult
+          retention-days: 7
 
   e2e-tests:
     name: E2E UITests

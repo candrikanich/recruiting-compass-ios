@@ -3,6 +3,8 @@ import XCTest
 
 @MainActor
 final class CommunicationTemplatesViewModelTypeCountsTests: XCTestCase {
+  nonisolated deinit {}
+
   private func template(id: String, type: TemplateType) -> CommunicationTemplate {
     CommunicationTemplate(id: id, userId: "u", name: "n", type: type, body: "b",
                           variables: nil, createdAt: "", updatedAt: "")
