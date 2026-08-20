@@ -45,7 +45,7 @@ final class CommunicationComponentsTests: XCTestCase {
     XCTAssertEqual(CommunicationType.email("").iconName, "envelope.fill")
     XCTAssertEqual(CommunicationType.phone("").iconName, "message.fill")
     XCTAssertEqual(CommunicationType.twitter("").iconName, "at")
-    XCTAssertEqual(CommunicationType.instagram("").iconName, "camera.fill")
+    XCTAssertEqual(CommunicationType.instagram("").iconName, "link")
   }
 
   func testCommunicationType_iconColors() {

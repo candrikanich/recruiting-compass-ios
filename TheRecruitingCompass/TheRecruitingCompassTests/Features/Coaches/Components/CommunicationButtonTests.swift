@@ -1,3 +1,4 @@
+import SwiftUI
 import XCTest
 @testable import TheRecruitingCompass
 
@@ -20,7 +21,7 @@ final class CommunicationButtonTests: XCTestCase {
 
   func testCallType_IconColor() {
     let type = CommunicationType.call("555-1234")
-    XCTAssertEqual(type.iconColor, .successGreen)
+    XCTAssertEqual(type.iconColor, Color.Brand.purple600)
   }
 
   func testCallType_AccessibilityLabel() {

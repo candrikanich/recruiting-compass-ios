@@ -110,7 +110,7 @@ final class InteractionModelTests: XCTestCase {
   }
 
   func testInteractionType_CaseIterable() {
-    XCTAssertEqual(InteractionType.allCases.count, 10) // 9 known + .unknown
+    XCTAssertEqual(InteractionType.allCases.count, 14) // 13 known + .unknown
   }
 
   // MARK: - Direction Tests
