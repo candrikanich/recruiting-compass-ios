@@ -73,12 +73,34 @@ jobs:
       - name: Unit Tests
         run: |
           cd TheRecruitingCompass
-          xcodebuild test \
-            -scheme TheRecruitingCompass \
-            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
-            -skip-testing:TheRecruitingCompassUITests \
-            -retry-tests-on-failure -test-iterations 2 \
-            -quiet
+          # CoreSimulator on the CI runner intermittently dies mid-run
+          # ("(ipc/mig) server died"), which no in-process test retry can survive
+          # because the whole test host is gone. Run the entire xcodebuild in a
+          # retry loop, resetting the simulator stack between attempts. Parallel
+          # test clones are disabled to reduce simulator churn (a common trigger).
+          run_tests() {
+            xcodebuild test \
+              -scheme TheRecruitingCompass \
+              -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+              -skip-testing:TheRecruitingCompassUITests \
+              -parallel-testing-enabled NO \
+              -retry-tests-on-failure -test-iterations 2 \
+              -quiet
+          }
+          for attempt in 1 2; do
+            echo "::group::Unit test attempt $attempt"
+            if run_tests; then
+              echo "::endgroup::"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "Attempt $attempt failed; resetting simulator stack before retry."
+            xcrun simctl shutdown all || true
+            killall -9 CoreSimulatorService || true
+            sleep 5
+          done
+          echo "Unit tests failed after 2 full attempts."
+          exit 1
 
   e2e-tests:
     name: E2E UITests
