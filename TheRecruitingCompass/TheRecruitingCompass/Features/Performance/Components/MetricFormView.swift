@@ -56,9 +56,29 @@ struct MetricFormView: View {
           Text("Unit")
             .font(.subheadline)
             .fontWeight(.medium)
-          TextField("e.g., mph, sec, avg", text: $formState.unit)
-            .textFieldStyle(.roundedBorder)
+          if let type = formState.metricType, !type.unitIsFixed {
+            // "Other" — pick from the shared vocabulary.
+            Picker("Unit", selection: $formState.unit) {
+              ForEach(MetricType.unitVocabulary, id: \.self) { unit in
+                Text(unit.isEmpty ? String(localized: "None") : unit).tag(unit)
+              }
+            }
+            .pickerStyle(.menu)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(8)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             .accessibilityLabel(String(localized: "Unit of measurement"))
+          } else {
+            // Fixed unit — locked to the metric type (no user-typed units).
+            Text(formState.unit.isEmpty ? String(localized: "None") : formState.unit)
+              .foregroundStyle(.secondary)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .padding(8)
+              .background(Color(.systemGray6))
+              .clipShape(RoundedRectangle(cornerRadius: 8))
+              .accessibilityLabel(String(localized: "Unit of measurement"))
+          }
         }
 
         Toggle("Verified by third party", isOn: $formState.verified)
@@ -98,5 +118,15 @@ struct MetricFormView: View {
       }
     }
     .padding()
+    .onChange(of: formState.metricType) { _, newType in
+      // Keep the unit canonical: locked types adopt their fixed unit; "Other"
+      // falls back to the shared vocabulary (None) if the prior value isn't in it.
+      guard let newType else { return }
+      if newType.unitIsFixed {
+        formState.unit = newType.defaultUnit
+      } else if !MetricType.unitVocabulary.contains(formState.unit) {
+        formState.unit = ""
+      }
+    }
   }
 }

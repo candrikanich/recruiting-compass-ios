@@ -63,6 +63,10 @@ final class PerformanceDashboardViewModel {
   private(set) var latestMetricsByType: [MetricType: PerformanceMetric] = [:]
   private(set) var metricTrends: [MetricTrend] = []
 
+  /// The athlete's headline metric (`is_primary`), which feeds the Quick Comm
+  /// `{{carryingTool}}` template token. Nil when none is flagged.
+  private(set) var primaryMetric: PerformanceMetric?
+
   var hasEnoughDataForChart: Bool {
     chartMetrics.count >= 2
   }
@@ -88,6 +92,8 @@ final class PerformanceDashboardViewModel {
       latest[metric.metricType] = metric
     }
     latestMetricsByType = latest
+
+    primaryMetric = metrics.first { $0.isPrimary }
 
     let typeGroups = Dictionary(grouping: metrics, by: \.metricType)
     metricTrends = typeGroups
@@ -245,6 +251,34 @@ final class PerformanceDashboardViewModel {
     } catch {
       logger.error("Failed to update metric: \(error.localizedDescription)")
       errorMessage = String(localized: "Failed to update metric. Please try again.")
+    }
+  }
+
+  /// Promotes `metric` to the headline metric (or clears it if already primary).
+  /// Promotion goes through the `set_primary_metric` RPC so the prior primary is
+  /// cleared atomically; the local `metrics` array mirrors that in one pass.
+  func togglePrimary(_ metric: PerformanceMetric) async {
+    do {
+      if metric.isPrimary {
+        let updated = try await performanceService.updateMetric(
+          id: metric.id,
+          request: MetricUpdateRequest(isPrimary: false)
+        )
+        if let index = metrics.firstIndex(where: { $0.id == metric.id }) {
+          metrics[index] = updated
+        }
+        successMessage = String(localized: "Headline metric cleared")
+      } else {
+        try await performanceService.setPrimaryMetric(id: metric.id)
+        metrics = metrics.map { $0.withIsPrimary($0.id == metric.id) }
+        successMessage = String(localized: "Headline metric updated")
+      }
+      showSuccessToast = true
+      logger.info("Toggled primary metric: \(metric.id)")
+      await invalidateMetricsListCache()
+    } catch {
+      logger.error("Failed to toggle primary metric: \(error.localizedDescription)")
+      errorMessage = String(localized: "Failed to update headline metric. Please try again.")
     }
   }
 

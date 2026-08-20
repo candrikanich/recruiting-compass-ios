@@ -29,6 +29,30 @@ final class TemplateMetricsTests: XCTestCase {
     XCTAssertTrue(lines[2].contains("velocity"), "then most recent recorded_date")
   }
 
+  func test_renderMetricsDedupesToMostRecentPerType() {
+    let metrics = [
+      m("velocity", display: "77 mph", date: "2026-01-01"),
+      m("velocity", display: "82 mph", date: "2026-08-01"),   // newer — should win
+      m("sixty_time", display: "7.2s", date: "2026-03-01")
+    ]
+    let out = TemplateResolver.computed["metrics"]?(ctx(metrics)) ?? ""
+    let lines = out.split(separator: "\n").map(String.init)
+    XCTAssertEqual(lines.count, 2, "one row per metric_type")
+    XCTAssertTrue(out.contains("82 mph"), "keeps the most recent velocity")
+    XCTAssertFalse(out.contains("77 mph"), "drops the older velocity")
+    XCTAssertTrue(out.contains("7.2s"), "unrelated type retained")
+  }
+
+  func test_renderMetricsDedupeTieBreaksToVerified() {
+    let metrics = [
+      m("velocity", display: "80 mph", verified: false, date: "2026-08-01"),
+      m("velocity", display: "82 mph", verified: true, date: "2026-08-01")   // same date, verified wins
+    ]
+    let out = TemplateResolver.computed["metrics"]?(ctx(metrics)) ?? ""
+    XCTAssertTrue(out.contains("82 mph"))
+    XCTAssertFalse(out.contains("80 mph"))
+  }
+
   func test_carryingToolIsPrimaryValueAndLabel() {
     let out = TemplateResolver.computed["carryingTool"]?(ctx([
       m("exit_velo", display: "95 mph", primary: true),

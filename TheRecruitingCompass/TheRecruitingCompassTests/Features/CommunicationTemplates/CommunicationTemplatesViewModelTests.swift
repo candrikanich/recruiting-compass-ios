@@ -291,6 +291,50 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.activeTab, .create)
   }
 
+  func testStartEditing_PredefinedTemplate_EntersCopyMode() {
+    let predefined = CommunicationTemplate(
+      id: "pre-1", userId: "", name: "First Contact", type: .email,
+      body: "Hello coach", variables: nil,
+      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z",
+      isPredefined: true
+    )
+
+    viewModel.startEditing(template: predefined)
+
+    XCTAssertTrue(viewModel.isCustomizingPredefined)
+    XCTAssertNil(viewModel.editingTemplate, "not edited in place — a new template will be created")
+    XCTAssertEqual(viewModel.formData.name, "Copy of First Contact")
+    XCTAssertEqual(viewModel.formData.body, "Hello coach")
+    XCTAssertEqual(viewModel.activeTab, .create)
+  }
+
+  func testSaveTemplate_FromPredefinedCopy_CreatesInsteadOfUpdates() async {
+    let predefined = CommunicationTemplate(
+      id: "pre-1", userId: "", name: "First Contact", type: .email,
+      body: "Hello coach", variables: nil,
+      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z",
+      isPredefined: true
+    )
+    viewModel.startEditing(template: predefined)
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(mockService.createTemplateCallCount, 1, "copy is created")
+    XCTAssertEqual(mockService.updateTemplateCallCount, 0, "predefined row is never updated")
+    XCTAssertFalse(viewModel.isCustomizingPredefined)
+    XCTAssertEqual(viewModel.activeTab, .list)
+  }
+
+  func testStartEditing_OwnedTemplate_EditsInPlace() {
+    let owned = makeTemplate(id: "own-1", name: "My Template")
+
+    viewModel.startEditing(template: owned)
+
+    XCTAssertFalse(viewModel.isCustomizingPredefined)
+    XCTAssertEqual(viewModel.editingTemplate?.id, "own-1")
+    XCTAssertEqual(viewModel.formData.name, "My Template")
+  }
+
   // MARK: - cancelEdit Tests
 
   func testCancelEdit_ResetsFormAndSwitchesToList() {

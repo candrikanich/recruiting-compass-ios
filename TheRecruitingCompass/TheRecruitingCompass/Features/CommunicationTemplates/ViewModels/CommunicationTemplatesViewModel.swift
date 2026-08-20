@@ -29,6 +29,10 @@ final class CommunicationTemplatesViewModel {
     didSet { recomputeFilteredTemplates() }
   }
   var editingTemplate: CommunicationTemplate?
+  /// True when the editor holds a working copy of a predefined (global) template.
+  /// Predefined rows aren't owned by the user, so RLS blocks UPDATE; instead we
+  /// save the edits as a new user-owned template. Drives the editor's "copy" banner.
+  var isCustomizingPredefined = false
   var formData = TemplateFormData()
   var showDeleteConfirmation = false
   var templateToDeleteId: String?
@@ -133,8 +137,20 @@ final class CommunicationTemplatesViewModel {
   }
 
   func startEditing(template: CommunicationTemplate) {
-    editingTemplate = template
-    formData = TemplateFormData(from: template)
+    errorMessage = nil
+    if template.isPredefined == true {
+      // Global template — not user-owned, so it can't be updated in place.
+      // Seed the editor with a copy that Save persists as a new owned template.
+      editingTemplate = nil
+      isCustomizingPredefined = true
+      var data = TemplateFormData(from: template)
+      data.name = String(localized: "Copy of \(template.name)")
+      formData = data
+    } else {
+      editingTemplate = template
+      isCustomizingPredefined = false
+      formData = TemplateFormData(from: template)
+    }
     activeTab = .create
   }
 
@@ -144,6 +160,7 @@ final class CommunicationTemplatesViewModel {
   }
 
   func switchToCreateTab() {
+    errorMessage = nil
     resetEditor()
     activeTab = .create
   }
@@ -154,6 +171,7 @@ final class CommunicationTemplatesViewModel {
 
   private func resetEditor() {
     editingTemplate = nil
+    isCustomizingPredefined = false
     formData = TemplateFormData()
   }
 

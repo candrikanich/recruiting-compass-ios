@@ -281,6 +281,26 @@ final class SchoolDetailViewModel {
     }
   }
 
+  // MARK: - Questionnaire Completion
+
+  func setQuestionnaireCompleted(_ completed: Bool) async {
+    guard let school, school.questionnaireCompleted != completed else { return }
+
+    // Optimistic update
+    self.school = school.with(questionnaireCompleted: completed)
+
+    do {
+      try await schoolsService.updateQuestionnaireCompleted(id: schoolId, completed: completed)
+      await invalidateSchoolCache()
+      logger.info("Questionnaire completion set to \(completed)")
+    } catch {
+      // Revert on error
+      self.school = school.with(questionnaireCompleted: !completed)
+      errorMessage = String(localized: "Failed to update questionnaire status")
+      logger.error("Failed to update questionnaire completion: \(error.localizedDescription)")
+    }
+  }
+
   // MARK: - Notes
 
   private func initializeNoteFields(from school: School) {

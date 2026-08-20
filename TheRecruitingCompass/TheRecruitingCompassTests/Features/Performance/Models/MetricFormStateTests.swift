@@ -214,9 +214,9 @@ final class MetricFormStateTests: XCTestCase {
     let metric = PerformanceMetric(
       id: "metric-1",
       userId: "user-1",
-      metricType: .battingAvg,
-      value: 0.3,
-      unit: "avg",
+      metricType: .velocity,
+      value: 90.5,
+      unit: "mph",
       recordedDate: Date(),
       eventId: nil,
       verified: false,
@@ -227,7 +227,30 @@ final class MetricFormStateTests: XCTestCase {
 
     form.populate(from: metric)
 
-    XCTAssertEqual(form.value, "0.30")
+    XCTAssertEqual(form.value, "90.50")
+  }
+
+  func testPopulate_FormatsBattingAvgAndEraToThreeDecimals() {
+    for type in [MetricType.battingAvg, .era] {
+      var form = MetricFormState()
+      let metric = PerformanceMetric(
+        id: "metric-1",
+        userId: "user-1",
+        metricType: type,
+        value: 0.3,
+        unit: "",
+        recordedDate: Date(),
+        eventId: nil,
+        verified: false,
+        notes: nil,
+        createdAt: Date(),
+        updatedAt: Date()
+      )
+
+      form.populate(from: metric)
+
+      XCTAssertEqual(form.value, "0.300", "\(type) should format to 3 decimals")
+    }
   }
 
   // MARK: - Equatable Tests

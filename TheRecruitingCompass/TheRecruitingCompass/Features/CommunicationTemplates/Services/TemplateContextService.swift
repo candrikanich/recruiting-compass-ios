@@ -36,6 +36,8 @@ struct TemplateContextService: TemplateContextProviding {
       if let v = school.city { schoolTable["city"] = v }
       if let v = school.state { schoolTable["state"] = v }
       if let v = school.twitterHandle { schoolTable["twitter_handle"] = v }
+      // Backs {{questionnaireNote}} — the resolver reads the string "true"/"false".
+      schoolTable["questionnaire_completed"] = school.questionnaireCompleted ? "true" : "false"
     }
 
     // Athlete-owned data (all best-effort; any failure → empty).

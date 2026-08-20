@@ -7,6 +7,9 @@ final class MockPreferenceService: PreferenceManaging, @unchecked Sendable {
     var stubbedPlayerDetails: PlayerDetails?
     var errorToThrow: Error?
     private(set) var fetchedUserIds: [String?] = []
+    private(set) var savedUserIds: [String?] = []
+    private(set) var savedPlayerDetails: PlayerDetails?
+    private(set) var saveCallCount = 0
 
     func fetchPreferences<T: Codable>(category: PreferenceCategory, userId: String?) async throws -> T? {
         if let errorToThrow { throw errorToThrow }
@@ -17,6 +20,9 @@ final class MockPreferenceService: PreferenceManaging, @unchecked Sendable {
 
     func savePreferences<T: Codable>(category: PreferenceCategory, userId: String?, data: T) async throws -> T {
         if let errorToThrow { throw errorToThrow }
+        saveCallCount += 1
+        savedUserIds.append(userId)
+        savedPlayerDetails = data as? PlayerDetails
         return data
     }
 

@@ -14,6 +14,7 @@ struct QuickCommunicationView: View {
   @State private var showInfoToast = false
   @State private var infoMessage: String?
   @State private var showMetricsSheet = false
+  @State private var pendingSendChannel: PendingSendChannel?
   @Environment(\.openURL) private var openURL
   @Environment(\.dismiss) private var dismiss
   @Environment(FamilyManager.self) private var familyManager
@@ -32,6 +33,25 @@ struct QuickCommunicationView: View {
     var id: Self { self }
   }
 
+  private enum PendingSendChannel { case email, text }
+
+  /// Stash which channel wanted to send, surface the intended-major prompt, and resume
+  /// that send once the athlete saves or skips.
+  private func promptIntendedMajor(then channel: PendingSendChannel) {
+    pendingSendChannel = channel
+    viewModel.intendedMajorDraft = ""
+    viewModel.showIntendedMajorPrompt = true
+  }
+
+  private func resumePendingSend() {
+    switch pendingSendChannel {
+    case .email: handleSendEmail()
+    case .text: handleSendText()
+    case nil: break
+    }
+    pendingSendChannel = nil
+  }
+
   var body: some View {
     NavigationStack(path: $path) {
       QuickCommChannelScreen(
@@ -45,6 +65,13 @@ struct QuickCommunicationView: View {
       .navigationBarTitleDisplayMode(.inline)
       .sheet(item: $activeComposer) { composer in
         composerSheet(for: composer)
+      }
+      .alert("Add your intended major?", isPresented: $viewModel.showIntendedMajorPrompt) {
+        TextField("e.g. Business, Kinesiology", text: $viewModel.intendedMajorDraft)
+        Button("Save") { Task { await viewModel.saveIntendedMajor(); resumePendingSend() } }
+        Button("Skip", role: .cancel) { viewModel.skipIntendedMajorPrompt(); resumePendingSend() }
+      } message: {
+        Text("This template mentions what you plan to study. Add it to include it, or skip to leave it out.")
       }
       .toast(isShowing: $showSuccessToast, message: $viewModel.successMessage, type: .success, duration: 3.0)
       .toast(isShowing: $showInfoToast, message: $infoMessage, type: .info, duration: 3.0)
@@ -294,6 +321,10 @@ struct QuickCommunicationView: View {
   /// Present the in-app mail composer when the device can send mail; otherwise fall back to the
   /// `mailto:` hand-off and log NOTHING (an external hand-off can't confirm the send).
   private func handleSendEmail() {
+    if viewModel.shouldPromptIntendedMajor {
+      promptIntendedMajor(then: .email)
+      return
+    }
     Task {
       guard await viewModel.evaluateGuardrails(.email) else { return }  // blocked or armed → stop
       if MFMailComposeViewController.canSendMail() {
@@ -309,6 +340,10 @@ struct QuickCommunicationView: View {
   /// Present the in-app message composer when the device can send texts; otherwise fall back to the
   /// `sms:` hand-off and log NOTHING.
   private func handleSendText() {
+    if viewModel.shouldPromptIntendedMajor {
+      promptIntendedMajor(then: .text)
+      return
+    }
     Task {
       guard await viewModel.evaluateGuardrails(.text) else { return }
       if MFMessageComposeViewController.canSendText() {

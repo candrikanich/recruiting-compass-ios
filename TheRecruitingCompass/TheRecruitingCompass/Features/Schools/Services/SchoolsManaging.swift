@@ -37,6 +37,9 @@ protocol SchoolsManaging: Sendable {
   func fetchOutreachNotes(id: String) async throws -> SchoolOutreachNotes
   /// Saves the per-school coach-outreach answers (nil clears a field).
   func updateOutreachNotes(id: String, whyProgram: String?, fitReason: String?) async throws
+  /// Marks whether the athlete completed this school's recruiting questionnaire.
+  /// Gates the `{{questionnaireNote}}` line in coach-outreach templates.
+  func updateQuestionnaireCompleted(id: String, completed: Bool) async throws
   /// Appends a pro to the school's pros list.
   func addPro(id: String, familyUnitId: String, text: String) async throws -> School
   /// Removes the pro at the given zero-based index from the school's pros list.

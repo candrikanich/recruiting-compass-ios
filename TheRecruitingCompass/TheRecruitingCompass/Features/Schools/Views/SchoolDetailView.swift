@@ -139,6 +139,23 @@ struct SchoolDetailView: View {
         )
         .padding(.horizontal)
 
+        // 4b. Recruiting questionnaire — gates the completion line in outreach.
+        Toggle(isOn: Binding(
+          get: { school.questionnaireCompleted },
+          set: { newValue in Task { await viewModel.setQuestionnaireCompleted(newValue) } }
+        )) {
+          VStack(alignment: .leading, spacing: 2) {
+            Text("Recruiting questionnaire completed")
+              .font(.subheadline)
+              .fontWeight(.medium)
+            Text("Enables the \"I've completed your recruiting questionnaire\" line in coach outreach for this school.")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
+        }
+        .padding(.horizontal)
+        .accessibilityLabel(String(localized: "Recruiting questionnaire completed"))
+
         // 5. School Fit (Personal + Academic)
         SchoolFitSection(
           personalFit: viewModel.personalFit,

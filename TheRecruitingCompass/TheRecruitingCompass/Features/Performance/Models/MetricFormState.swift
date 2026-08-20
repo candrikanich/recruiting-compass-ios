@@ -27,7 +27,9 @@ struct MetricFormState: Equatable {
 
   mutating func populate(from metric: PerformanceMetric) {
     metricType = metric.metricType
-    value = metric.value.formatted(.number.precision(.fractionLength(2)))
+    // Batting average and ERA carry 3 decimals (e.g. 0.000, 3.250); 2 otherwise.
+    let fractionLength = (metric.metricType == .battingAvg || metric.metricType == .era) ? 3 : 2
+    value = metric.value.formatted(.number.precision(.fractionLength(fractionLength)))
     recordedDate = metric.recordedDate
     unit = metric.unit
     notes = metric.notes ?? ""

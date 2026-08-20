@@ -94,6 +94,22 @@ final class PerformanceServiceImpl: PerformanceManaging, Sendable {
     return result
   }
 
+  func setPrimaryMetric(id: String) async throws {
+    logger.debug("Setting primary metric: \(id)")
+    struct SetPrimaryParams: Encodable { let pMetricId: String
+      enum CodingKeys: String, CodingKey { case pMetricId = "p_metric_id" }
+    }
+    do {
+      try await supabaseManager.client
+        .rpc("set_primary_metric", params: SetPrimaryParams(pMetricId: id))
+        .execute()
+      logger.info("Primary metric set: \(id)")
+    } catch {
+      logger.error("Failed to set primary metric: \(error.localizedDescription)")
+      throw error
+    }
+  }
+
   func deleteMetric(id: String) async throws {
     logger.debug("Deleting metric: \(id)")
     try await supabaseManager.client

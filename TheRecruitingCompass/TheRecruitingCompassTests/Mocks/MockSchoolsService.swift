@@ -157,6 +157,8 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
 
   var stubbedOutreachNotes = SchoolOutreachNotes(whyProgram: nil, fitReason: nil)
   var lastSavedOutreachNotes: SchoolOutreachNotes?
+  var updateQuestionnaireCompletedCallCount = 0
+  var lastQuestionnaireCompleted: Bool?
   func fetchOutreachNotes(id: String) async throws -> SchoolOutreachNotes {
     if shouldThrowError { throw errorToThrow }
     return stubbedOutreachNotes
@@ -164,6 +166,12 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
   func updateOutreachNotes(id: String, whyProgram: String?, fitReason: String?) async throws {
     if shouldThrowError { throw errorToThrow }
     lastSavedOutreachNotes = SchoolOutreachNotes(whyProgram: whyProgram, fitReason: fitReason)
+  }
+
+  func updateQuestionnaireCompleted(id: String, completed: Bool) async throws {
+    updateQuestionnaireCompletedCallCount += 1
+    lastQuestionnaireCompleted = completed
+    if shouldThrowError { throw errorToThrow }
   }
 
   func addPro(id: String, familyUnitId: String, text: String) async throws -> School {

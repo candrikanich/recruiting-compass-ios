@@ -26,7 +26,8 @@ enum TemplateResolver {
   /// tokens are left intact so they still show in preview and gate the send.
   /// Mirrors web `renderClean` — keep the two byte-identical.
   static func renderClean(_ body: String, values: [String: String], requiredKeys: Set<String>) -> String {
-    let rendered = render(body, values: values)
+    let gated = applyOptionalSegments(body, values: values)
+    let rendered = render(gated, values: values)
     var kept: [String] = []
     for line in rendered.components(separatedBy: "\n") {
       let optional = findUnresolved(line).filter { !requiredKeys.contains($0) }
@@ -39,6 +40,32 @@ enum TemplateResolver {
     let joined = kept.joined(separator: "\n")
       .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
     return joined.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
+  private static let segmentPattern = #"\[\[([A-Za-z]\w*)\|([\s\S]*?)\]\]"#
+
+  /// Optional segments: `[[gateKey|visible text]]`. The bracketed span is kept
+  /// (unwrapped to its inner text, which may hold its own `{{tokens}}`) only when
+  /// `gateKey` resolves to a non-empty value; otherwise the whole span is removed.
+  /// The gate key itself is never printed — it just decides whether the prose
+  /// survives. Lets a template drop a sentence like "…feedback on my film…" when
+  /// there's no film, where the word "film" is prose with no token to strip.
+  /// Mirrors web `applyOptionalSegments` — keep the two byte-identical.
+  static func applyOptionalSegments(_ body: String, values: [String: String]) -> String {
+    guard let regex = try? NSRegularExpression(pattern: segmentPattern) else { return body }
+    var result = body
+    let full = NSRange(body.startIndex..., in: body)
+    // Right-to-left so each replacement never shifts an as-yet-unprocessed range.
+    for match in regex.matches(in: body, range: full).reversed() {
+      guard let matchRange = Range(match.range, in: result),
+            let gateRange = Range(match.range(at: 1), in: result),
+            let textRange = Range(match.range(at: 2), in: result) else { continue }
+      let gate = String(result[gateRange])
+      let text = String(result[textRange])
+      let kept = !(values[gate]?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+      result.replaceSubrange(matchRange, with: kept ? text : "")
+    }
+    return result
   }
 
   private static let lineSeparators = CharacterSet(charactersIn: " \t—-|,·•")
