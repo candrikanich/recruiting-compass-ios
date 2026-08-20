@@ -70,27 +70,6 @@ struct QuickCommunicationView: View {
       )
       .navigationTitle("Quick Communication")
       .navigationBarTitleDisplayMode(.inline)
-      .sheet(item: $activeComposer) { composer in
-        composerSheet(for: composer)
-      }
-      .alert("Add your intended major?", isPresented: $viewModel.showIntendedMajorPrompt) {
-        TextField("e.g. Business, Kinesiology", text: $viewModel.intendedMajorDraft)
-        Button("Save") { Task { await viewModel.saveIntendedMajor(); resumePendingSend() } }
-        Button("Skip", role: .cancel) { viewModel.skipIntendedMajorPrompt(); resumePendingSend() }
-      } message: {
-        Text("This template mentions what you plan to study. Add it to include it, or skip to leave it out.")
-      }
-      .alert("Did you complete \(viewModel.schoolDisplayName)'s recruiting questionnaire?",
-             isPresented: $viewModel.showQuestionnairePrompt) {
-        Button("Yes, I completed it") {
-          Task { await viewModel.confirmQuestionnaireCompleted(); resumePendingSend() }
-        }
-        Button("Skip", role: .cancel) { viewModel.skipQuestionnairePrompt(); resumePendingSend() }
-      } message: {
-        Text("Marks it complete and adds \"I've completed your recruiting questionnaire\" to this message.")
-      }
-      .toast(isShowing: $showSuccessToast, message: $viewModel.successMessage, type: .success, duration: 3.0)
-      .toast(isShowing: $showInfoToast, message: $infoMessage, type: .info, duration: 3.0)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
           Button("Done") { dismiss() }
@@ -318,6 +297,29 @@ struct QuickCommunicationView: View {
       .padding()
       .background(.bar)
     }
+    // Presentation lives on the preview screen — the view that triggers it. Bound to the
+    // NavigationStack root instead, these fail to present over the pushed preview.
+    .sheet(item: $activeComposer) { composer in
+      composerSheet(for: composer)
+    }
+    .alert("Add your intended major?", isPresented: $viewModel.showIntendedMajorPrompt) {
+      TextField("e.g. Business, Kinesiology", text: $viewModel.intendedMajorDraft)
+      Button("Save") { Task { await viewModel.saveIntendedMajor(); resumePendingSend() } }
+      Button("Skip", role: .cancel) { viewModel.skipIntendedMajorPrompt(); resumePendingSend() }
+    } message: {
+      Text("This template mentions what you plan to study. Add it to include it, or skip to leave it out.")
+    }
+    .alert("Did you complete \(viewModel.schoolDisplayName)'s recruiting questionnaire?",
+           isPresented: $viewModel.showQuestionnairePrompt) {
+      Button("Yes, I completed it") {
+        Task { await viewModel.confirmQuestionnaireCompleted(); resumePendingSend() }
+      }
+      Button("Skip", role: .cancel) { viewModel.skipQuestionnairePrompt(); resumePendingSend() }
+    } message: {
+      Text("Marks it complete and adds \"I've completed your recruiting questionnaire\" to this message.")
+    }
+    .toast(isShowing: $showSuccessToast, message: $viewModel.successMessage, type: .success, duration: 3.0)
+    .toast(isShowing: $showInfoToast, message: $infoMessage, type: .info, duration: 3.0)
   }
 
   // MARK: - Edit bindings
