@@ -43,6 +43,13 @@ struct QuickCommunicationView: View {
     viewModel.showIntendedMajorPrompt = true
   }
 
+  /// Stash the send channel and surface the questionnaire prompt; the answer resumes
+  /// the send (which then re-checks the remaining pre-send prompts before composing).
+  private func promptQuestionnaire(then channel: PendingSendChannel) {
+    pendingSendChannel = channel
+    viewModel.showQuestionnairePrompt = true
+  }
+
   private func resumePendingSend() {
     switch pendingSendChannel {
     case .email: handleSendEmail()
@@ -72,6 +79,15 @@ struct QuickCommunicationView: View {
         Button("Skip", role: .cancel) { viewModel.skipIntendedMajorPrompt(); resumePendingSend() }
       } message: {
         Text("This template mentions what you plan to study. Add it to include it, or skip to leave it out.")
+      }
+      .alert("Did you complete \(viewModel.schoolDisplayName)'s recruiting questionnaire?",
+             isPresented: $viewModel.showQuestionnairePrompt) {
+        Button("Yes, I completed it") {
+          Task { await viewModel.confirmQuestionnaireCompleted(); resumePendingSend() }
+        }
+        Button("Skip", role: .cancel) { viewModel.skipQuestionnairePrompt(); resumePendingSend() }
+      } message: {
+        Text("Marks it complete and adds \"I've completed your recruiting questionnaire\" to this message.")
       }
       .toast(isShowing: $showSuccessToast, message: $viewModel.successMessage, type: .success, duration: 3.0)
       .toast(isShowing: $showInfoToast, message: $infoMessage, type: .info, duration: 3.0)
@@ -321,6 +337,10 @@ struct QuickCommunicationView: View {
   /// Present the in-app mail composer when the device can send mail; otherwise fall back to the
   /// `mailto:` hand-off and log NOTHING (an external hand-off can't confirm the send).
   private func handleSendEmail() {
+    if viewModel.shouldPromptQuestionnaire {
+      promptQuestionnaire(then: .email)
+      return
+    }
     if viewModel.shouldPromptIntendedMajor {
       promptIntendedMajor(then: .email)
       return
@@ -340,6 +360,10 @@ struct QuickCommunicationView: View {
   /// Present the in-app message composer when the device can send texts; otherwise fall back to the
   /// `sms:` hand-off and log NOTHING.
   private func handleSendText() {
+    if viewModel.shouldPromptQuestionnaire {
+      promptQuestionnaire(then: .text)
+      return
+    }
     if viewModel.shouldPromptIntendedMajor {
       promptIntendedMajor(then: .text)
       return

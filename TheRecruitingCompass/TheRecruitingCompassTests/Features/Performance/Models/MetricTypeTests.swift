@@ -86,14 +86,25 @@ final class MetricTypeTests: XCTestCase {
     XCTAssertEqual(MetricType.popTime.defaultUnit, "sec")
   }
 
+  // Web-parity: `unitByMetricType` (LogMetricModal.vue) stores None for batting_avg/era
+  // and "count" for strikeouts. iOS must write the same units for the same metric types.
   func testDefaultUnit_StatTypes() {
-    XCTAssertEqual(MetricType.battingAvg.defaultUnit, "avg")
-    XCTAssertEqual(MetricType.era.defaultUnit, "era")
-    XCTAssertEqual(MetricType.strikeouts.defaultUnit, "K")
+    XCTAssertEqual(MetricType.battingAvg.defaultUnit, "")
+    XCTAssertEqual(MetricType.era.defaultUnit, "")
+    XCTAssertEqual(MetricType.strikeouts.defaultUnit, "count")
   }
 
   func testDefaultUnit_OtherIsEmpty() {
     XCTAssertEqual(MetricType.other.defaultUnit, "")
+  }
+
+  // Every locked unit must be a member of the shared vocabulary, or iOS would store a
+  // unit the web modal can't produce — the exact cross-platform drift this guards against.
+  func testDefaultUnit_AllMembersOfVocabulary() {
+    for type in MetricType.allCases {
+      XCTAssertTrue(MetricType.unitVocabulary.contains(type.defaultUnit),
+                    "\(type).defaultUnit '\(type.defaultUnit)' not in unitVocabulary")
+    }
   }
 
   // MARK: - isLowerBetter Tests

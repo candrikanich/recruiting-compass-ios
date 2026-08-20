@@ -306,6 +306,44 @@ final class QuickCommunicationViewModel {
     intendedMajorPromptHandled = true
   }
 
+  // MARK: - Questionnaire pre-send prompt
+
+  /// Presents the "did you complete the questionnaire?" prompt (bound to the compose sheet).
+  var showQuestionnairePrompt = false
+  /// Set once the prompt has been answered or skipped, so a second Send tap sends
+  /// instead of re-prompting.
+  private var questionnairePromptHandled = false
+
+  /// True when the selected template references `{{questionnaireNote}}`, the school's
+  /// questionnaire is not yet marked complete, and we haven't prompted this compose.
+  /// `questionnaireNote` is a computed scalar (no registry def), so it never appears in
+  /// `referencedVariables` — detect it off the raw template body instead.
+  var shouldPromptQuestionnaire: Bool {
+    guard !questionnairePromptHandled,
+          let body = selectedTemplate?.body,
+          body.contains("{{questionnaireNote}}") else { return false }
+    return resolvedContext?.tables["schools"]?["questionnaire_completed"] != "true"
+  }
+
+  /// Athlete confirmed completion — persist the flag (reuse the school-detail path) and
+  /// re-resolve so `{{questionnaireNote}}` fills the completion sentence. Marks the prompt
+  /// handled either way so the ensuing send proceeds.
+  func confirmQuestionnaireCompleted() async {
+    questionnairePromptHandled = true
+    do {
+      try await schoolsService.updateQuestionnaireCompleted(id: coach.schoolId, completed: true)
+      await loadResolverInputs()
+    } catch {
+      logger.error("Failed to set questionnaire_completed: \(error.localizedDescription)")
+    }
+  }
+
+  /// Athlete chose to skip — send without the completion line; the optional
+  /// `{{questionnaireNote}}` token is stripped by `renderClean`.
+  func skipQuestionnairePrompt() {
+    questionnairePromptHandled = true
+  }
+
   /// The selected template's referenced variables (authored/resolved-tagged) for the panel.
   var referencedVariables: [ReferencedVariable] {
     guard let template = selectedTemplate else { return [] }
@@ -432,6 +470,7 @@ final class QuickCommunicationViewModel {
     sendWarning = nil
     sendArmed = false
     intendedMajorPromptHandled = false
+    questionnairePromptHandled = false
   }
 
   /// Maximum body length for mailto/sms URLs. Launch Services fails (-10814) when URLs exceed system limits.

@@ -29,9 +29,8 @@ enum MetricType: String, Codable, CaseIterable, Identifiable {
     switch self {
     case .velocity, .exitVelo: return "mph"
     case .sixtyTime, .popTime: return "sec"
-    case .battingAvg: return "avg"
-    case .era: return "era"
-    case .strikeouts: return "K"
+    case .battingAvg, .era: return ""
+    case .strikeouts: return "count"
     case .other: return ""
     }
   }
