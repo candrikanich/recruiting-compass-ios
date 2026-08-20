@@ -60,6 +60,16 @@ enum TemplateComputed {
       ).trimmingCharacters(in: .whitespaces)
       return stripped.isEmpty ? name.split(whereSeparator: { $0.isWhitespace }).first.map(String.init) : stripped
     },
+    // Optional completion sentence — renders only when the school's recruiting
+    // questionnaire is marked complete. Returns nil otherwise; `renderClean`
+    // strips the unresolved optional token so the surrounding line collapses.
+    // Mirrors web `COMPUTED.questionnaireNote` (utils/templateResolver.ts). The
+    // trailing space keeps the following sentence spaced when present.
+    "questionnaireNote": { c in
+      c.tables["schools"]?["questionnaire_completed"] == "true"
+        ? "I've completed your recruiting questionnaire. "
+        : nil
+    },
     "testLabel": { c in
       if s(c.prefs["act_score"]) != nil { return "ACT" }
       if s(c.prefs["sat_score"]) != nil { return "SAT" }

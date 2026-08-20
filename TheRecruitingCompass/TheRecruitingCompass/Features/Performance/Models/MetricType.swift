@@ -39,4 +39,13 @@ enum MetricType: String, Codable, CaseIterable, Identifiable {
   var isLowerBetter: Bool {
     self == .sixtyTime || self == .popTime || self == .era
   }
+
+  /// The unit is fixed (locked to `defaultUnit`) for every type except `.other`,
+  /// which lets the athlete pick from the shared vocabulary. Mirrors the web
+  /// log-metric modal — no user-typed units.
+  var unitIsFixed: Bool { self != .other }
+
+  /// Fixed unit vocabulary offered for `.other` (value stored as-is). Mirrors the
+  /// web modal's unit dropdown so cross-platform units stay consistent.
+  static let unitVocabulary: [String] = ["", "mph", "sec", "in", "ft", "lbs", "count", "%"]
 }

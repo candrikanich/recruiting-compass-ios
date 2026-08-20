@@ -147,6 +147,31 @@ final class SchoolDetailViewModelPhase3Tests: XCTestCase {
     XCTAssertNil(viewModel.collegeDataError)
   }
 
+  // MARK: - Questionnaire Completion Tests
+
+  func testSetQuestionnaireCompleted_PersistsAndUpdatesSchool() async {
+    mockSchoolsService.stubbedSchool = createMockSchool()
+    await viewModel.loadSchool()
+    XCTAssertEqual(viewModel.school?.questionnaireCompleted, false)
+
+    await viewModel.setQuestionnaireCompleted(true)
+
+    XCTAssertEqual(viewModel.school?.questionnaireCompleted, true)
+    XCTAssertEqual(mockSchoolsService.updateQuestionnaireCompletedCallCount, 1)
+    XCTAssertEqual(mockSchoolsService.lastQuestionnaireCompleted, true)
+  }
+
+  func testSetQuestionnaireCompleted_RevertsOnError() async {
+    mockSchoolsService.stubbedSchool = createMockSchool()
+    await viewModel.loadSchool()
+    mockSchoolsService.shouldThrowError = true
+
+    await viewModel.setQuestionnaireCompleted(true)
+
+    XCTAssertEqual(viewModel.school?.questionnaireCompleted, false)
+    XCTAssertNotNil(viewModel.errorMessage)
+  }
+
   // MARK: - Helper
 
   private func createMockSchool(

@@ -21,6 +21,8 @@ struct School: Codable, Identifiable, Sendable {
   let ncaaId: String?
   let status: String
   let statusChangedAt: String?
+  let questionnaireCompleted: Bool
+  let questionnaireCompletedAt: String?
   let notes: String?
   let pros: [String]
   let cons: [String]
@@ -60,6 +62,8 @@ struct School: Codable, Identifiable, Sendable {
     ncaaId: String?,
     status: String,
     statusChangedAt: String?,
+    questionnaireCompleted: Bool = false,
+    questionnaireCompletedAt: String? = nil,
     notes: String?,
     pros: [String],
     cons: [String],
@@ -96,6 +100,8 @@ struct School: Codable, Identifiable, Sendable {
     self.ncaaId = ncaaId
     self.status = status
     self.statusChangedAt = statusChangedAt
+    self.questionnaireCompleted = questionnaireCompleted
+    self.questionnaireCompletedAt = questionnaireCompletedAt
     self.notes = notes
     self.pros = pros
     self.cons = cons
@@ -128,6 +134,8 @@ struct School: Codable, Identifiable, Sendable {
     case ncaaId = "ncaa_id"
     case status
     case statusChangedAt = "status_changed_at"
+    case questionnaireCompleted = "questionnaire_completed"
+    case questionnaireCompletedAt = "questionnaire_completed_at"
     case notes
     case pros, cons
     case offerDetails = "offer_details"
@@ -200,6 +208,8 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
+      questionnaireCompleted: questionnaireCompleted,
+      questionnaireCompletedAt: questionnaireCompletedAt,
       notes: notes,
       pros: pros,
       cons: cons,
@@ -240,6 +250,8 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
+      questionnaireCompleted: questionnaireCompleted,
+      questionnaireCompletedAt: questionnaireCompletedAt,
       notes: notes,
       pros: pros,
       cons: cons,
@@ -280,6 +292,8 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
+      questionnaireCompleted: questionnaireCompleted,
+      questionnaireCompletedAt: questionnaireCompletedAt,
       notes: notes,
       pros: pros,
       cons: cons,
@@ -320,6 +334,8 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
+      questionnaireCompleted: questionnaireCompleted,
+      questionnaireCompletedAt: questionnaireCompletedAt,
       notes: notes,
       pros: pros,
       cons: cons,
@@ -360,6 +376,8 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
+      questionnaireCompleted: questionnaireCompleted,
+      questionnaireCompletedAt: questionnaireCompletedAt,
       notes: notes,
       pros: pros,
       cons: cons,
@@ -400,6 +418,8 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
+      questionnaireCompleted: questionnaireCompleted,
+      questionnaireCompletedAt: questionnaireCompletedAt,
       notes: notes,
       pros: pros,
       cons: cons,
@@ -440,6 +460,52 @@ struct School: Codable, Identifiable, Sendable {
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
+      questionnaireCompleted: questionnaireCompleted,
+      questionnaireCompletedAt: questionnaireCompletedAt,
+      notes: notes,
+      pros: pros,
+      cons: cons,
+      offerDetails: offerDetails,
+      academicInfo: academicInfo,
+      amenities: amenities,
+      coachingPhilosophy: coachingPhilosophy,
+      coachingStyle: coachingStyle,
+      recruitingApproach: recruitingApproach,
+      communicationStyle: communicationStyle,
+      successMetrics: successMetrics,
+      familyUnitId: familyUnitId,
+      createdBy: createdBy,
+      updatedBy: updatedBy,
+      createdAt: createdAt,
+      updatedAt: updatedAt
+    )
+  }
+
+  func with(questionnaireCompleted: Bool) -> School {
+    School(
+      id: id,
+      userId: userId,
+      name: name,
+      location: location,
+      city: city,
+      state: state,
+      division: division,
+      conference: conference,
+      ranking: ranking,
+      isFavorite: isFavorite,
+      website: website,
+      faviconUrl: faviconUrl,
+      twitterHandle: twitterHandle,
+      instagramHandle: instagramHandle,
+      phone: phone,
+      athleticsUrl: athleticsUrl,
+      ncaaId: ncaaId,
+      status: status,
+      statusChangedAt: statusChangedAt,
+      questionnaireCompleted: questionnaireCompleted,
+      questionnaireCompletedAt: questionnaireCompleted
+        ? ISO8601DateFormatter().string(from: Date())
+        : nil,
       notes: notes,
       pros: pros,
       cons: cons,
@@ -484,6 +550,8 @@ extension School {
     ncaaId = try container.decodeIfPresent(String.self, forKey: .ncaaId)
     status = try container.decode(String.self, forKey: .status)
     statusChangedAt = try container.decodeIfPresent(String.self, forKey: .statusChangedAt)
+    questionnaireCompleted = try container.decodeIfPresent(Bool.self, forKey: .questionnaireCompleted) ?? false
+    questionnaireCompletedAt = try container.decodeIfPresent(String.self, forKey: .questionnaireCompletedAt)
     notes = try container.decodeIfPresent(String.self, forKey: .notes)
     pros = try container.decodeIfPresent([String].self, forKey: .pros) ?? []
     cons = try container.decodeIfPresent([String].self, forKey: .cons) ?? []

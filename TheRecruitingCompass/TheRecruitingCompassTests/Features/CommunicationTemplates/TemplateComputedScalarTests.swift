@@ -45,6 +45,18 @@ final class TemplateComputedScalarTests: XCTestCase {
     XCTAssertEqual(TemplateResolver.computed["schoolShortName"]?(ctx(schools: ["name": "MIT"])), "MIT")
   }
 
+  func test_questionnaireNote_rendersOnlyWhenCompleted() {
+    let done = ctx(schools: ["name": "Duke", "questionnaire_completed": "true"])
+    XCTAssertEqual(
+      TemplateResolver.computed["questionnaireNote"]?(done),
+      "I've completed your recruiting questionnaire. "
+    )
+    // Not completed / absent → nil so renderClean strips the optional token.
+    XCTAssertNil(TemplateResolver.computed["questionnaireNote"]?(
+      ctx(schools: ["name": "Duke", "questionnaire_completed": "false"])))
+    XCTAssertNil(TemplateResolver.computed["questionnaireNote"]?(ctx(schools: ["name": "Duke"])))
+  }
+
   func test_testLabelAndScorePreferACT() {
     let c = ctx(prefs: ["act_score": "31", "sat_score": "1350"])
     XCTAssertEqual(TemplateResolver.computed["testLabel"]?(c), "ACT")

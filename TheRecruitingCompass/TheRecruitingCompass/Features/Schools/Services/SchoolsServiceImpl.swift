@@ -188,6 +188,21 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
     logger.info("Outreach notes updated for school: \(id)")
   }
 
+  func updateQuestionnaireCompleted(id: String, completed: Bool) async throws {
+    struct QuestionnaireUpdate: Encodable {
+      let questionnaire_completed: Bool
+      let questionnaire_completed_at: String?
+    }
+    let timestamp = completed ? ISO8601DateFormatter().string(from: Date()) : nil
+    logger.debug("Updating questionnaire_completed for school: \(id) to \(completed)")
+    _ = try await supabaseManager.client
+      .from("schools")
+      .update(QuestionnaireUpdate(questionnaire_completed: completed, questionnaire_completed_at: timestamp))
+      .eq("id", value: id)
+      .execute()
+    logger.info("Questionnaire completion updated for school: \(id)")
+  }
+
   func addPro(id: String, familyUnitId: String, text: String) async throws -> School {
     logger.debug("Adding pro to school: \(id)")
 
