@@ -2,8 +2,7 @@ import Foundation
 
 /// Canonical metric-type registry. Swift mirror of web `metricDefs` /
 /// `sportMetrics`. Keys are stored verbatim in `performance_metrics.metric_type`.
-/// Phase 1 seeds only the 8 legacy baseball/softball keys; later phases add the
-/// remaining sports (byte-identical with web).
+/// Populated for all 17 sports (byte-identical with web).
 enum MetricRegistry {
   static let otherKey = "other"
 
@@ -15,8 +14,25 @@ enum MetricRegistry {
   /// appends). Keys match the sport strings used across onboarding/preferences
   /// and `CanonicalPositions.bySport`.
   static let sportMetrics: [String: [String]] = [
+    // Baseball/Softball intentionally share one ordering array (deferred-minor
+    // from earlier review — the two sports use identical metric vocabularies).
     "Baseball": baseball,
-    "Softball": baseball
+    "Softball": baseball,
+    "Basketball": basketball,
+    "Football": football,
+    "Soccer": soccer,
+    "Volleyball": volleyball,
+    "Track & Field": trackAndField,
+    "Cross Country": crossCountry,
+    "Swimming": swimming,
+    "Golf": golf,
+    "Tennis": tennis,
+    "Wrestling": wrestling,
+    "Lacrosse": lacrosse,
+    "Ice Hockey": iceHockey,
+    "Field Hockey": fieldHockey,
+    "Rowing": rowing,
+    "Water Polo": waterPolo
   ]
 
   /// Fallback order for nil/unknown sports: all legacy baseball keys.
@@ -41,15 +57,66 @@ enum MetricRegistry {
     return sportMetrics.first { $0.key.caseInsensitiveCompare(sport) == .orderedSame }?.value
   }
 
-  // MARK: - Definitions
+  // MARK: - Sport orderings
 
   private static let baseball = [
-    "velocity", "exit_velo", "sixty_time", "pop_time", "batting_avg", "era", "strikeouts"
+    "velocity", "exit_velo", "batting_avg", "sixty_time", "pop_time", "era",
+    "on_base_pct", "slugging_pct", "whip", "strikeouts", "fielding_pct"
   ]
 
-  private static let allDefs: [MetricDef] = [
+  private static let basketball = [
+    "points_per_game", "rebounds_per_game", "assists_per_game", "field_goal_pct",
+    "three_point_pct", "free_throw_pct", "steals_per_game", "blocks_per_game", "vertical_jump"
+  ]
+
+  private static let football = [
+    "forty_time", "vertical_jump", "bench_press", "broad_jump", "shuttle", "three_cone",
+    "squat", "passing_yards", "rushing_yards", "receiving_yards", "tackles"
+  ]
+
+  private static let soccer = ["goals", "assists", "saves", "clean_sheets", "minutes_played"]
+
+  private static let volleyball = ["kills", "assists", "blocks", "digs", "aces", "hitting_pct"]
+
+  private static let trackAndField = [
+    "sprint_time", "distance_time", "relay_split", "long_jump", "high_jump", "shot_put", "discus"
+  ]
+
+  private static let crossCountry = ["race_time", "pace_per_mile"]
+
+  private static let swimming = ["event_time", "free_50", "free_100"]
+
+  private static let golf = ["scoring_average", "handicap"]
+
+  // "singles_record" excluded — text field, not a numeric metric.
+  private static let tennis = ["utr_rating", "ranking"]
+
+  // "record" excluded — text field, not a numeric metric.
+  private static let wrestling = ["pins", "takedowns", "weight_class"]
+
+  private static let lacrosse = ["goals", "assists", "ground_balls", "saves"]
+
+  private static let iceHockey = ["points", "goals", "assists", "save_pct", "goals_against_avg"]
+
+  private static let fieldHockey = ["goals", "assists", "saves"]
+
+  private static let rowing = ["erg_2k", "erg_split"]
+
+  private static let waterPolo = ["goals", "assists", "saves", "steals"]
+
+  // MARK: - Definitions
+
+  private static let allDefs: [MetricDef] = baseballDefs + basketballDefs + footballDefs
+    + soccerLacrosseHockeyDefs + volleyballDefs + trackAndFieldDefs + crossCountryDefs
+    + swimmingDefs + golfDefs + tennisDefs + wrestlingDefs + rowingDefs + sharedDefs
+    + [MetricDef(otherKey, String(localized: "Other Metric"), "", .decimal(digits: 2, dropLeadingZero: false))]
+
+  // MARK: Baseball / Softball
+
+  private static let baseballDefs: [MetricDef] = [
     MetricDef("velocity", String(localized: "Fastball Velocity"), "mph", .decimal(digits: 1, dropLeadingZero: false)),
     MetricDef("exit_velo", String(localized: "Exit Velocity"), "mph", .decimal(digits: 1, dropLeadingZero: false)),
+    MetricDef("batting_avg", String(localized: "Batting Average"), "", .decimal(digits: 3, dropLeadingZero: true)),
     MetricDef(
       "sixty_time", String(localized: "60-Yard Dash"), "sec",
       .decimal(digits: 2, dropLeadingZero: false), lowerIsBetter: true
@@ -58,12 +125,165 @@ enum MetricRegistry {
       "pop_time", String(localized: "Pop Time"), "sec",
       .decimal(digits: 2, dropLeadingZero: false), lowerIsBetter: true
     ),
-    MetricDef("batting_avg", String(localized: "Batting Average"), "", .decimal(digits: 3, dropLeadingZero: true)),
     MetricDef(
       "era", String(localized: "ERA"), "",
       .decimal(digits: 2, dropLeadingZero: false), lowerIsBetter: true
     ),
+    MetricDef("on_base_pct", String(localized: "On-Base Percentage"), "", .decimal(digits: 3, dropLeadingZero: true)),
+    MetricDef("slugging_pct", String(localized: "Slugging Percentage"), "", .decimal(digits: 3, dropLeadingZero: true)),
+    MetricDef(
+      "whip", String(localized: "WHIP"), "",
+      .decimal(digits: 2, dropLeadingZero: false), lowerIsBetter: true
+    ),
     MetricDef("strikeouts", String(localized: "Strikeouts"), "count", .integer),
-    MetricDef("other", String(localized: "Other Metric"), "", .decimal(digits: 2, dropLeadingZero: false))
+    MetricDef("fielding_pct", String(localized: "Fielding Percentage"), "", .decimal(digits: 3, dropLeadingZero: true))
+  ]
+
+  // MARK: Basketball
+
+  private static let basketballDefs: [MetricDef] = [
+    MetricDef("points_per_game", String(localized: "Points Per Game"), "", .decimal(digits: 1, dropLeadingZero: false)),
+    MetricDef(
+      "rebounds_per_game", String(localized: "Rebounds Per Game"), "",
+      .decimal(digits: 1, dropLeadingZero: false)
+    ),
+    MetricDef(
+      "assists_per_game", String(localized: "Assists Per Game"), "",
+      .decimal(digits: 1, dropLeadingZero: false)
+    ),
+    MetricDef("field_goal_pct", String(localized: "Field Goal %"), "%", .percent(digits: 1)),
+    MetricDef("three_point_pct", String(localized: "3-Point %"), "%", .percent(digits: 1)),
+    MetricDef("free_throw_pct", String(localized: "Free Throw %"), "%", .percent(digits: 1)),
+    MetricDef("steals_per_game", String(localized: "Steals Per Game"), "", .decimal(digits: 1, dropLeadingZero: false)),
+    MetricDef("blocks_per_game", String(localized: "Blocks Per Game"), "", .decimal(digits: 1, dropLeadingZero: false))
+  ]
+
+  // MARK: Football
+
+  private static let footballDefs: [MetricDef] = [
+    MetricDef(
+      "forty_time", String(localized: "40-Yard Dash"), "sec",
+      .decimal(digits: 2, dropLeadingZero: false), lowerIsBetter: true
+    ),
+    MetricDef("bench_press", String(localized: "Bench Press"), "reps", .integer),
+    MetricDef("broad_jump", String(localized: "Broad Jump"), "in", .integer),
+    MetricDef(
+      "shuttle", String(localized: "Shuttle Run"), "sec",
+      .decimal(digits: 2, dropLeadingZero: false), lowerIsBetter: true
+    ),
+    MetricDef(
+      "three_cone", String(localized: "3-Cone Drill"), "sec",
+      .decimal(digits: 2, dropLeadingZero: false), lowerIsBetter: true
+    ),
+    MetricDef("squat", String(localized: "Squat"), "lbs", .integer),
+    MetricDef("passing_yards", String(localized: "Passing Yards"), "yds", .integer),
+    MetricDef("rushing_yards", String(localized: "Rushing Yards"), "yds", .integer),
+    MetricDef("receiving_yards", String(localized: "Receiving Yards"), "yds", .integer),
+    MetricDef("tackles", String(localized: "Tackles"), "count", .integer)
+  ]
+
+  // MARK: Soccer / Lacrosse / Ice Hockey / Field Hockey / Water Polo (non-shared keys)
+
+  private static let soccerLacrosseHockeyDefs: [MetricDef] = [
+    MetricDef("clean_sheets", String(localized: "Clean Sheets"), "count", .integer),
+    MetricDef("minutes_played", String(localized: "Minutes Played"), "count", .integer),
+    MetricDef("ground_balls", String(localized: "Ground Balls"), "count", .integer),
+    MetricDef("points", String(localized: "Points"), "count", .integer),
+    MetricDef("save_pct", String(localized: "Save %"), "", .decimal(digits: 3, dropLeadingZero: true)),
+    MetricDef(
+      "goals_against_avg", String(localized: "Goals Against Avg"), "",
+      .decimal(digits: 2, dropLeadingZero: false), lowerIsBetter: true
+    ),
+    MetricDef("steals", String(localized: "Steals"), "count", .integer)
+  ]
+
+  // MARK: Volleyball
+
+  private static let volleyballDefs: [MetricDef] = [
+    MetricDef("kills", String(localized: "Kills"), "count", .integer),
+    MetricDef("blocks", String(localized: "Blocks"), "count", .integer),
+    MetricDef("digs", String(localized: "Digs"), "count", .integer),
+    MetricDef("aces", String(localized: "Aces"), "count", .integer),
+    MetricDef("hitting_pct", String(localized: "Hitting Percentage"), "", .decimal(digits: 3, dropLeadingZero: true))
+  ]
+
+  // MARK: Track & Field
+
+  private static let trackAndFieldDefs: [MetricDef] = [
+    MetricDef(
+      "sprint_time", String(localized: "Sprint Time"), "sec",
+      .decimal(digits: 2, dropLeadingZero: false), lowerIsBetter: true
+    ),
+    MetricDef("distance_time", String(localized: "Distance Time"), "", .duration, lowerIsBetter: true),
+    MetricDef(
+      "relay_split", String(localized: "Relay Split"), "sec",
+      .decimal(digits: 2, dropLeadingZero: false), lowerIsBetter: true
+    ),
+    MetricDef("long_jump", String(localized: "Long Jump"), "m", .decimal(digits: 2, dropLeadingZero: false)),
+    MetricDef("high_jump", String(localized: "High Jump"), "m", .decimal(digits: 2, dropLeadingZero: false)),
+    MetricDef("shot_put", String(localized: "Shot Put"), "m", .decimal(digits: 2, dropLeadingZero: false)),
+    MetricDef("discus", String(localized: "Discus"), "m", .decimal(digits: 2, dropLeadingZero: false))
+  ]
+
+  // MARK: Cross Country
+
+  private static let crossCountryDefs: [MetricDef] = [
+    MetricDef("race_time", String(localized: "Race Time"), "", .duration, lowerIsBetter: true),
+    MetricDef("pace_per_mile", String(localized: "Pace Per Mile"), "", .duration, lowerIsBetter: true)
+  ]
+
+  // MARK: Swimming
+
+  private static let swimmingDefs: [MetricDef] = [
+    MetricDef("event_time", String(localized: "Event Time"), "", .duration, lowerIsBetter: true),
+    MetricDef(
+      "free_50", String(localized: "50 Free"), "sec",
+      .decimal(digits: 2, dropLeadingZero: false), lowerIsBetter: true
+    ),
+    MetricDef("free_100", String(localized: "100 Free"), "", .duration, lowerIsBetter: true)
+  ]
+
+  // MARK: Golf
+
+  private static let golfDefs: [MetricDef] = [
+    MetricDef(
+      "scoring_average", String(localized: "Scoring Average"), "strokes",
+      .decimal(digits: 1, dropLeadingZero: false), lowerIsBetter: true
+    ),
+    MetricDef(
+      "handicap", String(localized: "Handicap"), "",
+      .decimal(digits: 1, dropLeadingZero: false), lowerIsBetter: true
+    )
+  ]
+
+  // MARK: Tennis
+
+  private static let tennisDefs: [MetricDef] = [
+    MetricDef("utr_rating", String(localized: "UTR Rating"), "", .decimal(digits: 2, dropLeadingZero: false)),
+    MetricDef("ranking", String(localized: "Ranking"), "", .integer, lowerIsBetter: true)
+  ]
+
+  // MARK: Wrestling
+
+  private static let wrestlingDefs: [MetricDef] = [
+    MetricDef("pins", String(localized: "Pins"), "count", .integer),
+    MetricDef("takedowns", String(localized: "Takedowns"), "count", .integer),
+    MetricDef("weight_class", String(localized: "Weight Class"), "lbs", .integer)
+  ]
+
+  // MARK: Rowing
+
+  private static let rowingDefs: [MetricDef] = [
+    MetricDef("erg_2k", String(localized: "2K Erg"), "", .duration, lowerIsBetter: true),
+    MetricDef("erg_split", String(localized: "Erg Split"), "", .duration, lowerIsBetter: true)
+  ]
+
+  // MARK: Shared across sports (goals/assists/saves/vertical_jump — one def each)
+
+  private static let sharedDefs: [MetricDef] = [
+    MetricDef("goals", String(localized: "Goals"), "count", .integer),
+    MetricDef("assists", String(localized: "Assists"), "count", .integer),
+    MetricDef("saves", String(localized: "Saves"), "count", .integer),
+    MetricDef("vertical_jump", String(localized: "Vertical Jump"), "in", .decimal(digits: 1, dropLeadingZero: false))
   ]
 }

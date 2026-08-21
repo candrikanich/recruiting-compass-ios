@@ -88,7 +88,7 @@ final class TemplateMetricsTests: XCTestCase {
   }
 
   func test_renderMetricsHumanizesUnknownType() {
-    let out = TemplateResolver.computed["metrics"]?(ctx([m("vertical_jump", 32, primary: true)])) ?? ""
-    XCTAssertTrue(out.contains("vertical jump: 32"), "unknown type falls back to underscore-humanized label")
+    let out = TemplateResolver.computed["metrics"]?(ctx([m("wingspan_reach", 32, primary: true)])) ?? ""
+    XCTAssertTrue(out.contains("wingspan reach: 32"), "unknown type falls back to underscore-humanized label")
   }
 }
