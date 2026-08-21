@@ -8,46 +8,46 @@ struct CoachFollowupRow: View {
   let onProfile: () -> Void
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
+    HStack(spacing: 12) {
       Button(action: onProfile) {
         VStack(alignment: .leading, spacing: 2) {
           Text(coach.fullName)
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(Color.primary)
-          Text(schoolName)
+          Text("\(schoolName) · \(CoachFollowup.daysSinceLabel(coach, asOf: Date.now))")
             .font(.caption)
             .foregroundStyle(Color.secondaryText)
-          Text(CoachFollowup.daysSinceLabel(coach, asOf: Date.now))
-            .font(.caption2)
-            .foregroundStyle(Color.secondaryText)
+            .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
       }
       .buttonStyle(.plain)
       .accessibilityLabel(String(localized: "View \(coach.fullName) profile"))
 
-      HStack(spacing: 12) {
-        if coach.email != nil {
-          Button(action: onEmail) {
-            Label(String(localized: "Email"), systemImage: "envelope")
-              .font(.caption)
-          }
-          .buttonStyle(.bordered)
-          .frame(minHeight: 44)
-          .accessibilityLabel(String(localized: "Email \(coach.fullName)"))
-        }
-        if coach.phone != nil {
-          Button(action: onText) {
-            Label(String(localized: "Text"), systemImage: "message")
-              .font(.caption)
-          }
-          .buttonStyle(.bordered)
-          .frame(minHeight: 44)
-          .accessibilityLabel(String(localized: "Text \(coach.fullName)"))
-        }
-        Spacer()
+      if coach.email != nil {
+        iconAction(systemImage: "envelope",
+                   label: String(localized: "Email \(coach.fullName)"),
+                   action: onEmail)
+      }
+      if coach.phone != nil {
+        iconAction(systemImage: "message",
+                   label: String(localized: "Text \(coach.fullName)"),
+                   action: onText)
       }
     }
-    .padding(.vertical, 4)
+    .padding(.vertical, 6)
+  }
+
+  /// Compact trailing action: a small icon with a full 44×44 hit target.
+  private func iconAction(systemImage: String, label: String,
+                          action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+      Image(systemName: systemImage)
+        .font(.body)
+        .frame(width: 44, height: 44)
+        .contentShape(Rectangle())
+    }
+    .buttonStyle(.bordered)
+    .accessibilityLabel(label)
   }
 }
