@@ -88,6 +88,14 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
     }
   }
 
+  /// Compact label for the pipeline stepper's narrow nodes.
+  var stepperLabel: String {
+    switch self {
+    case .offerReceived: return String(localized: "Offer")
+    default: return displayName
+    }
+  }
+
   var badgeColor: BadgeColor {
     switch self {
     case .researching:            return .slate
