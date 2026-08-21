@@ -204,10 +204,12 @@ struct QuickCommunicationView: View {
     }
     .safeAreaInset(edge: .bottom) {
       Button {
-        Task {
-          await viewModel.commitMissingInfo()  // persist prefs-backed + questionnaire answers
-          path.append(QuickCommStep.preview(channel))
-        }
+        // Navigate FIRST so this screen leaves instantly — committing before navigating lets
+        // the async re-resolve flip `shouldPromptQuestionnaire` while this screen is still
+        // on top, dropping the questionnaire row mid-commit (a phantom "second page"). Authored
+        // answers already resolve live; the questionnaire/major persist fills into preview.
+        path.append(QuickCommStep.preview(channel))
+        Task { await viewModel.commitMissingInfo() }  // persist prefs-backed + questionnaire
       } label: {
         Text("Continue")
           .font(.body.weight(.medium))
