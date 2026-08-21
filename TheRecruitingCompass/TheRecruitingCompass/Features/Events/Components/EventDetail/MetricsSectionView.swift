@@ -8,6 +8,10 @@ struct MetricsSectionView: View {
   let metrics: [PerformanceMetric]
   let showMetricForm: Bool
   @Binding var newMetricData: NewMetricData
+  /// The athlete's `primary_sport`, forwarded to `EventMetricForm`'s picker.
+  /// `EventDetailViewModel` doesn't load `PlayerDetails` today, so callers
+  /// pass nil (falls back to the default baseball order in `MetricRegistry`).
+  let sport: String?
   let isSavingMetric: Bool
   let onDeleteMetric: (String) async -> Void
   let onSaveMetric: () async -> Void
@@ -32,6 +36,7 @@ struct MetricsSectionView: View {
       if showMetricForm {
         EventMetricForm(
           data: $newMetricData,
+          sport: sport,
           isSaving: isSavingMetric,
           onSave: { Task { await onSaveMetric() } },
           onCancel: onCancelAdd

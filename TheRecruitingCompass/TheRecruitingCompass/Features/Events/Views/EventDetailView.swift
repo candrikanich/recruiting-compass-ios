@@ -203,6 +203,7 @@ struct EventDetailView: View {
         metrics: viewModel.metrics,
         showMetricForm: viewModel.showMetricForm,
         newMetricData: $viewModel.newMetricData,
+        sport: nil,
         isSavingMetric: viewModel.isSavingMetric,
         onDeleteMetric: { id in await viewModel.deleteMetric(id: id) },
         onSaveMetric: { await viewModel.addMetric() },

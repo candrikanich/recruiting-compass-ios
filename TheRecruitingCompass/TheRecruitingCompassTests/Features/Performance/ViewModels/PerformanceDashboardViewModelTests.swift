@@ -1038,6 +1038,48 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
     XCTAssertNil(viewModel.primaryMetric)
   }
 
+  // MARK: - Player Sport Tests
+
+  func testLoadMetrics_FetchesPlayerSport() async {
+    // Given
+    let mockPreferenceService = MockPreferenceService()
+    mockPreferenceService.stubbedPlayerDetails = PlayerDetails(primarySport: "Basketball")
+    viewModel = PerformanceDashboardViewModel(
+      performanceService: mockService,
+      authManager: mockAuthManager,
+      preferenceService: mockPreferenceService,
+      cache: mockCache
+    )
+
+    // When
+    await viewModel.loadMetrics()
+
+    // Then
+    XCTAssertEqual(viewModel.playerSport, "Basketball")
+    XCTAssertEqual(mockPreferenceService.fetchedUserIds, ["user-1"])
+  }
+
+  func testLoadMetrics_PlayerSportFetchFails_LeavesSportNilWithoutBreakingMetrics() async {
+    // Given
+    let mockPreferenceService = MockPreferenceService()
+    mockPreferenceService.errorToThrow = URLError(.notConnectedToInternet)
+    mockService.mockMetrics = [mockService.createTestMetric(id: "1", metricType: .velocity, value: 90.0)]
+    viewModel = PerformanceDashboardViewModel(
+      performanceService: mockService,
+      authManager: mockAuthManager,
+      preferenceService: mockPreferenceService,
+      cache: mockCache
+    )
+
+    // When
+    await viewModel.loadMetrics()
+
+    // Then
+    XCTAssertNil(viewModel.playerSport)
+    XCTAssertNil(viewModel.errorMessage)
+    XCTAssertEqual(viewModel.metrics.count, 1)
+  }
+
   // MARK: - Helper Methods
 
   private func createUser(id: String) -> User {
