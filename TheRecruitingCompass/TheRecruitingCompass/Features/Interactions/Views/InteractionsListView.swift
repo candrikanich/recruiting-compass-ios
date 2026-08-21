@@ -70,7 +70,12 @@ struct InteractionsListView: View {
         AddInteractionView(
           interactionsService: viewModel.interactionsService,
           familyUnitId: familyUnitId,
-          userId: userId
+          userId: userId,
+          onLogged: { message in
+            guard let message else { return }
+            viewModel.successMessage = message
+            viewModel.showSuccessToast = true
+          }
         )
       } else {
         ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")

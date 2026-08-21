@@ -6,16 +6,22 @@ struct AddInteractionView: View {
   @State private var hapticSuccessTrigger = 0
   @State private var hapticErrorTrigger = 0
 
+  /// Called on a successful log with the auto-advance toast message (or nil).
+  /// The presenting screen surfaces it, since this view dismisses immediately.
+  private let onLogged: (String?) -> Void
+
   init(
     interactionsService: InteractionsManaging,
     familyUnitId: String,
-    userId: String
+    userId: String,
+    onLogged: @escaping (String?) -> Void = { _ in }
   ) {
     _viewModel = State(initialValue: AddInteractionViewModel(
       interactionsService: interactionsService,
       familyUnitId: familyUnitId,
       userId: userId
     ))
+    self.onLogged = onLogged
   }
 
   var body: some View {
@@ -325,6 +331,7 @@ struct AddInteractionView: View {
           let success = await viewModel.submitInteraction()
           if success {
             hapticSuccessTrigger += 1
+            onLogged(viewModel.contactedAdvanceMessage)
             dismiss()
           } else {
             hapticErrorTrigger += 1

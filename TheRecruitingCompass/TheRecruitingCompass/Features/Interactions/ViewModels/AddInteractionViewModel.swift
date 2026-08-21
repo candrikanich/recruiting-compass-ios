@@ -34,6 +34,11 @@ final class AddInteractionViewModel {
   var newCoachForm = NewCoachFormState()
   var otherCoachName: String = ""
 
+  /// Set on a successful submit when the logged interaction auto-advanced its
+  /// school from a pre-contact stage to `contacted` (via the DB trigger). Read
+  /// by the presenting screen to show a "‹School› moved to Contacted" toast.
+  private(set) var contactedAdvanceMessage: String?
+
   // MARK: - Dependencies
 
   private let interactionsService: any InteractionsManaging
@@ -251,6 +256,15 @@ final class AddInteractionViewModel {
         finalContent += otherCoachNote
       }
 
+      // Capture pre-advance status: logging an interaction auto-advances a
+      // pre-contact school (researching/interested/nil, rank < contacted) to
+      // `contacted` via a DB trigger. Mirror that rule to confirm it in the UI.
+      contactedAdvanceMessage = nil
+      let advancingSchool = schools.first { $0.id == formState.schoolId }
+      let wasPreContact = advancingSchool.map {
+        (SchoolStatus(rawValue: $0.status) ?? .unknown).rank < SchoolStatus.contacted.rank
+      } ?? false
+
       // Create request
       let request = InteractionCreateRequest(
         schoolId: formState.schoolId.isEmpty ? nil : formState.schoolId,
@@ -279,6 +293,10 @@ final class AddInteractionViewModel {
 
       // Create inbound alert if direction is inbound (Phase 4)
       // if formState.direction == .inbound { ... }
+
+      if wasPreContact, let name = advancingSchool?.name {
+        contactedAdvanceMessage = String(localized: "\(name) moved to Contacted")
+      }
 
       return true
     } catch {
