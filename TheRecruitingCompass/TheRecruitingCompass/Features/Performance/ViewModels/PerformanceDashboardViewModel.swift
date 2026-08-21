@@ -43,6 +43,13 @@ final class PerformanceDashboardViewModel {
   private var targetUserId: String? {
     familyManager.selectedAthlete?.userId ?? authManager.user?.id
   }
+
+  /// The athlete's `primary_sport`, for filtering the Metric Type picker.
+  /// Nil today: neither `FamilyMember` nor this VM loads `PlayerDetails`, so
+  /// there's no sport in scope yet — `MetricRegistry.types(forSport: nil)`
+  /// falls back to the default baseball order (today's full list), so this is
+  /// behavior-preserving until a data source is wired in.
+  var playerSport: String? { nil }
   private static let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
