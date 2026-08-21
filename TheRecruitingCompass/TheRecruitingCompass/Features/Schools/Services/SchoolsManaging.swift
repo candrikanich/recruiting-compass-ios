@@ -29,6 +29,10 @@ protocol SchoolsManaging: Sendable {
   ) async throws -> School
   /// Returns the full status-change history for a school, ordered newest-first.
   func fetchStatusHistory(schoolId: String) async throws -> [SchoolStatusHistory]
+  /// Reopens a school from the `not_pursuing` off-ramp, restoring the stage it
+  /// was at before it was parked (from status history) via the
+  /// `reactivate_school` RPC, and returns the refreshed school.
+  func reactivateSchool(id: String, familyUnitId: String, userId: String) async throws -> School
 
   // MARK: - Phase 2 Methods (Editing & Notes)
   /// Replaces the free-text notes on a school and returns the updated entity.

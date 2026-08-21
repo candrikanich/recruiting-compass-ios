@@ -241,12 +241,22 @@ final class SchoolDetailViewModel {
     defer { isUpdatingStatus = false }
 
     do {
-      let updated = try await schoolsService.updateStatus(
-        id: schoolId,
-        newStatus: newStatus,
-        previousStatus: previousStatus,
-        userId: currentUserId
-      )
+      let updated: School
+      // Reopening from the off-ramp restores the pre-park stage (via RPC),
+      // rather than resetting to researching. The stepper is disabled while
+      // not_pursuing, so researching can only arrive here via Reactivate.
+      if previousStatus == .notPursuing, newStatus == .researching,
+         let familyId = familyManager.familyUnitId {
+        updated = try await schoolsService.reactivateSchool(
+          id: schoolId, familyUnitId: familyId, userId: currentUserId)
+      } else {
+        updated = try await schoolsService.updateStatus(
+          id: schoolId,
+          newStatus: newStatus,
+          previousStatus: previousStatus,
+          userId: currentUserId
+        )
+      }
       self.school = updated
 
       // Refresh history
