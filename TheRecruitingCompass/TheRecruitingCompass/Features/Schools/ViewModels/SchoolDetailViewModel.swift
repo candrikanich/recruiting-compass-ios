@@ -234,7 +234,7 @@ final class SchoolDetailViewModel {
   func updateStatus(to newStatus: SchoolStatus) async {
     guard let school, let currentUserId else { return }
 
-    let previousStatus = SchoolStatus(rawValue: school.status) ?? .interested
+    let previousStatus = SchoolStatus(rawValue: school.status) ?? .researching
     guard newStatus != previousStatus else { return }
 
     isUpdatingStatus = true

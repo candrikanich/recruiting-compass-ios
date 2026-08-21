@@ -28,7 +28,7 @@ final class SchoolFormStateTests: XCTestCase {
     XCTAssertEqual(formState.twitterHandle, "")
     XCTAssertEqual(formState.instagramHandle, "")
     XCTAssertEqual(formState.notes, "")
-    XCTAssertEqual(formState.status, .interested)
+    XCTAssertEqual(formState.status, .researching)
     XCTAssertTrue(formState.isAutocompleteEnabled)
   }
 

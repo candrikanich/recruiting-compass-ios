@@ -70,6 +70,11 @@ final class SchoolsListViewModel {
   /// visit event. Drives the "Visited" stat (see `analytics`); populated in `loadSchools()`.
   /// Status is deliberately NOT a visit signal (invited/scheduled ≠ visited).
   private(set) var visitedSchoolIds: Set<String> = []
+
+  /// School IDs with ≥1 logged interaction of any type. Drives the "Contacted"
+  /// stat (activity-derived, matching the dashboard's interaction count — NOT the
+  /// `status` field). Populated alongside `visitedSchoolIds` in `loadSchools()`.
+  private(set) var contactedSchoolIds: Set<String> = []
   private var distanceCache: [String: Double] = [:]
   private var distanceCacheOrderedKeys: [String] = []
   private static let maxDistanceCacheEntries = 300
@@ -143,7 +148,7 @@ final class SchoolsListViewModel {
       totalCount: allSchools.count,
       favoritesCount: allSchools.filter(\.isFavorite).count,
       visitedCount: allSchools.filter { visitedSchoolIds.contains($0.id) }.count,
-      contactedCount: allSchools.filter { $0.status == SchoolStatus.contacted.rawValue }.count
+      contactedCount: allSchools.filter { contactedSchoolIds.contains($0.id) }.count
     )
   }
 
@@ -207,7 +212,7 @@ final class SchoolsListViewModel {
         logger.info("Loaded \(self.allSchools.count) schools")
       }
 
-      await refreshVisitedSchoolIds(familyUnitId: familyUnitId)
+      await refreshInteractionDerivedIds(familyUnitId: familyUnitId)
 
       // Load home location from Settings (user_preferences).
       do {
@@ -237,16 +242,23 @@ final class SchoolsListViewModel {
     }
   }
 
-  /// Recomputes `visitedSchoolIds` from real visit signals — a visit-type interaction
-  /// or a past-dated visit event. Fetches run independently so a failure in one (or a
-  /// missing athlete for events) never blocks the schools list; we union what succeeds.
-  private func refreshVisitedSchoolIds(familyUnitId: String) async {
+  /// Recomputes `visitedSchoolIds` and `contactedSchoolIds` from interaction/event
+  /// signals. Fetches run independently so a failure in one (or a missing athlete for
+  /// events) never blocks the schools list; we union what succeeds.
+  ///
+  /// - `contactedSchoolIds`: any interaction of any type (activity = contact made).
+  /// - `visitedSchoolIds`: a visit-type interaction OR a past-dated visit event.
+  ///   Status is deliberately NOT a visit signal (invited/scheduled ≠ visited).
+  private func refreshInteractionDerivedIds(familyUnitId: String) async {
     async let interactions = fetchVisitInteractions(familyUnitId: familyUnitId)
     async let events = fetchVisitEvents(userId: familyManager.selectedAthlete?.userId)
 
     var visited: Set<String> = []
-    for interaction in await interactions where interaction.type == .inPersonVisit {
-      if let schoolId = interaction.schoolId { visited.insert(schoolId) }
+    var contacted: Set<String> = []
+    for interaction in await interactions {
+      guard let schoolId = interaction.schoolId else { continue }
+      contacted.insert(schoolId)
+      if interaction.type == .inPersonVisit { visited.insert(schoolId) }
     }
     let now = Date()
     for event in await events {
@@ -258,6 +270,7 @@ final class SchoolsListViewModel {
       visited.insert(schoolId)
     }
     visitedSchoolIds = visited
+    contactedSchoolIds = contacted
   }
 
   private func fetchVisitInteractions(familyUnitId: String) async -> [Interaction] {

@@ -72,7 +72,7 @@ struct SchoolFilterBar: View {
         filters.status = nil
       }
 
-      ForEach(SchoolStatus.allCases, id: \.self) { status in
+      ForEach(SchoolStatus.selectable, id: \.self) { status in
         Button(status.displayName) {
           filters.status = status
         }

@@ -22,37 +22,12 @@ struct SchoolRecruitingStatusAndTierSection: View {
         Spacer()
       }
 
-      Menu {
-        ForEach(SchoolStatus.allCases.filter { $0 != .unknown }, id: \.self) { status in
-          Button {
-            Task { await onStatusChange(status) }
-          } label: {
-            HStack {
-              Text(status.displayName)
-              if status == currentStatus {
-                Image(systemName: "checkmark")
-              }
-            }
-          }
-        }
-      } label: {
-        HStack {
-          Text(currentStatus.displayName)
-            .foregroundStyle(.primary)
-          Spacer()
-          Image(systemName: "chevron.up.chevron.down")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(Color(.systemGray6))
-        .clipShape(.rect(cornerRadius: 8))
-      }
-      .accessibilityIdentifier("status-picker-button")
-      .accessibilityLabel(String(localized: "Recruiting status: \(currentStatus.displayName)"))
-      .accessibilityHint("Double tap to change status")
-      .disabled(isUpdatingStatus)
+      SchoolStatusStepper(
+        currentStatus: currentStatus,
+        isUpdating: isUpdatingStatus,
+        onSelect: onStatusChange
+      )
+      .accessibilityIdentifier("status-stepper")
     }
     .padding(.horizontal)
     .accessibilityElement(children: .contain)
