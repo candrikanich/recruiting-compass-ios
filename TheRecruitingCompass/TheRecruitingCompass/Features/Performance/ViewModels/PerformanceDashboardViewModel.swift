@@ -187,13 +187,13 @@ final class PerformanceDashboardViewModel {
   func addMetric() async {
     guard let userId = targetUserId else { return }
     guard addFormState.isValid, let parsedValue = addFormState.parsedValue else { return }
-    guard let type = addFormState.metricType else { return }
+    guard let type = addFormState.metricType, let metricKey = addFormState.resolvedMetricKey else { return }
 
     isSubmitting = true
     defer { isSubmitting = false }
 
     let request = MetricCreateRequest(
-      metricType: type.rawValue,
+      metricType: metricKey,
       value: parsedValue,
       unit: addFormState.unit.isEmpty ? type.defaultUnit : addFormState.unit,
       recordedDate: Self.dateFormatter.string(from: addFormState.recordedDate),
@@ -225,13 +225,13 @@ final class PerformanceDashboardViewModel {
   func updateMetric() async {
     guard let metric = editingMetric else { return }
     guard editFormState.isValid, let parsedValue = editFormState.parsedValue else { return }
-    guard let type = editFormState.metricType else { return }
+    guard let type = editFormState.metricType, let metricKey = editFormState.resolvedMetricKey else { return }
 
     isSubmitting = true
     defer { isSubmitting = false }
 
     let request = MetricUpdateRequest(
-      metricType: type.rawValue,
+      metricType: metricKey,
       value: parsedValue,
       unit: editFormState.unit.isEmpty ? type.defaultUnit : editFormState.unit,
       recordedDate: Self.dateFormatter.string(from: editFormState.recordedDate),

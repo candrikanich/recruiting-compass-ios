@@ -253,6 +253,101 @@ final class MetricFormStateTests: XCTestCase {
     }
   }
 
+  // MARK: - isValid Tests (.other)
+
+  func testIsValid_FalseWhenOtherAndOtherNameEmpty() {
+    var form = MetricFormState()
+    form.metricType = .other
+    form.value = "10"
+    form.otherName = ""
+
+    XCTAssertFalse(form.isValid)
+  }
+
+  func testIsValid_FalseWhenOtherAndOtherNameWhitespace() {
+    var form = MetricFormState()
+    form.metricType = .other
+    form.value = "10"
+    form.otherName = "   "
+
+    XCTAssertFalse(form.isValid)
+  }
+
+  func testIsValid_TrueWhenOtherAndOtherNameProvided() {
+    var form = MetricFormState()
+    form.metricType = .other
+    form.value = "10"
+    form.otherName = "Vertical Jump"
+
+    XCTAssertTrue(form.isValid)
+  }
+
+  // MARK: - resolvedMetricKey Tests
+
+  func testResolvedMetricKey_NilWhenNoType() {
+    let form = MetricFormState()
+
+    XCTAssertNil(form.resolvedMetricKey)
+  }
+
+  func testResolvedMetricKey_ReturnsRawValueForKnownType() {
+    var form = MetricFormState()
+    form.metricType = .velocity
+
+    XCTAssertEqual(form.resolvedMetricKey, MetricType.velocity.rawValue)
+  }
+
+  func testResolvedMetricKey_SnakeCasesOtherName() {
+    var form = MetricFormState()
+    form.metricType = .other
+    form.otherName = "Vertical Jump"
+
+    XCTAssertEqual(form.resolvedMetricKey, "vertical_jump")
+  }
+
+  func testResolvedMetricKey_NilWhenOtherAndOtherNameEmpty() {
+    var form = MetricFormState()
+    form.metricType = .other
+    form.otherName = ""
+
+    XCTAssertNil(form.resolvedMetricKey)
+  }
+
+  // MARK: - reset/populate Tests (otherName)
+
+  func testReset_ClearsOtherName() {
+    var form = MetricFormState()
+    form.metricType = .other
+    form.otherName = "Vertical Jump"
+
+    form.reset()
+
+    XCTAssertEqual(form.otherName, "")
+  }
+
+  func testPopulate_ClearsOtherName() {
+    var form = MetricFormState()
+    form.otherName = "stale value"
+
+    let metric = PerformanceMetric(
+      id: "metric-1",
+      userId: "user-1",
+      metricType: .velocity,
+      value: 90.0,
+      unit: "mph",
+      recordedDate: Date(),
+      eventId: nil,
+      verified: false,
+      notes: nil,
+      createdAt: Date(),
+      updatedAt: Date()
+    )
+
+    form.populate(from: metric)
+
+    XCTAssertEqual(form.otherName, "")
+  }
+
   // MARK: - Equatable Tests
 
   func testEquatable_SameState_AreEqual() {
