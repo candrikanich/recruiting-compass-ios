@@ -97,7 +97,9 @@ enum TemplateComputed {
   // MARK: - Metrics
 
   private static func humanizeMetricLabel(_ metricType: String?) -> String {
-    (metricType ?? "").replacingOccurrences(of: "_", with: " ").trimmingCharacters(in: .whitespaces)
+    let key = metricType ?? ""
+    if let def = MetricRegistry.knownDef(for: key) { return def.label }
+    return key.replacingOccurrences(of: "_", with: " ").trimmingCharacters(in: .whitespaces)
   }
 
   private static func nf(_ d: Double) -> String {
