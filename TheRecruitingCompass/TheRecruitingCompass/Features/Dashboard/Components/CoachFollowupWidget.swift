@@ -7,6 +7,7 @@ struct CoachFollowupWidget: View {
   var onCoachContacted: (() -> Void)?
 
   @State private var quickCommContext: QuickCommunicationContext?
+  @State private var didSendFromQuickComm = false
   @State private var profileCoachId: String?
   @State private var isShowingAllCoaches = false
 
@@ -71,8 +72,16 @@ struct CoachFollowupWidget: View {
     .background(Color.Surface.card)
     .clipShape(.rect(cornerRadius: 12))
     .brandShadowSm()
-    .sheet(item: $quickCommContext) { context in
-      QuickCommunicationView(context: context, onSent: onCoachContacted)
+    // Refresh AFTER the sheet fully dismisses (onDismiss), not mid-teardown — a refresh
+    // fired before dismissal races the transition and its result is dropped. onSent only
+    // flags that a send happened so a pure cancel doesn't trigger a needless reload.
+    .sheet(item: $quickCommContext, onDismiss: {
+      if didSendFromQuickComm {
+        didSendFromQuickComm = false
+        onCoachContacted?()
+      }
+    }) { context in
+      QuickCommunicationView(context: context, onSent: { didSendFromQuickComm = true })
     }
     .sheet(item: Binding(
       get: { profileCoachId.map { CoachProfileRoute(id: $0) } },
