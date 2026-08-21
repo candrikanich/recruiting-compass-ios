@@ -235,6 +235,45 @@ final class SchoolsListViewModelTests: XCTestCase {
     XCTAssertEqual(sut.analytics.visitedCount, 1)
   }
 
+  // MARK: - Contacted Analytics (any interaction, not status)
+
+  func testContactedCount_countsAnyInteractionType() async {
+    mockService.stubbedSchools = [makeSchool(id: "1"), makeSchool(id: "2"), makeSchool(id: "3")]
+    mockInteractionsService.mockInteractions = [
+      makeVisitInteraction(schoolId: "1", type: .inPersonVisit),
+      makeVisitInteraction(schoolId: "2", type: .virtualMeeting)
+    ]
+
+    await sut.loadSchools()
+
+    XCTAssertEqual(sut.analytics.contactedCount, 2)
+    XCTAssertTrue(sut.contactedSchoolIds.contains("1"))
+    XCTAssertTrue(sut.contactedSchoolIds.contains("2"))
+    XCTAssertFalse(sut.contactedSchoolIds.contains("3"))
+  }
+
+  func testContactedCount_statusAloneNotCounted() async {
+    // A school parked at 'contacted' status but with zero interactions must NOT
+    // count — the stat is activity-derived, not status-derived.
+    mockService.stubbedSchools = [makeSchool(id: "1", status: "contacted")]
+
+    await sut.loadSchools()
+
+    XCTAssertEqual(sut.analytics.contactedCount, 0)
+  }
+
+  func testContactedCount_dedupesMultipleInteractions() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    mockInteractionsService.mockInteractions = [
+      makeVisitInteraction(schoolId: "1", type: .phoneCall),
+      makeVisitInteraction(schoolId: "1", type: .email)
+    ]
+
+    await sut.loadSchools()
+
+    XCTAssertEqual(sut.analytics.contactedCount, 1)
+  }
+
   // MARK: - Loading Tests
 
   func testLoadSchools_Success() async {

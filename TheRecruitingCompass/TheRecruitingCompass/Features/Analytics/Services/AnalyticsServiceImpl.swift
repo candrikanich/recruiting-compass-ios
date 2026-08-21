@@ -119,10 +119,7 @@ final class AnalyticsServiceImpl: AnalyticsManaging, Sendable {
     var statusCounts: [String: Int] = [:]
     for school in schools { statusCounts[school.status, default: 0] += 1 }
 
-    let pipelineOrder: [SchoolStatus] = [
-      .interested, .contacted, .campInvite, .recruited,
-      .officialVisitInvited, .officialVisitScheduled, .offerReceived, .committed
-    ]
+    let pipelineOrder: [SchoolStatus] = SchoolStatus.pipeline
     let stages = pipelineOrder.compactMap { status -> ChartDataItem? in
       guard let count = statusCounts[status.rawValue], count > 0 else { return nil }
       return ChartDataItem(label: status.displayName, value: count)

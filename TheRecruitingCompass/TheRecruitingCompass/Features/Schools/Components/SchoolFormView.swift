@@ -411,7 +411,7 @@ private struct SchoolFormStatusPicker: View {
   var body: some View {
     FormFieldWrapper(label: "Status", error: error) {
       Picker("Status", selection: $formState.status) {
-        ForEach(SchoolStatus.allCases, id: \.self) { status in
+        ForEach(SchoolStatus.selectable, id: \.self) { status in
           Text(status.displayName)
             .tag(status)
         }

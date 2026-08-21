@@ -23,7 +23,7 @@ struct SchoolRecruitingStatusAndTierSection: View {
       }
 
       Menu {
-        ForEach(SchoolStatus.allCases.filter { $0 != .unknown }, id: \.self) { status in
+        ForEach(SchoolStatus.selectable, id: \.self) { status in
           Button {
             Task { await onStatusChange(status) }
           } label: {

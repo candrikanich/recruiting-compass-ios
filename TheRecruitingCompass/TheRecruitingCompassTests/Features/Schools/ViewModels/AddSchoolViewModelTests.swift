@@ -64,7 +64,7 @@ final class AddSchoolViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.formState.twitterHandle, "")
     XCTAssertEqual(viewModel.formState.instagramHandle, "")
     XCTAssertEqual(viewModel.formState.notes, "")
-    XCTAssertEqual(viewModel.formState.status, .interested)
+    XCTAssertEqual(viewModel.formState.status, .researching)
   }
 
   func testInit_initializesWithEmptyErrors() {

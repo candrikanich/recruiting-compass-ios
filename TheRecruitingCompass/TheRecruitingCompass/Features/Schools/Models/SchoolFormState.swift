@@ -36,7 +36,7 @@ struct SchoolFormState: Sendable {
     twitterHandle: String = "",
     instagramHandle: String = "",
     notes: String = "",
-    status: SchoolStatus = .interested,
+    status: SchoolStatus = .researching,
     isAutocompleteEnabled: Bool = true,
     autoFilledFields: Set<AutoFillableField> = []
   ) {
