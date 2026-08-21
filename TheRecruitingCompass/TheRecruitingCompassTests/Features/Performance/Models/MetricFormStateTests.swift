@@ -305,6 +305,16 @@ final class MetricFormStateTests: XCTestCase {
     XCTAssertEqual(form.resolvedMetricKey, "vertical_jump")
   }
 
+  func testResolvedMetricKey_CollapsesWhitespaceRuns() {
+    // Cross-platform parity with web: runs of whitespace collapse to a single
+    // underscore so the persisted key matches ("Bat  Speed" -> "bat_speed").
+    var form = MetricFormState()
+    form.metricType = .other
+    form.otherName = "  Bat   Speed  "
+
+    XCTAssertEqual(form.resolvedMetricKey, "bat_speed")
+  }
+
   func testResolvedMetricKey_NilWhenOtherAndOtherNameEmpty() {
     var form = MetricFormState()
     form.metricType = .other
