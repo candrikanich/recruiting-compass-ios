@@ -381,6 +381,7 @@ final class EventDetailAccessibilityTests: XCTestCase {
     data.metricType = .velocity
     let view = EventMetricForm(
       data: .constant(data),
+      sport: nil,
       isSaving: false,
       onSave: {},
       onCancel: {}

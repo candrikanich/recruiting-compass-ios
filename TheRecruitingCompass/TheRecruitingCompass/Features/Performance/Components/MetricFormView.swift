@@ -5,6 +5,9 @@ struct MetricFormView: View {
   let title: String
   let submitLabel: String
   let isSubmitting: Bool
+  /// The athlete's `primary_sport` — filters the Metric Type picker to that
+  /// sport's metrics (falls back to the default baseball order when nil).
+  let sport: String?
   let onSubmit: () -> Void
   let onCancel: () -> Void
 
@@ -21,7 +24,8 @@ struct MetricFormView: View {
             .fontWeight(.medium)
           Picker("Metric Type", selection: $formState.metricType) {
             Text("Select Metric").tag(nil as MetricType?)
-            ForEach(MetricType.allCases) { type in
+            ForEach(MetricRegistry.types(forSport: sport), id: \.self) { key in
+              let type = MetricType(rawValue: key)
               Text(type.displayName).tag(type as MetricType?)
             }
           }
@@ -31,6 +35,15 @@ struct MetricFormView: View {
           .background(Color(.systemGray6))
           .clipShape(RoundedRectangle(cornerRadius: 8))
           .accessibilityLabel(String(localized: "Metric type selector"))
+        }
+
+        if formState.metricType == .other {
+          VStack(alignment: .leading, spacing: 4) {
+            Text("Metric Name").font(.subheadline).fontWeight(.medium)
+            TextField("e.g. Vertical Jump", text: $formState.otherName)
+              .textFieldStyle(.roundedBorder)
+              .accessibilityLabel(String(localized: "Custom metric name"))
+          }
         }
 
         VStack(alignment: .leading, spacing: 4) {

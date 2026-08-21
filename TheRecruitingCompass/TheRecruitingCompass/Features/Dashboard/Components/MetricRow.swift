@@ -8,15 +8,14 @@ struct MetricRow: View {
   }
 
   private var metricIcon: String {
-    switch metric.metricType {
-    case .velocity, .exitVelo: return "flame"
-    case .sixtyTime: return "timer"
-    case .popTime: return "stopwatch"
-    case .battingAvg: return "baseball"
-    case .era: return "chart.bar"
-    case .strikeouts: return "figure.strengthtraining.traditional"
-    case .other: return "chart.bar"
-    }
+    let t = metric.metricType
+    if t == .velocity || t == .exitVelo { return "flame" }
+    if t == .sixtyTime { return "timer" }
+    if t == .popTime { return "stopwatch" }
+    if t == .battingAvg { return "baseball" }
+    if t == .era { return "chart.bar" }
+    if t == .strikeouts { return "figure.strengthtraining.traditional" }
+    return "chart.bar"
   }
 
   private var formattedValue: String {

@@ -1,73 +1,38 @@
 import Foundation
 
-enum MetricType: String, Codable, CaseIterable, Identifiable {
-  case velocity = "velocity"
-  case exitVelo = "exit_velo"
-  case sixtyTime = "sixty_time"
-  case popTime = "pop_time"
-  case battingAvg = "batting_avg"
-  case era = "era"
-  case strikeouts = "strikeouts"
-  case other = "other"
+/// A metric type identified by its registry key (stored verbatim in
+/// `performance_metrics.metric_type`). Was a closed enum; now an open struct so
+/// non-baseball sports get their own keys. Display logic delegates to
+/// `MetricRegistry`. The 8 legacy keys remain as static constants for existing
+/// `== .velocity` / `[MetricType: …]` call sites.
+struct MetricType: RawRepresentable, Codable, Hashable, Identifiable, Sendable {
+  let rawValue: String
+  init(rawValue: String) { self.rawValue = rawValue }
 
   var id: String { rawValue }
+  private var def: MetricDef { MetricRegistry.def(for: rawValue) }
 
-  var displayName: String {
-    switch self {
-    case .velocity: return String(localized: "Fastball Velocity")
-    case .exitVelo: return String(localized: "Exit Velocity")
-    case .sixtyTime: return String(localized: "60-Yard Dash")
-    case .popTime: return String(localized: "Pop Time")
-    case .battingAvg: return String(localized: "Batting Average")
-    case .era: return String(localized: "ERA")
-    case .strikeouts: return String(localized: "Strikeouts")
-    case .other: return String(localized: "Other Metric")
-    }
-  }
+  var displayName: String { def.label }
+  var defaultUnit: String { def.unit }
+  var isLowerBetter: Bool { def.lowerIsBetter }
 
-  var defaultUnit: String {
-    switch self {
-    case .velocity, .exitVelo: return "mph"
-    case .sixtyTime, .popTime: return "sec"
-    case .battingAvg, .era: return ""
-    case .strikeouts: return "count"
-    case .other: return ""
-    }
-  }
-
-  var isLowerBetter: Bool {
-    self == .sixtyTime || self == .popTime || self == .era
-  }
-
-  /// Decimal places this metric renders at. Batting average and ERA are 3/2-decimal rate
-  /// stats; velocities read to a tenth; times to a hundredth; strikeouts are whole.
-  private var fractionDigits: Int {
-    switch self {
-    case .battingAvg: return 3
-    case .era, .sixtyTime, .popTime, .other: return 2
-    case .velocity, .exitVelo: return 1
-    case .strikeouts: return 0
-    }
-  }
-
-  /// Baseball convention: batting average drops the leading zero (`.410`), so `<1` reads as a
-  /// pure fraction. Every other rate keeps its leading digit (ERA `3.45`, `1.000` stays).
-  private var dropsLeadingZero: Bool { self == .battingAvg }
-
-  /// Format a raw metric value to its display string (number only — callers append the unit).
-  /// Parity with web `formatMetricValue`; keep the two in sync.
-  func format(_ value: Double) -> String {
-    let s = String(format: "%.\(fractionDigits)f", value)
-    if dropsLeadingZero, s.hasPrefix("0.") { return String(s.dropFirst()) }
-    return s
-  }
-
-  /// The unit is fixed (locked to `defaultUnit`) for every type except `.other`,
-  /// which lets the athlete pick from the shared vocabulary. Mirrors the web
-  /// log-metric modal — no user-typed units.
+  /// The unit is fixed for every type except `.other`, which lets the athlete
+  /// pick from the shared vocabulary. Mirrors the web log-metric modal.
   var unitIsFixed: Bool { self != .other }
 
-  /// Fixed unit vocabulary offered for `.other` (value stored as-is). Mirrors the
-  /// web modal's unit dropdown so cross-platform units stay consistent.
+  /// Format a raw value to its display string (number only — callers append the
+  /// unit). Parity with web `formatMetricValue`.
+  func format(_ value: Double) -> String { def.format.apply(value) }
+
+  static let velocity = MetricType(rawValue: "velocity")
+  static let exitVelo = MetricType(rawValue: "exit_velo")
+  static let sixtyTime = MetricType(rawValue: "sixty_time")
+  static let popTime = MetricType(rawValue: "pop_time")
+  static let battingAvg = MetricType(rawValue: "batting_avg")
+  static let era = MetricType(rawValue: "era")
+  static let strikeouts = MetricType(rawValue: "strikeouts")
+  static let other = MetricType(rawValue: "other")
+
+  /// Fixed unit vocabulary offered for `.other`. Mirrors the web modal dropdown.
   static let unitVocabulary: [String] = ["", "mph", "sec", "in", "ft", "lbs", "count", "%"]
 }

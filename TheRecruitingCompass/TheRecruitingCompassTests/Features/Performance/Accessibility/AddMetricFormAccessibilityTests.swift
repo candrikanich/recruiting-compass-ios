@@ -19,6 +19,7 @@ final class AddMetricFormAccessibilityTests: XCTestCase {
       title: title,
       submitLabel: submitLabel,
       isSubmitting: isSubmitting,
+      sport: nil,
       onSubmit: {},
       onCancel: {}
     )

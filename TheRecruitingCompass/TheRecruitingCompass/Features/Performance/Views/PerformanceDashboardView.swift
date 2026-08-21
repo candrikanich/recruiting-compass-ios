@@ -51,6 +51,7 @@ struct PerformanceDashboardView: View {
             title: String(localized: "Log Performance Metric"),
             submitLabel: String(localized: "Log Metric"),
             isSubmitting: viewModel.isSubmitting,
+            sport: viewModel.playerSport,
             onSubmit: { Task { await viewModel.addMetric() } },
             onCancel: { viewModel.showAddForm = false }
           )
@@ -68,6 +69,7 @@ struct PerformanceDashboardView: View {
             title: String(localized: "Edit Performance Metric"),
             submitLabel: String(localized: "Save Changes"),
             isSubmitting: viewModel.isSubmitting,
+            sport: viewModel.playerSport,
             onSubmit: { Task { await viewModel.updateMetric() } },
             onCancel: {
               viewModel.showEditSheet = false

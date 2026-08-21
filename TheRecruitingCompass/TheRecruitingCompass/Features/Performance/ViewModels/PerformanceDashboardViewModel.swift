@@ -36,6 +36,7 @@ final class PerformanceDashboardViewModel {
   let performanceService: any PerformanceManaging
   private let familyManager: FamilyManager
   private let authManager: any AuthManaging
+  private let preferenceService: any PreferenceManaging
 
   /// The user whose metrics we read/write. When a parent is viewing an
   /// athlete, metrics belong to the athlete (mirrors web +
@@ -43,6 +44,11 @@ final class PerformanceDashboardViewModel {
   private var targetUserId: String? {
     familyManager.selectedAthlete?.userId ?? authManager.user?.id
   }
+
+  /// The athlete's `primary_sport`, for filtering the Metric Type picker.
+  /// Loaded alongside metrics in `loadMetrics()`; a fetch failure leaves this
+  /// nil, which falls back to `MetricRegistry`'s default baseball order.
+  private(set) var playerSport: String?
   private static let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
@@ -74,8 +80,10 @@ final class PerformanceDashboardViewModel {
   private func recomputeDerivedMetrics() {
     sortedMetrics = metrics.sorted { $0.recordedDate > $1.recordedDate }
 
-    let types = Set(metrics.map(\.metricType))
-    availableMetricTypes = MetricType.allCases.filter { types.contains($0) }
+    let logged = Set(metrics.map(\.metricType))
+    let ordered = MetricRegistry.types(forSport: playerSport).map(MetricType.init(rawValue:))
+    availableMetricTypes = ordered.filter { logged.contains($0) }
+      + logged.subtracting(ordered).sorted { $0.displayName < $1.displayName }
 
     activeMetricType = selectedMetricType ?? availableMetricTypes.first
 
@@ -133,11 +141,13 @@ final class PerformanceDashboardViewModel {
     performanceService: (any PerformanceManaging)? = nil,
     familyManager: FamilyManager? = nil,
     authManager: (any AuthManaging)? = nil,
+    preferenceService: (any PreferenceManaging)? = nil,
     cache: (any CacheManaging)? = nil
   ) {
     self.performanceService = performanceService ?? PerformanceServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
+    self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.cache = cache
   }
 
@@ -163,6 +173,10 @@ final class PerformanceDashboardViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
+    // Load the athlete's sport first so `availableMetricTypes` (recomputed as
+    // a `metrics` didSet below) orders by the real sport, not the fallback.
+    await loadPlayerSport(userId: userId)
+
     let cacheKey = ListCacheKeys.metrics(userId: userId)
     let cacheToUse = cache ?? InMemoryCache.shared
 
@@ -182,16 +196,29 @@ final class PerformanceDashboardViewModel {
     }
   }
 
+  /// Fetches the athlete's `primary_sport` for the Metric Type picker's sort
+  /// order. Best-effort: a failure here must never block metric loading, so
+  /// it's swallowed and `playerSport` stays nil (falls back to the default
+  /// baseball order in `MetricRegistry`).
+  private func loadPlayerSport(userId: String) async {
+    do {
+      let details: PlayerDetails? = try await preferenceService.fetchPreferences(category: .player, userId: userId)
+      playerSport = details?.primarySport
+    } catch {
+      logger.warning("Failed to load player sport: \(error.localizedDescription)")
+    }
+  }
+
   func addMetric() async {
     guard let userId = targetUserId else { return }
     guard addFormState.isValid, let parsedValue = addFormState.parsedValue else { return }
-    guard let type = addFormState.metricType else { return }
+    guard let type = addFormState.metricType, let metricKey = addFormState.resolvedMetricKey else { return }
 
     isSubmitting = true
     defer { isSubmitting = false }
 
     let request = MetricCreateRequest(
-      metricType: type.rawValue,
+      metricType: metricKey,
       value: parsedValue,
       unit: addFormState.unit.isEmpty ? type.defaultUnit : addFormState.unit,
       recordedDate: Self.dateFormatter.string(from: addFormState.recordedDate),
@@ -223,13 +250,13 @@ final class PerformanceDashboardViewModel {
   func updateMetric() async {
     guard let metric = editingMetric else { return }
     guard editFormState.isValid, let parsedValue = editFormState.parsedValue else { return }
-    guard let type = editFormState.metricType else { return }
+    guard let type = editFormState.metricType, let metricKey = editFormState.resolvedMetricKey else { return }
 
     isSubmitting = true
     defer { isSubmitting = false }
 
     let request = MetricUpdateRequest(
-      metricType: type.rawValue,
+      metricType: metricKey,
       value: parsedValue,
       unit: editFormState.unit.isEmpty ? type.defaultUnit : editFormState.unit,
       recordedDate: Self.dateFormatter.string(from: editFormState.recordedDate),

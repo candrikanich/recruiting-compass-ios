@@ -8,6 +8,9 @@ struct EventMetricForm: View {
   }
 
   @Binding var data: NewMetricData
+  /// The athlete's `primary_sport` — filters the Metric Type picker to that
+  /// sport's metrics (falls back to the default baseball order when nil).
+  let sport: String?
   let isSaving: Bool
   let onSave: () -> Void
   let onCancel: () -> Void
@@ -15,7 +18,7 @@ struct EventMetricForm: View {
   var body: some View {
     VStack(spacing: Layout.contentSpacing) {
       Picker("Metric Type", selection: $data.metricType) {
-        ForEach(MetricType.allCases) { type in
+        ForEach(MetricRegistry.types(forSport: sport).map(MetricType.init(rawValue:))) { type in
           Text(type.displayName).tag(type)
         }
       }

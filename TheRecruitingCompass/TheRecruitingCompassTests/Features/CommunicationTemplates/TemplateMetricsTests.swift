@@ -24,9 +24,9 @@ final class TemplateMetricsTests: XCTestCase {
     let out = TemplateResolver.computed["metrics"]?(ctx(metrics)) ?? ""
     let lines = out.split(separator: "\n").map(String.init)
     XCTAssertEqual(lines.count, 4, "capped at 4")
-    XCTAssertEqual(lines[0], "- exit velo: 95 mph (PBR, Jun 2025)", "primary leads, provenance appended")
-    XCTAssertEqual(lines[1], "- pop time: 1.9s (Jan 2025)", "verified next; date-only provenance")
-    XCTAssertTrue(lines[2].contains("velocity"), "then most recent recorded_date")
+    XCTAssertEqual(lines[0], "- Exit Velocity: 95 mph (PBR, Jun 2025)", "primary leads, provenance appended")
+    XCTAssertEqual(lines[1], "- Pop Time: 1.9s (Jan 2025)", "verified next; date-only provenance")
+    XCTAssertTrue(lines[2].contains("Fastball Velocity"), "then most recent recorded_date")
   }
 
   func test_renderMetricsDedupesToMostRecentPerType() {
@@ -58,7 +58,7 @@ final class TemplateMetricsTests: XCTestCase {
       m("exit_velo", display: "95 mph", primary: true),
       m("sixty_time", display: "6.8s")
     ]))
-    XCTAssertEqual(out, "95 mph exit velo")
+    XCTAssertEqual(out, "95 mph Exit Velocity")
   }
 
   func test_carryingToolNilWhenNoPrimary() {
@@ -67,7 +67,7 @@ final class TemplateMetricsTests: XCTestCase {
 
   func test_metricDisplayFallsBackToValueUnit() {
     let out = TemplateResolver.computed["metrics"]?(ctx([m("velocity", 88, primary: true, unit: "mph")]))
-    XCTAssertEqual(out, "- velocity: 88.0 mph")   // type-aware: velocity renders to a tenth
+    XCTAssertEqual(out, "- Fastball Velocity: 88.0 mph")   // type-aware: velocity renders to a tenth
   }
 
   func test_metricsAsOfLatestMonthYear() {
@@ -80,5 +80,15 @@ final class TemplateMetricsTests: XCTestCase {
 
   func test_emptyMetricsNil() {
     XCTAssertNil(TemplateResolver.computed["metrics"]?(ctx([])))
+  }
+
+  func test_renderMetricsUsesRegistryLabelForKnownType() {
+    let out = TemplateResolver.computed["metrics"]?(ctx([m("batting_avg", 0.410, primary: true)])) ?? ""
+    XCTAssertTrue(out.contains("Batting Average: .410"), "known type uses the registry's human label")
+  }
+
+  func test_renderMetricsHumanizesUnknownType() {
+    let out = TemplateResolver.computed["metrics"]?(ctx([m("wingspan_reach", 32, primary: true)])) ?? ""
+    XCTAssertTrue(out.contains("wingspan reach: 32"), "unknown type falls back to underscore-humanized label")
   }
 }
