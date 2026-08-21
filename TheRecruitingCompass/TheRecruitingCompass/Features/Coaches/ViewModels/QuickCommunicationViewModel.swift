@@ -264,6 +264,68 @@ final class QuickCommunicationViewModel {
     }
   }
 
+  // MARK: - Unified missing-info step
+
+  /// One row in the "Complete your info" step — a single unresolved thing the current
+  /// template needs, mapped to a consistent editor. Replaces the old scattered surfaces
+  /// (inline vars panel, metrics sheet CTA, separate specificity step, two pre-send alerts).
+  struct MissingInfoField: Identifiable, Equatable {
+    enum Editor: Equatable { case text(multiline: Bool), boolean, metricLink }
+    let id: String            // token key
+    let title: String
+    let prompt: String
+    let editor: Editor
+    /// `false` for the specificity fields the athlete must answer in their own voice —
+    /// a parent viewing the sheet sees them locked with an "ask the athlete" note.
+    let editableByParent: Bool
+  }
+
+  /// The template's UNRESOLVED needs as ordered rows (missing-only). Empty when the template
+  /// resolves fully → the step auto-skips straight to Preview. Order is fixed here (not
+  /// first-seen in the text) so the step reads the same regardless of template authoring.
+  var missingInfoFields: [MissingInfoField] {
+    guard selectedTemplate != nil else { return [] }
+    var rows: [MissingInfoField] = []
+
+    if shouldPromptQuestionnaire {
+      rows.append(.init(id: "questionnaireNote", title: String(localized: "Recruiting questionnaire"),
+        prompt: String(localized: "Did you complete \(schoolDisplayName)'s recruiting questionnaire?"),
+        editor: .boolean, editableByParent: true))
+    }
+    if shouldPromptIntendedMajor {
+      rows.append(.init(id: "intendedMajor", title: String(localized: "Intended major"),
+        prompt: String(localized: "What do you plan to study?"),
+        editor: .text(multiline: false), editableByParent: true))
+    }
+
+    let authored = referencedVariables.filter { $0.isAuthored && !$0.isResolved }
+    func authoredRef(_ key: String) -> Bool { authored.contains { $0.key == key } }
+    if authoredRef("programNote") {
+      rows.append(.init(id: "programNote", title: String(localized: "Why this program?"),
+        prompt: String(localized: "What draws you to this program specifically?"),
+        editor: .text(multiline: true), editableByParent: false))
+    }
+    if authoredRef("fitReason") {
+      rows.append(.init(id: "fitReason", title: String(localized: "Why does it fit you?"),
+        prompt: String(localized: "How do you fit their style, level, or needs?"),
+        editor: .text(multiline: true), editableByParent: false))
+    }
+    for ref in authored where !["programNote", "fitReason", "intendedMajor"].contains(ref.key) {
+      rows.append(.init(id: ref.key, title: ref.label, prompt: "",
+        editor: .text(multiline: false), editableByParent: true))
+    }
+
+    if suggestsAddingMetrics {
+      rows.append(.init(id: "metrics", title: String(localized: "Add a performance metric"),
+        prompt: String(localized: "Coaches want to see your numbers."),
+        editor: .metricLink, editableByParent: true))
+    }
+    return rows
+  }
+
+  /// Whether the "Complete your info" step has anything to collect for this template.
+  var hasMissingInfo: Bool { !missingInfoFields.isEmpty }
+
   // MARK: - Intended-major pre-send prompt
 
   /// Draft the athlete types into the pre-send "add your intended major" prompt.
@@ -471,6 +533,42 @@ final class QuickCommunicationViewModel {
     sendArmed = false
     intendedMajorPromptHandled = false
     questionnairePromptHandled = false
+    questionnaireMarkedCompleted = false
+    intendedMajorDraft = ""
+  }
+
+  /// Toggled by the questionnaire row on the unified step; `commitMissingInfo` persists
+  /// completion when true, otherwise the optional token is stripped from the sent message.
+  var questionnaireMarkedCompleted = false
+
+  /// Two-way text binding for a missing-info row: the prefs-backed major writes the draft,
+  /// every other (authored) key writes straight into `authoredValues`.
+  func missingInfoBinding(for field: MissingInfoField) -> Binding<String> {
+    guard field.id == "intendedMajor" else { return authoredBinding(for: field.id) }
+    return Binding(get: { [weak self] in self?.intendedMajorDraft ?? "" },
+                   set: { [weak self] in self?.intendedMajorDraft = $0 })
+  }
+
+  /// Persist the answers that live outside the in-memory authored map — the intended major
+  /// (player prefs) and the questionnaire flag (schools) — then re-resolve so preview reflects
+  /// everything. Authored vars already flow through `authoredValues`, so they need no persist.
+  /// Always safe to call: no-ops the fields the current template didn't ask for.
+  func commitMissingInfo() async {
+    if shouldPromptQuestionnaire {
+      if questionnaireMarkedCompleted {
+        await confirmQuestionnaireCompleted()
+      } else {
+        skipQuestionnairePrompt()
+      }
+    }
+    if shouldPromptIntendedMajor {
+      if intendedMajorDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        skipIntendedMajorPrompt()
+      } else {
+        await saveIntendedMajor()
+      }
+    }
+    await loadResolverInputs()
   }
 
   /// Maximum body length for mailto/sms URLs. Launch Services fails (-10814) when URLs exceed system limits.

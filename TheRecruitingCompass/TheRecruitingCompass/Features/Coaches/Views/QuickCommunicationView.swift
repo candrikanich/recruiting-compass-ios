@@ -14,7 +14,6 @@ struct QuickCommunicationView: View {
   @State private var showInfoToast = false
   @State private var infoMessage: String?
   @State private var showMetricsSheet = false
-  @State private var pendingSendChannel: PendingSendChannel?
   @Environment(\.openURL) private var openURL
   @Environment(\.dismiss) private var dismiss
   @Environment(FamilyManager.self) private var familyManager
@@ -31,32 +30,6 @@ struct QuickCommunicationView: View {
   private enum ActiveComposer: Identifiable {
     case mail, message
     var id: Self { self }
-  }
-
-  private enum PendingSendChannel { case email, text }
-
-  /// Stash which channel wanted to send, surface the intended-major prompt, and resume
-  /// that send once the athlete saves or skips.
-  private func promptIntendedMajor(then channel: PendingSendChannel) {
-    pendingSendChannel = channel
-    viewModel.intendedMajorDraft = ""
-    viewModel.showIntendedMajorPrompt = true
-  }
-
-  /// Stash the send channel and surface the questionnaire prompt; the answer resumes
-  /// the send (which then re-checks the remaining pre-send prompts before composing).
-  private func promptQuestionnaire(then channel: PendingSendChannel) {
-    pendingSendChannel = channel
-    viewModel.showQuestionnairePrompt = true
-  }
-
-  private func resumePendingSend() {
-    switch pendingSendChannel {
-    case .email: handleSendEmail()
-    case .text: handleSendText()
-    case nil: break
-    }
-    pendingSendChannel = nil
   }
 
   var body: some View {
@@ -92,8 +65,8 @@ struct QuickCommunicationView: View {
           templateScreen(channel: channel)
         case .details(let channel):
           detailsScreen(channel: channel)
-        case .specificity(let channel):
-          specificityScreen(channel: channel)
+        case .completeInfo(let channel):
+          completeInfoScreen(channel: channel)
         case .preview(let channel):
           previewScreen(channel: channel)
         }
@@ -161,16 +134,6 @@ struct QuickCommunicationView: View {
         if channel == .email {
           QuickCommSubjectField(subject: subjectBinding)
         }
-        if viewModel.suggestsAddingMetrics {
-          QuickCommAddMetricCTA { showMetricsSheet = true }
-        }
-        if !viewModel.referencedVariables.isEmpty {
-          QuickCommVariablesPanel(
-            variables: viewModel.referencedVariables,
-            isParent: familyManager.currentMember?.isParent == true,
-            authoredBinding: { viewModel.authoredBinding(for: $0) }
-          )
-        }
         QuickCommBodyEditor(
           text: bodyBinding,
           isTextMessage: channel == .text,
@@ -183,16 +146,12 @@ struct QuickCommunicationView: View {
     }
     .navigationTitle("Fill in the Details")
     .navigationBarTitleDisplayMode(.inline)
-    .sheet(isPresented: $showMetricsSheet, onDismiss: {
-      Task { await viewModel.loadResolverInputs() }  // pick up any metric just added
-    }) {
-      NavigationStack { PerformanceDashboardView() }
-    }
     .safeAreaInset(edge: .bottom) {
       Button {
-        // Route through the focused "why this program" step when it's still unanswered.
-        path.append(viewModel.needsSpecificityPrompt
-          ? QuickCommStep.specificity(channel) : QuickCommStep.preview(channel))
+        // Collect any unresolved template data in the unified step; skip straight to
+        // preview when the template resolves fully.
+        path.append(viewModel.hasMissingInfo
+          ? QuickCommStep.completeInfo(channel) : QuickCommStep.preview(channel))
       } label: {
         Text("Preview & Send")
           .font(.body.weight(.medium))
@@ -206,31 +165,26 @@ struct QuickCommunicationView: View {
     }
   }
 
-  // MARK: - Step 3b: Make it specific (why this program / why it fits)
+  // MARK: - Step 3b: Complete your info (unified missing-data collection)
 
+  /// One consistent form for every unresolved thing the template needs — the single
+  /// replacement for the old inline vars panel, metrics CTA, separate specificity step,
+  /// and two pre-send alerts. Continue is always enabled (required tokens still gate the
+  /// actual Send at preview); persists prefs-backed answers, then routes to preview.
   @ViewBuilder
-  private func specificityScreen(channel: QuickCommChannel) -> some View {
+  private func completeInfoScreen(channel: QuickCommChannel) -> some View {
+    let isParent = familyManager.currentMember?.isParent == true
     ScrollView {
       VStack(alignment: .leading, spacing: 16) {
-        Text("Make it specific to \(viewModel.schoolDisplayName)")
-          .font(.headline)
-        Text("Coaches ignore generic emails. A sentence or two on why this program — "
-          + "and why you fit — makes yours stand out. You can skip and send without it.")
+        Text("A few details make this message land with \(viewModel.schoolDisplayName).")
           .font(.caption)
           .foregroundStyle(.secondary)
 
-        QuickCommSpecificityField(
-          title: String(localized: "Why this program?"),
-          prompt: String(localized: "What draws you to this program specifically?"),
-          text: viewModel.authoredBinding(for: "programNote"),
-          disabled: familyManager.currentMember?.isParent == true)
-        QuickCommSpecificityField(
-          title: String(localized: "Why does it fit you?"),
-          prompt: String(localized: "How do you fit their style, level, or needs?"),
-          text: viewModel.authoredBinding(for: "fitReason"),
-          disabled: familyManager.currentMember?.isParent == true)
+        ForEach(viewModel.missingInfoFields) { field in
+          missingInfoRow(field, isParent: isParent)
+        }
 
-        if familyManager.currentMember?.isParent == true {
+        if isParent && viewModel.missingInfoFields.contains(where: { !$0.editableByParent }) {
           Text("Ask the athlete to answer these.")
             .font(.caption2)
             .foregroundStyle(.tertiary)
@@ -238,22 +192,51 @@ struct QuickCommunicationView: View {
       }
       .padding()
     }
-    .navigationTitle("Make It Specific")
+    .navigationTitle("Complete Your Info")
     .navigationBarTitleDisplayMode(.inline)
+    .sheet(isPresented: $showMetricsSheet, onDismiss: {
+      Task { await viewModel.loadResolverInputs() }  // pick up any metric just added
+    }) {
+      NavigationStack { PerformanceDashboardView() }
+    }
     .safeAreaInset(edge: .bottom) {
-      HStack(spacing: 12) {
-        Button("Skip for now") { path.append(QuickCommStep.preview(channel)) }
-          .buttonStyle(.bordered)
-          .accessibilityIdentifier("quickCommSpecificitySkip")
-        Button {
+      Button {
+        Task {
+          await viewModel.commitMissingInfo()  // persist prefs-backed + questionnaire answers
           path.append(QuickCommStep.preview(channel))
-        } label: {
-          Text("Continue").frame(maxWidth: .infinity).padding(.vertical, 4)
         }
-        .buttonStyle(.borderedProminent)
+      } label: {
+        Text("Continue")
+          .font(.body.weight(.medium))
+          .frame(maxWidth: .infinity)
+          .padding(.vertical, 12)
       }
+      .buttonStyle(.borderedProminent)
       .padding()
       .background(.bar)
+      .accessibilityIdentifier("quickCommCompleteInfoContinue")
+    }
+  }
+
+  /// Renders one missing-info field with the editor its descriptor calls for.
+  @ViewBuilder
+  private func missingInfoRow(
+    _ field: QuickCommunicationViewModel.MissingInfoField, isParent: Bool) -> some View {
+    switch field.editor {
+    case .text(let multiline):
+      QuickCommSpecificityField(
+        title: field.title,
+        prompt: field.prompt,
+        text: viewModel.missingInfoBinding(for: field),
+        disabled: isParent && !field.editableByParent,
+        singleLine: !multiline)
+    case .boolean:
+      QuickCommQuestionnaireField(
+        title: field.title,
+        prompt: field.prompt,
+        completed: $viewModel.questionnaireMarkedCompleted)
+    case .metricLink:
+      QuickCommAddMetricCTA { showMetricsSheet = true }
     }
   }
 
@@ -302,22 +285,6 @@ struct QuickCommunicationView: View {
     .sheet(item: $activeComposer) { composer in
       composerSheet(for: composer)
     }
-    .alert("Add your intended major?", isPresented: $viewModel.showIntendedMajorPrompt) {
-      TextField("e.g. Business, Kinesiology", text: $viewModel.intendedMajorDraft)
-      Button("Save") { Task { await viewModel.saveIntendedMajor(); resumePendingSend() } }
-      Button("Skip", role: .cancel) { viewModel.skipIntendedMajorPrompt(); resumePendingSend() }
-    } message: {
-      Text("This template mentions what you plan to study. Add it to include it, or skip to leave it out.")
-    }
-    .alert("Did you complete \(viewModel.schoolDisplayName)'s recruiting questionnaire?",
-           isPresented: $viewModel.showQuestionnairePrompt) {
-      Button("Yes, I completed it") {
-        Task { await viewModel.confirmQuestionnaireCompleted(); resumePendingSend() }
-      }
-      Button("Skip", role: .cancel) { viewModel.skipQuestionnairePrompt(); resumePendingSend() }
-    } message: {
-      Text("Marks it complete and adds \"I've completed your recruiting questionnaire\" to this message.")
-    }
     .toast(isShowing: $showSuccessToast, message: $viewModel.successMessage, type: .success, duration: 3.0)
     .toast(isShowing: $showInfoToast, message: $infoMessage, type: .info, duration: 3.0)
   }
@@ -339,14 +306,6 @@ struct QuickCommunicationView: View {
   /// Present the in-app mail composer when the device can send mail; otherwise fall back to the
   /// `mailto:` hand-off and log NOTHING (an external hand-off can't confirm the send).
   private func handleSendEmail() {
-    if viewModel.shouldPromptQuestionnaire {
-      promptQuestionnaire(then: .email)
-      return
-    }
-    if viewModel.shouldPromptIntendedMajor {
-      promptIntendedMajor(then: .email)
-      return
-    }
     Task {
       guard await viewModel.evaluateGuardrails(.email) else { return }  // blocked or armed → stop
       if MFMailComposeViewController.canSendMail() {
@@ -362,14 +321,6 @@ struct QuickCommunicationView: View {
   /// Present the in-app message composer when the device can send texts; otherwise fall back to the
   /// `sms:` hand-off and log NOTHING.
   private func handleSendText() {
-    if viewModel.shouldPromptQuestionnaire {
-      promptQuestionnaire(then: .text)
-      return
-    }
-    if viewModel.shouldPromptIntendedMajor {
-      promptIntendedMajor(then: .text)
-      return
-    }
     Task {
       guard await viewModel.evaluateGuardrails(.text) else { return }
       if MFMessageComposeViewController.canSendText() {
@@ -436,7 +387,7 @@ private enum QuickCommChannel: Hashable {
 private enum QuickCommStep: Hashable {
   case template(QuickCommChannel)
   case details(QuickCommChannel)
-  case specificity(QuickCommChannel)
+  case completeInfo(QuickCommChannel)
   case preview(QuickCommChannel)
 }
 
@@ -603,102 +554,53 @@ private struct QuickCommTemplatePicker: View {
 /// Lists the selected template's referenced variables: editable inputs for authored ones,
 /// read-only rows for resolved profile values, and a "complete in your profile" hint for
 /// missing profile-backed ones. Authored inputs are read-only for a parent viewing the athlete.
-private struct QuickCommVariablesPanel: View {
-  let variables: [ReferencedVariable]
-  let isParent: Bool
-  let authoredBinding: (String) -> Binding<String>
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("Fill in the details")
-        .font(.subheadline.weight(.medium))
-        .foregroundStyle(.secondary)
-      ForEach(variables) { variable in
-        row(for: variable)
-      }
-    }
-    .padding(12)
-    .background(Color(uiColor: .secondarySystemBackground))
-    .clipShape(RoundedRectangle(cornerRadius: 10))
-    .accessibilityIdentifier("quickCommVariablesPanel")
-  }
-
-  @ViewBuilder
-  private func row(for variable: ReferencedVariable) -> some View {
-    if variable.isAuthored {
-      authoredRow(variable)
-    } else if variable.isResolved {
-      resolvedRow(variable)
-    } else {
-      missingRow(variable)
-    }
-  }
-
-  private func authoredRow(_ variable: ReferencedVariable) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(variable.label)
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      TextField(variable.label, text: authoredBinding(variable.key), axis: .vertical)
-        .textFieldStyle(.roundedBorder)
-        .disabled(isParent)
-      if isParent {
-        Text("Ask the athlete to fill this")
-          .font(.caption2)
-          .foregroundStyle(.tertiary)
-      }
-    }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "\(variable.label) input"))
-  }
-
-  private func resolvedRow(_ variable: ReferencedVariable) -> some View {
-    HStack(alignment: .firstTextBaseline) {
-      Text(variable.label)
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      Spacer()
-      Text(variable.resolvedValue ?? "")
-        .font(.caption.weight(.medium))
-        .foregroundStyle(.primary)
-        .multilineTextAlignment(.trailing)
-    }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "\(variable.label): \(variable.resolvedValue ?? "")"))
-  }
-
-  private func missingRow(_ variable: ReferencedVariable) -> some View {
-    VStack(alignment: .leading, spacing: 2) {
-      Text(variable.label)
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      Text("Complete in your profile")
-        .font(.caption2)
-        .foregroundStyle(Color.warningOrange)
-    }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "\(variable.label): complete in your profile"))
-  }
-}
-
-/// One labeled multi-line answer on the "make it specific" step (why-program / why-fit).
+/// One labeled text answer on the "Complete your info" step. Multi-line (why-program /
+/// why-fit) by default; `singleLine` for short values like intended major.
 private struct QuickCommSpecificityField: View {
   let title: String
   let prompt: String
   @Binding var text: String
   let disabled: Bool
+  var singleLine: Bool = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text(title)
         .font(.subheadline.weight(.medium))
-      TextField(prompt, text: $text, axis: .vertical)
-        .textFieldStyle(.roundedBorder)
-        .lineLimit(3...6)
-        .disabled(disabled)
+      Group {
+        if singleLine {
+          TextField(prompt, text: $text)
+        } else {
+          TextField(prompt, text: $text, axis: .vertical)
+            .lineLimit(3...6)
+        }
+      }
+      .textFieldStyle(.roundedBorder)
+      .disabled(disabled)
     }
     .accessibilityElement(children: .combine)
     .accessibilityLabel(title)
+  }
+}
+
+/// Boolean "did you complete the questionnaire?" row on the unified step. Replaces the old
+/// yes/no pre-send alert; the toggle drives `commitMissingInfo` (persist on true).
+private struct QuickCommQuestionnaireField: View {
+  let title: String
+  let prompt: String
+  @Binding var completed: Bool
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Text(title)
+        .font(.subheadline.weight(.medium))
+      Toggle(isOn: $completed) {
+        Text(prompt)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+    }
+    .accessibilityIdentifier("quickCommQuestionnaireToggle")
   }
 }
 
