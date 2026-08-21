@@ -10,7 +10,6 @@ struct QuickCommunicationView: View {
   @State private var viewModel: QuickCommunicationViewModel
   @State private var path = NavigationPath()
   @State private var activeComposer: ActiveComposer?
-  @State private var showSuccessToast = false
   @State private var showInfoToast = false
   @State private var infoMessage: String?
   @State private var showMetricsSheet = false
@@ -285,7 +284,6 @@ struct QuickCommunicationView: View {
     .sheet(item: $activeComposer) { composer in
       composerSheet(for: composer)
     }
-    .toast(isShowing: $showSuccessToast, message: $viewModel.successMessage, type: .success, duration: 3.0)
     .toast(isShowing: $showInfoToast, message: $infoMessage, type: .info, duration: 3.0)
   }
 
@@ -354,13 +352,16 @@ struct QuickCommunicationView: View {
     }
   }
 
-  /// Log ONLY on a confirmed `.sent`. `.cancelled`/`.saved`/`.failed` log nothing.
+  /// Log ONLY on a confirmed `.sent`, then close the whole sheet so the user lands back on
+  /// wherever they opened Quick Comm (coach detail / list / dashboard) instead of being
+  /// stranded on the preview screen behind several back taps. `.cancelled`/`.saved`/`.failed`
+  /// log nothing and stay on preview so the send can be retried.
   private func handleMailResult(_ result: MFMailComposeResult) {
     guard result == .sent else { return }
     Task {
       await viewModel.logMessageSend(.email)   // best-effort API log (Phase 3)
       await viewModel.logSend(.email)          // existing interaction log
-      if viewModel.didLogSend { showSuccessToast = true }
+      dismissAfterSend()
     }
   }
 
@@ -369,8 +370,14 @@ struct QuickCommunicationView: View {
     Task {
       await viewModel.logMessageSend(.text)
       await viewModel.logSend(.text)
-      if viewModel.didLogSend { showSuccessToast = true }
+      dismissAfterSend()
     }
+  }
+
+  /// Drop the mail/message composer state and dismiss the Quick Comm sheet.
+  private func dismissAfterSend() {
+    activeComposer = nil
+    dismiss()
   }
 }
 
