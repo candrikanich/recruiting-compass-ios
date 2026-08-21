@@ -24,68 +24,72 @@ struct TimelineStatPills: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      statusPill
-      tasksPill
-      milestonesPill
+      statCard(
+        icon: "gauge.with.dots.needle.bottom.50percent",
+        label: String(localized: "Status"),
+        value: "\(statusScore)/100",
+        accent: statusColor,
+        progress: Double(statusScore),
+        total: 100,
+        accessibility: String(localized: "Status score \(statusScore) out of 100")
+      )
+
+      statCard(
+        icon: "checklist",
+        label: String(localized: "Tasks"),
+        value: "\(taskCompleted)/\(taskTotal)",
+        accent: Color.accentBlue,
+        progress: Double(taskCompleted),
+        total: Double(taskTotal),
+        accessibility: String(localized: "Tasks \(taskCompleted) of \(taskTotal) complete, \(taskPercent) percent")
+      )
+
+      statCard(
+        icon: "flag.checkered",
+        label: String(localized: "Milestones"),
+        value: "\(milestonesCompleted)/\(milestonesTotal)",
+        accent: Color.amberGold,
+        progress: Double(milestonesCompleted),
+        total: Double(milestonesTotal),
+        accessibility: String(localized: "Milestones \(milestonesCompleted) of \(milestonesTotal) complete")
+      )
     }
   }
 
-  @ViewBuilder
-  private var statusPill: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text("Status")
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      HStack(spacing: 6) {
-        Circle()
-          .fill(statusColor)
-          .frame(width: 8, height: 8)
-        Text("\(statusScore)/100")
-          .font(.headline)
+  private func statCard(
+    icon: String,
+    label: String,
+    value: String,
+    accent: Color,
+    progress: Double,
+    total: Double,
+    accessibility: String
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 5) {
+        Image(systemName: icon)
+          .font(.caption)
+          .foregroundStyle(accent)
+        Text(label)
+          .font(.caption)
+          .foregroundStyle(.secondary)
       }
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding()
-    .background(Color(.secondarySystemBackground))
-    .clipShape(RoundedRectangle(cornerRadius: 12))
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "Status score \(statusScore) out of 100"))
-  }
 
-  @ViewBuilder
-  private var tasksPill: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text("Tasks")
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      Text("\(taskCompleted)/\(taskTotal)")
-        .font(.headline)
-      ProgressView(value: Double(taskCompleted), total: max(1, Double(taskTotal)))
-        .tint(Color.accentBlue)
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding()
-    .background(Color(.secondarySystemBackground))
-    .clipShape(RoundedRectangle(cornerRadius: 12))
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "Tasks \(taskCompleted) of \(taskTotal) complete, \(taskPercent) percent"))
-  }
+      Text(value)
+        .font(.title3.weight(.bold))
+        .foregroundStyle(.primary)
+        .contentTransition(.numericText())
 
-  @ViewBuilder
-  private var milestonesPill: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text("Milestones")
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      Text("\(milestonesCompleted)/\(milestonesTotal)")
-        .font(.headline)
+      ProgressView(value: min(progress, total), total: max(1, total))
+        .tint(accent)
+        .scaleEffect(x: 1, y: 0.8, anchor: .center)
     }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding()
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    .padding(12)
     .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "Milestones \(milestonesCompleted) of \(milestonesTotal) complete"))
+    .accessibilityLabel(accessibility)
   }
 }
 

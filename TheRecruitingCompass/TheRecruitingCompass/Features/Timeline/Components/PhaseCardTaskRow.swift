@@ -7,11 +7,28 @@ struct PhaseCardTaskRow: View {
   let onCheckboxTap: () -> Void
   let onLockedTap: () -> Void
 
+  @State private var isExpanded = false
+
   private var isCompleted: Bool { task.effectiveStatus == .completed }
 
   /// Web parity (`components/Timeline/TaskItem.vue`): the failure-risk callout
   /// only surfaces as a phase nears completion, not on every open task.
   private var showFailureRisk: Bool { !isCompleted && phaseProgress >= 75 }
+
+  private var hasDescription: Bool {
+    (task.description?.isEmpty == false)
+  }
+
+  private var hasWhy: Bool {
+    (task.whyItMatters?.isEmpty == false) && !isCompleted
+  }
+
+  private var hasRisk: Bool {
+    (task.failureRisk?.isEmpty == false) && showFailureRisk
+  }
+
+  /// Whether the row has any collapsible detail worth a tap.
+  private var isExpandable: Bool { hasDescription || hasWhy || hasRisk }
 
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
@@ -31,32 +48,55 @@ struct PhaseCardTaskRow: View {
       .buttonStyle(.plain)
 
       VStack(alignment: .leading, spacing: 6) {
-        Text(task.title)
-          .font(.subheadline.weight(.medium))
-          .foregroundStyle(.primary)
+        HStack(alignment: .top, spacing: 8) {
+          Text(task.title)
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-        if let description = task.description, !description.isEmpty {
-          Text(description)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+          if isExpandable {
+            Image(systemName: "chevron.down")
+              .font(.caption.weight(.semibold))
+              .foregroundStyle(.tertiary)
+              .rotationEffect(.degrees(isExpanded ? 180 : 0))
+              .padding(.top, 2)
+          }
         }
 
         badgeRow
 
-        if let why = task.whyItMatters, !why.isEmpty, !isCompleted {
-          calloutBox(title: String(localized: "Why It Matters"), text: why, color: Color.accentBlue)
-        }
+        if isExpanded {
+          if let description = task.description, !description.isEmpty {
+            Text(description)
+              .font(.footnote)
+              .foregroundStyle(.secondary)
+          }
 
-        if let risk = task.failureRisk, !risk.isEmpty, showFailureRisk {
-          calloutBox(title: String(localized: "Don't Miss This"), text: risk, color: Color.amberGold)
+          if hasWhy, let why = task.whyItMatters {
+            calloutBox(title: String(localized: "Why It Matters"), text: why, color: Color.accentBlue)
+          }
+
+          if hasRisk, let risk = task.failureRisk {
+            calloutBox(title: String(localized: "Don't Miss This"), text: risk, color: Color.amberGold)
+          }
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .padding(.vertical, 8)
+    .padding(12)
+    .background(
+      RoundedRectangle(cornerRadius: 10)
+        .fill(Color(.tertiarySystemBackground))
+    )
+    .contentShape(RoundedRectangle(cornerRadius: 10))
+    .onTapGesture {
+      guard isExpandable else { return }
+      withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() }
+    }
     .accessibilityElement(children: .combine)
     .accessibilityLabel(accessibilityLabel)
-    .accessibilityHint(task.isLocked ? "Locked until prerequisites complete" : "Double tap to mark complete")
+    .accessibilityHint(accessibilityHint)
+    .accessibilityAddTraits(isExpandable ? .isButton : [])
   }
 
   @ViewBuilder
@@ -123,5 +163,17 @@ struct PhaseCardTaskRow: View {
     if task.required { parts.append(String(localized: "Required")) }
     parts.append(task.effectiveStatus.displayName)
     return parts.joined(separator: ", ")
+  }
+
+  private var accessibilityHint: String {
+    if task.isLocked {
+      return String(localized: "Locked until prerequisites complete")
+    }
+    if isExpandable {
+      return isExpanded
+        ? String(localized: "Double tap to collapse details")
+        : String(localized: "Double tap to show details")
+    }
+    return String(localized: "Double tap to mark complete")
   }
 }

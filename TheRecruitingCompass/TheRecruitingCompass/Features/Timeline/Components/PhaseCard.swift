@@ -25,43 +25,45 @@ struct PhaseCard: View {
     VStack(alignment: .leading, spacing: 0) {
       Button(action: onToggle) {
         VStack(alignment: .leading, spacing: 12) {
-          HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-              Text(phase.displayLabel)
-                .font(.title3.weight(.bold))
-                .foregroundStyle(.primary)
+          HStack(alignment: .center, spacing: 12) {
+            completionIcon
+
+            VStack(alignment: .leading, spacing: 3) {
+              HStack(spacing: 8) {
+                Text(phase.displayLabel)
+                  .font(.title3.weight(.bold))
+                  .foregroundStyle(.primary)
+                if isCurrentPhase {
+                  currentPhaseBadge
+                }
+              }
               Text(phase.theme)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            VStack(alignment: .trailing, spacing: 4) {
-              completionIcon
+            VStack(alignment: .trailing, spacing: 0) {
               Text("\(completedCount)/\(totalCount)")
                 .font(.title3.weight(.semibold))
+                .monospacedDigit()
               Text("tasks")
-                .font(.caption)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
             }
 
             Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
               .font(.caption.weight(.semibold))
-              .foregroundStyle(.secondary)
+              .foregroundStyle(.tertiary)
           }
 
-          ProgressView(value: Double(completedCount), total: max(1, Double(totalCount)))
-            .tint(isCurrentPhase ? Color.accentBlue : Color.secondary)
-
-          if isCurrentPhase {
-            HStack(spacing: 6) {
-              Circle()
-                .fill(Color.successGreen)
-                .frame(width: 8, height: 8)
-              Text("Current Phase")
-                .font(.caption.weight(.medium))
-                .foregroundStyle(Color.successGreen)
-            }
+          HStack(spacing: 8) {
+            ProgressView(value: Double(completedCount), total: max(1, Double(totalCount)))
+              .tint(isCurrentPhase ? Color.accentBlue : Color.secondary)
+            Text("\(percentComplete)%")
+              .font(.caption.weight(.semibold))
+              .foregroundStyle(.secondary)
+              .monospacedDigit()
           }
         }
         .padding()
@@ -69,8 +71,7 @@ struct PhaseCard: View {
       .buttonStyle(.plain)
 
       if isExpanded, !tasks.isEmpty {
-        Divider()
-        VStack(spacing: 0) {
+        VStack(spacing: 8) {
           ForEach(tasks) { task in
             PhaseCardTaskRow(
               task: task,
@@ -81,7 +82,8 @@ struct PhaseCard: View {
             )
           }
         }
-        .padding()
+        .padding([.horizontal, .bottom])
+        .padding(.top, 4)
       }
     }
     .background(
@@ -96,6 +98,21 @@ struct PhaseCard: View {
     .accessibilityElement(children: .combine)
     .accessibilityLabel(String(localized: "\(phase.displayLabel), \(completedCount) of \(totalCount) tasks complete"))
     .accessibilityHint("Double tap to expand or collapse")
+  }
+
+  private var currentPhaseBadge: some View {
+    HStack(spacing: 4) {
+      Circle()
+        .fill(Color.successGreen)
+        .frame(width: 6, height: 6)
+      Text("Current")
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(Color.successGreen)
+    }
+    .padding(.horizontal, 8)
+    .padding(.vertical, 3)
+    .background(Color.successGreen.opacity(0.12))
+    .clipShape(Capsule())
   }
 
   @ViewBuilder
