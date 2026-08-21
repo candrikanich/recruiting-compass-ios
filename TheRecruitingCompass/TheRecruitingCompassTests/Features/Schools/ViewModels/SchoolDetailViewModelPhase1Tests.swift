@@ -332,6 +332,34 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     XCTAssertFalse(viewModel.isUpdatingStatus)
   }
 
+  func testUpdateStatus_reactivateFromNotPursuing_restoresPriorStage() async {
+    // Reopening from the off-ramp routes through the reactivate RPC, which
+    // restores the pre-park stage (here: visiting) rather than researching.
+    viewModel.school = createMockSchool(status: "not_pursuing")
+    mockSchoolsService.stubbedSchool = createMockSchool(status: "not_pursuing")
+    mockSchoolsService.stubbedReactivateStatus = .visiting
+    mockSchoolsService.stubbedStatusHistory = []
+    let updateCountBefore = mockSchoolsService.updateStatusCallCount
+
+    await viewModel.updateStatus(to: .researching)
+
+    XCTAssertEqual(mockSchoolsService.reactivateSchoolCallCount, 1)
+    XCTAssertEqual(mockSchoolsService.updateStatusCallCount, updateCountBefore)
+    XCTAssertEqual(viewModel.school?.status, "visiting")
+    XCTAssertNil(viewModel.errorMessage)
+  }
+
+  func testUpdateStatus_normalTransition_doesNotReactivate() async {
+    viewModel.school = createMockSchool(status: "researching")
+    mockSchoolsService.stubbedSchool = createMockSchool(status: "contacted")
+    mockSchoolsService.stubbedStatusHistory = []
+
+    await viewModel.updateStatus(to: .contacted)
+
+    XCTAssertEqual(mockSchoolsService.reactivateSchoolCallCount, 0)
+    XCTAssertEqual(viewModel.school?.status, "contacted")
+  }
+
   func testUpdateStatus_Failure_ShowsError() async {
     // Given
     let school = createMockSchool(status: "interested")

@@ -136,6 +136,22 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
     return updatedSchool
   }
 
+  func reactivateSchool(id: String, familyUnitId: String, userId: String) async throws -> School {
+    logger.debug("Reactivating school from not_pursuing: \(id)")
+
+    struct ReactivateParams: Encodable {
+      let p_school_id: String
+      let p_actor: String
+    }
+
+    // RPC restores the prior stage from status history and writes a history row.
+    _ = try await supabaseManager.client
+      .rpc("reactivate_school", params: ReactivateParams(p_school_id: id, p_actor: userId))
+      .execute()
+
+    return try await fetchSchool(id: id, familyUnitId: familyUnitId)
+  }
+
   func fetchStatusHistory(schoolId: String) async throws -> [SchoolStatusHistory] {
     try await logger.fetch("status history") {
       try await supabaseManager.client

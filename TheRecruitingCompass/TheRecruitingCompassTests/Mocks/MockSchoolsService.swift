@@ -137,6 +137,25 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     return stubbedStatusHistory
   }
 
+  var reactivateSchoolCallCount = 0
+  /// Status the mock restores on reactivate (simulates the RPC's prior-stage lookup).
+  var stubbedReactivateStatus: SchoolStatus = .researching
+
+  func reactivateSchool(id: String, familyUnitId: String, userId: String) async throws -> School {
+    reactivateSchoolCallCount += 1
+    if delayDuration > 0 {
+      try await Task.sleep(nanoseconds: UInt64(delayDuration * 1_000_000_000))
+    }
+    if shouldThrowError {
+      throw errorToThrow
+    }
+    guard let school = stubbedSchool else {
+      throw NSError(domain: "MockSchoolsService", code: -1)
+    }
+    stubbedSchool = school.with(status: stubbedReactivateStatus.rawValue)
+    return stubbedSchool!
+  }
+
   // MARK: - Phase 2 Methods
 
   func updateNotes(id: String, notes: String) async throws -> School {
