@@ -25,12 +25,12 @@ struct CoachFollowupRow: View {
       .accessibilityLabel(String(localized: "View \(coach.fullName) profile"))
 
       if coach.contactEmail != nil {
-        iconAction(systemImage: "envelope",
+        iconAction(systemImage: "envelope.fill",
                    label: String(localized: "Email \(coach.fullName)"),
                    action: onEmail)
       }
       if coach.contactPhone != nil {
-        iconAction(systemImage: "message",
+        iconAction(systemImage: "message.fill",
                    label: String(localized: "Text \(coach.fullName)"),
                    action: onText)
       }
@@ -49,16 +49,19 @@ struct CoachFollowupRow: View {
     .padding(.vertical, 6)
   }
 
-  /// Compact trailing action: a small icon with a full 44×44 hit target.
+  /// Compact trailing action: a 36pt tinted circle bubble centered in a 44pt HIG tap target.
   private func iconAction(systemImage: String, label: String,
                           action: @escaping () -> Void) -> some View {
     Button(action: action) {
       Image(systemName: systemImage)
-        .font(.body)
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(.tint)
+        .frame(width: 36, height: 36)
+        .background(Color(uiColor: .systemGray6), in: .circle)
         .frame(width: 44, height: 44)
-        .contentShape(Rectangle())
+        .contentShape(.circle)
     }
-    .buttonStyle(.bordered)
+    .buttonStyle(.plain)
     .accessibilityLabel(label)
   }
 }
