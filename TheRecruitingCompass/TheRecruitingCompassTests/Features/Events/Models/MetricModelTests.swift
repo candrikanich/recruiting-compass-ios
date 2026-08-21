@@ -97,10 +97,10 @@ final class MetricModelTests: XCTestCase {
     XCTAssertFalse(MetricType.strikeouts.isLowerBetter)
   }
 
-  // MARK: - MetricType CaseIterable
+  // MARK: - MetricType registry-backed "all cases" (CaseIterable removed)
 
-  func testAllCases_hasExpectedCount() {
-    XCTAssertEqual(MetricType.allCases.count, 8)
+  func testRegistryTypes_hasExpectedCount() {
+    XCTAssertEqual(MetricRegistry.types(forSport: nil).count, 8)
   }
 
   // MARK: - MetricType rawValue (Codable)
@@ -117,8 +117,10 @@ final class MetricModelTests: XCTestCase {
     XCTAssertEqual(MetricType(rawValue: "sixty_time"), .sixtyTime)
   }
 
-  func testRawValue_fromString_invalid() {
-    XCTAssertNil(MetricType(rawValue: "unknown_metric"))
+  // Struct wrapper: init is non-failable — an unknown key produces a MetricType
+  // with that raw string rather than nil (unlike the old closed enum).
+  func testRawValue_fromString_unknown_producesInstance() {
+    XCTAssertEqual(MetricType(rawValue: "unknown_metric").rawValue, "unknown_metric")
   }
 
   // MARK: - PerformanceMetric formattedValue

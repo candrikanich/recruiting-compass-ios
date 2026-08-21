@@ -14,8 +14,9 @@ struct EventMetricForm: View {
 
   var body: some View {
     VStack(spacing: Layout.contentSpacing) {
+      // TODO(task-5/6/7): sport-filter
       Picker("Metric Type", selection: $data.metricType) {
-        ForEach(MetricType.allCases) { type in
+        ForEach(MetricRegistry.types(forSport: nil).map(MetricType.init(rawValue:))) { type in
           Text(type.displayName).tag(type)
         }
       }

@@ -19,9 +19,10 @@ struct MetricFormView: View {
           Text("Metric Type")
             .font(.subheadline)
             .fontWeight(.medium)
+          // TODO(task-5/6/7): sport-filter
           Picker("Metric Type", selection: $formState.metricType) {
             Text("Select Metric").tag(nil as MetricType?)
-            ForEach(MetricType.allCases) { type in
+            ForEach(MetricRegistry.types(forSport: nil).map(MetricType.init(rawValue:))) { type in
               Text(type.displayName).tag(type as MetricType?)
             }
           }

@@ -75,7 +75,9 @@ final class PerformanceDashboardViewModel {
     sortedMetrics = metrics.sorted { $0.recordedDate > $1.recordedDate }
 
     let types = Set(metrics.map(\.metricType))
-    availableMetricTypes = MetricType.allCases.filter { types.contains($0) }
+    // TODO(task-5/6/7): sport-filter
+    availableMetricTypes = MetricRegistry.types(forSport: nil).map(MetricType.init(rawValue:))
+      .filter { types.contains($0) }
 
     activeMetricType = selectedMetricType ?? availableMetricTypes.first
 

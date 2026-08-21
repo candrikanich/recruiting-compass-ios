@@ -107,7 +107,8 @@ enum TemplateComputed {
   /// Type-aware value formatting (batting avg `.410`, ERA `3.45`, velocity `82.3`, …), matching
   /// the metric cards. Unknown/absent types fall back to the plain whole-or-raw `nf`.
   private static func formatValue(_ v: Double, type: String?) -> String {
-    MetricType(rawValue: type ?? "")?.format(v) ?? nf(v)
+    if let def = MetricRegistry.knownDef(for: type ?? "") { return def.format.apply(v) }
+    return nf(v)
   }
 
   private static func metricDisplay(_ m: TemplateMetricRow) -> String {

@@ -27,30 +27,36 @@ final class MetricTypeTests: XCTestCase {
     XCTAssertEqual(MetricType(rawValue: "other"), .other)
   }
 
-  func testInit_FromInvalidRawValue_ReturnsNil() {
-    XCTAssertNil(MetricType(rawValue: "invalid"))
-    XCTAssertNil(MetricType(rawValue: ""))
-    XCTAssertNil(MetricType(rawValue: "VELOCITY"))
+  // Struct wrapper: init is non-failable — any string produces a valid instance
+  // (unknown keys fall back to `MetricRegistry.def(for:)`'s synthesized default).
+  func testInit_FromUnknownRawValue_ProducesInstance() {
+    XCTAssertEqual(MetricType(rawValue: "invalid").rawValue, "invalid")
+    XCTAssertEqual(MetricType(rawValue: "").rawValue, "")
+    XCTAssertEqual(MetricType(rawValue: "VELOCITY").rawValue, "VELOCITY")
   }
 
-  // MARK: - CaseIterable Tests
+  // MARK: - Registry-backed "all cases" (allCases removed with CaseIterable)
 
-  func testCaseIterable_ContainsAllCases() {
-    XCTAssertEqual(MetricType.allCases.count, 8)
-    XCTAssertTrue(MetricType.allCases.contains(.velocity))
-    XCTAssertTrue(MetricType.allCases.contains(.exitVelo))
-    XCTAssertTrue(MetricType.allCases.contains(.sixtyTime))
-    XCTAssertTrue(MetricType.allCases.contains(.popTime))
-    XCTAssertTrue(MetricType.allCases.contains(.battingAvg))
-    XCTAssertTrue(MetricType.allCases.contains(.era))
-    XCTAssertTrue(MetricType.allCases.contains(.strikeouts))
-    XCTAssertTrue(MetricType.allCases.contains(.other))
+  private var allLegacyTypes: [MetricType] {
+    MetricRegistry.types(forSport: nil).map(MetricType.init(rawValue:))
+  }
+
+  func testRegistryTypes_ContainsAllLegacyCases() {
+    XCTAssertEqual(allLegacyTypes.count, 8)
+    XCTAssertTrue(allLegacyTypes.contains(.velocity))
+    XCTAssertTrue(allLegacyTypes.contains(.exitVelo))
+    XCTAssertTrue(allLegacyTypes.contains(.sixtyTime))
+    XCTAssertTrue(allLegacyTypes.contains(.popTime))
+    XCTAssertTrue(allLegacyTypes.contains(.battingAvg))
+    XCTAssertTrue(allLegacyTypes.contains(.era))
+    XCTAssertTrue(allLegacyTypes.contains(.strikeouts))
+    XCTAssertTrue(allLegacyTypes.contains(.other))
   }
 
   // MARK: - Identifiable Tests
 
   func testIdentifiable_IdEqualsRawValue() {
-    for type in MetricType.allCases {
+    for type in allLegacyTypes {
       XCTAssertEqual(type.id, type.rawValue, "id should equal rawValue for \(type)")
     }
   }
@@ -58,7 +64,7 @@ final class MetricTypeTests: XCTestCase {
   // MARK: - displayName Tests
 
   func testDisplayName_AllCasesHaveNonEmptyName() {
-    for type in MetricType.allCases {
+    for type in allLegacyTypes {
       XCTAssertFalse(type.displayName.isEmpty, "displayName should not be empty for \(type)")
     }
   }
@@ -101,7 +107,7 @@ final class MetricTypeTests: XCTestCase {
   // Every locked unit must be a member of the shared vocabulary, or iOS would store a
   // unit the web modal can't produce — the exact cross-platform drift this guards against.
   func testDefaultUnit_AllMembersOfVocabulary() {
-    for type in MetricType.allCases {
+    for type in allLegacyTypes {
       XCTAssertTrue(MetricType.unitVocabulary.contains(type.defaultUnit),
                     "\(type).defaultUnit '\(type.defaultUnit)' not in unitVocabulary")
     }
@@ -141,10 +147,14 @@ final class MetricTypeTests: XCTestCase {
     XCTAssertEqual(type, .sixtyTime)
   }
 
-  func testCodable_ThrowsForInvalidValue() {
+  // Struct wrapper: init is non-failable, so an unknown key decodes successfully
+  // as a MetricType with that raw string (unlike the old closed enum, which
+  // threw). Unknown keys still format sensibly via `MetricRegistry.def(for:)`.
+  func testCodable_DecodesUnknownValueVerbatim() throws {
     let json = "\"invalid_type\"".data(using: .utf8)!
     let decoder = JSONDecoder()
+    let type = try decoder.decode(MetricType.self, from: json)
 
-    XCTAssertThrowsError(try decoder.decode(MetricType.self, from: json))
+    XCTAssertEqual(type.rawValue, "invalid_type")
   }
 }
