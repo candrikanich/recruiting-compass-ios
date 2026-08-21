@@ -502,6 +502,46 @@ final class AddInteractionViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.pageTitle, "Log Interaction")
   }
 
+  // MARK: - Auto-advance toast (contactedAdvanceMessage)
+
+  private func primeValidForm(schoolId: String) {
+    viewModel.formState.schoolId = schoolId
+    viewModel.formState.type = .email
+    viewModel.formState.direction = .outbound
+    viewModel.formState.content = "Test"
+    mockService.mockCreatedInteraction = createInteraction(id: "new-1")
+  }
+
+  func testSubmitInteraction_setsAdvanceMessage_whenSchoolPreContact() async {
+    viewModel.schools = [createSchool(id: "school1", name: "School 1", status: "researching")]
+    primeValidForm(schoolId: "school1")
+
+    let success = await viewModel.submitInteraction()
+
+    XCTAssertTrue(success)
+    XCTAssertEqual(viewModel.contactedAdvanceMessage, "School 1 moved to Contacted")
+  }
+
+  func testSubmitInteraction_noAdvanceMessage_whenSchoolAlreadyContacted() async {
+    viewModel.schools = [createSchool(id: "school1", name: "School 1", status: "contacted")]
+    primeValidForm(schoolId: "school1")
+
+    let success = await viewModel.submitInteraction()
+
+    XCTAssertTrue(success)
+    XCTAssertNil(viewModel.contactedAdvanceMessage)
+  }
+
+  func testSubmitInteraction_noAdvanceMessage_whenSchoolPastContacted() async {
+    viewModel.schools = [createSchool(id: "school1", name: "School 1", status: "visiting")]
+    primeValidForm(schoolId: "school1")
+
+    let success = await viewModel.submitInteraction()
+
+    XCTAssertTrue(success)
+    XCTAssertNil(viewModel.contactedAdvanceMessage)
+  }
+
   func testSubmitButtonTitle_Default() {
     viewModel.isSubmitting = false
     XCTAssertEqual(viewModel.submitButtonTitle, "Log Interaction")
@@ -520,7 +560,7 @@ final class AddInteractionViewModelTests: XCTestCase {
     }
   }
 
-  private func createSchool(id: String, name: String) -> School {
+  private func createSchool(id: String, name: String, status: String = "researching") -> School {
     School(
       id: id,
       userId: "user1",
@@ -537,7 +577,7 @@ final class AddInteractionViewModelTests: XCTestCase {
       twitterHandle: nil,
       instagramHandle: nil,
       ncaaId: nil,
-      status: "researching",
+      status: status,
       statusChangedAt: nil,
       notes: nil,
       pros: [],

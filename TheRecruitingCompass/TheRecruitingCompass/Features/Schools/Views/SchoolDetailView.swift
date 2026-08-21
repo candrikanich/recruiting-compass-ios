@@ -10,6 +10,8 @@ struct SchoolDetailView: View {
   @Environment(\.filterCoachesBySchool) private var filterCoachesBySchool
   @State private var navigationDestination: NavigationDestination?
   @State private var showHomeLocationSheet = false
+  @State private var showAdvanceToast = false
+  @State private var advanceToastMessage: String?
   private let preferenceService: any PreferenceManaging = PreferenceServiceImpl(supabaseManager: .shared)
 
   init(schoolId: String) {
@@ -296,7 +298,16 @@ struct SchoolDetailView: View {
           AddInteractionView(
             interactionsService: InteractionsServiceImpl(supabaseManager: .shared),
             familyUnitId: familyUnitId,
-            userId: userId
+            userId: userId,
+            onLogged: { message in
+              // Refresh so the status stepper reflects the auto-advance, and
+              // confirm it with a toast.
+              Task { await viewModel.loadSchool() }
+              if let message {
+                advanceToastMessage = message
+                showAdvanceToast = true
+              }
+            }
           )
         } else {
           ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
@@ -311,6 +322,12 @@ struct SchoolDetailView: View {
         isSaving: viewModel.isSavingBasicInfo
       )
     }
+    .toast(
+      isShowing: $showAdvanceToast,
+      message: $advanceToastMessage,
+      type: .success,
+      duration: 3.0
+    )
   }
 }
 
