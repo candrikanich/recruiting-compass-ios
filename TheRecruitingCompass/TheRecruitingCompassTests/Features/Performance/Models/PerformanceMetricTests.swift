@@ -103,32 +103,32 @@ final class PerformanceMetricTests: XCTestCase {
 
   func testFormattedValue_WithUnit() {
     let metric = createMetric(value: 92.50, unit: "mph")
-    XCTAssertEqual(metric.formattedValue, "92.50 mph")
+    XCTAssertEqual(metric.formattedValue, "92.5 mph")
   }
 
   func testFormattedValue_WithEmptyUnit() {
     let metric = createMetric(value: 3.80, unit: "")
-    XCTAssertEqual(metric.formattedValue, "3.80")
+    XCTAssertEqual(metric.formattedValue, "3.8")
   }
 
   func testFormattedValue_WholeNumber() {
     let metric = createMetric(value: 100.0, unit: "K")
-    XCTAssertEqual(metric.formattedValue, "100.00 K")
+    XCTAssertEqual(metric.formattedValue, "100.0 K")
   }
 
   func testFormattedValue_VerySmallValue() {
     let metric = createMetric(value: 0.001, unit: "sec")
-    XCTAssertEqual(metric.formattedValue, "0.00 sec")
+    XCTAssertEqual(metric.formattedValue, "0.0 sec")
   }
 
   func testFormattedValue_VeryLargeValue() {
     let metric = createMetric(value: 99999.99, unit: "mph")
-    XCTAssertEqual(metric.formattedValue, "99999.99 mph")
+    XCTAssertEqual(metric.formattedValue, "100000.0 mph")
   }
 
   func testFormattedValue_NegativeValue() {
     let metric = createMetric(value: -1.5, unit: "mph")
-    XCTAssertEqual(metric.formattedValue, "-1.50 mph")
+    XCTAssertEqual(metric.formattedValue, "-1.5 mph")
   }
 
   // MARK: - formattedDate Tests

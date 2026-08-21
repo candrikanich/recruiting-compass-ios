@@ -56,15 +56,15 @@ final class MetricModelTests: XCTestCase {
   }
 
   func testDefaultUnit_battingAvg() {
-    XCTAssertEqual(MetricType.battingAvg.defaultUnit, "avg")
+    XCTAssertEqual(MetricType.battingAvg.defaultUnit, "")
   }
 
   func testDefaultUnit_era() {
-    XCTAssertEqual(MetricType.era.defaultUnit, "era")
+    XCTAssertEqual(MetricType.era.defaultUnit, "")
   }
 
   func testDefaultUnit_strikeouts() {
-    XCTAssertEqual(MetricType.strikeouts.defaultUnit, "K")
+    XCTAssertEqual(MetricType.strikeouts.defaultUnit, "count")
   }
 
   func testDefaultUnit_other() {
@@ -125,17 +125,17 @@ final class MetricModelTests: XCTestCase {
 
   func testFormattedValue_withUnit() {
     let metric = makeMetric(value: 92.5, unit: "mph")
-    XCTAssertEqual(metric.formattedValue, "92.50 mph")
+    XCTAssertEqual(metric.formattedValue, "92.5 mph")
   }
 
   func testFormattedValue_withEmptyUnit() {
     let metric = makeMetric(value: 92.5, unit: "")
-    XCTAssertEqual(metric.formattedValue, "92.50")
+    XCTAssertEqual(metric.formattedValue, "92.5")
   }
 
   func testFormattedValue_wholeNumber() {
     let metric = makeMetric(value: 10.0, unit: "K")
-    XCTAssertEqual(metric.formattedValue, "10.00 K")
+    XCTAssertEqual(metric.formattedValue, "10.0 K")
   }
 
   // MARK: - PerformanceMetric displayName

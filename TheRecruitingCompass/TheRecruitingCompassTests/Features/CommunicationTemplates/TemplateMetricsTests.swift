@@ -67,7 +67,7 @@ final class TemplateMetricsTests: XCTestCase {
 
   func test_metricDisplayFallsBackToValueUnit() {
     let out = TemplateResolver.computed["metrics"]?(ctx([m("velocity", 88, primary: true, unit: "mph")]))
-    XCTAssertEqual(out, "- velocity: 88 mph")
+    XCTAssertEqual(out, "- velocity: 88.0 mph")   // type-aware: velocity renders to a tenth
   }
 
   func test_metricsAsOfLatestMonthYear() {

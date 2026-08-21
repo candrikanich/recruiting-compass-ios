@@ -12,7 +12,7 @@ struct TrendCard: View {
         TrendIndicator(trend: trend.trend)
       }
 
-      Text("Last \(trend.count) records: \(trend.min.formatted(.number.precision(.fractionLength(2)))) to \(trend.max.formatted(.number.precision(.fractionLength(2)))) \(trend.unit) (avg: \(trend.average.formatted(.number.precision(.fractionLength(2)))))")
+      Text("Last \(trend.count) records: \(trend.type.format(trend.min)) to \(trend.type.format(trend.max)) \(trend.unit) (avg: \(trend.type.format(trend.average)))")
         .font(.caption)
         .foregroundStyle(.secondary)
 
@@ -24,6 +24,6 @@ struct TrendCard: View {
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .brandShadowSm()
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "\(trend.type.displayName) is \(trend.trend.label). \(trend.count) records, average \(trend.average.formatted(.number.precision(.fractionLength(2)))) \(trend.unit)"))
+    .accessibilityLabel(String(localized: "\(trend.type.displayName) is \(trend.trend.label). \(trend.count) records, average \(trend.type.format(trend.average)) \(trend.unit)"))
   }
 }

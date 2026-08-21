@@ -24,15 +24,26 @@ struct CoachFollowupRow: View {
       .buttonStyle(.plain)
       .accessibilityLabel(String(localized: "View \(coach.fullName) profile"))
 
-      if coach.email != nil {
+      if coach.contactEmail != nil {
         iconAction(systemImage: "envelope",
                    label: String(localized: "Email \(coach.fullName)"),
                    action: onEmail)
       }
-      if coach.phone != nil {
+      if coach.contactPhone != nil {
         iconAction(systemImage: "message",
                    label: String(localized: "Text \(coach.fullName)"),
                    action: onText)
+      }
+      // No contactable channel — a stale coach you can't act on. Nudge to add contact info
+      // (opens the profile) instead of leaving a dead row with no action.
+      if coach.contactEmail == nil && coach.contactPhone == nil {
+        Button(action: onProfile) {
+          Label(String(localized: "Add contact info"), systemImage: "person.crop.circle.badge.plus")
+            .font(.caption)
+            .labelStyle(.titleAndIcon)
+        }
+        .buttonStyle(.bordered)
+        .accessibilityLabel(String(localized: "Add contact info for \(coach.fullName)"))
       }
     }
     .padding(.vertical, 6)

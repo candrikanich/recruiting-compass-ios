@@ -39,6 +39,29 @@ enum MetricType: String, Codable, CaseIterable, Identifiable {
     self == .sixtyTime || self == .popTime || self == .era
   }
 
+  /// Decimal places this metric renders at. Batting average and ERA are 3/2-decimal rate
+  /// stats; velocities read to a tenth; times to a hundredth; strikeouts are whole.
+  private var fractionDigits: Int {
+    switch self {
+    case .battingAvg: return 3
+    case .era, .sixtyTime, .popTime, .other: return 2
+    case .velocity, .exitVelo: return 1
+    case .strikeouts: return 0
+    }
+  }
+
+  /// Baseball convention: batting average drops the leading zero (`.410`), so `<1` reads as a
+  /// pure fraction. Every other rate keeps its leading digit (ERA `3.45`, `1.000` stays).
+  private var dropsLeadingZero: Bool { self == .battingAvg }
+
+  /// Format a raw metric value to its display string (number only — callers append the unit).
+  /// Parity with web `formatMetricValue`; keep the two in sync.
+  func format(_ value: Double) -> String {
+    let s = String(format: "%.\(fractionDigits)f", value)
+    if dropsLeadingZero, s.hasPrefix("0.") { return String(s.dropFirst()) }
+    return s
+  }
+
   /// The unit is fixed (locked to `defaultUnit`) for every type except `.other`,
   /// which lets the athlete pick from the shared vocabulary. Mirrors the web
   /// log-metric modal — no user-typed units.

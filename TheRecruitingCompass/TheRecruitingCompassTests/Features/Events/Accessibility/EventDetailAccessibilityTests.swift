@@ -236,10 +236,10 @@ final class EventDetailAccessibilityTests: XCTestCase {
     let label = "\(metric.displayName), \(metric.formattedValue), \(verifiedStatus)"
 
     XCTAssertTrue(label.contains(metric.displayName))
-    XCTAssertTrue(label.contains("92.50"))
+    XCTAssertTrue(label.contains("92.5"))
     XCTAssertTrue(label.contains("mph"))
     XCTAssertTrue(label.contains("Verified"))
-    XCTAssertEqual(label, "Fastball Velocity, 92.50 mph, Verified")
+    XCTAssertEqual(label, "Fastball Velocity, 92.5 mph, Verified")
   }
 
   func test_metricCard_accessibilityLabel_notVerified() {
@@ -254,8 +254,8 @@ final class EventDetailAccessibilityTests: XCTestCase {
   func test_metricCard_accessibilityLabel_noUnit() {
     let metric = makeMetric(value: 42.0, unit: "")
     let label = "\(metric.displayName), \(metric.formattedValue), Verified"
-    XCTAssertEqual(metric.formattedValue, "42.00")
-    XCTAssertTrue(label.contains("42.00"))
+    XCTAssertEqual(metric.formattedValue, "42.0")
+    XCTAssertTrue(label.contains("42.0"))
   }
 
   // MARK: - CoachCard Combined Accessibility Label

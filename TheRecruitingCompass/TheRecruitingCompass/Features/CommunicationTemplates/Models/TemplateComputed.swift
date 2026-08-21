@@ -104,9 +104,15 @@ enum TemplateComputed {
     d == d.rounded() ? String(Int(d)) : String(d)
   }
 
+  /// Type-aware value formatting (batting avg `.410`, ERA `3.45`, velocity `82.3`, …), matching
+  /// the metric cards. Unknown/absent types fall back to the plain whole-or-raw `nf`.
+  private static func formatValue(_ v: Double, type: String?) -> String {
+    MetricType(rawValue: type ?? "")?.format(v) ?? nf(v)
+  }
+
   private static func metricDisplay(_ m: TemplateMetricRow) -> String {
     if let dv = m.displayValue?.trimmingCharacters(in: .whitespaces), !dv.isEmpty { return dv }
-    if let v = m.value { return "\(nf(v))\(m.unit.map { " \($0)" } ?? "")" }
+    if let v = m.value { return "\(formatValue(v, type: m.metricType))\(m.unit.map { " \($0)" } ?? "")" }
     return ""
   }
 

@@ -11,7 +11,7 @@ struct LatestMetricCard: View {
         .foregroundStyle(.secondary)
 
       HStack(alignment: .firstTextBaseline, spacing: 4) {
-        Text(metric.value, format: .number.precision(.fractionLength(2)))
+        Text(metric.metricType.format(metric.value))
           .font(.title)
           .bold()
           .foregroundStyle(Color.accentBlue)
