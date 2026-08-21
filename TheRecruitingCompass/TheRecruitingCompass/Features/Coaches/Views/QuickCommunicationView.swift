@@ -6,6 +6,9 @@ import SwiftUI
 /// the flow across pushed screens keeps each screen short instead of one endless scroll.
 struct QuickCommunicationView: View {
   let context: QuickCommunicationContext
+  /// Fired once on a confirmed send, before the sheet dismisses — lets a presenter refresh
+  /// state the send just changed (e.g. the dashboard follow-up list dropping this coach).
+  var onSent: (() -> Void)?
 
   @State private var viewModel: QuickCommunicationViewModel
   @State private var path = NavigationPath()
@@ -18,8 +21,9 @@ struct QuickCommunicationView: View {
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
 
-  init(context: QuickCommunicationContext) {
+  init(context: QuickCommunicationContext, onSent: (() -> Void)? = nil) {
     self.context = context
+    self.onSent = onSent
     _viewModel = State(initialValue: QuickCommunicationViewModel(
       coach: context.coach,
       schoolName: context.schoolName
@@ -374,9 +378,10 @@ struct QuickCommunicationView: View {
     }
   }
 
-  /// Drop the mail/message composer state and dismiss the Quick Comm sheet.
+  /// Drop the mail/message composer state, notify the presenter, and dismiss the sheet.
   private func dismissAfterSend() {
     activeComposer = nil
+    onSent?()
     dismiss()
   }
 }

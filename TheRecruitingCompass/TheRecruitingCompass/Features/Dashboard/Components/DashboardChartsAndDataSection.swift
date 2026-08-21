@@ -13,6 +13,8 @@ struct DashboardChartsAndDataSection: View {
   let interactionsThisMonth: Int
   let daysUntilGraduationFormatted: String
   let isEmpty: Bool
+  /// Reload the dashboard after a coach send (follow-up list refresh).
+  var onCoachContacted: (() -> Void)?
 
   var body: some View {
     VStack(spacing: 16) {
@@ -25,7 +27,8 @@ struct DashboardChartsAndDataSection: View {
       }
 
       if visibility.coachFollowupWidget && !coachesNeedingFollowup.isEmpty {
-        CoachFollowupWidget(coaches: coachesNeedingFollowup, schools: allSchools)
+        CoachFollowupWidget(coaches: coachesNeedingFollowup, schools: allSchools,
+                            onCoachContacted: onCoachContacted)
       }
 
       if visibility.recentActivity {

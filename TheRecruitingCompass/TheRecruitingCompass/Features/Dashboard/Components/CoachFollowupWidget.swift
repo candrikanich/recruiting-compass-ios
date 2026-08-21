@@ -3,6 +3,8 @@ import SwiftUI
 struct CoachFollowupWidget: View {
   let coaches: [Coach]
   let schools: [School]
+  /// Reload the dashboard after a send so the just-contacted coach drops off this list.
+  var onCoachContacted: (() -> Void)?
 
   @State private var quickCommContext: QuickCommunicationContext?
   @State private var profileCoachId: String?
@@ -70,7 +72,7 @@ struct CoachFollowupWidget: View {
     .clipShape(.rect(cornerRadius: 12))
     .brandShadowSm()
     .sheet(item: $quickCommContext) { context in
-      QuickCommunicationView(context: context)
+      QuickCommunicationView(context: context, onSent: onCoachContacted)
     }
     .sheet(item: Binding(
       get: { profileCoachId.map { CoachProfileRoute(id: $0) } },
