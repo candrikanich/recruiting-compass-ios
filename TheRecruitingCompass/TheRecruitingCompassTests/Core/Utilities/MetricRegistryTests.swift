@@ -25,8 +25,10 @@ final class MetricRegistryTests: XCTestCase {
     XCTAssertEqual(t.last, "other")
     XCTAssertTrue(t.contains("batting_avg"))
   }
-  func test_types_forNilSport_returnsDefaultPlusOther() {
-    XCTAssertEqual(MetricRegistry.types(forSport: nil).last, "other")
+  func test_types_forNilOrUnknownSport_returnsEmpty() {
+    // No baseball fallback — mirrors CanonicalPositions.positions(for:).
+    XCTAssertTrue(MetricRegistry.types(forSport: nil).isEmpty)
+    XCTAssertTrue(MetricRegistry.types(forSport: "Quidditch").isEmpty)
   }
 
   // MARK: - Task 9: all-sport content

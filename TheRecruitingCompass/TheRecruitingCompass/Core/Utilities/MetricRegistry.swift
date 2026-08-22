@@ -84,9 +84,6 @@ enum MetricRegistry {
     "Water Polo": waterPolo
   ]
 
-  /// Fallback order for nil/unknown sports: all legacy baseball keys.
-  private static let defaultOrder = baseball
-
   static func knownDef(for key: String) -> MetricDef? { defs[key] }
 
   static func def(for key: String) -> MetricDef {
@@ -96,8 +93,12 @@ enum MetricRegistry {
     return MetricDef(key, label, "", .decimal(digits: 2, dropLeadingZero: false))
   }
 
+  /// Ordered metric keys for a sport (with `other` appended). Empty when the
+  /// sport is nil/unknown — mirrors `CanonicalPositions.positions(for:)`. There
+  /// is no baseball fallback: `primary_sport` is required going forward, so an
+  /// absent sport yields no metric vocabulary rather than silently defaulting.
   static func types(forSport sport: String?) -> [String] {
-    let base = lookup(sport) ?? defaultOrder
+    guard let base = lookup(sport) else { return [] }
     return base + [otherKey]
   }
 
