@@ -6,6 +6,7 @@ struct DashboardStatsCardsSection: View {
   let stats: DashboardStats
   let visibility: StatsCardVisibility
   @Environment(\.switchTab) private var switchTab
+  @Environment(\.openMoreSection) private var openMoreSection
 
   var body: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
@@ -69,21 +70,23 @@ struct DashboardStatsCardsSection: View {
         .buttonStyle(.plain)
       }
 
-      if visibility.offers {
-        NavigationLink(value: DashboardDestination.offers) {
+      if visibility.events {
+        Button {
+          openMoreSection(.events)
+        } label: {
           StatCard(
-            title: String(localized: "Offers"),
-            count: stats.totalOffers,
+            title: String(localized: "Events"),
+            count: stats.upcomingEventCount,
             subtitle: nil,
-            description: String(localized: "View all offers"),
-            icon: "gift",
+            description: String(localized: "View upcoming events"),
+            icon: "calendar",
             gradientColors: [Color.Brand.orange700, Color.Brand.orange800],
             isEnabled: true,
-            destination: .offers
+            destination: nil
           )
         }
-        .accessibilityLabel(String(localized: "View all offers, \(stats.totalOffers) total"))
-        .accessibilityHint("Opens your offers list")
+        .accessibilityLabel(String(localized: "View events, \(stats.upcomingEventCount) upcoming"))
+        .accessibilityHint("Opens your events list")
         .buttonStyle(.plain)
       }
     }
