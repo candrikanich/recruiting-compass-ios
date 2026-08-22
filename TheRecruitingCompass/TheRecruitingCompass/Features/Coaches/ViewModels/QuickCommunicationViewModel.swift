@@ -657,6 +657,44 @@ final class QuickCommunicationViewModel {
     }
   }
 
+  /// Best-effort log for an Instagram DM. Instagram opens externally, so the app can't
+  /// confirm a message was actually sent — logged on tap, mirroring the mailto/sms model.
+  /// No subject/content: the app only knows the coach's profile was opened to DM.
+  func logInstagramDM() async {
+    guard let loggedBy, let familyUnitId else {
+      logger.error("Cannot log Instagram DM: missing user or family context")
+      errorMessage = String(localized: "Opened Instagram, but logging it failed.")
+      return
+    }
+
+    do {
+      let request = InteractionCreateRequest(
+        schoolId: coach.schoolId,
+        coachId: coach.id,
+        type: .directMessage,
+        direction: .outbound,
+        occurredAt: Date(),
+        subject: nil,
+        content: nil,
+        sentiment: nil,
+        loggedBy: loggedBy,
+        familyUnitId: familyUnitId
+      )
+      _ = try await interactionsService.createInteraction(request)
+      await updateLastContactDate()
+
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: loggedBy))
+
+      successMessage = String(localized: "Logged Instagram DM to Coach \(coach.fullName).")
+      didLogSend = true
+      logger.info("Logged Instagram DM to coach \(self.coach.id, privacy: .public)")
+    } catch {
+      logger.error("Failed to log Instagram DM: \(error.localizedDescription)")
+      errorMessage = String(localized: "Opened Instagram, but logging it failed.")
+    }
+  }
+
   /// Stamp the coach's `last_contact_date` (parity with web; no DB trigger sets it).
   /// A failure here does not fail the send-log — the interaction row is the source of truth.
   private func updateLastContactDate() async {

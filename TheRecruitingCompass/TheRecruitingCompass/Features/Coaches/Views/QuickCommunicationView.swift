@@ -42,7 +42,10 @@ struct QuickCommunicationView: View {
         showEmail: viewModel.mailtoURL() != nil,
         showText: viewModel.smsURL() != nil,
         instagramHandle: context.coach.contactInstagram,
-        onOpenInstagram: { openURL($0) }
+        onOpenInstagram: { url in
+          openURL(url)
+          Task { await viewModel.logInstagramDM() }
+        }
       )
       .navigationTitle("Quick Communication")
       .navigationBarTitleDisplayMode(.inline)
