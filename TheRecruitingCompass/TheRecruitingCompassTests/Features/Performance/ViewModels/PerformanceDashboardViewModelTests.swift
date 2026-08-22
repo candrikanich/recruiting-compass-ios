@@ -513,7 +513,7 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
     // Then
     XCTAssertEqual(viewModel.editingMetric?.id, "metric-1")
     XCTAssertEqual(viewModel.editFormState.metricType, .exitVelo)
-    XCTAssertEqual(viewModel.editFormState.value, "105.00")
+    XCTAssertEqual(viewModel.editFormState.value, "105.0")
     XCTAssertEqual(viewModel.editFormState.unit, "mph")
     XCTAssertTrue(viewModel.editFormState.verified)
     XCTAssertEqual(viewModel.editFormState.notes, "BP drill")

@@ -37,12 +37,14 @@ final class MetricTypeTests: XCTestCase {
 
   // MARK: - Registry-backed "all cases" (allCases removed with CaseIterable)
 
+  // nil/unknown sport now yields no vocabulary (no baseball fallback), so the
+  // legacy baseball cases are sourced from the real "Baseball" sport.
   private var allLegacyTypes: [MetricType] {
-    MetricRegistry.types(forSport: nil).map(MetricType.init(rawValue:))
+    MetricRegistry.types(forSport: "Baseball").map(MetricType.init(rawValue:))
   }
 
   func testRegistryTypes_ContainsAllLegacyCases() {
-    XCTAssertEqual(allLegacyTypes.count, 8)
+    XCTAssertEqual(allLegacyTypes.count, 12) // 11 baseball keys + "other"
     XCTAssertTrue(allLegacyTypes.contains(.velocity))
     XCTAssertTrue(allLegacyTypes.contains(.exitVelo))
     XCTAssertTrue(allLegacyTypes.contains(.sixtyTime))

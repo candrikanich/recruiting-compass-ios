@@ -99,8 +99,17 @@ final class MetricModelTests: XCTestCase {
 
   // MARK: - MetricType registry-backed "all cases" (CaseIterable removed)
 
-  func testRegistryTypes_hasExpectedCount() {
-    XCTAssertEqual(MetricRegistry.types(forSport: nil).count, 8)
+  func testRegistryTypes_nilSport_isEmpty() {
+    // No baseball fallback: an absent/unknown sport yields no metric vocabulary.
+    XCTAssertEqual(MetricRegistry.types(forSport: nil).count, 0)
+    XCTAssertEqual(MetricRegistry.types(forSport: "Quidditch").count, 0)
+  }
+
+  func testRegistryTypes_realSport_hasKeysPlusOther() {
+    let baseball = MetricRegistry.types(forSport: "Baseball")
+    XCTAssertEqual(baseball.last, "other")
+    XCTAssertTrue(baseball.contains("batting_avg"))
+    XCTAssertEqual(baseball.count, 12) // 11 baseball keys + "other"
   }
 
   // MARK: - MetricType rawValue (Codable)

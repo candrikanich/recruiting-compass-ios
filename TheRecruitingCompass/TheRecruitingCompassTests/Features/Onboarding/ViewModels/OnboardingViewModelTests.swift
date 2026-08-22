@@ -247,12 +247,50 @@ final class OnboardingViewModelTests: XCTestCase {
 
   func testNextScreen_saveFails_setsErrorAndDoesNotAdvance() async {
     viewModel.currentStep = 2
+    viewModel.primarySport = "Baseball" // Step 2 now requires a sport before it saves.
     mockPreferenceManager.savePreferencesResult = .failure(NSError(domain: "test", code: 1))
 
     await viewModel.nextScreen()
 
     XCTAssertEqual(viewModel.currentStep, 2)
     XCTAssertEqual(viewModel.errorMessage, "Couldn't save this step. Please try again.")
+  }
+
+  // MARK: - Step 2 required sport
+
+  func testNextScreen_step2EmptySport_blocksAndSetsSportError() async {
+    viewModel.currentStep = 2
+    viewModel.primarySport = ""
+
+    await viewModel.nextScreen()
+
+    XCTAssertEqual(viewModel.currentStep, 2, "Empty sport must not advance past step 2")
+    XCTAssertEqual(viewModel.sportError, "Primary sport is required")
+    XCTAssertEqual(mockPreferenceManager.savePreferencesCalls.count, 0, "No save when sport is blank")
+  }
+
+  func testNextScreen_step2WhitespaceSport_blocks() async {
+    viewModel.currentStep = 2
+    viewModel.primarySport = "   "
+
+    await viewModel.nextScreen()
+
+    XCTAssertEqual(viewModel.currentStep, 2, "Whitespace-only sport counts as unset")
+    XCTAssertNotNil(viewModel.sportError)
+  }
+
+  func testValidateStep_step2WithSport_passes() {
+    viewModel.currentStep = 2
+    viewModel.primarySport = "Basketball"
+
+    XCTAssertTrue(viewModel.validateStep())
+    XCTAssertNil(viewModel.sportError)
+  }
+
+  func testSkipStep_step2_isNoOp() async {
+    viewModel.currentStep = 2
+    await viewModel.skipStep()
+    XCTAssertEqual(viewModel.currentStep, 2, "Step 2 (required sport) cannot be skipped")
   }
 
   // MARK: - completeOnboarding (via nextScreen at last step)
@@ -292,9 +330,9 @@ final class OnboardingViewModelTests: XCTestCase {
   }
 
   func testSkipStep_advancesWhenNotLastStep() async {
-    viewModel.currentStep = 2
+    viewModel.currentStep = 3 // Step 3 (location) is skippable; step 2 (sport) is not.
     await viewModel.skipStep()
-    XCTAssertEqual(viewModel.currentStep, 3)
+    XCTAssertEqual(viewModel.currentStep, 4)
   }
 
   func testSkipStep_atLastStep_isNoOp() async {

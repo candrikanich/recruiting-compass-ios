@@ -8,6 +8,7 @@ final class OnboardingManagerTests: XCTestCase {
   var mockOnboardingService: MockOnboardingService!
   var mockAuthManager: MockAuthManager!
   var mockFamilyService: MockFamilyService!
+  var mockPreferenceService: MockPreferenceService!
 
   private static let parentKey = "parent_onboarding_complete_test-parent-id"
 
@@ -16,10 +17,12 @@ final class OnboardingManagerTests: XCTestCase {
     mockOnboardingService = MockOnboardingService()
     mockAuthManager = MockAuthManager()
     mockFamilyService = MockFamilyService()
+    mockPreferenceService = MockPreferenceService()
     sut = OnboardingManager(
       onboardingService: mockOnboardingService,
       authManager: mockAuthManager,
-      familyService: mockFamilyService
+      familyService: mockFamilyService,
+      preferenceService: mockPreferenceService
     )
     UserDefaults.standard.removeObject(forKey: Self.parentKey)
   }
@@ -30,6 +33,7 @@ final class OnboardingManagerTests: XCTestCase {
     mockOnboardingService = nil
     mockAuthManager = nil
     mockFamilyService = nil
+    mockPreferenceService = nil
     super.tearDown()
   }
 
@@ -81,6 +85,69 @@ final class OnboardingManagerTests: XCTestCase {
     XCTAssertEqual(mockOnboardingService.isOnboardingCompleteCallCount, 1)
     XCTAssertEqual(mockFamilyService.getFamilyUnitCallCount, 0,
       "Players should not trigger a family DB lookup")
+  }
+
+  // MARK: - Sport Gate (needsSportOnly)
+
+  func testPlayerWithNullSportNeedsSportOnly() async {
+    mockAuthManager.user = makeUser(role: .player)
+    mockOnboardingService.isOnboardingCompleteResult = true
+    mockPreferenceService.stubbedPlayerDetails = makePlayerDetails(sport: nil)
+
+    await sut.loadStatus()
+
+    XCTAssertEqual(sut.needsOnboarding, false)
+    XCTAssertTrue(sut.needsSportOnly, "A complete player with a null sport must be gated")
+  }
+
+  func testPlayerWithBlankSportNeedsSportOnly() async {
+    mockAuthManager.user = makeUser(role: .player)
+    mockOnboardingService.isOnboardingCompleteResult = true
+    mockPreferenceService.stubbedPlayerDetails = makePlayerDetails(sport: "   ")
+
+    await sut.loadStatus()
+
+    XCTAssertTrue(sut.needsSportOnly, "Blank/whitespace sport counts as unset")
+  }
+
+  func testPlayerWithSportDoesNotNeedSportOnly() async {
+    mockAuthManager.user = makeUser(role: .player)
+    mockOnboardingService.isOnboardingCompleteResult = true
+    mockPreferenceService.stubbedPlayerDetails = makePlayerDetails(sport: "Baseball")
+
+    await sut.loadStatus()
+
+    XCTAssertFalse(sut.needsSportOnly, "A player with a real sport is not gated")
+  }
+
+  func testPlayerWithNoPrefsRowNeedsSportOnly() async {
+    mockAuthManager.user = makeUser(role: .player)
+    mockOnboardingService.isOnboardingCompleteResult = true
+    mockPreferenceService.stubbedPlayerDetails = nil
+
+    await sut.loadStatus()
+
+    XCTAssertTrue(sut.needsSportOnly, "No prefs row means no sport, so gate")
+  }
+
+  func testPlayerWithPrefsErrorFailsOpen() async {
+    mockAuthManager.user = makeUser(role: .player)
+    mockOnboardingService.isOnboardingCompleteResult = true
+    mockPreferenceService.errorToThrow = NSError(domain: "test", code: 1)
+
+    await sut.loadStatus()
+
+    XCTAssertFalse(sut.needsSportOnly, "A read error must fail open, never lock the user out")
+  }
+
+  func testParentIsNeverSportGated() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockPreferenceService.stubbedPlayerDetails = makePlayerDetails(sport: nil)
+
+    await sut.loadStatus()
+
+    XCTAssertFalse(sut.needsSportOnly, "Parents use a different flow and are never sport-gated")
   }
 
   // MARK: - Parent Tests (DB check)
@@ -161,6 +228,12 @@ final class OnboardingManagerTests: XCTestCase {
       dateOfBirth: nil,
       profilePhotoUrl: nil
     )
+  }
+
+  private func makePlayerDetails(sport: String?) -> PlayerDetails {
+    var details = PlayerDetails.default
+    details.primarySport = sport
+    return details
   }
 
   private func makeFamilyUnit() -> FamilyUnit {
