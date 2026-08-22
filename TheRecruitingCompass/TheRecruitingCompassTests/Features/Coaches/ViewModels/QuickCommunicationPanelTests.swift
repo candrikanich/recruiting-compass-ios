@@ -40,9 +40,11 @@ final class QuickCommunicationPanelTests: XCTestCase {
     v.selectTemplate(CommunicationTemplate(id: "t", userId: "", name: "n", type: .message,
       body: "{{coachSalutation}}", variables: nil, createdAt: "", updatedAt: ""))
     XCTAssertEqual(v.effectiveBody, "Coach Smith")
-    v.editedBody = String(repeating: "x", count: 161)
+    v.editedBody = String(repeating: "x", count: QuickCommunicationViewModel.textLimit + 5)
     XCTAssertTrue(v.textBodyOverLimit)
+    XCTAssertEqual(v.textOverLimitCount, 5, "reports how many chars over the cap")
     XCTAssertTrue(v.unresolvedKeys.isEmpty, "edited text has no tokens")
+    XCTAssertTrue(v.isSendBlocked, "over-limit text alone blocks send, even with no unresolved tokens")
   }
 
   func test_selectingTemplateClearsEdits() async {
