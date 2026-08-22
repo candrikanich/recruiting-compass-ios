@@ -170,6 +170,11 @@ private struct OnboardingBasicInfoStep: View {
         .onChange(of: viewModel.primarySport) { _, _ in
           viewModel.onSportChange()
         }
+        if let sportError = viewModel.sportError {
+          Text(sportError)
+            .font(.caption)
+            .foregroundStyle(.red)
+        }
       }
 
       if !viewModel.primarySport.isEmpty {
@@ -391,7 +396,8 @@ private struct OnboardingNavigationButtons: View {
 
       Spacer()
 
-      if viewModel.currentStep < OnboardingConstants.totalSteps {
+      // Step 2 (primary sport) is required, so Skip is hidden there.
+      if viewModel.currentStep < OnboardingConstants.totalSteps, viewModel.currentStep != 2 {
         Button("Skip") {
           Task { await viewModel.skipStep() }
         }
@@ -405,7 +411,7 @@ private struct OnboardingNavigationButtons: View {
         Task { await viewModel.nextScreen() }
       }
       .buttonStyle(.borderedProminent)
-      .disabled(viewModel.isLoading)
+      .disabled(viewModel.isLoading || (viewModel.currentStep == 2 && !viewModel.isSportStepValid))
     }
   }
 }

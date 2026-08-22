@@ -21,6 +21,7 @@ final class OnboardingViewModel {
   var isLoading = false
   var errorMessage: String?
   var zipCodeError: String?
+  var sportError: String?
   var inviteEmail: String = ""
   var isInviteSent = false
 
@@ -105,8 +106,21 @@ final class OnboardingViewModel {
     }
   }
 
+  /// True when Step 2's required primary sport is filled. Drives Next-button gating.
+  var isSportStepValid: Bool {
+    !primarySport.trimmingCharacters(in: .whitespaces).isEmpty
+  }
+
   func validateStep() -> Bool {
     zipCodeError = nil
+    sportError = nil
+
+    if currentStep == 2 {
+      if !isSportStepValid {
+        sportError = "Primary sport is required"
+        return false
+      }
+    }
 
     if currentStep == 3 {
       let trimmed = zipCode.trimmingCharacters(in: .whitespaces)
@@ -178,6 +192,8 @@ final class OnboardingViewModel {
 
   func skipStep() async {
     guard currentStep < OnboardingConstants.totalSteps else { return }
+    // Step 2 (primary sport) is required and cannot be skipped.
+    guard currentStep != 2 else { return }
 
     isLoading = true
     errorMessage = nil

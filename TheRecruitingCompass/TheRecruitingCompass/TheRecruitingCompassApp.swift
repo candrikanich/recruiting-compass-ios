@@ -161,14 +161,21 @@ private struct AuthenticatedContent: View {
 
   var body: some View {
     ZStack(alignment: .top) {
+      // Precedence: full onboarding > sport-only gate > dashboard.
       if onboardingManager.needsOnboarding == true {
         OnboardingWrapperView(onComplete: {
           Task { await familyManager.loadFamilyData() }
         })
       } else if onboardingManager.needsOnboarding == false {
-        MainTabView(pendingPushDestination: $pendingPushDestination)
-        if !networkMonitor.isConnected {
-          OfflineBanner()
+        if onboardingManager.needsSportOnly {
+          SportGateView(onComplete: {
+            Task { await onboardingManager.loadStatus() }
+          })
+        } else {
+          MainTabView(pendingPushDestination: $pendingPushDestination)
+          if !networkMonitor.isConnected {
+            OfflineBanner()
+          }
         }
       } else {
         SessionLoadingView()

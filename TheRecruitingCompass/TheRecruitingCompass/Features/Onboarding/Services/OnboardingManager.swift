@@ -13,28 +13,40 @@ final class OnboardingManager {
   /// nil = loading, true = show onboarding, false = show dashboard
   var needsOnboarding: Bool?
 
+  /// True when an authenticated player has finished full onboarding but still has a
+  /// null/blank `primary_sport`. Distinct from `needsOnboarding` — it routes to the
+  /// minimal `SportGateView`, not the full onboarding flow. Players only; never parents.
+  var needsSportOnly = false
+
   private static let parentOnboardingCompleteKeyPrefix = "parent_onboarding_complete_"
 
   private let onboardingService: any OnboardingManaging
   private let authManager: any AuthManaging
   private let familyService: any FamilyManaging
+  private let preferenceService: any PreferenceManaging
 
   init(
     onboardingService: (any OnboardingManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
-    familyService: (any FamilyManaging)? = nil
+    familyService: (any FamilyManaging)? = nil,
+    preferenceService: (any PreferenceManaging)? = nil
   ) {
     self.onboardingService = onboardingService ?? OnboardingServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
+    self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
   }
 
   /// Call when user becomes authenticated. Players check DB; parents check local "parent onboarding complete" flag.
   func loadStatus() async {
     guard let user = authManager.user else {
       needsOnboarding = false
+      needsSportOnly = false
       return
     }
+
+    // Parents use a different flow and are never sport-gated.
+    needsSportOnly = false
 
     if user.role == .parent {
       let key = Self.parentOnboardingCompleteKeyPrefix + user.id
@@ -71,10 +83,18 @@ final class OnboardingManager {
     do {
       let complete = try await onboardingService.isOnboardingComplete(userId: user.id)
       needsOnboarding = !complete
-      logger.debug("Onboarding status: needsOnboarding=\(self.needsOnboarding ?? false)")
+
+      // Sport gate: even a "complete" player with a null/blank primary_sport must pick one.
+      // Treat empty string as unset. Fails open (below) so a transient read error never locks out.
+      let details: PlayerDetails? = try await preferenceService.fetchPreferences(category: .player)
+      let sport = details?.primarySport?.trimmingCharacters(in: .whitespaces) ?? ""
+      needsSportOnly = sport.isEmpty
+
+      logger.debug("Player status: onboarding=\(self.needsOnboarding ?? false), sportOnly=\(self.needsSportOnly)")
     } catch {
       logger.error("Failed to check onboarding status: \(error.localizedDescription)")
       needsOnboarding = false
+      needsSportOnly = false
     }
   }
 
