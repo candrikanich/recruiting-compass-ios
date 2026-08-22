@@ -7,8 +7,57 @@ enum MetricRegistry {
   static let otherKey = "other"
 
   static let defs: [String: MetricDef] = Dictionary(
-    uniqueKeysWithValues: allDefs.map { ($0.key, $0) }
+    uniqueKeysWithValues: allDefs.map { ($0.key, $0.withIcon(iconByKey[$0.key] ?? $0.icon)) }
   )
+
+  /// Central SF Symbol per metric key across all 17 sports. Keeps `MetricRow`
+  /// (and any future icon surface) sport-aware without a baseball-only switch.
+  /// Unlisted keys fall back to the def's generic default ("chart.bar").
+  private static let iconByKey: [String: String] = [
+    // Baseball / Softball
+    "velocity": "flame", "exit_velo": "flame", "batting_avg": "baseball",
+    "sixty_time": "timer", "pop_time": "stopwatch", "era": "chart.bar",
+    "on_base_pct": "percent", "slugging_pct": "percent", "whip": "chart.bar",
+    "strikeouts": "figure.strengthtraining.traditional", "fielding_pct": "percent",
+    // Basketball
+    "points_per_game": "basketball", "rebounds_per_game": "arrow.up.and.down",
+    "assists_per_game": "hand.thumbsup", "field_goal_pct": "percent",
+    "three_point_pct": "percent", "free_throw_pct": "percent",
+    "steals_per_game": "hand.raised", "blocks_per_game": "hand.raised.fill",
+    "vertical_jump": "arrow.up",
+    // Football
+    "forty_time": "timer", "bench_press": "figure.strengthtraining.traditional",
+    "broad_jump": "arrow.left.and.right", "shuttle": "timer", "three_cone": "timer",
+    "squat": "figure.strengthtraining.traditional", "passing_yards": "football",
+    "rushing_yards": "figure.run", "receiving_yards": "football",
+    "tackles": "figure.american.football",
+    // Soccer / Lacrosse / Hockey / Water Polo (shared + specific)
+    "goals": "soccerball", "assists": "hand.thumbsup", "saves": "hand.raised.fill",
+    "clean_sheets": "checkmark.shield", "minutes_played": "clock",
+    "ground_balls": "circle.grid.cross", "points": "star.circle",
+    "save_pct": "percent", "goals_against_avg": "chart.bar", "steals": "hand.raised",
+    // Volleyball
+    "kills": "bolt", "blocks": "hand.raised.fill", "digs": "hand.raised",
+    "aces": "bolt.fill", "hitting_pct": "percent",
+    // Track & Field
+    "sprint_time": "figure.run", "distance_time": "figure.run", "relay_split": "timer",
+    "long_jump": "arrow.left.and.right", "high_jump": "arrow.up",
+    "shot_put": "circle.fill", "discus": "circle",
+    // Cross Country
+    "race_time": "figure.run", "pace_per_mile": "speedometer",
+    // Swimming
+    "event_time": "timer", "free_50": "figure.pool.swim", "free_100": "figure.pool.swim",
+    // Golf
+    "scoring_average": "figure.golf", "handicap": "flag",
+    // Tennis
+    "utr_rating": "star", "ranking": "number",
+    // Wrestling
+    "pins": "figure.wrestling", "takedowns": "figure.wrestling", "weight_class": "scalemass",
+    // Rowing
+    "erg_2k": "figure.rower", "erg_split": "timer",
+    // Fallback bucket
+    "other": "chart.bar"
+  ]
 
   /// Ordered per-sport keys (NOT including `other`, which `types(forSport:)`
   /// appends). Keys match the sport strings used across onboarding/preferences

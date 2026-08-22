@@ -179,7 +179,8 @@ final class MetricFormStateTests: XCTestCase {
     form.populate(from: metric)
 
     XCTAssertEqual(form.metricType, .exitVelo)
-    XCTAssertEqual(form.value, "105.30")
+    // exit_velo is 1-decimal in the registry (was uniformly formatted to 2).
+    XCTAssertEqual(form.value, "105.3")
     XCTAssertEqual(form.unit, "mph")
     XCTAssertEqual(form.recordedDate, date)
     XCTAssertEqual(form.notes, "Batting practice")
@@ -209,7 +210,7 @@ final class MetricFormStateTests: XCTestCase {
     XCTAssertEqual(form.notes, "")
   }
 
-  func testPopulate_FormatsValueToTwoDecimals() {
+  func testPopulate_FormatsValueUsingRegistryPrecision() {
     var form = MetricFormState()
     let metric = PerformanceMetric(
       id: "metric-1",
@@ -227,11 +228,19 @@ final class MetricFormStateTests: XCTestCase {
 
     form.populate(from: metric)
 
-    XCTAssertEqual(form.value, "90.50")
+    // velocity is 1-decimal in the registry (was uniformly formatted to 2).
+    XCTAssertEqual(form.value, "90.5")
   }
 
-  func testPopulate_FormatsBattingAvgAndEraToThreeDecimals() {
-    for type in [MetricType.battingAvg, .era] {
+  func testPopulate_FormatsPrecisionFromRegistryPerMetric() {
+    // batting_avg / on_base_pct are 3-decimal; era is 2-decimal. Precision now
+    // comes from the registry def, fixing the previous on_base_pct mis-format.
+    let expectations: [(MetricType, String)] = [
+      (.battingAvg, "0.300"),
+      (MetricType(rawValue: "on_base_pct"), "0.300"),
+      (.era, "0.30")
+    ]
+    for (type, expected) in expectations {
       var form = MetricFormState()
       let metric = PerformanceMetric(
         id: "metric-1",
@@ -249,7 +258,7 @@ final class MetricFormStateTests: XCTestCase {
 
       form.populate(from: metric)
 
-      XCTAssertEqual(form.value, "0.300", "\(type) should format to 3 decimals")
+      XCTAssertEqual(form.value, expected, "\(type.rawValue) should use registry precision")
     }
   }
 

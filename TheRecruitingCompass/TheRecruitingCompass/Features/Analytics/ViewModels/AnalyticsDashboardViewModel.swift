@@ -468,8 +468,8 @@ final class AnalyticsDashboardViewModel {
         performanceData = ScatterDataSet(
           label: first.label,
           points: points,
-          xAxisLabel: String(localized: "Exit Velocity (mph)"),
-          yAxisLabel: String(localized: "Distance (ft)")
+          xAxisLabel: first.xAxisLabel ?? String(localized: "Metric 1"),
+          yAxisLabel: first.yAxisLabel ?? String(localized: "Metric 2")
         )
       }
     } catch {
