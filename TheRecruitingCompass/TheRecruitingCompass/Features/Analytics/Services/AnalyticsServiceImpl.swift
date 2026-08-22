@@ -162,27 +162,61 @@ final class AnalyticsServiceImpl: AnalyticsManaging, Sendable {
       .execute()
       .value
 
-    let exitVeloMetrics = metrics.filter { $0.metricType == .exitVelo }
-    let velocityMetrics = metrics.filter { $0.metricType == .velocity }
+    // Pick the athlete's two most-populated numeric metric types from whatever
+    // sport they log — no hard-coded baseball keys — and label from the registry.
+    let byType = Dictionary(grouping: metrics.filter { isCorrelatable($0.metricType) },
+                            by: { $0.metricType })
+    let ranked = byType
+      .filter { !$0.value.isEmpty }
+      .sorted { lhs, rhs in
+        lhs.value.count != rhs.value.count
+          ? lhs.value.count > rhs.value.count
+          : lhs.key.rawValue < rhs.key.rawValue
+      }
 
-    guard !exitVeloMetrics.isEmpty, !velocityMetrics.isEmpty else {
-      logger.info("Insufficient metric types for correlation (exitVelo: \(exitVeloMetrics.count), velocity: \(velocityMetrics.count))")
+    guard ranked.count >= 2 else {
+      logger.info("Insufficient correlatable metric types (\(ranked.count)); hiding correlation")
       return []
     }
 
-    let points: [PerformanceCorrelationResponse.CorrelationPoint] = exitVeloMetrics.compactMap { exitMetric in
-      guard let closest = velocityMetrics.min(by: {
-        abs($0.recordedDate.timeIntervalSince(exitMetric.recordedDate)) <
-        abs($1.recordedDate.timeIntervalSince(exitMetric.recordedDate))
+    let xType = ranked[0].key
+    let yType = ranked[1].key
+    let yMetrics = ranked[1].value
+
+    let points: [PerformanceCorrelationResponse.CorrelationPoint] = ranked[0].value.compactMap { xMetric in
+      guard let closest = yMetrics.min(by: {
+        abs($0.recordedDate.timeIntervalSince(xMetric.recordedDate)) <
+        abs($1.recordedDate.timeIntervalSince(xMetric.recordedDate))
       }) else { return nil }
       return PerformanceCorrelationResponse.CorrelationPoint(
-        x: exitMetric.value,
+        x: xMetric.value,
         y: closest.value,
-        label: exitMetric.formattedDate
+        label: xMetric.formattedDate
       )
     }
 
-    logger.info("Performance correlation: \(points.count) data points")
-    return [PerformanceCorrelationResponse.CorrelationDataSet(label: "Exit Velo vs Fastball Velo", points: points)]
+    let xDef = MetricRegistry.def(for: xType.rawValue)
+    let yDef = MetricRegistry.def(for: yType.rawValue)
+    logger.info("Performance correlation: \(xDef.key) vs \(yDef.key), \(points.count) data points")
+    return [PerformanceCorrelationResponse.CorrelationDataSet(
+      label: "\(xDef.label) vs \(yDef.label)",
+      points: points,
+      xAxisLabel: axisLabel(for: xDef),
+      yAxisLabel: axisLabel(for: yDef)
+    )]
+  }
+
+  /// A metric is correlatable on a linear scatter axis when it renders as a
+  /// plain number. Durations (MM:SS) and the free-form `other` bucket are not.
+  private func isCorrelatable(_ type: MetricType) -> Bool {
+    guard type != .other else { return false }
+    switch MetricRegistry.def(for: type.rawValue).format {
+    case .decimal, .percent, .integer: return true
+    case .duration: return false
+    }
+  }
+
+  private func axisLabel(for def: MetricDef) -> String {
+    def.unit.isEmpty ? def.label : "\(def.label) (\(def.unit))"
   }
 }

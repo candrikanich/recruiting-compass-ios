@@ -9,6 +9,18 @@ enum Format: Equatable, Sendable {
   case percent(digits: Int)
   case duration
 
+  /// Fraction-digit count this format renders with, for pre-filling an editable
+  /// value field at the metric's real precision (e.g. 3 for on_base_pct). Whole
+  /// counts render with none; durations pre-fill at 2 for the raw-seconds field.
+  var fractionDigits: Int {
+    switch self {
+    case let .decimal(digits, _): return digits
+    case let .percent(digits): return digits
+    case .integer: return 0
+    case .duration: return 2
+    }
+  }
+
   func apply(_ value: Double) -> String {
     switch self {
     case let .decimal(digits, dropLeadingZero):

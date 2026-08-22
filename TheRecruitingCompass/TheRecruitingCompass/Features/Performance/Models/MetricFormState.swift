@@ -48,7 +48,7 @@ struct MetricFormState: Equatable {
 
   mutating func populate(from metric: PerformanceMetric) {
     metricType = metric.metricType
-    let digits = (metric.metricType == .battingAvg || metric.metricType == .era) ? 3 : 2
+    let digits = MetricRegistry.def(for: metric.metricType.rawValue).format.fractionDigits
     value = metric.value.formatted(.number.precision(.fractionLength(digits)))
     recordedDate = metric.recordedDate
     unit = metric.unit

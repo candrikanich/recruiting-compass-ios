@@ -71,5 +71,16 @@ struct EventMetricForm: View {
         data.unit = newValue.defaultUnit
       }
     }
+    .onAppear(perform: applySportDefault)
+  }
+
+  /// Snap the selection to the sport's first metric when the current default
+  /// isn't part of this sport's list (e.g. baseball's `velocity` under a
+  /// basketball athlete), so the picker never opens on an out-of-sport metric.
+  private func applySportDefault() {
+    let sportMetrics = MetricRegistry.types(forSport: sport)
+    guard !sportMetrics.contains(data.metricType.rawValue),
+          let first = sportMetrics.first else { return }
+    data.metricType = MetricType(rawValue: first)
   }
 }

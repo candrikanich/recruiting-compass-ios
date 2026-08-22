@@ -296,7 +296,9 @@ final class AnalyticsDashboardViewModelTests: XCTestCase {
         points: [
           PerformanceCorrelationResponse.CorrelationPoint(x: 85.0, y: 340.0, label: "Player A"),
           PerformanceCorrelationResponse.CorrelationPoint(x: 90.0, y: 380.0, label: "Player B")
-        ]
+        ],
+        xAxisLabel: "Exit Velocity (mph)",
+        yAxisLabel: "Distance (ft)"
       )
     ]
 
