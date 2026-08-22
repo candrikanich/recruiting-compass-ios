@@ -8,6 +8,7 @@ import SwiftUI
 private struct CreateEventContext: Identifiable {
   let id = UUID()
   let userId: String
+  let familyUnitId: String
 }
 
 struct EventsListView: View {
@@ -69,6 +70,7 @@ struct EventsListView: View {
         CreateEventView(
           eventsService: EventsServiceImpl(),
           userId: context.userId,
+          familyUnitId: context.familyUnitId,
           onEventCreated: { _ in
             createEventContext = nil
             Task { await viewModel.loadEvents() }
@@ -98,8 +100,9 @@ struct EventsListView: View {
   /// Resolves the target user id once, here, and freezes it into the sheet's
   /// item so the presented form survives auth/family republishes mid-edit.
   private func presentCreateEvent() {
-    guard let userId = viewModel.targetUserId else { return }
-    createEventContext = CreateEventContext(userId: userId)
+    guard let userId = viewModel.targetUserId,
+          let familyUnitId = viewModel.familyUnitId else { return }
+    createEventContext = CreateEventContext(userId: userId, familyUnitId: familyUnitId)
   }
 
   // MARK: - Content

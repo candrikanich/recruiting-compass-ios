@@ -22,10 +22,14 @@ protocol EventsManaging: Sendable {
   func updateEvent(id: String, request: EventUpdateRequest) async throws -> FullEvent
   /// Permanently deletes an event and all associated performance metrics.
   func deleteEvent(id: String) async throws
-  /// Returns school summaries for populating school pickers within the event form.
-  func fetchSchools(userId: String) async throws -> [SchoolSummary]
-  /// Creates a minimal school record inline from the event form.
-  func createSchool(name: String, location: String?, userId: String) async throws -> SchoolSummary
+  /// Returns school summaries for the event form's school picker. Scoped by
+  /// `family_unit_id` to match the canonical Schools list (and the web app) —
+  /// the picker shows every school the family is tracking.
+  func fetchSchools(familyUnitId: String) async throws -> [SchoolSummary]
+  /// Creates a minimal school record inline from the event form. Writes both
+  /// `user_id` and `family_unit_id` so the new school shows up in the
+  /// family-scoped Schools list and this picker.
+  func createSchool(name: String, location: String?, userId: String, familyUnitId: String) async throws -> SchoolSummary
   /// Returns coaches associated with a specific school, scoped to the user.
   func fetchCoaches(schoolId: String, userId: String) async throws -> [Coach]
   /// Returns all performance metrics logged for a specific event.

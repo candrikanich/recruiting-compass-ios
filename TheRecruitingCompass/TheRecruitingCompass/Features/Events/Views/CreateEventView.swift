@@ -7,10 +7,11 @@ struct CreateEventView: View {
 
   let onEventCreated: (String) -> Void
 
-  init(eventsService: EventsManaging, userId: String, onEventCreated: @escaping (String) -> Void) {
+  init(eventsService: EventsManaging, userId: String, familyUnitId: String, onEventCreated: @escaping (String) -> Void) {
     _viewModel = State(initialValue: CreateEventViewModel(
       eventsService: eventsService,
-      userId: userId
+      userId: userId,
+      familyUnitId: familyUnitId
     ))
     self.onEventCreated = onEventCreated
   }

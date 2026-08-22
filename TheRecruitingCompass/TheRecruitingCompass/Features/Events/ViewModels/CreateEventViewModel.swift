@@ -40,6 +40,7 @@ final class CreateEventViewModel {
 
   private let eventsService: any EventsManaging
   private let userId: String
+  private let familyUnitId: String
 
   // MARK: - Computed Properties
 
@@ -53,9 +54,10 @@ final class CreateEventViewModel {
 
   // MARK: - Init
 
-  nonisolated init(eventsService: any EventsManaging, userId: String) {
+  nonisolated init(eventsService: any EventsManaging, userId: String, familyUnitId: String) {
     self.eventsService = eventsService
     self.userId = userId
+    self.familyUnitId = familyUnitId
   }
 
   // MARK: - School Loading
@@ -66,7 +68,7 @@ final class CreateEventViewModel {
     defer { isLoading = false }
 
     do {
-      schools = try await eventsService.fetchSchools(userId: userId)
+      schools = try await eventsService.fetchSchools(familyUnitId: familyUnitId)
       logger.info("Loaded \(self.schools.count) schools")
     } catch {
       logger.error("Failed to load schools: \(error.localizedDescription)")
@@ -116,7 +118,8 @@ final class CreateEventViewModel {
       let school = try await eventsService.createSchool(
         name: trimmedName,
         location: location.isEmpty ? nil : location,
-        userId: userId
+        userId: userId,
+        familyUnitId: familyUnitId
       )
       schools.append(school)
       schools.sort { $0.name < $1.name }

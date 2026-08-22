@@ -199,6 +199,12 @@ final class EventsListViewModel {
     familyManager.selectedAthlete?.userId ?? authManager.user?.id
   }
 
+  /// Family unit that owns the schools list. Matches the canonical Schools
+  /// feature (and web), which scope the `schools` table by `family_unit_id`.
+  var familyUnitId: String? {
+    familyManager.familyUnitId
+  }
+
   // MARK: - Init
 
   private let cache: (any CacheManaging)?
