@@ -169,6 +169,39 @@ final class SendProfileViewModelTests: XCTestCase {
         XCTAssertFalse(vm.isPublished)
     }
 
+    // MARK: - loadTrackingInfo (copy-link + view stats, web parity)
+
+    func testLoadTrackingInfoExposesExistingLinkAndViewStats() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(isPublished: true)
+        service.stubTrackingLink = ProfileTrackingLink(
+            id: "t1", profileId: "p1", coachId: "c1", refToken: "abcd1234",
+            viewCount: 7, lastViewedAt: "2026-08-20T00:00:00Z", createdAt: ""
+        )
+        let vm = makeVM(service: service, authManager: selfAuth())
+
+        await vm.loadTrackingInfo(for: "c1")
+
+        XCTAssertTrue(vm.isPublished)
+        XCTAssertEqual(vm.viewCount, 7)
+        XCTAssertEqual(vm.lastViewedAt, "2026-08-20T00:00:00Z")
+        XCTAssertEqual(vm.trackingURL?.absoluteString.contains("/p/owen"), true)
+        XCTAssertEqual(vm.trackingURL?.absoluteString.contains("ref=abcd1234"), true)
+    }
+
+    func testLoadTrackingInfoLeavesURLNilWhenNoLinkYet() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(isPublished: true)
+        // stubTrackingLink stays nil -> fetchTrackingLink returns nil
+        let vm = makeVM(service: service, authManager: selfAuth())
+
+        await vm.loadTrackingInfo(for: "c1")
+
+        XCTAssertTrue(vm.isPublished)
+        XCTAssertNil(vm.trackingURL)
+        XCTAssertNil(vm.viewCount)
+    }
+
     // MARK: - logSend (interaction logging on confirmed send only)
 
     func testLogSendEmailCreatesOutboundEmailInteraction() async {

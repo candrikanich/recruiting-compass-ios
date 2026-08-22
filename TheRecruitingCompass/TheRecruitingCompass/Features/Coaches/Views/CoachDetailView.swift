@@ -28,6 +28,7 @@ struct CoachDetailView: View {
   @State private var shareItem: ShareURL?
   @State private var profileComposer: ProfileComposerContext?
   @State private var pendingChannelChoice: SendProfileMessage?
+  @State private var linkCopied = false
   @Environment(\.sizeCategory) private var sizeCategory
   @Environment(\.dismiss) private var dismiss
 
@@ -158,7 +159,7 @@ struct CoachDetailView: View {
     .task {
       await viewModel.loadCoach()
       await viewModel.loadDetails()
-      await sendProfileVM.loadPublishState()
+      await sendProfileVM.loadTrackingInfo(for: coachId)
     }
   }
 
@@ -182,7 +183,7 @@ struct CoachDetailView: View {
       }
 
       CoachStatisticsSection(coach: coach)
-      sendProfileButton(coach: coach)
+      sendProfileSection(coach: coach)
       recentInteractionsSection
       sharedNotesSection
     }
@@ -191,18 +192,51 @@ struct CoachDetailView: View {
 
   /// Only offered once the profile is published — an unpublished profile has
   /// nothing shareable, so the action is hidden rather than shown-then-blocked.
+  /// Once a link exists for this coach, also offers copy-link + view stats
+  /// (parity with the web coach page).
   @ViewBuilder
-  private func sendProfileButton(coach: Coach) -> some View {
+  private func sendProfileSection(coach: Coach) -> some View {
     if sendProfileVM.isPublished {
-      Button {
-        startSendProfile(coach: coach)
-      } label: {
-        Label("Send Profile", systemImage: "square.and.arrow.up")
-          .font(.body)
+      VStack(alignment: .leading, spacing: 8) {
+        Button {
+          startSendProfile(coach: coach)
+        } label: {
+          Label("Send Profile", systemImage: "square.and.arrow.up")
+            .font(.body)
+        }
+        .buttonStyle(.bordered)
+        .accessibilityLabel(String(localized: "Send Profile"))
+
+        if sendProfileVM.trackingURL != nil {
+          profileLinkStats
+        }
       }
-      .buttonStyle(.bordered)
-      .accessibilityLabel(String(localized: "Send Profile"))
     }
+  }
+
+  @ViewBuilder
+  private var profileLinkStats: some View {
+    if let count = sendProfileVM.viewCount {
+      Text("Viewed \(count) \(count == 1 ? "time" : "times")")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    }
+    Button {
+      sendProfileVM.copyTrackingLink()
+      linkCopied = true
+      Task {
+        try? await Task.sleep(for: .seconds(2))
+        linkCopied = false
+      }
+    } label: {
+      Label(
+        linkCopied ? "Copied" : "Copy Link",
+        systemImage: linkCopied ? "checkmark" : "doc.on.doc"
+      )
+      .font(.caption)
+    }
+    .buttonStyle(.borderless)
+    .accessibilityLabel(String(localized: "Copy profile link"))
   }
 
   private var channelChoiceBinding: Binding<Bool> {
