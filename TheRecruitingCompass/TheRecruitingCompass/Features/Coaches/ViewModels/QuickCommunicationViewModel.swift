@@ -66,8 +66,11 @@ final class QuickCommunicationViewModel {
   /// preview + send. Cleared on every `selectTemplate` (fresh template → fresh text).
   var editedSubject: String?
   var editedBody: String?
-  /// SMS body cap (parity with web); `.message` sends are gated over this.
-  static let textLimit = 160
+  /// SMS body cap; `.message` sends are hard-gated above this. Raised from 160
+  /// (one SMS segment) to 480 (~3 segments) so legitimately long multi-event
+  /// templates can send — Messages concatenates multipart texts natively.
+  /// NOTE: web still caps at 160 — parity divergence, revisit on web.
+  static let textLimit = 480
 
   /// Cached film-link substitution values, populated by `loadVideoLinks()`. Kept as stored
   /// properties (not fetched inline in `substitutionValues`) since that computed property
@@ -423,6 +426,11 @@ final class QuickCommunicationViewModel {
   /// True when a text (`.message`) template's SENT body exceeds the SMS cap.
   var textBodyOverLimit: Bool {
     selectedTemplate?.type == .message && cleanBody.count > Self.textLimit
+  }
+
+  /// How many characters the text body runs over the cap (0 when within limit).
+  var textOverLimitCount: Int {
+    textBodyOverLimit ? cleanBody.count - Self.textLimit : 0
   }
 
   /// The body used for send/preview: cleaned resolver output (optional-empty tokens/lines

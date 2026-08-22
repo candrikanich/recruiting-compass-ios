@@ -256,11 +256,17 @@ struct QuickCommunicationView: View {
             viewModel.cleanBody, tokenColor: .warningOrange),
           plainBody: viewModel.cleanBody
         )
-        if viewModel.isSendBlocked {
+        if !viewModel.unresolvedKeys.isEmpty {
           Text("Fill these before sending: \(viewModel.unresolvedKeys.joined(separator: ", "))")
             .font(.caption)
             .foregroundStyle(Color.warningOrange)
             .accessibilityIdentifier("quickCommUnresolvedNotice")
+        }
+        if viewModel.textBodyOverLimit {
+          Text("Text is \(viewModel.textOverLimitCount) characters over the \(QuickCommunicationViewModel.textLimit)-character limit — shorten it to send.")
+            .font(.caption)
+            .foregroundStyle(Color.warningOrange)
+            .accessibilityIdentifier("quickCommOverLimitNotice")
         }
         if let warning = viewModel.sendWarning {
           Text(warning)
