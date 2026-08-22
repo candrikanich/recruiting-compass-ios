@@ -69,13 +69,13 @@ final class EventsServiceImpl: EventsManaging, Sendable {
     }
   }
 
-  func fetchSchools(userId: String) async throws -> [SchoolSummary] {
-    logger.debug("Fetching schools for family unit: \(userId, privacy: .private)")
+  func fetchSchools(familyUnitId: String) async throws -> [SchoolSummary] {
+    logger.debug("Fetching schools for family unit: \(familyUnitId, privacy: .private)")
     do {
       let results: [SchoolSummary] = try await supabaseManager.client
         .from("schools")
         .select("id, name, location")
-        .eq("family_unit_id", value: userId)
+        .eq("family_unit_id", value: familyUnitId)
         .order("name")
         .execute()
         .value
@@ -203,21 +203,30 @@ final class EventsServiceImpl: EventsManaging, Sendable {
     }
   }
 
-  func createSchool(name: String, location: String?, userId: String) async throws -> SchoolSummary {
+  func createSchool(name: String, location: String?, userId: String, familyUnitId: String) async throws -> SchoolSummary {
     logger.debug("Creating school: \(name)")
 
     struct CreateSchoolRequest: Encodable {
       let name: String
       let location: String?
       let userId: String
+      let familyUnitId: String
+      let status: String
 
       enum CodingKeys: String, CodingKey {
-        case name, location
+        case name, location, status
         case userId = "user_id"
+        case familyUnitId = "family_unit_id"
       }
     }
 
-    let request = CreateSchoolRequest(name: name, location: location, userId: userId)
+    let request = CreateSchoolRequest(
+      name: name,
+      location: location,
+      userId: userId,
+      familyUnitId: familyUnitId,
+      status: SchoolStatus.researching.rawValue
+    )
     do {
       let result: SchoolSummary = try await supabaseManager.client
         .from("schools")

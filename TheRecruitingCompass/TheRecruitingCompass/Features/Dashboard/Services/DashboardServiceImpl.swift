@@ -37,8 +37,10 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       async let schools = fetchSchools(familyUnitId: familyUnitId)
       async let offers = fetchOffers(userId: userId)
       async let interactions = fetchInteractions(userId: userId, limit: nil)
+      async let events = fetchEvents(userId: userId, limit: nil)
 
-      let (schoolList, offerList, interactionList) = try await (schools, offers, interactions)
+      let (schoolList, offerList, interactionList, eventList) =
+        try await (schools, offers, interactions, events)
 
       let schoolIds = schoolList.map(\.id)
       let coaches = try await fetchCoaches(schoolIds: schoolIds)
@@ -46,6 +48,10 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       let coachCount = coaches.count
       let schoolCount = schoolList.count
       let interactionCount = interactionList.count
+      // Upcoming = start date on or after today, matching the Events list's
+      // "Upcoming" filter (startDate is a "yyyy-MM-dd"-prefixed ISO string).
+      let todayPrefix = Self.todayPrefix()
+      let upcomingEventCount = eventList.count(where: { $0.startDate >= todayPrefix })
       let totalOffers = offerList.count
       let acceptedOffers = offerList.count(where: { $0.status == .accepted })
       let acceptanceRate = totalOffers > 0 ? Double(acceptedOffers) / Double(totalOffers) : nil
@@ -58,12 +64,13 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
         ($0.occurredAt ?? $0.createdAt).hasPrefix(currentMonthPrefix)
       })
 
-      logger.info("fetchStats SUCCESS - schools: \(schoolCount), coaches: \(coachCount), interactions: \(interactionCount), offers: \(totalOffers)")
+      logger.info("fetchStats SUCCESS - schools: \(schoolCount), coaches: \(coachCount), interactions: \(interactionCount), upcomingEvents: \(upcomingEventCount), offers: \(totalOffers)")
 
       return DashboardStats(
         coachCount: coachCount,
         schoolCount: schoolCount,
         interactionCount: interactionCount,
+        upcomingEventCount: upcomingEventCount,
         totalOffers: totalOffers,
         acceptedOffers: acceptedOffers,
         acceptanceRate: acceptanceRate,
@@ -85,6 +92,15 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     formatter.locale = Locale(identifier: "en_US_POSIX")
     formatter.timeZone = TimeZone(identifier: "UTC")
     formatter.dateFormat = "yyyy-MM"
+    return formatter.string(from: now)
+  }
+
+  /// "yyyy-MM-dd" for today (device local day), matched lexicographically against
+  /// event `startDate` strings — mirrors the Events list's "Upcoming" cutoff.
+  private static func todayPrefix(now: Date = .now) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.dateFormat = "yyyy-MM-dd"
     return formatter.string(from: now)
   }
 

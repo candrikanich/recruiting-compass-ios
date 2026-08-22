@@ -3,7 +3,10 @@ import Foundation
 struct CreateEventData {
   var type: EventType?
   var name: String = ""
-  var startDate: Date?
+  /// Defaults to today so the form's Start Date picker reflects a real model
+  /// value from the start — otherwise the picker shows today while `startDate`
+  /// stays nil, silently keeping the Create button disabled.
+  var startDate: Date? = Date()
   var endDate: Date?
   var startTime: Date?
   var endTime: Date?

@@ -27,9 +27,10 @@ final class CreateEventAccessibilityTests: XCTestCase {
 
   private func makeViewModel(
     service: MockEventsService = MockEventsService(),
-    userId: String = "test-user"
+    userId: String = "test-user",
+    familyUnitId: String = "test-family"
   ) -> CreateEventViewModel {
-    let vm = CreateEventViewModel(eventsService: service, userId: userId)
+    let vm = CreateEventViewModel(eventsService: service, userId: userId, familyUnitId: familyUnitId)
     viewModelUnderTest = vm  // Hold reference until tearDown to avoid deinit-at-scope-exit crash
     return vm
   }

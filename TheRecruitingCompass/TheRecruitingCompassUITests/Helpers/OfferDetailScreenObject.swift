@@ -235,18 +235,8 @@ final class OfferDetailScreenObject {
   }
 
   func navigateToOffersFromDashboard() -> Bool {
-    let offersTab = app.tabBars.buttons["Offers"]
-    if offersTab.waitForExistence(timeout: 3) {
-      offersTab.tap()
-      return app.navigationBars["Offers"].waitForExistence(timeout: 5)
-    }
-
-    let offersLink = app.buttons.matching(NSPredicate(
-      format: "label CONTAINS 'Offers' OR label CONTAINS 'View Offers'"
-    )).firstMatch
-    if offersLink.waitForExistence(timeout: 5) {
-      offersLink.tap()
-    }
-    return app.navigationBars["Offers"].waitForExistence(timeout: 5)
+    // Offers lives under the More tab (it is not a main tab and no longer has a
+    // dashboard stat card — that slot now belongs to Events).
+    return MainTabNavigator(app: app).goToMoreSection("Offers")
   }
 }

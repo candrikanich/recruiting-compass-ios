@@ -23,10 +23,11 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   var lastFetchEventId: String?
   var lastFetchEventUserId: String?
   var lastFetchEventsUserId: String?
-  var lastFetchSchoolsUserId: String?
+  var lastFetchSchoolsFamilyUnitId: String?
   var lastCreateSchoolName: String?
   var lastCreateSchoolLocation: String?
   var lastCreateSchoolUserId: String?
+  var lastCreateSchoolFamilyUnitId: String?
   var lastUpdateEventId: String?
   var lastUpdateEventRequest: EventUpdateRequest?
   var lastDeleteEventId: String?
@@ -126,9 +127,9 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
     return stubbedEvents
   }
 
-  func fetchSchools(userId: String) async throws -> [SchoolSummary] {
+  func fetchSchools(familyUnitId: String) async throws -> [SchoolSummary] {
     fetchSchoolsCallCount += 1
-    lastFetchSchoolsUserId = userId
+    lastFetchSchoolsFamilyUnitId = familyUnitId
     if shouldThrowFetchSchools {
       throw NSError(
         domain: "MockEventsService",
@@ -139,11 +140,12 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
     return stubbedSchools
   }
 
-  func createSchool(name: String, location: String?, userId: String) async throws -> SchoolSummary {
+  func createSchool(name: String, location: String?, userId: String, familyUnitId: String) async throws -> SchoolSummary {
     createSchoolCallCount += 1
     lastCreateSchoolName = name
     lastCreateSchoolLocation = location
     lastCreateSchoolUserId = userId
+    lastCreateSchoolFamilyUnitId = familyUnitId
     if shouldThrowCreateSchool {
       throw NSError(
         domain: "MockEventsService",

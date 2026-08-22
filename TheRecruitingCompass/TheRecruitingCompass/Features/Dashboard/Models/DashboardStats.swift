@@ -4,6 +4,9 @@ struct DashboardStats: Codable, Sendable {
   let coachCount: Int
   let schoolCount: Int
   let interactionCount: Int
+  /// Events with a start date on or after today — matches the "Upcoming" filter
+  /// in the Events list, not the all-time event count.
+  let upcomingEventCount: Int
   let totalOffers: Int
   let acceptedOffers: Int
   let acceptanceRate: Double?
@@ -16,6 +19,7 @@ struct DashboardStats: Codable, Sendable {
     coachCount: Int,
     schoolCount: Int,
     interactionCount: Int,
+    upcomingEventCount: Int = 0,
     totalOffers: Int,
     acceptedOffers: Int,
     acceptanceRate: Double?,
@@ -25,6 +29,7 @@ struct DashboardStats: Codable, Sendable {
     self.coachCount = coachCount
     self.schoolCount = schoolCount
     self.interactionCount = interactionCount
+    self.upcomingEventCount = upcomingEventCount
     self.totalOffers = totalOffers
     self.acceptedOffers = acceptedOffers
     self.acceptanceRate = acceptanceRate

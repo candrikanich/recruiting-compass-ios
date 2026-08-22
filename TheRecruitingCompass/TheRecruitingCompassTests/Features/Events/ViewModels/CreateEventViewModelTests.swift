@@ -11,7 +11,11 @@ final class CreateEventViewModelTests: XCTestCase {
   override func setUp() {
     super.setUp()
     mockService = MockEventsService()
-    sut = CreateEventViewModel(eventsService: mockService, userId: "test-user-id")
+    sut = CreateEventViewModel(
+      eventsService: mockService,
+      userId: "test-user-id",
+      familyUnitId: "test-family-id"
+    )
   }
 
   override func tearDown() {
@@ -450,7 +454,7 @@ final class CreateEventViewModelTests: XCTestCase {
     XCTAssertEqual(sut.schools.count, 2)
     XCTAssertEqual(sut.schools.first?.name, "Georgia Tech")
     XCTAssertEqual(mockService.fetchSchoolsCallCount, 1)
-    XCTAssertEqual(mockService.lastFetchSchoolsUserId, "test-user-id")
+    XCTAssertEqual(mockService.lastFetchSchoolsFamilyUnitId, "test-family-id")
   }
 
   func testLoadSchools_onFailure_setsError() async {
@@ -479,6 +483,7 @@ final class CreateEventViewModelTests: XCTestCase {
     XCTAssertEqual(mockService.lastCreateSchoolName, "Clemson University")
     XCTAssertEqual(mockService.lastCreateSchoolLocation, "Clemson, SC")
     XCTAssertEqual(mockService.lastCreateSchoolUserId, "test-user-id")
+    XCTAssertEqual(mockService.lastCreateSchoolFamilyUnitId, "test-family-id")
   }
 
   func testSaveNewSchool_success_addsSchoolToList() async {
@@ -540,7 +545,8 @@ final class CreateEventViewModelTests: XCTestCase {
   func testInitialState_formDataIsEmpty() {
     XCTAssertNil(sut.formData.type)
     XCTAssertEqual(sut.formData.name, "")
-    XCTAssertNil(sut.formData.startDate)
+    // startDate defaults to today (see CreateEventData) — not nil.
+    XCTAssertNotNil(sut.formData.startDate)
     XCTAssertFalse(sut.formData.registered)
     XCTAssertFalse(sut.formData.attended)
   }

@@ -26,7 +26,9 @@ final class CreateEventDataTests: XCTestCase {
 
     XCTAssertNil(data.type)
     XCTAssertEqual(data.name, "")
-    XCTAssertNil(data.startDate)
+    // startDate defaults to today so the Start Date picker reflects a real
+    // model value (otherwise the Create button stays silently disabled).
+    XCTAssertNotNil(data.startDate)
     XCTAssertNil(data.endDate)
     XCTAssertNil(data.startTime)
     XCTAssertNil(data.endTime)

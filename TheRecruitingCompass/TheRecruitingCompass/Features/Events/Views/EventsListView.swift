@@ -1,11 +1,22 @@
 import SwiftUI
 
+/// Freezes the target user id at the moment the create-event sheet is opened.
+/// Presenting via `.sheet(item:)` on this value (instead of gating the sheet
+/// body on the live `targetUserId`) keeps the form's `@State` alive across any
+/// `authManager`/`familyManager` republish — otherwise a session-token refresh
+/// mid-edit rebuilds the form and silently discards everything entered.
+private struct CreateEventContext: Identifiable {
+  let id = UUID()
+  let userId: String
+  let familyUnitId: String
+}
+
 struct EventsListView: View {
   @Environment(AuthManager.self) private var authManager
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var viewModel = EventsListViewModel()
   @State private var eventToDelete: FullEvent?
-  @State private var showCreateEvent = false
+  @State private var createEventContext: CreateEventContext?
   @State private var hapticWarningTrigger = 0
   @State private var hapticLightTrigger = 0
 
@@ -32,7 +43,7 @@ struct EventsListView: View {
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button {
-          showCreateEvent = true
+          presentCreateEvent()
         } label: {
           Image(systemName: "plus")
             .frame(minWidth: 44, minHeight: 44)
@@ -54,8 +65,18 @@ struct EventsListView: View {
     } message: { error in
       Text(error)
     }
-    .sheet(isPresented: $showCreateEvent) {
-      createEventSheet
+    .sheet(item: $createEventContext) { context in
+      NavigationStack {
+        CreateEventView(
+          eventsService: EventsServiceImpl(),
+          userId: context.userId,
+          familyUnitId: context.familyUnitId,
+          onEventCreated: { _ in
+            createEventContext = nil
+            Task { await viewModel.loadEvents() }
+          }
+        )
+      }
     }
     .confirmationDialog("Delete Event?", isPresented: showDeleteConfirmation, titleVisibility: .visible) {
       if let event = eventToDelete {
@@ -76,20 +97,12 @@ struct EventsListView: View {
 
   // MARK: - Create Event Sheet
 
-  @ViewBuilder
-  private var createEventSheet: some View {
-    if let userId = viewModel.targetUserId {
-      NavigationStack {
-        CreateEventView(
-          eventsService: EventsServiceImpl(),
-          userId: userId,
-          onEventCreated: { _ in
-            showCreateEvent = false
-            Task { await viewModel.loadEvents() }
-          }
-        )
-      }
-    }
+  /// Resolves the target user id once, here, and freezes it into the sheet's
+  /// item so the presented form survives auth/family republishes mid-edit.
+  private func presentCreateEvent() {
+    guard let userId = viewModel.targetUserId,
+          let familyUnitId = viewModel.familyUnitId else { return }
+    createEventContext = CreateEventContext(userId: userId, familyUnitId: familyUnitId)
   }
 
   // MARK: - Content
@@ -259,7 +272,7 @@ struct EventsListView: View {
       actionTitle: String(localized: "Add Your First Event"),
       actionHint: String(localized: "Opens the form to create an event")
     ) {
-      showCreateEvent = true
+      presentCreateEvent()
     }
     .frame(maxHeight: .infinity)
   }
