@@ -19,8 +19,7 @@ struct CreateEventView: View {
 
   private var hasUnsavedChanges: Bool {
     viewModel.formData.type != nil ||
-    !viewModel.formData.name.isEmpty ||
-    viewModel.formData.startDate != nil
+    !viewModel.formData.name.isEmpty
   }
 
   // MARK: - Body

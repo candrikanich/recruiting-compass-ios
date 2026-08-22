@@ -540,7 +540,8 @@ final class CreateEventViewModelTests: XCTestCase {
   func testInitialState_formDataIsEmpty() {
     XCTAssertNil(sut.formData.type)
     XCTAssertEqual(sut.formData.name, "")
-    XCTAssertNil(sut.formData.startDate)
+    // startDate defaults to today (see CreateEventData) — not nil.
+    XCTAssertNotNil(sut.formData.startDate)
     XCTAssertFalse(sut.formData.registered)
     XCTAssertFalse(sut.formData.attended)
   }
