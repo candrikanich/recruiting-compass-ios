@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import UIKit
 
 @Observable
 @MainActor
@@ -17,6 +18,11 @@ final class SendProfileViewModel {
     /// Drives whether the "Send Profile" button is offered — a profile must be
     /// published before it can be shared with a coach.
     var isPublished = false
+    /// The already-generated shareable link for this coach (web parity: copy-link
+    /// + view stats). `nil` until a link has been created for the coach.
+    var trackingURL: URL?
+    var viewCount: Int?
+    var lastViewedAt: String?
     var errorMessage: String?
     var successMessage: String?
 
@@ -40,6 +46,27 @@ final class SendProfileViewModel {
         let token = authManager.session?.accessToken
         let profile = try? await service.fetchProfile(accessToken: token)
         isPublished = profile?.isPublished ?? false
+    }
+
+    /// Load publish state plus any already-generated tracking link for this coach,
+    /// so the view can offer copy-link and show view stats (web parity).
+    func loadTrackingInfo(for coachId: String) async {
+        let token = authManager.session?.accessToken
+        guard let profile = try? await service.fetchProfile(accessToken: token) else {
+            isPublished = false
+            return
+        }
+        isPublished = profile.isPublished
+        guard profile.isPublished,
+              let link = try? await service.fetchTrackingLink(coachId: coachId, accessToken: token) else {
+            trackingURL = nil
+            viewCount = nil
+            lastViewedAt = nil
+            return
+        }
+        trackingURL = buildURL(profile: profile, refToken: link.refToken)
+        viewCount = link.viewCount
+        lastViewedAt = link.lastViewedAt
     }
 
     /// Validate, build the tracking URL + boilerplate copy, and decide which
@@ -71,6 +98,10 @@ final class SendProfileViewModel {
               let url = buildURL(profile: profile, refToken: link.refToken) else {
             return .failed
         }
+        // Surface the link for copy + view stats now that it exists.
+        trackingURL = url
+        viewCount = link.viewCount
+        lastViewedAt = link.lastViewedAt
 
         let message = SendProfileMessage(
             coachId: coach.id,
@@ -124,6 +155,12 @@ final class SendProfileViewModel {
         } catch {
             errorMessage = String(localized: "Profile sent, but logging it failed.")
         }
+    }
+
+    /// Copy the current tracking link to the pasteboard. No-op if none exists.
+    func copyTrackingLink() {
+        guard let url = trackingURL else { return }
+        UIPasteboard.general.string = url.absoluteString
     }
 
     // MARK: - Private
