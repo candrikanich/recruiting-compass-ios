@@ -1,8 +1,17 @@
+import MessageUI
 import SwiftUI
 
 private struct ShareURL: Identifiable {
   let id = UUID()
   let url: URL
+}
+
+/// Identifies which in-app composer to present for a Send Profile, carrying the
+/// resolved message so the result handler can log the send.
+private struct ProfileComposerContext: Identifiable {
+  let id = UUID()
+  let channel: SendProfileChannel
+  let message: SendProfileMessage
 }
 
 struct CoachDetailView: View {
@@ -17,6 +26,8 @@ struct CoachDetailView: View {
     authManager: AuthManager.shared
   )
   @State private var shareItem: ShareURL?
+  @State private var profileComposer: ProfileComposerContext?
+  @State private var pendingChannelChoice: SendProfileMessage?
   @Environment(\.sizeCategory) private var sizeCategory
   @Environment(\.dismiss) private var dismiss
 
@@ -101,6 +112,25 @@ struct CoachDetailView: View {
     .sheet(item: $shareItem) { item in
       ActivityShareSheet(activityItems: [item.url])
     }
+    .sheet(item: $profileComposer) { context in
+      profileComposerSheet(context)
+    }
+    .confirmationDialog(
+      "Send Profile",
+      isPresented: channelChoiceBinding,
+      titleVisibility: .visible,
+      presenting: pendingChannelChoice
+    ) { message in
+      if let email = message.coachEmail {
+        Button("Email \(email)") { presentComposer(.email, message) }
+      }
+      if let phone = message.coachPhone {
+        Button("Text \(phone)") { presentComposer(.text, message) }
+      }
+      Button("Cancel", role: .cancel) {}
+    } message: { _ in
+      Text("How would you like to send this profile?")
+    }
     .alert(
       "Profile Not Published",
       isPresented: $sendProfileVM.notPublishedPrompt
@@ -128,6 +158,7 @@ struct CoachDetailView: View {
     .task {
       await viewModel.loadCoach()
       await viewModel.loadDetails()
+      await sendProfileVM.loadPublishState()
     }
   }
 
@@ -151,27 +182,94 @@ struct CoachDetailView: View {
       }
 
       CoachStatisticsSection(coach: coach)
-      sendProfileButton
+      sendProfileButton(coach: coach)
       recentInteractionsSection
       sharedNotesSection
     }
     .padding()
   }
 
+  /// Only offered once the profile is published — an unpublished profile has
+  /// nothing shareable, so the action is hidden rather than shown-then-blocked.
   @ViewBuilder
-  private var sendProfileButton: some View {
-    Button {
-      Task {
-        if let url = await sendProfileVM.shareURL(forCoachId: coachId) {
-          shareItem = ShareURL(url: url)
-        }
+  private func sendProfileButton(coach: Coach) -> some View {
+    if sendProfileVM.isPublished {
+      Button {
+        startSendProfile(coach: coach)
+      } label: {
+        Label("Send Profile", systemImage: "square.and.arrow.up")
+          .font(.body)
       }
-    } label: {
-      Label("Send Profile", systemImage: "square.and.arrow.up")
-        .font(.body)
+      .buttonStyle(.bordered)
+      .accessibilityLabel(String(localized: "Send Profile"))
     }
-    .buttonStyle(.bordered)
-    .accessibilityLabel(String(localized: "Send Profile"))
+  }
+
+  private var channelChoiceBinding: Binding<Bool> {
+    Binding(
+      get: { pendingChannelChoice != nil },
+      set: { if !$0 { pendingChannelChoice = nil } }
+    )
+  }
+
+  /// Resolve the profile URL + boilerplate, then route to the matching channel.
+  private func startSendProfile(coach: Coach) {
+    Task {
+      switch await sendProfileVM.prepare(for: coach) {
+      case let .email(message): presentComposer(.email, message)
+      case let .text(message): presentComposer(.text, message)
+      case let .choice(message): pendingChannelChoice = message
+      case let .share(url): shareItem = ShareURL(url: url)
+      case .notPublished, .failed: break  // notPublished alert is bound to the VM
+      }
+    }
+  }
+
+  /// Present the in-app composer when the device can send; otherwise fall back to
+  /// the system share sheet (and log nothing — an external hand-off can't confirm).
+  private func presentComposer(_ channel: SendProfileChannel, _ message: SendProfileMessage) {
+    switch channel {
+    case .email:
+      if MFMailComposeViewController.canSendMail() {
+        profileComposer = ProfileComposerContext(channel: .email, message: message)
+      } else {
+        shareItem = ShareURL(url: message.url)
+      }
+    case .text:
+      if MFMessageComposeViewController.canSendText() {
+        profileComposer = ProfileComposerContext(channel: .text, message: message)
+      } else {
+        shareItem = ShareURL(url: message.url)
+      }
+    }
+  }
+
+  /// Log ONLY on a confirmed `.sent`; cancel/save/fail record nothing.
+  @ViewBuilder
+  private func profileComposerSheet(_ context: ProfileComposerContext) -> some View {
+    switch context.channel {
+    case .email:
+      MailComposeView(
+        recipients: [context.message.coachEmail].compactMap { $0 },
+        subject: context.message.subject,
+        body: context.message.emailBody,
+        onResult: { result, _ in
+          guard result == .sent else { return }
+          Task { await sendProfileVM.logSend(.email, message: context.message) }
+        }
+      )
+      .ignoresSafeArea()
+    case .text:
+      MessageComposeView(
+        recipients: [context.message.coachPhone].compactMap { $0 },
+        body: context.message.textBody,
+        onResult: { result in
+          guard result == .sent else { return }
+          Task { await sendProfileVM.logSend(.text, message: context.message) }
+        }
+      )
+      .ignoresSafeArea()
+    }
   }
 
   @ViewBuilder
