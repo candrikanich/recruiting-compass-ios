@@ -105,6 +105,8 @@ struct DashboardView: View {
                 interactionsThisMonth: viewModel.interactionsThisMonth,
                 daysUntilGraduationFormatted: viewModel.daysUntilGraduationFormatted,
                 isEmpty: viewModel.isEmpty,
+                athleteSport: viewModel.athleteSport,
+                athleteGender: viewModel.athleteGender,
                 onCoachContacted: { Task { await viewModel.fetchDashboardData() } }
               )
             }

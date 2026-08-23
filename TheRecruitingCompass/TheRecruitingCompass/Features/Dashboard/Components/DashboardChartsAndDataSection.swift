@@ -13,6 +13,8 @@ struct DashboardChartsAndDataSection: View {
   let interactionsThisMonth: Int
   let daysUntilGraduationFormatted: String
   let isEmpty: Bool
+  let athleteSport: String?
+  let athleteGender: String?
   /// Reload the dashboard after a coach send (follow-up list refresh).
   var onCoachContacted: (() -> Void)?
 
@@ -20,6 +22,10 @@ struct DashboardChartsAndDataSection: View {
     VStack(spacing: 16) {
       if visibility.interactionTrendChart && !interactionTrends.isEmpty {
         InteractionTrendsChart(trends: interactionTrends)
+      }
+
+      if visibility.recruitingCalendar {
+        RecruitingCalendarWidget(sport: athleteSport, gender: athleteGender)
       }
 
       if visibility.eventsSummary && !events.isEmpty {
@@ -62,7 +68,9 @@ struct DashboardChartsAndDataSection: View {
       schoolsWithOffersPercentage: "25%",
       interactionsThisMonth: 4,
       daysUntilGraduationFormatted: "365",
-      isEmpty: false
+      isEmpty: false,
+      athleteSport: "Baseball",
+      athleteGender: "male"
     )
     .padding()
   }

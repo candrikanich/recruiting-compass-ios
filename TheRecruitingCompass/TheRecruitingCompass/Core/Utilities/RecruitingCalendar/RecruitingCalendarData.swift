@@ -7,6 +7,9 @@ import Foundation
 /// transcribed from.
 enum RecruitingCalendarData {
     static let season = "2026-27"
+    /// Last day of the 2026-27 NCAA recruiting season. Past this date the
+    /// dataset is stale and the widget shows the L6b staleness banner.
+    static let seasonEnd = "2027-07-31"
     private static let verifiedOn = "2026-08-23"
     private static let bucket = "https://ncaaorg.s3.amazonaws.com/compliance/recruiting/calendar/\(season)"
 
