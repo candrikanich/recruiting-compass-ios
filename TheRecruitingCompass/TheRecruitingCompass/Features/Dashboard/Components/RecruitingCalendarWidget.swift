@@ -9,6 +9,10 @@ struct RecruitingCalendarWidget: View {
   let sport: String?
   let gender: String?
   var division: String = "D1"
+  /// Target athlete's graduation year — gates which milestone `type`s surface
+  /// (e.g. signing dates are withheld from underclassmen). `nil` shows the
+  /// unfiltered milestone list.
+  var graduationYear: Int?
 
   /// Men's/Women's toggle for gender-split sports with unresolved gender.
   /// Defaults to men's, matching `RecruitingCalendar.resolveKey`'s own default.
@@ -77,11 +81,14 @@ struct RecruitingCalendarWidget: View {
   }
 
   private var upcomingMilestones: [CalendarMilestone] {
-    calendar.milestones
-      .filter { $0.date >= todayISO }
-      .sorted { $0.date < $1.date }
-      .prefix(3)
-      .map { $0 }
+    RecruitingCalendar.upcomingMilestones(
+      todayISO,
+      sport: sport,
+      division: division,
+      gender: effectiveGender,
+      footballSubdivision: effectiveFootballSubdivision,
+      graduationYear: graduationYear
+    )
   }
 
   private var isDatasetStale: Bool {

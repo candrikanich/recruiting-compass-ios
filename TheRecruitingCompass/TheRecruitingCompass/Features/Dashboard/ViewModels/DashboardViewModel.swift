@@ -165,8 +165,8 @@ final class DashboardViewModel {
       async let eventsTask: () = fetchEvents()
       async let metricsTask: () = fetchMetrics()
       async let trendsTask: () = fetchInteractionTrends()
-      async let gradYearTask: () = fetchGraduationYear()
-      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask, gradYearTask)
+      async let playerProfileTask: () = fetchPlayerProfile()
+      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask, playerProfileTask)
       return
     }
 
@@ -192,8 +192,8 @@ final class DashboardViewModel {
       async let metricsTask: () = fetchMetrics()
       async let trendsTask: () = fetchInteractionTrends()
       async let coachesTask: () = fetchCoachesFollowup()
-      async let gradYearTask: () = fetchGraduationYear()
-      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask, coachesTask, gradYearTask)
+      async let playerProfileTask: () = fetchPlayerProfile()
+      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask, coachesTask, playerProfileTask)
     } catch {
       logger.error("Failed to load dashboard data: \(error.localizedDescription)")
       errorMessage = "Failed to load dashboard. Pull to refresh."
@@ -388,7 +388,7 @@ final class DashboardViewModel {
   /// preferences. Player prefs are keyed to the user, not a family unit, so this works before
   /// any family exists. Errors are tolerated (leaves fields nil — the countdown shows "--" and
   /// sport-aware widgets fall back to a generic presentation), mirroring fetchWidgetVisibility.
-  func fetchGraduationYear() async {
+  func fetchPlayerProfile() async {
     guard let userId = targetUserId else { return }
     do {
       let details: PlayerDetails? = try await preferenceService.fetchPreferences(category: .player, userId: userId)

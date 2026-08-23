@@ -62,4 +62,36 @@ final class RecruitingCalendarTests: XCTestCase {
         XCTAssertTrue(RecruitingCalendar.isDeadPeriod("2027-07-04", sport: "Baseball", division: "D1"))
         XCTAssertFalse(RecruitingCalendar.isDeadPeriod("2027-07-04", sport: "Tennis", division: "D1"))
     }
+
+    // grad-year milestone filter parity (web resolver.ts getUpcomingMilestones): signing-type
+    // milestones only surface for graduationYear == currentYear + 3 (senior); underclassmen
+    // (freshman/sophomore) never see them. Baseball's MBA calendar has a real 2026-11-11 signing
+    // milestone, and `dateISO`'s year (2026) stands in for "currentYear".
+    func test_upcomingMilestones_underclassman_excludesSigning() {
+        let milestones = RecruitingCalendar.upcomingMilestones(
+            "2026-01-01", sport: "Baseball", division: "D1", graduationYear: 2030 // frosh: 2026+4
+        )
+        XCTAssertFalse(milestones.contains { $0.type == .signing })
+    }
+
+    func test_upcomingMilestones_senior_includesSigning() {
+        let milestones = RecruitingCalendar.upcomingMilestones(
+            "2026-01-01", sport: "Baseball", division: "D1", graduationYear: 2029 // senior: 2026+3
+        )
+        XCTAssertTrue(milestones.contains { $0.type == .signing })
+    }
+
+    func test_upcomingMilestones_junior_excludesSigning() {
+        let milestones = RecruitingCalendar.upcomingMilestones(
+            "2026-01-01", sport: "Baseball", division: "D1", graduationYear: 2028 // junior: 2026+2
+        )
+        XCTAssertFalse(milestones.contains { $0.type == .signing })
+    }
+
+    func test_upcomingMilestones_noGraduationYear_unfiltered() {
+        let milestones = RecruitingCalendar.upcomingMilestones(
+            "2026-01-01", sport: "Baseball", division: "D1", graduationYear: nil
+        )
+        XCTAssertTrue(milestones.contains { $0.type == .signing })
+    }
 }

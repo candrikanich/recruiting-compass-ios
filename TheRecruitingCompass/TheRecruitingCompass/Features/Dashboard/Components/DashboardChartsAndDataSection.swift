@@ -15,6 +15,7 @@ struct DashboardChartsAndDataSection: View {
   let isEmpty: Bool
   let athleteSport: String?
   let athleteGender: String?
+  let graduationYear: Int?
   /// Reload the dashboard after a coach send (follow-up list refresh).
   var onCoachContacted: (() -> Void)?
 
@@ -25,7 +26,7 @@ struct DashboardChartsAndDataSection: View {
       }
 
       if visibility.recruitingCalendar {
-        RecruitingCalendarWidget(sport: athleteSport, gender: athleteGender)
+        RecruitingCalendarWidget(sport: athleteSport, gender: athleteGender, graduationYear: graduationYear)
       }
 
       if visibility.eventsSummary && !events.isEmpty {
@@ -70,7 +71,8 @@ struct DashboardChartsAndDataSection: View {
       daysUntilGraduationFormatted: "365",
       isEmpty: false,
       athleteSport: "Baseball",
-      athleteGender: "male"
+      athleteGender: "male",
+      graduationYear: 2029
     )
     .padding()
   }

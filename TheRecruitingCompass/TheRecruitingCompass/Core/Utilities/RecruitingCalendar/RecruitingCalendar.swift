@@ -11,10 +11,6 @@ enum NcaaCalendarKey: String, CaseIterable {
     case OTHER_ROWING, OTHER_FIELDHOCKEY, OTHER_MWRESTLING, OTHER_WWRESTLING
 }
 
-enum RecruitingDivision: String {
-    case D1, D2, D3
-}
-
 /// One NCAA recruiting-period window. 5-type taxonomy (spike finding): baseball
 /// uses `recruitingShutdown` (stricter than `dead` — no calls/texts/
 /// correspondence at all) and has no `evaluation`; basketball/football use
@@ -238,20 +234,47 @@ enum RecruitingCalendar {
 
     /// Upcoming milestones for `sport`/`division` from the resolved
     /// `SportCalendar`'s own milestone list, filtered by future date
-    /// (`>= dateISO`), sorted ascending, and capped at `limit` (default 5).
+    /// (`>= dateISO`), by `graduationYear`'s grad-year bucket (when provided —
+    /// see ``milestoneTypes(forGraduationYear:currentYear:)``), sorted
+    /// ascending, and capped at `limit` (default 5).
     static func upcomingMilestones(
         _ dateISO: String,
         sport: String?,
         division: String,
         gender: String? = nil,
         footballSubdivision: String? = nil,
+        graduationYear: Int? = nil,
         limit: Int = 5
     ) -> [CalendarMilestone] {
         let cal = calendar(sport: sport, division: division, gender: gender, footballSubdivision: footballSubdivision)
-        return cal.milestones
-            .filter { $0.date >= dateISO }
+        var combined = cal.milestones.filter { $0.date >= dateISO }
+
+        if let graduationYear, let currentYear = Int(dateISO.prefix(4)) {
+            let allowedTypes = milestoneTypes(forGraduationYear: graduationYear, currentYear: currentYear)
+            combined = combined.filter { allowedTypes.contains($0.type) }
+        }
+
+        return combined
             .sorted { $0.date < $1.date }
             .prefix(limit)
             .map { $0 }
+    }
+
+    /// Grad-year milestone bucket rule. Swift mirror of web
+    /// `resolver.ts`'s `getUpcomingMilestones` phase buckets — byte-identical
+    /// cutoffs: senior year (`graduationYear == currentYear + 3`) sees
+    /// test/application/signing/ncaa-period milestones; junior year
+    /// (`currentYear + 2`) sees test/deadline/ncaa-period/application; any
+    /// other grad year (freshman/sophomore, or anything outside those two
+    /// windows) sees only test/ncaa-period — signing dates are withheld from
+    /// underclassmen.
+    static func milestoneTypes(forGraduationYear graduationYear: Int, currentYear: Int) -> Set<MilestoneType> {
+        if graduationYear == currentYear + 3 {
+            return [.test, .application, .signing, .ncaaPeriod]
+        } else if graduationYear == currentYear + 2 {
+            return [.test, .deadline, .ncaaPeriod, .application]
+        } else {
+            return [.test, .ncaaPeriod]
+        }
     }
 }
