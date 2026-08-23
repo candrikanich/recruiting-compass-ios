@@ -221,7 +221,8 @@ final class PublicProfileViewModel {
             weightLbs: details.weightLbs,
             ncaaId: details.ncaaId,
             perfectGameId: details.perfectGameId,
-            prepBaseballId: details.prepBaseballId
+            prepBaseballId: details.prepBaseballId,
+            prepBaseballState: details.prepBaseballState
         )
     }
 

@@ -10,9 +10,9 @@ struct AthleticsTab: View {
                     physicalStatsCard
                 }
 
-                if viewModel.isBaseballOrSoftball {
+                if !applicableAttributes.isEmpty {
                     cardSection(sportSectionTitle) {
-                        battingThrowingCard
+                        attributesCard
                     }
                 }
 
@@ -61,52 +61,45 @@ struct AthleticsTab: View {
         }
     }
 
-    // MARK: - Batting & Throwing Card (baseball/softball only)
+    // MARK: - Attributes Card (registry-driven, per sport)
 
     /// Section title keyed to the athlete's primary sport (e.g. "Baseball"),
     /// falling back to a sport-agnostic label if none is set.
     private var sportSectionTitle: String {
         guard let sport = viewModel.details.primarySport, !sport.isEmpty else {
-            return String(localized: "Batting & Throwing")
+            return String(localized: "Attributes")
         }
         return sport.capitalized
     }
 
-    @ViewBuilder
-    private var battingThrowingCard: some View {
-        VStack(spacing: 0) {
-            choiceRow(
-                String(localized: "Bats"),
-                options: [
-                    ("R", String(localized: "Right")),
-                    ("L", String(localized: "Left")),
-                    ("S", String(localized: "Switch"))
-                ],
-                selection: Binding(
-                    get: { viewModel.details.bats },
-                    set: {
-                        viewModel.details.bats = $0
-                        viewModel.markChanged()
-                    }
-                )
-            )
-            divider
-            choiceRow(
-                String(localized: "Throws"),
-                options: [
-                    ("R", String(localized: "Right")),
-                    ("L", String(localized: "Left"))
-                ],
-                selection: Binding(
-                    get: { viewModel.details.throws_ },
-                    set: {
-                        viewModel.details.throws_ = $0
-                        viewModel.markChanged()
-                    }
-                )
-            )
+    /// Attributes for the athlete's sport, minus any whose position gate excludes
+    /// the athlete's primary position (e.g. Ice Hockey "Catches" for non-Goalies).
+    private var applicableAttributes: [AthleteAttributes.AttributeDef] {
+        let primaryPosition = viewModel.details.primaryPosition
+        return AthleteAttributes.attributes(for: viewModel.details.primarySport).filter { attr in
+            attr.positions.isEmpty || (primaryPosition.map { attr.positions.contains($0) } ?? false)
         }
-        .animation(.easeInOut, value: viewModel.isBaseballOrSoftball)
+    }
+
+    @ViewBuilder
+    private var attributesCard: some View {
+        let attributes = applicableAttributes
+        VStack(spacing: 0) {
+            ForEach(Array(attributes.enumerated()), id: \.element.key) { index, attr in
+                choiceRow(
+                    attr.label,
+                    options: attr.options.map { (value: $0, label: attr.optionLabels[$0] ?? $0) },
+                    selection: Binding(
+                        get: { viewModel.details[attributeKey: attr.key] },
+                        set: {
+                            viewModel.details[attributeKey: attr.key] = $0
+                            viewModel.markChanged()
+                        }
+                    )
+                )
+                if index < attributes.count - 1 { divider }
+            }
+        }
     }
 
     @ViewBuilder
@@ -206,18 +199,84 @@ struct AthleticsTab: View {
 
     @ViewBuilder
     private var externalIdsCard: some View {
+        let services = RecruitingServices.servicesForSport(viewModel.details.primarySport)
         VStack(spacing: 0) {
-            if viewModel.isBaseballOrSoftball {
-                textRow(String(localized: "Perfect Game ID"), keyPath: \.perfectGameId)
-                helperLink(String(localized: "Get your Perfect Game profile"), "https://www.perfectgame.org/")
-                divider
-                textRow(String(localized: "Prep Baseball ID"), keyPath: \.prepBaseballId)
-                helperLink(String(localized: "Get your Prep Baseball Report profile"),
-                           "https://www.prepbaseballreport.com/")
-                divider
-            }
+            // NCAA Eligibility Center — always shown; not a registry recruiting service.
             textRow(String(localized: "NCAA ID"), keyPath: \.ncaaId)
             helperLink(String(localized: "Register at NCAA Eligibility Center"), "https://web3.ncaa.org/ecwr3/")
+            ForEach(services, id: \.key) { service in
+                divider
+                serviceRow(service)
+            }
+        }
+    }
+
+    /// One registry-driven recruiting-service row: an input bound to the flat
+    /// `data[key]` field plus a "Get your profile" signup link.
+    @ViewBuilder
+    private func serviceRow(_ service: RecruitingServices.ServiceDef) -> some View {
+        HStack {
+            Text(service.label).font(.body)
+            Spacer()
+            TextField(service.placeholder, text: Binding(
+                get: { viewModel.details[attributeKey: service.key] ?? "" },
+                set: {
+                    viewModel.details[attributeKey: service.key] = $0.isEmpty ? nil : $0
+                    viewModel.markChanged()
+                }
+            ))
+            .multilineTextAlignment(.trailing)
+            .foregroundStyle(.secondary)
+            .keyboardType(service.valueKind == .url ? .URL : .default)
+            .textInputAutocapitalization(.never)
+            .disabled(viewModel.isReadOnly)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        helperLink(String(localized: "Get your profile"), service.signupUrl)
+        if service.linkKind == .prepBaseball {
+            prepBaseballExtras(service)
+        }
+    }
+
+    /// PBR-specific editor rows: a state input (PBR files profiles by state) and,
+    /// once state + the athlete's name resolve, the slug-based profile link.
+    @ViewBuilder
+    private func prepBaseballExtras(_ service: RecruitingServices.ServiceDef) -> some View {
+        divider
+        HStack {
+            Text("PBR State").font(.body)
+            Spacer()
+            TextField(String(localized: "State (e.g. OH)"), text: Binding(
+                get: { viewModel.details.prepBaseballState ?? "" },
+                set: {
+                    viewModel.details.prepBaseballState = $0.isEmpty ? nil : $0
+                    viewModel.markChanged()
+                }
+            ))
+            .multilineTextAlignment(.trailing)
+            .foregroundStyle(.secondary)
+            .textInputAutocapitalization(.characters)
+            .disabled(viewModel.isReadOnly)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        if let urlString = RecruitingServices.profileURL(
+            for: service,
+            value: viewModel.details[attributeKey: service.key],
+            state: viewModel.details.prepBaseballState,
+            name: viewModel.athleteName
+        ), let url = URL(string: urlString) {
+            Link(destination: url) {
+                HStack(spacing: 4) {
+                    Text("View profile")
+                    Image(systemName: "arrow.up.right.square")
+                }
+                .font(.caption)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+            .padding(.bottom, 12)
         }
     }
 

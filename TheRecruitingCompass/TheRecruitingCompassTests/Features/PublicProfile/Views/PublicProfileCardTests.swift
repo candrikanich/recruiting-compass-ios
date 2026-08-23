@@ -10,7 +10,8 @@ final class PublicProfileCardTests: XCTestCase {
             academics: nil,
             athletic: .init(primarySport: "Baseball", primaryPosition: "SS",
                             positions: ["SS"], heightInches: 72, weightLbs: 180,
-                            ncaaId: nil, perfectGameId: nil, prepBaseballId: nil),
+                            ncaaId: nil, perfectGameId: nil, prepBaseballId: nil,
+                            prepBaseballState: nil),
             film: nil, schools: nil, social: nil
         )
         let sections = PublicProfileCard.visibleSections(for: data)
@@ -38,7 +39,8 @@ final class PublicProfileCardTests: XCTestCase {
                               graduationYear: 2027, highSchool: "Central HS", coreCourses: nil),
             athletic: .init(primarySport: "Baseball", primaryPosition: "SS",
                             positions: ["SS", "2B"], heightInches: 72, weightLbs: 180,
-                            ncaaId: "123", perfectGameId: nil, prepBaseballId: nil),
+                            ncaaId: "123", perfectGameId: nil, prepBaseballId: nil,
+                            prepBaseballState: nil),
             film: [.init(title: "Highlights", url: "https://example.com/video")],
             schools: [.init(id: "1", name: "State University")],
             social: .init(twitterHandle: "@rileyplays", instagramHandle: nil,
