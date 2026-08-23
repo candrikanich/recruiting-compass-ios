@@ -99,20 +99,16 @@ struct CoachMetricsSection: View {
     let value: String
   }
 
+  // Total interactions, days-since-contact, and preferred method already render
+  // in CoachStatsGrid above — the panel carries only the non-duplicated analytics.
   private var rows: [Row] {
     [
-      Row(label: String(localized: "Total interactions"), value: "\(metrics.totalInteractions)"),
       Row(label: String(localized: "Sent / received"), value: "\(metrics.outboundCount) / \(metrics.inboundCount)"),
       Row(label: String(localized: "Response rate"), value: "\(metrics.responseRate)%"),
       Row(
         label: String(localized: "Avg response time"),
         value: metrics.averageResponseTime > 0 ? "\(formatHours(metrics.averageResponseTime))h" : "—"
-      ),
-      Row(
-        label: String(localized: "Days since contact"),
-        value: metrics.daysSinceContact >= 0 ? "\(metrics.daysSinceContact)" : String(localized: "N/A")
-      ),
-      Row(label: String(localized: "Preferred method"), value: metrics.preferredMethod)
+      )
     ]
   }
 

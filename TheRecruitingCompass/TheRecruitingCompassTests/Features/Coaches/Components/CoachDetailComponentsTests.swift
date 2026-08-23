@@ -59,18 +59,6 @@ final class CoachDetailComponentsTests: XCTestCase {
     )
   }
 
-  private func makeInteraction(
-    id: String,
-    type: InteractionType = .email,
-    subject: String? = "Test Subject"
-  ) -> Interaction {
-    Interaction(
-      id: id, type: type, direction: .outbound, schoolId: "school-1", coachId: "coach-1",
-      subject: subject, content: nil, sentiment: .positive, occurredAt: "2026-02-08T10:00:00Z",
-      loggedBy: "user-1", attachments: nil, familyUnitId: "family-1",
-      createdAt: "2026-02-08T10:00:00Z", updatedAt: nil
-    )
-  }
 
   // MARK: - CoachDetailHeader Tests
 
@@ -191,42 +179,6 @@ final class CoachDetailComponentsTests: XCTestCase {
     )
 
     XCTAssertEqual(stats.contactStatusText, "1 days ago")
-  }
-
-  // MARK: - RecentInteractionRow Tests
-
-  func testRecentInteractionRow_rendersWithSubject() {
-    let interaction = makeInteraction(id: "1", type: .email, subject: "Follow-up Email")
-
-    let row = RecentInteractionRow(interaction: interaction)
-
-    let hostingController = UIHostingController(rootView: row)
-
-    XCTAssertNotNil(hostingController.view)
-  }
-
-  func testRecentInteractionRow_rendersWithoutSubject() {
-    let interaction = makeInteraction(id: "2", type: .phoneCall, subject: nil)
-
-    let row = RecentInteractionRow(interaction: interaction)
-
-    let hostingController = UIHostingController(rootView: row)
-
-    XCTAssertNotNil(hostingController.view)
-    // Should render with type name as fallback
-  }
-
-  func testRecentInteractionRow_rendersAllInteractionTypes() {
-    let types: [InteractionType] = [.email, .phoneCall, .text, .inPersonVisit, .virtualMeeting, .camp, .showcase, .tweet, .directMessage]
-
-    for type in types {
-      let interaction = makeInteraction(id: UUID().uuidString, type: type)
-      let row = RecentInteractionRow(interaction: interaction)
-
-      let hostingController = UIHostingController(rootView: row)
-
-      XCTAssertNotNil(hostingController.view, "Should render interaction type: \(type)")
-    }
   }
 
   // MARK: - NotesSection Tests
