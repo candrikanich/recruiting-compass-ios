@@ -90,6 +90,9 @@ struct PlayerDetails: Codable, Equatable, Sendable {
   var campusSizePreference: String?
   var costSensitivity: String?
 
+  // Demographics
+  var gender: String? // "male" | "female" | "other" | "prefer_not_to_say"
+
   // School Info
   var schoolName: String?
   var schoolAddress: String?
@@ -258,6 +261,7 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     case allowShareEmail = "allow_share_email"
     case campusSizePreference = "campus_size_preference"
     case costSensitivity = "cost_sensitivity"
+    case gender
     case schoolName = "school_name"
     case schoolAddress = "school_address"
     case schoolCity = "school_city"
