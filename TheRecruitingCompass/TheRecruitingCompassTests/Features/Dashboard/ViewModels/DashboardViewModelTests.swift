@@ -10,6 +10,7 @@ final class DashboardViewModelTests: XCTestCase {
   var mockTaskStorage: MockQuickTaskStorage!
   var mockFamilyService: MockFamilyService!
   var familyManager: FamilyManager!
+  var mockPreferenceService: MockPreferenceService!
 
   override func setUp() {
     super.setUp()
@@ -17,6 +18,7 @@ final class DashboardViewModelTests: XCTestCase {
     mockDashboardService = MockDashboardService()
     mockTaskStorage = MockQuickTaskStorage()
     mockFamilyService = MockFamilyService()
+    mockPreferenceService = MockPreferenceService()
     familyManager = FamilyManager(
       familyService: mockFamilyService,
       authManager: mockAuthManager
@@ -25,7 +27,8 @@ final class DashboardViewModelTests: XCTestCase {
       authManager: mockAuthManager,
       dashboardService: mockDashboardService,
       taskStorage: mockTaskStorage,
-      familyManager: familyManager
+      familyManager: familyManager,
+      preferenceService: mockPreferenceService
     )
   }
 
@@ -36,6 +39,7 @@ final class DashboardViewModelTests: XCTestCase {
     mockTaskStorage = nil
     mockFamilyService = nil
     familyManager = nil
+    mockPreferenceService = nil
     super.tearDown()
   }
 
@@ -635,4 +639,34 @@ final class DashboardViewModelTests: XCTestCase {
 
   // Note: testInteractionsThisMonthFiltersCorrectly removed - tested deprecated Activity type
   // Now using ActivityFeedViewModel with ActivityEvent instead
+
+  // MARK: - Athlete Sport/Gender Tests
+
+  func testFetchDashboardDataLoadsAthleteSportAndGender() async {
+    authenticateUser()
+    setupFamilyContext()
+    mockPreferenceService.stubbedPlayerDetails = PlayerDetails(
+      primarySport: "Softball",
+      gender: "female"
+    )
+
+    await sut.fetchDashboardData()
+
+    XCTAssertEqual(sut.athleteSport, "Softball")
+    XCTAssertEqual(sut.athleteGender, "female")
+  }
+
+  func testFetchDashboardDataLeavesSportAndGenderNilOnPreferenceFetchFailure() async {
+    authenticateUser()
+    setupFamilyContext()
+    mockPreferenceService.errorToThrow = NSError(domain: "test", code: 1)
+
+    await sut.fetchDashboardData()
+
+    XCTAssertNil(sut.athleteSport)
+    XCTAssertNil(sut.athleteGender)
+    // Rest of the dashboard still loads — preference failure doesn't propagate.
+    XCTAssertNotNil(sut.stats)
+    XCTAssertNil(sut.errorMessage)
+  }
 }
