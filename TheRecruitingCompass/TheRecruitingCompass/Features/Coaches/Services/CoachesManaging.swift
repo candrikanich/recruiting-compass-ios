@@ -14,6 +14,9 @@ protocol CoachesManaging: Sendable {
   func updateCoach(id: String, updates: CoachUpdateRequest) async throws -> Coach
   /// Returns the most recent interactions logged with a coach, capped at `limit`.
   func fetchInteractions(coachId: String, limit: Int) async throws -> [Interaction]
+  /// Returns the most recent interactions across every coach at a school, capped
+  /// at `limit`. Powers the cross-coach ranking on the coach detail screen.
+  func fetchInteractions(schoolId: String, limit: Int) async throws -> [Interaction]
   /// Deletes the coach record without cascading to related data.
   func deleteCoach(id: String) async throws
   /// Deletes the coach and all associated interaction records.

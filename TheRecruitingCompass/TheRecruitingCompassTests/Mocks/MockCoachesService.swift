@@ -163,4 +163,17 @@ final class MockCoachesService: CoachesManaging, @unchecked Sendable {
     }
     return stubbedInteractions
   }
+
+  var fetchSchoolInteractionsCallCount = 0
+  var lastFetchInteractionsSchoolId: String?
+  var stubbedSchoolInteractions: [Interaction] = []
+
+  func fetchInteractions(schoolId: String, limit: Int) async throws -> [Interaction] {
+    fetchSchoolInteractionsCallCount += 1
+    lastFetchInteractionsSchoolId = schoolId
+    if shouldThrowFetchInteractions {
+      throw NSError(domain: "MockCoaches", code: 7, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
+    }
+    return stubbedSchoolInteractions
+  }
 }
