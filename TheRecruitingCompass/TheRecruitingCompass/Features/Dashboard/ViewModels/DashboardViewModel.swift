@@ -14,6 +14,13 @@ final class DashboardViewModel {
   /// Target athlete's graduation year, sourced from their player preferences. nil until loaded
   /// (or when unset), which surfaces as "--" in the At-a-Glance graduation countdown.
   var graduationYear: Int?
+  /// Target athlete's primary sport, sourced from their player preferences. nil until loaded
+  /// (or when unset) — sport-aware widgets (e.g. the recruiting calendar) fall back to a
+  /// generic "Other" presentation when nil.
+  var athleteSport: String?
+  /// Target athlete's gender, sourced from their player preferences. nil until loaded (or
+  /// when unset).
+  var athleteGender: String?
   var widgetVisibility: DashboardWidgetVisibility = .default
   var quickTasks: [QuickTask] = []
   var suggestions: [Suggestion] = []
@@ -377,16 +384,19 @@ final class DashboardViewModel {
     }
   }
 
-  /// Loads the target athlete's graduation year from their player preferences. Player prefs are
-  /// keyed to the user, not a family unit, so this works before any family exists. Errors are
-  /// tolerated (leaves the countdown as "--"), mirroring fetchWidgetVisibility.
+  /// Loads the target athlete's graduation year, primary sport, and gender from their player
+  /// preferences. Player prefs are keyed to the user, not a family unit, so this works before
+  /// any family exists. Errors are tolerated (leaves fields nil — the countdown shows "--" and
+  /// sport-aware widgets fall back to a generic presentation), mirroring fetchWidgetVisibility.
   func fetchGraduationYear() async {
     guard let userId = targetUserId else { return }
     do {
       let details: PlayerDetails? = try await preferenceService.fetchPreferences(category: .player, userId: userId)
       graduationYear = details?.graduationYear
+      athleteSport = details?.primarySport
+      athleteGender = details?.gender
     } catch {
-      logger.debug("Could not load graduation year: \(error.localizedDescription)")
+      logger.debug("Could not load graduation year/sport/gender: \(error.localizedDescription)")
     }
   }
 
