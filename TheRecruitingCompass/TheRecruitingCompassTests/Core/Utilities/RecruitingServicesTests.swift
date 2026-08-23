@@ -74,4 +74,91 @@ final class RecruitingServicesTests: XCTestCase {
         XCTAssertNil(pbr?.urlTemplate)
         XCTAssertEqual(pbr?.signupUrl, "https://www.prepbaseballreport.com/")
     }
+
+    // MARK: - Services v2 gates
+
+    func testAthleticNetOnlyTrackAndCrossCountry() {
+        for sport in ["Track & Field", "Cross Country"] {
+            XCTAssertTrue(keys(sport).contains("athletic_net_id"),
+                          "Athletic.net missing for \(sport)")
+            XCTAssertTrue(keys(sport).contains("milesplit_url"),
+                          "MileSplit missing for \(sport)")
+        }
+        for sport in ["Baseball", "Swimming", "Football", "Tennis", "Rowing"] {
+            XCTAssertFalse(keys(sport).contains("athletic_net_id"),
+                           "Athletic.net should not appear for \(sport)")
+        }
+    }
+
+    func testSwimCloudOnlySwimming() {
+        XCTAssertTrue(keys("Swimming").contains("swimcloud_id"))
+        for sport in ["Baseball", "Track & Field", "Water Polo", "Tennis"] {
+            XCTAssertFalse(keys(sport).contains("swimcloud_id"),
+                           "SwimCloud should not appear for \(sport)")
+        }
+    }
+
+    func testOn3And247OnlyFootballBasketballAndAreUrlKind() {
+        for sport in ["Football", "Basketball"] {
+            let k = keys(sport)
+            XCTAssertTrue(k.contains("on3_url"), "On3 missing for \(sport)")
+            XCTAssertTrue(k.contains("sports247_url"), "247Sports missing for \(sport)")
+        }
+        for sport in ["Baseball", "Soccer", "Tennis", "Rowing"] {
+            let k = keys(sport)
+            XCTAssertFalse(k.contains("on3_url"))
+            XCTAssertFalse(k.contains("sports247_url"))
+        }
+        for key in ["on3_url", "sports247_url"] {
+            let svc = RecruitingServices.service(forKey: key)
+            XCTAssertEqual(svc?.valueKind, .url, "\(key) should be url-kind")
+            XCTAssertNil(svc?.urlTemplate, "\(key) should have no template (value is the link)")
+        }
+    }
+
+    func testTennisAndHockeyAndRowingV2Gates() {
+        for key in ["utr_id", "tennis_recruiting_id"] {
+            XCTAssertTrue(keys("Tennis").contains(key), "\(key) missing for Tennis")
+            XCTAssertFalse(keys("Golf").contains(key))
+        }
+        XCTAssertTrue(keys("Ice Hockey").contains("elite_prospects_id"))
+        XCTAssertFalse(keys("Soccer").contains("elite_prospects_id"))
+        XCTAssertTrue(keys("Rowing").contains("concept2_id"))
+        XCTAssertFalse(keys("Swimming").contains("concept2_id"))
+    }
+
+    func testSportsRecruitsGate() {
+        for sport in ["Soccer", "Lacrosse", "Volleyball", "Field Hockey"] {
+            XCTAssertTrue(keys(sport).contains("sportsrecruits_id"),
+                          "SportsRecruits missing for \(sport)")
+        }
+        for sport in ["Baseball", "Football", "Tennis"] {
+            XCTAssertFalse(keys(sport).contains("sportsrecruits_id"))
+        }
+    }
+
+    func testV2IdUrlTemplatesExact() {
+        XCTAssertEqual(RecruitingServices.service(forKey: "athletic_net_id")?.urlTemplate,
+                       "https://www.athletic.net/athlete/{value}")
+        XCTAssertEqual(RecruitingServices.service(forKey: "swimcloud_id")?.urlTemplate,
+                       "https://www.swimcloud.com/swimmer/{value}/")
+        XCTAssertEqual(RecruitingServices.service(forKey: "utr_id")?.urlTemplate,
+                       "https://app.utrsports.net/profiles/{value}")
+        XCTAssertEqual(RecruitingServices.service(forKey: "tennis_recruiting_id")?.urlTemplate,
+                       "https://www.tennisrecruiting.net/player.asp?id={value}")
+        XCTAssertEqual(RecruitingServices.service(forKey: "elite_prospects_id")?.urlTemplate,
+                       "https://www.eliteprospects.com/player/{value}")
+        XCTAssertEqual(RecruitingServices.service(forKey: "sportsrecruits_id")?.urlTemplate,
+                       "https://sportsrecruits.com/athlete/{value}")
+        XCTAssertEqual(RecruitingServices.service(forKey: "concept2_id")?.urlTemplate,
+                       "https://log.concept2.com/profile/{value}")
+    }
+
+    func testV2OrderedAfterV1() {
+        // Swimming: only NCSA (v1, all-sports) then SwimCloud (v2).
+        XCTAssertEqual(keys("Swimming"), ["ncsa_id", "swimcloud_id"])
+        // Football: NCSA + Hudl (v1) precede On3 + 247Sports (v2).
+        XCTAssertEqual(keys("Football"),
+                       ["ncsa_id", "hudl_url", "on3_url", "sports247_url"])
+    }
 }

@@ -30,8 +30,10 @@ extension PublicProfileCard {
             }
 
             let prepBaseballURL = Self.prepBaseballURL(athletic, playerName: data.playerName)
+            let v2Services = Self.v2ServiceRows(athletic)
             if athletic.ncaaId != nil || athletic.perfectGameId != nil
-                || athletic.prepBaseballId != nil || prepBaseballURL != nil {
+                || athletic.prepBaseballId != nil || prepBaseballURL != nil
+                || !v2Services.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Recruiting IDs")
                         .font(.caption)
@@ -46,8 +48,53 @@ extension PublicProfileCard {
                     if athletic.prepBaseballId != nil || prepBaseballURL != nil {
                         prepBaseballRow(id: athletic.prepBaseballId, urlString: prepBaseballURL)
                     }
+                    ForEach(v2Services, id: \.def.key) { entry in
+                        serviceRow(def: entry.def, value: entry.value)
+                    }
                 }
                 .padding(.top, 8)
+            }
+        }
+    }
+
+    /// Sport-gated v2 services the athlete has filled in, in registry order.
+    /// Only v2 keys resolve a value via `serviceValue(forKey:)`, so the v1
+    /// services returned by `servicesForSport` fall out naturally.
+    static func v2ServiceRows(
+        _ athletic: PublicProfileData.AthleticSection
+    ) -> [(def: RecruitingServices.ServiceDef, value: String)] {
+        RecruitingServices.servicesForSport(athletic.primarySport)
+            .compactMap { def in
+                guard let raw = athletic.serviceValue(forKey: def.key)?
+                    .trimmingCharacters(in: .whitespacesAndNewlines),
+                      !raw.isEmpty else { return nil }
+                return (def, raw)
+            }
+    }
+
+    /// Generic registry-driven row: builds the public link via
+    /// `RecruitingServices.profileURL`. `.url` services carry the profile URL as
+    /// their value, so show a neutral "View profile" label instead of the raw URL.
+    private func serviceRow(def: RecruitingServices.ServiceDef, value: String) -> some View {
+        let urlString = RecruitingServices.profileURL(
+            for: def, value: value, state: nil, name: nil
+        )
+        let linkText = def.linkKind == .url ? String(localized: "View profile") : value
+        return HStack {
+            Text(def.label)
+                .font(.footnote)
+                .foregroundStyle(Color.Text.muted)
+            Spacer()
+            if let urlString, let url = URL(string: urlString) {
+                Link(linkText, destination: url)
+                    .font(.footnote)
+                    .fontWeight(.medium)
+                    .accessibilityLabel(String(localized: "\(def.label) profile"))
+            } else {
+                Text(value)
+                    .font(.footnote)
+                    .fontWeight(.medium)
+                    .foregroundStyle(Color.Text.primary)
             }
         }
     }

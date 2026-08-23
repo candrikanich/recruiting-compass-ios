@@ -120,6 +120,69 @@ enum RecruitingServices {
                       signupUrl: "https://www.prepbaseballreport.com/",
                       placeholder: String(localized: "ID Number"), linkKind: .prepBaseball),
       sports: baseballSoftball
+    ),
+
+    // MARK: Services v2 (2026-08-23) — ordered after the v1 four in each sport's list.
+    Entry(
+      def: ServiceDef(key: "athletic_net_id", label: String(localized: "Athletic.net"), valueKind: .id,
+                      urlTemplate: "https://www.athletic.net/athlete/{value}",
+                      signupUrl: "https://www.athletic.net/", placeholder: String(localized: "ID Number")),
+      sports: trackAndCrossCountry
+    ),
+    Entry(
+      def: ServiceDef(key: "milesplit_url", label: String(localized: "MileSplit"), valueKind: .url,
+                      urlTemplate: nil, signupUrl: "https://www.milesplit.com/",
+                      placeholder: String(localized: "Profile URL"), linkKind: .url),
+      sports: trackAndCrossCountry
+    ),
+    Entry(
+      def: ServiceDef(key: "swimcloud_id", label: String(localized: "SwimCloud"), valueKind: .id,
+                      urlTemplate: "https://www.swimcloud.com/swimmer/{value}/",
+                      signupUrl: "https://www.swimcloud.com/", placeholder: String(localized: "ID Number")),
+      sports: ["swimming"]
+    ),
+    Entry(
+      def: ServiceDef(key: "utr_id", label: String(localized: "Universal Tennis (UTR)"), valueKind: .id,
+                      urlTemplate: "https://app.utrsports.net/profiles/{value}",
+                      signupUrl: "https://www.utrsports.net/", placeholder: String(localized: "ID Number")),
+      sports: ["tennis"]
+    ),
+    Entry(
+      def: ServiceDef(key: "tennis_recruiting_id", label: String(localized: "Tennis Recruiting Network"),
+                      valueKind: .id,
+                      urlTemplate: "https://www.tennisrecruiting.net/player.asp?id={value}",
+                      signupUrl: "https://www.tennisrecruiting.net/", placeholder: String(localized: "ID Number")),
+      sports: ["tennis"]
+    ),
+    Entry(
+      def: ServiceDef(key: "elite_prospects_id", label: String(localized: "Elite Prospects"), valueKind: .id,
+                      urlTemplate: "https://www.eliteprospects.com/player/{value}",
+                      signupUrl: "https://www.eliteprospects.com/", placeholder: String(localized: "ID Number")),
+      sports: ["ice hockey"]
+    ),
+    Entry(
+      def: ServiceDef(key: "sportsrecruits_id", label: String(localized: "SportsRecruits"), valueKind: .id,
+                      urlTemplate: "https://sportsrecruits.com/athlete/{value}",
+                      signupUrl: "https://sportsrecruits.com/", placeholder: String(localized: "ID Number")),
+      sports: sportsRecruitsSports
+    ),
+    Entry(
+      def: ServiceDef(key: "concept2_id", label: String(localized: "Concept2 Logbook"), valueKind: .id,
+                      urlTemplate: "https://log.concept2.com/profile/{value}",
+                      signupUrl: "https://log.concept2.com/", placeholder: String(localized: "ID Number")),
+      sports: ["rowing"]
+    ),
+    Entry(
+      def: ServiceDef(key: "on3_url", label: String(localized: "On3"), valueKind: .url,
+                      urlTemplate: nil, signupUrl: "https://www.on3.com/",
+                      placeholder: String(localized: "Profile URL"), linkKind: .url),
+      sports: footballBasketball
+    ),
+    Entry(
+      def: ServiceDef(key: "sports247_url", label: String(localized: "247Sports"), valueKind: .url,
+                      urlTemplate: nil, signupUrl: "https://247sports.com/",
+                      placeholder: String(localized: "Profile URL"), linkKind: .url),
+      sports: footballBasketball
     )
   ]
 
@@ -129,6 +192,14 @@ enum RecruitingServices {
     "football", "basketball", "volleyball", "soccer", "lacrosse",
     "ice hockey", "field hockey", "water polo", "wrestling"
   ]
+
+  private static let trackAndCrossCountry: Set<String> = ["track & field", "cross country"]
+
+  private static let sportsRecruitsSports: Set<String> = [
+    "soccer", "lacrosse", "volleyball", "field hockey"
+  ]
+
+  private static let footballBasketball: Set<String> = ["football", "basketball"]
 
   /// The 17 known sports (single source of truth: the position registry). An
   /// unknown sport gets no services — NCSA's "all sports" means all *known* sports.

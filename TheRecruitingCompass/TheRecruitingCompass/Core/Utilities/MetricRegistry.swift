@@ -1,5 +1,14 @@
 import Foundation
 
+/// A named section of metric keys within a sport, used to group the log-metric
+/// picker into headed sections (e.g. Baseball → Hitting/Pitching/Fielding/Speed).
+/// Parallel to `SPORT_METRICS` ordering — kept out of `MetricDef` because shared
+/// keys carry different categories across sports.
+struct MetricGroup: Sendable {
+  let category: String
+  let keys: [String]
+}
+
 /// Canonical metric-type registry. Swift mirror of web `metricDefs` /
 /// `sportMetrics`. Keys are stored verbatim in `performance_metrics.metric_type`.
 /// Populated for all 17 sports (byte-identical with web).
@@ -106,6 +115,69 @@ enum MetricRegistry {
     guard let sport else { return nil }
     return sportMetrics.first { $0.key.caseInsensitiveCompare(sport) == .orderedSame }?.value
   }
+
+  // MARK: - Metric groups (log-picker section headers)
+
+  /// Per-sport ordered metric groups for the log-metric picker. Only the 6
+  /// dense sports get an entry; every other sport renders flat (no entry →
+  /// `groups(forSport:)` returns []). Section order = array order; keys within
+  /// a group are in display order. Every key here is a subset of that sport's
+  /// `sportMetrics` ordering (verified by test).
+  static let sportMetricGroups: [String: [MetricGroup]] = [
+    "Baseball": baseballGroups,
+    "Softball": baseballGroups,
+    "Basketball": basketballGroups,
+    "Football": footballGroups,
+    "Track & Field": trackAndFieldGroups,
+    "Volleyball": volleyballGroups
+  ]
+
+  /// Ordered metric groups for a sport, or [] when the sport has no grouping
+  /// (nil/unknown, or one of the 11 flat sports). Mirrors the case-insensitive
+  /// lookup used by `types(forSport:)`.
+  static func groups(forSport sport: String?) -> [MetricGroup] {
+    guard let sport else { return [] }
+    return sportMetricGroups.first { $0.key.caseInsensitiveCompare(sport) == .orderedSame }?.value ?? []
+  }
+
+  private static let baseballGroups: [MetricGroup] = [
+    MetricGroup(category: String(localized: "Hitting"),
+                keys: ["exit_velo", "batting_avg", "on_base_pct", "slugging_pct"]),
+    MetricGroup(category: String(localized: "Pitching"),
+                keys: ["velocity", "era", "whip", "strikeouts"]),
+    MetricGroup(category: String(localized: "Fielding"), keys: ["pop_time", "fielding_pct"]),
+    MetricGroup(category: String(localized: "Speed"), keys: ["sixty_time"])
+  ]
+
+  private static let basketballGroups: [MetricGroup] = [
+    MetricGroup(category: String(localized: "Scoring"),
+                keys: ["points_per_game", "field_goal_pct", "three_point_pct", "free_throw_pct"]),
+    MetricGroup(category: String(localized: "Playmaking"), keys: ["assists_per_game"]),
+    MetricGroup(category: String(localized: "Defense"),
+                keys: ["rebounds_per_game", "steals_per_game", "blocks_per_game"]),
+    MetricGroup(category: String(localized: "Athleticism"), keys: ["vertical_jump"])
+  ]
+
+  private static let footballGroups: [MetricGroup] = [
+    MetricGroup(category: String(localized: "Combine"),
+                keys: ["forty_time", "vertical_jump", "broad_jump", "shuttle", "three_cone"]),
+    MetricGroup(category: String(localized: "Strength"), keys: ["bench_press", "squat"]),
+    MetricGroup(category: String(localized: "Offense"),
+                keys: ["passing_yards", "rushing_yards", "receiving_yards"]),
+    MetricGroup(category: String(localized: "Defense"), keys: ["tackles"])
+  ]
+
+  private static let trackAndFieldGroups: [MetricGroup] = [
+    MetricGroup(category: String(localized: "Running"), keys: ["sprint_time", "distance_time", "relay_split"]),
+    MetricGroup(category: String(localized: "Jumps"), keys: ["long_jump", "high_jump"]),
+    MetricGroup(category: String(localized: "Throws"), keys: ["shot_put", "discus"])
+  ]
+
+  private static let volleyballGroups: [MetricGroup] = [
+    MetricGroup(category: String(localized: "Attacking"), keys: ["kills", "hitting_pct", "aces"]),
+    MetricGroup(category: String(localized: "Setting"), keys: ["assists"]),
+    MetricGroup(category: String(localized: "Defense"), keys: ["blocks", "digs"])
+  ]
 
   // MARK: - Sport orderings
 

@@ -76,6 +76,49 @@ final class MetricRegistryTests: XCTestCase {
     XCTAssertEqual(MetricRegistry.def(for: "vertical_jump").unit, "in")
   }
 
+  // MARK: - Metric grouping (log-picker sections)
+
+  func test_metricGroups_coverExactlyTheSixDenseSports() {
+    XCTAssertEqual(
+      Set(MetricRegistry.sportMetricGroups.keys),
+      ["Baseball", "Softball", "Basketball", "Football", "Track & Field", "Volleyball"]
+    )
+  }
+
+  func test_metricGroups_everyKeyExistsInThatSportsMetricSet() {
+    for (sport, groups) in MetricRegistry.sportMetricGroups {
+      let sportKeys = Set(MetricRegistry.types(forSport: sport))
+      for group in groups {
+        for key in group.keys {
+          XCTAssertTrue(
+            sportKeys.contains(key),
+            "orphan grouped key \(key) not in \(sport)'s metric set"
+          )
+        }
+      }
+    }
+  }
+
+  func test_softballGroups_mirrorBaseball() {
+    let baseball = MetricRegistry.groups(forSport: "Baseball")
+    let softball = MetricRegistry.groups(forSport: "Softball")
+    XCTAssertEqual(baseball.map(\.category), softball.map(\.category))
+    XCTAssertEqual(baseball.map(\.keys), softball.map(\.keys))
+  }
+
+  func test_groups_forUngroupedSport_returnsEmpty() {
+    XCTAssertTrue(MetricRegistry.groups(forSport: "Soccer").isEmpty)
+  }
+
+  func test_groups_forNilOrUnknownSport_returnsEmpty() {
+    XCTAssertTrue(MetricRegistry.groups(forSport: nil).isEmpty)
+    XCTAssertTrue(MetricRegistry.groups(forSport: "Quidditch").isEmpty)
+  }
+
+  func test_groups_caseInsensitiveLookup() {
+    XCTAssertFalse(MetricRegistry.groups(forSport: "baseball").isEmpty)
+  }
+
   func test_allSeventeenSports_present() {
     let sports = [
       "Baseball", "Softball", "Basketball", "Football", "Soccer", "Volleyball",

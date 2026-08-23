@@ -89,8 +89,6 @@ final class PlayerDetailsViewModel {
         details.completenessScore(hasHighlightVideo: hasHighlightVideo, hasHomeLocation: hasHomeLocation)
     }
 
-    var isBaseballOrSoftball: Bool { details.isBaseballOrSoftball }
-
     // MARK: - Auto-Save
 
     func scheduleAutoSave() {

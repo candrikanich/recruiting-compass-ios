@@ -222,7 +222,17 @@ final class PublicProfileViewModel {
             ncaaId: details.ncaaId,
             perfectGameId: details.perfectGameId,
             prepBaseballId: details.prepBaseballId,
-            prepBaseballState: details.prepBaseballState
+            prepBaseballState: details.prepBaseballState,
+            athleticNetId: details.athleticNetId,
+            milesplitUrl: details.milesplitUrl,
+            swimcloudId: details.swimcloudId,
+            utrId: details.utrId,
+            tennisRecruitingId: details.tennisRecruitingId,
+            eliteProspectsId: details.eliteProspectsId,
+            sportsrecruitsId: details.sportsrecruitsId,
+            concept2Id: details.concept2Id,
+            on3Url: details.on3Url,
+            sports247Url: details.sports247Url
         )
     }
 
