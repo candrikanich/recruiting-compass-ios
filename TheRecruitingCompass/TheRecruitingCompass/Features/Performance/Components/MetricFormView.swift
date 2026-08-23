@@ -11,6 +11,43 @@ struct MetricFormView: View {
   let onSubmit: () -> Void
   let onCancel: () -> Void
 
+  /// Picker options for the athlete's sport. When the sport defines metric
+  /// groups (the 6 dense sports), each group renders as a headed `Section` and
+  /// any key not in a group falls into a trailing "Other" section. Every other
+  /// sport keeps the flat list — zero change.
+  @ViewBuilder
+  private var metricTypeOptions: some View {
+    let allKeys = MetricRegistry.types(forSport: sport)
+    let groups = MetricRegistry.groups(forSport: sport)
+    if groups.isEmpty {
+      ForEach(allKeys, id: \.self) { key in
+        metricOption(for: key)
+      }
+    } else {
+      let grouped = Set(groups.flatMap { $0.keys })
+      ForEach(groups, id: \.category) { group in
+        Section(header: Text(group.category)) {
+          ForEach(group.keys, id: \.self) { key in
+            metricOption(for: key)
+          }
+        }
+      }
+      let others = allKeys.filter { !grouped.contains($0) }
+      if !others.isEmpty {
+        Section(header: Text("Other")) {
+          ForEach(others, id: \.self) { key in
+            metricOption(for: key)
+          }
+        }
+      }
+    }
+  }
+
+  private func metricOption(for key: String) -> some View {
+    let type = MetricType(rawValue: key)
+    return Text(type.displayName).tag(type as MetricType?)
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 20) {
       Text(title)
@@ -24,10 +61,7 @@ struct MetricFormView: View {
             .fontWeight(.medium)
           Picker("Metric Type", selection: $formState.metricType) {
             Text("Select Metric").tag(nil as MetricType?)
-            ForEach(MetricRegistry.types(forSport: sport), id: \.self) { key in
-              let type = MetricType(rawValue: key)
-              Text(type.displayName).tag(type as MetricType?)
-            }
+            metricTypeOptions
           }
           .pickerStyle(.menu)
           .frame(maxWidth: .infinity, alignment: .leading)
