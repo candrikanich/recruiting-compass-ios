@@ -659,7 +659,7 @@ private struct QuickCommAddMetricCTA: View {
           Text("Add a metric to strengthen this email")
             .font(.subheadline.weight(.medium))
             .foregroundStyle(.primary)
-          Text("Coaches look for numbers — a 60 time, exit velo, etc.")
+          Text("Coaches look for numbers — your key performance metrics, etc.")
             .font(.caption)
             .foregroundStyle(.secondary)
         }

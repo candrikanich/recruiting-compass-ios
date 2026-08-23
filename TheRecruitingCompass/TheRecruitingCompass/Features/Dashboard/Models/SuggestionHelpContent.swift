@@ -114,7 +114,7 @@ struct SuggestionHelpContent {
     ),
     "missing-video": SuggestionHelpContent(
       title: String(localized: "Create a Highlight Video"),
-      whyItMatters: String(localized: "A highlight video is your #1 recruiting tool. Coaches use video to evaluate your skills, athleticism, and football intelligence. Without film, you severely limit your recruiting opportunities even if scouts see you in person."),
+      whyItMatters: String(localized: "A highlight video is your #1 recruiting tool. Coaches use video to evaluate your skills, athleticism, and game intelligence. Without film, you severely limit your recruiting opportunities even if scouts see you in person."),
       howToComplete: [
         String(localized: "Compile 30-40 plays showcasing your best performances"),
         String(localized: "Include game film (not just highlights) to show consistency"),
