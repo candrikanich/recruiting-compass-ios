@@ -190,6 +190,21 @@ private struct OnboardingBasicInfoStep: View {
           .pickerStyle(.menu)
         }
       }
+
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Gender (optional)")
+          .font(.subheadline.weight(.medium))
+        Picker("Gender", selection: Binding(
+          get: { viewModel.gender ?? "" },
+          set: { viewModel.gender = $0.isEmpty ? nil : $0 }
+        )) {
+          Text(String(localized: "Select")).tag("")
+          ForEach(Gender.allCases, id: \.rawValue) { g in
+            Text(g.displayName).tag(g.rawValue)
+          }
+        }
+        .pickerStyle(.menu)
+      }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.vertical, 24)

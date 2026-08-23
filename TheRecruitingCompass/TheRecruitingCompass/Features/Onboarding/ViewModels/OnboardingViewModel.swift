@@ -13,6 +13,7 @@ final class OnboardingViewModel {
   var graduationYear: Int?
   var primarySport: String = ""
   var primaryPosition: String = ""
+  var gender: String?
   var zipCode: String = ""
   var gpa: Double?
   var satScore: Int?
@@ -78,6 +79,7 @@ final class OnboardingViewModel {
       if gpa == nil { gpa = existing.gpa }
       if satScore == nil { satScore = existing.satScore }
       if actScore == nil { actScore = existing.actScore }
+      if gender == nil, let existingGender = existing.gender, !existingGender.isEmpty { gender = existingGender }
     }
     if zipCode.isEmpty,
        let location: HomeLocation = try? await preferenceService.fetchPreferences(category: .location),
@@ -159,6 +161,7 @@ final class OnboardingViewModel {
         // from account creation — prevents the two stores drifting apart.
         details.primaryPosition = primaryPosition.isEmpty ? nil : primaryPosition
         details.positions = primaryPosition.isEmpty ? nil : [primaryPosition]
+        details.gender = gender
         _ = try await preferenceService.savePreferences(category: .player, data: details)
       } else if currentStep == 3 {
         var location = HomeLocation.default

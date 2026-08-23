@@ -120,6 +120,8 @@ struct BasicsTab: View {
             gradYearRow
             divider
             primarySportRow
+            divider
+            genderRow
         }
     }
 
@@ -336,6 +338,29 @@ struct BasicsTab: View {
                     Text(sport).tag(sport)
                 }
             }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+    }
+
+    @ViewBuilder
+    private var genderRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(String(localized: "Gender (optional)")).font(.subheadline.weight(.medium))
+            Picker(String(localized: "Gender"), selection: Binding(
+                get: { viewModel.details.gender ?? "" },
+                set: {
+                    viewModel.details.gender = $0.isEmpty ? nil : $0
+                    viewModel.markChanged()
+                }
+            )) {
+                Text(String(localized: "Select")).tag("")
+                ForEach(Gender.allCases, id: \.rawValue) { g in
+                    Text(g.displayName).tag(g.rawValue)
+                }
+            }
+            .pickerStyle(.menu)
+            .disabled(viewModel.isReadOnly)
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
