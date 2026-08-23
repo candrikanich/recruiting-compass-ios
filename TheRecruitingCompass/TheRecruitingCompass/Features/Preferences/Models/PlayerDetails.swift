@@ -26,6 +26,23 @@ struct PlayerDetails: Codable, Equatable, Sendable {
   var heightInches: Int?
   var weightLbs: Int?
 
+  // Per-sport laterality attributes (registry-driven — see AthleteAttributes).
+  // Each stores a bare option token (e.g. "L"/"R"/"S"). Empty/nil = unset.
+  var shootingHand: String?     // Basketball
+  var dominantFoot: String?     // Soccer ("L" | "R" | "Both")
+  var hittingHand: String?      // Volleyball
+  var racketHand: String?       // Tennis
+  var backhandStyle: String?    // Tennis ("one" | "two")
+  var golfHandedness: String?   // Golf
+  var dominantHand: String?     // Lacrosse
+  var shoots: String?           // Ice Hockey
+  var catches: String?          // Ice Hockey (Goalie)
+  var wpDominantHand: String?   // Water Polo
+  var rowingSide: String?       // Rowing ("port" | "starboard" | "both" | "cox")
+  var rowingDiscipline: String? // Rowing ("sweep" | "scull" | "both")
+  var throwingHand: String?     // Football (Quarterback)
+  var kickingFoot: String?      // Football (Kicker/Punter)
+
   // Academics
   var gpa: Double? // 0.0-5.0
   var satScore: Int? // 400-1600
@@ -33,10 +50,15 @@ struct PlayerDetails: Codable, Equatable, Sendable {
   var coreCourses: [String]? // AP/honors/notable courses (max 20)
   var intendedMajor: String? // backs template {{intendedMajor}}
 
-  // External IDs
-  var ncaaId: String?
+  // External IDs / recruiting services (registry-driven — see RecruitingServices).
+  var ncaaId: String? // NCAA Eligibility Center (not a registry service)
   var perfectGameId: String?
   var prepBaseballId: String?
+  // 2-letter state code (or full state name) the athlete's PBR profile lives
+  // under — PBR files profiles by state. Drives the slug-based profile link.
+  var prepBaseballState: String?
+  var ncsaId: String?  // NCSA (all sports)
+  var hudlUrl: String? // Hudl (full profile URL)
 
   // Social Media
   var twitterHandle: String?
@@ -82,6 +104,49 @@ struct PlayerDetails: Codable, Equatable, Sendable {
 
   static var `default`: PlayerDetails {
     PlayerDetails()
+  }
+
+  /// Flat storage key → the optional-String field backing it. Lets the
+  /// registry-driven AthleticsTab read/write a dynamic set of attribute/service
+  /// fields by their `user_preferences.data` key while staying fully type-safe.
+  /// Keys match `AthleteAttributes` / `RecruitingServices`.
+  static let stringFieldKeyPaths: [String: WritableKeyPath<PlayerDetails, String?>] = [
+    // Attributes
+    "bats": \.bats,
+    "throws": \.throws_,
+    "shooting_hand": \.shootingHand,
+    "dominant_foot": \.dominantFoot,
+    "hitting_hand": \.hittingHand,
+    "racket_hand": \.racketHand,
+    "backhand_style": \.backhandStyle,
+    "golf_handedness": \.golfHandedness,
+    "dominant_hand": \.dominantHand,
+    "shoots": \.shoots,
+    "catches": \.catches,
+    "wp_dominant_hand": \.wpDominantHand,
+    "rowing_side": \.rowingSide,
+    "rowing_discipline": \.rowingDiscipline,
+    "throwing_hand": \.throwingHand,
+    "kicking_foot": \.kickingFoot,
+    // Services
+    "ncsa_id": \.ncsaId,
+    "hudl_url": \.hudlUrl,
+    "perfect_game_id": \.perfectGameId,
+    "prep_baseball_id": \.prepBaseballId,
+    "prep_baseball_state": \.prepBaseballState
+  ]
+
+  /// Type-safe read/write of a flat attribute/service field by its storage key.
+  /// Unknown keys read `nil` and ignore writes.
+  subscript(attributeKey key: String) -> String? {
+    get {
+      guard let keyPath = Self.stringFieldKeyPaths[key] else { return nil }
+      return self[keyPath: keyPath]
+    }
+    set {
+      guard let keyPath = Self.stringFieldKeyPaths[key] else { return }
+      self[keyPath: keyPath] = newValue
+    }
   }
 
   var isBaseballOrSoftball: Bool {
@@ -130,6 +195,20 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     case throws_ = "throws"
     case heightInches = "height_inches"
     case weightLbs = "weight_lbs"
+    case shootingHand = "shooting_hand"
+    case dominantFoot = "dominant_foot"
+    case hittingHand = "hitting_hand"
+    case racketHand = "racket_hand"
+    case backhandStyle = "backhand_style"
+    case golfHandedness = "golf_handedness"
+    case dominantHand = "dominant_hand"
+    case shoots
+    case catches
+    case wpDominantHand = "wp_dominant_hand"
+    case rowingSide = "rowing_side"
+    case rowingDiscipline = "rowing_discipline"
+    case throwingHand = "throwing_hand"
+    case kickingFoot = "kicking_foot"
     case gpa
     case satScore = "sat_score"
     case actScore = "act_score"
@@ -138,6 +217,9 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     case ncaaId = "ncaa_id"
     case perfectGameId = "perfect_game_id"
     case prepBaseballId = "prep_baseball_id"
+    case prepBaseballState = "prep_baseball_state"
+    case ncsaId = "ncsa_id"
+    case hudlUrl = "hudl_url"
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
     case tiktokHandle = "tiktok_handle"

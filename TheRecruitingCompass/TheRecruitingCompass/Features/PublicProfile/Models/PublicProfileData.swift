@@ -31,6 +31,7 @@ struct PublicProfileData: Equatable, Sendable {
         let ncaaId: String?
         let perfectGameId: String?
         let prepBaseballId: String?
+        let prepBaseballState: String?
     }
 
     struct FilmItem: Equatable, Sendable {

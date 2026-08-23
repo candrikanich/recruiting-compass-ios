@@ -18,6 +18,9 @@ final class PlayerDetailsViewModel {
     var profileImage: UIImage?
     /// Persisted, family-shared photo URL for the athlete (`users.profile_photo_url`).
     var photoUrl: String?
+    /// The athlete's display name — feeds the slug-based Prep Baseball Report
+    /// profile link. Loaded on `loadDetails`; empty until resolved.
+    var athleteName: String = ""
     var isReadOnly = false
     var showDeletePhotoConfirmation = false
     var saveStatus: SaveStatus = .idle
@@ -131,7 +134,18 @@ final class PlayerDetailsViewModel {
             errorMessage = String(localized: "Failed to load player details. Please try again.")
         }
         await loadPhoto()
+        await loadAthleteName()
         await loadCompletenessInputs()
+    }
+
+    /// Resolves the athlete's display name for the slug-based PBR profile link:
+    /// the signed-in user's own name when self, else a (RLS-gated) lookup.
+    private func loadAthleteName() async {
+        if let targetUserId, targetUserId != authManager.user?.id {
+            athleteName = (try? await photoService.fullName(userId: targetUserId)) ?? ""
+        } else {
+            athleteName = authManager.user?.fullName ?? ""
+        }
     }
 
     /// Fetches the two completeness signals that live outside the player-prefs blob:

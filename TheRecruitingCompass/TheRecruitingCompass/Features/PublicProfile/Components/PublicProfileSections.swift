@@ -29,7 +29,9 @@ extension PublicProfileCard {
                 }
             }
 
-            if athletic.ncaaId != nil || athletic.perfectGameId != nil || athletic.prepBaseballId != nil {
+            let prepBaseballURL = Self.prepBaseballURL(athletic, playerName: data.playerName)
+            if athletic.ncaaId != nil || athletic.perfectGameId != nil
+                || athletic.prepBaseballId != nil || prepBaseballURL != nil {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Recruiting IDs")
                         .font(.caption)
@@ -41,8 +43,8 @@ extension PublicProfileCard {
                     if let perfectGameId = athletic.perfectGameId {
                         perfectGameRow(perfectGameId)
                     }
-                    if let prepBaseballId = athletic.prepBaseballId {
-                        detailRow(label: String(localized: "Prep Baseball"), value: prepBaseballId)
+                    if athletic.prepBaseballId != nil || prepBaseballURL != nil {
+                        prepBaseballRow(id: athletic.prepBaseballId, urlString: prepBaseballURL)
                     }
                 }
                 .padding(.top, 8)
@@ -51,9 +53,12 @@ extension PublicProfileCard {
     }
 
     private func perfectGameRow(_ id: String) -> some View {
-        let urlString = "https://www.perfectgame.org/Players/Playerprofile.aspx?ID=\(id)"
+        let service = RecruitingServices.service(forKey: "perfect_game_id")
+        let label = service?.label ?? String(localized: "Perfect Game")
+        let urlString = (service?.urlTemplate ?? "https://www.perfectgame.org/Players/Playerprofile.aspx?ID={value}")
+            .replacingOccurrences(of: "{value}", with: id)
         return HStack {
-            Text("Perfect Game")
+            Text(label)
                 .font(.footnote)
                 .foregroundStyle(Color.Text.muted)
             Spacer()
@@ -66,6 +71,40 @@ extension PublicProfileCard {
                 Text(id)
                     .font(.footnote)
                     .fontWeight(.medium)
+            }
+        }
+    }
+
+    /// Resolve the slug-based Prep Baseball Report URL from the athlete's PBR
+    /// state + display name — the canonical, byte-identical-with-web builder.
+    static func prepBaseballURL(
+        _ athletic: PublicProfileData.AthleticSection, playerName: String
+    ) -> String? {
+        guard let def = RecruitingServices.service(forKey: "prep_baseball_id") else { return nil }
+        return RecruitingServices.profileURL(
+            for: def, value: athletic.prepBaseballId,
+            state: athletic.prepBaseballState, name: playerName
+        )
+    }
+
+    private func prepBaseballRow(id: String?, urlString: String?) -> some View {
+        let label = RecruitingServices.service(forKey: "prep_baseball_id")?.label
+            ?? String(localized: "Prep Baseball")
+        return HStack {
+            Text(label)
+                .font(.footnote)
+                .foregroundStyle(Color.Text.muted)
+            Spacer()
+            if let urlString, let url = URL(string: urlString) {
+                Link(id ?? String(localized: "View profile"), destination: url)
+                    .font(.footnote)
+                    .fontWeight(.medium)
+                    .accessibilityLabel(String(localized: "Prep Baseball Report profile"))
+            } else if let id {
+                Text(id)
+                    .font(.footnote)
+                    .fontWeight(.medium)
+                    .foregroundStyle(Color.Text.primary)
             }
         }
     }
