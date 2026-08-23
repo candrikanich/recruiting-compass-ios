@@ -461,30 +461,6 @@ final class PlayerDetailsViewModelTests: XCTestCase {
     XCTAssertNil(viewModel.details.positions)
   }
 
-  func testIsBaseballOrSoftball_WhenBaseball_ReturnsTrue() {
-    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
-    viewModel.details.primarySport = "Baseball"
-    XCTAssertTrue(viewModel.isBaseballOrSoftball)
-  }
-
-  func testIsBaseballOrSoftball_WhenSoftball_ReturnsTrue() {
-    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
-    viewModel.details.primarySport = "Softball"
-    XCTAssertTrue(viewModel.isBaseballOrSoftball)
-  }
-
-  func testIsBaseballOrSoftball_WhenSoccer_ReturnsFalse() {
-    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
-    viewModel.details.primarySport = "Soccer"
-    XCTAssertFalse(viewModel.isBaseballOrSoftball)
-  }
-
-  func testIsBaseballOrSoftball_WhenNil_ReturnsFalse() {
-    viewModel = PlayerDetailsViewModel(preferenceService: mockService, userRole: .player)
-    viewModel.details.primarySport = nil
-    XCTAssertFalse(viewModel.isBaseballOrSoftball)
-  }
-
   // MARK: - Travel Teams
 
   func testLoadDetails_seedsTravelTeamsFromLegacyScalars() async {

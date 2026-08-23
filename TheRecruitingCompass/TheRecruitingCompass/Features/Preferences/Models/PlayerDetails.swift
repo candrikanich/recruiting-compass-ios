@@ -149,11 +149,6 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     }
   }
 
-  var isBaseballOrSoftball: Bool {
-    guard let sport = primarySport?.lowercased() else { return false }
-    return sport == "baseball" || sport == "softball"
-  }
-
   /// Weighted profile completeness (0.0–1.0). Canonical formula shared with the web
   /// app — see `planning/2026-08-09-profile-completeness-canonical-spec.md`.
   ///
