@@ -354,7 +354,7 @@ struct BasicsTab: View {
                     viewModel.markChanged()
                 }
             )) {
-                Text(String(localized: "Prefer not to answer")).tag("")
+                Text(String(localized: "Select")).tag("")
                 ForEach(Gender.allCases, id: \.rawValue) { g in
                     Text(g.displayName).tag(g.rawValue)
                 }

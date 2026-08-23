@@ -198,7 +198,7 @@ private struct OnboardingBasicInfoStep: View {
           get: { viewModel.gender ?? "" },
           set: { viewModel.gender = $0.isEmpty ? nil : $0 }
         )) {
-          Text("Prefer not to answer").tag("")
+          Text(String(localized: "Select")).tag("")
           ForEach(Gender.allCases, id: \.rawValue) { g in
             Text(g.displayName).tag(g.rawValue)
           }
