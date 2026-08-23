@@ -59,6 +59,18 @@ struct PlayerDetails: Codable, Equatable, Sendable {
   var prepBaseballState: String?
   var ncsaId: String?  // NCSA (all sports)
   var hudlUrl: String? // Hudl (full profile URL)
+  // Services v2 (registry-driven — see RecruitingServices). id-kind store a bare
+  // ID; url-kind (*_url) store the full profile URL, like Hudl.
+  var athleticNetId: String?      // Athletic.net (Track & Field, Cross Country)
+  var milesplitUrl: String?       // MileSplit (Track & Field, Cross Country)
+  var swimcloudId: String?        // SwimCloud (Swimming)
+  var utrId: String?              // Universal Tennis / UTR (Tennis)
+  var tennisRecruitingId: String? // Tennis Recruiting Network (Tennis)
+  var eliteProspectsId: String?   // Elite Prospects (Ice Hockey)
+  var sportsrecruitsId: String?   // SportsRecruits (Soccer, Lacrosse, Volleyball, Field Hockey)
+  var concept2Id: String?         // Concept2 Logbook (Rowing)
+  var on3Url: String?             // On3 (Football, Basketball)
+  var sports247Url: String?       // 247Sports (Football, Basketball)
 
   // Social Media
   var twitterHandle: String?
@@ -133,7 +145,18 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     "hudl_url": \.hudlUrl,
     "perfect_game_id": \.perfectGameId,
     "prep_baseball_id": \.prepBaseballId,
-    "prep_baseball_state": \.prepBaseballState
+    "prep_baseball_state": \.prepBaseballState,
+    // Services v2
+    "athletic_net_id": \.athleticNetId,
+    "milesplit_url": \.milesplitUrl,
+    "swimcloud_id": \.swimcloudId,
+    "utr_id": \.utrId,
+    "tennis_recruiting_id": \.tennisRecruitingId,
+    "elite_prospects_id": \.eliteProspectsId,
+    "sportsrecruits_id": \.sportsrecruitsId,
+    "concept2_id": \.concept2Id,
+    "on3_url": \.on3Url,
+    "sports247_url": \.sports247Url
   ]
 
   /// Type-safe read/write of a flat attribute/service field by its storage key.
@@ -215,6 +238,16 @@ struct PlayerDetails: Codable, Equatable, Sendable {
     case prepBaseballState = "prep_baseball_state"
     case ncsaId = "ncsa_id"
     case hudlUrl = "hudl_url"
+    case athleticNetId = "athletic_net_id"
+    case milesplitUrl = "milesplit_url"
+    case swimcloudId = "swimcloud_id"
+    case utrId = "utr_id"
+    case tennisRecruitingId = "tennis_recruiting_id"
+    case eliteProspectsId = "elite_prospects_id"
+    case sportsrecruitsId = "sportsrecruits_id"
+    case concept2Id = "concept2_id"
+    case on3Url = "on3_url"
+    case sports247Url = "sports247_url"
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
     case tiktokHandle = "tiktok_handle"
