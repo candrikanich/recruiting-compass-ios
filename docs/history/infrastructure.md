@@ -1,5 +1,8 @@
 # Infrastructure History
 
+## 2026-03-15 — Push notifications (APNs)
+End-to-end APNs push: NotificationDestinationParser, PushNotificationManager, per-type prefs, `device_tokens` / `notification_preferences` migrations, and a send-push edge function + trigger.
+
 ## 2026-08-08 — Video Links Phase A (DB)
 Created canonical `video_links` table (schema, owner/family RLS, max-5 insert trigger, health columns) plus idempotent JSONB backfill via two web Supabase migrations. Applied to live DB 2026-08-09; not recorded in schema_migrations (MCP drift) — verify with `to_regclass`.
 

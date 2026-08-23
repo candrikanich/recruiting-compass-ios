@@ -1,5 +1,11 @@
 # Accessibility History
 
+## 2026-08-05 — Localization Phase 6 (a11y labels + text sites)
+Added the `Localizable.xcstrings` catalog and routed ~661 `accessibilityLabel` sites plus ~431 pass-through `Text()` sites through `String(localized:)` (mechanical wrap + per-feature hand rewrites; dynamic content left unwrapped).
+
+## 2026-03-19 — Dropped UIHostingController a11y unit tests
+Deleted 62 permanently-skipping UIHostingController-based a11y unit tests. Key insight: SwiftUI's accessibility tree is not introspectable in unit tests; coverage belongs in XCUIApplication E2E a11y tests.
+
 ## WCAG Audit Results (various sessions, 2026)
 Audits completed for: Dashboard, Activity Feed, Interactions, Schools (AddSchool, SchoolDetail), Coaches (AddCoach), Preferences, Family Management. All critical findings resolved. Key patterns: `accessibilityElement(children: .combine)` for label+value pairs, `accessibilityHidden(true)` for decorative icons, minimum 44pt tap targets on all interactive elements, `accessibilityLabel`/`accessibilityHint` on all buttons.
 

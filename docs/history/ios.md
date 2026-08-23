@@ -1,5 +1,8 @@
 # iOS History
 
+## 2026-03-15 — SwiftUI modernization
+Replaced custom code duplicating built-in SwiftUI/Foundation APIs and dropped UIKit deps: iOS 18 Tab API, `@Entry` macro, `sensoryFeedback`, `RelativeDateTimeFormatter`, Swift Charts. All tasks done.
+
 ## Phase 5: Parent Preview Mode — COMPLETE (2026)
 Implemented full family management system with parent preview mode and athlete switching. Created `FamilyMember` model, `FamilyManaging` protocol, `FamilyManager` singleton, `ParentPreviewBanner`, and `AthleteSelector` components. Dashboard now scopes data to the selected athlete, with parents entering preview mode via athlete selection and exiting via the banner dismiss button.
 

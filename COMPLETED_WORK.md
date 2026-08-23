@@ -43,3 +43,21 @@
 | Domain | Compressed | Summary |
 |--------|-----------|---------|
 | infrastructure | 1 | Video Links Phase A DB plan — canonical video_links table + JSONB backfill, applied live 2026-08-09 |
+
+## Doc Cleanup Run — 2026-08-23
+- Deleted: 2 files (public-profile-followups handoff debris; stale test-suite-fixes log)
+- Compressed: 37 files → docs/history/{general,ui,auth,infrastructure,accessibility,ios,e2e,family,schools,coaches}.md (10 domains)
+- Kept: 24 files (active/future-looking: open phase plans (quick-comm 2b/3, personal-fit), approved specs, App Store launch checklist, design system, config/troubleshooting guides)
+
+| Domain | Compressed | Summary |
+|--------|-----------|---------|
+| general | 11 | Public Profile tab, video links (web B + iOS C), action-item CTAs, notifications build, Phase 6 Events (list/detail/create) + Document Viewer |
+| ui | 6 | Error pages, player-details 4-tab redesign, settings completion badges, design-system token consolidation, player-profile tab reorg |
+| auth | 6 | Sign in with Apple (iOS+web), Face ID unlock, parent-login UX fixes, security hardening |
+| accessibility | 3 | Localization Phase 6 (a11y labels + text sites), dropped UIHostingController a11y unit tests |
+| schools | 3 | School Fit / Academic Fit, Contacted stat card, Distance from Home |
+| coaches | 3 | Quick Communication template parity (Phases 1 + 2a), Coaches Needing Follow-up widget |
+| family | 2 | Family shared player profile, suggestions endpoint parent resolution |
+| infrastructure | 1 | Push notifications (APNs) |
+| ios | 1 | SwiftUI modernization |
+| e2e | 1 | iOS E2E test environment |
