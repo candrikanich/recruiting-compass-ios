@@ -183,8 +183,17 @@ struct CoachDetailView: View {
       }
 
       CoachStatisticsSection(coach: coach)
+
+      if let metrics = viewModel.metrics {
+        CoachMetricsSection(
+          metrics: metrics,
+          comparison: viewModel.comparison,
+          insights: viewModel.insights
+        )
+      }
+
       sendProfileSection(coach: coach)
-      recentInteractionsSection
+      CoachInteractionsLogSection(viewModel: viewModel)
       sharedNotesSection
     }
     .padding()
@@ -303,32 +312,6 @@ struct CoachDetailView: View {
         }
       )
       .ignoresSafeArea()
-    }
-  }
-
-  @ViewBuilder
-  private var recentInteractionsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SectionHeader(title: "Recent Interactions")
-
-      if viewModel.recentInteractions.isEmpty {
-        Text("No interactions yet")
-          .font(.body)
-          .foregroundStyle(.secondary)
-          .italic()
-          .padding(.vertical, 8)
-      } else {
-        VStack(spacing: 0) {
-          ForEach(viewModel.recentInteractions) { interaction in
-            RecentInteractionRow(interaction: interaction)
-            if interaction.id != viewModel.recentInteractions.last?.id {
-              Divider()
-                .padding(.vertical, 4)
-                .accessibilityHidden(true)
-            }
-          }
-        }
-      }
     }
   }
 

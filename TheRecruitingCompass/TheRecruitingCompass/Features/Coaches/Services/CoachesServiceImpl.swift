@@ -116,4 +116,17 @@ final class CoachesServiceImpl: CoachesManaging, Sendable {
         .value
     }
   }
+
+  func fetchInteractions(schoolId: String, limit: Int) async throws -> [Interaction] {
+    try await logger.fetch("interactions for school \(schoolId)") {
+      try await supabaseManager.client
+        .from("interactions")
+        .select()
+        .eq("school_id", value: schoolId)
+        .order("occurred_at", ascending: false)
+        .limit(limit)
+        .execute()
+        .value
+    }
+  }
 }

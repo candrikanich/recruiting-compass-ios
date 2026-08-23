@@ -18,6 +18,21 @@ final class CoachDetailViewModel {
   var recentInteractions: [Interaction] = []
   var stats: CoachStats?
 
+  // Communication analytics (parity with the web coach detail page)
+  var metrics: CoachMetrics?
+  var comparison: CoachComparison?
+  var insights: [String] = []
+
+  // Interactions-log filters (applied in-memory over `recentInteractions`)
+  var filterType: InteractionType?
+  var filterDirection: Direction?
+  var filterSentiment: Sentiment?
+  var filterWindowDays: Int?
+
+  /// Upper bound on interactions pulled for a coach — high enough that metrics
+  /// reflect the full history rather than only the last handful.
+  private static let interactionsFetchLimit = 500
+
   // Editing state
   var isEditing = false
   var editedCoach: EditableCoach?
@@ -150,16 +165,64 @@ final class CoachDetailViewModel {
   }
 
   func loadDetails() async {
-    guard coach != nil else { return }
+    guard let coach else { return }
 
     do {
-      recentInteractions = try await coachesService.fetchInteractions(coachId: coachId, limit: 10)
+      recentInteractions = try await coachesService.fetchInteractions(
+        coachId: coachId,
+        limit: Self.interactionsFetchLimit
+      )
       stats = computeStats()
+      metrics = CoachMetricsCalculator.metrics(for: coachId, in: recentInteractions)
+      insights = CoachMetricsCalculator.insights(for: coachId, in: recentInteractions)
       logger.info("Loaded \(self.recentInteractions.count) interactions for coach")
     } catch {
       logger.error("Failed to load details: \(error.localizedDescription)")
       errorMessage = "Failed to load coach details"
     }
+
+    // Cross-coach ranking needs the school's other coaches' interactions too.
+    // Best-effort: a failure here just hides the ranking line, never the page.
+    let schoolId = coach.schoolId
+    do {
+      let schoolInteractions = try await coachesService.fetchInteractions(
+        schoolId: schoolId,
+        limit: Self.interactionsFetchLimit
+      )
+      comparison = CoachMetricsCalculator.comparison(
+        for: coachId,
+        schoolId: schoolId,
+        interactions: schoolInteractions,
+        coaches: allCoaches
+      )
+    } catch {
+      logger.debug("School-wide interactions unavailable for ranking: \(error.localizedDescription)")
+    }
+  }
+
+  /// Interactions after the log filters, newest-first.
+  var filteredInteractions: [Interaction] {
+    recentInteractions.filter { interaction in
+      if let filterType, interaction.type != filterType { return false }
+      if let filterDirection, interaction.direction != filterDirection { return false }
+      if let filterSentiment, interaction.sentiment != filterSentiment { return false }
+      if let filterWindowDays {
+        let cutoff = Calendar.current.date(byAdding: .day, value: -filterWindowDays, to: .now) ?? .now
+        if interaction.displayDate < cutoff { return false }
+      }
+      return true
+    }
+  }
+
+  var hasActiveFilters: Bool {
+    filterType != nil || filterDirection != nil || filterSentiment != nil || filterWindowDays != nil
+  }
+
+  func clearFilters() {
+    filterType = nil
+    filterDirection = nil
+    filterSentiment = nil
+    filterWindowDays = nil
   }
 
   private func computeStats() -> CoachStats {

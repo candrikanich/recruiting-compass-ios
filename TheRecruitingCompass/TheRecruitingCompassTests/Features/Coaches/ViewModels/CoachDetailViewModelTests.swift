@@ -137,7 +137,8 @@ final class CoachDetailViewModelTests: XCTestCase {
     XCTAssertEqual(sut.stats?.totalInteractions, 2)
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
     XCTAssertEqual(mockService.lastFetchInteractionsCoachId, "coach-1")
-    XCTAssertEqual(mockService.lastFetchInteractionsLimit, 10)
+    // Pulls the full history (not just the last handful) so metrics are accurate.
+    XCTAssertEqual(mockService.lastFetchInteractionsLimit, 500)
   }
 
   func testLoadDetails_Failure() async {
