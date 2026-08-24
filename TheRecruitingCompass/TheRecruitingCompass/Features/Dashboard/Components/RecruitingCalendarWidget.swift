@@ -204,22 +204,11 @@ struct RecruitingCalendarWidget: View {
           .padding(.vertical)
       }
 
-      if !upcomingMilestones.isEmpty {
-        VStack(alignment: .leading, spacing: 6) {
-          Text("Upcoming")
-            .font(.caption)
-            .foregroundStyle(Color.secondaryText)
-          ForEach(upcomingMilestones, id: \.date) { milestone in
-            HStack {
-              Text(milestone.title)
-                .font(.caption)
-              Spacer()
-              Text(milestone.date)
-                .font(.caption)
-                .foregroundStyle(Color.secondaryText)
-            }
-          }
-        }
+      VStack(alignment: .leading, spacing: 6) {
+        Text("Upcoming")
+          .font(.caption)
+          .foregroundStyle(Color.secondaryText)
+        UpcomingMilestonesWidget(milestones: upcomingMilestones)
       }
 
       Divider()

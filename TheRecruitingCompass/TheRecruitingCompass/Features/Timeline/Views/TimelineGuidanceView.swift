@@ -18,6 +18,15 @@ struct TimelineGuidanceView: View {
   @State private var worriesExpanded = false
   @State private var stressExpanded = false
 
+  private static let todayFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.timeZone = TimeZone.current
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    return formatter
+  }()
+
   var body: some View {
     ScrollView {
       LazyVStack(spacing: 16) {
@@ -38,7 +47,13 @@ struct TimelineGuidanceView: View {
           isExpanded: milestonesExpanded,
           onToggle: { milestonesExpanded.toggle() }
         ) {
-          UpcomingMilestonesWidget(sport: sport, gender: gender, graduationYear: graduationYear)
+          UpcomingMilestonesWidget(milestones: RecruitingCalendar.upcomingMilestones(
+            Self.todayFormatter.string(from: Date()),
+            sport: sport,
+            division: "D1",
+            gender: gender,
+            graduationYear: graduationYear
+          ))
         }
 
         CollapsibleSection(

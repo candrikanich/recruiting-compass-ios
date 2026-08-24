@@ -8,18 +8,7 @@ import SwiftUI
 /// `components/Timeline/UpcomingMilestones.vue` widget (icon set, row layout,
 /// external-link affordance, empty copy).
 struct UpcomingMilestonesWidget: View {
-  let sport: String?
-  let gender: String?
-  let graduationYear: Int?
-
-  private static let todayFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    formatter.calendar = Calendar(identifier: .gregorian)
-    formatter.timeZone = TimeZone.current
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    return formatter
-  }()
+  let milestones: [CalendarMilestone]
 
   private static let displayFormatter: DateFormatter = {
     let formatter = DateFormatter()
@@ -30,26 +19,17 @@ struct UpcomingMilestonesWidget: View {
     return formatter
   }()
 
-  private var todayISO: String {
-    Self.todayFormatter.string(from: Date())
-  }
-
-  private var milestones: [CalendarMilestone] {
-    RecruitingCalendar.upcomingMilestones(
-      todayISO,
-      sport: sport,
-      division: "D1",
-      gender: gender,
-      graduationYear: graduationYear
-    )
-  }
+  private static let isoFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.timeZone = TimeZone.current
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    return formatter
+  }()
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text(String(localized: "Important dates to have on your calendar"))
-        .font(.subheadline)
-        .foregroundStyle(Color.secondaryText)
-
       if milestones.isEmpty {
         Text(String(localized: "No upcoming milestones in the next 6 months."))
           .font(.subheadline)
@@ -109,7 +89,7 @@ struct UpcomingMilestonesWidget: View {
   }
 
   private func formattedDate(_ dateISO: String) -> String {
-    guard let date = Self.todayFormatter.date(from: dateISO) else { return dateISO }
+    guard let date = Self.isoFormatter.date(from: dateISO) else { return dateISO }
     return Self.displayFormatter.string(from: date)
   }
 
@@ -125,6 +105,8 @@ struct UpcomingMilestonesWidget: View {
 }
 
 #Preview {
-  UpcomingMilestonesWidget(sport: "Baseball", gender: "male", graduationYear: nil)
-    .padding()
+  UpcomingMilestonesWidget(milestones: RecruitingCalendar.upcomingMilestones(
+    "2026-08-24", sport: "Baseball", division: "D1", gender: "male", graduationYear: nil
+  ))
+  .padding()
 }
