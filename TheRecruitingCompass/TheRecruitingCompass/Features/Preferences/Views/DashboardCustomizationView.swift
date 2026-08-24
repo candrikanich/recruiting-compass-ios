@@ -149,6 +149,13 @@ struct DashboardCustomizationView: View {
           )
 
           ToggleCard(
+            icon: "doc.text.fill",
+            label: String(localized: "Recruiting Packet"),
+            isOn: $viewModel.visibility.widgets.recruitingPacket,
+            onChange: { viewModel.markChanged() }
+          )
+
+          ToggleCard(
             icon: "bell.badge.fill",
             label: String(localized: "Notifications"),
             isOn: .constant(false),

@@ -110,6 +110,7 @@ final class DashboardCustomizationViewModel {
     visibility.widgets.eventsSummary = enabled
     visibility.widgets.performanceSummary = enabled
     visibility.widgets.recentActivity = enabled
+    visibility.widgets.recruitingPacket = enabled
     markChanged()
     logger.debug("All widgets set to: \(enabled)")
   }
@@ -138,6 +139,7 @@ final class DashboardCustomizationViewModel {
     visibility.widgets.interactionTrendChart &&
     visibility.widgets.eventsSummary &&
     visibility.widgets.performanceSummary &&
-    visibility.widgets.recentActivity
+    visibility.widgets.recentActivity &&
+    visibility.widgets.recruitingPacket
   }
 }

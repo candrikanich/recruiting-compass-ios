@@ -9,6 +9,7 @@ struct WidgetVisibility: Codable, Equatable {
   var eventsSummary: Bool
   var performanceSummary: Bool
   var recentActivity: Bool
+  var recruitingPacket: Bool
   // Coming soon — stored for future use, not yet rendered
   var recentNotifications: Bool
   var linkedAccounts: Bool
@@ -31,6 +32,7 @@ struct WidgetVisibility: Codable, Equatable {
       eventsSummary: true,
       performanceSummary: true,
       recentActivity: true,
+      recruitingPacket: true,
       recentNotifications: true,
       linkedAccounts: true,
       recruitingCalendar: true,
@@ -53,6 +55,7 @@ struct WidgetVisibility: Codable, Equatable {
     case eventsSummary
     case performanceSummary
     case recentActivity
+    case recruitingPacket
     case recentNotifications
     case linkedAccounts
     case recruitingCalendar
@@ -68,7 +71,7 @@ struct WidgetVisibility: Codable, Equatable {
 
   init(actionItems: Bool, quickTasks: Bool, atAGlanceSummary: Bool,
        interactionTrendChart: Bool, eventsSummary: Bool, performanceSummary: Bool,
-       recentActivity: Bool, recentNotifications: Bool, linkedAccounts: Bool,
+       recentActivity: Bool, recruitingPacket: Bool, recentNotifications: Bool, linkedAccounts: Bool,
        recruitingCalendar: Bool, offerStatusOverview: Bool, schoolInterestChart: Bool,
        schoolMapWidget: Bool, coachFollowupWidget: Bool, recentDocuments: Bool,
        interactionStats: Bool, schoolStatusOverview: Bool,
@@ -80,6 +83,7 @@ struct WidgetVisibility: Codable, Equatable {
     self.eventsSummary = eventsSummary
     self.performanceSummary = performanceSummary
     self.recentActivity = recentActivity
+    self.recruitingPacket = recruitingPacket
     self.recentNotifications = recentNotifications
     self.linkedAccounts = linkedAccounts
     self.recruitingCalendar = recruitingCalendar
@@ -102,6 +106,7 @@ struct WidgetVisibility: Codable, Equatable {
     eventsSummary = try container.decodeIfPresent(Bool.self, forKey: .eventsSummary) ?? true
     performanceSummary = try container.decodeIfPresent(Bool.self, forKey: .performanceSummary) ?? true
     recentActivity = try container.decodeIfPresent(Bool.self, forKey: .recentActivity) ?? true
+    recruitingPacket = try container.decodeIfPresent(Bool.self, forKey: .recruitingPacket) ?? true
     recentNotifications = try container.decodeIfPresent(Bool.self, forKey: .recentNotifications) ?? true
     linkedAccounts = try container.decodeIfPresent(Bool.self, forKey: .linkedAccounts) ?? true
     recruitingCalendar = try container.decodeIfPresent(Bool.self, forKey: .recruitingCalendar) ?? true
