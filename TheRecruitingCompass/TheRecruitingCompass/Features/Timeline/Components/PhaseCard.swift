@@ -100,7 +100,7 @@ struct PhaseCard: View {
     .accessibilityHint("Double tap to expand or collapse")
   }
 
-  private var currentPhaseBadge: some View {
+  @ViewBuilder private var currentPhaseBadge: some View {
     HStack(spacing: 4) {
       Circle()
         .fill(Color.successGreen)

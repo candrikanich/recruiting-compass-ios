@@ -49,7 +49,7 @@ struct CoachInteractionsLogSection: View {
     }
   }
 
-  private var filterBar: some View {
+  @ViewBuilder private var filterBar: some View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack(spacing: 8) {
         filterMenu(
@@ -127,7 +127,7 @@ struct CoachInteractionsLogSection: View {
     }
   }
 
-  private var summaryRow: some View {
+  @ViewBuilder private var summaryRow: some View {
     HStack(spacing: 8) {
       summaryTile(String(localized: "Shown"), "\(filtered.count)", .primary)
       summaryTile(String(localized: "Sent"), "\(sentCount)", BadgeColor.blue.foregroundColor)

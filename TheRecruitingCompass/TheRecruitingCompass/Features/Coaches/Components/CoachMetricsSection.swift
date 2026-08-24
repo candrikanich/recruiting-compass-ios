@@ -30,7 +30,7 @@ struct CoachMetricsSection: View {
     }
   }
 
-  private var metricsTable: some View {
+  @ViewBuilder private var metricsTable: some View {
     VStack(spacing: 0) {
       ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
         HStack {
@@ -74,7 +74,7 @@ struct CoachMetricsSection: View {
     .accessibilityElement(children: .combine)
   }
 
-  private var insightsList: some View {
+  @ViewBuilder private var insightsList: some View {
     VStack(alignment: .leading, spacing: 8) {
       ForEach(Array(insights.enumerated()), id: \.offset) { _, insight in
         HStack(alignment: .top, spacing: 8) {

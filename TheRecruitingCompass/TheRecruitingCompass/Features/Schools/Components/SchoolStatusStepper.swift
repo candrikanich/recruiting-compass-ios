@@ -25,7 +25,7 @@ struct SchoolStatusStepper: View {
 
   // MARK: - Track
 
-  private var track: some View {
+  @ViewBuilder private var track: some View {
     HStack(alignment: .top, spacing: 0) {
       ForEach(Array(SchoolStatus.pipeline.enumerated()), id: \.element) { index, status in
         node(for: status)

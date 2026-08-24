@@ -12,18 +12,18 @@ final class RecruitingCalendarTests: XCTestCase {
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Basketball", gender: "Female"), .WBB) // case-insensitive
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Lacrosse", gender: "female"), .WLA)
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Golf", gender: "male"), .MGO)
-        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Golf", gender: "female"), .Other)
+        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Golf", gender: "female"), .other)
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Football"), .FBS)
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Football", footballSubdivision: "FCS"), .FCS)
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Track & Field"), .XCTF)
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Cross Country"), .XCTF)
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Soccer", gender: "female"), .OTHER_WSOCCER)
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Wrestling", gender: "male"), .OTHER_MWRESTLING)
-        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Tennis"), .Other)
+        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Tennis"), .other)
     }
     func test_resolveKey_unknownAndNil_returnsOther_noBaseballFallback() {
-        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: nil), .Other)
-        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Quidditch"), .Other)
+        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: nil), .other)
+        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Quidditch"), .other)
     }
     // integrity: every key has a calendar with source+verifiedOn + non-empty periods
     func test_everyCalendarWellFormed() {
@@ -51,7 +51,7 @@ final class RecruitingCalendarTests: XCTestCase {
     func test_parity_periodCounts() {
         let expected: [NcaaCalendarKey: Int] = [
             .MBA: 12, .WSB: 13, .MBB: 18, .WBB: 24, .FBS: 4, .FCS: 7, .XCTF: 7, .WVB: 13,
-            .MGO: 7, .MLA: 16, .WLA: 18, .Other: 1, .OTHER_MSOCCER: 3, .OTHER_WSOCCER: 4,
+            .MGO: 7, .MLA: 16, .WLA: 18, .other: 1, .OTHER_MSOCCER: 3, .OTHER_WSOCCER: 4,
             .OTHER_SWIM: 4, .OTHER_MICEHOCKEY: 2, .OTHER_WICEHOCKEY: 3, .OTHER_ROWING: 2,
             .OTHER_FIELDHOCKEY: 2, .OTHER_MWRESTLING: 3, .OTHER_WWRESTLING: 2,
         ]

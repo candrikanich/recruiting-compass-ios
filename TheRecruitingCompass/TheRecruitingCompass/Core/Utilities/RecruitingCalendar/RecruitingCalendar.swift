@@ -6,7 +6,8 @@ import Foundation
 /// web `utils/recruitingCalendar/types.ts` `NcaaCalendarKey` — byte-identical
 /// 21-key set.
 enum NcaaCalendarKey: String, CaseIterable {
-    case MBA, WSB, MBB, WBB, FBS, FCS, XCTF, WVB, MGO, MLA, WLA, Other
+    case MBA, WSB, MBB, WBB, FBS, FCS, XCTF, WVB, MGO, MLA, WLA
+    case other = "Other"
     case OTHER_MSOCCER, OTHER_WSOCCER, OTHER_SWIM, OTHER_MICEHOCKEY, OTHER_WICEHOCKEY
     case OTHER_ROWING, OTHER_FIELDHOCKEY, OTHER_MWRESTLING, OTHER_WWRESTLING
 }
@@ -118,7 +119,7 @@ enum RecruitingCalendar {
         gender: String? = nil,
         footballSubdivision: String? = nil
     ) -> NcaaCalendarKey {
-        guard let sport else { return .Other }
+        guard let sport else { return .other }
 
         if sport == "Football" {
             if footballSubdivision == "FCS" { return .FCS }
@@ -126,7 +127,7 @@ enum RecruitingCalendar {
         }
 
         if sport == "Golf" {
-            return isMen(gender) ? .MGO : .Other
+            return isMen(gender) ? .MGO : .other
         }
 
         if let split = genderSplitSports[sport] {
@@ -141,7 +142,7 @@ enum RecruitingCalendar {
         // unrecognized) has no published NCAA recruiting calendar and no
         // sport-specific windows in the "Other" bundle — falls to the
         // generic Other default.
-        return .Other
+        return .other
     }
 
     static func calendarFor(key: NcaaCalendarKey) -> SportCalendar {

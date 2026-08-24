@@ -581,7 +581,7 @@ enum RecruitingCalendarData {
 
     static let d1Calendars: [NcaaCalendarKey: SportCalendar] = [
         .MBA: mba, .WSB: wsb, .MBB: mbb, .WBB: wbb, .FBS: fbs, .FCS: fcs, .XCTF: xctf,
-        .WVB: wvb, .MGO: mgo, .MLA: mla, .WLA: wla, .Other: other,
+        .WVB: wvb, .MGO: mgo, .MLA: mla, .WLA: wla, .other: other,
         .OTHER_MSOCCER: otherMSoccer, .OTHER_WSOCCER: otherWSoccer, .OTHER_SWIM: otherSwim,
         .OTHER_MICEHOCKEY: otherMIceHockey, .OTHER_WICEHOCKEY: otherWIceHockey,
         .OTHER_ROWING: otherRowing, .OTHER_FIELDHOCKEY: otherFieldHockey,

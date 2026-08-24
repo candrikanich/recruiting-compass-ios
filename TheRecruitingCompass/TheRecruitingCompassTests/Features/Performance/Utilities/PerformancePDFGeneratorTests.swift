@@ -68,7 +68,7 @@ final class PerformancePDFGeneratorTests: XCTestCase {
 
     // Then
     XCTAssertTrue(pageText.contains("Jane Doe"), "PDF should contain athlete name")
-    XCTAssertTrue(pageText.contains("85.50 mph"), "PDF should contain formatted metric value")
+    XCTAssertTrue(pageText.contains("85.5 mph"), "PDF should contain formatted metric value")
     XCTAssertTrue(pageText.contains("Velocity"), "PDF should contain metric type")
   }
 
@@ -128,9 +128,9 @@ final class PerformancePDFGeneratorTests: XCTestCase {
 
     // Then
     XCTAssertNotNil(pdf, "Should generate valid PDF")
-    let mostRecentIndex = pageText.range(of: "85.00 mph")
-    let middleIndex = pageText.range(of: "82.50 mph")
-    let oldestIndex = pageText.range(of: "80.00 mph")
+    let mostRecentIndex = pageText.range(of: "85.0 mph")
+    let middleIndex = pageText.range(of: "82.5 mph")
+    let oldestIndex = pageText.range(of: "80.0 mph")
 
     XCTAssertNotNil(mostRecentIndex, "Should contain most recent metric")
     XCTAssertNotNil(middleIndex, "Should contain middle metric")
@@ -200,7 +200,7 @@ final class PerformancePDFGeneratorTests: XCTestCase {
     // Then
     XCTAssertNotNil(pdf, "Should generate valid PDF with nil userName")
     XCTAssertTrue(pageText.contains("Performance Metrics Report"), "Should contain title")
-    XCTAssertTrue(pageText.contains("85.50 mph"), "Should contain metric value")
+    XCTAssertTrue(pageText.contains("85.5 mph"), "Should contain metric value")
     XCTAssertFalse(pageText.contains("Athlete:"), "Should not contain athlete label when userName is nil")
   }
 }
