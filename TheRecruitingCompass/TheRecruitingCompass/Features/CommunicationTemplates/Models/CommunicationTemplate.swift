@@ -3,6 +3,7 @@ import Foundation
 struct CommunicationTemplate: Codable, Identifiable, Sendable {
   let id: String
   let userId: String
+  let familyUnitId: String?
   let name: String
   let type: TemplateType
   let body: String
@@ -33,11 +34,13 @@ struct CommunicationTemplate: Codable, Identifiable, Sendable {
 
   init(id: String, userId: String, name: String, type: TemplateType, body: String,
        variables: [String]?, createdAt: String, updatedAt: String,
+       familyUnitId: String? = nil,
        subject: String? = nil, slug: String? = nil, stage: String? = nil,
        contactWindow: String? = nil, requiredVariables: [String]? = nil,
        sortOrder: Int? = nil, isPredefined: Bool? = nil) {
     self.id = id
     self.userId = userId
+    self.familyUnitId = familyUnitId
     self.name = name
     self.type = type
     self.body = body
@@ -57,6 +60,7 @@ struct CommunicationTemplate: Codable, Identifiable, Sendable {
     let c = try decoder.container(keyedBy: CodingKeys.self)
     id = try c.decode(String.self, forKey: .id)
     userId = try c.decodeIfPresent(String.self, forKey: .userId) ?? ""
+    familyUnitId = try c.decodeIfPresent(String.self, forKey: .familyUnitId)
     name = try c.decode(String.self, forKey: .name)
     type = try c.decode(TemplateType.self, forKey: .type)
     body = try c.decode(String.self, forKey: .body)
@@ -76,6 +80,7 @@ struct CommunicationTemplate: Codable, Identifiable, Sendable {
     var c = encoder.container(keyedBy: CodingKeys.self)
     try c.encode(id, forKey: .id)
     try c.encode(userId, forKey: .userId)
+    try c.encodeIfPresent(familyUnitId, forKey: .familyUnitId)
     try c.encode(name, forKey: .name)
     try c.encode(type, forKey: .type)
     try c.encode(body, forKey: .body)
@@ -106,6 +111,7 @@ struct CommunicationTemplate: Codable, Identifiable, Sendable {
   enum CodingKeys: String, CodingKey {
     case id, name, type, body, variables, subject, slug, stage
     case userId = "user_id"
+    case familyUnitId = "family_unit_id"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
     case contactWindow = "contact_window"
