@@ -283,7 +283,12 @@ enum RecruitingCalendar {
         let cappedGeneric = genericForDivision.filter(passes).sorted { $0.date < $1.date }.prefix(limit)
         let sportMilestones = cal.milestones.filter(passes)
 
+        // Dedup coincident entries (date+title) so a sport milestone that happens to
+        // match a generic one on the same day can't double. Generics come first, so
+        // they win the tie. Mirrors the web resolver's dedup key.
+        var seen = Set<String>()
         return (Array(cappedGeneric) + sportMilestones)
+            .filter { seen.insert("\($0.date)|\($0.title)").inserted }
             .sorted { $0.date < $1.date }
     }
 

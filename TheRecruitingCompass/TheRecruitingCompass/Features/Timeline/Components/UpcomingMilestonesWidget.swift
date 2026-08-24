@@ -35,7 +35,7 @@ struct UpcomingMilestonesWidget: View {
           .font(.subheadline)
           .foregroundStyle(Color.secondaryText)
       } else {
-        ForEach(milestones, id: \.date) { milestone in
+        ForEach(Array(milestones.enumerated()), id: \.offset) { _, milestone in
           milestoneRow(for: milestone)
         }
       }
