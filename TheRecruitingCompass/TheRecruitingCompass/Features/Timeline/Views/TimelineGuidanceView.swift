@@ -1,10 +1,11 @@
 import SwiftUI
 
-/// Timeline "Guidance" tab — composes the 5 guidance widgets in the same order
-/// as the web sidebar: what matters now, upcoming milestones, recruiting
-/// calendar, common worries, and what not to stress about. Each is wrapped in
-/// a `CollapsibleSection` so all 5 render at equal width and collapse
-/// independently (web defaults: What Matters open, rest collapsed).
+/// Timeline "Guidance" tab — composes the 4 guidance widgets in the same order
+/// as the web sidebar: what matters now, recruiting calendar (which carries
+/// its own rich upcoming-milestones list), common worries, and what not to
+/// stress about. Each is wrapped in a `CollapsibleSection` so all 4 render at
+/// equal width and collapse independently (web defaults: What Matters open,
+/// rest collapsed).
 struct TimelineGuidanceView: View {
   let viewModel: TimelineViewModel
   let sport: String?
@@ -13,19 +14,9 @@ struct TimelineGuidanceView: View {
   let onSelectTask: (String) -> Void
 
   @State private var whatMattersExpanded = true
-  @State private var milestonesExpanded = false
   @State private var calendarExpanded = false
   @State private var worriesExpanded = false
   @State private var stressExpanded = false
-
-  private static let todayFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    formatter.calendar = Calendar(identifier: .gregorian)
-    formatter.timeZone = TimeZone.current
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    return formatter
-  }()
 
   var body: some View {
     ScrollView {
@@ -40,20 +31,6 @@ struct TimelineGuidanceView: View {
             phaseLabel: viewModel.currentPhase.gradeLabel,
             onSelectTask: onSelectTask
           )
-        }
-
-        CollapsibleSection(
-          title: String(localized: "📅 Upcoming Milestones"),
-          isExpanded: milestonesExpanded,
-          onToggle: { milestonesExpanded.toggle() }
-        ) {
-          UpcomingMilestonesWidget(milestones: RecruitingCalendar.upcomingMilestones(
-            Self.todayFormatter.string(from: Date()),
-            sport: sport,
-            division: "D1",
-            gender: gender,
-            graduationYear: graduationYear
-          ))
         }
 
         CollapsibleSection(
