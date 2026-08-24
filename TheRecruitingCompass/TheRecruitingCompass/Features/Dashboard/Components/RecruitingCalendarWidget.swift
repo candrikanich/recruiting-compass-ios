@@ -149,9 +149,9 @@ struct RecruitingCalendarWidget: View {
         Text("Recruiting Calendar")
           .font(.headline)
           .accessibilityAddTraits(.isHeader)
-      }
 
-      Divider()
+        Divider()
+      }
 
       if showsGenderToggle {
         Picker(String(localized: "Team"), selection: $showsWomens) {
