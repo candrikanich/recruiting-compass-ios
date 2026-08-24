@@ -28,6 +28,17 @@ enum TimelinePhase: String, Codable, CaseIterable, Sendable {
     }
   }
 
+  /// Bare grade-year name (no "Year" suffix) — matches web's `getPhaseDisplayName`.
+  var gradeLabel: String {
+    switch self {
+    case .freshman: return String(localized: "Freshman")
+    case .sophomore: return String(localized: "Sophomore")
+    case .junior: return String(localized: "Junior")
+    case .senior: return String(localized: "Senior")
+    case .committed: return String(localized: "Committed")
+    }
+  }
+
   var theme: String {
     switch self {
     case .freshman: return String(localized: "Foundation & Awareness")

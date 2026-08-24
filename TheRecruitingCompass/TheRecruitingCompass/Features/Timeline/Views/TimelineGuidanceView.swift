@@ -14,7 +14,7 @@ struct TimelineGuidanceView: View {
       LazyVStack(spacing: 16) {
         WhatMattersNowWidget(
           items: viewModel.whatMattersItems,
-          phaseLabel: viewModel.currentPhase.displayLabel
+          phaseLabel: viewModel.currentPhase.gradeLabel
         )
         UpcomingMilestonesWidget(sport: sport, gender: gender, graduationYear: graduationYear)
         RecruitingCalendarWidget(sport: sport, gender: gender, graduationYear: graduationYear)
