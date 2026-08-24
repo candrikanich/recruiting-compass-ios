@@ -248,7 +248,7 @@ enum RecruitingCalendar {
         limit: Int = 5
     ) -> [CalendarMilestone] {
         let cal = calendar(sport: sport, division: division, gender: gender, footballSubdivision: footballSubdivision)
-        var combined = cal.milestones.filter { $0.date >= dateISO }
+        var combined = (cal.milestones + RecruitingCalendarData.genericMilestones).filter { $0.date >= dateISO }
 
         if let graduationYear, let currentYear = Int(dateISO.prefix(4)) {
             let allowedTypes = milestoneTypes(forGraduationYear: graduationYear, currentYear: currentYear)

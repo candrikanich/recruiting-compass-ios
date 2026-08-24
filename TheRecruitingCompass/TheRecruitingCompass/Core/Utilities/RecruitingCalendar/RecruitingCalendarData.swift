@@ -607,4 +607,62 @@ enum RecruitingCalendarData {
     // generic of the three divisions and "Other" is this dataset's own generic
     // default).
     static let d3Fallback = other
+
+    // MARK: - Generic (sport-agnostic) milestones
+
+    /// SAT/ACT test dates, NCAA/NAIA eligibility deadlines, and college
+    /// application deadlines — Swift mirror of web `utils/ncaaRecruitingCalendar.ts`
+    /// (`SAT_TEST_DATES_2026` + `ACT_TEST_DATES_2026` + `NCAA_DEADLINES_2026` +
+    /// `NAIA_DEADLINES_2026` + `COLLEGE_APPLICATION_DEADLINES_2026`), merged
+    /// sport-agnostically the same way web's `GENERIC_MILESTONES` is merged in
+    /// `resolver.ts`'s `getUpcomingMilestones`. Web's `division` field (all
+    /// "ALL", "D1", or "NAIA") has no iOS `CalendarMilestone` equivalent and is
+    /// dropped — these apply to every sport/division on iOS.
+    // swiftlint:disable:next line_length
+    static let genericMilestones: [CalendarMilestone] = [
+        // SAT_TEST_DATES_2026 (8)
+        CalendarMilestone(date: "2026-03-14", title: "SAT Test Date", type: .test,
+            url: "https://collegereadiness.collegeboard.org/sat/register/dates-deadlines"),
+        CalendarMilestone(date: "2026-05-02", title: "SAT Test Date", type: .test),
+        CalendarMilestone(date: "2026-06-06", title: "SAT Test Date", type: .test),
+        CalendarMilestone(date: "2026-08-29", title: "SAT Test Date", type: .test),
+        CalendarMilestone(date: "2026-10-03", title: "SAT Test Date", type: .test),
+        CalendarMilestone(date: "2026-11-07", title: "SAT Test Date", type: .test),
+        CalendarMilestone(date: "2027-01-23", title: "SAT Test Date", type: .test),
+        CalendarMilestone(date: "2027-03-13", title: "SAT Test Date", type: .test),
+
+        // ACT_TEST_DATES_2026 (7)
+        CalendarMilestone(date: "2026-02-07", title: "ACT Test Date", type: .test,
+            url: "https://www.act.org/content/act/en/students/register-for-the-act.html"),
+        CalendarMilestone(date: "2026-04-11", title: "ACT Test Date", type: .test),
+        CalendarMilestone(date: "2026-06-13", title: "ACT Test Date", type: .test),
+        CalendarMilestone(date: "2026-07-18", title: "ACT Test Date", type: .test),
+        CalendarMilestone(date: "2026-09-12", title: "ACT Test Date", type: .test),
+        CalendarMilestone(date: "2026-10-10", title: "ACT Test Date", type: .test),
+        CalendarMilestone(date: "2027-02-06", title: "ACT Test Date", type: .test),
+
+        // NCAA_DEADLINES_2026 (1)
+        CalendarMilestone(date: "2026-04-01", title: "NCAA Eligibility Center Registration - Juniors", type: .deadline,
+            url: "https://www.eligibilitycenter.org/",
+            description: "Register with NCAA to begin eligibility evaluation"),
+
+        // NAIA_DEADLINES_2026 (1)
+        CalendarMilestone(date: "2026-09-01", title: "NAIA Eligibility Center Registration", type: .deadline,
+            url: "https://www.playnaia.org/", description: "Register with NAIA eligibility center"),
+
+        // COLLEGE_APPLICATION_DEADLINES_2026 (6, incl. FAFSA Opens)
+        CalendarMilestone(date: "2026-10-01", title: "FAFSA Opens", type: .application,
+            url: "https://studentaid.gov/h/apply-for-aid/fafsa",
+            description: "Free Application for Federal Student Aid opens for 2027-28 school year"),
+        CalendarMilestone(date: "2026-11-01", title: "Early Decision Deadline (Early)", type: .application,
+            description: "Most early decision deadlines for senior fall"),
+        CalendarMilestone(date: "2026-11-15", title: "Early Action Deadline", type: .application,
+            description: "Most early action deadlines"),
+        CalendarMilestone(date: "2027-01-01", title: "Regular Decision Deadline (Most Selective)", type: .application,
+            description: "Most selective schools' regular decision deadline"),
+        CalendarMilestone(date: "2027-01-15", title: "Regular Decision Deadline (Typical)", type: .application,
+            description: "Most schools' regular decision deadline"),
+        CalendarMilestone(date: "2027-02-01", title: "Regular Decision Deadline (Latest)", type: .application,
+            description: "Latest regular decision deadlines for selective schools"),
+    ]
 }
