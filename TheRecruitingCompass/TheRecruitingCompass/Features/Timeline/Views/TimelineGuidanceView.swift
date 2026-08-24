@@ -10,6 +10,7 @@ struct TimelineGuidanceView: View {
   let sport: String?
   let gender: String?
   let graduationYear: Int?
+  let onSelectTask: (String) -> Void
 
   @State private var whatMattersExpanded = true
   @State private var milestonesExpanded = false
@@ -27,7 +28,8 @@ struct TimelineGuidanceView: View {
         ) {
           WhatMattersNowWidget(
             items: viewModel.whatMattersItems,
-            phaseLabel: viewModel.currentPhase.gradeLabel
+            phaseLabel: viewModel.currentPhase.gradeLabel,
+            onSelectTask: onSelectTask
           )
         }
 

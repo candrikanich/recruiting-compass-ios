@@ -19,6 +19,7 @@ struct RecruitingTimelineView: View {
   @Environment(FamilyManager.self) private var familyManager
   @State private var lockedTaskAlertTask: TaskWithStatus?
   @State private var selectedTab: TimelineTab = .tasks
+  @State private var pendingScrollGrade: Int?
 
   private var headerTitle: String {
     if viewModel.isViewingAsParent, let athlete = familyManager.selectedAthlete {
@@ -41,81 +42,104 @@ struct RecruitingTimelineView: View {
     (12, .senior)
   ]
 
-  var body: some View {
-    ScrollView {
-      LazyVStack(spacing: 16) {
-        TimelineParentBanner(
-          isViewingAsParent: viewModel.isViewingAsParent,
-          athleteName: familyManager.selectedAthlete?.user?.fullName ?? "Athlete",
-          onDismiss: { familyManager.clearAthleteSelection() }
-        )
-        Text(headerTitle)
-          .font(.title2.weight(.semibold))
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.horizontal)
-        TimelineAthleteSwitcher(
-          isViewingAsParent: viewModel.isViewingAsParent,
-          athletes: familyManager.athletes,
-          selectedAthleteId: familyManager.selectedAthleteId,
-          onSelect: { athleteId in
-            familyManager.selectAthlete(athleteId)
-            Task { await viewModel.load() }
-          }
-        )
-        Picker("View", selection: $selectedTab) {
-          ForEach(TimelineTab.allCases) { tab in
-            Text(tab.displayLabel).tag(tab)
-          }
-        }
-        .pickerStyle(.segmented)
-        .padding(.horizontal)
+  private func selectTask(_ taskId: String) {
+    let gradeLevel = viewModel.tasksByGrade.first { _, tasks in
+      tasks.contains { $0.id == taskId }
+    }?.key
 
-        switch selectedTab {
-        case .tasks:
-          TimelineMainContent(
-            isLoading: viewModel.isLoading,
-            tasksByGrade: viewModel.tasksByGrade,
-            errorMessage: viewModel.errorMessage,
-            statusScoreValue: viewModel.statusScoreValue,
-            statusLabel: viewModel.statusLabel,
-            taskCompletedCount: viewModel.taskCompletedCount,
-            taskTotalCount: viewModel.taskTotalCount,
-            milestonesCompletedCount: viewModel.milestonesCompletedCount,
-            milestonesTotalCount: viewModel.milestonesTotalCount,
-            showSuccessMessage: viewModel.showSuccessMessage,
-            currentPhase: viewModel.currentPhase,
-            expandedPhaseGrade: viewModel.expandedPhaseGrade,
+    selectedTab = .tasks
+    guard let gradeLevel else { return }
+    viewModel.setExpandedPhase(grade: gradeLevel)
+    pendingScrollGrade = gradeLevel
+  }
+
+  var body: some View {
+    ScrollViewReader { proxy in
+      ScrollView {
+        LazyVStack(spacing: 16) {
+          TimelineParentBanner(
             isViewingAsParent: viewModel.isViewingAsParent,
-            phaseOrder: phaseOrder,
-            onTogglePhase: { grade in viewModel.togglePhaseExpanded(grade: grade) },
-            onTaskCheckboxTap: { taskId in Task { await viewModel.markComplete(taskId: taskId) } },
-            onLockedTaskTap: { lockedTaskAlertTask = $0 },
-            onRetry: { Task { await viewModel.refresh() } }
+            athleteName: familyManager.selectedAthlete?.user?.fullName ?? "Athlete",
+            onDismiss: { familyManager.clearAthleteSelection() }
           )
-        case .guidance:
-          TimelineGuidanceView(
-            viewModel: viewModel,
-            sport: viewModel.athleteSport,
-            gender: viewModel.athleteGender,
-            graduationYear: viewModel.graduationYear
+          Text(headerTitle)
+            .font(.title2.weight(.semibold))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+          TimelineAthleteSwitcher(
+            isViewingAsParent: viewModel.isViewingAsParent,
+            athletes: familyManager.athletes,
+            selectedAthleteId: familyManager.selectedAthleteId,
+            onSelect: { athleteId in
+              familyManager.selectAthlete(athleteId)
+              Task { await viewModel.load() }
+            }
           )
+          Picker("View", selection: $selectedTab) {
+            ForEach(TimelineTab.allCases) { tab in
+              Text(tab.displayLabel).tag(tab)
+            }
+          }
+          .pickerStyle(.segmented)
+          .padding(.horizontal)
+
+          switch selectedTab {
+          case .tasks:
+            TimelineMainContent(
+              isLoading: viewModel.isLoading,
+              tasksByGrade: viewModel.tasksByGrade,
+              errorMessage: viewModel.errorMessage,
+              statusScoreValue: viewModel.statusScoreValue,
+              statusLabel: viewModel.statusLabel,
+              taskCompletedCount: viewModel.taskCompletedCount,
+              taskTotalCount: viewModel.taskTotalCount,
+              milestonesCompletedCount: viewModel.milestonesCompletedCount,
+              milestonesTotalCount: viewModel.milestonesTotalCount,
+              showSuccessMessage: viewModel.showSuccessMessage,
+              currentPhase: viewModel.currentPhase,
+              expandedPhaseGrade: viewModel.expandedPhaseGrade,
+              isViewingAsParent: viewModel.isViewingAsParent,
+              phaseOrder: phaseOrder,
+              onTogglePhase: { grade in viewModel.togglePhaseExpanded(grade: grade) },
+              onTaskCheckboxTap: { taskId in Task { await viewModel.markComplete(taskId: taskId) } },
+              onLockedTaskTap: { lockedTaskAlertTask = $0 },
+              onRetry: { Task { await viewModel.refresh() } }
+            )
+          case .guidance:
+            TimelineGuidanceView(
+              viewModel: viewModel,
+              sport: viewModel.athleteSport,
+              gender: viewModel.athleteGender,
+              graduationYear: viewModel.graduationYear,
+              onSelectTask: selectTask
+            )
+          }
+        }
+        .padding(.vertical, 16)
+      }
+      .refreshable { await viewModel.refresh() }
+      .task { await viewModel.load() }
+      .onChange(of: familyManager.selectedAthleteId) { _, _ in
+        Task { await viewModel.load() }
+      }
+      .onChange(of: selectedTab) { _, newValue in
+        guard newValue == .tasks, let grade = pendingScrollGrade else { return }
+        pendingScrollGrade = nil
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+          withAnimation {
+            proxy.scrollTo("phase-\(grade)", anchor: .top)
+          }
         }
       }
-      .padding(.vertical, 16)
-    }
-    .refreshable { await viewModel.refresh() }
-    .task { await viewModel.load() }
-    .onChange(of: familyManager.selectedAthleteId) { _, _ in
-      Task { await viewModel.load() }
-    }
-    .alert("Complete Prerequisites First", isPresented: showLockedTaskAlert) {
-    } message: {
-      if let task = lockedTaskAlertTask {
-        Text("Complete these tasks first: \(task.prerequisiteTasks.map(\.title).joined(separator: ", "))")
+      .alert("Complete Prerequisites First", isPresented: showLockedTaskAlert) {
+      } message: {
+        if let task = lockedTaskAlertTask {
+          Text("Complete these tasks first: \(task.prerequisiteTasks.map(\.title).joined(separator: ", "))")
+        }
       }
+      .navigationTitle("Timeline")
+      .accessibilityIdentifier("recruiting_timeline_view")
     }
-    .navigationTitle("Timeline")
-    .accessibilityIdentifier("recruiting_timeline_view")
   }
 }
 
@@ -222,6 +246,7 @@ private struct TimelineMainContent: View {
           onLockedTaskTap: { task in onLockedTaskTap(task) }
         )
         .padding(.horizontal)
+        .id("phase-\(grade)")
       }
     }
   }
