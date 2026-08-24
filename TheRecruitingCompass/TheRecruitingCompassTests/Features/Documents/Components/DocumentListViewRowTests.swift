@@ -6,7 +6,7 @@ import SwiftUI
 final class DocumentListViewRowTests: XCTestCase {
   nonisolated deinit {}
 
-  private func makeDocument(title: String = "Transcript 2026") -> Document {
+  private func makeDocument(title: String = "Transcript 2026") -> TheRecruitingCompass.Document {
     Document(
       id: "doc-1",
       userId: "user-1",
