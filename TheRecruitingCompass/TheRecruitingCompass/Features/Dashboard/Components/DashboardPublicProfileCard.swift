@@ -51,6 +51,7 @@ struct DashboardPublicProfileCard: View {
     }
   }
 
+  @ViewBuilder
   private var header: some View {
     HStack(spacing: 8) {
       Image(systemName: "person.crop.circle.badge.checkmark")
@@ -61,6 +62,7 @@ struct DashboardPublicProfileCard: View {
     }
   }
 
+  @ViewBuilder
   private var placeholder: some View {
     RoundedRectangle(cornerRadius: 8)
       .fill(Color.Surface.border)
