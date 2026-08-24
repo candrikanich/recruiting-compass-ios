@@ -19,9 +19,6 @@ struct RecruitingTimelineView: View {
   @Environment(FamilyManager.self) private var familyManager
   @State private var lockedTaskAlertTask: TaskWithStatus?
   @State private var selectedTab: TimelineTab = .tasks
-  @State private var athleteSport: String?
-  @State private var athleteGender: String?
-  private let preferenceService: any PreferenceManaging = PreferenceServiceImpl(supabaseManager: .shared)
 
   private var headerTitle: String {
     if viewModel.isViewingAsParent, let athlete = familyManager.selectedAthlete {
@@ -98,8 +95,8 @@ struct RecruitingTimelineView: View {
         case .guidance:
           TimelineGuidanceView(
             viewModel: viewModel,
-            sport: athleteSport,
-            gender: athleteGender,
+            sport: viewModel.athleteSport,
+            gender: viewModel.athleteGender,
             graduationYear: viewModel.graduationYear
           )
         }
@@ -107,15 +104,9 @@ struct RecruitingTimelineView: View {
       .padding(.vertical, 16)
     }
     .refreshable { await viewModel.refresh() }
-    .task {
-      await viewModel.load()
-      await fetchAthleteProfile()
-    }
+    .task { await viewModel.load() }
     .onChange(of: familyManager.selectedAthleteId) { _, _ in
-      Task {
-        await viewModel.load()
-        await fetchAthleteProfile()
-      }
+      Task { await viewModel.load() }
     }
     .alert("Complete Prerequisites First", isPresented: showLockedTaskAlert) {
     } message: {
@@ -125,24 +116,6 @@ struct RecruitingTimelineView: View {
     }
     .navigationTitle("Timeline")
     .accessibilityIdentifier("recruiting_timeline_view")
-  }
-
-  /// Mirrors `DashboardViewModel.fetchPlayerProfile()` — same category/service, sourced
-  /// independently here since `TimelineViewModel` only tracks `graduationYear`. Errors are
-  /// tolerated (leaves sport/gender nil — the Guidance tab's calendar falls back gracefully).
-  private func fetchAthleteProfile() async {
-    guard let userId = viewModel.currentAthleteId else { return }
-    do {
-      let details: PlayerDetails? = try await preferenceService.fetchPreferences(
-        category: .player,
-        userId: userId
-      )
-      athleteSport = details?.primarySport
-      athleteGender = details?.gender
-    } catch {
-      athleteSport = nil
-      athleteGender = nil
-    }
   }
 }
 
