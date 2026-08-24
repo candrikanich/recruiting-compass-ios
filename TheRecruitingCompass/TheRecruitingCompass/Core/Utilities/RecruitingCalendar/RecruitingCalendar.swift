@@ -47,13 +47,22 @@ struct CalendarMilestone {
     let type: MilestoneType
     let url: String?
     let description: String?
+    /// Division this milestone applies to, or `nil` for "applies to every division"
+    /// (web's `"ALL"`/unscoped). Sport-calendar milestones are always division-scoped
+    /// by calendar selection already, so they leave this `nil`. Swift mirror of web
+    /// `Milestone.division` ("ALL" | "D1" | "D2" | "D3" | "NAIA").
+    let division: String?
 
-    init(date: String, title: String, type: MilestoneType, url: String? = nil, description: String? = nil) {
+    init(
+        date: String, title: String, type: MilestoneType, url: String? = nil,
+        description: String? = nil, division: String? = nil
+    ) {
         self.date = date
         self.title = title
         self.type = type
         self.url = url
         self.description = description
+        self.division = division
     }
 }
 
@@ -233,6 +242,12 @@ enum RecruitingCalendar {
             .first
     }
 
+    /// Same division-scoping web's `matchesDivision` uses: unscoped/"ALL" always
+    /// matches; otherwise the milestone's `division` must equal the athlete's.
+    private static func matchesDivision(_ milestone: CalendarMilestone, _ division: String) -> Bool {
+        milestone.division == nil || milestone.division == division || milestone.division == "ALL"
+    }
+
     /// Upcoming milestones for `sport`/`division` from the resolved
     /// `SportCalendar`'s own milestone list, filtered by future date
     /// (`>= dateISO`), by `graduationYear`'s grad-year bucket (when provided —
@@ -248,7 +263,8 @@ enum RecruitingCalendar {
         limit: Int = 5
     ) -> [CalendarMilestone] {
         let cal = calendar(sport: sport, division: division, gender: gender, footballSubdivision: footballSubdivision)
-        var combined = (cal.milestones + RecruitingCalendarData.genericMilestones).filter { $0.date >= dateISO }
+        let genericForDivision = RecruitingCalendarData.genericMilestones.filter { matchesDivision($0, division) }
+        var combined = (cal.milestones + genericForDivision).filter { $0.date >= dateISO }
 
         if let graduationYear, let currentYear = Int(dateISO.prefix(4)) {
             let allowedTypes = milestoneTypes(forGraduationYear: graduationYear, currentYear: currentYear)

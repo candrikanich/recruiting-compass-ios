@@ -615,9 +615,10 @@ enum RecruitingCalendarData {
     /// (`SAT_TEST_DATES_2026` + `ACT_TEST_DATES_2026` + `NCAA_DEADLINES_2026` +
     /// `NAIA_DEADLINES_2026` + `COLLEGE_APPLICATION_DEADLINES_2026`), merged
     /// sport-agnostically the same way web's `GENERIC_MILESTONES` is merged in
-    /// `resolver.ts`'s `getUpcomingMilestones`. Web's `division` field (all
-    /// "ALL", "D1", or "NAIA") has no iOS `CalendarMilestone` equivalent and is
-    /// dropped — these apply to every sport/division on iOS.
+    /// `resolver.ts`'s `getUpcomingMilestones`. `division` is ported byte-for-byte
+    /// from web (`"D1"` for NCAA eligibility, `"NAIA"` for NAIA eligibility,
+    /// `nil` == web's `"ALL"`/unscoped for everything else) and filtered by
+    /// `RecruitingCalendar.upcomingMilestones` via `matchesDivision`.
     // swiftlint:disable:next line_length
     static let genericMilestones: [CalendarMilestone] = [
         // SAT_TEST_DATES_2026 (8)
@@ -644,11 +645,11 @@ enum RecruitingCalendarData {
         // NCAA_DEADLINES_2026 (1)
         CalendarMilestone(date: "2026-04-01", title: "NCAA Eligibility Center Registration - Juniors", type: .deadline,
             url: "https://www.eligibilitycenter.org/",
-            description: "Register with NCAA to begin eligibility evaluation"),
+            description: "Register with NCAA to begin eligibility evaluation", division: "D1"),
 
         // NAIA_DEADLINES_2026 (1)
         CalendarMilestone(date: "2026-09-01", title: "NAIA Eligibility Center Registration", type: .deadline,
-            url: "https://www.playnaia.org/", description: "Register with NAIA eligibility center"),
+            url: "https://www.playnaia.org/", description: "Register with NAIA eligibility center", division: "NAIA"),
 
         // COLLEGE_APPLICATION_DEADLINES_2026 (6, incl. FAFSA Opens)
         CalendarMilestone(date: "2026-10-01", title: "FAFSA Opens", type: .application,
