@@ -13,6 +13,10 @@ struct RecruitingCalendarWidget: View {
   /// (e.g. signing dates are withheld from underclassmen). `nil` shows the
   /// unfiltered milestone list.
   var graduationYear: Int?
+  /// Injectable "now" for the current-period / staleness / upcoming-milestone
+  /// paths — defaults to the real clock. Lets tests exercise the view-level
+  /// computed properties against a fixed date (mirrors the web widget's `now`).
+  var now: Date = Date()
 
   /// Men's/Women's toggle for gender-split sports with unresolved gender.
   /// Defaults to men's, matching `RecruitingCalendar.resolveKey`'s own default.
@@ -31,7 +35,7 @@ struct RecruitingCalendarWidget: View {
   }()
 
   private var todayISO: String {
-    Self.todayFormatter.string(from: Date())
+    Self.todayFormatter.string(from: now)
   }
 
   private var isGenderSplitSport: Bool {
@@ -226,6 +230,16 @@ struct RecruitingCalendarWidget: View {
     .background(Color.Surface.card)
     .clipShape(.rect(cornerRadius: 12))
     .brandShadowSm()
+    // Reset the self-select toggles if the athlete's sport/gender changes under
+    // a live instance, so a stale Women's/FCS selection can't carry over to a
+    // sport where it no longer applies.
+    .onChange(of: sport) {
+      showsWomens = false
+      showsFCS = false
+    }
+    .onChange(of: gender) {
+      showsWomens = false
+    }
   }
 
   private func periodLabel(for type: PeriodType) -> String {
