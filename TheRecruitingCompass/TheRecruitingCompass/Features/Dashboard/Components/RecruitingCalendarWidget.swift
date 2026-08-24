@@ -17,8 +17,11 @@ struct RecruitingCalendarWidget: View {
   /// paths — defaults to the real clock. Lets tests exercise the view-level
   /// computed properties against a fixed date (mirrors the web widget's `now`).
   var now: Date = Date()
-  /// Suppress the internal "Recruiting Calendar" title row when an outer
-  /// container (e.g. `CollapsibleSection`) already renders that title.
+  /// Gates BOTH the internal "Recruiting Calendar" title/divider AND the
+  /// widget's own standalone card chrome (padding/background/corner-radius/
+  /// shadow). `false` renders bare, embeddable content only — for use inside
+  /// an outer container (e.g. `CollapsibleSection`) that supplies its own
+  /// title and chrome.
   var showHeader: Bool = true
 
   /// Men's/Women's toggle for gender-split sports with unresolved gender.
@@ -231,10 +234,7 @@ struct RecruitingCalendarWidget: View {
         }
       }
     }
-    .padding()
-    .background(Color.Surface.card)
-    .clipShape(.rect(cornerRadius: 12))
-    .brandShadowSm()
+    .cardChrome(enabled: showHeader)
     // Reset the self-select toggles if the athlete's sport/gender changes under
     // a live instance, so a stale Women's/FCS selection can't carry over to a
     // sport where it no longer applies.
@@ -254,6 +254,24 @@ struct RecruitingCalendarWidget: View {
     case .evaluation: return String(localized: "Evaluation Period")
     case .quiet: return String(localized: "Quiet Period")
     case .contact: return String(localized: "Contact Period")
+    }
+  }
+}
+
+private extension View {
+  /// Applies the widget's standalone card chrome only when `enabled` — lets
+  /// `RecruitingCalendarWidget` render bare content when embedded in an
+  /// outer container that supplies its own chrome.
+  @ViewBuilder
+  func cardChrome(enabled: Bool) -> some View {
+    if enabled {
+      self
+        .padding()
+        .background(Color.Surface.card)
+        .clipShape(.rect(cornerRadius: 12))
+        .brandShadowSm()
+    } else {
+      self
     }
   }
 }
