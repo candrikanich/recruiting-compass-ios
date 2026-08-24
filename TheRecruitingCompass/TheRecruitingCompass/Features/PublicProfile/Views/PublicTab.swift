@@ -83,15 +83,17 @@ struct PublicTab: View {
 
     private func exportPDF(card: PublicProfileData) {
         isExporting = true
-        defer { isExporting = false }
-        guard let data = PublicProfilePDFRenderer.render(card) else { return }
-        let filename = PublicProfilePDFRenderer.filename(for: card.playerName)
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-        do {
-            try data.write(to: url)
-            exportedPDF = ExportedProfilePDF(url: url)
-        } catch {
-            // Non-fatal: leave the sheet unpresented if the temp write fails.
+        Task {
+            defer { isExporting = false }
+            guard let data = await PublicProfilePDFRenderer.renderWithPhoto(card) else { return }
+            let filename = PublicProfilePDFRenderer.filename(for: card.playerName)
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+            do {
+                try data.write(to: url)
+                exportedPDF = ExportedProfilePDF(url: url)
+            } catch {
+                // Non-fatal: leave the sheet unpresented if the temp write fails.
+            }
         }
     }
 

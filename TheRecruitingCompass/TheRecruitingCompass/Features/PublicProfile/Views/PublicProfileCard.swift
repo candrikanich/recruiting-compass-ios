@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Native coach-facing card for a player's public profile. Mirrors
 /// `recruiting-compass-web/components/profile/PublicProfileCard.vue`:
@@ -6,6 +7,11 @@ import SwiftUI
 /// Athletic / Academics / Film / Schools sections, then a footer.
 struct PublicProfileCard: View {
     let data: PublicProfileData
+
+    /// Pre-fetched header photo. Used by the PDF export, where `ImageRenderer` cannot await the
+    /// async `AsyncImage` load — supplying a ready `UIImage` makes the photo draw synchronously.
+    /// `nil` (the default, and the live on-screen preview) keeps the normal `AsyncImage` path.
+    var photoOverride: UIImage?
 
     enum Section: CaseIterable {
         case athletic, academics, film, schools, social
@@ -82,7 +88,15 @@ struct PublicProfileCard: View {
 
     @ViewBuilder
     private var headerPhoto: some View {
-        if let photoUrl = data.photoUrl, let url = URL(string: photoUrl) {
+        if let photoOverride {
+            Image(uiImage: photoOverride)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 72, height: 72)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 2))
+                .accessibilityLabel(String(localized: "\(data.playerName) profile photo"))
+        } else if let photoUrl = data.photoUrl, let url = URL(string: photoUrl) {
             AsyncImage(url: url) { phase in
                 if let image = phase.image {
                     image

@@ -14,9 +14,17 @@ enum PublicProfilePDFRenderer {
   /// the device the export runs on.
   static let contentWidth: CGFloat = 540
 
+  /// Fetches the header photo (so it can be drawn synchronously), then renders the PDF.
+  /// Photo-load failure is non-fatal — the card falls back to its placeholder.
   @MainActor
-  static func render(_ data: PublicProfileData) -> Data? {
-    let card = PublicProfileCard(data: data)
+  static func renderWithPhoto(_ data: PublicProfileData) async -> Data? {
+    let photo = await loadPhoto(data.photoUrl)
+    return render(data, photo: photo)
+  }
+
+  @MainActor
+  static func render(_ data: PublicProfileData, photo: UIImage? = nil) -> Data? {
+    let card = PublicProfileCard(data: data, photoOverride: photo)
       .frame(width: contentWidth)
       .padding(24)
       .background(Color.white)
@@ -42,6 +50,18 @@ enum PublicProfilePDFRenderer {
     }
 
     return succeeded ? (pdfData as Data) : nil
+  }
+
+  /// Downloads the header photo for embedding in the PDF. Returns nil on any failure (bad URL,
+  /// network error, undecodable data) so the caller renders the placeholder instead.
+  static func loadPhoto(_ urlString: String?) async -> UIImage? {
+    guard let urlString, let url = URL(string: urlString) else { return nil }
+    do {
+      let (data, _) = try await URLSession.shared.data(from: url)
+      return UIImage(data: data)
+    } catch {
+      return nil
+    }
   }
 
   /// Safe filename for the export, e.g. "Jordan Sample" → "Jordan_Sample_Profile.pdf".

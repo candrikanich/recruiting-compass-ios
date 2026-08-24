@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import TheRecruitingCompass
 
 @MainActor
@@ -39,6 +40,22 @@ final class PublicProfilePDFRendererTests: XCTestCase {
     )
     let pdf = try XCTUnwrap(PublicProfilePDFRenderer.render(minimal))
     XCTAssertTrue(pdf.starts(with: pdfMagic))
+  }
+
+  func testRender_withInjectedPhotoStillRenders() throws {
+    let photo = UIGraphicsImageRenderer(size: CGSize(width: 40, height: 40)).image { ctx in
+      UIColor.blue.setFill()
+      ctx.fill(CGRect(x: 0, y: 0, width: 40, height: 40))
+    }
+    let pdf = try XCTUnwrap(PublicProfilePDFRenderer.render(makeData(), photo: photo))
+    XCTAssertTrue(pdf.starts(with: pdfMagic))
+  }
+
+  func testLoadPhoto_invalidURLReturnsNil() async {
+    let none = await PublicProfilePDFRenderer.loadPhoto(nil)
+    XCTAssertNil(none)
+    let bad = await PublicProfilePDFRenderer.loadPhoto("not a url")
+    XCTAssertNil(bad)
   }
 
   func testFilename_sanitizesPlayerName() {
