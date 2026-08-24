@@ -13,8 +13,8 @@ Read memory `sport-recruiting-calendar-shipped.md` first, then this.
 - Phase 5 routine `trig_01MaTg3LFwpGLBz8LdKFK5nJ` is live; its script is on develop; first fire
   **2026-11-01** (Feb/May/Aug/Nov). Manage: https://claude.ai/code/routines/trig_01MaTg3LFwpGLBz8LdKFK5nJ
 
-## #1 priority for next session: QA the calendar in a real app
-Nothing here was device/browser-verified — unit + build/type-check green only. Verify:
+## #1 priority: QA the calendar in a real app — ✅ DONE 2026-08-24 (Chris, looks good)
+Device/browser QA passed. Checklist below is retained as the record of what was covered:
 - The `RecruitingCalendar` widget renders on the dashboard AND timeline (web + iOS), per sport.
 - Current-period banner shows the MOST-RESTRICTIVE window (e.g. a baseball athlete on 2027-07-04
   shows "Dead", not "Contact").
