@@ -121,6 +121,13 @@ struct RecentActivityWidget: View {
     // Subscribe to realtime updates
     guard let userId = viewModel.userId else { return }
 
+    // Avoid re-subscribing when a live subscription already exists. `.task` and
+    // the scenePhase `.active` transition can both fire on appear; a second
+    // subscribe would reuse the already-joined channel topic and register a
+    // postgresChange listener after the join (a no-op that logs a warning) while
+    // leaking the overwritten service.
+    guard realtimeService == nil else { return }
+
     let service = ActivityRealtimeService(supabaseManager: .shared)
     realtimeService = service
 

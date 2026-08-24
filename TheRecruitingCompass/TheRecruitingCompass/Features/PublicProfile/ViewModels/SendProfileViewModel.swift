@@ -28,7 +28,7 @@ final class SendProfileViewModel {
 
     init(
         service: PublicProfileManaging = PublicProfileServiceImpl(),
-        authManager: AuthManaging = AuthManager.shared,
+        authManager: AuthManaging,
         preferenceService: PreferenceManaging = PreferenceServiceImpl(supabaseManager: .shared),
         photoService: ProfilePhotoManaging = ProfilePhotoServiceImpl(),
         interactionsService: InteractionsManaging = InteractionsServiceImpl(supabaseManager: .shared)
