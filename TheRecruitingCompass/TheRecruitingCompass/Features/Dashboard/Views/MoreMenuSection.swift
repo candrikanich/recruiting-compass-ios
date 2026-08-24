@@ -9,6 +9,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
   case analytics
   case activity
   case helpCenter
+  case publicProfile
   case notifications
   case settings
 
@@ -24,6 +25,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     case .analytics: return String(localized: "Analytics")
     case .activity: return String(localized: "Activity History")
     case .helpCenter: return String(localized: "Help Center")
+    case .publicProfile: return String(localized: "Public Profile")
     case .notifications: return String(localized: "Notifications")
     case .settings: return String(localized: "Settings")
     }
@@ -39,6 +41,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     case .analytics: return String(localized: "Charts and recruiting insights")
     case .activity: return String(localized: "History of your recruiting activity")
     case .helpCenter: return String(localized: "Guides and FAQs for using the app")
+    case .publicProfile: return String(localized: "Your shareable coach-facing profile")
     case .notifications: return String(localized: "Alerts and follow-up reminders")
     case .settings: return String(localized: "Preferences and account settings")
     }
@@ -54,6 +57,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     case .analytics: return "chart.pie"
     case .activity: return "list.bullet.rectangle"
     case .helpCenter: return "questionmark.circle"
+    case .publicProfile: return "person.crop.circle.badge.checkmark"
     case .notifications: return "bell"
     case .settings: return "gearshape"
     }
@@ -69,6 +73,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     case .analytics: return .purple
     case .activity: return .accentBlue
     case .helpCenter: return .accentBlue
+    case .publicProfile: return .teal
     case .notifications: return .orange
     case .settings: return Color.iconGray
     }
@@ -79,7 +84,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     [
       ("Recruiting", [.timeline, .events, .documents, .offers, .performance, .analytics, .activity]),
       ("Support", [.helpCenter]),
-      ("Account", [.notifications, .settings])
+      ("Account", [.publicProfile, .notifications, .settings])
     ]
   }
 }
