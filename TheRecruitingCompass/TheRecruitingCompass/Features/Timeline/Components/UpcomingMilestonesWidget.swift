@@ -46,9 +46,6 @@ struct UpcomingMilestonesWidget: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text(String(localized: "📅 Upcoming Milestones"))
-        .font(.headline)
-        .accessibilityAddTraits(.isHeader)
       Text(String(localized: "Important dates to have on your calendar"))
         .font(.subheadline)
         .foregroundStyle(Color.secondaryText)
@@ -63,10 +60,6 @@ struct UpcomingMilestonesWidget: View {
         }
       }
     }
-    .padding()
-    .background(Color.Surface.card)
-    .clipShape(.rect(cornerRadius: 12))
-    .brandShadowSm()
   }
 
   @ViewBuilder

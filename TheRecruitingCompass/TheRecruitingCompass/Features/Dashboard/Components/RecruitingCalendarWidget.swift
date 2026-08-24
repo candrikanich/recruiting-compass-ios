@@ -17,6 +17,9 @@ struct RecruitingCalendarWidget: View {
   /// paths — defaults to the real clock. Lets tests exercise the view-level
   /// computed properties against a fixed date (mirrors the web widget's `now`).
   var now: Date = Date()
+  /// Suppress the internal "Recruiting Calendar" title row when an outer
+  /// container (e.g. `CollapsibleSection`) already renders that title.
+  var showHeader: Bool = true
 
   /// Men's/Women's toggle for gender-split sports with unresolved gender.
   /// Defaults to men's, matching `RecruitingCalendar.resolveKey`'s own default.
@@ -142,9 +145,11 @@ struct RecruitingCalendarWidget: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text("Recruiting Calendar")
-        .font(.headline)
-        .accessibilityAddTraits(.isHeader)
+      if showHeader {
+        Text("Recruiting Calendar")
+          .font(.headline)
+          .accessibilityAddTraits(.isHeader)
+      }
 
       Divider()
 

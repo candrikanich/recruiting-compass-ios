@@ -8,9 +8,6 @@ struct WhatNotToStressWidget: View {
   var body: some View {
     let items = ReassuranceMessage.forPhase(phase)
     VStack(alignment: .leading, spacing: 12) {
-      Text(String(localized: "🛡️ What NOT to Stress About"))
-        .font(.headline)
-        .accessibilityAddTraits(.isHeader)
       Text(String(localized: "Things that don't matter as much as you might think"))
         .font(.subheadline)
         .foregroundStyle(Color.secondaryText)
@@ -33,9 +30,5 @@ struct WhatNotToStressWidget: View {
         }
       }
     }
-    .padding()
-    .background(Color.Surface.card)
-    .clipShape(.rect(cornerRadius: 12))
-    .brandShadowSm()
   }
 }

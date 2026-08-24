@@ -8,9 +8,6 @@ struct CommonWorriesWidget: View {
   var body: some View {
     let worries = ParentWorry.forPhase(phase)
     VStack(alignment: .leading, spacing: 12) {
-      Text(String(localized: "❓ Common Worries"))
-        .font(.headline)
-        .accessibilityAddTraits(.isHeader)
       Text(String(localized: "Questions other parents ask at this stage"))
         .font(.subheadline)
         .foregroundStyle(Color.secondaryText)
@@ -31,9 +28,5 @@ struct CommonWorriesWidget: View {
         }
       }
     }
-    .padding()
-    .background(Color.Surface.card)
-    .clipShape(.rect(cornerRadius: 12))
-    .brandShadowSm()
   }
 }

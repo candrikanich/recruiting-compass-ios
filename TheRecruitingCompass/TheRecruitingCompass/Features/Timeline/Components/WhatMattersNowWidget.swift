@@ -10,9 +10,6 @@ struct WhatMattersNowWidget: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text(String(localized: "⚡ What Matters Right Now"))
-        .font(.headline)
-        .accessibilityAddTraits(.isHeader)
       Text(String(localized: "\(phaseLabel) year priorities to focus on"))
         .font(.subheadline)
         .foregroundStyle(Color.secondaryText)
@@ -38,9 +35,5 @@ struct WhatMattersNowWidget: View {
         }
       }
     }
-    .padding()
-    .background(Color.Surface.card)
-    .clipShape(.rect(cornerRadius: 12))
-    .brandShadowSm()
   }
 }
