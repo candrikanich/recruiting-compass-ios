@@ -11,7 +11,7 @@ final class DocumentViewerAccessibilityTests: XCTestCase {
   // MARK: - Test Helpers
 
   private func makeViewModel(
-    document: Document? = .mock(id: "doc-1", title: "Test Doc"),
+    document: TheRecruitingCompass.Document? = .mock(id: "doc-1", title: "Test Doc"),
     collection: DocumentCollection? = nil
   ) -> DocumentViewerViewModel {
     DocumentViewerViewModel(
