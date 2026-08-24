@@ -81,18 +81,24 @@ the view; default D1.
 
 ## 4. Gender field (Phase 1 foundation)
 
-No gender/sex column exists anywhere in the DB (verified). Add one.
+No gender/sex column exists anywhere in the DB (verified). Add `gender` as an optional profile enum.
 
-- **DB:** `users.gender` — **`text` + CHECK** constraint in (`male`,`female`,`other`,`prefer_not_to_say`),
-  **nullable**. (Text+CHECK over a PG enum: easier to evolve inclusive options later without an enum
-  migration.) Migration on prod `xpxzhqghxecsjhvklsqg`.
+- **Storage:** the `user_preferences` **`player_details` JSON blob** (JSONB, schema-less → **no DB
+  migration**), mirroring the existing optional profile enums `campus_size_preference` /
+  `cost_sensitivity` (blob-only on both platforms, confirmed via recon). **Not** a `users` column.
+  Rationale: eliminates migration + `database.ts` regen + column whitelist + blob↔column sync
+  trigger, and the calendar resolver reads gender off the already-loaded profile. If P3's
+  server-side rule engine later needs a queryable column, add it then (YAGNI).
+- **Values:** `male | female | other | prefer_not_to_say`, nullable/optional.
 - **Resolution rule:** `male`→men's calendar, `female`→women's calendar; `other` /
   `prefer_not_to_say` / `null` → **self-select toggle** on the calendar view (M/W), default men's.
-- **Web:** `types/models.ts` field, `utils/validation/schemas.ts` Zod (`z.enum(...).nullable()`),
-  regen `types/database.ts`, onboarding step, player-profile field (respects the existing
-  family-shared parent-edit scope — parent can set the athlete's gender).
-- **iOS:** `PlayerDetails.gender` optional + snake_case `CodingKey` + `stringFieldKeyPaths` entry,
-  onboarding + profile UI (Picker), parent-edit scope parity.
+- **Web:** `types/models.ts` `PlayerDetails` field, `utils/validation/schemas.ts` `playerDetailsSchema`
+  (`z.enum(...).nullable().optional()`), `utils/preferenceValidation.ts` runtime guard, `GENDER_OPTIONS`
+  const + Basics-tab `<select>` + onboarding step. Family-shared parent-edit is free (settings page
+  `isReadOnly=false`; both parent and player edit the one profile).
+- **iOS:** `PlayerDetails.gender: String?` + snake_case `CodingKey`, `Gender` enum in `Core/Models/`
+  (mirror `UserRole`, byte-identical rawValues incl. `prefer_not_to_say`), Basics-tab Picker +
+  onboarding step. Persistence + parent-edit scope free (blob round-trip + `targetUserId`).
 - **Privacy:** gender is optional, self-reported, used only to pick a calendar; never required to use
   the app. `prefer_not_to_say` is a first-class value, not an error state.
 
@@ -106,11 +112,15 @@ type NcaaCalendarKey =
   | "XCTF" | "WVB" | "MGO" | "MLA" | "WLA" | "Other";
 type Division = "D1" | "D2" | "D3";
 
-interface RecruitingPeriod {           // existing shape, reused
-  type: "dead" | "quiet" | "contact" | "evaluation";
+interface RecruitingPeriod {           // existing shape, WIDENED taxonomy
+  // 5 types (spike finding): baseball uses recruiting_shutdown (stricter than dead —
+  // no calls/texts/correspondence at all) and has NO evaluation; basketball/football
+  // use evaluation. Each sport's calendar uses only its real subset.
+  type: "dead" | "quiet" | "contact" | "evaluation" | "recruiting_shutdown";
   start: string;  // ISO date (switch off `new Date("…")` per lint rule)
   end: string;    // ISO date
   description: string;
+  confidence?: "HIGH" | "MEDIUM" | "LOW"; // transcription confidence (L1/L2 audit trail)
 }
 interface CalendarMilestone {          // signing dates, test dates, deadlines
   date: string; title: string;
@@ -188,9 +198,17 @@ code-review-based, not a runtime approval system.
 - **L1 — Source-anchored + CI guard:** every `SportCalendar` carries `source` (NCAA PDF URL) +
   `verifiedOn`. A snapshot test fails CI if any date changes without bumping `verifiedOn` → no silent
   edits.
-- **L2 — Two-source cross-check (initial build):** each window transcribed from the NCAA PDF is
-  confirmed against a second independent source (NCSA / sport-specific) via web search during P2;
-  mismatches are surfaced to the user, never guessed.
+- **L2 — Cross-check (initial build), REVISED per spike:** a fully independent second source does
+  NOT exist for the just-released 2026-27 calendars (third parties lag the NCAA PDF by weeks). So L2
+  is satisfied by THREE weaker-but-real checks instead: (a) the PDF's own day-grid coloring
+  cross-verifies its date-range labels (two redundant encodings in the same authoritative doc);
+  (b) the prior-year same-sport PDF confirms period count/order/type (dates shift ±1-3 days around
+  fixed anchors); (c) opportunistic milestone corroboration (signing day, contact-open) from
+  NextCommit/NCSA where available. Each date carries a `confidence` (HIGH = anchor/holiday or
+  externally corroborated; MEDIUM = single authoritative PDF + structural prior-year match). Because
+  the PDF IS the authority, single-source MEDIUM is acceptable — but it makes L6a (disclaimer + link
+  to the official PDF) more load-bearing. Extraction MUST use render-to-image + vision read; plain
+  text extraction returns nothing from these graphical PDFs.
 - **L3 — Plausibility test:** assert dead/quiet periods fall in expected month ranges (Thanksgiving
   dead ≈ late Nov, winter ≈ late Dec, etc.). Catches fat-finger typos (a July "dead period" fails).
 - **L4 — CODEOWNERS PR approval:** the calendar data file(s) (web + iOS) require the user's review
@@ -213,7 +231,7 @@ localize. New flat field (`gender`) needs: iOS `PlayerDetails` optional var + sn
 
 | Phase | Web | iOS | DB |
 |-------|-----|-----|-----|
-| 1 Gender field | Zod + onboarding + profile + types | PlayerDetails + onboarding + profile | `users.gender` migration |
+| 1 Gender field | Zod + preferenceValidation + models + onboarding + Basics tab | PlayerDetails + Gender enum + onboarding + Basics tab | none (JSON blob) |
 | 2 Calendar data + resolver | new canonical file (curated) | — (Phase 4 mirrors) | none |
 | 3 Rewire consumers | ruleEngine + timeline + dashboard | — | none |
 | 4 iOS calendar | — | registry + widget | none |
@@ -240,8 +258,9 @@ useful on its own and de-risks the rest).
 
 ## 11. Verification per phase
 
-- P1: DB migration applied + verified; web type-check + Zod test + onboarding/profile e2e; iOS build
-  + profile round-trip test; gender persists + parent-edit scope works.
+- P1: web type-check + Zod/preferenceValidation tests + onboarding/profile render; iOS build +
+  PlayerDetails Codable round-trip test (`{"gender":"prefer_not_to_say"}` → snake_case); gender
+  persists via blob round-trip + parent-edit scope works. No DB migration (JSON blob).
 - P2: unit tests on resolver (every sport → expected key incl. gender/subdivision/null-fallback);
   L1 snapshot/`verifiedOn` CI guard; L3 plausibility test (period month-range asserts); L2
   cross-check completed + mismatches resolved; L4 CODEOWNERS entry added for the calendar files;
