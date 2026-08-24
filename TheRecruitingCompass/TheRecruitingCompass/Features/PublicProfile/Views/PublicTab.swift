@@ -9,6 +9,8 @@ struct PublicTab: View {
     let viewModel: PlayerDetailsViewModel
     @State private var vm: PublicProfileViewModel
     @State private var bioSaveTask: Task<Void, Never>?
+    @State private var exportedPDF: ExportedProfilePDF?
+    @State private var isExporting = false
 
     private let bioCharacterLimit = 300
 
@@ -41,6 +43,7 @@ struct PublicTab: View {
                         .font(.headline)
                     if let card = vm.cardData {
                         PublicProfileCard(data: card)
+                        downloadPDFButton(card: card)
                     }
                 }
             }
@@ -49,6 +52,46 @@ struct PublicTab: View {
         .task {
             await vm.load()
             await vm.assembleCard()
+        }
+        .sheet(item: $exportedPDF) { pdf in
+            ActivityShareSheet(activityItems: [pdf.url])
+        }
+    }
+
+    @ViewBuilder
+    private func downloadPDFButton(card: PublicProfileData) -> some View {
+        Button {
+            exportPDF(card: card)
+        } label: {
+            HStack(spacing: 8) {
+                if isExporting {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Image(systemName: "arrow.down.doc").accessibilityHidden(true)
+                }
+                Text(String(localized: "Download as PDF"))
+                    .font(.callout.weight(.semibold))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+        .disabled(isExporting)
+        .accessibilityLabel(String(localized: "Download profile as PDF"))
+        .accessibilityHint(String(localized: "Creates a PDF of your public profile to share"))
+    }
+
+    private func exportPDF(card: PublicProfileData) {
+        isExporting = true
+        defer { isExporting = false }
+        guard let data = PublicProfilePDFRenderer.render(card) else { return }
+        let filename = PublicProfilePDFRenderer.filename(for: card.playerName)
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        do {
+            try data.write(to: url)
+            exportedPDF = ExportedProfilePDF(url: url)
+        } catch {
+            // Non-fatal: leave the sheet unpresented if the temp write fails.
         }
     }
 
@@ -163,4 +206,10 @@ struct PublicTab: View {
             await vm.assembleCard()
         }
     }
+}
+
+/// Wraps the exported PDF's temp-file URL so it can drive a `.sheet(item:)`.
+private struct ExportedProfilePDF: Identifiable {
+    let id = UUID()
+    let url: URL
 }
