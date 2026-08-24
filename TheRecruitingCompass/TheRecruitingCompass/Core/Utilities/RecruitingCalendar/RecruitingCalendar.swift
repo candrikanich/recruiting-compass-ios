@@ -248,11 +248,12 @@ enum RecruitingCalendar {
         milestone.division == nil || milestone.division == division || milestone.division == "ALL"
     }
 
-    /// Upcoming milestones for `sport`/`division` from the resolved
-    /// `SportCalendar`'s own milestone list, filtered by future date
-    /// (`>= dateISO`), by `graduationYear`'s grad-year bucket (when provided —
-    /// see ``milestoneTypes(forGraduationYear:currentYear:)``), sorted
-    /// ascending, and capped at `limit` (default 5).
+    /// Upcoming milestones for `sport`/`division`, filtered by future date
+    /// (`>= dateISO`) and by `graduationYear`'s grad-year bucket (when provided —
+    /// see ``milestoneTypes(forGraduationYear:currentYear:)``), sorted ascending.
+    /// Generic milestones (SAT/ACT/FAFSA/application) are capped at `limit`
+    /// (default 5); sport-calendar milestones always surface, so an athlete's
+    /// signing / NCAA-period dates aren't starved out by nearer generic dates.
     static func upcomingMilestones(
         _ dateISO: String,
         sport: String?,
@@ -264,17 +265,26 @@ enum RecruitingCalendar {
     ) -> [CalendarMilestone] {
         let cal = calendar(sport: sport, division: division, gender: gender, footballSubdivision: footballSubdivision)
         let genericForDivision = RecruitingCalendarData.genericMilestones.filter { matchesDivision($0, division) }
-        var combined = (cal.milestones + genericForDivision).filter { $0.date >= dateISO }
 
-        if let graduationYear, let currentYear = Int(dateISO.prefix(4)) {
-            let allowedTypes = milestoneTypes(forGraduationYear: graduationYear, currentYear: currentYear)
-            combined = combined.filter { allowedTypes.contains($0.type) }
+        let allowedTypes: Set<MilestoneType>? = {
+            guard let graduationYear, let currentYear = Int(dateISO.prefix(4)) else { return nil }
+            return milestoneTypes(forGraduationYear: graduationYear, currentYear: currentYear)
+        }()
+
+        func passes(_ milestone: CalendarMilestone) -> Bool {
+            guard milestone.date >= dateISO else { return false }
+            if let allowedTypes { return allowedTypes.contains(milestone.type) }
+            return true
         }
 
-        return combined
+        // Generic milestones (SAT/ACT/FAFSA/application) are capped at `limit`;
+        // sport-calendar milestones always surface so an athlete's signing / NCAA-period
+        // dates aren't starved out by nearer generic dates.
+        let cappedGeneric = genericForDivision.filter(passes).sorted { $0.date < $1.date }.prefix(limit)
+        let sportMilestones = cal.milestones.filter(passes)
+
+        return (Array(cappedGeneric) + sportMilestones)
             .sorted { $0.date < $1.date }
-            .prefix(limit)
-            .map { $0 }
     }
 
     /// Grad-year milestone bucket rule. Swift mirror of web
