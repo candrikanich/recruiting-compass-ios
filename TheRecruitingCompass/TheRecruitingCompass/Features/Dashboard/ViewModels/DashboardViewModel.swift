@@ -106,22 +106,6 @@ final class DashboardViewModel {
   var actingUserId: String { authManager.user?.id ?? "" }
   var currentFamilyUnitId: String { familyManager.currentMember?.familyUnitId ?? "" }
 
-  /// Identity of the athlete the recruiting packet is generated for. Resolves to the viewed
-  /// athlete when a parent is viewing, otherwise the signed-in user — matching how the rest of
-  /// the dashboard scopes its data.
-  var packetAthlete: RecruitingPacketAthlete {
-    let athleteUser = familyManager.selectedAthlete?.user
-    // A parent viewing an athlete has no stored photo for that athlete (FamilyMemberUser omits it),
-    // so only use the signed-in user's photo when it actually belongs to the packet's subject.
-    let photoUrl = athleteUser == nil ? authManager.user?.profilePhotoUrl : nil
-    return RecruitingPacketAthlete(
-      userId: targetUserId ?? "",
-      fullName: athleteUser?.fullName ?? authManager.user?.fullName,
-      email: athleteUser?.email ?? authManager.user?.email,
-      photoUrl: photoUrl
-    )
-  }
-
   var selectedAthleteName: String {
     if let athlete = familyManager.selectedAthlete {
       return athlete.user?.fullName ?? "Athlete"

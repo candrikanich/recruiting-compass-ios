@@ -125,7 +125,6 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.visibility.widgets.eventsSummary)
     XCTAssertFalse(viewModel.visibility.widgets.performanceSummary)
     XCTAssertFalse(viewModel.visibility.widgets.recentActivity)
-    XCTAssertFalse(viewModel.visibility.widgets.recruitingPacket)
   }
 
   // MARK: - Reset Tests

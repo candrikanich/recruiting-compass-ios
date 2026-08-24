@@ -331,7 +331,9 @@ extension PublicProfileCard {
     }
 
     static func formatHeight(_ inches: Int) -> String {
-        HeightFormatter.feetInches(inches)
+        let feet = inches / 12
+        let remainder = inches % 12
+        return "\(feet)'\(remainder)\""
     }
 
     static func formatGPA(_ gpa: Double) -> String {

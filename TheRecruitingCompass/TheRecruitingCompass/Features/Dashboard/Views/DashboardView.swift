@@ -8,7 +8,6 @@ struct DashboardView: View {
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
   @Environment(\.openMoreSection) private var openMoreSection
-  @Environment(\.switchTab) private var switchTab
 
   init(viewModel: DashboardViewModel? = nil) {
     if let viewModel {
@@ -71,14 +70,6 @@ struct DashboardView: View {
               DashboardStatsCardsSection(
                 stats: stats,
                 visibility: viewModel.widgetVisibility.statsCards
-              )
-            }
-
-            if !viewModel.isEmpty && viewModel.widgetVisibility.widgets.recruitingPacket {
-              RecruitingPacketWidget(
-                athlete: viewModel.packetAthlete,
-                schools: viewModel.allSchools,
-                onShareWithCoach: { switchTab(.coaches) }
               )
             }
 
