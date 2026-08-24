@@ -15,6 +15,11 @@ final class TimelineViewModel {
   var milestoneProgress: MilestoneProgress?
   var canAdvancePhase = false
   var graduationYear: Int?
+  /// Sourced from the same player-preferences fetch as `graduationYear` — mirrors
+  /// `DashboardViewModel.athleteSport`/`athleteGender`. Drives the Guidance tab's
+  /// sport-aware calendar widget.
+  var athleteSport: String?
+  var athleteGender: String?
   var isLoading = false
   var errorMessage: String?
   var expandedPhaseGrade: Int? = 9
@@ -23,6 +28,9 @@ final class TimelineViewModel {
   /// Top-priority "what matters now" task for the current phase, from the shared
   /// web endpoint. Drives the dashboard summary card's current-task.
   var currentTask: WhatMattersItem?
+
+  /// Top-5 "what matters now" items, server-ranked, for the guidance widget.
+  var whatMattersItems: [WhatMattersItem] = []
 
   var isViewingAsParent: Bool { familyManager.isParentViewingAthlete }
   var currentAthleteId: String? {
@@ -92,7 +100,10 @@ final class TimelineViewModel {
       async let statusResult = apiService.fetchStatus(accessToken: token)
       async let whatMattersResult = apiService.fetchWhatMattersNow(accessToken: token)
 
-      graduationYear = try await prefsResult?.graduationYear
+      let prefs = try await prefsResult
+      graduationYear = prefs?.graduationYear
+      athleteSport = prefs?.primarySport
+      athleteGender = prefs?.gender
       tasksByGrade = try await tasksResult.mapValues { TimelineTaskSort.sorted($0) }
 
       let phaseData = try await phaseResult
@@ -107,9 +118,12 @@ final class TimelineViewModel {
       // "no pending priorities", not abort the whole timeline load. The card
       // already renders on statusScore alone.
       do {
-        currentTask = try await whatMattersResult.first
+        let items = try await whatMattersResult
+        whatMattersItems = Array(items.prefix(5))
+        currentTask = items.first
       } catch {
         logger.error("what-matters-now failed (non-fatal): \(error.localizedDescription)")
+        whatMattersItems = []
         currentTask = nil
       }
 

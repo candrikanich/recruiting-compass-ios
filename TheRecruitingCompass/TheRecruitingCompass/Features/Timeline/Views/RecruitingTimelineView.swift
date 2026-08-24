@@ -1,9 +1,24 @@
 import SwiftUI
 
+enum TimelineTab: String, CaseIterable, Identifiable {
+  case tasks
+  case guidance
+
+  var id: String { rawValue }
+
+  var displayLabel: String {
+    switch self {
+    case .tasks: return String(localized: "Tasks")
+    case .guidance: return String(localized: "Guidance")
+    }
+  }
+}
+
 struct RecruitingTimelineView: View {
   @State private var viewModel = TimelineViewModel()
   @Environment(FamilyManager.self) private var familyManager
   @State private var lockedTaskAlertTask: TaskWithStatus?
+  @State private var selectedTab: TimelineTab = .tasks
 
   private var headerTitle: String {
     if viewModel.isViewingAsParent, let athlete = familyManager.selectedAthlete {
@@ -47,26 +62,44 @@ struct RecruitingTimelineView: View {
             Task { await viewModel.load() }
           }
         )
-        TimelineMainContent(
-          isLoading: viewModel.isLoading,
-          tasksByGrade: viewModel.tasksByGrade,
-          errorMessage: viewModel.errorMessage,
-          statusScoreValue: viewModel.statusScoreValue,
-          statusLabel: viewModel.statusLabel,
-          taskCompletedCount: viewModel.taskCompletedCount,
-          taskTotalCount: viewModel.taskTotalCount,
-          milestonesCompletedCount: viewModel.milestonesCompletedCount,
-          milestonesTotalCount: viewModel.milestonesTotalCount,
-          showSuccessMessage: viewModel.showSuccessMessage,
-          currentPhase: viewModel.currentPhase,
-          expandedPhaseGrade: viewModel.expandedPhaseGrade,
-          isViewingAsParent: viewModel.isViewingAsParent,
-          phaseOrder: phaseOrder,
-          onTogglePhase: { grade in viewModel.togglePhaseExpanded(grade: grade) },
-          onTaskCheckboxTap: { taskId in Task { await viewModel.markComplete(taskId: taskId) } },
-          onLockedTaskTap: { lockedTaskAlertTask = $0 },
-          onRetry: { Task { await viewModel.refresh() } }
-        )
+        Picker("View", selection: $selectedTab) {
+          ForEach(TimelineTab.allCases) { tab in
+            Text(tab.displayLabel).tag(tab)
+          }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal)
+
+        switch selectedTab {
+        case .tasks:
+          TimelineMainContent(
+            isLoading: viewModel.isLoading,
+            tasksByGrade: viewModel.tasksByGrade,
+            errorMessage: viewModel.errorMessage,
+            statusScoreValue: viewModel.statusScoreValue,
+            statusLabel: viewModel.statusLabel,
+            taskCompletedCount: viewModel.taskCompletedCount,
+            taskTotalCount: viewModel.taskTotalCount,
+            milestonesCompletedCount: viewModel.milestonesCompletedCount,
+            milestonesTotalCount: viewModel.milestonesTotalCount,
+            showSuccessMessage: viewModel.showSuccessMessage,
+            currentPhase: viewModel.currentPhase,
+            expandedPhaseGrade: viewModel.expandedPhaseGrade,
+            isViewingAsParent: viewModel.isViewingAsParent,
+            phaseOrder: phaseOrder,
+            onTogglePhase: { grade in viewModel.togglePhaseExpanded(grade: grade) },
+            onTaskCheckboxTap: { taskId in Task { await viewModel.markComplete(taskId: taskId) } },
+            onLockedTaskTap: { lockedTaskAlertTask = $0 },
+            onRetry: { Task { await viewModel.refresh() } }
+          )
+        case .guidance:
+          TimelineGuidanceView(
+            viewModel: viewModel,
+            sport: viewModel.athleteSport,
+            gender: viewModel.athleteGender,
+            graduationYear: viewModel.graduationYear
+          )
+        }
       }
       .padding(.vertical, 16)
     }
