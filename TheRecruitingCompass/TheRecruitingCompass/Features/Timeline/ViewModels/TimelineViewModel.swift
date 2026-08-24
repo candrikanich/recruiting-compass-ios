@@ -24,6 +24,9 @@ final class TimelineViewModel {
   /// web endpoint. Drives the dashboard summary card's current-task.
   var currentTask: WhatMattersItem?
 
+  /// Top-5 "what matters now" items, server-ranked, for the guidance widget.
+  var whatMattersItems: [WhatMattersItem] = []
+
   var isViewingAsParent: Bool { familyManager.isParentViewingAthlete }
   var currentAthleteId: String? {
     if let athlete = familyManager.selectedAthlete { return athlete.userId }
@@ -107,9 +110,12 @@ final class TimelineViewModel {
       // "no pending priorities", not abort the whole timeline load. The card
       // already renders on statusScore alone.
       do {
-        currentTask = try await whatMattersResult.first
+        let items = try await whatMattersResult
+        whatMattersItems = Array(items.prefix(5))
+        currentTask = items.first
       } catch {
         logger.error("what-matters-now failed (non-fatal): \(error.localizedDescription)")
+        whatMattersItems = []
         currentTask = nil
       }
 
