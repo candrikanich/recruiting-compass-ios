@@ -25,6 +25,9 @@ struct CommonWorriesWidget: View {
             Text(worry.question)
               .font(.subheadline.weight(.medium))
           }
+          .padding(12)
+          .background(Color.Surface.muted)
+          .clipShape(.rect(cornerRadius: 8))
         }
       }
     }
