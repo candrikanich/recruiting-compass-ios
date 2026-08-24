@@ -13,6 +13,8 @@ struct MoreMenuView: View {
   @State private var path = NavigationPath()
   @Binding var externalPath: [MorePath]
   var notificationsViewModel: NotificationsListViewModel
+  @Environment(FamilyManager.self) private var familyManager
+  @Environment(AuthManager.self) private var authManager
 
   init(notificationsViewModel: NotificationsListViewModel, path: Binding<[MorePath]>? = nil) {
     self.notificationsViewModel = notificationsViewModel
@@ -40,7 +42,7 @@ struct MoreMenuView: View {
   private var moreMenuList: some View {
     List {
       menuSectionView("Recruiting", items: [.timeline, .events, .documents, .offers, .performance, .analytics, .activity])
-      menuSectionView("Account", items: [.notifications, .settings])
+      menuSectionView("Account", items: [.publicProfile, .notifications, .settings])
       menuSectionView("Support", items: [.helpCenter])
     }
   }
@@ -89,6 +91,10 @@ struct MoreMenuView: View {
         .activityNavigation()
     case .helpCenter:
       HelpCenterView()
+    case .publicProfile:
+      PublicTab(targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id)
+        .navigationTitle("Public Profile")
+        .navigationBarTitleDisplayMode(.inline)
     case .notifications:
       NotificationsListView(viewModel: notificationsViewModel)
     case .settings:

@@ -6,7 +6,6 @@ import UIKit
 /// athlete context (`targetUserId`/`familyUnitId`), and re-assembles the coach-facing
 /// `PublicProfileCard` preview whenever an editor control commits a change.
 struct PublicTab: View {
-    let viewModel: PlayerDetailsViewModel
     @State private var vm: PublicProfileViewModel
     @State private var bioSaveTask: Task<Void, Never>?
     @State private var exportedPDF: ExportedProfilePDF?
@@ -15,11 +14,16 @@ struct PublicTab: View {
     private let bioCharacterLimit = 300
 
     init(viewModel: PlayerDetailsViewModel) {
-        self.viewModel = viewModel
+        self.init(targetUserId: viewModel.publicTargetUserId)
+    }
+
+    /// Standalone entry point (Dashboard card, More menu) — reachable without a
+    /// `PlayerDetailsViewModel`, scoped to `targetUserId` (nil = current user).
+    init(targetUserId: String?) {
         _vm = State(initialValue: PublicProfileViewModel(
             service: PublicProfileServiceImpl(),
             authManager: AuthManager.shared,
-            targetUserId: viewModel.publicTargetUserId,
+            targetUserId: targetUserId,
             familyUnitId: FamilyManager.shared.familyUnitId
         ))
     }

@@ -77,6 +77,10 @@ struct DashboardView: View {
               DashboardErrorSection(message: error, onDismiss: { viewModel.dismissError() })
             }
 
+            DashboardPublicProfileCard(
+              targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+            )
+
             if !viewModel.isEmpty {
               DashboardWidgetsSection(
                 visibility: viewModel.widgetVisibility.widgets,
