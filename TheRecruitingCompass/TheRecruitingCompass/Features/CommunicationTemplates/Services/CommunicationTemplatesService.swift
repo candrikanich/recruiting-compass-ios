@@ -27,10 +27,12 @@ private struct TemplatePayload: Encodable {
   let type: String
   let body: String
   let userId: String
+  let familyUnitId: String?
 
   enum CodingKeys: String, CodingKey {
     case name, type, body
     case userId = "user_id"
+    case familyUnitId = "family_unit_id"
   }
 }
 
@@ -51,10 +53,13 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
   func fetchTemplates() async throws -> [CommunicationTemplate] {
     logger.debug("Fetching communication templates")
     do {
-      let userId = (try? await supabaseManager.client.auth.session.user.id.uuidString) ?? ""
-      let orFilter = userId.isEmpty
+      // Templates are family-scoped (a parent proofreads what the player sends).
+      // RLS enforces the same scope; this filter keeps the payload tight and still
+      // returns predefined/global built-ins (family_unit_id NULL) via the OR.
+      let familyUnitId = await Self.activeFamilyUnitId()
+      let orFilter = familyUnitId.isEmpty
         ? "is_predefined.eq.true"
-        : "user_id.eq.\(userId),is_predefined.eq.true"
+        : "family_unit_id.eq.\(familyUnitId),is_predefined.eq.true"
       let templates: [CommunicationTemplate] = try await supabaseManager.client
         .from("communication_templates")
         .select()
@@ -79,7 +84,12 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
     do {
       let session = try await supabaseManager.client.auth.session
       let userId = session.user.id.uuidString
-      let payload = makePayload(from: formData, userId: userId)
+      let familyUnitId = await Self.activeFamilyUnitId()
+      let payload = makePayload(
+        from: formData,
+        userId: userId,
+        familyUnitId: familyUnitId.isEmpty ? nil : familyUnitId
+      )
       let template: CommunicationTemplate = try await supabaseManager.client
         .from("communication_templates")
         .insert(payload)
@@ -130,13 +140,25 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
     }
   }
 
-  private func makePayload(from formData: TemplateFormData, userId: String) -> TemplatePayload {
+  private func makePayload(
+    from formData: TemplateFormData,
+    userId: String,
+    familyUnitId: String?
+  ) -> TemplatePayload {
     TemplatePayload(
       name: formData.name.trimmingCharacters(in: .whitespaces),
       type: formData.type.rawValue,
       body: formData.body,
-      userId: userId
+      userId: userId,
+      familyUnitId: familyUnitId
     )
+  }
+
+  /// Resolves the caller's active family unit id off the main actor. Mirrors how
+  /// every other family-scoped iOS service reads `FamilyManager` (interactions,
+  /// offers). Returns "" when unresolved so the caller falls back to predefined-only.
+  private static func activeFamilyUnitId() async -> String {
+    await MainActor.run { FamilyManager.shared.familyUnitId ?? "" }
   }
 
   private func makeUpdatePayload(from formData: TemplateFormData) -> TemplateUpdatePayload {
