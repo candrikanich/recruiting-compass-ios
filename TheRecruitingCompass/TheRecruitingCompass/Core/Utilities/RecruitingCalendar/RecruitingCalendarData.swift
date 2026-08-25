@@ -579,6 +579,37 @@ enum RecruitingCalendarData {
         verifiedOn: verifiedOn
     )
 
+    // MARK: - OTHER_WGYM — Women's Gymnastics (its own table in the D1 "Other" bundle PDF)
+
+    // Enumerated as its own table in the D1 "Other" bundle PDF (unlike Beach
+    // Volleyball and Men's Gymnastics, which the PDF folds into "All Other
+    // Sports" — they stay on the generic OTHER default). Transcribed 2026-08-25
+    // directly from the live PDF (source "Updated: August 4, 2026"), so this
+    // calendar carries its own `verifiedOn` distinct from the file constant.
+    private static let otherWGym = SportCalendar(
+        periods: [
+            RecruitingPeriod(type: .dead, start: "2026-11-09", end: "2026-11-12",
+                description: "Dead Period — Monday through Thursday of the initial week for the fall signing date for athletics aid agreements",
+                confidence: .HIGH),
+            RecruitingPeriod(type: .recruitingShutdown, start: "2026-11-26", end: "2026-11-29",
+                description: "Recruiting Shutdown — Thanksgiving Day to the Sunday after Thanksgiving", confidence: .HIGH),
+            RecruitingPeriod(type: .dead, start: "2026-12-01", end: "2026-12-30",
+                description: "Dead Period, Dec 1–30 (label only)", confidence: .HIGH),
+            RecruitingPeriod(type: .dead, start: "2027-04-14", end: "2027-04-18",
+                description: "Dead Period — The day before the first day of the National Collegiate Gymnastics Championships to noon on the day after the championships (effective noon)",
+                confidence: .HIGH),
+            RecruitingPeriod(type: .dead, start: "2027-05-11", end: "2027-05-13",
+                description: "Dead Period — The first day to last day of the coaches association convention", confidence: .HIGH),
+            RecruitingPeriod(type: .quiet, start: "2027-05-17", end: "2027-05-23",
+                description: "Quiet Period — Monday to Sunday after the USA Gymnastics Developmental Nationals", confidence: .HIGH),
+            RecruitingPeriod(type: .dead, start: "2027-06-01", end: "2027-06-15",
+                description: "Dead Period, Jun 1–15 (label only)", confidence: .HIGH),
+        ],
+        milestones: [],
+        source: otherSource,
+        verifiedOn: "2026-08-25"
+    )
+
     static let d1Calendars: [NcaaCalendarKey: SportCalendar] = [
         .MBA: mba, .WSB: wsb, .MBB: mbb, .WBB: wbb, .FBS: fbs, .FCS: fcs, .XCTF: xctf,
         .WVB: wvb, .MGO: mgo, .MLA: mla, .WLA: wla, .other: other,
@@ -586,6 +617,7 @@ enum RecruitingCalendarData {
         .OTHER_MICEHOCKEY: otherMIceHockey, .OTHER_WICEHOCKEY: otherWIceHockey,
         .OTHER_ROWING: otherRowing, .OTHER_FIELDHOCKEY: otherFieldHockey,
         .OTHER_MWRESTLING: otherMWrestling, .OTHER_WWRESTLING: otherWWrestling,
+        .otherWGYM: otherWGym,
     ]
 
     // MARK: - D2 — "All Other Sports" track

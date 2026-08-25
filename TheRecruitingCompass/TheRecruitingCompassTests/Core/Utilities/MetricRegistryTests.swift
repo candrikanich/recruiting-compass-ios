@@ -119,14 +119,62 @@ final class MetricRegistryTests: XCTestCase {
     XCTAssertFalse(MetricRegistry.groups(forSport: "baseball").isEmpty)
   }
 
-  func test_allSeventeenSports_present() {
+  func test_allNineteenSports_present() {
     let sports = [
       "Baseball", "Softball", "Basketball", "Football", "Soccer", "Volleyball",
       "Track & Field", "Cross Country", "Swimming", "Golf", "Tennis", "Wrestling",
-      "Lacrosse", "Ice Hockey", "Field Hockey", "Rowing", "Water Polo"
+      "Lacrosse", "Ice Hockey", "Field Hockey", "Rowing", "Water Polo",
+      "Gymnastics", "Beach Volleyball"
     ]
     for sport in sports {
       XCTAssertNotNil(MetricRegistry.sportMetrics[sport], "missing sport \(sport)")
     }
+  }
+
+  // MARK: - Gymnastics + Beach Volleyball parity
+
+  func test_gymnastics_orderAndJudgedScores() {
+    let order = MetricRegistry.sportMetrics["Gymnastics"]
+    XCTAssertEqual(order?.first, "aa_score")
+    XCTAssertEqual(order?.count, 9)
+    XCTAssertEqual(order, [
+      "aa_score", "vault_score", "floor_score", "bars_score", "beam_score",
+      "pommel_score", "rings_score", "pbars_score", "high_bar_score"
+    ])
+    // All nine are judged scores: higher-is-better, 3-decimal, no unit.
+    for key in order ?? [] {
+      let def = MetricRegistry.def(for: key)
+      XCTAssertFalse(def.lowerIsBetter, "\(key) should be higher-is-better")
+      XCTAssertEqual(def.unit, "", "\(key) should have no unit")
+      XCTAssertEqual(def.format.apply(9.85), "9.850", "\(key) should format to 3 decimals")
+    }
+  }
+
+  func test_gymnastics_rendersFlat_noGroups() {
+    XCTAssertTrue(MetricRegistry.groups(forSport: "Gymnastics").isEmpty)
+  }
+
+  func test_beachVolleyball_reusesIndoorVolleyballDefs_noNewDefs() {
+    // Beach Volleyball must reuse the exact five indoor Volleyball keys.
+    XCTAssertEqual(
+      MetricRegistry.sportMetrics["Beach Volleyball"],
+      ["kills", "aces", "digs", "blocks", "hitting_pct"]
+    )
+    // Same def objects as indoor Volleyball — proves no duplicate defs were introduced.
+    for key in ["kills", "aces", "digs", "blocks", "hitting_pct"] {
+      XCTAssertNotNil(MetricRegistry.knownDef(for: key), "missing shared def \(key)")
+    }
+    XCTAssertEqual(MetricRegistry.def(for: "kills").label, "Kills")
+    XCTAssertEqual(MetricRegistry.def(for: "hitting_pct").format.apply(0.412), ".412")
+  }
+
+  // Registry invariant: Beach Volleyball's keys are a subset of indoor
+  // Volleyball's, so no new defs were introduced for it.
+  func test_beachVolleyball_keysAreSubsetOfVolleyball() {
+    let volleyball = Set(MetricRegistry.sportMetrics["Volleyball"] ?? [])
+    let beach = Set(MetricRegistry.sportMetrics["Beach Volleyball"] ?? [])
+    XCTAssertFalse(beach.isEmpty)
+    XCTAssertTrue(beach.isSubset(of: volleyball),
+                  "Beach Volleyball must reuse indoor Volleyball keys, not add new defs")
   }
 }

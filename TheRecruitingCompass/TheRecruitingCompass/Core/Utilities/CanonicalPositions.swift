@@ -30,7 +30,10 @@ enum CanonicalPositions {
     "Ice Hockey": ["Forward", "Defenseman", "Goalie"],
     "Wrestling": ["Wrestler"],
     "Rowing": ["Rower"],
-    "Water Polo": ["Field Player", "Goalkeeper"]
+    "Water Polo": ["Field Player", "Goalkeeper"],
+    "Gymnastics": ["All-Around", "Vault", "Uneven Bars", "Balance Beam", "Floor Exercise",
+                   "Pommel Horse", "Still Rings", "Parallel Bars", "Horizontal Bar"],
+    "Beach Volleyball": ["Blocker", "Defender"]
   ]
 
   private static let baseball = ["Pitcher", "Catcher", "First Base", "Second Base", "Third Base",

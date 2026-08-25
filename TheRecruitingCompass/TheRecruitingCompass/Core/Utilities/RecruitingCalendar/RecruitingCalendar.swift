@@ -4,12 +4,13 @@ import Foundation
 /// (contact-period rules differ per sport/gender/subdivision). `.Other` covers
 /// app sports that have no published NCAA recruiting calendar. Swift mirror of
 /// web `utils/recruitingCalendar/types.ts` `NcaaCalendarKey` — byte-identical
-/// 21-key set.
+/// 22-key set.
 enum NcaaCalendarKey: String, CaseIterable {
     case MBA, WSB, MBB, WBB, FBS, FCS, XCTF, WVB, MGO, MLA, WLA
     case other = "Other"
     case OTHER_MSOCCER, OTHER_WSOCCER, OTHER_SWIM, OTHER_MICEHOCKEY, OTHER_WICEHOCKEY
     case OTHER_ROWING, OTHER_FIELDHOCKEY, OTHER_MWRESTLING, OTHER_WWRESTLING
+    case otherWGYM = "OTHER_WGYM"
 }
 
 /// One NCAA recruiting-period window. 5-type taxonomy (spike finding): baseball
@@ -105,6 +106,9 @@ enum RecruitingCalendar {
         "Soccer": (.OTHER_MSOCCER, .OTHER_WSOCCER),
         "Ice Hockey": (.OTHER_MICEHOCKEY, .OTHER_WICEHOCKEY),
         "Wrestling": (.OTHER_MWRESTLING, .OTHER_WWRESTLING),
+        // Only women's gymnastics has a distinct table in the "Other" bundle PDF;
+        // men's gymnastics is folded into the generic "All Other Sports" default.
+        "Gymnastics": (men: .other, women: .otherWGYM),
     ]
 
     /// The codebase's neutral sport fallback for any caller not yet wired to
@@ -147,9 +151,9 @@ enum RecruitingCalendar {
             return single
         }
 
-        // Any remaining sport (currently: Tennis, Water Polo, and anything
-        // unrecognized) has no published NCAA recruiting calendar and no
-        // sport-specific windows in the "Other" bundle — falls to the
+        // Any remaining sport (currently: Tennis, Water Polo, Beach Volleyball,
+        // and anything unrecognized) has no published NCAA recruiting calendar
+        // and no sport-specific windows in the "Other" bundle — falls to the
         // generic Other default.
         return .other
     }
