@@ -64,6 +64,12 @@ enum MetricRegistry {
     "pins": "figure.wrestling", "takedowns": "figure.wrestling", "weight_class": "scalemass",
     // Rowing
     "erg_2k": "figure.rower", "erg_split": "timer",
+    // Gymnastics (judged scores — one consistent symbol across all nine)
+    "aa_score": "figure.gymnastics", "vault_score": "figure.gymnastics",
+    "floor_score": "figure.gymnastics", "bars_score": "figure.gymnastics",
+    "beam_score": "figure.gymnastics", "pommel_score": "figure.gymnastics",
+    "rings_score": "figure.gymnastics", "pbars_score": "figure.gymnastics",
+    "high_bar_score": "figure.gymnastics",
     // Fallback bucket
     "other": "chart.bar"
   ]
@@ -90,7 +96,10 @@ enum MetricRegistry {
     "Ice Hockey": iceHockey,
     "Field Hockey": fieldHockey,
     "Rowing": rowing,
-    "Water Polo": waterPolo
+    "Water Polo": waterPolo,
+    "Gymnastics": gymnastics,
+    // Beach Volleyball reuses the indoor Volleyball metric keys — NO new defs.
+    "Beach Volleyball": ["kills", "aces", "digs", "blocks", "hitting_pct"]
   ]
 
   static func knownDef(for key: String) -> MetricDef? { defs[key] }
@@ -226,11 +235,16 @@ enum MetricRegistry {
 
   private static let waterPolo = ["goals", "assists", "saves", "steals"]
 
+  private static let gymnastics = [
+    "aa_score", "vault_score", "floor_score", "bars_score", "beam_score",
+    "pommel_score", "rings_score", "pbars_score", "high_bar_score"
+  ]
+
   // MARK: - Definitions
 
   private static let allDefs: [MetricDef] = baseballDefs + basketballDefs + footballDefs
     + soccerLacrosseHockeyDefs + volleyballDefs + trackAndFieldDefs + crossCountryDefs
-    + swimmingDefs + golfDefs + tennisDefs + wrestlingDefs + rowingDefs + sharedDefs
+    + swimmingDefs + golfDefs + tennisDefs + wrestlingDefs + rowingDefs + gymnasticsDefs + sharedDefs
     + [MetricDef(otherKey, String(localized: "Other Metric"), "", .decimal(digits: 2, dropLeadingZero: false))]
 
   // MARK: Baseball / Softball
@@ -398,6 +412,20 @@ enum MetricRegistry {
   private static let rowingDefs: [MetricDef] = [
     MetricDef("erg_2k", String(localized: "2K Erg"), "", .duration, lowerIsBetter: true),
     MetricDef("erg_split", String(localized: "Erg Split"), "", .duration, lowerIsBetter: true)
+  ]
+
+  // MARK: Gymnastics (judged scores — all higher-is-better, 3-decimal)
+
+  private static let gymnasticsDefs: [MetricDef] = [
+    MetricDef("aa_score", String(localized: "All-Around Score"), "", .decimal(digits: 3, dropLeadingZero: false)),
+    MetricDef("vault_score", String(localized: "Vault Score"), "", .decimal(digits: 3, dropLeadingZero: false)),
+    MetricDef("floor_score", String(localized: "Floor Exercise Score"), "", .decimal(digits: 3, dropLeadingZero: false)),
+    MetricDef("bars_score", String(localized: "Uneven Bars Score"), "", .decimal(digits: 3, dropLeadingZero: false)),
+    MetricDef("beam_score", String(localized: "Balance Beam Score"), "", .decimal(digits: 3, dropLeadingZero: false)),
+    MetricDef("pommel_score", String(localized: "Pommel Horse Score"), "", .decimal(digits: 3, dropLeadingZero: false)),
+    MetricDef("rings_score", String(localized: "Still Rings Score"), "", .decimal(digits: 3, dropLeadingZero: false)),
+    MetricDef("pbars_score", String(localized: "Parallel Bars Score"), "", .decimal(digits: 3, dropLeadingZero: false)),
+    MetricDef("high_bar_score", String(localized: "High Bar Score"), "", .decimal(digits: 3, dropLeadingZero: false))
   ]
 
   // MARK: Shared across sports (goals/assists/saves/vertical_jump — one def each)

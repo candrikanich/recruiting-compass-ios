@@ -21,6 +21,17 @@ final class RecruitingCalendarTests: XCTestCase {
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Wrestling", gender: "male"), .OTHER_MWRESTLING)
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Tennis"), .other)
     }
+    // gymnastics gender split (women → dedicated OTHER_WGYM table; men → generic Other)
+    // + beach volleyball always falls through to the generic Other default
+    func test_resolveKey_gymnasticsAndBeachVolleyball() {
+        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Gymnastics", gender: "female"), .otherWGYM)
+        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Gymnastics", gender: "Female"), .otherWGYM) // case-insensitive
+        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Gymnastics", gender: "male"), .other) // men's default
+        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Gymnastics", gender: nil), .other) // nil → men's default
+        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Beach Volleyball", gender: "female"), .other)
+        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Beach Volleyball", gender: "male"), .other)
+        XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Beach Volleyball"), .other)
+    }
     func test_resolveKey_unknownAndNil_returnsOther_noBaseballFallback() {
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: nil), .other)
         XCTAssertEqual(RecruitingCalendar.resolveKey(sport: "Quidditch"), .other)
@@ -30,7 +41,9 @@ final class RecruitingCalendarTests: XCTestCase {
         for key in NcaaCalendarKey.allCases {
             let cal = RecruitingCalendar.calendarFor(key: key)
             XCTAssertTrue(cal.source.contains("ncaaorg.s3.amazonaws.com"), "\(key)")
-            XCTAssertEqual(cal.verifiedOn, "2026-08-23", "\(key)")
+            // Most calendars share the file constant (2026-08-23); OTHER_WGYM was
+            // transcribed later (2026-08-25) and carries its own verification date.
+            XCTAssertTrue(["2026-08-23", "2026-08-25"].contains(cal.verifiedOn), "\(key) \(cal.verifiedOn)")
             for p in cal.periods {
                 XCTAssertTrue(p.start <= p.end, "\(key) \(p.description)")
                 XCTAssertEqual(p.start.count, 10) // yyyy-MM-dd
@@ -54,6 +67,7 @@ final class RecruitingCalendarTests: XCTestCase {
             .MGO: 7, .MLA: 16, .WLA: 18, .other: 1, .OTHER_MSOCCER: 3, .OTHER_WSOCCER: 4,
             .OTHER_SWIM: 4, .OTHER_MICEHOCKEY: 2, .OTHER_WICEHOCKEY: 3, .OTHER_ROWING: 2,
             .OTHER_FIELDHOCKEY: 2, .OTHER_MWRESTLING: 3, .OTHER_WWRESTLING: 2,
+            .otherWGYM: 7,
         ]
         for (key, n) in expected { XCTAssertEqual(RecruitingCalendar.calendarFor(key: key).periods.count, n, "\(key)") }
     }
@@ -61,6 +75,20 @@ final class RecruitingCalendarTests: XCTestCase {
     func test_isDeadPeriod_sportSpecific() {
         XCTAssertTrue(RecruitingCalendar.isDeadPeriod("2027-07-04", sport: "Baseball", division: "D1"))
         XCTAssertFalse(RecruitingCalendar.isDeadPeriod("2027-07-04", sport: "Tennis", division: "D1"))
+    }
+
+    // women's gymnastics resolves to its dedicated OTHER_WGYM windows; men's gymnastics
+    // and beach volleyball ride the generic Other track (no May quiet window there)
+    func test_womensGymnastics_calendarWindows() {
+        XCTAssertTrue(RecruitingCalendar.isDeadPeriod(
+            "2026-11-10", sport: "Gymnastics", division: "D1", gender: "female"))
+        XCTAssertTrue(RecruitingCalendar.isQuietPeriod(
+            "2027-05-20", sport: "Gymnastics", division: "D1", gender: "female"))
+        // Men's gymnastics uses the generic Other track (only the Nov signing dead window).
+        XCTAssertFalse(RecruitingCalendar.isQuietPeriod(
+            "2027-05-20", sport: "Gymnastics", division: "D1", gender: "male"))
+        XCTAssertFalse(RecruitingCalendar.isQuietPeriod(
+            "2027-05-20", sport: "Beach Volleyball", division: "D1", gender: "female"))
     }
 
     // grad-year milestone filter parity (web resolver.ts getUpcomingMilestones): signing-type

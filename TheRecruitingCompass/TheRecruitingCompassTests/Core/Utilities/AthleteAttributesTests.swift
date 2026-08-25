@@ -21,6 +21,12 @@ final class AthleteAttributesTests: XCTestCase {
         XCTAssertEqual(keys("Basketball"), ["shooting_hand"])
     }
 
+    func testGymnasticsAndBeachVolleyballHaveNoAttributes() {
+        // Both new sports are intentionally absent from bySport → empty, no crash.
+        XCTAssertTrue(keys("Gymnastics").isEmpty)
+        XCTAssertTrue(keys("Beach Volleyball").isEmpty)
+    }
+
     func testIceHockeyListsShootsAlwaysAndCatchesGoalieGated() {
         let attrs = AthleteAttributes.attributes(for: "Ice Hockey")
         XCTAssertEqual(attrs.map(\.key), ["shoots", "catches"])

@@ -28,6 +28,64 @@ final class CanonicalPositionsTests: XCTestCase {
         XCTAssertTrue(CanonicalPositions.positions(for: nil).isEmpty)
     }
 
+    // MARK: - Full-vocabulary regression guards (web is source of truth)
+
+    /// Exact sport-key set. A future add/drop/rename fails loudly here (and in the
+    /// snapshot below) so iOS never silently drifts from the web vocabulary.
+    func testSportKeySetIsExactly19() {
+        XCTAssertEqual(
+            Set(CanonicalPositions.bySport.keys),
+            [
+                "Baseball", "Softball", "Basketball", "Football", "Soccer", "Volleyball",
+                "Track & Field", "Swimming", "Cross Country", "Tennis", "Golf", "Lacrosse",
+                "Field Hockey", "Ice Hockey", "Wrestling", "Rowing", "Water Polo",
+                "Gymnastics", "Beach Volleyball"
+            ]
+        )
+    }
+
+    /// Every sport's exact ordered position list — snapshot mirror of web
+    /// `SPORT_POSITIONS`. Order is load-bearing (primary/secondary derivation).
+    func testFullPositionVocabularySnapshot() {
+        let expected: [String: [String]] = [
+            "Baseball": ["Pitcher", "Catcher", "First Base", "Second Base", "Third Base",
+                         "Shortstop", "Left Field", "Center Field", "Right Field", "Designated Hitter"],
+            "Softball": ["Pitcher", "Catcher", "First Base", "Second Base", "Third Base",
+                         "Shortstop", "Left Field", "Center Field", "Right Field", "Designated Hitter"],
+            "Basketball": ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
+            "Football": ["Quarterback", "Running Back", "Wide Receiver", "Tight End", "Offensive Line",
+                         "Defensive Line", "Linebacker", "Defensive Back", "Kicker", "Punter"],
+            "Soccer": ["Goalkeeper", "Defender", "Midfielder", "Forward"],
+            "Volleyball": ["Outside Hitter", "Middle Blocker", "Setter", "Libero",
+                           "Opposite Hitter", "Defensive Specialist"],
+            "Track & Field": ["Sprinter", "Distance Runner", "Jumper", "Thrower", "Hurdler"],
+            "Swimming": ["Freestyle", "Backstroke", "Breaststroke", "Butterfly", "Individual Medley", "Diver"],
+            "Cross Country": ["Runner"],
+            "Tennis": ["Singles", "Doubles"],
+            "Golf": ["Golfer"],
+            "Lacrosse": ["Attackman", "Midfielder", "Defenseman", "Goalie"],
+            "Field Hockey": ["Forward", "Midfielder", "Defender", "Goalkeeper"],
+            "Ice Hockey": ["Forward", "Defenseman", "Goalie"],
+            "Wrestling": ["Wrestler"],
+            "Rowing": ["Rower"],
+            "Water Polo": ["Field Player", "Goalkeeper"],
+            "Gymnastics": ["All-Around", "Vault", "Uneven Bars", "Balance Beam", "Floor Exercise",
+                           "Pommel Horse", "Still Rings", "Parallel Bars", "Horizontal Bar"],
+            "Beach Volleyball": ["Blocker", "Defender"]
+        ]
+        XCTAssertEqual(CanonicalPositions.bySport, expected)
+    }
+
+    func testGymnasticsPositionsOrderedAllAroundFirst() {
+        let gym = CanonicalPositions.positions(for: "Gymnastics")
+        XCTAssertEqual(gym.first, "All-Around")
+        XCTAssertEqual(gym.count, 9)
+    }
+
+    func testBeachVolleyballPositions() {
+        XCTAssertEqual(CanonicalPositions.positions(for: "Beach Volleyball"), ["Blocker", "Defender"])
+    }
+
     // MARK: - vague catch-alls no longer resolve (preserved raw, not fabricated)
 
     func testCoarseBucketsNoLongerResolve() {

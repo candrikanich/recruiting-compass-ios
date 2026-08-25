@@ -15,6 +15,14 @@ final class RecruitingServicesTests: XCTestCase {
         }
     }
 
+    func testNewSportsResolveToNCSAOnly() {
+        // Gymnastics + Beach Volleyball are known sports (positions registry) but
+        // gate only into NCSA (all-sports) — no Hudl/PG/etc.
+        for sport in ["Gymnastics", "Beach Volleyball"] {
+            XCTAssertEqual(keys(sport), ["ncsa_id"], "\(sport) should resolve to NCSA only")
+        }
+    }
+
     func testNilAndUnknownSportReturnEmpty() {
         XCTAssertTrue(keys(nil).isEmpty)
         XCTAssertTrue(keys("Chess").isEmpty)
