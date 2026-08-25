@@ -111,6 +111,23 @@ struct CoachEditForm: View {
           }
         }
 
+        Section("Details") {
+          TextField("Source", text: $editedCoach.source)
+            .frame(minHeight: minFieldHeight)
+            .accessibilityLabel(String(localized: "Source"))
+
+          VStack(alignment: .leading, spacing: 8) {
+            Text("Tags")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+            CoachTagsCard(
+              tags: editedCoach.tags,
+              onAdd: { editedCoach.tags = CoachTagsValidator.sanitize(editedCoach.tags + [$0]) },
+              onRemove: { tag in editedCoach.tags.removeAll { $0 == tag } }
+            )
+          }
+        }
+
         Section("Follow-up") {
           DatePicker(
             "Next Contact",

@@ -14,6 +14,8 @@ struct Coach: Codable, Identifiable, Sendable {
   let twitterHandle: String?
   let instagramHandle: String?
   let notes: String?
+  let tags: [String]
+  let source: String?
   let responsivenessScore: Double
   let lastContactDate: String?
   let nextContactDate: String?
@@ -73,6 +75,8 @@ struct Coach: Codable, Identifiable, Sendable {
     twitterHandle: String? = nil,
     instagramHandle: String? = nil,
     notes: String? = nil,
+    tags: [String] = [],
+    source: String? = nil,
     responsivenessScore: Double = 0.0,
     lastContactDate: String? = nil,
     nextContactDate: String? = nil,
@@ -90,6 +94,8 @@ struct Coach: Codable, Identifiable, Sendable {
     self.twitterHandle = twitterHandle
     self.instagramHandle = instagramHandle
     self.notes = notes
+    self.tags = tags
+    self.source = source
     self.responsivenessScore = responsivenessScore
     self.lastContactDate = lastContactDate
     self.nextContactDate = nextContactDate
@@ -110,6 +116,8 @@ struct Coach: Codable, Identifiable, Sendable {
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
     case notes
+    case tags
+    case source
     case responsivenessScore = "responsiveness_score"
     case lastContactDate = "last_contact_date"
     case nextContactDate = "next_contact_date"
@@ -132,6 +140,8 @@ struct Coach: Codable, Identifiable, Sendable {
     twitterHandle = try container.decodeIfPresent(String.self, forKey: .twitterHandle)
     instagramHandle = try container.decodeIfPresent(String.self, forKey: .instagramHandle)
     notes = try container.decodeIfPresent(String.self, forKey: .notes)
+    tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
+    source = try container.decodeIfPresent(String.self, forKey: .source)
     responsivenessScore = try container.decodeIfPresent(Double.self, forKey: .responsivenessScore) ?? 0.0
     lastContactDate = try container.decodeIfPresent(String.self, forKey: .lastContactDate)
     nextContactDate = try container.decodeIfPresent(String.self, forKey: .nextContactDate)
@@ -152,6 +162,8 @@ struct Coach: Codable, Identifiable, Sendable {
     try container.encodeIfPresent(twitterHandle, forKey: .twitterHandle)
     try container.encodeIfPresent(instagramHandle, forKey: .instagramHandle)
     try container.encodeIfPresent(notes, forKey: .notes)
+    try container.encode(tags, forKey: .tags)
+    try container.encodeIfPresent(source, forKey: .source)
     try container.encode(responsivenessScore, forKey: .responsivenessScore)
     try container.encodeIfPresent(lastContactDate, forKey: .lastContactDate)
     try container.encodeIfPresent(nextContactDate, forKey: .nextContactDate)

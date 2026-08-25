@@ -17,6 +17,7 @@ final class CoachDetailViewModel {
   // Interactions and stats
   var recentInteractions: [Interaction] = []
   var stats: CoachStats?
+  var coachInsights: CoachInsights?
 
   // Communication analytics (parity with the web coach detail page)
   var metrics: CoachMetrics?
@@ -53,10 +54,21 @@ final class CoachDetailViewModel {
 
   private let coachId: String
   private let coachesService: any CoachesManaging
+  private let interactionsService: any InteractionsManaging
   private let authManager: any AuthManaging
   private let allCoaches: [Coach]
   private let allSchools: [School]
   private let cache: (any CacheManaging)?
+
+  // Social-DM return-confirmation: tapping Twitter/Instagram arms a prompt that
+  // fires when the app returns to foreground (see confirmSocialDM/dismissSocialDM).
+  enum SocialChannel: Sendable { case twitter, instagram }
+  struct PendingSocialDM: Equatable, Sendable {
+    let channel: SocialChannel
+    let coachId: String
+    let coachName: String
+  }
+  var pendingSocialDM: PendingSocialDM?
 
   /// TTL for cached coach (seconds).
   private static let coachCacheTTL: TimeInterval = 60
@@ -66,6 +78,7 @@ final class CoachDetailViewModel {
     allCoaches: [Coach] = [],
     allSchools: [School] = [],
     coachesService: (any CoachesManaging)? = nil,
+    interactionsService: (any InteractionsManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
     cache: (any CacheManaging)? = nil
   ) {
@@ -73,6 +86,7 @@ final class CoachDetailViewModel {
     self.allCoaches = allCoaches
     self.allSchools = allSchools
     self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
+    self.interactionsService = interactionsService ?? InteractionsServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.cache = cache
   }
@@ -81,6 +95,13 @@ final class CoachDetailViewModel {
 
   var currentUserId: String? {
     authManager.user?.id
+  }
+
+  /// The loaded coach's family unit (resolved from the passed-in schools),
+  /// used to present the Log Interaction form.
+  var resolvedFamilyUnitId: String? {
+    guard let coach else { return nil }
+    return allSchools.first(where: { $0.id == coach.schoolId })?.familyUnitId
   }
 
   var editableCoachBinding: Binding<EditableCoach> {
@@ -173,6 +194,7 @@ final class CoachDetailViewModel {
         limit: Self.interactionsFetchLimit
       )
       stats = computeStats()
+      coachInsights = CoachInsights.make(coach: coach, interactions: recentInteractions)
       metrics = CoachMetricsCalculator.metrics(for: coachId, in: recentInteractions)
       insights = CoachMetricsCalculator.insights(for: coachId, in: recentInteractions)
       logger.info("Loaded \(self.recentInteractions.count) interactions for coach")
@@ -223,6 +245,62 @@ final class CoachDetailViewModel {
     filterDirection = nil
     filterSentiment = nil
     filterWindowDays = nil
+  }
+
+  // MARK: - Social-DM return-confirmation
+
+  /// Arm the prompt when the user opens a Twitter/Instagram profile. Fired on
+  /// return to foreground by the view; resolved via confirm/dismiss.
+  func armSocialDM(_ channel: SocialChannel) {
+    guard let coach else { return }
+    pendingSocialDM = PendingSocialDM(channel: channel, coachId: coach.id, coachName: coach.fullName)
+  }
+
+  /// User confirmed they sent the DM → log an outbound direct-message interaction,
+  /// reload so insights/days-since update, and clear the prompt.
+  func confirmSocialDM() async {
+    guard let pending = pendingSocialDM, let coach,
+          let userId = authManager.user?.id,
+          let familyUnitId = allSchools.first(where: { $0.id == coach.schoolId })?.familyUnitId else {
+      pendingSocialDM = nil
+      return
+    }
+    let subject = pending.channel == .twitter ? "Twitter DM" : "Instagram DM"
+    let request = InteractionCreateRequest(
+      schoolId: coach.schoolId, coachId: coach.id, type: .directMessage, direction: .outbound,
+      occurredAt: .now, subject: subject, content: nil, sentiment: nil,
+      loggedBy: userId, familyUnitId: familyUnitId)
+    do {
+      _ = try await interactionsService.createInteraction(request)
+      pendingSocialDM = nil
+      await loadDetails()
+    } catch {
+      logger.error("Failed to log social DM: \(error.localizedDescription)")
+      errorMessage = "Failed to log message"
+      pendingSocialDM = nil
+    }
+  }
+
+  /// User dismissed the prompt (or said No) → clear without writing.
+  func dismissSocialDM() {
+    pendingSocialDM = nil
+  }
+
+  // MARK: - Tags
+
+  /// Persist coach tags (sanitized to the 20/40 caps), updating the loaded coach.
+  func saveTags(_ tags: [String]) async {
+    guard let coachId = coach?.id else { return }
+    let sanitized = CoachTagsValidator.sanitize(tags)
+    do {
+      let updated = try await coachesService.updateCoach(id: coachId, updates: CoachUpdateRequest(tags: sanitized))
+      coach = updated
+      await invalidateCoachCache()
+      logger.info("Coach tags updated (\(sanitized.count))")
+    } catch {
+      logger.error("Failed to update tags: \(error.localizedDescription)")
+      errorMessage = "Failed to save tags"
+    }
   }
 
   private func computeStats() -> CoachStats {

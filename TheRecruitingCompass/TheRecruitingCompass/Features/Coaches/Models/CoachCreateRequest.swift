@@ -13,6 +13,8 @@ struct CoachCreateRequest: Encodable, Sendable {
   let twitterHandle: String?
   let instagramHandle: String?
   let notes: String?
+  let tags: [String]
+  let source: String?
 
   enum CodingKeys: String, CodingKey {
     case schoolId = "school_id"
@@ -26,5 +28,38 @@ struct CoachCreateRequest: Encodable, Sendable {
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
     case notes
+    case tags
+    case source
+  }
+
+  /// `tags`/`source` default so existing call sites compile unchanged.
+  init(
+    schoolId: String,
+    userId: String,
+    familyUnitId: String,
+    role: String,
+    firstName: String,
+    lastName: String,
+    email: String? = nil,
+    phone: String? = nil,
+    twitterHandle: String? = nil,
+    instagramHandle: String? = nil,
+    notes: String? = nil,
+    tags: [String] = [],
+    source: String? = nil
+  ) {
+    self.schoolId = schoolId
+    self.userId = userId
+    self.familyUnitId = familyUnitId
+    self.role = role
+    self.firstName = firstName
+    self.lastName = lastName
+    self.email = email
+    self.phone = phone
+    self.twitterHandle = twitterHandle
+    self.instagramHandle = instagramHandle
+    self.notes = notes
+    self.tags = tags
+    self.source = source
   }
 }

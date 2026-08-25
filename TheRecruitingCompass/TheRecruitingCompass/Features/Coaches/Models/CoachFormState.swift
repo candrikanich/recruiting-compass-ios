@@ -13,6 +13,8 @@ struct CoachFormState: Sendable {
   var twitterHandle: String
   var instagramHandle: String
   var notes: String
+  var tags: [String]
+  var source: String
 
   var isSchoolSelected: Bool {
     selectedSchoolId != nil
@@ -34,7 +36,9 @@ struct CoachFormState: Sendable {
     phone: String = "",
     twitterHandle: String = "",
     instagramHandle: String = "",
-    notes: String = ""
+    notes: String = "",
+    tags: [String] = [],
+    source: String = ""
   ) {
     self.selectedSchoolId = selectedSchoolId
     self.role = role
@@ -45,5 +49,7 @@ struct CoachFormState: Sendable {
     self.twitterHandle = twitterHandle
     self.instagramHandle = instagramHandle
     self.notes = notes
+    self.tags = tags
+    self.source = source
   }
 }

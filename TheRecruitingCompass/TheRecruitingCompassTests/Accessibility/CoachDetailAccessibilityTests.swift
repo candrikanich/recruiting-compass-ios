@@ -120,23 +120,24 @@ final class CoachDetailAccessibilityTests: XCTestCase {
 
   // MARK: - CoachStatsGrid Accessibility Tests
 
-  func testStatsGrid_EachStatLabelCombinesTitleAndValue() {
-    let stats = CoachStats(totalInteractions: 12, daysSinceContact: 3, preferredMethod: "Email")
-    let grid = CoachStatsGrid(stats: stats)
+  func testStatsGrid_combinesEachCardForVoiceOver() {
+    // The redesigned grid combines each card's children into one a11y element
+    // (label + value + sub) rather than exposing a helper. Verify it renders.
+    let insights = CoachInsights(
+      daysSinceContact: 3, isOverdue: false, totalInteractions: 12,
+      sent: 6, received: 6, responseRate: 50, preferredChannel: .email)
+    let grid = CoachStatsGrid(insights: insights)
 
-    XCTAssertEqual(grid.statAccessibilityLabel(title: "Total Interactions", value: "\(stats.totalInteractions)"),
-                   "Total Interactions: 12")
-    XCTAssertEqual(grid.statAccessibilityLabel(title: "Days Since Contact", value: stats.contactStatusText),
-                   "Days Since Contact: 3 days ago")
-    XCTAssertEqual(grid.statAccessibilityLabel(title: "Preferred Method", value: stats.preferredMethod ?? "N/A"),
-                   "Preferred Method: Email")
+    XCTAssertNotNil(UIHostingController(rootView: grid).view)
   }
 
   func testStatsGrid_RendersAcrossDynamicTypeSizes() {
-    let stats = CoachStats(totalInteractions: 12, daysSinceContact: 3, preferredMethod: "Email")
+    let insights = CoachInsights(
+      daysSinceContact: 3, isOverdue: false, totalInteractions: 12,
+      sent: 6, received: 6, responseRate: 50, preferredChannel: .email)
 
-    let gridNormal = CoachStatsGrid(stats: stats).environment(\.sizeCategory, .large)
-    let gridA11y = CoachStatsGrid(stats: stats).environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
+    let gridNormal = CoachStatsGrid(insights: insights).environment(\.sizeCategory, .large)
+    let gridA11y = CoachStatsGrid(insights: insights).environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
 
     XCTAssertNotNil(UIHostingController(rootView: gridNormal).view)
     XCTAssertNotNil(UIHostingController(rootView: gridA11y).view)

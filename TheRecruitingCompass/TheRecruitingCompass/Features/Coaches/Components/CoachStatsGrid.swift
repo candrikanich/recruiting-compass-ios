@@ -1,86 +1,125 @@
 import SwiftUI
 
+/// Three ringed KPI cards (Days Since / Interactions / Preferred), driven by
+/// `CoachInsights` — matching the coach-detail Figma frame. Rings are decorative
+/// (not proportional to a target), per the design spec.
 struct CoachStatsGrid: View {
-  let stats: CoachStats
+  let insights: CoachInsights
 
   @Environment(\.sizeCategory) private var sizeCategory
 
-  private var gridColumns: [GridItem] {
-    [
-      GridItem(.flexible(), spacing: 16),
-      GridItem(.flexible(), spacing: 16),
-      GridItem(.flexible(), spacing: 16)
-    ]
+  private var columns: [GridItem] {
+    [GridItem(.flexible(), spacing: 12),
+     GridItem(.flexible(), spacing: 12),
+     GridItem(.flexible(), spacing: 12)]
   }
 
   var body: some View {
-    LazyVGrid(columns: gridColumns, spacing: 16) {
-      statCard(
-        title: String(localized: "Total Interactions"),
-        value: "\(stats.totalInteractions)",
-        color: .accentBlue
-      )
-
-      statCard(
-        title: String(localized: "Days Since Contact"),
-        value: stats.contactStatusText,
-        color: stats.contactStatusColor,
-        icon: stats.contactStatusIconName
-      )
-
-      statCard(
-        title: String(localized: "Preferred Method"),
-        value: stats.preferredMethod ?? String(localized: "N/A"),
-        color: .purple
-      )
+    LazyVGrid(columns: columns, spacing: 12) {
+      daysSinceCard
+      interactionsCard
+      preferredCard
     }
-    .accessibilityElement(children: .combine)
+  }
+
+  @ViewBuilder private var daysSinceCard: some View {
+    let overdue = insights.isOverdue
+    let value = insights.daysSinceContact.map { "\($0)" } ?? "—"
+    return card(
+      label: "Days Since",
+      value: value,
+      valueColor: overdue ? Color.Brand.red600 : .primary,
+      ringColor: overdue ? Color.Brand.red500 : Color.Brand.slate500,
+      highlighted: overdue
+    ) {
+      if overdue {
+        Text("OVERDUE")
+          .font(.caption2.bold())
+          .foregroundStyle(.white)
+          .padding(.horizontal, 6).padding(.vertical, 2)
+          .background(Color.Brand.red500)
+          .clipShape(Capsule())
+      }
+    }
+  }
+
+  @ViewBuilder private var interactionsCard: some View {
+    card(
+      label: "Interactions",
+      value: "\(insights.totalInteractions)",
+      valueColor: .primary,
+      ringColor: Color.Brand.blue500,
+      highlighted: false
+    ) {
+      Text("\(insights.totalInteractions) logged")
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+    }
+  }
+
+  @ViewBuilder private var preferredCard: some View {
+    card(
+      label: "Preferred",
+      value: insights.preferredChannel?.displayName ?? "—",
+      valueColor: .primary,
+      ringColor: Color.Brand.orange500,
+      highlighted: false
+    ) {
+      Text("\(insights.responseRate)% rate")
+        .font(.caption2)
+        .foregroundStyle(Color.Brand.emerald600)
+    }
   }
 
   @ViewBuilder
-  private func statCard(title: String, value: String, color: Color, icon: String? = nil) -> some View {
-    VStack(spacing: 8) {
-      HStack(spacing: 4) {
-        if let icon {
-          Image(systemName: icon)
-            .font(.caption)
-            .accessibilityHidden(true)
-        }
-        Text(value)
-          .lineLimit(1)
-          .minimumScaleFactor(0.8)
-      }
-      .font(sizeCategory.isAccessibilityCategory ? .title2.bold() : .title3.bold())
-      .foregroundStyle(color)
+  private func card<Sub: View>(
+    label: LocalizedStringKey, value: String, valueColor: Color, ringColor: Color,
+    highlighted: Bool, @ViewBuilder sub: () -> Sub
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Text(label)
+        .font(.caption2.bold())
+        .textCase(.uppercase)
+        .foregroundStyle(.secondary)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
 
-      Text(title)
-        .font(.caption.bold())
-        .foregroundStyle(Color.secondaryText)
-        .multilineTextAlignment(.center)
-        .lineLimit(2)
-        .minimumScaleFactor(0.9)
+      HStack(alignment: .center, spacing: 6) {
+        VStack(alignment: .leading, spacing: 2) {
+          Text(value)
+            .font(sizeCategory.isAccessibilityCategory ? .title3.bold() : .title2.bold())
+            .foregroundStyle(valueColor)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+          sub()
+        }
+        Spacer(minLength: 0)
+        Circle()
+          .stroke(ringColor, lineWidth: 3)
+          .frame(width: 28, height: 28)
+          .accessibilityHidden(true)
+      }
     }
-    .frame(maxWidth: .infinity)
-    .padding(.vertical, 12)
-    .padding(.horizontal, 8)
-    .background(Color(.systemGray6))
+    .padding(12)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(highlighted ? Color.errorBackground : Color(uiColor: .systemGray6))
+    .overlay(
+      RoundedRectangle(cornerRadius: 12)
+        .stroke(highlighted ? Color.errorBorder : Color.clear, lineWidth: 1)
+    )
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(statAccessibilityLabel(title: title, value: value))
-  }
-
-  func statAccessibilityLabel(title: String, value: String) -> String {
-    String(localized: "\(title): \(value)")
   }
 }
 
 #Preview {
-  CoachStatsGrid(
-    stats: CoachStats(
-      totalInteractions: 12,
-      daysSinceContact: 3,
-      preferredMethod: "Email"
-    )
-  )
+  VStack {
+    CoachStatsGrid(insights: CoachInsights(
+      daysSinceContact: 64, isOverdue: true, totalInteractions: 2,
+      sent: 1, received: 1, responseRate: 100, preferredChannel: .phoneCall))
+    CoachStatsGrid(insights: CoachInsights(
+      daysSinceContact: 3, isOverdue: false, totalInteractions: 5,
+      sent: 3, received: 2, responseRate: 40, preferredChannel: .email))
+  }
   .padding()
 }

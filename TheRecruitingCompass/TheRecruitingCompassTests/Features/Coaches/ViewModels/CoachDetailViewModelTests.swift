@@ -8,12 +8,14 @@ final class CoachDetailViewModelTests: XCTestCase {
 
   private var sut: CoachDetailViewModel!
   private var mockService: MockCoachesService!
+  private var mockInteractions: MockInteractionsService!
   private var mockAuthManager: MockAuthManager!
   private var testCoach: Coach!
   private var testSchool: School!
 
   override func setUp() async throws {
     mockService = MockCoachesService()
+    mockInteractions = MockInteractionsService()
     mockAuthManager = MockAuthManager()
 
     mockAuthManager.setMockUser(User(
@@ -34,6 +36,7 @@ final class CoachDetailViewModelTests: XCTestCase {
       allCoaches: [testCoach],
       allSchools: [testSchool],
       coachesService: mockService,
+      interactionsService: mockInteractions,
       authManager: mockAuthManager,
       cache: InMemoryCache()
     )
@@ -42,6 +45,7 @@ final class CoachDetailViewModelTests: XCTestCase {
   override func tearDown() async throws {
     sut = nil
     mockService = nil
+    mockInteractions = nil
     mockAuthManager = nil
     testCoach = nil
     testSchool = nil
@@ -160,6 +164,52 @@ final class CoachDetailViewModelTests: XCTestCase {
 
     XCTAssertEqual(sut.recentInteractions.count, 0)
     XCTAssertNotNil(sut.errorMessage)
+  }
+
+  func testLoadDetails_populatesInsights() async {
+    await sut.loadCoach()
+    mockService.stubbedInteractions = [
+      makeInteraction(id: "1", type: .email, occurredAt: iso8601(daysAgo: 1))
+    ]
+    await sut.loadDetails()
+    XCTAssertNotNil(sut.coachInsights)
+    XCTAssertEqual(sut.coachInsights?.totalInteractions, 1)
+    XCTAssertEqual(sut.coachInsights?.daysSinceContact, 1)
+  }
+
+  // MARK: - Tags Tests
+
+  func testSaveTags_sanitizesAndPersists() async {
+    await sut.loadCoach()
+    await sut.saveTags(["  Football ", "Football", ""])   // dupes/empties dropped
+    XCTAssertEqual(mockService.lastUpdateCoachUpdates?.tags, ["Football"])
+  }
+
+  // MARK: - Social-DM Tests
+
+  func testArmSocialDM_setsPending() async {
+    await sut.loadCoach()
+    sut.armSocialDM(.twitter)
+    XCTAssertEqual(sut.pendingSocialDM?.channel, .twitter)
+    XCTAssertEqual(sut.pendingSocialDM?.coachId, "coach-1")
+  }
+
+  func testConfirmSocialDM_logsOutboundDMAndClears() async {
+    await sut.loadCoach()
+    sut.armSocialDM(.instagram)
+    await sut.confirmSocialDM()
+    XCTAssertEqual(mockInteractions.lastCreatedInteractionRequest?.type, InteractionType.directMessage.rawValue)
+    XCTAssertEqual(mockInteractions.lastCreatedInteractionRequest?.direction, Direction.outbound.rawValue)
+    XCTAssertEqual(mockInteractions.lastCreatedInteractionRequest?.coachId, "coach-1")
+    XCTAssertNil(sut.pendingSocialDM)
+  }
+
+  func testDismissSocialDM_writesNothing() async {
+    await sut.loadCoach()
+    sut.armSocialDM(.twitter)
+    sut.dismissSocialDM()
+    XCTAssertNil(sut.pendingSocialDM)
+    XCTAssertNil(mockInteractions.lastCreatedInteractionRequest)
   }
 
   // MARK: - Stats Tests

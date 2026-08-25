@@ -29,8 +29,12 @@ struct CoachDetailView: View {
   @State private var profileComposer: ProfileComposerContext?
   @State private var pendingChannelChoice: SendProfileMessage?
   @State private var linkCopied = false
+  @State private var showLogInteraction = false
+  @State private var showSocialDMConfirm = false
   @Environment(\.sizeCategory) private var sizeCategory
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.openURL) private var openURL
+  @Environment(\.scenePhase) private var scenePhase
 
   init(coachId: String, allCoaches: [Coach] = [], allSchools: [School] = []) {
     self.coachId = coachId
@@ -153,6 +157,26 @@ struct CoachDetailView: View {
     } message: {
       Text("Are you sure you want to delete this coach? This action cannot be undone.")
     }
+    .sheet(isPresented: $showLogInteraction) {
+      logInteractionSheet
+    }
+    .confirmationDialog(
+      socialDMTitle,
+      isPresented: $showSocialDMConfirm,
+      titleVisibility: .visible
+    ) {
+      Button("Yes, I sent a DM") {
+        Task { await viewModel.confirmSocialDM() }
+      }
+      Button("No", role: .cancel) {
+        viewModel.dismissSocialDM()
+      }
+    }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active, viewModel.pendingSocialDM != nil {
+        showSocialDMConfirm = true
+      }
+    }
     .refreshable {
       await viewModel.loadDetails()
     }
@@ -166,37 +190,78 @@ struct CoachDetailView: View {
   // MARK: - Content
 
   private func detailContent(coach: Coach) -> some View {
-    VStack(alignment: .leading, spacing: 24) {
-      CoachDetailHeader(coach: coach, school: viewModel.school)
-      ContactInfoSection(
-        coach: coach,
-        onEmailTap: {
-          quickCommunicationContext = QuickCommunicationContext(coach: coach, schoolName: viewModel.school?.name)
-        },
-        onPhoneTap: {
-          quickCommunicationContext = QuickCommunicationContext(coach: coach, schoolName: viewModel.school?.name)
-        }
-      )
-
-      if let stats = viewModel.stats {
-        CoachStatsGrid(stats: stats)
-      }
-
-      CoachStatisticsSection(coach: coach)
-
-      if let metrics = viewModel.metrics {
-        CoachMetricsSection(
-          metrics: metrics,
-          comparison: viewModel.comparison,
-          insights: viewModel.insights
+    VStack(alignment: .leading, spacing: 16) {
+      SectionCard {
+        CoachDetailHeader(
+          coach: coach,
+          school: viewModel.school,
+          onEdit: { viewModel.startEditing() },
+          onDelete: { viewModel.confirmDelete() }
         )
       }
 
+      if let insights = viewModel.coachInsights {
+        CoachAlertsSection(insights: insights)
+        SectionCard { CoachStatsGrid(insights: insights) }
+      }
+
+      SectionCard(label: "Direct Channels") {
+        CoachDirectChannelsGrid(
+          coach: coach,
+          onEmail: { presentQuickCommunication(coach) },
+          onText: { presentQuickCommunication(coach) },
+          onCall: { openChannel(.call(coach.phone ?? ""), value: coach.phone) },
+          onTwitter: { openSocial(.twitter, coach: coach) },
+          onInstagram: { openSocial(.instagram, coach: coach) },
+          onLog: { showLogInteraction = true }
+        )
+      }
+
+      if let insights = viewModel.coachInsights {
+        SectionCard { CoachAnalyticsCard(insights: insights) }
+      }
+
+      SectionCard(label: "Interactions History") {
+        CoachInteractionsLogSection(viewModel: viewModel)
+      }
+
       sendProfileSection(coach: coach)
-      CoachInteractionsLogSection(viewModel: viewModel)
-      sharedNotesSection
+
+      SectionCard(label: "Internal Notes") { sharedNotesSection }
+
+      SectionCard(label: "Tags") {
+        CoachTagsCard(
+          tags: coach.tags,
+          onAdd: { tag in Task { await viewModel.saveTags(coach.tags + [tag]) } },
+          onRemove: { tag in Task { await viewModel.saveTags(coach.tags.filter { $0 != tag }) } }
+        )
+      }
+
+      SectionCard(label: "Profile Meta") { CoachProfileMetaCard(coach: coach) }
     }
     .padding()
+  }
+
+  private func presentQuickCommunication(_ coach: Coach) {
+    quickCommunicationContext = QuickCommunicationContext(coach: coach, schoolName: viewModel.school?.name)
+  }
+
+  private func openChannel(_ type: CommunicationType, value: String?) {
+    guard let value, let url = type.url(for: value) else { return }
+    openURL(url)
+  }
+
+  /// Open the coach's social profile, then arm the return-confirmation prompt so
+  /// the app can ask (on foreground) whether a DM was actually sent.
+  private func openSocial(_ channel: CoachDetailViewModel.SocialChannel, coach: Coach) {
+    let handle = channel == .twitter ? coach.twitterHandle : coach.instagramHandle
+    let type: CommunicationType = channel == .twitter
+      ? .twitter(handle ?? "")
+      : .instagram(handle ?? "")
+    if let handle, let url = type.url(for: handle) {
+      openURL(url)
+      viewModel.armSocialDM(channel)
+    }
   }
 
   /// Only offered once the profile is published — an unpublished profile has
@@ -206,18 +271,20 @@ struct CoachDetailView: View {
   @ViewBuilder
   private func sendProfileSection(coach: Coach) -> some View {
     if sendProfileVM.isPublished {
-      VStack(alignment: .leading, spacing: 8) {
-        Button {
-          startSendProfile(coach: coach)
-        } label: {
-          Label("Send Profile", systemImage: "square.and.arrow.up")
-            .font(.body)
-        }
-        .buttonStyle(.bordered)
-        .accessibilityLabel(String(localized: "Send Profile"))
+      SectionCard(label: "Send Recruiting Profile") {
+        VStack(alignment: .leading, spacing: 8) {
+          Button {
+            startSendProfile(coach: coach)
+          } label: {
+            Label("Send Profile", systemImage: "square.and.arrow.up")
+              .font(.body)
+          }
+          .buttonStyle(.bordered)
+          .accessibilityLabel(String(localized: "Send Profile"))
 
-        if sendProfileVM.trackingURL != nil {
-          profileLinkStats
+          if sendProfileVM.trackingURL != nil {
+            profileLinkStats
+          }
         }
       }
     }
@@ -322,6 +389,29 @@ struct CoachDetailView: View {
       notes: $viewModel.editedSharedNotes,
       onBlur: { await viewModel.saveSharedNotes() }
     )
+  }
+
+  private var socialDMTitle: String {
+    guard let pending = viewModel.pendingSocialDM else { return "" }
+    let channel = pending.channel == .twitter ? "Twitter" : "Instagram"
+    return String(localized: "Did you send \(pending.coachName) a DM on \(channel)?")
+  }
+
+  @ViewBuilder
+  private var logInteractionSheet: some View {
+    if let familyUnitId = viewModel.resolvedFamilyUnitId, let userId = viewModel.currentUserId {
+      NavigationStack {
+        AddInteractionView(
+          interactionsService: InteractionsServiceImpl(supabaseManager: .shared),
+          familyUnitId: familyUnitId,
+          userId: userId,
+          onLogged: { _ in
+            showLogInteraction = false
+            Task { await viewModel.loadDetails() }
+          }
+        )
+      }
+    }
   }
 
 }
