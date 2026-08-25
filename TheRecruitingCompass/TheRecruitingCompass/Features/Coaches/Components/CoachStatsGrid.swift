@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Three ringed KPI cards (Days Since / Interactions / Preferred), driven by
-/// `CoachInsights` — matching the coach-detail Figma frame. Rings are decorative
-/// (not proportional to a target), per the design spec.
+/// Three KPI cards (Days Since / Interactions / Preferred), driven by
+/// `CoachInsights`. Each card is a consistent label / value / sub-line stack.
 struct CoachStatsGrid: View {
   let insights: CoachInsights
 
@@ -24,12 +23,10 @@ struct CoachStatsGrid: View {
 
   @ViewBuilder private var daysSinceCard: some View {
     let overdue = insights.isOverdue
-    let value = insights.daysSinceContact.map { "\($0)" } ?? "—"
-    return card(
+    card(
       label: "Days Since",
-      value: value,
+      value: insights.daysSinceContact.map { "\($0)" } ?? "—",
       valueColor: overdue ? Color.Brand.red600 : .primary,
-      ringColor: overdue ? Color.Brand.red500 : Color.Brand.slate500,
       highlighted: overdue
     ) {
       if overdue {
@@ -39,8 +36,18 @@ struct CoachStatsGrid: View {
           .padding(.horizontal, 6).padding(.vertical, 2)
           .background(Color.Brand.red500)
           .clipShape(Capsule())
+      } else {
+        Text(daysSinceSubtitle)
+          .font(.caption2)
+          .foregroundStyle(.secondary)
       }
     }
+  }
+
+  private var daysSinceSubtitle: LocalizedStringKey {
+    guard let days = insights.daysSinceContact else { return "no contact" }
+    if days == 0 { return "today" }
+    return "days ago"
   }
 
   @ViewBuilder private var interactionsCard: some View {
@@ -48,7 +55,6 @@ struct CoachStatsGrid: View {
       label: "Interactions",
       value: "\(insights.totalInteractions)",
       valueColor: .primary,
-      ringColor: Color.Brand.blue500,
       highlighted: false
     ) {
       Text("\(insights.totalInteractions) logged")
@@ -62,7 +68,6 @@ struct CoachStatsGrid: View {
       label: "Preferred",
       value: insights.preferredChannel?.displayName ?? "—",
       valueColor: .primary,
-      ringColor: Color.Brand.orange500,
       highlighted: false
     ) {
       Text("\(insights.responseRate)% rate")
@@ -73,10 +78,10 @@ struct CoachStatsGrid: View {
 
   @ViewBuilder
   private func card<Sub: View>(
-    label: LocalizedStringKey, value: String, valueColor: Color, ringColor: Color,
+    label: LocalizedStringKey, value: String, valueColor: Color,
     highlighted: Bool, @ViewBuilder sub: () -> Sub
   ) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
+    VStack(alignment: .leading, spacing: 4) {
       Text(label)
         .font(.caption2.bold())
         .textCase(.uppercase)
@@ -84,24 +89,16 @@ struct CoachStatsGrid: View {
         .lineLimit(1)
         .minimumScaleFactor(0.8)
 
-      HStack(alignment: .center, spacing: 6) {
-        VStack(alignment: .leading, spacing: 2) {
-          Text(value)
-            .font(sizeCategory.isAccessibilityCategory ? .title3.bold() : .title2.bold())
-            .foregroundStyle(valueColor)
-            .lineLimit(1)
-            .minimumScaleFactor(0.6)
-          sub()
-        }
-        Spacer(minLength: 0)
-        Circle()
-          .stroke(ringColor, lineWidth: 3)
-          .frame(width: 28, height: 28)
-          .accessibilityHidden(true)
-      }
+      Text(value)
+        .font(sizeCategory.isAccessibilityCategory ? .title3.bold() : .title2.bold())
+        .foregroundStyle(valueColor)
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
+
+      sub()
     }
-    .padding(12)
     .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(12)
     .background(highlighted ? Color.errorBackground : Color(uiColor: .systemGray6))
     .overlay(
       RoundedRectangle(cornerRadius: 12)
@@ -118,8 +115,8 @@ struct CoachStatsGrid: View {
       daysSinceContact: 64, isOverdue: true, totalInteractions: 2,
       sent: 1, received: 1, responseRate: 100, preferredChannel: .phoneCall))
     CoachStatsGrid(insights: CoachInsights(
-      daysSinceContact: 3, isOverdue: false, totalInteractions: 5,
-      sent: 3, received: 2, responseRate: 40, preferredChannel: .email))
+      daysSinceContact: 1, isOverdue: false, totalInteractions: 5,
+      sent: 4, received: 1, responseRate: 20, preferredChannel: .email))
   }
   .padding()
 }
