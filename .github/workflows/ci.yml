@@ -5,6 +5,13 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # E2E UITests run nightly + on demand, NOT on PRs: XCUITest app launch is
+  # deterministically broken on GitHub macos-15 runners (the simulator service
+  # hub fails to "bless", so no test ever runs and the job just times out).
+  # Lint + unit tests still gate every PR.
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -14,6 +21,7 @@ jobs:
   lint:
     name: SwiftLint
     runs-on: macos-15
+    if: github.event_name != 'schedule'
     steps:
       - uses: actions/checkout@v4
 
@@ -26,6 +34,7 @@ jobs:
   build-and-test:
     name: Build & Unit Tests
     runs-on: macos-15
+    if: github.event_name != 'schedule'
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -116,7 +125,13 @@ jobs:
     name: E2E UITests
     runs-on: macos-15
     timeout-minutes: 60
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    # Nightly + manual only — see the `on:` comment above. Not a PR gate.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    # Serialize across ALL refs: every run seeds/wipes the one shared
+    # e2e-test Supabase project, so concurrent PRs would race the reset.
+    concurrency:
+      group: e2e-shared-supabase
+      cancel-in-progress: false
 
     steps:
       - uses: actions/checkout@v4
@@ -152,8 +167,12 @@ jobs:
       - name: Seed E2E test data
         run: cd scripts && npm run seed:e2e
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Dedicated throwaway project (recruiting-compass-e2e-test), never prod.
+          # ALLOW_REMOTE_SEED satisfies the seed guard now that the target is a
+          # disposable cloud project rather than the local stack.
+          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
+          ALLOW_REMOTE_SEED: "1"
 
       - name: Cache DerivedData
         uses: actions/cache@v4
@@ -173,14 +192,66 @@ jobs:
       - name: Run UITests
         run: |
           cd TheRecruitingCompass
-          xcodebuild test-without-building \
-            -scheme TheRecruitingCompass \
-            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
-            -only-testing:TheRecruitingCompassUITests \
-            -quiet
+          # Mirror the Build & Unit job's proven harness: CoreSimulator on the CI
+          # runner intermittently wedges on app launch (a spawned clone fails to
+          # resume: "Failed to send signal 19 ... : 3", then deviceservice.lockdown
+          # times out). No in-process retry survives a dead test host, so wrap the
+          # whole xcodebuild in a retry loop that resets the simulator stack
+          # between attempts. `OS=latest,name=iPhone 16` selects the newest runtime
+          # (a bare UDID grep matched an iPhone 16e on iOS 18.5 — an SDK the app
+          # doesn't support — which hung the job). Per-test timeouts bound any
+          # single hung case; parallel clones disabled to reduce simulator churn.
+          # The manual Boot step boots a fuzzy-matched device (iPhone 16e); shut
+          # everything down first so xcodebuild boots ONLY the single iPhone 16
+          # (latest runtime) it targets — two booted sims contend for the
+          # simulator service hub, which failed to "bless" and hung a prior run.
+          xcrun simctl shutdown all || true
+
+          run_uitests() {
+            set +e
+            xcodebuild test-without-building \
+              -scheme TheRecruitingCompass \
+              -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+              -only-testing:TheRecruitingCompassUITests \
+              -parallel-testing-enabled NO \
+              -test-timeouts-enabled YES \
+              -default-test-execution-time-allowance 120 \
+              -maximum-test-execution-time-allowance 300 \
+              -quiet &
+            local xpid=$!
+            # xcodebuild does NOT exit when the simulator service hub dies mid-
+            # launch — it hangs until the job timeout, so the retry below never
+            # fires. Guard each attempt with a wall clock that force-kills it,
+            # letting the loop reset the sim stack and retry.
+            ( sleep 1200; echo "::warning::attempt exceeded 20m wall clock — killing xcodebuild"; kill -9 "$xpid" 2>/dev/null ) &
+            local wpid=$!
+            wait "$xpid"; local rc=$?
+            kill "$wpid" 2>/dev/null
+            set -e
+            return $rc
+          }
+          for attempt in 1 2; do
+            echo "::group::E2E UITests attempt $attempt"
+            if run_uitests; then
+              echo "::endgroup::"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "Attempt $attempt failed/killed; resetting simulator stack before retry."
+            xcrun simctl shutdown all || true
+            killall -9 CoreSimulatorService || true
+            sleep 5
+          done
+          echo "E2E UITests failed after 2 full attempts."
+          exit 1
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # App under test must talk to the same project it was seeded into.
+          # Names MUST be E2E_-prefixed: E2ETestEnvironment reads these exact
+          # keys and falls back to the local stack (127.0.0.1:54321) if unset —
+          # on a macOS runner that has no local stack the app hangs retrying the
+          # dead connection until the 60-min job timeout kills it.
+          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
 
       - name: Upload xcresult
         if: always()
