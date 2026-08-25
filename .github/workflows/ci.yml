@@ -5,6 +5,13 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # E2E UITests run nightly + on demand, NOT on PRs: XCUITest app launch is
+  # deterministically broken on GitHub macos-15 runners (the simulator service
+  # hub fails to "bless", so no test ever runs and the job just times out).
+  # Lint + unit tests still gate every PR.
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -14,6 +21,7 @@ jobs:
   lint:
     name: SwiftLint
     runs-on: macos-15
+    if: github.event_name != 'schedule'
     steps:
       - uses: actions/checkout@v4
 
@@ -26,6 +34,7 @@ jobs:
   build-and-test:
     name: Build & Unit Tests
     runs-on: macos-15
+    if: github.event_name != 'schedule'
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -116,7 +125,8 @@ jobs:
     name: E2E UITests
     runs-on: macos-15
     timeout-minutes: 60
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    # Nightly + manual only — see the `on:` comment above. Not a PR gate.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     # Serialize across ALL refs: every run seeds/wipes the one shared
     # e2e-test Supabase project, so concurrent PRs would race the reset.
     concurrency:
