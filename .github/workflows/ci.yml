@@ -117,6 +117,11 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 60
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    # Serialize across ALL refs: every run seeds/wipes the one shared
+    # e2e-test Supabase project, so concurrent PRs would race the reset.
+    concurrency:
+      group: e2e-shared-supabase
+      cancel-in-progress: false
 
     steps:
       - uses: actions/checkout@v4
@@ -152,8 +157,12 @@ jobs:
       - name: Seed E2E test data
         run: cd scripts && npm run seed:e2e
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Dedicated throwaway project (recruiting-compass-e2e-test), never prod.
+          # ALLOW_REMOTE_SEED satisfies the seed guard now that the target is a
+          # disposable cloud project rather than the local stack.
+          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
+          ALLOW_REMOTE_SEED: "1"
 
       - name: Cache DerivedData
         uses: actions/cache@v4
@@ -179,8 +188,9 @@ jobs:
             -only-testing:TheRecruitingCompassUITests \
             -quiet
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # App under test must talk to the same project it was seeded into.
+          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
 
       - name: Upload xcresult
         if: always()
