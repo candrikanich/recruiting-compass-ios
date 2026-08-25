@@ -62,7 +62,7 @@ struct CoachAnalyticsCard: View {
     }
   }
 
-  private var gauge: some View {
+  @ViewBuilder private var gauge: some View {
     VStack(spacing: 4) {
       ZStack {
         Circle().stroke(Color(uiColor: .systemGray5), lineWidth: 6)

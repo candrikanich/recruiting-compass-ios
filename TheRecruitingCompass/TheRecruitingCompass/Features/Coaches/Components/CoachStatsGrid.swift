@@ -22,7 +22,7 @@ struct CoachStatsGrid: View {
     }
   }
 
-  private var daysSinceCard: some View {
+  @ViewBuilder private var daysSinceCard: some View {
     let overdue = insights.isOverdue
     let value = insights.daysSinceContact.map { "\($0)" } ?? "—"
     return card(
@@ -43,7 +43,7 @@ struct CoachStatsGrid: View {
     }
   }
 
-  private var interactionsCard: some View {
+  @ViewBuilder private var interactionsCard: some View {
     card(
       label: "Interactions",
       value: "\(insights.totalInteractions)",
@@ -57,7 +57,7 @@ struct CoachStatsGrid: View {
     }
   }
 
-  private var preferredCard: some View {
+  @ViewBuilder private var preferredCard: some View {
     card(
       label: "Preferred",
       value: insights.preferredChannel?.displayName ?? "—",

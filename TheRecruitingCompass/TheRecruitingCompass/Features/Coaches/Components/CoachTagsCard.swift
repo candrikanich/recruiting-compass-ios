@@ -46,7 +46,7 @@ struct CoachTagsCard: View {
     .clipShape(Capsule())
   }
 
-  private var addButton: some View {
+  @ViewBuilder private var addButton: some View {
     Button {
       isAddingTag = true
     } label: {
