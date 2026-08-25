@@ -1,129 +1,59 @@
 import SwiftUI
 
-/// Header section for coach detail view with initials, name, role, and school.
+/// Compact identity toolbar: small school-logo avatar, name + role, and
+/// edit / delete actions — matching the coach-detail Figma frame.
 struct CoachDetailHeader: View {
   let coach: Coach
   let school: School?
-
-  @Environment(\.sizeCategory) private var sizeCategory
-
-  private enum Layout {
-    static let avatarSize: CGFloat = 100
-    static let avatarAccessibilitySize: CGFloat = 120
-    static let avatarCornerRadius: CGFloat = 24
-  }
+  var onEdit: () -> Void = {}
+  var onDelete: () -> Void = {}
 
   var body: some View {
-    VStack(spacing: 16) {
-      // School logo (favicon) with a gradient-initials fallback — never a photo.
-      SchoolLogoAvatar(
-        logoUrl: school?.faviconUrl,
-        initials: coach.initials,
-        size: Layout.avatarSize,
-        accessibilitySize: Layout.avatarAccessibilitySize,
-        cornerRadius: Layout.avatarCornerRadius,
-        initialsFont: .largeTitle.bold()
-      )
+    HStack(spacing: 12) {
+      SchoolLogoAvatar(logoUrl: school?.faviconUrl, initials: coach.initials,
+                       size: 40, accessibilitySize: 52, cornerRadius: 10)
 
-      Text(coach.fullName)
-        .font(.title2.bold())
-        .accessibilityAddTraits(.isHeader)
-
-      HStack(spacing: 8) {
+      VStack(alignment: .leading, spacing: 2) {
+        Text(coach.fullName)
+          .font(.headline)
+          .accessibilityAddTraits(.isHeader)
         Text(coach.role.displayName)
           .font(.subheadline)
-          .fontWeight(.medium)
-          .foregroundStyle(.white)
-          .padding(.horizontal, 12)
-          .padding(.vertical, 6)
-          .background(coach.role.badgeColor)
-          .clipShape(Capsule())
-          .accessibilityLabel(String(localized: "Role: \(coach.role.displayName)"))
-
-        if let school {
-          Text(school.name)
-            .font(.subheadline)
-            .foregroundStyle(Color.accentBlue)
-        }
+          .foregroundStyle(.secondary)
       }
+
+      Spacer(minLength: 8)
+
+      iconButton(system: "pencil", tint: Color.Brand.blue600, bg: Color.Brand.blue100,
+                 label: "Edit coach", action: onEdit)
+      iconButton(system: "trash", tint: Color.Brand.red600, bg: Color.Brand.red100,
+                 label: "Delete coach", action: onDelete)
     }
     .frame(maxWidth: .infinity)
+  }
+
+  @ViewBuilder
+  private func iconButton(system: String, tint: Color, bg: Color,
+                          label: LocalizedStringKey, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+      Image(systemName: system)
+        .font(.system(size: 16, weight: .semibold))
+        .foregroundStyle(tint)
+        .frame(width: 36, height: 36)
+        .background(bg)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+    .accessibilityLabel(label)
   }
 }
 
 #Preview {
-  VStack(spacing: 40) {
-    CoachDetailHeader(
-      coach: Coach(
-        id: "1",
-        firstName: "John",
-        lastName: "Smith",
-        email: "john@university.edu",
-        phone: "555-0123",
-        position: "head",
-        schoolId: "school-1",
-        twitterHandle: "@coachsmith",
-        instagramHandle: "@coachsmith",
-        notes: "Great recruiter",
-        lastContactDate: "2026-01-15T10:00:00Z",
-        createdAt: "2025-01-01T00:00:00Z",
-        updatedAt: "2026-01-15T10:00:00Z"
-      ),
-      school: School(
-        id: "school-1",
-        userId: "user-1",
-        name: "State University",
-        location: "State College, PA",
-        city: "State College",
-        state: "PA",
-        division: "D1",
-        conference: "Big Ten",
-        ranking: 25,
-        isFavorite: false,
-        website: nil,
-        faviconUrl: nil,
-        twitterHandle: nil,
-        instagramHandle: nil,
-        ncaaId: nil,
-        status: "interested",
-        statusChangedAt: nil,
-        notes: nil,
-        pros: [],
-        cons: [],
-        offerDetails: nil,
-        academicInfo: nil,
-        amenities: nil,
-        coachingPhilosophy: nil,
-        coachingStyle: nil,
-        recruitingApproach: nil,
-        communicationStyle: nil,
-        successMetrics: nil,
-        familyUnitId: "family-1",
-        createdBy: nil,
-        updatedBy: nil,
-        createdAt: "2025-01-01T00:00:00Z",
-        updatedAt: "2025-01-01T00:00:00Z"
-      )
-    )
-
-    CoachDetailHeader(
-      coach: Coach(
-        id: "2",
-        firstName: "Jane",
-        lastName: "Doe",
-        email: nil,
-        phone: nil,
-        position: "assistant",
-        schoolId: "school-2",
-        twitterHandle: nil,
-        instagramHandle: nil,
-        notes: nil,
-        lastContactDate: nil,
-        createdAt: "2025-01-01T00:00:00Z",
-        updatedAt: "2025-01-01T00:00:00Z"
-      ),
-      school: nil
-    )
-  }
+  CoachDetailHeader(
+    coach: Coach(
+      id: "1", firstName: "Dana", lastName: "Whitfield", position: "head",
+      schoolId: "school-1", createdAt: "2025-01-01T00:00:00Z", updatedAt: "2026-01-15T10:00:00Z"
+    ),
+    school: nil
+  )
   .padding()
 }
