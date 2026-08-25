@@ -143,13 +143,11 @@ final class CoachDetailComponentsTests: XCTestCase {
   // MARK: - CoachStatsGrid Tests
 
   func testStatsGrid_rendersWithAllStats() {
-    let stats = CoachStats(
-      totalInteractions: 12,
-      daysSinceContact: 3,
-      preferredMethod: "Email"
-    )
+    let insights = CoachInsights(
+      daysSinceContact: 3, isOverdue: false, totalInteractions: 12,
+      sent: 6, received: 6, responseRate: 50, preferredChannel: .email)
 
-    let grid = CoachStatsGrid(stats: stats)
+    let grid = CoachStatsGrid(insights: insights)
 
     let hostingController = UIHostingController(rootView: grid)
 
@@ -157,18 +155,16 @@ final class CoachDetailComponentsTests: XCTestCase {
   }
 
   func testStatsGrid_handlesNilValues() {
-    let stats = CoachStats(
-      totalInteractions: 0,
-      daysSinceContact: nil,
-      preferredMethod: nil
-    )
+    let insights = CoachInsights(
+      daysSinceContact: nil, isOverdue: false, totalInteractions: 0,
+      sent: 0, received: 0, responseRate: 0, preferredChannel: nil)
 
-    let grid = CoachStatsGrid(stats: stats)
+    let grid = CoachStatsGrid(insights: insights)
 
     let hostingController = UIHostingController(rootView: grid)
 
     XCTAssertNotNil(hostingController.view)
-    // Should display "N/A" for nil values
+    // Should display "—" for nil values
   }
 
   func testStatsGrid_displaysCorrectContactStatus() {
