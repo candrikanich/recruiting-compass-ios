@@ -86,13 +86,23 @@ final class CoachDetailViewModelTests: XCTestCase {
     )
   }
 
-  private func makeInteraction(id: String, type: InteractionType = .email) -> Interaction {
+  private func makeInteraction(
+    id: String,
+    type: InteractionType = .email,
+    occurredAt: String? = "2026-02-08T10:00:00Z"
+  ) -> Interaction {
     Interaction(
       id: id, type: type, direction: .outbound, schoolId: "school-1", coachId: "coach-1",
-      subject: "Test", content: nil, sentiment: .positive, occurredAt: "2026-02-08T10:00:00Z",
+      subject: "Test", content: nil, sentiment: .positive, occurredAt: occurredAt,
       loggedBy: "user-1", attachments: nil, familyUnitId: "family-1",
       createdAt: "2026-02-08T10:00:00Z", updatedAt: nil
     )
+  }
+
+  /// ISO-8601 string N days before now — for date-relative days-since assertions.
+  private func iso8601(daysAgo: Int) -> String {
+    let date = Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date())!
+    return ISO8601DateFormatter().string(from: date)
   }
 
   // MARK: - Loading Tests
@@ -169,11 +179,11 @@ final class CoachDetailViewModelTests: XCTestCase {
     XCTAssertEqual(sut.stats?.preferredMethod, "Email")
   }
 
-  func testComputeStats_DaysSinceContact() async {
-    let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
-    let dateString = ISO8601DateFormatter().string(from: yesterday)
-
-    testCoach = makeCoach(id: "coach-1", lastContactDate: dateString)
+  /// Days-since derives from the newest logged interaction, not the stored
+  /// `last_contact_date`, so it is correct in-session without a refetch.
+  func testComputeStats_DaysSince_DerivesFromNewestInteraction() async {
+    // Stored date is stale (30 days ago); newest interaction is yesterday.
+    testCoach = makeCoach(id: "coach-1", lastContactDate: iso8601(daysAgo: 30))
     sut = CoachDetailViewModel(
       coachId: "coach-1",
       allCoaches: [testCoach],
@@ -184,11 +194,53 @@ final class CoachDetailViewModelTests: XCTestCase {
     )
 
     await sut.loadCoach()
-    mockService.stubbedInteractions = [makeInteraction(id: "1")]
+    mockService.stubbedInteractions = [
+      makeInteraction(id: "1", occurredAt: iso8601(daysAgo: 5)),
+      makeInteraction(id: "2", occurredAt: iso8601(daysAgo: 1))
+    ]
     await sut.loadDetails()
 
     XCTAssertEqual(sut.stats?.daysSinceContact, 1)
     XCTAssertEqual(sut.stats?.contactStatusText, "1 days ago")
+  }
+
+  /// With no interactions, days-since falls back to the stored `last_contact_date`.
+  func testComputeStats_DaysSince_FallsBackToStoredDate() async {
+    testCoach = makeCoach(id: "coach-1", lastContactDate: iso8601(daysAgo: 1))
+    sut = CoachDetailViewModel(
+      coachId: "coach-1",
+      allCoaches: [testCoach],
+      allSchools: [testSchool],
+      coachesService: mockService,
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
+    )
+
+    await sut.loadCoach()
+    mockService.stubbedInteractions = []
+    await sut.loadDetails()
+
+    XCTAssertEqual(sut.stats?.daysSinceContact, 1)
+  }
+
+  /// A nil-`occurredAt` interaction must not masquerade as "today" (its
+  /// `displayDate` defaults to `.now`); days-since falls back to the stored date.
+  func testComputeStats_DaysSince_IgnoresNilOccurredAt() async {
+    testCoach = makeCoach(id: "coach-1", lastContactDate: iso8601(daysAgo: 7))
+    sut = CoachDetailViewModel(
+      coachId: "coach-1",
+      allCoaches: [testCoach],
+      allSchools: [testSchool],
+      coachesService: mockService,
+      authManager: mockAuthManager,
+      cache: InMemoryCache()
+    )
+
+    await sut.loadCoach()
+    mockService.stubbedInteractions = [makeInteraction(id: "1", occurredAt: nil)]
+    await sut.loadDetails()
+
+    XCTAssertEqual(sut.stats?.daysSinceContact, 7)
   }
 
   // MARK: - Edit Tests
@@ -383,7 +435,8 @@ final class CoachDetailViewModelTests: XCTestCase {
     let coachNoContact = makeCoach(id: "coach-1", lastContactDate: nil)
     // Set coach directly to avoid cache contamination from other tests
     sut.coach = coachNoContact
-    mockService.stubbedInteractions = [makeInteraction(id: "1")]
+    // Neither a stored date nor any dated interaction → days-since is nil.
+    mockService.stubbedInteractions = []
     await sut.loadDetails()
 
     XCTAssertNil(sut.stats?.daysSinceContact)

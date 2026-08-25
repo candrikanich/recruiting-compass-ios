@@ -26,7 +26,7 @@ struct ContactInfoSection: View {
         ContactRow(
           icon: "phone",
           label: String(localized: "Phone"),
-          value: phone,
+          value: PhoneFormatter.formatDisplay(phone),
           type: .phone(phone),
           customAction: onPhoneTap
         )

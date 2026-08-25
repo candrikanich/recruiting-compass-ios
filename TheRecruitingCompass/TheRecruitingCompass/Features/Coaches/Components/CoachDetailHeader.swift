@@ -8,29 +8,22 @@ struct CoachDetailHeader: View {
   @Environment(\.sizeCategory) private var sizeCategory
 
   private enum Layout {
-    static let initialsCircleSize: CGFloat = 100
-    static let initialsCircleAccessibilitySize: CGFloat = 120
+    static let avatarSize: CGFloat = 100
+    static let avatarAccessibilitySize: CGFloat = 120
+    static let avatarCornerRadius: CGFloat = 24
   }
 
   var body: some View {
     VStack(spacing: 16) {
-      // Large initials circle
-      Text(coach.initials)
-        .font(.largeTitle.bold())
-        .foregroundStyle(.white)
-        .frame(
-          width: sizeCategory.isAccessibilityCategory ? Layout.initialsCircleAccessibilitySize : Layout.initialsCircleSize,
-          height: sizeCategory.isAccessibilityCategory ? Layout.initialsCircleAccessibilitySize : Layout.initialsCircleSize
-        )
-        .background(
-          LinearGradient(
-            colors: [.blueGradientStart, Color(hex: "7C3AED")],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-          )
-        )
-        .clipShape(Circle())
-        .accessibilityHidden(true)
+      // School logo (favicon) with a gradient-initials fallback — never a photo.
+      SchoolLogoAvatar(
+        logoUrl: school?.faviconUrl,
+        initials: coach.initials,
+        size: Layout.avatarSize,
+        accessibilitySize: Layout.avatarAccessibilitySize,
+        cornerRadius: Layout.avatarCornerRadius,
+        initialsFont: .largeTitle.bold()
+      )
 
       Text(coach.fullName)
         .font(.title2.bold())

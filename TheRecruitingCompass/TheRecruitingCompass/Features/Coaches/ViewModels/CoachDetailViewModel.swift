@@ -229,10 +229,21 @@ final class CoachDetailViewModel {
     let totalInteractions = recentInteractions.count
 
     let daysSinceContact: Int? = {
-      guard let lastContactDate = coach?.lastContactDateParsed else { return nil }
       let calendar = Calendar.current
-      let days = calendar.dateComponents([.day], from: lastContactDate, to: .now).day
-      return days
+      // Prefer the newest logged interaction so the number is correct in-session
+      // without waiting on the DB `last_contact_date` trigger or a coach refetch.
+      // Filter nil-`occurredAt` rows first: `Interaction.displayDate` defaults to
+      // `.now`, which would otherwise masquerade a dateless row as "today".
+      let latestInteraction = recentInteractions
+        .filter { $0.occurredAt != nil }
+        .map(\.displayDate)
+        .max()
+      if let latestInteraction {
+        return calendar.dateComponents([.day], from: latestInteraction, to: .now).day
+      }
+      // Fallback: the stored last-contact date (kept fresh by the trigger).
+      guard let lastContactDate = coach?.lastContactDateParsed else { return nil }
+      return calendar.dateComponents([.day], from: lastContactDate, to: .now).day
     }()
 
     let preferredMethod: String? = {
