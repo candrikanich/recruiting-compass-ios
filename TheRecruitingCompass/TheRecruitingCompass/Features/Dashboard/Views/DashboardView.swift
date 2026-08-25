@@ -77,17 +77,16 @@ struct DashboardView: View {
               DashboardErrorSection(message: error, onDismiss: { viewModel.dismissError() })
             }
 
-            DashboardPublicProfileCard(
-              targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
-            )
-
             if !viewModel.isEmpty {
-              DashboardWidgetsSection(
+              DashboardActionSection(
                 visibility: viewModel.widgetVisibility.widgets,
                 suggestions: viewModel.suggestions,
                 pendingCount: viewModel.suggestionsPendingCount,
                 familyUnitId: viewModel.currentFamilyUnitId,
                 userId: viewModel.actingUserId,
+                coachesNeedingFollowup: viewModel.coachesNeedingFollowup,
+                allSchools: viewModel.allSchools,
+                events: viewModel.events,
                 quickTasks: $viewModel.quickTasks,
                 onDismissSuggestion: { id in Task { await viewModel.dismissSuggestion(id) } },
                 onCompleteSuggestion: { id in Task { await viewModel.completeSuggestion(id) } },
@@ -95,15 +94,13 @@ struct DashboardView: View {
                 onAddTask: viewModel.addTask,
                 onToggleTask: viewModel.toggleTaskCompletion,
                 onDeleteTask: viewModel.deleteTask,
-                onClearCompleted: viewModel.clearCompletedTasks
+                onClearCompleted: viewModel.clearCompletedTasks,
+                onCoachContacted: { Task { await viewModel.fetchDashboardData() } }
               )
 
-              DashboardChartsAndDataSection(
+              DashboardInsightsSection(
                 visibility: viewModel.widgetVisibility.widgets,
                 interactionTrends: viewModel.interactionTrends,
-                events: viewModel.events,
-                coachesNeedingFollowup: viewModel.coachesNeedingFollowup,
-                allSchools: viewModel.allSchools,
                 metrics: viewModel.metrics,
                 schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
                 interactionsThisMonth: viewModel.interactionsThisMonth,
@@ -111,10 +108,13 @@ struct DashboardView: View {
                 isEmpty: viewModel.isEmpty,
                 athleteSport: viewModel.athleteSport,
                 athleteGender: viewModel.athleteGender,
-                graduationYear: viewModel.graduationYear,
-                onCoachContacted: { Task { await viewModel.fetchDashboardData() } }
+                graduationYear: viewModel.graduationYear
               )
             }
+
+            DashboardPublicProfileCard(
+              targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+            )
 
             Spacer()
               .frame(height: 32)
