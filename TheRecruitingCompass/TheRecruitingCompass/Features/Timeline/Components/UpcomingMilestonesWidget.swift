@@ -65,9 +65,6 @@ struct UpcomingMilestonesWidget: View {
       VStack(alignment: .leading, spacing: 2) {
         Text(milestone.title)
           .font(.subheadline.weight(.medium))
-        Text(formattedDate(milestone.date))
-          .font(.caption)
-          .foregroundStyle(Color.secondaryText)
         if let description = milestone.description {
           Text(description)
             .font(.caption)
@@ -75,14 +72,21 @@ struct UpcomingMilestonesWidget: View {
         }
       }
 
-      if showsExternalLinkAffordance {
-        Spacer()
-        Image(systemName: "arrow.up.right")
+      Spacer(minLength: 8)
+
+      VStack(alignment: .trailing, spacing: 2) {
+        Text(formattedDate(milestone.date))
           .font(.caption)
           .foregroundStyle(Color.secondaryText)
-          .accessibilityHidden(true)
+        if showsExternalLinkAffordance {
+          Image(systemName: "arrow.up.right")
+            .font(.caption)
+            .foregroundStyle(Color.secondaryText)
+            .accessibilityHidden(true)
+        }
       }
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
     .padding(12)
     .background(Color.Surface.muted)
     .clipShape(.rect(cornerRadius: 8))
