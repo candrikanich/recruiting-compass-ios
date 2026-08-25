@@ -77,33 +77,18 @@ struct DashboardView: View {
               DashboardErrorSection(message: error, onDismiss: { viewModel.dismissError() })
             }
 
-            DashboardPublicProfileCard(
-              targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
-            )
-
             if !viewModel.isEmpty {
-              DashboardWidgetsSection(
+              DashboardWidgetStack(
+                order: viewModel.widgetVisibility.widgetOrder,
                 visibility: viewModel.widgetVisibility.widgets,
                 suggestions: viewModel.suggestions,
                 pendingCount: viewModel.suggestionsPendingCount,
                 familyUnitId: viewModel.currentFamilyUnitId,
                 userId: viewModel.actingUserId,
-                quickTasks: $viewModel.quickTasks,
-                onDismissSuggestion: { id in Task { await viewModel.dismissSuggestion(id) } },
-                onCompleteSuggestion: { id in Task { await viewModel.completeSuggestion(id) } },
-                onActionCompleted: { Task { await viewModel.fetchDashboardData() } },
-                onAddTask: viewModel.addTask,
-                onToggleTask: viewModel.toggleTaskCompletion,
-                onDeleteTask: viewModel.deleteTask,
-                onClearCompleted: viewModel.clearCompletedTasks
-              )
-
-              DashboardChartsAndDataSection(
-                visibility: viewModel.widgetVisibility.widgets,
-                interactionTrends: viewModel.interactionTrends,
-                events: viewModel.events,
                 coachesNeedingFollowup: viewModel.coachesNeedingFollowup,
                 allSchools: viewModel.allSchools,
+                events: viewModel.events,
+                interactionTrends: viewModel.interactionTrends,
                 metrics: viewModel.metrics,
                 schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
                 interactionsThisMonth: viewModel.interactionsThisMonth,
@@ -112,9 +97,21 @@ struct DashboardView: View {
                 athleteSport: viewModel.athleteSport,
                 athleteGender: viewModel.athleteGender,
                 graduationYear: viewModel.graduationYear,
+                quickTasks: $viewModel.quickTasks,
+                onDismissSuggestion: { id in Task { await viewModel.dismissSuggestion(id) } },
+                onCompleteSuggestion: { id in Task { await viewModel.completeSuggestion(id) } },
+                onActionCompleted: { Task { await viewModel.fetchDashboardData() } },
+                onAddTask: viewModel.addTask,
+                onToggleTask: viewModel.toggleTaskCompletion,
+                onDeleteTask: viewModel.deleteTask,
+                onClearCompleted: viewModel.clearCompletedTasks,
                 onCoachContacted: { Task { await viewModel.fetchDashboardData() } }
               )
             }
+
+            DashboardPublicProfileCard(
+              targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+            )
 
             Spacer()
               .frame(height: 32)

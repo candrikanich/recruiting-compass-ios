@@ -1,3 +1,4 @@
+import SwiftUI
 import XCTest
 @testable import TheRecruitingCompass
 
@@ -198,6 +199,63 @@ final class DashboardCustomizationViewModelTests: XCTestCase {
 
     // Then
     XCTAssertFalse(viewModel.visibility.widgets.recentNotifications)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
+  }
+
+  // MARK: - Toggle-All Coverage (regression: coachFollowup + calendar were omitted)
+
+  func testToggleAllWidgets_IncludesCoachFollowupAndCalendar() {
+    // Given
+    viewModel.visibility.widgets = WidgetVisibility.default
+
+    // When
+    viewModel.toggleAllWidgets(false)
+
+    // Then — every live widget id flips, including the two previously missed
+    for id in DashboardWidgetID.allCases {
+      XCTAssertFalse(viewModel.visibility.widgets[keyPath: id.visibilityKeyPath],
+                     "\(id.rawValue) should be disabled by toggleAllWidgets")
+    }
+    XCTAssertFalse(viewModel.visibility.widgets.coachFollowupWidget)
+    XCTAssertFalse(viewModel.visibility.widgets.recruitingCalendar)
+  }
+
+  func testAllWidgetsEnabled_WhenCoachFollowupDisabled_ReturnsFalse() {
+    // Given
+    viewModel.visibility.widgets = WidgetVisibility.default
+    viewModel.visibility.widgets.coachFollowupWidget = false
+
+    // Then — coachFollowup now counts toward the computed
+    XCTAssertFalse(viewModel.allWidgetsEnabled)
+  }
+
+  // MARK: - Reorder Tests
+
+  func testMoveWidget_ReordersAndMarksChanged() {
+    // Given — default value-first order
+    viewModel.visibility.widgetOrder = DashboardWidgetID.defaultOrder
+    let first = viewModel.visibility.widgetOrder[0]
+
+    // When — move the first widget to the end
+    viewModel.moveWidget(fromOffsets: IndexSet(integer: 0),
+                         toOffset: viewModel.visibility.widgetOrder.count)
+
+    // Then
+    XCTAssertEqual(viewModel.visibility.widgetOrder.last, first)
+    XCTAssertEqual(viewModel.visibility.widgetOrder.count, DashboardWidgetID.allCases.count)
+    XCTAssertEqual(viewModel.saveStatus, .saving)
+  }
+
+  func testBinding_TogglesWidgetAndMarksChanged() {
+    // Given
+    viewModel.visibility.widgets = WidgetVisibility.default
+    let binding = viewModel.binding(for: .coachFollowup)
+
+    // When
+    binding.wrappedValue = false
+
+    // Then
+    XCTAssertFalse(viewModel.visibility.widgets.coachFollowupWidget)
     XCTAssertEqual(viewModel.saveStatus, .saving)
   }
 }
