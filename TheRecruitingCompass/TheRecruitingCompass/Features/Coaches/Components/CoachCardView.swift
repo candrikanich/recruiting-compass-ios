@@ -86,8 +86,7 @@ private struct CoachCardHeaderSection: View {
   var body: some View {
     HStack(spacing: 12) {
       if showSchoolMeta {
-        CoachCardSchoolLogoView(schoolLogoUrl: schoolLogoUrl, schoolInitials: schoolInitials)
-          .accessibilityHidden(true)
+        SchoolLogoAvatar(logoUrl: schoolLogoUrl, initials: schoolInitials)
       }
 
       VStack(alignment: .leading, spacing: 4) {
@@ -106,67 +105,6 @@ private struct CoachCardHeaderSection: View {
 
       CoachCardRoleBadge(role: coach.role)
     }
-  }
-}
-
-private struct CoachCardSchoolLogoView: View {
-  let schoolLogoUrl: String?
-  let schoolInitials: String
-
-  @Environment(\.sizeCategory) private var sizeCategory
-
-  private var initialsSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 56 : 48
-  }
-
-  var body: some View {
-    if let faviconUrl = schoolLogoUrl, let url = URL(string: faviconUrl) {
-      AsyncImage(url: url) { phase in
-        switch phase {
-        case .success(let image):
-          image
-            .resizable()
-            .scaledToFit()
-        case .failure, .empty:
-          CoachCardInitialsCircle(schoolInitials: schoolInitials)
-        @unknown default:
-          CoachCardInitialsCircle(schoolInitials: schoolInitials)
-        }
-      }
-      .frame(width: initialsSize, height: initialsSize)
-      .clipShape(RoundedRectangle(cornerRadius: 10))
-    } else {
-      CoachCardInitialsCircle(schoolInitials: schoolInitials)
-    }
-  }
-}
-
-private struct CoachCardInitialsCircle: View {
-  let schoolInitials: String
-
-  @Environment(\.sizeCategory) private var sizeCategory
-
-  private var initialsSize: CGFloat {
-    sizeCategory.isAccessibilityCategory ? 56 : 48
-  }
-
-  private var initialsFont: Font {
-    sizeCategory.isAccessibilityCategory ? .title2.bold() : .body.bold()
-  }
-
-  var body: some View {
-    Text(schoolInitials)
-      .font(initialsFont)
-      .foregroundStyle(.white)
-      .frame(width: initialsSize, height: initialsSize)
-      .background(
-        LinearGradient(
-          colors: [.blueGradientStart, Color(hex: "7C3AED")],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-      )
-      .clipShape(RoundedRectangle(cornerRadius: 10))
   }
 }
 
