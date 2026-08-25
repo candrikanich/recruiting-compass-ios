@@ -38,6 +38,35 @@ struct CoachFormView: View {
 
       // Notes
       notesField
+
+      // Source + Tags
+      sourceField
+      tagsField
+    }
+  }
+
+  // MARK: - Source + Tags
+
+  @ViewBuilder
+  private var sourceField: some View {
+    FormFieldWrapper(label: "Source") {
+      TextField("e.g., LinkedIn, camp, referral", text: $formState.source)
+        .textFieldStyle(.roundedBorder)
+        .disabled(isDisabled)
+        .accessibilityLabel(String(localized: "Source, optional"))
+        .accessibilityHint("Where you found this coach")
+    }
+  }
+
+  @ViewBuilder
+  private var tagsField: some View {
+    FormFieldWrapper(label: "Tags") {
+      CoachTagsCard(
+        tags: formState.tags,
+        onAdd: { formState.tags = CoachTagsValidator.sanitize(formState.tags + [$0]) },
+        onRemove: { tag in formState.tags.removeAll { $0 == tag } }
+      )
+      .disabled(isDisabled)
     }
   }
 
