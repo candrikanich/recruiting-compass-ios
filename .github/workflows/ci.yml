@@ -189,8 +189,12 @@ jobs:
             -quiet
         env:
           # App under test must talk to the same project it was seeded into.
-          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
+          # Names MUST be E2E_-prefixed: E2ETestEnvironment reads these exact
+          # keys and falls back to the local stack (127.0.0.1:54321) if unset —
+          # on a macOS runner that has no local stack the app hangs retrying the
+          # dead connection until the 60-min job timeout kills it.
+          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
 
       - name: Upload xcresult
         if: always()
