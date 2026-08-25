@@ -178,8 +178,8 @@ struct CoachDetailView: View {
         }
       )
 
-      if let stats = viewModel.stats {
-        CoachStatsGrid(stats: stats)
+      if let insights = viewModel.coachInsights {
+        CoachStatsGrid(insights: insights)
       }
 
       CoachStatisticsSection(coach: coach)
