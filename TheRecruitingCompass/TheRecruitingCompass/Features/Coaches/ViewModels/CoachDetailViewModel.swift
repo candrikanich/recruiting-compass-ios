@@ -17,6 +17,7 @@ final class CoachDetailViewModel {
   // Interactions and stats
   var recentInteractions: [Interaction] = []
   var stats: CoachStats?
+  var coachInsights: CoachInsights?
 
   // Communication analytics (parity with the web coach detail page)
   var metrics: CoachMetrics?
@@ -173,6 +174,7 @@ final class CoachDetailViewModel {
         limit: Self.interactionsFetchLimit
       )
       stats = computeStats()
+      coachInsights = CoachInsights.make(coach: coach, interactions: recentInteractions)
       metrics = CoachMetricsCalculator.metrics(for: coachId, in: recentInteractions)
       insights = CoachMetricsCalculator.insights(for: coachId, in: recentInteractions)
       logger.info("Loaded \(self.recentInteractions.count) interactions for coach")

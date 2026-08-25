@@ -162,6 +162,17 @@ final class CoachDetailViewModelTests: XCTestCase {
     XCTAssertNotNil(sut.errorMessage)
   }
 
+  func testLoadDetails_populatesInsights() async {
+    await sut.loadCoach()
+    mockService.stubbedInteractions = [
+      makeInteraction(id: "1", type: .email, occurredAt: iso8601(daysAgo: 1))
+    ]
+    await sut.loadDetails()
+    XCTAssertNotNil(sut.coachInsights)
+    XCTAssertEqual(sut.coachInsights?.totalInteractions, 1)
+    XCTAssertEqual(sut.coachInsights?.daysSinceContact, 1)
+  }
+
   // MARK: - Stats Tests
 
   func testComputeStats_WithInteractions() async {
