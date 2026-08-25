@@ -42,7 +42,13 @@ jobs:
         run: |
           UDID=$(xcrun simctl list devices available | grep 'iPhone 16' | grep -v 'Plus\|Pro' | head -1 | grep -oE '[0-9A-F-]{36}')
           echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
+          # Clean CoreSimulator state so xcodebuild reuses THIS booted device
+          # instead of spawning a fresh clone (a clone wedged on app launch and
+          # hung the whole 60-min E2E job — see git history).
+          xcrun simctl shutdown all || true
           xcrun simctl boot "$UDID" || true
+          # Block until fully booted before build/test steps target it.
+          xcrun simctl bootstatus "$UDID" -b
 
       - name: Create Release.xcconfig
         run: |
@@ -135,7 +141,13 @@ jobs:
         run: |
           UDID=$(xcrun simctl list devices available | grep 'iPhone 16' | grep -v 'Plus\|Pro' | head -1 | grep -oE '[0-9A-F-]{36}')
           echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
+          # Clean CoreSimulator state so xcodebuild reuses THIS booted device
+          # instead of spawning a fresh clone (a clone wedged on app launch and
+          # hung the whole 60-min E2E job — see git history).
+          xcrun simctl shutdown all || true
           xcrun simctl boot "$UDID" || true
+          # Block until fully booted before build/test steps target it.
+          xcrun simctl bootstatus "$UDID" -b
 
       - name: Create Release.xcconfig
         run: |
@@ -176,7 +188,7 @@ jobs:
           cd TheRecruitingCompass
           xcodebuild build-for-testing \
             -scheme TheRecruitingCompass \
-            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
             -quiet
 
       - name: Run UITests
@@ -184,8 +196,12 @@ jobs:
           cd TheRecruitingCompass
           xcodebuild test-without-building \
             -scheme TheRecruitingCompass \
-            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
             -only-testing:TheRecruitingCompassUITests \
+            -parallel-testing-enabled NO \
+            -test-timeouts-enabled YES \
+            -default-test-execution-time-allowance 120 \
+            -maximum-test-execution-time-allowance 300 \
             -quiet
         env:
           # App under test must talk to the same project it was seeded into.
