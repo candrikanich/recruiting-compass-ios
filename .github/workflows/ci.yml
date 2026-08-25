@@ -191,7 +191,14 @@ jobs:
           # (a bare UDID grep matched an iPhone 16e on iOS 18.5 — an SDK the app
           # doesn't support — which hung the job). Per-test timeouts bound any
           # single hung case; parallel clones disabled to reduce simulator churn.
+          # The manual Boot step boots a fuzzy-matched device (iPhone 16e); shut
+          # everything down first so xcodebuild boots ONLY the single iPhone 16
+          # (latest runtime) it targets — two booted sims contend for the
+          # simulator service hub, which failed to "bless" and hung a prior run.
+          xcrun simctl shutdown all || true
+
           run_uitests() {
+            set +e
             xcodebuild test-without-building \
               -scheme TheRecruitingCompass \
               -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
@@ -200,7 +207,18 @@ jobs:
               -test-timeouts-enabled YES \
               -default-test-execution-time-allowance 120 \
               -maximum-test-execution-time-allowance 300 \
-              -quiet
+              -quiet &
+            local xpid=$!
+            # xcodebuild does NOT exit when the simulator service hub dies mid-
+            # launch — it hangs until the job timeout, so the retry below never
+            # fires. Guard each attempt with a wall clock that force-kills it,
+            # letting the loop reset the sim stack and retry.
+            ( sleep 1200; echo "::warning::attempt exceeded 20m wall clock — killing xcodebuild"; kill -9 "$xpid" 2>/dev/null ) &
+            local wpid=$!
+            wait "$xpid"; local rc=$?
+            kill "$wpid" 2>/dev/null
+            set -e
+            return $rc
           }
           for attempt in 1 2; do
             echo "::group::E2E UITests attempt $attempt"
@@ -209,7 +227,7 @@ jobs:
               exit 0
             fi
             echo "::endgroup::"
-            echo "Attempt $attempt failed; resetting simulator stack before retry."
+            echo "Attempt $attempt failed/killed; resetting simulator stack before retry."
             xcrun simctl shutdown all || true
             killall -9 CoreSimulatorService || true
             sleep 5
