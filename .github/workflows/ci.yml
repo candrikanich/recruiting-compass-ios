@@ -42,13 +42,7 @@ jobs:
         run: |
           UDID=$(xcrun simctl list devices available | grep 'iPhone 16' | grep -v 'Plus\|Pro' | head -1 | grep -oE '[0-9A-F-]{36}')
           echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
-          # Clean CoreSimulator state so xcodebuild reuses THIS booted device
-          # instead of spawning a fresh clone (a clone wedged on app launch and
-          # hung the whole 60-min E2E job — see git history).
-          xcrun simctl shutdown all || true
           xcrun simctl boot "$UDID" || true
-          # Block until fully booted before build/test steps target it.
-          xcrun simctl bootstatus "$UDID" -b
 
       - name: Create Release.xcconfig
         run: |
@@ -141,13 +135,7 @@ jobs:
         run: |
           UDID=$(xcrun simctl list devices available | grep 'iPhone 16' | grep -v 'Plus\|Pro' | head -1 | grep -oE '[0-9A-F-]{36}')
           echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
-          # Clean CoreSimulator state so xcodebuild reuses THIS booted device
-          # instead of spawning a fresh clone (a clone wedged on app launch and
-          # hung the whole 60-min E2E job — see git history).
-          xcrun simctl shutdown all || true
           xcrun simctl boot "$UDID" || true
-          # Block until fully booted before build/test steps target it.
-          xcrun simctl bootstatus "$UDID" -b
 
       - name: Create Release.xcconfig
         run: |
@@ -188,21 +176,46 @@ jobs:
           cd TheRecruitingCompass
           xcodebuild build-for-testing \
             -scheme TheRecruitingCompass \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
             -quiet
 
       - name: Run UITests
         run: |
           cd TheRecruitingCompass
-          xcodebuild test-without-building \
-            -scheme TheRecruitingCompass \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
-            -only-testing:TheRecruitingCompassUITests \
-            -parallel-testing-enabled NO \
-            -test-timeouts-enabled YES \
-            -default-test-execution-time-allowance 120 \
-            -maximum-test-execution-time-allowance 300 \
-            -quiet
+          # Mirror the Build & Unit job's proven harness: CoreSimulator on the CI
+          # runner intermittently wedges on app launch (a spawned clone fails to
+          # resume: "Failed to send signal 19 ... : 3", then deviceservice.lockdown
+          # times out). No in-process retry survives a dead test host, so wrap the
+          # whole xcodebuild in a retry loop that resets the simulator stack
+          # between attempts. `OS=latest,name=iPhone 16` selects the newest runtime
+          # (a bare UDID grep matched an iPhone 16e on iOS 18.5 — an SDK the app
+          # doesn't support — which hung the job). Per-test timeouts bound any
+          # single hung case; parallel clones disabled to reduce simulator churn.
+          run_uitests() {
+            xcodebuild test-without-building \
+              -scheme TheRecruitingCompass \
+              -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+              -only-testing:TheRecruitingCompassUITests \
+              -parallel-testing-enabled NO \
+              -test-timeouts-enabled YES \
+              -default-test-execution-time-allowance 120 \
+              -maximum-test-execution-time-allowance 300 \
+              -quiet
+          }
+          for attempt in 1 2; do
+            echo "::group::E2E UITests attempt $attempt"
+            if run_uitests; then
+              echo "::endgroup::"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "Attempt $attempt failed; resetting simulator stack before retry."
+            xcrun simctl shutdown all || true
+            killall -9 CoreSimulatorService || true
+            sleep 5
+          done
+          echo "E2E UITests failed after 2 full attempts."
+          exit 1
         env:
           # App under test must talk to the same project it was seeded into.
           # Names MUST be E2E_-prefixed: E2ETestEnvironment reads these exact
