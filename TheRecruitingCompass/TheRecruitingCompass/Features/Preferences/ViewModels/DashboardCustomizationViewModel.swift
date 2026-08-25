@@ -103,15 +103,31 @@ final class DashboardCustomizationViewModel {
   // MARK: - Widgets Toggles
 
   func toggleAllWidgets(_ enabled: Bool) {
-    visibility.widgets.actionItems = enabled
-    visibility.widgets.quickTasks = enabled
-    visibility.widgets.atAGlanceSummary = enabled
-    visibility.widgets.interactionTrendChart = enabled
-    visibility.widgets.eventsSummary = enabled
-    visibility.widgets.performanceSummary = enabled
-    visibility.widgets.recentActivity = enabled
+    for id in DashboardWidgetID.allCases {
+      visibility.widgets[keyPath: id.visibilityKeyPath] = enabled
+    }
     markChanged()
     logger.debug("All widgets set to: \(enabled)")
+  }
+
+  // MARK: - Widget Order
+
+  /// Reorders the arrangeable widget list (drag-to-reorder from the customize screen).
+  func moveWidget(fromOffsets source: IndexSet, toOffset destination: Int) {
+    visibility.widgetOrder.move(fromOffsets: source, toOffset: destination)
+    markChanged()
+    logger.debug("Widget order changed")
+  }
+
+  /// Autosaving binding for a single widget's on/off flag, keyed by its stable id.
+  func binding(for id: DashboardWidgetID) -> Binding<Bool> {
+    Binding(
+      get: { self.visibility.widgets[keyPath: id.visibilityKeyPath] },
+      set: { newValue in
+        self.visibility.widgets[keyPath: id.visibilityKeyPath] = newValue
+        self.markChanged()
+      }
+    )
   }
 
   // MARK: - Reset
@@ -132,12 +148,6 @@ final class DashboardCustomizationViewModel {
   }
 
   var allWidgetsEnabled: Bool {
-    visibility.widgets.actionItems &&
-    visibility.widgets.quickTasks &&
-    visibility.widgets.atAGlanceSummary &&
-    visibility.widgets.interactionTrendChart &&
-    visibility.widgets.eventsSummary &&
-    visibility.widgets.performanceSummary &&
-    visibility.widgets.recentActivity
+    DashboardWidgetID.allCases.allSatisfy { visibility.widgets[keyPath: $0.visibilityKeyPath] }
   }
 }

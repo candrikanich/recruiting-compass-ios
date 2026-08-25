@@ -78,7 +78,8 @@ struct DashboardView: View {
             }
 
             if !viewModel.isEmpty {
-              DashboardActionSection(
+              DashboardWidgetStack(
+                order: viewModel.widgetVisibility.widgetOrder,
                 visibility: viewModel.widgetVisibility.widgets,
                 suggestions: viewModel.suggestions,
                 pendingCount: viewModel.suggestionsPendingCount,
@@ -87,6 +88,15 @@ struct DashboardView: View {
                 coachesNeedingFollowup: viewModel.coachesNeedingFollowup,
                 allSchools: viewModel.allSchools,
                 events: viewModel.events,
+                interactionTrends: viewModel.interactionTrends,
+                metrics: viewModel.metrics,
+                schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
+                interactionsThisMonth: viewModel.interactionsThisMonth,
+                daysUntilGraduationFormatted: viewModel.daysUntilGraduationFormatted,
+                isEmpty: viewModel.isEmpty,
+                athleteSport: viewModel.athleteSport,
+                athleteGender: viewModel.athleteGender,
+                graduationYear: viewModel.graduationYear,
                 quickTasks: $viewModel.quickTasks,
                 onDismissSuggestion: { id in Task { await viewModel.dismissSuggestion(id) } },
                 onCompleteSuggestion: { id in Task { await viewModel.completeSuggestion(id) } },
@@ -96,19 +106,6 @@ struct DashboardView: View {
                 onDeleteTask: viewModel.deleteTask,
                 onClearCompleted: viewModel.clearCompletedTasks,
                 onCoachContacted: { Task { await viewModel.fetchDashboardData() } }
-              )
-
-              DashboardInsightsSection(
-                visibility: viewModel.widgetVisibility.widgets,
-                interactionTrends: viewModel.interactionTrends,
-                metrics: viewModel.metrics,
-                schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
-                interactionsThisMonth: viewModel.interactionsThisMonth,
-                daysUntilGraduationFormatted: viewModel.daysUntilGraduationFormatted,
-                isEmpty: viewModel.isEmpty,
-                athleteSport: viewModel.athleteSport,
-                athleteGender: viewModel.athleteGender,
-                graduationYear: viewModel.graduationYear
               )
             }
 
