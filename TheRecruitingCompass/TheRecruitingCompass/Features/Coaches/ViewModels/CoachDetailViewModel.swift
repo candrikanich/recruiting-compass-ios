@@ -97,6 +97,13 @@ final class CoachDetailViewModel {
     authManager.user?.id
   }
 
+  /// The loaded coach's family unit (resolved from the passed-in schools),
+  /// used to present the Log Interaction form.
+  var resolvedFamilyUnitId: String? {
+    guard let coach else { return nil }
+    return allSchools.first(where: { $0.id == coach.schoolId })?.familyUnitId
+  }
+
   var editableCoachBinding: Binding<EditableCoach> {
     Binding(
       get: { [weak self] in
