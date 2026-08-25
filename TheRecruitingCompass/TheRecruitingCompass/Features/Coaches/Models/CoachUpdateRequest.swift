@@ -12,6 +12,8 @@ struct CoachUpdateRequest: Codable, Sendable {
   let nextContactDate: String?
   let followUpThresholdDays: Int?
   let lastContactDate: String?
+  let tags: [String]?
+  let source: String?
 
   enum CodingKeys: String, CodingKey {
     case firstName = "first_name"
@@ -23,6 +25,8 @@ struct CoachUpdateRequest: Codable, Sendable {
     case nextContactDate = "next_contact_date"
     case followUpThresholdDays = "follow_up_threshold_days"
     case lastContactDate = "last_contact_date"
+    case tags
+    case source
   }
 
   /// All fields default to nil so callers can update a single field (e.g. `CoachUpdateRequest(lastContactDate:)`)
@@ -38,7 +42,9 @@ struct CoachUpdateRequest: Codable, Sendable {
     notes: String? = nil,
     nextContactDate: String? = nil,
     followUpThresholdDays: Int? = nil,
-    lastContactDate: String? = nil
+    lastContactDate: String? = nil,
+    tags: [String]? = nil,
+    source: String? = nil
   ) {
     self.firstName = firstName
     self.lastName = lastName
@@ -51,5 +57,7 @@ struct CoachUpdateRequest: Codable, Sendable {
     self.nextContactDate = nextContactDate
     self.followUpThresholdDays = followUpThresholdDays
     self.lastContactDate = lastContactDate
+    self.tags = tags
+    self.source = source
   }
 }

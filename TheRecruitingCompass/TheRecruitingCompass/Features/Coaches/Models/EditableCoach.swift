@@ -9,6 +9,8 @@ struct EditableCoach {
   var twitterHandle: String
   var instagramHandle: String
   var notes: String
+  var tags: [String]
+  var source: String
   var nextContactDate: Date?
   var followUpThresholdDays: Int
 
@@ -29,6 +31,8 @@ struct EditableCoach {
       twitterHandle: "",
       instagramHandle: "",
       notes: "",
+      tags: [],
+      source: "",
       nextContactDate: nil,
       followUpThresholdDays: 21
     )
@@ -43,6 +47,8 @@ struct EditableCoach {
     twitterHandle: String,
     instagramHandle: String,
     notes: String,
+    tags: [String] = [],
+    source: String = "",
     nextContactDate: Date? = nil,
     followUpThresholdDays: Int = 21
   ) {
@@ -54,6 +60,8 @@ struct EditableCoach {
     self.twitterHandle = twitterHandle
     self.instagramHandle = instagramHandle
     self.notes = notes
+    self.tags = tags
+    self.source = source
     self.nextContactDate = nextContactDate
     self.followUpThresholdDays = followUpThresholdDays
   }
@@ -67,6 +75,8 @@ struct EditableCoach {
     self.twitterHandle = coach.twitterHandle ?? ""
     self.instagramHandle = coach.instagramHandle ?? ""
     self.notes = coach.notes ?? ""
+    self.tags = coach.tags
+    self.source = coach.source ?? ""
     self.followUpThresholdDays = coach.followUpThresholdDays ?? 21
     if let dateString = coach.nextContactDate {
       self.nextContactDate = EditableCoach.isoDateFormatter.date(from: dateString)
@@ -87,7 +97,9 @@ struct EditableCoach {
       instagramHandle: instagramHandle.isEmpty ? nil : instagramHandle,
       notes: DataSanitizer.nilIfEmpty(DataSanitizer.stripHtmlTags(notes)),
       nextContactDate: nextContactDateString,
-      followUpThresholdDays: followUpThresholdDays
+      followUpThresholdDays: followUpThresholdDays,
+      tags: CoachTagsValidator.sanitize(tags),
+      source: CoachTagsValidator.sanitizeSource(source)
     )
   }
 }

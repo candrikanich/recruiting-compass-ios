@@ -56,6 +56,10 @@ extension CoachCreateRequest {
       DataSanitizer.stripHtmlTags(form.notes)
     )
 
+    // Optional: tags/source (caps enforced client-side)
+    let tags = CoachTagsValidator.sanitize(form.tags)
+    let source = CoachTagsValidator.sanitizeSource(form.source)
+
     return CoachCreateRequest(
       schoolId: schoolId,
       userId: userId,
@@ -67,7 +71,9 @@ extension CoachCreateRequest {
       phone: phone,
       twitterHandle: twitterHandle,
       instagramHandle: instagramHandle,
-      notes: notes
+      notes: notes,
+      tags: tags,
+      source: source
     )
   }
 }
