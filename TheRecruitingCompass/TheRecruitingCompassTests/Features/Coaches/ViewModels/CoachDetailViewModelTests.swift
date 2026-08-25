@@ -177,6 +177,14 @@ final class CoachDetailViewModelTests: XCTestCase {
     XCTAssertEqual(sut.coachInsights?.daysSinceContact, 1)
   }
 
+  // MARK: - Tags Tests
+
+  func testSaveTags_sanitizesAndPersists() async {
+    await sut.loadCoach()
+    await sut.saveTags(["  Football ", "Football", ""])   // dupes/empties dropped
+    XCTAssertEqual(mockService.lastUpdateCoachUpdates?.tags, ["Football"])
+  }
+
   // MARK: - Social-DM Tests
 
   func testArmSocialDM_setsPending() async {

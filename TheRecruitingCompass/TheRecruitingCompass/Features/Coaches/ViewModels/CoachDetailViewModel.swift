@@ -279,6 +279,23 @@ final class CoachDetailViewModel {
     pendingSocialDM = nil
   }
 
+  // MARK: - Tags
+
+  /// Persist coach tags (sanitized to the 20/40 caps), updating the loaded coach.
+  func saveTags(_ tags: [String]) async {
+    guard let coachId = coach?.id else { return }
+    let sanitized = CoachTagsValidator.sanitize(tags)
+    do {
+      let updated = try await coachesService.updateCoach(id: coachId, updates: CoachUpdateRequest(tags: sanitized))
+      coach = updated
+      await invalidateCoachCache()
+      logger.info("Coach tags updated (\(sanitized.count))")
+    } catch {
+      logger.error("Failed to update tags: \(error.localizedDescription)")
+      errorMessage = "Failed to save tags"
+    }
+  }
+
   private func computeStats() -> CoachStats {
     let totalInteractions = recentInteractions.count
 
