@@ -30,16 +30,9 @@ struct CoachStatsGrid: View {
       highlighted: overdue
     ) {
       if overdue {
-        Text("OVERDUE")
-          .font(.caption2.bold())
-          .foregroundStyle(.white)
-          .padding(.horizontal, 6).padding(.vertical, 2)
-          .background(Color.Brand.red500)
-          .clipShape(Capsule())
+        subPill("OVERDUE", text: .white, background: Color.Brand.red500)
       } else {
-        Text(daysSinceSubtitle)
-          .font(.caption2)
-          .foregroundStyle(.secondary)
+        subPill(daysSinceSubtitle, text: .secondary, background: Color(uiColor: .systemGray5))
       }
     }
   }
@@ -57,9 +50,7 @@ struct CoachStatsGrid: View {
       valueColor: .primary,
       highlighted: false
     ) {
-      Text("\(insights.totalInteractions) logged")
-        .font(.caption2)
-        .foregroundStyle(.secondary)
+      subPill("\(insights.totalInteractions) logged", text: Color.Brand.blue600, background: Color.Brand.blue100)
     }
   }
 
@@ -70,10 +61,20 @@ struct CoachStatsGrid: View {
       valueColor: .primary,
       highlighted: false
     ) {
-      Text("\(insights.responseRate)% rate")
-        .font(.caption2)
-        .foregroundStyle(Color.Brand.emerald600)
+      subPill("\(insights.responseRate)% rate", text: Color.Brand.emerald600, background: Color.Brand.emerald100)
     }
+  }
+
+  @ViewBuilder
+  private func subPill(_ text: LocalizedStringKey, text textColor: Color, background: Color) -> some View {
+    Text(text)
+      .font(.caption2.bold())
+      .foregroundStyle(textColor)
+      .lineLimit(1)
+      .minimumScaleFactor(0.7)
+      .padding(.horizontal, 8).padding(.vertical, 3)
+      .background(background)
+      .clipShape(Capsule())
   }
 
   @ViewBuilder

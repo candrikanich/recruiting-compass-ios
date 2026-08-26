@@ -129,20 +129,33 @@ struct CoachInteractionsLogSection: View {
 
   @ViewBuilder private var summaryRow: some View {
     HStack(spacing: 8) {
-      summaryTile(String(localized: "Shown"), "\(filtered.count)", .primary)
-      summaryTile(String(localized: "Sent"), "\(sentCount)", BadgeColor.blue.foregroundColor)
-      summaryTile(String(localized: "Received"), "\(receivedCount)", BadgeColor.emerald.foregroundColor)
+      summaryTile(String(localized: "Shown"), "\(filtered.count)",
+                  label: Color.secondaryText, value: .primary,
+                  background: Color(uiColor: .systemGray6), border: Color(uiColor: .separator))
+      summaryTile(String(localized: "Sent"), "\(sentCount)",
+                  label: Color.Brand.blue600, value: Color.Brand.blue600,
+                  background: Color.Brand.blue100, border: Color.Brand.blue100)
+      summaryTile(String(localized: "Received"), "\(receivedCount)",
+                  label: Color.Brand.emerald600, value: Color.Brand.emerald600,
+                  background: Color.Brand.emerald100, border: Color.Brand.emerald100)
     }
   }
 
-  private func summaryTile(_ label: String, _ value: String, _ color: Color) -> some View {
-    VStack(spacing: 2) {
-      Text(value).font(.headline).foregroundStyle(color)
-      Text(label).font(.caption).foregroundStyle(Color.secondaryText)
+  private func summaryTile(_ label: String, _ value: String,
+                           label labelColor: Color, value valueColor: Color,
+                           background: Color, border: Color) -> some View {
+    HStack(spacing: 6) {
+      Text(label.uppercased())
+        .font(.caption2.bold())
+        .foregroundStyle(labelColor)
+      Text(value)
+        .font(.subheadline.bold())
+        .foregroundStyle(valueColor)
     }
     .frame(maxWidth: .infinity)
     .padding(.vertical, 8)
-    .background(Color(.systemGray6))
+    .background(background)
+    .overlay(RoundedRectangle(cornerRadius: 10).stroke(border, lineWidth: 1))
     .clipShape(RoundedRectangle(cornerRadius: 10))
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(label): \(value)")
