@@ -106,6 +106,7 @@ struct PublicProfileCard: View {
 
     // MARK: - Coach-bar + Hero
 
+    @ViewBuilder
     private var hero: some View {
         VStack(alignment: .leading, spacing: 0) {
             coachBar
@@ -114,6 +115,7 @@ struct PublicProfileCard: View {
         .background(data.headerColor.color)
     }
 
+    @ViewBuilder
     private var coachBar: some View {
         HStack {
             HStack(spacing: 6) {
@@ -140,6 +142,7 @@ struct PublicProfileCard: View {
         }
     }
 
+    @ViewBuilder
     private var heroBody: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top, spacing: 16) {
@@ -186,6 +189,7 @@ struct PublicProfileCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    @ViewBuilder
     private var heroPhoto: some View {
         Group {
             if let photoOverride {
@@ -259,6 +263,7 @@ struct PublicProfileCard: View {
     /// Contact/Express Interest are visual-only in this native preview — the
     /// coach always submits leads via the real web page, never this in-app
     /// card, so there is no iOS-side lead endpoint to wire these to.
+    @ViewBuilder
     private var heroActions: some View {
         HStack(spacing: 12) {
             Label(String(localized: "Contact Player"), systemImage: "envelope")

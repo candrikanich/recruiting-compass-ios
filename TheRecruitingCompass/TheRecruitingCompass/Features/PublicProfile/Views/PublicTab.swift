@@ -100,6 +100,7 @@ struct PublicTab: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
+    @ViewBuilder
     private var statusPill: some View {
         Text(vm.isPublished
              ? String(localized: "Your profile is live & public")
