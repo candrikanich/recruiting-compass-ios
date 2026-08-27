@@ -10,12 +10,23 @@ struct PushNotificationManagerTests {
         let authManager = MockAuthManager()
         authManager.mockUserToReturn = makeTestUser(id: "user-abc")
         authManager.user = authManager.mockUserToReturn
-        let manager = PushNotificationManager(authManager: authManager)
+        let manager = PushNotificationManager(authManager: authManager, isRunningOnSimulator: false)
 
         let tokenData = Data([0xAB, 0xCD, 0xEF])
         await manager.registerDeviceToken(tokenData)
 
         #expect(manager.currentTokenStringForTesting == "abcdef")
+    }
+
+    @Test func registerDeviceTokenSkipsOnSimulator() async {
+        let authManager = MockAuthManager()
+        authManager.mockUserToReturn = makeTestUser(id: "user-abc")
+        authManager.user = authManager.mockUserToReturn
+        let manager = PushNotificationManager(authManager: authManager, isRunningOnSimulator: true)
+
+        await manager.registerDeviceToken(Data([0xAB, 0xCD, 0xEF]))
+
+        #expect(manager.currentTokenStringForTesting == nil)
     }
 
     @Test func registerDeviceTokenNoOpWhenNoUser() async {
@@ -33,7 +44,7 @@ struct PushNotificationManagerTests {
         let authManager = MockAuthManager()
         authManager.mockUserToReturn = makeTestUser(id: "user-abc")
         authManager.user = authManager.mockUserToReturn
-        let manager = PushNotificationManager(authManager: authManager)
+        let manager = PushNotificationManager(authManager: authManager, isRunningOnSimulator: false)
         await manager.registerDeviceToken(Data([0xAA]))
 
         await manager.deleteDeviceToken()
