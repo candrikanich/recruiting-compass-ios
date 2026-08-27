@@ -101,19 +101,36 @@ Trigger on the row insert, not at each call site — notifications are created i
 
 ---
 
-## Next step — verify the actual fix
+## RESOLVED 2026-08-27 — push confirmed arriving on-device
 
-The simulator-token fix is committed on iOS branch `feat/push-notification-delivery-ios`
-(`ee14802a`, `d1db30d6`) but **not yet device-tested**. Next: merge, install on a real
-physical device (not Simulator) running a fresh dev build, submit a Contact/Interest on
-the public profile, confirm push arrives. If it still doesn't, pull real logs from
-Supabase Dashboard → Edge Functions → `send-push-notification` → Logs (the `query_logs`
-MCP tool was erroring all session — try the dashboard UI directly instead).
+After the simulator-token fix merged (iOS PR #74, `main` @ `1eb6b156`), live device testing
+found a **second, unrelated bug**: `send-push-notification` used one global `APNS_ENVIRONMENT`
+secret to pick the APNs host for every token. That secret was `"production"`; every real
+`device_tokens` row is `sandbox` (dev builds) — every send got an unconditional `400
+BadDeviceToken`, silently swallowed (function always returns `200` to its DB trigger
+regardless of per-token APNs outcome). This was likely the actual root cause all along, not
+the simulator tokens (though those were real garbage too and worth having fixed).
 
-**Also flagged, not yet actioned:** the `send-push-notification`, `process-deadline-alerts`,
-`process-follow-up-reminders`, `send-weekly-digest` edge functions all exist live in prod
-with zero source control — not committed to either repo. Worth pulling their source into
-`supabase/functions/` in whichever repo owns them, so future greps/audits actually find them.
+Diagnosed via temporary `push_debug_log` table instrumentation deployed straight into the
+function (`query_logs` MCP tool errored on every call all session — a real tool bug, not a
+data problem). Fixed by routing per-token via `device_tokens.environment` instead of the
+global secret. **Verified live: push banner arrived on Chris's physical device.**
+
+Fix shipped as web PR #537 (`fix/push-apns-environment-routing`), which also commits the
+function's source to `supabase/functions/send-push-notification/` — it existed live in prod
+since 2026-08-16 but was never committed to either repo, which is why grep never found it in
+the first place. Same PR excludes `supabase/functions/**` from eslint/nuxi typecheck (Deno
+runtime, not part of the Nuxt project).
+
+**Self-inflicted regression, caught and fixed same session:** setting `APNS_KEY_ID`/
+`APNS_TEAM_ID` secrets today (for the *new* `.p8` Chris pulled from the portal) briefly broke
+JWT signing, because the function actually signs with a *different*, pre-existing secret
+(`APNS_PRIVATE_KEY`, untouched from 8/16) — mismatched Key ID/Team ID vs. the key that
+actually signed the JWT. Fixed by also updating `APNS_PRIVATE_KEY` to the new `.p8`, so
+key/kid/team are consistent. Worth remembering next time secrets get touched here.
+
+**Still open, not blocking:** no automated test for the edge function itself (Deno, outside
+the web repo's Vitest setup).
 
 ## Not in scope / already fixed this session
 
