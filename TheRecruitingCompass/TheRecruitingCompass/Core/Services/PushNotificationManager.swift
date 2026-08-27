@@ -13,8 +13,9 @@ private struct DeviceTokenRow: Encodable {
     let userId: String
     let token: String
     let platform: String
+    let environment: String
     enum CodingKeys: String, CodingKey {
-        case userId = "user_id"; case token; case platform
+        case userId = "user_id"; case token; case platform; case environment
     }
 }
 
@@ -79,7 +80,7 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
             try await supabaseManager.client
                 .from("device_tokens")
                 .upsert(
-                    DeviceTokenRow(userId: userId, token: hex, platform: "ios"),
+                    DeviceTokenRow(userId: userId, token: hex, platform: "ios", environment: APNsEnvironment.current),
                     onConflict: "user_id,token"
                 )
                 .execute()
