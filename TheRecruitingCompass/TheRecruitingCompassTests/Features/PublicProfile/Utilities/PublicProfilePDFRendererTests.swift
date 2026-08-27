@@ -13,15 +13,24 @@ final class PublicProfilePDFRendererTests: XCTestCase {
       bio: "Dedicated infielder with a strong bat.",
       academics: .init(gpa: 3.85, satScore: 1200, actScore: 27,
                        graduationYear: 2027, highSchool: "Central High",
+                       intendedMajor: "Kinesiology",
                        coreCourses: ["AP Calculus", "AP Physics"]),
-      athletic: .init(primarySport: "Baseball", primaryPosition: "Shortstop",
+      credentials: .init(primarySport: "Baseball", primaryPosition: "Shortstop",
                       positions: ["Shortstop", "Third Base"], heightInches: 74,
                       weightLbs: 185, ncaaId: "1234567", perfectGameId: nil,
                       prepBaseballId: nil, prepBaseballState: nil),
+      metrics: [.init(key: "exit_velo", label: "Exit Velocity", value: "88.0", unit: "mph", verified: true)],
       film: [.init(title: "2026 Highlights", url: "https://hudl.com/x")],
-      schools: [.init(id: "1", name: "State University")],
+      lookingFor: "A program that values academics and athletics equally.",
+      valuesTags: ["Academics", "Faith"],
+      teamHistory: [.init(name: "Central HS Varsity", level: "12th Grade", coach: "Coach Lee", contact: nil, years: nil)],
+      awards: [.init(title: "All-Conference", year: 2026)],
       social: .init(twitterHandle: "@jordan", instagramHandle: "@jordan",
-                    tiktokHandle: nil, facebookUrl: nil)
+                    tiktokHandle: nil, facebookUrl: nil),
+      commitmentStatus: .uncommitted,
+      committedSchoolName: nil,
+      updatedAt: Date(timeIntervalSince1970: 1_754_784_000),
+      visibleSectionOrder: DefaultSectionOrder.keys
     )
   }
 
@@ -36,7 +45,10 @@ final class PublicProfilePDFRendererTests: XCTestCase {
   func testRender_minimalProfileStillRenders() throws {
     let minimal = PublicProfileData(
       playerName: "A", photoUrl: nil, headerColor: .slate, bio: nil,
-      academics: nil, athletic: nil, film: nil, schools: nil, social: nil
+      academics: nil, credentials: nil, metrics: nil, film: nil,
+      lookingFor: nil, valuesTags: [], teamHistory: nil, awards: nil, social: nil,
+      commitmentStatus: .uncommitted, committedSchoolName: nil, updatedAt: nil,
+      visibleSectionOrder: []
     )
     let pdf = try XCTUnwrap(PublicProfilePDFRenderer.render(minimal))
     XCTAssertTrue(pdf.starts(with: pdfMagic))

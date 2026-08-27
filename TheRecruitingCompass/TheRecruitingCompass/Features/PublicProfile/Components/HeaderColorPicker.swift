@@ -6,7 +6,7 @@ struct HeaderColorPicker: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(HeaderColor.allCases, id: \.self) { color in
+                ForEach(HeaderColor.setupSwatches, id: \.self) { color in
                     Circle()
                         .fill(color.color)
                         .frame(width: 32, height: 32)

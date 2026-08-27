@@ -2,292 +2,272 @@ import Foundation
 import SwiftUI
 
 /// Section builders for `PublicProfileCard`, split out to keep the main
-/// view file focused on layout/header logic.
+/// view file focused on hero/layout logic. One method per `ProfileSectionKey`.
 extension PublicProfileCard {
-    // MARK: - Athletic
+    // MARK: - 1. Verified Athletic Metrics
 
     @ViewBuilder
-    func athleticSection(_ athletic: PublicProfileData.AthleticSection) -> some View {
-        sectionContainer(title: String(localized: "Athletic Profile")) {
-            if let positions = athletic.positions, !positions.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Positions")
-                        .font(.caption)
-                        .foregroundStyle(Color.Text.muted)
-
-                    FlowChips(items: positions)
-                }
-                .padding(.bottom, 8)
+    var metricsSection: some View {
+        sectionContainer(title: String(localized: "Verified Athletic Metrics"), icon: "chart.bar") {
+            if credentialsRowVisible {
+                FlowChips(chips: credentialsChips)
+                    .padding(.bottom, 8)
             }
-
-            VStack(alignment: .leading, spacing: 6) {
-                if let heightInches = athletic.heightInches {
-                    detailRow(label: String(localized: "Height"), value: Self.formatHeight(heightInches))
+            if let metrics = data.metrics, !metrics.isEmpty {
+                let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+                LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {
+                    ForEach(metrics) { metric in metricCard(metric) }
                 }
-                if let weightLbs = athletic.weightLbs {
-                    detailRow(label: String(localized: "Weight"), value: "\(weightLbs) lbs")
-                }
-            }
-
-            let prepBaseballURL = Self.prepBaseballURL(athletic, playerName: data.playerName)
-            let v2Services = Self.v2ServiceRows(athletic)
-            if athletic.ncaaId != nil || athletic.perfectGameId != nil
-                || athletic.prepBaseballId != nil || prepBaseballURL != nil
-                || !v2Services.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Recruiting IDs")
-                        .font(.caption)
-                        .foregroundStyle(Color.Text.muted)
-
-                    if let ncaaId = athletic.ncaaId {
-                        detailRow(label: String(localized: "NCAA ID"), value: ncaaId)
-                    }
-                    if let perfectGameId = athletic.perfectGameId {
-                        perfectGameRow(perfectGameId)
-                    }
-                    if athletic.prepBaseballId != nil || prepBaseballURL != nil {
-                        prepBaseballRow(id: athletic.prepBaseballId, urlString: prepBaseballURL)
-                    }
-                    ForEach(v2Services, id: \.def.key) { entry in
-                        serviceRow(def: entry.def, value: entry.value)
-                    }
-                }
-                .padding(.top, 8)
+            } else {
+                emptyStateText(String(localized: "No verified metrics yet"))
             }
         }
     }
 
+    private var credentialsRowVisible: Bool {
+        guard let credentials = data.credentials else { return false }
+        return credentials.ncaaId != nil || !Self.v2ServiceRows(credentials).isEmpty
+            || credentials.perfectGameId != nil || credentials.prepBaseballId != nil
+    }
+
+    /// NCAA ID pill + service badges (PBR / Perfect Game / v2 registry), Figma
+    /// "credentials row" atop the metrics grid.
+    private var credentialsChips: [String] {
+        guard let credentials = data.credentials else { return [] }
+        var chips: [String] = []
+        if let ncaaId = credentials.ncaaId { chips.append(String(localized: "NCAA ID: \(ncaaId)")) }
+        if let pgId = credentials.perfectGameId {
+            let label = RecruitingServices.service(forKey: "perfect_game_id")?.label ?? "Perfect Game"
+            chips.append("\(label) · \(pgId)")
+        }
+        if credentials.prepBaseballId != nil || Self.prepBaseballURL(credentials, playerName: data.playerName) != nil {
+            let label = RecruitingServices.service(forKey: "prep_baseball_id")?.label ?? "Prep Baseball"
+            chips.append(credentials.prepBaseballId.map { "\(label) · \($0)" } ?? label)
+        }
+        for entry in Self.v2ServiceRows(credentials) {
+            chips.append(entry.def.linkKind == .url ? entry.def.label : "\(entry.def.label) · \(entry.value)")
+        }
+        return chips
+    }
+
+    private func metricCard(_ metric: PublicProfileData.MetricEntry) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(metric.label.uppercased())
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.Text.muted)
+                Spacer()
+                if metric.verified {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.green)
+                        .accessibilityLabel(String(localized: "Verified"))
+                }
+            }
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(metric.value)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Color.Text.primary)
+                if !metric.unit.isEmpty {
+                    Text(metric.unit)
+                        .font(.caption)
+                        .foregroundStyle(Color.Text.muted)
+                }
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.Surface.muted)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
     /// Sport-gated v2 services the athlete has filled in, in registry order.
-    /// Only v2 keys resolve a value via `serviceValue(forKey:)`, so the v1
-    /// services returned by `servicesForSport` fall out naturally.
     static func v2ServiceRows(
-        _ athletic: PublicProfileData.AthleticSection
+        _ credentials: PublicProfileData.CredentialsRow
     ) -> [(def: RecruitingServices.ServiceDef, value: String)] {
-        RecruitingServices.servicesForSport(athletic.primarySport)
+        RecruitingServices.servicesForSport(credentials.primarySport)
             .compactMap { def in
-                guard let raw = athletic.serviceValue(forKey: def.key)?
+                guard let raw = credentials.serviceValue(forKey: def.key)?
                     .trimmingCharacters(in: .whitespacesAndNewlines),
                       !raw.isEmpty else { return nil }
                 return (def, raw)
             }
     }
 
-    /// Generic registry-driven row: builds the public link via
-    /// `RecruitingServices.profileURL`. `.url` services carry the profile URL as
-    /// their value, so show a neutral "View profile" label instead of the raw URL.
-    private func serviceRow(def: RecruitingServices.ServiceDef, value: String) -> some View {
-        let urlString = RecruitingServices.profileURL(
-            for: def, value: value, state: nil, name: nil
-        )
-        let linkText = def.linkKind == .url ? String(localized: "View profile") : value
-        return HStack {
-            Text(def.label)
-                .font(.footnote)
-                .foregroundStyle(Color.Text.muted)
-            Spacer()
-            if let urlString, let url = URL(string: urlString) {
-                Link(linkText, destination: url)
-                    .font(.footnote)
-                    .fontWeight(.medium)
-                    .accessibilityLabel(String(localized: "\(def.label) profile"))
-            } else {
-                Text(value)
-                    .font(.footnote)
-                    .fontWeight(.medium)
-                    .foregroundStyle(Color.Text.primary)
-            }
-        }
-    }
-
-    private func perfectGameRow(_ id: String) -> some View {
-        let service = RecruitingServices.service(forKey: "perfect_game_id")
-        let label = service?.label ?? String(localized: "Perfect Game")
-        let urlString = (service?.urlTemplate ?? "https://www.perfectgame.org/Players/Playerprofile.aspx?ID={value}")
-            .replacingOccurrences(of: "{value}", with: id)
-        return HStack {
-            Text(label)
-                .font(.footnote)
-                .foregroundStyle(Color.Text.muted)
-            Spacer()
-            if let url = URL(string: urlString) {
-                Link(id, destination: url)
-                    .font(.footnote)
-                    .fontWeight(.medium)
-                    .accessibilityLabel(String(localized: "Perfect Game profile \(id)"))
-            } else {
-                Text(id)
-                    .font(.footnote)
-                    .fontWeight(.medium)
-            }
-        }
-    }
-
-    /// Resolve the slug-based Prep Baseball Report URL from the athlete's PBR
-    /// state + display name — the canonical, byte-identical-with-web builder.
     static func prepBaseballURL(
-        _ athletic: PublicProfileData.AthleticSection, playerName: String
+        _ credentials: PublicProfileData.CredentialsRow, playerName: String
     ) -> String? {
         guard let def = RecruitingServices.service(forKey: "prep_baseball_id") else { return nil }
         return RecruitingServices.profileURL(
-            for: def, value: athletic.prepBaseballId,
-            state: athletic.prepBaseballState, name: playerName
+            for: def, value: credentials.prepBaseballId,
+            state: credentials.prepBaseballState, name: playerName
         )
     }
 
-    private func prepBaseballRow(id: String?, urlString: String?) -> some View {
-        let label = RecruitingServices.service(forKey: "prep_baseball_id")?.label
-            ?? String(localized: "Prep Baseball")
-        return HStack {
-            Text(label)
-                .font(.footnote)
-                .foregroundStyle(Color.Text.muted)
-            Spacer()
-            if let urlString, let url = URL(string: urlString) {
-                Link(id ?? String(localized: "View profile"), destination: url)
-                    .font(.footnote)
-                    .fontWeight(.medium)
-                    .accessibilityLabel(String(localized: "Prep Baseball Report profile"))
-            } else if let id {
-                Text(id)
-                    .font(.footnote)
-                    .fontWeight(.medium)
-                    .foregroundStyle(Color.Text.primary)
-            }
-        }
-    }
-
-    // MARK: - Academics
+    // MARK: - 2. Featured Highlights
 
     @ViewBuilder
-    func academicsSection(_ academics: PublicProfileData.AcademicsSection) -> some View {
-        sectionContainer(title: String(localized: "Academics")) {
-            VStack(alignment: .leading, spacing: 6) {
-                if let gpa = academics.gpa {
-                    detailRow(label: String(localized: "GPA"), value: Self.formatGPA(gpa))
-                }
-                if let graduationYear = academics.graduationYear {
-                    detailRow(label: String(localized: "Grad Year"), value: "\(graduationYear)")
-                }
-                if let satScore = academics.satScore {
-                    detailRow(label: String(localized: "SAT"), value: "\(satScore)")
-                }
-                if let actScore = academics.actScore {
-                    detailRow(label: String(localized: "ACT"), value: "\(actScore)")
-                }
-                if let highSchool = academics.highSchool {
-                    detailRow(label: String(localized: "High School"), value: highSchool)
-                }
-            }
-
-            if let coreCourses = academics.coreCourses, !coreCourses.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Core Courses")
-                        .font(.caption)
-                        .foregroundStyle(Color.Text.muted)
-                    Text(coreCourses.joined(separator: ", "))
-                        .font(.footnote)
-                        .foregroundStyle(Color.Text.secondary)
-                }
-                .padding(.top, 8)
-            }
-        }
-    }
-
-    // MARK: - Film
-
-    @ViewBuilder
-    func filmSection(_ film: [PublicProfileData.FilmItem]) -> some View {
-        if !film.isEmpty {
-            sectionContainer(title: String(localized: "Film")) {
+    var filmSection: some View {
+        sectionContainer(title: String(localized: "Featured Highlights"), icon: "film") {
+            if let film = data.film, !film.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(Array(film.enumerated()), id: \.offset) { _, item in
                         filmRow(item)
                     }
                 }
+            } else {
+                emptyStateText(String(localized: "No highlights added yet"))
             }
         }
     }
 
     private func filmRow(_ item: PublicProfileData.FilmItem) -> some View {
         let label = item.title ?? item.url
+        // No thumbnail URL exists in the data model yet (web + iOS both show a
+        // placeholder card) — parity with web `HighlightsReel.vue`.
         return Group {
             if let url = URL(string: item.url) {
                 Link(destination: url) {
-                    Text(label)
-                        .font(.footnote)
-                        .fontWeight(.medium)
+                    HStack(spacing: 10) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8).fill(Color.Surface.muted)
+                            Image(systemName: "play.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(Color.Text.muted)
+                        }
+                        .frame(width: 64, height: 40)
+                        Text(label).font(.footnote.weight(.medium))
+                        Spacer()
+                        Image(systemName: "arrow.up.right").font(.caption2)
+                    }
                 }
                 .accessibilityLabel(String(localized: "Film link: \(label)"))
             } else {
-                Text(label)
+                Text(label).font(.footnote).foregroundStyle(Color.Text.secondary)
+            }
+        }
+    }
+
+    // MARK: - 3. Academic Profile
+
+    @ViewBuilder
+    var academicsSection: some View {
+        sectionContainer(title: String(localized: "Academic Profile"), icon: "graduationcap") {
+            if let academics = data.academics {
+                VStack(alignment: .leading, spacing: 6) {
+                    if let highSchool = academics.highSchool {
+                        detailRow(label: String(localized: "High School"), value: highSchool)
+                    }
+                    if let gpa = academics.gpa {
+                        detailRow(label: String(localized: "GPA"), value: Self.formatGPA(gpa))
+                    }
+                    if let satScore = academics.satScore {
+                        detailRow(label: String(localized: "SAT"), value: "\(satScore)")
+                    }
+                    if let actScore = academics.actScore {
+                        detailRow(label: String(localized: "ACT"), value: "\(actScore)")
+                    }
+                    if let gradYear = academics.graduationYear {
+                        detailRow(label: String(localized: "Graduation Year"), value: "\(gradYear)")
+                    }
+                    if let major = academics.intendedMajor, !major.isEmpty {
+                        detailRow(label: String(localized: "Desired Major"), value: major)
+                    }
+                }
+                if let ncaaId = data.credentials?.ncaaId {
+                    Text(String(localized: "NCAA Eligibility Center ID: \(ncaaId)"))
+                        .font(.caption)
+                        .foregroundStyle(Color.Text.muted)
+                        .padding(.top, 8)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Color.Surface.muted)
+                        .clipShape(Capsule())
+                }
+                if let coreCourses = academics.coreCourses, !coreCourses.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Core Courses")
+                            .font(.caption)
+                            .foregroundStyle(Color.Text.muted)
+                        Text(coreCourses.joined(separator: ", "))
+                            .font(.footnote)
+                            .foregroundStyle(Color.Text.secondary)
+                    }
+                    .padding(.top, 8)
+                }
+            } else {
+                emptyStateText(String(localized: "No academic details yet"))
+            }
+        }
+    }
+
+    // MARK: - 4. Target Program & Values
+
+    @ViewBuilder
+    var valuesSection: some View {
+        sectionContainer(title: String(localized: "Target Program & Values"), icon: "target") {
+            if let lookingFor = data.lookingFor, !lookingFor.isEmpty {
+                Text(lookingFor)
                     .font(.footnote)
+                    .foregroundStyle(Color.Text.secondary)
+            }
+            if !data.valuesTags.isEmpty {
+                FlowChips(chips: data.valuesTags)
+                    .padding(.top, data.lookingFor?.isEmpty == false ? 8 : 0)
+            }
+            if (data.lookingFor?.isEmpty ?? true) && data.valuesTags.isEmpty {
+                emptyStateText(String(localized: "Nothing shared yet"))
+            }
+        }
+    }
+
+    // MARK: - 5. Team History & Coaching References
+
+    @ViewBuilder
+    var teamHistorySection: some View {
+        sectionContainer(title: String(localized: "Team History & Coaching References"), icon: "clock") {
+            if let teamHistory = data.teamHistory, !teamHistory.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(teamHistory) { entry in teamHistoryRow(entry) }
+                }
+            } else {
+                emptyStateText(String(localized: "No team history yet"))
+            }
+        }
+    }
+
+    private func teamHistoryRow(_ entry: PublicProfileData.TeamHistoryEntry) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 8) {
+                Text(entry.name).font(.footnote.weight(.semibold))
+                Text(entry.level)
+                    .font(.caption2.weight(.medium))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(Color.Surface.muted)
+                    .clipShape(Capsule())
+                if let years = entry.years {
+                    Text(years).font(.caption).foregroundStyle(Color.Text.muted)
+                }
+            }
+            if let coach = entry.coach, !coach.isEmpty {
+                let contactSuffix = entry.contact.map { " — Reference Contact: \($0)" } ?? ""
+                Text("Coach: \(coach)\(contactSuffix)")
+                    .font(.caption)
                     .foregroundStyle(Color.Text.secondary)
             }
         }
     }
 
-    // MARK: - Schools
+    // MARK: - 6. Awards & Athletic Honors
 
     @ViewBuilder
-    func schoolsSection(_ schools: [PublicProfileData.SchoolItem]) -> some View {
-        if !schools.isEmpty {
-            sectionContainer(title: String(localized: "Target Schools")) {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(schools, id: \.id) { school in
-                        Text(school.name)
-                            .font(.footnote)
-                            .foregroundStyle(Color.Text.secondary)
-                    }
-                }
-            }
-        }
-    }
-
-    // MARK: - Social
-
-    @ViewBuilder
-    func socialSection(_ social: PublicProfileData.SocialSection) -> some View {
-        if !social.isEmpty {
-            sectionContainer(title: String(localized: "Social")) {
-                VStack(alignment: .leading, spacing: 8) {
-                    socialRow(label: String(localized: "Twitter"), handle: social.twitterHandle,
-                              url: SocialLinkBuilder.twitterURL(social.twitterHandle))
-                    socialRow(label: String(localized: "Instagram"), handle: social.instagramHandle,
-                              url: SocialLinkBuilder.instagramURL(social.instagramHandle))
-                    socialRow(label: String(localized: "TikTok"), handle: social.tiktokHandle,
-                              url: SocialLinkBuilder.tiktokURL(social.tiktokHandle))
-                    socialRow(label: String(localized: "Facebook"), handle: social.facebookUrl,
-                              url: SocialLinkBuilder.facebookURL(social.facebookUrl))
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func socialRow(label: String, handle: String?, url: URL?) -> some View {
-        if let handle, !handle.trimmingCharacters(in: .whitespaces).isEmpty {
-            HStack {
-                Text(label)
-                    .font(.footnote)
-                    .foregroundStyle(Color.Text.muted)
-                Spacer()
-                if let url {
-                    Link(destination: url) {
-                        HStack(spacing: 4) {
-                            Text(handle)
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption2)
-                        }
-                        .font(.footnote)
-                        .fontWeight(.medium)
-                    }
-                    .accessibilityLabel(String(localized: "Open \(label) profile \(handle)"))
-                } else {
-                    Text(handle)
-                        .font(.footnote)
-                        .fontWeight(.medium)
-                        .foregroundStyle(Color.Text.primary)
-                }
+    var awardsSection: some View {
+        sectionContainer(title: String(localized: "Awards & Athletic Honors"), icon: "trophy") {
+            if let awards = data.awards, !awards.isEmpty {
+                FlowChips(awardChips: awards)
+            } else {
+                emptyStateText(String(localized: "No awards yet"))
             }
         }
     }
@@ -296,25 +276,24 @@ extension PublicProfileCard {
 
     @ViewBuilder
     func sectionContainer<Content: View>(
-        title: String,
+        title: String, icon: String,
         @ViewBuilder content: () -> Content
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title.uppercased())
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.Text.muted)
-                .accessibilityAddTraits(.isHeader)
+            Label {
+                Text(title).font(.subheadline.weight(.semibold))
+            } icon: {
+                Image(systemName: icon)
+            }
+            .foregroundStyle(Color.Text.primary)
+            .accessibilityAddTraits(.isHeader)
 
             content()
         }
-        .padding(20)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .overlay(alignment: .top) {
-            Rectangle()
-                .fill(Color.Surface.border)
-                .frame(height: 1)
-        }
+        .background(Color.Surface.muted.opacity(0.4))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     func detailRow(label: String, value: String) -> some View {
@@ -330,28 +309,32 @@ extension PublicProfileCard {
         }
     }
 
-    static func formatHeight(_ inches: Int) -> String {
-        let feet = inches / 12
-        let remainder = inches % 12
-        return "\(feet)'\(remainder)\""
-    }
-
-    static func formatGPA(_ gpa: Double) -> String {
-        String(format: "%.2f", gpa)
+    func emptyStateText(_ text: String) -> some View {
+        Text(text)
+            .font(.footnote)
+            .foregroundStyle(Color.Text.muted)
     }
 }
 
-/// Minimal wrapping chip row for position tags (no external dependency).
-private struct FlowChips: View {
-    let items: [String]
+/// Minimal wrapping chip row for tag/credential/award chips (no external dependency).
+struct FlowChips: View {
+    let chips: [String]
+
+    init(items: [String]) { self.chips = items }
+    init(chips: [String]) { self.chips = chips }
+    init(awardChips awards: [PublicProfileData.AwardEntry]) {
+        self.chips = awards.map { award in
+            award.year.map { "🏅 \(award.title) · \($0)" } ?? "🏅 \(award.title)"
+        }
+    }
 
     var body: some View {
         // Simple wrap using a LazyVGrid-free flex approach: horizontal
         // ScrollView keeps this lightweight and avoids a custom Layout.
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
-                ForEach(items, id: \.self) { item in
-                    Text(item)
+                ForEach(chips, id: \.self) { chip in
+                    Text(chip)
                         .font(.caption)
                         .fontWeight(.medium)
                         .padding(.horizontal, 10)
@@ -363,6 +346,6 @@ private struct FlowChips: View {
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "Positions: \(items.joined(separator: ", "))"))
+        .accessibilityLabel(Text(chips.joined(separator: ", ")))
     }
 }

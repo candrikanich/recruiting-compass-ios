@@ -2,16 +2,33 @@ import Foundation
 
 /// Native card input, assembled on-device from existing iOS services.
 /// NOT decoded from the API (the API's PublicProfileData is a web-only concern).
+/// Mirrors the section model shipped by web PRs #500–510 (see
+/// `planning/iOS_SPEC_public-profile-and-setup-2026-08-26.md`): six
+/// reorderable/hideable sections — metrics, film, academics, values,
+/// team_history, awards — plus a credentials row folded into metrics and a
+/// hero physicals line. The old standalone "Target Schools" list is gone
+/// (privacy: never leak the athlete's followed schools to a visitor).
 struct PublicProfileData: Equatable, Sendable {
     let playerName: String
     let photoUrl: String?
     let headerColor: HeaderColor
     let bio: String?
     let academics: AcademicsSection?
-    let athletic: AthleticSection?
+    let credentials: CredentialsRow?
+    let metrics: [MetricEntry]?
     let film: [FilmItem]?
-    let schools: [SchoolItem]?
+    let lookingFor: String?
+    let valuesTags: [String]
+    let teamHistory: [TeamHistoryEntry]?
+    let awards: [AwardEntry]?
     let social: SocialSection?
+    let commitmentStatus: CommitmentStatus
+    let committedSchoolName: String?
+    let updatedAt: Date?
+    /// Owner-visible sections, in owner-chosen order (already filtered to
+    /// `visible == true`). Drives render order + the academics/values and
+    /// team_history/awards 2-col pairing, parity with web `PublicProfileCard.vue`.
+    let visibleSectionOrder: [ProfileSectionKey]
 
     struct AcademicsSection: Equatable, Sendable {
         let gpa: Double?
@@ -19,10 +36,14 @@ struct PublicProfileData: Equatable, Sendable {
         let actScore: Int?
         let graduationYear: Int?
         let highSchool: String?
+        let intendedMajor: String?
         let coreCourses: [String]?
     }
 
-    struct AthleticSection: Equatable, Sendable {
+    /// Physicals + recruiting-ID credentials, folded from the old "Athletic"
+    /// section into the hero physicals line + the Metrics section's
+    /// credentials row (parity with web `RecruitingCredentials`).
+    struct CredentialsRow: Equatable, Sendable {
         let primarySport: String?
         let primaryPosition: String?
         let positions: [String]?
@@ -32,7 +53,6 @@ struct PublicProfileData: Equatable, Sendable {
         let perfectGameId: String?
         let prepBaseballId: String?
         let prepBaseballState: String?
-        // Services v2 — surfaced on the public card via the sport-gated registry.
         let athleticNetId: String?
         let milesplitUrl: String?
         let swimcloudId: String?
@@ -93,14 +113,40 @@ struct PublicProfileData: Equatable, Sendable {
         }
     }
 
+    /// One formatted metric card. `value`/`unit` come from `MetricRegistry`
+    /// (the stored DB `unit`/`display_value` carry stale/garbage data), one
+    /// entry per `metric_type`, newest wins on duplicates.
+    struct MetricEntry: Equatable, Sendable, Identifiable {
+        let key: String
+        let label: String
+        let value: String
+        let unit: String
+        let verified: Bool
+        var id: String { key }
+    }
+
     struct FilmItem: Equatable, Sendable {
         let title: String?
         let url: String
     }
 
-    struct SchoolItem: Equatable, Sendable {
-        let id: String
+    /// One team-history row (grade-level school team or travel/club team).
+    /// `contact` mirrors web's `PublicTeamHistoryEntry.contact` — always nil
+    /// today (no reference-phone field exists yet on either platform); render
+    /// only when present, per spec.
+    struct TeamHistoryEntry: Equatable, Sendable, Identifiable {
         let name: String
+        let level: String
+        let coach: String?
+        let contact: String?
+        let years: String?
+        var id: String { "\(level)-\(name)" }
+    }
+
+    struct AwardEntry: Equatable, Sendable, Identifiable {
+        let title: String
+        let year: Int?
+        var id: String { "\(title)-\(year.map(String.init) ?? "")" }
     }
 
     struct SocialSection: Equatable, Sendable {
