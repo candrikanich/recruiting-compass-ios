@@ -31,12 +31,28 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
     private(set) var lastError: String?
     private let supabaseManager: SupabaseManager
     private let authManager: any AuthManaging
+    /// Simulator remote-notification tokens are placeholders, not real APNs tokens — they
+    /// can't receive a push. Registering them poisoned `device_tokens` with deliverable-looking
+    /// rows that silently failed every APNs send. Injectable so unit tests (which run in the
+    /// Simulator themselves) can exercise the real-device registration path.
+    private let isRunningOnSimulator: Bool
 
     // Swift 6: singleton default arguments evaluate in the caller's isolation context,
     // not the callee's — resolve lazily in the body instead.
-    init(supabaseManager: SupabaseManager? = nil, authManager: (any AuthManaging)? = nil) {
+    init(
+        supabaseManager: SupabaseManager? = nil,
+        authManager: (any AuthManaging)? = nil,
+        isRunningOnSimulator: Bool = {
+            #if targetEnvironment(simulator)
+            true
+            #else
+            false
+            #endif
+        }()
+    ) {
         self.supabaseManager = supabaseManager ?? SupabaseManager.shared
         self.authManager = authManager ?? AuthManager.shared
+        self.isRunningOnSimulator = isRunningOnSimulator
     }
 
     // MARK: - Permission
@@ -70,6 +86,10 @@ final class PushNotificationManager: NSObject, PushNotificationManaging {
     // MARK: - Token
 
     func registerDeviceToken(_ token: Data) async {
+        guard !isRunningOnSimulator else {
+            logger.info("Simulator build — skipping device token registration")
+            return
+        }
         let hex = token.map { String(format: "%02.2hhx", $0) }.joined()
         guard let userId = authManager.user?.id else {
             logger.warning("No authenticated user — skipping device token registration")
