@@ -1,8 +1,13 @@
-# Handoff — Push Notification Delivery (APNs) is not wired
+# Handoff — Push Notification Delivery (APNs)
 
 **Date:** 2026-08-27
 **Reported:** Inbound coach contact/interest created in-app notifications, but **no APNs push arrived on iOS**. In-app notification list + web bell show the items fine.
-**Verdict:** Not an iOS bug. **The backend never sends a push.** Tokens are collected and never consumed. This is primarily **web/backend** work, with a few iOS verification tasks.
+
+**CORRECTED VERDICT (later same day):** The original verdict below — "no APNs sender exists anywhere" — was **wrong**. A full pipeline (DB trigger on `notifications` INSERT → `send-push-notification` edge function → APNs, with email + `notification_preferences` support already built in) has existed in prod since **2026-08-16**, including an already-applied auth fix (`20260816000001_fix_push_trigger_auth.sql`). It was never found because it lives only as a deployed Supabase Edge Function + DB trigger/migration — not grep-able from either repo's checked-out `supabase/functions/` (both are empty locally; the function was deployed directly, never committed).
+
+**Real root cause found via direct DB inspection:** `device_tokens` had **simulator placeholder tokens mixed in with real ones** — non-deliverable, wrong length (160 chars vs the correct 64), one even duplicated verbatim across two different users. Every push attempt to a bad row silently failed at APNs (`BadDeviceToken`); the edge function always returns `200 ok` to its DB trigger regardless of per-token APNs outcome, so nothing surfaced the failure. **Fixed 2026-08-27** (iOS commit `d1db30d6`): `PushNotificationManager` now skips registration entirely on Simulator; a migration pruned the 4 bad rows already in prod (6 valid tokens remain).
+
+**Original (incorrect) diagnosis preserved below for history — do not rebuild the edge function, it already exists.**
 
 ---
 
@@ -95,6 +100,20 @@ Trigger on the row insert, not at each call site — notifications are created i
    - **Edge-function requirement:** before sending, look up `notification_preferences` for `(user_id, notification_type)` matching the new `notifications` row's type; skip the push if `push_enabled = false` (default `true` if no row exists for that type).
 
 ---
+
+## Next step — verify the actual fix
+
+The simulator-token fix is committed on iOS branch `feat/push-notification-delivery-ios`
+(`ee14802a`, `d1db30d6`) but **not yet device-tested**. Next: merge, install on a real
+physical device (not Simulator) running a fresh dev build, submit a Contact/Interest on
+the public profile, confirm push arrives. If it still doesn't, pull real logs from
+Supabase Dashboard → Edge Functions → `send-push-notification` → Logs (the `query_logs`
+MCP tool was erroring all session — try the dashboard UI directly instead).
+
+**Also flagged, not yet actioned:** the `send-push-notification`, `process-deadline-alerts`,
+`process-follow-up-reminders`, `send-weekly-digest` edge functions all exist live in prod
+with zero source control — not committed to either repo. Worth pulling their source into
+`supabase/functions/` in whichever repo owns them, so future greps/audits actually find them.
 
 ## Not in scope / already fixed this session
 
