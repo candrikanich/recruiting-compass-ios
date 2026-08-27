@@ -8,10 +8,15 @@ final class PublicProfileDataTests: XCTestCase {
         let data = PublicProfileData(
             playerName: "Jordan Rivera", photoUrl: nil,
             headerColor: .slate, bio: nil,
-            academics: nil, athletic: nil, film: nil, schools: nil, social: nil
+            academics: nil, credentials: nil, metrics: nil, film: nil,
+            lookingFor: nil, valuesTags: [], teamHistory: nil, awards: nil,
+            social: nil, commitmentStatus: .uncommitted, committedSchoolName: nil,
+            updatedAt: nil, visibleSectionOrder: []
         )
         XCTAssertEqual(data.playerName, "Jordan Rivera")
-        XCTAssertNil(data.athletic)
+        XCTAssertNil(data.credentials)
+        XCTAssertNil(data.metrics)
+        XCTAssertTrue(data.valuesTags.isEmpty)
     }
 
     func testSocialSectionIsEmptyWhenAllHandlesBlank() {
@@ -28,5 +33,24 @@ final class PublicProfileDataTests: XCTestCase {
         let a = PublicProfileData.FilmItem(title: "Senior Highlights", url: "https://x/y")
         let b = PublicProfileData.FilmItem(title: "Senior Highlights", url: "https://x/y")
         XCTAssertEqual(a, b)
+    }
+
+    func testMetricEntryIdentifiableByKey() {
+        let entry = PublicProfileData.MetricEntry(
+            key: "batting_avg", label: "Batting Average", value: ".410", unit: "", verified: true
+        )
+        XCTAssertEqual(entry.id, "batting_avg")
+    }
+
+    func testTeamHistoryEntryContactOnlyWhenPresent() {
+        let noContact = PublicProfileData.TeamHistoryEntry(
+            name: "Central HS", level: "12th Grade", coach: "Coach Lee", contact: nil, years: nil
+        )
+        XCTAssertNil(noContact.contact)
+
+        let withContact = PublicProfileData.TeamHistoryEntry(
+            name: "Travel Elite", level: "Travel", coach: "Coach Diaz", contact: "555-0100", years: "2024-2025"
+        )
+        XCTAssertEqual(withContact.contact, "555-0100")
     }
 }

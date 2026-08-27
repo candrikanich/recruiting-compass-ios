@@ -32,4 +32,35 @@ enum SocialLinkBuilder {
         let normalized = trimmed.hasPrefix("http") ? trimmed : "https://\(trimmed)"
         return URL(string: normalized)
     }
+
+    /// One brand-social row entry: platform label, display handle (`@name`),
+    /// destination URL, SF Symbol standing in for the brand mark (SF Symbols
+    /// ships no official brand glyphs — parity with web's `SocialIcon.vue`
+    /// icon set is at the platform/link level, not pixel iconography).
+    struct BrandLink: Equatable {
+        let platform: String
+        let handle: String
+        let url: URL
+        let systemImage: String
+    }
+
+    /// X / Instagram / TikTok only — parity with web `buildSocialLinks`
+    /// (public hero + footer brand-icon row). Facebook has no public brand row.
+    static func brandLinks(from social: PublicProfileData.SocialSection) -> [BrandLink] {
+        var links: [BrandLink] = []
+        if let url = twitterURL(social.twitterHandle) {
+            links.append(BrandLink(platform: "X", handle: "@\(clean(social.twitterHandle!))", url: url, systemImage: "at"))
+        }
+        if let url = instagramURL(social.instagramHandle) {
+            links.append(BrandLink(
+                platform: "Instagram", handle: "@\(clean(social.instagramHandle!))", url: url, systemImage: "camera"
+            ))
+        }
+        if let url = tiktokURL(social.tiktokHandle) {
+            links.append(BrandLink(
+                platform: "TikTok", handle: "@\(clean(social.tiktokHandle!))", url: url, systemImage: "music.note"
+            ))
+        }
+        return links
+    }
 }

@@ -1,10 +1,16 @@
 import SwiftUI
 import UIKit
 
-/// Native coach-facing card for a player's public profile. Mirrors
-/// `recruiting-compass-web/components/profile/PublicProfileCard.vue`:
-/// gradient header (photo + name + sport/position + bio), then conditional
-/// Athletic / Academics / Film / Schools sections, then a footer.
+/// Native coach-facing card for a player's public profile — the owner-side
+/// preview shown in the Setup panel and used for PDF export. Mirrors
+/// `recruiting-compass-web/components/profile/PublicProfileCard.vue` (Figma
+/// parity, PRs #500–510): coach-bar, dark hero (photo/name/physicals/bio/
+/// socials), then owner-ordered sections, then a footer.
+///
+/// The coach never opens this native view — coaches always follow the shared
+/// web link, which renders the real `pages/p/[slug].vue`. This card exists so
+/// the athlete/parent can preview what that page will look like, and to
+/// render the PDF export.
 struct PublicProfileCard: View {
     let data: PublicProfileData
 
@@ -13,30 +19,17 @@ struct PublicProfileCard: View {
     /// `nil` (the default, and the live on-screen preview) keeps the normal `AsyncImage` path.
     var photoOverride: UIImage?
 
-    enum Section: CaseIterable {
-        case athletic, academics, film, schools, social
-    }
-
-    /// Pure gating logic, unit-testable without rendering the view.
-    static func visibleSections(for data: PublicProfileData) -> Set<Section> {
-        var sections = Set<Section>()
-        if data.athletic != nil { sections.insert(.athletic) }
-        if data.academics != nil { sections.insert(.academics) }
-        if data.film != nil { sections.insert(.film) }
-        if data.schools != nil { sections.insert(.schools) }
-        if let social = data.social, !social.isEmpty { sections.insert(.social) }
-        return sections
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            header
+            hero
 
-            if let athletic = data.athletic { athleticSection(athletic) }
-            if let academics = data.academics { academicsSection(academics) }
-            if let film = data.film { filmSection(film) }
-            if let schools = data.schools { schoolsSection(schools) }
-            if let social = data.social { socialSection(social) }
+            VStack(alignment: .leading, spacing: 20) {
+                ForEach(pairedSections, id: \.primary) { pair in
+                    sectionRow(for: pair)
+                }
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             footer
         }
@@ -48,108 +41,292 @@ struct PublicProfileCard: View {
         )
     }
 
-    // MARK: - Header
+    // MARK: - Section ordering / pairing
+
+    /// One row to render: a lone section, or a (primary, paired) 2-col pair.
+    /// Mirrors web's academics+values and team_history+awards pairing —
+    /// the paired key is dropped from its own standalone slot.
+    struct SectionRow: Equatable {
+        let primary: ProfileSectionKey
+        let paired: ProfileSectionKey?
+    }
+
+    private var pairedSections: [SectionRow] { Self.pairedSections(for: data.visibleSectionOrder) }
+
+    /// Pure, unit-testable pairing logic — academics pairs with values (when
+    /// both visible) and the standalone `values` slot is dropped; team_history
+    /// pairs with awards the same way. Byte-parity with web
+    /// `PublicProfileCard.vue`'s `academicsVisible`/`valuesVisible`/
+    /// `teamHistoryVisible`/`awardsVisible` computeds.
+    static func pairedSections(for order: [ProfileSectionKey]) -> [SectionRow] {
+        let hasValues = order.contains(.values)
+        let hasAwards = order.contains(.awards)
+        var rows: [SectionRow] = []
+        for key in order {
+            switch key {
+            case .academics:
+                rows.append(SectionRow(primary: .academics, paired: hasValues ? .values : nil))
+            case .values where hasValues && order.contains(.academics):
+                continue // drawn paired with academics above
+            case .teamHistory:
+                rows.append(SectionRow(primary: .teamHistory, paired: hasAwards ? .awards : nil))
+            case .awards where hasAwards && order.contains(.teamHistory):
+                continue // drawn paired with team history above
+            default:
+                rows.append(SectionRow(primary: key, paired: nil))
+            }
+        }
+        return rows
+    }
 
     @ViewBuilder
-    private var header: some View {
-        HStack(alignment: .top, spacing: 16) {
-            headerPhoto
+    private func sectionRow(for row: SectionRow) -> some View {
+        if let paired = row.paired {
+            let columns = [GridItem(.flexible(), alignment: .top), GridItem(.flexible(), alignment: .top)]
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {
+                section(for: row.primary)
+                section(for: paired)
+            }
+        } else {
+            section(for: row.primary)
+        }
+    }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(data.playerName)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
+    @ViewBuilder
+    private func section(for key: ProfileSectionKey) -> some View {
+        switch key {
+        case .metrics: metricsSection
+        case .film: filmSection
+        case .academics: academicsSection
+        case .values: valuesSection
+        case .teamHistory: teamHistorySection
+        case .awards: awardsSection
+        }
+    }
 
-                if let sportLine = sportPositionLine {
-                    Text(sportLine)
+    // MARK: - Coach-bar + Hero
+
+    private var hero: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            coachBar
+            heroBody
+        }
+        .background(data.headerColor.color)
+    }
+
+    private var coachBar: some View {
+        HStack {
+            HStack(spacing: 6) {
+                Image(systemName: "viewfinder.circle").accessibilityHidden(true)
+                Text("RecruitingCompass").font(.footnote.weight(.semibold))
+            }
+            .foregroundStyle(.white)
+            Spacer()
+            HStack(spacing: 6) {
+                Circle().fill(Color.green).frame(width: 6, height: 6)
+                Text(String(localized: "Verified Coach Access"))
+                    .font(.caption2.weight(.medium))
+            }
+            .foregroundStyle(Color.green.opacity(0.9))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(Color.green.opacity(0.15))
+            .clipShape(Capsule())
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(Color.white.opacity(0.12)).frame(height: 1)
+        }
+    }
+
+    private var heroBody: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top, spacing: 16) {
+                heroPhoto
+                Spacer(minLength: 0)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
+                    Text(data.playerName)
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(.white)
+                    if let sport = data.credentials?.primarySport, !sport.isEmpty {
+                        Text(sport)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 3)
+                            .background(Color.blue)
+                            .foregroundStyle(.white)
+                            .clipShape(Capsule())
+                    }
+                }
+
+                if let physicals = physicalsLine {
+                    Text(physicals)
                         .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.85))
+                        .foregroundStyle(.white.opacity(0.7))
                 }
 
                 if let bio = data.bio {
                     Text(bio)
-                        .font(.body)
-                        .foregroundStyle(.white.opacity(0.9))
-                        .padding(.top, 4)
+                        .font(.callout)
+                        .foregroundStyle(.white.opacity(0.85))
+                }
+
+                if let social = data.social, !social.isEmpty {
+                    socialRowHero(social)
                 }
             }
+
+            heroActions
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            LinearGradient(
-                colors: [data.headerColor.color, data.headerColor.color.opacity(0.82)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
     }
 
-    @ViewBuilder
-    private var headerPhoto: some View {
-        if let photoOverride {
-            Image(uiImage: photoOverride)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 72, height: 72)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 2))
-                .accessibilityLabel(String(localized: "\(data.playerName) profile photo"))
-        } else if let photoUrl = data.photoUrl, let url = URL(string: photoUrl) {
-            AsyncImage(url: url) { phase in
-                if let image = phase.image {
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    Circle()
-                        .fill(Color.white.opacity(0.2))
+    private var heroPhoto: some View {
+        Group {
+            if let photoOverride {
+                Image(uiImage: photoOverride).resizable().scaledToFill()
+            } else if let photoUrl = data.photoUrl, let url = URL(string: photoUrl) {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image {
+                        image.resizable().scaledToFill()
+                    } else {
+                        Color.white.opacity(0.15)
+                    }
+                }
+            } else {
+                ZStack {
+                    Color.white.opacity(0.15)
+                    Text(String(data.playerName.prefix(1)))
+                        .font(.system(size: 44, weight: .semibold))
+                        .foregroundStyle(.white)
                 }
             }
-            .frame(width: 72, height: 72)
-            .clipShape(Circle())
-            .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 2))
-            .accessibilityLabel(String(localized: "\(data.playerName) profile photo"))
+        }
+        .frame(width: 112, height: 112)
+        .clipShape(Circle())
+        .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 2))
+        .accessibilityLabel(String(localized: "\(data.playerName) profile photo"))
+    }
+
+    /// `6'2" · 170 lbs · 3B/2B · Class of 2028 · 3.80 GPA` — parity with web
+    /// `ProfileHero.vue` `physicals` computed.
+    private var physicalsLine: String? {
+        var parts: [String] = []
+        if let heightInches = data.credentials?.heightInches {
+            parts.append(Self.formatHeight(heightInches))
+        }
+        if let weightLbs = data.credentials?.weightLbs {
+            parts.append("\(weightLbs) lbs")
+        }
+        let positionShort = CanonicalPositions.formatPositionsShort(
+            sport: data.credentials?.primarySport,
+            positions: data.credentials?.positions,
+            fallback: data.credentials?.primaryPosition)
+        if !positionShort.isEmpty { parts.append(positionShort) }
+        if let gradYear = data.academics?.graduationYear {
+            parts.append(String(localized: "Class of \(gradYear)"))
+        }
+        if let gpa = data.academics?.gpa {
+            parts.append(String(localized: "\(Self.formatGPA(gpa)) GPA"))
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    private func socialRowHero(_ social: PublicProfileData.SocialSection) -> some View {
+        let links = SocialLinkBuilder.brandLinks(from: social)
+        return HStack(spacing: 6) {
+            ForEach(Array(links.enumerated()), id: \.offset) { index, link in
+                if index > 0 {
+                    Text("·").foregroundStyle(.white.opacity(0.4))
+                }
+                Link(destination: link.url) {
+                    HStack(spacing: 4) {
+                        Image(systemName: link.systemImage).font(.caption2)
+                        Text(link.handle).font(.caption)
+                    }
+                }
+                .foregroundStyle(.white.opacity(0.8))
+                .accessibilityLabel(String(localized: "\(link.platform) \(link.handle)"))
+            }
         }
     }
 
-    /// Header subtitle: `Grad Year · Primary Sport · Positions (abbrev) · GPA`.
-    /// Each segment is optional; missing pieces are dropped, not shown blank.
-    private var sportPositionLine: String? {
-        var parts: [String] = []
+    /// Contact/Express Interest are visual-only in this native preview — the
+    /// coach always submits leads via the real web page, never this in-app
+    /// card, so there is no iOS-side lead endpoint to wire these to.
+    private var heroActions: some View {
+        HStack(spacing: 12) {
+            Label(String(localized: "Contact Player"), systemImage: "envelope")
+                .font(.footnote.weight(.medium))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
+                .foregroundStyle(.white)
 
-        if let gradYear = data.academics?.graduationYear {
-            parts.append(String(gradYear))
+            Label(String(localized: "Express Interest"), systemImage: "star.fill")
+                .font(.footnote.weight(.medium))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(Color.blue)
+                .foregroundStyle(.white)
+                .clipShape(Capsule())
         }
-        if let sport = data.athletic?.primarySport {
-            parts.append(sport)
-        }
-        // Coach-facing primary/secondary only (e.g. "3B/SS") from the entered,
-        // ordered positions[]; not the full list.
-        let positionShort = CanonicalPositions.formatPositionsShort(
-            sport: data.athletic?.primarySport,
-            positions: data.athletic?.positions,
-            fallback: data.athletic?.primaryPosition)
-        if !positionShort.isEmpty {
-            parts.append(positionShort)
-        }
-        if let gpa = data.academics?.gpa {
-            parts.append(String(format: "%.2f GPA", gpa))
-        }
-
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+        .accessibilityHidden(true) // decorative preview only, not interactive
     }
 
     // MARK: - Footer
 
     @ViewBuilder
     var footer: some View {
-        Text("Powered by The Recruiting Compass")
-            .font(.caption)
-            .foregroundStyle(Color.Text.muted)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .background(Color.Surface.muted)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Label(String(localized: "Powered by The Recruiting Compass"), systemImage: "viewfinder.circle")
+                    .font(.caption)
+                    .foregroundStyle(Color.Text.muted)
+                Spacer()
+                if let social = data.social, !social.isEmpty {
+                    HStack(spacing: 10) {
+                        ForEach(SocialLinkBuilder.brandLinks(from: social), id: \.platform) { link in
+                            Link(destination: link.url) {
+                                Image(systemName: link.systemImage)
+                            }
+                            .foregroundStyle(Color.Text.muted)
+                            .accessibilityLabel(link.platform)
+                        }
+                    }
+                }
+            }
+            if let updatedAt = data.updatedAt {
+                Text(String(localized: "Profile last updated: \(Self.footerDateFormatter.string(from: updatedAt))"))
+                    .font(.caption2)
+                    .foregroundStyle(Color.Text.muted)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity)
+        .background(Color.Surface.muted)
+    }
+
+    static let footerDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d, yyyy"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }()
+
+    static func formatHeight(_ inches: Int) -> String {
+        let feet = inches / 12
+        let remainder = inches % 12
+        return "\(feet)'\(remainder)\""
+    }
+
+    static func formatGPA(_ gpa: Double) -> String {
+        String(format: "%.2f", gpa)
     }
 }
