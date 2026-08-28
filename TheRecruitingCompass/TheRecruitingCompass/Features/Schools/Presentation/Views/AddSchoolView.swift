@@ -19,7 +19,7 @@ struct AddSchoolView: View {
     userId: String,
     navigationPath: Binding<NavigationPath>
   ) {
-    _viewModel = State(initialValue: AddSchoolViewModel(
+    _viewModel = State(initialValue: SchoolsFactory.makeAddViewModel(
       schoolsService: schoolsService,
       familyUnitId: familyUnitId,
       userId: userId
@@ -321,7 +321,7 @@ private struct AddSchoolCancelButton: View {
 
   NavigationStack(path: $navigationPath) {
     AddSchoolView(
-      schoolsService: SchoolsServiceImpl(supabaseManager: SupabaseManager.shared),
+      schoolsService: SchoolsFactory.makeRepository(),
       familyUnitId: "preview-family",
       userId: "preview-user",
       navigationPath: $navigationPath

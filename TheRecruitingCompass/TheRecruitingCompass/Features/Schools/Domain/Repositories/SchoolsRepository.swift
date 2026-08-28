@@ -1,10 +1,12 @@
 import Foundation
 
-/// Service contract for school CRUD operations, status management, and structured data editing.
+/// Repository contract for school CRUD, status management, and structured data editing.
 ///
-/// Implementations fetch from and persist to the Supabase backend. Pass a mock conformance
-/// to `SchoolDetailViewModel` to enable unit testing without network calls.
-protocol SchoolsManaging: Sendable {
+/// Domain layer owns this protocol. Data implements it (`SchoolsRepositoryImpl`).
+/// Presentation depends on the protocol, never the infrastructure type.
+///
+/// `SchoolsManaging` is a compatibility alias for existing call sites and tests.
+protocol SchoolsRepository: Sendable {
   // MARK: - Phase 0 Methods (Create)
   /// Creates a new school record and returns the persisted entity.
   func createSchool(request: SchoolCreateRequest) async throws -> School
@@ -68,3 +70,5 @@ protocol SchoolsManaging: Sendable {
   /// Saves the coaching philosophy fields edited by the user.
   func updateCoachingPhilosophy(id: String, philosophy: EditableCoachingPhilosophy) async throws -> School
 }
+
+typealias SchoolsManaging = SchoolsRepository
