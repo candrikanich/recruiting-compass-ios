@@ -29,4 +29,31 @@ enum ViewModelHelpers {
       logger.error("[\(fileName):\(function)] \(error.localizedDescription)")
     }
   }
+
+  /// Clears `error`, sets loading for the duration of `operation`, and on failure
+  /// logs and stores `userMessage`. Success leaves the error nil.
+  @MainActor
+  static func runLoad(
+    setLoading: @escaping (Bool) -> Void,
+    setError: @escaping (String?) -> Void,
+    userMessage: String,
+    logger: Logger,
+    file: String = #file,
+    function: String = #function,
+    operation: () async throws -> Void
+  ) async {
+    setError(nil)
+    do {
+      _ = try await withLoading(set: setLoading, operation: operation)
+    } catch {
+      handleError(
+        error,
+        userMessage: userMessage,
+        file: file,
+        function: function,
+        logger: logger,
+        setMessage: setError
+      )
+    }
+  }
 }

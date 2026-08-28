@@ -252,13 +252,17 @@ final class EventsListViewModel {
     let cacheToUse = cache ?? InMemoryCache.shared
 
     do {
-      if let cached = await cacheToUse.get([FullEvent].self, forKey: cacheKey) {
-        events = cached
+      let result = try await cacheToUse.getOrFetch(
+        [FullEvent].self,
+        forKey: cacheKey,
+        ttlSeconds: Self.eventsListCacheTTL
+      ) {
+        try await eventsService.fetchEvents(userId: userId)
+      }
+      events = result.value
+      if result.cacheHit {
         logger.info("Loaded \(self.events.count) events from cache")
       } else {
-        let fetched = try await eventsService.fetchEvents(userId: userId)
-        events = fetched
-        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.eventsListCacheTTL)
         logger.info("Loaded \(self.events.count) events")
       }
     } catch is CancellationError {

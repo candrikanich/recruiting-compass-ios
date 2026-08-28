@@ -202,13 +202,17 @@ final class SchoolsListViewModel {
     let cacheToUse = cache ?? InMemoryCache.shared
 
     do {
-      if let cachedSchools = await cacheToUse.get([School].self, forKey: cacheKey) {
-        allSchools = cachedSchools
+      let result = try await cacheToUse.getOrFetch(
+        [School].self,
+        forKey: cacheKey,
+        ttlSeconds: Self.schoolsListCacheTTL
+      ) {
+        try await schoolsService.fetchSchools(familyUnitId: familyUnitId)
+      }
+      allSchools = result.value
+      if result.cacheHit {
         logger.info("Loaded \(self.allSchools.count) schools from cache")
       } else {
-        let fetched = try await schoolsService.fetchSchools(familyUnitId: familyUnitId)
-        allSchools = fetched
-        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.schoolsListCacheTTL)
         logger.info("Loaded \(self.allSchools.count) schools")
       }
 

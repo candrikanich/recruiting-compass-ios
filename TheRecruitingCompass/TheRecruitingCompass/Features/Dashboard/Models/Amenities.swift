@@ -1,6 +1,6 @@
 import Foundation
 
-struct Amenities: Codable, Sendable {
+struct Amenities: Codable, Equatable, Sendable {
   let facilities: [String]?
   let housing: String?
   let dining: String?

@@ -15,6 +15,24 @@ protocol CacheManaging: Sendable {
   func removeAll() async
 }
 
+extension CacheManaging {
+  /// Returns the cached value when present and unexpired; otherwise runs `fetch`,
+  /// stores the result with `ttlSeconds`, and returns it.
+  func getOrFetch<T: Codable & Sendable>(
+    _ type: T.Type,
+    forKey key: String,
+    ttlSeconds: TimeInterval,
+    fetch: () async throws -> T
+  ) async throws -> (value: T, cacheHit: Bool) {
+    if let cached = await get(type, forKey: key) {
+      return (cached, true)
+    }
+    let fetched = try await fetch()
+    await set(fetched, forKey: key, ttlSeconds: ttlSeconds)
+    return (fetched, false)
+  }
+}
+
 /// Simple in-memory cache with TTL and max entry cap. MainActor-isolated for Swift 6 compatibility
 /// with MainActor-isolated Codable types (School, Coach, etc.).
 @MainActor

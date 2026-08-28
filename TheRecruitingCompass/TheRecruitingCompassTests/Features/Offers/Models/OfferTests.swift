@@ -320,4 +320,28 @@ final class OfferTests: XCTestCase {
     XCTAssertNil(decoded.scholarshipPercentage)
     XCTAssertNil(decoded.deadlineDate)
   }
+
+  func testEquatable_SameStoredFieldsAreEqual() {
+    XCTAssertEqual(makeOffer(), makeOffer())
+  }
+
+  func testEquatable_DiffersWhenStatusChanges() {
+    let pending = makeOffer()
+    let accepted = Offer(
+      id: pending.id,
+      userId: pending.userId,
+      schoolId: pending.schoolId,
+      offerType: pending.offerType,
+      scholarshipAmount: pending.scholarshipAmount,
+      scholarshipPercentage: pending.scholarshipPercentage,
+      offerDate: pending.offerDate,
+      deadlineDate: pending.deadlineDate,
+      status: .accepted,
+      conditions: pending.conditions,
+      notes: pending.notes,
+      createdAt: pending.createdAt,
+      updatedAt: pending.updatedAt
+    )
+    XCTAssertNotEqual(pending, accepted)
+  }
 }

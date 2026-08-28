@@ -1,6 +1,6 @@
 import Foundation
 
-struct AppNotification: Codable, Identifiable, Sendable {
+struct AppNotification: Codable, Identifiable, Equatable, Sendable {
   private static let isoFormatter = ISO8601DateFormatter()
   let id: String
   let userId: String?

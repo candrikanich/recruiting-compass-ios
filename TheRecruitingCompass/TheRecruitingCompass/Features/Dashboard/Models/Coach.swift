@@ -3,7 +3,7 @@ import Foundation
 // Import CoachRole from Coaches feature
 import SwiftUI
 
-struct Coach: Codable, Identifiable, Sendable {
+struct Coach: Codable, Identifiable, Equatable, Sendable {
   let id: String
   let firstName: String
   let lastName: String

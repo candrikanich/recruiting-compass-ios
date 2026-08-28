@@ -33,9 +33,8 @@ final class EventsServiceImpl: EventsManaging, Sendable {
   }
 
   func fetchEvent(id: String, userId: String) async throws -> FullEvent {
-    logger.debug("Fetching event: \(id)")
-    do {
-      let result: FullEvent = try await supabaseManager.client
+    try await logger.fetchOne("event \(id)") {
+      try await supabaseManager.client
         .from("events")
         .select()
         .eq("id", value: id)
@@ -43,47 +42,30 @@ final class EventsServiceImpl: EventsManaging, Sendable {
         .single()
         .execute()
         .value
-      logger.info("Fetched event: \(result.id)")
-      return result
-    } catch {
-      logger.error("fetchEvent \(id) failed: \(error.localizedDescription)")
-      throw error
     }
   }
 
   func fetchEvents(userId: String) async throws -> [FullEvent] {
-    logger.debug("Fetching events for user: \(userId, privacy: .private)")
-    do {
-      let results: [FullEvent] = try await supabaseManager.client
+    try await logger.fetch("events") {
+      try await supabaseManager.client
         .from("events")
         .select()
         .eq("user_id", value: userId)
         .order("start_date", ascending: false)
         .execute()
         .value
-      logger.info("Fetched \(results.count) events")
-      return results
-    } catch {
-      logger.error("fetchEvents failed: \(error.localizedDescription)")
-      throw error
     }
   }
 
   func fetchSchools(familyUnitId: String) async throws -> [SchoolSummary] {
-    logger.debug("Fetching schools for family unit: \(familyUnitId, privacy: .private)")
-    do {
-      let results: [SchoolSummary] = try await supabaseManager.client
+    try await logger.fetch("schools") {
+      try await supabaseManager.client
         .from("schools")
         .select("id, name, location")
         .eq("family_unit_id", value: familyUnitId)
         .order("name")
         .execute()
         .value
-      logger.info("Fetched \(results.count) schools")
-      return results
-    } catch {
-      logger.error("fetchSchools failed: \(error.localizedDescription)")
-      throw error
     }
   }
 
@@ -122,37 +104,25 @@ final class EventsServiceImpl: EventsManaging, Sendable {
   }
 
   func fetchCoaches(schoolId: String, userId: String) async throws -> [Coach] {
-    logger.debug("Fetching coaches for school: \(schoolId)")
-    do {
-      let results: [Coach] = try await supabaseManager.client
+    try await logger.fetch("coaches") {
+      try await supabaseManager.client
         .from("coaches")
         .select("id,first_name,last_name,position,email,phone,school_id,twitter_handle,instagram_handle,notes,last_contact_date,created_at,updated_at")
         .eq("school_id", value: schoolId)
         .execute()
         .value
-      logger.info("Fetched \(results.count) coaches")
-      return results
-    } catch {
-      logger.error("fetchCoaches for school \(schoolId) failed: \(error.localizedDescription)")
-      throw error
     }
   }
 
   func fetchMetrics(eventId: String, userId: String) async throws -> [PerformanceMetric] {
-    logger.debug("Fetching metrics for event: \(eventId)")
-    do {
-      let results: [PerformanceMetric] = try await supabaseManager.client
+    try await logger.fetch("metrics") {
+      try await supabaseManager.client
         .from("performance_metrics")
         .select()
         .eq("event_id", value: eventId)
         .eq("user_id", value: userId)
         .execute()
         .value
-      logger.info("Fetched \(results.count) metrics")
-      return results
-    } catch {
-      logger.error("fetchMetrics for event \(eventId) failed: \(error.localizedDescription)")
-      throw error
     }
   }
 

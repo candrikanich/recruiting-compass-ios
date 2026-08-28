@@ -153,30 +153,32 @@ final class OffersListViewModel {
       return
     }
 
-    isLoading = true
-    errorMessage = nil
-    defer { isLoading = false }
+    await ViewModelHelpers.runLoad(
+      setLoading: { self.isLoading = $0 },
+      setError: { self.errorMessage = $0 },
+      userMessage: String(localized: "Failed to load offers. Please try again."),
+      logger: logger
+    ) {
+      let cacheKey = ListCacheKeys.offers(userId: userId)
+      let cacheToUse = cache ?? InMemoryCache.shared
 
-    let cacheKey = ListCacheKeys.offers(userId: userId)
-    let cacheToUse = cache ?? InMemoryCache.shared
-
-    do {
       if let familyUnitId = familyManager.familyUnitId {
         schools = try await offersService.fetchSchools(familyUnitId: familyUnitId)
       }
 
-      if let cachedOffers = await cacheToUse.get([Offer].self, forKey: cacheKey) {
-        allOffers = cachedOffers
+      let result = try await cacheToUse.getOrFetch(
+        [Offer].self,
+        forKey: cacheKey,
+        ttlSeconds: Self.offersListCacheTTL
+      ) {
+        try await offersService.fetchOffers(userId: userId)
+      }
+      allOffers = result.value
+      if result.cacheHit {
         logger.info("Loaded \(self.allOffers.count) offers from cache")
       } else {
-        let fetched = try await offersService.fetchOffers(userId: userId)
-        allOffers = fetched
-        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.offersListCacheTTL)
         logger.info("Loaded \(self.allOffers.count) offers")
       }
-    } catch {
-      logger.error("Failed to load offers: \(error.localizedDescription)")
-      errorMessage = String(localized: "Failed to load offers. Please try again.")
     }
   }
 

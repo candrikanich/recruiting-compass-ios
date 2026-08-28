@@ -13,56 +13,38 @@ final class InteractionsServiceImpl: InteractionsManaging, Sendable {
   }
 
   func fetchInteractions(familyUnitId: String) async throws -> [Interaction] {
-    logger.debug("Fetching interactions for family: \(familyUnitId)")
-    do {
-      let interactions: [Interaction] = try await supabaseManager.client
+    try await logger.fetch("interactions") {
+      try await supabaseManager.client
         .from("interactions")
         .select()
         .eq("family_unit_id", value: familyUnitId)
         .order("occurred_at", ascending: false)
         .execute()
         .value
-      logger.info("Fetched \(interactions.count) interactions")
-      return interactions
-    } catch {
-      logger.error("fetchInteractions for family \(familyUnitId) failed: \(error.localizedDescription)")
-      throw error
     }
   }
 
   func fetchInteractionsForUser(userId: String) async throws -> [Interaction] {
-    logger.debug("Fetching interactions for user: \(userId, privacy: .private)")
-    do {
-      let interactions: [Interaction] = try await supabaseManager.client
+    try await logger.fetch("interactions for user") {
+      try await supabaseManager.client
         .from("interactions")
         .select()
         .eq("logged_by", value: userId)
         .order("occurred_at", ascending: false)
         .execute()
         .value
-      logger.info("Fetched \(interactions.count) interactions for user")
-      return interactions
-    } catch {
-      logger.error("fetchInteractionsForUser failed: \(error.localizedDescription)")
-      throw error
     }
   }
 
   func fetchInteraction(id: String) async throws -> Interaction {
-    logger.debug("Fetching interaction: \(id)")
-    do {
-      let interaction: Interaction = try await supabaseManager.client
+    try await logger.fetchOne("interaction \(id)") {
+      try await supabaseManager.client
         .from("interactions")
         .select()
         .eq("id", value: id)
         .single()
         .execute()
         .value
-      logger.info("Fetched interaction: \(id)")
-      return interaction
-    } catch {
-      logger.error("fetchInteraction \(id) failed: \(error.localizedDescription)")
-      throw error
     }
   }
 
@@ -95,37 +77,20 @@ final class InteractionsServiceImpl: InteractionsManaging, Sendable {
   }
 
   func fetchSchools(familyUnitId: String) async throws -> [School] {
-    logger.debug("Fetching schools for family: \(familyUnitId)")
-    do {
-      let schools: [School] = try await supabaseManager.client
-        .from("schools")
-        .select()
-        .eq("family_unit_id", value: familyUnitId)
-        .execute()
-        .value
-      logger.info("Fetched \(schools.count) schools")
-      return schools
-    } catch {
-      logger.error("fetchSchools for family \(familyUnitId) failed: \(error.localizedDescription)")
-      throw error
+    try await logger.fetch("schools") {
+      try await FamilyScopedQueries.fetchSchools(from: supabaseManager.client, familyUnitId: familyUnitId)
     }
   }
 
   func fetchCoaches(familyUnitId: String) async throws -> [Coach] {
-    logger.debug("Fetching all coaches for family: \(familyUnitId)")
-    do {
-      let coaches: [Coach] = try await supabaseManager.client
+    try await logger.fetch("coaches") {
+      try await supabaseManager.client
         .from("coaches")
         .select()
         .eq("family_unit_id", value: familyUnitId)
         .order("last_name")
         .execute()
         .value
-      logger.info("Fetched \(coaches.count) coaches")
-      return coaches
-    } catch {
-      logger.error("fetchCoaches for family \(familyUnitId) failed: \(error.localizedDescription)")
-      throw error
     }
   }
 

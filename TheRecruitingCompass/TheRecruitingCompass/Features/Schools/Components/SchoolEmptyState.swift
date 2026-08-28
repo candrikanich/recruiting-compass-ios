@@ -5,43 +5,25 @@ struct SchoolEmptyState: View {
   let onClearFilters: () -> Void
   var onAddSchool: (() -> Void)?
 
-  private var icon: String {
-    isFiltered ? "line.3.horizontal.decrease.circle" : "building.2"
-  }
-
-  private var title: String {
-    isFiltered ? String(localized: "No matching schools") : String(localized: "No schools found")
-  }
-
-  private var message: String {
-    isFiltered
-      ? String(localized: "Try adjusting your filters")
-      : String(localized: "Add your first school to get started")
-  }
-
-  private var actionTitle: String? {
-    if isFiltered { return String(localized: "Clear Filters") }
-    return onAddSchool != nil ? String(localized: "Add Your First School") : nil
-  }
-
-  private var actionHint: String? {
-    isFiltered
-      ? String(localized: "Removes all active filters")
-      : String(localized: "Opens the form to add a school")
-  }
-
-  private var action: (() -> Void)? {
-    isFiltered ? onClearFilters : onAddSchool
-  }
-
   var body: some View {
-    EmptyStateView(
-      icon: icon,
-      title: title,
-      message: message,
-      actionTitle: actionTitle,
-      actionHint: actionHint,
-      action: action
+    ListEmptyState(
+      isFilteredEmpty: isFiltered,
+      filtered: .init(
+        icon: "line.3.horizontal.decrease.circle",
+        title: String(localized: "No matching schools"),
+        message: String(localized: "Try adjusting your filters"),
+        actionTitle: String(localized: "Clear Filters"),
+        actionHint: String(localized: "Removes all active filters"),
+        action: onClearFilters
+      ),
+      empty: .init(
+        icon: "building.2",
+        title: String(localized: "No schools found"),
+        message: String(localized: "Add your first school to get started"),
+        actionTitle: onAddSchool != nil ? String(localized: "Add Your First School") : nil,
+        actionHint: String(localized: "Opens the form to add a school"),
+        action: onAddSchool
+      )
     )
   }
 }

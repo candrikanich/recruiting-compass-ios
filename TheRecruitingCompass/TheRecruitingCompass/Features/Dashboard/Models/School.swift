@@ -1,7 +1,7 @@
 import Foundation
 import CoreLocation
 
-struct School: Codable, Identifiable, Sendable {
+struct School: Codable, Identifiable, Equatable, Sendable {
   let id: String
   let userId: String
   let name: String

@@ -164,48 +164,50 @@ final class InteractionsListViewModel {
       return
     }
 
-    isLoading = true
-    errorMessage = nil
-    defer { isLoading = false }
+    await ViewModelHelpers.runLoad(
+      setLoading: { self.isLoading = $0 },
+      setError: { self.errorMessage = $0 },
+      userMessage: String(localized: "Failed to load interactions. Please try again."),
+      logger: logger
+    ) {
+      let cacheToUse = cache ?? InMemoryCache.shared
 
-    let cacheToUse = cache ?? InMemoryCache.shared
-
-    do {
-      // Load schools and coaches for name lookup
       let schools = try await interactionsService.fetchSchools(familyUnitId: familyUnitId)
       allSchools = schools
 
       allCoaches = try await interactionsService.fetchCoaches(familyUnitId: familyUnitId)
 
-      // Load interactions based on role
       if isAthlete, let userId = authManager.user?.id {
-        // Athletes see only their own interactions
         let cacheKey = ListCacheKeys.interactionsForAthlete(userId: userId)
-        if let cached = await cacheToUse.get([Interaction].self, forKey: cacheKey) {
-          allInteractions = cached
+        let result = try await cacheToUse.getOrFetch(
+          [Interaction].self,
+          forKey: cacheKey,
+          ttlSeconds: Self.interactionsListCacheTTL
+        ) {
+          try await interactionsService.fetchInteractionsForUser(userId: userId)
+        }
+        allInteractions = result.value
+        if result.cacheHit {
           logger.info("Loaded \(self.allInteractions.count) interactions for athlete from cache")
         } else {
-          let fetched = try await interactionsService.fetchInteractionsForUser(userId: userId)
-          allInteractions = fetched
-          await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.interactionsListCacheTTL)
           logger.info("Loaded \(self.allInteractions.count) interactions for athlete")
         }
       } else {
-        // Parents see all family interactions
         let cacheKey = ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId)
-        if let cached = await cacheToUse.get([Interaction].self, forKey: cacheKey) {
-          allInteractions = cached
+        let result = try await cacheToUse.getOrFetch(
+          [Interaction].self,
+          forKey: cacheKey,
+          ttlSeconds: Self.interactionsListCacheTTL
+        ) {
+          try await interactionsService.fetchInteractions(familyUnitId: familyUnitId)
+        }
+        allInteractions = result.value
+        if result.cacheHit {
           logger.info("Loaded \(self.allInteractions.count) interactions for family from cache")
         } else {
-          let fetched = try await interactionsService.fetchInteractions(familyUnitId: familyUnitId)
-          allInteractions = fetched
-          await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.interactionsListCacheTTL)
           logger.info("Loaded \(self.allInteractions.count) interactions for family")
         }
       }
-    } catch {
-      logger.error("Failed to load interactions: \(error.localizedDescription)")
-      errorMessage = String(localized: "Failed to load interactions. Please try again.")
     }
   }
 

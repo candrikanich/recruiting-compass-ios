@@ -239,13 +239,17 @@ final class DocumentsListViewModel {
     let cacheToUse = cache ?? InMemoryCache.shared
 
     do {
-      if let cached = await cacheToUse.get([Document].self, forKey: cacheKey) {
-        documents = cached
+      let result = try await cacheToUse.getOrFetch(
+        [Document].self,
+        forKey: cacheKey,
+        ttlSeconds: Self.documentsListCacheTTL
+      ) {
+        try await documentsService.fetchDocuments(userId: userId)
+      }
+      documents = result.value
+      if result.cacheHit {
         logger.info("Loaded \(self.documents.count) documents from cache")
       } else {
-        let fetched = try await documentsService.fetchDocuments(userId: userId)
-        documents = fetched
-        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.documentsListCacheTTL)
         logger.info("Loaded \(self.documents.count) documents")
       }
     } catch {

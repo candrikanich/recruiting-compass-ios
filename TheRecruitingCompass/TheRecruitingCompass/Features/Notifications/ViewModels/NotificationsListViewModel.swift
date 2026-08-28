@@ -123,11 +123,12 @@ final class NotificationsListViewModel {
   // MARK: - Methods
 
   func fetchNotifications() async {
-    isLoading = true
-    errorMessage = nil
-    defer { isLoading = false }
-
-    do {
+    await ViewModelHelpers.runLoad(
+      setLoading: { self.isLoading = $0 },
+      setError: { self.errorMessage = $0 },
+      userMessage: "Failed to load notifications. Please try again.",
+      logger: logger
+    ) {
       guard let userId = authManager.user?.id else {
         throw NotificationServiceError.notAuthenticated
       }
@@ -135,18 +136,19 @@ final class NotificationsListViewModel {
       let cacheKey = ListCacheKeys.notifications(userId: userId)
       let cacheToUse = cache ?? InMemoryCache.shared
 
-      if let cached = await cacheToUse.get([AppNotification].self, forKey: cacheKey) {
-        notifications = cached
-        logger.info("Loaded \(cached.count) notifications from cache")
-      } else {
-        let fetched = try await notificationsService.fetchNotifications(userId: userId)
-        notifications = fetched
-        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.notificationsListCacheTTL)
-        logger.info("Loaded \(fetched.count) notifications")
+      let result = try await cacheToUse.getOrFetch(
+        [AppNotification].self,
+        forKey: cacheKey,
+        ttlSeconds: Self.notificationsListCacheTTL
+      ) {
+        try await notificationsService.fetchNotifications(userId: userId)
       }
-    } catch {
-      errorMessage = "Failed to load notifications. Please try again."
-      logger.error("Failed to fetch notifications: \(error.localizedDescription)")
+      notifications = result.value
+      if result.cacheHit {
+        logger.info("Loaded \(result.value.count) notifications from cache")
+      } else {
+        logger.info("Loaded \(result.value.count) notifications")
+      }
     }
   }
 

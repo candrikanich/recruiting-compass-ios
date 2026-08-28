@@ -1,6 +1,6 @@
 import Foundation
 
-struct Offer: Codable, Identifiable, Sendable {
+struct Offer: Codable, Identifiable, Equatable, Sendable {
   let id: String
   let userId: String
   let schoolId: String
