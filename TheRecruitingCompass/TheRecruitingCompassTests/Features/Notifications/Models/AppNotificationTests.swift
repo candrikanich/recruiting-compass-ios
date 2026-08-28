@@ -270,6 +270,22 @@ final class AppNotificationTests: XCTestCase {
     XCTAssertEqual(NotificationType.allCases.count, 7) // 6 known + .unknown
   }
 
+  func testDecodingDailyDigestAliasesToWeeklyDigest() throws {
+    let json = """
+    {
+        "id": "digest-1",
+        "type": "daily_digest",
+        "title": "Weekly digest",
+        "message": "Summary",
+        "priority": "low",
+        "scheduled_for": "2026-08-28T08:00:00Z"
+    }
+    """.data(using: .utf8)!
+
+    let notification = try JSONDecoder().decode(AppNotification.self, from: json)
+    XCTAssertEqual(notification.type, .weeklyDigest)
+  }
+
   func testDecodingAllNotificationTypes() {
     for type in NotificationType.allCases {
       let json = """

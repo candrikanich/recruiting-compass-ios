@@ -380,17 +380,43 @@ final class NotificationsListViewModelTests: XCTestCase {
 
   // MARK: - List Fetch Caching Tests (Phase 3.6)
 
-  func testFetchNotifications_SecondLoad_UsesCacheAndSkipsService() async {
+  func testFetchNotifications_SecondLoad_RevalidatesAndShowsFresh() async {
     mockService.mockNotifications = [makeNotification(id: "1")]
 
     await viewModel.fetchNotifications()
     XCTAssertEqual(mockService.fetchNotificationsCallCount, 1)
+    XCTAssertEqual(viewModel.notifications.first?.id, "1")
 
     mockService.mockNotifications = [makeNotification(id: "2")]
     await viewModel.fetchNotifications()
 
-    XCTAssertEqual(mockService.fetchNotificationsCallCount, 1)
+    XCTAssertEqual(mockService.fetchNotificationsCallCount, 2)
+    XCTAssertEqual(viewModel.notifications.first?.id, "2")
+  }
+
+  func testFetchNotifications_RevalidateFailure_KeepsCachedList() async {
+    mockService.mockNotifications = [makeNotification(id: "1")]
+    await viewModel.fetchNotifications()
     XCTAssertEqual(viewModel.notifications.first?.id, "1")
+
+    mockService.shouldSucceed = false
+    await viewModel.fetchNotifications()
+
+    XCTAssertEqual(mockService.fetchNotificationsCallCount, 2)
+    XCTAssertEqual(viewModel.notifications.first?.id, "1")
+    XCTAssertNil(viewModel.errorMessage)
+  }
+
+  func testRefresh_InvalidatesCacheAndRefetches() async {
+    mockService.mockNotifications = [makeNotification(id: "1")]
+    await viewModel.fetchNotifications()
+    XCTAssertEqual(mockService.fetchNotificationsCallCount, 1)
+
+    mockService.mockNotifications = [makeNotification(id: "2")]
+    await viewModel.refresh()
+
+    XCTAssertEqual(mockService.fetchNotificationsCallCount, 2)
+    XCTAssertEqual(viewModel.notifications.first?.id, "2")
   }
 
   func testMarkAsRead_InvalidatesListCache_NextFetchRefetches() async {

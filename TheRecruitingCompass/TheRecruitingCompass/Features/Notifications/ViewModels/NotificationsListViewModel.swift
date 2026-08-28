@@ -88,11 +88,9 @@ final class NotificationsListViewModel {
   private let authManager: any AuthManaging
   private let cache: (any CacheManaging)?
 
-  /// TTL for cached notifications list (seconds). Short — notifications are
-  /// also created server-side (offer alerts, deadline reminders); a fresh
-  /// server-pushed notification won't appear until this TTL lapses, same as
-  /// any other externally-generated data behind a cache.
-  private static let notificationsListCacheTTL: TimeInterval = 60
+  /// Max age for an instant paint. Appear always revalidates (SWR); this TTL
+  /// only decides whether a stale list is shown while the network runs.
+  private static let notificationsListCacheTTL: TimeInterval = 300
 
   // MARK: - Initialization
 
@@ -123,32 +121,50 @@ final class NotificationsListViewModel {
   // MARK: - Methods
 
   func fetchNotifications() async {
+    guard let userId = authManager.user?.id else {
+      errorMessage = NotificationServiceError.notAuthenticated.errorDescription
+      return
+    }
+
+    let cacheKey = ListCacheKeys.notifications(userId: userId)
+    let cacheToUse = cache ?? InMemoryCache.shared
+    let stale = await cacheToUse.get([AppNotification].self, forKey: cacheKey)
+
+    if let stale {
+      notifications = stale
+      logger.info("Loaded \(stale.count) notifications from cache; revalidating")
+      do {
+        let fresh = try await cacheToUse.staleWhileRevalidate(
+          [AppNotification].self,
+          forKey: cacheKey,
+          ttlSeconds: Self.notificationsListCacheTTL,
+          fetch: { try await notificationsService.fetchNotifications(userId: userId) }
+        )
+        notifications = fresh
+        errorMessage = nil
+        logger.info("Revalidated \(fresh.count) notifications")
+      } catch {
+        logger.error(
+          "Revalidate failed; keeping \(self.notifications.count) cached notifications: \(error.localizedDescription)"
+        )
+      }
+      return
+    }
+
     await ViewModelHelpers.runLoad(
       setLoading: { self.isLoading = $0 },
       setError: { self.errorMessage = $0 },
       userMessage: "Failed to load notifications. Please try again.",
       logger: logger
     ) {
-      guard let userId = authManager.user?.id else {
-        throw NotificationServiceError.notAuthenticated
-      }
-
-      let cacheKey = ListCacheKeys.notifications(userId: userId)
-      let cacheToUse = cache ?? InMemoryCache.shared
-
-      let result = try await cacheToUse.getOrFetch(
+      let fresh = try await cacheToUse.staleWhileRevalidate(
         [AppNotification].self,
         forKey: cacheKey,
-        ttlSeconds: Self.notificationsListCacheTTL
-      ) {
-        try await notificationsService.fetchNotifications(userId: userId)
-      }
-      notifications = result.value
-      if result.cacheHit {
-        logger.info("Loaded \(result.value.count) notifications from cache")
-      } else {
-        logger.info("Loaded \(result.value.count) notifications")
-      }
+        ttlSeconds: Self.notificationsListCacheTTL,
+        fetch: { try await notificationsService.fetchNotifications(userId: userId) }
+      )
+      notifications = fresh
+      logger.info("Loaded \(fresh.count) notifications")
     }
   }
 
@@ -220,6 +236,7 @@ final class NotificationsListViewModel {
   }
 
   func refresh() async {
+    await invalidateNotificationsListCache()
     await fetchNotifications()
   }
 

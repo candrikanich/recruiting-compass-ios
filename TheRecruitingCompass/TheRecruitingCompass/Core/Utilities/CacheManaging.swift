@@ -31,6 +31,24 @@ extension CacheManaging {
     await set(fetched, forKey: key, ttlSeconds: ttlSeconds)
     return (fetched, false)
   }
+
+  /// Always fetches. If a cached value exists, `onStale` runs before the
+  /// network call so the UI can paint immediately. Fetch failure does not
+  /// evict the existing entry.
+  func staleWhileRevalidate<T: Codable & Sendable>(
+    _ type: T.Type,
+    forKey key: String,
+    ttlSeconds: TimeInterval,
+    onStale: ((T) -> Void)? = nil,
+    fetch: () async throws -> T
+  ) async throws -> T {
+    if let stale = await get(type, forKey: key) {
+      onStale?(stale)
+    }
+    let fresh = try await fetch()
+    await set(fresh, forKey: key, ttlSeconds: ttlSeconds)
+    return fresh
+  }
 }
 
 /// Simple in-memory cache with TTL and max entry cap. MainActor-isolated for Swift 6 compatibility

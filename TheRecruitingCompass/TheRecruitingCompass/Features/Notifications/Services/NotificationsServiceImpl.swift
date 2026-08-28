@@ -23,7 +23,11 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
         .from("notifications")
         .select()
         .eq("user_id", value: userId)
-        .order("scheduled_for", ascending: false)
+        // Inbox clock is `created_at`. `scheduled_for` is null on trigger
+        // inserts (offer / inbound / event), so ordering by it surfaces NULLs
+        // first under Postgres DESC and hides recency.
+        .order("created_at", ascending: false)
+        .order("id", ascending: false)
         .execute()
         .value
       logger.info("Fetched \(notifications.count) notifications")

@@ -12,6 +12,13 @@ enum NotificationType: String, Codable, CaseIterable, Sendable {
   init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
     let rawValue = try container.decode(String.self)
+    // Live cron / generator still insert `daily_digest` after the preferences
+    // CHECK was renamed to `weekly_digest`. Treat both as the digest type so
+    // the inbox does not dump those rows into `.unknown`.
+    if rawValue == "daily_digest" {
+      self = .weeklyDigest
+      return
+    }
     self = NotificationType(rawValue: rawValue) ?? .unknown
   }
 
