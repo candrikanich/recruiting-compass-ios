@@ -3,9 +3,6 @@ import SwiftUI
 /// Skeleton placeholder for a single list row while data is loading.
 /// Usage: ForEach(0..<5, id: \.self) { _ in ListRowSkeleton() }
 struct ListRowSkeleton: View {
-  @State private var isAnimating = false
-  @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
   var body: some View {
     HStack(spacing: 12) {
       Circle()
@@ -26,12 +23,7 @@ struct ListRowSkeleton: View {
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 10)
-    .opacity(isAnimating ? 0.4 : 0.8)
-    .animation(
-      reduceMotion ? nil : .easeInOut(duration: 0.9).repeatForever(autoreverses: true),
-      value: isAnimating
-    )
-    .onAppear { if !reduceMotion { isAnimating = true } }
+    .shimmer()
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(String(localized: "Loading"))
     .accessibilityAddTraits(.updatesFrequently)

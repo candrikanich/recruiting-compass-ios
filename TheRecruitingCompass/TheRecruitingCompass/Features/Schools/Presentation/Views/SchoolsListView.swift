@@ -18,15 +18,17 @@ struct SchoolsListView: View {
         ErrorBanner(message: loadError) { viewModel.errorMessage = nil }
           .padding(.horizontal)
       }
-      if viewModel.isLoading && viewModel.allSchools.isEmpty {
-        LoadingStateView(message: "Loading schools...")
-      } else if viewModel.allSchools.isEmpty {
+      LoadableContent(
+        isLoading: viewModel.isLoading,
+        isEmpty: viewModel.allSchools.isEmpty,
+        loadingMessage: "Loading schools..."
+      ) {
         SchoolEmptyState(
           isFiltered: false,
           onClearFilters: {},
           onAddSchool: { navigationPath.append(SchoolDestination.add) }
         )
-      } else {
+      } content: {
         schoolListContent
       }
     }

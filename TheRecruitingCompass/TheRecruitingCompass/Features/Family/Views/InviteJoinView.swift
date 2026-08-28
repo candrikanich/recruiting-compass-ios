@@ -196,8 +196,9 @@ private struct InviteJoinAuthenticatedConnectSection: View {
 
   var body: some View {
     VStack(spacing: 12) {
-      gradientButton(
-        label: String(localized: "Connect to \(invite.familyName)"),
+      AsyncButton(
+        title: String(localized: "Connect to \(invite.familyName)"),
+        loadingTitle: String(localized: "Please wait..."),
         isLoading: viewModel.isAccepting
       ) {
         Task { await viewModel.accept() }
@@ -247,8 +248,9 @@ private struct InviteJoinLoginSection: View {
         )
       }
 
-      gradientButton(
-        label: String(localized: "Log in and connect"),
+      AsyncButton(
+        title: String(localized: "Log in and connect"),
+        loadingTitle: String(localized: "Please wait..."),
         isLoading: viewModel.isAccepting
       ) {
         Task { await viewModel.accept() }
@@ -355,8 +357,9 @@ private struct InviteJoinSignupSection: View {
         )
       }
 
-      gradientButton(
-        label: String(localized: "Create account and connect"),
+      AsyncButton(
+        title: String(localized: "Create account and connect"),
+        loadingTitle: String(localized: "Please wait..."),
         isLoading: viewModel.isAccepting
       ) {
         Task { await viewModel.signupAndConnect() }
@@ -397,26 +400,6 @@ private struct InviteJoinDateOfBirthField: View {
         .foregroundStyle(Color.secondary)
     }
   }
-}
-
-private func gradientButton(label: String, isLoading: Bool, action: @escaping () -> Void) -> some View {
-  Button(action: action) {
-    HStack {
-      Text(isLoading ? String(localized: "Please wait...") : label)
-        .font(.callout.weight(.semibold))
-      if isLoading {
-        ProgressView()
-          .tint(.white)
-      }
-    }
-    .frame(maxWidth: .infinity)
-    .frame(minHeight: 48)
-    .foregroundStyle(.white)
-    .background(LinearGradient.primaryButton)
-    .clipShape(.rect(cornerRadius: 8))
-    .opacity(isLoading ? 0.7 : 1)
-  }
-  .disabled(isLoading)
 }
 
 private func declineButton(loading: Bool, action: @escaping () -> Void) -> some View {

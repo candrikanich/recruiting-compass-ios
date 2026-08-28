@@ -188,30 +188,18 @@ struct LoginView: View {
 
   @ViewBuilder
   private var signInButton: some View {
-    Button(action: {
-      Task {
-        await viewModel.login()
-      }
-    }) {
-      HStack {
-        Text(viewModel.isLoading ? String(localized: "Signing in...") : String(localized: "Sign In"))
-          .font(.callout.weight(.semibold))
-
-        if viewModel.isLoading {
-          ProgressView()
-            .tint(.white)
-        }
-      }
-      .frame(maxWidth: .infinity)
-      .frame(minHeight: 48)
-      .foregroundStyle(.white)
-      .background(LinearGradient.primaryButton)
-      .clipShape(.rect(cornerRadius: 8))
-      .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
-      .disabled(viewModel.isButtonDisabled)
+    AsyncButton(
+      title: String(localized: "Sign In"),
+      loadingTitle: String(localized: "Signing in..."),
+      isLoading: viewModel.isLoading,
+      isDisabled: !viewModel.isFormValid,
+      accessibilityLabelOverride: String(localized: "Sign in to account"),
+      loadingAccessibilityLabel: String(localized: "Signing in"),
+      accessibilityHint: String(localized: "Sign in with your email and password"),
+      loadingAccessibilityHint: String(localized: "Please wait while we verify your credentials")
+    ) {
+      Task { await viewModel.login() }
     }
-    .accessibilityLabel(viewModel.isLoading ? String(localized: "Signing in") : String(localized: "Sign in to account"))
-    .accessibilityHint(viewModel.isLoading ? "Please wait while we verify your credentials" : "Sign in with your email and password")
   }
 
   @ViewBuilder

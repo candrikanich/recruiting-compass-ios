@@ -3,9 +3,6 @@ import SwiftUI
 /// Skeleton placeholder for a card while data is loading.
 /// Usage: CardSkeleton() or LazyVGrid { ForEach(0..<4) { _ in CardSkeleton() } }
 struct CardSkeleton: View {
-  @State private var isAnimating = false
-  @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       RoundedRectangle(cornerRadius: 4)
@@ -36,12 +33,7 @@ struct CardSkeleton: View {
     .frame(maxWidth: .infinity, minHeight: 140)
     .background(Color.Brand.slate100.opacity(0.4))
     .clipShape(.rect(cornerRadius: 12))
-    .opacity(isAnimating ? 0.4 : 0.8)
-    .animation(
-      reduceMotion ? nil : .easeInOut(duration: 0.9).repeatForever(autoreverses: true),
-      value: isAnimating
-    )
-    .onAppear { if !reduceMotion { isAnimating = true } }
+    .shimmer()
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(String(localized: "Loading"))
     .accessibilityAddTraits(.updatesFrequently)
