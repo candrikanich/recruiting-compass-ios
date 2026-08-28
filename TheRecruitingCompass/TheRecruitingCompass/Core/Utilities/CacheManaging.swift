@@ -51,26 +51,22 @@ extension CacheManaging {
   }
 }
 
-/// Simple in-memory cache with TTL and max entry cap. MainActor-isolated for Swift 6 compatibility
-/// with MainActor-isolated Codable types (School, Coach, etc.).
+/// In-memory cache with TTL and max entry cap.
+///
+/// Stores values directly (no JSON round-trip). MainActor-isolated for Swift 6
+/// compatibility with MainActor-isolated Codable types (School, Coach, etc.).
 @MainActor
 final class InMemoryCache: CacheManaging {
   nonisolated deinit {}
-  private struct Entry {
-    let data: Data
-    let expiresAt: Date
-  }
 
   private struct ObjectEntry {
     let value: Any
     let expiresAt: Date
   }
 
-  private var storage: [String: Entry] = [:]
   private var objectCache: [String: ObjectEntry] = [:]
+  /// Insertion order for FIFO eviction. Overwrites move the key to the end.
   private var orderedKeys: [String] = []
-  private let encoder = JSONEncoder()
-  private let decoder = JSONDecoder()
 
   /// Max number of entries; oldest (first inserted) is evicted when full.
   private let maxEntries: Int
@@ -82,43 +78,58 @@ final class InMemoryCache: CacheManaging {
   }
 
   func get<T: Decodable & Sendable>(_ type: T.Type, forKey key: String) async -> T? {
-    let now = Date.now
-    if let obj = objectCache[key], obj.expiresAt > now, let value = obj.value as? T {
-      return value
-    }
-    guard let entry = storage[key], entry.expiresAt > now else {
+    guard let obj = objectCache[key] else { return nil }
+    if obj.expiresAt <= Date.now {
+      evict(key)
       return nil
     }
-    guard let decoded = try? decoder.decode(T.self, from: entry.data) else { return nil }
-    objectCache[key] = ObjectEntry(value: decoded, expiresAt: entry.expiresAt)
-    return decoded
+    return obj.value as? T
   }
 
   func set<T: Encodable & Sendable>(_ value: T, forKey key: String, ttlSeconds: TimeInterval) async {
-    guard let data = try? encoder.encode(value) else { return }
     let expiresAt = Date.now.addingTimeInterval(ttlSeconds)
     if let idx = orderedKeys.firstIndex(of: key) {
       orderedKeys.remove(at: idx)
+    } else {
+      evictExpired()
+      while orderedKeys.count >= maxEntries {
+        evictOldest()
+      }
     }
-    while orderedKeys.count >= maxEntries, let first = orderedKeys.first {
-      storage.removeValue(forKey: first)
-      objectCache.removeValue(forKey: first)
-      orderedKeys.removeFirst()
-    }
-    storage[key] = Entry(data: data, expiresAt: expiresAt)
     objectCache[key] = ObjectEntry(value: value, expiresAt: expiresAt)
     orderedKeys.append(key)
   }
 
   func remove(forKey key: String) async {
-    storage.removeValue(forKey: key)
-    objectCache.removeValue(forKey: key)
-    orderedKeys.removeAll { $0 == key }
+    evict(key)
   }
 
   func removeAll() async {
-    storage.removeAll()
-    objectCache.removeAll()
-    orderedKeys.removeAll()
+    objectCache.removeAll(keepingCapacity: false)
+    orderedKeys.removeAll(keepingCapacity: false)
+  }
+
+  private func evict(_ key: String) {
+    objectCache.removeValue(forKey: key)
+    if let idx = orderedKeys.firstIndex(of: key) {
+      orderedKeys.remove(at: idx)
+    }
+  }
+
+  private func evictOldest() {
+    guard let first = orderedKeys.first else { return }
+    objectCache.removeValue(forKey: first)
+    orderedKeys.removeFirst()
+  }
+
+  private func evictExpired() {
+    let now = Date.now
+    let expired = orderedKeys.filter { key in
+      guard let obj = objectCache[key] else { return true }
+      return obj.expiresAt <= now
+    }
+    for key in expired {
+      evict(key)
+    }
   }
 }

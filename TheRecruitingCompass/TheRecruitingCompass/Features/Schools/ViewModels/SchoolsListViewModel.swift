@@ -11,7 +11,10 @@ final class SchoolsListViewModel {
 
   nonisolated deinit {}
   var allSchools: [School] = [] {
-    didSet { recomputeFilteredSchools() }
+    didSet {
+      recomputeFilteredSchools()
+      recomputeAnalytics()
+    }
   }
   var isLoading = false
   var errorMessage: String?
@@ -84,6 +87,14 @@ final class SchoolsListViewModel {
   /// Do not compute this inline elsewhere; it would go stale silently.
   private(set) var filteredSchools: [School] = []
 
+  /// Full-list stats. One pass over `allSchools`, not on every filter keystroke.
+  private(set) var analytics = SchoolAnalytics(
+    totalCount: 0,
+    favoritesCount: 0,
+    visitedCount: 0,
+    contactedCount: 0
+  )
+
   private func recomputeFilteredSchools() {
     var result = allSchools
 
@@ -142,14 +153,23 @@ final class SchoolsListViewModel {
     allSchools.count >= 30
   }
 
-  /// Summary stats for the full school list (unfiltered), matching web app behavior.
-  var analytics: SchoolAnalytics {
-    SchoolAnalytics(
+  private func recomputeAnalytics() {
+    var favorites = 0
+    var visited = 0
+    var contacted = 0
+    for school in allSchools {
+      if school.isFavorite { favorites += 1 }
+      if visitedSchoolIds.contains(school.id) { visited += 1 }
+      if contactedSchoolIds.contains(school.id) { contacted += 1 }
+    }
+    let next = SchoolAnalytics(
       totalCount: allSchools.count,
-      favoritesCount: allSchools.filter(\.isFavorite).count,
-      visitedCount: allSchools.filter { visitedSchoolIds.contains($0.id) }.count,
-      contactedCount: allSchools.filter { contactedSchoolIds.contains($0.id) }.count
+      favoritesCount: favorites,
+      visitedCount: visited,
+      contactedCount: contacted
     )
+    guard analytics != next else { return }
+    analytics = next
   }
 
   private let cache: (any CacheManaging)?
@@ -275,6 +295,7 @@ final class SchoolsListViewModel {
     }
     visitedSchoolIds = visited
     contactedSchoolIds = contacted
+    recomputeAnalytics()
   }
 
   private func fetchVisitInteractions(familyUnitId: String) async -> [Interaction] {

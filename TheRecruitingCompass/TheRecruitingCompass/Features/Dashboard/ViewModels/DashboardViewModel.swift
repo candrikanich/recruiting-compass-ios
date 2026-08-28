@@ -160,13 +160,8 @@ final class DashboardViewModel {
       )
       lastUpdated = Date.now
       loadQuickTasks()
-      async let visibilityTask: () = fetchWidgetVisibility()
-      async let suggestionsTask: () = fetchSuggestions()
-      async let eventsTask: () = fetchEvents()
-      async let metricsTask: () = fetchMetrics()
-      async let trendsTask: () = fetchInteractionTrends()
-      async let playerProfileTask: () = fetchPlayerProfile()
-      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask, playerProfileTask)
+      await fetchWidgetVisibility()
+      await fetchVisibleWidgets(familyUnitId: nil)
       return
     }
 
@@ -178,22 +173,17 @@ final class DashboardViewModel {
     defer { isLoading = false }
 
     do {
-      let fetchedStats = try await dashboardService.fetchStats(
+      async let visibilityTask: Void = fetchWidgetVisibility()
+      async let statsTask = dashboardService.fetchStats(
         familyUnitId: familyUnitId,
         userId: targetUserId
       )
-      stats = fetchedStats
+      _ = await visibilityTask
+      stats = try await statsTask
       lastUpdated = Date.now
 
       loadQuickTasks()
-      async let visibilityTask: () = fetchWidgetVisibility()
-      async let suggestionsTask: () = fetchSuggestions()
-      async let eventsTask: () = fetchEvents()
-      async let metricsTask: () = fetchMetrics()
-      async let trendsTask: () = fetchInteractionTrends()
-      async let coachesTask: () = fetchCoachesFollowup()
-      async let playerProfileTask: () = fetchPlayerProfile()
-      _ = await (visibilityTask, suggestionsTask, eventsTask, metricsTask, trendsTask, coachesTask, playerProfileTask)
+      await fetchVisibleWidgets(familyUnitId: familyUnitId)
     } catch {
       logger.error("Failed to load dashboard data: \(error.localizedDescription)")
       errorMessage = "Failed to load dashboard. Pull to refresh."
@@ -211,6 +201,71 @@ final class DashboardViewModel {
       lastUpdated = Date.now
       #endif
     }
+  }
+
+  /// Widget payloads only. Stats already ran; skip hidden widgets so we don't
+  /// download events/metrics/schools the UI will not render.
+  private func fetchVisibleWidgets(familyUnitId: String?) async {
+    let widgets = widgetVisibility.widgets
+
+    async let suggestionsTask: Void = fetchSuggestionsIfNeeded(widgets.actionItems)
+    async let eventsTask: Void = fetchEventsIfNeeded(widgets.eventsSummary)
+    async let metricsTask: Void = fetchMetricsIfNeeded(widgets.performanceSummary)
+    async let trendsTask: Void = fetchTrendsIfNeeded(widgets.interactionTrendChart)
+    async let coachesTask: Void = fetchCoachesFollowupIfNeeded(
+      widgets.coachFollowupWidget && familyUnitId != nil
+    )
+    async let profileTask: Void = fetchPlayerProfileIfNeeded(
+      widgets.recruitingCalendar || widgets.atAGlanceSummary
+    )
+    _ = await (suggestionsTask, eventsTask, metricsTask, trendsTask, coachesTask, profileTask)
+  }
+
+  private func fetchSuggestionsIfNeeded(_ needed: Bool) async {
+    guard needed else {
+      suggestions = []
+      suggestionsPendingCount = 0
+      return
+    }
+    await fetchSuggestions()
+  }
+
+  private func fetchEventsIfNeeded(_ needed: Bool) async {
+    guard needed else {
+      events = []
+      return
+    }
+    await fetchEvents()
+  }
+
+  private func fetchMetricsIfNeeded(_ needed: Bool) async {
+    guard needed else {
+      metrics = []
+      return
+    }
+    await fetchMetrics()
+  }
+
+  private func fetchTrendsIfNeeded(_ needed: Bool) async {
+    guard needed else {
+      interactionTrends = []
+      return
+    }
+    await fetchInteractionTrends()
+  }
+
+  private func fetchCoachesFollowupIfNeeded(_ needed: Bool) async {
+    guard needed else {
+      coachesNeedingFollowup = []
+      allSchools = []
+      return
+    }
+    await fetchCoachesFollowup()
+  }
+
+  private func fetchPlayerProfileIfNeeded(_ needed: Bool) async {
+    guard needed else { return }
+    await fetchPlayerProfile()
   }
 
   func exitParentPreview() {
