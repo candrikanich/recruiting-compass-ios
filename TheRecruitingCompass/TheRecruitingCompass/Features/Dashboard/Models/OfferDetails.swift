@@ -1,6 +1,6 @@
 import Foundation
 
-struct OfferDetails: Codable, Sendable {
+struct OfferDetails: Codable, Equatable, Sendable {
   let terms: String?
   let startDate: String?
   let endDate: String?

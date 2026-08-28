@@ -1,6 +1,6 @@
 import Foundation
 
-struct AcademicInfo: Codable, Sendable {
+struct AcademicInfo: Codable, Equatable, Sendable {
   let gpaRequirement: Double?
   let satRequirement: Int?
   let actRequirement: Int?

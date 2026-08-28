@@ -148,30 +148,31 @@ final class CoachesListViewModel {
       return
     }
 
-    isLoading = true
-    errorMessage = nil
-    defer { isLoading = false }
+    await ViewModelHelpers.runLoad(
+      setLoading: { self.isLoading = $0 },
+      setError: { self.errorMessage = $0 },
+      userMessage: "Failed to load coaches. Please try again.",
+      logger: logger
+    ) {
+      let cacheKey = ListCacheKeys.coaches(familyUnitId: familyUnitId)
+      let cacheToUse = cache ?? InMemoryCache.shared
 
-    let cacheKey = ListCacheKeys.coaches(familyUnitId: familyUnitId)
-    let cacheToUse = cache ?? InMemoryCache.shared
-
-    do {
       let schools = try await coachesService.fetchSchools(familyUnitId: familyUnitId)
       allSchools = schools
 
-      if let cachedCoaches = await cacheToUse.get([Coach].self, forKey: cacheKey) {
-        allCoaches = cachedCoaches
+      let result = try await cacheToUse.getOrFetch(
+        [Coach].self,
+        forKey: cacheKey,
+        ttlSeconds: Self.coachesListCacheTTL
+      ) {
+        try await coachesService.fetchCoaches(schoolIds: schools.map(\.id))
+      }
+      allCoaches = result.value
+      if result.cacheHit {
         logger.info("Loaded \(self.allCoaches.count) coaches from cache")
       } else {
-        let schoolIds = schools.map(\.id)
-        let fetched = try await coachesService.fetchCoaches(schoolIds: schoolIds)
-        allCoaches = fetched
-        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.coachesListCacheTTL)
         logger.info("Loaded \(self.allCoaches.count) coaches from \(schools.count) schools")
       }
-    } catch {
-      logger.error("Failed to load coaches: \(error.localizedDescription)")
-      errorMessage = "Failed to load coaches. Please try again."
     }
   }
 

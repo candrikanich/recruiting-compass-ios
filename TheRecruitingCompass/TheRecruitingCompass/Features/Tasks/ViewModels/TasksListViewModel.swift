@@ -134,13 +134,17 @@ final class TasksListViewModel {
     let cacheToUse = cache ?? InMemoryCache.shared
 
     do {
-      if let cached = await cacheToUse.get([TaskWithStatus].self, forKey: cacheKey) {
-        tasks = cached
+      let result = try await cacheToUse.getOrFetch(
+        [TaskWithStatus].self,
+        forKey: cacheKey,
+        ttlSeconds: Self.tasksListCacheTTL
+      ) {
+        try await tasksService.fetchTasksWithStatus(gradeLevel: currentGradeLevel, athleteId: athleteId)
+      }
+      tasks = result.value
+      if result.cacheHit {
         logger.info("Loaded \(self.tasks.count) tasks for grade \(self.currentGradeLevel) from cache")
       } else {
-        let fetched = try await tasksService.fetchTasksWithStatus(gradeLevel: currentGradeLevel, athleteId: athleteId)
-        tasks = fetched
-        await cacheToUse.set(fetched, forKey: cacheKey, ttlSeconds: Self.tasksListCacheTTL)
         logger.info("Loaded \(self.tasks.count) tasks for grade \(self.currentGradeLevel)")
       }
     } catch {

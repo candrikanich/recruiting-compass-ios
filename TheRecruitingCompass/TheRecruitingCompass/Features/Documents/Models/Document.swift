@@ -1,6 +1,6 @@
 import Foundation
 
-struct Document: Codable, Identifiable, Sendable {
+struct Document: Codable, Identifiable, Equatable, Sendable {
   let id: String
   let userId: String?
   let type: DocumentType

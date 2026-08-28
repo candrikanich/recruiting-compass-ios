@@ -35,13 +35,11 @@ final class SchoolsServiceImpl: SchoolsManaging, Sendable {
 
   func fetchSchools(familyUnitId: String) async throws -> [School] {
     try await logger.fetch("schools") {
-      try await supabaseManager.client
-        .from("schools")
-        .select()
-        .eq("family_unit_id", value: familyUnitId)
-        .order("name")
-        .execute()
-        .value
+      try await FamilyScopedQueries.fetchSchools(
+        from: supabaseManager.client,
+        familyUnitId: familyUnitId,
+        orderedByName: true
+      )
     }
   }
 

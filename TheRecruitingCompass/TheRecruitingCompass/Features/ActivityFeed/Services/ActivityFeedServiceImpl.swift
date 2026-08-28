@@ -16,9 +16,8 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
   }
 
   func fetchInteractions(userId: String) async throws -> [Interaction] {
-    logger.debug("Fetching interactions for activity feed, user: \(userId, privacy: .private)")
-    do {
-      let interactions: [Interaction] = try await supabaseManager.client
+    try await logger.fetch("interactions") {
+      try await supabaseManager.client
         .from("interactions")
         .select("id, school_id, type, content, subject, occurred_at, created_at, direction, logged_by, family_unit_id, updated_at, sentiment, coach_id, attachments")
         .eq("logged_by", value: userId)
@@ -26,18 +25,12 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
         .limit(50)
         .execute()
         .value
-      logger.info("Fetched \(interactions.count) interactions for activity feed")
-      return interactions
-    } catch {
-      logger.error("fetchInteractions (activity feed) failed: \(error.localizedDescription)")
-      throw error
     }
   }
 
   func fetchStatusChanges(userId: String) async throws -> [SchoolStatusHistory] {
-    logger.debug("Fetching status changes for activity feed, user: \(userId, privacy: .private)")
-    do {
-      let changes: [SchoolStatusHistory] = try await supabaseManager.client
+    try await logger.fetch("status changes") {
+      try await supabaseManager.client
         .from("school_status_history")
         .select("id, school_id, new_status, previous_status, notes, changed_at, changed_by, created_at")
         .eq("changed_by", value: userId)
@@ -45,18 +38,12 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
         .limit(50)
         .execute()
         .value
-      logger.info("Fetched \(changes.count) status changes for activity feed")
-      return changes
-    } catch {
-      logger.error("fetchStatusChanges (activity feed) failed: \(error.localizedDescription)")
-      throw error
     }
   }
 
   func fetchDocuments(userId: String) async throws -> [DocumentRecord] {
-    logger.debug("Fetching documents for activity feed, user: \(userId, privacy: .private)")
-    do {
-      let documents: [DocumentRecord] = try await supabaseManager.client
+    try await logger.fetch("documents") {
+      try await supabaseManager.client
         .from("documents")
         .select("id, title, type, created_at")
         .eq("user_id", value: userId)
@@ -64,11 +51,6 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
         .limit(50)
         .execute()
         .value
-      logger.info("Fetched \(documents.count) documents for activity feed")
-      return documents
-    } catch {
-      logger.error("fetchDocuments (activity feed) failed: \(error.localizedDescription)")
-      throw error
     }
   }
 

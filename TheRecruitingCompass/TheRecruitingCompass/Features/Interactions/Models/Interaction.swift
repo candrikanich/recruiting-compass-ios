@@ -1,6 +1,6 @@
 import Foundation
 
-struct Interaction: Identifiable, Codable, Sendable {
+struct Interaction: Identifiable, Codable, Equatable, Sendable {
   let id: String
   let type: InteractionType
   let direction: Direction

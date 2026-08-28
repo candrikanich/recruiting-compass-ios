@@ -12,24 +12,6 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     self.supabaseManager = supabaseManager
   }
 
-  private func fetch<T: Decodable>(
-    _ label: String,
-    query: () async throws -> [T]
-  ) async throws -> [T] {
-    logger.debug("Fetching \(label)")
-    do {
-      let result = try await query()
-      logger.info("Fetched \(result.count) \(label)")
-      return result
-    } catch {
-      logger.error("Failed to fetch \(label): \(error.localizedDescription)")
-      if let decodingError = error as? DecodingError {
-        logger.error("Decoding error: \(String(describing: decodingError))")
-      }
-      throw error
-    }
-  }
-
   func fetchStats(familyUnitId: String, userId: String) async throws -> DashboardStats {
     logger.debug("fetchStats - familyUnitId: \(familyUnitId), userId: \(userId)")
 
@@ -105,13 +87,8 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
   }
 
   func fetchSchools(familyUnitId: String) async throws -> [School] {
-    try await fetch("schools") {
-      try await supabaseManager.client
-        .from("schools")
-        .select()
-        .eq("family_unit_id", value: familyUnitId)
-        .execute()
-        .value
+    try await logger.fetch("schools") {
+      try await FamilyScopedQueries.fetchSchools(from: supabaseManager.client, familyUnitId: familyUnitId)
     }
   }
 
@@ -121,7 +98,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       return []
     }
 
-    return try await fetch("coaches") {
+    return try await logger.fetch("coaches") {
       try await supabaseManager.client
         .from("coaches")
         .select()
@@ -132,7 +109,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
   }
 
   func fetchInteractions(userId: String, limit: Int?) async throws -> [Interaction] {
-    try await fetch("interactions") {
+    try await logger.fetch("interactions") {
       var query = supabaseManager.client
         .from("interactions")
         .select()
@@ -148,7 +125,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
   }
 
   func fetchOffers(userId: String) async throws -> [Offer] {
-    try await fetch("offers") {
+    try await logger.fetch("offers") {
       try await supabaseManager.client
         .from("offers")
         .select()
@@ -159,7 +136,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
   }
 
   func fetchEvents(userId: String, limit: Int?) async throws -> [FullEvent] {
-    try await fetch("events") {
+    try await logger.fetch("events") {
       var query = supabaseManager.client
         .from("events")
         .select()
@@ -175,7 +152,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
   }
 
   func fetchMetrics(userId: String, limit: Int?) async throws -> [PerformanceMetric] {
-    try await fetch("metrics") {
+    try await logger.fetch("metrics") {
       var query = supabaseManager.client
         .from("performance_metrics")
         .select()

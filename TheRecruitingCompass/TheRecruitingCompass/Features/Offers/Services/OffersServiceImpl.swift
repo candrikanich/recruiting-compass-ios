@@ -12,73 +12,38 @@ final class OffersServiceImpl: OffersManaging, Sendable {
   }
 
   func fetchOffers(userId: String) async throws -> [Offer] {
-    logger.debug("Fetching offers for user: \(userId, privacy: .private)")
-    do {
-      let offers: [Offer] = try await supabaseManager.client
+    try await logger.fetch("offers") {
+      try await supabaseManager.client
         .from("offers")
         .select()
         .eq("user_id", value: userId)
         .order("offer_date", ascending: false)
         .execute()
         .value
-      logger.info("Fetched \(offers.count) offers")
-      return offers
-    } catch {
-      logger.error("fetchOffers failed: \(error.localizedDescription)")
-      throw error
     }
   }
 
   func fetchOffer(id: String) async throws -> Offer {
-    logger.debug("Fetching offer: \(id)")
-    do {
-      let offer: Offer = try await supabaseManager.client
+    try await logger.fetchOne("offer \(id)") {
+      try await supabaseManager.client
         .from("offers")
         .select()
         .eq("id", value: id)
         .single()
         .execute()
         .value
-      logger.info("Fetched offer: \(offer.id)")
-      return offer
-    } catch {
-      logger.error("fetchOffer \(id) failed: \(error.localizedDescription)")
-      throw error
     }
   }
 
   func fetchSchools(familyUnitId: String) async throws -> [School] {
-    logger.debug("Fetching schools for family: \(familyUnitId)")
-    do {
-      let schools: [School] = try await supabaseManager.client
-        .from("schools")
-        .select()
-        .eq("family_unit_id", value: familyUnitId)
-        .execute()
-        .value
-      logger.info("Fetched \(schools.count) schools")
-      return schools
-    } catch {
-      logger.error("fetchSchools failed: \(error.localizedDescription)")
-      throw error
+    try await logger.fetch("schools") {
+      try await FamilyScopedQueries.fetchSchools(from: supabaseManager.client, familyUnitId: familyUnitId)
     }
   }
 
   func fetchSchool(id: String) async throws -> School {
-    logger.debug("Fetching school: \(id)")
-    do {
-      let school: School = try await supabaseManager.client
-        .from("schools")
-        .select()
-        .eq("id", value: id)
-        .single()
-        .execute()
-        .value
-      logger.info("Fetched school: \(school.name)")
-      return school
-    } catch {
-      logger.error("fetchSchool \(id) failed: \(error.localizedDescription)")
-      throw error
+    try await logger.fetchOne("school \(id)") {
+      try await FamilyScopedQueries.fetchSchool(from: supabaseManager.client, id: id)
     }
   }
 
