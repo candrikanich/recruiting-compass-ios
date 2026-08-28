@@ -16,7 +16,7 @@ struct SchoolDetailView: View {
 
   init(schoolId: String) {
     self.schoolId = schoolId
-    _viewModel = State(initialValue: SchoolDetailViewModel(schoolId: schoolId))
+    _viewModel = State(initialValue: SchoolsFactory.makeDetailViewModel(schoolId: schoolId))
   }
 
   private enum NavigationDestination: Hashable {

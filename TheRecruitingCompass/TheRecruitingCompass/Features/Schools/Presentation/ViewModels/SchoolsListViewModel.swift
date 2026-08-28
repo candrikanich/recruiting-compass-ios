@@ -53,21 +53,15 @@ final class SchoolsListViewModel {
     PersonalFitCalculator.overall(PersonalFitCalculator.calculate(athlete: athleteProfile, school: school))
   }
 
-  private func rank(_ strength: OverallPersonalFit.Strength?) -> Int {
-    switch strength {
-    case .strong: return 2
-    case .good: return 1
-    case .stretch: return 0
-    case nil: return -1
-    }
-  }
-
   let schoolsService: any SchoolsManaging
   private let familyManager: FamilyManager
   private let preferenceService: any PreferenceManaging
   private let authManager: any AuthManaging
   private let interactionsService: any InteractionsManaging
   private let eventsService: any EventsManaging
+  private let filterAndSort = FilterAndSortSchoolsUseCase()
+  private let computeAnalytics = ComputeSchoolAnalyticsUseCase()
+  private let deleteSchoolUseCase: DeleteSchoolUseCase
 
   /// School IDs with a real logged visit — a visit-type interaction or a past-dated
   /// visit event. Drives the "Visited" stat (see `analytics`); populated in `loadSchools()`.
@@ -96,44 +90,13 @@ final class SchoolsListViewModel {
   )
 
   private func recomputeFilteredSchools() {
-    var result = allSchools
-
-    if !filters.searchText.isEmpty {
-      let query = filters.searchText
-      result = result.filter { school in
-        school.name.localizedStandardContains(query)
-          || (school.location?.localizedStandardContains(query) ?? false)
-          || (school.city?.localizedStandardContains(query) ?? false)
-          || (school.state?.localizedStandardContains(query) ?? false)
-          || (school.conference?.localizedStandardContains(query) ?? false)
-          || (school.notes?.localizedStandardContains(query) ?? false)
-      }
-    }
-
-    if let division = filters.division {
-      result = result.filter { $0.division == division.rawValue }
-    }
-
-    if let status = filters.status {
-      result = result.filter { $0.status == status.rawValue }
-    }
-
-    if let state = filters.state {
-      result = result.filter { $0.state == state }
-    }
-
-    if filters.isFavoritesOnly {
-      result = result.filter { $0.isFavorite }
-    }
-
-    if let maxDistance = filters.maxDistance, let home = homeLocation {
-      result = result.filter { school in
-        guard let distance = cachedDistance(for: school, from: home) else { return false }
-        return distance <= maxDistance
-      }
-    }
-
-    filteredSchools = sorted(result)
+    filteredSchools = filterAndSort.execute(
+      schools: allSchools,
+      filters: filters,
+      homeLocation: homeLocation,
+      overallFit: { overallFit(for: $0) },
+      distance: { cachedDistance(for: $0, from: $1) }
+    )
   }
 
   var availableStates: [String] {
@@ -154,19 +117,10 @@ final class SchoolsListViewModel {
   }
 
   private func recomputeAnalytics() {
-    var favorites = 0
-    var visited = 0
-    var contacted = 0
-    for school in allSchools {
-      if school.isFavorite { favorites += 1 }
-      if visitedSchoolIds.contains(school.id) { visited += 1 }
-      if contactedSchoolIds.contains(school.id) { contacted += 1 }
-    }
-    let next = SchoolAnalytics(
-      totalCount: allSchools.count,
-      favoritesCount: favorites,
-      visitedCount: visited,
-      contactedCount: contacted
+    let next = computeAnalytics.execute(
+      schools: allSchools,
+      visitedSchoolIds: visitedSchoolIds,
+      contactedSchoolIds: contactedSchoolIds
     )
     guard analytics != next else { return }
     analytics = next
@@ -185,15 +139,18 @@ final class SchoolsListViewModel {
     authManager: (any AuthManaging)? = nil,
     interactionsService: (any InteractionsManaging)? = nil,
     eventsService: (any EventsManaging)? = nil,
-    cache: (any CacheManaging)? = nil
+    cache: (any CacheManaging)? = nil,
+    deleteSchool: DeleteSchoolUseCase? = nil
   ) {
-    self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
+    let repository: any SchoolsManaging = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
+    self.schoolsService = repository
     self.familyManager = familyManager ?? .shared
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.interactionsService = interactionsService ?? InteractionsServiceImpl(supabaseManager: .shared)
     self.eventsService = eventsService ?? EventsServiceImpl(supabaseManager: .shared)
     self.cache = cache
+    self.deleteSchoolUseCase = deleteSchool ?? DeleteSchoolUseCase(repository: repository)
   }
 
   /// Invalidates the cached school list so the next `loadSchools()` refetches.
@@ -350,29 +307,23 @@ final class SchoolsListViewModel {
     }
 
     do {
-      do {
-        try await schoolsService.deleteSchool(id: school.id)
-        allSchools.removeAll { $0.id == school.id }
-        distanceCache.removeValue(forKey: school.id)
-        distanceCacheOrderedKeys.removeAll { $0 == school.id }
+      let outcome = try await deleteSchoolUseCase.execute(id: school.id)
+      allSchools.removeAll { $0.id == school.id }
+      distanceCache.removeValue(forKey: school.id)
+      distanceCacheOrderedKeys.removeAll { $0 == school.id }
+      switch outcome {
+      case .simple:
         successMessage = String(localized: "School deleted successfully")
-        showSuccessToast = true
         logger.info("School deleted: \(school.name)")
-        await invalidateSchoolsListCache()
-      } catch {
-        logger.warning("Simple delete failed, attempting cascade delete: \(error.localizedDescription)")
-        let result = try await schoolsService.cascadeDeleteSchool(id: school.id)
-        allSchools.removeAll { $0.id == school.id }
-        distanceCache.removeValue(forKey: school.id)
-        distanceCacheOrderedKeys.removeAll { $0 == school.id }
+      case .cascade(let result):
         let totalDeleted = result.deletedInteractions + result.deletedNotes
         successMessage = totalDeleted > 0
           ? String(localized: "School and \(totalDeleted) related items deleted")
           : String(localized: "School deleted successfully")
-        showSuccessToast = true
         logger.info("Cascade delete successful: \(school.name)")
-        await invalidateSchoolsListCache()
       }
+      showSuccessToast = true
+      await invalidateSchoolsListCache()
     } catch {
       logger.error("Delete failed: \(error.localizedDescription)")
       deleteErrorMessage = String(localized: "Failed to delete school. Please try again.")
@@ -422,31 +373,6 @@ final class SchoolsListViewModel {
     distanceCache[school.id] = distance
     distanceCacheOrderedKeys.append(school.id)
     return distance
-  }
-
-  private func sorted(_ schools: [School]) -> [School] {
-    switch filters.sortBy {
-    case .nameAZ:
-      return schools.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-
-    case .personalFit:
-      return schools.sorted { rank(overallFit(for: $0)?.strength) > rank(overallFit(for: $1)?.strength) }
-
-    case .distance:
-      guard let home = homeLocation else { return schools }
-      return schools.sorted { lhs, rhs in
-        let lhsDistance = cachedDistance(for: lhs, from: home) ?? Double.infinity
-        let rhsDistance = cachedDistance(for: rhs, from: home) ?? Double.infinity
-        return lhsDistance < rhsDistance
-      }
-
-    case .lastContact:
-      return schools.sorted { lhs, rhs in
-        guard let lhsDate = lhs.statusChangedAt else { return false }
-        guard let rhsDate = rhs.statusChangedAt else { return true }
-        return lhsDate > rhsDate
-      }
-    }
   }
 
 }

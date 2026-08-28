@@ -77,9 +77,24 @@ Supabase credentials must be configured before running:
 
 ## Architecture Overview
 
-### MVVM Pattern (Strict Separation)
+Schools is the **clean-architecture reference**. Other features still use feature-MVVM. See `docs/CLEAN_ARCHITECTURE.md`.
 
-**Every feature follows:**
+### Schools (Clean Architecture)
+
+```
+Features/Schools/
+├── Domain/          # Entities, SchoolsRepository, use cases
+├── Data/            # Repository impl, data sources, DTOs
+├── Presentation/    # ViewModels, Views, Components, form models
+└── DI/              # SchoolsFactory (composition root)
+```
+
+Views call `SchoolsFactory.makeListViewModel()` (etc.). Do not construct `SchoolsRepositoryImpl` in a view.
+
+`SchoolsManaging` and `SchoolsServiceImpl` remain as typealiases so unconverted features keep compiling.
+
+### Other features — MVVM (until converted)
+
 ```
 Feature/
 ├── Models/              # Data structures (Codable, Identifiable)
@@ -105,7 +120,8 @@ Feature/
 - `Theme/` - AppColors, AppGradients
 
 **Features/** - Feature modules (Auth, Dashboard, Landing, Schools, Coaches)
-- Self-contained: Models + ViewModels + Views + Components per feature
+- Schools: Domain / Data / Presentation / DI (see `docs/CLEAN_ARCHITECTURE.md`)
+- Other features: Models + ViewModels + Views + Components until converted
 
 **Shared/** - Cross-feature reusable components
 - `Components/` - Buttons, form fields, cards

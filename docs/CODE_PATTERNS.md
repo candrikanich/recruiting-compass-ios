@@ -1,5 +1,7 @@
 # Code Patterns Reference
 
+Schools uses clean architecture (`Domain` / `Data` / `Presentation` / `DI`). Other features still use feature-MVVM. See [CLEAN_ARCHITECTURE.md](CLEAN_ARCHITECTURE.md).
+
 ## ViewModel Pattern
 
 Use `@Observable` (iOS 17+) and `@MainActor` for view models. Do not use `ObservableObject` / `@Published` for new code.
@@ -38,7 +40,7 @@ For views that **own** the view model, use `@State private var viewModel`. Do no
 
 ```swift
 struct SchoolsListView: View {
-  @State private var viewModel = SchoolsListViewModel()
+  @State private var viewModel = SchoolsFactory.makeListViewModel()
 
   var body: some View {
     List(viewModel.schools) { school in

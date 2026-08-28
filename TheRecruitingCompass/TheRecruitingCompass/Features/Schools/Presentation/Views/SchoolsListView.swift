@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SchoolsListView: View {
-  @State private var viewModel = SchoolsListViewModel()
+  @State private var viewModel = SchoolsFactory.makeListViewModel()
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
   @State private var navigationPath = NavigationPath()
