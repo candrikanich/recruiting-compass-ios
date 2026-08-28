@@ -117,4 +117,77 @@ final class CacheManagingTests: XCTestCase {
     let stored = await cache.get([String].self, forKey: "k")
     XCTAssertEqual(stored, ["old"])
   }
+
+  func testGet_ReturnsStoredValueWithoutJSONRoundTrip() async {
+    let cache = InMemoryCache()
+    await cache.set(["a", "b"], forKey: "k", ttlSeconds: 60)
+
+    let first = await cache.get([String].self, forKey: "k")
+    let second = await cache.get([String].self, forKey: "k")
+
+    XCTAssertEqual(first, ["a", "b"])
+    XCTAssertEqual(second, ["a", "b"])
+  }
+
+  func testGet_ExpiredEntryIsEvicted() async {
+    let cache = InMemoryCache()
+    await cache.set(["stale"], forKey: "k", ttlSeconds: -1)
+
+    let expired = await cache.get([String].self, forKey: "k")
+    XCTAssertNil(expired)
+    // Re-set should not FIFO-evict a zombie expired key.
+    await cache.set(["fresh"], forKey: "other", ttlSeconds: 60)
+    let fresh = await cache.get([String].self, forKey: "other")
+    XCTAssertEqual(fresh, ["fresh"])
+  }
+
+  func testGet_TypeMismatchReturnsNil() async {
+    let cache = InMemoryCache()
+    await cache.set(["a"], forKey: "k", ttlSeconds: 60)
+
+    let wrongType = await cache.get(Int.self, forKey: "k")
+    XCTAssertNil(wrongType)
+    let stored = await cache.get([String].self, forKey: "k")
+    XCTAssertEqual(stored, ["a"])
+  }
+
+  func testSet_EvictsOldestWhenAtCapacity() async {
+    let cache = InMemoryCache(maxEntries: 2)
+    await cache.set(1, forKey: "a", ttlSeconds: 60)
+    await cache.set(2, forKey: "b", ttlSeconds: 60)
+    await cache.set(3, forKey: "c", ttlSeconds: 60)
+
+    let evicted = await cache.get(Int.self, forKey: "a")
+    let keptB = await cache.get(Int.self, forKey: "b")
+    let keptC = await cache.get(Int.self, forKey: "c")
+    XCTAssertNil(evicted)
+    XCTAssertEqual(keptB, 2)
+    XCTAssertEqual(keptC, 3)
+  }
+
+  func testSet_OverwriteDoesNotEvictOtherKeys() async {
+    let cache = InMemoryCache(maxEntries: 2)
+    await cache.set(1, forKey: "a", ttlSeconds: 60)
+    await cache.set(2, forKey: "b", ttlSeconds: 60)
+    await cache.set(10, forKey: "a", ttlSeconds: 60)
+
+    let a = await cache.get(Int.self, forKey: "a")
+    let b = await cache.get(Int.self, forKey: "b")
+    XCTAssertEqual(a, 10)
+    XCTAssertEqual(b, 2)
+  }
+
+  func testSet_PrefersEvictingExpiredBeforeLiveEntries() async {
+    let cache = InMemoryCache(maxEntries: 2)
+    await cache.set(["live"], forKey: "keep", ttlSeconds: 60)
+    await cache.set(["dead"], forKey: "expired", ttlSeconds: -1)
+    await cache.set(["new"], forKey: "added", ttlSeconds: 60)
+
+    let expired = await cache.get([String].self, forKey: "expired")
+    let keep = await cache.get([String].self, forKey: "keep")
+    let added = await cache.get([String].self, forKey: "added")
+    XCTAssertNil(expired)
+    XCTAssertEqual(keep, ["live"])
+    XCTAssertEqual(added, ["new"])
+  }
 }

@@ -303,6 +303,73 @@ final class DashboardViewModelTests: XCTestCase {
     XCTAssertEqual(mockDashboardService.lastFetchStatsFamilyUnitId, "family-unit-1")
   }
 
+  func testFetchDashboardData_DefaultVisibility_LoadsWidgetPayloads() async {
+    authenticateUser()
+    setupFamilyContext()
+
+    await sut.fetchDashboardData()
+
+    XCTAssertEqual(mockDashboardService.fetchSuggestionsCallCount, 1)
+    XCTAssertEqual(mockDashboardService.fetchEventsCallCount, 1)
+    XCTAssertEqual(mockDashboardService.fetchMetricsCallCount, 1)
+    XCTAssertEqual(mockDashboardService.fetchInteractionsCallCount, 1)
+    // Follow-up loads schools; coaches are skipped when the school list is empty.
+    XCTAssertEqual(mockDashboardService.fetchSchoolsCallCount, 1)
+    XCTAssertEqual(mockDashboardService.fetchCoachesCallCount, 0)
+  }
+
+  func testFetchDashboardData_HiddenWidgets_SkipNetwork() async {
+    authenticateUser()
+    setupFamilyContext()
+    mockPreferenceService.stubbedDashboardVisibility = Self.hiddenWidgetsVisibility()
+
+    await sut.fetchDashboardData()
+
+    XCTAssertEqual(mockDashboardService.fetchStatsCallCount, 1)
+    XCTAssertEqual(mockDashboardService.fetchSuggestionsCallCount, 0)
+    XCTAssertEqual(mockDashboardService.fetchEventsCallCount, 0)
+    XCTAssertEqual(mockDashboardService.fetchMetricsCallCount, 0)
+    XCTAssertEqual(mockDashboardService.fetchInteractionsCallCount, 0)
+    XCTAssertEqual(mockDashboardService.fetchSchoolsCallCount, 0)
+    XCTAssertEqual(mockDashboardService.fetchCoachesCallCount, 0)
+    XCTAssertTrue(sut.suggestions.isEmpty)
+    XCTAssertTrue(sut.events.isEmpty)
+    XCTAssertTrue(sut.metrics.isEmpty)
+    XCTAssertTrue(sut.interactionTrends.isEmpty)
+    XCTAssertTrue(sut.coachesNeedingFollowup.isEmpty)
+    XCTAssertTrue(sut.allSchools.isEmpty)
+  }
+
+  func testFetchDashboardData_HidesFollowupOnly_StillLoadsOtherWidgets() async {
+    authenticateUser()
+    setupFamilyContext()
+    var visibility = DashboardWidgetVisibility.default
+    visibility.widgets.coachFollowupWidget = false
+    mockPreferenceService.stubbedDashboardVisibility = visibility
+
+    await sut.fetchDashboardData()
+
+    XCTAssertEqual(mockDashboardService.fetchSchoolsCallCount, 0)
+    XCTAssertEqual(mockDashboardService.fetchCoachesCallCount, 0)
+    XCTAssertEqual(mockDashboardService.fetchEventsCallCount, 1)
+    XCTAssertEqual(mockDashboardService.fetchSuggestionsCallCount, 1)
+    XCTAssertTrue(sut.coachesNeedingFollowup.isEmpty)
+  }
+
+  private static func hiddenWidgetsVisibility() -> DashboardWidgetVisibility {
+    var visibility = DashboardWidgetVisibility.default
+    visibility.widgets.actionItems = false
+    visibility.widgets.quickTasks = false
+    visibility.widgets.atAGlanceSummary = false
+    visibility.widgets.interactionTrendChart = false
+    visibility.widgets.eventsSummary = false
+    visibility.widgets.performanceSummary = false
+    visibility.widgets.recentActivity = false
+    visibility.widgets.recruitingCalendar = false
+    visibility.widgets.coachFollowupWidget = false
+    return visibility
+  }
+
   // MARK: - Quick Task CRUD Tests
 
   func testAddTaskAppendsAndSaves() {

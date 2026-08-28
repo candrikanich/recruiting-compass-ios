@@ -16,7 +16,7 @@ final class NotificationsListViewModel {
   // MARK: - State
 
   var notifications: [AppNotification] = [] {
-    didSet { recomputeFilteredNotifications() }
+    didSet { recomputeDerivedState() }
   }
   private(set) var isLoading = false
   var errorMessage: String?
@@ -24,10 +24,10 @@ final class NotificationsListViewModel {
   // MARK: - Filters & Search
 
   var selectedTypeFilter: NotificationType? {
-    didSet { recomputeFilteredNotifications() }
+    didSet { recomputeDerivedState() }
   }
   var searchText: String = "" {
-    didSet { recomputeFilteredNotifications() }
+    didSet { recomputeDerivedState() }
   }
 
   // MARK: - Navigation
@@ -36,39 +36,47 @@ final class NotificationsListViewModel {
 
   // MARK: - Computed Properties
 
-  /// Cached derived list — recomputed via `recomputeFilteredNotifications()`
+  /// Cached derived list — recomputed via `recomputeDerivedState()`
   /// whenever `notifications`, `selectedTypeFilter`, or `searchText` change.
   /// Do not compute this inline elsewhere; it would go stale silently.
   private(set) var filteredNotifications: [AppNotification] = []
 
-  private func recomputeFilteredNotifications() {
-    var result = notifications
+  /// Stored so TabView's badge observes this Int, not the full `notifications`
+  /// array (which would rebuild every tab on each inbox mutation).
+  private(set) var unreadCount = 0
+  private(set) var hasUnread = false
+  private(set) var hasRead = false
 
+  private func recomputeDerivedState() {
+    var unread = 0
+    var read = false
+    for notification in notifications {
+      if notification.isRead {
+        read = true
+      } else {
+        unread += 1
+      }
+    }
+    if unreadCount != unread {
+      unreadCount = unread
+      hasUnread = unread > 0
+    }
+    if hasRead != read { hasRead = read }
+
+    var result = notifications
     if let filter = selectedTypeFilter {
       result = result.filter { $0.type == filter }
     }
-
     if !searchText.isEmpty {
       let query = searchText
       result = result.filter {
-        $0.title.localizedStandardContains(query) ||
-        $0.message.localizedStandardContains(query)
+        $0.title.localizedCaseInsensitiveContains(query) ||
+        $0.message.localizedCaseInsensitiveContains(query)
       }
     }
-
-    filteredNotifications = result
-  }
-
-  var unreadCount: Int {
-    notifications.count(where: { !$0.isRead })
-  }
-
-  var hasUnread: Bool {
-    unreadCount > 0
-  }
-
-  var hasRead: Bool {
-    notifications.contains { $0.isRead }
+    if filteredNotifications != result {
+      filteredNotifications = result
+    }
   }
 
   var isEmpty: Bool {
@@ -111,11 +119,28 @@ final class NotificationsListViewModel {
     self.init(notificationsService: notificationService, authManager: authManager)
   }
 
-  /// Invalidates the cached notifications list so the next `fetchNotifications()`
-  /// refetches. Call after any local mutation (mark read, delete).
+  /// Drops the cached list so the next fetch cannot paint stale rows (pull-to-refresh).
   private func invalidateNotificationsListCache() async {
     guard let userId = authManager.user?.id else { return }
     await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.notifications(userId: userId))
+  }
+
+  /// Writes the in-memory list back so the next appear paints local mutations
+  /// instantly, then revalidates.
+  private func persistNotificationsListCache() async {
+    guard let userId = authManager.user?.id else { return }
+    await (cache ?? InMemoryCache.shared).set(
+      notifications,
+      forKey: ListCacheKeys.notifications(userId: userId),
+      ttlSeconds: Self.notificationsListCacheTTL
+    )
+  }
+
+  /// Skips Observation invalidation when the payload is unchanged (SWR often
+  /// returns the same rows).
+  private func applyNotifications(_ newValue: [AppNotification]) {
+    guard notifications != newValue else { return }
+    notifications = newValue
   }
 
   // MARK: - Methods
@@ -128,43 +153,35 @@ final class NotificationsListViewModel {
 
     let cacheKey = ListCacheKeys.notifications(userId: userId)
     let cacheToUse = cache ?? InMemoryCache.shared
-    let stale = await cacheToUse.get([AppNotification].self, forKey: cacheKey)
 
-    if let stale {
-      notifications = stale
+    // Single get. Paint stale on this actor, then fetch+set (do not call
+    // `staleWhileRevalidate` — its `get` would decode/lookup a second time).
+    if let stale = await cacheToUse.get([AppNotification].self, forKey: cacheKey) {
+      applyNotifications(stale)
       logger.info("Loaded \(stale.count) notifications from cache; revalidating")
-      do {
-        let fresh = try await cacheToUse.staleWhileRevalidate(
-          [AppNotification].self,
-          forKey: cacheKey,
-          ttlSeconds: Self.notificationsListCacheTTL,
-          fetch: { try await notificationsService.fetchNotifications(userId: userId) }
-        )
-        notifications = fresh
-        errorMessage = nil
-        logger.info("Revalidated \(fresh.count) notifications")
-      } catch {
-        logger.error(
-          "Revalidate failed; keeping \(self.notifications.count) cached notifications: \(error.localizedDescription)"
-        )
-      }
-      return
     }
 
-    await ViewModelHelpers.runLoad(
-      setLoading: { self.isLoading = $0 },
-      setError: { self.errorMessage = $0 },
-      userMessage: "Failed to load notifications. Please try again.",
-      logger: logger
-    ) {
-      let fresh = try await cacheToUse.staleWhileRevalidate(
-        [AppNotification].self,
+    let showLoading = notifications.isEmpty
+    if showLoading { isLoading = true }
+    defer { if showLoading { isLoading = false } }
+
+    do {
+      let fresh = try await notificationsService.fetchNotifications(userId: userId)
+      await cacheToUse.set(
+        fresh,
         forKey: cacheKey,
-        ttlSeconds: Self.notificationsListCacheTTL,
-        fetch: { try await notificationsService.fetchNotifications(userId: userId) }
+        ttlSeconds: Self.notificationsListCacheTTL
       )
-      notifications = fresh
+      applyNotifications(fresh)
+      errorMessage = nil
       logger.info("Loaded \(fresh.count) notifications")
+    } catch {
+      if notifications.isEmpty {
+        errorMessage = "Failed to load notifications. Please try again."
+      }
+      logger.error(
+        "Fetch failed; keeping \(self.notifications.count) cached notifications: \(error.localizedDescription)"
+      )
     }
   }
 
@@ -179,7 +196,7 @@ final class NotificationsListViewModel {
       if let index = notifications.firstIndex(where: { $0.id == id }) {
         notifications[index] = updated
       }
-      await invalidateNotificationsListCache()
+      await persistNotificationsListCache()
     } catch {
       errorMessage = "Failed to mark notification as read"
       logger.error("Failed to mark as read: \(error.localizedDescription)")
@@ -200,7 +217,7 @@ final class NotificationsListViewModel {
       notifications = notifications.map { notification in
         notification.isRead ? notification : notification.markingAsRead(at: now)
       }
-      await invalidateNotificationsListCache()
+      await persistNotificationsListCache()
     } catch {
       errorMessage = "Failed to mark all as read"
       logger.error("Failed to mark all as read: \(error.localizedDescription)")
@@ -211,7 +228,7 @@ final class NotificationsListViewModel {
     do {
       try await notificationsService.deleteNotification(id: id)
       notifications.removeAll { $0.id == id }
-      await invalidateNotificationsListCache()
+      await persistNotificationsListCache()
     } catch {
       errorMessage = "Failed to delete notification"
       logger.error("Failed to delete notification: \(error.localizedDescription)")
@@ -228,7 +245,7 @@ final class NotificationsListViewModel {
     do {
       try await notificationsService.deleteAllRead(userId: userId)
       notifications.removeAll { $0.isRead }
-      await invalidateNotificationsListCache()
+      await persistNotificationsListCache()
     } catch {
       errorMessage = "Failed to delete read notifications"
       logger.error("Failed to delete all read: \(error.localizedDescription)")
@@ -241,6 +258,7 @@ final class NotificationsListViewModel {
   }
 
   func clearFilters() {
+    guard !searchText.isEmpty || selectedTypeFilter != nil else { return }
     searchText = ""
     selectedTypeFilter = nil
   }

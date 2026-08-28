@@ -62,6 +62,7 @@ struct NotificationsListView: View {
                     showDeleteAlert = true
                   }
                 )
+                .equatable()
               }
             }
             .padding()

@@ -16,35 +16,30 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     logger.debug("fetchStats - familyUnitId: \(familyUnitId), userId: \(userId)")
 
     do {
-      async let schools = fetchSchools(familyUnitId: familyUnitId)
-      async let offers = fetchOffers(userId: userId)
-      async let interactions = fetchInteractions(userId: userId, limit: nil)
-      async let events = fetchEvents(userId: userId, limit: nil)
+      async let schoolIdsTask = fetchSchoolIds(familyUnitId: familyUnitId)
+      async let interactionCountTask = exactCount(
+        table: "interactions",
+        column: "logged_by",
+        value: userId
+      )
+      async let monthCountTask = countInteractionsThisMonth(userId: userId)
+      async let upcomingTask = countUpcomingEvents(userId: userId)
+      async let offerRowsTask = fetchOfferStatRows(userId: userId)
 
-      let (schoolList, offerList, interactionList, eventList) =
-        try await (schools, offers, interactions, events)
+      let schoolIds = try await schoolIdsTask
+      async let coachCountTask = exactCoachCount(schoolIds: schoolIds)
 
-      let schoolIds = schoolList.map(\.id)
-      let coaches = try await fetchCoaches(schoolIds: schoolIds)
+      let interactionCount = try await interactionCountTask
+      let interactionsThisMonth = try await monthCountTask
+      let upcomingEventCount = try await upcomingTask
+      let offerRows = try await offerRowsTask
+      let coachCount = try await coachCountTask
 
-      let coachCount = coaches.count
-      let schoolCount = schoolList.count
-      let interactionCount = interactionList.count
-      // Upcoming = start date on or after today, matching the Events list's
-      // "Upcoming" filter (startDate is a "yyyy-MM-dd"-prefixed ISO string).
-      let todayPrefix = Self.todayPrefix()
-      let upcomingEventCount = eventList.count(where: { $0.startDate >= todayPrefix })
-      let totalOffers = offerList.count
-      let acceptedOffers = offerList.count(where: { $0.status == .accepted })
+      let schoolCount = schoolIds.count
+      let totalOffers = offerRows.count
+      let acceptedOffers = offerRows.count(where: { $0.status == .accepted })
       let acceptanceRate = totalOffers > 0 ? Double(acceptedOffers) / Double(totalOffers) : nil
-      // Distinct schools that received ≥1 offer — the true "schools with offers", vs totalOffers (rows).
-      let schoolsWithOffers = Set(offerList.map(\.schoolId)).count
-      // Interactions in the current UTC month. occurredAt/createdAt are stored ISO8601 UTC strings,
-      // so a "yyyy-MM" prefix match scopes to this month without parsing full dates.
-      let currentMonthPrefix = Self.currentMonthPrefix()
-      let interactionsThisMonth = interactionList.count(where: {
-        ($0.occurredAt ?? $0.createdAt).hasPrefix(currentMonthPrefix)
-      })
+      let schoolsWithOffers = Set(offerRows.map(\.schoolId)).count
 
       logger.info("fetchStats SUCCESS - schools: \(schoolCount), coaches: \(coachCount), interactions: \(interactionCount), upcomingEvents: \(upcomingEventCount), offers: \(totalOffers)")
 
@@ -66,6 +61,96 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       }
       throw error
     }
+  }
+
+  private struct SchoolIdRow: Decodable, Sendable {
+    let id: String
+  }
+
+  private struct OfferStatRow: Decodable, Sendable {
+    let schoolId: String
+    let status: OfferStatus
+    enum CodingKeys: String, CodingKey {
+      case schoolId = "school_id"
+      case status
+    }
+  }
+
+  private func fetchSchoolIds(familyUnitId: String) async throws -> [String] {
+    let rows: [SchoolIdRow] = try await logger.fetch("school ids") {
+      try await supabaseManager.client
+        .from("schools")
+        .select("id")
+        .eq("family_unit_id", value: familyUnitId)
+        .execute()
+        .value
+    }
+    return rows.map(\.id)
+  }
+
+  private func fetchOfferStatRows(userId: String) async throws -> [OfferStatRow] {
+    try await logger.fetch("offer stats") {
+      try await supabaseManager.client
+        .from("offers")
+        .select("school_id, status")
+        .eq("user_id", value: userId)
+        .execute()
+        .value
+    }
+  }
+
+  private func exactCount(table: String, column: String, value: String) async throws -> Int {
+    let response = try await supabaseManager.client
+      .from(table)
+      .select("id", head: true, count: .exact)
+      .eq(column, value: value)
+      .execute()
+    return response.count ?? 0
+  }
+
+  private func exactCoachCount(schoolIds: [String]) async throws -> Int {
+    guard !schoolIds.isEmpty else { return 0 }
+    let response = try await supabaseManager.client
+      .from("coaches")
+      .select("id", head: true, count: .exact)
+      .in("school_id", values: schoolIds)
+      .execute()
+    return response.count ?? 0
+  }
+
+  private func countUpcomingEvents(userId: String) async throws -> Int {
+    let response = try await supabaseManager.client
+      .from("events")
+      .select("id", head: true, count: .exact)
+      .eq("user_id", value: userId)
+      .gte("start_date", value: Self.todayPrefix())
+      .execute()
+    return response.count ?? 0
+  }
+
+  /// Matches `(occurredAt ?? createdAt).hasPrefix(yyyy-MM)` without downloading rows.
+  private func countInteractionsThisMonth(userId: String) async throws -> Int {
+    let prefix = "\(Self.currentMonthPrefix())%"
+    async let withOccurred: Int = {
+      let response = try await supabaseManager.client
+        .from("interactions")
+        .select("id", head: true, count: .exact)
+        .eq("logged_by", value: userId)
+        .like("occurred_at", value: prefix)
+        .execute()
+      return response.count ?? 0
+    }()
+    async let withoutOccurred: Int = {
+      let response = try await supabaseManager.client
+        .from("interactions")
+        .select("id", head: true, count: .exact)
+        .eq("logged_by", value: userId)
+        .is("occurred_at", value: nil)
+        .like("created_at", value: prefix)
+        .execute()
+      return response.count ?? 0
+    }()
+    return try await withOccurred + withoutOccurred
   }
 
   /// "yyyy-MM" for the current UTC month, matched against stored ISO8601 timestamp prefixes.

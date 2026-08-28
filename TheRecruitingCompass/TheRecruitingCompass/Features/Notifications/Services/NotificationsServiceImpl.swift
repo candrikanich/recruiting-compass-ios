@@ -10,6 +10,12 @@ private let logger = Logger(
 /// Sendable: Stateless service with no mutable properties
 final class NotificationsServiceImpl: NotificationsManaging, Sendable {
   private static let isoFormatter = ISO8601DateFormatter()
+  /// Skip email/push bookkeeping columns the inbox never renders.
+  private static let inboxColumns = """
+    id, user_id, type, title, message, priority, read_at, scheduled_for, \
+    action_url, related_entity_type, related_entity_id, related_school_id, \
+    related_coach_id, related_offer_id, related_event_id, created_at
+    """
   private let supabaseManager: SupabaseManager
 
   init(supabaseManager: SupabaseManager) {
@@ -21,7 +27,7 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
     do {
       let notifications: [AppNotification] = try await supabaseManager.client
         .from("notifications")
-        .select()
+        .select(Self.inboxColumns)
         .eq("user_id", value: userId)
         // Inbox clock is `created_at`. `scheduled_for` is null on trigger
         // inserts (offer / inbound / event), so ordering by it surfaces NULLs
