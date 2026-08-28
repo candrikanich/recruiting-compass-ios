@@ -37,10 +37,11 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
   func markAsRead(id: String) async throws -> AppNotification {
     logger.debug("Marking notification as read: \(id)")
     do {
-      let now = Self.isoFormatter.string(from: Date.now)
+      // `notifications` has no `updated_at` column. PostgREST rejects any
+      // PATCH that includes it (PGRST204). Web updates `read_at` only.
       let notification: AppNotification = try await supabaseManager.client
         .from("notifications")
-        .update(["read_at": now, "updated_at": now])
+        .update(["read_at": Self.isoFormatter.string(from: Date.now)])
         .eq("id", value: id)
         .select()
         .single()
@@ -57,10 +58,9 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
   func markAllAsRead(userId: String) async throws {
     logger.debug("Marking all notifications as read for user: \(userId, privacy: .private)")
     do {
-      let now = Self.isoFormatter.string(from: Date.now)
       try await supabaseManager.client
         .from("notifications")
-        .update(["read_at": now, "updated_at": now])
+        .update(["read_at": Self.isoFormatter.string(from: Date.now)])
         .eq("user_id", value: userId)
         .is("read_at", value: nil)
         .execute()

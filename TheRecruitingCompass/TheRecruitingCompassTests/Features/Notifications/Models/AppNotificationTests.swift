@@ -72,6 +72,76 @@ final class AppNotificationTests: XCTestCase {
     XCTAssertEqual(decoded.scheduledFor, original.scheduledFor)
   }
 
+  func testDecodingProductionRowWithoutUpdatedAt() throws {
+    let json = """
+    {
+        "id": "prod-1",
+        "user_id": "user-1",
+        "type": "offer",
+        "title": "New offer",
+        "message": "New scholarship offer from Stanford.",
+        "priority": "high",
+        "read_at": null,
+        "scheduled_for": "2026-08-16T10:00:00Z",
+        "created_at": "2026-08-16T10:00:00Z"
+    }
+    """.data(using: .utf8)!
+
+    let notification = try JSONDecoder().decode(AppNotification.self, from: json)
+    XCTAssertEqual(notification.id, "prod-1")
+    XCTAssertNil(notification.updatedAt)
+    XCTAssertEqual(notification.scheduledFor, "2026-08-16T10:00:00Z")
+  }
+
+  func testDecodingNullScheduledForFallsBackToCreatedAt() throws {
+    let json = """
+    {
+        "id": "offer-trigger-1",
+        "user_id": "user-1",
+        "type": "offer",
+        "title": "New offer 🎉",
+        "message": "New scholarship offer from Duke.",
+        "priority": "high",
+        "scheduled_for": null,
+        "created_at": "2026-08-16T12:00:00Z"
+    }
+    """.data(using: .utf8)!
+
+    let notification = try JSONDecoder().decode(AppNotification.self, from: json)
+    XCTAssertEqual(notification.scheduledFor, "2026-08-16T12:00:00Z")
+  }
+
+  func testDecodingMissingScheduledForAndCreatedAtUsesEmptyString() throws {
+    let json = """
+    {
+        "id": "bare-1",
+        "type": "inbound_interaction",
+        "title": "Coach reached out"
+    }
+    """.data(using: .utf8)!
+
+    let notification = try JSONDecoder().decode(AppNotification.self, from: json)
+    XCTAssertEqual(notification.scheduledFor, "")
+    XCTAssertEqual(notification.message, "")
+    XCTAssertEqual(notification.priority, .normal)
+  }
+
+  func testDecodingNullMessageDefaultsToEmpty() throws {
+    let json = """
+    {
+        "id": "msg-null",
+        "type": "event",
+        "title": "Event tomorrow",
+        "message": null,
+        "priority": "normal",
+        "scheduled_for": "2026-08-16T10:00:00Z"
+    }
+    """.data(using: .utf8)!
+
+    let notification = try JSONDecoder().decode(AppNotification.self, from: json)
+    XCTAssertEqual(notification.message, "")
+  }
+
   func testDecodingWithNilOptionalFields() throws {
     // Given - minimal JSON with only required fields
     let json = """
