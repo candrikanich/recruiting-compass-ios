@@ -10,7 +10,7 @@ import SwiftUI
 struct HelpSectionDetailView: View {
   let section: HelpSection
 
-  private let lastReviewed = "February 2026"
+  private let lastReviewed = "August 2026"
 
   var body: some View {
     ScrollView {
@@ -67,7 +67,7 @@ private struct HelpGettingStartedContent: View {
           .font(.subheadline)
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Navigate to Settings", bodyText: "From the dashboard, go to Settings → Athlete Profile.")
-        HelpStepCard(step: 2, title: "Fill in your details", bodyText: "Enter your name, graduation year, sport, position(s), GPA, and test scores. All fields help generate accurate fit scores for schools.")
+        HelpStepCard(step: 2, title: "Fill in your details", bodyText: "Enter your name, graduation year, sport, position(s), GPA, and test scores. All fields help generate accurate personal fit signals for schools.")
         HelpStepCard(step: 3, title: "Save your profile", bodyText: "Tap Save changes. Your profile is now visible to coaches who view your recruiting page.", isLast: true)
       }
 
@@ -78,7 +78,7 @@ private struct HelpGettingStartedContent: View {
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
         HelpStepCard(step: 2, title: "Invite a family member", bodyText: "Enter their email address and tap Send invite. They'll receive an email to create their account and join your family unit.", isLast: true)
-        HelpCallout(type: .info, text: "Family members can view your school list, phases, and interactions — but only the athlete can make changes to the profile.")
+        HelpCallout(type: .info, text: "Family members can view and edit your athlete profile, school list, and interactions — everyone in the family works together.")
       }
 
       sectionBlock {
@@ -89,7 +89,7 @@ private struct HelpGettingStartedContent: View {
         HelpImageSlot(caption: "The main dashboard showing your school list, current phase, and recent activity.")
         bulletList(items: [
           ("Current Phase", "where you are in the recruiting process (Freshman through Senior)"),
-          ("School list", "your saved schools with fit scores and interaction counts"),
+          ("School list", "your saved schools with fit signals and interaction counts"),
           ("Recent activity", "latest interactions and notifications"),
           ("Tasks", "action items specific to your current phase")
         ])
@@ -101,7 +101,7 @@ private struct HelpGettingStartedContent: View {
           .font(.subheadline)
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Search for schools", bodyText: "Go to Search and filter by division, sport, location, or size. Add any school that interests you.", isLast: true)
-        HelpCallout(type: .tip, text: "Start broad — you can always narrow your list later. Adding 20–30 schools gives the fit score algorithm enough data to show meaningful patterns.")
+        HelpCallout(type: .tip, text: "Start broad — you can always narrow your list later. Adding 20–30 schools gives the fit signal calculations enough data to show meaningful patterns.")
       }
     }
   }
@@ -114,30 +114,35 @@ private struct HelpSchoolsContent: View {
     VStack(alignment: .leading, spacing: 24) {
       sectionBlock {
         HelpSectionHeader(title: "Adding a school to your list")
-        Text("Your school list is the core of your recruiting compass. Add every school you're considering, even ones you're unsure about — fit scores will help you prioritize.")
+        Text("Your school list is the core of your recruiting compass. Add every school you're considering, even ones you're unsure about — fit signals will help you prioritize.")
           .font(.subheadline)
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Go to Search", bodyText: "Navigate to Search and use the filters to find schools by division, sport, state, or enrollment size.")
         HelpStepCard(step: 2, title: "View the school profile", bodyText: "Tap any school to see its full profile — academic info, athletic program details, and location.")
-        HelpStepCard(step: 3, title: "Add to your list", bodyText: "Tap Add to list. The school now appears on your Schools page with an initial fit score.", isLast: true)
+        HelpStepCard(step: 3, title: "Add to your list", bodyText: "Tap Add to list. The school now appears on your Schools page with initial fit signals.", isLast: true)
       }
 
       sectionBlock {
-        HelpSectionHeader(title: "What is a fit score?")
-        Text("A fit score is a 0–100 rating that reflects how well a school matches your athlete profile. Higher scores indicate a stronger overall fit.")
+        HelpSectionHeader(title: "What are fit signals?")
+        Text("Fit signals show how well a school matches your athlete profile across specific dimensions. Each signal appears as a colored pill — Strong, Good, Fair, or Limited — so you can see strengths and gaps at a glance.")
           .font(.subheadline)
           .foregroundStyle(.secondary)
-        HelpImageSlot(caption: "Fit score breakdown showing academic, athletic, and location dimensions.")
-        Text("Fit scores are calculated from four dimensions:")
+        HelpImageSlot(caption: "Fit signals showing Personal Fit and Academic Fit dimensions for a school.")
+        Text("Personal Fit evaluates three dimensions:")
           .font(.subheadline)
           .foregroundStyle(.secondary)
         bulletList(items: [
-          ("Academic fit", "your GPA and test scores vs. the school's average admit profile"),
-          ("Athletic fit", "your sport and level vs. the school's program division and roster needs"),
-          ("Size fit", "enrollment size preference match"),
-          ("Location fit", "proximity to home and region preference")
+          ("Location fit", "proximity to home and region preference"),
+          ("Campus size fit", "enrollment size preference match"),
+          ("Cost fit", "tuition and financial aid alignment with your budget")
         ])
-        HelpCallout(type: .info, text: "Fit scores update automatically when you update your athlete profile. Keep your profile current for the most accurate scores.")
+        Text("Academic Fit evaluates your academic profile:")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+        bulletList(items: [
+          ("Academic fit", "your GPA and test scores vs. the school's average admit profile")
+        ])
+        HelpCallout(type: .info, text: "Fit signals update automatically when you update your athlete profile. Keep your profile current for the most accurate signals.")
       }
 
       sectionBlock {
@@ -146,7 +151,7 @@ private struct HelpSchoolsContent: View {
           .font(.subheadline)
           .foregroundStyle(.secondary)
         bulletList(items: [
-          ("Sort", "by fit score, recent activity, or date added"),
+          ("Sort", "by recent activity or date added"),
           ("Filter", "by division, state, or interaction status"),
           ("Remove", "tap the school and select Remove from list. This also removes associated interactions.")
         ])
@@ -242,12 +247,12 @@ private struct HelpAccountContent: View {
     VStack(alignment: .leading, spacing: 24) {
       sectionBlock {
         HelpSectionHeader(title: "Updating your athlete profile")
-        Text("Keep your profile current — fit scores and recommendations update automatically when your profile changes.")
+        Text("Keep your profile current — fit signals and recommendations update automatically when your profile changes.")
           .font(.subheadline)
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Open Settings", bodyText: "Navigate to Settings and select Athlete Profile.")
         HelpStepCard(step: 2, title: "Edit your details", bodyText: "Update any field — graduation year, sport, positions, GPA, SAT/ACT, height, or weight.")
-        HelpStepCard(step: 3, title: "Save changes", bodyText: "Tap Save changes. Fit scores for all your schools will recalculate within a few seconds.", isLast: true)
+        HelpStepCard(step: 3, title: "Save changes", bodyText: "Tap Save changes. Fit signals for all your schools will update within a few seconds.", isLast: true)
       }
 
       sectionBlock {
@@ -258,7 +263,7 @@ private struct HelpAccountContent: View {
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
         HelpStepCard(step: 2, title: "Invite a member", bodyText: "Enter their email and tap Send invite. They'll receive an invitation to create a linked account.")
         HelpStepCard(step: 3, title: "Manage access", bodyText: "To remove a family member, tap the three-dot menu next to their name and select Remove.", isLast: true)
-        HelpCallout(type: .info, text: "A family member's account is linked to your athlete profile — they cannot log in as you or make changes on your behalf.")
+        HelpCallout(type: .info, text: "A family member's account is linked to your athlete profile — they can view and edit profile information alongside the athlete.")
       }
 
       sectionBlock {

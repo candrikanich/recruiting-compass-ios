@@ -48,7 +48,7 @@ enum HelpSection: String, CaseIterable, Identifiable, Hashable {
     switch self {
     case .gettingStarted:
       return String(localized: "Set up your profile and learn the basics of the recruiting dashboard.")
-    case .schools: return String(localized: "Add schools, understand fit scores, and track coach interactions.")
+    case .schools: return String(localized: "Add schools, understand fit signals, and track coach interactions.")
     case .phases: return String(localized: "Navigate recruiting phases and manage recommendation letter requests.")
     case .account: return String(localized: "Manage your family, notifications, profile, and account preferences.")
     }
