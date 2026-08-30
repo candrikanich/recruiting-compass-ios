@@ -12,6 +12,9 @@ struct SchoolDetailView: View {
   @State private var showHomeLocationSheet = false
   @State private var showAdvanceToast = false
   @State private var advanceToastMessage: String?
+  @State private var quickCommunicationContext: QuickCommunicationContext?
+  @State private var showCoachPickerForQuickComm = false
+  @State private var showAddCoach = false
   private let preferenceService: any PreferenceManaging = PreferenceServiceImpl(supabaseManager: .shared)
 
   init(schoolId: String) {
@@ -233,7 +236,7 @@ struct SchoolDetailView: View {
           filterCoachesBySchool(schoolId)
         },
         onAddCoach: {
-          navigationDestination = .addCoach(schoolId: schoolId)
+          showAddCoach = true
         },
         coachCount: viewModel.coaches.count
       )
@@ -293,6 +296,30 @@ struct SchoolDetailView: View {
       type: .success,
       duration: 3.0
     )
+    .sheet(item: $quickCommunicationContext) { context in
+      QuickCommunicationView(context: context)
+    }
+    .confirmationDialog("Select Coach", isPresented: $showCoachPickerForQuickComm) {
+      ForEach(viewModel.coaches) { coach in
+        Button(coach.fullName) {
+          quickCommunicationContext = QuickCommunicationContext(
+            coach: coach,
+            schoolName: viewModel.school?.name
+          )
+        }
+      }
+    }
+    .sheet(isPresented: $showAddCoach) {
+      NavigationStack {
+        AddCoachView(
+          coachesService: CoachesServiceImpl(supabaseManager: .shared),
+          familyUnitId: familyManager.familyUnitId ?? "",
+          userId: viewModel.currentUserId ?? "",
+          navigationPath: .constant(NavigationPath()),
+          preselectedSchoolId: schoolId
+        )
+      }
+    }
   }
 }
 
