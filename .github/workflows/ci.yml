@@ -25,11 +25,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install SwiftLint
-        run: brew install swiftlint
-
       - name: Run SwiftLint
-        run: swiftlint lint --config .swiftlint.yml --reporter github-actions-logging
+        uses: realm/SwiftLint@0.65.1
+        with:
+          args: --config .swiftlint.yml --reporter github-actions-logging
 
   build-and-test:
     name: Build & Unit Tests
@@ -64,20 +63,28 @@ jobs:
           API_BASE_URL = https:$(_SLASH)$(_SLASH)myrecruitingcompass.com
           XCCONFIG
 
+      - name: Cache SPM packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: spm-
+
       - name: Cache DerivedData
         uses: actions/cache@v4
         with:
           path: ~/Library/Developer/Xcode/DerivedData
-          key: deriveddata-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj') }}
+          key: deriveddata-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj', 'TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: deriveddata-
 
-      - name: Build
+      - name: Build for Testing
         run: |
           cd TheRecruitingCompass
-          xcodebuild build \
+          xcodebuild build-for-testing \
             -scheme TheRecruitingCompass \
             -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
-            -quiet
+            -skip-testing:TheRecruitingCompassUITests \
+            -showBuildTimingSummary
 
       - name: Unit Tests
         run: |
@@ -85,16 +92,17 @@ jobs:
           # CoreSimulator on the CI runner intermittently dies mid-run
           # ("(ipc/mig) server died"), which no in-process test retry can survive
           # because the whole test host is gone. Run the entire xcodebuild in a
-          # retry loop, resetting the simulator stack between attempts. Parallel
-          # test clones are disabled to reduce simulator churn (a common trigger).
+          # retry loop, resetting the simulator stack between attempts.
           run_tests() {
             rm -rf "TestResults-$1.xcresult"
-            xcodebuild test \
+            xcodebuild test-without-building \
               -scheme TheRecruitingCompass \
               -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
               -skip-testing:TheRecruitingCompassUITests \
-              -parallel-testing-enabled NO \
+              -parallel-testing-enabled YES \
+              -maximum-concurrent-test-simulator-destinations 2 \
               -retry-tests-on-failure -test-iterations 2 \
+              -enableCodeCoverage YES \
               -resultBundlePath "TestResults-$1.xcresult" \
               -quiet
           }
@@ -112,6 +120,15 @@ jobs:
           done
           echo "Unit tests failed after 2 full attempts."
           exit 1
+
+      - name: Coverage Summary
+        if: success()
+        run: |
+          RESULT=$(ls -td TheRecruitingCompass/TestResults-*.xcresult 2>/dev/null | head -1)
+          if [ -n "$RESULT" ]; then
+            echo "## Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
+            xcrun xccov view --report --only-targets "$RESULT" | head -30 >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload unit-test xcresult
         if: failure()
@@ -174,11 +191,18 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
           ALLOW_REMOTE_SEED: "1"
 
+      - name: Cache SPM packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: spm-
+
       - name: Cache DerivedData
         uses: actions/cache@v4
         with:
           path: ~/Library/Developer/Xcode/DerivedData
-          key: deriveddata-e2e-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj') }}
+          key: deriveddata-e2e-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj', 'TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: deriveddata-e2e-
 
       - name: Build for testing
@@ -187,7 +211,7 @@ jobs:
           xcodebuild build-for-testing \
             -scheme TheRecruitingCompass \
             -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
-            -quiet
+            -showBuildTimingSummary
 
       - name: Run UITests
         run: |
