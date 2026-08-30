@@ -13,8 +13,7 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
   /// Skip email/push bookkeeping columns the inbox never renders.
   private static let inboxColumns = """
     id, user_id, type, title, message, priority, read_at, scheduled_for, \
-    action_url, related_entity_type, related_entity_id, related_school_id, \
-    related_coach_id, related_offer_id, related_event_id, created_at
+    action_url, related_entity_type, related_entity_id, created_at
     """
   private let supabaseManager: SupabaseManager
 

@@ -100,66 +100,96 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
   }
 
   private func exactCount(table: String, column: String, value: String) async throws -> Int {
-    let response = try await supabaseManager.client
-      .from(table)
-      .select("id", head: true, count: .exact)
-      .eq(column, value: value)
-      .execute()
-    return response.count ?? 0
+    do {
+      let response = try await supabaseManager.client
+        .from(table)
+        .select("id", head: true, count: .exact)
+        .eq(column, value: value)
+        .execute()
+      logger.debug("exactCount(\(table)) = \(response.count ?? 0)")
+      return response.count ?? 0
+    } catch {
+      logger.error("exactCount(\(table)) FAILED: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   private func exactCoachCount(schoolIds: [String]) async throws -> Int {
     guard !schoolIds.isEmpty else { return 0 }
-    let response = try await supabaseManager.client
-      .from("coaches")
-      .select("id", head: true, count: .exact)
-      .in("school_id", values: schoolIds)
-      .execute()
-    return response.count ?? 0
+    do {
+      let response = try await supabaseManager.client
+        .from("coaches")
+        .select("id", head: true, count: .exact)
+        .in("school_id", values: schoolIds)
+        .execute()
+      logger.debug("exactCoachCount = \(response.count ?? 0)")
+      return response.count ?? 0
+    } catch {
+      logger.error("exactCoachCount FAILED: \(error.localizedDescription)")
+      throw error
+    }
   }
 
   private func countUpcomingEvents(userId: String) async throws -> Int {
-    let response = try await supabaseManager.client
-      .from("events")
-      .select("id", head: true, count: .exact)
-      .eq("user_id", value: userId)
-      .gte("start_date", value: Self.todayPrefix())
-      .execute()
-    return response.count ?? 0
+    do {
+      let response = try await supabaseManager.client
+        .from("events")
+        .select("id", head: true, count: .exact)
+        .eq("user_id", value: userId)
+        .gte("start_date", value: Self.todayPrefix())
+        .execute()
+      logger.debug("countUpcomingEvents = \(response.count ?? 0)")
+      return response.count ?? 0
+    } catch {
+      logger.error("countUpcomingEvents FAILED: \(error.localizedDescription)")
+      throw error
+    }
   }
 
-  /// Matches `(occurredAt ?? createdAt).hasPrefix(yyyy-MM)` without downloading rows.
+  /// Counts interactions in the current calendar month using date range filters.
+  /// Uses `gte`/`lt` on timestamptz columns (PostgREST `like` only works on text).
   private func countInteractionsThisMonth(userId: String) async throws -> Int {
-    let prefix = "\(Self.currentMonthPrefix())%"
-    async let withOccurred: Int = {
-      let response = try await supabaseManager.client
-        .from("interactions")
-        .select("id", head: true, count: .exact)
-        .eq("logged_by", value: userId)
-        .like("occurred_at", value: prefix)
-        .execute()
-      return response.count ?? 0
-    }()
-    async let withoutOccurred: Int = {
-      let response = try await supabaseManager.client
-        .from("interactions")
-        .select("id", head: true, count: .exact)
-        .eq("logged_by", value: userId)
-        .is("occurred_at", value: nil)
-        .like("created_at", value: prefix)
-        .execute()
-      return response.count ?? 0
-    }()
-    return try await withOccurred + withoutOccurred
+    let (monthStart, nextMonthStart) = Self.currentMonthRange()
+    do {
+      async let withOccurred: Int = {
+        let response = try await supabaseManager.client
+          .from("interactions")
+          .select("id", head: true, count: .exact)
+          .eq("logged_by", value: userId)
+          .gte("occurred_at", value: monthStart)
+          .lt("occurred_at", value: nextMonthStart)
+          .execute()
+        return response.count ?? 0
+      }()
+      async let withoutOccurred: Int = {
+        let response = try await supabaseManager.client
+          .from("interactions")
+          .select("id", head: true, count: .exact)
+          .eq("logged_by", value: userId)
+          .is("occurred_at", value: nil)
+          .gte("created_at", value: monthStart)
+          .lt("created_at", value: nextMonthStart)
+          .execute()
+        return response.count ?? 0
+      }()
+      let total = try await withOccurred + withoutOccurred
+      logger.debug("countInteractionsThisMonth = \(total)")
+      return total
+    } catch {
+      logger.error("countInteractionsThisMonth FAILED: \(error.localizedDescription)")
+      throw error
+    }
   }
 
-  /// "yyyy-MM" for the current UTC month, matched against stored ISO8601 timestamp prefixes.
-  private static func currentMonthPrefix(now: Date = .now) -> String {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(identifier: "UTC")
-    formatter.dateFormat = "yyyy-MM"
-    return formatter.string(from: now)
+  /// Returns (firstDayOfMonth, firstDayOfNextMonth) as ISO8601 strings for range queries.
+  private static func currentMonthRange(now: Date = .now) -> (start: String, end: String) {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "UTC")!
+    let components = calendar.dateComponents([.year, .month], from: now)
+    let monthStart = calendar.date(from: components)!
+    let nextMonthStart = calendar.date(byAdding: .month, value: 1, to: monthStart)!
+    let formatter = ISO8601DateFormatter()
+    return (formatter.string(from: monthStart), formatter.string(from: nextMonthStart))
   }
 
   /// "yyyy-MM-dd" for today (device local day), matched lexicographically against
