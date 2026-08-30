@@ -172,7 +172,7 @@ private struct AuthenticatedContent: View {
             Task { await onboardingManager.loadStatus() }
           })
         } else {
-          MainTabView(pendingPushDestination: $pendingPushDestination)
+          AdaptiveRootView(pendingPushDestination: $pendingPushDestination)
           if !networkMonitor.isConnected {
             OfflineBanner()
           }
