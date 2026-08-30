@@ -17,12 +17,14 @@ struct AddCoachView: View {
     coachesService: CoachesManaging,
     familyUnitId: String,
     userId: String,
-    navigationPath: Binding<NavigationPath>
+    navigationPath: Binding<NavigationPath>,
+    preselectedSchoolId: String? = nil
   ) {
     _viewModel = State(initialValue: AddCoachViewModel(
       coachesService: coachesService,
       familyUnitId: familyUnitId,
-      userId: userId
+      userId: userId,
+      preselectedSchoolId: preselectedSchoolId
     ))
     _navigationPath = navigationPath
   }
@@ -84,7 +86,7 @@ struct AddCoachView: View {
         SchoolPicker(
           selectedSchoolId: $viewModel.formState.selectedSchoolId,
           schools: viewModel.schools,
-          isDisabled: viewModel.isSubmitting
+          isDisabled: viewModel.isSubmitting || viewModel.isSchoolLocked
         )
         .onChange(of: viewModel.formState.selectedSchoolId) {
           announceSchoolSelection()

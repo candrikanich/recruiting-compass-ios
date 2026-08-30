@@ -6,12 +6,13 @@ struct SchoolDetailView: View {
   @State private var viewModel: SchoolDetailViewModel
   @Environment(FamilyManager.self) private var familyManager
   @Environment(\.dismiss) private var dismiss
-  @Environment(\.openURL) private var openURL
   @Environment(\.filterCoachesBySchool) private var filterCoachesBySchool
   @State private var navigationDestination: NavigationDestination?
   @State private var showHomeLocationSheet = false
   @State private var showAdvanceToast = false
   @State private var advanceToastMessage: String?
+  @State private var quickCommunicationContext: QuickCommunicationContext?
+  @State private var showCoachPickerForQuickComm = false
   private let preferenceService: any PreferenceManaging = PreferenceServiceImpl(supabaseManager: .shared)
 
   init(schoolId: String) {
@@ -21,6 +22,7 @@ struct SchoolDetailView: View {
 
   private enum NavigationDestination: Hashable {
     case addInteraction(schoolId: String)
+    case addCoach(schoolId: String)
   }
 
   var body: some View {
@@ -172,16 +174,22 @@ struct SchoolDetailView: View {
           onLogInteraction: {
             navigationDestination = .addInteraction(schoolId: schoolId)
           },
-          onSendEmail: {
-            if let firstCoach = viewModel.coaches.first,
-               let email = firstCoach.email,
-               let url = URL(string: "mailto:\(email)") {
-              openURL(url)
+          onQuickComm: {
+            let coaches = viewModel.coaches
+            if coaches.count == 1, let coach = coaches.first {
+              quickCommunicationContext = QuickCommunicationContext(
+                coach: coach,
+                schoolName: school.name
+              )
+            } else if coaches.count > 1 {
+              showCoachPickerForQuickComm = true
             }
+            // coachCount == 0 → button disabled, won't fire
           },
           onManageCoaches: {
             filterCoachesBySchool(schoolId)
-          }
+          },
+          coachCount: viewModel.coaches.count
         )
         .padding(.horizontal)
 
@@ -191,6 +199,9 @@ struct SchoolDetailView: View {
           isLoading: viewModel.isLoadingCoaches,
           onSeeAll: {
             filterCoachesBySchool(schoolId)
+          },
+          onAddCoach: {
+            navigationDestination = .addCoach(schoolId: schoolId)
           }
         )
         .padding(.horizontal)
@@ -299,6 +310,7 @@ struct SchoolDetailView: View {
             interactionsService: InteractionsServiceImpl(supabaseManager: .shared),
             familyUnitId: familyUnitId,
             userId: userId,
+            preselectedSchoolId: schoolId,
             onLogged: { message in
               // Refresh so the status stepper reflects the auto-advance, and
               // confirm it with a toast.
@@ -312,6 +324,23 @@ struct SchoolDetailView: View {
         } else {
           ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
         }
+      case .addCoach(let schoolId):
+        if let familyUnitId = familyManager.familyUnitId, let userId = viewModel.currentUserId {
+          AddCoachView(
+            coachesService: CoachesServiceImpl(supabaseManager: .shared),
+            familyUnitId: familyUnitId,
+            userId: userId,
+            navigationPath: .constant(NavigationPath()),
+            preselectedSchoolId: schoolId
+          )
+        } else {
+          ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
+        }
+      }
+    }
+    .onChange(of: navigationDestination) { old, new in
+      if old != nil && new == nil {
+        Task { await viewModel.loadSchool() }
       }
     }
     .sheet(isPresented: $viewModel.isEditingBasicInfo) {
@@ -328,6 +357,24 @@ struct SchoolDetailView: View {
       type: .success,
       duration: 3.0
     )
+    .sheet(item: $quickCommunicationContext) { context in
+      QuickCommunicationView(context: context)
+    }
+    .confirmationDialog(
+      "Select Coach",
+      isPresented: $showCoachPickerForQuickComm,
+      titleVisibility: .visible
+    ) {
+      ForEach(viewModel.coaches) { coach in
+        Button("\(coach.firstName) \(coach.lastName)") {
+          quickCommunicationContext = QuickCommunicationContext(
+            coach: coach,
+            schoolName: school.name
+          )
+        }
+      }
+      Button("Cancel", role: .cancel) {}
+    }
   }
 }
 

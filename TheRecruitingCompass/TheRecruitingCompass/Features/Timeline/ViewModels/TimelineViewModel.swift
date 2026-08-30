@@ -22,7 +22,7 @@ final class TimelineViewModel {
   var athleteGender: String?
   var isLoading = false
   var errorMessage: String?
-  var expandedPhaseGrade: Int? = 9
+  var expandedPhaseGrade: Int?
   var showSuccessMessage = false
 
   /// Top-priority "what matters now" task for the current phase, from the shared

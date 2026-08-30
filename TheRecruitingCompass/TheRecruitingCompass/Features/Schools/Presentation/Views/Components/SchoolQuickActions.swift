@@ -2,8 +2,9 @@ import SwiftUI
 
 struct SchoolQuickActions: View {
   let onLogInteraction: () -> Void
-  let onSendEmail: () -> Void
+  let onQuickComm: () -> Void
   let onManageCoaches: () -> Void
+  let coachCount: Int
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -25,14 +26,15 @@ struct SchoolQuickActions: View {
         )
 
         QuickActionButton(
-          icon: "envelope.fill",
-          title: String(localized: "Send Email"),
+          icon: "envelope.badge.fill",
+          title: String(localized: "Quick Comm"),
           gradient: LinearGradient(
             colors: [Color.successGreen, Color.successGreen.opacity(0.7)],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
           ),
-          action: onSendEmail
+          action: onQuickComm,
+          isDisabled: coachCount == 0
         )
 
         QuickActionButton(
@@ -59,6 +61,7 @@ private struct QuickActionButton: View {
   let title: String
   let gradient: LinearGradient
   let action: () -> Void
+  var isDisabled: Bool = false
 
   @Environment(\.sizeCategory) private var sizeCategory
 
@@ -87,6 +90,8 @@ private struct QuickActionButton: View {
       .clipShape(.rect(cornerRadius: 12))
     }
     .buttonStyle(.plain)
+    .disabled(isDisabled)
+    .opacity(isDisabled ? 0.4 : 1.0)
     .frame(minWidth: 44, minHeight: 44)
     .accessibilityLabel(title)
     .accessibilityAddTraits(.isButton)
@@ -96,8 +101,9 @@ private struct QuickActionButton: View {
 #Preview {
   SchoolQuickActions(
     onLogInteraction: {},
-    onSendEmail: {},
-    onManageCoaches: {}
+    onQuickComm: {},
+    onManageCoaches: {},
+    coachCount: 2
   )
   .padding()
 }

@@ -4,6 +4,7 @@ struct SchoolCoachesPanel: View {
   let coaches: [Coach]
   let isLoading: Bool
   let onSeeAll: () -> Void
+  var onAddCoach: (() -> Void)?
 
   private let maxDisplayedCoaches = 3
 
@@ -23,6 +24,16 @@ struct SchoolCoachesPanel: View {
           .foregroundStyle(.primary)
 
         Spacer()
+
+        if let onAddCoach {
+          Button(action: onAddCoach) {
+            Image(systemName: "plus.circle.fill")
+              .font(.title3)
+              .foregroundStyle(Color.accentBlue)
+          }
+          .accessibilityLabel(String(localized: "Add coach"))
+          .accessibilityHint("Add a new coach to this school")
+        }
 
         if hasMoreCoaches {
           Button(action: onSeeAll) {
@@ -44,7 +55,7 @@ struct SchoolCoachesPanel: View {
         }
         .padding(.vertical, 20)
       } else if coaches.isEmpty {
-        CoachesEmptyState()
+        CoachesEmptyState(onAddCoach: onAddCoach)
       } else {
         VStack(spacing: 0) {
           ForEach(displayedCoaches) { coach in
@@ -69,6 +80,8 @@ struct SchoolCoachesPanel: View {
 }
 
 private struct CoachesEmptyState: View {
+  var onAddCoach: (() -> Void)?
+
   var body: some View {
     VStack(spacing: 12) {
       Image(systemName: "person.crop.circle.badge.questionmark")
@@ -85,12 +98,22 @@ private struct CoachesEmptyState: View {
         .font(.subheadline)
         .foregroundStyle(.tertiary)
         .multilineTextAlignment(.center)
+
+      if let onAddCoach {
+        Button(action: onAddCoach) {
+          Label("Add Coach", systemImage: "plus")
+            .font(.subheadline.weight(.semibold))
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.small)
+        .accessibilityLabel(String(localized: "Add a coach to this school"))
+      }
     }
     .frame(maxWidth: .infinity)
     .padding(.vertical, 32)
     .accessibilityElement(children: .combine)
     .accessibilityLabel(String(localized: "No coaches added"))
-    .accessibilityHint("Use the manage coaches button to add recruiting contacts")
+    .accessibilityHint("Use the add coach button to add recruiting contacts")
   }
 }
 
@@ -129,7 +152,8 @@ private struct CoachesEmptyState: View {
       )
     ],
     isLoading: false,
-    onSeeAll: {}
+    onSeeAll: {},
+    onAddCoach: {}
   )
   .padding()
 }
@@ -138,7 +162,8 @@ private struct CoachesEmptyState: View {
   SchoolCoachesPanel(
     coaches: [],
     isLoading: true,
-    onSeeAll: {}
+    onSeeAll: {},
+    onAddCoach: {}
   )
   .padding()
 }
@@ -147,7 +172,8 @@ private struct CoachesEmptyState: View {
   SchoolCoachesPanel(
     coaches: [],
     isLoading: false,
-    onSeeAll: {}
+    onSeeAll: {},
+    onAddCoach: {}
   )
   .padding()
 }

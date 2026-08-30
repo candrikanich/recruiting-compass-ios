@@ -42,6 +42,7 @@ final class AddCoachViewModel {
   private let coachesService: CoachesManaging
   private let familyUnitId: String
   private let userId: String
+  private let preselectedSchoolId: String?
   nonisolated(unsafe) private let announcer: AccessibilityAnnouncing
 
   // MARK: - Computed Properties
@@ -49,6 +50,8 @@ final class AddCoachViewModel {
   var isFormVisible: Bool {
     formState.isSchoolSelected
   }
+
+  var isSchoolLocked: Bool { preselectedSchoolId != nil }
 
   var isSubmitDisabled: Bool {
     isSubmitting || formErrors.hasErrors || !formState.isSubmittable
@@ -64,25 +67,29 @@ final class AddCoachViewModel {
     coachesService: CoachesManaging,
     familyUnitId: String,
     userId: String,
-    announcer: AccessibilityAnnouncing
+    announcer: AccessibilityAnnouncing,
+    preselectedSchoolId: String? = nil
   ) {
     self.coachesService = coachesService
     self.familyUnitId = familyUnitId
     self.userId = userId
     self.announcer = announcer
+    self.preselectedSchoolId = preselectedSchoolId
   }
 
   /// Convenience initializer with default announcer
   convenience init(
     coachesService: CoachesManaging,
     familyUnitId: String,
-    userId: String
+    userId: String,
+    preselectedSchoolId: String? = nil
   ) {
     self.init(
       coachesService: coachesService,
       familyUnitId: familyUnitId,
       userId: userId,
-      announcer: AccessibilityAnnouncer()
+      announcer: AccessibilityAnnouncer(),
+      preselectedSchoolId: preselectedSchoolId
     )
   }
 
@@ -125,6 +132,12 @@ final class AddCoachViewModel {
 
       if schools.isEmpty {
         logger.warning("No schools found for family unit")
+      }
+
+      if let preselectedSchoolId,
+         schools.contains(where: { $0.id == preselectedSchoolId }) {
+        formState.selectedSchoolId = preselectedSchoolId
+        logger.debug("Pre-selected school: \(preselectedSchoolId)")
       }
     } catch {
       logger.error("Failed to load schools: \(error.localizedDescription)")

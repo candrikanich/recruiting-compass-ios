@@ -27,6 +27,17 @@ struct SchoolNotesSection: View {
             .stroke(isFocused ? Color.accentColor : Color.clear, lineWidth: 2)
         )
         .focused($isFocused)
+        .toolbar {
+          ToolbarItemGroup(placement: .keyboard) {
+            if isFocused {
+              Spacer()
+              Button("Done") {
+                isFocused = false
+              }
+              .accessibilityLabel(String(localized: "Dismiss keyboard"))
+            }
+          }
+        }
         .accessibilityIdentifier("\(title.lowercased().replacing(" ", with: "-"))-text-editor")
         .accessibilityLabel(String(localized: "\(title) text editor"))
         .accessibilityHint("Enter your \(title.lowercased())")
