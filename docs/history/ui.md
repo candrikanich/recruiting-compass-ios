@@ -1,5 +1,8 @@
 # UI History
 
+## 2026-08-19 — Web Parity Public Profile Socials
+Web parity spec: add Social section (twitter/instagram/tiktok/facebook) to public profile page, matching iOS implementation. No DB migration needed.
+
 ## 2026-08-10 — Player-profile tab reorg (iOS + web)
 Regrouped player-profile fields by purpose — Contact/Privacy/Social → Basics, High School → Academics — added `core_courses` + phone/email inputs, and collapsed web's duplicate phone/email.
 

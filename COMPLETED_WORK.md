@@ -61,3 +61,16 @@
 | infrastructure | 1 | Push notifications (APNs) |
 | ios | 1 | SwiftUI modernization |
 | e2e | 1 | iOS E2E test environment |
+
+## Doc Cleanup Run — 2026-08-30
+- Deleted: 2 files (session handoffs)
+- Compressed: 14 files → docs/history/*.md (5 domains)
+- Kept: 18 files (active specs, launch checklist, design tokens, guides, multi-sport metrics plans, baseball audit)
+
+| Domain | Compressed | Summary |
+|--------|-----------|---------|
+| coaches | 7 | Quick comm template parity spec, phase 2b+3 plans, unified missing-info, questionnaire-metric parity, coach tile consolidation, send confirmation |
+| schools | 3 | Distance-from-home design, personal fit signals (design+plan), visited card real visits |
+| general | 2 | Profile completeness canonical spec, cross-platform video links design |
+| ui | 1 | Web parity public profile socials |
+| onboarding | 1 | Canonical positions parity spec |

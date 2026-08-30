@@ -1,5 +1,11 @@
 # General History
 
+## 2026-08-09 — Profile Completeness Canonical Spec
+Canonical cross-platform profile completeness spec: unified 10-field weighted formula (100%) fixing iOS over-count (92%) and web under-count (55%).
+
+## 2026-08-08 — Cross-Platform Video Links Design
+Approved cross-platform design: canonical video = URL links table (promoted from JSONB), iOS CTA router, shared contract.
+
 ## 2026-08-10 — iOS Public Profile tab
 Editor + native preview card + per-coach "Send Profile" tracking, wrapping the web `/api/player/profile` API (models, service, VM, slug validation, header colors).
 
