@@ -44,6 +44,7 @@ final class AddInteractionViewModel {
   private let interactionsService: any InteractionsManaging
   private let familyUnitId: String
   private let userId: String
+  private let preselectedSchoolId: String?
 
   // MARK: - Computed Properties
 
@@ -69,11 +70,13 @@ final class AddInteractionViewModel {
   init(
     interactionsService: any InteractionsManaging,
     familyUnitId: String,
-    userId: String
+    userId: String,
+    preselectedSchoolId: String? = nil
   ) {
     self.interactionsService = interactionsService
     self.familyUnitId = familyUnitId
     self.userId = userId
+    self.preselectedSchoolId = preselectedSchoolId
   }
 
   // MARK: - Data Loading
@@ -98,6 +101,11 @@ final class AddInteractionViewModel {
       allCoaches = try await coachesTask
 
       logger.info("Loaded \(self.schools.count) schools and \(self.allCoaches.count) coaches")
+
+      if let preselectedSchoolId, schools.contains(where: { $0.id == preselectedSchoolId }) {
+        formState.schoolId = preselectedSchoolId
+        logger.debug("Pre-selected school: \(preselectedSchoolId)")
+      }
     } catch {
       logger.error("Failed to load form data: \(error.localizedDescription)")
       errorMessage = String(localized: "Failed to load schools and coaches. Please try again.")

@@ -306,6 +306,7 @@ struct SchoolDetailView: View {
             interactionsService: InteractionsServiceImpl(supabaseManager: .shared),
             familyUnitId: familyUnitId,
             userId: userId,
+            preselectedSchoolId: schoolId,
             onLogged: { message in
               // Refresh so the status stepper reflects the auto-advance, and
               // confirm it with a toast.
