@@ -24,15 +24,19 @@ struct SchoolDetailView: View {
   }
 
   var body: some View {
-    ScrollView {
+    Group {
       if viewModel.isLoading && viewModel.school == nil {
-        LoadingStateView(message: "Loading school...")
-          .padding(.top, 100)
+        ScrollView {
+          LoadingStateView(message: "Loading school...")
+            .padding(.top, 100)
+        }
       } else if let school = viewModel.school {
         detailContent(school: school)
       } else if let error = viewModel.errorMessage {
-        InlineErrorView(message: error)
-          .padding(.top, 100)
+        ScrollView {
+          InlineErrorView(message: error)
+            .padding(.top, 100)
+        }
       }
     }
     .navigationTitle("School Details")
