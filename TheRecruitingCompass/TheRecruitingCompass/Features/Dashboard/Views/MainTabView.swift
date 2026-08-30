@@ -21,6 +21,7 @@ struct MainTabView: View {
   @State private var interactionsPath = NavigationPath()
   @State private var morePath: [MorePath] = []
   @State private var coachesPrefilterSchoolId: String?
+  @State private var coachesViewId = 0
   @Binding var pendingPushDestination: NotificationDestination?
 
   init(pendingPushDestination: Binding<NotificationDestination?> = .constant(nil)) {
@@ -45,6 +46,7 @@ struct MainTabView: View {
 
       Tab("Coaches", systemImage: "person.2", value: AppTab.coaches) {
         CoachesListView(prefilterSchoolId: $coachesPrefilterSchoolId, navigationPath: $coachesPath)
+          .id(coachesViewId)
       }
 
       Tab("Interactions", systemImage: "bubble.left.and.bubble.right", value: AppTab.interactions) {
@@ -60,6 +62,7 @@ struct MainTabView: View {
     .environment(\.filterCoachesBySchool, { schoolId in
       coachesPrefilterSchoolId = schoolId
       coachesPath = NavigationPath()
+      coachesViewId += 1
       selectedTab = .coaches
     })
     .environment(\.openMoreSection, { section in
