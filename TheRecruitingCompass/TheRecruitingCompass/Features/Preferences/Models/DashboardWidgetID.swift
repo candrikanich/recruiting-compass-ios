@@ -1,5 +1,12 @@
 import Foundation
 
+/// Classifies how much horizontal space a widget occupies on the iPad 4+2 dashboard grid.
+enum WidgetWidth {
+  case full    // spans entire main column on iPad
+  case half    // shares row with another .half widget on iPad
+  case sidebar // pinned to right sidebar column on iPad, inline on iPhone
+}
+
 /// Stable identity for each user-arrangeable dashboard widget. Single source of truth for the
 /// widget's label, icon, and its on/off flag on `WidgetVisibility` — reused by both the dashboard
 /// renderer (`DashboardWidgetStack`) and the customize screen so order and visibility stay in sync.
@@ -48,6 +55,21 @@ enum DashboardWidgetID: String, CaseIterable, Codable, Identifiable {
     case .performance: return String(localized: "Performance")
     case .interactionTrends: return String(localized: "Interaction Trend")
     case .recentActivity: return String(localized: "Recent Activity")
+    }
+  }
+
+  /// Horizontal space this widget occupies on the iPad 4+2 dashboard grid.
+  var widthClass: WidgetWidth {
+    switch self {
+    case .actionItems: return .full
+    case .coachFollowup: return .half
+    case .upcomingEvents: return .half
+    case .quickTasks: return .half
+    case .atAGlance: return .half
+    case .recruitingCalendar: return .sidebar
+    case .performance: return .half
+    case .interactionTrends: return .full
+    case .recentActivity: return .sidebar
     }
   }
 

@@ -35,91 +35,129 @@ struct DashboardView: View {
         }
 
         ScrollView {
-          VStack(spacing: 24) {
-            DashboardHeaderSection(
-              isParentPreviewMode: viewModel.isParentPreviewMode,
-              selectedAthleteName: viewModel.selectedAthleteName,
-              isEmpty: viewModel.isEmpty,
-              userFirstName: viewModel.userFirstName
-            )
-
-            if timelineViewModel.statusScore != nil {
-              DashboardTimelineSummaryCard(
-                phase: timelineViewModel.currentPhase,
-                statusScore: timelineViewModel.statusScoreValue,
-                statusColor: timelineViewModel.statusScore?.color ?? .secondary,
-                taskTitle: timelineViewModel.currentTask?.title,
-                taskWhyItMatters: timelineViewModel.currentTask?.whyItMatters,
-                onViewTimeline: { openMoreSection(.timeline) }
-              )
-            }
-
-            if familyManager.currentMember?.isParent == true && !viewModel.isParentPreviewMode {
-              DashboardAthleteSelectorSection(
-                athletes: familyManager.athletes,
-                selectedAthleteId: familyManager.selectedAthleteId,
-                onSelect: { athleteId in viewModel.selectAthlete(athleteId) }
-              )
-            }
-
-            if viewModel.isLoading && viewModel.stats == nil {
-              DashboardLoadingSection()
-            } else if viewModel.isEmpty {
-              EmptyDashboardState(onAddSchool: { showAddSchool = true })
-            } else if let stats = viewModel.stats {
-              DashboardStatsCardsSection(
-                stats: stats,
-                visibility: viewModel.widgetVisibility.statsCards
-              )
-            }
-
-            if let error = viewModel.errorMessage {
-              DashboardErrorSection(message: error, onDismiss: { viewModel.dismissError() })
-            }
-
-            if !viewModel.isEmpty {
-              DashboardWidgetStack(
-                order: viewModel.widgetVisibility.widgetOrder,
-                visibility: viewModel.widgetVisibility.widgets,
-                suggestions: viewModel.suggestions,
-                pendingCount: viewModel.suggestionsPendingCount,
-                familyUnitId: viewModel.currentFamilyUnitId,
-                userId: viewModel.actingUserId,
-                coachesNeedingFollowup: viewModel.coachesNeedingFollowup,
-                allSchools: viewModel.allSchools,
-                events: viewModel.events,
-                interactionTrends: viewModel.interactionTrends,
-                metrics: viewModel.metrics,
-                schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
-                interactionsThisMonth: viewModel.interactionsThisMonth,
-                daysUntilGraduationFormatted: viewModel.daysUntilGraduationFormatted,
+          AdaptiveDashboardGrid {
+            VStack(spacing: 24) {
+              DashboardHeaderSection(
+                isParentPreviewMode: viewModel.isParentPreviewMode,
+                selectedAthleteName: viewModel.selectedAthleteName,
                 isEmpty: viewModel.isEmpty,
-                athleteSport: viewModel.athleteSport,
-                athleteGender: viewModel.athleteGender,
-                graduationYear: viewModel.graduationYear,
-                quickTasks: $viewModel.quickTasks,
-                onDismissSuggestion: { id in Task { await viewModel.dismissSuggestion(id) } },
-                onCompleteSuggestion: { id in Task { await viewModel.completeSuggestion(id) } },
-                onActionCompleted: { Task { await viewModel.fetchDashboardData() } },
-                onAddTask: viewModel.addTask,
-                onToggleTask: viewModel.toggleTaskCompletion,
-                onDeleteTask: viewModel.deleteTask,
-                onClearCompleted: viewModel.clearCompletedTasks,
-                onCoachContacted: { Task { await viewModel.fetchDashboardData() } }
+                userFirstName: viewModel.userFirstName
+              )
+
+              if timelineViewModel.statusScore != nil {
+                DashboardTimelineSummaryCard(
+                  phase: timelineViewModel.currentPhase,
+                  statusScore: timelineViewModel.statusScoreValue,
+                  statusColor: timelineViewModel.statusScore?.color ?? .secondary,
+                  taskTitle: timelineViewModel.currentTask?.title,
+                  taskWhyItMatters: timelineViewModel.currentTask?.whyItMatters,
+                  onViewTimeline: { openMoreSection(.timeline) }
+                )
+              }
+
+              if familyManager.currentMember?.isParent == true && !viewModel.isParentPreviewMode {
+                DashboardAthleteSelectorSection(
+                  athletes: familyManager.athletes,
+                  selectedAthleteId: familyManager.selectedAthleteId,
+                  onSelect: { athleteId in viewModel.selectAthlete(athleteId) }
+                )
+              }
+
+              if viewModel.isLoading && viewModel.stats == nil {
+                DashboardLoadingSection()
+              } else if viewModel.isEmpty {
+                EmptyDashboardState(onAddSchool: { showAddSchool = true })
+              } else if let stats = viewModel.stats {
+                DashboardStatsCardsSection(
+                  stats: stats,
+                  visibility: viewModel.widgetVisibility.statsCards
+                )
+              }
+
+              if let error = viewModel.errorMessage {
+                DashboardErrorSection(message: error, onDismiss: { viewModel.dismissError() })
+              }
+
+              if !viewModel.isEmpty {
+                DashboardWidgetStack(
+                  order: viewModel.widgetVisibility.widgetOrder,
+                  visibility: viewModel.widgetVisibility.widgets,
+                  suggestions: viewModel.suggestions,
+                  pendingCount: viewModel.suggestionsPendingCount,
+                  familyUnitId: viewModel.currentFamilyUnitId,
+                  userId: viewModel.actingUserId,
+                  coachesNeedingFollowup: viewModel.coachesNeedingFollowup,
+                  allSchools: viewModel.allSchools,
+                  events: viewModel.events,
+                  interactionTrends: viewModel.interactionTrends,
+                  metrics: viewModel.metrics,
+                  schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
+                  interactionsThisMonth: viewModel.interactionsThisMonth,
+                  daysUntilGraduationFormatted: viewModel.daysUntilGraduationFormatted,
+                  isEmpty: viewModel.isEmpty,
+                  athleteSport: viewModel.athleteSport,
+                  athleteGender: viewModel.athleteGender,
+                  graduationYear: viewModel.graduationYear,
+                  quickTasks: $viewModel.quickTasks,
+                  onDismissSuggestion: { id in Task { await viewModel.dismissSuggestion(id) } },
+                  onCompleteSuggestion: { id in Task { await viewModel.completeSuggestion(id) } },
+                  onActionCompleted: { Task { await viewModel.fetchDashboardData() } },
+                  onAddTask: viewModel.addTask,
+                  onToggleTask: viewModel.toggleTaskCompletion,
+                  onDeleteTask: viewModel.deleteTask,
+                  onClearCompleted: viewModel.clearCompletedTasks,
+                  onCoachContacted: { Task { await viewModel.fetchDashboardData() } },
+                  excludeWidthClasses: [.sidebar]
+                )
+              }
+
+              Spacer()
+                .frame(height: 32)
+
+              DashboardLogoutButton(
+                isLoggingOut: viewModel.isLoggingOut,
+                onLogout: { await viewModel.logout() }
               )
             }
+          } sidebarContent: {
+            VStack(spacing: 16) {
+              DashboardPublicProfileCard(
+                targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+              )
 
-            DashboardPublicProfileCard(
-              targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
-            )
-
-            Spacer()
-              .frame(height: 32)
-
-            DashboardLogoutButton(
-              isLoggingOut: viewModel.isLoggingOut,
-              onLogout: { await viewModel.logout() }
-            )
+              if !viewModel.isEmpty {
+                DashboardWidgetStack(
+                  order: viewModel.widgetVisibility.widgetOrder,
+                  visibility: viewModel.widgetVisibility.widgets,
+                  suggestions: viewModel.suggestions,
+                  pendingCount: viewModel.suggestionsPendingCount,
+                  familyUnitId: viewModel.currentFamilyUnitId,
+                  userId: viewModel.actingUserId,
+                  coachesNeedingFollowup: viewModel.coachesNeedingFollowup,
+                  allSchools: viewModel.allSchools,
+                  events: viewModel.events,
+                  interactionTrends: viewModel.interactionTrends,
+                  metrics: viewModel.metrics,
+                  schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
+                  interactionsThisMonth: viewModel.interactionsThisMonth,
+                  daysUntilGraduationFormatted: viewModel.daysUntilGraduationFormatted,
+                  isEmpty: viewModel.isEmpty,
+                  athleteSport: viewModel.athleteSport,
+                  athleteGender: viewModel.athleteGender,
+                  graduationYear: viewModel.graduationYear,
+                  quickTasks: $viewModel.quickTasks,
+                  onDismissSuggestion: { id in Task { await viewModel.dismissSuggestion(id) } },
+                  onCompleteSuggestion: { id in Task { await viewModel.completeSuggestion(id) } },
+                  onActionCompleted: { Task { await viewModel.fetchDashboardData() } },
+                  onAddTask: viewModel.addTask,
+                  onToggleTask: viewModel.toggleTaskCompletion,
+                  onDeleteTask: viewModel.deleteTask,
+                  onClearCompleted: viewModel.clearCompletedTasks,
+                  onCoachContacted: { Task { await viewModel.fetchDashboardData() } },
+                  onlyWidthClasses: [.sidebar]
+                )
+              }
+            }
           }
           .padding()
         }
