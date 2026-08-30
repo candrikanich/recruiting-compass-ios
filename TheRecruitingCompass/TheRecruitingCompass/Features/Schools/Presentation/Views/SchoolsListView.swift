@@ -158,7 +158,7 @@ struct SchoolsListView: View {
 
   @ViewBuilder
   private var schoolCards: some View {
-    ForEach(viewModel.filteredSchools) { school in
+    AdaptiveListView(items: viewModel.filteredSchools) { school in
       NavigationLink(value: SchoolDestination.detail(school.id)) {
         SchoolCardView(
           school: school,

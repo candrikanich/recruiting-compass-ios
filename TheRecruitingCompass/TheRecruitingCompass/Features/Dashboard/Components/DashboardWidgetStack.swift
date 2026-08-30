@@ -32,13 +32,23 @@ struct DashboardWidgetStack: View {
   let onClearCompleted: () -> Void
   /// Reload the dashboard after a coach send (follow-up list refresh).
   var onCoachContacted: (() -> Void)?
+  /// When set, widgets whose `widthClass` is in this set are skipped (iPad main-column pass).
+  var excludeWidthClasses: Set<WidgetWidth>?
+  /// When set, only widgets whose `widthClass` is in this set are rendered (iPad sidebar pass).
+  var onlyWidthClasses: Set<WidgetWidth>?
 
   var body: some View {
     VStack(spacing: 16) {
-      ForEach(order) { id in
+      ForEach(order.filter(passesWidthFilter)) { id in
         widget(for: id)
       }
     }
+  }
+
+  private func passesWidthFilter(_ id: DashboardWidgetID) -> Bool {
+    if let excludeWidthClasses, excludeWidthClasses.contains(id.widthClass) { return false }
+    if let onlyWidthClasses, !onlyWidthClasses.contains(id.widthClass) { return false }
+    return true
   }
 
   @ViewBuilder

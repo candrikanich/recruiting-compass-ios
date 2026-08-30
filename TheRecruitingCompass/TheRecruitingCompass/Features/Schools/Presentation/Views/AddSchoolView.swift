@@ -11,6 +11,7 @@ import SwiftUI
 struct AddSchoolView: View {
   @State private var viewModel: AddSchoolViewModel
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.horizontalSizeClass) private var sizeClass
   @Binding var navigationPath: NavigationPath
 
   init(
@@ -72,6 +73,10 @@ struct AddSchoolView: View {
         onCancel: { dismiss() }
       )
     }
+    // iPad: constrain + center the Form rather than reflowing it into FormContainerView —
+    // Form/Section provide grouped-row styling that a plain ScrollView/VStack would lose.
+    .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
+    .frame(maxWidth: .infinity)
     .navigationTitle("Add School")
     .navigationBarTitleDisplayMode(.inline)
     .navigationBarBackButtonHidden(true)

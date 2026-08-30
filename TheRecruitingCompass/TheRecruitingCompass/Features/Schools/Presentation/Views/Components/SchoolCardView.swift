@@ -33,6 +33,7 @@ struct SchoolCardView: View {
     )
     .clipShape(.rect(cornerRadius: 12))
     .brandShadowSm()
+    .hoverEffect(.highlight)
     .accessibilityElement(children: .contain)
   }
 

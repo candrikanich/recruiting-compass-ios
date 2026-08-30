@@ -3,6 +3,7 @@ import SwiftUI
 struct AddInteractionView: View {
   @State private var viewModel: AddInteractionViewModel
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.horizontalSizeClass) private var sizeClass
   @State private var hapticSuccessTrigger = 0
   @State private var hapticErrorTrigger = 0
 
@@ -34,6 +35,10 @@ struct AddInteractionView: View {
         formSections
       }
     }
+    // iPad: constrain + center the Form rather than reflowing it into FormContainerView —
+    // Form/Section provide grouped-row styling that a plain ScrollView/VStack would lose.
+    .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
+    .frame(maxWidth: .infinity)
     .navigationTitle(viewModel.pageTitle)
     .navigationBarTitleDisplayMode(.inline)
     .scrollDismissesKeyboard(.interactively)

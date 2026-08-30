@@ -185,7 +185,7 @@ struct CoachesListView: View {
 
   @ViewBuilder
   private var coachCards: some View {
-    ForEach(viewModel.filteredCoaches) { coach in
+    AdaptiveListView(items: viewModel.filteredCoaches) { coach in
       NavigationLink(value: CoachDestination.detail(coach.id)) {
         CoachCardView(
           coach: coach,

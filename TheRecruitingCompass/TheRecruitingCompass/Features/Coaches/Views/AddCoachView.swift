@@ -11,6 +11,7 @@ import SwiftUI
 struct AddCoachView: View {
   @State private var viewModel: AddCoachViewModel
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.horizontalSizeClass) private var sizeClass
   @Binding var navigationPath: NavigationPath
 
   init(
@@ -42,6 +43,10 @@ struct AddCoachView: View {
         infoPromptSection
       }
     }
+    // iPad: constrain + center the Form rather than reflowing it into FormContainerView —
+    // Form/Section provide grouped-row styling that a plain ScrollView/VStack would lose.
+    .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
+    .frame(maxWidth: .infinity)
     .navigationTitle("Add Coach")
       .navigationBarTitleDisplayMode(.inline)
       .navigationBarBackButtonHidden(true)

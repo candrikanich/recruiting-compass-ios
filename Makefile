@@ -6,8 +6,8 @@ SCHEME := TheRecruitingCompass
 DESTINATION ?= platform=iOS Simulator,name=iPhone 17
 WEB_DIR := ../recruiting-compass-web
 
-.PHONY: build test test-ui test-unit test-unit-fast clean setup-hooks lint \
-	e2e-precheck e2e-seed e2e-local
+.PHONY: build test test-ui test-unit test-unit-fast build-ipad test-ipad test-all-devices \
+	clean setup-hooks lint e2e-precheck e2e-seed e2e-local
 
 build:
 	cd $(PROJECT_DIR) && xcodebuild build \
@@ -46,6 +46,26 @@ test-unit-fast:
 		-parallel-testing-enabled YES \
 		-maximum-concurrent-test-simulator-destinations 2 \
 		-quiet
+
+# iPad build target
+build-ipad:
+	cd $(PROJECT_DIR) && xcodebuild build \
+		-scheme $(SCHEME) \
+		-destination 'platform=iOS Simulator,name=iPad Air 11-inch (M4)' \
+		$(XCARGS)
+
+# iPad unit tests (skip UI tests for iPad device testing)
+test-ipad:
+	cd $(PROJECT_DIR) && xcodebuild test \
+		-scheme $(SCHEME) \
+		-destination 'platform=iOS Simulator,name=iPad Air 11-inch (M4)' \
+		-skip-testing:TheRecruitingCompassUITests \
+		-disable-concurrent-destination-testing \
+		-test-timeouts-enabled YES \
+		$(XCARGS)
+
+# Test all devices (iPhone + iPad)
+test-all-devices: test-unit test-ipad
 
 # Clean build artifacts
 clean:

@@ -193,7 +193,7 @@ struct InteractionsListView: View {
 
   @ViewBuilder
   private var interactionCards: some View {
-    ForEach(viewModel.filteredInteractions) { interaction in
+    AdaptiveListView(items: viewModel.filteredInteractions) { interaction in
       Button {
         navigationPath.append(InteractionDestination.detail(interaction.id))
       } label: {
