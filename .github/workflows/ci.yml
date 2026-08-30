@@ -25,11 +25,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install SwiftLint
-        run: brew install swiftlint
-
       - name: Run SwiftLint
-        run: swiftlint lint --config .swiftlint.yml --reporter github-actions-logging
+        uses: realm/SwiftLint@0.65.1
+        with:
+          args: --config .swiftlint.yml --reporter github-actions-logging
 
   build-and-test:
     name: Build & Unit Tests
@@ -71,12 +70,13 @@ jobs:
           key: deriveddata-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj') }}
           restore-keys: deriveddata-
 
-      - name: Build
+      - name: Build for Testing
         run: |
           cd TheRecruitingCompass
-          xcodebuild build \
+          xcodebuild build-for-testing \
             -scheme TheRecruitingCompass \
             -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+            -skip-testing:TheRecruitingCompassUITests \
             -quiet
 
       - name: Unit Tests
@@ -85,15 +85,15 @@ jobs:
           # CoreSimulator on the CI runner intermittently dies mid-run
           # ("(ipc/mig) server died"), which no in-process test retry can survive
           # because the whole test host is gone. Run the entire xcodebuild in a
-          # retry loop, resetting the simulator stack between attempts. Parallel
-          # test clones are disabled to reduce simulator churn (a common trigger).
+          # retry loop, resetting the simulator stack between attempts.
           run_tests() {
             rm -rf "TestResults-$1.xcresult"
-            xcodebuild test \
+            xcodebuild test-without-building \
               -scheme TheRecruitingCompass \
               -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
               -skip-testing:TheRecruitingCompassUITests \
-              -parallel-testing-enabled NO \
+              -parallel-testing-enabled YES \
+              -maximum-concurrent-test-simulator-destinations 2 \
               -retry-tests-on-failure -test-iterations 2 \
               -resultBundlePath "TestResults-$1.xcresult" \
               -quiet
