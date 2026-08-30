@@ -48,15 +48,19 @@ struct CoachDetailView: View {
   }
 
   var body: some View {
-    ScrollView {
+    Group {
       if viewModel.isLoading {
-        LoadingStateView(message: "Loading coach details")
-          .padding(.top, 100)
+        ScrollView {
+          LoadingStateView(message: "Loading coach details")
+            .padding(.top, 100)
+        }
       } else if let coach = viewModel.coach {
         detailContent(coach: coach)
       } else if let error = viewModel.errorMessage {
-        InlineErrorView(message: error)
-          .padding(.top, 100)
+        ScrollView {
+          InlineErrorView(message: error)
+            .padding(.top, 100)
+        }
       }
     }
     .navigationTitle("Coach Details")
@@ -190,56 +194,37 @@ struct CoachDetailView: View {
   // MARK: - Content
 
   private func detailContent(coach: Coach) -> some View {
-    VStack(alignment: .leading, spacing: 16) {
-      SectionCard {
-        CoachDetailHeader(
-          coach: coach,
-          school: viewModel.school,
-          onEdit: { viewModel.startEditing() },
-          onDelete: { viewModel.confirmDelete() }
-        )
+    AdaptiveDetailLayout(sidebarPlacement: .leading, sidebarWidth: 340) {
+      VStack(alignment: .leading, spacing: 16) {
+        if let insights = viewModel.coachInsights {
+          CoachAlertsSection(insights: insights)
+          SectionCard { CoachStatsGrid(insights: insights) }
+        }
+
+        if let insights = viewModel.coachInsights {
+          SectionCard { CoachAnalyticsCard(insights: insights) }
+        }
+
+        SectionCard(label: "Interactions History") {
+          CoachInteractionsLogSection(viewModel: viewModel)
+        }
+
+        sendProfileSection(coach: coach)
       }
-
-      if let insights = viewModel.coachInsights {
-        CoachAlertsSection(insights: insights)
-        SectionCard { CoachStatsGrid(insights: insights) }
-      }
-
-      SectionCard(label: "Direct Channels") {
-        CoachDirectChannelsGrid(
-          coach: coach,
-          onEmail: { presentQuickCommunication(coach) },
-          onText: { presentQuickCommunication(coach) },
-          onCall: { openChannel(.call(coach.phone ?? ""), value: coach.phone) },
-          onTwitter: { openSocial(.twitter, coach: coach) },
-          onInstagram: { openSocial(.instagram, coach: coach) },
-          onLog: { showLogInteraction = true }
-        )
-      }
-
-      if let insights = viewModel.coachInsights {
-        SectionCard { CoachAnalyticsCard(insights: insights) }
-      }
-
-      SectionCard(label: "Interactions History") {
-        CoachInteractionsLogSection(viewModel: viewModel)
-      }
-
-      sendProfileSection(coach: coach)
-
-      SectionCard(label: "Internal Notes") { sharedNotesSection }
-
-      SectionCard(label: "Tags") {
-        CoachTagsCard(
-          tags: coach.tags,
-          onAdd: { tag in Task { await viewModel.saveTags(coach.tags + [tag]) } },
-          onRemove: { tag in Task { await viewModel.saveTags(coach.tags.filter { $0 != tag }) } }
-        )
-      }
-
-      SectionCard(label: "Profile Meta") { CoachProfileMetaCard(coach: coach) }
+    } sidebar: {
+      CoachDetailRail(
+        coach: coach,
+        viewModel: viewModel,
+        onEdit: { viewModel.startEditing() },
+        onDelete: { viewModel.confirmDelete() },
+        onEmail: { presentQuickCommunication(coach) },
+        onText: { presentQuickCommunication(coach) },
+        onCall: { openChannel(.call(coach.phone ?? ""), value: coach.phone) },
+        onTwitter: { openSocial(.twitter, coach: coach) },
+        onInstagram: { openSocial(.instagram, coach: coach) },
+        onLog: { showLogInteraction = true }
+      )
     }
-    .padding()
   }
 
   private func presentQuickCommunication(_ coach: Coach) {
@@ -380,15 +365,6 @@ struct CoachDetailView: View {
       )
       .ignoresSafeArea()
     }
-  }
-
-  @ViewBuilder
-  private var sharedNotesSection: some View {
-    NotesSection(
-      title: String(localized: "Shared Notes"),
-      notes: $viewModel.editedSharedNotes,
-      onBlur: { await viewModel.saveSharedNotes() }
-    )
   }
 
   private var socialDMTitle: String {
