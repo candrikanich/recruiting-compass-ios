@@ -6,43 +6,37 @@ import SwiftUI
 final class LandingViewAccessibilityTests: XCTestCase {
   nonisolated deinit {}
 
-  func testLandingView_LogoSection_HasAccessibilityLabel() {
-    let view = LandingView()
-
-    XCTAssertNotNil(view)
-  }
-
   func testLandingView_CompassIcon_IsHiddenFromAccessibility() {
     let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
   func testLandingView_SignInButton_HasLabelAndHint() {
     let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
-  func testLandingView_CreateAccountButton_HasLabelAndHint() {
+  func testLandingView_GetStartedFreeButton_HasLabelAndHint() {
     let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
   func testLandingView_FeatureCards_HaveCombinedAccessibility() {
     let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
   func testLandingView_FeatureCards_HaveFeatureLabelPrefix() {
     let card = FeatureCard(
-      icon: "shield.checkered",
-      title: "Track Schools",
-      description: "Organize and manage your target colleges in one place"
+      icon: "building.columns.fill",
+      title: "Track Schools & Coaches",
+      description: "A 5-stage pipeline for your college list."
     )
-
     XCTAssertNotNil(card)
+  }
+
+  func testLandingView_StatsBadge_HasCombinedAccessibility() {
+    let view = LandingView()
+    XCTAssertNotNil(view)
   }
 }

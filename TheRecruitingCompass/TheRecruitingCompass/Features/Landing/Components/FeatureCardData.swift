@@ -10,19 +10,28 @@ struct FeatureCardData: Identifiable {
 extension FeatureCardData {
   static let landingFeatures: [FeatureCardData] = [
     FeatureCardData(
-      icon: "shield.checkered",
-      title: String(localized: "Track Schools"),
-      description: String(localized: "Organize and manage your target colleges in one place")
+      icon: "building.columns.fill",
+      title: String(localized: "Track Schools & Coaches"),
+      description: String(localized: """
+        A 5-stage pipeline for your college list and a full coach CRM \
+        with response tracking and follow-up reminders.
+        """)
     ),
     FeatureCardData(
-      icon: "bubble.right.fill",
-      title: String(localized: "Log Interactions"),
-      description: String(localized: "Keep track of every conversation with coaches")
+      icon: "envelope.badge.fill",
+      title: String(localized: "Smart Outreach"),
+      description: String(localized: """
+        33+ templates with NCAA contact-window compliance. \
+        Your stats auto-fill into every message.
+        """)
     ),
     FeatureCardData(
-      icon: "chart.bar.fill",
-      title: String(localized: "Monitor Progress"),
-      description: String(localized: "Visualize your recruiting journey with insights")
+      icon: "calendar.badge.clock",
+      title: String(localized: "Calendars & Timeline"),
+      description: String(localized: """
+        22 NCAA recruiting calendars and a 4-year roadmap with \
+        milestones so you always know what to do next.
+        """)
     )
   ]
 }

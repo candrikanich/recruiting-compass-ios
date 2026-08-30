@@ -20,8 +20,8 @@ struct FeatureCard: View {
       Text(description)
         .font(.subheadline)
         .foregroundStyle(Color.white.opacity(0.85))
-        .lineLimit(3)
         .multilineTextAlignment(.center)
+        .fixedSize(horizontal: false, vertical: true)
     }
     .frame(maxWidth: .infinity)
     .padding(20)
@@ -38,15 +38,17 @@ struct FeatureCard: View {
 }
 
 #Preview {
-  VStack(spacing: 16) {
-    ForEach(FeatureCardData.landingFeatures) { feature in
-      FeatureCard(
-        icon: feature.icon,
-        title: feature.title,
-        description: feature.description
-      )
+  ScrollView {
+    VStack(spacing: 16) {
+      ForEach(FeatureCardData.landingFeatures) { feature in
+        FeatureCard(
+          icon: feature.icon,
+          title: feature.title,
+          description: feature.description
+        )
+      }
     }
+    .padding()
   }
-  .padding()
   .background(LinearGradient.landingBackground)
 }
