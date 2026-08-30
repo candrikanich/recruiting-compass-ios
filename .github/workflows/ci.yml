@@ -63,11 +63,18 @@ jobs:
           API_BASE_URL = https:$(_SLASH)$(_SLASH)myrecruitingcompass.com
           XCCONFIG
 
+      - name: Cache SPM packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: spm-
+
       - name: Cache DerivedData
         uses: actions/cache@v4
         with:
           path: ~/Library/Developer/Xcode/DerivedData
-          key: deriveddata-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj') }}
+          key: deriveddata-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj', 'TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: deriveddata-
 
       - name: Build for Testing
@@ -77,7 +84,7 @@ jobs:
             -scheme TheRecruitingCompass \
             -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
             -skip-testing:TheRecruitingCompassUITests \
-            -quiet
+            -showBuildTimingSummary
 
       - name: Unit Tests
         run: |
@@ -95,6 +102,7 @@ jobs:
               -parallel-testing-enabled YES \
               -maximum-concurrent-test-simulator-destinations 2 \
               -retry-tests-on-failure -test-iterations 2 \
+              -enableCodeCoverage YES \
               -resultBundlePath "TestResults-$1.xcresult" \
               -quiet
           }
@@ -112,6 +120,15 @@ jobs:
           done
           echo "Unit tests failed after 2 full attempts."
           exit 1
+
+      - name: Coverage Summary
+        if: success()
+        run: |
+          RESULT=$(ls -td TheRecruitingCompass/TestResults-*.xcresult 2>/dev/null | head -1)
+          if [ -n "$RESULT" ]; then
+            echo "## Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
+            xcrun xccov view --report --only-targets "$RESULT" | head -30 >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload unit-test xcresult
         if: failure()
@@ -174,11 +191,18 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
           ALLOW_REMOTE_SEED: "1"
 
+      - name: Cache SPM packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: spm-
+
       - name: Cache DerivedData
         uses: actions/cache@v4
         with:
           path: ~/Library/Developer/Xcode/DerivedData
-          key: deriveddata-e2e-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj') }}
+          key: deriveddata-e2e-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj', 'TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: deriveddata-e2e-
 
       - name: Build for testing
@@ -187,7 +211,7 @@ jobs:
           xcodebuild build-for-testing \
             -scheme TheRecruitingCompass \
             -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
-            -quiet
+            -showBuildTimingSummary
 
       - name: Run UITests
         run: |
