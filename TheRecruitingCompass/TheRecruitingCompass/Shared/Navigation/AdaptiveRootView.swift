@@ -69,38 +69,71 @@ struct AdaptiveRootView: View {
     }
   }
 
+  // Schools/Coaches/Interactions each own an internal `NavigationStack(path:)` already —
+  // wrapping them again here would double-nest (broken push behavior, double nav bar).
+  // Every other destination has no stack of its own, so it needs one from us.
   @ViewBuilder
   private func detailView(for destination: AppDestination) -> some View {
-    NavigationStack {
-      switch destination {
-      case .dashboard:
-        DashboardView(viewModel: dashboardViewModel)
-          .activityNavigation()
-      case .schools:
-        SchoolsListView()
-      case .coaches:
-        CoachesListView(prefilterSchoolId: $coachesPrefilterSchoolId)
-      case .interactions:
-        InteractionsListView()
-      case .timeline:
-        RecruitingTimelineView()
-      case .events:
-        EventsListView()
-      case .performance:
-        PerformanceDashboardView()
-      case .offers:
-        OffersListView()
-      case .analytics:
-        AnalyticsDashboardView()
-      case .documents:
-        DocumentsListView()
-      case .deadlines:
-        // No dedicated deadlines screen exists yet; deadlines surface inside the
-        // recruiting timeline (see `TaskDeadlineCalculator`). Revisit if one is added.
-        RecruitingTimelineView()
-      case .settings:
-        SettingsView()
+    switch destination {
+    case .schools:
+      SchoolsListView()
+    case .coaches:
+      CoachesListView(prefilterSchoolId: $coachesPrefilterSchoolId)
+    case .interactions:
+      InteractionsListView()
+    default:
+      NavigationStack {
+        switch destination {
+        case .dashboard:
+          DashboardView(viewModel: dashboardViewModel)
+            .activityNavigation()
+            .navigationDestination(for: DashboardDestination.self) { dashboardDestination in
+              dashboardDestinationView(for: dashboardDestination)
+            }
+        case .timeline:
+          RecruitingTimelineView()
+        case .events:
+          EventsListView()
+        case .performance:
+          PerformanceDashboardView()
+        case .offers:
+          OffersListView()
+        case .analytics:
+          AnalyticsDashboardView()
+        case .documents:
+          DocumentsListView()
+        case .deadlines:
+          // No dedicated deadlines screen exists yet; deadlines surface inside the
+          // recruiting timeline (see `TaskDeadlineCalculator`). Revisit if one is added.
+          RecruitingTimelineView()
+        case .settings:
+          SettingsView()
+        case .schools, .coaches, .interactions:
+          EmptyView() // unreachable — handled above
+        }
       }
+    }
+  }
+
+  @ViewBuilder
+  private func dashboardDestinationView(for destination: DashboardDestination) -> some View {
+    switch destination {
+    case .coaches:
+      CoachesListView()
+    case .schools:
+      SchoolsListView()
+    case .interactions:
+      InteractionsListView()
+    case .offers:
+      OffersListView()
+    case .accepted:
+      OffersListView()
+    case .aTier:
+      SchoolsListView()
+    case .suggestions:
+      SuggestionsListView(viewModel: dashboardViewModel)
+    case .familyManagement:
+      FamilyManagementView()
     }
   }
 }
