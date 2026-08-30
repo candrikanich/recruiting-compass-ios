@@ -22,6 +22,7 @@ struct SchoolDetailView: View {
 
   private enum NavigationDestination: Hashable {
     case addInteraction(schoolId: String)
+    case addCoach(schoolId: String)
   }
 
   var body: some View {
@@ -198,6 +199,9 @@ struct SchoolDetailView: View {
           isLoading: viewModel.isLoadingCoaches,
           onSeeAll: {
             filterCoachesBySchool(schoolId)
+          },
+          onAddCoach: {
+            navigationDestination = .addCoach(schoolId: schoolId)
           }
         )
         .padding(.horizontal)
@@ -320,6 +324,23 @@ struct SchoolDetailView: View {
         } else {
           ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
         }
+      case .addCoach(let schoolId):
+        if let familyUnitId = familyManager.familyUnitId, let userId = viewModel.currentUserId {
+          AddCoachView(
+            coachesService: CoachesServiceImpl(supabaseManager: .shared),
+            familyUnitId: familyUnitId,
+            userId: userId,
+            navigationPath: .constant(NavigationPath()),
+            preselectedSchoolId: schoolId
+          )
+        } else {
+          ContentUnavailableView("Sign In Required", systemImage: "person.crop.circle.badge.xmark")
+        }
+      }
+    }
+    .onChange(of: navigationDestination) { old, new in
+      if old != nil && new == nil {
+        Task { await viewModel.loadSchool() }
       }
     }
     .sheet(isPresented: $viewModel.isEditingBasicInfo) {
