@@ -169,7 +169,7 @@ private func lastContactRow(date: Date) -> some View {
       .frame(width: 16)
       .accessibilityHidden(true)
 
-    Text("Last contact: \(date, style: .relative) ago")
+    Text("Last contact: \(RelativeTimeFormatter.string(from: date))")
       .font(.caption)
       .foregroundStyle(Color.tertiaryText)
   }

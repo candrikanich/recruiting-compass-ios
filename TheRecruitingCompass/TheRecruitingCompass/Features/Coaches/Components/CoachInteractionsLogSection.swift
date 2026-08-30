@@ -38,13 +38,26 @@ struct CoachInteractionsLogSection: View {
             ExpandableInteractionRow(
               interaction: interaction,
               isExpanded: expandedIDs.contains(interaction.id),
-              onToggle: { toggle(interaction.id) }
+              onToggle: { toggle(interaction.id) },
+              onDelete: { viewModel.confirmDeleteInteraction(interaction) }
             )
             if interaction.id != filtered.last?.id {
               Divider().accessibilityHidden(true)
             }
           }
         }
+      }
+    }
+    .alert("Delete Interaction", isPresented: $viewModel.showDeleteInteractionConfirmation) {
+      Button("Delete", role: .destructive) {
+        Task { await viewModel.deleteInteraction() }
+      }
+      Button("Cancel", role: .cancel) {
+        viewModel.interactionToDelete = nil
+      }
+    } message: {
+      if let interaction = viewModel.interactionToDelete {
+        Text("Delete this \(interaction.type.displayName.lowercased()) interaction? This cannot be undone.")
       }
     }
   }
@@ -183,6 +196,7 @@ private struct ExpandableInteractionRow: View {
   let interaction: Interaction
   let isExpanded: Bool
   let onToggle: () -> Void
+  var onDelete: (() -> Void)?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -261,6 +275,18 @@ private struct ExpandableInteractionRow: View {
           Label("\(interaction.attachmentCount) attachment\(interaction.attachmentCount == 1 ? "" : "s")", systemImage: "paperclip")
             .font(.caption)
             .foregroundStyle(Color.secondaryText)
+        }
+
+        if let onDelete {
+          HStack {
+            Spacer()
+            Button(role: .destructive, action: onDelete) {
+              Label("Delete", systemImage: "trash")
+                .font(.caption)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+          }
         }
       }
     }

@@ -32,7 +32,7 @@ struct CoachStatisticsSection: View {
           Image(systemName: "clock")
             .foregroundStyle(.secondary)
             .accessibilityHidden(true)
-          Text("Last contacted \(lastContact, style: .relative) ago")
+          Text("Last contacted \(RelativeTimeFormatter.string(from: lastContact))")
             .font(.subheadline)
         }
       } else {

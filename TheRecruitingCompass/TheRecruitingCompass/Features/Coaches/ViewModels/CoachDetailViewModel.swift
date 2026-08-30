@@ -458,7 +458,59 @@ final class CoachDetailViewModel {
     }
   }
 
-  // MARK: - Delete
+  // MARK: - Delete Interaction
+
+  var interactionToDelete: Interaction?
+  var showDeleteInteractionConfirmation = false
+  var isDeletingInteraction = false
+
+  func confirmDeleteInteraction(_ interaction: Interaction) {
+    interactionToDelete = interaction
+    showDeleteInteractionConfirmation = true
+  }
+
+  func deleteInteraction() async {
+    guard let interaction = interactionToDelete else { return }
+
+    isDeletingInteraction = true
+    defer { isDeletingInteraction = false }
+
+    do {
+      try await interactionsService.deleteInteraction(id: interaction.id)
+      recentInteractions.removeAll { $0.id == interaction.id }
+      stats = computeStats()
+      coachInsights = coach.map { CoachInsights.make(coach: $0, interactions: recentInteractions) }
+      metrics = CoachMetricsCalculator.metrics(for: coachId, in: recentInteractions)
+      insights = CoachMetricsCalculator.insights(for: coachId, in: recentInteractions)
+      await invalidateCoachCache()
+      interactionToDelete = nil
+      logger.info("Interaction deleted successfully")
+    } catch {
+      if isForeignKeyViolation(error) {
+        do {
+          _ = try await interactionsService.cascadeDeleteInteraction(id: interaction.id)
+          recentInteractions.removeAll { $0.id == interaction.id }
+          stats = computeStats()
+          coachInsights = coach.map { CoachInsights.make(coach: $0, interactions: recentInteractions) }
+          metrics = CoachMetricsCalculator.metrics(for: coachId, in: recentInteractions)
+          insights = CoachMetricsCalculator.insights(for: coachId, in: recentInteractions)
+          await invalidateCoachCache()
+          interactionToDelete = nil
+          logger.info("Interaction cascade-deleted successfully")
+        } catch {
+          logger.error("Cascade delete interaction failed: \(error.localizedDescription)")
+          errorMessage = "Failed to delete interaction"
+          interactionToDelete = nil
+        }
+      } else {
+        logger.error("Delete interaction failed: \(error.localizedDescription)")
+        errorMessage = "Failed to delete interaction"
+        interactionToDelete = nil
+      }
+    }
+  }
+
+  // MARK: - Delete Coach
 
   func confirmDelete() {
     showDeleteConfirmation = true
