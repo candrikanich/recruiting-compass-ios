@@ -31,6 +31,9 @@ struct AdaptiveRootView: View {
       detailView(for: selectedDestination ?? .dashboard)
     }
     .navigationSplitViewStyle(.balanced)
+    .background {
+      keyboardShortcuts
+    }
     .environment(\.switchTab, { selectedDestination = appDestination(for: $0) ?? selectedDestination })
     .environment(\.filterCoachesBySchool, { schoolId in
       coachesPrefilterSchoolId = schoolId
@@ -47,6 +50,21 @@ struct AdaptiveRootView: View {
       pendingPushDestination = nil
       selectedDestination = appDestination(for: destination)
     }
+  }
+
+  /// Hidden buttons carrying ⌘1-⌘6 (main sidebar sections) and ⌘, (settings) so the
+  /// keyboard shortcuts register with the responder chain without a visible control.
+  @ViewBuilder
+  private var keyboardShortcuts: some View {
+    let mainItems = AppDestination.allCases.filter { $0.section == .main }
+    ForEach(Array(mainItems.enumerated()), id: \.element) { index, destination in
+      Button("") { selectedDestination = destination }
+        .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command)
+        .hidden()
+    }
+    Button("") { selectedDestination = .settings }
+      .keyboardShortcut(",", modifiers: .command)
+      .hidden()
   }
 
   private func appDestination(for tab: AppTab) -> AppDestination? {

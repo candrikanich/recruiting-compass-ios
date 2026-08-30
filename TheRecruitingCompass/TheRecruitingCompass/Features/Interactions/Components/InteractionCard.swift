@@ -30,6 +30,7 @@ struct InteractionCard: View {
     }
     .clipShape(.rect(cornerRadius: 12))
     .brandShadowSm()
+    .hoverEffect(.highlight)
   }
 
   @ViewBuilder
