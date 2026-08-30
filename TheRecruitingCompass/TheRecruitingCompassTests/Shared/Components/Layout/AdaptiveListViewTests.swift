@@ -5,38 +5,38 @@ import SwiftUI
 
 @MainActor
 final class AdaptiveListViewTests: XCTestCase {
-    nonisolated deinit {}
+  nonisolated deinit {}
 
-    struct MockItem: Identifiable {
-        let id: Int
-        let name: String
+  struct MockItem: Identifiable {
+    let id: Int
+    let name: String
+  }
+
+  func testAdaptiveListViewCompactCreation() {
+    let items = (1...10).map { MockItem(id: $0, name: "Item \($0)") }
+    let view = AdaptiveListView(items: items) { item in
+      Text(item.name)
     }
+    .environment(\.horizontalSizeClass, .compact)
 
-    func testAdaptiveListViewCompactCreation() {
-        let items = (1...10).map { MockItem(id: $0, name: "Item \($0)") }
-        let view = AdaptiveListView(items: items) { item in
-            Text(item.name)
-        }
-        .environment(\.horizontalSizeClass, .compact)
+    XCTAssertNotNil(view)
+  }
 
-        XCTAssertNotNil(view)
+  func testAdaptiveListViewRegularCreation() {
+    let items = (1...10).map { MockItem(id: $0, name: "Item \($0)") }
+    let view = AdaptiveListView(items: items) { item in
+      Text(item.name)
     }
+    .environment(\.horizontalSizeClass, .regular)
 
-    func testAdaptiveListViewRegularCreation() {
-        let items = (1...10).map { MockItem(id: $0, name: "Item \($0)") }
-        let view = AdaptiveListView(items: items) { item in
-            Text(item.name)
-        }
-        .environment(\.horizontalSizeClass, .regular)
+    XCTAssertNotNil(view)
+  }
 
-        XCTAssertNotNil(view)
+  func testAdaptiveListViewEmptyItems() {
+    let items: [MockItem] = []
+    let view = AdaptiveListView(items: items) { item in
+      Text(item.name)
     }
-
-    func testAdaptiveListViewEmptyItems() {
-        let items: [MockItem] = []
-        let view = AdaptiveListView(items: items) { item in
-            Text(item.name)
-        }
-        XCTAssertNotNil(view)
-    }
+    XCTAssertNotNil(view)
+  }
 }

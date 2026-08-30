@@ -11,39 +11,39 @@ struct SchoolDetailSidebar: View {
   let onManageCoaches: () -> Void
 
   var body: some View {
-    VStack(spacing: 24) {
-      SchoolRecruitingStatusAndTierSection(
-        currentStatus: SchoolStatus(rawValue: school.status) ?? .interested,
-        isUpdatingStatus: viewModel.isUpdatingStatus,
-        onStatusChange: { await viewModel.updateStatus(to: $0) }
-      )
+  VStack(spacing: 24) {
+    SchoolRecruitingStatusAndTierSection(
+    currentStatus: SchoolStatus(rawValue: school.status) ?? .interested,
+    isUpdatingStatus: viewModel.isUpdatingStatus,
+    onStatusChange: { await viewModel.updateStatus(to: $0) }
+    )
 
-      SchoolQuickActions(
-        onLogInteraction: onLogInteraction,
-        onSendEmail: onSendEmail,
-        onManageCoaches: onManageCoaches
-      )
+    SchoolQuickActions(
+    onLogInteraction: onLogInteraction,
+    onSendEmail: onSendEmail,
+    onManageCoaches: onManageCoaches
+    )
 
-      SchoolCoachesPanel(
-        coaches: viewModel.coaches,
-        isLoading: viewModel.isLoadingCoaches,
-        onSeeAll: onManageCoaches
-      )
+    SchoolCoachesPanel(
+    coaches: viewModel.coaches,
+    isLoading: viewModel.isLoadingCoaches,
+    onSeeAll: onManageCoaches
+    )
 
-      SchoolFitSection(
-        personalFit: viewModel.personalFit,
-        academicFit: viewModel.academicFit,
-        isEnriching: viewModel.isEnriching,
-        enrichError: viewModel.enrichError,
-        onLookup: { Task { await viewModel.lookupAcademicData() } }
-      )
+    SchoolFitSection(
+    personalFit: viewModel.personalFit,
+    academicFit: viewModel.academicFit,
+    isEnriching: viewModel.isEnriching,
+    enrichError: viewModel.enrichError,
+    onLookup: { Task { await viewModel.lookupAcademicData() } }
+    )
 
-      SchoolAttributionSection(
-        createdBy: school.createdBy,
-        createdAt: school.createdAt,
-        updatedBy: school.updatedBy,
-        updatedAt: school.updatedAt
-      )
-    }
+    SchoolAttributionSection(
+    createdBy: school.createdBy,
+    createdAt: school.createdAt,
+    updatedBy: school.updatedBy,
+    updatedAt: school.updatedAt
+    )
+  }
   }
 }

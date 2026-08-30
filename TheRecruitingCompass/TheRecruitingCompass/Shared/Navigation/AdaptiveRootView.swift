@@ -9,7 +9,6 @@ struct AdaptiveRootView: View {
   @State private var selectedDestination: AppDestination? = .dashboard
   @State private var coachesPrefilterSchoolId: String?
   @State private var dashboardViewModel = DashboardViewModel()
-  @State private var notificationsViewModel = NotificationsListViewModel()
 
   init(pendingPushDestination: Binding<NotificationDestination?> = .constant(nil)) {
     self._pendingPushDestination = pendingPushDestination
@@ -42,9 +41,6 @@ struct AdaptiveRootView: View {
     .environment(\.openMoreSection, { section in
       selectedDestination = AppDestination(rawValue: section.rawValue) ?? selectedDestination
     })
-    .task {
-      await notificationsViewModel.fetchNotifications()
-    }
     .onChange(of: pendingPushDestination) { _, destination in
       guard let destination else { return }
       pendingPushDestination = nil
@@ -133,21 +129,24 @@ struct AdaptiveRootView: View {
     }
   }
 
+  // .coaches/.schools/.interactions each own an internal `NavigationStack(path:)` already —
+  // pushing them here (inside the dashboard's own NavigationStack) would double-nest. Instead,
+  // switch the sidebar selection so the destination renders at the top level.
   @ViewBuilder
   private func dashboardDestinationView(for destination: DashboardDestination) -> some View {
     switch destination {
     case .coaches:
-      CoachesListView()
+      Color.clear.onAppear { selectedDestination = .coaches }
     case .schools:
-      SchoolsListView()
+      Color.clear.onAppear { selectedDestination = .schools }
     case .interactions:
-      InteractionsListView()
+      Color.clear.onAppear { selectedDestination = .interactions }
     case .offers:
       OffersListView()
     case .accepted:
       OffersListView()
     case .aTier:
-      SchoolsListView()
+      Color.clear.onAppear { selectedDestination = .schools }
     case .suggestions:
       SuggestionsListView(viewModel: dashboardViewModel)
     case .familyManagement:

@@ -8,27 +8,27 @@ struct AdaptiveDashboardGrid<MainContent: View, SidebarContent: View>: View {
   @ViewBuilder let sidebarContent: () -> SidebarContent
 
   var body: some View {
-    if sizeClass == .regular {
-      regularLayout
-    } else {
-      compactLayout
-    }
+  if sizeClass == .regular {
+    regularLayout
+  } else {
+    compactLayout
+  }
   }
 
   private var regularLayout: some View {
-    HStack(alignment: .top, spacing: 20) {
-      mainContent()
-        .frame(maxWidth: .infinity)
+  HStack(alignment: .top, spacing: 20) {
+    mainContent()
+    .frame(maxWidth: .infinity)
 
-      sidebarContent()
-        .frame(width: 300)
-    }
+    sidebarContent()
+    .frame(width: 300)
+  }
   }
 
   private var compactLayout: some View {
-    VStack(spacing: 24) {
-      mainContent()
-      sidebarContent()
-    }
+  VStack(spacing: 24) {
+    mainContent()
+    sidebarContent()
+  }
   }
 }

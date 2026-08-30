@@ -17,40 +17,40 @@ struct CoachDetailRail: View {
   let onLog: () -> Void
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
-      SectionCard {
-        CoachDetailHeader(coach: coach, school: viewModel.school, onEdit: onEdit, onDelete: onDelete)
-      }
-
-      SectionCard(label: "Direct Channels") {
-        CoachDirectChannelsGrid(
-          coach: coach,
-          onEmail: onEmail,
-          onText: onText,
-          onCall: onCall,
-          onTwitter: onTwitter,
-          onInstagram: onInstagram,
-          onLog: onLog
-        )
-      }
-
-      SectionCard(label: "Internal Notes") {
-        NotesSection(
-          title: String(localized: "Shared Notes"),
-          notes: $viewModel.editedSharedNotes,
-          onBlur: { await viewModel.saveSharedNotes() }
-        )
-      }
-
-      SectionCard(label: "Tags") {
-        CoachTagsCard(
-          tags: coach.tags,
-          onAdd: { tag in Task { await viewModel.saveTags(coach.tags + [tag]) } },
-          onRemove: { tag in Task { await viewModel.saveTags(coach.tags.filter { $0 != tag }) } }
-        )
-      }
-
-      SectionCard(label: "Profile Meta") { CoachProfileMetaCard(coach: coach) }
+  VStack(alignment: .leading, spacing: 16) {
+    SectionCard {
+    CoachDetailHeader(coach: coach, school: viewModel.school, onEdit: onEdit, onDelete: onDelete)
     }
+
+    SectionCard(label: "Direct Channels") {
+    CoachDirectChannelsGrid(
+      coach: coach,
+      onEmail: onEmail,
+      onText: onText,
+      onCall: onCall,
+      onTwitter: onTwitter,
+      onInstagram: onInstagram,
+      onLog: onLog
+    )
+    }
+
+    SectionCard(label: "Internal Notes") {
+    NotesSection(
+      title: String(localized: "Shared Notes"),
+      notes: $viewModel.editedSharedNotes,
+      onBlur: { await viewModel.saveSharedNotes() }
+    )
+    }
+
+    SectionCard(label: "Tags") {
+    CoachTagsCard(
+      tags: coach.tags,
+      onAdd: { tag in Task { await viewModel.saveTags(coach.tags + [tag]) } },
+      onRemove: { tag in Task { await viewModel.saveTags(coach.tags.filter { $0 != tag }) } }
+    )
+    }
+
+    SectionCard(label: "Profile Meta") { CoachProfileMetaCard(coach: coach) }
+  }
   }
 }

@@ -5,52 +5,52 @@ import SwiftUI
 
 @MainActor
 final class AdaptiveDetailLayoutTests: XCTestCase {
-    nonisolated deinit {}
+  nonisolated deinit {}
 
-    func testTrailingSidebarCompact() {
-        let view = AdaptiveDetailLayout(sidebarPlacement: .trailing) {
-            Text("Content")
-        } sidebar: {
-            Text("Sidebar")
-        }
-        .environment(\.horizontalSizeClass, .compact)
-
-        XCTAssertNotNil(view)
+  func testTrailingSidebarCompact() {
+    let view = AdaptiveDetailLayout(sidebarPlacement: .trailing) {
+      Text("Content")
+    } sidebar: {
+      Text("Sidebar")
     }
+    .environment(\.horizontalSizeClass, .compact)
 
-    func testTrailingSidebarRegular() {
-        let view = AdaptiveDetailLayout(sidebarPlacement: .trailing) {
-            Text("Content")
-        } sidebar: {
-            Text("Sidebar")
-        }
-        .environment(\.horizontalSizeClass, .regular)
+    XCTAssertNotNil(view)
+  }
 
-        XCTAssertNotNil(view)
+  func testTrailingSidebarRegular() {
+    let view = AdaptiveDetailLayout(sidebarPlacement: .trailing) {
+      Text("Content")
+    } sidebar: {
+      Text("Sidebar")
     }
+    .environment(\.horizontalSizeClass, .regular)
 
-    func testLeadingSidebarRegular() {
-        let view = AdaptiveDetailLayout(sidebarPlacement: .leading) {
-            Text("Content")
-        } sidebar: {
-            Text("Sidebar")
-        }
-        .environment(\.horizontalSizeClass, .regular)
+    XCTAssertNotNil(view)
+  }
 
-        XCTAssertNotNil(view)
+  func testLeadingSidebarRegular() {
+    let view = AdaptiveDetailLayout(sidebarPlacement: .leading) {
+      Text("Content")
+    } sidebar: {
+      Text("Sidebar")
     }
+    .environment(\.horizontalSizeClass, .regular)
 
-    func testCustomSidebarWidth() {
-        let view = AdaptiveDetailLayout(
-            sidebarPlacement: .leading,
-            sidebarWidth: 340
-        ) {
-            Text("Content")
-        } sidebar: {
-            Text("Sidebar")
-        }
-        .environment(\.horizontalSizeClass, .regular)
+    XCTAssertNotNil(view)
+  }
 
-        XCTAssertNotNil(view)
+  func testCustomSidebarWidth() {
+    let view = AdaptiveDetailLayout(
+      sidebarPlacement: .leading,
+      sidebarWidth: 340
+    ) {
+      Text("Content")
+    } sidebar: {
+      Text("Sidebar")
     }
+    .environment(\.horizontalSizeClass, .regular)
+
+    XCTAssertNotNil(view)
+  }
 }

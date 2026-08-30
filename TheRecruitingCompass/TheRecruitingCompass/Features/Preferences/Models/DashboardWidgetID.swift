@@ -3,7 +3,9 @@ import Foundation
 /// Classifies how much horizontal space a widget occupies on the iPad 4+2 dashboard grid.
 enum WidgetWidth {
   case full    // spans entire main column on iPad
-  case half    // shares row with another .half widget on iPad
+  /// Future: pair half-width widgets side-by-side in a 2-up sub-grid on iPad.
+  /// Currently renders same as `.full` (single-column main).
+  case half
   case sidebar // pinned to right sidebar column on iPad, inline on iPhone
 }
 
