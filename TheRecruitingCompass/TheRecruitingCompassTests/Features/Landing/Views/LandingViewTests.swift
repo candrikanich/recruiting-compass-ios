@@ -10,115 +10,55 @@ final class LandingViewTests: XCTestCase {
 
   func testLandingViewRendersLogoSection() {
     let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
-  func testLandingViewRendersCompassIconAndTitle() {
+  func testLandingViewRendersGetStartedFreeButton() {
     let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
-  func testLandingViewRendersSignInNavigationLink() {
+  func testLandingViewRendersSignInButton() {
     let view = LandingView()
-
-    XCTAssertNotNil(view)
-  }
-
-  func testLandingViewRendersCreateAccountNavigationLink() {
-    let view = LandingView()
-
-    XCTAssertNotNil(view)
-  }
-
-  func testLandingViewRendersTrackSchoolsFeatureCard() {
-    let view = LandingView()
-
-    XCTAssertNotNil(view)
-  }
-
-  func testLandingViewRendersLogInteractionsFeatureCard() {
-    let view = LandingView()
-
-    XCTAssertNotNil(view)
-  }
-
-  func testLandingViewRendersMonitorProgressFeatureCard() {
-    let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
   // MARK: - Navigation Tests
 
   func testLandingViewWrapsInNavigationStack() {
-    let view = NavigationStack {
-      LandingView()
-    }
-
+    let view = NavigationStack { LandingView() }
     XCTAssertNotNil(view)
   }
 
   func testSignInLinksToLoginView() {
     let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
-  func testCreateAccountLinksToSignupView() {
+  func testGetStartedFreeLinksToSignupView() {
     let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
   // MARK: - Accessibility Tests
 
-  func testLogoSectionCombinesChildrenAccessibility() {
-    let view = LandingView()
-
-    XCTAssertNotNil(view)
-  }
-
-  func testLogoSectionHasRecruitingCompassLabel() {
-    let view = LandingView()
-
-    XCTAssertNotNil(view)
-  }
-
   func testCompassIconIsAccessibilityHidden() {
     let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
   func testSignInButtonHasAccessibilityLabel() {
     let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
-  func testSignInButtonHasAccessibilityHint() {
+  func testGetStartedFreeButtonHasAccessibilityLabel() {
     let view = LandingView()
-
-    XCTAssertNotNil(view)
-  }
-
-  func testCreateAccountButtonHasAccessibilityLabel() {
-    let view = LandingView()
-
-    XCTAssertNotNil(view)
-  }
-
-  func testCreateAccountButtonHasAccessibilityHint() {
-    let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
   func testNavigationBarIsHidden() {
     let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
@@ -127,34 +67,6 @@ final class LandingViewTests: XCTestCase {
   func testLogoSizeIs80AtDefaultSizeCategory() {
     let view = LandingView()
       .environment(\.sizeCategory, .medium)
-
-    XCTAssertNotNil(view)
-  }
-
-  func testLogoSizeIs88AtExtraLargeAndAbove() {
-    let view = LandingView()
-      .environment(\.sizeCategory, .extraLarge)
-
-    XCTAssertNotNil(view)
-  }
-
-  // MARK: - Styling Tests
-
-  func testSignInButtonUsesThemedGradient() {
-    let view = LandingView()
-
-    XCTAssertNotNil(view)
-  }
-
-  func testBackgroundGradientApplied() {
-    let view = LandingView()
-
-    XCTAssertNotNil(view)
-  }
-
-  func testScrollViewPresentsAllContent() {
-    let view = LandingView()
-
     XCTAssertNotNil(view)
   }
 
@@ -164,22 +76,22 @@ final class LandingViewTests: XCTestCase {
     XCTAssertEqual(FeatureCardData.landingFeatures.count, 3)
   }
 
-  func testLandingFeaturesFirstIsTrackSchools() {
+  func testLandingFeaturesFirstIsTrackSchoolsAndCoaches() {
     let first = FeatureCardData.landingFeatures[0]
-    XCTAssertEqual(first.title, "Track Schools")
-    XCTAssertEqual(first.icon, "shield.checkered")
+    XCTAssertEqual(first.title, "Track Schools & Coaches")
+    XCTAssertEqual(first.icon, "building.columns.fill")
   }
 
-  func testLandingFeaturesSecondIsLogInteractions() {
+  func testLandingFeaturesSecondIsSmartOutreach() {
     let second = FeatureCardData.landingFeatures[1]
-    XCTAssertEqual(second.title, "Log Interactions")
-    XCTAssertEqual(second.icon, "bubble.right.fill")
+    XCTAssertEqual(second.title, "Smart Outreach")
+    XCTAssertEqual(second.icon, "envelope.badge.fill")
   }
 
-  func testLandingFeaturesThirdIsMonitorProgress() {
+  func testLandingFeaturesThirdIsCalendarsAndTimeline() {
     let third = FeatureCardData.landingFeatures[2]
-    XCTAssertEqual(third.title, "Monitor Progress")
-    XCTAssertEqual(third.icon, "chart.bar.fill")
+    XCTAssertEqual(third.title, "Calendars & Timeline")
+    XCTAssertEqual(third.icon, "calendar.badge.clock")
   }
 
   func testFeatureCardDataHasUniqueIds() {
@@ -190,10 +102,7 @@ final class LandingViewTests: XCTestCase {
   // MARK: - Complete View Hierarchy
 
   func testCompleteViewHierarchy() {
-    let view = NavigationStack {
-      LandingView()
-    }
-
+    let view = NavigationStack { LandingView() }
     XCTAssertNotNil(view)
   }
 }
