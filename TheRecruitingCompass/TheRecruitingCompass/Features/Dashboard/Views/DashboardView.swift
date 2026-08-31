@@ -81,6 +81,7 @@ struct DashboardView: View {
 
   // MARK: - Compact Layout (iPhone — identical to pre-iPad layout)
 
+  @ViewBuilder
   private var dashboardCompactLayout: some View {
     VStack(spacing: 24) {
       dashboardTopSection
@@ -106,6 +107,7 @@ struct DashboardView: View {
 
   // MARK: - Regular Layout (iPad — 4+2 grid)
 
+  @ViewBuilder
   private var dashboardRegularLayout: some View {
     AdaptiveDashboardGrid {
       VStack(spacing: 24) {
@@ -140,6 +142,7 @@ struct DashboardView: View {
 
   // MARK: - Shared Sections
 
+  @ViewBuilder
   private var dashboardTopSection: some View {
     Group {
       DashboardHeaderSection(
