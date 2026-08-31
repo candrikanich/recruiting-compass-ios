@@ -5,6 +5,7 @@ struct SignupView: View {
   @State private var presentedLegal: LegalDocument?
   @State private var navigateToLogin = false
   @Environment(\.dismiss) var dismiss
+  @Environment(\.horizontalSizeClass) private var sizeClass
 
   var body: some View {
     ZStack {
@@ -14,28 +15,26 @@ struct SignupView: View {
       VStack(spacing: 0) {
         SignupBackButtonView(onBack: { dismiss() })
 
-        HStack(spacing: 0) {
-          Color.clear.frame(width: 24)
-          ScrollView {
-            if !viewModel.showForm {
-              SignupRoleSelectionView(viewModel: viewModel)
-            } else {
-              SignupFormView(
-                viewModel: viewModel,
-                presentedLegal: $presentedLegal,
-                onSignIn: { navigateToLogin = true }
-              )
-            }
+        ScrollView {
+          if !viewModel.showForm {
+            SignupRoleSelectionView(viewModel: viewModel)
+          } else {
+            SignupFormView(
+              viewModel: viewModel,
+              presentedLegal: $presentedLegal,
+              onSignIn: { navigateToLogin = true }
+            )
           }
-          // Disable immediate dismissal during UI testing so typeText can deliver
-          // all characters before the indicator layout change causes a micro-scroll.
-          .scrollDismissesKeyboard(
-            ProcessInfo.processInfo.arguments.contains("--uitesting") ? .never : .immediately
-          )
-          .background(Color.white.opacity(0.95))
-          .clipShape(.rect(cornerRadius: 16))
-          Color.clear.frame(width: 24)
         }
+        // Disable immediate dismissal during UI testing so typeText can deliver
+        // all characters before the indicator layout change causes a micro-scroll.
+        .scrollDismissesKeyboard(
+          ProcessInfo.processInfo.arguments.contains("--uitesting") ? .never : .immediately
+        )
+        .background(Color.white.opacity(0.95))
+        .clipShape(.rect(cornerRadius: 16))
+        .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
+        .padding(.horizontal, 24)
         .padding(.vertical, 24)
 
         Spacer()

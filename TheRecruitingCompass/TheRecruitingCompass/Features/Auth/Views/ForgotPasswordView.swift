@@ -4,6 +4,7 @@ struct ForgotPasswordView: View {
   @State private var viewModel: ForgotPasswordViewModel
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
+  @Environment(\.horizontalSizeClass) private var sizeClass
 
   init(authManager: AuthManager? = nil) {
     let manager = authManager ?? .shared
@@ -43,6 +44,7 @@ struct ForgotPasswordView: View {
         }
         .background(Color.white.opacity(0.95))
         .clipShape(.rect(cornerRadius: 16))
+        .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
         .padding(24)
 
         Spacer()

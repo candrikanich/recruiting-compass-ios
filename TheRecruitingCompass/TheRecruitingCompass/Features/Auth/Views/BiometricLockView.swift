@@ -6,6 +6,7 @@ struct BiometricLockView: View {
   let onFailure: () -> Void
 
   @ScaledMetric private var iconSize: CGFloat = 56
+  @Environment(\.horizontalSizeClass) private var sizeClass
 
   var body: some View {
     ZStack {
@@ -53,6 +54,7 @@ struct BiometricLockView: View {
         }
         .padding(.horizontal, 40)
       }
+      .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
     }
     .task { await authenticate() }
   }

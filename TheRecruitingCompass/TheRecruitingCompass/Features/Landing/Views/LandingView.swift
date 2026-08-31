@@ -4,6 +4,7 @@ struct LandingView: View {
   @ScaledMetric(relativeTo: .largeTitle) private var logoSize: CGFloat = 80
   @State private var showLogin = false
   @State private var showSignup = false
+  @Environment(\.horizontalSizeClass) private var sizeClass
 
   var body: some View {
     ZStack {
@@ -23,6 +24,8 @@ struct LandingView: View {
           Spacer()
             .frame(height: 20)
         }
+        .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
+        .frame(maxWidth: .infinity)
       }
     }
     .toolbar(.hidden, for: .navigationBar)

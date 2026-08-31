@@ -4,6 +4,7 @@ struct EmailVerificationView: View {
   @State private var viewModel: EmailVerificationViewModel
   @Environment(\.dismiss) var dismiss
   @Environment(\.scenePhase) var scenePhase
+  @Environment(\.horizontalSizeClass) private var sizeClass
 
   init(authManager: (any AuthManaging)? = nil) {
     let manager = authManager ?? AuthManager.shared
@@ -96,6 +97,7 @@ struct EmailVerificationView: View {
     }
     .background(Color.white.opacity(0.95))
     .clipShape(.rect(cornerRadius: 16))
+    .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
     .padding(24)
   }
 

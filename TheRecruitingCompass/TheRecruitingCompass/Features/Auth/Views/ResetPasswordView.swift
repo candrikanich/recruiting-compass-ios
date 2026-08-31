@@ -5,6 +5,7 @@ struct ResetPasswordView: View {
   @State private var showForgotPassword = false
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
+  @Environment(\.horizontalSizeClass) private var sizeClass
   @ScaledMetric(relativeTo: .title) private var iconSize: CGFloat = 48
 
   init(authManager: AuthManager? = nil) {
@@ -45,6 +46,7 @@ struct ResetPasswordView: View {
         }
         .background(Color.white.opacity(0.95))
         .clipShape(.rect(cornerRadius: 16))
+        .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
         .padding(24)
 
         Spacer()

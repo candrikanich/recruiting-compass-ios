@@ -8,6 +8,7 @@ struct LoginView: View {
   @State private var showSignup = false
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
+  @Environment(\.horizontalSizeClass) private var sizeClass
 
   init(timeoutReason: String? = nil) {
     _viewModel = State(initialValue: LoginViewModel(timeoutReason: timeoutReason))
@@ -49,6 +50,7 @@ struct LoginView: View {
         }
         .background(Color(uiColor: .systemBackground))
         .clipShape(.rect(cornerRadius: 16))
+        .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
         .padding(24)
 
         Spacer()
