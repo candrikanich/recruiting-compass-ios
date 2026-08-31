@@ -15,6 +15,7 @@ struct AdaptiveDashboardGrid<MainContent: View, SidebarContent: View>: View {
   }
   }
 
+  @ViewBuilder
   private var regularLayout: some View {
   HStack(alignment: .top, spacing: 20) {
     mainContent()
@@ -25,6 +26,7 @@ struct AdaptiveDashboardGrid<MainContent: View, SidebarContent: View>: View {
   }
   }
 
+  @ViewBuilder
   private var compactLayout: some View {
   VStack(spacing: 24) {
     mainContent()

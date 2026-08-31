@@ -32,6 +32,7 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
     }
   }
 
+  @ViewBuilder
   private var regularLayout: some View {
     HStack(alignment: .top, spacing: 0) {
       if sidebarPlacement == .leading {
@@ -52,6 +53,7 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
     }
   }
 
+  @ViewBuilder
   private var sidebarColumn: some View {
     ScrollView {
       sidebar()
@@ -61,6 +63,7 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
     .background(Color(.systemGroupedBackground))
   }
 
+  @ViewBuilder
   private var compactLayout: some View {
     ScrollView {
       VStack(spacing: 16) {

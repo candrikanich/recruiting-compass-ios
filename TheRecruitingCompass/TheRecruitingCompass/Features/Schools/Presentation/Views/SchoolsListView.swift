@@ -159,7 +159,9 @@ struct SchoolsListView: View {
   @ViewBuilder
   private var schoolCards: some View {
     AdaptiveListView(items: viewModel.filteredSchools) { school in
-      NavigationLink(value: SchoolDestination.detail(school.id)) {
+      Button {
+        navigationPath.append(SchoolDestination.detail(school.id))
+      } label: {
         SchoolCardView(
           school: school,
           onToggleFavorite: {
