@@ -186,7 +186,9 @@ struct CoachesListView: View {
   @ViewBuilder
   private var coachCards: some View {
     AdaptiveListView(items: viewModel.filteredCoaches) { coach in
-      NavigationLink(value: CoachDestination.detail(coach.id)) {
+      Button {
+        navigationPath.append(CoachDestination.detail(coach.id))
+      } label: {
         CoachCardView(
           coach: coach,
           variant: .full,
