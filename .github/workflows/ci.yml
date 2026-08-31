@@ -20,17 +20,22 @@ concurrency:
 jobs:
   lint:
     name: SwiftLint
-    # realm/SwiftLint is a Docker container action — Linux only.
-    # macos-15 fails immediately: "Container action is only supported on Linux".
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     if: github.event_name != 'schedule'
     steps:
       - uses: actions/checkout@v4
 
+      # Portable zip (~11MB) instead of brew (~30-60s) or realm/SwiftLint
+      # (Docker action — Linux-only, so macos-15 fails immediately with
+      # "Container action is only supported on Linux").
+      - name: Install SwiftLint
+        run: |
+          curl -fsSL https://github.com/realm/SwiftLint/releases/download/0.65.1/portable_swiftlint.zip -o /tmp/swiftlint.zip
+          unzip -qo /tmp/swiftlint.zip -d /tmp/swiftlint
+          echo "/tmp/swiftlint" >> "$GITHUB_PATH"
+
       - name: Run SwiftLint
-        uses: realm/SwiftLint@0.65.1
-        with:
-          args: --config .swiftlint.yml --reporter github-actions-logging
+        run: swiftlint lint --config .swiftlint.yml --reporter github-actions-logging
 
   build-and-test:
     name: Build & Unit Tests
