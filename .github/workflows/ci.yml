@@ -20,7 +20,9 @@ concurrency:
 jobs:
   lint:
     name: SwiftLint
-    runs-on: macos-15
+    # realm/SwiftLint is a Docker container action — Linux only.
+    # macos-15 fails immediately: "Container action is only supported on Linux".
+    runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     steps:
       - uses: actions/checkout@v4
