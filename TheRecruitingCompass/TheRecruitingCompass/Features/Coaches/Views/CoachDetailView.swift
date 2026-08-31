@@ -49,16 +49,16 @@ struct CoachDetailView: View {
 
   var body: some View {
     Group {
-      if viewModel.isLoading {
-        ScrollView {
-          LoadingStateView(message: "Loading coach details")
-            .padding(.top, 100)
-        }
-      } else if let coach = viewModel.coach {
+      if let coach = viewModel.coach {
         detailContent(coach: coach)
       } else if let error = viewModel.errorMessage {
         ScrollView {
           InlineErrorView(message: error)
+            .padding(.top, 100)
+        }
+      } else {
+        ScrollView {
+          LoadingStateView(message: "Loading coach details")
             .padding(.top, 100)
         }
       }

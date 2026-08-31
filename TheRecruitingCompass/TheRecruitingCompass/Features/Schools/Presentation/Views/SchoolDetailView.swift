@@ -28,16 +28,16 @@ struct SchoolDetailView: View {
 
   var body: some View {
     Group {
-      if viewModel.isLoading && viewModel.school == nil {
-        ScrollView {
-          LoadingStateView(message: "Loading school...")
-            .padding(.top, 100)
-        }
-      } else if let school = viewModel.school {
+      if let school = viewModel.school {
         detailContent(school: school)
       } else if let error = viewModel.errorMessage {
         ScrollView {
           InlineErrorView(message: error)
+            .padding(.top, 100)
+        }
+      } else {
+        ScrollView {
+          LoadingStateView(message: "Loading school...")
             .padding(.top, 100)
         }
       }

@@ -29,14 +29,14 @@ struct DocumentDetailView: View {
 
   var body: some View {
     Group {
-      if viewModel.isLoading && viewModel.document == nil {
-        loadingState
-      } else if viewModel.document == nil && viewModel.isNotFound {
-        notFoundView
-      } else if let errorMessage = viewModel.errorMessage, viewModel.document == nil {
-        errorState(message: errorMessage)
-      } else if let document = viewModel.document {
+      if let document = viewModel.document {
         documentContent(document)
+      } else if viewModel.isNotFound {
+        notFoundView
+      } else if let errorMessage = viewModel.errorMessage {
+        errorState(message: errorMessage)
+      } else {
+        loadingState
       }
     }
     .navigationTitle(documentTitle)
