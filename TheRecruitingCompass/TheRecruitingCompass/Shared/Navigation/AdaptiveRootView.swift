@@ -134,6 +134,16 @@ struct AdaptiveRootView: View {
           EmptyView() // unreachable — handled above
         }
       }
+      .navigationDestination(for: MorePath.self) { morePath in
+        switch morePath {
+        case .eventDetail(let eventId):
+          EventDetailView(eventId: eventId)
+        case .offerDetail(let offerId):
+          OfferDetailView(offerId: offerId)
+        case .section, .helpSection:
+          EmptyView()
+        }
+      }
     }
   }
 
