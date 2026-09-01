@@ -20,7 +20,7 @@ struct TimelineGuidanceView: View {
 
   var body: some View {
     ScrollView {
-      LazyVStack(spacing: 16) {
+      VStack(spacing: 16) {
         CollapsibleSection(
           title: String(localized: "⚡ What Matters Right Now"),
           isExpanded: whatMattersExpanded,

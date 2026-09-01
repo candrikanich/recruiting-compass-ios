@@ -3,8 +3,9 @@ import SwiftUI
 /// Dashboard-style card showing common parent worries for the current Timeline phase,
 /// rendered as expandable accordions. Ported for parity with the web "Common Worries" widget.
 ///
-/// Uses manual expand/collapse instead of DisclosureGroup to avoid SwiftUI crash
-/// when DisclosureGroup animates inside LazyVStack + ScrollView.
+/// Uses manual expand/collapse instead of DisclosureGroup. The parent
+/// TimelineGuidanceView uses VStack (not LazyVStack) to avoid animation-triggered
+/// layout loops that freeze the UI when content resizes inside a lazy container.
 struct CommonWorriesWidget: View {
   let phase: TimelinePhase
 
