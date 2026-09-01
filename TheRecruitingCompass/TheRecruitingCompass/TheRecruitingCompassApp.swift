@@ -18,6 +18,7 @@ struct TheRecruitingCompassApp: App {
   @State private var familyManager = FamilyManager.shared
   @State private var onboardingManager = OnboardingManager()
   @State private var networkMonitor = NetworkMonitor()
+  @State private var nuxProgressManager = NuxProgressManager.shared
   @State private var showResetPassword = false
   @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
@@ -40,7 +41,13 @@ struct TheRecruitingCompassApp: App {
           )
           .task {
             UNUserNotificationCenter.current().delegate = PushNotificationManager.shared
-            await PushNotificationManager.shared.requestPermission()
+            // Push permission is now requested via PushNotificationPrimingView during
+            // onboarding Step 2 (after first school add). For returning users who already
+            // granted permission, re-register to keep the device token current.
+            let settings = await UNUserNotificationCenter.current().notificationSettings()
+            if settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional {
+              await PushNotificationManager.shared.requestPermission()
+            }
             await PushNotificationManager.shared.syncBadgeCount()
             if let userId = authManager.user?.id {
               try? await PushPreferencesServiceImpl(supabaseManager: .shared).seedDefaultPreferences(userId: userId)
@@ -131,6 +138,7 @@ struct TheRecruitingCompassApp: App {
       .environment(familyManager)
       .environment(networkMonitor)
       .environment(onboardingManager)
+      .environment(nuxProgressManager)
     }
   }
 
@@ -158,6 +166,7 @@ private struct AuthenticatedContent: View {
   let onboardingManager: OnboardingManager
   let networkMonitor: NetworkMonitor
   @Binding var pendingPushDestination: NotificationDestination?
+  @Environment(NuxProgressManager.self) private var nuxProgressManager
 
   var body: some View {
     ZStack(alignment: .top) {
@@ -184,6 +193,9 @@ private struct AuthenticatedContent: View {
     .task(id: authManager.isAuthenticated) {
       if authManager.isAuthenticated {
         await onboardingManager.loadStatus()
+        if let userId = authManager.user?.id {
+          await nuxProgressManager.load(userId: userId)
+        }
       }
     }
   }

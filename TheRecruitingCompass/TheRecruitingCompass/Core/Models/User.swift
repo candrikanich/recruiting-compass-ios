@@ -24,6 +24,8 @@ struct User: Codable, Identifiable, Sendable {
   let dateOfBirth: String?
   /// URL to the profile photo stored in Supabase Storage; `nil` if no photo has been uploaded.
   let profilePhotoUrl: String?
+  /// New User Experience progress JSON; `nil` if the user has never started the NUX checklist.
+  let nuxProgress: NuxProgress?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -36,6 +38,7 @@ struct User: Codable, Identifiable, Sendable {
     case role
     case dateOfBirth = "date_of_birth"
     case profilePhotoUrl = "profile_photo_url"
+    case nuxProgress = "nux_progress"
   }
 
   init(
@@ -48,7 +51,8 @@ struct User: Codable, Identifiable, Sendable {
     updatedAt: String,
     role: UserRole?,
     dateOfBirth: String? = nil,
-    profilePhotoUrl: String? = nil
+    profilePhotoUrl: String? = nil,
+    nuxProgress: NuxProgress? = nil
   ) {
     self.id = id
     self.email = email
@@ -60,5 +64,6 @@ struct User: Codable, Identifiable, Sendable {
     self.role = role
     self.dateOfBirth = dateOfBirth
     self.profilePhotoUrl = profilePhotoUrl
+    self.nuxProgress = nuxProgress
   }
 }

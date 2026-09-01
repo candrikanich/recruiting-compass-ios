@@ -10,6 +10,8 @@ struct DashboardView: View {
   @Environment(\.openMoreSection) private var openMoreSection
   @Environment(\.horizontalSizeClass) private var sizeClass
 
+  private var nuxProgressManager: NuxProgressManager { .shared }
+
   init(viewModel: DashboardViewModel? = nil) {
     if let viewModel {
       _viewModel = State(initialValue: viewModel)
@@ -74,6 +76,11 @@ struct DashboardView: View {
       .task {
         await timelineViewModel.load()
       }
+      .task {
+        if let userId = authManager.user?.id {
+          await nuxProgressManager.load(userId: userId)
+        }
+      }
       .onChange(of: familyManager.selectedAthleteId) { _, _ in
         Task { await timelineViewModel.load() }
       }
@@ -85,6 +92,8 @@ struct DashboardView: View {
   private var dashboardCompactLayout: some View {
     VStack(spacing: 24) {
       dashboardTopSection
+
+      nuxWidgets
 
       if !viewModel.isEmpty {
         dashboardAllWidgets()
@@ -112,6 +121,8 @@ struct DashboardView: View {
     AdaptiveDashboardGrid {
       VStack(spacing: 24) {
         dashboardTopSection
+
+        nuxWidgets
 
         if !viewModel.isEmpty {
           dashboardAllWidgets(excludeWidthClasses: [.sidebar])
@@ -189,6 +200,61 @@ struct DashboardView: View {
           onDismiss: { viewModel.dismissError() }
         )
       }
+    }
+  }
+
+  // MARK: - NUX Widgets
+
+  @ViewBuilder
+  private var nuxWidgets: some View {
+    if nuxProgressManager.isLoaded {
+      let isParent = familyManager.currentMember?.isParent == true
+
+      GettingStartedChecklistWidget(
+        nuxProgress: nuxProgressManager.progress,
+        schoolsCount: viewModel.stats?.schoolCount ?? 0,
+        coachesCount: viewModel.stats?.coachCount ?? 0,
+        profileCompleteness: viewModel.profileCompleteness,
+        isParent: isParent,
+        onComplete: { key in nuxProgressManager.completeItem(key) },
+        onDismiss: { nuxProgressManager.dismissChecklist() },
+        onResume: { nuxProgressManager.resumeChecklist() }
+      )
+      .task {
+        autoEvaluateChecklist()
+      }
+
+      ProfileCompletenessCard(
+        percentage: viewModel.profileCompleteness,
+        missingFields: viewModel.missingProfileFields
+      )
+
+      SchoolRecommendationsWidget(
+        recommendations: viewModel.recommendations,
+        onAdd: { rec in
+          nuxProgressManager.completeItem(.firstSchool)
+          Task { await viewModel.addRecommendedSchool(rec) }
+        },
+        onDismiss: { rec in
+          Task { await viewModel.dismissRecommendation(rec) }
+        }
+      )
+    }
+  }
+
+  private func autoEvaluateChecklist() {
+    let schoolCount = viewModel.stats?.schoolCount ?? 0
+    let coachCount = viewModel.stats?.coachCount ?? 0
+    let completeness = viewModel.profileCompleteness
+
+    if schoolCount > 0 { nuxProgressManager.completeItem(.firstSchool) }
+    if coachCount > 0 { nuxProgressManager.completeItem(.firstCoach) }
+    if completeness >= 0.80 { nuxProgressManager.completeItem(.profile80) }
+    if viewModel.athleteSport != nil { nuxProgressManager.completeItem(.sport) }
+    if viewModel.playerDetails?.gpa != nil ||
+       viewModel.playerDetails?.satScore != nil ||
+       viewModel.playerDetails?.actScore != nil {
+      nuxProgressManager.completeItem(.academics)
     }
   }
 
