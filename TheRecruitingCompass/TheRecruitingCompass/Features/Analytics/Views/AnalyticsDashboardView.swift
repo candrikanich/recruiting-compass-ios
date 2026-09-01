@@ -6,6 +6,7 @@ private struct IdentifiableURL: Identifiable {
 }
 
 struct AnalyticsDashboardView: View {
+  @Environment(\.horizontalSizeClass) private var sizeClass
   @State private var viewModel: AnalyticsDashboardViewModel
   @State private var exportFileURL: IdentifiableURL?
 
@@ -80,47 +81,104 @@ struct AnalyticsDashboardView: View {
 
         summaryStatsSection
 
-        if viewModel.hasInteractionData {
-          PieChartView(
-            segments: viewModel.interactionTypesData,
-            title: String(localized: "Interaction Types")
-          )
-          .padding(.horizontal)
-        }
-
-        if viewModel.hasSentimentData {
-          PieChartView(
-            segments: viewModel.sentimentData,
-            title: String(localized: "Sentiment Breakdown")
-          )
-          .padding(.horizontal)
-        }
-
-        if viewModel.hasPipelineData {
-          FunnelChartView(
-            stages: viewModel.pipelineData,
-            title: String(localized: "Recruiting Pipeline")
-          )
-          .padding(.horizontal)
-        }
-
-        if viewModel.hasSchoolData {
-          PieChartView(
-            segments: viewModel.schoolStatusData,
-            title: String(localized: "School Status Distribution")
-          )
-          .padding(.horizontal)
-        }
-
-        if let scatterData = viewModel.performanceData, viewModel.hasPerformanceData {
-          ScatterChartView(
-            dataSet: scatterData,
-            title: String(localized: "Performance Correlation")
-          )
-          .padding(.horizontal)
+        if isWide {
+          chartsGrid
+        } else {
+          chartsStack
         }
       }
       .padding(.vertical)
+      .frame(maxWidth: sizeClass == .regular ? 900 : .infinity)
+      .frame(maxWidth: .infinity)
+    }
+  }
+
+  private var isWide: Bool { sizeClass == .regular }
+
+  // MARK: - Charts Layout
+
+  @ViewBuilder
+  private var chartsStack: some View {
+    if viewModel.hasInteractionData {
+      PieChartView(
+        segments: viewModel.interactionTypesData,
+        title: String(localized: "Interaction Types")
+      )
+      .padding(.horizontal)
+    }
+
+    if viewModel.hasSentimentData {
+      PieChartView(
+        segments: viewModel.sentimentData,
+        title: String(localized: "Sentiment Breakdown")
+      )
+      .padding(.horizontal)
+    }
+
+    if viewModel.hasPipelineData {
+      FunnelChartView(
+        stages: viewModel.pipelineData,
+        title: String(localized: "Recruiting Pipeline")
+      )
+      .padding(.horizontal)
+    }
+
+    if viewModel.hasSchoolData {
+      PieChartView(
+        segments: viewModel.schoolStatusData,
+        title: String(localized: "School Status Distribution")
+      )
+      .padding(.horizontal)
+    }
+
+    if let scatterData = viewModel.performanceData, viewModel.hasPerformanceData {
+      ScatterChartView(
+        dataSet: scatterData,
+        title: String(localized: "Performance Correlation")
+      )
+      .padding(.horizontal)
+    }
+  }
+
+  @ViewBuilder
+  private var chartsGrid: some View {
+    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+      if viewModel.hasInteractionData {
+        PieChartView(
+          segments: viewModel.interactionTypesData,
+          title: String(localized: "Interaction Types")
+        )
+      }
+
+      if viewModel.hasSentimentData {
+        PieChartView(
+          segments: viewModel.sentimentData,
+          title: String(localized: "Sentiment Breakdown")
+        )
+      }
+
+      if viewModel.hasSchoolData {
+        PieChartView(
+          segments: viewModel.schoolStatusData,
+          title: String(localized: "School Status Distribution")
+        )
+      }
+
+      if let scatterData = viewModel.performanceData, viewModel.hasPerformanceData {
+        ScatterChartView(
+          dataSet: scatterData,
+          title: String(localized: "Performance Correlation")
+        )
+      }
+    }
+    .padding(.horizontal)
+
+    if viewModel.hasPipelineData {
+      FunnelChartView(
+        stages: viewModel.pipelineData,
+        title: String(localized: "Recruiting Pipeline")
+      )
+      .padding(.horizontal)
     }
   }
 
@@ -140,10 +198,10 @@ struct AnalyticsDashboardView: View {
 
   @ViewBuilder
   private var summaryStatsSection: some View {
-    LazyVGrid(columns: [
-      GridItem(.flexible()),
-      GridItem(.flexible())
-    ], spacing: 12) {
+    LazyVGrid(columns: Array(
+      repeating: GridItem(.flexible()),
+      count: isWide ? 4 : 2
+    ), spacing: 12) {
       ForEach(viewModel.summaryCards) { card in
         StatCardView(card: card)
       }
