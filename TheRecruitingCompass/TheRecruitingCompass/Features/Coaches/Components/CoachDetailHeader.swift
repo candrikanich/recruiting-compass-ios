@@ -18,7 +18,7 @@ struct CoachDetailHeader: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      HStack(spacing: 12) {
+      HStack(alignment: .top, spacing: 12) {
         SchoolLogoAvatar(logoUrl: school?.faviconUrl, initials: coach.initials,
                          size: 40, accessibilitySize: 52, cornerRadius: 10)
 
@@ -35,13 +35,15 @@ struct CoachDetailHeader: View {
               .foregroundStyle(Color.accentBlue)
           }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+      }
 
-        Spacer(minLength: 8)
-
+      HStack(spacing: 8) {
         iconButton(system: "pencil", tint: Color.Brand.blue600, bg: Color.Brand.blue100,
                    label: "Edit coach", action: onEdit)
         iconButton(system: "trash", tint: Color.Brand.red600, bg: Color.Brand.red100,
                    label: "Delete coach", action: onDelete)
+        Spacer(minLength: 0)
       }
 
       if hasContact {
