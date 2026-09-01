@@ -24,6 +24,10 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
     self.sidebar = sidebar
   }
 
+  /// Minimum total width required to show the two-column layout.
+  /// Below this the sidebar gets too narrow (names hyphenate, cards crush).
+  private static var minimumTwoColumnWidth: CGFloat { 700 }
+
   var body: some View {
     if sizeClass == .regular {
       regularLayout
@@ -35,21 +39,28 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
   @ViewBuilder
   private var regularLayout: some View {
     GeometryReader { geo in
-      let resolvedSidebarWidth = min(sidebarWidth, geo.size.width * 0.38)
+      if geo.size.width > 0 {
+        if geo.size.width < Self.minimumTwoColumnWidth {
+          // iPad portrait detail pane too narrow — stack vertically
+          compactLayout
+        } else {
+          let resolvedSidebarWidth = min(sidebarWidth, geo.size.width * 0.38)
 
-      HStack(alignment: .top, spacing: 16) {
-        if sidebarPlacement == .leading {
-          sidebarColumn(width: resolvedSidebarWidth)
-        }
+          HStack(alignment: .top, spacing: 16) {
+            if sidebarPlacement == .leading {
+              sidebarColumn(width: resolvedSidebarWidth)
+            }
 
-        ScrollView {
-          content()
-            .padding()
-        }
-        .frame(maxWidth: .infinity)
+            ScrollView {
+              content()
+                .padding()
+            }
+            .frame(maxWidth: .infinity)
 
-        if sidebarPlacement == .trailing {
-          sidebarColumn(width: resolvedSidebarWidth)
+            if sidebarPlacement == .trailing {
+              sidebarColumn(width: resolvedSidebarWidth)
+            }
+          }
         }
       }
     }

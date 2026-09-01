@@ -24,6 +24,7 @@ struct SchoolDetailView: View {
 
   private enum NavigationDestination: Hashable {
     case addInteraction(schoolId: String)
+    case coachDetail(coachId: String)
   }
 
   var body: some View {
@@ -238,6 +239,9 @@ struct SchoolDetailView: View {
         onAddCoach: {
           showAddCoach = true
         },
+        onSelectCoach: { coachId in
+          navigationDestination = .coachDetail(coachId: coachId)
+        },
         coachCount: viewModel.coaches.count
       )
     }
@@ -250,17 +254,14 @@ struct SchoolDetailView: View {
         isSaving: viewModel.isSavingCoachingPhilosophy
       )
     }
-    .navigationDestination(for: CoachDestination.self) { destination in
-      if case .detail(let coachId) = destination {
+    .navigationDestination(item: $navigationDestination) { destination in
+      switch destination {
+      case .coachDetail(let coachId):
         CoachDetailView(
           coachId: coachId,
           allCoaches: viewModel.coaches,
           allSchools: [school]
         )
-      }
-    }
-    .navigationDestination(item: $navigationDestination) { destination in
-      switch destination {
       case .addInteraction:
         if let familyUnitId = familyManager.familyUnitId, let userId = viewModel.currentUserId {
           AddInteractionView(
