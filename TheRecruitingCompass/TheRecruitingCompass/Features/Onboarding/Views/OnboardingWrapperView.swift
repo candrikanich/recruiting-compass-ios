@@ -10,7 +10,7 @@ struct OnboardingWrapperView: View {
     if authManager.user?.role == .parent {
       ParentOnboardingWrapperContent(onComplete: onComplete)
     } else {
-      OnboardingView(onComplete: {
+      OnboardingContainerView(onComplete: {
         onboardingManager.markComplete()
         onComplete()
       })

@@ -33,6 +33,8 @@ final class DashboardViewModel {
   var allSchools: [School] = []
   var metrics: [PerformanceMetric] = []
   var interactionTrends: [InteractionTrend] = []
+  var playerDetails: PlayerDetails?
+  var recommendations: [SchoolRecommendation] = []
   var isLoading = false
   var isLoggingOut = false
   var errorMessage: String?
@@ -48,6 +50,7 @@ final class DashboardViewModel {
   private let taskStorage: QuickTaskStorage
   private let familyManager: FamilyManager
   private let preferenceService: any PreferenceManaging
+  private let recommendationService: any SchoolRecommendationManaging
 
   /// The user whose recruiting data the dashboard shows. When a parent is
   /// viewing an athlete, events/metrics/interactions belong to the athlete;
@@ -113,6 +116,17 @@ final class DashboardViewModel {
     return "Athlete"
   }
 
+  /// Profile completeness (0.0–1.0) derived from playerDetails. Falls back to 0 when
+  /// details haven't loaded yet. Video/location are not tracked on the dashboard — passed
+  /// as false so the ring focuses on fields the user can fill from Player Details.
+  var profileCompleteness: Double {
+    playerDetails?.completenessScore(hasHighlightVideo: false, hasHomeLocation: false) ?? 0
+  }
+
+  var missingProfileFields: [MissingField] {
+    playerDetails?.topMissingFields(hasHighlightVideo: false, hasHomeLocation: false) ?? []
+  }
+
   #if DEBUG
   var truncatedSessionToken: String {
     guard let token = authManager.session?.accessToken else {
@@ -128,13 +142,15 @@ final class DashboardViewModel {
     dashboardService: (any DashboardManaging)? = nil,
     taskStorage: QuickTaskStorage? = nil,
     familyManager: FamilyManager? = nil,
-    preferenceService: (any PreferenceManaging)? = nil
+    preferenceService: (any PreferenceManaging)? = nil,
+    recommendationService: (any SchoolRecommendationManaging)? = nil
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.dashboardService = dashboardService ?? DashboardServiceImpl(supabaseManager: .shared)
     self.taskStorage = taskStorage ?? UserDefaultsTaskStorage()
     self.familyManager = familyManager ?? .shared
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
+    self.recommendationService = recommendationService ?? SchoolRecommendationServiceImpl(supabaseManager: .shared)
   }
 
   func fetchDashboardData() async {
@@ -215,10 +231,10 @@ final class DashboardViewModel {
     async let coachesTask: Void = fetchCoachesFollowupIfNeeded(
       widgets.coachFollowupWidget && familyUnitId != nil
     )
-    async let profileTask: Void = fetchPlayerProfileIfNeeded(
-      widgets.recruitingCalendar || widgets.atAGlanceSummary
-    )
-    _ = await (suggestionsTask, eventsTask, metricsTask, trendsTask, coachesTask, profileTask)
+    // Always fetch profile — NUX completeness card needs it even when calendar/at-a-glance are off
+    async let profileTask: Void = fetchPlayerProfileIfNeeded(true)
+    async let recommendationsTask: Void = fetchRecommendations()
+    _ = await (suggestionsTask, eventsTask, metricsTask, trendsTask, coachesTask, profileTask, recommendationsTask)
   }
 
   private func fetchSuggestionsIfNeeded(_ needed: Bool) async {
@@ -447,11 +463,63 @@ final class DashboardViewModel {
     guard let userId = targetUserId else { return }
     do {
       let details: PlayerDetails? = try await preferenceService.fetchPreferences(category: .player, userId: userId)
+      playerDetails = details
       graduationYear = details?.graduationYear
       athleteSport = details?.primarySport
       athleteGender = details?.gender
     } catch {
       logger.debug("Could not load graduation year/sport/gender: \(error.localizedDescription)")
+    }
+  }
+
+  func fetchRecommendations() async {
+    guard let userId = targetUserId else { return }
+    do {
+      recommendations = try await recommendationService.fetchRecommendations(athleteId: userId, limit: 6)
+    } catch {
+      logger.warning("Failed to load recommendations: \(error.localizedDescription)")
+    }
+  }
+
+  func addRecommendedSchool(_ recommendation: SchoolRecommendation) async {
+    guard let familyUnitId = familyManager.familyUnitId,
+          let userId = authManager.user?.id else { return }
+    do {
+      let schoolsService = SchoolsServiceImpl(supabaseManager: .shared)
+      let request = SchoolCreateRequest(
+        userId: userId,
+        familyUnitId: familyUnitId,
+        name: recommendation.name,
+        location: nil,
+        city: nil,
+        state: recommendation.state,
+        division: recommendation.division,
+        conference: recommendation.conference,
+        website: nil,
+        twitterHandle: nil,
+        instagramHandle: nil,
+        ncaaId: nil,
+        notes: nil,
+        status: "tracking",
+        academicInfo: nil,
+        faviconUrl: nil
+      )
+      _ = try await schoolsService.createSchool(request: request)
+      recommendations.removeAll { $0.id == recommendation.id }
+      await fetchDashboardData()
+    } catch {
+      logger.warning("Failed to add recommended school: \(error.localizedDescription)")
+      errorMessage = "Couldn't add school. Please try again."
+    }
+  }
+
+  func dismissRecommendation(_ recommendation: SchoolRecommendation) async {
+    guard let userId = targetUserId else { return }
+    recommendations.removeAll { $0.id == recommendation.id }
+    do {
+      try await recommendationService.dismissRecommendation(catalogKey: recommendation.catalogKey, athleteId: userId)
+    } catch {
+      logger.warning("Failed to dismiss recommendation: \(error.localizedDescription)")
     }
   }
 

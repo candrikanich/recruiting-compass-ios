@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// Onboarding flow for new players. Mirrors web pages/onboarding/index.vue (5 steps).
-struct OnboardingView: View {
+/// Legacy 5-step onboarding flow. Superseded by OnboardingContainerView (2-step v2).
+/// Kept for reference during the transition period.
+struct OnboardingViewLegacy: View {
   @State private var viewModel: OnboardingViewModel
   @Environment(AuthManager.self) private var authManager
 
