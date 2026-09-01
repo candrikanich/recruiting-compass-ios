@@ -186,7 +186,7 @@ private struct CoachCardActionsSection: View {
   @Environment(\.sizeCategory) private var sizeCategory
 
   var body: some View {
-    HStack(spacing: 4) {
+    HStack(spacing: 2) {
       if let email = coach.contactEmail {
         if let onQuickCommunication {
           quickCommunicationTriggerButton(
@@ -243,7 +243,7 @@ private struct CoachCardActionsSection: View {
       Image(systemName: icon)
         .font(.system(size: sizeCategory.isAccessibilityCategory ? 24 : 18))
         .foregroundStyle(color)
-        .frame(minWidth: 44, minHeight: 44)
+        .frame(minWidth: 36, minHeight: 44)
         .contentShape(Rectangle())
     }
     .accessibilityLabel(label)
