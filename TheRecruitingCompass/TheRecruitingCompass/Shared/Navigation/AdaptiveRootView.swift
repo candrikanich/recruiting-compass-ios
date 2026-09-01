@@ -105,43 +105,45 @@ struct AdaptiveRootView: View {
       InteractionsListView()
     default:
       NavigationStack {
-        switch destination {
-        case .dashboard:
-          DashboardView(viewModel: dashboardViewModel)
-            .activityNavigation()
-            .navigationDestination(for: DashboardDestination.self) { dashboardDestination in
-              dashboardDestinationView(for: dashboardDestination)
-            }
-        case .timeline:
-          RecruitingTimelineView()
-        case .events:
-          EventsListView()
-        case .performance:
-          PerformanceDashboardView()
-        case .offers:
-          OffersListView()
-        case .analytics:
-          AnalyticsDashboardView()
-        case .documents:
-          DocumentsListView()
-        case .deadlines:
-          // No dedicated deadlines screen exists yet; deadlines surface inside the
-          // recruiting timeline (see `TaskDeadlineCalculator`). Revisit if one is added.
-          RecruitingTimelineView()
-        case .settings:
-          SettingsView()
-        case .schools, .coaches, .interactions:
-          EmptyView() // unreachable — handled above
+        Group {
+          switch destination {
+          case .dashboard:
+            DashboardView(viewModel: dashboardViewModel)
+              .activityNavigation()
+              .navigationDestination(for: DashboardDestination.self) { dashboardDestination in
+                dashboardDestinationView(for: dashboardDestination)
+              }
+          case .timeline:
+            RecruitingTimelineView()
+          case .events:
+            EventsListView()
+          case .performance:
+            PerformanceDashboardView()
+          case .offers:
+            OffersListView()
+          case .analytics:
+            AnalyticsDashboardView()
+          case .documents:
+            DocumentsListView()
+          case .deadlines:
+            // No dedicated deadlines screen exists yet; deadlines surface inside the
+            // recruiting timeline (see `TaskDeadlineCalculator`). Revisit if one is added.
+            RecruitingTimelineView()
+          case .settings:
+            SettingsView()
+          case .schools, .coaches, .interactions:
+            EmptyView() // unreachable — handled above
+          }
         }
-      }
-      .navigationDestination(for: MorePath.self) { morePath in
-        switch morePath {
-        case .eventDetail(let eventId):
-          EventDetailView(eventId: eventId)
-        case .offerDetail(let offerId):
-          OfferDetailView(offerId: offerId)
-        case .section, .helpSection:
-          EmptyView()
+        .navigationDestination(for: MorePath.self) { morePath in
+          switch morePath {
+          case .eventDetail(let eventId):
+            EventDetailView(eventId: eventId)
+          case .offerDetail(let offerId):
+            OfferDetailView(offerId: offerId)
+          case .section, .helpSection:
+            EmptyView()
+          }
         }
       }
     }
