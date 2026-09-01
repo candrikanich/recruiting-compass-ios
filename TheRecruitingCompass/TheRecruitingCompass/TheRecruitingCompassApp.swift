@@ -10,6 +10,7 @@ import Supabase
 import UIKit
 import UserNotifications
 import os
+import PostHog
 
 @main
 struct TheRecruitingCompassApp: App {
@@ -25,6 +26,10 @@ struct TheRecruitingCompassApp: App {
   @State private var pendingInvite: PendingInvite?
   @State private var pendingPushDestination: NotificationDestination?
   @Environment(\.accessibilityReduceMotion) var reduceMotion
+
+  init() {
+    Analytics.setup()
+  }
 
   var body: some Scene {
     WindowGroup {

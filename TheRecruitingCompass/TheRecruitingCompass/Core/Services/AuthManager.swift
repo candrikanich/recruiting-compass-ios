@@ -58,6 +58,7 @@ final class AuthManager: AuthManaging {
 
       // Save session to Keychain
       try keychain.save(session, forKey: sessionKey)
+      Analytics.identify(userId: user.id, email: email)
       logger.info("Login successful for user: \(user.id, privacy: .private)")
     } catch {
       self.isAuthenticated = false
@@ -208,6 +209,7 @@ final class AuthManager: AuthManaging {
       logger.warning("Sign-out from Supabase failed, local session will be cleared: \(error.localizedDescription)")
     }
 
+    Analytics.reset()
     self.user = nil
     self.session = nil
     self.isAuthenticated = false
@@ -272,6 +274,7 @@ final class AuthManager: AuthManaging {
         self.isAuthenticated = true
         self.errorMessage = nil
         try? keychain.save(newSession, forKey: sessionKey)
+        Analytics.identify(userId: updatedUser.id)
         logger.info("Session refreshed and saved for user: \(updatedUser.id, privacy: .private)")
       } else {
         logger.warning("No session returned after refresh, clearing state")
