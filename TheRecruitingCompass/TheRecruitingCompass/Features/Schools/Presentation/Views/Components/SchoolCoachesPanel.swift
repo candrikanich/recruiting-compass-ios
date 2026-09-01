@@ -5,6 +5,7 @@ struct SchoolCoachesPanel: View {
   let isLoading: Bool
   let onSeeAll: () -> Void
   var onAddCoach: (() -> Void)?
+  var onSelectCoach: ((String) -> Void)?
 
   private let maxDisplayedCoaches = 3
 
@@ -59,7 +60,9 @@ struct SchoolCoachesPanel: View {
       } else {
         VStack(spacing: 0) {
           ForEach(displayedCoaches) { coach in
-            NavigationLink(value: CoachDestination.detail(coach.id)) {
+            Button {
+              onSelectCoach?(coach.id)
+            } label: {
               CoachCardView(coach: coach, variant: .compact)
             }
             .buttonStyle(.plain)

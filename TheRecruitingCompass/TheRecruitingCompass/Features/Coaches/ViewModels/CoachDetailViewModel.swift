@@ -198,6 +198,8 @@ final class CoachDetailViewModel {
       metrics = CoachMetricsCalculator.metrics(for: coachId, in: recentInteractions)
       insights = CoachMetricsCalculator.insights(for: coachId, in: recentInteractions)
       logger.info("Loaded \(self.recentInteractions.count) interactions for coach")
+    } catch is CancellationError {
+      logger.debug("Load details cancelled")
     } catch {
       logger.error("Failed to load details: \(error.localizedDescription)")
       errorMessage = "Failed to load coach details"

@@ -23,6 +23,11 @@ enum ViewModelHelpers {
     logger: Logger? = nil,
     setMessage: (String) -> Void
   ) {
+    if error is CancellationError || (error as NSError).code == NSURLErrorCancelled {
+      let fileName = (file as NSString).lastPathComponent
+      logger?.debug("[\(fileName):\(function)] cancelled")
+      return
+    }
     setMessage(userMessage)
     let fileName = (file as NSString).lastPathComponent
     if let logger {
