@@ -208,8 +208,7 @@ struct GettingStartedChecklistWidget: View {
     case .firstCoach:
       switchTab(.coaches)
     case .inviteFamily:
-      // Uses NavigationLink destination handled by DashboardView's navigation stack
-      break
+      openMoreSection(.settings)
     case .previewTemplate:
       switchTab(.coaches)
     case .checkTimeline:
