@@ -7,6 +7,7 @@ struct AdaptiveRootView: View {
   @Binding var pendingPushDestination: NotificationDestination?
   @Environment(\.horizontalSizeClass) private var sizeClass
   @State private var selectedDestination: AppDestination? = .dashboard
+  @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
   @State private var coachesPrefilterSchoolId: String?
   @State private var dashboardViewModel = DashboardViewModel()
 
@@ -24,12 +25,12 @@ struct AdaptiveRootView: View {
 
   @ViewBuilder
   private var iPadLayout: some View {
-    NavigationSplitView {
+    NavigationSplitView(columnVisibility: $columnVisibility) {
       SidebarView(selection: $selectedDestination)
     } detail: {
       detailView(for: selectedDestination ?? .dashboard)
     }
-    .navigationSplitViewStyle(.balanced)
+    .navigationSplitViewStyle(.prominentDetail)
     .background {
       keyboardShortcuts
     }
@@ -41,6 +42,13 @@ struct AdaptiveRootView: View {
     .environment(\.openMoreSection, { section in
       selectedDestination = AppDestination(rawValue: section.rawValue) ?? selectedDestination
     })
+    .onChange(of: selectedDestination) {
+      // Auto-dismiss sidebar only when it's overlaying content (portrait / smaller iPads).
+      // When pinned alongside detail (13" landscape), `.automatic` keeps it visible.
+      if columnVisibility == .all {
+        columnVisibility = .detailOnly
+      }
+    }
     .onChange(of: pendingPushDestination) { _, destination in
       guard let destination else { return }
       pendingPushDestination = nil
