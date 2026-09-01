@@ -159,7 +159,6 @@ struct SchoolBasicInfoDisplaySection: View {
     .padding()
     .background(Color(.systemGray6))
     .clipShape(.rect(cornerRadius: 12))
-    .padding(.horizontal)
   }
 }
 

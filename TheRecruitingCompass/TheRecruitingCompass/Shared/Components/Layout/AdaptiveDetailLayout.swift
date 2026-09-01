@@ -34,32 +34,37 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
 
   @ViewBuilder
   private var regularLayout: some View {
-    HStack(alignment: .top, spacing: 0) {
-      if sidebarPlacement == .leading {
-        sidebarColumn
-        Divider()
-      }
+    GeometryReader { geo in
+      let resolvedSidebarWidth = min(sidebarWidth, geo.size.width * 0.38)
 
-      ScrollView {
-        content()
-          .padding()
-      }
-      .frame(maxWidth: .infinity)
+      HStack(alignment: .top, spacing: 16) {
+        if sidebarPlacement == .leading {
+          sidebarColumn(width: resolvedSidebarWidth)
+        }
 
-      if sidebarPlacement == .trailing {
-        Divider()
-        sidebarColumn
+        ScrollView {
+          content()
+            .padding()
+        }
+        .frame(maxWidth: .infinity)
+
+        if sidebarPlacement == .trailing {
+          sidebarColumn(width: resolvedSidebarWidth)
+        }
       }
     }
   }
 
   @ViewBuilder
-  private var sidebarColumn: some View {
+  private func sidebarColumn(width: CGFloat) -> some View {
+    let gutterEdge: Edge.Set = sidebarPlacement == .leading ? .trailing : .leading
     ScrollView {
       sidebar()
         .padding()
+        .padding(gutterEdge, 8)
     }
-    .frame(width: sidebarWidth)
+    .frame(width: width)
+    .clipped()
     .background(Color(.systemGroupedBackground))
   }
 
