@@ -133,7 +133,7 @@ struct LandingView: View {
 
   @ViewBuilder
   private var tagline: some View {
-    Text("Free for student athletes and families.")
+    Text("Built for student athletes and their families.")
       .font(.footnote.weight(.medium))
       .foregroundStyle(Color.white.opacity(0.7))
   }
@@ -146,7 +146,7 @@ struct LandingView: View {
       Button(
         action: { showSignup = true },
         label: {
-          Text("Get Started Free")
+          Text("Start Now")
             .font(.headline.weight(.semibold))
             .lineLimit(2)
             .frame(maxWidth: .infinity)
@@ -159,7 +159,7 @@ struct LandingView: View {
             .shadow(radius: 5)
         }
       )
-      .accessibilityLabel(String(localized: "Get started free — create a new account"))
+      .accessibilityLabel(String(localized: "Start now — create a new account"))
       .accessibilityHint(
         String(localized: "Set up a new account with your information")
       )
