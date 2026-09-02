@@ -12,8 +12,10 @@ enum DistanceCalculator {
     let deltaLat = (to.latitude - from.latitude) * .pi / 180
     let deltaLon = (to.longitude - from.longitude) * .pi / 180
 
+    // swiftlint:disable:next identifier_name — standard haversine formula variable
     let a = sin(deltaLat / 2) * sin(deltaLat / 2)
       + cos(lat1) * cos(lat2) * sin(deltaLon / 2) * sin(deltaLon / 2)
+    // swiftlint:disable:next identifier_name — standard haversine formula variable
     let c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return earthRadiusMiles * c
   }

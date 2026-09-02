@@ -105,7 +105,7 @@ enum MetricRegistry {
   static func knownDef(for key: String) -> MetricDef? { defs[key] }
 
   static func def(for key: String) -> MetricDef {
-    if let d = defs[key] { return d }
+    if let existing = defs[key] { return existing }
     let label = key.replacingOccurrences(of: "_", with: " ")
       .trimmingCharacters(in: .whitespaces)
     return MetricDef(key, label, "", .decimal(digits: 2, dropLeadingZero: false))

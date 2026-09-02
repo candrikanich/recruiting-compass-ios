@@ -44,7 +44,7 @@ struct OnboardingStepOneView: View {
 
   // MARK: - Header
 
-  private var headerSection: some View {
+  @ViewBuilder private var headerSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Let's personalize your experience")
         .font(.body)
@@ -54,7 +54,7 @@ struct OnboardingStepOneView: View {
 
   // MARK: - Sport Picker
 
-  private var sportPickerSection: some View {
+  @ViewBuilder private var sportPickerSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Primary Sport")
         .font(.subheadline.weight(.semibold))
@@ -67,7 +67,7 @@ struct OnboardingStepOneView: View {
     }
   }
 
-  private var sportSearchList: some View {
+  @ViewBuilder private var sportSearchList: some View {
     VStack(spacing: 0) {
       HStack {
         Image(systemName: "magnifyingglass")
@@ -118,7 +118,7 @@ struct OnboardingStepOneView: View {
     }
   }
 
-  private var selectedSportBadge: some View {
+  @ViewBuilder private var selectedSportBadge: some View {
     HStack {
       Text(viewModel.primarySport)
         .font(.body.weight(.medium))
@@ -138,7 +138,7 @@ struct OnboardingStepOneView: View {
 
   // MARK: - Graduation Year
 
-  private var graduationYearSection: some View {
+  @ViewBuilder private var graduationYearSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Expected Graduation Year")
         .font(.subheadline.weight(.semibold))
@@ -204,7 +204,7 @@ struct OnboardingStepOneView: View {
 
   // MARK: - Zip Code
 
-  private var zipCodeSection: some View {
+  @ViewBuilder private var zipCodeSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 4) {
         Text("Zip Code")
@@ -238,7 +238,7 @@ struct OnboardingStepOneView: View {
 
   // MARK: - Continue Button
 
-  private var continueButton: some View {
+  @ViewBuilder private var continueButton: some View {
     Button {
       Task {
         if await viewModel.saveStep1() {

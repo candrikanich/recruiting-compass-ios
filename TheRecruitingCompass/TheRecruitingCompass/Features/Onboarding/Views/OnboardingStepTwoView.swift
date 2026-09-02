@@ -54,7 +54,7 @@ struct OnboardingStepTwoView: View {
 
   // MARK: - Header
 
-  private var headerSection: some View {
+  @ViewBuilder private var headerSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Based on your sport and location, here are some schools to get you started.")
         .font(.body)
@@ -65,7 +65,7 @@ struct OnboardingStepTwoView: View {
 
   // MARK: - Loading
 
-  private var loadingSection: some View {
+  @ViewBuilder private var loadingSection: some View {
     VStack(spacing: 16) {
       ProgressView()
       Text("Finding schools for you...")
@@ -78,7 +78,7 @@ struct OnboardingStepTwoView: View {
 
   // MARK: - Empty State
 
-  private var emptyStateSection: some View {
+  @ViewBuilder private var emptyStateSection: some View {
     VStack(spacing: 16) {
       Image(systemName: "building.columns")
         .font(.system(size: 40))
@@ -99,7 +99,7 @@ struct OnboardingStepTwoView: View {
 
   // MARK: - Carousel
 
-  private var recommendationsCarousel: some View {
+  @ViewBuilder private var recommendationsCarousel: some View {
     ScrollView(.horizontal, showsIndicators: false) {
       LazyHStack(spacing: 16) {
         ForEach(viewModel.recommendations) { rec in
@@ -130,7 +130,7 @@ struct OnboardingStepTwoView: View {
 
   // MARK: - Schools Added Banner
 
-  private var schoolsAddedBanner: some View {
+  @ViewBuilder private var schoolsAddedBanner: some View {
     HStack(spacing: 8) {
       Image(systemName: "checkmark.circle.fill")
         .foregroundStyle(.green)
@@ -146,7 +146,7 @@ struct OnboardingStepTwoView: View {
 
   // MARK: - Dashboard Button
 
-  private var dashboardButton: some View {
+  @ViewBuilder private var dashboardButton: some View {
     Button {
       Task {
         if await viewModel.completeOnboarding() {

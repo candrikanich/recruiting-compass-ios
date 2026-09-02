@@ -72,7 +72,10 @@ struct SupabaseConfig {
     }
     return placeholderURL
     #else
-    fatalError("SUPABASE_URL must be set for Release builds. Configure in Release.xcconfig. Archive/TestFlight builds do not inherit scheme env vars.")
+    fatalError(
+      "SUPABASE_URL must be set for Release builds. " +
+      "Configure in Release.xcconfig. Archive/TestFlight builds do not inherit scheme env vars."
+    )
     #endif
   }()
 

@@ -94,7 +94,7 @@ enum RecruitingCalendar {
         "Cross Country": .XCTF,
         "Swimming": .OTHER_SWIM,
         "Rowing": .OTHER_ROWING,
-        "Field Hockey": .OTHER_FIELDHOCKEY,
+        "Field Hockey": .OTHER_FIELDHOCKEY
     ]
 
     /// Sports with distinct men's/women's NCAA calendars. Soccer, Ice Hockey,
@@ -108,7 +108,7 @@ enum RecruitingCalendar {
         "Wrestling": (.OTHER_MWRESTLING, .OTHER_WWRESTLING),
         // Only women's gymnastics has a distinct table in the "Other" bundle PDF;
         // men's gymnastics is folded into the generic "All Other Sports" default.
-        "Gymnastics": (men: .other, women: .otherWGYM),
+        "Gymnastics": (men: .other, women: .otherWGYM)
     ]
 
     /// The codebase's neutral sport fallback for any caller not yet wired to

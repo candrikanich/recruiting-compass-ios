@@ -46,7 +46,7 @@ struct OnboardingContainerView: View {
 
   // MARK: - Sign Out
 
-  private var signOutHeader: some View {
+  @ViewBuilder private var signOutHeader: some View {
     HStack {
       Spacer()
       Button("Sign out") {
@@ -61,7 +61,7 @@ struct OnboardingContainerView: View {
 
   // MARK: - Progress
 
-  private var progressIndicator: some View {
+  @ViewBuilder private var progressIndicator: some View {
     HStack(spacing: 12) {
       stepDot(active: true)
       stepConnector
@@ -83,7 +83,7 @@ struct OnboardingContainerView: View {
       .frame(width: 10, height: 10)
   }
 
-  private var stepConnector: some View {
+  @ViewBuilder private var stepConnector: some View {
     Rectangle()
       .fill(currentStep == .schoolsToExplore ? Color.accentColor : Color(uiColor: .tertiarySystemFill))
       .frame(width: 40, height: 2)
