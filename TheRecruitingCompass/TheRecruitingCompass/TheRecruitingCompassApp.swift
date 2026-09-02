@@ -209,24 +209,12 @@ private struct AuthenticatedContent: View {
 // MARK: - Session Loading (Splash) View
 
 private struct SessionLoadingView: View {
-  @Environment(\.sizeCategory) var sizeCategory
-
   var body: some View {
     ZStack {
       LinearGradient.landingBackground
         .ignoresSafeArea()
 
-      VStack(spacing: 16) {
-        Image("AppLogo")
-          .resizable()
-          .scaledToFit()
-          .containerRelativeFrame(.horizontal) { size, _ in size * 0.5 }
-          .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
-
-        ProgressView()
-          .tint(.white)
-          .scaleEffect(1.2)
-      }
+      CompassLoadingAnimation()
     }
   }
 }
