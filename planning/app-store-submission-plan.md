@@ -21,7 +21,7 @@
 | **Categories** | Primary: **Education** · Secondary: **Sports** |
 | **Copyright** | © 2026 Chris Andrikanich |
 | **Age Rating** | See §3 below |
-| **Price** | Free (no IAP) |
+| **Price** | Free (no IAP in this build; founding-family free-for-life offer through the launch period — see `planning/2026-09-03-pricing-model-and-entitlement-plumbing-spec.md`) |
 | **Availability** | United States (expand later as needed) |
 | **Content Rights** | "This app does not contain, show, or access third-party content" (NCAA calendar data is factual/public-domain scheduling info, not copyrighted content) |
 
