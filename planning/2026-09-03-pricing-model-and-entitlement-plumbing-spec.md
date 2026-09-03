@@ -41,6 +41,8 @@ Rejected: client-only gating (drifts across platforms, bypassable); RevenueCat-a
 
 ### 2.1 Schema
 
+Migration lives in the **web repo only** (`recruiting-compass-web/supabase/migrations/`); the iOS repo's migrations dir is a stale slice and is not updated.
+
 ```sql
 -- enums
 create type subscription_status as enum ('founding','trialing','active','read_only','comp');
@@ -86,10 +88,10 @@ returns boolean language sql stable security definer as $$
   );
 $$;
 ```
-Note: `trialing` past `trial_ends_at` reads as not-writable without a cron; a nightly job may later normalize it to `read_only` for reporting, but correctness does not depend on it.
+Note: `NULL` family_unit_id returns `true` (non-family-scoped rows are not gated). `trialing` past `trial_ends_at` reads as not-writable without a cron; a nightly job may later normalize it to `read_only` for reporting, but correctness does not depend on it.
 
 ### 2.2 Enforcement (RLS)
-- Every table carrying `family_unit_id` (schools, coaches, interactions, events, offers, tasks, performance_metrics, video_links, documents, communication_templates, player prefs, public profile settings, etc. — enumerate from `20260805000000_family_unit_id_columns_trigger_backfill.sql`): INSERT / UPDATE / DELETE policies gain `and family_can_write(family_unit_id)`. SELECT untouched.
+- Every table carrying `family_unit_id` (schools, coaches, interactions, events, offers, tasks, performance_metrics, video_links, documents, communication_templates, player prefs, public profile settings, etc. — enumerate from `20260805000000_family_unit_id_columns_trigger_backfill.sql`): gain one `RESTRICTIVE` policy per verb (`<table>_<verb>_requires_entitlement`) calling `family_can_write(family_unit_id)`; existing permissive policies are untouched. SELECT untouched.
 - `family_subscriptions`: SELECT for members of that family; INSERT/UPDATE/DELETE service-role only.
 - `app_config`: SELECT authenticated; writes service-role only.
 - Post-launch every family is `founding` → zero behavior change. Verified by test that flips one family to `read_only`.
@@ -120,7 +122,7 @@ Phase 0 exposes `canWrite`; nothing but the settings row consumes it. Phase 1 wi
 ## 3. Phases
 
 ### Phase 0 — pre-submit (this work)
-1. Migration: enums, `family_subscriptions`, `app_config`, trigger, backfill, `family_can_write`, RLS write-policy amendments, subscription-table policies. Mirrored to both repos' `supabase/migrations/`.
+1. Migration: enums, `family_subscriptions`, `app_config`, trigger, backfill, `family_can_write`, RLS write-policy amendments, subscription-table policies.
 2. iOS `EntitlementStore` + Settings Plan row + tests.
 3. Web `useEntitlement` + Settings Plan row + tests.
 4. ToS subscription clause (iOS `TermsOfServiceView.swift`, web `pages/legal/terms.vue`): auto-renewal, billing through Apple / Stripe, cancellation via store, refunds per store policy, price-change notice, founding-family grant, read-only on lapse, data export.
@@ -137,7 +139,7 @@ Set `app_config.pricing_flip_at`; release IAP binary; landing copy → live pric
 ---
 
 ## 4. Testing
-- **SQL (pgTAP or migration test script):** trigger yields `founding` pre-flip and `trialing`+30d post-flip; `family_can_write` truth table (5 statuses × trial expiry); RLS: `read_only` family SELECT ok / INSERT-UPDATE-DELETE denied on ≥3 representative tables; `founding` family unaffected.
+- **Live-DB Vitest integration spec (`tests/integration/rls/rls-family-subscriptions.integration.spec.ts`):** trigger yields `founding` pre-flip and `trialing`+30d post-flip; `family_can_write` truth table (5 statuses × trial expiry); RLS: `read_only` family SELECT ok / INSERT-UPDATE-DELETE denied on ≥3 representative tables; `founding` family unaffected.
 - **iOS unit:** `EntitlementStore` decode + derived `plan`/`canWrite`; Plan row label per status.
 - **Web unit (vitest):** `useEntitlement` same matrix; Plan row render.
 - **Regression:** full existing suites green (RLS change touches every write path).

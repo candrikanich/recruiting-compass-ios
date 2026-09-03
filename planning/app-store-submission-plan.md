@@ -195,7 +195,9 @@ The app sends push notifications for recruiting-related events (new offers,
 inbound coach contact, upcoming events). Notifications require opt-in.
 
 NO IN-APP PURCHASES:
-The app is completely free with no monetization currently.
+This build contains no in-app purchases or subscriptions; every feature is
+available at no charge. Paid family subscriptions may be added in a future
+release via In-App Purchase.
 ```
 
 ### Common Rejection Risks & Mitigations

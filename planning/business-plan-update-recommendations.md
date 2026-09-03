@@ -226,20 +226,17 @@ The PRDs describe a product that is roughly at the Phase 3-4 level of the origin
 
 ---
 
-### 4. BUSINESS MODEL — Still Placeholder
+### 4. BUSINESS MODEL — Decided 2026-09-03
 
-**Original PRD:** Freemium SaaS — Free / Core ($12/mo) / Premium ($25/mo). Revenue projections: Year 1 $10.8K, Year 2 $108K, Year 3 $546K.
+**Model:** Family subscription, annual-anchored. Working price **$99/year or $12.99/month**, one subscription covers every member of a family unit. 30-day full-access free trial, then read-only (data preserved, public profile dark) until subscribed. No permanent free tier.
 
-**Current state:** No monetization implemented. No Stripe integration. No pricing page. Product is free.
+**Launch posture:** Launch free with entitlement plumbing in place (`family_subscriptions`, `family_can_write` RLS gate). Every family created before the pricing flip is a **Founding Family — free for life**. Flip trigger: 90 days after App Store approval or 50 active families, whichever first.
 
-**Recommendation:** This section needs honest reassessment:
-1. Acknowledge that monetization has been deferred in favor of product depth
-2. Reassess pricing tiers against actual feature set (the "Premium" features like templates and analytics are now part of the core product)
-3. Consider whether the original 3-tier model still makes sense or if a simpler model (free trial → single paid tier) is more appropriate given the product's current breadth
-4. Update revenue projections with realistic timelines (Year 1 projections assumed paying users within months of launch)
-5. Note that the feature set now competes with $1,000+ recruiting services, which may justify higher pricing than $12-25/mo
+**Rails:** RevenueCat (StoreKit on iOS, Stripe web billing on web), same price everywhere. Apple Small Business Program (15%).
 
-**Key question for Chris:** Given the product's depth, is the freemium model still the right approach? The product now offers more than NCSA's $3,000 service in several dimensions (NCAA compliance, sport-agnostic coverage, native mobile). A $25-50/month single tier might better reflect value.
+**Founding-period economics:** $0 revenue by design; goal is testimonials + willingness-to-pay signal before flip. Price to be re-validated against FieldLevel/NextUp/NCSA at flip.
+
+Full decision log and architecture: `planning/2026-09-03-pricing-model-and-entitlement-plumbing-spec.md`.
 
 ---
 
@@ -272,7 +269,7 @@ The PRDs describe a product that is roughly at the Phase 3-4 level of the origin
 - The headline V2.0 feature (all sports) plus features not on any roadmap (NCAA calendar, performance metrics, public profile, compliance guardrails)
 
 **Recommendation:** Archive the original roadmap as "completed." Write a new roadmap focused on:
-1. **Monetization launch** — Stripe, pricing page, tier enforcement
+1. **Monetization flip** — RevenueCat, paywall, read-only mode (Phase 1/2 of the pricing spec)
 2. **Beta/launch execution** — real users, real feedback
 3. **Data quality** — coach contact info, school enrichment completion
 4. **External integrations** — Hudl, calendar sync (still unbuilt from V1.3)
