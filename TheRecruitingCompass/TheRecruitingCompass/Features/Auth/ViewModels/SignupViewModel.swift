@@ -159,7 +159,13 @@ final class SignupViewModel {
 
   func validateDateOfBirth() {
     validate(.dateOfBirth) {
-      COPPAHelper.isUnderAge(dobString) ? "You must be 13 or older to create an account" : nil
+      if COPPAHelper.isUnderAge(dobString) {
+        return "You must be 13 or older to create an account"
+      }
+      if COPPAHelper.requiresGuardianInvite(dobString) {
+        return "Players under 18 must join through a parent or guardian"
+      }
+      return nil
     }
   }
 
@@ -212,10 +218,15 @@ final class SignupViewModel {
     validatePassword()
     validateConfirmPassword()
     validateFamilyCode()
-    validateTerms()
 
     guard isFormValid else {
-      errorMessage = "Please fix the errors above"
+      if !fieldErrors.isEmpty {
+        errorMessage = "Please fix the errors below"
+      } else if !termsAccepted {
+        errorMessage = "You must accept the terms and conditions"
+      } else {
+        errorMessage = "Please fix the errors below"
+      }
       return
     }
 
