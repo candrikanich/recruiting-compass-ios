@@ -8,7 +8,7 @@ final class TermsOfServiceTests: XCTestCase {
   func testBundledTermsExists() {
     let terms = TermsOfService.bundled
 
-    XCTAssertEqual(terms.lastUpdated, LegalRevision.lastUpdated)
+    XCTAssertEqual(terms.lastUpdated, LegalRevision.termsLastUpdated)
   }
 
   func testFormattedDateReturnsNonEmptyString() {
@@ -31,7 +31,7 @@ final class TermsOfServiceTests: XCTestCase {
   }
 
   func testBundledContentLastUpdatedTimestamp() {
-    XCTAssertEqual(TermsOfService.bundled.lastUpdated, LegalRevision.lastUpdated)
+    XCTAssertEqual(TermsOfService.bundled.lastUpdated, LegalRevision.termsLastUpdated)
   }
 
   func testBundledContentFormattedDate() {
