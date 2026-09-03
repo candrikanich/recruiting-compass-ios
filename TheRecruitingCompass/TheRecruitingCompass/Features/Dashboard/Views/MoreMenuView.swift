@@ -174,4 +174,5 @@ private struct MoreMenuRow: View {
   MoreMenuView(notificationsViewModel: NotificationsListViewModel())
     .environment(AuthManager.shared)
     .environment(FamilyManager.shared)
+    .environment(EntitlementStore())
 }

@@ -20,6 +20,7 @@ struct TheRecruitingCompassApp: App {
   @State private var onboardingManager = OnboardingManager()
   @State private var networkMonitor = NetworkMonitor()
   @State private var nuxProgressManager = NuxProgressManager.shared
+  @State private var entitlementStore = EntitlementStore()
   @State private var showResetPassword = false
   @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
@@ -144,6 +145,7 @@ struct TheRecruitingCompassApp: App {
       .environment(networkMonitor)
       .environment(onboardingManager)
       .environment(nuxProgressManager)
+      .environment(entitlementStore)
     }
   }
 

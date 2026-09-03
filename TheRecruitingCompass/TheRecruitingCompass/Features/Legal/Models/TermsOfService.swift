@@ -8,6 +8,6 @@ struct TermsOfService {
   }
 
   static var bundled: TermsOfService {
-    TermsOfService(lastUpdated: LegalRevision.lastUpdated)
+    TermsOfService(lastUpdated: LegalRevision.termsLastUpdated)
   }
 }

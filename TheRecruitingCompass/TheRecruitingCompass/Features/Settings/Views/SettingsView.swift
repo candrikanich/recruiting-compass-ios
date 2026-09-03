@@ -2,6 +2,7 @@ import SwiftUI
 
 private enum SettingsDestination: Hashable {
   case familyManagement
+  case plan
   case profile
   case homeLocation
   case playerDetails
@@ -16,6 +17,7 @@ private enum SettingsDestination: Hashable {
 struct SettingsView: View {
   @Environment(AuthManager.self) private var authManager
   @Environment(FamilyManager.self) private var familyManager
+  @Environment(EntitlementStore.self) private var entitlementStore
   @State private var presentedLegal: LegalDocument?
   @State private var showCodeCopied = false
   @State private var viewModel: SettingsViewModel
@@ -29,6 +31,22 @@ struct SettingsView: View {
 
   var body: some View {
     List {
+        // Plan Section
+        Section {
+          NavigationLink(value: SettingsDestination.plan) {
+            SettingsRow(
+              icon: "star.fill",
+              title: String(localized: "Plan"),
+              description: entitlementStore.hasLoaded
+                ? entitlementStore.planLabel
+                : String(localized: "Loading…"),
+              color: .orange
+            )
+          }
+        } header: {
+          Text("Plan")
+        }
+
         // Family Section (code when available + Family Management)
         Section {
           if let code = familyManager.familyUnit?.familyCode {
@@ -221,6 +239,8 @@ struct SettingsView: View {
         switch destination {
         case .familyManagement:
           FamilyManagementView()
+        case .plan:
+          PlanView()
         case .profile:
           ProfileView(preferenceService: preferenceService)
         case .homeLocation:
@@ -261,6 +281,7 @@ struct SettingsView: View {
       .task {
         await familyManager.loadFamilyData()
         await viewModel.loadCompletionStatus(targetUserId: familyManager.selectedAthlete?.userId)
+        await entitlementStore.load(familyUnitId: familyManager.familyUnitId)
       }
       .sheet(item: $presentedLegal) { doc in
         doc.view
@@ -329,4 +350,5 @@ private struct SettingsRow: View {
   SettingsView()
     .environment(AuthManager.shared)
     .environment(FamilyManager.shared)
+    .environment(EntitlementStore())
 }

@@ -179,4 +179,5 @@ struct AdaptiveRootView: View {
   AdaptiveRootView()
     .environment(AuthManager.shared)
     .environment(FamilyManager.shared)
+    .environment(EntitlementStore())
 }
