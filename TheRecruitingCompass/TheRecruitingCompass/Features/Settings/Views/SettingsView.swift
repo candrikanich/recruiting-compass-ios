@@ -37,7 +37,9 @@ struct SettingsView: View {
             SettingsRow(
               icon: "star.fill",
               title: String(localized: "Plan"),
-              description: entitlementStore.planLabel,
+              description: entitlementStore.hasLoaded
+                ? entitlementStore.planLabel
+                : String(localized: "Loading…"),
               color: .orange
             )
           }

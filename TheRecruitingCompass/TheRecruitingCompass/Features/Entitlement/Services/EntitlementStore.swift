@@ -13,9 +13,19 @@ final class EntitlementStore {
   private(set) var isLoading = false
   private(set) var errorMessage: String?
 
+  /// `true` once `load(familyUnitId:)` has completed at least once (success, no-family, or error).
+  /// Lets callers distinguish "not yet loaded" from "loaded, no subscription row exists" — both
+  /// leave `subscription` nil, but only the latter should render `planLabel`/`canWrite` as final.
+  private(set) var hasLoaded = false
+
   private let service: any EntitlementManaging
   private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "EntitlementStore")
 
+  /// Reflects only whatever `familyUnitId` was last passed to `load(familyUnitId:)`. Defaults to
+  /// `false` until `load` has been called at least once — currently only `SettingsView` and
+  /// `PlanView` call it. Phase 1 work that gates write actions elsewhere must first ensure `load`
+  /// has run for the active family (e.g. on session restore / family switch), or this will
+  /// incorrectly read as read-only.
   var canWrite: Bool { subscription?.canWrite() ?? false }
   var planLabel: String { subscription?.planLabel() ?? PlanLabel.unavailable }
 
@@ -27,10 +37,14 @@ final class EntitlementStore {
     guard let familyUnitId else {
       subscription = nil
       errorMessage = nil
+      hasLoaded = true
       return
     }
     isLoading = true
-    defer { isLoading = false }
+    defer {
+      isLoading = false
+      hasLoaded = true
+    }
     do {
       subscription = try await service.fetchSubscription(familyUnitId: familyUnitId)
       errorMessage = nil

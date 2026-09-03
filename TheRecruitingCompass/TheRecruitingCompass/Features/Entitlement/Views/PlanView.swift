@@ -11,7 +11,7 @@ struct PlanView: View {
           Text("Current plan")
             .font(.caption)
             .foregroundStyle(.secondary)
-          if entitlementStore.isLoading {
+          if entitlementStore.isLoading || !entitlementStore.hasLoaded {
             ProgressView()
           } else {
             Text(entitlementStore.planLabel)
