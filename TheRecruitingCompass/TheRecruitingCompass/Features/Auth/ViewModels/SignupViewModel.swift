@@ -20,7 +20,7 @@ final class SignupViewModel {
   var firstName = ""
   var lastName = ""
   var email = ""
-  var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: .now) ?? .now
+  var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -15, to: .now) ?? .now
   var password = ""
   var confirmPassword = ""
   var familyCode = ""
@@ -81,9 +81,8 @@ final class SignupViewModel {
     let termsChecked = termsAccepted
     let passwordStrengthValid = formValidator.validatePasswordStrength(password).isValid
     // DOB is only required for players (COPPA); parents don't provide their own DOB at signup.
-    // Players 13-17 must join via a parent/guardian invite, so a standalone signup is invalid.
     let hasValidDOB = role == .player
-      ? (!COPPAHelper.isUnderAge(dobString) && !COPPAHelper.requiresGuardianInvite(dobString))
+      ? !COPPAHelper.isUnderAge(dobString)
       : true
     let noFieldErrors = fieldErrors.isEmpty
 
@@ -110,11 +109,9 @@ final class SignupViewModel {
     isLoading || !isFormValid
   }
 
-  /// True when the selected player's DOB puts them in the 13-17 band, meaning they
-  /// must join through a parent/guardian family invite rather than a standalone signup.
-  /// Drives the guardian notice shown in the signup form.
-  var minorRequiresGuardian: Bool {
-    selectedRole == .player && COPPAHelper.requiresGuardianInvite(dobString)
+  /// True when the player is under 13 (COPPA). Players 13+ can sign up independently.
+  var isUnderCOPPAAge: Bool {
+    selectedRole == .player && COPPAHelper.isUnderAge(dobString)
   }
 
   init(authManager: (any AuthManaging)? = nil, familyService: (any FamilyManaging)? = nil) {
@@ -138,7 +135,7 @@ final class SignupViewModel {
     firstName = ""
     lastName = ""
     email = ""
-    dateOfBirth = Calendar.current.date(byAdding: .year, value: -18, to: .now) ?? .now
+    dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now) ?? .now
     password = ""
     confirmPassword = ""
     familyCode = ""
@@ -161,9 +158,6 @@ final class SignupViewModel {
     validate(.dateOfBirth) {
       if COPPAHelper.isUnderAge(dobString) {
         return "You must be 13 or older to create an account"
-      }
-      if COPPAHelper.requiresGuardianInvite(dobString) {
-        return "Players under 18 must join through a parent or guardian"
       }
       return nil
     }

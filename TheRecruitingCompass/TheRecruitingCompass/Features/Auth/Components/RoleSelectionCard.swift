@@ -13,17 +13,17 @@ struct RoleSelectionCard: View {
         HStack(spacing: 12) {
           Image(systemName: role.icon)
             .font(.system(size: roleIconSize))
-            .foregroundStyle(Color.primaryGreen)
+            .foregroundStyle(.white)
             .accessibilityHidden(true)
 
           VStack(alignment: .leading, spacing: 4) {
             Text(role.displayName)
               .font(.callout.weight(.semibold))
-              .foregroundStyle(Color.darkSlate)
+              .foregroundStyle(.white)
 
             Text(role.description)
               .font(.caption)
-              .foregroundStyle(Color.secondaryText)
+              .foregroundStyle(.white.opacity(0.85))
               .lineLimit(2)
           }
 
@@ -33,19 +33,19 @@ struct RoleSelectionCard: View {
             .font(.system(size: checkmarkSize))
             .foregroundStyle(
               isSelected
-                ? Color.accentBlue
-                : Color.borderGray
+                ? .white
+                : .white.opacity(0.5)
             )
             .accessibilityHidden(true)
         }
       }
       .padding(16)
-      .background(Color.Surface.card)
-      .border(
-        isSelected ? Color.accentBlue : Color.borderGray,
-        width: 2
+      .background(
+        isSelected
+          ? Color.primaryGreen
+          : Color.primaryGreen.opacity(0.85)
       )
-      .clipShape(.rect(cornerRadius: 8))
+      .clipShape(.rect(cornerRadius: 12))
     }
     .accessibilityElement(children: .combine)
     .accessibilityLabel(String(localized: "\(role.displayName) role"))
