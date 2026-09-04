@@ -222,27 +222,27 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertTrue(sut.isFormValid)
   }
 
-  func testIsFormInvalidForMinorPlayer13to17() {
+  func testFormValidForMinorPlayer13to17() {
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
 
-    XCTAssertFalse(sut.isFormValid, "A 13-17 player must not be able to complete a standalone signup")
-    XCTAssertTrue(sut.minorRequiresGuardian)
+    XCTAssertTrue(sut.isFormValid, "Players 13-17 can sign up independently")
+    XCTAssertFalse(sut.isUnderCOPPAAge)
   }
 
-  func testMinorRequiresGuardianFalseForAdultPlayer() {
+  func testFormValidForAdultPlayer() {
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -20, to: .now)!
 
-    XCTAssertFalse(sut.minorRequiresGuardian)
+    XCTAssertFalse(sut.isUnderCOPPAAge)
     XCTAssertTrue(sut.isFormValid)
   }
 
-  func testMinorRequiresGuardianFalseForParent() {
+  func testIsUnderCOPPAAgeFalseForParent() {
     fillValidForm(role: .parent)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
 
-    XCTAssertFalse(sut.minorRequiresGuardian, "The guardian gate applies only to the player role")
+    XCTAssertFalse(sut.isUnderCOPPAAge, "COPPA age check applies only to the player role")
   }
 
   func testIsFormInvalidWhenPasswordsDoNotMatch() {
