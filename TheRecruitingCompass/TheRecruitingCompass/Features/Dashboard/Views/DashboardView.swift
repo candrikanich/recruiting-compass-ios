@@ -256,6 +256,7 @@ struct DashboardView: View {
        viewModel.playerDetails?.actScore != nil {
       nuxProgressManager.completeItem(.academics)
     }
+    if familyManager.familyMembers.count > 1 { nuxProgressManager.completeItem(.inviteFamily) }
   }
 
   @ViewBuilder

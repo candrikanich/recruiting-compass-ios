@@ -20,6 +20,7 @@ struct QuickCommunicationView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
+  @Environment(NuxProgressManager.self) private var nuxProgressManager
 
   init(context: QuickCommunicationContext, onSent: (() -> Void)? = nil) {
     self.context = context
@@ -282,6 +283,7 @@ struct QuickCommunicationView: View {
     }
     .navigationTitle("Preview")
     .navigationBarTitleDisplayMode(.inline)
+    .task { nuxProgressManager.completeItem(.previewTemplate) }
     .safeAreaInset(edge: .bottom) {
       QuickCommActionsSection(
         showEmail: channel == .email,
