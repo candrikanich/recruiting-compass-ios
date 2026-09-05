@@ -5,6 +5,7 @@ struct TasksListView: View {
   @Environment(FamilyManager.self) private var familyManager
   @State private var lockedTaskAlertTask: TaskWithStatus?
   @State private var successMessageDismissWork: Task<Void, Never>?
+  @State private var realtimeService: TasksRealtimeService?
 
   private var statusFilterBinding: Binding<TaskStatusFilter> {
     Binding(
@@ -41,7 +42,15 @@ struct TasksListView: View {
       .padding(.vertical, 16)
     }
     .refreshable { await viewModel.refresh() }
-    .task { await viewModel.loadTasks() }
+    .task {
+      await viewModel.loadTasks()
+      await subscribeRealtime()
+    }
+    .onDisappear {
+      let service = realtimeService
+      realtimeService = nil
+      Task { await service?.unsubscribe() }
+    }
     .onChange(of: viewModel.showSuccessMessage) { _, show in
       if show {
         successMessageDismissWork?.cancel()
@@ -145,6 +154,19 @@ struct TasksListView: View {
       systemImage: "checkmark.circle",
       description: Text("No tasks available for this grade level")
     )
+  }
+
+  private func subscribeRealtime() async {
+    guard realtimeService == nil, let athleteId = viewModel.currentAthleteId else { return }
+    let service = TasksRealtimeService()
+    realtimeService = service
+    do {
+      try await service.subscribe(athleteId: athleteId) { [viewModel] in
+        Task { await viewModel.refresh() }
+      }
+    } catch {
+      // Non-fatal — page still works with pull-to-refresh
+    }
   }
 }
 

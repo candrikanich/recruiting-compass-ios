@@ -5,6 +5,7 @@ struct DashboardView: View {
   @State private var timelineViewModel = TimelineViewModel()
   @State private var showParentWizard = false
   @State private var showAddSchool = false
+  @State private var realtimeService: DashboardRealtimeService?
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
   @Environment(\.openMoreSection) private var openMoreSection
@@ -72,6 +73,7 @@ struct DashboardView: View {
       )
       .task {
         await viewModel.fetchDashboardData()
+        await subscribeRealtime()
       }
       .task {
         await timelineViewModel.load()
@@ -84,6 +86,27 @@ struct DashboardView: View {
       .onChange(of: familyManager.selectedAthleteId) { _, _ in
         Task { await timelineViewModel.load() }
       }
+      .onChange(of: familyManager.familyUnitId) { _, _ in
+        let service = realtimeService
+        realtimeService = nil
+        Task {
+          await service?.unsubscribe()
+          await subscribeRealtime()
+        }
+      }
+  }
+
+  private func subscribeRealtime() async {
+    guard realtimeService == nil, let familyUnitId = familyManager.familyUnitId else { return }
+    let service = DashboardRealtimeService()
+    realtimeService = service
+    do {
+      try await service.subscribe(familyUnitId: familyUnitId) { [viewModel] in
+        Task { await viewModel.refresh() }
+      }
+    } catch {
+      // Non-fatal — dashboard still works with pull-to-refresh
+    }
   }
 
   // MARK: - Compact Layout (iPhone — identical to pre-iPad layout)

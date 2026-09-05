@@ -18,7 +18,12 @@ enum ActivityRealtimeError: LocalizedError {
   }
 }
 
-/// Real-time activity feed service using Supabase Realtime subscriptions
+/// Real-time activity feed service using Supabase Realtime subscriptions.
+///
+/// Subscribes to interactions (family_unit_id), documents (family_unit_id),
+/// and school_status_history (changed_by — lacks family_unit_id).
+/// INSERTs are decoded and enriched for instant feed append; UPDATE/DELETE
+/// trigger a full reload via the `onChange` callback.
 actor ActivityRealtimeService: ActivityRealtimeManaging {
   private let supabaseManager: SupabaseManager
   private let activityService: any ActivityFeedManaging
@@ -39,26 +44,49 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
 
   func subscribe(
     userId: String,
-    onInsert: @escaping @MainActor @Sendable (ActivityEvent) -> Void
+    familyUnitId: String?,
+    onInsert: @escaping @MainActor @Sendable (ActivityEvent) -> Void,
+    onChange: @escaping @MainActor @Sendable () -> Void
   ) async throws {
-    logger.info("Subscribing to realtime activity updates for user: \(userId)")
+    logger.info("Subscribing to realtime activity updates for user: \(userId), family: \(familyUnitId ?? "none")")
 
-    // Subscribe to interactions table
+    // Interactions — use family_unit_id when available (catches family member changes)
+    let interactionsFilter = familyUnitId.map { "family_unit_id=eq.\($0)" } ?? "logged_by=eq.\(userId)"
     let interactionsChannel = supabaseManager.client
       .realtimeV2
-      .channel("activity-interactions-\(userId)")
+      .channel("activity-interactions-\(familyUnitId ?? userId)")
 
     _ = interactionsChannel
       .onPostgresChange(
         InsertAction.self,
         schema: "public",
         table: "interactions",
-        filter: "logged_by=eq.\(userId)"
+        filter: interactionsFilter
       ) { [weak self] action in
         guard let self = self else { return }
         Task { @MainActor in
           await self.handleInteractionInsert(record: action.record, onInsert: onInsert)
         }
+      }
+
+    _ = interactionsChannel
+      .onPostgresChange(
+        UpdateAction.self,
+        schema: "public",
+        table: "interactions",
+        filter: interactionsFilter
+      ) { _ in
+        Task { @MainActor in onChange() }
+      }
+
+    _ = interactionsChannel
+      .onPostgresChange(
+        DeleteAction.self,
+        schema: "public",
+        table: "interactions",
+        filter: interactionsFilter
+      ) { _ in
+        Task { @MainActor in onChange() }
       }
 
     do {
@@ -69,7 +97,7 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
       throw ActivityRealtimeError.subscriptionFailed
     }
 
-    // Subscribe to school_status_history table
+    // School status history — no family_unit_id column, stays user-scoped
     let statusChangesChannel = supabaseManager.client
       .realtimeV2
       .channel("activity-status-\(userId)")
@@ -87,6 +115,26 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
         }
       }
 
+    _ = statusChangesChannel
+      .onPostgresChange(
+        UpdateAction.self,
+        schema: "public",
+        table: "school_status_history",
+        filter: "changed_by=eq.\(userId)"
+      ) { _ in
+        Task { @MainActor in onChange() }
+      }
+
+    _ = statusChangesChannel
+      .onPostgresChange(
+        DeleteAction.self,
+        schema: "public",
+        table: "school_status_history",
+        filter: "changed_by=eq.\(userId)"
+      ) { _ in
+        Task { @MainActor in onChange() }
+      }
+
     do {
       try await statusChangesChannel.subscribeWithError()
       self.statusChangesChannel = statusChangesChannel
@@ -95,22 +143,43 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
       throw ActivityRealtimeError.subscriptionFailed
     }
 
-    // Subscribe to documents table
+    // Documents — use family_unit_id when available
+    let documentsFilter = familyUnitId.map { "family_unit_id=eq.\($0)" } ?? "user_id=eq.\(userId)"
     let documentsChannel = supabaseManager.client
       .realtimeV2
-      .channel("activity-documents-\(userId)")
+      .channel("activity-documents-\(familyUnitId ?? userId)")
 
     _ = documentsChannel
       .onPostgresChange(
         InsertAction.self,
         schema: "public",
         table: "documents",
-        filter: "user_id=eq.\(userId)"
+        filter: documentsFilter
       ) { [weak self] action in
         guard let self = self else { return }
         Task { @MainActor in
           await self.handleDocumentInsert(record: action.record, onInsert: onInsert)
         }
+      }
+
+    _ = documentsChannel
+      .onPostgresChange(
+        UpdateAction.self,
+        schema: "public",
+        table: "documents",
+        filter: documentsFilter
+      ) { _ in
+        Task { @MainActor in onChange() }
+      }
+
+    _ = documentsChannel
+      .onPostgresChange(
+        DeleteAction.self,
+        schema: "public",
+        table: "documents",
+        filter: documentsFilter
+      ) { _ in
+        Task { @MainActor in onChange() }
       }
 
     do {
@@ -154,17 +223,14 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
   ) async {
 
     do {
-      // Decode the interaction
       let interaction = try record.decode(as: Interaction.self)
 
-      // Fetch school name if needed
       var schoolName: String?
       if let schoolId = interaction.schoolId {
         let schoolNames = try await activityService.fetchSchoolNames(schoolIds: [schoolId])
         schoolName = schoolNames[schoolId]
       }
 
-      // Transform to ActivityEvent
       let event = ActivityEventFactory.fromInteraction(interaction, schoolName: schoolName)
 
       logger.debug("Received realtime interaction insert: \(event.id)")
@@ -181,14 +247,11 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
   ) async {
 
     do {
-      // Decode the status change
       let statusChange = try record.decode(as: SchoolStatusHistory.self)
 
-      // Fetch school name
       let schoolNames = try await activityService.fetchSchoolNames(schoolIds: [statusChange.schoolId])
       let schoolName = schoolNames[statusChange.schoolId]
 
-      // Transform to ActivityEvent
       let event = ActivityEventFactory.fromStatusChange(statusChange, schoolName: schoolName)
 
       logger.debug("Received realtime status change insert: \(event.id)")
@@ -205,10 +268,8 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
   ) async {
 
     do {
-      // Decode the document
       let document = try record.decode(as: DocumentRecord.self)
 
-      // Transform to ActivityEvent
       let event = ActivityEventFactory.fromDocument(document)
 
       logger.debug("Received realtime document insert: \(event.id)")

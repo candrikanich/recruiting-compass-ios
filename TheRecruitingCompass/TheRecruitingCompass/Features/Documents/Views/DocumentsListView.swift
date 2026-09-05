@@ -3,6 +3,8 @@ import SwiftUI
 struct DocumentsListView: View {
   @State private var viewModel = DocumentsListViewModel()
   @State private var documentToDelete: Document?
+  @State private var realtimeService: DocumentsRealtimeService?
+  @Environment(FamilyManager.self) private var familyManager
 
   private var showDeleteConfirmation: Binding<Bool> {
     Binding(
@@ -29,6 +31,12 @@ struct DocumentsListView: View {
     .task {
       await viewModel.loadDocuments()
       await viewModel.loadSchools()
+      await subscribeRealtime()
+    }
+    .onDisappear {
+      let service = realtimeService
+      realtimeService = nil
+      Task { await service?.unsubscribe() }
     }
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
@@ -221,5 +229,18 @@ struct DocumentsListView: View {
     .background(Color.red)
     .clipShape(.rect(cornerRadius: 8))
     .padding()
+  }
+
+  private func subscribeRealtime() async {
+    guard realtimeService == nil, let familyUnitId = familyManager.familyUnitId else { return }
+    let service = DocumentsRealtimeService()
+    realtimeService = service
+    do {
+      try await service.subscribe(familyUnitId: familyUnitId) { [viewModel] in
+        Task { await viewModel.loadDocuments() }
+      }
+    } catch {
+      // Non-fatal — page still works with pull-to-refresh
+    }
   }
 }

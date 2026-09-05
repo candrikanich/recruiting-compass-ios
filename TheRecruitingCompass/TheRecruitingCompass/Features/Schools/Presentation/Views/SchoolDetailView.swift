@@ -15,6 +15,7 @@ struct SchoolDetailView: View {
   @State private var quickCommunicationContext: QuickCommunicationContext?
   @State private var showCoachPickerForQuickComm = false
   @State private var showAddCoach = false
+  @State private var realtimeService: SchoolDetailRealtimeService?
   private let preferenceService: any PreferenceManaging = PreferenceServiceImpl(supabaseManager: .shared)
 
   init(schoolId: String) {
@@ -70,6 +71,12 @@ struct SchoolDetailView: View {
     .task {
       await viewModel.loadSchool()
       await viewModel.loadHomeLocation()
+      await subscribeRealtime()
+    }
+    .onDisappear {
+      let service = realtimeService
+      realtimeService = nil
+      Task { await service?.unsubscribe() }
     }
     .alert("Error", isPresented: $viewModel.isShowingErrorAlert, presenting: viewModel.errorMessage) { _ in
     } message: { message in
@@ -103,6 +110,19 @@ struct SchoolDetailView: View {
         onSelect: { match in Task { await viewModel.confirmEnrich(match) } },
         onCancel: { viewModel.enrichMatches = [] }
       )
+    }
+  }
+
+  private func subscribeRealtime() async {
+    guard realtimeService == nil else { return }
+    let service = SchoolDetailRealtimeService()
+    realtimeService = service
+    do {
+      try await service.subscribe(schoolId: schoolId) { [viewModel] in
+        Task { await viewModel.loadSchool() }
+      }
+    } catch {
+      // Non-fatal — page still works with pull-to-refresh
     }
   }
 
