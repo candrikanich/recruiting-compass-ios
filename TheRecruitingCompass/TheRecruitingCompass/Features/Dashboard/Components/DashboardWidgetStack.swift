@@ -22,6 +22,7 @@ struct DashboardWidgetStack: View {
   let athleteSport: String?
   let athleteGender: String?
   let graduationYear: Int?
+  let userDeadlines: [Deadline]
   @Binding var quickTasks: [QuickTask]
   let onDismissSuggestion: (String) -> Void
   let onCompleteSuggestion: (String) -> Void
@@ -100,7 +101,10 @@ struct DashboardWidgetStack: View {
 
     case .recruitingCalendar:
       if visibility.recruitingCalendar {
-        RecruitingCalendarWidget(sport: athleteSport, gender: athleteGender, graduationYear: graduationYear)
+        RecruitingCalendarWidget(
+          sport: athleteSport, gender: athleteGender,
+          userDeadlines: userDeadlines, graduationYear: graduationYear
+        )
       }
 
     case .performance:
