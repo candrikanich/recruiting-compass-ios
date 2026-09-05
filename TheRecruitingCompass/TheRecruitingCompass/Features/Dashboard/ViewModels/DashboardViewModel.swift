@@ -34,6 +34,9 @@ final class DashboardViewModel {
   var metrics: [PerformanceMetric] = []
   var interactionTrends: [InteractionTrend] = []
   var playerDetails: PlayerDetails?
+  /// Whether the target athlete has a home location set (`user_preferences`/`location`).
+  /// Loaded alongside playerDetails; feeds profileCompleteness/missingProfileFields.
+  var hasHomeLocation = false
   var recommendations: [SchoolRecommendation] = []
   var isLoading = false
   var isLoggingOut = false
@@ -117,14 +120,14 @@ final class DashboardViewModel {
   }
 
   /// Profile completeness (0.0–1.0) derived from playerDetails. Falls back to 0 when
-  /// details haven't loaded yet. Video/location are not tracked on the dashboard — passed
+  /// details haven't loaded yet. Highlight video is not tracked on the dashboard — passed
   /// as false so the ring focuses on fields the user can fill from Player Details.
   var profileCompleteness: Double {
-    playerDetails?.completenessScore(hasHighlightVideo: false, hasHomeLocation: false) ?? 0
+    playerDetails?.completenessScore(hasHighlightVideo: false, hasHomeLocation: hasHomeLocation) ?? 0
   }
 
   var missingProfileFields: [MissingField] {
-    playerDetails?.topMissingFields(hasHighlightVideo: false, hasHomeLocation: false) ?? []
+    playerDetails?.topMissingFields(hasHighlightVideo: false, hasHomeLocation: hasHomeLocation) ?? []
   }
 
   #if DEBUG
@@ -469,6 +472,14 @@ final class DashboardViewModel {
       athleteGender = details?.gender
     } catch {
       logger.debug("Could not load graduation year/sport/gender: \(error.localizedDescription)")
+    }
+
+    do {
+      let location: HomeLocation? = try await preferenceService.fetchPreferences(category: .location, userId: userId)
+      hasHomeLocation = location?.isSet ?? false
+    } catch {
+      logger.debug("Could not load home location for completeness: \(error.localizedDescription)")
+      hasHomeLocation = false
     }
   }
 
