@@ -306,6 +306,7 @@ struct DashboardView: View {
       athleteSport: viewModel.athleteSport,
       athleteGender: viewModel.athleteGender,
       graduationYear: viewModel.graduationYear,
+      userDeadlines: viewModel.deadlines,
       quickTasks: $viewModel.quickTasks,
       onDismissSuggestion: { id in
         Task { await viewModel.dismissSuggestion(id) }

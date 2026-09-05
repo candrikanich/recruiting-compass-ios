@@ -9,6 +9,12 @@ struct RecruitingCalendarWidget: View {
   let sport: String?
   let gender: String?
   var division: String = "D1"
+  /// Family-scoped user deadlines to merge into the "Upcoming" list alongside
+  /// NCAA-calendar milestones, so the widget shows the same unified timeline
+  /// as `DeadlinesListView`. Empty by default — callers that don't have
+  /// deadlines loaded (or don't want them merged, e.g. `TimelineGuidanceView`)
+  /// see unchanged, milestones-only behavior.
+  var userDeadlines: [Deadline] = []
   /// Target athlete's graduation year — gates which milestone `type`s surface
   /// (e.g. signing dates are withheld from underclassmen). `nil` shows the
   /// unfiltered milestone list.
@@ -91,7 +97,7 @@ struct RecruitingCalendarWidget: View {
   }
 
   private var upcomingMilestones: [CalendarMilestone] {
-    RecruitingCalendar.upcomingMilestones(
+    let systemMilestones = RecruitingCalendar.upcomingMilestones(
       todayISO,
       sport: sport,
       division: division,
@@ -99,6 +105,18 @@ struct RecruitingCalendarWidget: View {
       footballSubdivision: effectiveFootballSubdivision,
       graduationYear: graduationYear
     )
+    guard !userDeadlines.isEmpty else { return systemMilestones }
+
+    let userMilestones = userDeadlines
+      .filter { $0.deadlineDate >= todayISO }
+      .map { deadline in
+        CalendarMilestone(date: deadline.deadlineDate, title: deadline.label, type: .deadline)
+      }
+
+    var seen = Set<String>()
+    return (systemMilestones + userMilestones)
+      .filter { seen.insert("\($0.date)|\($0.title)").inserted }
+      .sorted { $0.date < $1.date }
   }
 
   private var isDatasetStale: Bool {

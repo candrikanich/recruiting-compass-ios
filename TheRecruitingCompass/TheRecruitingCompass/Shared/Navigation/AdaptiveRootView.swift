@@ -126,9 +126,7 @@ struct AdaptiveRootView: View {
           case .documents:
             DocumentsListView()
           case .deadlines:
-            // No dedicated deadlines screen exists yet; deadlines surface inside the
-            // recruiting timeline (see `TaskDeadlineCalculator`). Revisit if one is added.
-            RecruitingTimelineView()
+            DeadlinesListView()
           case .settings:
             SettingsView()
           case .schools, .coaches, .interactions:

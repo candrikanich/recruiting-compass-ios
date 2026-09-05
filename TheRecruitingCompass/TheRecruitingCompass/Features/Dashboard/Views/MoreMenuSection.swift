@@ -3,6 +3,7 @@ import SwiftUI
 enum MoreMenuSection: String, CaseIterable, Identifiable {
   case timeline
   case events
+  case deadlines
   case documents
   case offers
   case performance
@@ -19,6 +20,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     switch self {
     case .timeline: return String(localized: "Recruiting Timeline")
     case .events: return String(localized: "Events")
+    case .deadlines: return String(localized: "Deadlines")
     case .documents: return String(localized: "Documents")
     case .offers: return String(localized: "Offers")
     case .performance: return String(localized: "Performance")
@@ -35,6 +37,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     switch self {
     case .timeline: return String(localized: "Phases, milestones, and recruiting roadmap")
     case .events: return String(localized: "Camps, visits, and key dates")
+    case .deadlines: return String(localized: "Application, visit, and recruiting deadlines")
     case .documents: return String(localized: "Transcripts, videos, and files")
     case .offers: return String(localized: "Scholarship and offer tracking")
     case .performance: return String(localized: "Stats, metrics, and progress")
@@ -51,6 +54,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     switch self {
     case .timeline: return "clock"
     case .events: return "calendar"
+    case .deadlines: return "exclamationmark.circle"
     case .documents: return "doc"
     case .offers: return "gift"
     case .performance: return "chart.xyaxis.line"
@@ -67,6 +71,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     switch self {
     case .timeline: return .blue
     case .events: return .purple
+    case .deadlines: return .red
     case .documents: return .blue
     case .offers: return .green
     case .performance: return .orange
@@ -82,7 +87,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
   /// Sections grouped for list display (header title → items).
   static var recruitingSections: [(header: String, items: [MoreMenuSection])] {
     [
-      ("Recruiting", [.timeline, .events, .documents, .offers, .performance, .analytics, .activity]),
+      ("Recruiting", [.timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity]),
       ("Support", [.helpCenter]),
       ("Account", [.publicProfile, .notifications, .settings])
     ]

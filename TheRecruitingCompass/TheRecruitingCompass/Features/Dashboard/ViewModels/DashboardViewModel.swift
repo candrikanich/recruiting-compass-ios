@@ -33,6 +33,10 @@ final class DashboardViewModel {
   var allSchools: [School] = []
   var metrics: [PerformanceMetric] = []
   var interactionTrends: [InteractionTrend] = []
+  /// Family-scoped user deadlines, merged into the recruiting-calendar
+  /// widget's "Upcoming" list alongside NCAA milestones (see
+  /// `RecruitingCalendarWidget.userDeadlines`).
+  var deadlines: [Deadline] = []
   var playerDetails: PlayerDetails?
   /// Whether the target athlete has a home location set (`user_preferences`/`location`).
   /// Loaded alongside playerDetails; feeds profileCompleteness/missingProfileFields.
@@ -54,6 +58,7 @@ final class DashboardViewModel {
   private let familyManager: FamilyManager
   private let preferenceService: any PreferenceManaging
   private let recommendationService: any SchoolRecommendationManaging
+  private let deadlinesService: any DeadlinesManaging
 
   /// The user whose recruiting data the dashboard shows. When a parent is
   /// viewing an athlete, events/metrics/interactions belong to the athlete;
@@ -146,7 +151,8 @@ final class DashboardViewModel {
     taskStorage: QuickTaskStorage? = nil,
     familyManager: FamilyManager? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
-    recommendationService: (any SchoolRecommendationManaging)? = nil
+    recommendationService: (any SchoolRecommendationManaging)? = nil,
+    deadlinesService: (any DeadlinesManaging)? = nil
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.dashboardService = dashboardService ?? DashboardServiceImpl(supabaseManager: .shared)
@@ -154,6 +160,7 @@ final class DashboardViewModel {
     self.familyManager = familyManager ?? .shared
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.recommendationService = recommendationService ?? SchoolRecommendationServiceImpl(supabaseManager: .shared)
+    self.deadlinesService = deadlinesService ?? DeadlinesServiceImpl(supabaseManager: .shared)
   }
 
   func fetchDashboardData() async {
@@ -237,7 +244,13 @@ final class DashboardViewModel {
     // Always fetch profile — NUX completeness card needs it even when calendar/at-a-glance are off
     async let profileTask: Void = fetchPlayerProfileIfNeeded(true)
     async let recommendationsTask: Void = fetchRecommendations()
-    _ = await (suggestionsTask, eventsTask, metricsTask, trendsTask, coachesTask, profileTask, recommendationsTask)
+    async let deadlinesTask: Void = fetchDeadlinesIfNeeded(
+      widgets.recruitingCalendar && familyUnitId != nil, familyUnitId: familyUnitId
+    )
+    _ = await (
+      suggestionsTask, eventsTask, metricsTask, trendsTask, coachesTask, profileTask,
+      recommendationsTask, deadlinesTask
+    )
   }
 
   private func fetchSuggestionsIfNeeded(_ needed: Bool) async {
@@ -285,6 +298,18 @@ final class DashboardViewModel {
   private func fetchPlayerProfileIfNeeded(_ needed: Bool) async {
     guard needed else { return }
     await fetchPlayerProfile()
+  }
+
+  private func fetchDeadlinesIfNeeded(_ needed: Bool, familyUnitId: String?) async {
+    guard needed, let familyUnitId else {
+      deadlines = []
+      return
+    }
+    do {
+      deadlines = try await deadlinesService.fetchDeadlines(familyUnitId: familyUnitId)
+    } catch {
+      logger.warning("Failed to load deadlines: \(error.localizedDescription)")
+    }
   }
 
   func exitParentPreview() {
