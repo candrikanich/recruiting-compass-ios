@@ -135,7 +135,7 @@ struct SchoolDetailView: View {
         contactSocialSection(school: school)
         collegeDataSection(school: school)
         quickActionsSection(school: school)
-        coachesSection
+        coachesSection(school: school)
         questionnaireToggle(school: school)
         outreachNotesSection(school: school)
         schoolFitSection
@@ -298,13 +298,15 @@ struct SchoolDetailView: View {
   }
 
   @ViewBuilder
-  private var coachesSection: some View {
+  private func coachesSection(school: School) -> some View {
     SchoolCoachesPanel(
       coaches: viewModel.coaches,
       isLoading: viewModel.isLoadingCoaches,
       onSeeAll: { filterCoachesBySchool(schoolId) },
       onAddCoach: { showAddCoach = true },
-      onSelectCoach: { coachId in navigationDestination = .coachDetail(coachId: coachId) }
+      onSelectCoach: { coachId in navigationDestination = .coachDetail(coachId: coachId) },
+      schoolName: school.name,
+      onQuickCommunication: { context in quickCommunicationContext = context }
     )
   }
 
@@ -433,6 +435,7 @@ struct SchoolDetailView: View {
       onManageCoaches: { filterCoachesBySchool(schoolId) },
       onAddCoach: { showAddCoach = true },
       onSelectCoach: { coachId in navigationDestination = .coachDetail(coachId: coachId) },
+      onQuickCommunication: { context in quickCommunicationContext = context },
       coachCount: viewModel.coaches.count
     )
   }

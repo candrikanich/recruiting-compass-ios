@@ -6,6 +6,8 @@ struct SchoolCoachesPanel: View {
   let onSeeAll: () -> Void
   var onAddCoach: (() -> Void)?
   var onSelectCoach: ((String) -> Void)?
+  var schoolName: String = ""
+  var onQuickCommunication: ((QuickCommunicationContext) -> Void)?
 
   private let maxDisplayedCoaches = 3
 
@@ -63,7 +65,12 @@ struct SchoolCoachesPanel: View {
             Button {
               onSelectCoach?(coach.id)
             } label: {
-              CoachCardView(coach: coach, variant: .compact)
+              CoachCardView(
+              coach: coach,
+              variant: .compact,
+              schoolName: schoolName,
+              onQuickCommunication: onQuickCommunication
+            )
             }
             .buttonStyle(.plain)
 

@@ -11,6 +11,7 @@ struct SchoolDetailSidebar: View {
   let onManageCoaches: () -> Void
   let onAddCoach: () -> Void
   let onSelectCoach: (String) -> Void
+  let onQuickCommunication: (QuickCommunicationContext) -> Void
   let coachCount: Int
 
   var body: some View {
@@ -33,7 +34,9 @@ struct SchoolDetailSidebar: View {
         isLoading: viewModel.isLoadingCoaches,
         onSeeAll: onManageCoaches,
         onAddCoach: onAddCoach,
-        onSelectCoach: onSelectCoach
+        onSelectCoach: onSelectCoach,
+        schoolName: school.name,
+        onQuickCommunication: onQuickCommunication
       )
 
       SchoolFitSection(
