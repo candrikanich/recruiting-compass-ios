@@ -5,6 +5,9 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
   let sidebarWidth: CGFloat
   @ViewBuilder let content: () -> Content
   @ViewBuilder let sidebar: () -> Sidebar
+  /// Overrides the stacked (compact-width) order. When nil, compact falls back to
+  /// `content()` followed by `sidebar()`, in that order.
+  let compactContent: (() -> AnyView)?
   @Environment(\.horizontalSizeClass) private var sizeClass
 
   enum SidebarPlacement {
@@ -22,6 +25,21 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
     self.sidebarWidth = sidebarWidth
     self.content = content
     self.sidebar = sidebar
+    self.compactContent = nil
+  }
+
+  init<Compact: View>(
+    sidebarPlacement: SidebarPlacement,
+    sidebarWidth: CGFloat = 300,
+    @ViewBuilder content: @escaping () -> Content,
+    @ViewBuilder sidebar: @escaping () -> Sidebar,
+    @ViewBuilder compact: @escaping () -> Compact
+  ) {
+    self.sidebarPlacement = sidebarPlacement
+    self.sidebarWidth = sidebarWidth
+    self.content = content
+    self.sidebar = sidebar
+    self.compactContent = { AnyView(compact()) }
   }
 
   /// Minimum total width required to show the two-column layout.
@@ -83,8 +101,12 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
   private var compactLayout: some View {
     ScrollView {
       VStack(spacing: 16) {
-        content()
-        sidebar()
+        if let compactContent {
+          compactContent()
+        } else {
+          content()
+          sidebar()
+        }
       }
       .padding()
     }

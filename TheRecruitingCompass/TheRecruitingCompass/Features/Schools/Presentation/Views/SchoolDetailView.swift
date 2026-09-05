@@ -110,140 +110,43 @@ struct SchoolDetailView: View {
   private func detailContent(school: School) -> some View {
     AdaptiveDetailLayout(sidebarPlacement: .trailing) {
       VStack(spacing: 24) {
-        SchoolDetailHeader(
-          school: school,
-          onToggleFavorite: {
-            Task { await viewModel.toggleFavorite() }
-          }
-        )
-
+        headerSection(school: school)
         Divider()
-
-        // 2. Map
-        SchoolMapView(
-          school: school,
-          homeLocation: viewModel.homeCoordinate,
-          onSetHomeLocation: { showHomeLocationSheet = true }
-        )
-
-        // 3. Information
-        SchoolBasicInfoDisplaySection(
-          school: school,
-          onEdit: { viewModel.startEditingBasicInfo() }
-        )
-
-        // 4. College data
-        CollegeDataSection(
-          school: school,
-          isLookingUp: viewModel.isLookingUpCollegeData,
-          lookupError: viewModel.collegeDataError,
-          onLookup: { await viewModel.lookupCollegeData() }
-        )
-
-        // 4b. Recruiting questionnaire — gates the completion line in outreach.
-        Toggle(isOn: Binding(
-          get: { school.questionnaireCompleted },
-          set: { newValue in Task { await viewModel.setQuestionnaireCompleted(newValue) } }
-        )) {
-          VStack(alignment: .leading, spacing: 2) {
-            Text("Recruiting questionnaire completed")
-              .font(.subheadline)
-              .fontWeight(.medium)
-            Text("Enables the \"I've completed your recruiting questionnaire\" line in coach outreach for this school.")
-              .font(.caption)
-              .foregroundStyle(.secondary)
-          }
-        }
-        .accessibilityLabel(String(localized: "Recruiting questionnaire completed"))
-
-        // 8. Coaching philosophy
-        SchoolCoachingPhilosophySection(
-          philosophy: EditableCoachingPhilosophy.from(school: school),
-          onEdit: { viewModel.startEditingCoachingPhilosophy() }
-        )
-
-        // 9. Pros/cons
-        SchoolProsConsSection(
-          pros: school.pros,
-          cons: school.cons,
-          newPro: $viewModel.newPro,
-          newCon: $viewModel.newCon,
-          onAddPro: { await viewModel.addPro() },
-          onRemovePro: { index in await viewModel.removePro(at: index) },
-          onAddCon: { await viewModel.addCon() },
-          onRemoveCon: { index in await viewModel.removeCon(at: index) },
-          isAddingPro: viewModel.isAddingPro,
-          isAddingCon: viewModel.isAddingCon
-        )
-
-        // 9b. Coach-outreach answers — reused to prefill Quick Comm ({{programNote}} / {{fitReason}}).
-        SchoolNotesSection(
-          title: String(localized: "Why this program"),
-          notes: $viewModel.editedWhyProgram,
-          onBlur: { await viewModel.saveOutreachNotes() }
-        )
-        SchoolNotesSection(
-          title: String(localized: "Why it fits you"),
-          notes: $viewModel.editedFitReason,
-          onBlur: { await viewModel.saveOutreachNotes() }
-        )
-
-        // 10. Notes
-        SchoolNotesSection(
-          title: String(localized: "Notes"),
-          notes: $viewModel.editedNotes,
-          onBlur: { await viewModel.saveNotes() }
-        )
-
-        // 11. Documents
-        SchoolDocumentsSection(schoolId: school.id)
-
-        SchoolStatusHistorySection(history: viewModel.statusHistory)
-
-        // Delete Button
-        Button(role: .destructive) {
-          viewModel.confirmDelete()
-        } label: {
-          Label("Delete School", systemImage: "trash")
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.red.opacity(0.1))
-            .foregroundStyle(.red)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-        .accessibilityIdentifier("delete-school-button")
-        .accessibilityLabel(String(localized: "Delete school"))
-        .accessibilityHint("Permanently remove this school and all related data")
+        mapSection(school: school)
+        contactSocialSection(school: school)
+        collegeDataSection(school: school)
+        questionnaireToggle(school: school)
+        coachingPhilosophySection(school: school)
+        prosConsSection(school: school)
+        outreachNotesSection(school: school)
+        notesSection
+        documentsSection(school: school)
+        statusHistorySection
+        deleteButton
       }
     } sidebar: {
-      SchoolDetailSidebar(
-        school: school,
-        viewModel: viewModel,
-        onLogInteraction: {
-          navigationDestination = .addInteraction(schoolId: schoolId)
-        },
-        onQuickComm: {
-          let coaches = viewModel.coaches
-          if coaches.count == 1, let coach = coaches.first {
-            quickCommunicationContext = QuickCommunicationContext(
-              coach: coach,
-              schoolName: school.name
-            )
-          } else if coaches.count > 1 {
-            showCoachPickerForQuickComm = true
-          }
-        },
-        onManageCoaches: {
-          filterCoachesBySchool(schoolId)
-        },
-        onAddCoach: {
-          showAddCoach = true
-        },
-        onSelectCoach: { coachId in
-          navigationDestination = .coachDetail(coachId: coachId)
-        },
-        coachCount: viewModel.coaches.count
-      )
+      sidebar(school: school)
+    } compact: {
+      VStack(spacing: 24) {
+        headerSection(school: school)
+        Divider()
+        statusSection(school: school)
+        mapSection(school: school)
+        contactSocialSection(school: school)
+        collegeDataSection(school: school)
+        quickActionsSection(school: school)
+        coachesSection
+        questionnaireToggle(school: school)
+        outreachNotesSection(school: school)
+        schoolFitSection
+        prosConsSection(school: school)
+        notesSection
+        coachingPhilosophySection(school: school)
+        documentsSection(school: school)
+        attributionSection(school: school)
+        statusHistorySection
+        deleteButton
+      }
     }
     .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
     .sheet(isPresented: $viewModel.isEditingCoachingPhilosophy) {
@@ -321,6 +224,217 @@ struct SchoolDetailView: View {
         )
       }
     }
+  }
+
+  // MARK: - Sections (shared between the iPad two-column layout and the
+  // single-column iPhone order)
+
+  @ViewBuilder
+  private func headerSection(school: School) -> some View {
+    SchoolDetailHeader(
+      school: school,
+      onToggleFavorite: {
+        Task { await viewModel.toggleFavorite() }
+      }
+    )
+  }
+
+  @ViewBuilder
+  private func statusSection(school: School) -> some View {
+    SchoolRecruitingStatusAndTierSection(
+      currentStatus: SchoolStatus(rawValue: school.status) ?? .interested,
+      isUpdatingStatus: viewModel.isUpdatingStatus,
+      onStatusChange: { await viewModel.updateStatus(to: $0) }
+    )
+  }
+
+  @ViewBuilder
+  private func mapSection(school: School) -> some View {
+    SchoolMapView(
+      school: school,
+      homeLocation: viewModel.homeCoordinate,
+      onSetHomeLocation: { showHomeLocationSheet = true }
+    )
+  }
+
+  @ViewBuilder
+  private func contactSocialSection(school: School) -> some View {
+    SchoolBasicInfoDisplaySection(
+      school: school,
+      onEdit: { viewModel.startEditingBasicInfo() }
+    )
+  }
+
+  @ViewBuilder
+  private func collegeDataSection(school: School) -> some View {
+    CollegeDataSection(
+      school: school,
+      isLookingUp: viewModel.isLookingUpCollegeData,
+      lookupError: viewModel.collegeDataError,
+      onLookup: { await viewModel.lookupCollegeData() }
+    )
+  }
+
+  private func onQuickComm(school: School) {
+    let coaches = viewModel.coaches
+    if coaches.count == 1, let coach = coaches.first {
+      quickCommunicationContext = QuickCommunicationContext(
+        coach: coach,
+        schoolName: school.name
+      )
+    } else if coaches.count > 1 {
+      showCoachPickerForQuickComm = true
+    }
+  }
+
+  @ViewBuilder
+  private func quickActionsSection(school: School) -> some View {
+    SchoolQuickActions(
+      onLogInteraction: { navigationDestination = .addInteraction(schoolId: schoolId) },
+      onQuickComm: { onQuickComm(school: school) },
+      onManageCoaches: { filterCoachesBySchool(schoolId) },
+      coachCount: viewModel.coaches.count
+    )
+  }
+
+  @ViewBuilder
+  private var coachesSection: some View {
+    SchoolCoachesPanel(
+      coaches: viewModel.coaches,
+      isLoading: viewModel.isLoadingCoaches,
+      onSeeAll: { filterCoachesBySchool(schoolId) },
+      onAddCoach: { showAddCoach = true },
+      onSelectCoach: { coachId in navigationDestination = .coachDetail(coachId: coachId) }
+    )
+  }
+
+  @ViewBuilder
+  private func questionnaireToggle(school: School) -> some View {
+    // Gates the completion line in outreach.
+    Toggle(isOn: Binding(
+      get: { school.questionnaireCompleted },
+      set: { newValue in Task { await viewModel.setQuestionnaireCompleted(newValue) } }
+    )) {
+      VStack(alignment: .leading, spacing: 2) {
+        Text("Recruiting questionnaire completed")
+          .font(.subheadline)
+          .fontWeight(.medium)
+        Text("Enables the \"I've completed your recruiting questionnaire\" line in coach outreach for this school.")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+    }
+    .accessibilityLabel(String(localized: "Recruiting questionnaire completed"))
+  }
+
+  @ViewBuilder
+  private func outreachNotesSection(school: School) -> some View {
+    // Coach-outreach answers — reused to prefill Quick Comm ({{programNote}} / {{fitReason}}).
+    SchoolNotesSection(
+      title: String(localized: "Why this program"),
+      notes: $viewModel.editedWhyProgram,
+      onBlur: { await viewModel.saveOutreachNotes() }
+    )
+    SchoolNotesSection(
+      title: String(localized: "Why it fits you"),
+      notes: $viewModel.editedFitReason,
+      onBlur: { await viewModel.saveOutreachNotes() }
+    )
+  }
+
+  @ViewBuilder
+  private var schoolFitSection: some View {
+    SchoolFitSection(
+      personalFit: viewModel.personalFit,
+      academicFit: viewModel.academicFit,
+      isEnriching: viewModel.isEnriching,
+      enrichError: viewModel.enrichError,
+      onLookup: { Task { await viewModel.lookupAcademicData() } }
+    )
+  }
+
+  @ViewBuilder
+  private func prosConsSection(school: School) -> some View {
+    SchoolProsConsSection(
+      pros: school.pros,
+      cons: school.cons,
+      newPro: $viewModel.newPro,
+      newCon: $viewModel.newCon,
+      onAddPro: { await viewModel.addPro() },
+      onRemovePro: { index in await viewModel.removePro(at: index) },
+      onAddCon: { await viewModel.addCon() },
+      onRemoveCon: { index in await viewModel.removeCon(at: index) },
+      isAddingPro: viewModel.isAddingPro,
+      isAddingCon: viewModel.isAddingCon
+    )
+  }
+
+  @ViewBuilder
+  private var notesSection: some View {
+    SchoolNotesSection(
+      title: String(localized: "Notes"),
+      notes: $viewModel.editedNotes,
+      onBlur: { await viewModel.saveNotes() }
+    )
+  }
+
+  @ViewBuilder
+  private func coachingPhilosophySection(school: School) -> some View {
+    SchoolCoachingPhilosophySection(
+      philosophy: EditableCoachingPhilosophy.from(school: school),
+      onEdit: { viewModel.startEditingCoachingPhilosophy() }
+    )
+  }
+
+  @ViewBuilder
+  private func documentsSection(school: School) -> some View {
+    SchoolDocumentsSection(schoolId: school.id)
+  }
+
+  @ViewBuilder
+  private func attributionSection(school: School) -> some View {
+    SchoolAttributionSection(
+      createdBy: school.createdBy,
+      createdAt: school.createdAt,
+      updatedBy: school.updatedBy,
+      updatedAt: school.updatedAt
+    )
+  }
+
+  @ViewBuilder
+  private var statusHistorySection: some View {
+    SchoolStatusHistorySection(history: viewModel.statusHistory)
+  }
+
+  @ViewBuilder
+  private var deleteButton: some View {
+    Button(role: .destructive) {
+      viewModel.confirmDelete()
+    } label: {
+      Label("Delete School", systemImage: "trash")
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color.red.opacity(0.1))
+        .foregroundStyle(.red)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+    .accessibilityIdentifier("delete-school-button")
+    .accessibilityLabel(String(localized: "Delete school"))
+    .accessibilityHint("Permanently remove this school and all related data")
+  }
+
+  @ViewBuilder
+  private func sidebar(school: School) -> some View {
+    SchoolDetailSidebar(
+      school: school,
+      viewModel: viewModel,
+      onLogInteraction: { navigationDestination = .addInteraction(schoolId: schoolId) },
+      onQuickComm: { onQuickComm(school: school) },
+      onManageCoaches: { filterCoachesBySchool(schoolId) },
+      onAddCoach: { showAddCoach = true },
+      onSelectCoach: { coachId in navigationDestination = .coachDetail(coachId: coachId) },
+      coachCount: viewModel.coaches.count
+    )
   }
 }
 
