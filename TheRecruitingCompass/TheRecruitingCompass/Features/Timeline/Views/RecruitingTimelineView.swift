@@ -17,6 +17,7 @@ enum TimelineTab: String, CaseIterable, Identifiable {
 struct RecruitingTimelineView: View {
   @State private var viewModel = TimelineViewModel()
   @Environment(FamilyManager.self) private var familyManager
+  @Environment(NuxProgressManager.self) private var nuxProgressManager
   @State private var lockedTaskAlertTask: TaskWithStatus?
   @State private var selectedTab: TimelineTab = .tasks
   @State private var pendingScrollGrade: Int?
@@ -118,7 +119,10 @@ struct RecruitingTimelineView: View {
         .padding(.vertical, 16)
       }
       .refreshable { await viewModel.refresh() }
-      .task { await viewModel.load() }
+      .task {
+        await viewModel.load()
+        nuxProgressManager.completeItem(.checkTimeline)
+      }
       .onChange(of: familyManager.selectedAthleteId) { _, _ in
         Task { await viewModel.load() }
       }
