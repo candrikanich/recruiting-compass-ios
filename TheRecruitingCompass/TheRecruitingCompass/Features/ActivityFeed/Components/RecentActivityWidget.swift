@@ -8,6 +8,7 @@ struct RecentActivityWidget: View {
   @State private var realtimeService: ActivityRealtimeService?
   @State private var backgroundCleanupTask: Task<Void, Never>?
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(FamilyManager.self) private var familyManager
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -132,9 +133,16 @@ struct RecentActivityWidget: View {
     realtimeService = service
 
     do {
-      try await service.subscribe(userId: userId) { [viewModel] newEvent in
-        viewModel.addRealtimeEvent(newEvent)
-      }
+      try await service.subscribe(
+        userId: userId,
+        familyUnitId: familyManager.familyUnitId,
+        onInsert: { [viewModel] newEvent in
+          viewModel.addRealtimeEvent(newEvent)
+        },
+        onChange: { [viewModel] in
+          Task { await viewModel.loadActivities() }
+        }
+      )
     } catch {
       // Log error but don't fail - widget still works without realtime
       logger.error("Failed to subscribe to realtime updates: \(error.localizedDescription)")

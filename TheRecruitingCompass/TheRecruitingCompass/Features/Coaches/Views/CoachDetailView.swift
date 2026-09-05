@@ -31,6 +31,7 @@ struct CoachDetailView: View {
   @State private var linkCopied = false
   @State private var showLogInteraction = false
   @State private var showSocialDMConfirm = false
+  @State private var realtimeService: CoachDetailRealtimeService?
   @Environment(\.sizeCategory) private var sizeCategory
   @Environment(\.dismiss) private var dismiss
   @Environment(\.openURL) private var openURL
@@ -188,6 +189,37 @@ struct CoachDetailView: View {
       await viewModel.loadCoach()
       await viewModel.loadDetails()
       await sendProfileVM.loadTrackingInfo(for: coachId)
+      await subscribeRealtime()
+    }
+    .onDisappear {
+      let service = realtimeService
+      realtimeService = nil
+      Task { await service?.unsubscribe() }
+    }
+    .onChange(of: scenePhase) { _, newValue in
+      if newValue == .active {
+        Task { await subscribeRealtime() }
+      } else if newValue == .background {
+        let service = realtimeService
+        realtimeService = nil
+        Task { await service?.unsubscribe() }
+      }
+    }
+  }
+
+  private func subscribeRealtime() async {
+    guard realtimeService == nil else { return }
+    let service = CoachDetailRealtimeService()
+    realtimeService = service
+    do {
+      try await service.subscribe(coachId: coachId) { [viewModel] in
+        Task {
+          await viewModel.loadCoach()
+          await viewModel.loadDetails()
+        }
+      }
+    } catch {
+      // Non-fatal — page still works with pull-to-refresh
     }
   }
 
