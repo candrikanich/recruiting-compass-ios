@@ -434,7 +434,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPABASE_URL = "https://xpxzhqghxecsjhvklsqg.supabase.co";
+				SUPABASE_URL = "https://lrzsenidegcqhwzwncve.supabase.co";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -494,7 +494,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPABASE_URL = "https://xpxzhqghxecsjhvklsqg.supabase.co";
+				SUPABASE_URL = "https://lrzsenidegcqhwzwncve.supabase.co";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
