@@ -1,8 +1,10 @@
 import Foundation
 
 /// Auto-generated at build time from Release.xcconfig. Do not edit manually.
+/// This committed version is a placeholder stub — Xcode's "Generate Supabase config"
+/// build phase overwrites it locally with real values from Release.xcconfig (gitignored).
 enum SupabaseConfigEmbedded {
-  static let urlString = "https://xpxzhqghxecsjhvklsqg.supabase.co"
-  static let anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhweHpocWdoeGVjc2podmtsc3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NzI1ODQsImV4cCI6MjA4MDM0ODU4NH0.WNlq1neCdjY-hDCvJRLplntd9w2HKqahwpHa7rB_Zro"
-  static let apiBaseURL = "https://myrecruitingcompass.com"
+  static let urlString = "https://placeholder.supabase.co"
+  static let anonKey = "placeholder-key"
+  static let apiBaseURL = ""
 }
