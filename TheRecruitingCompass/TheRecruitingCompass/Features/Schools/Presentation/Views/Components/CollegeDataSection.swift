@@ -5,6 +5,10 @@ struct CollegeDataSection: View {
   let isLookingUp: Bool
   let lookupError: String?
   let onLookup: () async -> Void
+  /// NCAA scholarship-limit reference line, computed at the view-model level
+  /// from the athlete's sport + this school's division (see
+  /// SchoolDetailViewModel.scholarshipLine). Nil hides the row entirely.
+  var scholarshipLine: String? = nil
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -62,6 +66,15 @@ struct CollegeDataSection: View {
 
           if let tuitionOut = info.tuitionOutOfState {
             InfoRow(label: "Tuition (Out-of-State)", value: "$\(Int(tuitionOut).formatted())")
+          }
+
+          if let scholarshipLine {
+            Text(scholarshipLine)
+              .font(.subheadline.weight(.medium))
+              .padding(8)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .background(Color(.systemGray5))
+              .clipShape(.rect(cornerRadius: 6))
           }
 
           if info.undergradSize == nil && info.admissionRate == nil {

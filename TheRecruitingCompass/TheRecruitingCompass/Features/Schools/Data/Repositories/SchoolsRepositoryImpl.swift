@@ -326,12 +326,18 @@ final class SchoolsRepositoryImpl: SchoolsRepository, Sendable {
       address: nilIfEmpty(info.address)
     )
 
+    // school_colors saves as null when both slots are empty, never [] — matches
+    // web's `.filter(Boolean).length > 0 ? [...] : null`.
+    let colors = [info.schoolColor1, info.schoolColor2].filter { !$0.isEmpty }
+
     let payload = BasicInfoUpdatePayload(
       website: nilIfEmpty(info.website),
       athletics_url: nilIfEmpty(info.athleticsUrl),
       twitter_handle: nilIfEmpty(info.twitterHandle),
       instagram_handle: nilIfEmpty(info.instagramHandle),
       phone: nilIfEmpty(info.phone),
+      mascot: nilIfEmpty(info.mascot),
+      school_colors: colors.isEmpty ? nil : colors,
       academic_info: mergedAcademicInfo
     )
 
@@ -515,6 +521,8 @@ private struct BasicInfoUpdatePayload: Encodable {
   let twitter_handle: String?
   let instagram_handle: String?
   let phone: String?
+  let mascot: String?
+  let school_colors: [String]?
   let academic_info: AcademicInfo?
 
   enum CodingKeys: String, CodingKey {
@@ -523,6 +531,8 @@ private struct BasicInfoUpdatePayload: Encodable {
     case twitter_handle
     case instagram_handle
     case phone
+    case mascot
+    case school_colors
     case academic_info
   }
 
@@ -533,6 +543,10 @@ private struct BasicInfoUpdatePayload: Encodable {
     try c.encodeIfPresent(twitter_handle, forKey: .twitter_handle)
     try c.encodeIfPresent(instagram_handle, forKey: .instagram_handle)
     try c.encodeIfPresent(phone, forKey: .phone)
+    // Explicit null (not encodeIfPresent) so clearing mascot/colors actually
+    // nulls the column rather than leaving a prior value untouched.
+    try c.encode(mascot, forKey: .mascot)
+    try c.encode(school_colors, forKey: .school_colors)
     try c.encodeIfPresent(academic_info, forKey: .academic_info)
   }
 }

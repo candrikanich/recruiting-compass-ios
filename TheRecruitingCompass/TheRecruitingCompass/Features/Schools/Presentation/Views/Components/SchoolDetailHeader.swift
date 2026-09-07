@@ -74,11 +74,29 @@ struct SchoolDetailHeader: View {
         .accessibilityHidden(true)
 
         VStack(alignment: .leading, spacing: 4) {
+          if let colors = school.schoolColors, !colors.isEmpty {
+            HStack(spacing: 4) {
+              ForEach(colors, id: \.self) { color in
+                Circle()
+                  .fill(Color(hex: color))
+                  .frame(width: 10, height: 10)
+                  .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 0.5))
+              }
+            }
+            .accessibilityHidden(true)
+          }
+
           Text(school.name)
             .font(.title2)
             .bold()
             .lineLimit(2)
             .minimumScaleFactor(0.9)
+
+          if let mascot = school.mascot, !mascot.isEmpty {
+            Text("\(school.name) \(mascot)")
+              .font(.subheadline)
+              .foregroundStyle(.secondary)
+          }
 
           if let location = displayLocation {
             Label {

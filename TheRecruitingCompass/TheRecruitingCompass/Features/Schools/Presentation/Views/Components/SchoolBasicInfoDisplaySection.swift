@@ -16,6 +16,8 @@ struct SchoolBasicInfoDisplaySection: View {
       || isPresent(school.phone)
       || isPresent(school.website)
       || isPresent(school.athleticsUrl)
+      || isPresent(school.mascot)
+      || !(school.schoolColors?.isEmpty ?? true)
       || isPresent(school.twitterHandle)
       || isPresent(school.instagramHandle)
   }
@@ -123,6 +125,48 @@ struct SchoolBasicInfoDisplaySection: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(String(localized: "Website: \(website). Tap to open in browser."))
+      }
+
+      if let mascot = school.mascot, !mascot.isEmpty {
+        InfoRow(label: "Mascot", value: mascot)
+      }
+
+      if let colors = school.schoolColors, !colors.isEmpty {
+        HStack(alignment: .top) {
+          Text("Colors:")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+          Spacer()
+          HStack(spacing: 6) {
+            ForEach(colors, id: \.self) { color in
+              Circle()
+                .fill(Color(hex: color))
+                .frame(width: 16, height: 16)
+                .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
+            }
+          }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "Colors: \(colors.joined(separator: ", "))"))
+      }
+
+      if let conferenceUrl = ConferenceUrlLookup.url(for: school.conference), let conference = school.conference {
+        HStack(alignment: .top) {
+          Text("Conference:")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+          Spacer()
+          Link(destination: conferenceUrl) {
+            HStack(spacing: 4) {
+              Text(conference)
+                .font(.subheadline)
+              Image(systemName: "safari")
+                .font(.subheadline)
+            }
+          }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "Conference: \(conference). Tap to open in browser."))
       }
 
       if let athleticsUrl = school.athleticsUrl, !athleticsUrl.isEmpty {
