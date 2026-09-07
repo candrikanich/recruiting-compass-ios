@@ -46,6 +46,18 @@ struct NotificationDestinationParserTests {
         #expect(NotificationDestinationParser.destination(from: n) == nil)
     }
 
+    // Reuses the pre-existing `.inboundInteraction`/`inbound_interaction` notification
+    // type for an unrelated event — disambiguated by relatedEntityType, not by type.
+    @Test func inboundEmailDraftEntityReturnsInboundDraftsList() {
+        let n = makeNotification(entityType: "inbound_email_draft", entityId: "draft-1")
+        #expect(NotificationDestinationParser.destination(from: n) == .inboundDraftsList)
+    }
+
+    @Test func inboundEmailDraftEntityWithNoIdStillReturnsInboundDraftsList() {
+        let n = makeNotification(entityType: "inbound_email_draft", entityId: nil)
+        #expect(NotificationDestinationParser.destination(from: n) == .inboundDraftsList)
+    }
+
     @Test func noEntityTypeReturnsNil() {
         let n = makeNotification(entityType: nil)
         #expect(NotificationDestinationParser.destination(from: n) == nil)
@@ -76,6 +88,11 @@ struct NotificationDestinationParserTests {
     @Test func unknownUrlReturnsNil() {
         let n = makeNotification(actionUrl: "/dashboard")
         #expect(NotificationDestinationParser.destination(from: n) == nil)
+    }
+
+    @Test func inboundDraftsUrlReturnsInboundDraftsList() {
+        let n = makeNotification(actionUrl: "/inbox/inbound-drafts")
+        #expect(NotificationDestinationParser.destination(from: n) == .inboundDraftsList)
     }
 
     // MARK: - fromPayload (APNs push)

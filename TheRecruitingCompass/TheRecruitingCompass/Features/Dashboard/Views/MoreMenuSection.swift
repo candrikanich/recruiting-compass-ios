@@ -9,6 +9,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
   case performance
   case analytics
   case activity
+  case inboundDrafts
   case helpCenter
   case publicProfile
   case notifications
@@ -26,6 +27,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     case .performance: return String(localized: "Performance")
     case .analytics: return String(localized: "Analytics")
     case .activity: return String(localized: "Activity History")
+    case .inboundDrafts: return String(localized: "Coach Emails")
     case .helpCenter: return String(localized: "Help Center")
     case .publicProfile: return String(localized: "Public Profile")
     case .notifications: return String(localized: "Notifications")
@@ -43,6 +45,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     case .performance: return String(localized: "Stats, metrics, and progress")
     case .analytics: return String(localized: "Charts and recruiting insights")
     case .activity: return String(localized: "History of your recruiting activity")
+    case .inboundDrafts: return String(localized: "Forwarded coach emails awaiting review")
     case .helpCenter: return String(localized: "Guides and FAQs for using the app")
     case .publicProfile: return String(localized: "Your shareable coach-facing profile")
     case .notifications: return String(localized: "Alerts and follow-up reminders")
@@ -60,6 +63,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     case .performance: return "chart.xyaxis.line"
     case .analytics: return "chart.pie"
     case .activity: return "list.bullet.rectangle"
+    case .inboundDrafts: return "tray.and.arrow.down"
     case .helpCenter: return "questionmark.circle"
     case .publicProfile: return "person.crop.circle.badge.checkmark"
     case .notifications: return "bell"
@@ -77,6 +81,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     case .performance: return .orange
     case .analytics: return .purple
     case .activity: return .accentBlue
+    case .inboundDrafts: return .accentBlue
     case .helpCenter: return .accentBlue
     case .publicProfile: return .teal
     case .notifications: return .orange
@@ -87,7 +92,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
   /// Sections grouped for list display (header title → items).
   static var recruitingSections: [(header: String, items: [MoreMenuSection])] {
     [
-      ("Recruiting", [.timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity]),
+      ("Recruiting", [.timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity, .inboundDrafts]),
       ("Support", [.helpCenter]),
       ("Account", [.publicProfile, .notifications, .settings])
     ]

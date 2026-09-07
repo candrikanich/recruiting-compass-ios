@@ -102,6 +102,9 @@ struct MainTabView: View {
     case .eventDetail(let id):
       morePath = [.section(.events), .eventDetail(eventId: id)]
       selectedTab = .more
+    case .inboundDraftsList:
+      morePath = [.section(.inboundDrafts)]
+      selectedTab = .more
     }
   }
 

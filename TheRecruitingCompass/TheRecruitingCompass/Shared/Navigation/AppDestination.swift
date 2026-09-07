@@ -4,7 +4,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
   // Main
   case dashboard, schools, coaches, interactions, timeline, events
   // More
-  case performance, offers, analytics, documents, deadlines
+  case performance, offers, analytics, documents, deadlines, inboundDrafts
   // Bottom
   case settings
 
@@ -14,7 +14,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
     switch self {
     case .dashboard, .schools, .coaches, .interactions, .timeline, .events:
       return .main
-    case .performance, .offers, .analytics, .documents, .deadlines:
+    case .performance, .offers, .analytics, .documents, .deadlines, .inboundDrafts:
       return .more
     case .settings:
       return .bottom
@@ -34,6 +34,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
     case .analytics: return "Analytics"
     case .documents: return "Documents"
     case .deadlines: return "Deadlines"
+    case .inboundDrafts: return "Coach Emails"
     case .settings: return "Settings"
     }
   }
@@ -51,6 +52,7 @@ enum AppDestination: String, CaseIterable, Identifiable {
     case .analytics: return "chart.line.uptrend.xyaxis"
     case .documents: return "doc.text"
     case .deadlines: return "exclamationmark.circle"
+    case .inboundDrafts: return "tray.and.arrow.down"
     case .settings: return "gear"
     }
   }

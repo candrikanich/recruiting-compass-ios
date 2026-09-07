@@ -11,6 +11,7 @@ private enum SettingsDestination: Hashable {
   case notificationPreferences
   case communicationTemplates
   case videoLinks
+  case inboundDrafts
   case about
 }
 
@@ -20,6 +21,7 @@ struct SettingsView: View {
   @Environment(EntitlementStore.self) private var entitlementStore
   @State private var presentedLegal: LegalDocument?
   @State private var showCodeCopied = false
+  @State private var showInboundAddressCopied = false
   @State private var viewModel: SettingsViewModel
 
   private let preferenceService: PreferenceManaging
@@ -176,6 +178,52 @@ struct SettingsView: View {
           Text("Communication & Social")
         }
 
+        // Coach Email Forwarding Section — best-effort, non-blocking: web renders nothing
+        // while the fetch is pending or fails, so this section only appears once loaded.
+        if let address = viewModel.inboundAddress {
+          Section {
+            VStack(alignment: .leading, spacing: 8) {
+              Text("Forward or CC emails from coaches to this address to automatically draft an interaction log entry for your family.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+              HStack {
+                Text(address)
+                  .font(.system(.body, design: .monospaced).weight(.medium))
+                  .lineLimit(1)
+                  .truncationMode(.middle)
+                Spacer()
+                Button {
+                  UIPasteboard.general.string = address
+                  showInboundAddressCopied = true
+                  Task {
+                    try? await Task.sleep(for: .seconds(2))
+                    showInboundAddressCopied = false
+                  }
+                } label: {
+                  Text(showInboundAddressCopied ? String(localized: "Copied!") : String(localized: "Copy"))
+                    .font(.caption.weight(.medium))
+                }
+                .buttonStyle(.bordered)
+                .disabled(showInboundAddressCopied)
+                .accessibilityLabel(showInboundAddressCopied ? String(localized: "Copied to clipboard") : String(localized: "Copy forwarding address"))
+              }
+            }
+            .padding(.vertical, 4)
+
+            NavigationLink(value: SettingsDestination.inboundDrafts) {
+              SettingsRow(
+                icon: "tray.and.arrow.down.fill",
+                title: String(localized: "Review Forwarded Coach Emails"),
+                description: String(localized: "Confirm or discard drafts created from forwarded emails"),
+                color: .accentBlue
+              )
+            }
+          } header: {
+            Text("Coach Email Forwarding")
+          }
+        }
+
         // User Settings Section
         Section {
           NavigationLink(value: SettingsDestination.profile) {
@@ -274,6 +322,8 @@ struct SettingsView: View {
             familyUnitId: familyManager.currentMember?.familyUnitId,
             isReadOnly: false
           )
+        case .inboundDrafts:
+          InboundDraftsView()
         case .about:
           AboutView()
         }
@@ -282,6 +332,7 @@ struct SettingsView: View {
         await familyManager.loadFamilyData()
         await viewModel.loadCompletionStatus(targetUserId: familyManager.selectedAthlete?.userId)
         await entitlementStore.load(familyUnitId: familyManager.familyUnitId)
+        await viewModel.loadInboundAddress()
       }
       .sheet(item: $presentedLegal) { doc in
         doc.view
