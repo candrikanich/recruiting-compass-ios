@@ -19,7 +19,7 @@ struct DocumentUploadSheet: View {
             set: { viewModel.uploadType = $0 }
           )) {
             Text("Select Type").tag(nil as DocumentType?)
-            ForEach(DocumentType.allCases, id: \.self) { type in
+            ForEach(DocumentType.uploadableCases, id: \.self) { type in
               Text("\(type.typeEmoji) \(type.label)").tag(type as DocumentType?)
             }
           }
