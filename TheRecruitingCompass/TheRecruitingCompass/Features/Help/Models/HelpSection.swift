@@ -12,6 +12,8 @@ enum HelpSection: String, CaseIterable, Identifiable, Hashable {
   case schools
   case phases
   case account
+  case glossary
+  case faq
 
   var id: String { rawValue }
 
@@ -21,6 +23,8 @@ enum HelpSection: String, CaseIterable, Identifiable, Hashable {
     case .schools: return "schools"
     case .phases: return "phases"
     case .account: return "account"
+    case .glossary: return "glossary"
+    case .faq: return "faq"
     }
   }
 
@@ -31,6 +35,8 @@ enum HelpSection: String, CaseIterable, Identifiable, Hashable {
     case "schools": self = .schools
     case "phases": self = .phases
     case "account": self = .account
+    case "glossary": self = .glossary
+    case "faq": self = .faq
     default: return nil
     }
   }
@@ -41,6 +47,8 @@ enum HelpSection: String, CaseIterable, Identifiable, Hashable {
     case .schools: return String(localized: "Schools & Coaches")
     case .phases: return String(localized: "Phases & Letters")
     case .account: return String(localized: "Account & Settings")
+    case .glossary: return String(localized: "Glossary")
+    case .faq: return String(localized: "FAQ")
     }
   }
 
@@ -51,6 +59,8 @@ enum HelpSection: String, CaseIterable, Identifiable, Hashable {
     case .schools: return String(localized: "Add schools, understand fit signals, and track coach interactions.")
     case .phases: return String(localized: "Navigate recruiting phases and manage recommendation letter requests.")
     case .account: return String(localized: "Manage your family, notifications, profile, and account preferences.")
+    case .glossary: return String(localized: "Recruiting terms explained in plain language.")
+    case .faq: return String(localized: "Quick answers to the questions we hear most.")
     }
   }
 
@@ -60,6 +70,8 @@ enum HelpSection: String, CaseIterable, Identifiable, Hashable {
     case .schools: return "building.2"
     case .phases: return "chart.bar"
     case .account: return "gearshape"
+    case .glossary: return "book"
+    case .faq: return "questionmark.circle"
     }
   }
 }
