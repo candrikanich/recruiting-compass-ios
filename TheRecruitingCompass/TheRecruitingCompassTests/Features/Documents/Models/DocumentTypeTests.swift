@@ -20,6 +20,8 @@ final class DocumentTypeTests: XCTestCase {
     XCTAssertEqual(DocumentType.recLetter.typeEmoji, "💌")
     XCTAssertEqual(DocumentType.questionnaire.typeEmoji, "📝")
     XCTAssertEqual(DocumentType.statsSheet.typeEmoji, "📊")
+    XCTAssertEqual(DocumentType.coachAttachment.typeEmoji, "📎")
+    XCTAssertEqual(DocumentType.other.typeEmoji, "📁")
   }
 
   func testAllowedExtensions_highlightVideo_includesVideoFormats() {
@@ -45,5 +47,35 @@ final class DocumentTypeTests: XCTestCase {
   func testRawValue_snake_case() {
     XCTAssertEqual(DocumentType.highlightVideo.rawValue, "highlight_video")
     XCTAssertEqual(DocumentType.statsSheet.rawValue, "stats_sheet")
+    XCTAssertEqual(DocumentType.coachAttachment.rawValue, "coach_attachment")
+  }
+
+  // MARK: - Lenient Decoding
+
+  func testDecode_knownValue_decodesCorrectly() throws {
+    let json = Data(#""coach_attachment""#.utf8)
+    let decoded = try JSONDecoder().decode(DocumentType.self, from: json)
+    XCTAssertEqual(decoded, .coachAttachment)
+  }
+
+  func testDecode_unknownValue_fallsBackToOther() throws {
+    let json = Data(#""some_future_type""#.utf8)
+    let decoded = try JSONDecoder().decode(DocumentType.self, from: json)
+    XCTAssertEqual(decoded, .other)
+  }
+
+  func testDecode_emptyString_fallsBackToOther() throws {
+    let json = Data(#""""#.utf8)
+    let decoded = try JSONDecoder().decode(DocumentType.self, from: json)
+    XCTAssertEqual(decoded, .other)
+  }
+
+  // MARK: - Uploadable Cases
+
+  func testUploadableCases_excludesCoachAttachmentAndOther() {
+    XCTAssertFalse(DocumentType.uploadableCases.contains(.coachAttachment))
+    XCTAssertFalse(DocumentType.uploadableCases.contains(.other))
+    XCTAssertTrue(DocumentType.uploadableCases.contains(.highlightVideo))
+    XCTAssertTrue(DocumentType.uploadableCases.contains(.resume))
   }
 }

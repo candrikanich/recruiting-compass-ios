@@ -69,6 +69,8 @@ struct DocumentListViewRow: View {
     case .highlightVideo: return "video.fill"
     case .transcript, .resume, .recLetter, .questionnaire: return "doc.fill"
     case .statsSheet: return "tablecells.fill"
+    case .coachAttachment: return "paperclip"
+    case .other: return "doc.fill"
     }
   }
 

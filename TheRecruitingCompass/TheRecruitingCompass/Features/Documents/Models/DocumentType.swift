@@ -7,6 +7,23 @@ enum DocumentType: String, Codable, CaseIterable, Sendable {
   case recLetter = "rec_letter"
   case questionnaire = "questionnaire"
   case statsSheet = "stats_sheet"
+  case coachAttachment = "coach_attachment"
+  case other = "other"
+
+  /// Types a user can select when uploading a document.
+  /// Excludes server-only types like `.coachAttachment` and the `.other` fallback.
+  static let uploadableCases: [DocumentType] = allCases.filter { type in
+    switch type {
+    case .coachAttachment, .other: return false
+    default: return true
+    }
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let rawValue = try container.decode(String.self)
+    self = DocumentType(rawValue: rawValue) ?? .other
+  }
 
   var label: String {
     switch self {
@@ -16,6 +33,8 @@ enum DocumentType: String, Codable, CaseIterable, Sendable {
     case .recLetter: return String(localized: "Recommendation Letter")
     case .questionnaire: return String(localized: "Questionnaire")
     case .statsSheet: return String(localized: "Stats Sheet")
+    case .coachAttachment: return String(localized: "Coach Attachment")
+    case .other: return String(localized: "Document")
     }
   }
 
@@ -27,6 +46,8 @@ enum DocumentType: String, Codable, CaseIterable, Sendable {
     case .recLetter: return "💌"
     case .questionnaire: return "📝"
     case .statsSheet: return "📊"
+    case .coachAttachment: return "📎"
+    case .other: return "📁"
     }
   }
 
@@ -38,6 +59,8 @@ enum DocumentType: String, Codable, CaseIterable, Sendable {
     case .recLetter: return [".pdf"]
     case .questionnaire: return [".pdf", ".doc", ".docx"]
     case .statsSheet: return [".csv", ".xls", ".xlsx"]
+    case .coachAttachment: return [".pdf", ".doc", ".docx", ".jpg", ".png", ".txt"]
+    case .other: return [".pdf", ".doc", ".docx", ".txt"]
     }
   }
 }
