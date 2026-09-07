@@ -41,7 +41,7 @@ struct MoreMenuView: View {
   @ViewBuilder
   private var moreMenuList: some View {
     List {
-      menuSectionView("Recruiting", items: [.timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity])
+      menuSectionView("Recruiting", items: [.timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity, .inboundDrafts])
       menuSectionView("Account", items: [.publicProfile, .notifications, .settings])
       menuSectionView("Support", items: [.helpCenter])
     }
@@ -91,6 +91,8 @@ struct MoreMenuView: View {
     case .activity:
       ActivityFeedView()
         .activityNavigation()
+    case .inboundDrafts:
+      InboundDraftsView()
     case .helpCenter:
       HelpCenterView()
     case .publicProfile:

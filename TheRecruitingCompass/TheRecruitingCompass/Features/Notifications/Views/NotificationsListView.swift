@@ -134,6 +134,9 @@ struct NotificationsListView: View {
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Event")
+
+    case .inboundDraftsList:
+      InboundDraftsView()
     }
   }
 }

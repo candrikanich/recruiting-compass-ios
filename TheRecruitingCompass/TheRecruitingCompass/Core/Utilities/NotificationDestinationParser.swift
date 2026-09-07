@@ -38,6 +38,8 @@ enum NotificationDestinationParser {
         primaryId: String?,
         fallbackId: String?
     ) -> NotificationDestination? {
+        // No id needed — the drafts screen lists everything pending, not one draft.
+        if entityType == "inbound_email_draft" { return .inboundDraftsList }
         guard let id = primaryId ?? fallbackId else { return nil }
         switch entityType {
         case "coach":       return .coachDetail(id: id)
@@ -52,7 +54,9 @@ enum NotificationDestinationParser {
     private static func destination(fromActionUrl url: String) -> NotificationDestination? {
         // Coach URLs use the highlight= query param form only (e.g. /coaches?highlight=<id>).
         // Path-style /coaches/<id> is not a valid coach URL in this app.
-        if url.contains("/coaches") {
+        if url.contains("/inbox/inbound-drafts") {
+            return .inboundDraftsList
+        } else if url.contains("/coaches") {
             return extractId(from: url, pattern: "highlight=").map { .coachDetail(id: $0) }
         } else if url.contains("/schools/") {
             return lastPathComponent(of: url).map { .schoolDetail(id: $0) }

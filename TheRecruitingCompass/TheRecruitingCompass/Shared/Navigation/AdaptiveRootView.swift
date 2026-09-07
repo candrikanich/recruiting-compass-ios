@@ -88,6 +88,7 @@ struct AdaptiveRootView: View {
     case .interactionDetail: return .interactions
     case .offerDetail: return .offers
     case .eventDetail: return .events
+    case .inboundDraftsList: return .inboundDrafts
     }
   }
 
@@ -127,6 +128,8 @@ struct AdaptiveRootView: View {
             DocumentsListView()
           case .deadlines:
             DeadlinesListView()
+          case .inboundDrafts:
+            InboundDraftsView()
           case .settings:
             SettingsView()
           case .schools, .coaches, .interactions:
