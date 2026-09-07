@@ -43,6 +43,7 @@ enum SchoolsFactory {
     coachesService: (any CoachesManaging)? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
     enrichService: (any SchoolEnriching)? = nil,
+    scholarshipLimitsService: (any ScholarshipLimitsServicing)? = nil,
     cache: (any CacheManaging)? = nil
   ) -> SchoolDetailViewModel {
     SchoolDetailViewModel(
@@ -54,6 +55,7 @@ enum SchoolsFactory {
       coachesService: coachesService,
       preferenceService: preferenceService,
       enrichService: enrichService,
+      scholarshipLimitsService: scholarshipLimitsService,
       cache: cache
     )
   }

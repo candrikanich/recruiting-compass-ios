@@ -326,12 +326,18 @@ final class SchoolsRepositoryImpl: SchoolsRepository, Sendable {
       address: nilIfEmpty(info.address)
     )
 
+    // Drop empty color slots; nil the whole array only when both are empty
+    // (matches web's useSchoolBasicInfo.saveBasicInfo).
+    let schoolColors = [info.schoolColorPrimary, info.schoolColorSecondary].filter { !$0.isEmpty }
+
     let payload = BasicInfoUpdatePayload(
       website: nilIfEmpty(info.website),
       athletics_url: nilIfEmpty(info.athleticsUrl),
       twitter_handle: nilIfEmpty(info.twitterHandle),
       instagram_handle: nilIfEmpty(info.instagramHandle),
       phone: nilIfEmpty(info.phone),
+      mascot: nilIfEmpty(info.mascot),
+      school_colors: schoolColors.isEmpty ? nil : schoolColors,
       academic_info: mergedAcademicInfo
     )
 
@@ -515,6 +521,8 @@ private struct BasicInfoUpdatePayload: Encodable {
   let twitter_handle: String?
   let instagram_handle: String?
   let phone: String?
+  let mascot: String?
+  let school_colors: [String]?
   let academic_info: AcademicInfo?
 
   enum CodingKeys: String, CodingKey {
@@ -523,6 +531,8 @@ private struct BasicInfoUpdatePayload: Encodable {
     case twitter_handle
     case instagram_handle
     case phone
+    case mascot
+    case school_colors
     case academic_info
   }
 
@@ -533,6 +543,8 @@ private struct BasicInfoUpdatePayload: Encodable {
     try c.encodeIfPresent(twitter_handle, forKey: .twitter_handle)
     try c.encodeIfPresent(instagram_handle, forKey: .instagram_handle)
     try c.encodeIfPresent(phone, forKey: .phone)
+    try c.encodeIfPresent(mascot, forKey: .mascot)
+    try c.encodeIfPresent(school_colors, forKey: .school_colors)
     try c.encodeIfPresent(academic_info, forKey: .academic_info)
   }
 }

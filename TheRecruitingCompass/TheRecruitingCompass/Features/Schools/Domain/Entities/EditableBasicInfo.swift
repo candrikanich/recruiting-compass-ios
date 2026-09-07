@@ -10,6 +10,10 @@ struct EditableBasicInfo {
   var athleticsUrl: String = ""
   var twitterHandle: String = ""
   var instagramHandle: String = ""
+  var mascot: String = ""
+  /// 2 fixed hex-color slots, matching web's edit form (utils/schoolHelpers pattern).
+  var schoolColorPrimary: String = ""
+  var schoolColorSecondary: String = ""
 
   /// Creates an EditableBasicInfo from an existing School
   /// - Parameter school: The school to extract contact info from
@@ -21,7 +25,10 @@ struct EditableBasicInfo {
       website: school.website ?? "",
       athleticsUrl: school.athleticsUrl ?? "",
       twitterHandle: school.twitterHandle ?? "",
-      instagramHandle: school.instagramHandle ?? ""
+      instagramHandle: school.instagramHandle ?? "",
+      mascot: school.mascot ?? "",
+      schoolColorPrimary: (school.schoolColors?.count ?? 0) > 0 ? school.schoolColors![0] : "",
+      schoolColorSecondary: (school.schoolColors?.count ?? 0) > 1 ? school.schoolColors![1] : ""
     )
   }
 }

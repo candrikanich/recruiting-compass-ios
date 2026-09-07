@@ -291,7 +291,8 @@ struct SchoolDetailView: View {
       school: school,
       isLookingUp: viewModel.isLookingUpCollegeData,
       lookupError: viewModel.collegeDataError,
-      onLookup: { await viewModel.lookupCollegeData() }
+      onLookup: { await viewModel.lookupCollegeData() },
+      scholarshipLine: viewModel.scholarshipLine
     )
   }
 

@@ -80,6 +80,25 @@ struct SchoolDetailHeader: View {
             .lineLimit(2)
             .minimumScaleFactor(0.9)
 
+          if let mascot = school.mascot, !mascot.isEmpty {
+            Text("\(school.name) \(mascot)")
+              .font(.subheadline)
+              .foregroundStyle(.secondary)
+              .lineLimit(1)
+          }
+
+          if let colors = school.schoolColors, !colors.isEmpty {
+            HStack(spacing: 4) {
+              ForEach(colors, id: \.self) { color in
+                Circle()
+                  .fill(Color(hex: color))
+                  .frame(width: 10, height: 10)
+                  .overlay(Circle().stroke(Color(.systemGray3), lineWidth: 0.5))
+              }
+            }
+            .accessibilityHidden(true)
+          }
+
           if let location = displayLocation {
             Label {
               Text(location)

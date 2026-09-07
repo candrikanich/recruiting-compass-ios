@@ -8,6 +8,15 @@ struct SchoolBasicInfoSheet: View {
 
   @Environment(\.dismiss) private var dismiss
 
+  @ViewBuilder
+  private func colorSwatch(hex: String) -> some View {
+    Circle()
+      .fill(hex.isEmpty ? Color(.systemGray4) : Color(hex: hex))
+      .frame(width: 24, height: 24)
+      .overlay(Circle().stroke(Color(.systemGray3), lineWidth: 1))
+      .accessibilityHidden(true)
+  }
+
   var body: some View {
     NavigationStack {
       Form {
@@ -28,6 +37,22 @@ struct SchoolBasicInfoSheet: View {
             .textContentType(.URL)
             .keyboardType(.URL)
             .autocapitalization(.none)
+
+          TextField("Mascot", text: $info.mascot)
+
+          HStack {
+            colorSwatch(hex: info.schoolColorPrimary)
+            TextField("#660000", text: $info.schoolColorPrimary)
+              .autocapitalization(.none)
+              .disableAutocorrection(true)
+          }
+
+          HStack {
+            colorSwatch(hex: info.schoolColorSecondary)
+            TextField("#FFFFFF", text: $info.schoolColorSecondary)
+              .autocapitalization(.none)
+              .disableAutocorrection(true)
+          }
 
           TextField("Twitter Handle", text: $info.twitterHandle)
             .autocapitalization(.none)

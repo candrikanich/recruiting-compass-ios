@@ -56,6 +56,11 @@ final class SchoolDetailViewModel {
   private(set) var personalFit: PersonalFitAnalysis?
   private var athleteProfile: PlayerDetails?
 
+  // MARK: - Scholarship Info
+  /// "Athletic Scholarships: 11.7 equivalency (D1 Baseball)" — nil until a
+  /// (sport, division) match exists (table is null-fill/hidden-only, never blocks).
+  private(set) var scholarshipLine: String?
+
   // MARK: - Academic Fit
   var academicFit: AcademicFitAnalysis?
   var isEnriching = false
@@ -92,6 +97,7 @@ final class SchoolDetailViewModel {
   private let coachesService: any CoachesManaging
   private let preferenceService: any PreferenceManaging
   private let enrichService: any SchoolEnriching
+  private let scholarshipLimitsService: any ScholarshipLimitsServicing
   private let cache: (any CacheManaging)?
 
   /// TTL for cached school and status history (seconds).
@@ -106,6 +112,7 @@ final class SchoolDetailViewModel {
     coachesService: (any CoachesManaging)? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
     enrichService: (any SchoolEnriching)? = nil,
+    scholarshipLimitsService: (any ScholarshipLimitsServicing)? = nil,
     cache: (any CacheManaging)? = nil
   ) {
     self.schoolId = schoolId
@@ -117,6 +124,7 @@ final class SchoolDetailViewModel {
     self.preferenceService = preferenceService
       ?? PreferenceServiceImpl(supabaseManager: SupabaseManager.shared)
     self.enrichService = enrichService ?? SchoolEnrichmentServiceImpl()
+    self.scholarshipLimitsService = scholarshipLimitsService ?? ScholarshipLimitsServiceImpl()
     self.cache = cache
   }
 
@@ -491,9 +499,25 @@ final class SchoolDetailViewModel {
       athleteProfile = try? await preferenceService.fetchPreferences(
         category: .player, userId: familyManager.selectedAthlete?.userId)
     }
-    guard let school else { personalFit = nil; academicFit = nil; return }
+    guard let school else { personalFit = nil; academicFit = nil; scholarshipLine = nil; return }
     personalFit = PersonalFitCalculator.calculate(athlete: athleteProfile, school: school)
     academicFit = AcademicFitCalculator.calculate(athlete: athleteProfile, school: school)
+    await loadScholarshipLine(school: school)
+  }
+
+  /// Matches the athlete's primary sport + school division against
+  /// `scholarship_limits`. Fails open (nil, row hidden) on any miss.
+  private func loadScholarshipLine(school: School) async {
+    guard let sport = athleteProfile?.primarySport, let division = school.division else {
+      scholarshipLine = nil
+      return
+    }
+    let limits = (try? await scholarshipLimitsService.fetchLimits()) ?? []
+    guard let limit = selectScholarshipLimit(limits, sport: sport, division: division) else {
+      scholarshipLine = nil
+      return
+    }
+    scholarshipLine = formatScholarshipLine(limit, sport: sport, division: division)
   }
 
   // MARK: - Academic Data Lookup (enrich)

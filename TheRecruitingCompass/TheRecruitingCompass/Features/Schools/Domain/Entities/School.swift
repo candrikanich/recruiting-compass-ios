@@ -18,6 +18,10 @@ struct School: Codable, Identifiable, Equatable, Sendable {
   let instagramHandle: String?
   let phone: String?
   let athleticsUrl: String?
+  /// School-level mascot column (distinct from the legacy, unused `academicInfo.mascot`
+  /// JSONB field — see docs/superpowers/specs/2026-09-02-school-data-enrichment-design.md).
+  let mascot: String?
+  let schoolColors: [String]?
   let ncaaId: String?
   let status: String
   let statusChangedAt: String?
@@ -59,6 +63,8 @@ struct School: Codable, Identifiable, Equatable, Sendable {
     instagramHandle: String?,
     phone: String? = nil,
     athleticsUrl: String? = nil,
+    mascot: String? = nil,
+    schoolColors: [String]? = nil,
     ncaaId: String?,
     status: String,
     statusChangedAt: String?,
@@ -97,6 +103,8 @@ struct School: Codable, Identifiable, Equatable, Sendable {
     self.instagramHandle = instagramHandle
     self.phone = phone
     self.athleticsUrl = athleticsUrl
+    self.mascot = mascot
+    self.schoolColors = schoolColors
     self.ncaaId = ncaaId
     self.status = status
     self.statusChangedAt = statusChangedAt
@@ -131,6 +139,8 @@ struct School: Codable, Identifiable, Equatable, Sendable {
     case instagramHandle = "instagram_handle"
     case phone
     case athleticsUrl = "athletics_url"
+    case mascot
+    case schoolColors = "school_colors"
     case ncaaId = "ncaa_id"
     case status
     case statusChangedAt = "status_changed_at"
@@ -205,6 +215,8 @@ struct School: Codable, Identifiable, Equatable, Sendable {
       instagramHandle: instagramHandle,
       phone: phone,
       athleticsUrl: athleticsUrl,
+      mascot: mascot,
+      schoolColors: schoolColors,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -247,6 +259,8 @@ struct School: Codable, Identifiable, Equatable, Sendable {
       instagramHandle: instagramHandle,
       phone: phone,
       athleticsUrl: athleticsUrl,
+      mascot: mascot,
+      schoolColors: schoolColors,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -289,6 +303,8 @@ struct School: Codable, Identifiable, Equatable, Sendable {
       instagramHandle: instagramHandle,
       phone: phone,
       athleticsUrl: athleticsUrl,
+      mascot: mascot,
+      schoolColors: schoolColors,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -331,6 +347,8 @@ struct School: Codable, Identifiable, Equatable, Sendable {
       instagramHandle: instagramHandle,
       phone: phone,
       athleticsUrl: athleticsUrl,
+      mascot: mascot,
+      schoolColors: schoolColors,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -373,6 +391,8 @@ struct School: Codable, Identifiable, Equatable, Sendable {
       instagramHandle: instagramHandle,
       phone: phone,
       athleticsUrl: athleticsUrl,
+      mascot: mascot,
+      schoolColors: schoolColors,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -415,6 +435,8 @@ struct School: Codable, Identifiable, Equatable, Sendable {
       instagramHandle: instagramHandle,
       phone: phone,
       athleticsUrl: athleticsUrl,
+      mascot: mascot,
+      schoolColors: schoolColors,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -457,6 +479,8 @@ struct School: Codable, Identifiable, Equatable, Sendable {
       instagramHandle: instagramHandle,
       phone: phone,
       athleticsUrl: athleticsUrl,
+      mascot: mascot,
+      schoolColors: schoolColors,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -499,6 +523,8 @@ struct School: Codable, Identifiable, Equatable, Sendable {
       instagramHandle: instagramHandle,
       phone: phone,
       athleticsUrl: athleticsUrl,
+      mascot: mascot,
+      schoolColors: schoolColors,
       ncaaId: ncaaId,
       status: status,
       statusChangedAt: statusChangedAt,
@@ -547,6 +573,8 @@ extension School {
     instagramHandle = try container.decodeIfPresent(String.self, forKey: .instagramHandle)
     phone = try container.decodeIfPresent(String.self, forKey: .phone)
     athleticsUrl = try container.decodeIfPresent(String.self, forKey: .athleticsUrl)
+    mascot = try container.decodeIfPresent(String.self, forKey: .mascot)
+    schoolColors = try container.decodeIfPresent([String].self, forKey: .schoolColors)
     ncaaId = try container.decodeIfPresent(String.self, forKey: .ncaaId)
     status = try container.decode(String.self, forKey: .status)
     statusChangedAt = try container.decodeIfPresent(String.self, forKey: .statusChangedAt)

@@ -5,6 +5,7 @@ struct CollegeDataSection: View {
   let isLookingUp: Bool
   let lookupError: String?
   let onLookup: () async -> Void
+  var scholarshipLine: String? = nil
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -72,6 +73,13 @@ struct CollegeDataSection: View {
               .padding(.vertical, 4)
           }
         }
+      }
+
+      if let scholarshipLine {
+        Text(scholarshipLine)
+          .font(.subheadline)
+          .fontWeight(.medium)
+          .padding(.top, 4)
       }
     }
     .padding()

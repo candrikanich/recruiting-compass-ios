@@ -85,6 +85,48 @@ struct SchoolBasicInfoDisplaySection: View {
         .accessibilityLabel(String(localized: "Phone: \(phone). Tap to call."))
       }
 
+      if let mascot = school.mascot, !mascot.isEmpty {
+        InfoRow(label: "Mascot", value: mascot)
+      }
+
+      if let colors = school.schoolColors, !colors.isEmpty {
+        HStack(alignment: .top) {
+          Text("Colors:")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+          Spacer()
+          HStack(spacing: 6) {
+            ForEach(colors, id: \.self) { color in
+              Circle()
+                .fill(Color(hex: color))
+                .frame(width: 16, height: 16)
+                .overlay(Circle().stroke(Color(.systemGray3), lineWidth: 1))
+            }
+          }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "School colors"))
+      }
+
+      if let conference = school.conference, let url = ConferenceUrls.url(for: conference) {
+        HStack(alignment: .top) {
+          Text("Conference:")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+          Spacer()
+          Link(destination: url) {
+            HStack(spacing: 4) {
+              Text(conference)
+                .font(.subheadline)
+              Image(systemName: "safari")
+                .font(.subheadline)
+            }
+          }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "Conference: \(conference). Tap to open."))
+      }
+
       socialRow(label: "Twitter", handle: school.twitterHandle, baseURL: "https://twitter.com/")
       socialRow(label: "Instagram", handle: school.instagramHandle, baseURL: "https://instagram.com/")
 
