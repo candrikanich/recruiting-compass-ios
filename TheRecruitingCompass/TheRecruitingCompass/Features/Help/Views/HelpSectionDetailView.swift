@@ -44,6 +44,10 @@ private struct HelpSectionContent: View {
       HelpPhasesContent()
     case .account:
       HelpAccountContent()
+    case .glossary:
+      HelpGlossaryContent()
+    case .faq:
+      HelpFaqContent()
     }
   }
 }
@@ -315,6 +319,87 @@ private struct HelpAccountContent: View {
           ("To delete your account", "go to Settings → Account → Delete account. This permanently removes all your data.")
         ])
         HelpCallout(type: .important, text: "Account deletion is permanent and cannot be undone. Export your data before deleting if you want to keep a record of your recruiting history.")
+      }
+    }
+  }
+}
+
+// MARK: - Glossary
+
+private struct HelpGlossaryContent: View {
+  private var groupedTerms: [(letter: String, terms: [GlossaryTerm])] {
+    let groups = Dictionary(grouping: GlossaryTerms.all) { String($0.term.prefix(1)).uppercased() }
+    return groups.keys.sorted().map { letter in (letter, groups[letter] ?? []) }
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 20) {
+      ForEach(groupedTerms, id: \.letter) { group in
+        VStack(alignment: .leading, spacing: 10) {
+          Text(group.letter)
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundStyle(.secondary)
+            .textCase(.uppercase)
+
+          ForEach(group.terms) { entry in
+            VStack(alignment: .leading, spacing: 2) {
+              Text(entry.term)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundStyle(.primary)
+              Text(entry.definition)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(String(localized: "\(entry.term): \(entry.definition)"))
+          }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+      }
+    }
+  }
+}
+
+// MARK: - FAQ
+
+private struct HelpFaqContent: View {
+  @State private var expandedId: String?
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      ForEach(FaqEntries.all) { entry in
+        Divider().opacity(entry.id == FaqEntries.all.first?.id ? 0 : 1)
+
+        Button {
+          withAnimation(.easeInOut(duration: 0.2)) {
+            expandedId = expandedId == entry.id ? nil : entry.id
+          }
+        } label: {
+          HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(entry.question)
+              .font(.subheadline)
+              .fontWeight(.medium)
+              .foregroundStyle(.primary)
+              .frame(maxWidth: .infinity, alignment: .leading)
+            Image(systemName: expandedId == entry.id ? "chevron.up" : "chevron.down")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
+          .padding(.vertical, 12)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(String(localized: "\(entry.question)"))
+        .accessibilityHint(expandedId == entry.id ? "Collapses the answer" : "Expands the answer")
+
+        if expandedId == entry.id {
+          Text(entry.answer)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .padding(.bottom, 12)
+            .accessibilityLabel(String(localized: "\(entry.answer)"))
+        }
       }
     }
   }
