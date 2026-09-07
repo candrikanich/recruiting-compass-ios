@@ -56,6 +56,19 @@ final class SchoolDetailViewModel {
   private(set) var personalFit: PersonalFitAnalysis?
   private var athleteProfile: PlayerDetails?
 
+  // MARK: - Scholarship Limits
+  private var scholarshipLimits: [ScholarshipLimit] = []
+
+  /// Reference line for College Data, e.g. "Athletic Scholarships: 11.7
+  /// equivalency (D1 Baseball)". Requires both sport and division; a
+  /// missing match (unseeded table, unknown combo) renders nothing.
+  var scholarshipLine: String? {
+    guard let sport = athleteProfile?.primarySport, let division = school?.division,
+          let limit = ScholarshipLimitFormatter.select(from: scholarshipLimits, sport: sport, division: division)
+    else { return nil }
+    return ScholarshipLimitFormatter.line(for: limit, sport: sport, division: division)
+  }
+
   // MARK: - Academic Fit
   var academicFit: AcademicFitAnalysis?
   var isEnriching = false
@@ -494,6 +507,7 @@ final class SchoolDetailViewModel {
     guard let school else { personalFit = nil; academicFit = nil; return }
     personalFit = PersonalFitCalculator.calculate(athlete: athleteProfile, school: school)
     academicFit = AcademicFitCalculator.calculate(athlete: athleteProfile, school: school)
+    scholarshipLimits = await ScholarshipLimitsLoader.shared.loadLimits()
   }
 
   // MARK: - Academic Data Lookup (enrich)
