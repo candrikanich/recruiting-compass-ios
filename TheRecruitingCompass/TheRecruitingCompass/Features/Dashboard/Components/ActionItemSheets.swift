@@ -42,9 +42,11 @@ struct ActionItemAddInteractionSheet: View {
 }
 
 /// Presents the video-links editor in its own navigation stack (for action-item CTAs).
-/// Scopes the editor to the selected athlete and makes it read-only for a parent — mirroring
-/// the Settings entry — so a parent viewing an athlete sees that athlete's links, not an empty
-/// editor scoped to their own id. `userId` (the acting user) is the self-viewing fallback.
+/// Scopes the editor to the selected athlete so a parent viewing an athlete sees that
+/// athlete's links, not an empty editor scoped to their own id. `userId` (the acting user)
+/// is the self-viewing fallback. Parents and players collaborate on the same profile —
+/// matches the Settings and Athletics-tab video-link entry points (family-shared profile,
+/// see web issue #555).
 struct ActionItemVideoLinksSheet: View {
   let userId: String
   var familyUnitId: String?
@@ -55,7 +57,7 @@ struct ActionItemVideoLinksSheet: View {
       VideoLinksEditorView(
         athleteUserId: familyManager.selectedAthlete?.userId ?? userId,
         familyUnitId: familyUnitId,
-        isReadOnly: familyManager.currentMember?.isParent == true
+        isReadOnly: false
       )
     }
   }
