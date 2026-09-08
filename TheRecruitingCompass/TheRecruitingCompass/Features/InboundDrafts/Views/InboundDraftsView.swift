@@ -44,6 +44,7 @@ struct InboundDraftsView: View {
     }
   }
 
+  @ViewBuilder
   private var draftList: some View {
     ScrollView {
       LazyVStack(spacing: 12) {

@@ -25,7 +25,7 @@ struct EditableBasicInfo {
       website: school.website ?? "",
       athleticsUrl: school.athleticsUrl ?? "",
       mascot: school.mascot ?? "",
-      schoolColor1: colors.count > 0 ? colors[0] : "",
+      schoolColor1: !colors.isEmpty ? colors[0] : "",
       schoolColor2: colors.count > 1 ? colors[1] : "",
       twitterHandle: school.twitterHandle ?? "",
       instagramHandle: school.instagramHandle ?? ""
