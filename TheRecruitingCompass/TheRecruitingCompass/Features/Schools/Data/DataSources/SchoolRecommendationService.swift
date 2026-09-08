@@ -118,11 +118,6 @@ private struct RecommendationsResponse: Decodable {
 private struct DismissPayload: Encodable {
   let catalogKey: String
   let athleteId: String
-
-  enum CodingKeys: String, CodingKey {
-    case catalogKey = "catalog_key"
-    case athleteId = "athlete_id"
-  }
 }
 
 enum SchoolRecommendationError: LocalizedError {
