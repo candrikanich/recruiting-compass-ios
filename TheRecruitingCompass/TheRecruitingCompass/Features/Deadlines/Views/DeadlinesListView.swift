@@ -17,60 +17,70 @@ struct DeadlinesListView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      Group {
-        if viewModel.isLoading && viewModel.deadlines.isEmpty && viewModel.milestones.isEmpty {
-          loadingState
-        } else if viewModel.unifiedDeadlines.isEmpty {
-          emptyState
-        } else {
-          content
+    // NOTE: no wrapping NavigationStack here — this view is pushed as a
+    // destination inside MoreMenuView's own NavigationStack(path:). Nesting
+    // a second NavigationStack is unsupported by SwiftUI and corrupts the
+    // outer stack's path, breaking every subsequent More-menu push.
+    Group {
+      if viewModel.isLoading && viewModel.deadlines.isEmpty && viewModel.milestones.isEmpty {
+        loadingState
+      } else if viewModel.unifiedDeadlines.isEmpty {
+        emptyState
+      } else {
+        content
+      }
+    }
+    .navigationTitle("Deadlines")
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        Button {
+          viewModel.showAddSheet = true
+        } label: {
+          Image(systemName: "plus")
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .accessibilityLabel(String(localized: "Add deadline"))
+        .accessibilityHint("Opens form to create a new deadline")
+      }
+    }
+    .task { await viewModel.loadDeadlines() }
+    .onChange(of: viewModel.familyUnitId) { oldValue, newValue in
+      // familyManager.loadFamilyData() runs unawaited from Dashboard's
+      // .task; if the user reaches Deadlines before it resolves,
+      // familyUnitId is still nil and loadDeadlines() bails silently.
+      // Re-run once it lands.
+      guard oldValue == nil, newValue != nil else { return }
+      Task { await viewModel.loadDeadlines() }
+    }
+    .refreshable { await viewModel.loadDeadlines() }
+    .alert("Error", isPresented: $viewModel.isShowingErrorAlert, presenting: viewModel.errorMessage) { _ in
+      Button("Retry") { Task { await viewModel.loadDeadlines() } }
+      Button("OK", role: .cancel) { viewModel.errorMessage = nil }
+    } message: { error in
+      Text(error)
+    }
+    .sheet(isPresented: $viewModel.showAddSheet) {
+      AddDeadlineSheet(
+        onSave: { label, date, category in
+          let saved = await viewModel.addDeadline(label: label, date: date, category: category)
+          if saved { viewModel.showAddSheet = false }
+          return saved
+        },
+        onCancel: { viewModel.showAddSheet = false }
+      )
+    }
+    .confirmationDialog("Remove Deadline?", isPresented: showDeleteConfirmation, titleVisibility: .visible) {
+      if let deadlineToDelete {
+        Button("Remove", role: .destructive) {
+          Task { await viewModel.removeDeadline(deadlineToDelete) }
         }
       }
-      .navigationTitle("Deadlines")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          Button {
-            viewModel.showAddSheet = true
-          } label: {
-            Image(systemName: "plus")
-              .frame(minWidth: 44, minHeight: 44)
-              .contentShape(Rectangle())
-          }
-          .accessibilityLabel(String(localized: "Add deadline"))
-          .accessibilityHint("Opens form to create a new deadline")
-        }
-      }
-      .task { await viewModel.loadDeadlines() }
-      .refreshable { await viewModel.loadDeadlines() }
-      .alert("Error", isPresented: $viewModel.isShowingErrorAlert, presenting: viewModel.errorMessage) { _ in
-        Button("Retry") { Task { await viewModel.loadDeadlines() } }
-        Button("OK", role: .cancel) { viewModel.errorMessage = nil }
-      } message: { error in
-        Text(error)
-      }
-      .sheet(isPresented: $viewModel.showAddSheet) {
-        AddDeadlineSheet(
-          onSave: { label, date, category in
-            let saved = await viewModel.addDeadline(label: label, date: date, category: category)
-            if saved { viewModel.showAddSheet = false }
-            return saved
-          },
-          onCancel: { viewModel.showAddSheet = false }
-        )
-      }
-      .confirmationDialog("Remove Deadline?", isPresented: showDeleteConfirmation, titleVisibility: .visible) {
-        if let deadlineToDelete {
-          Button("Remove", role: .destructive) {
-            Task { await viewModel.removeDeadline(deadlineToDelete) }
-          }
-        }
-        Button("Cancel", role: .cancel) {}
-      } message: {
-        if let deadlineToDelete {
-          Text("Remove \"\(deadlineToDelete.label)\"? This cannot be undone.")
-        }
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      if let deadlineToDelete {
+        Text("Remove \"\(deadlineToDelete.label)\"? This cannot be undone.")
       }
     }
   }
