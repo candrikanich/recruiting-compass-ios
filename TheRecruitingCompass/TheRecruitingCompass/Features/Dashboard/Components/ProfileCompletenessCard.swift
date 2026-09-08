@@ -3,6 +3,9 @@ import SwiftUI
 struct ProfileCompletenessCard: View {
   let percentage: Double
   let missingFields: [MissingField]
+  /// When the profile first reached 100% (from `NuxProgressManager.progress.profileCompletion`).
+  /// Drives the 24h auto-hide window for `completeBanner`.
+  var completedAt: Date?
 
   @Environment(\.openMoreSection) private var openMoreSection
 
@@ -11,6 +14,8 @@ struct ProfileCompletenessCard: View {
       expandedCard
     } else if percentage < 1.0 {
       compactBar
+    } else if let completedAt, !NuxCompletionTiming.hasExpired(completedAt) {
+      completeBanner
     }
   }
 
@@ -133,6 +138,38 @@ struct ProfileCompletenessCard: View {
     .brandShadowSm()
     .accessibilityElement(children: .combine)
     .accessibilityLabel(String(localized: "Profile \(Int(percentage * 100)) percent complete. Great progress!"))
+  }
+
+  // MARK: - Complete Banner (100%, within 24h)
+
+  @ViewBuilder
+  private var completeBanner: some View {
+    HStack(spacing: 12) {
+      Image(systemName: "checkmark.seal.fill")
+        .foregroundStyle(Color.successGreen)
+        .accessibilityHidden(true)
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text("100% Complete")
+          .font(.subheadline.weight(.semibold))
+
+        Text("Your profile is fully set up!")
+          .font(.caption)
+          .foregroundStyle(Color.secondaryText)
+      }
+
+      Spacer()
+
+      ProgressView(value: 1.0, total: 1.0)
+        .tint(Color.successGreen)
+        .frame(width: 60)
+    }
+    .padding()
+    .background(Color.Surface.card)
+    .clipShape(.rect(cornerRadius: 12))
+    .brandShadowSm()
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(String(localized: "Profile 100 percent complete. Your profile is fully set up!"))
   }
 }
 

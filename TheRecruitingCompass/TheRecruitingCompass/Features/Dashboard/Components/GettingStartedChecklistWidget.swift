@@ -27,7 +27,11 @@ struct GettingStartedChecklistWidget: View {
   var body: some View {
     if isDismissed {
       resumeBanner
-    } else if !allComplete {
+    } else if allComplete {
+      if let completedAt = nuxProgress.checklist.allCompleteAt, !NuxCompletionTiming.hasExpired(completedAt) {
+        completeBanner
+      }
+    } else {
       checklistCard
     }
   }
@@ -124,6 +128,34 @@ struct GettingStartedChecklistWidget: View {
     .accessibilityLabel(label(for: key))
     .accessibilityValue(isCompleted ? String(localized: "Completed") : String(localized: "Not completed"))
     .accessibilityHint(isCompleted ? "" : String(localized: "Tap to get started"))
+  }
+
+  // MARK: - Complete Banner
+
+  @ViewBuilder
+  private var completeBanner: some View {
+    HStack(spacing: 12) {
+      Text("🎉")
+        .font(.title3)
+        .accessibilityHidden(true)
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text("You're all set!")
+          .font(.subheadline.weight(.semibold))
+
+        Text("Getting started checklist complete")
+          .font(.caption)
+          .foregroundStyle(Color.secondaryText)
+      }
+
+      Spacer()
+    }
+    .padding()
+    .background(Color.Surface.card)
+    .clipShape(.rect(cornerRadius: 12))
+    .brandShadowSm()
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(String(localized: "You're all set! Getting started checklist complete"))
   }
 
   // MARK: - Resume Banner

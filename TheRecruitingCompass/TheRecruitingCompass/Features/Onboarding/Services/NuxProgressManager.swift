@@ -40,8 +40,19 @@ final class NuxProgressManager {
   func completeItem(_ key: NuxChecklistKey) {
     guard !progress.isItemCompleted(key) else { return }
     progress.completeItem(key)
+    progress.updateChecklistCompletion()
     OnboardingAnalytics.checklistItemCompleted(item: key.rawValue)
     logger.info("NUX item completed: \(key.rawValue) (\(self.progress.checklist.completedCount)/\(NuxChecklistKey.allCases.count))")
+    persistInBackground()
+  }
+
+  /// Updates the profile-completion timestamp used by the 24h auto-hide banner.
+  /// No-ops (and skips persist) when the mutation doesn't change state.
+  func updateProfileCompletion(percentage: Double) {
+    let previousCompletedAt = progress.profileCompletion.completedAt
+    progress.updateProfileCompletion(percentage: percentage)
+    guard progress.profileCompletion.completedAt != previousCompletedAt else { return }
+    logger.info("NUX profile completion updated (percentage: \(percentage))")
     persistInBackground()
   }
 

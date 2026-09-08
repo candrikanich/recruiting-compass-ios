@@ -11,6 +11,7 @@ final class DashboardViewModelTests: XCTestCase {
   var mockFamilyService: MockFamilyService!
   var familyManager: FamilyManager!
   var mockPreferenceService: MockPreferenceService!
+  var mockVideoLinksService: MockVideoLinksService!
 
   override func setUp() {
     super.setUp()
@@ -19,6 +20,7 @@ final class DashboardViewModelTests: XCTestCase {
     mockTaskStorage = MockQuickTaskStorage()
     mockFamilyService = MockFamilyService()
     mockPreferenceService = MockPreferenceService()
+    mockVideoLinksService = MockVideoLinksService()
     familyManager = FamilyManager(
       familyService: mockFamilyService,
       authManager: mockAuthManager
@@ -28,7 +30,8 @@ final class DashboardViewModelTests: XCTestCase {
       dashboardService: mockDashboardService,
       taskStorage: mockTaskStorage,
       familyManager: familyManager,
-      preferenceService: mockPreferenceService
+      preferenceService: mockPreferenceService,
+      videoLinksService: mockVideoLinksService
     )
   }
 
@@ -40,6 +43,7 @@ final class DashboardViewModelTests: XCTestCase {
     mockFamilyService = nil
     familyManager = nil
     mockPreferenceService = nil
+    mockVideoLinksService = nil
     super.tearDown()
   }
 
@@ -735,5 +739,60 @@ final class DashboardViewModelTests: XCTestCase {
     // Rest of the dashboard still loads — preference failure doesn't propagate.
     XCTAssertNotNil(sut.stats)
     XCTAssertNil(sut.errorMessage)
+  }
+
+  // MARK: - Highlight Video Completeness Tests
+
+  func testFetchDashboardDataIncludesHighlightVideoInCompletenessWhenLinksExist() async {
+    authenticateUser()
+    setupFamilyContext()
+    mockPreferenceService.stubbedPlayerDetails = PlayerDetails(graduationYear: 2028)
+    mockVideoLinksService.links = [
+      VideoLink(
+        id: "link-1", userId: "test-user-id", familyUnitId: nil,
+        platform: .hudl, url: "https://hudl.com/video", title: nil, position: 0,
+        healthStatus: .unknown, lastHealthCheck: nil, createdAt: nil, updatedAt: nil
+      )
+    ]
+
+    await sut.fetchDashboardData()
+
+    XCTAssertTrue(sut.hasHighlightVideo)
+    // Delta from a real video link (+0.15) must be reflected, not hardcoded to false.
+    XCTAssertTrue(sut.missingProfileFields.allSatisfy { $0.id != "video" })
+  }
+
+  func testFetchDashboardDataExcludesHighlightVideoFromCompletenessWhenNoLinks() async {
+    authenticateUser()
+    setupFamilyContext()
+    mockPreferenceService.stubbedPlayerDetails = PlayerDetails(graduationYear: 2028)
+    mockVideoLinksService.links = []
+
+    await sut.fetchDashboardData()
+
+    XCTAssertFalse(sut.hasHighlightVideo)
+    XCTAssertTrue(sut.missingProfileFields.contains { $0.id == "video" })
+  }
+
+  func testFetchDashboardDataCompletenessDeltaFromHighlightVideo() async {
+    authenticateUser()
+    setupFamilyContext()
+    mockPreferenceService.stubbedPlayerDetails = PlayerDetails(graduationYear: 2028)
+
+    mockVideoLinksService.links = []
+    await sut.fetchDashboardData()
+    let withoutVideo = sut.profileCompleteness
+
+    mockVideoLinksService.links = [
+      VideoLink(
+        id: "link-1", userId: "test-user-id", familyUnitId: nil,
+        platform: .hudl, url: "https://hudl.com/video", title: nil, position: 0,
+        healthStatus: .unknown, lastHealthCheck: nil, createdAt: nil, updatedAt: nil
+      )
+    ]
+    await sut.fetchDashboardData()
+    let withVideo = sut.profileCompleteness
+
+    XCTAssertEqual(withVideo - withoutVideo, 0.15, accuracy: 0.0001)
   }
 }
