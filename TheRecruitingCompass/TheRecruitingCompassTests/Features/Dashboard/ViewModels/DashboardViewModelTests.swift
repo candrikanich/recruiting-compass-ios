@@ -11,6 +11,7 @@ final class DashboardViewModelTests: XCTestCase {
   var mockFamilyService: MockFamilyService!
   var familyManager: FamilyManager!
   var mockPreferenceService: MockPreferenceService!
+  var mockVideoLinksService: MockVideoLinksService!
 
   override func setUp() {
     super.setUp()
@@ -19,6 +20,7 @@ final class DashboardViewModelTests: XCTestCase {
     mockTaskStorage = MockQuickTaskStorage()
     mockFamilyService = MockFamilyService()
     mockPreferenceService = MockPreferenceService()
+    mockVideoLinksService = MockVideoLinksService()
     familyManager = FamilyManager(
       familyService: mockFamilyService,
       authManager: mockAuthManager
@@ -28,7 +30,8 @@ final class DashboardViewModelTests: XCTestCase {
       dashboardService: mockDashboardService,
       taskStorage: mockTaskStorage,
       familyManager: familyManager,
-      preferenceService: mockPreferenceService
+      preferenceService: mockPreferenceService,
+      videoLinksService: mockVideoLinksService
     )
   }
 
@@ -40,6 +43,7 @@ final class DashboardViewModelTests: XCTestCase {
     mockFamilyService = nil
     familyManager = nil
     mockPreferenceService = nil
+    mockVideoLinksService = nil
     super.tearDown()
   }
 
@@ -721,6 +725,27 @@ final class DashboardViewModelTests: XCTestCase {
 
     XCTAssertEqual(sut.athleteSport, "Softball")
     XCTAssertEqual(sut.athleteGender, "female")
+  }
+
+  func testProfileCompletenessCountsRealHighlightVideo() async {
+    authenticateUser()
+    setupFamilyContext()
+    mockPreferenceService.stubbedPlayerDetails = PlayerDetails(
+      primarySport: "Softball",
+      gender: "female"
+    )
+    mockVideoLinksService.links = [
+      VideoLink(
+        id: "video-1", userId: "test-user-id", familyUnitId: nil,
+        platform: .youtube, url: "https://youtube.com/x", title: nil, position: 0,
+        healthStatus: .unknown, lastHealthCheck: nil, createdAt: nil, updatedAt: nil
+      )
+    ]
+
+    await sut.fetchDashboardData()
+
+    XCTAssertTrue(sut.hasHighlightVideo)
+    XCTAssertFalse(sut.missingProfileFields.contains { $0.id == "video" })
   }
 
   func testFetchDashboardDataLeavesSportAndGenderNilOnPreferenceFetchFailure() async {
