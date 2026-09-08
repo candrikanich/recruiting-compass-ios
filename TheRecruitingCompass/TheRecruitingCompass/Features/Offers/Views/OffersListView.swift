@@ -25,6 +25,13 @@ struct OffersListView: View {
     )
     .refreshable { await viewModel.loadOffers() }
     .task { await viewModel.loadOffers() }
+    .onChange(of: viewModel.familyUnitId) { oldValue, newValue in
+      // familyManager.loadFamilyData() runs unawaited from Dashboard's
+      // .task; loadOffers() silently skips the schools fetch if it's
+      // still nil at call time. Re-run once family data lands.
+      guard oldValue == nil, newValue != nil else { return }
+      Task { await viewModel.loadOffers() }
+    }
     .confirmationDialog(
       "Delete Offer",
       isPresented: $viewModel.showDeleteConfirmation,

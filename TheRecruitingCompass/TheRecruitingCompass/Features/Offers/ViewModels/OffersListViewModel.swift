@@ -136,6 +136,12 @@ final class OffersListViewModel {
     familyManager.selectedAthlete?.userId ?? authManager.user?.id
   }
 
+  /// Exposed so the view can retry once family data lands — `loadOffers()`
+  /// silently skips the schools fetch below when this is nil at call time.
+  var familyUnitId: String? {
+    familyManager.familyUnitId
+  }
+
   /// Invalidates the cached offers list so the next `loadOffers()` refetches.
   /// Call after any mutation (create, delete). `OfferDetailViewModel`
   /// invalidates the same key (via `ListCacheKeys.offers`) after edit/delete.

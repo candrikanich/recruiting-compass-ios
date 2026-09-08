@@ -19,6 +19,7 @@ struct EventsListView: View {
   @State private var createEventContext: CreateEventContext?
   @State private var hapticWarningTrigger = 0
   @State private var hapticLightTrigger = 0
+  @State private var pendingCreateEventTap = false
 
   private var showDeleteConfirmation: Binding<Bool> {
     Binding(
@@ -58,6 +59,14 @@ struct EventsListView: View {
     }
     .refreshable {
       await viewModel.loadEvents()
+    }
+    .onChange(of: viewModel.familyUnitId) { oldValue, newValue in
+      // familyManager.loadFamilyData() runs unawaited from Dashboard's
+      // .task; presentCreateEvent() silently no-ops if familyUnitId is
+      // still nil at tap time. Complete a tap that got dropped that way.
+      guard oldValue == nil, newValue != nil, pendingCreateEventTap else { return }
+      pendingCreateEventTap = false
+      presentCreateEvent()
     }
     .alert("Error", isPresented: $viewModel.isShowingErrorAlert, presenting: viewModel.errorMessage) { _ in
       Button("Retry") { Task { await viewModel.loadEvents() } }
@@ -101,7 +110,12 @@ struct EventsListView: View {
   /// item so the presented form survives auth/family republishes mid-edit.
   private func presentCreateEvent() {
     guard let userId = viewModel.targetUserId,
-          let familyUnitId = viewModel.familyUnitId else { return }
+          let familyUnitId = viewModel.familyUnitId else {
+      // Family data may still be loading (see the familyUnitId onChange
+      // above) — remember the tap and complete it once it lands.
+      pendingCreateEventTap = true
+      return
+    }
     createEventContext = CreateEventContext(userId: userId, familyUnitId: familyUnitId)
   }
 
