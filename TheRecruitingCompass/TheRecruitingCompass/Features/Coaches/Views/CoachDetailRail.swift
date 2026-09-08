@@ -18,6 +18,15 @@ struct CoachDetailRail: View {
 
   var body: some View {
   VStack(alignment: .leading, spacing: 16) {
+    identitySection
+    recordSection
+  }
+  }
+
+  /// Who this coach is + how to reach them — belongs at the top of the page
+  /// regardless of layout, so callers stacking sections manually (compact
+  /// width) can pull it out separately from `recordSection`.
+  @ViewBuilder var identitySection: some View {
     SectionCard {
     CoachDetailHeader(coach: coach, school: viewModel.school, onEdit: onEdit, onDelete: onDelete)
     }
@@ -33,7 +42,11 @@ struct CoachDetailRail: View {
       onLog: onLog
     )
     }
+  }
 
+  /// Low-priority record-keeping (notes/tags/meta) — trails after the
+  /// activity history in compact layouts.
+  @ViewBuilder var recordSection: some View {
     SectionCard(label: "Internal Notes") {
     NotesSection(
       title: String(localized: "Shared Notes"),
@@ -51,6 +64,5 @@ struct CoachDetailRail: View {
     }
 
     SectionCard(label: "Profile Meta") { CoachProfileMetaCard(coach: coach) }
-  }
   }
 }

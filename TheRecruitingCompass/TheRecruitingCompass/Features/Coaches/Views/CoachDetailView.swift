@@ -226,16 +226,22 @@ struct CoachDetailView: View {
   // MARK: - Content
 
   private func detailContent(coach: Coach) -> some View {
-    AdaptiveDetailLayout(sidebarPlacement: .leading, sidebarWidth: 340) {
-      VStack(alignment: .leading, spacing: 16) {
-        if let insights = viewModel.coachInsights {
-          CoachAlertsSection(insights: insights)
-          SectionCard { CoachStatsGrid(insights: insights) }
-        }
+    let rail = CoachDetailRail(
+      coach: coach,
+      viewModel: viewModel,
+      onEdit: { viewModel.startEditing() },
+      onDelete: { viewModel.confirmDelete() },
+      onEmail: { presentQuickCommunication(coach) },
+      onText: { presentQuickCommunication(coach) },
+      onCall: { openChannel(.call(coach.phone ?? ""), value: coach.phone) },
+      onTwitter: { openSocial(.twitter, coach: coach) },
+      onInstagram: { openSocial(.instagram, coach: coach) },
+      onLog: { showLogInteraction = true }
+    )
 
-        if let insights = viewModel.coachInsights {
-          SectionCard { CoachAnalyticsCard(insights: insights) }
-        }
+    return AdaptiveDetailLayout(sidebarPlacement: .leading, sidebarWidth: 340) {
+      VStack(alignment: .leading, spacing: 16) {
+        insightsSection(coach: coach)
 
         SectionCard(label: "Interactions History") {
           CoachInteractionsLogSection(viewModel: viewModel)
@@ -244,18 +250,29 @@ struct CoachDetailView: View {
         sendProfileSection(coach: coach)
       }
     } sidebar: {
-      CoachDetailRail(
-        coach: coach,
-        viewModel: viewModel,
-        onEdit: { viewModel.startEditing() },
-        onDelete: { viewModel.confirmDelete() },
-        onEmail: { presentQuickCommunication(coach) },
-        onText: { presentQuickCommunication(coach) },
-        onCall: { openChannel(.call(coach.phone ?? ""), value: coach.phone) },
-        onTwitter: { openSocial(.twitter, coach: coach) },
-        onInstagram: { openSocial(.instagram, coach: coach) },
-        onLog: { showLogInteraction = true }
-      )
+      rail
+    } compact: {
+      // Who + how-to-reach first, then activity history, then low-priority
+      // record-keeping (notes/tags/meta) last — matches the regular-width
+      // reading order instead of dumping the whole sidebar after content.
+      VStack(alignment: .leading, spacing: 16) {
+        rail.identitySection
+        insightsSection(coach: coach)
+        SectionCard(label: "Interactions History") {
+          CoachInteractionsLogSection(viewModel: viewModel)
+        }
+        sendProfileSection(coach: coach)
+        rail.recordSection
+      }
+    }
+  }
+
+  @ViewBuilder
+  private func insightsSection(coach: Coach) -> some View {
+    if let insights = viewModel.coachInsights {
+      CoachAlertsSection(insights: insights)
+      SectionCard { CoachStatsGrid(insights: insights) }
+      SectionCard { CoachAnalyticsCard(insights: insights) }
     }
   }
 
