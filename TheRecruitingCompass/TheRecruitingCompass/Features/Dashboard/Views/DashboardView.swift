@@ -249,7 +249,8 @@ struct DashboardView: View {
 
       ProfileCompletenessCard(
         percentage: viewModel.profileCompleteness,
-        missingFields: viewModel.missingProfileFields
+        missingFields: viewModel.missingProfileFields,
+        completedAt: nuxProgressManager.progress.profileCompletion.completedAt
       )
 
       SchoolRecommendationsWidget(
@@ -280,6 +281,7 @@ struct DashboardView: View {
       nuxProgressManager.completeItem(.academics)
     }
     if familyManager.familyMembers.count > 1 { nuxProgressManager.completeItem(.inviteFamily) }
+    nuxProgressManager.updateProfileCompletion(percentage: completeness)
   }
 
   @ViewBuilder

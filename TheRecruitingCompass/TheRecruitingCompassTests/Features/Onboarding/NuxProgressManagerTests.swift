@@ -147,4 +147,53 @@ struct NuxProgressManagerTests {
 
     #expect(mockService.saveCallCount == 0)
   }
+
+  // MARK: - completeItem sets allCompleteAt on the 8th item
+
+  @Test func completingFinalItemSetsAllCompleteAt() {
+    let (sut, _) = makeSUT()
+    let allButLast = NuxChecklistKey.allCases.dropLast()
+    for key in allButLast { sut.completeItem(key) }
+    #expect(sut.progress.checklist.allCompleteAt == nil)
+
+    sut.completeItem(NuxChecklistKey.allCases.last!)
+
+    #expect(sut.progress.checklist.allCompleteAt != nil)
+  }
+
+  // MARK: - updateProfileCompletion
+
+  @Test func updateProfileCompletionSetsTimestampAt100Percent() {
+    let (sut, _) = makeSUT()
+    sut.updateProfileCompletion(percentage: 1.0)
+    #expect(sut.progress.profileCompletion.completedAt != nil)
+  }
+
+  @Test func updateProfileCompletionPersistsInBackground() async throws {
+    let mockService = MockNuxProgressService()
+    let (sut, _) = makeSUT(service: mockService)
+    await sut.load(userId: "user-1")
+
+    sut.updateProfileCompletion(percentage: 1.0)
+
+    try await Task.sleep(for: .milliseconds(100))
+
+    #expect(mockService.saveCallCount >= 1)
+    #expect(mockService.lastSavedProgress?.profileCompletion.completedAt != nil)
+  }
+
+  @Test func updateProfileCompletionNoOpsWhenStateUnchanged() async throws {
+    let mockService = MockNuxProgressService()
+    let (sut, _) = makeSUT(service: mockService)
+    await sut.load(userId: "user-1")
+    sut.updateProfileCompletion(percentage: 1.0)
+    try await Task.sleep(for: .milliseconds(100))
+    let saveCountAfterFirstUpdate = mockService.saveCallCount
+
+    // Calling again with the same >=100% state should not trigger another persist.
+    sut.updateProfileCompletion(percentage: 1.0)
+    try await Task.sleep(for: .milliseconds(100))
+
+    #expect(mockService.saveCallCount == saveCountAfterFirstUpdate)
+  }
 }

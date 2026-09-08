@@ -41,6 +41,9 @@ final class DashboardViewModel {
   /// Whether the target athlete has a home location set (`user_preferences`/`location`).
   /// Loaded alongside playerDetails; feeds profileCompleteness/missingProfileFields.
   var hasHomeLocation = false
+  /// Whether the target athlete has at least one video link. Loaded alongside
+  /// playerDetails; feeds profileCompleteness/missingProfileFields.
+  var hasHighlightVideo = false
   var recommendations: [SchoolRecommendation] = []
   var isLoading = false
   var isLoggingOut = false
@@ -59,6 +62,7 @@ final class DashboardViewModel {
   private let preferenceService: any PreferenceManaging
   private let recommendationService: any SchoolRecommendationManaging
   private let deadlinesService: any DeadlinesManaging
+  private let videoLinksService: any VideoLinksManaging
 
   /// The user whose recruiting data the dashboard shows. When a parent is
   /// viewing an athlete, events/metrics/interactions belong to the athlete;
@@ -125,14 +129,13 @@ final class DashboardViewModel {
   }
 
   /// Profile completeness (0.0–1.0) derived from playerDetails. Falls back to 0 when
-  /// details haven't loaded yet. Highlight video is not tracked on the dashboard — passed
-  /// as false so the ring focuses on fields the user can fill from Player Details.
+  /// details haven't loaded yet.
   var profileCompleteness: Double {
-    playerDetails?.completenessScore(hasHighlightVideo: false, hasHomeLocation: hasHomeLocation) ?? 0
+    playerDetails?.completenessScore(hasHighlightVideo: hasHighlightVideo, hasHomeLocation: hasHomeLocation) ?? 0
   }
 
   var missingProfileFields: [MissingField] {
-    playerDetails?.topMissingFields(hasHighlightVideo: false, hasHomeLocation: hasHomeLocation) ?? []
+    playerDetails?.topMissingFields(hasHighlightVideo: hasHighlightVideo, hasHomeLocation: hasHomeLocation) ?? []
   }
 
   #if DEBUG
@@ -152,7 +155,8 @@ final class DashboardViewModel {
     familyManager: FamilyManager? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
     recommendationService: (any SchoolRecommendationManaging)? = nil,
-    deadlinesService: (any DeadlinesManaging)? = nil
+    deadlinesService: (any DeadlinesManaging)? = nil,
+    videoLinksService: (any VideoLinksManaging)? = nil
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.dashboardService = dashboardService ?? DashboardServiceImpl(supabaseManager: .shared)
@@ -161,6 +165,7 @@ final class DashboardViewModel {
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.recommendationService = recommendationService ?? SchoolRecommendationServiceImpl(supabaseManager: .shared)
     self.deadlinesService = deadlinesService ?? DeadlinesServiceImpl(supabaseManager: .shared)
+    self.videoLinksService = videoLinksService ?? VideoLinksServiceImpl(supabaseManager: .shared)
   }
 
   func fetchDashboardData() async {
@@ -505,6 +510,14 @@ final class DashboardViewModel {
     } catch {
       logger.debug("Could not load home location for completeness: \(error.localizedDescription)")
       hasHomeLocation = false
+    }
+
+    do {
+      let links = try await videoLinksService.fetchVideoLinks(userId: userId)
+      hasHighlightVideo = !links.isEmpty
+    } catch {
+      logger.debug("Could not load video links for completeness: \(error.localizedDescription)")
+      hasHighlightVideo = false
     }
   }
 

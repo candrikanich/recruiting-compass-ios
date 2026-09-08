@@ -210,4 +210,141 @@ struct NuxProgressTests {
     #expect(!item.completed)
     #expect(item.completedAt == nil)
   }
+
+  // MARK: - NuxProfileCompletion.empty
+
+  @Test func emptyProfileCompletionHasNoCompletedAt() {
+    #expect(NuxProfileCompletion.empty.completedAt == nil)
+  }
+
+  @Test func emptyProgressHasEmptyProfileCompletion() {
+    #expect(NuxProgress.empty.profileCompletion.completedAt == nil)
+  }
+
+  @Test func emptyProgressChecklistHasNoAllCompleteAt() {
+    #expect(NuxProgress.empty.checklist.allCompleteAt == nil)
+  }
+
+  // MARK: - updateChecklistCompletion
+
+  @Test func updateChecklistCompletionSetsTimestampWhenAllComplete() {
+    var progress = NuxProgress.empty
+    for key in NuxChecklistKey.allCases { progress.completeItem(key) }
+
+    progress.updateChecklistCompletion()
+
+    #expect(progress.checklist.allCompleteAt != nil)
+  }
+
+  @Test func updateChecklistCompletionDoesNotSetTimestampWhenIncomplete() {
+    var progress = NuxProgress.empty
+    progress.completeItem(.sport)
+
+    progress.updateChecklistCompletion()
+
+    #expect(progress.checklist.allCompleteAt == nil)
+  }
+
+  @Test func updateChecklistCompletionIsIdempotent() {
+    var progress = NuxProgress.empty
+    for key in NuxChecklistKey.allCases { progress.completeItem(key) }
+    progress.updateChecklistCompletion()
+    let firstTimestamp = progress.checklist.allCompleteAt
+
+    progress.updateChecklistCompletion()
+    let secondTimestamp = progress.checklist.allCompleteAt
+
+    #expect(firstTimestamp == secondTimestamp)
+  }
+
+  @Test func updateChecklistCompletionClearsTimestampOnRegression() {
+    var progress = NuxProgress.empty
+    for key in NuxChecklistKey.allCases { progress.completeItem(key) }
+    progress.updateChecklistCompletion()
+    #expect(progress.checklist.allCompleteAt != nil)
+
+    progress.checklist.items[NuxChecklistKey.sport.rawValue] = .incomplete
+    progress.updateChecklistCompletion()
+
+    #expect(progress.checklist.allCompleteAt == nil)
+  }
+
+  // MARK: - updateProfileCompletion
+
+  @Test func updateProfileCompletionSetsTimestampAt100Percent() {
+    var progress = NuxProgress.empty
+    progress.updateProfileCompletion(percentage: 1.0)
+    #expect(progress.profileCompletion.completedAt != nil)
+  }
+
+  @Test func updateProfileCompletionDoesNotSetTimestampBelow100Percent() {
+    var progress = NuxProgress.empty
+    progress.updateProfileCompletion(percentage: 0.99)
+    #expect(progress.profileCompletion.completedAt == nil)
+  }
+
+  @Test func updateProfileCompletionIsIdempotent() {
+    var progress = NuxProgress.empty
+    progress.updateProfileCompletion(percentage: 1.0)
+    let firstTimestamp = progress.profileCompletion.completedAt
+
+    progress.updateProfileCompletion(percentage: 1.0)
+    let secondTimestamp = progress.profileCompletion.completedAt
+
+    #expect(firstTimestamp == secondTimestamp)
+  }
+
+  @Test func updateProfileCompletionClearsTimestampBelow100Percent() {
+    var progress = NuxProgress.empty
+    progress.updateProfileCompletion(percentage: 1.0)
+    #expect(progress.profileCompletion.completedAt != nil)
+
+    progress.updateProfileCompletion(percentage: 0.85)
+
+    #expect(progress.profileCompletion.completedAt == nil)
+  }
+
+  // MARK: - Defensive decode (old persisted rows missing new keys)
+
+  @Test func decodesMissingProfileCompletionAsEmpty() throws {
+    let json = """
+    {"version":1,"checklist":{"items":{}},"firstVisits":{},"dismissals":{}}
+    """.data(using: .utf8)!
+
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    let decoded = try decoder.decode(NuxProgress.self, from: json)
+
+    #expect(decoded.profileCompletion.completedAt == nil)
+  }
+
+  @Test func decodesMissingAllCompleteAtAsNil() throws {
+    let json = """
+    {"version":1,"checklist":{"items":{}},"firstVisits":{},"dismissals":{}}
+    """.data(using: .utf8)!
+
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    let decoded = try decoder.decode(NuxProgress.self, from: json)
+
+    #expect(decoded.checklist.allCompleteAt == nil)
+  }
+
+  @Test func codableRoundTripPreservesNewFields() throws {
+    var progress = NuxProgress.empty
+    for key in NuxChecklistKey.allCases { progress.completeItem(key) }
+    progress.updateChecklistCompletion()
+    progress.updateProfileCompletion(percentage: 1.0)
+
+    let encoder = JSONEncoder()
+    encoder.dateEncodingStrategy = .iso8601
+    let data = try encoder.encode(progress)
+
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    let decoded = try decoder.decode(NuxProgress.self, from: data)
+
+    #expect(decoded.checklist.allCompleteAt != nil)
+    #expect(decoded.profileCompletion.completedAt != nil)
+  }
 }
