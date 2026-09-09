@@ -6,6 +6,7 @@ final class ForgotPasswordViewModelTests: XCTestCase {
   nonisolated deinit {}
   var sut: ForgotPasswordViewModel!
   var mockAuthManager: MockAuthManager!
+  var mockTurnstileProvider: MockTurnstileTokenProvider!
 
   /// Same durations as `.default` but a tiny tick interval so cooldown timer
   /// tests advance in milliseconds instead of real seconds.
@@ -18,12 +19,14 @@ final class ForgotPasswordViewModelTests: XCTestCase {
   override func setUp() {
     super.setUp()
     mockAuthManager = MockAuthManager()
-    sut = ForgotPasswordViewModel(authManager: mockAuthManager)
+    mockTurnstileProvider = MockTurnstileTokenProvider()
+    sut = ForgotPasswordViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstileProvider)
   }
 
   override func tearDown() {
     sut = nil
     mockAuthManager = nil
+    mockTurnstileProvider = nil
     super.tearDown()
   }
 
@@ -109,6 +112,30 @@ final class ForgotPasswordViewModelTests: XCTestCase {
     XCTAssertFalse(sut.isLoading)
   }
 
+  func testSendResetLinkFetchesAndForwardsCaptchaToken() async {
+    let mockTurnstile = MockTurnstileTokenProvider()
+    mockTurnstile.tokenToReturn = "captcha-reset-789"
+    sut = ForgotPasswordViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstile)
+    sut.email = "user@example.com"
+
+    await sut.sendResetLink()
+
+    XCTAssertEqual(mockTurnstile.getTokenCallCount, 1)
+    XCTAssertEqual(mockAuthManager.capturedResetEmailCaptchaToken, "captcha-reset-789")
+  }
+
+  func testSendResetLinkSurfacesCaptchaFailure() async {
+    let mockTurnstile = MockTurnstileTokenProvider()
+    mockTurnstile.shouldThrowError = true
+    sut = ForgotPasswordViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstile)
+    sut.email = "user@example.com"
+
+    await sut.sendResetLink()
+
+    XCTAssertEqual(mockAuthManager.resetEmailCallCount, 0)
+    XCTAssertEqual(sut.errorMessage, "Couldn't verify you're human. Please try again.")
+  }
+
   func testSendResetLinkFailure() async {
     mockAuthManager.shouldThrowResetEmailError = true
     mockAuthManager.mockErrorToThrow = .resetEmailNotFound
@@ -190,7 +217,11 @@ final class ForgotPasswordViewModelTests: XCTestCase {
   // MARK: - Timer Behavior
 
   func testResendCooldownTimerCountsDown() async {
-    sut = ForgotPasswordViewModel(authManager: mockAuthManager, config: Self.fastTimerConfig)
+    sut = ForgotPasswordViewModel(
+      authManager: mockAuthManager,
+      config: Self.fastTimerConfig,
+      turnstileTokenProvider: mockTurnstileProvider
+    )
     sut.state = .emailSent(submittedEmail: "user@example.com")
 
     await sut.resendResetLink()
@@ -206,7 +237,11 @@ final class ForgotPasswordViewModelTests: XCTestCase {
   }
 
   func testResendCooldownTimerStartsAndCountsDown() async {
-    sut = ForgotPasswordViewModel(authManager: mockAuthManager, config: Self.fastTimerConfig)
+    sut = ForgotPasswordViewModel(
+      authManager: mockAuthManager,
+      config: Self.fastTimerConfig,
+      turnstileTokenProvider: mockTurnstileProvider
+    )
     sut.state = .emailSent(submittedEmail: "user@example.com")
 
     await sut.resendResetLink()

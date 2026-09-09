@@ -15,6 +15,7 @@ final class ForgotPasswordViewModel {
 
   private let authManager: any AuthManaging
   private let config: PasswordResetConfig
+  private let turnstileTokenProvider: any TurnstileTokenProviding
   @ObservationIgnored private var cooldownTask: Task<Void, Never>?
 
   var submittedEmail: String {
@@ -52,10 +53,12 @@ final class ForgotPasswordViewModel {
 
   init(
     authManager: (any AuthManaging)? = nil,
-    config: PasswordResetConfig? = nil
+    config: PasswordResetConfig? = nil,
+    turnstileTokenProvider: (any TurnstileTokenProviding)? = nil
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.config = config ?? .default
+    self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
   }
 
   func validateEmail() {
@@ -119,7 +122,8 @@ final class ForgotPasswordViewModel {
   }
 
   private func executeSendReset(for email: String) async throws {
-    try await authManager.resetPasswordForEmail(email: email)
+    let captchaToken = try await turnstileTokenProvider.getToken()
+    try await authManager.resetPasswordForEmail(email: email, captchaToken: captchaToken)
   }
 
   private func handleSendResetSuccess(for email: String) {
