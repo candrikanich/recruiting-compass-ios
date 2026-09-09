@@ -47,10 +47,10 @@ final class AuthManager: AuthManaging {
     }
   }
 
-  func login(email: String, password: String) async throws {
+  func login(email: String, password: String, captchaToken: String) async throws {
     logger.debug("Attempting login for: \(email.prefix(3))***")
     do {
-      let (user, session) = try await supabaseManager.signIn(email: email, password: password)
+      let (user, session) = try await supabaseManager.signIn(email: email, password: password, captchaToken: captchaToken)
       self.user = user
       self.session = session
       self.isAuthenticated = true
@@ -74,7 +74,8 @@ final class AuthManager: AuthManaging {
     fullName: String,
     role: UserRole,
     familyCode: String?,
-    dateOfBirth: String? = nil
+    dateOfBirth: String? = nil,
+    captchaToken: String
   ) async throws {
     logger.debug("Attempting signup for: \(email.prefix(3))*** role: \(role.rawValue)")
     if let dob = dateOfBirth, COPPAHelper.isUnderAge(dob) {
@@ -88,7 +89,8 @@ final class AuthManager: AuthManaging {
         fullName: fullName,
         role: role,
         familyCode: familyCode,
-        dateOfBirth: dateOfBirth
+        dateOfBirth: dateOfBirth,
+        captchaToken: captchaToken
       )
       self.user = user
       self.session = session
@@ -127,10 +129,10 @@ final class AuthManager: AuthManaging {
     }
   }
 
-  func resendVerificationEmail(email: String) async throws {
+  func resendVerificationEmail(email: String, captchaToken: String) async throws {
     logger.debug("Resending verification email to: \(email.prefix(3))***")
     do {
-      try await supabaseManager.resendVerificationEmail(email: email)
+      try await supabaseManager.resendVerificationEmail(email: email, captchaToken: captchaToken)
       self.errorMessage = nil
       logger.info("Verification email sent")
     } catch {
@@ -140,10 +142,10 @@ final class AuthManager: AuthManaging {
     }
   }
 
-  func resetPasswordForEmail(email: String) async throws {
+  func resetPasswordForEmail(email: String, captchaToken: String) async throws {
     logger.debug("Requesting password reset for: \(email.prefix(3))***")
     do {
-      try await supabaseManager.resetPasswordForEmail(email: email)
+      try await supabaseManager.resetPasswordForEmail(email: email, captchaToken: captchaToken)
       self.errorMessage = nil
       logger.info("Password reset email sent")
     } catch {

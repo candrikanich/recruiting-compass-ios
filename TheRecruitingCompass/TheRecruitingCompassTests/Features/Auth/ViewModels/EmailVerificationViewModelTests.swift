@@ -6,6 +6,7 @@ final class EmailVerificationViewModelTests: XCTestCase {
   nonisolated deinit {}
   var sut: EmailVerificationViewModel!
   var mockAuthManager: MockAuthManager!
+  var mockTurnstileProvider: MockTurnstileTokenProvider!
 
   private let unverifiedUser = User(
     id: "test-id",
@@ -30,12 +31,14 @@ final class EmailVerificationViewModelTests: XCTestCase {
   override func setUp() {
     super.setUp()
     mockAuthManager = MockAuthManager()
+    mockTurnstileProvider = MockTurnstileTokenProvider()
   }
 
   override func tearDown() {
     sut?.stopPolling()
     sut = nil
     mockAuthManager = nil
+    mockTurnstileProvider = nil
     super.tearDown()
   }
 
@@ -289,17 +292,29 @@ final class EmailVerificationViewModelTests: XCTestCase {
 
   func testResendVerificationEmailCallsAuthManager() async {
     mockAuthManager.setMockUser(unverifiedUser)
-    sut = EmailVerificationViewModel(authManager: mockAuthManager)
+    sut = EmailVerificationViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstileProvider)
 
     await sut.resendVerificationEmail()
 
     XCTAssertEqual(mockAuthManager.resendEmailCallCount, 1)
   }
 
+  func testResendVerificationEmailForwardsCaptchaToken() async {
+    mockAuthManager.setMockUser(unverifiedUser)
+    mockTurnstileProvider.tokenToReturn = "resend-captcha-token"
+    sut = EmailVerificationViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstileProvider)
+
+    await sut.resendVerificationEmail()
+
+    XCTAssertEqual(mockTurnstileProvider.getTokenCallCount, 1)
+    XCTAssertEqual(mockAuthManager.capturedResendEmailCaptchaToken, "resend-captcha-token")
+  }
+
   func testResendStartsCooldown() async {
     mockAuthManager.setMockUser(unverifiedUser)
     sut = EmailVerificationViewModel(
       authManager: mockAuthManager,
+      turnstileTokenProvider: mockTurnstileProvider,
       cooldownDuration: 3
     )
 
@@ -315,6 +330,7 @@ final class EmailVerificationViewModelTests: XCTestCase {
     mockAuthManager.setMockUser(unverifiedUser)
     sut = EmailVerificationViewModel(
       authManager: mockAuthManager,
+      turnstileTokenProvider: mockTurnstileProvider,
       cooldownDuration: 5
     )
 
@@ -329,6 +345,7 @@ final class EmailVerificationViewModelTests: XCTestCase {
     mockAuthManager.setMockUser(unverifiedUser)
     sut = EmailVerificationViewModel(
       authManager: mockAuthManager,
+      turnstileTokenProvider: mockTurnstileProvider,
       cooldownDuration: 2,
       cooldownInterval: 0.02
     )
@@ -345,7 +362,7 @@ final class EmailVerificationViewModelTests: XCTestCase {
 
   func testResendWithNilUserEmailDoesNothing() async {
     // No user set — userEmail is nil
-    sut = EmailVerificationViewModel(authManager: mockAuthManager)
+    sut = EmailVerificationViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstileProvider)
 
     await sut.resendVerificationEmail()
 
@@ -358,7 +375,7 @@ final class EmailVerificationViewModelTests: XCTestCase {
     mockAuthManager.setMockUser(unverifiedUser)
     mockAuthManager.shouldThrowResendError = true
     mockAuthManager.mockErrorToThrow = .serverError("Failed to send email")
-    sut = EmailVerificationViewModel(authManager: mockAuthManager)
+    sut = EmailVerificationViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstileProvider)
 
     await sut.resendVerificationEmail()
 
@@ -369,14 +386,14 @@ final class EmailVerificationViewModelTests: XCTestCase {
     mockAuthManager.setMockUser(unverifiedUser)
     mockAuthManager.shouldThrowResendError = true
     mockAuthManager.mockErrorToThrow = .serverError("Fail")
-    sut = EmailVerificationViewModel(authManager: mockAuthManager)
+    sut = EmailVerificationViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstileProvider)
 
     await sut.resendVerificationEmail()
     XCTAssertNotNil(sut.errorMessage)
 
     // Now succeed
     mockAuthManager.shouldThrowResendError = false
-    sut = EmailVerificationViewModel(authManager: mockAuthManager)
+    sut = EmailVerificationViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstileProvider)
     await sut.resendVerificationEmail()
 
     XCTAssertNil(sut.errorMessage, "Successful resend should clear error message")
@@ -484,6 +501,7 @@ final class EmailVerificationViewModelTests: XCTestCase {
     mockAuthManager.setMockUser(unverifiedUser)
     var viewModel: EmailVerificationViewModel? = EmailVerificationViewModel(
       authManager: mockAuthManager,
+      turnstileTokenProvider: mockTurnstileProvider,
       initialPollingInterval: 0.05,
       cooldownDuration: 10
     )

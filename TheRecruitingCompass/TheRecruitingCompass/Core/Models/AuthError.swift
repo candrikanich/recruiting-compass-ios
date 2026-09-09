@@ -42,6 +42,9 @@ enum AuthError: LocalizedError {
   case sessionInvalid
   /// The user's date of birth places them below the COPPA minimum age of 13.
   case coppaUnderAge
+  /// The Cloudflare Turnstile captcha challenge failed, timed out, or could not be
+  /// completed (e.g. no network reaching Cloudflare, widget error, expired token).
+  case captchaFailed
   /// An unexpected error occurred; the associated value wraps the underlying `Error`.
   case unknown(Error)
 
@@ -86,6 +89,8 @@ enum AuthError: LocalizedError {
       return "Your session is no longer valid. Please sign in again."
     case .coppaUnderAge:
       return "You must be at least 13 years old to create an account."
+    case .captchaFailed:
+      return "Couldn't verify you're human. Please try again."
     case .unknown(let err):
       let msg = err.localizedDescription.trimmingCharacters(in: .whitespaces)
       if msg.isEmpty || msg.contains("The operation couldn't be completed") {
@@ -129,6 +134,8 @@ enum AuthError: LocalizedError {
       return "Sign out and create a new account to continue."
     case .coppaUnderAge:
       return "Accounts are for users 13 and older. A parent or guardian can create an account and invite you."
+    case .captchaFailed:
+      return "Check your internet connection and try again."
     case .unknown:
       return "Please try again or contact support."
     }

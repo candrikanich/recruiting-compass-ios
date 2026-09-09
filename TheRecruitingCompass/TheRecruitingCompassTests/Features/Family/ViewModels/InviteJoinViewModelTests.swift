@@ -9,16 +9,19 @@ final class InviteJoinViewModelTests: XCTestCase {
   var mockFamilyService: MockFamilyService!
   var mockAuthManager: MockAuthManager!
   var mockPreferenceManager: MockPreferenceManager!
+  var mockTurnstileProvider: MockTurnstileTokenProvider!
 
   override func setUp() {
     mockFamilyService = MockFamilyService()
     mockAuthManager = MockAuthManager()
     mockPreferenceManager = MockPreferenceManager()
+    mockTurnstileProvider = MockTurnstileTokenProvider()
     viewModel = InviteJoinViewModel(
       token: "invite-token-1",
       familyService: mockFamilyService,
       authManager: mockAuthManager,
-      preferenceService: mockPreferenceManager
+      preferenceService: mockPreferenceManager,
+      turnstileTokenProvider: mockTurnstileProvider
     )
   }
 
@@ -27,6 +30,7 @@ final class InviteJoinViewModelTests: XCTestCase {
     mockFamilyService = nil
     mockAuthManager = nil
     mockPreferenceManager = nil
+    mockTurnstileProvider = nil
   }
 
   // MARK: - loadInvite

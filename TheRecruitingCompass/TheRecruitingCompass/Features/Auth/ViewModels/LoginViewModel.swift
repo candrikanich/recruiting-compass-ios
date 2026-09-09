@@ -18,6 +18,7 @@ final class LoginViewModel {
   private let biometricService: any BiometricServiceProtocol
 
   private let authManager: any AuthManaging
+  private let turnstileTokenProvider: any TurnstileTokenProviding
   private let formValidator = FormValidator.self
   private let keychain = KeychainHelper.shared
   private static let cachedEmailKey = "cachedEmail"
@@ -35,10 +36,12 @@ final class LoginViewModel {
   init(
     authManager: (any AuthManaging)? = nil,
     biometricService: (any BiometricServiceProtocol)? = nil,
+    turnstileTokenProvider: (any TurnstileTokenProviding)? = nil,
     timeoutReason: String? = nil
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.biometricService = biometricService ?? BiometricService()
+    self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
     checkTimeoutReason(timeoutReason)
     loadCachedEmail()
   }
@@ -104,7 +107,8 @@ final class LoginViewModel {
     }
 
     do {
-      try await authManager.login(email: email, password: password)
+      let captchaToken = try await turnstileTokenProvider.getToken()
+      try await authManager.login(email: email, password: password, captchaToken: captchaToken)
       if !authManager.biometricEnabled && biometricService.canEvaluateBiometrics() {
         authManager.pendingBiometricEnrollmentOffer = true
       }

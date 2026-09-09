@@ -5,14 +5,17 @@ import XCTest
 final class EmailVerificationIntegrationTests: XCTestCase {
   nonisolated deinit {}
   var mockAuthManager: MockAuthManager!
+  var mockTurnstileProvider: MockTurnstileTokenProvider!
 
   override func setUp() {
     super.setUp()
     mockAuthManager = MockAuthManager()
+    mockTurnstileProvider = MockTurnstileTokenProvider()
   }
 
   override func tearDown() {
     mockAuthManager = nil
+    mockTurnstileProvider = nil
     super.tearDown()
   }
 
@@ -112,7 +115,7 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       role: nil
     )
     mockAuthManager.setMockUser(user)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstileProvider)
 
     XCTAssertTrue(viewModel.canResendEmail)
     XCTAssertEqual(mockAuthManager.resendEmailCallCount, 0)
@@ -317,7 +320,7 @@ final class EmailVerificationIntegrationTests: XCTestCase {
       role: nil
     )
     mockAuthManager.setMockUser(user)
-    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager)
+    let viewModel = EmailVerificationViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstileProvider)
 
     // First resend
     await viewModel.resendVerificationEmail()

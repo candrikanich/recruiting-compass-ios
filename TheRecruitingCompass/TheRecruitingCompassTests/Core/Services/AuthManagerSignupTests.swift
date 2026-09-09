@@ -32,7 +32,8 @@ final class AuthManagerSignupTests: XCTestCase {
       fullName: "Rising Freshman",
       role: .player,
       familyCode: nil,
-      dateOfBirth: "2011-05-01"
+      dateOfBirth: "2011-05-01",
+      captchaToken: "test-captcha-token"
     )
 
     XCTAssertEqual(
@@ -52,7 +53,8 @@ final class AuthManagerSignupTests: XCTestCase {
         fullName: "Too Young",
         role: .player,
         familyCode: nil,
-        dateOfBirth: underThirteen
+        dateOfBirth: underThirteen,
+        captchaToken: "test-captcha-token"
       )
       XCTFail("Expected COPPA block")
     } catch {

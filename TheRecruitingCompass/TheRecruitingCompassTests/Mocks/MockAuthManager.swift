@@ -36,6 +36,11 @@ class MockAuthManager: AuthManaging {
   var mockSessionToReturn: Session?
   var mockErrorToThrow: AuthError = .networkError("Mock network error")
 
+  private(set) var capturedLoginCaptchaToken: String?
+  private(set) var capturedSignupCaptchaToken: String?
+  private(set) var capturedResetEmailCaptchaToken: String?
+  private(set) var capturedResendEmailCaptchaToken: String?
+
   /// When false, signup() does not set isAuthenticated = true, so SignupViewModel sets shouldNavigateToVerifyEmail (e.g. email confirmation required).
   var setAuthenticatedAfterSignup = true
 
@@ -67,8 +72,9 @@ class MockAuthManager: AuthManaging {
 
   // MARK: - AuthManaging Methods
 
-  func login(email: String, password: String) async throws {
+  func login(email: String, password: String, captchaToken: String) async throws {
     loginCallCount += 1
+    capturedLoginCaptchaToken = captchaToken
 
     if shouldThrowLoginError {
       throw mockErrorToThrow
@@ -107,9 +113,11 @@ class MockAuthManager: AuthManaging {
     fullName: String,
     role: UserRole,
     familyCode: String?,
-    dateOfBirth: String? = nil
+    dateOfBirth: String? = nil,
+    captchaToken: String
   ) async throws {
     signupCallCount += 1
+    capturedSignupCaptchaToken = captchaToken
 
     if shouldThrowSignupError {
       throw mockErrorToThrow
@@ -159,16 +167,18 @@ class MockAuthManager: AuthManaging {
     throw AuthError.userNotFound
   }
 
-  func resendVerificationEmail(email: String) async throws {
+  func resendVerificationEmail(email: String, captchaToken: String) async throws {
     resendEmailCallCount += 1
+    capturedResendEmailCaptchaToken = captchaToken
 
     if shouldThrowResendError {
       throw mockErrorToThrow
     }
   }
 
-  func resetPasswordForEmail(email: String) async throws {
+  func resetPasswordForEmail(email: String, captchaToken: String) async throws {
     resetEmailCallCount += 1
+    capturedResetEmailCaptchaToken = captchaToken
     if shouldThrowResetEmailError {
       throw mockErrorToThrow
     }
@@ -228,6 +238,11 @@ class MockAuthManager: AuthManaging {
     resetEmailCallCount = 0
     updatePasswordCallCount = 0
     logoutCallCount = 0
+
+    capturedLoginCaptchaToken = nil
+    capturedSignupCaptchaToken = nil
+    capturedResetEmailCaptchaToken = nil
+    capturedResendEmailCaptchaToken = nil
 
     user = nil
     mockUserToReturn = nil

@@ -16,8 +16,14 @@ final class MockSupabaseManager: SupabaseManaging {
     if let error = setSessionError { throw error }
   }
 
-  func signIn(email: String, password: String) async throws -> (user: User, session: Session) {
-    try signInResult.get()
+  private(set) var capturedSignInCaptchaToken: String?
+  private(set) var capturedSignUpCaptchaToken: String?
+  private(set) var capturedResetPasswordCaptchaToken: String?
+  private(set) var capturedResendVerificationCaptchaToken: String?
+
+  func signIn(email: String, password: String, captchaToken: String) async throws -> (user: User, session: Session) {
+    capturedSignInCaptchaToken = captchaToken
+    return try signInResult.get()
   }
 
   private(set) var capturedSignUpDateOfBirth: String?
@@ -28,9 +34,11 @@ final class MockSupabaseManager: SupabaseManaging {
     fullName: String,
     role: UserRole,
     familyCode: String?,
-    dateOfBirth: String?
+    dateOfBirth: String?,
+    captchaToken: String
   ) async throws -> (user: User, session: Session?) {
     capturedSignUpDateOfBirth = dateOfBirth
+    capturedSignUpCaptchaToken = captchaToken
     return try signUpResult.get()
   }
 
@@ -46,11 +54,13 @@ final class MockSupabaseManager: SupabaseManaging {
     try refreshSessionResult.get()
   }
 
-  func resendVerificationEmail(email: String) async throws {
+  func resendVerificationEmail(email: String, captchaToken: String) async throws {
+    capturedResendVerificationCaptchaToken = captchaToken
     if let error = resendVerificationEmailError { throw error }
   }
 
-  func resetPasswordForEmail(email: String) async throws {
+  func resetPasswordForEmail(email: String, captchaToken: String) async throws {
+    capturedResetPasswordCaptchaToken = captchaToken
     if let error = resetPasswordError { throw error }
   }
 
