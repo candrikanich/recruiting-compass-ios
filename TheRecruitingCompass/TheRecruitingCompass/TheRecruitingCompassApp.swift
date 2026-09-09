@@ -98,6 +98,14 @@ struct TheRecruitingCompassApp: App {
           .transition(.opacity)
         }
       }
+      .overlay {
+        if !authManager.isAuthenticated {
+          TurnstileWidgetView()
+            .frame(width: 1, height: 1)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+      }
       .task {
         if authManager.isAuthenticated && authManager.biometricEnabled {
           showBiometricLock = true
