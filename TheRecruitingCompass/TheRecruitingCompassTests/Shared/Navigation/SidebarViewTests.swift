@@ -15,7 +15,7 @@ final class SidebarViewTests: XCTestCase {
     let bottomItems = AppDestination.allCases.filter { $0.section == .bottom }
 
     XCTAssertEqual(mainItems.count, 6)
-    XCTAssertEqual(moreItems.count, 5)
+    XCTAssertEqual(moreItems.count, 6)
     XCTAssertEqual(bottomItems.count, 1)
     XCTAssertNotNil(view)
   }

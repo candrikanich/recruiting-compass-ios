@@ -5,13 +5,18 @@ import XCTest
 final class PasswordResetIntegrationTests: XCTestCase {
   nonisolated deinit {}
   var authManager: MockAuthManager!
+  var turnstileTokenProvider: MockTurnstileTokenProvider!
   var forgotPasswordViewModel: ForgotPasswordViewModel!
   var resetPasswordViewModel: ResetPasswordViewModel!
 
   override func setUp() {
     super.setUp()
     authManager = MockAuthManager()
-    forgotPasswordViewModel = ForgotPasswordViewModel(authManager: authManager)
+    turnstileTokenProvider = MockTurnstileTokenProvider()
+    forgotPasswordViewModel = ForgotPasswordViewModel(
+      authManager: authManager,
+      turnstileTokenProvider: turnstileTokenProvider
+    )
     resetPasswordViewModel = ResetPasswordViewModel(authManager: authManager)
   }
 
@@ -19,6 +24,7 @@ final class PasswordResetIntegrationTests: XCTestCase {
     forgotPasswordViewModel = nil
     resetPasswordViewModel = nil
     authManager = nil
+    turnstileTokenProvider = nil
     super.tearDown()
   }
 
