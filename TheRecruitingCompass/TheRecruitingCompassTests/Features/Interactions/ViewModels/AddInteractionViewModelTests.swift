@@ -622,6 +622,114 @@ final class AddInteractionViewModelTests: XCTestCase {
     )
   }
 
+  private func makeDraft(
+    id: String = "draft-1",
+    matchedSchoolId: String? = "school1",
+    matchedCoachId: String? = nil,
+    subject: String? = "Great game",
+    bodyText: String? = "Loved watching you play",
+    occurredAt: String = "2026-09-01T12:00:00.000Z"
+  ) -> InboundEmailDraft {
+    InboundEmailDraft(
+      id: id, familyUnitId: "family1", rawEmailId: nil, matchedCoachId: matchedCoachId,
+      matchedSchoolId: matchedSchoolId, senderName: "Coach Smith", senderEmail: "coach@school.edu",
+      subject: subject, bodyText: bodyText, occurredAt: occurredAt,
+      status: "pending", confirmedInteractionId: nil, createdAt: occurredAt
+    )
+  }
+
+  private func makeDraftConfirmViewModel(
+    draft: InboundEmailDraft,
+    draftsAPIService: MockInboundDraftsAPIService
+  ) -> AddInteractionViewModel {
+    let mockAuth = MockAuthManager()
+    mockAuth.setMockSession(Session(
+      accessToken: "test-token", tokenType: "bearer", expiresIn: 3600,
+      expiresAt: 9_999_999_999, refreshToken: "refresh",
+      user: User(id: "user1", email: "a@b.com", emailConfirmedAt: nil, phone: nil, fullName: nil, createdAt: "", updatedAt: "", role: nil, dateOfBirth: nil)
+    ))
+    return AddInteractionViewModel(
+      interactionsService: mockService,
+      familyUnitId: "family1",
+      userId: "user1",
+      draftToConfirm: draft,
+      draftsAPIService: draftsAPIService,
+      authManager: mockAuth
+    )
+  }
+
+  // MARK: - Draft review/confirm (#113 parity w/ web #678)
+
+  func testPageTitle_ReviewingDraft() {
+    let draftsAPI = MockInboundDraftsAPIService()
+    let viewModel = makeDraftConfirmViewModel(draft: makeDraft(), draftsAPIService: draftsAPI)
+
+    XCTAssertEqual(viewModel.pageTitle, "Review Coach Email")
+  }
+
+  func testLoadFormData_PrefillsFromMatchedDraft() async {
+    mockService.mockSchools = [createSchool(id: "school1", name: "School 1")]
+    let draft = makeDraft(matchedSchoolId: "school1", matchedCoachId: "coach1")
+    let draftsAPI = MockInboundDraftsAPIService()
+    let viewModel = makeDraftConfirmViewModel(draft: draft, draftsAPIService: draftsAPI)
+
+    await viewModel.loadFormData()
+
+    XCTAssertEqual(viewModel.formState.schoolId, "school1")
+    XCTAssertEqual(viewModel.formState.coachId, "coach1")
+    XCTAssertEqual(viewModel.formState.type, .email)
+    XCTAssertEqual(viewModel.formState.direction, .inbound)
+    XCTAssertEqual(viewModel.formState.subject, "Great game")
+    XCTAssertEqual(viewModel.formState.content, "Loved watching you play")
+  }
+
+  func testLoadFormData_LeavesSchoolBlankWhenDraftUnmatched() async {
+    mockService.mockSchools = [createSchool(id: "school1", name: "School 1")]
+    let draft = makeDraft(matchedSchoolId: nil)
+    let draftsAPI = MockInboundDraftsAPIService()
+    let viewModel = makeDraftConfirmViewModel(draft: draft, draftsAPIService: draftsAPI)
+
+    await viewModel.loadFormData()
+
+    XCTAssertTrue(viewModel.formState.schoolId.isEmpty)
+  }
+
+  func testSubmitInteraction_ConfirmsDraftInsteadOfCreatingDirectly() async {
+    mockService.mockSchools = [createSchool(id: "school1", name: "School 1")]
+    let draft = makeDraft(matchedSchoolId: "school1")
+    let draftsAPI = MockInboundDraftsAPIService()
+    let viewModel = makeDraftConfirmViewModel(draft: draft, draftsAPIService: draftsAPI)
+    await viewModel.loadFormData()
+    viewModel.formState.subject = "Edited subject"
+    viewModel.formState.coachId = nil
+
+    let success = await viewModel.submitInteraction()
+
+    XCTAssertTrue(success)
+    XCTAssertEqual(draftsAPI.confirmCallCount, 1)
+    XCTAssertEqual(mockService.createInteractionCallCount, 0)
+    XCTAssertEqual(draftsAPI.lastConfirmedDraftId, draft.id)
+    XCTAssertEqual(draftsAPI.lastConfirmedSchoolId, "school1")
+    XCTAssertNil(draftsAPI.lastConfirmedCoachId)
+    XCTAssertEqual(draftsAPI.lastConfirmedType, .email)
+    XCTAssertEqual(draftsAPI.lastConfirmedDirection, .inbound)
+    XCTAssertEqual(draftsAPI.lastConfirmedSubject, "Edited subject")
+  }
+
+  func testSubmitInteraction_DraftConfirmFailure_ShowsError() async {
+    mockService.mockSchools = [createSchool(id: "school1", name: "School 1")]
+    let draft = makeDraft(matchedSchoolId: "school1")
+    let draftsAPI = MockInboundDraftsAPIService()
+    draftsAPI.errorToThrow = InboundDraftsAPIError.server(500)
+    let viewModel = makeDraftConfirmViewModel(draft: draft, draftsAPIService: draftsAPI)
+    await viewModel.loadFormData()
+
+    let success = await viewModel.submitInteraction()
+
+    XCTAssertFalse(success)
+    XCTAssertNotNil(viewModel.errorMessage)
+  }
+
   private func createInteraction(id: String) -> Interaction {
     Interaction(
       id: id,
