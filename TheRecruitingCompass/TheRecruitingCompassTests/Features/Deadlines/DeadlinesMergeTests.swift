@@ -59,6 +59,42 @@ final class DeadlinesMergeTests: XCTestCase {
     XCTAssertEqual(grouped.last?.items.count, 1)
   }
 
+  func test_filter_noFiltersReturnsAllItems() {
+    let items = DeadlinesMerge.unify(
+      userDeadlines: [deadline("a", "2026-09-01", label: "Essay")],
+      milestones: [milestone("2026-09-02", "SAT Test")]
+    )
+    let result = DeadlinesMerge.filter(items, category: nil, search: "")
+    XCTAssertEqual(result.count, 2)
+  }
+
+  func test_filter_byCategoryMatchesRawCategoryKey() {
+    let items = DeadlinesMerge.unify(
+      userDeadlines: [deadline("a", "2026-09-01", label: "Essay")],
+      milestones: [milestone("2026-09-02", "SAT Test")]
+    )
+    let result = DeadlinesMerge.filter(items, category: "application", search: "")
+    XCTAssertEqual(result.map(\.id), items.filter { $0.userDeadline != nil }.map(\.id))
+  }
+
+  func test_filter_bySearchIsCaseInsensitiveOnLabel() {
+    let items = DeadlinesMerge.unify(
+      userDeadlines: [deadline("a", "2026-09-01", label: "FAFSA Deadline")],
+      milestones: [milestone("2026-09-02", "SAT Test")]
+    )
+    let result = DeadlinesMerge.filter(items, category: nil, search: "fafsa")
+    XCTAssertEqual(result.map(\.id), ["user-a"])
+  }
+
+  func test_filter_combinesCategoryAndSearch() {
+    let items = DeadlinesMerge.unify(
+      userDeadlines: [deadline("a", "2026-09-01", label: "FAFSA Deadline")],
+      milestones: [milestone("2026-09-02", "FAFSA reminder")]
+    )
+    let result = DeadlinesMerge.filter(items, category: "application", search: "fafsa")
+    XCTAssertEqual(result.map(\.id), ["user-a"])
+  }
+
   func test_splitUpcomingPast_partitionsOnTodayInclusiveOfToday() {
     let items = DeadlinesMerge.unify(
       userDeadlines: [deadline("past", "2026-01-01"), deadline("today", "2026-06-15"), deadline("future", "2026-12-01")],
