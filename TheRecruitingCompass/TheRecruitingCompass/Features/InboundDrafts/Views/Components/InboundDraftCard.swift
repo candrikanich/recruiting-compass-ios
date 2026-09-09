@@ -27,6 +27,7 @@ struct InboundDraftCard: View {
     .clipShape(.rect(cornerRadius: 12))
   }
 
+  @ViewBuilder
   private var header: some View {
     VStack(alignment: .leading, spacing: 2) {
       Text(senderLine)
@@ -44,6 +45,7 @@ struct InboundDraftCard: View {
     return "\(draft.displaySenderName) (\(email))"
   }
 
+  @ViewBuilder
   private var actions: some View {
     HStack(spacing: 12) {
       Button {
