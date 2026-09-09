@@ -45,6 +45,13 @@ final class AddInteractionViewModel {
   private let familyUnitId: String
   private let userId: String
   private let preselectedSchoolId: String?
+  /// Set when this form is reviewing an inbound-email draft rather than
+  /// logging fresh (#113, parity w/ web #678) — submit confirms the draft via
+  /// the web API (with the reviewed field overrides) instead of writing
+  /// straight to `interactions`, since `inbound_email_drafts` is service-role-only.
+  private let draftToConfirm: InboundEmailDraft?
+  private let draftsAPIService: any InboundDraftsAPIManaging
+  private let authManager: any AuthManaging
 
   // MARK: - Computed Properties
 
@@ -58,7 +65,7 @@ final class AddInteractionViewModel {
   }
 
   var pageTitle: String {
-    "Log Interaction"
+    draftToConfirm != nil ? String(localized: "Review Coach Email") : String(localized: "Log Interaction")
   }
 
   var submitButtonTitle: String {
@@ -71,12 +78,18 @@ final class AddInteractionViewModel {
     interactionsService: any InteractionsManaging,
     familyUnitId: String,
     userId: String,
-    preselectedSchoolId: String? = nil
+    preselectedSchoolId: String? = nil,
+    draftToConfirm: InboundEmailDraft? = nil,
+    draftsAPIService: (any InboundDraftsAPIManaging)? = nil,
+    authManager: (any AuthManaging)? = nil
   ) {
     self.interactionsService = interactionsService
     self.familyUnitId = familyUnitId
     self.userId = userId
     self.preselectedSchoolId = preselectedSchoolId
+    self.draftToConfirm = draftToConfirm
+    self.draftsAPIService = draftsAPIService ?? InboundDraftsAPIService()
+    self.authManager = authManager ?? AuthManager.shared
   }
 
   // MARK: - Data Loading
@@ -102,13 +115,31 @@ final class AddInteractionViewModel {
 
       logger.info("Loaded \(self.schools.count) schools and \(self.allCoaches.count) coaches")
 
-      if let preselectedSchoolId, schools.contains(where: { $0.id == preselectedSchoolId }) {
+      if let draftToConfirm {
+        prefillFromDraft(draftToConfirm)
+      } else if let preselectedSchoolId, schools.contains(where: { $0.id == preselectedSchoolId }) {
         formState.schoolId = preselectedSchoolId
         logger.debug("Pre-selected school: \(preselectedSchoolId)")
       }
     } catch {
       logger.error("Failed to load form data: \(error.localizedDescription)")
       errorMessage = String(localized: "Failed to load schools and coaches. Please try again.")
+    }
+  }
+
+  /// Prefills the form from a parsed inbound-email draft for review (#113).
+  /// Every field stays editable — the school is only set when it matches a
+  /// real school in this family (an unmatched draft leaves it blank so the
+  /// required-field validation forces a manual pick, same as web).
+  private func prefillFromDraft(_ draft: InboundEmailDraft) {
+    formState.type = .email
+    formState.direction = .inbound
+    formState.subject = draft.subject ?? ""
+    formState.content = draft.bodyText ?? ""
+    formState.occurredAt = draft.occurredAtDate
+    formState.coachId = draft.matchedCoachId
+    if let matchedSchoolId = draft.matchedSchoolId, schools.contains(where: { $0.id == matchedSchoolId }) {
+      formState.schoolId = matchedSchoolId
     }
   }
 
@@ -250,6 +281,10 @@ final class AddInteractionViewModel {
     errorMessage = nil
     defer { isSubmitting = false }
 
+    if let draftToConfirm {
+      return await confirmDraft(draftToConfirm, type: interactionType)
+    }
+
     do {
       // Build final content with interest level if calibrated
       var finalContent = formState.content
@@ -310,6 +345,37 @@ final class AddInteractionViewModel {
     } catch {
       logger.error("Failed to submit interaction: \(error.localizedDescription)")
       errorMessage = String(localized: "Failed to create interaction. Please try again.")
+      return false
+    }
+  }
+
+  /// Confirms an inbound-email draft with the reviewed field overrides
+  /// (#113) — routes through the web API instead of `createInteraction`
+  /// since `inbound_email_drafts` needs the endpoint's service-role access
+  /// to insert the interaction and flip the draft's status. Caller already
+  /// set `isSubmitting`/`errorMessage`.
+  private func confirmDraft(_ draft: InboundEmailDraft, type: InteractionType) async -> Bool {
+    do {
+      let response = try await draftsAPIService.confirmDraft(
+        id: draft.id,
+        schoolId: formState.schoolId,
+        coachId: formState.coachId,
+        type: type,
+        direction: formState.direction,
+        occurredAt: formState.occurredAt,
+        subject: formState.subject.isEmpty ? nil : formState.subject,
+        content: formState.content.isEmpty ? nil : formState.content,
+        accessToken: authManager.session?.accessToken
+      )
+      logger.info("Confirmed draft \(draft.id) -> interaction \(response.interactionId ?? "nil")")
+
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: userId))
+
+      return true
+    } catch {
+      logger.error("Failed to confirm draft \(draft.id): \(error.localizedDescription)")
+      errorMessage = String(localized: "Failed to confirm this draft. Please try again.")
       return false
     }
   }

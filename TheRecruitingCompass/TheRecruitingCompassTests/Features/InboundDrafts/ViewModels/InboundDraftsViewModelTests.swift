@@ -20,10 +20,12 @@ struct InboundDraftsViewModelTests {
 
   private func makeViewModel(api: MockInboundDraftsAPIService) -> InboundDraftsViewModel {
     let mockAuth = MockAuthManager()
+    let user = User(id: "u1", email: "a@b.com", emailConfirmedAt: nil, phone: nil, fullName: nil, createdAt: "", updatedAt: "", role: nil, dateOfBirth: nil)
+    mockAuth.user = user
     mockAuth.setMockSession(Session(
       accessToken: "test-token", tokenType: "bearer", expiresIn: 3600,
       expiresAt: 9_999_999_999, refreshToken: "refresh",
-      user: User(id: "u1", email: "a@b.com", emailConfirmedAt: nil, phone: nil, fullName: nil, createdAt: "", updatedAt: "", role: nil, dateOfBirth: nil)
+      user: user
     ))
     let familyManager = FamilyManager(familyService: MockFamilyService(), authManager: mockAuth)
     return InboundDraftsViewModel(apiService: api, familyManager: familyManager, authManager: mockAuth)
@@ -52,87 +54,52 @@ struct InboundDraftsViewModelTests {
     #expect(viewModel.errorMessage != nil)
   }
 
-  @Test func canConfirmIsTrueWhenAlreadyMatched() {
+  // MARK: - Review (#113: Confirm opens the editable form rather than blind-accepting)
+
+  @Test func reviewDraftSetsDraftToReview() {
     let api = MockInboundDraftsAPIService()
     let viewModel = makeViewModel(api: api)
-    let matched = makeDraft(matchedSchoolId: "school-1")
+    let draft = makeDraft()
 
-    #expect(viewModel.canConfirm(matched))
+    viewModel.reviewDraft(draft)
+
+    #expect(viewModel.draftToReview?.id == draft.id)
   }
 
-  @Test func canConfirmIsFalseWhenUnmatchedAndNoPick() {
+  @Test func reviewDraftWorksEvenWhenUnmatched() {
+    // Web parity: Confirm always opens the form now — the form's own
+    // required school field replaces the old inline per-card gating.
     let api = MockInboundDraftsAPIService()
     let viewModel = makeViewModel(api: api)
     let unmatched = makeDraft(matchedSchoolId: nil)
 
-    #expect(!viewModel.canConfirm(unmatched))
+    viewModel.reviewDraft(unmatched)
+
+    #expect(viewModel.draftToReview?.id == unmatched.id)
   }
 
-  @Test func canConfirmIsTrueWhenUnmatchedButSchoolPicked() {
-    let api = MockInboundDraftsAPIService()
-    let viewModel = makeViewModel(api: api)
-    let unmatched = makeDraft(id: "d2", matchedSchoolId: nil)
-    viewModel.pickedSchoolId["d2"] = "picked-school"
-
-    #expect(viewModel.canConfirm(unmatched))
-  }
-
-  @Test func confirmRemovesDraftFromListOnSuccess() async {
+  @Test func handleDraftConfirmedRemovesDraftAndClosesSheet() async {
     let api = MockInboundDraftsAPIService()
     let draft = makeDraft(matchedSchoolId: "school-1")
     api.draftsToReturn = [draft]
     let viewModel = makeViewModel(api: api)
     await viewModel.loadDrafts()
+    viewModel.reviewDraft(draft)
 
-    await viewModel.confirm(draft)
-
-    #expect(viewModel.drafts.isEmpty)
-    #expect(api.confirmCallCount == 1)
-    #expect(api.lastConfirmedSchoolId == nil) // already matched — no schoolId sent
-  }
-
-  @Test func confirmSendsPickedSchoolIdWhenUnmatched() async {
-    let api = MockInboundDraftsAPIService()
-    let draft = makeDraft(matchedSchoolId: nil)
-    api.draftsToReturn = [draft]
-    let viewModel = makeViewModel(api: api)
-    await viewModel.loadDrafts()
-    viewModel.pickedSchoolId[draft.id] = "picked-school"
-
-    await viewModel.confirm(draft)
-
-    #expect(api.lastConfirmedSchoolId == "picked-school")
-    #expect(viewModel.drafts.isEmpty)
-  }
-
-  @Test func confirmFailureLeavesDraftInListAndShowsToast() async {
-    let api = MockInboundDraftsAPIService()
-    let draft = makeDraft(matchedSchoolId: "school-1")
-    api.draftsToReturn = [draft]
-    let viewModel = makeViewModel(api: api)
-    await viewModel.loadDrafts()
-    api.errorToThrow = InboundDraftsAPIError.server(500)
-
-    await viewModel.confirm(draft)
-
-    #expect(viewModel.drafts.count == 1)
-    #expect(viewModel.showErrorToast)
-    #expect(viewModel.toastMessage != nil)
-  }
-
-  @Test func confirmNotFoundRemovesDraftWithoutToast() async {
-    let api = MockInboundDraftsAPIService()
-    let draft = makeDraft(matchedSchoolId: "school-1")
-    api.draftsToReturn = [draft]
-    let viewModel = makeViewModel(api: api)
-    await viewModel.loadDrafts()
-    api.errorToThrow = InboundDraftsAPIError.notFound
-
-    await viewModel.confirm(draft)
+    viewModel.handleDraftConfirmed(draft.id)
 
     #expect(viewModel.drafts.isEmpty)
-    #expect(!viewModel.showErrorToast)
+    #expect(viewModel.draftToReview == nil)
   }
+
+  @Test func familyUnitIdAndCurrentUserIdExposeAuthState() {
+    let api = MockInboundDraftsAPIService()
+    let viewModel = makeViewModel(api: api)
+
+    #expect(viewModel.currentUserId == "u1")
+  }
+
+  // MARK: - Discard (unchanged fast path)
 
   @Test func discardRemovesDraftFromListOnSuccess() async {
     let api = MockInboundDraftsAPIService()

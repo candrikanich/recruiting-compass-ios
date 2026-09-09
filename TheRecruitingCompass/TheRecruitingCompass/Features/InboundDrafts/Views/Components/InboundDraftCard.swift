@@ -2,10 +2,7 @@ import SwiftUI
 
 struct InboundDraftCard: View {
   let draft: InboundEmailDraft
-  let schools: [School]
   let isPending: Bool
-  @Binding var pickedSchoolId: String?
-  let canConfirm: Bool
   let onConfirm: () -> Void
   let onDiscard: () -> Void
 
@@ -23,9 +20,6 @@ struct InboundDraftCard: View {
           .foregroundStyle(.secondary)
           .lineLimit(6)
       }
-      if draft.matchedSchoolId == nil {
-        SchoolPicker(selectedSchoolId: $pickedSchoolId, schools: schools, isDisabled: isPending)
-      }
       actions
     }
     .padding(16)
@@ -37,7 +31,7 @@ struct InboundDraftCard: View {
     VStack(alignment: .leading, spacing: 2) {
       Text(senderLine)
         .font(.subheadline.weight(.medium))
-      Text(draft.displayDate, style: .date)
+      Text(draft.occurredAtDate, style: .date)
         .font(.caption)
         .foregroundStyle(.secondary)
     }
@@ -72,24 +66,8 @@ struct InboundDraftCard: View {
         }
       }
       .buttonStyle(.borderedProminent)
-      .disabled(isPending || !canConfirm)
+      .disabled(isPending)
     }
     .padding(.top, 4)
   }
-}
-
-private extension InboundEmailDraft {
-  var displayDate: Date {
-    if let date = ISO8601DateFormatter.withFractionalSeconds.date(from: occurredAt) { return date }
-    if let date = ISO8601DateFormatter().date(from: occurredAt) { return date }
-    return .now
-  }
-}
-
-private extension ISO8601DateFormatter {
-  static let withFractionalSeconds: ISO8601DateFormatter = {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter
-  }()
 }

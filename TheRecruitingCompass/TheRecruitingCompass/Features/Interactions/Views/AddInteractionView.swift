@@ -16,13 +16,15 @@ struct AddInteractionView: View {
     familyUnitId: String,
     userId: String,
     preselectedSchoolId: String? = nil,
+    draftToConfirm: InboundEmailDraft? = nil,
     onLogged: @escaping (String?) -> Void = { _ in }
   ) {
     _viewModel = State(initialValue: AddInteractionViewModel(
       interactionsService: interactionsService,
       familyUnitId: familyUnitId,
       userId: userId,
-      preselectedSchoolId: preselectedSchoolId
+      preselectedSchoolId: preselectedSchoolId,
+      draftToConfirm: draftToConfirm
     ))
     self.onLogged = onLogged
   }

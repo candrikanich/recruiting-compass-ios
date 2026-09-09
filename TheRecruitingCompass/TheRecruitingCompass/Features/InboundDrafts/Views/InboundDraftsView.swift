@@ -18,6 +18,19 @@ struct InboundDraftsView: View {
         type: .error,
         duration: 4.0
       )
+      .sheet(item: $viewModel.draftToReview) { draft in
+        if let familyUnitId = viewModel.familyUnitId, let userId = viewModel.currentUserId {
+          NavigationStack {
+            AddInteractionView(
+              interactionsService: InteractionsServiceImpl(supabaseManager: .shared),
+              familyUnitId: familyUnitId,
+              userId: userId,
+              draftToConfirm: draft,
+              onLogged: { _ in viewModel.handleDraftConfirmed(draft.id) }
+            )
+          }
+        }
+      }
       .accessibilityIdentifier("inbound_drafts_list")
   }
 
@@ -50,14 +63,8 @@ struct InboundDraftsView: View {
         ForEach(viewModel.drafts) { draft in
           InboundDraftCard(
             draft: draft,
-            schools: viewModel.schools,
             isPending: viewModel.pendingActionDraftIds.contains(draft.id),
-            pickedSchoolId: Binding(
-              get: { viewModel.pickedSchoolId[draft.id] },
-              set: { viewModel.pickedSchoolId[draft.id] = $0 }
-            ),
-            canConfirm: viewModel.canConfirm(draft),
-            onConfirm: { Task { await viewModel.confirm(draft) } },
+            onConfirm: { viewModel.reviewDraft(draft) },
             onDiscard: { Task { await viewModel.discard(draft) } }
           )
         }
