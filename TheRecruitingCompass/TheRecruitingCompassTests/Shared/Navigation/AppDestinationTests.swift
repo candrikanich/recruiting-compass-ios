@@ -4,7 +4,7 @@ import XCTest
 final class AppDestinationTests: XCTestCase {
   func testAllCasesExist() {
     let allCases = AppDestination.allCases
-    XCTAssertEqual(allCases.count, 12)
+    XCTAssertEqual(allCases.count, 13)
   }
 
   func testSectionGrouping() {
@@ -13,7 +13,7 @@ final class AppDestinationTests: XCTestCase {
     let bottomItems = AppDestination.allCases.filter { $0.section == .bottom }
 
     XCTAssertEqual(mainItems.count, 6, "Main: dashboard, schools, coaches, interactions, timeline, events")
-    XCTAssertEqual(moreItems.count, 5, "More: performance, offers, analytics, documents, deadlines")
+    XCTAssertEqual(moreItems.count, 6, "More: performance, offers, analytics, documents, deadlines, inboundDrafts")
     XCTAssertEqual(bottomItems.count, 1, "Bottom: settings")
   }
 
