@@ -26,11 +26,13 @@ private struct DeadlineUpdatePayload: Encodable {
   let label: String
   let deadlineDate: String
   let category: String
+  let schoolId: String?
 
   enum CodingKeys: String, CodingKey {
     case label
     case deadlineDate = "deadline_date"
     case category
+    case schoolId = "school_id"
   }
 }
 
@@ -58,6 +60,12 @@ final class DeadlinesServiceImpl: DeadlinesManaging, Sendable {
 
     logger.info("Fetched \(deadlines.count) deadlines")
     return deadlines
+  }
+
+  func fetchSchools(familyUnitId: String) async throws -> [School] {
+    try await FamilyScopedQueries.fetchSchools(
+      from: supabaseManager.client, familyUnitId: familyUnitId, orderedByName: true
+    )
   }
 
   func createDeadline(_ request: DeadlineCreateRequest) async throws -> Deadline {
@@ -90,7 +98,8 @@ final class DeadlinesServiceImpl: DeadlinesManaging, Sendable {
     let payload = DeadlineUpdatePayload(
       label: request.label,
       deadlineDate: request.deadlineDate,
-      category: request.category.rawValue
+      category: request.category.rawValue,
+      schoolId: request.schoolId
     )
 
     let deadline: Deadline = try await supabaseManager.client

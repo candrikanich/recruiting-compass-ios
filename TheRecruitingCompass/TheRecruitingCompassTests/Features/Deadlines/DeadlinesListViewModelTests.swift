@@ -42,6 +42,18 @@ final class DeadlinesListViewModelTests: XCTestCase {
              deadlineDate: date, category: category, schoolId: nil, createdAt: nil, updatedAt: nil)
   }
 
+  private func makeSchool(_ id: String, _ name: String) -> School {
+    School(
+      id: id, userId: Self.userId, name: name, location: nil, city: nil, state: nil,
+      division: "D1", conference: nil, ranking: nil, isFavorite: false, website: nil,
+      faviconUrl: nil, twitterHandle: nil, instagramHandle: nil, ncaaId: nil, status: "active",
+      statusChangedAt: nil, notes: nil, pros: [], cons: [], offerDetails: nil, academicInfo: nil,
+      amenities: nil, coachingPhilosophy: nil, coachingStyle: nil, recruitingApproach: nil,
+      communicationStyle: nil, successMetrics: nil, familyUnitId: Self.familyUnitId,
+      createdBy: nil, updatedBy: nil, createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z"
+    )
+  }
+
   func test_loadDeadlines_populatesUserDeadlines() async {
     let (vm, _, _) = makeVM(seed: [deadline("a", "2026-12-01")])
     await vm.loadDeadlines()
@@ -75,6 +87,33 @@ final class DeadlinesListViewModelTests: XCTestCase {
     XCTAssertTrue(ok)
     XCTAssertEqual(vm.deadlines.count, 1)
     XCTAssertEqual(vm.deadlines.first?.label, "FAFSA due")
+  }
+
+  func test_addDeadline_passesSchoolId() async {
+    let (vm, _, _) = makeVM()
+    await vm.loadDeadlines()
+    let ok = await vm.addDeadline(
+      label: "Official visit", date: .now, category: .visit, schoolId: "school-1"
+    )
+    XCTAssertTrue(ok)
+    XCTAssertEqual(vm.deadlines.first?.schoolId, "school-1")
+  }
+
+  func test_addDeadline_defaultsSchoolIdToNil() async {
+    let (vm, _, _) = makeVM()
+    await vm.loadDeadlines()
+    let ok = await vm.addDeadline(label: "FAFSA due", date: .now, category: .financial_aid)
+    XCTAssertTrue(ok)
+    XCTAssertNil(vm.deadlines.first?.schoolId)
+  }
+
+  func test_loadSchools_populatesSchoolsFromService() async {
+    let (vm, mockService, _) = makeVM()
+    mockService.schools = [makeSchool("school-1", "Test University")]
+    await vm.loadSchools()
+    XCTAssertEqual(vm.schools.count, 1)
+    XCTAssertEqual(vm.schools.first?.name, "Test University")
+    XCTAssertFalse(vm.isLoadingSchools)
   }
 
   func test_addDeadline_rejectsBlankLabel() async {

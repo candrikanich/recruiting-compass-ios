@@ -47,6 +47,7 @@ struct DeadlinesListView: View {
       }
     }
     .task { await viewModel.loadDeadlines() }
+    .task { await viewModel.loadSchools() }
     .onChange(of: viewModel.familyUnitId) { oldValue, newValue in
       // familyManager.loadFamilyData() runs unawaited from Dashboard's
       // .task; if the user reaches Deadlines before it resolves,
@@ -64,8 +65,9 @@ struct DeadlinesListView: View {
     }
     .sheet(isPresented: $viewModel.showAddSheet) {
       AddDeadlineSheet(
-        onSave: { label, date, category in
-          let saved = await viewModel.addDeadline(label: label, date: date, category: category)
+        schools: viewModel.schools,
+        onSave: { label, date, category, schoolId in
+          let saved = await viewModel.addDeadline(label: label, date: date, category: category, schoolId: schoolId)
           if saved { viewModel.showAddSheet = false }
           return saved
         },
@@ -75,8 +77,11 @@ struct DeadlinesListView: View {
     .sheet(item: $deadlineToEdit) { deadline in
       AddDeadlineSheet(
         existingDeadline: deadline,
-        onSave: { label, date, category in
-          let saved = await viewModel.updateDeadline(id: deadline.id, label: label, date: date, category: category)
+        schools: viewModel.schools,
+        onSave: { label, date, category, schoolId in
+          let saved = await viewModel.updateDeadline(
+            id: deadline.id, label: label, date: date, category: category, schoolId: schoolId
+          )
           if saved { deadlineToEdit = nil }
           return saved
         },

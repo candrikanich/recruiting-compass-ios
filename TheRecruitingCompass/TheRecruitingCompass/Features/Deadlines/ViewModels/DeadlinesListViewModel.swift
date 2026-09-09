@@ -18,7 +18,9 @@ final class DeadlinesListViewModel {
 
   private(set) var deadlines: [Deadline] = []
   private(set) var milestones: [CalendarMilestone] = []
+  private(set) var schools: [School] = []
   private(set) var isLoading = false
+  private(set) var isLoadingSchools = false
   var errorMessage: String?
   var isShowingErrorAlert: Bool {
     get { errorMessage != nil }
@@ -135,7 +137,18 @@ final class DeadlinesListViewModel {
     }
   }
 
-  func addDeadline(label: String, date: Date, category: DeadlineCategory) async -> Bool {
+  func loadSchools() async {
+    guard let familyUnitId else { return }
+    isLoadingSchools = true
+    defer { isLoadingSchools = false }
+    do {
+      schools = try await service.fetchSchools(familyUnitId: familyUnitId)
+    } catch {
+      logger.error("Failed to load schools: \(error.localizedDescription)")
+    }
+  }
+
+  func addDeadline(label: String, date: Date, category: DeadlineCategory, schoolId: String? = nil) async -> Bool {
     let trimmed = label.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return false }
     guard let userId = targetUserId, let familyUnitId else { return false }
@@ -147,7 +160,7 @@ final class DeadlinesListViewModel {
         label: trimmed,
         deadlineDate: DeadlinesListViewModel.isoFormatter.string(from: date),
         category: category,
-        schoolId: nil
+        schoolId: schoolId
       )
       let created = try await service.createDeadline(request)
       deadlines.append(created)
@@ -159,7 +172,9 @@ final class DeadlinesListViewModel {
     }
   }
 
-  func updateDeadline(id: String, label: String, date: Date, category: DeadlineCategory) async -> Bool {
+  func updateDeadline(
+    id: String, label: String, date: Date, category: DeadlineCategory, schoolId: String? = nil
+  ) async -> Bool {
     let trimmed = label.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return false }
     guard let familyUnitId else { return false }
@@ -168,7 +183,8 @@ final class DeadlinesListViewModel {
       let request = DeadlineUpdateRequest(
         label: trimmed,
         deadlineDate: DeadlinesListViewModel.isoFormatter.string(from: date),
-        category: category
+        category: category,
+        schoolId: schoolId
       )
       let updated = try await service.updateDeadline(id: id, familyUnitId: familyUnitId, request: request)
       if let index = deadlines.firstIndex(where: { $0.id == id }) {
