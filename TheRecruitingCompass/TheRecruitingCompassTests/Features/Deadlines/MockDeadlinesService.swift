@@ -3,7 +3,9 @@ import Foundation
 
 final class MockDeadlinesService: DeadlinesManaging, @unchecked Sendable {
   var deadlines: [Deadline] = []
+  var schools: [School] = []
   var fetchError: Error?
+  var fetchSchoolsError: Error?
   var createError: Error?
   var updateError: Error?
   var deleteError: Error?
@@ -13,6 +15,11 @@ final class MockDeadlinesService: DeadlinesManaging, @unchecked Sendable {
     return deadlines
       .filter { $0.familyUnitId == familyUnitId }
       .sorted { $0.deadlineDate < $1.deadlineDate }
+  }
+
+  func fetchSchools(familyUnitId: String) async throws -> [School] {
+    if let fetchSchoolsError { throw fetchSchoolsError }
+    return schools.filter { $0.familyUnitId == familyUnitId }
   }
 
   func createDeadline(_ request: DeadlineCreateRequest) async throws -> Deadline {
@@ -45,7 +52,7 @@ final class MockDeadlinesService: DeadlinesManaging, @unchecked Sendable {
       label: request.label,
       deadlineDate: request.deadlineDate,
       category: request.category,
-      schoolId: existing.schoolId,
+      schoolId: request.schoolId,
       createdAt: existing.createdAt,
       updatedAt: existing.updatedAt
     )

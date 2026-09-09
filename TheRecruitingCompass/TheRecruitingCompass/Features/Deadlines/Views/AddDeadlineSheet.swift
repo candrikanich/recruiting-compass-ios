@@ -1,30 +1,37 @@
 import SwiftUI
 
-/// Add/edit deadline form. School association is still deferred (spec §9);
-/// editing matches web's `PATCH /api/deadlines/:id`.
+/// Add/edit deadline form. Editing matches web's `PATCH /api/deadlines/:id`.
+/// School association is optional, mirroring Events' picker (nil ⇄ "none"
+/// sentinel), not the shared `SchoolPicker` component which is hard-required.
 struct AddDeadlineSheet: View {
   let existingDeadline: Deadline?
-  let onSave: (String, Date, DeadlineCategory) async -> Bool
+  let schools: [School]
+  let onSave: (String, Date, DeadlineCategory, String?) async -> Bool
   let onCancel: () -> Void
 
   @State private var label: String
   @State private var date: Date
   @State private var category: DeadlineCategory
+  @State private var schoolId: String?
   @State private var isSaving = false
 
+  private static let noSchoolTag = "none"
   private static let maxLabelLength = 200
 
   init(
     existingDeadline: Deadline? = nil,
-    onSave: @escaping (String, Date, DeadlineCategory) async -> Bool,
+    schools: [School] = [],
+    onSave: @escaping (String, Date, DeadlineCategory, String?) async -> Bool,
     onCancel: @escaping () -> Void
   ) {
     self.existingDeadline = existingDeadline
+    self.schools = schools
     self.onSave = onSave
     self.onCancel = onCancel
     _label = State(initialValue: existingDeadline?.label ?? "")
     _date = State(initialValue: existingDeadline.flatMap { AddDeadlineSheet.parseISODate($0.deadlineDate) } ?? .now)
     _category = State(initialValue: existingDeadline?.category ?? .application)
+    _schoolId = State(initialValue: existingDeadline?.schoolId)
   }
 
   private static func parseISODate(_ isoDate: String) -> Date? {
@@ -44,6 +51,13 @@ struct AddDeadlineSheet: View {
     isSaving || trimmedLabel.isEmpty || trimmedLabel.count > Self.maxLabelLength
   }
 
+  private var schoolIdBinding: Binding<String> {
+    Binding(
+      get: { schoolId ?? Self.noSchoolTag },
+      set: { schoolId = $0 == Self.noSchoolTag ? nil : $0 }
+    )
+  }
+
   var body: some View {
     NavigationStack {
       Form {
@@ -58,6 +72,14 @@ struct AddDeadlineSheet: View {
             }
           }
           .accessibilityLabel(String(localized: "Deadline category"))
+          Picker("School", selection: schoolIdBinding) {
+            Text("None").tag(Self.noSchoolTag)
+            ForEach(schools) { school in
+              Text(school.name).tag(school.id)
+            }
+          }
+          .accessibilityLabel(String(localized: "Associated school"))
+          .accessibilityHint("Optional — link this deadline to a school")
         }
       }
       .navigationTitle(existingDeadline == nil ? "Add Deadline" : "Edit Deadline")
@@ -73,7 +95,7 @@ struct AddDeadlineSheet: View {
             Button("Save") {
               Task {
                 isSaving = true
-                let saved = await onSave(trimmedLabel, date, category)
+                let saved = await onSave(trimmedLabel, date, category, schoolId)
                 isSaving = false
                 if !saved {
                   // Failure surfaces via the list view's error alert; leave the
