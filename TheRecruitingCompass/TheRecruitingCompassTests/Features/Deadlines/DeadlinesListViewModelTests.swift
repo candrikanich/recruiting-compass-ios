@@ -202,6 +202,49 @@ final class DeadlinesListViewModelTests: XCTestCase {
     XCTAssertEqual(vm.filteredDeadlines.compactMap(\.userDeadline).count, 2)
   }
 
+  func test_calendarDays_reflectsDisplayedMonth() async {
+    let (vm, _, _) = makeVM()
+    var comps = DateComponents()
+    comps.year = 2026
+    comps.month = 9
+    comps.day = 15
+    vm.displayedMonth = Calendar.current.date(from: comps)!
+    XCTAssertEqual(vm.calendarDays.count, 42)
+    XCTAssertEqual(vm.calendarDays.filter(\.isCurrentMonth).count, 30)
+  }
+
+  func test_itemsForSelectedDate_returnsMatchingDeadlines() async {
+    let (vm, _, _) = makeVM(seed: [deadline("a", "2026-09-15", label: "Essay due")])
+    await vm.loadDeadlines()
+    vm.selectedDate = "2026-09-15"
+    XCTAssertEqual(vm.itemsForSelectedDate.compactMap(\.userDeadline?.label), ["Essay due"])
+  }
+
+  func test_itemsForSelectedDate_emptyWhenNoSelection() async {
+    let (vm, _, _) = makeVM(seed: [deadline("a", "2026-09-15")])
+    await vm.loadDeadlines()
+    XCTAssertTrue(vm.itemsForSelectedDate.isEmpty)
+  }
+
+  func test_goToNextAndPreviousMonth_advancesAndResetsSelection() async {
+    let (vm, _, _) = makeVM()
+    var comps = DateComponents()
+    comps.year = 2026
+    comps.month = 9
+    comps.day = 1
+    vm.displayedMonth = Calendar.current.date(from: comps)!
+    vm.selectedDate = "2026-09-15"
+
+    vm.goToNextMonth()
+    XCTAssertEqual(Calendar.current.component(.month, from: vm.displayedMonth), 10)
+    XCTAssertNil(vm.selectedDate)
+
+    vm.selectedDate = "2026-10-15"
+    vm.goToPreviousMonth()
+    XCTAssertEqual(Calendar.current.component(.month, from: vm.displayedMonth), 9)
+    XCTAssertNil(vm.selectedDate)
+  }
+
   func test_upcomingAndPastSplitAroundToday() async {
     let today = DateFormatter.isoDayFormatterForTests.string(from: .now)
     let yesterday = DateFormatter.isoDayFormatterForTests.string(from: Calendar.current.date(byAdding: .day, value: -1, to: .now)!)

@@ -4,6 +4,11 @@ import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "DeadlinesListViewModel")
 
+enum DeadlinesViewMode {
+  case list
+  case calendar
+}
+
 /// Unified Deadlines timeline: merges family-scoped `user_deadlines` rows
 /// with the athlete's NCAA recruiting-calendar milestones
 /// (`RecruitingCalendar.upcomingMilestones`) into one chronological list,
@@ -29,6 +34,9 @@ final class DeadlinesListViewModel {
   var showAddSheet = false
   var searchText = ""
   var selectedCategory: DeadlineCategory?
+  var viewMode: DeadlinesViewMode = .list
+  var displayedMonth = Date.now
+  var selectedDate: String?
 
   // MARK: - Dependencies
 
@@ -90,6 +98,48 @@ final class DeadlinesListViewModel {
     // sorted by date DESC" — reverse the ascending-grouped result.
     DeadlinesMerge.groupByMonth(pastDeadlines).reversed().map { $0 }
   }
+
+  // MARK: - Calendar view
+
+  var calendarDays: [CalendarDay] {
+    let comps = Calendar.current.dateComponents([.year, .month], from: displayedMonth)
+    guard let year = comps.year, let month = comps.month else { return [] }
+    return DeadlinesMerge.buildCalendarGrid(year: year, month: month)
+  }
+
+  var deadlinesByDate: [String: [UnifiedDeadline]] {
+    DeadlinesMerge.groupByDate(unifiedDeadlines)
+  }
+
+  var itemsForSelectedDate: [UnifiedDeadline] {
+    guard let selectedDate else { return [] }
+    return deadlinesByDate[selectedDate] ?? []
+  }
+
+  var displayedMonthTitle: String {
+    DeadlinesListViewModel.monthTitleFormatter.string(from: displayedMonth)
+  }
+
+  func goToPreviousMonth() {
+    guard let newMonth = Calendar.current.date(byAdding: .month, value: -1, to: displayedMonth) else { return }
+    displayedMonth = newMonth
+    selectedDate = nil
+  }
+
+  func goToNextMonth() {
+    guard let newMonth = Calendar.current.date(byAdding: .month, value: 1, to: displayedMonth) else { return }
+    displayedMonth = newMonth
+    selectedDate = nil
+  }
+
+  private static let monthTitleFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMMM yyyy"
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.timeZone = TimeZone.current
+    formatter.locale = Locale.current
+    return formatter
+  }()
 
   private static let isoFormatter: DateFormatter = {
     let formatter = DateFormatter()
