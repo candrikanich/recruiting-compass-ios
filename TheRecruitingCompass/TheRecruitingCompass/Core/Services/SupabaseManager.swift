@@ -82,10 +82,11 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     _ = try await client.auth.setSession(accessToken: accessToken, refreshToken: refreshToken)
   }
 
-  func signIn(email: String, password: String) async throws -> (user: User, session: Session) {
+  func signIn(email: String, password: String, captchaToken: String) async throws -> (user: User, session: Session) {
     let response = try await client.auth.signIn(
       email: email,
-      password: password
+      password: password,
+      captchaToken: captchaToken
     )
 
     // Fetch user profile from database with retry
@@ -108,7 +109,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     fullName: String,
     role: UserRole,
     familyCode: String?,
-    dateOfBirth: String? = nil
+    dateOfBirth: String? = nil,
+    captchaToken: String
   ) async throws -> (user: User, session: Session?) {
     var metadata: [String: AnyJSON] = [
       "full_name": .string(fullName),
@@ -127,7 +129,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       let response = try await client.auth.signUp(
         email: email,
         password: password,
-        data: metadata
+        data: metadata,
+        captchaToken: captchaToken
       )
 
       let userId = response.user.id.uuidString
@@ -225,9 +228,9 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     }
   }
 
-  func resetPasswordForEmail(email: String) async throws {
+  func resetPasswordForEmail(email: String, captchaToken: String) async throws {
     do {
-      try await client.auth.resetPasswordForEmail(email)
+      try await client.auth.resetPasswordForEmail(email, captchaToken: captchaToken)
     } catch {
       guard SupabaseAuthErrors.isUserNotFound(error) else {
         throw AuthError.serverError("Failed to send password reset email")

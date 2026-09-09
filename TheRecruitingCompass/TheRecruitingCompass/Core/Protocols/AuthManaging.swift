@@ -21,10 +21,10 @@ protocol AuthManaging: AnyObject {
   var pendingBiometricEnrollmentOffer: Bool { get set }
 
   /// Signs in with email and password. Persists the resulting session to Keychain.
-  func login(email: String, password: String) async throws
+  func login(email: String, password: String, captchaToken: String) async throws
   /// Creates a new account and signs in. Passes `familyCode` to join an existing family unit.
   /// - Parameter dateOfBirth: ISO 8601 date string used for COPPA age-gate enforcement.
-  func signup(email: String, password: String, fullName: String, role: UserRole, familyCode: String?, dateOfBirth: String?) async throws
+  func signup(email: String, password: String, fullName: String, role: UserRole, familyCode: String?, dateOfBirth: String?, captchaToken: String) async throws
   /// Signs out, revokes the Supabase session, and clears Keychain tokens.
   func logout() async throws
   /// Refreshes the access token using the stored refresh token and returns the updated user.
@@ -32,7 +32,7 @@ protocol AuthManaging: AnyObject {
   /// Re-sends the email verification link to the given address.
   func resendVerificationEmail(email: String) async throws
   /// Triggers a Supabase password-reset email to the given address.
-  func resetPasswordForEmail(email: String) async throws
+  func resetPasswordForEmail(email: String, captchaToken: String) async throws
   /// Updates the password for the currently authenticated user.
   func updatePassword(newPassword: String) async throws
   /// Replaces the locally cached user object without a network call.
