@@ -43,6 +43,7 @@ final class InviteJoinViewModel {
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
   private let preferenceService: any PreferenceManaging
+  private let turnstileTokenProvider: any TurnstileTokenProviding
 
   var isAuthenticated: Bool { authManager.isAuthenticated }
 
@@ -55,12 +56,14 @@ final class InviteJoinViewModel {
     token: String,
     familyService: (any FamilyManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
-    preferenceService: (any PreferenceManaging)? = nil
+    preferenceService: (any PreferenceManaging)? = nil,
+    turnstileTokenProvider: (any TurnstileTokenProviding)? = nil
   ) {
     self.token = token
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
+    self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
   }
 
   func loadInvite() async {
@@ -88,7 +91,8 @@ final class InviteJoinViewModel {
 
     do {
       if !authManager.isAuthenticated {
-        try await authManager.login(email: loginEmail, password: loginPassword)
+        let captchaToken = try await turnstileTokenProvider.getToken()
+        try await authManager.login(email: loginEmail, password: loginPassword, captchaToken: captchaToken)
       }
       try await familyService.acceptInvite(token: token)
       successMessage = "You're connected!"
@@ -145,13 +149,15 @@ final class InviteJoinViewModel {
 
     do {
       let fullName = "\(first) \(last)"
+      let captchaToken = try await turnstileTokenProvider.getToken()
       try await authManager.signup(
         email: invite.email,
         password: signupPassword,
         fullName: fullName,
         role: role,
         familyCode: nil,
-        dateOfBirth: role == .player ? dobString : nil
+        dateOfBirth: role == .player ? dobString : nil,
+        captchaToken: captchaToken
       )
       try await familyService.acceptInvite(token: token)
       let prefillSaved = await savePrefillPreferences(from: invite.prefill)
