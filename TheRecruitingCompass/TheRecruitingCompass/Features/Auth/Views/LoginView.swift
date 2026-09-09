@@ -57,6 +57,15 @@ struct LoginView: View {
       }
     }
     .navigationBarBackButtonHidden(true)
+    // Attached at the body root, not on the nested buttons that trigger them — SwiftUI
+    // ignores navigationDestination(isPresented:) buried deep inside ScrollView/HStack
+    // content, silently breaking navigation.
+    .navigationDestination(isPresented: $showForgotPassword) {
+      ForgotPasswordView()
+    }
+    .navigationDestination(isPresented: $showSignup) {
+      SignupView()
+    }
   }
 
   // MARK: - Sub-views
@@ -182,9 +191,6 @@ struct LoginView: View {
       }
       .accessibilityLabel(String(localized: "Forgot password"))
       .accessibilityHint("Opens password recovery screen")
-      .navigationDestination(isPresented: $showForgotPassword) {
-        ForgotPasswordView()
-      }
     }
   }
 
@@ -239,9 +245,6 @@ struct LoginView: View {
         }
         .accessibilityLabel(String(localized: "Create account"))
         .accessibilityHint("Opens the account creation form")
-        .navigationDestination(isPresented: $showSignup) {
-          SignupView()
-        }
       }
     }
   }
