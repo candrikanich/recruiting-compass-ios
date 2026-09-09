@@ -533,16 +533,26 @@ private struct QuickCommTemplateSection: View {
   }
 }
 
+/// Renders templates grouped by outreach stage (web parity, #114) instead of one flat list —
+/// a section header per stage in `TemplateStage.order`, with an unstaged/unrecognized-stage
+/// "Other" group trailing.
 private struct QuickCommTemplatePicker: View {
   let templates: [CommunicationTemplate]
   let selectedTemplate: CommunicationTemplate?
   let onSelect: (CommunicationTemplate?) -> Void
 
   var body: some View {
-    LazyVStack(spacing: 0) {
+    LazyVStack(alignment: .leading, spacing: 0) {
       templateOption(nil, label: String(localized: "None"))
-      ForEach(templates) { template in
-        templateOption(template, label: template.name)
+      ForEach(groupTemplatesByStage(templates), id: \.label) { group in
+        Text(group.label)
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(.secondary)
+          .padding(.top, 12)
+          .padding(.bottom, 2)
+        ForEach(group.templates) { template in
+          templateOption(template, label: template.name)
+        }
       }
     }
     .padding(12)
