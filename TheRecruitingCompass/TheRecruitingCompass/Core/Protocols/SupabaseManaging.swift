@@ -23,7 +23,7 @@ protocol SupabaseManaging: Sendable {
   /// Uses the stored refresh token to obtain a new access token and returns the updated user.
   func refreshSession() async throws -> User
   /// Sends a new verification email to the given address.
-  func resendVerificationEmail(email: String) async throws
+  func resendVerificationEmail(email: String, captchaToken: String) async throws
   /// Sends a password-reset email to the given address.
   func resetPasswordForEmail(email: String, captchaToken: String) async throws
   /// Updates the password for the currently authenticated Supabase user.

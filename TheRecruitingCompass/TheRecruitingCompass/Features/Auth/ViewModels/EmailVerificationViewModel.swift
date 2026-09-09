@@ -33,6 +33,7 @@ final class EmailVerificationViewModel {
   private let cooldownInterval: TimeInterval
 
   private let authManager: any AuthManaging
+  private let turnstileTokenProvider: any TurnstileTokenProviding
 
   // MARK: - Computed Properties
 
@@ -107,6 +108,7 @@ final class EmailVerificationViewModel {
 
   init(
     authManager: (any AuthManaging)? = nil,
+    turnstileTokenProvider: (any TurnstileTokenProviding)? = nil,
     initialPollingInterval: TimeInterval = 2.0,
     maxPollingInterval: TimeInterval = 10.0,
     maxConsecutiveErrors: Int = 3,
@@ -114,6 +116,7 @@ final class EmailVerificationViewModel {
     cooldownInterval: TimeInterval = 1.0
   ) {
     self.authManager = authManager ?? AuthManager.shared
+    self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
     self.initialInterval = initialPollingInterval
     self.currentInterval = initialPollingInterval
     self.maxInterval = maxPollingInterval
@@ -159,7 +162,8 @@ final class EmailVerificationViewModel {
     guard let email = userEmail else { return }
 
     do {
-      try await authManager.resendVerificationEmail(email: email)
+      let captchaToken = try await turnstileTokenProvider.getToken()
+      try await authManager.resendVerificationEmail(email: email, captchaToken: captchaToken)
       errorMessage = nil
       startResendCooldown()
     } catch {

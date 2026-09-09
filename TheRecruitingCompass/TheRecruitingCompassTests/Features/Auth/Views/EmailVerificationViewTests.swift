@@ -6,6 +6,7 @@ import SwiftUI
 final class EmailVerificationViewTests: XCTestCase {
   nonisolated deinit {}
   var mockAuthManager: MockAuthManager!
+  var mockTurnstileProvider: MockTurnstileTokenProvider!
 
   private let unverifiedUser = User(
     id: "test-id",
@@ -30,10 +31,12 @@ final class EmailVerificationViewTests: XCTestCase {
   override func setUp() {
     super.setUp()
     mockAuthManager = MockAuthManager()
+    mockTurnstileProvider = MockTurnstileTokenProvider()
   }
 
   override func tearDown() {
     mockAuthManager = nil
+    mockTurnstileProvider = nil
     super.tearDown()
   }
 
@@ -124,7 +127,11 @@ final class EmailVerificationViewTests: XCTestCase {
 
   func testActionButtonTextDuringCooldown() async {
     mockAuthManager.setMockUser(unverifiedUser)
-    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 5)
+    let vm = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      turnstileTokenProvider: mockTurnstileProvider,
+      cooldownDuration: 5
+    )
 
     await vm.resendVerificationEmail()
 
@@ -149,7 +156,11 @@ final class EmailVerificationViewTests: XCTestCase {
 
   func testButtonDisabledDuringCooldown() async {
     mockAuthManager.setMockUser(unverifiedUser)
-    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 5)
+    let vm = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      turnstileTokenProvider: mockTurnstileProvider,
+      cooldownDuration: 5
+    )
 
     await vm.resendVerificationEmail()
 
@@ -181,7 +192,11 @@ final class EmailVerificationViewTests: XCTestCase {
 
   func testAccessibilityHintDuringCooldown() async {
     mockAuthManager.setMockUser(unverifiedUser)
-    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 30)
+    let vm = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      turnstileTokenProvider: mockTurnstileProvider,
+      cooldownDuration: 30
+    )
 
     await vm.resendVerificationEmail()
 
@@ -199,7 +214,11 @@ final class EmailVerificationViewTests: XCTestCase {
 
   func testShouldShowCooldownTextDuringCooldown() async {
     mockAuthManager.setMockUser(unverifiedUser)
-    let vm = EmailVerificationViewModel(authManager: mockAuthManager, cooldownDuration: 5)
+    let vm = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      turnstileTokenProvider: mockTurnstileProvider,
+      cooldownDuration: 5
+    )
 
     await vm.resendVerificationEmail()
 

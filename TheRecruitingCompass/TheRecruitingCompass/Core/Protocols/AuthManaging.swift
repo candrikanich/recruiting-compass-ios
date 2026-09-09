@@ -30,7 +30,7 @@ protocol AuthManaging: AnyObject {
   /// Refreshes the access token using the stored refresh token and returns the updated user.
   func refreshSession() async throws -> User
   /// Re-sends the email verification link to the given address.
-  func resendVerificationEmail(email: String) async throws
+  func resendVerificationEmail(email: String, captchaToken: String) async throws
   /// Triggers a Supabase password-reset email to the given address.
   func resetPasswordForEmail(email: String, captchaToken: String) async throws
   /// Updates the password for the currently authenticated user.

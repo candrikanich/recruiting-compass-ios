@@ -217,11 +217,12 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     return user
   }
 
-  func resendVerificationEmail(email: String) async throws {
+  func resendVerificationEmail(email: String, captchaToken: String) async throws {
     do {
       try await client.auth.resend(
         email: email,
-        type: .signup
+        type: .signup,
+        captchaToken: captchaToken
       )
     } catch {
       throw AuthError.serverError("Failed to resend verification email")

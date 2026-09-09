@@ -106,7 +106,7 @@ final class InviteJoinViewModel {
       errorMessage = err.errorDescription
     } catch {
       logger.error("acceptInvite: \(error.localizedDescription)")
-      errorMessage = "Failed to connect to family. Please try again."
+      errorMessage = (error as? AuthError)?.errorDescription ?? "Failed to connect to family. Please try again."
     }
   }
 

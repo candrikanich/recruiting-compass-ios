@@ -29,6 +29,13 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
     webView = WKWebView(frame: .zero, configuration: configuration)
     super.init()
     configuration.userContentController.add(self, name: "turnstile")
+    webView.navigationDelegate = self
+    loadWidget()
+  }
+
+  /// Loads (or reloads) the widget HTML. Called from `init` and from the navigation-delegate
+  /// recovery paths below so a failed load or a terminated content process can be retried.
+  private func loadWidget() {
     webView.loadHTMLString(Self.html, baseURL: URL(string: "https://myrecruitingcompass.com"))
   }
 
@@ -83,7 +90,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
       Task { @MainActor [weak self] in
         guard let self else { return }
         do {
-          try await self.webView.evaluateJavaScript("window.twReset(); window.twExecute();")
+          try await self.webView.evaluateJavaScript("window.twReset(); window.twExecute(); null;")
         } catch {
           // A JS-evaluation failure must still surface as `.captchaFailed`, not the raw
           // WKError — and only if this continuation hasn't already been resumed by a
@@ -122,7 +129,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
       return
     }
     hasRetriedAfterExpiry = true
-    Task { try? await webView.evaluateJavaScript("window.twReset(); window.twExecute();") }
+    Task { try? await webView.evaluateJavaScript("window.twReset(); window.twExecute(); null;") }
   }
 
   private static let html = """
@@ -175,6 +182,45 @@ extension TurnstileTokenProvider: WKScriptMessageHandler {
       default:
         self.handleError()
       }
+    }
+  }
+}
+
+extension TurnstileTokenProvider: WKNavigationDelegate {
+  /// Recovery path for a page load that fails outright (e.g. no network on cold launch).
+  /// Without this, `isWidgetReady` would simply never flip to `true` and every future
+  /// `getToken()` call would time out for the rest of the app session.
+  nonisolated func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      self.isWidgetReady = false
+      self.loadWidget()
+    }
+  }
+
+  /// Same recovery as `didFail`, but for a failure that occurs before the page commits
+  /// (e.g. the initial HTML load itself never starts due to no network).
+  nonisolated func webView(
+    _ webView: WKWebView,
+    didFailProvisionalNavigation navigation: WKNavigation!,
+    withError error: Error
+  ) {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      self.isWidgetReady = false
+      self.loadWidget()
+    }
+  }
+
+  /// iOS can jetsam the WKWebView's content process at any time — including while this
+  /// webview is unmounted (backgrounded auth flows are a plausible jetsam target). Without
+  /// this, `isWidgetReady` would stay `true` for a page that no longer exists, and every
+  /// future `getToken()` would silently fail forever.
+  nonisolated func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      self.isWidgetReady = false
+      self.loadWidget()
     }
   }
 }

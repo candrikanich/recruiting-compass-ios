@@ -39,6 +39,7 @@ class MockAuthManager: AuthManaging {
   private(set) var capturedLoginCaptchaToken: String?
   private(set) var capturedSignupCaptchaToken: String?
   private(set) var capturedResetEmailCaptchaToken: String?
+  private(set) var capturedResendEmailCaptchaToken: String?
 
   /// When false, signup() does not set isAuthenticated = true, so SignupViewModel sets shouldNavigateToVerifyEmail (e.g. email confirmation required).
   var setAuthenticatedAfterSignup = true
@@ -166,8 +167,9 @@ class MockAuthManager: AuthManaging {
     throw AuthError.userNotFound
   }
 
-  func resendVerificationEmail(email: String) async throws {
+  func resendVerificationEmail(email: String, captchaToken: String) async throws {
     resendEmailCallCount += 1
+    capturedResendEmailCaptchaToken = captchaToken
 
     if shouldThrowResendError {
       throw mockErrorToThrow
@@ -240,6 +242,7 @@ class MockAuthManager: AuthManaging {
     capturedLoginCaptchaToken = nil
     capturedSignupCaptchaToken = nil
     capturedResetEmailCaptchaToken = nil
+    capturedResendEmailCaptchaToken = nil
 
     user = nil
     mockUserToReturn = nil

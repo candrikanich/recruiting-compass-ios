@@ -129,10 +129,10 @@ final class AuthManager: AuthManaging {
     }
   }
 
-  func resendVerificationEmail(email: String) async throws {
+  func resendVerificationEmail(email: String, captchaToken: String) async throws {
     logger.debug("Resending verification email to: \(email.prefix(3))***")
     do {
-      try await supabaseManager.resendVerificationEmail(email: email)
+      try await supabaseManager.resendVerificationEmail(email: email, captchaToken: captchaToken)
       self.errorMessage = nil
       logger.info("Verification email sent")
     } catch {
