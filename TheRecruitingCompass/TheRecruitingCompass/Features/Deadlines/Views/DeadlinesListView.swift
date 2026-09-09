@@ -27,6 +27,8 @@ struct DeadlinesListView: View {
         loadingState
       } else if viewModel.unifiedDeadlines.isEmpty {
         emptyState
+      } else if viewModel.viewMode == .calendar {
+        calendarContent
       } else {
         content
       }
@@ -44,6 +46,18 @@ struct DeadlinesListView: View {
         }
         .accessibilityLabel(String(localized: "Add deadline"))
         .accessibilityHint("Opens form to create a new deadline")
+      }
+      ToolbarItem(placement: .topBarTrailing) {
+        Button {
+          viewModel.viewMode = viewModel.viewMode == .list ? .calendar : .list
+        } label: {
+          Image(systemName: viewModel.viewMode == .list ? "calendar" : "list.bullet")
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .accessibilityLabel(String(
+          localized: viewModel.viewMode == .list ? "Switch to calendar view" : "Switch to list view"
+        ))
       }
     }
     .searchable(text: $viewModel.searchText, prompt: Text("Search deadlines"))
@@ -207,6 +221,58 @@ struct DeadlinesListView: View {
           }
         }
       }
+  }
+
+  // MARK: - Calendar view
+
+  @ViewBuilder
+  private var calendarContent: some View {
+    ScrollView {
+      VStack(spacing: 16) {
+        HStack {
+          Button {
+            viewModel.goToPreviousMonth()
+          } label: {
+            Image(systemName: "chevron.left").frame(minWidth: 44, minHeight: 44)
+          }
+          .accessibilityLabel(String(localized: "Previous month"))
+
+          Spacer()
+          Text(viewModel.displayedMonthTitle).font(.headline)
+          Spacer()
+
+          Button {
+            viewModel.goToNextMonth()
+          } label: {
+            Image(systemName: "chevron.right").frame(minWidth: 44, minHeight: 44)
+          }
+          .accessibilityLabel(String(localized: "Next month"))
+        }
+        .padding(.horizontal)
+
+        DeadlinesCalendarGridView(
+          days: viewModel.calendarDays,
+          itemsByDate: viewModel.deadlinesByDate,
+          selectedDate: $viewModel.selectedDate
+        )
+
+        if viewModel.selectedDate != nil {
+          VStack(alignment: .leading, spacing: 8) {
+            if viewModel.itemsForSelectedDate.isEmpty {
+              Text("No deadlines on this day")
+                .foregroundStyle(.secondary)
+                .padding(.horizontal)
+            } else {
+              ForEach(viewModel.itemsForSelectedDate) { item in
+                DeadlineRow(deadline: item)
+                  .padding(.horizontal)
+              }
+            }
+          }
+        }
+      }
+      .padding(.vertical)
+    }
   }
 
   // MARK: - States
