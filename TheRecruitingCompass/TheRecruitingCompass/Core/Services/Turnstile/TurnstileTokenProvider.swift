@@ -1,6 +1,5 @@
 import Foundation
 import WebKit
-import Observation
 
 /// Owns the single WKWebView that runs an invisible Cloudflare Turnstile widget and
 /// bridges its JS callbacks back to Swift. One shared instance backs every auth flow
@@ -11,7 +10,6 @@ import Observation
 /// allow-listed for this site key in the Cloudflare Turnstile dashboard (the HTML
 /// content itself is still local, never fetched over the network).
 @MainActor
-@Observable
 final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   nonisolated deinit {}
 
@@ -20,10 +18,11 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   /// The WKWebView `TurnstileWidgetView` mounts. Created once, lives for the app's lifetime.
   let webView: WKWebView
 
-  @ObservationIgnored private var isWidgetReady = false
-  @ObservationIgnored private var pendingContinuation: CheckedContinuation<String, Error>?
-  @ObservationIgnored private var readyContinuations: [CheckedContinuation<Void, Never>] = []
-  @ObservationIgnored private var hasRetriedAfterExpiry = false
+  private var isWidgetReady = false
+  private var pendingContinuation: CheckedContinuation<String, Error>?
+  private var readyContinuations: [CheckedContinuation<Void, Error>] = []
+  private var readyTimeoutTask: Task<Void, Never>?
+  private var hasRetriedAfterExpiry = false
 
   private override init() {
     let configuration = WKWebViewConfiguration()
@@ -35,19 +34,42 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
 
   func getToken() async throws -> String {
     hasRetriedAfterExpiry = false
-    await waitUntilReady()
+    try await waitUntilReady()
     return try await executeChallenge()
   }
 
-  private func waitUntilReady() async {
+  /// Waits for the widget's "ready" postMessage, or throws `.captchaFailed` after 10s if
+  /// `api.js` never loads (blocked network, unreachable Cloudflare, etc). Multiple callers
+  /// can queue on the same wait; a single shared timeout task covers all of them and is
+  /// cancelled the moment `handleReady()` fires.
+  private func waitUntilReady() async throws {
     if isWidgetReady { return }
-    await withCheckedContinuation { continuation in
+    if readyTimeoutTask == nil {
+      readyTimeoutTask = Task { @MainActor [weak self] in
+        try? await Task.sleep(for: .seconds(10))
+        guard let self, !self.isWidgetReady else { return }
+        let waiters = self.readyContinuations
+        self.readyContinuations.removeAll()
+        self.readyTimeoutTask = nil
+        waiters.forEach { $0.resume(throwing: AuthError.captchaFailed) }
+      }
+    }
+    try await withCheckedThrowingContinuation { continuation in
       readyContinuations.append(continuation)
     }
   }
 
+  /// Installs the continuation before kicking off `twReset()/twExecute()` so a callback
+  /// that fires immediately (fast/cached challenge) always has somewhere to land — never
+  /// runs `evaluateJavaScript` first and then races it against continuation setup.
   private func executeChallenge() async throws -> String {
-    try await webView.evaluateJavaScript("window.twReset(); window.twExecute();")
+    // Single-flight: this app never runs two captcha challenges concurrently. Superseding
+    // a still-pending call (rather than leaking its continuation) is correct behavior here.
+    if let existing = pendingContinuation {
+      existing.resume(throwing: AuthError.captchaFailed)
+      pendingContinuation = nil
+    }
+
     let timeoutTask = Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(10))
       guard let self, self.pendingContinuation != nil else { return }
@@ -55,13 +77,30 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
       self.pendingContinuation = nil
     }
     defer { timeoutTask.cancel() }
+
     return try await withCheckedThrowingContinuation { continuation in
       pendingContinuation = continuation
+      Task { @MainActor [weak self] in
+        guard let self else { return }
+        do {
+          try await self.webView.evaluateJavaScript("window.twReset(); window.twExecute();")
+        } catch {
+          // A JS-evaluation failure must still surface as `.captchaFailed`, not the raw
+          // WKError — and only if this continuation hasn't already been resumed by a
+          // callback or the timeout.
+          if self.pendingContinuation != nil {
+            self.pendingContinuation?.resume(throwing: AuthError.captchaFailed)
+            self.pendingContinuation = nil
+          }
+        }
+      }
     }
   }
 
   fileprivate func handleReady() {
     isWidgetReady = true
+    readyTimeoutTask?.cancel()
+    readyTimeoutTask = nil
     readyContinuations.forEach { $0.resume() }
     readyContinuations.removeAll()
   }
