@@ -7,6 +7,7 @@ import SwiftUI
 struct DeadlinesListView: View {
   @State private var viewModel = DeadlinesListViewModel()
   @State private var deadlineToDelete: Deadline?
+  @State private var deadlineToEdit: Deadline?
   @State private var isPastExpanded = false
 
   private var showDeleteConfirmation: Binding<Bool> {
@@ -71,6 +72,17 @@ struct DeadlinesListView: View {
         onCancel: { viewModel.showAddSheet = false }
       )
     }
+    .sheet(item: $deadlineToEdit) { deadline in
+      AddDeadlineSheet(
+        existingDeadline: deadline,
+        onSave: { label, date, category in
+          let saved = await viewModel.updateDeadline(id: deadline.id, label: label, date: date, category: category)
+          if saved { deadlineToEdit = nil }
+          return saved
+        },
+        onCancel: { deadlineToEdit = nil }
+      )
+    }
     .confirmationDialog("Remove Deadline?", isPresented: showDeleteConfirmation, titleVisibility: .visible) {
       if let deadlineToDelete {
         Button("Remove", role: .destructive) {
@@ -133,6 +145,11 @@ struct DeadlinesListView: View {
   @ViewBuilder
   private func row(_ item: UnifiedDeadline) -> some View {
     DeadlineRow(deadline: item)
+      .contentShape(Rectangle())
+      .onTapGesture {
+        guard let userDeadline = item.userDeadline else { return }
+        deadlineToEdit = userDeadline
+      }
       .swipeActions(edge: .trailing, allowsFullSwipe: false) {
         if let userDeadline = item.userDeadline {
           Button(role: .destructive) {

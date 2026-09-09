@@ -1,17 +1,40 @@
 import SwiftUI
 
-/// Add-deadline form. School association and edit are deferred (spec §9,
-/// matches web — no edit endpoint either).
+/// Add/edit deadline form. School association is still deferred (spec §9);
+/// editing matches web's `PATCH /api/deadlines/:id`.
 struct AddDeadlineSheet: View {
+  let existingDeadline: Deadline?
   let onSave: (String, Date, DeadlineCategory) async -> Bool
   let onCancel: () -> Void
 
-  @State private var label = ""
-  @State private var date = Date.now
-  @State private var category: DeadlineCategory = .application
+  @State private var label: String
+  @State private var date: Date
+  @State private var category: DeadlineCategory
   @State private var isSaving = false
 
   private static let maxLabelLength = 200
+
+  init(
+    existingDeadline: Deadline? = nil,
+    onSave: @escaping (String, Date, DeadlineCategory) async -> Bool,
+    onCancel: @escaping () -> Void
+  ) {
+    self.existingDeadline = existingDeadline
+    self.onSave = onSave
+    self.onCancel = onCancel
+    _label = State(initialValue: existingDeadline?.label ?? "")
+    _date = State(initialValue: existingDeadline.flatMap { AddDeadlineSheet.parseISODate($0.deadlineDate) } ?? .now)
+    _category = State(initialValue: existingDeadline?.category ?? .application)
+  }
+
+  private static func parseISODate(_ isoDate: String) -> Date? {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.timeZone = TimeZone.current
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    return formatter.date(from: isoDate)
+  }
 
   private var trimmedLabel: String {
     label.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -37,7 +60,7 @@ struct AddDeadlineSheet: View {
           .accessibilityLabel(String(localized: "Deadline category"))
         }
       }
-      .navigationTitle("Add Deadline")
+      .navigationTitle(existingDeadline == nil ? "Add Deadline" : "Edit Deadline")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {

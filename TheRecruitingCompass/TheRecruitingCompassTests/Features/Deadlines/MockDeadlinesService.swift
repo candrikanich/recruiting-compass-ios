@@ -5,6 +5,7 @@ final class MockDeadlinesService: DeadlinesManaging, @unchecked Sendable {
   var deadlines: [Deadline] = []
   var fetchError: Error?
   var createError: Error?
+  var updateError: Error?
   var deleteError: Error?
 
   func fetchDeadlines(familyUnitId: String) async throws -> [Deadline] {
@@ -29,6 +30,27 @@ final class MockDeadlinesService: DeadlinesManaging, @unchecked Sendable {
     )
     deadlines.append(deadline)
     return deadline
+  }
+
+  func updateDeadline(id: String, familyUnitId: String, request: DeadlineUpdateRequest) async throws -> Deadline {
+    if let updateError { throw updateError }
+    guard let index = deadlines.firstIndex(where: { $0.id == id && $0.familyUnitId == familyUnitId }) else {
+      throw NSError(domain: "MockDeadlinesService", code: 404)
+    }
+    let existing = deadlines[index]
+    let updated = Deadline(
+      id: existing.id,
+      userId: existing.userId,
+      familyUnitId: existing.familyUnitId,
+      label: request.label,
+      deadlineDate: request.deadlineDate,
+      category: request.category,
+      schoolId: existing.schoolId,
+      createdAt: existing.createdAt,
+      updatedAt: existing.updatedAt
+    )
+    deadlines[index] = updated
+    return updated
   }
 
   func deleteDeadline(id: String, familyUnitId: String) async throws {

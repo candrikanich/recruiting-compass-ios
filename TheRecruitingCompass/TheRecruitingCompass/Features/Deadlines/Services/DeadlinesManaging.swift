@@ -9,8 +9,15 @@ struct DeadlineCreateRequest: Sendable {
   let schoolId: String?
 }
 
+struct DeadlineUpdateRequest: Sendable {
+  let label: String
+  let deadlineDate: String      // "YYYY-MM-DD"
+  let category: DeadlineCategory
+}
+
 protocol DeadlinesManaging: Sendable {
   func fetchDeadlines(familyUnitId: String) async throws -> [Deadline]
   func createDeadline(_ request: DeadlineCreateRequest) async throws -> Deadline
+  func updateDeadline(id: String, familyUnitId: String, request: DeadlineUpdateRequest) async throws -> Deadline
   func deleteDeadline(id: String, familyUnitId: String) async throws
 }

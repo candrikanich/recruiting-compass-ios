@@ -22,6 +22,18 @@ private struct DeadlineInsertPayload: Encodable {
   }
 }
 
+private struct DeadlineUpdatePayload: Encodable {
+  let label: String
+  let deadlineDate: String
+  let category: String
+
+  enum CodingKeys: String, CodingKey {
+    case label
+    case deadlineDate = "deadline_date"
+    case category
+  }
+}
+
 /// Direct-Supabase-query service for `user_deadlines`, following the
 /// VideoLinks/Events pattern. RLS is family-scoped (migration
 /// `20260902000000_family_shared_user_deadlines.sql`), so reads/deletes are
@@ -69,6 +81,29 @@ final class DeadlinesServiceImpl: DeadlinesManaging, Sendable {
       .value
 
     logger.info("Created deadline: \(deadline.id)")
+    return deadline
+  }
+
+  func updateDeadline(id: String, familyUnitId: String, request: DeadlineUpdateRequest) async throws -> Deadline {
+    logger.debug("Updating deadline: \(id)")
+
+    let payload = DeadlineUpdatePayload(
+      label: request.label,
+      deadlineDate: request.deadlineDate,
+      category: request.category.rawValue
+    )
+
+    let deadline: Deadline = try await supabaseManager.client
+      .from("user_deadlines")
+      .update(payload)
+      .eq("id", value: id)
+      .eq("family_unit_id", value: familyUnitId)
+      .select()
+      .single()
+      .execute()
+      .value
+
+    logger.info("Updated deadline: \(deadline.id)")
     return deadline
   }
 
