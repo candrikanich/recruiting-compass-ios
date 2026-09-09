@@ -93,6 +93,38 @@ final class DeadlinesListViewModelTests: XCTestCase {
     XCTAssertTrue(vm.deadlines.isEmpty)
   }
 
+  func test_updateDeadline_editsInPlaceAndReturnsTrue() async {
+    let seeded = deadline("a", "2026-12-01", label: "Old label")
+    let (vm, _, _) = makeVM(seed: [seeded])
+    await vm.loadDeadlines()
+    let ok = await vm.updateDeadline(
+      id: "a", label: "New label", date: Date(timeIntervalSince1970: 1_893_456_000), category: .visit
+    )
+    XCTAssertTrue(ok)
+    XCTAssertEqual(vm.deadlines.count, 1)
+    XCTAssertEqual(vm.deadlines.first?.label, "New label")
+    XCTAssertEqual(vm.deadlines.first?.category, .visit)
+  }
+
+  func test_updateDeadline_rejectsBlankLabel() async {
+    let seeded = deadline("a", "2026-12-01", label: "Old label")
+    let (vm, _, _) = makeVM(seed: [seeded])
+    await vm.loadDeadlines()
+    let ok = await vm.updateDeadline(id: "a", label: "   ", date: .now, category: .custom)
+    XCTAssertFalse(ok)
+    XCTAssertEqual(vm.deadlines.first?.label, "Old label")
+  }
+
+  func test_updateDeadline_setsErrorOnFailure() async {
+    let seeded = deadline("a", "2026-12-01")
+    let (vm, mockService, _) = makeVM(seed: [seeded])
+    await vm.loadDeadlines()
+    mockService.updateError = NSError(domain: "test", code: 1)
+    let ok = await vm.updateDeadline(id: "a", label: "New label", date: .now, category: .visit)
+    XCTAssertFalse(ok)
+    XCTAssertNotNil(vm.errorMessage)
+  }
+
   func test_upcomingAndPastSplitAroundToday() async {
     let today = DateFormatter.isoDayFormatterForTests.string(from: .now)
     let yesterday = DateFormatter.isoDayFormatterForTests.string(from: Calendar.current.date(byAdding: .day, value: -1, to: .now)!)

@@ -159,6 +159,29 @@ final class DeadlinesListViewModel {
     }
   }
 
+  func updateDeadline(id: String, label: String, date: Date, category: DeadlineCategory) async -> Bool {
+    let trimmed = label.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return false }
+    guard let familyUnitId else { return false }
+
+    do {
+      let request = DeadlineUpdateRequest(
+        label: trimmed,
+        deadlineDate: DeadlinesListViewModel.isoFormatter.string(from: date),
+        category: category
+      )
+      let updated = try await service.updateDeadline(id: id, familyUnitId: familyUnitId, request: request)
+      if let index = deadlines.firstIndex(where: { $0.id == id }) {
+        deadlines[index] = updated
+      }
+      return true
+    } catch {
+      logger.error("Failed to update deadline \(id): \(error.localizedDescription)")
+      errorMessage = String(localized: "Failed to save deadline. Please try again.")
+      return false
+    }
+  }
+
   func removeDeadline(_ deadline: Deadline) async {
     guard let familyUnitId else { return }
     do {
