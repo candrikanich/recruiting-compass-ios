@@ -11,6 +11,12 @@ final class MockInboundDraftsAPIService: InboundDraftsAPIManaging, @unchecked Se
 
   var lastConfirmedDraftId: String?
   var lastConfirmedSchoolId: String?
+  var lastConfirmedCoachId: String??
+  var lastConfirmedType: String?
+  var lastConfirmedDirection: String?
+  var lastConfirmedOccurredAt: String?
+  var lastConfirmedSubject: String?
+  var lastConfirmedContent: String?
   var lastDiscardedDraftId: String?
   var confirmCallCount = 0
   var discardCallCount = 0
@@ -20,10 +26,26 @@ final class MockInboundDraftsAPIService: InboundDraftsAPIManaging, @unchecked Se
     return draftsToReturn
   }
 
-  func confirmDraft(id: String, schoolId: String?, accessToken: String?) async throws -> InboundDraftConfirmResponse {
+  func confirmDraft(
+    id: String,
+    schoolId: String?,
+    coachId: String??,
+    type: String?,
+    direction: String?,
+    occurredAt: String?,
+    subject: String?,
+    content: String?,
+    accessToken: String?
+  ) async throws -> InboundDraftConfirmResponse {
     confirmCallCount += 1
     lastConfirmedDraftId = id
     lastConfirmedSchoolId = schoolId
+    lastConfirmedCoachId = coachId
+    lastConfirmedType = type
+    lastConfirmedDirection = direction
+    lastConfirmedOccurredAt = occurredAt
+    lastConfirmedSubject = subject
+    lastConfirmedContent = content
     if let errorToThrow { throw errorToThrow }
     return confirmResponse
   }

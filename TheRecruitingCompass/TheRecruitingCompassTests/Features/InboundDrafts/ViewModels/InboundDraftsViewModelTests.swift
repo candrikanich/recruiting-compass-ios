@@ -52,60 +52,46 @@ struct InboundDraftsViewModelTests {
     #expect(viewModel.errorMessage != nil)
   }
 
-  @Test func canConfirmIsTrueWhenAlreadyMatched() {
-    let api = MockInboundDraftsAPIService()
-    let viewModel = makeViewModel(api: api)
-    let matched = makeDraft(matchedSchoolId: "school-1")
-
-    #expect(viewModel.canConfirm(matched))
-  }
-
-  @Test func canConfirmIsFalseWhenUnmatchedAndNoPick() {
-    let api = MockInboundDraftsAPIService()
-    let viewModel = makeViewModel(api: api)
-    let unmatched = makeDraft(matchedSchoolId: nil)
-
-    #expect(!viewModel.canConfirm(unmatched))
-  }
-
-  @Test func canConfirmIsTrueWhenUnmatchedButSchoolPicked() {
-    let api = MockInboundDraftsAPIService()
-    let viewModel = makeViewModel(api: api)
-    let unmatched = makeDraft(id: "d2", matchedSchoolId: nil)
-    viewModel.pickedSchoolId["d2"] = "picked-school"
-
-    #expect(viewModel.canConfirm(unmatched))
-  }
-
-  @Test func confirmRemovesDraftFromListOnSuccess() async {
+  @Test func confirmSendsEditedFormValuesAndRemovesDraftOnSuccess() async throws {
     let api = MockInboundDraftsAPIService()
     let draft = makeDraft(matchedSchoolId: "school-1")
     api.draftsToReturn = [draft]
     let viewModel = makeViewModel(api: api)
     await viewModel.loadDrafts()
 
-    await viewModel.confirm(draft)
+    var formState = InteractionFormState(fromDraft: draft)
+    formState.schoolId = "picked-school"
+    formState.coachId = "coach-9"
+    formState.subject = "Edited subject"
 
+    let interactionId = try await viewModel.confirm(draft, with: formState)
+
+    #expect(interactionId == "interaction-1")
     #expect(viewModel.drafts.isEmpty)
     #expect(api.confirmCallCount == 1)
-    #expect(api.lastConfirmedSchoolId == nil) // already matched — no schoolId sent
+    #expect(api.lastConfirmedSchoolId == "picked-school")
+    #expect(api.lastConfirmedCoachId == .some("coach-9"))
+    #expect(api.lastConfirmedType == "email")
+    #expect(api.lastConfirmedDirection == "inbound")
+    #expect(api.lastConfirmedSubject == "Edited subject")
   }
 
-  @Test func confirmSendsPickedSchoolIdWhenUnmatched() async {
+  @Test func confirmSendsExplicitNullCoachIdWhenCleared() async throws {
     let api = MockInboundDraftsAPIService()
-    let draft = makeDraft(matchedSchoolId: nil)
+    let draft = makeDraft(matchedSchoolId: "school-1")
     api.draftsToReturn = [draft]
     let viewModel = makeViewModel(api: api)
     await viewModel.loadDrafts()
-    viewModel.pickedSchoolId[draft.id] = "picked-school"
 
-    await viewModel.confirm(draft)
+    var formState = InteractionFormState(fromDraft: draft)
+    formState.coachId = nil
 
-    #expect(api.lastConfirmedSchoolId == "picked-school")
-    #expect(viewModel.drafts.isEmpty)
+    _ = try await viewModel.confirm(draft, with: formState)
+
+    #expect(api.lastConfirmedCoachId == .some(nil))
   }
 
-  @Test func confirmFailureLeavesDraftInListAndShowsToast() async {
+  @Test func confirmFailurePropagatesErrorAndLeavesDraftInList() async {
     let api = MockInboundDraftsAPIService()
     let draft = makeDraft(matchedSchoolId: "school-1")
     api.draftsToReturn = [draft]
@@ -113,25 +99,10 @@ struct InboundDraftsViewModelTests {
     await viewModel.loadDrafts()
     api.errorToThrow = InboundDraftsAPIError.server(500)
 
-    await viewModel.confirm(draft)
-
+    await #expect(throws: InboundDraftsAPIError.self) {
+      _ = try await viewModel.confirm(draft, with: InteractionFormState(fromDraft: draft))
+    }
     #expect(viewModel.drafts.count == 1)
-    #expect(viewModel.showErrorToast)
-    #expect(viewModel.toastMessage != nil)
-  }
-
-  @Test func confirmNotFoundRemovesDraftWithoutToast() async {
-    let api = MockInboundDraftsAPIService()
-    let draft = makeDraft(matchedSchoolId: "school-1")
-    api.draftsToReturn = [draft]
-    let viewModel = makeViewModel(api: api)
-    await viewModel.loadDrafts()
-    api.errorToThrow = InboundDraftsAPIError.notFound
-
-    await viewModel.confirm(draft)
-
-    #expect(viewModel.drafts.isEmpty)
-    #expect(!viewModel.showErrorToast)
   }
 
   @Test func discardRemovesDraftFromListOnSuccess() async {

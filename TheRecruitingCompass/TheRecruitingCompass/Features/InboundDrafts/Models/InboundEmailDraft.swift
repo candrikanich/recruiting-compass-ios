@@ -47,8 +47,53 @@ struct InboundDraftsListResponse: Codable, Sendable {
   let drafts: [InboundEmailDraft]
 }
 
+/// `coachId` uses `AnyEncodable??`-style tri-state via the custom `encode` below:
+/// omitted entirely (server falls back to the parsed draft's match) vs explicit
+/// `null` (server clears the match) vs a UUID string.
 struct InboundDraftConfirmRequest: Encodable, Sendable {
   let schoolId: String?
+  let coachId: String??
+  let type: String?
+  let direction: String?
+  let occurredAt: String?
+  let subject: String?
+  let content: String?
+
+  init(
+    schoolId: String? = nil,
+    coachId: String?? = nil,
+    type: String? = nil,
+    direction: String? = nil,
+    occurredAt: String? = nil,
+    subject: String? = nil,
+    content: String? = nil
+  ) {
+    self.schoolId = schoolId
+    self.coachId = coachId
+    self.type = type
+    self.direction = direction
+    self.occurredAt = occurredAt
+    self.subject = subject
+    self.content = content
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case schoolId, coachId, type, direction, occurredAt, subject, content
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(schoolId, forKey: .schoolId)
+    try container.encodeIfPresent(type, forKey: .type)
+    try container.encodeIfPresent(direction, forKey: .direction)
+    try container.encodeIfPresent(occurredAt, forKey: .occurredAt)
+    try container.encodeIfPresent(subject, forKey: .subject)
+    try container.encodeIfPresent(content, forKey: .content)
+    // Outer nil = key omitted entirely; outer .some(inner) = key present, inner may be null.
+    if let coachId {
+      try container.encode(coachId, forKey: .coachId)
+    }
+  }
 }
 
 struct InboundDraftConfirmResponse: Codable, Sendable {

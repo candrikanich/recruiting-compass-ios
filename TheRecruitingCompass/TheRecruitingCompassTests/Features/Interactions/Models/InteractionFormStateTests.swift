@@ -159,6 +159,72 @@ final class InteractionFormStateTests: XCTestCase {
     XCTAssertEqual(formState.occurredAt.timeIntervalSince1970, now.timeIntervalSince1970, accuracy: 5.0)
   }
 
+  // MARK: - From-Draft Factory Tests
+
+  private func makeDraft(
+    matchedSchoolId: String? = "school-1",
+    matchedCoachId: String? = "coach-1",
+    subject: String? = "Great game",
+    bodyText: String? = "Body text",
+    occurredAt: String = "2026-09-01T12:30:00.000Z"
+  ) -> InboundEmailDraft {
+    InboundEmailDraft(
+      id: "draft-1", familyUnitId: "fam-1", rawEmailId: nil, matchedCoachId: matchedCoachId,
+      matchedSchoolId: matchedSchoolId, senderName: "Coach Smith", senderEmail: "coach@school.edu",
+      subject: subject, bodyText: bodyText, occurredAt: occurredAt,
+      status: "pending", confirmedInteractionId: nil, createdAt: occurredAt
+    )
+  }
+
+  func testFromDraft_SeedsMatchedFields() {
+    let draft = makeDraft()
+    let formState = InteractionFormState(fromDraft: draft)
+
+    XCTAssertEqual(formState.schoolId, "school-1")
+    XCTAssertEqual(formState.coachId, "coach-1")
+    XCTAssertEqual(formState.type, .email)
+    XCTAssertEqual(formState.direction, .inbound)
+    XCTAssertEqual(formState.subject, "Great game")
+    XCTAssertEqual(formState.content, "Body text")
+  }
+
+  func testFromDraft_UsesFallbackSchoolIdWhenUnmatched() {
+    let draft = makeDraft(matchedSchoolId: nil)
+    let formState = InteractionFormState(fromDraft: draft, fallbackSchoolId: "fallback-school")
+
+    XCTAssertEqual(formState.schoolId, "fallback-school")
+  }
+
+  func testFromDraft_EmptySchoolIdWhenUnmatchedAndNoFallback() {
+    let draft = makeDraft(matchedSchoolId: nil)
+    let formState = InteractionFormState(fromDraft: draft)
+
+    XCTAssertTrue(formState.schoolId.isEmpty)
+  }
+
+  func testFromDraft_NilCoachIdWhenUnmatched() {
+    let draft = makeDraft(matchedCoachId: nil)
+    let formState = InteractionFormState(fromDraft: draft)
+
+    XCTAssertNil(formState.coachId)
+  }
+
+  func testFromDraft_FallsBackToEmptyStringsWhenSubjectAndBodyNil() {
+    let draft = makeDraft(subject: nil, bodyText: nil)
+    let formState = InteractionFormState(fromDraft: draft)
+
+    XCTAssertTrue(formState.subject.isEmpty)
+    XCTAssertTrue(formState.content.isEmpty)
+  }
+
+  func testFromDraft_ParsesOccurredAtDate() {
+    let draft = makeDraft(occurredAt: "2026-09-01T12:30:00.000Z")
+    let formState = InteractionFormState(fromDraft: draft)
+
+    let expected = ISO8601DateFormatter().date(from: "2026-09-01T12:30:00Z")!
+    XCTAssertEqual(formState.occurredAt.timeIntervalSince1970, expected.timeIntervalSince1970, accuracy: 1.0)
+  }
+
   // MARK: - Edge Cases
 
   func testMutability_AllFieldsCanBeModified() {

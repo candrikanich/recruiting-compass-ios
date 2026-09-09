@@ -41,6 +41,64 @@ final class AddInteractionViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.isSubmitting)
   }
 
+  func testInit_UsesInitialFormStateWhenProvided() {
+    var seeded = InteractionFormState()
+    seeded.schoolId = "seeded-school"
+    seeded.type = .email
+    seeded.direction = .inbound
+    seeded.subject = "Seeded subject"
+
+    let seededViewModel = AddInteractionViewModel(
+      interactionsService: mockService,
+      familyUnitId: "family1",
+      userId: "user1",
+      initialFormState: seeded
+    )
+
+    XCTAssertEqual(seededViewModel.formState.schoolId, "seeded-school")
+    XCTAssertEqual(seededViewModel.formState.direction, .inbound)
+    XCTAssertEqual(seededViewModel.formState.subject, "Seeded subject")
+  }
+
+  // MARK: - Submit Override Tests
+
+  func testSubmitInteraction_UsesSubmitOverrideInsteadOfService() async {
+    var capturedFormState: InteractionFormState?
+    let overrideViewModel = AddInteractionViewModel(
+      interactionsService: mockService,
+      familyUnitId: "family1",
+      userId: "user1",
+      submitOverride: { formState in
+        capturedFormState = formState
+        return "override-interaction-1"
+      }
+    )
+    overrideViewModel.formState.schoolId = "school1"
+    overrideViewModel.formState.type = .email
+
+    let success = await overrideViewModel.submitInteraction()
+
+    XCTAssertTrue(success)
+    XCTAssertEqual(capturedFormState?.schoolId, "school1")
+    XCTAssertEqual(mockService.createInteractionCallCount, 0)
+  }
+
+  func testSubmitInteraction_SubmitOverrideFailurePropagatesServerMessage() async {
+    let overrideViewModel = AddInteractionViewModel(
+      interactionsService: mockService,
+      familyUnitId: "family1",
+      userId: "user1",
+      submitOverride: { _ in throw InboundDraftsAPIError.validation("Invalid schoolId") }
+    )
+    overrideViewModel.formState.schoolId = "school1"
+    overrideViewModel.formState.type = .email
+
+    let success = await overrideViewModel.submitInteraction()
+
+    XCTAssertFalse(success)
+    XCTAssertEqual(overrideViewModel.errorMessage, "Invalid schoolId")
+  }
+
   // MARK: - Load Form Data Tests
 
   func testLoadFormData_Success() async {

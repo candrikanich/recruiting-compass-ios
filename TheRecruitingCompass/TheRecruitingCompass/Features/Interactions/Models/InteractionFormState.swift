@@ -23,6 +23,28 @@ struct InteractionFormState {
     direction == .inbound && (sentiment == .positive || sentiment == .veryPositive)
   }
 
+  init() {}
+
+  /// Seeds a form for reviewing/editing an inbound-draft confirm, mirroring web's
+  /// prefill in #678 — parser output becomes the starting point, not the final answer.
+  init(fromDraft draft: InboundEmailDraft, fallbackSchoolId: String? = nil) {
+    schoolId = draft.matchedSchoolId ?? fallbackSchoolId ?? ""
+    coachId = draft.matchedCoachId
+    type = .email
+    direction = .inbound
+    occurredAt = Self.draftDateFormatter.date(from: draft.occurredAt)
+      ?? ISO8601DateFormatter().date(from: draft.occurredAt)
+      ?? .now
+    subject = draft.subject ?? ""
+    content = draft.bodyText ?? ""
+  }
+
+  private static let draftDateFormatter: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter
+  }()
+
   /// Reset form to default state
   mutating func reset() {
     schoolId = ""

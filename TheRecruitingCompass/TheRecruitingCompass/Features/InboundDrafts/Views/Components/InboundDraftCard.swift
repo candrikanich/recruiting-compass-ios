@@ -2,10 +2,7 @@ import SwiftUI
 
 struct InboundDraftCard: View {
   let draft: InboundEmailDraft
-  let schools: [School]
   let isPending: Bool
-  @Binding var pickedSchoolId: String?
-  let canConfirm: Bool
   let onConfirm: () -> Void
   let onDiscard: () -> Void
 
@@ -22,9 +19,6 @@ struct InboundDraftCard: View {
           .font(.subheadline)
           .foregroundStyle(.secondary)
           .lineLimit(6)
-      }
-      if draft.matchedSchoolId == nil {
-        SchoolPicker(selectedSchoolId: $pickedSchoolId, schools: schools, isDisabled: isPending)
       }
       actions
     }
@@ -72,7 +66,7 @@ struct InboundDraftCard: View {
         }
       }
       .buttonStyle(.borderedProminent)
-      .disabled(isPending || !canConfirm)
+      .disabled(isPending)
     }
     .padding(.top, 4)
   }

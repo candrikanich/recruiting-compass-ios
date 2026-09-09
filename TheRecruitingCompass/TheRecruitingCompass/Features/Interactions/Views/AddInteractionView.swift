@@ -16,13 +16,17 @@ struct AddInteractionView: View {
     familyUnitId: String,
     userId: String,
     preselectedSchoolId: String? = nil,
+    initialFormState: InteractionFormState? = nil,
+    submitOverride: ((InteractionFormState) async throws -> String?)? = nil,
     onLogged: @escaping (String?) -> Void = { _ in }
   ) {
     _viewModel = State(initialValue: AddInteractionViewModel(
       interactionsService: interactionsService,
       familyUnitId: familyUnitId,
       userId: userId,
-      preselectedSchoolId: preselectedSchoolId
+      preselectedSchoolId: preselectedSchoolId,
+      initialFormState: initialFormState,
+      submitOverride: submitOverride
     ))
     self.onLogged = onLogged
   }

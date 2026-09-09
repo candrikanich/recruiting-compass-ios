@@ -5,6 +5,7 @@ import SwiftUI
 /// with `relatedEntityType == "inbound_email_draft"`.
 struct InboundDraftsView: View {
   @State private var viewModel = InboundDraftsViewModel()
+  @State private var draftToConfirm: InboundEmailDraft?
 
   var body: some View {
     contentView
@@ -19,6 +20,26 @@ struct InboundDraftsView: View {
         duration: 4.0
       )
       .accessibilityIdentifier("inbound_drafts_list")
+      .sheet(item: $draftToConfirm) { draft in
+        confirmSheet(for: draft)
+      }
+  }
+
+  @ViewBuilder
+  private func confirmSheet(for draft: InboundEmailDraft) -> some View {
+    if let familyUnitId = viewModel.familyUnitId, let userId = viewModel.userId {
+      NavigationStack {
+        AddInteractionView(
+          interactionsService: InteractionsServiceImpl(supabaseManager: .shared),
+          familyUnitId: familyUnitId,
+          userId: userId,
+          initialFormState: InteractionFormState(fromDraft: draft),
+          submitOverride: { formState in
+            try await viewModel.confirm(draft, with: formState)
+          }
+        )
+      }
+    }
   }
 
   @ViewBuilder
@@ -50,14 +71,8 @@ struct InboundDraftsView: View {
         ForEach(viewModel.drafts) { draft in
           InboundDraftCard(
             draft: draft,
-            schools: viewModel.schools,
             isPending: viewModel.pendingActionDraftIds.contains(draft.id),
-            pickedSchoolId: Binding(
-              get: { viewModel.pickedSchoolId[draft.id] },
-              set: { viewModel.pickedSchoolId[draft.id] = $0 }
-            ),
-            canConfirm: viewModel.canConfirm(draft),
-            onConfirm: { Task { await viewModel.confirm(draft) } },
+            onConfirm: { draftToConfirm = draft },
             onDiscard: { Task { await viewModel.discard(draft) } }
           )
         }

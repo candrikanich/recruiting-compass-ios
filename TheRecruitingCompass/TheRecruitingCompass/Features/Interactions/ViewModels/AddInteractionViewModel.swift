@@ -45,6 +45,10 @@ final class AddInteractionViewModel {
   private let familyUnitId: String
   private let userId: String
   private let preselectedSchoolId: String?
+  /// When set, `submitInteraction` calls this instead of `interactionsService.createInteraction`
+  /// — e.g. confirming an inbound draft with the form's edited values. The returned
+  /// `String?` is treated the same as a created interaction's id.
+  private let submitOverride: ((InteractionFormState) async throws -> String?)?
 
   // MARK: - Computed Properties
 
@@ -71,12 +75,18 @@ final class AddInteractionViewModel {
     interactionsService: any InteractionsManaging,
     familyUnitId: String,
     userId: String,
-    preselectedSchoolId: String? = nil
+    preselectedSchoolId: String? = nil,
+    initialFormState: InteractionFormState? = nil,
+    submitOverride: ((InteractionFormState) async throws -> String?)? = nil
   ) {
     self.interactionsService = interactionsService
     self.familyUnitId = familyUnitId
     self.userId = userId
     self.preselectedSchoolId = preselectedSchoolId
+    self.submitOverride = submitOverride
+    if let initialFormState {
+      self.formState = initialFormState
+    }
   }
 
   // MARK: - Data Loading
@@ -273,28 +283,36 @@ final class AddInteractionViewModel {
         (SchoolStatus(rawValue: $0.status) ?? .unknown).rank < SchoolStatus.contacted.rank
       } ?? false
 
-      // Create request
-      let request = InteractionCreateRequest(
-        schoolId: formState.schoolId.isEmpty ? nil : formState.schoolId,
-        coachId: formState.coachId,
-        eventId: nil,
-        type: interactionType,
-        direction: formState.direction,
-        occurredAt: formState.occurredAt,
-        subject: formState.subject.isEmpty ? nil : formState.subject,
-        content: finalContent.isEmpty ? nil : finalContent,
-        sentiment: formState.sentiment,
-        loggedBy: userId,
-        familyUnitId: familyUnitId
-      )
+      var submittedFormState = formState
+      submittedFormState.content = finalContent
 
-      let interaction = try await interactionsService.createInteraction(request)
-      logger.info("Created interaction: \(interaction.id)")
+      if let submitOverride {
+        let interactionId = try await submitOverride(submittedFormState)
+        logger.info("Submitted interaction via override: \(interactionId ?? "nil")")
+      } else {
+        // Create request
+        let request = InteractionCreateRequest(
+          schoolId: formState.schoolId.isEmpty ? nil : formState.schoolId,
+          coachId: formState.coachId,
+          eventId: nil,
+          type: interactionType,
+          direction: formState.direction,
+          occurredAt: formState.occurredAt,
+          subject: formState.subject.isEmpty ? nil : formState.subject,
+          content: finalContent.isEmpty ? nil : finalContent,
+          sentiment: formState.sentiment,
+          loggedBy: userId,
+          familyUnitId: familyUnitId
+        )
 
-      // Invalidate InteractionsListViewModel's cached list (Phase 3.6) for both
-      // possible fetch scopes — this VM doesn't know which one is cached.
-      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
-      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: userId))
+        let interaction = try await interactionsService.createInteraction(request)
+        logger.info("Created interaction: \(interaction.id)")
+
+        // Invalidate InteractionsListViewModel's cached list (Phase 3.6) for both
+        // possible fetch scopes — this VM doesn't know which one is cached.
+        await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+        await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: userId))
+      }
 
       // Upload attachments if any (Phase 4 - defer for MVP)
       // if !formState.attachedFiles.isEmpty { ... }
@@ -307,6 +325,10 @@ final class AddInteractionViewModel {
       }
 
       return true
+    } catch InboundDraftsAPIError.validation(let message) {
+      logger.error("Submit rejected by server: \(message)")
+      errorMessage = message
+      return false
     } catch {
       logger.error("Failed to submit interaction: \(error.localizedDescription)")
       errorMessage = String(localized: "Failed to create interaction. Please try again.")

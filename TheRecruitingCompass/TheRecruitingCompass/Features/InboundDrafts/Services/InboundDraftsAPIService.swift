@@ -32,11 +32,29 @@ final class InboundDraftsAPIService: InboundDraftsAPIManaging, Sendable {
     return try decode(InboundDraftsListResponse.self, from: data).drafts
   }
 
-  func confirmDraft(id: String, schoolId: String?, accessToken: String?) async throws -> InboundDraftConfirmResponse {
+  func confirmDraft(
+    id: String,
+    schoolId: String?,
+    coachId: String??,
+    type: String?,
+    direction: String?,
+    occurredAt: String?,
+    subject: String?,
+    content: String?,
+    accessToken: String?
+  ) async throws -> InboundDraftConfirmResponse {
     let data = try await request(
       path: "api/inbound-drafts/\(id)/confirm",
       method: "POST",
-      body: InboundDraftConfirmRequest(schoolId: schoolId),
+      body: InboundDraftConfirmRequest(
+        schoolId: schoolId,
+        coachId: coachId,
+        type: type,
+        direction: direction,
+        occurredAt: occurredAt,
+        subject: subject,
+        content: content
+      ),
       accessToken: accessToken
     )
     return try decode(InboundDraftConfirmResponse.self, from: data)
