@@ -7,19 +7,26 @@ final class LoginViewModelTests: XCTestCase {
   var sut: LoginViewModel!
   var mockAuthManager: MockAuthManager!
   var mockBiometricService: MockBiometricService!
+  var mockTurnstileProvider: MockTurnstileTokenProvider!
 
   override func setUp() {
     super.setUp()
     clearUserDefaults()
     mockAuthManager = MockAuthManager()
     mockBiometricService = MockBiometricService()
-    sut = LoginViewModel(authManager: mockAuthManager, biometricService: mockBiometricService)
+    mockTurnstileProvider = MockTurnstileTokenProvider()
+    sut = LoginViewModel(
+      authManager: mockAuthManager,
+      biometricService: mockBiometricService,
+      turnstileTokenProvider: mockTurnstileProvider
+    )
   }
 
   override func tearDown() {
     sut = nil
     mockAuthManager = nil
     mockBiometricService = nil
+    mockTurnstileProvider = nil
     clearUserDefaults()
     super.tearDown()
   }
@@ -54,6 +61,32 @@ final class LoginViewModelTests: XCTestCase {
     XCTAssertEqual(mockAuthManager.loginCallCount, 1)
     XCTAssertNil(sut.errorMessage)
     XCTAssertTrue(mockAuthManager.isAuthenticated)
+  }
+
+  func testLoginFetchesAndForwardsCaptchaToken() async {
+    let mockTurnstile = MockTurnstileTokenProvider()
+    mockTurnstile.tokenToReturn = "captcha-abc-123"
+    sut = LoginViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstile)
+    sut.email = "user@example.com"
+    sut.password = "password123"
+
+    await sut.login()
+
+    XCTAssertEqual(mockTurnstile.getTokenCallCount, 1)
+    XCTAssertEqual(mockAuthManager.capturedLoginCaptchaToken, "captcha-abc-123")
+  }
+
+  func testLoginSurfacesCaptchaFailure() async {
+    let mockTurnstile = MockTurnstileTokenProvider()
+    mockTurnstile.shouldThrowError = true
+    sut = LoginViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstile)
+    sut.email = "user@example.com"
+    sut.password = "password123"
+
+    await sut.login()
+
+    XCTAssertEqual(mockAuthManager.loginCallCount, 0)
+    XCTAssertEqual(sut.errorMessage, "Couldn't verify you're human. Please try again.")
   }
 
   func testValidateEmailOnBlurWithValidEmail() {
@@ -351,12 +384,20 @@ final class LoginViewModelTests: XCTestCase {
   // MARK: - Timeout Banner Tests
 
   func testTimeoutBannerShowsWhenTimeoutReasonProvided() async {
-    let viewModelWithTimeout = LoginViewModel(authManager: mockAuthManager, timeoutReason: "timeout")
+    let viewModelWithTimeout = LoginViewModel(
+      authManager: mockAuthManager,
+      turnstileTokenProvider: mockTurnstileProvider,
+      timeoutReason: "timeout"
+    )
     XCTAssertTrue(viewModelWithTimeout.showTimeoutBanner)
   }
 
   func testTimeoutBannerHidesWhenOtherReasonProvided() async {
-    let viewModelWithOtherReason = LoginViewModel(authManager: mockAuthManager, timeoutReason: "other")
+    let viewModelWithOtherReason = LoginViewModel(
+      authManager: mockAuthManager,
+      turnstileTokenProvider: mockTurnstileProvider,
+      timeoutReason: "other"
+    )
     XCTAssertFalse(viewModelWithOtherReason.showTimeoutBanner)
   }
 
@@ -399,7 +440,7 @@ final class LoginViewModelTests: XCTestCase {
     clearUserDefaults()
     try? KeychainHelper.shared.save("cached@example.com", forKey: "cachedEmail")
 
-    let viewModelWithCache = LoginViewModel(authManager: mockAuthManager)
+    let viewModelWithCache = LoginViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstileProvider)
 
     XCTAssertEqual(viewModelWithCache.email, "cached@example.com")
     XCTAssertTrue(viewModelWithCache.rememberMe)
