@@ -55,6 +55,22 @@ enum DeadlinesMerge {
     return order.map { (month: $0, items: byMonth[$0] ?? []) }
   }
 
+  /// Filters a unified list by raw category key and/or a case-insensitive
+  /// label search. `category: nil` and `search: ""` (after trimming) are
+  /// both no-ops. Mirrors web's `filterDeadlines(deadlines, {category, search})`.
+  static func filter(
+    _ deadlines: [UnifiedDeadline],
+    category: String?,
+    search: String
+  ) -> [UnifiedDeadline] {
+    let trimmedSearch = search.trimmingCharacters(in: .whitespacesAndNewlines)
+    return deadlines.filter { deadline in
+      if let category, deadline.category != category { return false }
+      if !trimmedSearch.isEmpty, !deadline.label.localizedCaseInsensitiveContains(trimmedSearch) { return false }
+      return true
+    }
+  }
+
   /// Splits into upcoming (`date >= today`) and past (`date < today`), each
   /// keeping the input's relative order.
   static func splitUpcomingPast(

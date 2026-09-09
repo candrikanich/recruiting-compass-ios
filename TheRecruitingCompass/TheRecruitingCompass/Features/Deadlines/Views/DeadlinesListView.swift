@@ -46,6 +46,7 @@ struct DeadlinesListView: View {
         .accessibilityHint("Opens form to create a new deadline")
       }
     }
+    .searchable(text: $viewModel.searchText, prompt: Text("Search deadlines"))
     .task { await viewModel.loadDeadlines() }
     .task { await viewModel.loadSchools() }
     .onChange(of: viewModel.familyUnitId) { oldValue, newValue in
@@ -106,38 +107,80 @@ struct DeadlinesListView: View {
 
   @ViewBuilder
   private var content: some View {
-    List {
-      if !viewModel.groupedUpcoming.isEmpty {
-        Section("Upcoming") {
-          ForEach(viewModel.groupedUpcoming, id: \.month) { group in
-            monthGroup(group)
-          }
-        }
-      }
-
-      if !viewModel.groupedPast.isEmpty {
-        Section {
-          if isPastExpanded {
-            ForEach(viewModel.groupedPast, id: \.month) { group in
+    VStack(spacing: 0) {
+      categoryChips
+      List {
+        if !viewModel.groupedUpcoming.isEmpty {
+          Section("Upcoming") {
+            ForEach(viewModel.groupedUpcoming, id: \.month) { group in
               monthGroup(group)
             }
           }
-        } header: {
-          Button {
-            withAnimation { isPastExpanded.toggle() }
-          } label: {
-            HStack {
-              Text("Past")
-              Spacer()
-              Image(systemName: isPastExpanded ? "chevron.up" : "chevron.down")
+        }
+
+        if !viewModel.groupedPast.isEmpty {
+          Section {
+            if isPastExpanded {
+              ForEach(viewModel.groupedPast, id: \.month) { group in
+                monthGroup(group)
+              }
             }
+          } header: {
+            Button {
+              withAnimation { isPastExpanded.toggle() }
+            } label: {
+              HStack {
+                Text("Past")
+                Spacer()
+                Image(systemName: isPastExpanded ? "chevron.up" : "chevron.down")
+              }
+            }
+            .accessibilityLabel(String(localized: "Past deadlines"))
+            .accessibilityHint(isPastExpanded ? "Collapses past deadlines" : "Expands past deadlines")
           }
-          .accessibilityLabel(String(localized: "Past deadlines"))
-          .accessibilityHint(isPastExpanded ? "Collapses past deadlines" : "Expands past deadlines")
+        }
+
+        if viewModel.filteredDeadlines.isEmpty {
+          Text("No matching deadlines")
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity)
+            .listRowSeparator(.hidden)
         }
       }
+      .listStyle(.insetGrouped)
     }
-    .listStyle(.insetGrouped)
+  }
+
+  @ViewBuilder
+  private var categoryChips: some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: 8) {
+        categoryChip(title: String(localized: "All"), isSelected: viewModel.selectedCategory == nil) {
+          viewModel.selectedCategory = nil
+        }
+        ForEach(DeadlineCategory.allCases) { category in
+          categoryChip(title: category.displayName, isSelected: viewModel.selectedCategory == category) {
+            viewModel.selectedCategory = viewModel.selectedCategory == category ? nil : category
+          }
+        }
+      }
+      .padding(.horizontal)
+      .padding(.vertical, 8)
+    }
+  }
+
+  @ViewBuilder
+  private func categoryChip(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+      Text(title)
+        .font(.subheadline)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(isSelected ? Color.accentColor : Color(.secondarySystemBackground))
+        .foregroundStyle(isSelected ? Color.white : Color.primary)
+        .clipShape(Capsule())
+    }
+    .accessibilityAddTraits(isSelected ? [.isSelected] : [])
   }
 
   @ViewBuilder

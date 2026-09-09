@@ -27,6 +27,8 @@ final class DeadlinesListViewModel {
     set { if !newValue { errorMessage = nil } }
   }
   var showAddSheet = false
+  var searchText = ""
+  var selectedCategory: DeadlineCategory?
 
   // MARK: - Dependencies
 
@@ -63,16 +65,20 @@ final class DeadlinesListViewModel {
     DeadlinesMerge.unify(userDeadlines: deadlines, milestones: milestones)
   }
 
+  var filteredDeadlines: [UnifiedDeadline] {
+    DeadlinesMerge.filter(unifiedDeadlines, category: selectedCategory?.rawValue, search: searchText)
+  }
+
   private var todayISO: String {
     DeadlinesListViewModel.isoFormatter.string(from: .now)
   }
 
   var upcomingDeadlines: [UnifiedDeadline] {
-    DeadlinesMerge.splitUpcomingPast(unifiedDeadlines, today: todayISO).upcoming
+    DeadlinesMerge.splitUpcomingPast(filteredDeadlines, today: todayISO).upcoming
   }
 
   var pastDeadlines: [UnifiedDeadline] {
-    DeadlinesMerge.splitUpcomingPast(unifiedDeadlines, today: todayISO).past
+    DeadlinesMerge.splitUpcomingPast(filteredDeadlines, today: todayISO).past
   }
 
   var groupedUpcoming: [(month: String, items: [UnifiedDeadline])] {

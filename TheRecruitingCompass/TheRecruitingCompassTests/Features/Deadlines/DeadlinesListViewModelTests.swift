@@ -164,6 +164,44 @@ final class DeadlinesListViewModelTests: XCTestCase {
     XCTAssertNotNil(vm.errorMessage)
   }
 
+  func test_selectedCategory_narrowsGroupedResults() async {
+    let (vm, _, _) = makeVM(seed: [
+      deadline("a", "2026-12-01", label: "App due", category: .application),
+      deadline("b", "2026-12-02", label: "Visit", category: .visit)
+    ])
+    await vm.loadDeadlines()
+    vm.selectedCategory = .visit
+    XCTAssertEqual(vm.filteredDeadlines.count, 1)
+    XCTAssertEqual(vm.filteredDeadlines.first?.label, "Visit")
+  }
+
+  func test_searchText_narrowsGroupedResults() async {
+    // Generic NCAA milestones (SAT/FAFSA/etc.) always merge in regardless of
+    // sport (RecruitingCalendar.upcomingMilestones), so isolate to user-
+    // sourced rows via userDeadline rather than asserting on the raw list.
+    let (vm, _, _) = makeVM(seed: [
+      deadline("a", "2026-12-01", label: "Uniquelabel due"),
+      deadline("b", "2026-12-02", label: "Visit school")
+    ])
+    await vm.loadDeadlines()
+    vm.searchText = "uniquelabel"
+    XCTAssertEqual(vm.filteredDeadlines.compactMap(\.userDeadline?.label), ["Uniquelabel due"])
+  }
+
+  func test_clearingFilters_restoresAllResults() async {
+    let (vm, _, _) = makeVM(seed: [
+      deadline("a", "2026-12-01", label: "Uniquelabel due"),
+      deadline("b", "2026-12-02", label: "Visit school", category: .visit)
+    ])
+    await vm.loadDeadlines()
+    vm.selectedCategory = .visit
+    vm.searchText = "uniquelabel"
+    XCTAssertTrue(vm.filteredDeadlines.compactMap(\.userDeadline).isEmpty)
+    vm.selectedCategory = nil
+    vm.searchText = ""
+    XCTAssertEqual(vm.filteredDeadlines.compactMap(\.userDeadline).count, 2)
+  }
+
   func test_upcomingAndPastSplitAroundToday() async {
     let today = DateFormatter.isoDayFormatterForTests.string(from: .now)
     let yesterday = DateFormatter.isoDayFormatterForTests.string(from: Calendar.current.date(byAdding: .day, value: -1, to: .now)!)
