@@ -7,19 +7,26 @@ final class SignupViewModelTests: XCTestCase {
   var sut: SignupViewModel!
   var mockAuthManager: MockAuthManager!
   var mockFamilyService: MockFamilyService!
+  var mockTurnstileProvider: MockTurnstileTokenProvider!
 
   @MainActor
   override func setUp() {
     super.setUp()
     mockAuthManager = MockAuthManager()
     mockFamilyService = MockFamilyService()
-    sut = SignupViewModel(authManager: mockAuthManager, familyService: mockFamilyService)
+    mockTurnstileProvider = MockTurnstileTokenProvider()
+    sut = SignupViewModel(
+      authManager: mockAuthManager,
+      familyService: mockFamilyService,
+      turnstileTokenProvider: mockTurnstileProvider
+    )
   }
 
   override func tearDown() {
     sut = nil
     mockAuthManager = nil
     mockFamilyService = nil
+    mockTurnstileProvider = nil
     super.tearDown()
   }
 
@@ -556,5 +563,31 @@ final class SignupViewModelTests: XCTestCase {
 
     XCTAssertEqual(mockAuthManager.signupCallCount, 1)
     XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+  }
+
+  // MARK: - Captcha Tests
+
+  func testSignupFetchesAndForwardsCaptchaToken() async {
+    let mockTurnstile = MockTurnstileTokenProvider()
+    mockTurnstile.tokenToReturn = "captcha-signup-456"
+    sut = SignupViewModel(authManager: mockAuthManager, familyService: mockFamilyService, turnstileTokenProvider: mockTurnstile)
+    fillValidForm()
+
+    await sut.signup()
+
+    XCTAssertEqual(mockTurnstile.getTokenCallCount, 1)
+    XCTAssertEqual(mockAuthManager.capturedSignupCaptchaToken, "captcha-signup-456")
+  }
+
+  func testSignupSurfacesCaptchaFailure() async {
+    let mockTurnstile = MockTurnstileTokenProvider()
+    mockTurnstile.shouldThrowError = true
+    sut = SignupViewModel(authManager: mockAuthManager, familyService: mockFamilyService, turnstileTokenProvider: mockTurnstile)
+    fillValidForm()
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 0)
+    XCTAssertEqual(sut.errorMessage, "Couldn't verify you're human. Please try again.")
   }
 }

@@ -35,6 +35,7 @@ final class SignupViewModel {
 
   private let authManager: any AuthManaging
   private let familyService: any FamilyManaging
+  private let turnstileTokenProvider: any TurnstileTokenProviding
   private let formValidator = FormValidator.self
 
   private var trimmedFirstName: String {
@@ -114,9 +115,14 @@ final class SignupViewModel {
     selectedRole == .player && COPPAHelper.isUnderAge(dobString)
   }
 
-  init(authManager: (any AuthManaging)? = nil, familyService: (any FamilyManaging)? = nil) {
+  init(
+    authManager: (any AuthManaging)? = nil,
+    familyService: (any FamilyManaging)? = nil,
+    turnstileTokenProvider: (any TurnstileTokenProviding)? = nil
+  ) {
     self.authManager = authManager ?? AuthManager.shared
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
+    self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
   }
 
   // MARK: - Two-Step Flow
@@ -230,13 +236,15 @@ final class SignupViewModel {
     }
 
     do {
+      let captchaToken = try await turnstileTokenProvider.getToken()
       try await authManager.signup(
         email: email,
         password: password,
         fullName: fullName,
         role: role,
         familyCode: nil,
-        dateOfBirth: role == .player ? dobString : nil
+        dateOfBirth: role == .player ? dobString : nil,
+        captchaToken: captchaToken
       )
 
       // Create family for both roles (mirrors web: POST /api/family/create)
