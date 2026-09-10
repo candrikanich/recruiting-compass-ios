@@ -628,11 +628,13 @@ final class AddInteractionViewModelTests: XCTestCase {
     matchedCoachId: String? = nil,
     subject: String? = "Great game",
     bodyText: String? = "Loved watching you play",
-    occurredAt: String = "2026-09-01T12:00:00.000Z"
+    occurredAt: String = "2026-09-01T12:00:00.000Z",
+    senderName: String? = "Coach Smith",
+    senderEmail: String? = "coach@school.edu"
   ) -> InboundEmailDraft {
     InboundEmailDraft(
       id: id, familyUnitId: "family1", rawEmailId: nil, matchedCoachId: matchedCoachId,
-      matchedSchoolId: matchedSchoolId, senderName: "Coach Smith", senderEmail: "coach@school.edu",
+      matchedSchoolId: matchedSchoolId, senderName: senderName, senderEmail: senderEmail,
       subject: subject, bodyText: bodyText, occurredAt: occurredAt,
       status: "pending", confirmedInteractionId: nil, createdAt: occurredAt
     )
@@ -692,6 +694,94 @@ final class AddInteractionViewModelTests: XCTestCase {
     await viewModel.loadFormData()
 
     XCTAssertTrue(viewModel.formState.schoolId.isEmpty)
+  }
+
+  // MARK: - Unmatched coach/school resolution from draft review (#125, parity w/ web #675)
+
+  func testLoadFormData_PrefillsNewCoachFormFromDraftSender() async {
+    mockService.mockSchools = [createSchool(id: "school1", name: "School 1")]
+    let draft = makeDraft(senderName: "Mark Royer", senderEmail: "mroyer@osu.edu")
+    let draftsAPI = MockInboundDraftsAPIService()
+    let viewModel = makeDraftConfirmViewModel(draft: draft, draftsAPIService: draftsAPI)
+
+    await viewModel.loadFormData()
+
+    XCTAssertEqual(viewModel.newCoachForm.firstName, "Mark")
+    XCTAssertEqual(viewModel.newCoachForm.lastName, "Royer")
+    XCTAssertEqual(viewModel.newCoachForm.email, "mroyer@osu.edu")
+  }
+
+  func testLoadFormData_NewCoachFormBlank_WhenNotReviewingDraft() async {
+    mockService.mockSchools = [createSchool(id: "school1", name: "School 1")]
+
+    await viewModel.loadFormData()
+
+    XCTAssertTrue(viewModel.newCoachForm.firstName.isEmpty)
+    XCTAssertTrue(viewModel.newCoachForm.email.isEmpty)
+  }
+
+  func testCreateNewCoach_PassesTrimmedEmail() async {
+    viewModel.formState.schoolId = "school1"
+    viewModel.newCoachForm.firstName = "John"
+    viewModel.newCoachForm.lastName = "Smith"
+    viewModel.newCoachForm.email = "  john@school.edu  "
+    mockService.mockCreatedCoach = createCoach(id: "new-coach", schoolId: "school1")
+
+    let success = await viewModel.createNewCoach()
+
+    XCTAssertTrue(success)
+    XCTAssertEqual(mockService.lastCreatedCoachRequest?.email, "john@school.edu")
+  }
+
+  func testCreateNewCoach_SendsNilEmail_WhenBlank() async {
+    viewModel.formState.schoolId = "school1"
+    viewModel.newCoachForm.firstName = "John"
+    viewModel.newCoachForm.lastName = "Smith"
+    mockService.mockCreatedCoach = createCoach(id: "new-coach", schoolId: "school1")
+
+    let success = await viewModel.createNewCoach()
+
+    XCTAssertTrue(success)
+    XCTAssertNil(mockService.lastCreatedCoachRequest?.email)
+  }
+
+  func testSchoolWebsitePrefill_DerivesDomainFromSenderEmail() async {
+    mockService.mockSchools = [createSchool(id: "school1", name: "School 1")]
+    let draft = makeDraft(senderEmail: "mroyer@osu.edu")
+    let draftsAPI = MockInboundDraftsAPIService()
+    let viewModel = makeDraftConfirmViewModel(draft: draft, draftsAPIService: draftsAPI)
+
+    await viewModel.loadFormData()
+
+    XCTAssertEqual(viewModel.schoolWebsitePrefill, "https://osu.edu")
+  }
+
+  func testSchoolWebsitePrefill_NilWhenNoAtSign() async {
+    mockService.mockSchools = [createSchool(id: "school1", name: "School 1")]
+    let draft = makeDraft(senderEmail: "not-an-email")
+    let draftsAPI = MockInboundDraftsAPIService()
+    let viewModel = makeDraftConfirmViewModel(draft: draft, draftsAPIService: draftsAPI)
+
+    await viewModel.loadFormData()
+
+    XCTAssertNil(viewModel.schoolWebsitePrefill)
+  }
+
+  func testSchoolWebsitePrefill_NilWhenNotReviewingDraft() async {
+    mockService.mockSchools = [createSchool(id: "school1", name: "School 1")]
+
+    await viewModel.loadFormData()
+
+    XCTAssertNil(viewModel.schoolWebsitePrefill)
+  }
+
+  func testSelectNewlyCreatedSchool_SetsSchoolIdAndAppendsToList() {
+    let newSchool = createSchool(id: "new-school", name: "New School")
+
+    viewModel.selectNewlyCreatedSchool(newSchool)
+
+    XCTAssertEqual(viewModel.formState.schoolId, "new-school")
+    XCTAssertTrue(viewModel.schools.contains { $0.id == "new-school" })
   }
 
   func testSubmitInteraction_ConfirmsDraftInsteadOfCreatingDirectly() async {

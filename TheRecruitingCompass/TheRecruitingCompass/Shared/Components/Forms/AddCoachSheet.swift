@@ -4,6 +4,7 @@ import SwiftUI
 struct AddCoachSheet: View {
   @Binding var firstName: String
   @Binding var lastName: String
+  @Binding var email: String
   @Binding var role: CoachRole
   let isValid: Bool
   let onSave: () -> Void
@@ -20,6 +21,13 @@ struct AddCoachSheet: View {
           TextField("Last Name", text: $lastName)
             .textContentType(.familyName)
             .accessibilityLabel(String(localized: "Last name field"))
+
+          TextField("Email (Optional)", text: $email)
+            .keyboardType(.emailAddress)
+            .textContentType(.emailAddress)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .accessibilityLabel(String(localized: "Email field, optional"))
 
           Picker("Role", selection: $role) {
             ForEach(CoachRole.allCases, id: \.self) { coachRole in
@@ -55,12 +63,14 @@ struct AddCoachSheet: View {
   struct PreviewWrapper: View {
     @State private var firstName = ""
     @State private var lastName = ""
+    @State private var email = ""
     @State private var role = CoachRole.head
 
     var body: some View {
       AddCoachSheet(
         firstName: $firstName,
         lastName: $lastName,
+        email: $email,
         role: $role,
         isValid: !firstName.isEmpty && !lastName.isEmpty,
         onSave: {}
