@@ -7,6 +7,10 @@ struct AddInteractionView: View {
   @State private var hapticSuccessTrigger = 0
   @State private var hapticErrorTrigger = 0
 
+  private let schoolsService: any SchoolsManaging
+  private let familyUnitId: String
+  private let userId: String
+
   /// Called on a successful log with the auto-advance toast message (or nil).
   /// The presenting screen surfaces it, since this view dismisses immediately.
   private let onLogged: (String?) -> Void
@@ -17,6 +21,7 @@ struct AddInteractionView: View {
     userId: String,
     preselectedSchoolId: String? = nil,
     draftToConfirm: InboundEmailDraft? = nil,
+    schoolsService: (any SchoolsManaging)? = nil,
     onLogged: @escaping (String?) -> Void = { _ in }
   ) {
     _viewModel = State(initialValue: AddInteractionViewModel(
@@ -26,6 +31,9 @@ struct AddInteractionView: View {
       preselectedSchoolId: preselectedSchoolId,
       draftToConfirm: draftToConfirm
     ))
+    self.schoolsService = schoolsService ?? SchoolsFactory.makeRepository()
+    self.familyUnitId = familyUnitId
+    self.userId = userId
     self.onLogged = onLogged
   }
 
@@ -64,6 +72,7 @@ struct AddInteractionView: View {
       AddCoachSheet(
           firstName: $viewModel.newCoachForm.firstName,
           lastName: $viewModel.newCoachForm.lastName,
+          email: $viewModel.newCoachForm.email,
           role: $viewModel.newCoachForm.role,
           isValid: viewModel.newCoachForm.isValid,
           onSave: {
@@ -82,6 +91,18 @@ struct AddInteractionView: View {
         coachName: $viewModel.otherCoachName,
         onContinue: {
           viewModel.handleOtherCoach()
+        }
+      )
+    }
+    .sheet(isPresented: $viewModel.showAddSchoolSheet) {
+      InteractionAddSchoolSheet(
+        schoolsService: schoolsService,
+        familyUnitId: familyUnitId,
+        userId: userId,
+        prefillWebsite: viewModel.schoolWebsitePrefill,
+        onSchoolCreated: { newSchool in
+          viewModel.selectNewlyCreatedSchool(newSchool)
+          viewModel.showAddSchoolSheet = false
         }
       )
     }
@@ -127,6 +148,11 @@ struct AddInteractionView: View {
       .onChange(of: viewModel.formState.schoolId) { _, _ in
         viewModel.onSchoolChange()
       }
+
+      Button("School not listed? Add it") {
+        viewModel.showAddSchoolSheet = true
+      }
+      .accessibilityLabel(String(localized: "Add a school not in the list"))
     } header: {
       HStack {
         Text("School")

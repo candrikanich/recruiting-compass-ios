@@ -31,6 +31,7 @@ final class AddInteractionViewModel {
   }
   var showAddCoachSheet = false
   var showOtherCoachSheet = false
+  var showAddSchoolSheet = false
   var newCoachForm = NewCoachFormState()
   var otherCoachName: String = ""
 
@@ -66,6 +67,17 @@ final class AddInteractionViewModel {
 
   var pageTitle: String {
     draftToConfirm != nil ? String(localized: "Review Coach Email") : String(localized: "Log Interaction")
+  }
+
+  /// Website to prefill the add-school sheet with, derived from the draft
+  /// sender's email domain (#125, parity w/ web #675). Only set while
+  /// reviewing a draft with a `senderEmail` containing `@` and a non-empty
+  /// trailing segment — guards a malformed multi-`@` address the same way
+  /// web's `segments[segments.length - 1]` does.
+  var schoolWebsitePrefill: String? {
+    guard let senderEmail = draftToConfirm?.senderEmail, senderEmail.contains("@") else { return nil }
+    guard let domain = senderEmail.split(separator: "@").last, !domain.isEmpty else { return nil }
+    return "https://\(domain)"
   }
 
   var submitButtonTitle: String {
@@ -141,6 +153,13 @@ final class AddInteractionViewModel {
     if let matchedSchoolId = draft.matchedSchoolId, schools.contains(where: { $0.id == matchedSchoolId }) {
       formState.schoolId = matchedSchoolId
     }
+
+    // Unmatched-coach assist (#125, parity w/ web #675): prefill the add-coach
+    // sheet from the sender's name/email so it doesn't open blank.
+    let (firstName, lastName) = NewCoachFormState.splitSenderName(draft.senderName)
+    newCoachForm.firstName = firstName
+    newCoachForm.lastName = lastName
+    newCoachForm.email = draft.senderEmail?.trimmingCharacters(in: .whitespaces) ?? ""
   }
 
   // MARK: - Form Validation
@@ -191,7 +210,7 @@ final class AddInteractionViewModel {
         role: newCoachForm.role.rawValue,
         firstName: newCoachForm.trimmedFirstName,
         lastName: newCoachForm.trimmedLastName,
-        email: nil,
+        email: newCoachForm.trimmedEmail.isEmpty ? nil : newCoachForm.trimmedEmail,
         phone: nil,
         twitterHandle: nil,
         instagramHandle: nil,
@@ -233,6 +252,18 @@ final class AddInteractionViewModel {
   }
 
   // MARK: - School Selection
+
+  /// Completion handler for the "School not listed? Add it" sheet (#125,
+  /// parity w/ web #675) — selects the newly created school without
+  /// disturbing any other in-progress edit (subject/body/type/direction),
+  /// since this view model stays alive underneath the child sheet.
+  func selectNewlyCreatedSchool(_ school: School) {
+    if !schools.contains(where: { $0.id == school.id }) {
+      schools.append(school)
+    }
+    formState.schoolId = school.id
+    logger.debug("Selected newly created school: \(school.id)")
+  }
 
   func onSchoolChange() {
     // Clear coach selection when school changes
