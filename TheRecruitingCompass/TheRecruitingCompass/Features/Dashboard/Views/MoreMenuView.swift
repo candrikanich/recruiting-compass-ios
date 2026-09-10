@@ -41,8 +41,8 @@ struct MoreMenuView: View {
   @ViewBuilder
   private var moreMenuList: some View {
     List {
-      menuSectionView("Recruiting", items: [.timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity, .inboundDrafts])
-      menuSectionView("Account", items: [.publicProfile, .notifications, .settings])
+      menuSectionView("More Recruiting Resources", items: [.timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity, .inboundDrafts])
+      menuSectionView("Player Settings", items: [.settings, .notifications, .publicProfile])
       menuSectionView("Support", items: [.helpCenter])
     }
   }

@@ -31,7 +31,7 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     case .helpCenter: return String(localized: "Help Center")
     case .publicProfile: return String(localized: "Public Profile")
     case .notifications: return String(localized: "Notifications")
-    case .settings: return String(localized: "Settings")
+    case .settings: return String(localized: "Player Details")
     }
   }
 
@@ -92,9 +92,9 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
   /// Sections grouped for list display (header title → items).
   static var recruitingSections: [(header: String, items: [MoreMenuSection])] {
     [
-      ("Recruiting", [.timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity, .inboundDrafts]),
+      ("More Recruiting Resources", [.timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity, .inboundDrafts]),
       ("Support", [.helpCenter]),
-      ("Account", [.publicProfile, .notifications, .settings])
+      ("Player Settings", [.settings, .notifications, .publicProfile])
     ]
   }
 }
