@@ -157,6 +157,10 @@ final class InviteJoinViewModel {
         role: role,
         familyCode: nil,
         dateOfBirth: role == .player ? dobString : nil,
+        graduationYear: nil,
+        primarySport: nil,
+        gender: nil,
+        zipCode: nil,
         captchaToken: captchaToken
       )
       try await familyService.acceptInvite(token: token)

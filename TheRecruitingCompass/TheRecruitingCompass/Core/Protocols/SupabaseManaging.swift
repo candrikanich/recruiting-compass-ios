@@ -1,4 +1,5 @@
 import Foundation
+import Helpers
 
 /// Protocol for Supabase auth operations. Enables dependency injection and testing (e.g. MockSupabaseManager).
 protocol SupabaseManaging: Sendable {
@@ -14,6 +15,10 @@ protocol SupabaseManaging: Sendable {
     role: UserRole,
     familyCode: String?,
     dateOfBirth: String?,
+    graduationYear: Int?,
+    primarySport: String?,
+    gender: String?,
+    zipCode: String?,
     captchaToken: String
   ) async throws -> (user: User, session: Session?)
   /// Invalidates the current session on the Supabase backend.
@@ -28,4 +33,6 @@ protocol SupabaseManaging: Sendable {
   func resetPasswordForEmail(email: String, captchaToken: String) async throws
   /// Updates the password for the currently authenticated Supabase user.
   func updatePassword(newPassword: String) async throws
+  /// Returns the current Supabase auth user's `user_metadata`, or `nil` if there's no active session.
+  func currentUserMetadata() async -> [String: AnyJSON]?
 }

@@ -23,14 +23,23 @@ final class AuthManager: AuthManaging {
   private let supabaseManager: any SupabaseManaging
   private let biometricEnabledKey = "biometricEnabled"
   private let biometricService: any BiometricServiceProtocol
+  private let accountProvisioning: any AccountProvisioning
 
   var biometricEnabled: Bool {
     (try? keychain.load(Bool.self, forKey: biometricEnabledKey)) ?? false
   }
 
-  init(supabaseManager: (any SupabaseManaging)? = nil, biometricService: (any BiometricServiceProtocol)? = nil) {
+  init(
+    supabaseManager: (any SupabaseManaging)? = nil,
+    biometricService: (any BiometricServiceProtocol)? = nil,
+    accountProvisioning: (any AccountProvisioning)? = nil
+  ) {
     self.supabaseManager = supabaseManager ?? SupabaseManager.shared
     self.biometricService = biometricService ?? BiometricService()
+    self.accountProvisioning = accountProvisioning ?? AccountProvisioningService(
+      supabaseManager: self.supabaseManager,
+      preferenceService: PreferenceServiceImpl(supabaseManager: .shared)
+    )
     #if DEBUG
     if ProcessInfo.processInfo.arguments.contains("--uitesting") {
       // Clear persisted session so UI tests always start from the landing screen.
@@ -60,6 +69,7 @@ final class AuthManager: AuthManaging {
       try keychain.save(session, forKey: sessionKey)
       Analytics.identify(userId: user.id, email: email)
       logger.info("Login successful for user: \(user.id, privacy: .private)")
+      await accountProvisioning.flushPendingOnboardingStep1()
     } catch {
       self.isAuthenticated = false
       self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
@@ -75,6 +85,10 @@ final class AuthManager: AuthManaging {
     role: UserRole,
     familyCode: String?,
     dateOfBirth: String? = nil,
+    graduationYear: Int? = nil,
+    primarySport: String? = nil,
+    gender: String? = nil,
+    zipCode: String? = nil,
     captchaToken: String
   ) async throws {
     logger.debug("Attempting signup for: \(email.prefix(3))*** role: \(role.rawValue)")
@@ -90,6 +104,10 @@ final class AuthManager: AuthManaging {
         role: role,
         familyCode: familyCode,
         dateOfBirth: dateOfBirth,
+        graduationYear: graduationYear,
+        primarySport: primarySport,
+        gender: gender,
+        zipCode: zipCode,
         captchaToken: captchaToken
       )
       self.user = user

@@ -6,9 +6,17 @@ struct EmailVerificationView: View {
   @Environment(\.scenePhase) var scenePhase
   @Environment(\.horizontalSizeClass) private var sizeClass
 
-  init(authManager: (any AuthManaging)? = nil) {
+  init(
+    authManager: (any AuthManaging)? = nil,
+    draftedPrimarySport: String? = nil,
+    draftedGraduationYear: Int? = nil
+  ) {
     let manager = authManager ?? AuthManager.shared
-    _viewModel = State(initialValue: EmailVerificationViewModel(authManager: manager))
+    _viewModel = State(initialValue: EmailVerificationViewModel(
+      authManager: manager,
+      draftedPrimarySport: draftedPrimarySport,
+      draftedGraduationYear: draftedGraduationYear
+    ))
   }
 
   var body: some View {
@@ -111,10 +119,16 @@ struct EmailVerificationView: View {
       Text(viewModel.subtitleText)
         .font(.footnote)
         .foregroundStyle(Color.secondaryText)
+
+      if let summary = viewModel.draftedOnboardingSummary {
+        Text(summary)
+          .font(.footnote)
+          .foregroundStyle(Color.secondaryText)
+      }
     }
     .accessibilityElement(children: .combine)
     .accessibilityLabel(viewModel.headlineText)
-    .accessibilityValue(viewModel.subtitleText)
+    .accessibilityValue([viewModel.subtitleText, viewModel.draftedOnboardingSummary].compactMap { $0 }.joined(separator: " "))
     .accessibilityAddTraits(.isHeader)
   }
 

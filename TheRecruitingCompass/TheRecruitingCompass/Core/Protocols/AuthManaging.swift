@@ -24,7 +24,21 @@ protocol AuthManaging: AnyObject {
   func login(email: String, password: String, captchaToken: String) async throws
   /// Creates a new account and signs in. Passes `familyCode` to join an existing family unit.
   /// - Parameter dateOfBirth: ISO 8601 date string used for COPPA age-gate enforcement.
-  func signup(email: String, password: String, fullName: String, role: UserRole, familyCode: String?, dateOfBirth: String?, captchaToken: String) async throws
+  /// - Parameters graduationYear/primarySport/gender/zipCode: player-only onboarding-step-1 draft,
+  ///   carried as `pending_*` auth metadata and flushed by `AccountProvisioning` on first session.
+  func signup(
+    email: String,
+    password: String,
+    fullName: String,
+    role: UserRole,
+    familyCode: String?,
+    dateOfBirth: String?,
+    graduationYear: Int?,
+    primarySport: String?,
+    gender: String?,
+    zipCode: String?,
+    captchaToken: String
+  ) async throws
   /// Signs out, revokes the Supabase session, and clears Keychain tokens.
   func logout() async throws
   /// Refreshes the access token using the stored refresh token and returns the updated user.

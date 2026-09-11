@@ -1,7 +1,13 @@
 import Foundation
+import Helpers
 @testable import TheRecruitingCompass
 
 final class MockSupabaseManager: SupabaseManaging {
+  var currentUserMetadataResult: [String: AnyJSON]?
+
+  func currentUserMetadata() async -> [String: AnyJSON]? {
+    currentUserMetadataResult
+  }
   var setSessionError: Error?
   var signInResult: Result<(user: User, session: Session), Error> = .failure(AuthError.networkError("Mock: not configured"))
   var signUpResult: Result<(user: User, session: Session?), Error> = .failure(AuthError.networkError("Mock: not configured"))
@@ -27,6 +33,10 @@ final class MockSupabaseManager: SupabaseManaging {
   }
 
   private(set) var capturedSignUpDateOfBirth: String?
+  private(set) var capturedSignUpGraduationYear: Int?
+  private(set) var capturedSignUpPrimarySport: String?
+  private(set) var capturedSignUpGender: String?
+  private(set) var capturedSignUpZipCode: String?
 
   func signUp(
     email: String,
@@ -35,9 +45,17 @@ final class MockSupabaseManager: SupabaseManaging {
     role: UserRole,
     familyCode: String?,
     dateOfBirth: String?,
+    graduationYear: Int?,
+    primarySport: String?,
+    gender: String?,
+    zipCode: String?,
     captchaToken: String
   ) async throws -> (user: User, session: Session?) {
     capturedSignUpDateOfBirth = dateOfBirth
+    capturedSignUpGraduationYear = graduationYear
+    capturedSignUpPrimarySport = primarySport
+    capturedSignUpGender = gender
+    capturedSignUpZipCode = zipCode
     capturedSignUpCaptchaToken = captchaToken
     return try signUpResult.get()
   }

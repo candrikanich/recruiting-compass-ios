@@ -34,12 +34,23 @@ final class EmailVerificationViewModel {
 
   private let authManager: any AuthManaging
   private let turnstileTokenProvider: any TurnstileTokenProviding
+  private let accountProvisioning: any AccountProvisioning
 
   // MARK: - Computed Properties
 
   var userEmail: String? { authManager.user?.email }
   var isVerified: Bool { authManager.user?.emailConfirmedAt != nil }
   var isPolling: Bool { pollingTask != nil }
+
+  /// Player-only drafted sport + grad year threaded from `SignupViewModel`, personalizing the
+  /// waiting copy. `nil` unless the signup form captured both.
+  var draftedPrimarySport: String?
+  var draftedGraduationYear: Int?
+
+  var draftedOnboardingSummary: String? {
+    guard let sport = draftedPrimarySport, let gradYear = draftedGraduationYear else { return nil }
+    return String(localized: "We'll get you set up for \(sport), Class of \(gradYear) as soon as you confirm.")
+  }
 
   var headlineText: String {
     switch verificationState {
@@ -109,6 +120,9 @@ final class EmailVerificationViewModel {
   init(
     authManager: (any AuthManaging)? = nil,
     turnstileTokenProvider: (any TurnstileTokenProviding)? = nil,
+    accountProvisioning: (any AccountProvisioning)? = nil,
+    draftedPrimarySport: String? = nil,
+    draftedGraduationYear: Int? = nil,
     initialPollingInterval: TimeInterval = 2.0,
     maxPollingInterval: TimeInterval = 10.0,
     maxConsecutiveErrors: Int = 3,
@@ -117,6 +131,12 @@ final class EmailVerificationViewModel {
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
+    self.accountProvisioning = accountProvisioning ?? AccountProvisioningService(
+      supabaseManager: SupabaseManager.shared,
+      preferenceService: PreferenceServiceImpl(supabaseManager: .shared)
+    )
+    self.draftedPrimarySport = draftedPrimarySport
+    self.draftedGraduationYear = draftedGraduationYear
     self.initialInterval = initialPollingInterval
     self.currentInterval = initialPollingInterval
     self.maxInterval = maxPollingInterval
@@ -192,7 +212,11 @@ final class EmailVerificationViewModel {
       let updatedUser = try await authManager.refreshSession()
 
       if updatedUser.emailConfirmedAt != nil {
+        let wasAlreadyVerified = verificationState == .verified
         verificationState = .verified
+        if !wasAlreadyVerified {
+          await accountProvisioning.flushPendingOnboardingStep1()
+        }
       } else {
         verificationState = .pending
       }
