@@ -42,4 +42,20 @@ enum CoachFollowup {
     default: return String(localized: "\(days) days ago")
     }
   }
+
+  /// Which empty state the widget shows: an onboarding CTA for a fresh account (branched
+  /// on whether any school is tracked yet), the "all caught up" message once coaches
+  /// exist but none need follow-up, or `nil` when the follow-up list itself renders.
+  /// Web parity: `CoachFollowupWidget.vue`'s `needsFollowup`/`allCoachesData`/`allSchools` branch.
+  enum EmptyState: Equatable {
+    case followASchool
+    case addACoach
+    case allCaughtUp
+  }
+
+  static func emptyState(needsFollowupCount: Int, allCoachesCount: Int, allSchoolsCount: Int) -> EmptyState? {
+    guard needsFollowupCount == 0 else { return nil }
+    guard allCoachesCount == 0 else { return .allCaughtUp }
+    return allSchoolsCount == 0 ? .followASchool : .addACoach
+  }
 }

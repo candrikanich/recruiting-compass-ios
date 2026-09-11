@@ -30,6 +30,9 @@ final class DashboardViewModel {
   var suggestionsError: String?
   var events: [FullEvent] = []
   var coachesNeedingFollowup: [Coach] = []
+  /// All coaches tracked across the family's schools (unfiltered) — needed to
+  /// distinguish "no coaches yet" from "caught up" in the follow-up widget's empty state.
+  var allCoaches: [Coach] = []
   var allSchools: [School] = []
   var metrics: [PerformanceMetric] = []
   var interactionTrends: [InteractionTrend] = []
@@ -294,6 +297,7 @@ final class DashboardViewModel {
   private func fetchCoachesFollowupIfNeeded(_ needed: Bool) async {
     guard needed else {
       coachesNeedingFollowup = []
+      allCoaches = []
       allSchools = []
       return
     }
@@ -435,6 +439,7 @@ final class DashboardViewModel {
   func fetchCoachesFollowup() async {
     guard let familyUnitId = familyManager.familyUnitId else {
       coachesNeedingFollowup = []
+      allCoaches = []
       allSchools = []
       return
     }
@@ -444,9 +449,11 @@ final class DashboardViewModel {
       let schoolIds = schools.map(\.id)
       guard !schoolIds.isEmpty else {
         coachesNeedingFollowup = []
+        allCoaches = []
         return
       }
       let coaches = try await dashboardService.fetchCoaches(schoolIds: schoolIds)
+      allCoaches = coaches
       coachesNeedingFollowup = CoachFollowup.stale(coaches, asOf: Date.now)
     } catch {
       logger.warning("Failed to load coaches follow-up: \(error.localizedDescription)")

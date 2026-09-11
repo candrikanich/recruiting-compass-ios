@@ -341,6 +341,7 @@ final class DashboardViewModelTests: XCTestCase {
     XCTAssertTrue(sut.metrics.isEmpty)
     XCTAssertTrue(sut.interactionTrends.isEmpty)
     XCTAssertTrue(sut.coachesNeedingFollowup.isEmpty)
+    XCTAssertTrue(sut.allCoaches.isEmpty)
     XCTAssertTrue(sut.allSchools.isEmpty)
   }
 
@@ -358,6 +359,38 @@ final class DashboardViewModelTests: XCTestCase {
     XCTAssertEqual(mockDashboardService.fetchEventsCallCount, 1)
     XCTAssertEqual(mockDashboardService.fetchSuggestionsCallCount, 1)
     XCTAssertTrue(sut.coachesNeedingFollowup.isEmpty)
+    XCTAssertTrue(sut.allCoaches.isEmpty)
+  }
+
+  func testFetchDashboardData_CoachesFollowup_PopulatesAllCoachesAlongsideFilteredList() async {
+    authenticateUser()
+    setupFamilyContext()
+    mockDashboardService.stubbedSchools = [
+      School(
+        id: "s1", userId: "test-user-id", name: "State U", location: nil, city: nil, state: nil,
+        division: nil, conference: nil, ranking: nil, isFavorite: false, website: nil,
+        faviconUrl: nil, twitterHandle: nil, instagramHandle: nil, ncaaId: nil,
+        status: "interested", statusChangedAt: nil, notes: nil, pros: [], cons: [],
+        offerDetails: nil, academicInfo: nil, amenities: nil, coachingPhilosophy: nil,
+        coachingStyle: nil, recruitingApproach: nil, communicationStyle: nil,
+        successMetrics: nil, familyUnitId: "family-unit-1", createdBy: nil, updatedBy: nil,
+        createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z"
+      )
+    ]
+    mockDashboardService.stubbedCoaches = [
+      Coach(id: "c1", firstName: "Pat", lastName: "Rivera", schoolId: "s1", lastContactDate: nil,
+            createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z"),
+      Coach(id: "c2", firstName: "Sam", lastName: "Lee", schoolId: "s1",
+            lastContactDate: ISO8601DateFormatter().string(from: Date.now),
+            createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z")
+    ]
+
+    await sut.fetchDashboardData()
+
+    // allCoaches carries the full fetched list; coachesNeedingFollowup stays the
+    // stale-filtered subset — the widget needs both to tell "no coaches" from "caught up."
+    XCTAssertEqual(sut.allCoaches.count, 2)
+    XCTAssertEqual(sut.coachesNeedingFollowup.map(\.id), ["c1"])
   }
 
   private static func hiddenWidgetsVisibility() -> DashboardWidgetVisibility {

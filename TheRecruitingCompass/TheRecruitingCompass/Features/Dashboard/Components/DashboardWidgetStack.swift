@@ -11,6 +11,7 @@ struct DashboardWidgetStack: View {
   let familyUnitId: String
   let userId: String
   let coachesNeedingFollowup: [Coach]
+  let allCoaches: [Coach]
   let allSchools: [School]
   let events: [FullEvent]
   let interactionTrends: [InteractionTrend]
@@ -69,8 +70,9 @@ struct DashboardWidgetStack: View {
       }
 
     case .coachFollowup:
-      if visibility.coachFollowupWidget && !coachesNeedingFollowup.isEmpty {
-        CoachFollowupWidget(coaches: coachesNeedingFollowup, schools: allSchools,
+      if visibility.coachFollowupWidget {
+        CoachFollowupWidget(coaches: coachesNeedingFollowup, allCoaches: allCoaches, schools: allSchools,
+                            familyUnitId: familyUnitId, userId: userId,
                             onCoachContacted: onCoachContacted)
       }
 
