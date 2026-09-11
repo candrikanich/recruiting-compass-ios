@@ -297,6 +297,7 @@ struct DashboardView: View {
       familyUnitId: viewModel.currentFamilyUnitId,
       userId: viewModel.actingUserId,
       coachesNeedingFollowup: viewModel.coachesNeedingFollowup,
+      allCoaches: viewModel.allCoaches,
       allSchools: viewModel.allSchools,
       events: viewModel.events,
       interactionTrends: viewModel.interactionTrends,

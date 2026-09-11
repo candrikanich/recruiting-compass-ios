@@ -63,4 +63,31 @@ final class CoachFollowupTests: XCTestCase {
     XCTAssertEqual(CoachFollowup.daysSinceLabel(coach(id: "1", lastContact: iso(daysAgo: 1)), asOf: now),
                    String(localized: "1 day ago"))
   }
+
+  // MARK: - Empty state (issue #133, web parity: CoachFollowupWidget.vue onboarding CTA)
+
+  func testEmptyStateFollowASchoolWhenNoSchoolsAndNoCoaches() {
+    XCTAssertEqual(
+      CoachFollowup.emptyState(needsFollowupCount: 0, allCoachesCount: 0, allSchoolsCount: 0),
+      .followASchool
+    )
+  }
+
+  func testEmptyStateAddACoachWhenSchoolsButNoCoaches() {
+    XCTAssertEqual(
+      CoachFollowup.emptyState(needsFollowupCount: 0, allCoachesCount: 0, allSchoolsCount: 1),
+      .addACoach
+    )
+  }
+
+  func testEmptyStateAllCaughtUpWhenCoachesExistButNoneStale() {
+    XCTAssertEqual(
+      CoachFollowup.emptyState(needsFollowupCount: 0, allCoachesCount: 2, allSchoolsCount: 1),
+      .allCaughtUp
+    )
+  }
+
+  func testEmptyStateNilWhenCoachesNeedFollowup() {
+    XCTAssertNil(CoachFollowup.emptyState(needsFollowupCount: 1, allCoachesCount: 3, allSchoolsCount: 1))
+  }
 }
