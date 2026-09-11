@@ -1,14 +1,33 @@
 import SwiftUI
 
+/// Freezes the target user/family ids at the moment the create-event sheet is opened,
+/// matching the pattern in `EventsListView` so the form's `@State` survives an
+/// `authManager`/`familyManager` republish mid-edit.
+private struct CreateEventContext: Identifiable {
+  let id = UUID()
+  let userId: String
+  let familyUnitId: String
+}
+
 struct UpcomingEventsWidget: View {
+  let familyUnitId: String
+  let userId: String
+  /// Reload the dashboard after a create so the new event appears in this widget.
+  var onEventCreated: (() -> Void)?
+
   /// Sorted once at init rather than re-sorted on every body evaluation
   /// (this computed property used to be read up to 5 times per render).
   private let sortedEvents: [FullEvent]
 
   @State private var isShowingAll = false
+  @State private var isShowingAllEvents = false
+  @State private var createEventContext: CreateEventContext?
 
-  init(events: [FullEvent]) {
+  init(events: [FullEvent], familyUnitId: String, userId: String, onEventCreated: (() -> Void)? = nil) {
     self.sortedEvents = events.sorted { $0.startDate < $1.startDate }
+    self.familyUnitId = familyUnitId
+    self.userId = userId
+    self.onEventCreated = onEventCreated
   }
 
   private var visibleEvents: [FullEvent] {
@@ -24,10 +43,19 @@ struct UpcomingEventsWidget: View {
       Divider()
 
       if sortedEvents.isEmpty {
-        Text("No upcoming events scheduled")
-          .font(.caption)
-          .foregroundStyle(Color.secondaryText)
-          .padding(.vertical)
+        VStack(alignment: .leading, spacing: 8) {
+          Text("No upcoming events scheduled")
+            .font(.caption)
+            .foregroundStyle(Color.secondaryText)
+
+          Button(action: presentCreateEvent) {
+            Text("Add Event")
+              .font(.caption.weight(.semibold))
+              .foregroundStyle(Color.accentBlue)
+          }
+          .accessibilityHint("Opens the form to create a new event")
+        }
+        .padding(.vertical)
       } else {
         VStack(spacing: 12) {
           ForEach(visibleEvents) { event in
@@ -55,12 +83,41 @@ struct UpcomingEventsWidget: View {
             ? "Collapses the list to show only 3 events"
             : "Expands the list to show all events")
         }
+
+        Button(action: { isShowingAllEvents = true }) {
+          Text("View All Events")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(Color.accentBlue)
+        }
+        .accessibilityHint("Opens the full events list")
       }
     }
     .padding()
     .background(Color.Surface.card)
     .clipShape(.rect(cornerRadius: 12))
     .brandShadowSm()
+    .sheet(isPresented: $isShowingAllEvents) {
+      NavigationStack {
+        EventsListView()
+      }
+    }
+    .sheet(item: $createEventContext) { context in
+      NavigationStack {
+        CreateEventView(
+          eventsService: EventsServiceImpl(),
+          userId: context.userId,
+          familyUnitId: context.familyUnitId,
+          onEventCreated: { _ in
+            createEventContext = nil
+            onEventCreated?()
+          }
+        )
+      }
+    }
+  }
+
+  private func presentCreateEvent() {
+    createEventContext = CreateEventContext(userId: userId, familyUnitId: familyUnitId)
   }
 }
 
@@ -119,7 +176,9 @@ struct UpcomingEventsWidget: View {
         coachesPresent: nil,
         updatedAt: "2026-02-01T12:00:00Z"
       )
-    ]
+    ],
+    familyUnitId: "family-1",
+    userId: "user-1"
   )
   .padding()
 }

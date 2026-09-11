@@ -33,6 +33,8 @@ struct DashboardWidgetStack: View {
   let onClearCompleted: () -> Void
   /// Reload the dashboard after a coach send (follow-up list refresh).
   var onCoachContacted: (() -> Void)?
+  /// Reload the dashboard after an event is created from this widget.
+  var onEventCreated: (() -> Void)?
   /// When set, widgets whose `widthClass` is in this set are skipped (iPad main-column pass).
   var excludeWidthClasses: Set<WidgetWidth>?
   /// When set, only widgets whose `widthClass` is in this set are rendered (iPad sidebar pass).
@@ -75,8 +77,13 @@ struct DashboardWidgetStack: View {
       }
 
     case .upcomingEvents:
-      if visibility.eventsSummary && !events.isEmpty {
-        UpcomingEventsWidget(events: events)
+      if visibility.eventsSummary {
+        UpcomingEventsWidget(
+          events: events,
+          familyUnitId: familyUnitId,
+          userId: userId,
+          onEventCreated: onEventCreated
+        )
       }
 
     case .quickTasks:
