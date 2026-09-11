@@ -327,6 +327,9 @@ struct DashboardView: View {
       onCoachContacted: {
         Task { await viewModel.fetchDashboardData() }
       },
+      onEventCreated: {
+        Task { await viewModel.fetchDashboardData() }
+      },
       excludeWidthClasses: excludeWidthClasses,
       onlyWidthClasses: onlyWidthClasses
     )
