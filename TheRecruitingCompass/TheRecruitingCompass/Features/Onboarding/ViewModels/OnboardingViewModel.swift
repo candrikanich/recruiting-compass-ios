@@ -224,7 +224,7 @@ final class OnboardingViewModel {
 
     do {
       let assessment = OnboardingAssessment.defaultForOnboarding
-      let startingPhase = "freshman"
+      let startingPhase = OnboardingAssessment.startingPhase(for: assessment, graduationYear: graduationYear)
 
       try await onboardingService.completeOnboarding(
         userId: userId,

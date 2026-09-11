@@ -64,6 +64,31 @@ struct OnboardingV2ViewModelTests {
     #expect(vm.isStep1Valid)
   }
 
+  // MARK: - completeOnboarding
+
+  // Regression: completeOnboarding must not stamp a hardcoded "freshman" phase — it should
+  // reflect the athlete's actual grade, derived from the graduation year they entered.
+  @Test func completeOnboarding_startingPhase_isGradeDerivedNotHardcoded() async {
+    let mockOnboardingService = MockOnboardingService()
+    let authManager = MockAuthManager()
+    authManager.setMockUser(User(
+      id: "user-1",
+      email: "test@example.com",
+      emailConfirmedAt: nil,
+      phone: nil,
+      createdAt: "2026-01-01T00:00:00Z",
+      updatedAt: "2026-01-01T00:00:00Z",
+      role: .player
+    ))
+    let vm = makeSUT(onboardingService: mockOnboardingService, authManager: authManager)
+    vm.graduationYear = 2028
+
+    _ = await vm.completeOnboarding()
+
+    let expectedPhase = GradeLevelHelper.phase(forGrade: GradeLevelHelper.calculateCurrentGrade(graduationYear: 2028))
+    #expect(mockOnboardingService.lastStartingPhase == expectedPhase)
+  }
+
   // MARK: - zipCodeError
 
   @Test func zipCodeErrorNilWhenEmpty() {

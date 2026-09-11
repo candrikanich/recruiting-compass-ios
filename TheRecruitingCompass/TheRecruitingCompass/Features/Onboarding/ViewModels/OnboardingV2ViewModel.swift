@@ -239,10 +239,11 @@ final class OnboardingV2ViewModel {
 
     do {
       let assessment = OnboardingAssessment.defaultForOnboarding
+      let startingPhase = OnboardingAssessment.startingPhase(for: assessment, graduationYear: graduationYear)
       try await onboardingService.completeOnboarding(
         userId: userId,
         assessment: assessment,
-        startingPhase: "freshman"
+        startingPhase: startingPhase
       )
       OnboardingAnalytics.onboardingComplete(completedItems: schoolsAdded)
       logger.info("Onboarding v2 complete, schools added: \(self.schoolsAdded)")
