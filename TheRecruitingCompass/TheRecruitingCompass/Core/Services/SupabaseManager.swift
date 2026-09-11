@@ -110,6 +110,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     role: UserRole,
     familyCode: String?,
     dateOfBirth: String? = nil,
+    graduationYear: Int? = nil,
+    primarySport: String? = nil,
+    gender: String? = nil,
+    zipCode: String? = nil,
     captchaToken: String
   ) async throws -> (user: User, session: Session?) {
     var metadata: [String: AnyJSON] = [
@@ -123,6 +127,21 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
 
     if let dateOfBirth, !dateOfBirth.isEmpty {
       metadata["date_of_birth"] = .string(dateOfBirth)
+    }
+
+    // Carried across the email-confirmation gap and flushed into real preferences by
+    // AccountProvisioningService on first authenticated session. See planning/iOS_SPEC_preconfirm-onboarding-step1-2026-09-11.md.
+    if let graduationYear {
+      metadata["pending_graduation_year"] = .string(String(graduationYear))
+    }
+    if let primarySport, !primarySport.isEmpty {
+      metadata["pending_primary_sport"] = .string(primarySport)
+    }
+    if let gender, !gender.isEmpty {
+      metadata["pending_gender"] = .string(gender)
+    }
+    if let zipCode, !zipCode.isEmpty {
+      metadata["pending_zip_code"] = .string(zipCode)
     }
 
     do {
@@ -238,6 +257,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       }
       throw AuthError.resetEmailNotFound
     }
+  }
+
+  func currentUserMetadata() async -> [String: AnyJSON]? {
+    try? await client.auth.session.user.userMetadata
   }
 
   func updatePassword(newPassword: String) async throws {

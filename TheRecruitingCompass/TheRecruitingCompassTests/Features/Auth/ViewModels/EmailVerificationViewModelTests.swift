@@ -88,6 +88,35 @@ final class EmailVerificationViewModelTests: XCTestCase {
     XCTAssertEqual(sut.userEmail, "john.doe@example.com")
   }
 
+  // MARK: - Account Provisioning Tests
+
+  func testVerifiedTransitionFlushesPendingOnboardingStep1() async {
+    mockAuthManager.setMockUser(unverifiedUser)
+    mockAuthManager.mockUserToReturn = verifiedUser
+    let mockProvisioning = MockAccountProvisioning()
+    sut = EmailVerificationViewModel(
+      authManager: mockAuthManager,
+      accountProvisioning: mockProvisioning,
+      initialPollingInterval: 0.05
+    )
+
+    sut.startPolling()
+    try? await Task.sleep(nanoseconds: 300_000_000)
+
+    XCTAssertEqual(mockProvisioning.flushCallCount, 1)
+  }
+
+  func testAlreadyVerifiedAtInitDoesNotFlush() async {
+    mockAuthManager.setMockUser(verifiedUser)
+    let mockProvisioning = MockAccountProvisioning()
+    sut = EmailVerificationViewModel(authManager: mockAuthManager, accountProvisioning: mockProvisioning)
+
+    sut.onAppear()
+    try? await Task.sleep(nanoseconds: 100_000_000)
+
+    XCTAssertEqual(mockProvisioning.flushCallCount, 0)
+  }
+
   // MARK: - Polling Tests
 
   func testStartPollingCallsRefreshSession() async {

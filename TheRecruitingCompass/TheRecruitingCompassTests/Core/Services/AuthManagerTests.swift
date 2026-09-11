@@ -6,16 +6,19 @@ final class AuthManagerTests: XCTestCase {
   nonisolated deinit {}
   var sut: AuthManager!
   var mockSupabaseManager: MockSupabaseManager!
+  var mockAccountProvisioning: MockAccountProvisioning!
 
   override func setUp() {
     super.setUp()
     mockSupabaseManager = MockSupabaseManager()
-    sut = AuthManager(supabaseManager: mockSupabaseManager)
+    mockAccountProvisioning = MockAccountProvisioning()
+    sut = AuthManager(supabaseManager: mockSupabaseManager, accountProvisioning: mockAccountProvisioning)
   }
 
   override func tearDown() {
     sut = nil
     mockSupabaseManager = nil
+    mockAccountProvisioning = nil
     super.tearDown()
   }
 
@@ -61,5 +64,50 @@ final class AuthManagerTests: XCTestCase {
     try await sut.resetPasswordForEmail(email: "user@example.com", captchaToken: "test-captcha-token")
 
     XCTAssertEqual(mockSupabaseManager.capturedResetPasswordCaptchaToken, "test-captcha-token")
+  }
+
+  func testLoginFlushesPendingOnboardingStep1() async throws {
+    let user = User(
+      id: "test-user-id", email: "user@example.com", emailConfirmedAt: "2024-01-01T00:00:00Z", phone: nil,
+      fullName: nil, createdAt: "2024-01-01T00:00:00Z", updatedAt: "2024-01-01T00:00:00Z",
+      role: nil, dateOfBirth: nil
+    )
+    let session = Session(
+      accessToken: "token", tokenType: "bearer", expiresIn: 3600,
+      expiresAt: Int(Date().timeIntervalSince1970) + 3600, refreshToken: "refresh", user: user
+    )
+    mockSupabaseManager.signInResult = .success((user: user, session: session))
+
+    try await sut.login(email: "user@example.com", password: "password123", captchaToken: "test-captcha-token")
+
+    XCTAssertEqual(mockAccountProvisioning.flushCallCount, 1)
+  }
+
+  func testSignupThreadsOnboardingStep1FieldsToSupabaseManager() async throws {
+    let user = User(
+      id: "test-user-id", email: "user@example.com", emailConfirmedAt: nil, phone: nil,
+      fullName: "Jane Doe", createdAt: "2024-01-01T00:00:00Z", updatedAt: "2024-01-01T00:00:00Z",
+      role: .player, dateOfBirth: nil
+    )
+    mockSupabaseManager.signUpResult = .success((user: user, session: nil))
+
+    try await sut.signup(
+      email: "user@example.com",
+      password: "password123",
+      fullName: "Jane Doe",
+      role: .player,
+      familyCode: nil,
+      dateOfBirth: "2010-01-01",
+      graduationYear: 2028,
+      primarySport: "Soccer",
+      gender: "female",
+      zipCode: "94105",
+      captchaToken: "test-captcha-token"
+    )
+
+    XCTAssertEqual(mockSupabaseManager.capturedSignUpGraduationYear, 2028)
+    XCTAssertEqual(mockSupabaseManager.capturedSignUpPrimarySport, "Soccer")
+    XCTAssertEqual(mockSupabaseManager.capturedSignUpGender, "female")
+    XCTAssertEqual(mockSupabaseManager.capturedSignUpZipCode, "94105")
   }
 }

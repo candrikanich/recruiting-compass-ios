@@ -5,10 +5,12 @@ import Foundation
 final class MockPreferenceService: PreferenceManaging, @unchecked Sendable {
     var stubbedPlayerDetails: PlayerDetails?
     var stubbedDashboardVisibility: DashboardWidgetVisibility?
+    var stubbedHomeLocation: HomeLocation?
     var errorToThrow: Error?
     private(set) var fetchedUserIds: [String?] = []
     private(set) var savedUserIds: [String?] = []
     private(set) var savedPlayerDetails: PlayerDetails?
+    private(set) var savedHomeLocation: HomeLocation?
     private(set) var saveCallCount = 0
 
     func fetchPreferences<T: Codable>(category: PreferenceCategory, userId: String?) async throws -> T? {
@@ -19,6 +21,8 @@ final class MockPreferenceService: PreferenceManaging, @unchecked Sendable {
             return stubbedPlayerDetails as? T
         case .dashboard:
             return stubbedDashboardVisibility as? T
+        case .location:
+            return stubbedHomeLocation as? T
         default:
             return nil
         }
@@ -28,7 +32,12 @@ final class MockPreferenceService: PreferenceManaging, @unchecked Sendable {
         if let errorToThrow { throw errorToThrow }
         saveCallCount += 1
         savedUserIds.append(userId)
-        savedPlayerDetails = data as? PlayerDetails
+        if let playerDetails = data as? PlayerDetails {
+            savedPlayerDetails = playerDetails
+        }
+        if let homeLocation = data as? HomeLocation {
+            savedHomeLocation = homeLocation
+        }
         return data
     }
 

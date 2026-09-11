@@ -40,6 +40,10 @@ final class SignupViewModelTests: XCTestCase {
     sut.password = "StrongPass123"
     sut.confirmPassword = "StrongPass123"
     sut.termsAccepted = true
+    if role == .player {
+      sut.graduationYear = 2028
+      sut.primarySport = "Soccer"
+    }
   }
 
   // MARK: - Initialization Tests
@@ -344,6 +348,90 @@ final class SignupViewModelTests: XCTestCase {
 
     XCTAssertEqual(mockAuthManager.signupCallCount, 1)
     XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+  }
+
+  // MARK: - Onboarding Step 1 Tests
+
+  func testPlayerRoleRequiresGradYearAndSport() {
+    fillValidForm(role: .player)
+    sut.graduationYear = nil
+
+    XCTAssertFalse(sut.isFormValid)
+  }
+
+  func testParentRoleDoesNotRequireGradYearOrSport() {
+    fillValidForm(role: .parent)
+
+    XCTAssertTrue(sut.isFormValid)
+  }
+
+  func testSignupSendsOnboardingStep1MetadataWhenBothPresent() async {
+    fillValidForm(role: .player)
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.capturedSignupGraduationYear, 2028)
+    XCTAssertEqual(mockAuthManager.capturedSignupPrimarySport, "Soccer")
+  }
+
+  func testSignupOmitsOnboardingStep1MetadataForParentRole() async {
+    fillValidForm(role: .parent)
+
+    await sut.signup()
+
+    XCTAssertNil(mockAuthManager.capturedSignupGraduationYear)
+    XCTAssertNil(mockAuthManager.capturedSignupPrimarySport)
+  }
+
+  func testSignupAutoDerivesGenderForUnambiguousSport() async {
+    fillValidForm(role: .player)
+    sut.primarySport = "Baseball"
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.capturedSignupGender, "male")
+  }
+
+  func testSignupUsesUserSelectedGenderForNeutralSport() async {
+    fillValidForm(role: .player)
+    sut.primarySport = "Soccer"
+    sut.gender = "female"
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.capturedSignupGender, "female")
+  }
+
+  func testSignupSendsZipCodeWhenValid() async {
+    fillValidForm(role: .player)
+    sut.zipCode = "94105"
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.capturedSignupZipCode, "94105")
+  }
+
+  func testInvalidZipCodeBlocksSignup() async {
+    fillValidForm(role: .player)
+    sut.zipCode = "abc"
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 0)
+  }
+
+  func testValidZipCodeProducesNoFieldError() {
+    sut.zipCode = "94105"
+    sut.validateZipCode()
+
+    XCTAssertNil(sut.fieldErrors[.zipCode])
+  }
+
+  func testEmptyZipCodeIsValidSinceOptional() {
+    sut.zipCode = ""
+    sut.validateZipCode()
+
+    XCTAssertNil(sut.fieldErrors[.zipCode])
   }
 
   // MARK: - Signup Validation Guard Tests

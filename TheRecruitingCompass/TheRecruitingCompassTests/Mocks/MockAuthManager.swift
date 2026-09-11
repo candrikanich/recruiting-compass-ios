@@ -40,6 +40,10 @@ class MockAuthManager: AuthManaging {
   private(set) var capturedSignupCaptchaToken: String?
   private(set) var capturedResetEmailCaptchaToken: String?
   private(set) var capturedResendEmailCaptchaToken: String?
+  private(set) var capturedSignupGraduationYear: Int?
+  private(set) var capturedSignupPrimarySport: String?
+  private(set) var capturedSignupGender: String?
+  private(set) var capturedSignupZipCode: String?
 
   /// When false, signup() does not set isAuthenticated = true, so SignupViewModel sets shouldNavigateToVerifyEmail (e.g. email confirmation required).
   var setAuthenticatedAfterSignup = true
@@ -114,10 +118,18 @@ class MockAuthManager: AuthManaging {
     role: UserRole,
     familyCode: String?,
     dateOfBirth: String? = nil,
+    graduationYear: Int? = nil,
+    primarySport: String? = nil,
+    gender: String? = nil,
+    zipCode: String? = nil,
     captchaToken: String
   ) async throws {
     signupCallCount += 1
     capturedSignupCaptchaToken = captchaToken
+    capturedSignupGraduationYear = graduationYear
+    capturedSignupPrimarySport = primarySport
+    capturedSignupGender = gender
+    capturedSignupZipCode = zipCode
 
     if shouldThrowSignupError {
       throw mockErrorToThrow
@@ -243,6 +255,10 @@ class MockAuthManager: AuthManaging {
     capturedSignupCaptchaToken = nil
     capturedResetEmailCaptchaToken = nil
     capturedResendEmailCaptchaToken = nil
+    capturedSignupGraduationYear = nil
+    capturedSignupPrimarySport = nil
+    capturedSignupGender = nil
+    capturedSignupZipCode = nil
 
     user = nil
     mockUserToReturn = nil

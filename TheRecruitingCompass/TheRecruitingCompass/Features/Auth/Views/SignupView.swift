@@ -43,7 +43,10 @@ struct SignupView: View {
     .navigationBarBackButtonHidden(true)
     .sheet(isPresented: $viewModel.shouldNavigateToVerifyEmail) {
       NavigationStack {
-        EmailVerificationView()
+        EmailVerificationView(
+          draftedPrimarySport: viewModel.draftedPrimarySport,
+          draftedGraduationYear: viewModel.draftedGraduationYear
+        )
       }
     }
     .sheet(item: $presentedLegal) { doc in
@@ -136,6 +139,7 @@ private struct SignupFormView: View {
       SignupEmailFieldView(viewModel: viewModel)
       if viewModel.selectedRole == .player {
         SignupDateOfBirthFieldView(viewModel: viewModel)
+        SignupPlayerDetailsFieldsView(viewModel: viewModel)
       }
       SignupPasswordSectionView(viewModel: viewModel)
       SignupConfirmPasswordFieldView(viewModel: viewModel)
@@ -273,6 +277,109 @@ private struct SignupDateOfBirthFieldView: View {
           .foregroundStyle(.red)
       }
 
+    }
+  }
+}
+
+/// Onboarding step 1, captured on the signup form itself so a confirming player isn't
+/// re-asked. Carried as `pending_*` auth metadata; flushed by `AccountProvisioning`.
+private struct SignupPlayerDetailsFieldsView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  private var showGenderField: Bool {
+    SportGenderMap.gender(for: viewModel.primarySport) == .neutral
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 8) {
+        Image(systemName: "sportscourt")
+          .foregroundStyle(Color.darkSlate)
+          .accessibilityHidden(true)
+        Text("Primary Sport")
+          .font(.subheadline.weight(.medium))
+          .foregroundStyle(Color.darkSlate)
+      }
+      Picker(String(localized: "Primary Sport"), selection: $viewModel.primarySport) {
+        Text("Select a sport").tag("")
+        ForEach(OnboardingConstants.commonSports, id: \.self) { sport in
+          Text(sport).tag(sport)
+        }
+      }
+      .pickerStyle(.menu)
+      if let error = viewModel.fieldErrors[.primarySport] {
+        Text(error)
+          .font(.caption)
+          .foregroundStyle(.red)
+      }
+    }
+    .padding(.top, 8)
+
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 8) {
+        Image(systemName: "graduationcap")
+          .foregroundStyle(Color.darkSlate)
+          .accessibilityHidden(true)
+        Text("Graduation Year")
+          .font(.subheadline.weight(.medium))
+          .foregroundStyle(Color.darkSlate)
+      }
+      Picker(String(localized: "Graduation Year"), selection: $viewModel.graduationYear) {
+        Text("Select a year").tag(Int?.none)
+        ForEach(OnboardingConstants.graduationYears, id: \.self) { year in
+          Text(String(year)).tag(Int?.some(year))
+        }
+      }
+      .pickerStyle(.menu)
+      if let error = viewModel.fieldErrors[.graduationYear] {
+        Text(error)
+          .font(.caption)
+          .foregroundStyle(.red)
+      }
+    }
+
+    if showGenderField {
+      VStack(alignment: .leading, spacing: 8) {
+        HStack(spacing: 8) {
+          Image(systemName: "person.crop.circle")
+            .foregroundStyle(Color.darkSlate)
+            .accessibilityHidden(true)
+          Text("Gender (Optional)")
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(Color.darkSlate)
+        }
+        Picker(String(localized: "Gender"), selection: $viewModel.gender) {
+          Text("Select gender").tag("")
+          ForEach(Gender.allCases, id: \.self) { gender in
+            Text(gender.displayName).tag(gender.rawValue)
+          }
+        }
+        .pickerStyle(.menu)
+      }
+    }
+
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 8) {
+        Image(systemName: "mappin.and.ellipse")
+          .foregroundStyle(Color.darkSlate)
+          .accessibilityHidden(true)
+        Text("Zip Code (Optional)")
+          .font(.subheadline.weight(.medium))
+          .foregroundStyle(Color.darkSlate)
+      }
+      LoginFormField(
+        label: String(localized: "Zip Code (Optional)"),
+        placeholder: "12345",
+        icon: "mappin.and.ellipse",
+        text: $viewModel.zipCode,
+        error: viewModel.errorBinding(for: .zipCode),
+        isSecure: false,
+        keyboardType: .numberPad,
+        onBlur: viewModel.validateZipCode
+      )
+      .onChange(of: viewModel.zipCode) { _, newValue in
+        viewModel.zipCode = String(newValue.prefix(5))
+      }
     }
   }
 }

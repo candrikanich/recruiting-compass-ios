@@ -26,6 +26,13 @@ final class SignupViewModel {
   var familyCode = ""
   var termsAccepted = false
 
+  // Player-only onboarding step 1, captured here so a confirming player isn't re-asked.
+  // See planning/iOS_SPEC_preconfirm-onboarding-step1-2026-09-11.md.
+  var graduationYear: Int?
+  var primarySport = ""
+  var gender = ""
+  var zipCode = ""
+
   // MARK: - UI State
 
   var isLoading = false
@@ -85,6 +92,11 @@ final class SignupViewModel {
     let hasValidDOB = role == .player
       ? !COPPAHelper.isUnderAge(dobString)
       : true
+    // Grad year + primary sport are required for players, same as DOB — mirrors web's
+    // onboardingStep1 guard (both must be present, gender/zip stay optional).
+    let hasValidPlayerDetails = role == .player
+      ? graduationYear != nil && !primarySport.isEmpty
+      : true
     let noFieldErrors = fieldErrors.isEmpty
 
     let familyCodeValid = if role.requiresFamilyCode {
@@ -102,9 +114,30 @@ final class SignupViewModel {
       termsChecked &&
       passwordStrengthValid &&
       hasValidDOB &&
+      hasValidPlayerDetails &&
       familyCodeValid &&
       noFieldErrors
   }
+
+  private var trimmedZipCode: String {
+    zipCode.trimmingCharacters(in: .whitespaces)
+  }
+
+  /// True when both grad year and sport are drafted — the point at which signup should
+  /// carry the `pending_*` onboarding-step-1 metadata (mirrors web's `onboardingStep1` guard).
+  var hasDraftedOnboardingStep1: Bool {
+    graduationYear != nil && !primarySport.isEmpty
+  }
+
+  /// Silently auto-derived gender for sports with an unambiguous NCAA classification
+  /// (e.g. Baseball → male). `nil` for neutral sports, where the user's own selection is used.
+  var derivedGender: String? {
+    SportGenderMap.gender(for: primarySport).genderRawValue
+  }
+
+  /// Values threaded into `EmailVerificationView` to personalize the waiting copy.
+  var draftedPrimarySport: String? { hasDraftedOnboardingStep1 ? primarySport : nil }
+  var draftedGraduationYear: Int? { hasDraftedOnboardingStep1 ? graduationYear : nil }
 
   var isButtonDisabled: Bool {
     isLoading || !isFormValid
@@ -146,6 +179,10 @@ final class SignupViewModel {
     confirmPassword = ""
     familyCode = ""
     termsAccepted = false
+    graduationYear = nil
+    primarySport = ""
+    gender = ""
+    zipCode = ""
     fieldErrors = [:]
     errorMessage = nil
   }
@@ -189,6 +226,18 @@ final class SignupViewModel {
     validate(.familyCode) { formValidator.validateFamilyCode(familyCode) }
   }
 
+  /// Zip is optional; when present it must be 5 numeric digits. Mirrors the same rule
+  /// `OnboardingV2ViewModel.saveStep1()` already enforces for the same field.
+  func validateZipCode() {
+    validate(.zipCode) {
+      guard !trimmedZipCode.isEmpty else { return nil }
+      guard trimmedZipCode.count == 5, trimmedZipCode.allSatisfy(\.isNumber) else {
+        return "Enter a valid 5-digit zip code"
+      }
+      return nil
+    }
+  }
+
   func errorBinding(for key: FormFieldKey) -> Binding<String?> {
     Binding(
       get: { self.fieldErrors[key] },
@@ -218,6 +267,7 @@ final class SignupViewModel {
     validatePassword()
     validateConfirmPassword()
     validateFamilyCode()
+    validateZipCode()
 
     guard isFormValid else {
       if !fieldErrors.isEmpty {
@@ -237,6 +287,9 @@ final class SignupViewModel {
 
     do {
       let captchaToken = try await turnstileTokenProvider.getToken()
+      // Only draft onboarding-step-1 metadata when both grad year and sport are present,
+      // mirroring web's `onboardingStep1` guard (gender/zip alone are not enough).
+      let draftsStep1 = role == .player && hasDraftedOnboardingStep1
       try await authManager.signup(
         email: email,
         password: password,
@@ -244,6 +297,10 @@ final class SignupViewModel {
         role: role,
         familyCode: nil,
         dateOfBirth: role == .player ? dobString : nil,
+        graduationYear: draftsStep1 ? graduationYear : nil,
+        primarySport: draftsStep1 ? primarySport : nil,
+        gender: draftsStep1 ? (derivedGender ?? (gender.isEmpty ? nil : gender)) : nil,
+        zipCode: draftsStep1 && !trimmedZipCode.isEmpty ? trimmedZipCode : nil,
         captchaToken: captchaToken
       )
 
