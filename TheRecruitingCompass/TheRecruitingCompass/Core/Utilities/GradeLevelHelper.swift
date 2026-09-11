@@ -31,6 +31,17 @@ enum GradeLevelHelper {
     return min(12, max(9, grade))
   }
 
+  /// Maps a grade level (9–12) to its phase label. Matches web `gradeToPhase` in
+  /// server/utils/athletePhase.ts. Out-of-range grades default to "freshman".
+  static func phase(forGrade grade: Int) -> String {
+    switch grade {
+    case 10: return "sophomore"
+    case 11: return "junior"
+    case 12: return "senior"
+    default: return "freshman"
+    }
+  }
+
   /// Canonical graduation date for a class year: June 1 of the graduation year.
   /// Whole-day granularity is all the countdown needs, so the day-of-month is a
   /// deliberate, stable convention rather than a real per-school commencement date.

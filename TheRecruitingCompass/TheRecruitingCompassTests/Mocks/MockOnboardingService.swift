@@ -9,6 +9,7 @@ final class MockOnboardingService: OnboardingManaging, @unchecked Sendable {
   var isOnboardingCompleteCallCount = 0
   var completeOnboardingCallCount = 0
   var lastUserIdChecked: String?
+  var lastStartingPhase: String?
 
   func isOnboardingComplete(userId: String) async throws -> Bool {
     isOnboardingCompleteCallCount += 1
@@ -23,6 +24,7 @@ final class MockOnboardingService: OnboardingManaging, @unchecked Sendable {
     startingPhase: String
   ) async throws {
     completeOnboardingCallCount += 1
+    lastStartingPhase = startingPhase
     if shouldThrowError { throw mockError }
   }
 }

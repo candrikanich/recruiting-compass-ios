@@ -245,6 +245,18 @@ final class OnboardingViewModelTests: XCTestCase {
     XCTAssertEqual(didCompleteCallCount, 1)
   }
 
+  // Regression: completeOnboarding must not stamp a hardcoded "freshman" phase — it should
+  // reflect the athlete's actual grade, derived from the graduation year they entered.
+  func testNextScreen_lastStep_startingPhase_isGradeDerivedNotHardcoded() async {
+    viewModel.currentStep = OnboardingConstants.totalSteps
+    viewModel.graduationYear = 2028
+
+    await viewModel.nextScreen()
+
+    let expectedPhase = GradeLevelHelper.phase(forGrade: GradeLevelHelper.calculateCurrentGrade(graduationYear: 2028))
+    XCTAssertEqual(mockOnboardingService.lastStartingPhase, expectedPhase)
+  }
+
   func testNextScreen_saveFails_setsErrorAndDoesNotAdvance() async {
     viewModel.currentStep = 2
     viewModel.primarySport = "Baseball" // Step 2 now requires a sport before it saves.
