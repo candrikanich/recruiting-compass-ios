@@ -89,12 +89,23 @@ final class AuthManager: AuthManaging {
     primarySport: String? = nil,
     gender: String? = nil,
     zipCode: String? = nil,
-    captchaToken: String
+    captchaToken: String,
+    viaGuardianInvite: Bool = false
   ) async throws {
     logger.debug("Attempting signup for: \(email.prefix(3))*** role: \(role.rawValue)")
     if let dob = dateOfBirth, COPPAHelper.isUnderAge(dob) {
       logger.info("Signup blocked: COPPA age restriction")
       throw AuthError.coppaUnderAge
+    }
+    // Minors (13-17) may only join via a guardian's family invite. This must be checked
+    // *before* `supabaseManager.signUp`: that call creates the Supabase auth user first
+    // and only then upserts `public.users`, where `trg_enforce_minor_requires_invite`
+    // rejects the row. Letting it get that far leaves an orphaned auth user with no
+    // profile — and the email then reads as already registered on every retry.
+    if role == .player, !viaGuardianInvite, let dob = dateOfBirth,
+       COPPAHelper.requiresGuardianInvite(dob) {
+      logger.info("Signup blocked: minor requires guardian invite")
+      throw AuthError.minorRequiresGuardianInvite
     }
     do {
       let (user, session) = try await supabaseManager.signUp(

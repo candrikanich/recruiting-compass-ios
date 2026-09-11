@@ -37,7 +37,8 @@ protocol AuthManaging: AnyObject {
     primarySport: String?,
     gender: String?,
     zipCode: String?,
-    captchaToken: String
+    captchaToken: String,
+    viaGuardianInvite: Bool
   ) async throws
   /// Signs out, revokes the Supabase session, and clears Keychain tokens.
   func logout() async throws

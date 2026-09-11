@@ -26,19 +26,24 @@ final class AuthManagerSignupTests: XCTestCase {
   // MARK: - DOB persistence
 
   func testSignup_forwardsDateOfBirthToSupabase() async throws {
+    // Must be 18+: a 13-17 DOB is blocked client-side before any Supabase call, so a
+    // minor DOB here would assert nothing about forwarding. Relative, not hardcoded —
+    // a fixed date silently ages into the minor band and breaks this test later.
+    let adult = ISO8601DateFormatter.yyyyMMdd(yearsAgo: 20)
+
     try await sut.signup(
-      email: "teen@example.com",
+      email: "player@example.com",
       password: "password123",
-      fullName: "Rising Freshman",
+      fullName: "Adult Player",
       role: .player,
       familyCode: nil,
-      dateOfBirth: "2011-05-01",
+      dateOfBirth: adult,
       captchaToken: "test-captcha-token"
     )
 
     XCTAssertEqual(
       mockSupabaseManager.capturedSignUpDateOfBirth,
-      "2011-05-01",
+      adult,
       "signup must forward DOB so users.date_of_birth is written (DB age trigger + cross-platform prefill)"
     )
   }
@@ -66,6 +71,99 @@ final class AuthManagerSignupTests: XCTestCase {
         "Under-13 signup must be blocked client-side before any Supabase write"
       )
     }
+  }
+
+  // MARK: - Minor (13-17) guardian-invite guard
+
+  func testSignup_minorPlayer_blockedBeforeReachingSupabase() async {
+    let fifteen = ISO8601DateFormatter.yyyyMMdd(yearsAgo: 15)
+
+    do {
+      try await sut.signup(
+        email: "minor@example.com",
+        password: "password123",
+        fullName: "Minor Player",
+        role: .player,
+        familyCode: nil,
+        dateOfBirth: fifteen,
+        captchaToken: "test-captcha-token"
+      )
+      XCTFail("Expected minor signup to be blocked")
+    } catch {
+      guard case AuthError.minorRequiresGuardianInvite = error else {
+        return XCTFail("Expected AuthError.minorRequiresGuardianInvite, got \(error)")
+      }
+      // The regression this guards: `SupabaseManager.signUp` creates the auth user and
+      // only then upserts `public.users`, where the DB trigger rejects a minor. Reaching
+      // Supabase at all would orphan an auth user with no profile, and every retry would
+      // then fail as "email already registered".
+      XCTAssertNil(
+        mockSupabaseManager.capturedSignUpDateOfBirth,
+        "Minor signup must be blocked before any Supabase write, or it orphans an auth user"
+      )
+    }
+  }
+
+  func testSignup_minorViaGuardianInvite_isAllowed() async throws {
+    // The regression guarded here is the one web already shipped and had to patch in
+    // 20260925000020: an over-eager minor check that rejected *valid* invited minors too.
+    // InviteJoinViewModel passes viaGuardianInvite: true, which must exempt the guard.
+    let fifteen = ISO8601DateFormatter.yyyyMMdd(yearsAgo: 15)
+
+    try await sut.signup(
+      email: "invited@example.com",
+      password: "password123",
+      fullName: "Invited Minor",
+      role: .player,
+      familyCode: nil,
+      dateOfBirth: fifteen,
+      captchaToken: "test-captcha-token",
+      viaGuardianInvite: true
+    )
+
+    XCTAssertEqual(
+      mockSupabaseManager.capturedSignUpDateOfBirth,
+      fifteen,
+      "A guardian-invited 13-17 player must still be able to create their account"
+    )
+  }
+
+  func testSignup_exactlyEighteen_isAllowed() async throws {
+    let eighteen = ISO8601DateFormatter.yyyyMMdd(yearsAgo: 18)
+
+    try await sut.signup(
+      email: "adult@example.com",
+      password: "password123",
+      fullName: "Just Eighteen",
+      role: .player,
+      familyCode: nil,
+      dateOfBirth: eighteen,
+      captchaToken: "test-captcha-token"
+    )
+
+    XCTAssertEqual(
+      mockSupabaseManager.capturedSignUpDateOfBirth,
+      eighteen,
+      "18 is the standalone-account boundary and must not be blocked"
+    )
+  }
+
+  func testSignup_parentRole_notBlockedByMinorGuard() async throws {
+    // The guard is player-scoped. Parents don't supply their own DOB at signup, but if a
+    // DOB ever reaches this path for a parent it must not be treated as a minor player.
+    let fifteen = ISO8601DateFormatter.yyyyMMdd(yearsAgo: 15)
+
+    try await sut.signup(
+      email: "parent@example.com",
+      password: "password123",
+      fullName: "Parent User",
+      role: .parent,
+      familyCode: nil,
+      dateOfBirth: fifteen,
+      captchaToken: "test-captcha-token"
+    )
+
+    XCTAssertEqual(mockSupabaseManager.capturedSignUpDateOfBirth, fifteen)
   }
 
   private func userMock() -> User {

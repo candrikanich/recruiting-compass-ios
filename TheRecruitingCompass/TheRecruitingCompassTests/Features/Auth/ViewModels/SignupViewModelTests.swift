@@ -233,12 +233,56 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertTrue(sut.isFormValid)
   }
 
-  func testFormValidForMinorPlayer13to17() {
+  func testFormInvalidForMinorPlayer13to17() {
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
 
-    XCTAssertTrue(sut.isFormValid, "Players 13-17 can sign up independently")
-    XCTAssertFalse(sut.isUnderCOPPAAge)
+    XCTAssertFalse(
+      sut.isFormValid,
+      "Players 13-17 cannot hold a standalone account; they join via a guardian's family invite"
+    )
+    XCTAssertFalse(sut.isUnderCOPPAAge, "13-17 is over the COPPA floor — a distinct band")
+    XCTAssertTrue(sut.requiresGuardianInvite)
+  }
+
+  func testGuardianInviteMessageExplainsDisabledSubmit() {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+
+    // The picker defaults into this band, so the message must be present without the
+    // user touching the field — otherwise the submit button is disabled with no reason.
+    XCTAssertNotNil(
+      sut.guardianInviteMessage,
+      "A blocked minor must be told why, not left with a silently disabled button"
+    )
+    XCTAssertNil(
+      sut.fieldErrors[.dateOfBirth],
+      "Guidance is not a validation error — the user hasn't done anything wrong"
+    )
+  }
+
+  func testGuardianInviteMessageAbsentForAdultPlayer() {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -20, to: .now)!
+
+    XCTAssertNil(sut.guardianInviteMessage)
+    XCTAssertFalse(sut.requiresGuardianInvite)
+  }
+
+  func testFormValidAtExactlyEighteen() {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -18, to: .now)!
+
+    XCTAssertTrue(sut.isFormValid, "18 is the standalone-account boundary")
+    XCTAssertFalse(sut.requiresGuardianInvite)
+  }
+
+  func testRequiresGuardianInviteFalseForParent() {
+    fillValidForm(role: .parent)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+
+    XCTAssertFalse(sut.requiresGuardianInvite, "The guardian-invite rule applies only to players")
+    XCTAssertNil(sut.guardianInviteMessage)
   }
 
   func testFormValidForAdultPlayer() {

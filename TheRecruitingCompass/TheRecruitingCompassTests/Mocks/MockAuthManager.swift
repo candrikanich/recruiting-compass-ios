@@ -44,6 +44,9 @@ class MockAuthManager: AuthManaging {
   private(set) var capturedSignupPrimarySport: String?
   private(set) var capturedSignupGender: String?
   private(set) var capturedSignupZipCode: String?
+  /// Records whether the caller declared this a guardian-invite signup — the flag that
+  /// exempts a 13-17 player from the standalone-minor guard.
+  private(set) var capturedSignupViaGuardianInvite: Bool?
 
   /// When false, signup() does not set isAuthenticated = true, so SignupViewModel sets shouldNavigateToVerifyEmail (e.g. email confirmation required).
   var setAuthenticatedAfterSignup = true
@@ -122,9 +125,11 @@ class MockAuthManager: AuthManaging {
     primarySport: String? = nil,
     gender: String? = nil,
     zipCode: String? = nil,
-    captchaToken: String
+    captchaToken: String,
+    viaGuardianInvite: Bool = false
   ) async throws {
     signupCallCount += 1
+    capturedSignupViaGuardianInvite = viaGuardianInvite
     capturedSignupCaptchaToken = captchaToken
     capturedSignupGraduationYear = graduationYear
     capturedSignupPrimarySport = primarySport
@@ -255,6 +260,7 @@ class MockAuthManager: AuthManaging {
     capturedSignupCaptchaToken = nil
     capturedResetEmailCaptchaToken = nil
     capturedResendEmailCaptchaToken = nil
+    capturedSignupViaGuardianInvite = nil
     capturedSignupGraduationYear = nil
     capturedSignupPrimarySport = nil
     capturedSignupGender = nil

@@ -231,6 +231,24 @@ final class InviteJoinViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.successMessage, "You're connected!")
   }
 
+  func testSignupAndConnect_minorPlayer_declaresGuardianInvite() async {
+    // Without this flag AuthManager's standalone-minor guard would reject the invited
+    // 13-17 player this whole screen exists to onboard.
+    mockFamilyService.stubbedInviteDetails = makeInviteDetails(role: "player")
+    await viewModel.loadInvite()
+    setValidSignupFields()
+    viewModel.signupDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+
+    await viewModel.signupAndConnect()
+
+    XCTAssertEqual(
+      mockAuthManager.capturedSignupViaGuardianInvite,
+      true,
+      "The invite-accept path must declare itself a guardian invite"
+    )
+    XCTAssertNil(viewModel.signupError)
+  }
+
   func testSignupAndConnect_signupFails_setsSignupError() async {
     mockFamilyService.stubbedInviteDetails = makeInviteDetails()
     await viewModel.loadInvite()

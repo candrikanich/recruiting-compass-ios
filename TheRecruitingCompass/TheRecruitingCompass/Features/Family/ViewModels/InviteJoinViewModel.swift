@@ -161,7 +161,11 @@ final class InviteJoinViewModel {
         primarySport: nil,
         gender: nil,
         zipCode: nil,
-        captchaToken: captchaToken
+        captchaToken: captchaToken,
+        // This is the sanctioned path for a 13-17 player: a guardian issued the invite,
+        // so the standalone-minor guard must not fire here. Mirrors the DB trigger, which
+        // likewise admits a minor holding a valid family_invitations row.
+        viaGuardianInvite: true
       )
       try await familyService.acceptInvite(token: token)
       let prefillSaved = await savePrefillPreferences(from: invite.prefill)

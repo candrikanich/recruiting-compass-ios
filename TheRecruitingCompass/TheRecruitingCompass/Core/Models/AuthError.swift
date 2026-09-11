@@ -42,6 +42,10 @@ enum AuthError: LocalizedError {
   case sessionInvalid
   /// The user's date of birth places them below the COPPA minimum age of 13.
   case coppaUnderAge
+  /// The player is 13-17. Minors may not hold a standalone account; the account must be
+  /// established by a consenting parent or guardian via a family invitation.
+  /// Enforced in the database by `trg_enforce_minor_requires_invite`.
+  case minorRequiresGuardianInvite
   /// The Cloudflare Turnstile captcha challenge failed, timed out, or could not be
   /// completed (e.g. no network reaching Cloudflare, widget error, expired token).
   case captchaFailed
@@ -89,6 +93,8 @@ enum AuthError: LocalizedError {
       return "Your session is no longer valid. Please sign in again."
     case .coppaUnderAge:
       return "You must be at least 13 years old to create an account."
+    case .minorRequiresGuardianInvite:
+      return "Players under 18 need a parent or guardian to set up their account."
     case .captchaFailed:
       return "Couldn't verify you're human. Please try again."
     case .unknown(let err):
@@ -134,6 +140,9 @@ enum AuthError: LocalizedError {
       return "Sign out and create a new account to continue."
     case .coppaUnderAge:
       return "Accounts are for users 13 and older. A parent or guardian can create an account and invite you."
+    case .minorRequiresGuardianInvite:
+      return "Ask your parent or guardian to create an account and send you a family invite "
+        + "— you'll get an email with a link to join them."
     case .captchaFailed:
       return "Check your internet connection and try again."
     case .unknown:

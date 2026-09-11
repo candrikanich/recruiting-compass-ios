@@ -425,6 +425,17 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       return .networkError("Could not reach the server. Check your connection and try again.")
     }
 
+    // Database age-gate triggers. These fire on the `public.users` upsert, after the auth
+    // user already exists, so they should normally be pre-empted by the client guards in
+    // `AuthManager.signup`. Mapped here as a backstop so a bypass surfaces guided copy
+    // rather than the raw Postgres exception text.
+    if lower.contains("at least 13 years old") {
+      return .coppaUnderAge
+    }
+    if lower.contains("must join through a parent or guardian") {
+      return .minorRequiresGuardianInvite
+    }
+
     // Supabase Auth API semantics (match common codes/descriptions)
     if lower.contains("already exists") || lower.contains("user_already_exists") || lower.contains("email_exists") {
       return .emailAlreadyRegistered

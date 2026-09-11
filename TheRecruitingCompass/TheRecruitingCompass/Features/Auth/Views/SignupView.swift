@@ -277,6 +277,31 @@ private struct SignupDateOfBirthFieldView: View {
           .foregroundStyle(.red)
       }
 
+      // Styled as the app's standard warning banner (see `ParentOnboardingBanner`) rather
+      // than as red field-error text: the picker defaults into the 13-17 band, so this is
+      // most players' opening state, not a mistake they made.
+      if let guardianMessage = viewModel.guardianInviteMessage {
+        HStack(alignment: .top, spacing: 8) {
+          Image(systemName: "person.2.fill")
+            .foregroundStyle(Color.amberGold)
+            .accessibilityHidden(true)
+          Text(guardianMessage)
+            .font(.caption)
+            .foregroundStyle(Color.warningBannerBody)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.Surface.warningTint)
+        .overlay(alignment: .leading) {
+          Rectangle()
+            .fill(Color.Surface.warningAccent)
+            .frame(width: 4)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityElement(children: .combine)
+      }
+
     }
   }
 }

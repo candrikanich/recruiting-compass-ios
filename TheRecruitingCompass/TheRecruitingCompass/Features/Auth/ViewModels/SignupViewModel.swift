@@ -89,8 +89,10 @@ final class SignupViewModel {
     let termsChecked = termsAccepted
     let passwordStrengthValid = formValidator.validatePasswordStrength(password).isValid
     // DOB is only required for players (COPPA); parents don't provide their own DOB at signup.
+    // Players must be 13+ (COPPA) *and* 18+ to sign up standalone. A 13-17 player joins
+    // through a guardian's family invite instead — see `InviteJoinViewModel`.
     let hasValidDOB = role == .player
-      ? !COPPAHelper.isUnderAge(dobString)
+      ? !COPPAHelper.isUnderAge(dobString) && !COPPAHelper.requiresGuardianInvite(dobString)
       : true
     // Grad year + primary sport are required for players, same as DOB — mirrors web's
     // onboardingStep1 guard (both must be present, gender/zip stay optional).
@@ -143,9 +145,25 @@ final class SignupViewModel {
     isLoading || !isFormValid
   }
 
-  /// True when the player is under 13 (COPPA). Players 13+ can sign up independently.
+  /// True when the player is under 13 (COPPA).
   var isUnderCOPPAAge: Bool {
     selectedRole == .player && COPPAHelper.isUnderAge(dobString)
+  }
+
+  /// True when the player is 13-17 — old enough for an account, but only one a parent or
+  /// guardian establishes via family invite (DB: `trg_enforce_minor_requires_invite`).
+  var requiresGuardianInvite: Bool {
+    selectedRole == .player && COPPAHelper.requiresGuardianInvite(dobString)
+  }
+
+  /// Guidance shown under the DOB picker while the player is 13-17. Deliberately not a
+  /// `fieldErrors` entry: the picker defaults to a 15-year-old, so this is the opening
+  /// state for most players rather than a mistake they made. It explains why the submit
+  /// button is disabled — without it the form would just silently refuse to submit.
+  var guardianInviteMessage: String? {
+    guard requiresGuardianInvite else { return nil }
+    return "Players under 18 need a parent or guardian to set up their account. "
+      + "Ask them to create an account and send you a family invite — you'll get an email with a link to join."
   }
 
   init(
@@ -301,7 +319,9 @@ final class SignupViewModel {
         primarySport: draftsStep1 ? primarySport : nil,
         gender: draftsStep1 ? (derivedGender ?? (gender.isEmpty ? nil : gender)) : nil,
         zipCode: draftsStep1 && !trimmedZipCode.isEmpty ? trimmedZipCode : nil,
-        captchaToken: captchaToken
+        captchaToken: captchaToken,
+        // Standalone signup: a 13-17 player must not reach here (`isFormValid` blocks it).
+        viaGuardianInvite: false
       )
 
       // Create family for both roles (mirrors web: POST /api/family/create)
