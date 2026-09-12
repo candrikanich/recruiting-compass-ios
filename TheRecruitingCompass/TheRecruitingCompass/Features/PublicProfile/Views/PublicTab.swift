@@ -16,6 +16,9 @@ struct PublicTab: View {
     @State private var exportedPDF: ExportedProfilePDF?
     @State private var isExporting = false
     @State private var isShowingShareSheet = false
+    /// Publishing is gated while a 13-17 player's guardian hasn't confirmed. Enforced
+    /// server-side in `PUT /api/player/profile`; this is the visible half.
+    @State private var guardianStatus = GuardianStatusViewModel()
     @State private var newValueTag = ""
     @State private var newAwardTitle = ""
     @State private var newAwardYear = ""
@@ -82,22 +85,33 @@ struct PublicTab: View {
 
     @ViewBuilder
     private var workspaceBar: some View {
-        HStack {
-            Label(String(localized: "RecruitingCompass Workspace"), systemImage: "viewfinder.circle")
-                .font(.subheadline.weight(.semibold))
-            Spacer()
-            HStack(spacing: 8) {
-                statusPill
-                Toggle("", isOn: $vm.isPublished)
-                    .labelsHidden()
-                    .onChange(of: vm.isPublished) { _, _ in commit() }
-                    .accessibilityLabel(String(localized: "Publish public profile"))
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label(String(localized: "RecruitingCompass Workspace"), systemImage: "viewfinder.circle")
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                HStack(spacing: 8) {
+                    statusPill
+                    Toggle("", isOn: $vm.isPublished)
+                        .labelsHidden()
+                        .disabled(guardianStatus.isLocked)
+                        .onChange(of: vm.isPublished) { _, _ in commit() }
+                        .accessibilityLabel(String(localized: "Publish public profile"))
+                }
+            }
+
+            // Editing the profile stays open for a pending minor; publishing is the part
+            // that needs guardian consent. Mirrors web's is_published-only gate in
+            // server/api/player/profile.put.ts, which is the actual enforcement.
+            if guardianStatus.isLocked {
+                GuardianLockedAction(action: "share your profile", viewModel: guardianStatus)
             }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.Surface.card)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .task { await guardianStatus.load() }
     }
 
     @ViewBuilder

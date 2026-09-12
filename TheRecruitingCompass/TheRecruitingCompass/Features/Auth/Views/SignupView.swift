@@ -280,6 +280,7 @@ private struct SignupDateOfBirthFieldView: View {
       // Styled as the app's standard warning banner (see `ParentOnboardingBanner`) rather
       // than as red field-error text: the picker defaults into the 13-17 band, so this is
       // most players' opening state, not a mistake they made.
+      // Parity: web renders the same copy as an amber callout above the same field.
       if let guardianMessage = viewModel.guardianInviteMessage {
         HStack(alignment: .top, spacing: 8) {
           Image(systemName: "person.2.fill")
@@ -300,6 +301,37 @@ private struct SignupDateOfBirthFieldView: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .accessibilityElement(children: .combine)
+      }
+
+      if viewModel.requiresGuardianInvite && viewModel.canSubmitMinorSignup {
+        VStack(alignment: .leading, spacing: 8) {
+          HStack(spacing: 8) {
+            Image(systemName: "person.2")
+              .foregroundStyle(Color.darkSlate)
+              .accessibilityHidden(true)
+            Text("Parent or Guardian Email")
+              .font(.subheadline.weight(.medium))
+              .foregroundStyle(Color.darkSlate)
+          }
+
+          TextField("parent.email@example.com", text: $viewModel.guardianEmail)
+            .textFieldStyle(.roundedBorder)
+            .textContentType(.emailAddress)
+            .keyboardType(.emailAddress)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .accessibilityLabel("Parent or guardian email, required")
+            .onChange(of: viewModel.guardianEmail) { _, _ in
+              viewModel.validateGuardianEmail()
+            }
+
+          if let error = viewModel.fieldErrors[.guardianEmail] {
+            Text(error)
+              .font(.caption)
+              .foregroundStyle(.red)
+          }
+        }
+        .padding(.top, 4)
       }
 
     }

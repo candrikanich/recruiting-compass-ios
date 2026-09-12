@@ -16,6 +16,11 @@ struct QuickCommunicationView: View {
   @State private var showInfoToast = false
   @State private var infoMessage: String?
   @State private var showMetricsSheet = false
+  /// A 13-17 player whose guardian hasn't confirmed can compose and preview, but not send:
+  /// drafting is the hook that motivates chasing the guardian, while outbound contact with
+  /// an adult is the part that needs consent on file. Server-side enforcement still applies
+  /// in `POST /api/athlete/messages`; this is the visible half.
+  @State private var guardianStatus = GuardianStatusViewModel()
   @Environment(\.openURL) private var openURL
   @Environment(\.dismiss) private var dismiss
   @Environment(FamilyManager.self) private var familyManager
@@ -278,18 +283,23 @@ struct QuickCommunicationView: View {
             .foregroundStyle(Color.warningOrange)
             .accessibilityIdentifier("quickCommSendWarning")
         }
+        if guardianStatus.isLocked {
+          GuardianLockedAction(action: "message coaches", viewModel: guardianStatus)
+            .accessibilityIdentifier("quickCommGuardianLocked")
+        }
       }
       .padding()
     }
     .navigationTitle("Preview")
     .navigationBarTitleDisplayMode(.inline)
     .task { nuxProgressManager.completeItem(.previewTemplate) }
+    .task { await guardianStatus.load() }
     .safeAreaInset(edge: .bottom) {
       QuickCommActionsSection(
         showEmail: channel == .email,
         showText: channel == .text,
         coachEmail: context.coach.email ?? "",
-        sendDisabled: viewModel.isSendBlocked,
+        sendDisabled: viewModel.isSendBlocked || guardianStatus.isLocked,
         onSendEmail: handleSendEmail,
         onSendText: handleSendText
       )

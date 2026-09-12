@@ -33,6 +33,9 @@ final class SignupViewModel {
   var gender = ""
   var zipCode = ""
 
+  /// Parent/guardian address a 13-17 player names at signup. Required only in that band.
+  var guardianEmail = ""
+
   // MARK: - UI State
 
   var isLoading = false
@@ -43,6 +46,7 @@ final class SignupViewModel {
   private let authManager: any AuthManaging
   private let familyService: any FamilyManaging
   private let turnstileTokenProvider: any TurnstileTokenProviding
+  private let guardianClaimService: any GuardianClaimServicing
   private let formValidator = FormValidator.self
 
   private var trimmedFirstName: String {
@@ -89,10 +93,14 @@ final class SignupViewModel {
     let termsChecked = termsAccepted
     let passwordStrengthValid = formValidator.validatePasswordStrength(password).isValid
     // DOB is only required for players (COPPA); parents don't provide their own DOB at signup.
-    // Players must be 13+ (COPPA) *and* 18+ to sign up standalone. A 13-17 player joins
-    // through a guardian's family invite instead — see `InviteJoinViewModel`.
-    let hasValidDOB = role == .player
-      ? !COPPAHelper.isUnderAge(dobString) && !COPPAHelper.requiresGuardianInvite(dobString)
+    // Players must be 13+ (COPPA). A 13-17 player may sign up, but only by naming a
+    // guardian who confirms the account — see `submitMinorSignup`.
+    let hasValidDOB = role == .player ? !COPPAHelper.isUnderAge(dobString) : true
+    let hasValidGuardianEmail = requiresGuardianInvite
+      ? guardianClaimService.isConfigured
+        && formValidator.validateEmail(guardianEmail) == nil
+        && guardianEmail.trimmingCharacters(in: .whitespaces).lowercased()
+          != email.trimmingCharacters(in: .whitespaces).lowercased()
       : true
     // Grad year + primary sport are required for players, same as DOB — mirrors web's
     // onboardingStep1 guard (both must be present, gender/zip stay optional).
@@ -116,6 +124,7 @@ final class SignupViewModel {
       termsChecked &&
       passwordStrengthValid &&
       hasValidDOB &&
+      hasValidGuardianEmail &&
       hasValidPlayerDetails &&
       familyCodeValid &&
       noFieldErrors
@@ -150,30 +159,45 @@ final class SignupViewModel {
     selectedRole == .player && COPPAHelper.isUnderAge(dobString)
   }
 
+  /// True when this build can reach the web API, and so can offer the minor signup path
+  /// at all. Without `API_BASE_URL` the endpoint is unreachable, and showing a field that
+  /// cannot submit would be worse than saying so.
+  var canSubmitMinorSignup: Bool { guardianClaimService.isConfigured }
+
   /// True when the player is 13-17 — old enough for an account, but only one a parent or
-  /// guardian establishes via family invite (DB: `trg_enforce_minor_requires_invite`).
+  /// guardian confirms (DB: `trg_enforce_minor_requires_invite`).
   var requiresGuardianInvite: Bool {
     selectedRole == .player && COPPAHelper.requiresGuardianInvite(dobString)
   }
 
-  /// Guidance shown under the DOB picker while the player is 13-17. Deliberately not a
-  /// `fieldErrors` entry: the picker defaults to a 15-year-old, so this is the opening
-  /// state for most players rather than a mistake they made. It explains why the submit
-  /// button is disabled — without it the form would just silently refuse to submit.
+  /// Guidance shown with the guardian-email field while the player is 13-17. Deliberately
+  /// not a `fieldErrors` entry: the picker defaults to a 15-year-old, so this is the
+  /// opening state for most players rather than a mistake they made.
+  ///
+  /// Copy mirrors web's callout in `components/Auth/SignupForm.vue`.
   var guardianInviteMessage: String? {
     guard requiresGuardianInvite else { return nil }
-    return "Players under 18 need a parent or guardian to set up their account. "
-      + "Ask them to create an account and send you a family invite — you'll get an email with a link to join."
+    guard guardianClaimService.isConfigured else {
+      // No API_BASE_URL in this build, so the minor signup endpoint is unreachable. Say so
+      // plainly rather than presenting a field that cannot submit.
+      return "Signing up as a player under 18 isn't available in this build. "
+        + "Ask a parent or guardian to create an account and send you a family invite."
+    }
+    return "You're under 18, so a parent or guardian needs to confirm your account. "
+      + "We'll email them a link. You can start building your school list right away — "
+      + "messaging coaches unlocks once they confirm."
   }
 
   init(
     authManager: (any AuthManaging)? = nil,
     familyService: (any FamilyManaging)? = nil,
-    turnstileTokenProvider: (any TurnstileTokenProviding)? = nil
+    turnstileTokenProvider: (any TurnstileTokenProviding)? = nil,
+    guardianClaimService: (any GuardianClaimServicing)? = nil
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
+    self.guardianClaimService = guardianClaimService ?? GuardianClaimServiceImpl()
   }
 
   // MARK: - Two-Step Flow
@@ -236,6 +260,24 @@ final class SignupViewModel {
     validate(.confirmPassword) { formValidator.validatePasswordMatch(password, confirmPassword) }
   }
 
+  func validateGuardianEmail() {
+    guard requiresGuardianInvite else {
+      fieldErrors[.guardianEmail] = nil
+      return
+    }
+    validate(.guardianEmail) {
+      let trimmed = guardianEmail.trimmingCharacters(in: .whitespaces)
+      if trimmed.isEmpty { return nil }  // Emptiness is conveyed by the disabled button.
+      if let formatError = formValidator.validateEmail(trimmed) { return formatError }
+      // A minor cannot be their own guardian — otherwise they receive their own consent
+      // link. Server-enforced too; this is the fast feedback.
+      if trimmed.lowercased() == email.trimmingCharacters(in: .whitespaces).lowercased() {
+        return "Your parent or guardian needs a different email address than yours"
+      }
+      return nil
+    }
+  }
+
   func validateFamilyCode() {
     guard let role = selectedRole, role.requiresFamilyCode else {
       fieldErrors[.familyCode] = nil
@@ -273,6 +315,43 @@ final class SignupViewModel {
 
   // MARK: - Actions
 
+  /// Signup for a 13-17 player, who names a guardian to confirm the account.
+  ///
+  /// Routed through `POST /api/auth/signup-minor` rather than `AuthManager.signup`: the
+  /// guardian_claims row has to exist before the DOB-bearing `users` write, and that table
+  /// is service-role only. `AuthManager`'s standalone-minor guard still covers the direct
+  /// path, so a regression here fails loudly rather than orphaning an auth user.
+  private func submitMinorSignup() async {
+    do {
+      let captchaToken = try await turnstileTokenProvider.getToken()
+      let draftsStep1 = hasDraftedOnboardingStep1
+      try await guardianClaimService.signupMinor(
+        MinorSignupInput(
+          email: email.trimmingCharacters(in: .whitespaces),
+          password: password,
+          firstName: trimmedFirstName,
+          lastName: trimmedLastName,
+          dateOfBirth: dobString,
+          guardianEmail: guardianEmail.trimmingCharacters(in: .whitespaces).lowercased(),
+          graduationYear: draftsStep1 ? graduationYear : nil,
+          primarySport: draftsStep1 ? primarySport : nil,
+          gender: draftsStep1 ? (derivedGender ?? (gender.isEmpty ? nil : gender)) : nil,
+          zipCode: draftsStep1 && !trimmedZipCode.isEmpty ? trimmedZipCode : nil,
+          captchaToken: captchaToken
+        )
+      )
+
+      // Same destination as an adult signup: email confirmation still gates the session,
+      // and the guardian-pending state is surfaced on the dashboard once they're in.
+      shouldNavigateToVerifyEmail = true
+    } catch {
+      errorMessage = (error as? LocalizedError)?.errorDescription
+        ?? "Could not create the account. Please try again."
+      signupLogger.error("Minor signup failed: \(error.localizedDescription)")
+    }
+    // isLoading is cleared by signup()'s `defer`, which owns the whole submit.
+  }
+
   func signup() async {
     isLoading = true
     errorMessage = nil
@@ -282,6 +361,7 @@ final class SignupViewModel {
     validateLastName()
     validateEmail()
     if selectedRole == .player { validateDateOfBirth() }
+    validateGuardianEmail()
     validatePassword()
     validateConfirmPassword()
     validateFamilyCode()
@@ -300,6 +380,14 @@ final class SignupViewModel {
 
     guard let role = selectedRole else {
       errorMessage = "Please select a role"
+      return
+    }
+
+    // A 13-17 player goes through the web API instead of the browser-direct path: the
+    // writes must be ordered against the DB's minor gate, and the guardian_claims row that
+    // satisfies it is service-role only. Mirrors web's `submitMinorSignup`.
+    if requiresGuardianInvite {
+      await submitMinorSignup()
       return
     }
 

@@ -38,6 +38,12 @@ struct DashboardView: View {
             .padding(.top, 8)
         }
 
+        // Renders itself only while a guardian claim is outstanding, so no role check
+        // here — an adult player or a parent simply gets nothing.
+        GuardianPendingBanner()
+          .padding(.horizontal)
+          .padding(.top, 8)
+
         ScrollView {
           if sizeClass == .regular {
             dashboardRegularLayout

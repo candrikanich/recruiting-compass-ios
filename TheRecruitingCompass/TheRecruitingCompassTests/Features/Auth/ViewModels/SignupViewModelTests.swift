@@ -8,6 +8,7 @@ final class SignupViewModelTests: XCTestCase {
   var mockAuthManager: MockAuthManager!
   var mockFamilyService: MockFamilyService!
   var mockTurnstileProvider: MockTurnstileTokenProvider!
+  var mockGuardianService: MockGuardianClaimService!
 
   @MainActor
   override func setUp() {
@@ -15,10 +16,12 @@ final class SignupViewModelTests: XCTestCase {
     mockAuthManager = MockAuthManager()
     mockFamilyService = MockFamilyService()
     mockTurnstileProvider = MockTurnstileTokenProvider()
+    mockGuardianService = MockGuardianClaimService()
     sut = SignupViewModel(
       authManager: mockAuthManager,
       familyService: mockFamilyService,
-      turnstileTokenProvider: mockTurnstileProvider
+      turnstileTokenProvider: mockTurnstileProvider,
+      guardianClaimService: mockGuardianService
     )
   }
 
@@ -27,6 +30,7 @@ final class SignupViewModelTests: XCTestCase {
     mockAuthManager = nil
     mockFamilyService = nil
     mockTurnstileProvider = nil
+    mockGuardianService = nil
     super.tearDown()
   }
 
@@ -233,28 +237,107 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertTrue(sut.isFormValid)
   }
 
-  func testFormInvalidForMinorPlayer13to17() {
+  func testFormInvalidForMinorPlayerWithoutGuardianEmail() {
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
 
     XCTAssertFalse(
       sut.isFormValid,
-      "Players 13-17 cannot hold a standalone account; they join via a guardian's family invite"
+      "A 13-17 player must name a guardian before the account can be created"
     )
     XCTAssertFalse(sut.isUnderCOPPAAge, "13-17 is over the COPPA floor — a distinct band")
     XCTAssertTrue(sut.requiresGuardianInvite)
   }
 
-  func testGuardianInviteMessageExplainsDisabledSubmit() {
+  func testFormValidForMinorPlayerWithGuardianEmail() {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = "parent@example.com"
+
+    XCTAssertTrue(
+      sut.isFormValid,
+      "13-17 players can sign up once they name a guardian to confirm the account"
+    )
+  }
+
+  func testFormInvalidWhenGuardianEmailMatchesPlayerEmail() {
+    // Otherwise the minor receives their own consent link and confirms themselves.
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = sut.email
+
+    XCTAssertFalse(sut.isFormValid)
+
+    sut.validateGuardianEmail()
+    XCTAssertNotNil(sut.fieldErrors[.guardianEmail])
+  }
+
+  func testMinorSignupRoutesThroughGuardianService() async {
+    // Not AuthManager.signup: the guardian_claims row has to land before the DOB-bearing
+    // users write, and that table is service-role only.
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = "parent@example.com"
+
+    await sut.signup()
+
+    XCTAssertEqual(mockGuardianService.signupMinorCallCount, 1)
+    XCTAssertEqual(mockAuthManager.signupCallCount, 0)
+    XCTAssertEqual(
+      mockGuardianService.capturedSignupInput?.guardianEmail,
+      "parent@example.com"
+    )
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testAdultSignupDoesNotUseGuardianService() async {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -20, to: .now)!
+
+    await sut.signup()
+
+    XCTAssertEqual(mockGuardianService.signupMinorCallCount, 0)
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+  }
+
+  func testMinorSignupSurfacesServerMessage() async {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = "parent@example.com"
+    mockGuardianService.signupMinorError = GuardianClaimError.server(
+      status: 400,
+      message: "An account with this email already exists"
+    )
+
+    await sut.signup()
+
+    XCTAssertEqual(sut.errorMessage, "An account with this email already exists")
+    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testMinorSignupUnavailableWhenApiBaseUrlMissing() {
+    // Without API_BASE_URL the endpoint is unreachable, so the form must say so rather
+    // than presenting a guardian field that cannot submit.
+    mockGuardianService.isConfigured = false
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = "parent@example.com"
+
+    XCTAssertFalse(sut.canSubmitMinorSignup)
+    XCTAssertFalse(sut.isFormValid)
+    XCTAssertEqual(
+      sut.guardianInviteMessage?.contains("isn't available in this build"),
+      true
+    )
+  }
+
+  func testGuardianInviteMessageExplainsTheGuardianField() {
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
 
     // The picker defaults into this band, so the message must be present without the
-    // user touching the field — otherwise the submit button is disabled with no reason.
-    XCTAssertNotNil(
-      sut.guardianInviteMessage,
-      "A blocked minor must be told why, not left with a silently disabled button"
-    )
+    // user touching the field.
+    XCTAssertNotNil(sut.guardianInviteMessage)
     XCTAssertNil(
       sut.fieldErrors[.dateOfBirth],
       "Guidance is not a validation error — the user hasn't done anything wrong"
@@ -269,7 +352,7 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertFalse(sut.requiresGuardianInvite)
   }
 
-  func testFormValidAtExactlyEighteen() {
+  func testFormValidAtExactlyEighteenWithoutGuardianEmail() {
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -18, to: .now)!
 
