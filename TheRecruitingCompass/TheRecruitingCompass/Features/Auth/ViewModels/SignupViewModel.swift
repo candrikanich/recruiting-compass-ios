@@ -371,6 +371,9 @@ final class SignupViewModel {
   private func signupMinor() async {
     do {
       let captchaToken = try await turnstileTokenProvider.getToken()
+      // Same onboarding-step-1 guard as the ordinary signup path: both grad
+      // year and sport must be present together, or neither is sent.
+      let draftsStep1 = hasDraftedOnboardingStep1
       _ = try await guardianService.signupMinor(
         email: email,
         password: password,
@@ -378,7 +381,11 @@ final class SignupViewModel {
         lastName: trimmedLastName,
         dateOfBirth: dobString,
         guardianEmail: guardianEmail,
-        captchaToken: captchaToken
+        captchaToken: captchaToken,
+        graduationYear: draftsStep1 ? graduationYear : nil,
+        primarySport: draftsStep1 ? primarySport : nil,
+        gender: draftsStep1 ? (derivedGender ?? (gender.isEmpty ? nil : gender)) : nil,
+        zipCode: draftsStep1 && !trimmedZipCode.isEmpty ? trimmedZipCode : nil
       )
       shouldNavigateToVerifyEmail = true
     } catch {

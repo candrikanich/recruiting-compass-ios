@@ -24,6 +24,12 @@ private struct SignupMinorBody: Encodable {
   let dateOfBirth: String
   let guardianEmail: String
   let captchaToken: String?
+  // Onboarding step 1 (mirrors pages/signup.vue's pending_* draft) — optional,
+  // carried through so a minor who fills these in isn't silently re-asked.
+  let graduationYear: Int?
+  let primarySport: String?
+  let gender: String?
+  let zipCode: String?
 }
 
 private struct ResendBody: Encodable {
@@ -43,7 +49,8 @@ protocol GuardianManaging: Sendable {
   /// signup path.
   func signupMinor(
     email: String, password: String, firstName: String, lastName: String,
-    dateOfBirth: String, guardianEmail: String, captchaToken: String?
+    dateOfBirth: String, guardianEmail: String, captchaToken: String?,
+    graduationYear: Int?, primarySport: String?, gender: String?, zipCode: String?
   ) async throws -> SignupMinorResult
 
   /// Guardian-confirmation status for the signed-in player.
@@ -78,11 +85,13 @@ struct GuardianServiceImpl: GuardianManaging {
 
   func signupMinor(
     email: String, password: String, firstName: String, lastName: String,
-    dateOfBirth: String, guardianEmail: String, captchaToken: String?
+    dateOfBirth: String, guardianEmail: String, captchaToken: String?,
+    graduationYear: Int?, primarySport: String?, gender: String?, zipCode: String?
   ) async throws -> SignupMinorResult {
     let body = SignupMinorBody(
       email: email, password: password, firstName: firstName, lastName: lastName,
-      dateOfBirth: dateOfBirth, guardianEmail: guardianEmail, captchaToken: captchaToken)
+      dateOfBirth: dateOfBirth, guardianEmail: guardianEmail, captchaToken: captchaToken,
+      graduationYear: graduationYear, primarySport: primarySport, gender: gender, zipCode: zipCode)
     let data = try await request("api/auth/signup-minor", method: "POST", body: body, accessToken: nil)
     return try JSONDecoder().decode(SignupMinorResult.self, from: data)
   }

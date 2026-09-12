@@ -497,6 +497,18 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertEqual(mockGuardianService.signupMinorCallCount, 0)
   }
 
+  func testSignupMinorForwardsOnboardingStep1Draft() async {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = "guardian@example.com"
+
+    await sut.signup()
+
+    // fillValidForm already drafts graduationYear/primarySport for role: .player.
+    XCTAssertEqual(mockGuardianService.capturedSignupMinorGraduationYear, sut.graduationYear)
+    XCTAssertEqual(mockGuardianService.capturedSignupMinorPrimarySport, sut.primarySport)
+  }
+
   // MARK: - Signup Validation Guard Tests
 
   func testSignupWithInvalidFormDoesNotCallAuthManager() async {

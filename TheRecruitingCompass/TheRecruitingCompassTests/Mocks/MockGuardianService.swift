@@ -28,13 +28,19 @@ final class MockGuardianService: GuardianManaging, @unchecked Sendable {
   private(set) var capturedResolveClaimToken: String?
   private(set) var capturedAcceptClaimToken: String?
 
+  private(set) var capturedSignupMinorGraduationYear: Int?
+  private(set) var capturedSignupMinorPrimarySport: String?
+
   func signupMinor(
     email: String, password: String, firstName: String, lastName: String,
-    dateOfBirth: String, guardianEmail: String, captchaToken: String?
+    dateOfBirth: String, guardianEmail: String, captchaToken: String?,
+    graduationYear: Int?, primarySport: String?, gender: String?, zipCode: String?
   ) async throws -> SignupMinorResult {
     signupMinorCallCount += 1
     capturedSignupMinorEmail = email
     capturedSignupMinorGuardianEmail = guardianEmail
+    capturedSignupMinorGraduationYear = graduationYear
+    capturedSignupMinorPrimarySport = primarySport
     if shouldThrowSignupMinorError { throw mockErrorToThrow }
     return mockSignupMinorResult
   }
