@@ -7,6 +7,7 @@ final class SignupViewModelTests: XCTestCase {
   var sut: SignupViewModel!
   var mockAuthManager: MockAuthManager!
   var mockFamilyService: MockFamilyService!
+  var mockGuardianService: MockGuardianService!
   var mockTurnstileProvider: MockTurnstileTokenProvider!
 
   @MainActor
@@ -14,10 +15,12 @@ final class SignupViewModelTests: XCTestCase {
     super.setUp()
     mockAuthManager = MockAuthManager()
     mockFamilyService = MockFamilyService()
+    mockGuardianService = MockGuardianService()
     mockTurnstileProvider = MockTurnstileTokenProvider()
     sut = SignupViewModel(
       authManager: mockAuthManager,
       familyService: mockFamilyService,
+      guardianService: mockGuardianService,
       turnstileTokenProvider: mockTurnstileProvider
     )
   }
@@ -26,6 +29,7 @@ final class SignupViewModelTests: XCTestCase {
     sut = nil
     mockAuthManager = nil
     mockFamilyService = nil
+    mockGuardianService = nil
     mockTurnstileProvider = nil
     super.tearDown()
   }
@@ -40,9 +44,13 @@ final class SignupViewModelTests: XCTestCase {
     sut.password = "StrongPass123"
     sut.confirmPassword = "StrongPass123"
     sut.termsAccepted = true
+    // Default to an unambiguous adult DOB — the view model's own default
+    // (15 years ago) now lands in the 13-17 guardian-signup band. Tests that
+    // specifically exercise minor/adult routing set dateOfBirth explicitly.
     if role == .player {
       sut.graduationYear = 2028
       sut.primarySport = "Soccer"
+      sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -20, to: .now)!
     }
   }
 
@@ -234,11 +242,26 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testFormValidForMinorPlayer13to17() {
+    // Players 13-17 self-signup but must name a guardian (parity with web PR
+    // #784) — the old "sign up independently, no guardian" behavior (PR #92)
+    // was replaced by the guardian-linked-signup flow.
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
 
-    XCTAssertTrue(sut.isFormValid, "Players 13-17 can sign up independently")
     XCTAssertFalse(sut.isUnderCOPPAAge)
+    XCTAssertTrue(sut.isMinorSignup)
+    XCTAssertFalse(sut.isFormValid, "Missing guardian email should block submission")
+
+    sut.guardianEmail = "guardian@example.com"
+    XCTAssertTrue(sut.isFormValid, "Valid guardian email (different from the player's own) should unblock submission")
+  }
+
+  func testFormInvalidForMinorPlayerWhenGuardianEmailMatchesOwnEmail() {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = sut.email
+
+    XCTAssertFalse(sut.isFormValid, "A minor cannot name themselves as their own guardian")
   }
 
   func testFormValidForAdultPlayer() {
@@ -432,6 +455,58 @@ final class SignupViewModelTests: XCTestCase {
     sut.validateZipCode()
 
     XCTAssertNil(sut.fieldErrors[.zipCode])
+  }
+
+  // MARK: - Guardian-Linked Signup (13-17 players)
+
+  func testSignupRoutesMinorThroughGuardianServiceNotAuthManager() async {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = "guardian@example.com"
+
+    await sut.signup()
+
+    XCTAssertEqual(mockGuardianService.signupMinorCallCount, 1)
+    XCTAssertEqual(mockGuardianService.capturedSignupMinorEmail, "john@example.com")
+    XCTAssertEqual(mockGuardianService.capturedSignupMinorGuardianEmail, "guardian@example.com")
+    XCTAssertEqual(mockAuthManager.signupCallCount, 0, "Minor signup must not go through the ordinary authManager.signup path")
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail, "signup-minor never returns a session — email confirmation is always required")
+  }
+
+  func testSignupMinorSurfacesServerErrorMessage() async {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = "guardian@example.com"
+    mockGuardianService.shouldThrowSignupMinorError = true
+    mockGuardianService.mockErrorToThrow = GuardianServiceError.server(400, message: "An account with this email already exists")
+
+    await sut.signup()
+
+    XCTAssertEqual(sut.errorMessage, "An account with this email already exists")
+    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testSignupDoesNotRouteAdultPlayerThroughGuardianService() async {
+    mockAuthManager.setAuthenticatedAfterSignup = false
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -20, to: .now)!
+
+    await sut.signup()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+    XCTAssertEqual(mockGuardianService.signupMinorCallCount, 0)
+  }
+
+  func testSignupMinorForwardsOnboardingStep1Draft() async {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = "guardian@example.com"
+
+    await sut.signup()
+
+    // fillValidForm already drafts graduationYear/primarySport for role: .player.
+    XCTAssertEqual(mockGuardianService.capturedSignupMinorGraduationYear, sut.graduationYear)
+    XCTAssertEqual(mockGuardianService.capturedSignupMinorPrimarySport, sut.primarySport)
   }
 
   // MARK: - Signup Validation Guard Tests

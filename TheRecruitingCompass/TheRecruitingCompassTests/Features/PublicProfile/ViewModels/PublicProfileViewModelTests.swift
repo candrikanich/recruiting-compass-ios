@@ -318,4 +318,50 @@ final class PublicProfileViewModelTests: XCTestCase {
             updatedAt: "2025-01-01T00:00:00Z"
         )
     }
+
+    // MARK: - Guardian-linked-signup lock (COPPA-adjacent)
+
+    private func authedMockAuthManager() -> MockAuthManager {
+        let mgr = MockAuthManager()
+        mgr.setMockSession(Session(
+            accessToken: "test-token", tokenType: "bearer", expiresIn: 3600,
+            expiresAt: Int(Date().timeIntervalSince1970) + 3600, refreshToken: "refresh",
+            user: User(id: "u1", email: "player@example.com", emailConfirmedAt: nil, phone: nil,
+                       fullName: "Test Player", createdAt: "2026-01-01T00:00:00Z",
+                       updatedAt: "2026-01-01T00:00:00Z", role: .player, dateOfBirth: nil)))
+        return mgr
+    }
+
+    func testRefreshGuardianStatusSetsIsGuardianPending() async {
+        let mock = MockPublicProfileManaging()
+        let guardian = MockGuardianService()
+        guardian.mockStatus = GuardianStatus(pending: true, guardianEmailMasked: "j***@x.com", expiresAt: nil, status: "pending")
+        let vm = PublicProfileViewModel(service: mock, authManager: authedMockAuthManager(), guardianService: guardian)
+
+        await vm.refreshGuardianStatus()
+
+        XCTAssertTrue(vm.isGuardianPending)
+    }
+
+    func testRefreshGuardianStatusNotPendingWhenConfirmed() async {
+        let mock = MockPublicProfileManaging()
+        let guardian = MockGuardianService()
+        guardian.mockStatus = GuardianStatus(pending: false, guardianEmailMasked: nil, expiresAt: nil, status: "claimed")
+        let vm = PublicProfileViewModel(service: mock, authManager: authedMockAuthManager(), guardianService: guardian)
+
+        await vm.refreshGuardianStatus()
+
+        XCTAssertFalse(vm.isGuardianPending)
+    }
+
+    func testRefreshGuardianStatusFailsOpenOnError() async {
+        let mock = MockPublicProfileManaging()
+        let guardian = MockGuardianService()
+        guardian.shouldThrowFetchStatusError = true
+        let vm = PublicProfileViewModel(service: mock, authManager: authedMockAuthManager(), guardianService: guardian)
+
+        await vm.refreshGuardianStatus()
+
+        XCTAssertFalse(vm.isGuardianPending, "A failed status check must never fabricate a publish lock")
+    }
 }

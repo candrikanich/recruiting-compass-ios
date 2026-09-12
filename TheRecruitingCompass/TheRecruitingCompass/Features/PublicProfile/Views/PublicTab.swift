@@ -67,6 +67,7 @@ struct PublicTab: View {
         .task {
             await vm.load()
             await vm.assembleCard()
+            await vm.refreshGuardianStatus()
         }
         .sheet(item: $exportedPDF) { pdf in
             ActivityShareSheet(activityItems: [pdf.url])
@@ -91,6 +92,7 @@ struct PublicTab: View {
                 Toggle("", isOn: $vm.isPublished)
                     .labelsHidden()
                     .onChange(of: vm.isPublished) { _, _ in commit() }
+                    .disabled(vm.isGuardianPending && !vm.isPublished)
                     .accessibilityLabel(String(localized: "Publish public profile"))
             }
         }
@@ -98,6 +100,13 @@ struct PublicTab: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.Surface.card)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+
+        if vm.isGuardianPending && !vm.isPublished {
+            Text("Publishing is locked until your guardian confirms your account.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 16)
+        }
     }
 
     @ViewBuilder

@@ -9,13 +9,51 @@ final class QuickCommunicationGuardrailTests: XCTestCase {
     Coach(id: "c1", firstName: "Sam", lastName: "Smith", email: "s@x.com", phone: "555",
           position: "HC", schoolId: "s1", createdAt: "", updatedAt: "")
   }
-  private func vm(_ stub: GuardStubMessages) -> QuickCommunicationViewModel {
+  private func vm(_ stub: GuardStubMessages, guardian: MockGuardianService? = nil) -> QuickCommunicationViewModel {
     let v = QuickCommunicationViewModel(
       coach: coach(), schoolName: nil,
       templatesService: GuardStubTemplates(),
-      athleteMessagesService: stub)
+      athleteMessagesService: stub,
+      guardianService: guardian ?? MockGuardianService())
     v.configureContext(loggedBy: "u1", familyUnitId: "f1", athleteUserId: "a1", accessToken: "tok")
     return v
+  }
+
+  // MARK: - Guardian-linked-signup lock (COPPA-adjacent)
+
+  func test_guardianPending_hardBlocksBeforeOtherChecks() async {
+    let guardian = MockGuardianService()
+    guardian.mockStatus = GuardianStatus(pending: true, guardianEmailMasked: "j***@x.com", expiresAt: nil, status: "pending")
+    // Would otherwise pass cleanly — proves the guardian check runs first.
+    let v = vm(GuardStubMessages(result: .init(
+      programNoteReused: false, daysSinceLastContact: nil, recentContact: false, messageCountToSchool: 0)), guardian: guardian)
+
+    let ok = await v.evaluateGuardrails(.email)
+
+    XCTAssertFalse(ok)
+    XCTAssertNotNil(v.sendWarning)
+  }
+
+  func test_guardianConfirmed_doesNotBlock() async {
+    let guardian = MockGuardianService()
+    guardian.mockStatus = GuardianStatus(pending: false, guardianEmailMasked: nil, expiresAt: nil, status: "claimed")
+    let v = vm(GuardStubMessages(result: .init(
+      programNoteReused: false, daysSinceLastContact: nil, recentContact: false, messageCountToSchool: 0)), guardian: guardian)
+
+    let ok = await v.evaluateGuardrails(.email)
+
+    XCTAssertTrue(ok)
+  }
+
+  func test_guardianStatusCheckThrows_failsOpen() async {
+    let guardian = MockGuardianService()
+    guardian.shouldThrowFetchStatusError = true
+    let v = vm(GuardStubMessages(result: .init(
+      programNoteReused: false, daysSinceLastContact: nil, recentContact: false, messageCountToSchool: 0)), guardian: guardian)
+
+    let ok = await v.evaluateGuardrails(.email)
+
+    XCTAssertTrue(ok, "A status-check failure must never block a legit send")
   }
 
   func test_programNoteReused_hardBlocks() async {

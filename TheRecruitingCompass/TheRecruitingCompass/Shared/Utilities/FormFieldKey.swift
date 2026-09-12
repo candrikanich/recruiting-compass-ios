@@ -10,4 +10,5 @@ enum FormFieldKey: Hashable {
   case primarySport
   case graduationYear
   case zipCode
+  case guardianEmail
 }

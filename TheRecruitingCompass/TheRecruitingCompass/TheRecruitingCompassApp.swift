@@ -25,6 +25,7 @@ struct TheRecruitingCompassApp: App {
   @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
   @State private var pendingInvite: PendingInvite?
+  @State private var pendingGuardianClaim: PendingInvite?
   @State private var pendingPushDestination: NotificationDestination?
   @Environment(\.accessibilityReduceMotion) var reduceMotion
 
@@ -148,6 +149,9 @@ struct TheRecruitingCompassApp: App {
       .sheet(item: $pendingInvite) { pending in
         InviteJoinView(viewModel: InviteJoinViewModel(token: pending.id))
       }
+      .sheet(item: $pendingGuardianClaim) { pending in
+        GuardianClaimView(viewModel: GuardianClaimViewModel(token: pending.id))
+      }
       .environment(authManager)
       .environment(familyManager)
       .environment(networkMonitor)
@@ -167,6 +171,8 @@ struct TheRecruitingCompassApp: App {
       }
     case .joinInvite(let token):
       pendingInvite = PendingInvite(id: token)
+    case .guardianClaim(let token):
+      pendingGuardianClaim = PendingInvite(id: token)
     case .unknown:
       break
     }
