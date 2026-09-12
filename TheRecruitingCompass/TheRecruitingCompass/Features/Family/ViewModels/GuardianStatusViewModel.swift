@@ -23,14 +23,21 @@ final class GuardianStatusViewModel {
   var errorMessage: String?
 
   private let service: any GuardianClaimServicing
-  private let authManager: any AuthManaging
+  private let injectedAuthManager: (any AuthManaging)?
+
+  /// Resolved on use, not in `init`. `AuthManager.init` kicks off
+  /// `Task { await restoreSession() }`, so touching `.shared` merely to *construct* this
+  /// view model would fire a network call from every view that holds one — including in
+  /// the test target, which is the failure mode PR #124 had to clean up for Turnstile.
+  /// `load()` returns before reaching here when the API isn't configured.
+  private var authManager: any AuthManaging { injectedAuthManager ?? AuthManager.shared }
 
   init(
     service: (any GuardianClaimServicing)? = nil,
     authManager: (any AuthManaging)? = nil
   ) {
     self.service = service ?? GuardianClaimServiceImpl()
-    self.authManager = authManager ?? AuthManager.shared
+    self.injectedAuthManager = authManager
   }
 
   /// True while an unconfirmed guardian claim is outstanding.

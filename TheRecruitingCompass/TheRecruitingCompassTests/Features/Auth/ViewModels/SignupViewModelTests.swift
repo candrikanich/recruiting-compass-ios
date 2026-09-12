@@ -47,6 +47,11 @@ final class SignupViewModelTests: XCTestCase {
     if role == .player {
       sut.graduationYear = 2028
       sut.primarySport = "Soccer"
+      // The DOB picker defaults to a 15-year-old, who now needs a guardian email before
+      // the form is valid. These tests are about other fields (family code, zip, gender,
+      // onboarding metadata), so pin an adult DOB and let the dedicated guardian tests
+      // below own the 13-17 band. Tests that set a minor DOB explicitly still override.
+      sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -20, to: .now)!
     }
   }
 
