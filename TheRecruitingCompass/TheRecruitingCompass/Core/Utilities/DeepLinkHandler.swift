@@ -59,6 +59,16 @@ enum DeepLinkHandler {
       }
     }
 
+    // /guardian/claim/:token
+    if url.path.hasPrefix("/guardian/claim/") {
+      let token = url.path
+        .replacing("/guardian/claim/", with: "")
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+      if isValidInviteToken(token) {
+        return .guardianClaim(token: token)
+      }
+    }
+
     return .unknown
   }
 }

@@ -6,6 +6,7 @@ struct DashboardView: View {
   @State private var showParentWizard = false
   @State private var showAddSchool = false
   @State private var realtimeService: DashboardRealtimeService?
+  @State private var guardianStatusViewModel = GuardianStatusViewModel()
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
   @Environment(\.openMoreSection) private var openMoreSection
@@ -36,6 +37,10 @@ struct DashboardView: View {
           })
             .padding(.horizontal)
             .padding(.top, 8)
+        }
+
+        if familyManager.currentMember?.isAthlete == true {
+          GuardianPendingBanner(viewModel: guardianStatusViewModel)
         }
 
         ScrollView {

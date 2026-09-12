@@ -141,6 +141,9 @@ private struct SignupFormView: View {
         SignupDateOfBirthFieldView(viewModel: viewModel)
         SignupPlayerDetailsFieldsView(viewModel: viewModel)
       }
+      if viewModel.isMinorSignup {
+        SignupGuardianEmailFieldView(viewModel: viewModel)
+      }
       SignupPasswordSectionView(viewModel: viewModel)
       SignupConfirmPasswordFieldView(viewModel: viewModel)
       SignupFamilyCodeFieldView(viewModel: viewModel)
@@ -380,6 +383,30 @@ private struct SignupPlayerDetailsFieldsView: View {
       .onChange(of: viewModel.zipCode) { _, newValue in
         viewModel.zipCode = String(newValue.prefix(5))
       }
+    }
+  }
+}
+
+private struct SignupGuardianEmailFieldView: View {
+  @Bindable var viewModel: SignupViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      LoginFormField(
+        label: String(localized: "Parent/Guardian Email"),
+        placeholder: "parent@example.com",
+        icon: "envelope.badge.person.crop",
+        text: $viewModel.guardianEmail,
+        error: viewModel.errorBinding(for: .guardianEmail),
+        isSecure: false,
+        keyboardType: .emailAddress,
+        textContentType: .emailAddress,
+        onBlur: viewModel.validateGuardianEmail
+      )
+
+      Text("Players under 18 need a parent or guardian to confirm their account. We'll email them a link — you can start using the app right away, but sending messages to coaches and publishing your profile stay locked until they confirm.")
+        .font(.caption)
+        .foregroundStyle(Color.secondary)
     }
   }
 }

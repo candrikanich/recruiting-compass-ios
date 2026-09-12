@@ -37,6 +37,7 @@ final class QuickCommunicationViewModel {
   private let schoolsService: any SchoolsManaging
   private let contactWindowService: any ContactWindowServicing
   private let athleteMessagesService: any AthleteMessagesServicing
+  private let guardianService: any GuardianManaging
   private let preferenceService: any PreferenceManaging
   private var loggedBy: String?
   private var familyUnitId: String?
@@ -93,6 +94,14 @@ final class QuickCommunicationViewModel {
   /// proceed. Fails OPEN — no athlete or any lookup error never blocks a legit send.
   func evaluateGuardrails(_ channel: GuardrailChannel) async -> Bool {
     guard let athleteUserId else { return true }
+    // COPPA-adjacent lock: a self-signed-up 13-17 player can't send outreach
+    // until their named guardian confirms. Fails open on any lookup error —
+    // matches this function's existing philosophy (never block a legit send
+    // on a network hiccup).
+    if let accessToken, let status = try? await guardianService.fetchStatus(accessToken: accessToken), status.pending {
+      sendWarning = String(localized: "Your guardian hasn't confirmed your account yet — outreach is locked until they do.")
+      return false
+    }
     guard let check = try? await athleteMessagesService.checkSend(
       SendCheckInput(athleteUserId: athleteUserId, schoolId: coach.schoolId,
                      programNote: authoredValues["programNote"]),
@@ -496,6 +505,7 @@ final class QuickCommunicationViewModel {
     schoolsService: (any SchoolsManaging)? = nil,
     contactWindowService: (any ContactWindowServicing)? = nil,
     athleteMessagesService: (any AthleteMessagesServicing)? = nil,
+    guardianService: (any GuardianManaging)? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
     loggedBy: String? = nil,
     familyUnitId: String? = nil
@@ -511,6 +521,7 @@ final class QuickCommunicationViewModel {
     self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
     self.contactWindowService = contactWindowService ?? ContactWindowServiceImpl()
     self.athleteMessagesService = athleteMessagesService ?? AthleteMessagesServiceImpl()
+    self.guardianService = guardianService ?? GuardianServiceImpl()
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.loggedBy = loggedBy
     self.familyUnitId = familyUnitId

@@ -15,8 +15,13 @@ final class PublicProfileViewModel {
     private let videoLinksService: VideoLinksManaging
     private let photoService: ProfilePhotoManaging
     private let performanceService: PerformanceManaging
+    private let guardianService: GuardianManaging
 
     var profile: PlayerProfile?
+    /// True while a self-signed-up 13-17 player's guardian hasn't confirmed
+    /// yet. Publishing (not editing) is locked while this is true — COPPA-
+    /// adjacent, mirrors web's `assertGuardianConfirmed` on `is_published`.
+    var isGuardianPending = false
     var bio: String = ""
     var vanitySlug: String = ""
     var isPublished: Bool = false
@@ -46,7 +51,8 @@ final class PublicProfileViewModel {
         schoolsService: SchoolsManaging = SchoolsServiceImpl(supabaseManager: .shared),
         videoLinksService: VideoLinksManaging = VideoLinksServiceImpl(),
         photoService: ProfilePhotoManaging = ProfilePhotoServiceImpl(),
-        performanceService: PerformanceManaging = PerformanceServiceImpl(supabaseManager: .shared)
+        performanceService: PerformanceManaging = PerformanceServiceImpl(supabaseManager: .shared),
+        guardianService: GuardianManaging = GuardianServiceImpl()
     ) {
         self.service = service
         self.authManager = authManager
@@ -57,9 +63,19 @@ final class PublicProfileViewModel {
         self.videoLinksService = videoLinksService
         self.photoService = photoService
         self.performanceService = performanceService
+        self.guardianService = guardianService
     }
 
     private var token: String? { authManager.session?.accessToken }
+
+    /// Fails open on any lookup error — a status-check failure must never
+    /// fabricate a publish lock.
+    func refreshGuardianStatus() async {
+        guard let token else { return }
+        if let status = try? await guardianService.fetchStatus(accessToken: token) {
+            isGuardianPending = status.pending
+        }
+    }
 
     func load() async {
         isLoading = true

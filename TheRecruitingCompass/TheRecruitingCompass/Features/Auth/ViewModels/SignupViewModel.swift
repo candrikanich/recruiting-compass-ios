@@ -25,6 +25,8 @@ final class SignupViewModel {
   var confirmPassword = ""
   var familyCode = ""
   var termsAccepted = false
+  /// Only shown/required for players aged 13-17 (see `isMinorSignup`).
+  var guardianEmail = ""
 
   // Player-only onboarding step 1, captured here so a confirming player isn't re-asked.
   // See planning/iOS_SPEC_preconfirm-onboarding-step1-2026-09-11.md.
@@ -42,6 +44,7 @@ final class SignupViewModel {
 
   private let authManager: any AuthManaging
   private let familyService: any FamilyManaging
+  private let guardianService: any GuardianManaging
   private let turnstileTokenProvider: any TurnstileTokenProviding
   private let formValidator = FormValidator.self
 
@@ -106,6 +109,11 @@ final class SignupViewModel {
       true
     }
 
+    let guardianEmailValid = isMinorSignup
+      ? formValidator.validateEmail(guardianEmail) == nil &&
+        guardianEmail.trimmingCharacters(in: .whitespaces).lowercased() != email.trimmingCharacters(in: .whitespaces).lowercased()
+      : true
+
     return hasValidFirstName &&
       hasValidLastName &&
       hasValidEmail &&
@@ -116,6 +124,7 @@ final class SignupViewModel {
       hasValidDOB &&
       hasValidPlayerDetails &&
       familyCodeValid &&
+      guardianEmailValid &&
       noFieldErrors
   }
 
@@ -148,13 +157,22 @@ final class SignupViewModel {
     selectedRole == .player && COPPAHelper.isUnderAge(dobString)
   }
 
+  /// True for a 13-17 player: they self-signup and name a guardian instead of
+  /// waiting to be invited by one (parity with web PR #784). 18+ players and
+  /// parents are unaffected.
+  var isMinorSignup: Bool {
+    selectedRole == .player && COPPAHelper.requiresGuardianInvite(dobString)
+  }
+
   init(
     authManager: (any AuthManaging)? = nil,
     familyService: (any FamilyManaging)? = nil,
+    guardianService: (any GuardianManaging)? = nil,
     turnstileTokenProvider: (any TurnstileTokenProviding)? = nil
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
+    self.guardianService = guardianService ?? GuardianServiceImpl()
     self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
   }
 
@@ -238,6 +256,21 @@ final class SignupViewModel {
     }
   }
 
+  func validateGuardianEmail() {
+    guard isMinorSignup else {
+      fieldErrors[.guardianEmail] = nil
+      return
+    }
+    validate(.guardianEmail) {
+      if let error = formValidator.validateEmail(guardianEmail) { return error }
+      if guardianEmail.trimmingCharacters(in: .whitespaces).lowercased() ==
+          email.trimmingCharacters(in: .whitespaces).lowercased() {
+        return "Your parent or guardian needs a different email than yours"
+      }
+      return nil
+    }
+  }
+
   func errorBinding(for key: FormFieldKey) -> Binding<String?> {
     Binding(
       get: { self.fieldErrors[key] },
@@ -268,6 +301,7 @@ final class SignupViewModel {
     validateConfirmPassword()
     validateFamilyCode()
     validateZipCode()
+    validateGuardianEmail()
 
     guard isFormValid else {
       if !fieldErrors.isEmpty {
@@ -282,6 +316,11 @@ final class SignupViewModel {
 
     guard let role = selectedRole else {
       errorMessage = "Please select a role"
+      return
+    }
+
+    if isMinorSignup {
+      await signupMinor()
       return
     }
 
@@ -322,6 +361,29 @@ final class SignupViewModel {
       }
     } catch {
       errorMessage = mapAuthError(error).userMessage
+    }
+  }
+
+  /// Standalone signup for a 13-17 player who names a guardian, via the
+  /// dedicated `signup-minor` endpoint (parity with web PR #784). No family
+  /// is created here and no session is returned — the guardian's later
+  /// confirmation creates the family unit and links the player into it.
+  private func signupMinor() async {
+    do {
+      let captchaToken = try await turnstileTokenProvider.getToken()
+      _ = try await guardianService.signupMinor(
+        email: email,
+        password: password,
+        firstName: trimmedFirstName,
+        lastName: trimmedLastName,
+        dateOfBirth: dobString,
+        guardianEmail: guardianEmail,
+        captchaToken: captchaToken
+      )
+      shouldNavigateToVerifyEmail = true
+    } catch {
+      errorMessage = (error as? GuardianServiceError)?.errorDescription
+        ?? mapAuthError(error).userMessage
     }
   }
 
