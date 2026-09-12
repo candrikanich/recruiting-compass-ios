@@ -119,6 +119,7 @@ struct CoachFollowupWidget: View {
 
   /// Empty state for fresh accounts: no coaches tracked yet, branched on whether any
   /// school is followed. Mirrors web's `CoachFollowupWidget.vue` onboarding CTA.
+  @ViewBuilder
   private var onboardingCTA: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(schools.isEmpty ? "🏫 Start tracking your recruiting" : "🎯 Add your first coach")
