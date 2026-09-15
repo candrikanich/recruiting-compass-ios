@@ -161,11 +161,25 @@ extension FamilyServiceImpl {
         // we just inserted. Clean up the orphaned family_units row and return
         // the real family instead of a family we don't actually belong to.
         familyServiceLogger.info("Membership belongs to a different family, cleaning up orphaned unit")
-        _ = try? await supabaseManager.client
-          .from("family_units")
-          .delete()
-          .eq("id", value: familyId)
-          .execute()
+        struct DeletedRow: Decodable { let id: String }
+        do {
+          let deleted: [DeletedRow] = try await supabaseManager.client
+            .from("family_units")
+            .delete()
+            .eq("id", value: familyId)
+            .select("id")
+            .execute()
+            .value
+          guard deleted.contains(where: { $0.id == familyId }) else {
+            familyServiceLogger.error("Failed to clean up orphaned family unit \(familyId, privacy: .private): RLS blocked delete or row already gone")
+            throw FamilyError.serverError("Failed to clean up an orphaned family record. Please try again.")
+          }
+        } catch let error as FamilyError {
+          throw error
+        } catch {
+          familyServiceLogger.error("Failed to clean up orphaned family unit \(familyId, privacy: .private): \(error.localizedDescription, privacy: .public)")
+          throw FamilyError.serverError("Failed to clean up an orphaned family record. Please try again.")
+        }
 
         guard let code = actualMembership.familyCode else {
           throw FamilyError.serverError("Failed to create family")
