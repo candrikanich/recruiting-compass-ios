@@ -142,8 +142,38 @@ extension FamilyServiceImpl {
         ))
         .execute()
     } catch let error as PostgrestError where error.code == "23505" {
-      // The winner's own membership insert already landed this row; not an error.
-      familyServiceLogger.info("Family membership already exists, skipping duplicate insert")
+      // Two distinct constraints can fire "23505" here: the winner's own
+      // membership insert already landed this row (benign - same family we
+      // just created/reused), or idx_player_one_family rejected us because
+      // this user already belongs to a DIFFERENT family (the race loser).
+      // Refetch actual membership and disambiguate rather than assuming benign.
+      guard let actualMembership = try await getFamilyUnit(forUserId: userId) else {
+        throw FamilyError.serverError("Failed to add user to family")
+      }
+
+      if actualMembership.id == familyId {
+        familyServiceLogger.info("Family membership already exists, skipping duplicate insert")
+      } else {
+        // Race loser: our membership lives in a different family than the one
+        // we just inserted. Clean up the orphaned family_units row and return
+        // the real family instead of a family we don't actually belong to.
+        familyServiceLogger.info("Membership belongs to a different family, cleaning up orphaned unit")
+        _ = try? await supabaseManager.client
+          .from("family_units")
+          .delete()
+          .eq("id", value: familyId)
+          .execute()
+
+        guard let code = actualMembership.familyCode else {
+          throw FamilyError.serverError("Failed to create family")
+        }
+        return CreateFamilyResponse(
+          success: true,
+          familyCode: code,
+          familyId: actualMembership.id,
+          familyName: actualMembership.familyName
+        )
+      }
     }
 
     familyServiceLogger.info("createFamily via Supabase: familyId=\(familyId), role=\(role.rawValue)")
