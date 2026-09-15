@@ -103,28 +103,48 @@ extension FamilyServiceImpl {
       }
     }
 
-    try await supabaseManager.client
-      .from("family_units")
-      .insert(FamilyUnitInsert(
-        id: familyId,
-        createdByUserId: userId,
-        familyCode: familyCode,
-        codeGeneratedAt: now,
-        createdAt: now,
-        updatedAt: now
-      ))
-      .execute()
+    do {
+      try await supabaseManager.client
+        .from("family_units")
+        .insert(FamilyUnitInsert(
+          id: familyId,
+          createdByUserId: userId,
+          familyCode: familyCode,
+          codeGeneratedAt: now,
+          createdAt: now,
+          updatedAt: now
+        ))
+        .execute()
+    } catch let error as PostgrestError where error.code == "23505" {
+      // Lost the create race to a concurrent caller (idx_family_units_one_per_creator).
+      // Mirrors server/api/family/create.post.ts on web: reuse the winner's row.
+      familyServiceLogger.info("Lost family-creation race, reusing existing family")
+      if let winner = try await getFamilyUnit(forUserId: userId), let code = winner.familyCode {
+        return CreateFamilyResponse(
+          success: true,
+          familyCode: code,
+          familyId: winner.id,
+          familyName: winner.familyName
+        )
+      }
+      throw FamilyError.serverError("Failed to create family")
+    }
 
-    try await supabaseManager.client
-      .from("family_members")
-      .insert(FamilyMemberInsert(
-        id: memberId,
-        userId: userId,
-        familyUnitId: familyId,
-        role: role.rawValue,
-        addedAt: now
-      ))
-      .execute()
+    do {
+      try await supabaseManager.client
+        .from("family_members")
+        .insert(FamilyMemberInsert(
+          id: memberId,
+          userId: userId,
+          familyUnitId: familyId,
+          role: role.rawValue,
+          addedAt: now
+        ))
+        .execute()
+    } catch let error as PostgrestError where error.code == "23505" {
+      // The winner's own membership insert already landed this row; not an error.
+      familyServiceLogger.info("Family membership already exists, skipping duplicate insert")
+    }
 
     familyServiceLogger.info("createFamily via Supabase: familyId=\(familyId), role=\(role.rawValue)")
     return CreateFamilyResponse(
