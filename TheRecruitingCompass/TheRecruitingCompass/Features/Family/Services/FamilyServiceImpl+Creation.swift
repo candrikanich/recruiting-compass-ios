@@ -118,8 +118,11 @@ extension FamilyServiceImpl {
     } catch let error as PostgrestError where error.code == "23505" {
       // Lost the create race to a concurrent caller (idx_family_units_one_per_creator).
       // Mirrors server/api/family/create.post.ts on web: reuse the winner's row.
+      // Query family_units by created_by_user_id directly — NOT via getFamilyUnit(forUserId:),
+      // which joins through family_members and can race ahead of the winner's own
+      // (separate) membership insert, returning nil even though the family_units row exists.
       familyServiceLogger.info("Lost family-creation race, reusing existing family")
-      if let winner = try await getFamilyUnit(forUserId: userId), let code = winner.familyCode {
+      if let winner = try await getFamilyUnitByCreator(userId: userId), let code = winner.familyCode {
         return CreateFamilyResponse(
           success: true,
           familyCode: code,
