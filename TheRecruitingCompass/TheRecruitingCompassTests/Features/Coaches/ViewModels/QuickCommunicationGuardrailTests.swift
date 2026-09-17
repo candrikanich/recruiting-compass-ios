@@ -23,7 +23,7 @@ final class QuickCommunicationGuardrailTests: XCTestCase {
 
   func test_guardianPending_hardBlocksBeforeOtherChecks() async {
     let guardian = MockGuardianService()
-    guardian.mockStatus = GuardianStatus(pending: true, guardianEmailMasked: "j***@x.com", expiresAt: nil, status: "pending")
+    guardian.mockStatus = GuardianStatus(locked: true, guardianEmailMasked: "j***@x.com", expiresAt: nil, status: "pending")
     // Would otherwise pass cleanly — proves the guardian check runs first.
     let v = vm(GuardStubMessages(result: .init(
       programNoteReused: false, daysSinceLastContact: nil, recentContact: false, messageCountToSchool: 0)), guardian: guardian)
@@ -36,7 +36,7 @@ final class QuickCommunicationGuardrailTests: XCTestCase {
 
   func test_guardianConfirmed_doesNotBlock() async {
     let guardian = MockGuardianService()
-    guardian.mockStatus = GuardianStatus(pending: false, guardianEmailMasked: nil, expiresAt: nil, status: "claimed")
+    guardian.mockStatus = GuardianStatus(locked: false, guardianEmailMasked: nil, expiresAt: nil, status: "claimed")
     let v = vm(GuardStubMessages(result: .init(
       programNoteReused: false, daysSinceLastContact: nil, recentContact: false, messageCountToSchool: 0)), guardian: guardian)
 

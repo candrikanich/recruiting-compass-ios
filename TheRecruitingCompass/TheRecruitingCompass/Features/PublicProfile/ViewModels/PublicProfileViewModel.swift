@@ -73,7 +73,7 @@ final class PublicProfileViewModel {
     func refreshGuardianStatus() async {
         guard let token else { return }
         if let status = try? await guardianService.fetchStatus(accessToken: token) {
-            isGuardianPending = status.pending
+            isGuardianPending = status.locked
         }
     }
 
