@@ -335,7 +335,7 @@ final class PublicProfileViewModelTests: XCTestCase {
     func testRefreshGuardianStatusSetsIsGuardianPending() async {
         let mock = MockPublicProfileManaging()
         let guardian = MockGuardianService()
-        guardian.mockStatus = GuardianStatus(pending: true, guardianEmailMasked: "j***@x.com", expiresAt: nil, status: "pending")
+        guardian.mockStatus = GuardianStatus(locked: true, guardianEmailMasked: "j***@x.com", expiresAt: nil, status: "pending")
         let vm = PublicProfileViewModel(service: mock, authManager: authedMockAuthManager(), guardianService: guardian)
 
         await vm.refreshGuardianStatus()
@@ -346,7 +346,7 @@ final class PublicProfileViewModelTests: XCTestCase {
     func testRefreshGuardianStatusNotPendingWhenConfirmed() async {
         let mock = MockPublicProfileManaging()
         let guardian = MockGuardianService()
-        guardian.mockStatus = GuardianStatus(pending: false, guardianEmailMasked: nil, expiresAt: nil, status: "claimed")
+        guardian.mockStatus = GuardianStatus(locked: false, guardianEmailMasked: nil, expiresAt: nil, status: "claimed")
         let vm = PublicProfileViewModel(service: mock, authManager: authedMockAuthManager(), guardianService: guardian)
 
         await vm.refreshGuardianStatus()

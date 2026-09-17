@@ -12,9 +12,11 @@ This document describes environment configuration and where to set it for develo
 |----------|-------------|--------------|
 | `SUPABASE_URL` | Supabase project URL (e.g. `https://your-project.supabase.co`) | **Debug:** Scheme → Run → Arguments → Environment Variables. **Release/TestFlight:** `Release.xcconfig` (see below). |
 | `SUPABASE_ANON_KEY` | Supabase anonymous (public) key | Same as above. |
+| `API_BASE_URL` | Web app base URL (e.g. `https://your-app.vercel.app`) | Same as above. |
 
-- **Debug:** If either is missing or set to the placeholder values, the app logs a warning and uses placeholders so previews and tests can run. Do not rely on placeholders for real auth or data.
-- **Release / Archive / TestFlight:** Scheme environment variables are **not** embedded in the app. Archived builds (TestFlight, App Store) get credentials from **`Release.xcconfig`** only. Edit `TheRecruitingCompass/Release.xcconfig` and replace the placeholder URL and key with your real values before archiving. The values are compiled into the app’s Info.plist so the app can read them at launch.
+- **Debug:** If any of these are missing or set to the placeholder values, the app logs a warning and uses placeholders so previews and tests can run. Do not rely on placeholders for real auth or data.
+- **`API_BASE_URL` is required, not optional, for any DEBUG run that exercises family creation or onboarding.** `createFamily(role:)` always routes through `POST /api/family/create` on the web API — there is no direct-Supabase fallback. A missing `API_BASE_URL` makes family creation throw immediately, which breaks signup/onboarding for both player and parent roles. It's also required for the dashboard Action Items widget (`GET /api/suggestions`, `PATCH .../dismiss`, `PATCH .../complete`); if unset there, the widget just shows "No action items at this time" instead of throwing. Release/TestFlight/App Store builds already have a production `API_BASE_URL` fallback baked in (`SupabaseConfig.swift`), so this only matters for local DEBUG runs from Xcode.
+- **Release / Archive / TestFlight:** Scheme environment variables are **not** embedded in the app. Archived builds (TestFlight, App Store) get credentials from **`Release.xcconfig`** only. Edit `TheRecruitingCompass/Release.xcconfig` and replace the placeholder URL, key, and API base URL with your real values before archiving. The values are compiled into the app’s Info.plist so the app can read them at launch.
 
 ### TestFlight / App Store (Archive builds)
 
@@ -62,7 +64,7 @@ Serve this file at:
     "details": [
       {
         "appID": "G374A783RH.com.chrisandrikanich.TheRecruitingCompass",
-        "paths": ["/invite/*", "/join"]
+        "paths": ["/invite/*", "/join", "/guardian/claim/*"]
       }
     ]
   }

@@ -98,7 +98,7 @@ final class QuickCommunicationViewModel {
     // until their named guardian confirms. Fails open on any lookup error —
     // matches this function's existing philosophy (never block a legit send
     // on a network hiccup).
-    if let accessToken, let status = try? await guardianService.fetchStatus(accessToken: accessToken), status.pending {
+    if let accessToken, let status = try? await guardianService.fetchStatus(accessToken: accessToken), status.locked {
       sendWarning = String(localized: "Your guardian hasn't confirmed your account yet — outreach is locked until they do.")
       return false
     }

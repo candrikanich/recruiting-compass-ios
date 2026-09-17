@@ -36,7 +36,7 @@ final class GuardianStatusViewModelTests: XCTestCase {
 
   func testRefreshPopulatesStatusAndIsPending() async {
     mockGuardianService.mockStatus = GuardianStatus(
-      pending: true, guardianEmailMasked: "j***@example.com", expiresAt: "2026-12-31T00:00:00Z", status: "pending")
+      locked: true, guardianEmailMasked: "j***@example.com", expiresAt: "2026-12-31T00:00:00Z", status: "pending")
 
     await sut.refresh()
 
@@ -47,7 +47,7 @@ final class GuardianStatusViewModelTests: XCTestCase {
 
   func testRefreshNotPendingWhenClaimed() async {
     mockGuardianService.mockStatus = GuardianStatus(
-      pending: false, guardianEmailMasked: nil, expiresAt: nil, status: "claimed")
+      locked: false, guardianEmailMasked: nil, expiresAt: nil, status: "claimed")
 
     await sut.refresh()
 

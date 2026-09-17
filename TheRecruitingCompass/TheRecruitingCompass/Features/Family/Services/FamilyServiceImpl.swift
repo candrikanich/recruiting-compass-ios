@@ -171,24 +171,4 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     }
     return units.first
   }
-
-  /// Fetches the family unit a user created, queried directly by `created_by_user_id`
-  /// rather than through `family_members`. Use this for creator-uniqueness race recovery
-  /// (23505 on `idx_family_units_one_per_creator`), where the winner's separate
-  /// `family_members` insert may not have landed yet even though `family_units` has.
-  func getFamilyUnitByCreator(userId: String) async throws -> FamilyUnit? {
-    familyServiceLogger.debug("Fetching family unit by creator: \(userId, privacy: .private)")
-    let units: [FamilyUnit] = try await supabaseManager.client
-      .from("family_units")
-      .select()
-      .eq("created_by_user_id", value: userId)
-      .limit(1)
-      .execute()
-      .value
-
-    if let unit = units.first {
-      familyServiceLogger.debug("Fetched family unit by creator: \(unit.id, privacy: .private)")
-    }
-    return units.first
-  }
 }

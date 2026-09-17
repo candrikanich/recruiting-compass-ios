@@ -22,7 +22,7 @@ final class GuardianStatusViewModel {
   private let guardianService: any GuardianManaging
   private let authManager: any AuthManaging
 
-  var isPending: Bool { status?.pending == true }
+  var isPending: Bool { status?.locked == true }
 
   init(
     guardianService: (any GuardianManaging)? = nil,
