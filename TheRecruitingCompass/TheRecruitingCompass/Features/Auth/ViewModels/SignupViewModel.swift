@@ -25,7 +25,9 @@ final class SignupViewModel {
   var confirmPassword = ""
   var familyCode = ""
   var termsAccepted = false
-  /// Only shown/required for players aged 13-17 (see `isMinorSignup`).
+  /// Only shown for players aged 13-17 (see `isMinorSignup`) — optional. A
+  /// player who leaves this blank can invite a guardian later from the
+  /// dashboard (parity with web's guardian-optional signup wizard).
   var guardianEmail = ""
 
   // Player-only onboarding step 1, captured here so a confirming player isn't re-asked.
@@ -109,9 +111,14 @@ final class SignupViewModel {
       true
     }
 
-    let guardianEmailValid = isMinorSignup
+    // Guardian email is optional (parity with web's guardian-optional signup
+    // wizard) — a blank value is valid and simply omits guardian_claims
+    // creation server-side. Only a non-blank value is checked for format and
+    // distinctness from the player's own email.
+    let trimmedGuardianEmail = guardianEmail.trimmingCharacters(in: .whitespaces)
+    let guardianEmailValid = isMinorSignup && !trimmedGuardianEmail.isEmpty
       ? formValidator.validateEmail(guardianEmail) == nil &&
-        guardianEmail.trimmingCharacters(in: .whitespaces).lowercased() != email.trimmingCharacters(in: .whitespaces).lowercased()
+        trimmedGuardianEmail.lowercased() != email.trimmingCharacters(in: .whitespaces).lowercased()
       : true
 
     return hasValidFirstName &&
@@ -257,14 +264,14 @@ final class SignupViewModel {
   }
 
   func validateGuardianEmail() {
-    guard isMinorSignup else {
+    let trimmed = guardianEmail.trimmingCharacters(in: .whitespaces)
+    guard isMinorSignup, !trimmed.isEmpty else {
       fieldErrors[.guardianEmail] = nil
       return
     }
     validate(.guardianEmail) {
       if let error = formValidator.validateEmail(guardianEmail) { return error }
-      if guardianEmail.trimmingCharacters(in: .whitespaces).lowercased() ==
-          email.trimmingCharacters(in: .whitespaces).lowercased() {
+      if trimmed.lowercased() == email.trimmingCharacters(in: .whitespaces).lowercased() {
         return "Your parent or guardian needs a different email than yours"
       }
       return nil
@@ -374,13 +381,14 @@ final class SignupViewModel {
       // Same onboarding-step-1 guard as the ordinary signup path: both grad
       // year and sport must be present together, or neither is sent.
       let draftsStep1 = hasDraftedOnboardingStep1
+      let trimmedGuardianEmail = guardianEmail.trimmingCharacters(in: .whitespaces)
       _ = try await guardianService.signupMinor(
         email: email,
         password: password,
         firstName: trimmedFirstName,
         lastName: trimmedLastName,
         dateOfBirth: dobString,
-        guardianEmail: guardianEmail,
+        guardianEmail: trimmedGuardianEmail.isEmpty ? nil : trimmedGuardianEmail,
         captchaToken: captchaToken,
         graduationYear: draftsStep1 ? graduationYear : nil,
         primarySport: draftsStep1 ? primarySport : nil,

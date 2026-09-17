@@ -33,7 +33,7 @@ final class MockGuardianService: GuardianManaging, @unchecked Sendable {
 
   func signupMinor(
     email: String, password: String, firstName: String, lastName: String,
-    dateOfBirth: String, guardianEmail: String, captchaToken: String?,
+    dateOfBirth: String, guardianEmail: String?, captchaToken: String?,
     graduationYear: Int?, primarySport: String?, gender: String?, zipCode: String?
   ) async throws -> SignupMinorResult {
     signupMinorCallCount += 1
