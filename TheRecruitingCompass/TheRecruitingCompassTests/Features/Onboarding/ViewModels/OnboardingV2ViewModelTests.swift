@@ -212,6 +212,72 @@ struct OnboardingV2ViewModelTests {
     #expect(vm.graduationYear == nil)
   }
 
+  // MARK: - loadExistingData
+
+  // Regression for the onboarding 1-step collapse: the container decides whether to show
+  // "Tell us about you" at all based on isStep1Valid AFTER loadExistingData() runs — a
+  // player whose sport/grad-year were already flushed from signup-time metadata (see
+  // AccountProvisioningService) must resolve to valid here, or the container would show
+  // the redundant step to everyone regardless of what was captured at signup.
+  @Test func loadExistingDataPrefillsFromCanonicalPreferencesMakingStep1Valid() async {
+    let mockPrefService = StubPreferenceService()
+    mockPrefService.storedPlayerDetails = {
+      var details = PlayerDetails.default
+      details.primarySport = "Baseball"
+      details.graduationYear = 2028
+      return details
+    }()
+    let vm = makeSUT(preferenceService: mockPrefService)
+    #expect(!vm.isStep1Valid)
+
+    await vm.loadExistingData()
+
+    #expect(vm.isStep1Valid)
+    #expect(vm.primarySport == "Baseball")
+    #expect(vm.graduationYear == 2028)
+  }
+
+  @Test func loadExistingDataLeavesStep1InvalidWhenNothingStored() async {
+    let vm = makeSUT()
+
+    let succeeded = await vm.loadExistingData()
+
+    #expect(!vm.isStep1Valid)
+    #expect(succeeded, "No stored data is a successful fetch that found nothing — not a failure")
+  }
+
+  // Regression: a transient fetch failure must not read the same as "nothing stored" to
+  // the caller. The onboarding container relies on this to avoid routing a player who
+  // already has canonical sport/grad-year through the redundant Step 1 (or worse, letting
+  // them overwrite it) just because one read happened to fail.
+  @Test func loadExistingDataReturnsFalseWhenPlayerFetchFails() async {
+    let mockPrefService = StubPreferenceService()
+    mockPrefService.errorToThrow = NSError(domain: "test", code: 500)
+    let vm = makeSUT(preferenceService: mockPrefService)
+
+    let succeeded = await vm.loadExistingData()
+
+    #expect(!succeeded)
+  }
+
+  @Test func loadExistingDataDoesNotOverwriteAlreadyEnteredValues() async {
+    let mockPrefService = StubPreferenceService()
+    mockPrefService.storedPlayerDetails = {
+      var details = PlayerDetails.default
+      details.primarySport = "Soccer"
+      details.graduationYear = 2030
+      return details
+    }()
+    let vm = makeSUT(preferenceService: mockPrefService)
+    vm.primarySport = "Baseball"
+    vm.graduationYear = 2028
+
+    await vm.loadExistingData()
+
+    #expect(vm.primarySport == "Baseball")
+    #expect(vm.graduationYear == 2028)
+  }
+
   // MARK: - saveStep1
 
   @Test func saveStep1ReturnsFalseWhenInvalid() async {
@@ -279,10 +345,14 @@ struct OnboardingV2ViewModelTests {
 
 private final class StubPreferenceService: PreferenceManaging, @unchecked Sendable {
   var errorToThrow: Error?
+  var storedPlayerDetails: PlayerDetails?
   private(set) var saveCallCount = 0
 
   func fetchPreferences<T: Codable>(category: PreferenceCategory, userId: String?) async throws -> T? {
     if let errorToThrow { throw errorToThrow }
+    if category == .player, let storedPlayerDetails {
+      return storedPlayerDetails as? T
+    }
     return nil
   }
 
