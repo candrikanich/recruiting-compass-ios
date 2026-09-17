@@ -241,16 +241,24 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertTrue(sut.isFormValid)
   }
 
-  func testFormValidForMinorPlayer13to17() {
-    // Players 13-17 self-signup but must name a guardian (parity with web PR
-    // #784) — the old "sign up independently, no guardian" behavior (PR #92)
-    // was replaced by the guardian-linked-signup flow.
+  func testFormValidForMinorPlayer13to17WithoutGuardianEmail() {
+    // Players 13-17 self-signup; naming a guardian is optional (parity with
+    // web's guardian-optional pivot, migration
+    // 20260927000000_guardian_link_optional.sql, web PR #784→#790). A player
+    // who leaves the field blank can invite a guardian later from the
+    // dashboard — the form must not block submission on it.
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
 
     XCTAssertFalse(sut.isUnderCOPPAAge)
     XCTAssertTrue(sut.isMinorSignup)
-    XCTAssertFalse(sut.isFormValid, "Missing guardian email should block submission")
+    XCTAssertEqual(sut.guardianEmail, "", "Guardian email starts blank")
+    XCTAssertTrue(sut.isFormValid, "A blank guardian email must not block submission")
+  }
+
+  func testFormValidForMinorPlayer13to17WithGuardianEmail() {
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
 
     sut.guardianEmail = "guardian@example.com"
     XCTAssertTrue(sut.isFormValid, "Valid guardian email (different from the player's own) should unblock submission")
@@ -507,6 +515,33 @@ final class SignupViewModelTests: XCTestCase {
     // fillValidForm already drafts graduationYear/primarySport for role: .player.
     XCTAssertEqual(mockGuardianService.capturedSignupMinorGraduationYear, sut.graduationYear)
     XCTAssertEqual(mockGuardianService.capturedSignupMinorPrimarySport, sut.primarySport)
+  }
+
+  func testSignupMinorWithoutGuardianEmailSendsNilNotEmptyString() async {
+    // Guardian-optional: a blank field must reach the server as omitted
+    // (nil), not as an empty string that would fail the server's own email
+    // format validation — see server/api/auth/signup-minor.post.ts.
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = ""
+
+    await sut.signup()
+
+    XCTAssertEqual(mockGuardianService.signupMinorCallCount, 1)
+    XCTAssertNil(mockGuardianService.capturedSignupMinorGuardianEmail)
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+  }
+
+  func testValidateGuardianEmailProducesNoErrorWhenBlank() {
+    // A blank guardian email is a valid, distinct state from an invalid one
+    // (parity with web's guardian-optional signup wizard).
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = ""
+
+    sut.validateGuardianEmail()
+
+    XCTAssertNil(sut.fieldErrors[.guardianEmail])
   }
 
   // MARK: - Signup Validation Guard Tests
