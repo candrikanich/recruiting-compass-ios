@@ -1,13 +1,22 @@
 import SwiftUI
 
-/// Two-step player onboarding container. Replaces the legacy 5-step `OnboardingView`.
+/// Player onboarding container — one step for a player who already supplied sport +
+/// graduation year at signup (parity with web's guardian-optional signup wizard, which
+/// captures the same fields up front — see planning/iOS_SPEC_web-ios-parity-pass-
+/// 2026-09-17.md Item A), two steps otherwise.
 ///
-/// Step 1: "Tell Us About You" — sport, graduation year, zip code
-/// Step 2: "Schools to Explore" — recommendation carousel + push priming
+/// Step 1: "Tell Us About You" — sport, graduation year, zip code. Skipped when
+/// `AccountProvisioningService.flushPendingOnboardingStep1()` (called on every
+/// authenticated session) already landed this data in canonical preferences.
+/// Step 2: "Schools to Explore" — recommendation carousel + push priming. Always shown.
 struct OnboardingContainerView: View {
   enum Step { case tellAboutYou, schoolsToExplore }
 
-  @State private var currentStep: Step = .tellAboutYou
+  @State private var currentStep: Step?
+  // True only when this player actually needs both steps (no valid signup-time data).
+  // A player who skips straight to schoolsToExplore sees a single screen, not a
+  // "Step 2 of 2" indicator implying a wizard they never saw the first half of.
+  @State private var showsTwoSteps = false
   @State private var viewModel = OnboardingV2ViewModel()
   @Environment(AuthManager.self) private var authManager
 
@@ -26,9 +35,16 @@ struct OnboardingContainerView: View {
         VStack(spacing: 0) {
           signOutHeader
 
-          progressIndicator
-
-          stepContent
+          if let currentStep {
+            if showsTwoSteps {
+              progressIndicator(currentStep)
+            }
+            stepContent(currentStep)
+          } else {
+            Spacer()
+            ProgressView()
+            Spacer()
+          }
         }
       }
       .overlay {
@@ -41,7 +57,12 @@ struct OnboardingContainerView: View {
         }
       }
     }
-    .task { OnboardingAnalytics.onboardingStarted() }
+    .task {
+      OnboardingAnalytics.onboardingStarted()
+      await viewModel.loadExistingData()
+      showsTwoSteps = !viewModel.isStep1Valid
+      currentStep = viewModel.isStep1Valid ? .schoolsToExplore : .tellAboutYou
+    }
   }
 
   // MARK: - Sign Out
@@ -61,15 +82,16 @@ struct OnboardingContainerView: View {
 
   // MARK: - Progress
 
-  @ViewBuilder private var progressIndicator: some View {
+  @ViewBuilder
+  private func progressIndicator(_ step: Step) -> some View {
     HStack(spacing: 12) {
       stepDot(active: true)
-      stepConnector
-      stepDot(active: currentStep == .schoolsToExplore)
+      stepConnector(step)
+      stepDot(active: step == .schoolsToExplore)
 
       Spacer()
 
-      Text(currentStep == .tellAboutYou ? "Step 1 of 2" : "Step 2 of 2")
+      Text(step == .tellAboutYou ? "Step 1 of 2" : "Step 2 of 2")
         .font(.subheadline.weight(.medium))
         .foregroundStyle(.secondary)
     }
@@ -83,17 +105,17 @@ struct OnboardingContainerView: View {
       .frame(width: 10, height: 10)
   }
 
-  @ViewBuilder private var stepConnector: some View {
+  private func stepConnector(_ step: Step) -> some View {
     Rectangle()
-      .fill(currentStep == .schoolsToExplore ? Color.accentColor : Color(uiColor: .tertiarySystemFill))
+      .fill(step == .schoolsToExplore ? Color.accentColor : Color(uiColor: .tertiarySystemFill))
       .frame(width: 40, height: 2)
   }
 
   // MARK: - Step Content
 
   @ViewBuilder
-  private var stepContent: some View {
-    switch currentStep {
+  private func stepContent(_ step: Step) -> some View {
+    switch step {
     case .tellAboutYou:
       OnboardingStepOneView(
         viewModel: viewModel,
