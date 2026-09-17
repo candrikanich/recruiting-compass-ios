@@ -521,6 +521,13 @@ final class SignupViewModelTests: XCTestCase {
     // Guardian-optional: a blank field must reach the server as omitted
     // (nil), not as an empty string that would fail the server's own email
     // format validation — see server/api/auth/signup-minor.post.ts.
+    //
+    // The mocked response also carries guardianEmail: nil here (the real
+    // shape of a guardian-free signup's server response) so this test
+    // exercises the VM handling that result, not just a fixture that always
+    // has an address regardless of what was actually sent.
+    mockGuardianService.mockSignupMinorResult = SignupMinorResult(
+      ok: true, guardianEmail: nil, guardianEmailSent: false)
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
     sut.guardianEmail = ""
@@ -529,7 +536,8 @@ final class SignupViewModelTests: XCTestCase {
 
     XCTAssertEqual(mockGuardianService.signupMinorCallCount, 1)
     XCTAssertNil(mockGuardianService.capturedSignupMinorGuardianEmail)
-    XCTAssertTrue(sut.shouldNavigateToVerifyEmail)
+    XCTAssertTrue(sut.shouldNavigateToVerifyEmail, "A successful guardian-free result must not surface as an error")
+    XCTAssertNil(sut.errorMessage)
   }
 
   func testValidateGuardianEmailProducesNoErrorWhenBlank() {

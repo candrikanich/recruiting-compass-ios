@@ -30,7 +30,9 @@ struct GuardianClaimDetails: Decodable, Equatable, Sendable {
 /// Response from `POST /api/auth/signup-minor`.
 struct SignupMinorResult: Decodable, Equatable, Sendable {
   let ok: Bool
-  let guardianEmail: String
+  /// `nil` when the player skipped naming a guardian — see
+  /// server/api/auth/signup-minor.post.ts's `guardianEmail: null` response.
+  let guardianEmail: String?
   let guardianEmailSent: Bool
 }
 
