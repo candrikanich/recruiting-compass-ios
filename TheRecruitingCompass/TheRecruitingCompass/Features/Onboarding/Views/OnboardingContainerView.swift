@@ -17,6 +17,10 @@ struct OnboardingContainerView: View {
   // A player who skips straight to schoolsToExplore sees a single screen, not a
   // "Step 2 of 2" indicator implying a wizard they never saw the first half of.
   @State private var showsTwoSteps = false
+  // True when the initial preferences fetch itself failed (not merely found nothing) —
+  // must block the step decision and offer retry, not silently default to tellAboutYou.
+  // See OnboardingV2ViewModel.loadExistingData()'s doc comment.
+  @State private var loadFailed = false
   @State private var viewModel = OnboardingV2ViewModel()
   @Environment(AuthManager.self) private var authManager
 
@@ -35,7 +39,9 @@ struct OnboardingContainerView: View {
         VStack(spacing: 0) {
           signOutHeader
 
-          if let currentStep {
+          if loadFailed {
+            loadFailedView
+          } else if let currentStep {
             if showsTwoSteps {
               progressIndicator(currentStep)
             }
@@ -59,10 +65,44 @@ struct OnboardingContainerView: View {
     }
     .task {
       OnboardingAnalytics.onboardingStarted()
-      await viewModel.loadExistingData()
-      showsTwoSteps = !viewModel.isStep1Valid
-      currentStep = viewModel.isStep1Valid ? .schoolsToExplore : .tellAboutYou
+      await resolveInitialStep()
     }
+  }
+
+  /// Fetches existing preferences and decides the starting step. On a failed fetch
+  /// (network/server error, not merely "nothing saved"), blocks on a retry screen
+  /// instead of defaulting to tellAboutYou — see loadExistingData()'s doc comment for
+  /// why silently treating a failure as "no data" is unsafe here.
+  private func resolveInitialStep() async {
+    loadFailed = false
+    let loaded = await viewModel.loadExistingData()
+    guard loaded else {
+      loadFailed = true
+      return
+    }
+    showsTwoSteps = !viewModel.isStep1Valid
+    currentStep = viewModel.isStep1Valid ? .schoolsToExplore : .tellAboutYou
+  }
+
+  @ViewBuilder private var loadFailedView: some View {
+    Spacer()
+    VStack(spacing: 16) {
+      Image(systemName: "exclamationmark.triangle")
+        .font(.largeTitle)
+        .foregroundStyle(.secondary)
+      Text("Couldn't load your info")
+        .font(.headline)
+      Text("Check your connection and try again.")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
+      Button("Try Again") {
+        Task { await resolveInitialStep() }
+      }
+      .buttonStyle(.borderedProminent)
+    }
+    .padding(.horizontal, 32)
+    Spacer()
   }
 
   // MARK: - Sign Out

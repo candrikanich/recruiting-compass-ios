@@ -240,9 +240,24 @@ struct OnboardingV2ViewModelTests {
   @Test func loadExistingDataLeavesStep1InvalidWhenNothingStored() async {
     let vm = makeSUT()
 
-    await vm.loadExistingData()
+    let succeeded = await vm.loadExistingData()
 
     #expect(!vm.isStep1Valid)
+    #expect(succeeded, "No stored data is a successful fetch that found nothing — not a failure")
+  }
+
+  // Regression: a transient fetch failure must not read the same as "nothing stored" to
+  // the caller. The onboarding container relies on this to avoid routing a player who
+  // already has canonical sport/grad-year through the redundant Step 1 (or worse, letting
+  // them overwrite it) just because one read happened to fail.
+  @Test func loadExistingDataReturnsFalseWhenPlayerFetchFails() async {
+    let mockPrefService = StubPreferenceService()
+    mockPrefService.errorToThrow = NSError(domain: "test", code: 500)
+    let vm = makeSUT(preferenceService: mockPrefService)
+
+    let succeeded = await vm.loadExistingData()
+
+    #expect(!succeeded)
   }
 
   @Test func loadExistingDataDoesNotOverwriteAlreadyEnteredValues() async {

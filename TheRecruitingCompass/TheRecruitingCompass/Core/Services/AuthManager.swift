@@ -60,6 +60,10 @@ final class AuthManager: AuthManaging {
     logger.debug("Attempting login for: \(email.prefix(3))***")
     do {
       let (user, session) = try await supabaseManager.signIn(email: email, password: password, captchaToken: captchaToken)
+      // Flush BEFORE publishing isAuthenticated: anything reacting to that flag (e.g.
+      // OnboardingContainerView deciding its starting step) must only ever see canonical
+      // preferences after any pending signup-time metadata has already landed there.
+      await accountProvisioning.flushPendingOnboardingStep1()
       self.user = user
       self.session = session
       self.isAuthenticated = true
@@ -69,7 +73,6 @@ final class AuthManager: AuthManaging {
       try keychain.save(session, forKey: sessionKey)
       Analytics.identify(userId: user.id, email: email)
       logger.info("Login successful for user: \(user.id, privacy: .private)")
-      await accountProvisioning.flushPendingOnboardingStep1()
     } catch {
       self.isAuthenticated = false
       self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
@@ -110,6 +113,13 @@ final class AuthManager: AuthManaging {
         zipCode: zipCode,
         captchaToken: captchaToken
       )
+      // Flush BEFORE publishing isAuthenticated (see login()'s equivalent comment) — a
+      // signup that returns a session immediately (no email confirmation required) must
+      // not let the onboarding container see this user as authenticated before their
+      // own signup-time sport/grad-year metadata has landed in canonical preferences.
+      if session != nil {
+        await accountProvisioning.flushPendingOnboardingStep1()
+      }
       self.user = user
       self.session = session
       self.isAuthenticated = session != nil
@@ -289,6 +299,11 @@ final class AuthManager: AuthManaging {
     switch result {
     case .success(let (updatedUser, newSession)):
       if let newSession {
+        // Flush BEFORE publishing isAuthenticated — see login()'s equivalent comment.
+        // Covers a restored/refreshed session for a player who signed up, never had
+        // pending_* metadata flushed (e.g. app was killed before login()'s own flush
+        // ran), and is only now completing that on relaunch.
+        await accountProvisioning.flushPendingOnboardingStep1()
         self.session = newSession
         self.user = updatedUser
         self.isAuthenticated = true
@@ -312,6 +327,7 @@ final class AuthManager: AuthManaging {
       if let fallback {
         // Refresh failed but cached session is still valid — use it
         logger.warning("Session refresh failed, using cached session: \(error.localizedDescription)")
+        await accountProvisioning.flushPendingOnboardingStep1()
         self.session = fallback
         self.user = fallback.user
         self.isAuthenticated = true
