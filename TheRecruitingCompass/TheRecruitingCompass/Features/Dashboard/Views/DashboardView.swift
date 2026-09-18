@@ -58,7 +58,7 @@ struct DashboardView: View {
       .navigationTitle("Dashboard")
       .navigationBarTitleDisplayMode(.inline)
       .sheet(isPresented: $showParentWizard) {
-        ParentOnboardingWizardView(
+        InviteAthleteView(
           viewModel: ParentOnboardingWizardViewModel(),
           onDismiss: {
             showParentWizard = false

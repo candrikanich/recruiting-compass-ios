@@ -11,7 +11,7 @@ final class ParentOnboardingWizardViewModel {
   nonisolated deinit {}
   enum Step: Int, CaseIterable {
     case playerDetails = 0
-    case sendInvite = 1
+    case schoolsToExplore = 1
   }
 
   var currentStep: Step = .playerDetails
@@ -31,9 +31,14 @@ final class ParentOnboardingWizardViewModel {
 
   var inviteEmail: String = ""
 
-  /// Family code for "share your family code" (loaded when entering step 2).
+  /// Family code for "share your family code" (loaded lazily by InviteAthleteView).
   var familyCode: String?
   var isLoadingFamilyCode = false
+
+  /// Step 2 — schools to explore (matches web's `pages/onboarding/parent.vue` Step 2).
+  var recommendations: [SchoolRecommendation] = []
+  var isLoadingRecommendations = false
+  var schoolsAdded: Int = 0
 
   var isLoading = false
   var errorMessage: String?
@@ -56,6 +61,8 @@ final class ParentOnboardingWizardViewModel {
 
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
+  private let schoolsRepository: any SchoolsRepository
+  private let recommendationService: any SchoolRecommendationManaging
 
   private var playerDateOfBirthString: String? {
     let formatter = DateFormatter()
@@ -88,15 +95,19 @@ final class ParentOnboardingWizardViewModel {
 
   init(
     familyService: (any FamilyManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    schoolsRepository: (any SchoolsRepository)? = nil,
+    recommendationService: (any SchoolRecommendationManaging)? = nil
   ) {
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.schoolsRepository = schoolsRepository ?? SchoolsRepositoryImpl(supabaseManager: .shared)
+    self.recommendationService = recommendationService ?? SchoolRecommendationServiceImpl(supabaseManager: .shared)
   }
 
   func nextStep() {
     guard currentStep.rawValue < Step.allCases.count - 1 else { return }
-    currentStep = Step(rawValue: currentStep.rawValue + 1) ?? .sendInvite
+    currentStep = Step(rawValue: currentStep.rawValue + 1) ?? .schoolsToExplore
     errorMessage = nil
   }
 
@@ -128,6 +139,110 @@ final class ParentOnboardingWizardViewModel {
     }
   }
 
+  private var pendingPlayerDetails: PendingPlayerDetails {
+    let first = playerFirstName.trimmingCharacters(in: .whitespaces)
+    let lastTrimmed = playerLastName.trimmingCharacters(in: .whitespaces)
+    return PendingPlayerDetails(
+      firstName: first,
+      lastName: lastTrimmed,
+      sport: playerSport.isEmpty ? nil : playerSport,
+      position: playerPosition.isEmpty ? nil : playerPosition,
+      graduationYear: playerGraduationYear
+    )
+  }
+
+  /// Step 1 -> Step 2 (matches web's `savePlayerDetails()`: persist, then advance and prefetch recommendations).
+  func proceedFromPlayerDetails() async {
+    guard isPlayerDetailsValid else { return }
+
+    isLoading = true
+    errorMessage = nil
+    defer { isLoading = false }
+
+    do {
+      let response = try await familyService.createFamily(role: .parent)
+      try await familyService.savePlayerDetails(familyId: response.familyId, details: pendingPlayerDetails)
+      familyCode = response.familyCode
+      nextStep()
+      await loadRecommendations()
+    } catch {
+      errorMessage = (error as? FamilyError)?.errorDescription ?? "Couldn't save your athlete's details. Please try again."
+    }
+  }
+
+  // MARK: - Step 2 — Schools to Explore
+
+  func loadRecommendations() async {
+    guard let userId = authManager.user?.id else { return }
+
+    isLoadingRecommendations = true
+    defer { isLoadingRecommendations = false }
+
+    do {
+      recommendations = try await recommendationService.fetchRecommendations(athleteId: userId, limit: 8)
+    } catch {
+      logger.error("Failed to load recommendations: \(error.localizedDescription, privacy: .public)")
+      recommendations = []
+    }
+  }
+
+  func addSchool(_ recommendation: SchoolRecommendation) async -> Bool {
+    guard let userId = authManager.user?.id else { return false }
+
+    do {
+      let familyUnit = try await familyService.getFamilyUnit(forUserId: userId)
+      guard let familyUnitId = familyUnit?.id else {
+        logger.warning("No family unit found; cannot create school")
+        return false
+      }
+
+      let request = SchoolCreateRequest(
+        userId: userId,
+        familyUnitId: familyUnitId,
+        name: recommendation.name,
+        location: nil,
+        city: nil,
+        state: recommendation.state,
+        division: recommendation.division,
+        conference: recommendation.conference,
+        website: nil,
+        twitterHandle: nil,
+        instagramHandle: nil,
+        ncaaId: nil,
+        notes: nil,
+        status: "researching",
+        academicInfo: nil,
+        faviconUrl: nil
+      )
+      _ = try await schoolsRepository.createSchool(request: request)
+
+      recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
+      schoolsAdded += 1
+      return true
+    } catch {
+      logger.error("Failed to add school: \(error.localizedDescription, privacy: .public)")
+      errorMessage = "Couldn't add \(recommendation.name). Please try again."
+      return false
+    }
+  }
+
+  func dismissRecommendation(_ recommendation: SchoolRecommendation) async {
+    guard let userId = authManager.user?.id else { return }
+
+    recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
+
+    do {
+      try await recommendationService.dismissRecommendation(catalogKey: recommendation.catalogKey, athleteId: userId)
+    } catch {
+      logger.error("Failed to dismiss recommendation: \(error.localizedDescription, privacy: .public)")
+    }
+  }
+
+  /// Matches web's `goToDashboard()` — always reachable, whether or not any school was added.
+  func finishOnboarding() {
+    didComplete = true
+  }
+
   func sendInvite() async {
     guard isInviteStepValid else {
       errorMessage = "Please enter a valid email address"
@@ -139,20 +254,10 @@ final class ParentOnboardingWizardViewModel {
     defer { isLoading = false }
 
     do {
-      let first = playerFirstName.trimmingCharacters(in: .whitespaces)
-      let lastTrimmed = playerLastName.trimmingCharacters(in: .whitespaces)
-      let last = lastTrimmed.isEmpty ? "" : lastTrimmed
-      let details = PendingPlayerDetails(
-        firstName: first,
-        lastName: last,
-        sport: playerSport.isEmpty ? nil : playerSport,
-        position: playerPosition.isEmpty ? nil : playerPosition,
-        graduationYear: playerGraduationYear
-      )
       try await familyService.sendEmailInvite(
         email: inviteEmail.trimmingCharacters(in: .whitespaces),
         role: "player",
-        pendingPlayerDetails: details
+        pendingPlayerDetails: pendingPlayerDetails
       )
       successMessage = "Invite sent to \(inviteEmail.trimmingCharacters(in: .whitespaces))!"
       showSuccessToast = true
