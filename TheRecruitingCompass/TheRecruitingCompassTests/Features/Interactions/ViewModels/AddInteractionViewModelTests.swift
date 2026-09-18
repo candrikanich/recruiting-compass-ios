@@ -648,7 +648,7 @@ final class AddInteractionViewModelTests: XCTestCase {
     mockAuth.setMockSession(Session(
       accessToken: "test-token", tokenType: "bearer", expiresIn: 3600,
       expiresAt: 9_999_999_999, refreshToken: "refresh",
-      user: User(id: "user1", email: "a@b.com", emailConfirmedAt: nil, phone: nil, fullName: nil, createdAt: "", updatedAt: "", role: nil, dateOfBirth: nil)
+      user: User(id: "user1", email: "a@b.com", emailConfirmedAt: nil, fullName: nil, createdAt: "", updatedAt: "", role: nil, dateOfBirth: nil)
     ))
     return AddInteractionViewModel(
       interactionsService: mockService,

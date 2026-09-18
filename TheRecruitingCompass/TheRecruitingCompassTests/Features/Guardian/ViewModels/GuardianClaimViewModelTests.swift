@@ -54,7 +54,7 @@ final class GuardianClaimViewModelTests: XCTestCase {
     mockAuthManager.setMockSession(Session(
       accessToken: "existing-token", tokenType: "bearer", expiresIn: 3600,
       expiresAt: Int(Date().timeIntervalSince1970) + 3600, refreshToken: "refresh",
-      user: User(id: "g1", email: "guardian@example.com", emailConfirmedAt: nil, phone: nil,
+      user: User(id: "g1", email: "guardian@example.com", emailConfirmedAt: nil,
                  fullName: "Guardian", createdAt: "2026-01-01T00:00:00Z",
                  updatedAt: "2026-01-01T00:00:00Z", role: .parent, dateOfBirth: nil)))
 
@@ -83,7 +83,7 @@ final class GuardianClaimViewModelTests: XCTestCase {
     mockAuthManager.setMockSession(Session(
       accessToken: "existing-token", tokenType: "bearer", expiresIn: 3600,
       expiresAt: Int(Date().timeIntervalSince1970) + 3600, refreshToken: "refresh",
-      user: User(id: "g1", email: "guardian@example.com", emailConfirmedAt: nil, phone: nil,
+      user: User(id: "g1", email: "guardian@example.com", emailConfirmedAt: nil,
                  fullName: "Guardian", createdAt: "2026-01-01T00:00:00Z",
                  updatedAt: "2026-01-01T00:00:00Z", role: .parent, dateOfBirth: nil)))
     mockGuardianService.shouldThrowAcceptClaimError = true

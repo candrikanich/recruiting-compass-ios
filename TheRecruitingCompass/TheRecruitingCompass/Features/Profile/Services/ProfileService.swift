@@ -32,7 +32,7 @@ enum ProfileServiceError: LocalizedError {
 // MARK: - Protocol
 
 protocol ProfileManaging: Sendable {
-    func updatePersonalInfo(fullName: String, phone: String?, dateOfBirth: String?) async throws
+    func updatePersonalInfo(fullName: String, dateOfBirth: String?) async throws
     func changeEmail(newEmail: String, currentPassword: String) async throws
     func changePassword(currentPassword: String, newPassword: String) async throws
     func getDeletionStatus() async throws -> Date?
@@ -49,16 +49,15 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
         self.supabaseManager = supabaseManager
     }
 
-    func updatePersonalInfo(fullName: String, phone: String?, dateOfBirth: String?) async throws {
+    func updatePersonalInfo(fullName: String, dateOfBirth: String?) async throws {
         struct Body: Encodable {
             let full_name: String
-            let phone: String?
             let date_of_birth: String?
         }
         try await post(
             path: "api/user/profile",
             method: "PATCH",
-            body: Body(full_name: fullName, phone: phone, date_of_birth: dateOfBirth)
+            body: Body(full_name: fullName, date_of_birth: dateOfBirth)
         )
     }
 

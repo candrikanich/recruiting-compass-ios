@@ -15,7 +15,6 @@ final class OfferDetailViewModelTests: XCTestCase {
       id: "user-1",
       email: "test@example.com",
       emailConfirmedAt: "2025-01-01T00:00:00Z",
-      phone: nil,
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2025-01-01T00:00:00Z",
       role: .player

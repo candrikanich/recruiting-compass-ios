@@ -18,7 +18,6 @@ final class NotificationsListViewModelTests: XCTestCase {
       id: "user-1",
       email: "athlete@test.com",
       emailConfirmedAt: "2026-01-01T00:00:00Z",
-      phone: nil,
       createdAt: "2026-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z",
       role: nil

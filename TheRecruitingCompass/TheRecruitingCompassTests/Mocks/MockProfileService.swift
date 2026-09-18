@@ -15,7 +15,6 @@ final class MockProfileService: ProfileManaging, @unchecked Sendable {
 
   var updatePersonalInfoCallCount = 0
   var lastFullName: String?
-  var lastPhone: String?
   var lastDateOfBirth: String?
 
   var changeEmailCallCount = 0
@@ -30,10 +29,9 @@ final class MockProfileService: ProfileManaging, @unchecked Sendable {
   var requestDeletionCallCount = 0
   var cancelDeletionCallCount = 0
 
-  func updatePersonalInfo(fullName: String, phone: String?, dateOfBirth: String?) async throws {
+  func updatePersonalInfo(fullName: String, dateOfBirth: String?) async throws {
     updatePersonalInfoCallCount += 1
     lastFullName = fullName
-    lastPhone = phone
     lastDateOfBirth = dateOfBirth
     if shouldThrowOnUpdatePersonalInfo { throw errorToThrow }
   }

@@ -19,7 +19,6 @@ final class TasksListViewModelTests: XCTestCase {
       id: "athlete-1",
       email: "a@test.com",
       emailConfirmedAt: nil,
-      phone: nil,
       createdAt: "",
       updatedAt: "",
       role: .player

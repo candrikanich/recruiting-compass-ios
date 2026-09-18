@@ -1087,7 +1087,6 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
       id: id,
       email: "test@example.com",
       emailConfirmedAt: nil,
-      phone: nil,
       createdAt: "",
       updatedAt: "",
       role: nil
