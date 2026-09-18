@@ -18,7 +18,8 @@ struct OnboardingWrapperView: View {
   }
 }
 
-/// Parent onboarding: 2-step wizard (player details → invite) with option to skip, matching web.
+/// Parent onboarding: 2-step wizard (player details → schools to explore), matching web's content.
+/// The "Skip for now" escape hatch is iOS-only — web's equivalent wizard has no skip button.
 private struct ParentOnboardingWrapperContent: View {
   var onComplete: () -> Void
   @Environment(AuthManager.self) private var authManager
