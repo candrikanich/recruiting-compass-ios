@@ -167,9 +167,12 @@ private struct InviteJoinInviteContent: View {
           Text("\(invite.familyName)'s recruiting journey")
             .font(.title2.weight(.bold))
             .multilineTextAlignment(.center)
-          Text("\(invite.inviterName) invited you as a \(invite.role).")
-            .font(.body)
-            .foregroundStyle(.secondary)
+          Text(
+            invite.inviterName.map { "\($0) invited you as a \(invite.role)." }
+              ?? "You've been invited to join as a \(invite.role)."
+          )
+          .font(.body)
+          .foregroundStyle(.secondary)
         }
         .padding(.top, 16)
 
@@ -179,15 +182,28 @@ private struct InviteJoinInviteContent: View {
 
         if viewModel.isAuthenticated {
           InviteJoinAuthenticatedConnectSection(invite: invite, viewModel: viewModel)
-        } else if invite.emailExists {
+        } else if viewModel.showsLoginSection(for: invite) {
           InviteJoinLoginSection(invite: invite, viewModel: viewModel)
+          switchAuthModeButton(title: "Don't have an account? Sign up") {
+            viewModel.authModeOverride = false
+          }
         } else {
           InviteJoinSignupSection(invite: invite, viewModel: viewModel, presentedLegal: $presentedLegal)
+          switchAuthModeButton(title: "Already have an account? Log in") {
+            viewModel.authModeOverride = true
+          }
         }
       }
       .padding(24)
     }
   }
+}
+
+private func switchAuthModeButton(title: String, action: @escaping () -> Void) -> some View {
+  Button(title, action: action)
+    .font(.subheadline)
+    .buttonStyle(.plain)
+    .foregroundStyle(Color.accentColor)
 }
 
 private struct InviteJoinAuthenticatedConnectSection: View {
