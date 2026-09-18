@@ -618,6 +618,23 @@ final class CoachesListViewModelTests: XCTestCase {
     if let url { sut.cleanupExport(url: url) }
   }
 
+  func testPrepareCoachExport_neutralizesFormulaInjection() async {
+    mockService.stubbedSchools = [makeSchool(id: "school-1", name: "State University")]
+    mockService.stubbedCoaches = [
+      makeCoach(id: "1", schoolId: "school-1", notes: "=SUM(A1:A10)")
+    ]
+    await sut.loadCoaches()
+
+    sut.prepareCoachExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.contains("'=SUM(A1:A10)") ?? false)
+    XCTAssertFalse(csv?.contains(",=SUM(A1:A10)") ?? true)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
   func testPrepareCoachExport_emptyList_headerOnly() async {
     mockService.stubbedSchools = []
     mockService.stubbedCoaches = []

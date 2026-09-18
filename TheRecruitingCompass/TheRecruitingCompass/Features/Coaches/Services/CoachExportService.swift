@@ -49,10 +49,20 @@ struct CoachExportService {
     try? FileManager.default.removeItem(at: url)
   }
 
+  /// Formula-injection guard: a cell opened by Excel/Numbers/Sheets that
+  /// starts with =, +, -, or @ can execute as a formula. Prefixing with a
+  /// single quote forces text interpretation without altering the visible
+  /// value in any spreadsheet app.
+  private static let formulaTriggerChars: Set<Character> = ["=", "+", "-", "@"]
+
   private func escaped(_ field: String) -> String {
-    guard field.contains(",") || field.contains("\"") || field.contains("\n") else {
-      return field
+    var value = field
+    if let first = value.first, Self.formulaTriggerChars.contains(first) {
+      value = "'" + value
     }
-    return "\"\(field.replacingOccurrences(of: "\"", with: "\"\""))\""
+    guard value.contains(",") || value.contains("\"") || value.contains("\n") else {
+      return value
+    }
+    return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
   }
 }
