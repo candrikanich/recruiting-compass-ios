@@ -32,6 +32,7 @@ final class CoachesListViewModel {
   }
   var successMessage: String?
   var showSuccessToast = false
+  var exportFileURL: URL?
 
   let coachesService: any CoachesManaging
   private let familyManager: FamilyManager
@@ -234,6 +235,23 @@ final class CoachesListViewModel {
 
   func schoolLogoUrl(for schoolId: String) -> String? {
     schoolLogoMap[schoolId].flatMap { $0 }
+  }
+
+  func prepareCoachExport() {
+    do {
+      exportFileURL = try CoachExportService().prepareCSV(
+        coaches: filteredCoaches,
+        schoolName: schoolName(for:)
+      )
+    } catch {
+      logger.error("Failed to prepare coach export: \(error.localizedDescription)")
+      errorMessage = "Failed to export coaches. Please try again."
+    }
+  }
+
+  func cleanupExport(url: URL) {
+    CoachExportService().cleanup(url: url)
+    exportFileURL = nil
   }
 
   func schoolInitials(for schoolId: String) -> String {

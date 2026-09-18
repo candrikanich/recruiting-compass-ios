@@ -580,4 +580,83 @@ final class CoachesListViewModelTests: XCTestCase {
     sut.filters.searchText = "john"
     XCTAssertEqual(sut.resultCount, 1)
   }
+
+  // MARK: - Coach Export Tests
+
+  func testPrepareCoachExport_generatesCSVWithHeaderAndRows() async {
+    mockService.stubbedSchools = [makeSchool(id: "school-1", name: "State University")]
+    mockService.stubbedCoaches = [
+      makeCoach(id: "1", firstName: "John", lastName: "Smith", position: "head", schoolId: "school-1")
+    ]
+    await sut.loadCoaches()
+
+    sut.prepareCoachExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.hasPrefix(
+      "First Name,Last Name,Role,School,Email,Phone,Twitter,Instagram,Last Contact Date,Notes\n"
+    ) ?? false)
+    XCTAssertTrue(csv?.contains("John,Smith,Head Coach,State University,john@school.edu,555-1234") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareCoachExport_escapesCommasAndQuotes() async {
+    mockService.stubbedSchools = [makeSchool(id: "school-1", name: "State University")]
+    mockService.stubbedCoaches = [
+      makeCoach(id: "1", schoolId: "school-1", notes: "Great guy, likes \"D1\" schools")
+    ]
+    await sut.loadCoaches()
+
+    sut.prepareCoachExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.contains("\"Great guy, likes \"\"D1\"\" schools\"") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareCoachExport_emptyList_headerOnly() async {
+    mockService.stubbedSchools = []
+    mockService.stubbedCoaches = []
+    await sut.loadCoaches()
+
+    sut.prepareCoachExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertEqual(csv, "First Name,Last Name,Role,School,Email,Phone,Twitter,Instagram,Last Contact Date,Notes\n")
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareCoachExport_missingOptionalFields_blank() async {
+    mockService.stubbedSchools = [makeSchool(id: "school-1", name: "State University")]
+    mockService.stubbedCoaches = [
+      makeCoach(
+        id: "1",
+        firstName: "Jane",
+        lastName: "Doe",
+        email: nil,
+        phone: nil,
+        position: "assistant",
+        schoolId: "school-1",
+        twitterHandle: nil,
+        instagramHandle: nil,
+        notes: nil,
+        lastContactDate: nil
+      )
+    ]
+    await sut.loadCoaches()
+
+    sut.prepareCoachExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.contains("Jane,Doe,Assistant Coach,State University,,,,,,\n") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
 }

@@ -52,6 +52,21 @@ struct CoachesListView: View {
           .accessibilityLabel(String(localized: "Add new coach"))
           .accessibilityHint("Opens form to add a new coach")
         }
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            viewModel.prepareCoachExport()
+          } label: {
+            Image(systemName: "square.and.arrow.up")
+              .frame(minWidth: 44, minHeight: 44)
+              .contentShape(Rectangle())
+          }
+          .disabled(viewModel.filteredCoaches.isEmpty)
+          .accessibilityLabel(String(localized: "Export coaches to CSV"))
+        }
+      }
+      .sheet(item: Bindable(viewModel).exportFileURL) { url in
+        ActivityShareSheet(activityItems: [url])
+          .onDisappear { viewModel.cleanupExport(url: url) }
       }
         .navigationDestination(for: CoachDestination.self) { destination in
           destinationView(for: destination)
