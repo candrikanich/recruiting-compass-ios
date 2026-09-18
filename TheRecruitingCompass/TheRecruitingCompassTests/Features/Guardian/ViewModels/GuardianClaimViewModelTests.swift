@@ -55,7 +55,7 @@ final class GuardianClaimViewModelTests: XCTestCase {
       playerDateOfBirth: "2011-01-01", playerGraduationYear: 2029, expiresAt: "2026-12-31T00:00:00Z")
     await sut.load()
     mockAuthManager.isAuthenticated = true
-    let guardianUser = User(id: "g1", email: "guardian@example.com", emailConfirmedAt: nil, phone: nil,
+    let guardianUser = User(id: "g1", email: "guardian@example.com", emailConfirmedAt: nil,
                              fullName: "Guardian", createdAt: "2026-01-01T00:00:00Z",
                              updatedAt: "2026-01-01T00:00:00Z", role: .parent, dateOfBirth: nil)
     mockAuthManager.user = guardianUser
@@ -96,7 +96,7 @@ final class GuardianClaimViewModelTests: XCTestCase {
       playerDateOfBirth: "2011-01-01", playerGraduationYear: 2029, expiresAt: "2026-12-31T00:00:00Z")
     await sut.load()
     mockAuthManager.isAuthenticated = true
-    let guardianUser = User(id: "g1", email: "guardian@example.com", emailConfirmedAt: nil, phone: nil,
+    let guardianUser = User(id: "g1", email: "guardian@example.com", emailConfirmedAt: nil,
                              fullName: "Guardian", createdAt: "2026-01-01T00:00:00Z",
                              updatedAt: "2026-01-01T00:00:00Z", role: .parent, dateOfBirth: nil)
     mockAuthManager.user = guardianUser
@@ -121,7 +121,7 @@ final class GuardianClaimViewModelTests: XCTestCase {
       playerDateOfBirth: "2011-01-01", playerGraduationYear: 2029, expiresAt: "2026-12-31T00:00:00Z")
     await sut.load()
     mockAuthManager.isAuthenticated = true
-    let playerUser = User(id: "p1", email: "player@example.com", emailConfirmedAt: nil, phone: nil,
+    let playerUser = User(id: "p1", email: "player@example.com", emailConfirmedAt: nil,
                            fullName: "Alex Player", createdAt: "2026-01-01T00:00:00Z",
                            updatedAt: "2026-01-01T00:00:00Z", role: .player, dateOfBirth: nil)
     mockAuthManager.user = playerUser
