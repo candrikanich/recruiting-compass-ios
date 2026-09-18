@@ -218,11 +218,24 @@ final class FamilyManagementViewModel {
         await createFamily()
         parentFamilies = try await familyService.getParentFamilies()
       }
+      parentFamilies = await withMembersLoaded(parentFamilies)
       await loadPendingInvitations()
     } catch {
       logger.error("Failed to load parent families: \(error.localizedDescription)")
       errorMessage = "Failed to load families. Please try again."
     }
+  }
+
+  private func withMembersLoaded(_ families: [ParentFamilyData]) async -> [ParentFamilyData] {
+    var updated = families
+    for index in updated.indices {
+      do {
+        updated[index].members = try await familyService.fetchFamilyMembers(familyUnitId: updated[index].familyId)
+      } catch {
+        logger.error("Failed to load members for family \(updated[index].familyId): \(error.localizedDescription)")
+      }
+    }
+    return updated
   }
 
   func joinFamily() async {

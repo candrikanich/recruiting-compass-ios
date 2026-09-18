@@ -327,6 +327,42 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertFalse(sut.isLoading)
   }
 
+  func testLoadData_asParent_loadsMembersForEachFamily() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [
+      ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "2024-01-01T00:00:00Z"),
+      ParentFamilyData(familyId: "family-2", familyCode: "FAM-XYZ789", familyName: "Jones Family", codeGeneratedAt: "2024-01-01T00:00:00Z")
+    ]
+    mockFamilyService.membersByFamilyUnitId = [
+      "family-1": [makeFamilyMember(id: "m1", familyUnitId: "family-1", role: "athlete")],
+      "family-2": [makeFamilyMember(id: "m2", familyUnitId: "family-2", role: "athlete")]
+    ]
+
+    await sut.loadData()
+
+    XCTAssertEqual(mockFamilyService.fetchFamilyMembersCallCount, 2)
+    XCTAssertEqual(sut.parentFamilies.first(where: { $0.familyId == "family-1" })?.members.map(\.id), ["m1"])
+    XCTAssertEqual(sut.parentFamilies.first(where: { $0.familyId == "family-2" })?.members.map(\.id), ["m2"])
+  }
+
+  func testLoadData_asParent_memberFetchFailure_doesNotFailWholeLoad() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [
+      ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "2024-01-01T00:00:00Z"),
+      ParentFamilyData(familyId: "family-2", familyCode: "FAM-XYZ789", familyName: "Jones Family", codeGeneratedAt: "2024-01-01T00:00:00Z")
+    ]
+    mockFamilyService.familyUnitIdsToFail = ["family-1"]
+    mockFamilyService.membersByFamilyUnitId = [
+      "family-2": [makeFamilyMember(id: "m2", familyUnitId: "family-2", role: "athlete")]
+    ]
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.parentFamilies.count, 2)
+    XCTAssertEqual(sut.parentFamilies.first(where: { $0.familyId == "family-1" })?.members.isEmpty, true)
+    XCTAssertEqual(sut.parentFamilies.first(where: { $0.familyId == "family-2" })?.members.map(\.id), ["m2"])
+  }
+
   func testLoadData_asParent_error_setsError() async {
     mockAuthManager.setMockUser(makeUser(role: .parent))
     mockFamilyService.shouldSucceed = false

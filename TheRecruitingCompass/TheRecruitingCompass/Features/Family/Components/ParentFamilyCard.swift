@@ -23,6 +23,14 @@ struct ParentFamilyCard: View {
           .foregroundStyle(.green)
           .clipShape(.rect(cornerRadius: 4))
       }
+
+      if !family.members.isEmpty {
+        VStack(spacing: FamilyConstants.Spacing.small) {
+          ForEach(family.members) { member in
+            FamilyMemberCard(member: member, onRemove: {}, showRemoveButton: false)
+          }
+        }
+      }
     }
     .padding(FamilyConstants.Spacing.small)
     .frame(maxWidth: .infinity, alignment: .leading)
