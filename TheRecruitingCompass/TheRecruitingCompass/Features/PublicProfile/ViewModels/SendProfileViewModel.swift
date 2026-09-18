@@ -12,9 +12,12 @@ final class SendProfileViewModel {
     private let preferenceService: PreferenceManaging
     private let photoService: ProfilePhotoManaging
     private let interactionsService: InteractionsManaging
+    private let guardianService: GuardianManaging
 
     /// Set when a send is attempted on an unpublished profile.
     var notPublishedPrompt = false
+    /// Set when a send is attempted while the player's guardian hasn't confirmed yet.
+    var guardianPendingPrompt = false
     /// Drives whether the "Send Profile" button is offered — a profile must be
     /// published before it can be shared with a coach.
     var isPublished = false
@@ -31,13 +34,15 @@ final class SendProfileViewModel {
         authManager: AuthManaging,
         preferenceService: PreferenceManaging = PreferenceServiceImpl(supabaseManager: .shared),
         photoService: ProfilePhotoManaging = ProfilePhotoServiceImpl(),
-        interactionsService: InteractionsManaging = InteractionsServiceImpl(supabaseManager: .shared)
+        interactionsService: InteractionsManaging = InteractionsServiceImpl(supabaseManager: .shared),
+        guardianService: GuardianManaging = GuardianServiceImpl()
     ) {
         self.service = service
         self.authManager = authManager
         self.preferenceService = preferenceService
         self.photoService = photoService
         self.interactionsService = interactionsService
+        self.guardianService = guardianService
     }
 
     /// Load the profile's publish state so the view can hide the Send Profile
@@ -73,6 +78,7 @@ final class SendProfileViewModel {
     /// channel(s) the coach exposes. The view presents the matching composer.
     func prepare(for coach: Coach) async -> SendProfilePreparation {
         notPublishedPrompt = false
+        guardianPendingPrompt = false
         let token = authManager.session?.accessToken
 
         guard let profile = try? await service.fetchProfile(accessToken: token) else {
@@ -83,6 +89,14 @@ final class SendProfileViewModel {
             return .notPublished
         }
         isPublished = true
+
+        // COPPA-adjacent lock: a self-signed-up 13-17 player can't share their profile
+        // until their named guardian confirms, independent of the publish toggle. Fails
+        // open on any lookup error — matches the rest of the guardian-gating in this app.
+        if let token, let status = try? await guardianService.fetchStatus(accessToken: token), status.locked {
+            guardianPendingPrompt = true
+            return .guardianPending
+        }
 
         let playerName = await resolvePlayerName(athleteUserId: profile.userId)
         let details: PlayerDetails? = try? await preferenceService.fetchPreferences(

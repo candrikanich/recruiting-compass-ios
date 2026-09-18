@@ -208,6 +208,7 @@ final class SignupViewModel {
     primarySport = ""
     gender = ""
     zipCode = ""
+    guardianEmail = ""
     fieldErrors = [:]
     errorMessage = nil
   }
@@ -229,6 +230,10 @@ final class SignupViewModel {
       }
       return nil
     }
+    // isMinorSignup depends on dateOfBirth, so a DOB edit can hide the guardian-email
+    // field. Re-validate it so a stale error from a prior minor DOB doesn't keep
+    // blocking submit once the field is hidden and can no longer be re-validated by blur.
+    validateGuardianEmail()
   }
 
   func validatePassword() {

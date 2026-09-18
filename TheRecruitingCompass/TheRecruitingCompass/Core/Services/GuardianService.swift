@@ -129,10 +129,12 @@ struct GuardianServiceImpl: GuardianManaging {
     if let accessToken {
       request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
     }
+    if method != "GET" {
+      let csrf = try await fetchCSRFToken(baseURL: baseURL)
+      request.setValue(csrf, forHTTPHeaderField: "x-csrf-token")
+    }
     if let body {
-      let csrf = try? await fetchCSRFToken(baseURL: baseURL)
       request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-      if let csrf { request.setValue(csrf, forHTTPHeaderField: "x-csrf-token") }
       request.httpBody = try JSONEncoder().encode(body)
     }
     let (data, response) = try await session.data(for: request)

@@ -44,10 +44,18 @@ struct QuickCommunicationView: View {
         showText: viewModel.smsURL() != nil,
         instagramHandle: context.coach.contactInstagram,
         onOpenInstagram: { url in
-          openURL(url)
-          Task { await viewModel.logInstagramDM() }
+          Task {
+            guard await viewModel.checkGuardianLock() else {
+              infoMessage = viewModel.sendWarning
+              showInfoToast = true
+              return
+            }
+            openURL(url)
+            await viewModel.logInstagramDM()
+          }
         }
       )
+      .toast(isShowing: $showInfoToast, message: $infoMessage, type: .info, duration: 3.0)
       .navigationTitle("Quick Communication")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

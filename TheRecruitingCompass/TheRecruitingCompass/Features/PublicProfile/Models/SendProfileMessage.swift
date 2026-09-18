@@ -36,6 +36,9 @@ enum SendProfilePreparation: Equatable {
     /// No usable email/phone on the coach — fall back to the system share sheet.
     case share(URL)
     case notPublished
+    /// A self-signed-up 13-17 player's guardian hasn't confirmed yet — sharing stays
+    /// locked even if the profile is already published.
+    case guardianPending
     case failed
 }
 

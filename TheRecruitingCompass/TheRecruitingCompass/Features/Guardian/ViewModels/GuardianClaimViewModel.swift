@@ -41,6 +41,20 @@ final class GuardianClaimViewModel {
     return nil
   }
 
+  /// True when a session is authenticated AND it's the guardian this claim names — not the
+  /// player, not another guardian. Without this check, `confirm()` would silently send a
+  /// non-matching session's token to an endpoint the server rejects, with no path in this
+  /// sheet to sign out and switch accounts.
+  var isAuthenticatedAsGuardian: Bool {
+    guard let details = claimDetails, let email = authManager.user?.email else { return false }
+    return email.trimmingCharacters(in: .whitespaces).lowercased()
+      == details.guardianEmail.trimmingCharacters(in: .whitespaces).lowercased()
+  }
+
+  func signOutToSwitchAccount() async {
+    try? await authManager.logout()
+  }
+
   init(
     token: String,
     guardianService: (any GuardianManaging)? = nil,
@@ -75,8 +89,8 @@ final class GuardianClaimViewModel {
         let captchaToken = try await turnstileTokenProvider.getToken()
         try await authManager.login(email: loginEmail, password: loginPassword, captchaToken: captchaToken)
       }
-      guard let accessToken = authManager.session?.accessToken else {
-        errorMessage = "Please sign in to confirm."
+      guard isAuthenticatedAsGuardian, let accessToken = authManager.session?.accessToken else {
+        errorMessage = "Please sign in with the guardian email this claim was sent to."
         return
       }
       _ = try await guardianService.acceptClaim(token: token, accessToken: accessToken)
