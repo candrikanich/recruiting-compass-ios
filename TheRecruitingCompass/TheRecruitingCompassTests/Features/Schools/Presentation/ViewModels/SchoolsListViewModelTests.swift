@@ -88,6 +88,8 @@ final class SchoolsListViewModelTests: XCTestCase {
     isFavorite: Bool = false,
     status: String = "interested",
     notes: String? = nil,
+    pros: [String] = [],
+    cons: [String] = [],
     latitude: Double? = nil,
     longitude: Double? = nil,
     studentSize: Int? = nil,
@@ -113,8 +115,8 @@ final class SchoolsListViewModelTests: XCTestCase {
       status: status,
       statusChangedAt: "2026-02-01T10:00:00Z",
       notes: notes,
-      pros: [],
-      cons: [],
+      pros: pros,
+      cons: cons,
       offerDetails: nil,
       academicInfo: hasAcademicInfo ? AcademicInfo(
         gpaRequirement: nil,
@@ -825,6 +827,128 @@ final class SchoolsListViewModelTests: XCTestCase {
 
     XCTAssertNotNil(distance1)
     XCTAssertEqual(distance1, distance2)
+  }
+
+  // MARK: - School Export Tests
+
+  func testPrepareSchoolExport_generatesCSVWithHeaderAndRows() async {
+    mockService.stubbedSchools = [
+      makeSchool(id: "1", name: "Stanford University", location: "Stanford, CA", division: "D1", conference: "Pac-12", status: "interested")
+    ]
+    await sut.loadSchools()
+
+    sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.hasPrefix("School Name,Division,Conference,Location,Status,Pros,Cons\n") ?? false)
+    XCTAssertTrue(csv?.contains("Stanford University,D1,Pac-12,\"Stanford, CA\",Interested,,\n") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_escapesCommasAndQuotes() async {
+    mockService.stubbedSchools = [
+      makeSchool(id: "1", notes: nil, pros: ["Great \"D1\" program, strong academics"])
+    ]
+    await sut.loadSchools()
+
+    sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.contains("\"Great \"\"D1\"\" program, strong academics\"") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_neutralizesFormulaInjection() async {
+    mockService.stubbedSchools = [
+      makeSchool(id: "1", cons: ["=SUM(A1:A10)"])
+    ]
+    await sut.loadSchools()
+
+    sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.contains("'=SUM(A1:A10)") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_neutralizesTabAndCRPrefixedFormula() async {
+    mockService.stubbedSchools = [
+      makeSchool(id: "1", pros: ["\t=SUM(A1:A10)"], cons: ["\r=HYPERLINK(\"evil\")"])
+    ]
+    await sut.loadSchools()
+
+    sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.contains("'\t=SUM(A1:A10)") ?? false)
+    XCTAssertTrue(csv?.contains("'\r=HYPERLINK") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_carriageReturnOnlyNote_isQuoted() async {
+    mockService.stubbedSchools = [
+      makeSchool(id: "1", pros: ["Line one\rLine two"])
+    ]
+    await sut.loadSchools()
+
+    sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.contains("\"Line one\rLine two\"") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_emptyList_headerOnly() async {
+    mockService.stubbedSchools = []
+    await sut.loadSchools()
+
+    sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertEqual(csv, "School Name,Division,Conference,Location,Status,Pros,Cons\n")
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_prosAndCons_semicolonJoined() async {
+    mockService.stubbedSchools = [
+      makeSchool(id: "1", pros: ["Great facilities", "Strong academics"], cons: ["Far from home"])
+    ]
+    await sut.loadSchools()
+
+    sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.contains("Great facilities; Strong academics,Far from home\n") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_concurrentExports_produceDistinctURLs() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    await sut.loadSchools()
+
+    sut.prepareSchoolExport()
+    let firstURL = try? XCTUnwrap(sut.exportFileURL)
+    sut.prepareSchoolExport()
+    let secondURL = try? XCTUnwrap(sut.exportFileURL)
+
+    XCTAssertNotEqual(firstURL, secondURL)
+
+    if let firstURL { sut.cleanupExport(url: firstURL) }
+    if let secondURL { sut.cleanupExport(url: secondURL) }
   }
 }
 
