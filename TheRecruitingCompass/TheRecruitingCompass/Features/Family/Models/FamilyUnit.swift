@@ -10,7 +10,6 @@ struct FamilyUnit: Codable, Identifiable, Sendable {
   let updatedAt: String?
   let homeLatitude: Double?
   let homeLongitude: Double?
-  let pendingPlayerDetails: PendingPlayerDetails?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -22,6 +21,5 @@ struct FamilyUnit: Codable, Identifiable, Sendable {
     case updatedAt = "updated_at"
     case homeLatitude = "home_latitude"
     case homeLongitude = "home_longitude"
-    case pendingPlayerDetails = "pending_player_details"
   }
 }
