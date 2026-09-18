@@ -48,6 +48,8 @@ struct GuardianPendingBanner: View {
             .font(.caption.weight(.semibold))
         }
       }
+      .frame(minWidth: 44, minHeight: 44)
+      .contentShape(Rectangle())
       .disabled(viewModel.isResending)
     }
     .padding(12)

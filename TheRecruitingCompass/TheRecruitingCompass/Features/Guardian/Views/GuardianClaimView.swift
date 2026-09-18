@@ -3,8 +3,12 @@ import SwiftUI
 /// Guardian-facing confirmation screen reached via a `/guardian/claim/:token`
 /// link. Mirrors web's `pages/guardian/claim/[token].vue`.
 struct GuardianClaimView: View {
-  @State var viewModel: GuardianClaimViewModel
+  @State private var viewModel: GuardianClaimViewModel
   @Environment(\.dismiss) private var dismiss
+
+  init(viewModel: GuardianClaimViewModel) {
+    _viewModel = State(initialValue: viewModel)
+  }
 
   var body: some View {
     NavigationStack {
@@ -62,7 +66,13 @@ struct GuardianClaimView: View {
           .foregroundStyle(.red)
       }
 
-      if viewModel.isAuthenticated {
+      if viewModel.isAuthenticated && !viewModel.isAuthenticatedAsGuardian {
+        Text("You're signed in with a different account than \(details.guardianEmail). Sign out to confirm with the right one.")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+        Button("Sign Out") { Task { await viewModel.signOutToSwitchAccount() } }
+          .buttonStyle(.bordered)
+      } else if viewModel.isAuthenticated {
         Button(action: { Task { await viewModel.confirm() } }) {
           if viewModel.isConfirming {
             ProgressView().tint(.white)

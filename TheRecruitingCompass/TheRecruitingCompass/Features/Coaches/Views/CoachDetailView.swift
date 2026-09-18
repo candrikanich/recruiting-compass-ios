@@ -149,6 +149,14 @@ struct CoachDetailView: View {
     } message: {
       Text("Publish your profile before sending it to a coach.")
     }
+    .alert(
+      "Waiting on Your Guardian",
+      isPresented: $sendProfileVM.guardianPendingPrompt
+    ) {
+      Button("OK") { sendProfileVM.guardianPendingPrompt = false }
+    } message: {
+      Text("Sending your profile to coaches stays locked until your guardian confirms your account.")
+    }
     .confirmationDialog("Delete Coach", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
       Button("Delete", role: .destructive) {
         Task {
@@ -364,7 +372,7 @@ struct CoachDetailView: View {
       case let .text(message): presentComposer(.text, message)
       case let .choice(message): pendingChannelChoice = message
       case let .share(url): shareItem = ShareURL(url: url)
-      case .notPublished, .failed: break  // notPublished alert is bound to the VM
+      case .notPublished, .guardianPending, .failed: break  // alerts bound to the VM
       }
     }
   }

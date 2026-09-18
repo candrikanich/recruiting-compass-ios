@@ -90,18 +90,25 @@ final class QuickCommunicationViewModel {
     self.accessToken = accessToken
   }
 
+  /// COPPA-adjacent lock: a self-signed-up 13-17 player can't send outreach — through any
+  /// channel (email, text, Instagram) — until their named guardian confirms. Fails open on
+  /// any lookup error, matching the rest of this view model's guardrail philosophy (never
+  /// block a legit send on a network hiccup). Shared by `evaluateGuardrails` and the
+  /// Instagram path, which opens externally before the template/compose flow runs.
+  func checkGuardianLock() async -> Bool {
+    guard athleteUserId != nil, let accessToken else { return true }
+    if let status = try? await guardianService.fetchStatus(accessToken: accessToken), status.pending {
+      sendWarning = String(localized: "Your guardian hasn't confirmed your account yet — outreach is locked until they do.")
+      return false
+    }
+    return true
+  }
+
   /// Pre-send guardrails (1:1 with web `passesSendGuardrails`). Returns true when the send may
   /// proceed. Fails OPEN — no athlete or any lookup error never blocks a legit send.
   func evaluateGuardrails(_ channel: GuardrailChannel) async -> Bool {
     guard let athleteUserId else { return true }
-    // COPPA-adjacent lock: a self-signed-up 13-17 player can't send outreach
-    // until their named guardian confirms. Fails open on any lookup error —
-    // matches this function's existing philosophy (never block a legit send
-    // on a network hiccup).
-    if let accessToken, let status = try? await guardianService.fetchStatus(accessToken: accessToken), status.pending {
-      sendWarning = String(localized: "Your guardian hasn't confirmed your account yet — outreach is locked until they do.")
-      return false
-    }
+    guard await checkGuardianLock() else { return false }
     guard let check = try? await athleteMessagesService.checkSend(
       SendCheckInput(athleteUserId: athleteUserId, schoolId: coach.schoolId,
                      programNote: authoredValues["programNote"]),
