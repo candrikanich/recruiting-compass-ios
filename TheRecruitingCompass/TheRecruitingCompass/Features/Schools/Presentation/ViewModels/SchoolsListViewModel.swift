@@ -33,6 +33,7 @@ final class SchoolsListViewModel {
   }
   var successMessage: String?
   var showSuccessToast = false
+  var exportFileURL: URL?
 
   /// Home location for distance filter and sort, from Settings (user_preferences).
   var homeLocation: CLLocationCoordinate2D? {
@@ -373,6 +374,20 @@ final class SchoolsListViewModel {
     distanceCache[school.id] = distance
     distanceCacheOrderedKeys.append(school.id)
     return distance
+  }
+
+  func prepareSchoolExport() {
+    do {
+      exportFileURL = try SchoolExportService().prepareCSV(schools: filteredSchools)
+    } catch {
+      logger.error("Failed to prepare school export: \(error.localizedDescription)")
+      errorMessage = "Failed to export schools. Please try again."
+    }
+  }
+
+  func cleanupExport(url: URL) {
+    SchoolExportService().cleanup(url: url)
+    exportFileURL = nil
   }
 
 }
