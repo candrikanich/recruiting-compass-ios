@@ -52,6 +52,7 @@ struct CoachDetailView: View {
     lifecycleModifiers(sheetsAndAlerts(contentBody))
   }
 
+  @ViewBuilder
   private var contentBody: some View {
     Group {
       if let coach = viewModel.coach {
