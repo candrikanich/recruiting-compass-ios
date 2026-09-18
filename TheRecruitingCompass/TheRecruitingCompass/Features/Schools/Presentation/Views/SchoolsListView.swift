@@ -71,6 +71,21 @@ struct SchoolsListView: View {
         .accessibilityLabel(String(localized: "Add new school"))
         .accessibilityHint("Opens form to add a new school")
         }
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            viewModel.prepareSchoolExport()
+          } label: {
+            Image(systemName: "square.and.arrow.up")
+              .frame(minWidth: 44, minHeight: 44)
+              .contentShape(Rectangle())
+          }
+          .disabled(viewModel.filteredSchools.isEmpty)
+          .accessibilityLabel(String(localized: "Export schools to CSV"))
+        }
+      }
+      .sheet(item: Bindable(viewModel).exportFileURL) { url in
+        ActivityShareSheet(activityItems: [url])
+          .onDisappear { viewModel.cleanupExport(url: url) }
       }
       .navigationDestination(for: SchoolDestination.self) { destination in
         switch destination {
