@@ -228,12 +228,32 @@ final class FamilyManagementViewModel {
 
   private func withMembersLoaded(_ families: [ParentFamilyData]) async -> [ParentFamilyData] {
     var updated = families
-    for index in updated.indices {
-      do {
-        updated[index].members = try await familyService.fetchFamilyMembers(familyUnitId: updated[index].familyId)
-      } catch {
-        logger.error("Failed to load members for family \(updated[index].familyId): \(error.localizedDescription)")
+    var anyFailed = false
+
+    await withTaskGroup(of: (Int, Result<[FamilyMember], Error>).self) { group in
+      for (index, family) in updated.enumerated() {
+        group.addTask { [familyService] in
+          do {
+            return (index, .success(try await familyService.fetchFamilyMembers(familyUnitId: family.familyId)))
+          } catch {
+            return (index, .failure(error))
+          }
+        }
       }
+
+      for await (index, result) in group {
+        switch result {
+        case .success(let members):
+          updated[index].members = members
+        case .failure(let error):
+          anyFailed = true
+          logger.error("Failed to load members for family \(updated[index].familyId): \(error.localizedDescription)")
+        }
+      }
+    }
+
+    if anyFailed {
+      errorMessage = "Some family member lists couldn't be loaded. Please try again."
     }
     return updated
   }

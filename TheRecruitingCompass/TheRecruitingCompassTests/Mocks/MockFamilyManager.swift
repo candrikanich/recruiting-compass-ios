@@ -3,6 +3,10 @@ import Observation
 @testable import TheRecruitingCompass
 
 final class MockFamilyService: FamilyManaging, @unchecked Sendable {
+  // fetchFamilyMembers is invoked concurrently by FamilyManagementViewModel's
+  // task group; guard its mutable state so tests don't race.
+  private let lock = NSLock()
+
   // MARK: - Mock State
 
   var shouldSucceed = true
@@ -49,14 +53,18 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   // MARK: - FamilyManaging Implementation
 
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember] {
+    lock.lock()
     fetchFamilyMembersCallCount += 1
     lastFamilyUnitIdFetched = familyUnitId
+    let shouldThrow = !shouldSucceed || familyUnitIdsToFail.contains(familyUnitId)
+    let error = mockError
+    let result = membersByFamilyUnitId[familyUnitId] ?? stubbedFamilyMembers
+    lock.unlock()
 
-    if !shouldSucceed || familyUnitIdsToFail.contains(familyUnitId) {
-      throw mockError
+    if shouldThrow {
+      throw error
     }
-
-    return membersByFamilyUnitId[familyUnitId] ?? stubbedFamilyMembers
+    return result
   }
 
   func getCurrentMember(userId: String) async throws -> FamilyMember? {
