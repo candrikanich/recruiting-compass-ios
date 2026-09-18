@@ -44,7 +44,7 @@ struct ForwardCoachEmailsCard: View {
           Text("Review forwarded coach emails")
           Image(systemName: "arrow.right")
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
       }
       .font(.subheadline.weight(.medium))
     }

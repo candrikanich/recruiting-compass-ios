@@ -97,8 +97,9 @@ final class FamilyManagementViewModel {
     do {
       inboundAddress = try await inboundDraftsService.fetchForwardingAddress(accessToken: accessToken)
     } catch {
-      // Non-critical display — a fetch failure here must never break the page.
-      logger.debug("Failed to load inbound address: \(error.localizedDescription)")
+      // Non-critical display — a fetch failure here must never break the page —
+      // but log at error level so recurring outages are still visible in telemetry.
+      logger.error("Failed to load inbound address: \(error.localizedDescription)")
     }
   }
 
