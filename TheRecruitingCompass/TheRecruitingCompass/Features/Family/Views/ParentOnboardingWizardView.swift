@@ -1,7 +1,8 @@
 import SwiftUI
-import UIKit
 
-/// 2-step parent onboarding: (1) Player details, (2) Send invite by email with prefill.
+/// 2-step parent onboarding: (1) Player details, (2) Schools to explore — matches web's
+/// `pages/onboarding/parent.vue`. Inviting the athlete happens later, from the dashboard's
+/// ParentOnboardingBanner (InviteAthleteView), not as a blocking step in this wizard.
 struct ParentOnboardingWizardView: View {
   @Bindable var viewModel: ParentOnboardingWizardViewModel
   var onDismiss: (() -> Void)?
@@ -32,7 +33,7 @@ struct ParentOnboardingWizardView: View {
         .padding(.horizontal, 24)
         .padding(.vertical, 24)
       }
-      .navigationTitle("Invite Player")
+      .navigationTitle("Welcome")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
@@ -41,18 +42,6 @@ struct ParentOnboardingWizardView: View {
           }
         }
       }
-      .toast(
-        isShowing: Binding(
-          get: { viewModel.showSuccessToast },
-          set: { viewModel.showSuccessToast = $0 }
-        ),
-        message: Binding(
-          get: { viewModel.successMessage },
-          set: { viewModel.successMessage = $0 }
-        ),
-        type: .success,
-        duration: 2.0
-      )
       .onChange(of: viewModel.didComplete) { _, completed in
         if completed {
           onDismiss?()
@@ -66,8 +55,8 @@ struct ParentOnboardingWizardView: View {
     switch viewModel.currentStep {
     case .playerDetails:
       playerDetailsStep
-    case .sendInvite:
-      sendInviteStep
+    case .schoolsToExplore:
+      schoolsToExploreStep
     }
   }
 
@@ -175,118 +164,78 @@ struct ParentOnboardingWizardView: View {
     }
   }
 
+  /// Matches web's Step 2 "Schools to explore" carousel (`OnboardingStepTwoView`'s player
+  /// equivalent) — no invite fields here; inviting the athlete is the dashboard banner's job.
   @ViewBuilder
-  private var sendInviteStep: some View {
+  private var schoolsToExploreStep: some View {
     VStack(alignment: .leading, spacing: FamilyConstants.Spacing.medium) {
       VStack(alignment: .leading, spacing: 4) {
-        Text("Welcome to The Recruiting Compass")
+        Text("Schools to explore")
           .font(.title2.weight(.semibold))
-        Text("Invite your player")
-          .font(.headline)
-        Text("Send them an email invite or share your family code.")
+        Text("Based on what you told us, here are a few schools to start with.")
           .font(.subheadline)
           .foregroundStyle(.secondary)
       }
 
-      VStack(alignment: .leading, spacing: FamilyConstants.Spacing.small) {
-        Text("Player's email address")
-          .font(.subheadline.weight(.medium))
-        TextField("player@example.com", text: $viewModel.inviteEmail)
-          .keyboardType(.emailAddress)
-          .textContentType(.emailAddress)
-          .autocapitalization(.none)
-          .accessibilityLabel(String(localized: "Player email for invite"))
-          .formFieldStyle()
+      if viewModel.isLoadingRecommendations {
+        HStack(spacing: FamilyConstants.Spacing.small) {
+          ProgressView()
+          Text("Finding schools…")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 32)
+      } else if viewModel.recommendations.isEmpty {
+        Text("Continue to your dashboard to start adding schools manually.")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(.vertical, 16)
+      } else {
+        ScrollView(.horizontal, showsIndicators: false) {
+          LazyHStack(spacing: 16) {
+            ForEach(viewModel.recommendations) { rec in
+              ParentRecommendationCard(
+                recommendation: rec,
+                onAdd: { Task { _ = await viewModel.addSchool(rec) } },
+                onDismiss: { Task { await viewModel.dismissRecommendation(rec) } }
+              )
+            }
+          }
+        }
+        .scrollClipDisabled()
+      }
+
+      if viewModel.schoolsAdded > 0 {
+        HStack(spacing: 8) {
+          Image(systemName: "checkmark.circle.fill")
+            .foregroundStyle(.green)
+          Text("\(viewModel.schoolsAdded) school\(viewModel.schoolsAdded == 1 ? "" : "s") added")
+            .font(.subheadline.weight(.medium))
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.green.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
       }
 
       Button {
-        Task { await viewModel.sendInvite() }
+        viewModel.finishOnboarding()
       } label: {
-        if viewModel.isLoading {
-          ProgressView().tint(.white)
-        } else {
-          Text("Send Invite")
-            .font(.callout.weight(.semibold))
-        }
+        Text("Go to your dashboard →")
+          .font(.callout.weight(.semibold))
       }
       .frame(maxWidth: .infinity)
       .frame(minHeight: 48)
       .foregroundStyle(.white)
       .background(LinearGradient.primaryButton)
       .clipShape(.rect(cornerRadius: 8))
-      .opacity(!viewModel.isInviteStepValid || viewModel.isLoading ? 0.5 : 1)
-      .disabled(!viewModel.isInviteStepValid || viewModel.isLoading)
-      .accessibilityLabel(String(localized: "Send invite"))
-
-      Text("Or share your family code")
-        .font(.subheadline.weight(.medium))
-        .foregroundStyle(.secondary)
-        .padding(.top, FamilyConstants.Spacing.small)
-
-      if viewModel.isLoadingFamilyCode {
-        HStack(spacing: FamilyConstants.Spacing.small) {
-          ProgressView()
-          Text("Loading family code…")
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(FamilyConstants.Spacing.small)
-        .background(Color(.tertiarySystemFill))
-        .clipShape(.rect(cornerRadius: 8))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "Loading family code"))
-      } else if let code = viewModel.familyCode {
-        VStack(spacing: FamilyConstants.Spacing.small) {
-          Text(code)
-            .font(.system(.title2, design: .monospaced).weight(.bold))
-            .tracking(2)
-            .textSelection(.enabled)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, FamilyConstants.Spacing.medium)
-            .background(Color.gray.opacity(0.1))
-            .clipShape(.rect(cornerRadius: 12))
-            .accessibilityLabel(String(localized: "\(FamilyUtilities.formatCodeForVoiceOver(code))"))
-          Button {
-            UIPasteboard.general.string = code
-          } label: {
-            Label("Copy", systemImage: "doc.on.doc")
-              .frame(maxWidth: .infinity)
-          }
-          .buttonStyle(.bordered)
-          .accessibilityLabel(String(localized: "Copy family code"))
-          Text("Your player enters this code during their signup.")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-      } else {
-        VStack(alignment: .leading, spacing: FamilyConstants.Spacing.small) {
-          Text("Family code couldn't be loaded.")
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-          Button("Retry") {
-            Task { await viewModel.loadFamilyCode() }
-          }
-          .buttonStyle(.bordered)
-          .accessibilityLabel(String(localized: "Retry loading family code"))
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(FamilyConstants.Spacing.small)
-        .background(Color(.tertiarySystemFill))
-        .clipShape(.rect(cornerRadius: 8))
-      }
-
-      Button("I'll invite them later") {
-        onDismiss?()
-      }
-      .buttonStyle(.bordered)
-      .frame(maxWidth: .infinity)
-      .padding(.top, FamilyConstants.Spacing.small)
-      .accessibilityLabel(String(localized: "Skip invite for now"))
+      .accessibilityLabel(String(localized: "Go to your dashboard"))
     }
     .task(id: viewModel.currentStep) {
-      if viewModel.currentStep == .sendInvite {
-        await viewModel.loadFamilyCode()
+      if viewModel.currentStep == .schoolsToExplore, viewModel.recommendations.isEmpty {
+        await viewModel.loadRecommendations()
       }
     }
   }
@@ -304,23 +253,85 @@ struct ParentOnboardingWizardView: View {
       Spacer()
       if viewModel.currentStep == .playerDetails {
         Button {
-          viewModel.nextStep()
+          Task { await viewModel.proceedFromPlayerDetails() }
         } label: {
-          Text("Next")
-            .font(.callout.weight(.semibold))
-            .padding(.horizontal, 24)
-            .padding(.vertical, 12)
+          if viewModel.isLoading {
+            ProgressView().tint(.white)
+          } else {
+            Text("Next")
+              .font(.callout.weight(.semibold))
+              .padding(.horizontal, 24)
+              .padding(.vertical, 12)
+          }
         }
         .foregroundStyle(.white)
         .background(LinearGradient.primaryButton)
         .clipShape(.rect(cornerRadius: 8))
         .opacity(viewModel.isPlayerDetailsValid ? 1 : 0.5)
-        .disabled(!viewModel.isPlayerDetailsValid)
+        .disabled(!viewModel.isPlayerDetailsValid || viewModel.isLoading)
         .accessibilityLabel(String(localized: "Next step"))
       }
-      // Step 2: primary action (Send Invite) is in sendInviteStep content; only Back in bar
+      // Step 2: primary action (Go to Dashboard) is in schoolsToExploreStep content; only Back in bar
     }
     .padding(FamilyConstants.Spacing.medium)
+  }
+}
+
+/// One recommended school in the parent onboarding wizard's Step 2 carousel.
+private struct ParentRecommendationCard: View {
+  let recommendation: SchoolRecommendation
+  let onAdd: () -> Void
+  let onDismiss: () -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text(recommendation.name)
+        .font(.headline)
+        .lineLimit(2)
+
+      HStack(spacing: 8) {
+        if let division = recommendation.division, !division.isEmpty {
+          Text(division)
+            .font(.caption.weight(.semibold))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.accentColor.opacity(0.15))
+            .foregroundStyle(Color.accentColor)
+            .clipShape(Capsule())
+        }
+        if let state = recommendation.state, !state.isEmpty {
+          Text(state)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+      }
+
+      Spacer()
+
+      HStack(spacing: 12) {
+        Button(action: onAdd) {
+          Label("Add", systemImage: "plus")
+            .font(.subheadline.weight(.medium))
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.small)
+
+        Button(action: onDismiss) {
+          Text("Not a fit")
+            .font(.subheadline)
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+      }
+    }
+    .padding(16)
+    .frame(width: 240)
+    .frame(minHeight: 160)
+    .background(Color(uiColor: .secondarySystemGroupedBackground))
+    .clipShape(RoundedRectangle(cornerRadius: 16))
+    .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
   }
 }
 
