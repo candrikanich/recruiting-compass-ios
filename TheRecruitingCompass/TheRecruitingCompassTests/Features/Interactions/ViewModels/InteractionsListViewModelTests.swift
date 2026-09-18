@@ -43,7 +43,6 @@ final class InteractionsListViewModelTests: XCTestCase {
       id: "athlete1",
       email: "athlete@test.com",
       emailConfirmedAt: nil,
-      phone: nil,
       createdAt: "",
       updatedAt: "",
       role: nil
@@ -73,7 +72,6 @@ final class InteractionsListViewModelTests: XCTestCase {
       id: "parent1",
       email: "parent@test.com",
       emailConfirmedAt: nil,
-      phone: nil,
       createdAt: "",
       updatedAt: "",
       role: nil
@@ -112,7 +110,6 @@ final class InteractionsListViewModelTests: XCTestCase {
       id: "user1",
       email: "test@test.com",
       emailConfirmedAt: nil,
-      phone: nil,
       createdAt: "",
       updatedAt: "",
       role: nil
@@ -136,7 +133,6 @@ final class InteractionsListViewModelTests: XCTestCase {
       id: "user1",
       email: "test@test.com",
       emailConfirmedAt: nil,
-      phone: nil,
       createdAt: "",
       updatedAt: "",
       role: nil
@@ -521,7 +517,7 @@ final class InteractionsListViewModelTests: XCTestCase {
     let parent = createFamilyMember(role: "parent", userId: "parent1")
     mockFamilyManager.currentMember = parent
     mockAuthManager.user = User(
-      id: "parent1", email: "parent@test.com", emailConfirmedAt: nil, phone: nil,
+      id: "parent1", email: "parent@test.com", emailConfirmedAt: nil,
       createdAt: "", updatedAt: "", role: nil
     )
     mockService.mockInteractions = createMockInteractions(count: 3, loggedBy: "various")
@@ -540,7 +536,7 @@ final class InteractionsListViewModelTests: XCTestCase {
     let athlete = createFamilyMember(role: "player", userId: "athlete1")
     mockFamilyManager.currentMember = athlete
     mockAuthManager.user = User(
-      id: "athlete1", email: "athlete@test.com", emailConfirmedAt: nil, phone: nil,
+      id: "athlete1", email: "athlete@test.com", emailConfirmedAt: nil,
       createdAt: "", updatedAt: "", role: nil
     )
     mockService.mockInteractions = createMockInteractions(count: 3, loggedBy: "athlete1")
@@ -559,7 +555,7 @@ final class InteractionsListViewModelTests: XCTestCase {
     let parent = createFamilyMember(role: "parent", userId: "parent1")
     mockFamilyManager.currentMember = parent
     mockAuthManager.user = User(
-      id: "parent1", email: "parent@test.com", emailConfirmedAt: nil, phone: nil,
+      id: "parent1", email: "parent@test.com", emailConfirmedAt: nil,
       createdAt: "", updatedAt: "", role: nil
     )
     let interaction = createInteraction(id: "1")
@@ -581,7 +577,7 @@ final class InteractionsListViewModelTests: XCTestCase {
     let parent = createFamilyMember(role: "parent", userId: "parent1")
     mockFamilyManager.currentMember = parent
     mockAuthManager.user = User(
-      id: "parent1", email: "parent@test.com", emailConfirmedAt: nil, phone: nil,
+      id: "parent1", email: "parent@test.com", emailConfirmedAt: nil,
       createdAt: "", updatedAt: "", role: nil
     )
     mockService.mockInteractions = []

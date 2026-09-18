@@ -19,7 +19,6 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
       id: "user-1",
       email: "test@example.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
-      phone: nil,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
       role: nil

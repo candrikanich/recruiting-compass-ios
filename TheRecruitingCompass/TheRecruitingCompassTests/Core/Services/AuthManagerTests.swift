@@ -32,7 +32,7 @@ final class AuthManagerTests: XCTestCase {
 
   func testLoginForwardsCaptchaToken() async throws {
     let user = User(
-      id: "test-user-id", email: "user@example.com", emailConfirmedAt: nil, phone: nil,
+      id: "test-user-id", email: "user@example.com", emailConfirmedAt: nil,
       fullName: nil, createdAt: "2024-01-01T00:00:00Z", updatedAt: "2024-01-01T00:00:00Z",
       role: nil, dateOfBirth: nil
     )
@@ -49,7 +49,7 @@ final class AuthManagerTests: XCTestCase {
 
   func testSignupForwardsCaptchaToken() async throws {
     let user = User(
-      id: "test-user-id", email: "user@example.com", emailConfirmedAt: nil, phone: nil,
+      id: "test-user-id", email: "user@example.com", emailConfirmedAt: nil,
       fullName: "Jane Doe", createdAt: "2024-01-01T00:00:00Z", updatedAt: "2024-01-01T00:00:00Z",
       role: .player, dateOfBirth: nil
     )
@@ -76,7 +76,7 @@ final class AuthManagerTests: XCTestCase {
 
   func testLoginFlushesPendingOnboardingStep1() async throws {
     let user = User(
-      id: "test-user-id", email: "user@example.com", emailConfirmedAt: "2024-01-01T00:00:00Z", phone: nil,
+      id: "test-user-id", email: "user@example.com", emailConfirmedAt: "2024-01-01T00:00:00Z",
       fullName: nil, createdAt: "2024-01-01T00:00:00Z", updatedAt: "2024-01-01T00:00:00Z",
       role: nil, dateOfBirth: nil
     )
@@ -97,7 +97,7 @@ final class AuthManagerTests: XCTestCase {
   // whose signup-time sport/grad-year data hadn't landed yet.
   func testLoginFlushesBeforePublishingIsAuthenticated() async throws {
     let user = User(
-      id: "test-user-id", email: "user@example.com", emailConfirmedAt: "2024-01-01T00:00:00Z", phone: nil,
+      id: "test-user-id", email: "user@example.com", emailConfirmedAt: "2024-01-01T00:00:00Z",
       fullName: nil, createdAt: "2024-01-01T00:00:00Z", updatedAt: "2024-01-01T00:00:00Z",
       role: nil, dateOfBirth: nil
     )
@@ -117,7 +117,7 @@ final class AuthManagerTests: XCTestCase {
 
   func testSignupWithImmediateSessionFlushesPendingOnboardingStep1() async throws {
     let user = User(
-      id: "test-user-id", email: "user@example.com", emailConfirmedAt: "2024-01-01T00:00:00Z", phone: nil,
+      id: "test-user-id", email: "user@example.com", emailConfirmedAt: "2024-01-01T00:00:00Z",
       fullName: "Jane Doe", createdAt: "2024-01-01T00:00:00Z", updatedAt: "2024-01-01T00:00:00Z",
       role: .player, dateOfBirth: nil
     )
@@ -143,7 +143,7 @@ final class AuthManagerTests: XCTestCase {
   // authenticated user yet to flush pending metadata for.
   func testSignupWithoutSessionDoesNotFlush() async throws {
     let user = User(
-      id: "test-user-id", email: "user@example.com", emailConfirmedAt: nil, phone: nil,
+      id: "test-user-id", email: "user@example.com", emailConfirmedAt: nil,
       fullName: "Jane Doe", createdAt: "2024-01-01T00:00:00Z", updatedAt: "2024-01-01T00:00:00Z",
       role: .player, dateOfBirth: nil
     )
@@ -159,7 +159,7 @@ final class AuthManagerTests: XCTestCase {
 
   func testSignupThreadsOnboardingStep1FieldsToSupabaseManager() async throws {
     let user = User(
-      id: "test-user-id", email: "user@example.com", emailConfirmedAt: nil, phone: nil,
+      id: "test-user-id", email: "user@example.com", emailConfirmedAt: nil,
       fullName: "Jane Doe", createdAt: "2024-01-01T00:00:00Z", updatedAt: "2024-01-01T00:00:00Z",
       role: .player, dateOfBirth: nil
     )

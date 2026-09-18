@@ -24,7 +24,6 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     let id: String
     let email: String
     let emailConfirmedAt: String?
-    let phone: String?
     let fullName: String?
     let role: String
     let createdAt: String
@@ -36,7 +35,6 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       case id
       case email
       case emailConfirmedAt = "email_confirmed_at"
-      case phone
       case fullName = "full_name"
       case role
       case createdAt = "created_at"
@@ -179,7 +177,6 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         id: userId,
         email: userEmail,
         emailConfirmedAt: nil,
-        phone: nil,
         fullName: fullName,
         createdAt: Self.isoFormatter.string(from: Date.now),
         updatedAt: Self.isoFormatter.string(from: Date.now),
@@ -292,7 +289,6 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       id: dbUser.id,
       email: dbUser.email,
       emailConfirmedAt: dbUser.emailConfirmedAt,
-      phone: dbUser.phone,
       fullName: dbUser.fullName,
       createdAt: dbUser.createdAt,
       updatedAt: dbUser.updatedAt,
@@ -385,7 +381,6 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       id: userId,
       email: email,
       emailConfirmedAt: nil,
-      phone: nil,
       fullName: fullName,
       createdAt: Self.isoFormatter.string(from: Date.now),
       updatedAt: Self.isoFormatter.string(from: Date.now),

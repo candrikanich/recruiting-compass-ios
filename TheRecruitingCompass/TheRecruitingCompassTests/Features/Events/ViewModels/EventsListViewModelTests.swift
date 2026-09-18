@@ -550,7 +550,6 @@ final class EventsListViewModelTests: XCTestCase {
       id: id,
       email: "test@example.com",
       emailConfirmedAt: nil,
-      phone: nil,
       createdAt: "2026-02-17T00:00:00Z",
       updatedAt: "2026-02-17T00:00:00Z",
       role: .player

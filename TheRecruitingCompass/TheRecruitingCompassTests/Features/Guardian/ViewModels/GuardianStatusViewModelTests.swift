@@ -15,7 +15,7 @@ final class GuardianStatusViewModelTests: XCTestCase {
     mockAuthManager.setMockSession(Session(
       accessToken: "test-token", tokenType: "bearer", expiresIn: 3600,
       expiresAt: Int(Date().timeIntervalSince1970) + 3600, refreshToken: "refresh",
-      user: User(id: "u1", email: "player@example.com", emailConfirmedAt: nil, phone: nil,
+      user: User(id: "u1", email: "player@example.com", emailConfirmedAt: nil,
                  fullName: "Test Player", createdAt: "2026-01-01T00:00:00Z",
                  updatedAt: "2026-01-01T00:00:00Z", role: .player, dateOfBirth: nil)))
     sut = GuardianStatusViewModel(guardianService: mockGuardianService, authManager: mockAuthManager)

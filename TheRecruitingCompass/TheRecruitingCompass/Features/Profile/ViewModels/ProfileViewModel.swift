@@ -20,7 +20,6 @@ final class ProfileViewModel {
     // MARK: - Section 2: Personal Information
 
     var fullName: String = ""
-    var phone: String = ""
     var dateOfBirth: String = ""
     var isSavingPersonalInfo = false
     var personalInfoMessage: SectionMessage?
@@ -92,7 +91,6 @@ final class ProfileViewModel {
     func loadInitialState() {
         guard let user = authManager.user else { return }
         fullName = user.fullName ?? ""
-        phone = user.phone ?? ""
         dateOfBirth = user.dateOfBirth ?? ""
     }
 
@@ -130,7 +128,6 @@ final class ProfileViewModel {
                     id: user.id,
                     email: user.email,
                     emailConfirmedAt: user.emailConfirmedAt,
-                    phone: user.phone,
                     fullName: user.fullName,
                     createdAt: user.createdAt,
                     updatedAt: user.updatedAt,
@@ -158,7 +155,6 @@ final class ProfileViewModel {
                     id: user.id,
                     email: user.email,
                     emailConfirmedAt: user.emailConfirmedAt,
-                    phone: user.phone,
                     fullName: user.fullName,
                     createdAt: user.createdAt,
                     updatedAt: user.updatedAt,
@@ -186,13 +182,11 @@ final class ProfileViewModel {
         defer { isSavingPersonalInfo = false }
 
         let trimmedName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let phoneVal = phone.trimmingCharacters(in: .whitespacesAndNewlines)
         let dobVal = dateOfBirth.trimmingCharacters(in: .whitespacesAndNewlines)
 
         do {
             try await profileService.updatePersonalInfo(
                 fullName: trimmedName,
-                phone: phoneVal.isEmpty ? nil : phoneVal,
                 dateOfBirth: dobVal.isEmpty ? nil : dobVal
             )
             updateCachedUser { user in
@@ -200,7 +194,6 @@ final class ProfileViewModel {
                     id: user.id,
                     email: user.email,
                     emailConfirmedAt: user.emailConfirmedAt,
-                    phone: phoneVal.isEmpty ? nil : phoneVal,
                     fullName: trimmedName,
                     createdAt: user.createdAt,
                     updatedAt: user.updatedAt,

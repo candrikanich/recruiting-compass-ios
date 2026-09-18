@@ -164,10 +164,6 @@ private struct ProfilePersonalInfoSection: View {
             TextField("Full Name", text: $viewModel.fullName)
                 .accessibilityLabel(String(localized: "Full name"))
 
-            TextField("Phone (optional)", text: $viewModel.phone)
-                .keyboardType(.phonePad)
-                .accessibilityLabel(String(localized: "Phone number"))
-
             if isAthlete {
                 DateOfBirthField(value: $viewModel.dateOfBirth)
             }

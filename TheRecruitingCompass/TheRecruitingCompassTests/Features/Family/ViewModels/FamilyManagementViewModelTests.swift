@@ -31,7 +31,6 @@ final class FamilyManagementViewModelTests: XCTestCase {
       id: id,
       email: "test@test.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
-      phone: nil,
       fullName: nil,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",

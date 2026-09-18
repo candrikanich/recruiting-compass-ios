@@ -14,7 +14,7 @@ final class DeadlinesListViewModelTests: XCTestCase {
   ) -> (DeadlinesListViewModel, MockDeadlinesService, MockPreferenceService) {
     let mockAuth = MockAuthManager()
     mockAuth.setMockUser(User(
-      id: Self.userId, email: "athlete@example.com", emailConfirmedAt: nil, phone: nil,
+      id: Self.userId, email: "athlete@example.com", emailConfirmedAt: nil,
       createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", role: .player
     ))
     let familyManager = FamilyManager(familyService: MockFamilyService(), authManager: mockAuth)
