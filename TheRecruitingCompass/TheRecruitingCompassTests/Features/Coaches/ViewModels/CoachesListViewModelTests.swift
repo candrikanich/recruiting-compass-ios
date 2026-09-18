@@ -638,7 +638,8 @@ final class CoachesListViewModelTests: XCTestCase {
   func testPrepareCoachExport_neutralizesTabAndCRPrefixedFormula() async {
     mockService.stubbedSchools = [makeSchool(id: "school-1", name: "State University")]
     mockService.stubbedCoaches = [
-      makeCoach(id: "1", schoolId: "school-1", notes: "\t=SUM(A1:A10)")
+      makeCoach(id: "1", schoolId: "school-1", notes: "\t=SUM(A1:A10)"),
+      makeCoach(id: "2", schoolId: "school-1", notes: "\r=HYPERLINK(\"evil\")")
     ]
     await sut.loadCoaches()
 
@@ -647,6 +648,7 @@ final class CoachesListViewModelTests: XCTestCase {
     let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
 
     XCTAssertTrue(csv?.contains("'\t=SUM(A1:A10)") ?? false)
+    XCTAssertTrue(csv?.contains("'\r=HYPERLINK") ?? false)
 
     if let url { sut.cleanupExport(url: url) }
   }
