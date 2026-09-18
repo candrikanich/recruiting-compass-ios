@@ -239,9 +239,10 @@ final class CoachesListViewModel {
 
   func prepareCoachExport() {
     do {
+      let nameMap = schoolNameMap
       exportFileURL = try CoachExportService().prepareCSV(
         coaches: filteredCoaches,
-        schoolName: schoolName(for:)
+        schoolName: { nameMap[$0] ?? "Unknown" }
       )
     } catch {
       logger.error("Failed to prepare coach export: \(error.localizedDescription)")
