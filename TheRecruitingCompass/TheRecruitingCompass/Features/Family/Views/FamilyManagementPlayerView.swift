@@ -10,6 +10,7 @@ struct FamilyManagementPlayerView: View {
         inviteByEmailCard
         pendingInvitationsSection
         familyMembersSection
+        forwardCoachEmailsSection
       }
       .padding(.horizontal, FamilyConstants.Spacing.medium)
       .padding(.top, FamilyConstants.Spacing.medium)
@@ -266,6 +267,14 @@ struct FamilyManagementPlayerView: View {
     }
     .padding(.vertical, FamilyConstants.Spacing.extraLarge)
     .frame(maxWidth: .infinity)
+  }
+
+  // MARK: - Forward Coach Emails
+  @ViewBuilder
+  private var forwardCoachEmailsSection: some View {
+    if let address = viewModel.inboundAddress {
+      ForwardCoachEmailsCard(address: address, onCopy: { viewModel.copyInboundAddressToClipboard() })
+    }
   }
 
   @ViewBuilder

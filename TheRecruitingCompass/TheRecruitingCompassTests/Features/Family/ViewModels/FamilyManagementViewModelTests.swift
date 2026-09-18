@@ -8,13 +8,16 @@ final class FamilyManagementViewModelTests: XCTestCase {
   private var sut: FamilyManagementViewModel!
   private var mockFamilyService: MockFamilyService!
   private var mockAuthManager: MockAuthManager!
+  private var mockInboundDraftsService: MockInboundDraftsAPIService!
 
   override func setUp() async throws {
     mockFamilyService = MockFamilyService()
     mockAuthManager = MockAuthManager()
+    mockInboundDraftsService = MockInboundDraftsAPIService()
     sut = FamilyManagementViewModel(
       familyService: mockFamilyService,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      inboundDraftsService: mockInboundDraftsService
     )
   }
 
@@ -22,6 +25,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
     sut = nil
     mockFamilyService = nil
     mockAuthManager = nil
+    mockInboundDraftsService = nil
   }
 
   // MARK: - Test Helpers
@@ -220,6 +224,52 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertEqual(UIPasteboard.general.string, "FAM-ABC123")
     XCTAssertTrue(sut.showSuccessToast)
     XCTAssertEqual(sut.successMessage, "Family code copied to clipboard!")
+  }
+
+  // MARK: - Inbound Address Tests
+
+  func testLoadData_asPlayer_loadsInboundAddress() async {
+    mockAuthManager.setMockUser(makeUser(role: .player))
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockInboundDraftsService.addressToReturn = "family-abc123@inbound.therecruitingcompass.com"
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.inboundAddress, "family-abc123@inbound.therecruitingcompass.com")
+  }
+
+  func testLoadData_asParent_loadsInboundAddress() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [
+      ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "2024-01-01T00:00:00Z")
+    ]
+    mockInboundDraftsService.addressToReturn = "family-xyz789@inbound.therecruitingcompass.com"
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.inboundAddress, "family-xyz789@inbound.therecruitingcompass.com")
+  }
+
+  func testLoadData_inboundAddressFetchFailure_doesNotSetErrorOrFailLoad() async {
+    mockAuthManager.setMockUser(makeUser(role: .player))
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockInboundDraftsService.errorToThrow = FamilyError.serverError("boom")
+
+    await sut.loadData()
+
+    XCTAssertNil(sut.inboundAddress)
+    XCTAssertNil(sut.errorMessage)
+    XCTAssertEqual(sut.familyCode, "FAM-ABC123")
+  }
+
+  func testCopyInboundAddressToClipboard_copiesAddress() {
+    sut.inboundAddress = "family-abc123@inbound.therecruitingcompass.com"
+
+    sut.copyInboundAddressToClipboard()
+
+    XCTAssertEqual(UIPasteboard.general.string, "family-abc123@inbound.therecruitingcompass.com")
+    XCTAssertTrue(sut.showSuccessToast)
+    XCTAssertEqual(sut.successMessage, "Address copied to clipboard!")
   }
 
   func testConfirmRegenerateCode_setsConfirmation() {

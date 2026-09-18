@@ -23,6 +23,9 @@ final class FamilyManagementViewModel {
   var parentFamilies: [ParentFamilyData] = []
   var codeInput: String = ""
 
+  // MARK: - Inbound Email State
+  var inboundAddress: String?
+
   // MARK: - Shared State
   var isLoading = false
   var loadingMembers = false
@@ -36,7 +39,10 @@ final class FamilyManagementViewModel {
   // MARK: - Dependencies
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
+  private let inboundDraftsService: any InboundDraftsAPIManaging
   private static let isoFormatter = ISO8601DateFormatter()
+
+  private var accessToken: String? { authManager.session?.accessToken }
 
   // MARK: - Computed Properties
   var isPlayer: Bool {
@@ -65,10 +71,12 @@ final class FamilyManagementViewModel {
   // MARK: - Initialization
   init(
     familyService: (any FamilyManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    inboundDraftsService: (any InboundDraftsAPIManaging)? = nil
   ) {
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.inboundDraftsService = inboundDraftsService ?? InboundDraftsAPIService()
   }
 
   // MARK: - Load Data
@@ -82,6 +90,23 @@ final class FamilyManagementViewModel {
     } else if isParent {
       await loadParentData()
     }
+    await loadInboundAddress()
+  }
+
+  private func loadInboundAddress() async {
+    do {
+      inboundAddress = try await inboundDraftsService.fetchForwardingAddress(accessToken: accessToken)
+    } catch {
+      // Non-critical display — a fetch failure here must never break the page —
+      // but log at error level so recurring outages are still visible in telemetry.
+      logger.error("Failed to load inbound address: \(error.localizedDescription)")
+    }
+  }
+
+  func copyInboundAddressToClipboard() {
+    guard let address = inboundAddress else { return }
+    UIPasteboard.general.string = address
+    showSuccess("Address copied to clipboard!")
   }
 
   // MARK: - Player Actions
