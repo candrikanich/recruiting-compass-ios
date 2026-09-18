@@ -8,20 +8,29 @@ struct ParentOnboardingWizardView: View {
 
   var body: some View {
     NavigationStack {
-      VStack(spacing: 0) {
-        stepIndicator
-        ScrollView {
-          currentStepContent
-            .padding(FamilyConstants.Spacing.medium)
+      ZStack {
+        LinearGradient.primaryBackground
+          .ignoresSafeArea()
+
+        VStack(spacing: 0) {
+          stepIndicator
+          ScrollView {
+            currentStepContent
+              .padding(FamilyConstants.Spacing.medium)
+          }
+          if let error = viewModel.errorMessage {
+            Text(error)
+              .font(.caption)
+              .foregroundStyle(.red)
+              .padding(.horizontal)
+              .padding(.bottom, 8)
+          }
+          navigationButtons
         }
-        if let error = viewModel.errorMessage {
-          Text(error)
-            .font(.caption)
-            .foregroundStyle(.red)
-            .padding(.horizontal)
-            .padding(.bottom, 8)
-        }
-        navigationButtons
+        .background(Color.white.opacity(0.95))
+        .clipShape(.rect(cornerRadius: 16))
+        .padding(.horizontal, 24)
+        .padding(.vertical, 24)
       }
       .navigationTitle("Invite Player")
       .navigationBarTitleDisplayMode(.inline)
@@ -96,9 +105,9 @@ struct ParentOnboardingWizardView: View {
         Text("Player's first name")
           .font(.subheadline.weight(.medium))
         TextField("First name", text: $viewModel.playerFirstName)
-          .textFieldStyle(.roundedBorder)
           .textContentType(.givenName)
           .accessibilityLabel(String(localized: "Athlete first name"))
+          .formFieldStyle()
 
         Text("Player's date of birth")
           .font(.subheadline.weight(.medium))
@@ -183,11 +192,11 @@ struct ParentOnboardingWizardView: View {
         Text("Player's email address")
           .font(.subheadline.weight(.medium))
         TextField("player@example.com", text: $viewModel.inviteEmail)
-          .textFieldStyle(.roundedBorder)
           .keyboardType(.emailAddress)
           .textContentType(.emailAddress)
           .autocapitalization(.none)
           .accessibilityLabel(String(localized: "Player email for invite"))
+          .formFieldStyle()
       }
 
       Button {
@@ -197,10 +206,15 @@ struct ParentOnboardingWizardView: View {
           ProgressView().tint(.white)
         } else {
           Text("Send Invite")
+            .font(.callout.weight(.semibold))
         }
       }
       .frame(maxWidth: .infinity)
-      .buttonStyle(.borderedProminent)
+      .frame(minHeight: 48)
+      .foregroundStyle(.white)
+      .background(LinearGradient.primaryButton)
+      .clipShape(.rect(cornerRadius: 8))
+      .opacity(!viewModel.isInviteStepValid || viewModel.isLoading ? 0.5 : 1)
       .disabled(!viewModel.isInviteStepValid || viewModel.isLoading)
       .accessibilityLabel(String(localized: "Send invite"))
 
@@ -289,15 +303,36 @@ struct ParentOnboardingWizardView: View {
       }
       Spacer()
       if viewModel.currentStep == .playerDetails {
-        Button("Next") {
+        Button {
           viewModel.nextStep()
+        } label: {
+          Text("Next")
+            .font(.callout.weight(.semibold))
+            .padding(.horizontal, 24)
+            .padding(.vertical, 12)
         }
-        .buttonStyle(.borderedProminent)
+        .foregroundStyle(.white)
+        .background(LinearGradient.primaryButton)
+        .clipShape(.rect(cornerRadius: 8))
+        .opacity(viewModel.isPlayerDetailsValid ? 1 : 0.5)
         .disabled(!viewModel.isPlayerDetailsValid)
         .accessibilityLabel(String(localized: "Next step"))
       }
       // Step 2: primary action (Send Invite) is in sendInviteStep content; only Back in bar
     }
     .padding(FamilyConstants.Spacing.medium)
+  }
+}
+
+/// Matches LoginFormField's input styling so the invite wizard reads as part of the signup family.
+private extension View {
+  func formFieldStyle() -> some View {
+    padding(12)
+      .background(Color(uiColor: .secondarySystemBackground))
+      .overlay(
+        RoundedRectangle(cornerRadius: 8)
+          .stroke(Color(uiColor: .separator), lineWidth: 1)
+      )
+      .clipShape(.rect(cornerRadius: 8))
   }
 }
