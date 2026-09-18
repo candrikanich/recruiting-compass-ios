@@ -34,8 +34,7 @@ final class SchoolDetailViewModelPhase2Tests: XCTestCase {
       createdAt: "2025-01-01T00:00:00Z",
       updatedAt: "2025-01-01T00:00:00Z",
       homeLatitude: nil,
-      homeLongitude: nil,
-      pendingPlayerDetails: nil
+      homeLongitude: nil
     )
 
     viewModel = SchoolDetailViewModel(

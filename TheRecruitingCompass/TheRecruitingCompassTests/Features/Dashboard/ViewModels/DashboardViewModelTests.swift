@@ -147,8 +147,7 @@ final class DashboardViewModelTests: XCTestCase {
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
       homeLatitude: nil,
-      homeLongitude: nil,
-      pendingPlayerDetails: nil
+      homeLongitude: nil
     )
     mockFamilyService.stubbedFamilyUnit = familyUnit
 
