@@ -393,7 +393,7 @@ private struct SignupGuardianEmailFieldView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       LoginFormField(
-        label: String(localized: "Parent/Guardian Email"),
+        label: String(localized: "Parent/Guardian Email (optional)"),
         placeholder: "parent@example.com",
         icon: "envelope.badge.person.crop",
         text: $viewModel.guardianEmail,
@@ -404,7 +404,7 @@ private struct SignupGuardianEmailFieldView: View {
         onBlur: viewModel.validateGuardianEmail
       )
 
-      Text("Players under 18 need a parent or guardian to confirm their account. We'll email them a link — you can start using the app right away, but sending messages to coaches and publishing your profile stay locked until they confirm.")
+      Text("Add a parent or guardian now, or invite one later from your dashboard. We'll email them a link — you can start using the app right away, but sending messages to coaches and publishing your profile stay locked until they confirm.")
         .font(.caption)
         .foregroundStyle(Color.secondary)
     }

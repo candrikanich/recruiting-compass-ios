@@ -20,7 +20,7 @@ struct InboundDraftsViewModelTests {
 
   private func makeViewModel(api: MockInboundDraftsAPIService) -> InboundDraftsViewModel {
     let mockAuth = MockAuthManager()
-    let user = User(id: "u1", email: "a@b.com", emailConfirmedAt: nil, phone: nil, fullName: nil, createdAt: "", updatedAt: "", role: nil, dateOfBirth: nil)
+    let user = User(id: "u1", email: "a@b.com", emailConfirmedAt: nil, fullName: nil, createdAt: "", updatedAt: "", role: nil, dateOfBirth: nil)
     mockAuth.user = user
     mockAuth.setMockSession(Session(
       accessToken: "test-token", tokenType: "bearer", expiresIn: 3600,

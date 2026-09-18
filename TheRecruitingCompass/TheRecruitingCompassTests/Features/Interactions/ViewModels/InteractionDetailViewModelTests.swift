@@ -460,7 +460,6 @@ final class InteractionDetailViewModelTests: XCTestCase {
       id: id,
       email: "test@example.com",
       emailConfirmedAt: nil,
-      phone: nil,
       createdAt: "",
       updatedAt: "",
       role: nil

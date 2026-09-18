@@ -97,7 +97,7 @@ final class QuickCommunicationViewModel {
   /// Instagram path, which opens externally before the template/compose flow runs.
   func checkGuardianLock() async -> Bool {
     guard athleteUserId != nil, let accessToken else { return true }
-    if let status = try? await guardianService.fetchStatus(accessToken: accessToken), status.pending {
+    if let status = try? await guardianService.fetchStatus(accessToken: accessToken), status.locked {
       sendWarning = String(localized: "Your guardian hasn't confirmed your account yet — outreach is locked until they do.")
       return false
     }

@@ -7,9 +7,13 @@ import Foundation
 /// consent, and handing it to the player would let a minor confirm their own
 /// account.
 struct GuardianStatus: Decodable, Equatable, Sendable {
-  /// True while an unconfirmed guardian claim is outstanding — outbound
-  /// features (coach messaging, profile publishing) stay locked.
-  let pending: Bool
+  /// True when outbound features (coach messaging, profile publishing) stay
+  /// locked. Use this for enforcement — `status` is presentation-only (see
+  /// server/api/guardian/status.get.ts). The server also still sends a
+  /// deprecated `pending` field (kept only for an older iOS build reading it
+  /// directly); this client no longer decodes it, see planning/iOS_SPEC_web-
+  /// ios-parity-pass-2026-09-17.md Item 5 (web repo).
+  let locked: Bool
   /// Obfuscated for display (e.g. "j***@example.com"); the full address is
   /// never returned to the player.
   let guardianEmailMasked: String?
@@ -30,7 +34,9 @@ struct GuardianClaimDetails: Decodable, Equatable, Sendable {
 /// Response from `POST /api/auth/signup-minor`.
 struct SignupMinorResult: Decodable, Equatable, Sendable {
   let ok: Bool
-  let guardianEmail: String
+  /// `nil` when the player skipped naming a guardian — see
+  /// server/api/auth/signup-minor.post.ts's `guardianEmail: null` response.
+  let guardianEmail: String?
   let guardianEmailSent: Bool
 }
 

@@ -39,6 +39,15 @@ final class InviteJoinViewModel {
   var signupAgreeToTerms = false
   var signupError: String?
 
+  // GET /api/family/invite/:token deliberately withholds emailExists (no
+  // account-existence disclosure pre-acceptance — see InviteDetails), so it
+  // always decodes false, defaulting every unauthenticated invitee to the
+  // signup form. An existing user hitting that default gets a duplicate-
+  // account error from signup with no way to switch to login (#151 review).
+  // nil = use that default; an explicit value overrides it via the toggle
+  // link in each section.
+  var authModeOverride: Bool?
+
   private let token: String
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
@@ -50,6 +59,13 @@ final class InviteJoinViewModel {
   var inviteDetails: InviteDetails? {
     if case .loaded(let d) = state { return d }
     return nil
+  }
+
+  /// Whether the unauthenticated invitee should see the login form (vs.
+  /// signup). Prefers the user's manual choice over the server's
+  /// (deliberately always-false) emailExists hint.
+  func showsLoginSection(for invite: InviteDetails) -> Bool {
+    authModeOverride ?? invite.emailExists
   }
 
   init(

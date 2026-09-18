@@ -8,13 +8,16 @@ final class FamilyManagementViewModelTests: XCTestCase {
   private var sut: FamilyManagementViewModel!
   private var mockFamilyService: MockFamilyService!
   private var mockAuthManager: MockAuthManager!
+  private var mockInboundDraftsService: MockInboundDraftsAPIService!
 
   override func setUp() async throws {
     mockFamilyService = MockFamilyService()
     mockAuthManager = MockAuthManager()
+    mockInboundDraftsService = MockInboundDraftsAPIService()
     sut = FamilyManagementViewModel(
       familyService: mockFamilyService,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      inboundDraftsService: mockInboundDraftsService
     )
   }
 
@@ -22,6 +25,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
     sut = nil
     mockFamilyService = nil
     mockAuthManager = nil
+    mockInboundDraftsService = nil
   }
 
   // MARK: - Test Helpers
@@ -31,7 +35,6 @@ final class FamilyManagementViewModelTests: XCTestCase {
       id: id,
       email: "test@test.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
-      phone: nil,
       fullName: nil,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
@@ -56,8 +59,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
       homeLatitude: nil,
-      homeLongitude: nil,
-      pendingPlayerDetails: nil
+      homeLongitude: nil
     )
   }
 
@@ -224,6 +226,52 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertEqual(sut.successMessage, "Family code copied to clipboard!")
   }
 
+  // MARK: - Inbound Address Tests
+
+  func testLoadData_asPlayer_loadsInboundAddress() async {
+    mockAuthManager.setMockUser(makeUser(role: .player))
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockInboundDraftsService.addressToReturn = "family-abc123@inbound.therecruitingcompass.com"
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.inboundAddress, "family-abc123@inbound.therecruitingcompass.com")
+  }
+
+  func testLoadData_asParent_loadsInboundAddress() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [
+      ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "2024-01-01T00:00:00Z")
+    ]
+    mockInboundDraftsService.addressToReturn = "family-xyz789@inbound.therecruitingcompass.com"
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.inboundAddress, "family-xyz789@inbound.therecruitingcompass.com")
+  }
+
+  func testLoadData_inboundAddressFetchFailure_doesNotSetErrorOrFailLoad() async {
+    mockAuthManager.setMockUser(makeUser(role: .player))
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockInboundDraftsService.errorToThrow = FamilyError.serverError("boom")
+
+    await sut.loadData()
+
+    XCTAssertNil(sut.inboundAddress)
+    XCTAssertNil(sut.errorMessage)
+    XCTAssertEqual(sut.familyCode, "FAM-ABC123")
+  }
+
+  func testCopyInboundAddressToClipboard_copiesAddress() {
+    sut.inboundAddress = "family-abc123@inbound.therecruitingcompass.com"
+
+    sut.copyInboundAddressToClipboard()
+
+    XCTAssertEqual(UIPasteboard.general.string, "family-abc123@inbound.therecruitingcompass.com")
+    XCTAssertTrue(sut.showSuccessToast)
+    XCTAssertEqual(sut.successMessage, "Address copied to clipboard!")
+  }
+
   func testConfirmRegenerateCode_setsConfirmation() {
     sut.confirmRegenerateCode()
 
@@ -327,6 +375,42 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertEqual(sut.parentFamilies.count, 1)
     XCTAssertEqual(sut.parentFamilies.first?.familyName, "Smith Family")
     XCTAssertFalse(sut.isLoading)
+  }
+
+  func testLoadData_asParent_loadsMembersForEachFamily() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [
+      ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "2024-01-01T00:00:00Z"),
+      ParentFamilyData(familyId: "family-2", familyCode: "FAM-XYZ789", familyName: "Jones Family", codeGeneratedAt: "2024-01-01T00:00:00Z")
+    ]
+    mockFamilyService.membersByFamilyUnitId = [
+      "family-1": [makeFamilyMember(id: "m1", familyUnitId: "family-1", role: "athlete")],
+      "family-2": [makeFamilyMember(id: "m2", familyUnitId: "family-2", role: "athlete")]
+    ]
+
+    await sut.loadData()
+
+    XCTAssertEqual(mockFamilyService.fetchFamilyMembersCallCount, 2)
+    XCTAssertEqual(sut.parentFamilies.first(where: { $0.familyId == "family-1" })?.members.map(\.id), ["m1"])
+    XCTAssertEqual(sut.parentFamilies.first(where: { $0.familyId == "family-2" })?.members.map(\.id), ["m2"])
+  }
+
+  func testLoadData_asParent_memberFetchFailure_doesNotFailWholeLoad() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [
+      ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "2024-01-01T00:00:00Z"),
+      ParentFamilyData(familyId: "family-2", familyCode: "FAM-XYZ789", familyName: "Jones Family", codeGeneratedAt: "2024-01-01T00:00:00Z")
+    ]
+    mockFamilyService.familyUnitIdsToFail = ["family-1"]
+    mockFamilyService.membersByFamilyUnitId = [
+      "family-2": [makeFamilyMember(id: "m2", familyUnitId: "family-2", role: "athlete")]
+    ]
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.parentFamilies.count, 2)
+    XCTAssertEqual(sut.parentFamilies.first(where: { $0.familyId == "family-1" })?.members.isEmpty, true)
+    XCTAssertEqual(sut.parentFamilies.first(where: { $0.familyId == "family-2" })?.members.map(\.id), ["m2"])
   }
 
   func testLoadData_asParent_error_setsError() async {

@@ -22,7 +22,7 @@ private struct SignupMinorBody: Encodable {
   let firstName: String
   let lastName: String
   let dateOfBirth: String
-  let guardianEmail: String
+  let guardianEmail: String?
   let captchaToken: String?
   // Onboarding step 1 (mirrors pages/signup.vue's pending_* draft) — optional,
   // carried through so a minor who fills these in isn't silently re-asked.
@@ -49,7 +49,7 @@ protocol GuardianManaging: Sendable {
   /// signup path.
   func signupMinor(
     email: String, password: String, firstName: String, lastName: String,
-    dateOfBirth: String, guardianEmail: String, captchaToken: String?,
+    dateOfBirth: String, guardianEmail: String?, captchaToken: String?,
     graduationYear: Int?, primarySport: String?, gender: String?, zipCode: String?
   ) async throws -> SignupMinorResult
 
@@ -85,7 +85,7 @@ struct GuardianServiceImpl: GuardianManaging {
 
   func signupMinor(
     email: String, password: String, firstName: String, lastName: String,
-    dateOfBirth: String, guardianEmail: String, captchaToken: String?,
+    dateOfBirth: String, guardianEmail: String?, captchaToken: String?,
     graduationYear: Int?, primarySport: String?, gender: String?, zipCode: String?
   ) async throws -> SignupMinorResult {
     let body = SignupMinorBody(

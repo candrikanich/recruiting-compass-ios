@@ -44,7 +44,6 @@ final class TimelineViewModelWhatMattersTests: XCTestCase {
       id: id,
       email: "test@example.com",
       emailConfirmedAt: nil,
-      phone: nil,
       createdAt: "2026-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z",
       role: .player

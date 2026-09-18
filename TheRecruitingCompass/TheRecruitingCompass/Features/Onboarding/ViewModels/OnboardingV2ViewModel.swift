@@ -90,17 +90,34 @@ final class OnboardingV2ViewModel {
   // MARK: - Step 1
 
   /// Pre-fill from existing canonical preferences (parent may have entered data on web).
-  func loadExistingData() async {
-    if let existing: PlayerDetails = try? await preferenceService.fetchPreferences(category: .player) {
-      if graduationYear == nil, let year = existing.graduationYear { graduationYear = year }
-      if primarySport.isEmpty, let sport = existing.primarySport, !sport.isEmpty { primarySport = sport }
+  ///
+  /// Returns `false` only when the player-preferences fetch itself failed (network/server
+  /// error) — distinct from a successful fetch that simply found nothing. The caller (the
+  /// onboarding container, deciding whether to skip Step 1) must not treat those the same:
+  /// silently defaulting a failed read to "no data" could route a player who already has
+  /// real canonical sport/grad-year through the redundant Step 1, or worse, let them
+  /// overwrite it. The location/zip fetch failing is lower-stakes (only affects zip
+  /// pre-fill, not the step-skip decision) and stays best-effort.
+  @discardableResult
+  func loadExistingData() async -> Bool {
+    var playerFetchSucceeded = true
+    do {
+      if let existing: PlayerDetails = try await preferenceService.fetchPreferences(category: .player) {
+        if graduationYear == nil, let year = existing.graduationYear { graduationYear = year }
+        if primarySport.isEmpty, let sport = existing.primarySport, !sport.isEmpty { primarySport = sport }
+      }
+    } catch {
+      playerFetchSucceeded = false
+      logger.error("Failed to load existing player preferences: \(error.localizedDescription)")
     }
+
     if zipCode.isEmpty,
        let location: HomeLocation = try? await preferenceService.fetchPreferences(category: .location),
        let zip = location.zip, !zip.isEmpty {
       zipCode = zip
     }
-    logger.debug("Pre-filled onboarding v2 from existing preferences")
+    logger.debug("Pre-filled onboarding v2 from existing preferences (playerFetchSucceeded: \(playerFetchSucceeded))")
+    return playerFetchSucceeded
   }
 
   /// Saves Step 1 data (sport, graduation year, zip, auto-derived gender) to player preferences.

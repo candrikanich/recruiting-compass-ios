@@ -63,13 +63,15 @@ Supabase credentials must be configured before running:
 5. Set values:
    - `SUPABASE_URL`: `https://your-project.supabase.co`
    - `SUPABASE_ANON_KEY`: `your-anon-key-here`
-   - `API_BASE_URL`: `https://your-app.vercel.app` (optional; required for Dashboard Action Items — see below)
+   - `API_BASE_URL`: `https://your-app.vercel.app` (**required** — see below)
 
 **Why:** Shared scheme (in git) has empty placeholders. Your local user scheme (NOT in git) has real credentials.
 
-**Action Items (Suggestions):** The dashboard Action Items widget uses the web app API (`GET /api/suggestions`, `PATCH .../dismiss`, `PATCH .../complete`). Set `API_BASE_URL` to your web app base URL (e.g. Vercel deployment). Authorization uses the Supabase session token (Bearer). If `API_BASE_URL` is unset, the widget shows "No action items at this time."
+**`API_BASE_URL` is required**, not optional. Omitting it breaks both:
+- **Family creation.** `createFamily(role:)` always routes through `POST /api/family/create` — that's the only path that gets the server's race-hardening (idx_family_units_one_per_creator recovery, idx_player_one_family disambiguation). There is no direct-Supabase fallback; a missing `API_BASE_URL` throws instead of silently falling back. Family creation runs during signup/onboarding, so a missing value breaks onboarding too.
+- **Action Items (Suggestions).** The dashboard Action Items widget uses the web app API (`GET /api/suggestions`, `PATCH .../dismiss`, `PATCH .../complete`). Authorization uses the Supabase session token (Bearer). If unset, the widget shows "No action items at this time."
 
-**Family Creation:** Player family units are created directly via Supabase (`family_units` and `family_members` inserts). No web API required.
+Set it to your web app base URL (e.g. a Vercel deployment). Release/TestFlight/App Store builds already have a production fallback baked in (`SupabaseConfig.swift`) — this only matters for local DEBUG runs from Xcode.
 
 **Production / TestFlight / App Store:** Release builds require real `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Scheme environment variables are **not** embedded in archived builds. Edit **`TheRecruitingCompass/Release.xcconfig`** and replace the placeholder URL and key with your real values before creating an Archive. See `docs/CONFIGURATION.md`.
 

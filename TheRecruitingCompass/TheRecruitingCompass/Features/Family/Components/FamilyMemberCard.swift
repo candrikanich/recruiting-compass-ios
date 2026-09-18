@@ -3,6 +3,7 @@ import SwiftUI
 struct FamilyMemberCard: View {
   let member: FamilyMember
   let onRemove: () -> Void
+  var showRemoveButton: Bool = true
 
   private static let isoParser: ISO8601DateFormatter = {
     let f = ISO8601DateFormatter()
@@ -55,7 +56,7 @@ struct FamilyMemberCard: View {
 
       Spacer()
 
-      if member.isParent {
+      if showRemoveButton && member.isParent {
         Button(action: onRemove) {
           Image(systemName: "trash")
             .foregroundStyle(.red)

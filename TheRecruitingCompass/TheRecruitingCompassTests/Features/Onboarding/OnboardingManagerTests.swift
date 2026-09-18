@@ -220,7 +220,6 @@ final class OnboardingManagerTests: XCTestCase {
       id: id,
       email: "test@example.com",
       emailConfirmedAt: "2024-01-01T00:00:00Z",
-      phone: nil,
       fullName: "Test User",
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
@@ -246,8 +245,7 @@ final class OnboardingManagerTests: XCTestCase {
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
       homeLatitude: nil,
-      homeLongitude: nil,
-      pendingPlayerDetails: nil
+      homeLongitude: nil
     )
   }
 }

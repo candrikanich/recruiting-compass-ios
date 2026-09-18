@@ -10,8 +10,6 @@ struct User: Codable, Identifiable, Sendable {
   let email: String
   /// ISO 8601 timestamp when the email was verified; `nil` if not yet confirmed.
   let emailConfirmedAt: String?
-  /// Optional phone number associated with the account.
-  let phone: String?
   /// Display name entered at signup.
   let fullName: String?
   /// ISO 8601 timestamp of account creation.
@@ -31,7 +29,6 @@ struct User: Codable, Identifiable, Sendable {
     case id
     case email
     case emailConfirmedAt = "email_confirmed_at"
-    case phone
     case fullName = "full_name"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
@@ -45,7 +42,6 @@ struct User: Codable, Identifiable, Sendable {
     id: String,
     email: String,
     emailConfirmedAt: String?,
-    phone: String?,
     fullName: String? = nil,
     createdAt: String,
     updatedAt: String,
@@ -57,7 +53,6 @@ struct User: Codable, Identifiable, Sendable {
     self.id = id
     self.email = email
     self.emailConfirmedAt = emailConfirmedAt
-    self.phone = phone
     self.fullName = fullName
     self.createdAt = createdAt
     self.updatedAt = updatedAt

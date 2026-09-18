@@ -76,7 +76,7 @@ struct PushNotificationManagerTests {
     private func makeTestUser(id: String) -> User {
         User(
             id: id, email: "test@example.com",
-            emailConfirmedAt: nil, phone: nil,
+            emailConfirmedAt: nil,
             createdAt: "2026-01-01T00:00:00Z",
             updatedAt: "2026-01-01T00:00:00Z",
             role: .player

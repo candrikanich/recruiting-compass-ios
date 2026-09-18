@@ -50,7 +50,6 @@ final class ProfileViewModelTests: XCTestCase {
     viewModel.loadInitialState()
 
     XCTAssertEqual(viewModel.fullName, "Jane Athlete")
-    XCTAssertEqual(viewModel.phone, "555-1234")
     XCTAssertEqual(viewModel.dateOfBirth, "2008-05-01")
   }
 
@@ -149,28 +148,24 @@ final class ProfileViewModelTests: XCTestCase {
 
   func testSavePersonalInfo_success_updatesServiceAndCachedUser() async {
     viewModel.fullName = "  New Name  "
-    viewModel.phone = "555-9999"
     viewModel.dateOfBirth = "2007-01-01"
 
     await viewModel.savePersonalInfo()
 
     XCTAssertEqual(mockProfileService.updatePersonalInfoCallCount, 1)
     XCTAssertEqual(mockProfileService.lastFullName, "New Name")
-    XCTAssertEqual(mockProfileService.lastPhone, "555-9999")
     XCTAssertEqual(authManager.user?.fullName, "New Name")
     // savePersonalInfo() sets .success then sleeps 2s and clears it itself before
     // returning, so by the time `await` resumes here the message is already nil again.
     XCTAssertNil(viewModel.personalInfoMessage)
   }
 
-  func testSavePersonalInfo_emptyPhoneAndDob_passedAsNil() async {
+  func testSavePersonalInfo_emptyDob_passedAsNil() async {
     viewModel.fullName = "Jane"
-    viewModel.phone = "   "
     viewModel.dateOfBirth = ""
 
     await viewModel.savePersonalInfo()
 
-    XCTAssertNil(mockProfileService.lastPhone)
     XCTAssertNil(mockProfileService.lastDateOfBirth)
   }
 
@@ -338,7 +333,6 @@ final class ProfileViewModelTests: XCTestCase {
       id: "user-1",
       email: "jane@example.com",
       emailConfirmedAt: "2026-01-01T00:00:00Z",
-      phone: "555-1234",
       fullName: "Jane Athlete",
       createdAt: "2026-01-01T00:00:00Z",
       updatedAt: "2026-01-01T00:00:00Z",

@@ -277,7 +277,8 @@ final class InviteJoinViewModelTests: XCTestCase {
     email: String = "invitee@example.com",
     role: String = "parent",
     emailMismatch: Bool? = nil,
-    prefill: InvitePrefill? = nil
+    prefill: InvitePrefill? = nil,
+    emailExists: Bool = false
   ) -> InviteDetails {
     InviteDetails(
       invitationId: "inv-1",
@@ -285,9 +286,27 @@ final class InviteJoinViewModelTests: XCTestCase {
       role: role,
       familyName: "Test Family",
       inviterName: "Test Inviter",
-      emailExists: false,
+      emailExists: emailExists,
       prefill: prefill,
       emailMismatch: emailMismatch
     )
+  }
+}
+
+// #151 review: the server always sends emailExists=false (no account-existence
+// disclosure pre-acceptance), so an existing invitee must have a manual way to
+// reach the login form instead of being stuck on signup.
+extension InviteJoinViewModelTests {
+  func testShowsLoginSection_defaultsToServerHint_whenNoOverride() {
+    XCTAssertFalse(viewModel.showsLoginSection(for: makeInviteDetails(emailExists: false)))
+    XCTAssertTrue(viewModel.showsLoginSection(for: makeInviteDetails(emailExists: true)))
+  }
+
+  func testShowsLoginSection_manualOverrideWinsOverServerHint() {
+    viewModel.authModeOverride = true
+    XCTAssertTrue(viewModel.showsLoginSection(for: makeInviteDetails(emailExists: false)))
+
+    viewModel.authModeOverride = false
+    XCTAssertFalse(viewModel.showsLoginSection(for: makeInviteDetails(emailExists: true)))
   }
 }

@@ -12,7 +12,6 @@ final class EmailVerificationViewModelTests: XCTestCase {
     id: "test-id",
     email: "test@example.com",
     emailConfirmedAt: nil,
-    phone: nil,
     createdAt: "2024-01-01T00:00:00Z",
     updatedAt: "2024-01-01T00:00:00Z",
     role: nil
@@ -22,7 +21,6 @@ final class EmailVerificationViewModelTests: XCTestCase {
     id: "test-id",
     email: "test@example.com",
     emailConfirmedAt: "2024-01-01T12:00:00Z",
-    phone: nil,
     createdAt: "2024-01-01T00:00:00Z",
     updatedAt: "2024-01-01T12:00:00Z",
     role: nil
@@ -77,7 +75,6 @@ final class EmailVerificationViewModelTests: XCTestCase {
       id: "test-id",
       email: "john.doe@example.com",
       emailConfirmedAt: nil,
-      phone: nil,
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
       role: nil

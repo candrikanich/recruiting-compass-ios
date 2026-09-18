@@ -40,7 +40,7 @@ final class SendProfileViewModelTests: XCTestCase {
     private func selfAuth(userId: String = "u1", fullName: String = "Owen Andrikanich") -> MockAuthManager {
         let auth = MockAuthManager()
         auth.setMockUser(User(
-            id: userId, email: "o@x.com", emailConfirmedAt: nil, phone: nil,
+            id: userId, email: "o@x.com", emailConfirmedAt: nil,
             fullName: fullName, createdAt: "", updatedAt: "", role: nil, dateOfBirth: nil
         ))
         return auth

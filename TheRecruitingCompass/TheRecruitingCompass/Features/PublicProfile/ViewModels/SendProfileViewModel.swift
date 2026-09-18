@@ -93,7 +93,7 @@ final class SendProfileViewModel {
         // COPPA-adjacent lock: a self-signed-up 13-17 player can't share their profile
         // until their named guardian confirms, independent of the publish toggle. Fails
         // open on any lookup error — matches the rest of the guardian-gating in this app.
-        if let token, let status = try? await guardianService.fetchStatus(accessToken: token), status.pending {
+        if let token, let status = try? await guardianService.fetchStatus(accessToken: token), status.locked {
             guardianPendingPrompt = true
             return .guardianPending
         }

@@ -6,6 +6,7 @@ struct ParentFamilyData: Codable, Identifiable, Sendable {
   let familyCode: String
   let familyName: String
   let codeGeneratedAt: String
+  var members: [FamilyMember] = []
 
   enum CodingKeys: String, CodingKey {
     case familyId = "family_id"
