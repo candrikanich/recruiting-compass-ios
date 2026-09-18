@@ -49,6 +49,10 @@ struct CoachDetailView: View {
   }
 
   var body: some View {
+    lifecycleModifiers(sheetsAndAlerts(contentBody))
+  }
+
+  private var contentBody: some View {
     Group {
       if let coach = viewModel.coach {
         detailContent(coach: coach)
@@ -105,114 +109,124 @@ struct CoachDetailView: View {
       }
     }
     .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
-    .sheet(isPresented: $viewModel.isEditing) {
-      if viewModel.editedCoach != nil {
-        CoachEditForm(
-          editedCoach: viewModel.editableCoachBinding,
-          validationErrors: viewModel.validationErrors,
-          isSaving: viewModel.isSaving,
-          onSave: { await viewModel.saveChanges() },
-          onCancel: { viewModel.cancelEditing() }
-        )
-      }
-    }
-    .sheet(item: $quickCommunicationContext) { context in
-      QuickCommunicationView(context: context)
-    }
-    .sheet(item: $shareItem) { item in
-      ActivityShareSheet(activityItems: [item.url])
-    }
-    .sheet(item: $profileComposer) { context in
-      profileComposerSheet(context)
-    }
-    .confirmationDialog(
-      "Send Profile",
-      isPresented: channelChoiceBinding,
-      titleVisibility: .visible,
-      presenting: pendingChannelChoice
-    ) { message in
-      if let email = message.coachEmail {
-        Button("Email \(email)") { presentComposer(.email, message) }
-      }
-      if let phone = message.coachPhone {
-        Button("Text \(phone)") { presentComposer(.text, message) }
-      }
-      Button("Cancel", role: .cancel) {}
-    } message: { _ in
-      Text("How would you like to send this profile?")
-    }
-    .alert(
-      "Profile Not Published",
-      isPresented: $sendProfileVM.notPublishedPrompt
-    ) {
-      Button("OK") { sendProfileVM.notPublishedPrompt = false }
-    } message: {
-      Text("Publish your profile before sending it to a coach.")
-    }
-    .alert(
-      "Waiting on Your Guardian",
-      isPresented: $sendProfileVM.guardianPendingPrompt
-    ) {
-      Button("OK") { sendProfileVM.guardianPendingPrompt = false }
-    } message: {
-      Text("Sending your profile to coaches stays locked until your guardian confirms your account.")
-    }
-    .confirmationDialog("Delete Coach", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
-      Button("Delete", role: .destructive) {
-        Task {
-          await viewModel.deleteCoach()
-          if viewModel.deleteSuccessMessage != nil {
-            dismiss()
-          }
+  }
+
+  @ViewBuilder
+  private func sheetsAndAlerts(_ content: some View) -> some View {
+    content
+      .sheet(isPresented: $viewModel.isEditing) {
+        if viewModel.editedCoach != nil {
+          CoachEditForm(
+            editedCoach: viewModel.editableCoachBinding,
+            validationErrors: viewModel.validationErrors,
+            isSaving: viewModel.isSaving,
+            onSave: { await viewModel.saveChanges() },
+            onCancel: { viewModel.cancelEditing() }
+          )
         }
       }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      Text("Are you sure you want to delete this coach? This action cannot be undone.")
-    }
-    .sheet(isPresented: $showLogInteraction) {
-      logInteractionSheet
-    }
-    .confirmationDialog(
-      socialDMTitle,
-      isPresented: $showSocialDMConfirm,
-      titleVisibility: .visible
-    ) {
-      Button("Yes, I sent a DM") {
-        Task { await viewModel.confirmSocialDM() }
+      .sheet(item: $quickCommunicationContext) { context in
+        QuickCommunicationView(context: context)
       }
-      Button("No", role: .cancel) {
-        viewModel.dismissSocialDM()
+      .sheet(item: $shareItem) { item in
+        ActivityShareSheet(activityItems: [item.url])
       }
-    }
-    .onChange(of: scenePhase) { _, phase in
-      if phase == .active, viewModel.pendingSocialDM != nil {
-        showSocialDMConfirm = true
+      .sheet(item: $profileComposer) { context in
+        profileComposerSheet(context)
       }
-    }
-    .refreshable {
-      await viewModel.loadDetails()
-    }
-    .task {
-      await viewModel.loadCoach()
-      await viewModel.loadDetails()
-      await sendProfileVM.loadTrackingInfo(for: coachId)
-      await subscribeRealtime()
-    }
-    .onDisappear {
-      let service = realtimeService
-      realtimeService = nil
-      Task { await service?.unsubscribe() }
-    }
-    .onChange(of: scenePhase) { _, newValue in
-      if newValue == .active {
-        Task { await subscribeRealtime() }
-      } else if newValue == .background {
+      .confirmationDialog(
+        "Send Profile",
+        isPresented: channelChoiceBinding,
+        titleVisibility: .visible,
+        presenting: pendingChannelChoice
+      ) { message in
+        if let email = message.coachEmail {
+          Button("Email \(email)") { presentComposer(.email, message) }
+        }
+        if let phone = message.coachPhone {
+          Button("Text \(phone)") { presentComposer(.text, message) }
+        }
+        Button("Cancel", role: .cancel) {}
+      } message: { _ in
+        Text("How would you like to send this profile?")
+      }
+      .alert(
+        "Profile Not Published",
+        isPresented: $sendProfileVM.notPublishedPrompt
+      ) {
+        Button("OK") { sendProfileVM.notPublishedPrompt = false }
+      } message: {
+        Text("Publish your profile before sending it to a coach.")
+      }
+      .alert(
+        "Waiting on Your Guardian",
+        isPresented: $sendProfileVM.guardianPendingPrompt
+      ) {
+        Button("OK") { sendProfileVM.guardianPendingPrompt = false }
+      } message: {
+        Text("Sending your profile to coaches stays locked until your guardian confirms your account.")
+      }
+      .confirmationDialog("Delete Coach", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
+        Button("Delete", role: .destructive) {
+          Task {
+            await viewModel.deleteCoach()
+            if viewModel.deleteSuccessMessage != nil {
+              dismiss()
+            }
+          }
+        }
+        Button("Cancel", role: .cancel) {}
+      } message: {
+        Text("Are you sure you want to delete this coach? This action cannot be undone.")
+      }
+      .sheet(isPresented: $showLogInteraction) {
+        logInteractionSheet
+      }
+      .confirmationDialog(
+        socialDMTitle,
+        isPresented: $showSocialDMConfirm,
+        titleVisibility: .visible
+      ) {
+        Button("Yes, I sent a DM") {
+          Task { await viewModel.confirmSocialDM() }
+        }
+        Button("No", role: .cancel) {
+          viewModel.dismissSocialDM()
+        }
+      }
+  }
+
+  @ViewBuilder
+  private func lifecycleModifiers(_ content: some View) -> some View {
+    content
+      .onChange(of: scenePhase) { _, phase in
+        if phase == .active, viewModel.pendingSocialDM != nil {
+          showSocialDMConfirm = true
+        }
+      }
+      .refreshable {
+        await viewModel.loadDetails()
+      }
+      .task {
+        await viewModel.loadCoach()
+        await viewModel.loadDetails()
+        await sendProfileVM.loadTrackingInfo(for: coachId)
+        await subscribeRealtime()
+      }
+      .onDisappear {
         let service = realtimeService
         realtimeService = nil
         Task { await service?.unsubscribe() }
       }
-    }
+      .onChange(of: scenePhase) { _, newValue in
+        if newValue == .active {
+          Task { await subscribeRealtime() }
+        } else if newValue == .background {
+          let service = realtimeService
+          realtimeService = nil
+          Task { await service?.unsubscribe() }
+        }
+      }
   }
 
   private func subscribeRealtime() async {
