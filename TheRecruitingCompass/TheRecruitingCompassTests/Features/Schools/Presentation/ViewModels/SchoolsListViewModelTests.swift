@@ -877,6 +877,22 @@ final class SchoolsListViewModelTests: XCTestCase {
     if let url { sut.cleanupExport(url: url) }
   }
 
+  func testPrepareSchoolExport_neutralizesTabAndCRPrefixedFormula() async {
+    mockService.stubbedSchools = [
+      makeSchool(id: "1", pros: ["\t=SUM(A1:A10)"], cons: ["\r=HYPERLINK(\"evil\")"])
+    ]
+    await sut.loadSchools()
+
+    sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.contains("'\t=SUM(A1:A10)") ?? false)
+    XCTAssertTrue(csv?.contains("'\r=HYPERLINK") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
   func testPrepareSchoolExport_carriageReturnOnlyNote_isQuoted() async {
     mockService.stubbedSchools = [
       makeSchool(id: "1", pros: ["Line one\rLine two"])

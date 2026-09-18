@@ -37,11 +37,11 @@ struct SchoolExportService {
     try? FileManager.default.removeItem(at: url)
   }
 
-  /// Formula-injection guard: a cell opened by Excel/Numbers/Sheets that
-  /// starts with =, +, -, or @ can execute as a formula. Prefixing with a
-  /// single quote forces text interpretation without altering the visible
-  /// value in any spreadsheet app.
-  private static let formulaTriggerChars: Set<Character> = ["=", "+", "-", "@"]
+  /// Formula-injection guard (OWASP CSV Injection mitigation): a cell opened
+  /// by Excel/Numbers/Sheets that starts with =, +, -, @, tab, or CR can
+  /// execute as a formula. Prefixing with a single quote forces text
+  /// interpretation without altering the visible value in any spreadsheet app.
+  private static let formulaTriggerChars: Set<Character> = ["=", "+", "-", "@", "\t", "\r"]
 
   private func escaped(_ field: String) -> String {
     var value = field
