@@ -167,9 +167,12 @@ private struct InviteJoinInviteContent: View {
           Text("\(invite.familyName)'s recruiting journey")
             .font(.title2.weight(.bold))
             .multilineTextAlignment(.center)
-          Text("\(invite.inviterName) invited you as a \(invite.role).")
-            .font(.body)
-            .foregroundStyle(.secondary)
+          Text(
+            invite.inviterName.map { "\($0) invited you as a \(invite.role)." }
+              ?? "You've been invited to join as a \(invite.role)."
+          )
+          .font(.body)
+          .foregroundStyle(.secondary)
         }
         .padding(.top, 16)
 
