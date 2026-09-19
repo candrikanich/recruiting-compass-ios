@@ -75,12 +75,32 @@ final class AccountProvisioningServiceTests: XCTestCase {
     mockPreferenceService.stubbedPlayerDetails = {
       var details = PlayerDetails.default
       details.primarySport = "Baseball"
+      details.graduationYear = 2028
       return details
     }()
 
     await sut.flushPendingOnboardingStep1()
 
     XCTAssertEqual(mockPreferenceService.saveCallCount, 0)
+  }
+
+  // Sport and grad year are independently idempotent: an already-set sport must not
+  // block filling in a still-missing grad year (or vice versa).
+  func testFillsInMissingGraduationYearWhenSportAlreadySet() async {
+    mockSupabaseManager.currentUserMetadataResult = [
+      "pending_graduation_year": .string("2028"),
+      "pending_primary_sport": .string("Soccer")
+    ]
+    mockPreferenceService.stubbedPlayerDetails = {
+      var details = PlayerDetails.default
+      details.primarySport = "Baseball"
+      return details
+    }()
+
+    await sut.flushPendingOnboardingStep1()
+
+    XCTAssertEqual(mockPreferenceService.savedPlayerDetails?.primarySport, "Baseball")
+    XCTAssertEqual(mockPreferenceService.savedPlayerDetails?.graduationYear, 2028)
   }
 
   func testSwallowsErrorsWithoutThrowing() async {
@@ -92,5 +112,45 @@ final class AccountProvisioningServiceTests: XCTestCase {
 
     // Must not throw or crash — sign-in/confirmation must succeed regardless.
     await sut.flushPendingOnboardingStep1()
+  }
+
+  // A parent-invite signup may only pass sport (no grad year) or vice versa —
+  // unlike self-signup step 1, which always collects both together. The flush
+  // must not silently drop the field it does have (invite double-sport-prompt bug).
+  func testFlushWritesSportOnlyWhenNoPendingGraduationYear() async {
+    mockSupabaseManager.currentUserMetadataResult = [
+      "pending_primary_sport": .string("Lacrosse")
+    ]
+
+    await sut.flushPendingOnboardingStep1()
+
+    XCTAssertEqual(mockPreferenceService.savedPlayerDetails?.primarySport, "Lacrosse")
+    XCTAssertNil(mockPreferenceService.savedPlayerDetails?.graduationYear)
+  }
+
+  func testFlushWritesGraduationYearOnlyWhenNoPendingSport() async {
+    mockSupabaseManager.currentUserMetadataResult = [
+      "pending_graduation_year": .string("2029")
+    ]
+
+    await sut.flushPendingOnboardingStep1()
+
+    XCTAssertEqual(mockPreferenceService.savedPlayerDetails?.graduationYear, 2029)
+    XCTAssertNil(mockPreferenceService.savedPlayerDetails?.primarySport)
+  }
+
+  func testIdempotentWhenGraduationYearAlreadySetAndOnlySportPending() async {
+    mockSupabaseManager.currentUserMetadataResult = [
+      "pending_primary_sport": .string("Lacrosse")
+    ]
+    mockPreferenceService.stubbedPlayerDetails = {
+      var details = PlayerDetails.default
+      details.primarySport = "Soccer"
+      return details
+    }()
+
+    await sut.flushPendingOnboardingStep1()
+
+    XCTAssertEqual(mockPreferenceService.saveCallCount, 0)
   }
 }

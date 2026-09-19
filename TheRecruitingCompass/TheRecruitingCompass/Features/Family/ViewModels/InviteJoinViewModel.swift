@@ -166,6 +166,9 @@ final class InviteJoinViewModel {
     do {
       let fullName = "\(first) \(last)"
       let captchaToken = try await turnstileTokenProvider.getToken()
+      // Route the parent's prefill through the same pending_* metadata + flush-before-publish
+      // guard self-signup step 1 uses, so the onboarding gate never observes an empty
+      // primarySport and re-asks for what the parent already chose (see savePrefillPreferences).
       try await authManager.signup(
         email: invite.email,
         password: signupPassword,
@@ -173,8 +176,8 @@ final class InviteJoinViewModel {
         role: role,
         familyCode: nil,
         dateOfBirth: role == .player ? dobString : nil,
-        graduationYear: nil,
-        primarySport: nil,
+        graduationYear: invite.prefill?.graduationYear,
+        primarySport: invite.prefill?.sport,
         gender: nil,
         zipCode: nil,
         captchaToken: captchaToken
@@ -197,21 +200,21 @@ final class InviteJoinViewModel {
     }
   }
 
+  /// Sport and graduation year are passed into `authManager.signup(...)` instead (flushed
+  /// before `isAuthenticated` publishes — see signupAndConnect), so this only needs to carry
+  /// position, which has no equivalent signup-time slot.
   /// Returns false when the user's player details could not be persisted, so the
   /// caller can tell them instead of silently discarding what they entered.
   private func savePrefillPreferences(from prefill: InvitePrefill?) async -> Bool {
-    guard let prefill,
-          prefill.sport != nil || prefill.position != nil || prefill.graduationYear != nil else { return true }
-    var details = PlayerDetails.default
-    details.primarySport = prefill.sport
-    details.primaryPosition = prefill.position
-    details.graduationYear = prefill.graduationYear
+    guard let prefill, let position = prefill.position else { return true }
     do {
+      var details: PlayerDetails = try await preferenceService.fetchPreferences(category: .player) ?? .default
+      details.primaryPosition = position
       _ = try await preferenceService.savePreferences(category: .player, data: details)
-      logger.debug("Saved prefill player preferences from invite")
+      logger.debug("Saved prefill player position from invite")
       return true
     } catch {
-      logger.error("Failed to save prefill player preferences: \(error.localizedDescription)")
+      logger.error("Failed to save prefill player position: \(error.localizedDescription)")
       return false
     }
   }

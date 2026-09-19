@@ -216,10 +216,29 @@ final class InviteJoinViewModelTests: XCTestCase {
     XCTAssertNil(viewModel.signupError)
   }
 
-  func testSignupAndConnect_withPrefillSport_savesPlayerPreferences() async {
+  func testSignupAndConnect_withPrefillSport_routesSportAndGradYearThroughSignup() async {
     mockFamilyService.stubbedInviteDetails = makeInviteDetails(
       role: "player",
       prefill: InvitePrefill(firstName: "Alex", lastName: "Rivera", sport: "Baseball", graduationYear: 2028)
+    )
+    await viewModel.loadInvite()
+    setValidSignupFields()
+    viewModel.signupDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+
+    await viewModel.signupAndConnect()
+
+    // Sport/gradYear flow through signup's pending_* metadata + flush-before-publish guard
+    // (not a separate savePreferences call) so the onboarding gate never observes them empty.
+    XCTAssertEqual(mockAuthManager.capturedSignupPrimarySport, "Baseball")
+    XCTAssertEqual(mockAuthManager.capturedSignupGraduationYear, 2028)
+    XCTAssertEqual(mockPreferenceManager.savePreferencesCalls.count, 0)
+    XCTAssertEqual(viewModel.successMessage, "You're connected!")
+  }
+
+  func testSignupAndConnect_withPrefillPosition_savesPositionOnly() async {
+    mockFamilyService.stubbedInviteDetails = makeInviteDetails(
+      role: "player",
+      prefill: InvitePrefill(firstName: "Alex", lastName: "Rivera", position: "Pitcher")
     )
     await viewModel.loadInvite()
     setValidSignupFields()
