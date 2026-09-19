@@ -76,6 +76,11 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
 
   private struct WebSignupResult: Decodable {
     let userId: String
+    /// Service-role magiclink token, present when minting succeeds server-side.
+    /// Consumed via `client.auth.verifyOTP(tokenHash:type:)` to establish the
+    /// session with no second CAPTCHA hop. Falls back to a fresh-token
+    /// `signIn` when absent (mirrors composables/useAuth.ts on web).
+    let tokenHash: String?
   }
 
   /// Parses a Nitro/H3 error response body (`{ "statusMessage": "..." }`).
@@ -160,28 +165,45 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       metadata["pending_zip_code"] = zipCode
     }
 
-    do {
-      let userId = try await createAccountViaWebSignup(
-        WebSignupBody(
-          email: email,
-          password: password,
-          fullName: fullName,
-          role: role.rawValue,
-          dateOfBirth: (dateOfBirth?.isEmpty == false) ? dateOfBirth : nil,
-          captchaToken: captchaToken,
-          metadata: metadata
-        )
-      )
-
-      // The endpoint above auto-confirms the account but returns no session — sign in
-      // separately with a fresh Turnstile token (the one above was already consumed by
-      // the endpoint's own server-side check). Mirrors composables/useAuth.ts on web.
-      let freshCaptchaToken = try await TurnstileTokenProvider.shared.getToken()
-      let authSession = try await client.auth.signIn(
+    let created = try await createAccountViaWebSignup(
+      WebSignupBody(
         email: email,
         password: password,
-        captchaToken: freshCaptchaToken
+        fullName: fullName,
+        role: role.rawValue,
+        dateOfBirth: (dateOfBirth?.isEmpty == false) ? dateOfBirth : nil,
+        captchaToken: captchaToken,
+        metadata: metadata
       )
+    )
+
+    // The account is already committed and auto-confirmed at this point. Everything
+    // below only establishes/persists local session state, so its failures must not
+    // read as "signup failed" (retrying would hit the server's deliberately generic
+    // duplicate-account response for an email that's now actually taken) — tag them
+    // as AuthError.accountCreatedButSignInFailed instead, mirroring useAuth.ts's
+    // `accountCreatedButSignInFailed` flag on web.
+    do {
+      let authSession: Supabase.Session
+      if let tokenHash = created.tokenHash {
+        guard case .session(let session) = try await client.auth.verifyOTP(
+          tokenHash: tokenHash,
+          type: .magiclink
+        ) else {
+          throw AuthError.serverError("Sign-in did not return a session")
+        }
+        authSession = session
+      } else {
+        // Fallback for the rare case the server couldn't mint a tokenHash: the
+        // signup captchaToken was already consumed by the endpoint's own check,
+        // so a fresh one is needed here.
+        let freshCaptchaToken = try await TurnstileTokenProvider.shared.getToken()
+        authSession = try await client.auth.signIn(
+          email: email,
+          password: password,
+          captchaToken: freshCaptchaToken
+        )
+      }
 
       let userEmail = authSession.user.email ?? email
 
@@ -191,7 +213,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         .from("users")
         .upsert(
           UsersUpsertPayload(
-            id: userId,
+            id: created.userId,
             email: userEmail,
             fullName: fullName,
             role: role.rawValue,
@@ -203,11 +225,11 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
 
       // Try to fetch from database, fall back to metadata for new users
       let user = try await fetchUserProfileWithRetry(
-        userId: userId,
+        userId: created.userId,
         email: userEmail,
         fallbackMetadata: authSession.user.userMetadata
       ) ?? User(
-        id: userId,
+        id: created.userId,
         email: userEmail,
         emailConfirmedAt: nil,
         fullName: fullName,
@@ -221,40 +243,44 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
 
       return (user, session)
     } catch {
-      throw mapSupabaseSignUpError(error)
+      throw AuthError.accountCreatedButSignInFailed(mapSupabaseSignUpError(error).errorDescription ?? "Sign-in failed")
     }
   }
 
   /// Calls the web app's `POST /api/auth/signup` — the account-creation and
   /// verification-email owner for every platform (server/utils/accountCreation.ts).
   /// `/api/auth/*` is CSRF-exempt (server/middleware/csrf.ts) so no CSRF token is needed.
-  private func createAccountViaWebSignup(_ body: WebSignupBody) async throws -> String {
-    guard let baseURL = SupabaseConfig.apiBaseURL else {
-      throw AuthError.networkError("Could not reach the server.")
-    }
-    var request = URLRequest(url: baseURL.appendingPathComponent("api/auth/signup"))
-    request.httpMethod = "POST"
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.httpBody = try JSONEncoder().encode(body)
+  private func createAccountViaWebSignup(_ body: WebSignupBody) async throws -> WebSignupResult {
+    do {
+      guard let baseURL = SupabaseConfig.apiBaseURL else {
+        throw AuthError.networkError("Could not reach the server.")
+      }
+      var request = URLRequest(url: baseURL.appendingPathComponent("api/auth/signup"))
+      request.httpMethod = "POST"
+      request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+      request.httpBody = try JSONEncoder().encode(body)
 
-    let (data, response) = try await URLSession.shared.data(for: request)
-    guard let http = response as? HTTPURLResponse else {
-      throw AuthError.networkError("Could not reach the server.")
-    }
-    guard (200...299).contains(http.statusCode) else {
-      if http.statusCode == 403 {
-        throw AuthError.captchaFailed
+      let (data, response) = try await URLSession.shared.data(for: request)
+      guard let http = response as? HTTPURLResponse else {
+        throw AuthError.networkError("Could not reach the server.")
       }
-      if http.statusCode == 429 {
-        throw AuthError.tooManyAttempts(retryAfter: nil)
+      guard (200...299).contains(http.statusCode) else {
+        if http.statusCode == 403 {
+          throw AuthError.captchaFailed
+        }
+        if http.statusCode == 429 {
+          throw AuthError.tooManyAttempts(retryAfter: nil)
+        }
+        // 400 is deliberately generic server-side — duplicate-email and other creation
+        // failures are indistinguishable (accountCreation.ts) to avoid an
+        // account-existence-enumeration oracle. Surface the server's message as-is.
+        let errorBody = try? JSONDecoder().decode(WebSignupErrorBody.self, from: data)
+        throw AuthError.serverError(errorBody?.statusMessage ?? "Unable to create account. Please try again.")
       }
-      // 400 is deliberately generic server-side — duplicate-email and other creation
-      // failures are indistinguishable (accountCreation.ts) to avoid an
-      // account-existence-enumeration oracle. Surface the server's message as-is.
-      let errorBody = try? JSONDecoder().decode(WebSignupErrorBody.self, from: data)
-      throw AuthError.serverError(errorBody?.statusMessage ?? "Unable to create account. Please try again.")
+      return try JSONDecoder().decode(WebSignupResult.self, from: data)
+    } catch {
+      throw mapSupabaseSignUpError(error)
     }
-    return try JSONDecoder().decode(WebSignupResult.self, from: data).userId
   }
 
   func signOut() async throws {
