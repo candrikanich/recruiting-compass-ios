@@ -207,4 +207,82 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
 
     XCTAssertEqual(viewModel.errorMessage, "Failed to send invite. Please try again.")
   }
+
+  // MARK: - skipInviteStep (onboarding, matches web: no invite step)
+
+  private func makeSkipInviteViewModel() -> ParentOnboardingWizardViewModel {
+    ParentOnboardingWizardViewModel(
+      familyService: mockFamilyService,
+      authManager: mockAuthManager,
+      skipInviteStep: true
+    )
+  }
+
+  func testNextStep_skipInviteStep_doesNotAdvanceToSendInvite() {
+    let vm = makeSkipInviteViewModel()
+    vm.playerFirstName = "Alex"
+    vm.hasConfirmedDateOfBirth = true
+    vm.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+
+    vm.nextStep()
+
+    XCTAssertEqual(vm.currentStep, .playerDetails)
+  }
+
+  func testNextStep_skipInviteStep_invalidDetails_doesNotCreateFamily() async {
+    let vm = makeSkipInviteViewModel()
+    vm.playerFirstName = ""
+
+    await vm.finishOnboardingWithoutInvite()
+
+    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 0)
+    XCTAssertFalse(vm.didComplete)
+  }
+
+  func testFinishOnboardingWithoutInvite_success_createsFamilyAndSavesPlayerDetails() async {
+    let vm = makeSkipInviteViewModel()
+    vm.playerFirstName = "Alex"
+    vm.playerLastName = "Rivera"
+    vm.playerSport = "Baseball"
+    vm.playerPosition = "Pitcher"
+    vm.playerGraduationYear = 2028
+    vm.hasConfirmedDateOfBirth = true
+    vm.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.mockCreateFamilyResponse = CreateFamilyResponse(
+      success: true,
+      familyCode: "FAM-TEST01",
+      familyId: "family-42",
+      familyName: "Test Family"
+    )
+
+    await vm.finishOnboardingWithoutInvite()
+
+    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 1)
+    XCTAssertEqual(mockFamilyService.lastCreatedFamilyRole, .parent)
+    XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 1)
+    XCTAssertEqual(mockFamilyService.lastSavePlayerDetailsFamilyId, "family-42")
+    XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.firstName, "Alex")
+    XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.lastName, "Rivera")
+    XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.sport, "Baseball")
+    XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.position, "Pitcher")
+    XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.graduationYear, 2028)
+    XCTAssertEqual(mockFamilyService.sendEmailInviteCallCount, 0)
+    XCTAssertTrue(vm.didComplete)
+    XCTAssertNil(vm.errorMessage)
+  }
+
+  func testFinishOnboardingWithoutInvite_createFamilyFails_setsErrorAndSkipsCompletion() async {
+    let vm = makeSkipInviteViewModel()
+    vm.playerFirstName = "Alex"
+    vm.hasConfirmedDateOfBirth = true
+    vm.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = FamilyError.notAuthenticated
+
+    await vm.finishOnboardingWithoutInvite()
+
+    XCTAssertEqual(vm.errorMessage, FamilyError.notAuthenticated.errorDescription)
+    XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 0)
+    XCTAssertFalse(vm.didComplete)
+  }
 }

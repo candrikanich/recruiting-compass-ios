@@ -18,12 +18,13 @@ struct OnboardingWrapperView: View {
   }
 }
 
-/// Parent onboarding: 2-step wizard (player details → invite) with option to skip, matching web.
+/// Parent onboarding: single player-details step, saved directly (no invite sent) — matches web,
+/// which defers inviting the athlete to the dashboard's "Invite Athlete" banner.
 private struct ParentOnboardingWrapperContent: View {
   var onComplete: () -> Void
   @Environment(AuthManager.self) private var authManager
   @Environment(OnboardingManager.self) private var onboardingManager
-  @State private var viewModel = ParentOnboardingWizardViewModel()
+  @State private var viewModel = ParentOnboardingWizardViewModel(skipInviteStep: true)
 
   var body: some View {
     ParentOnboardingWizardView(viewModel: viewModel, onDismiss: {

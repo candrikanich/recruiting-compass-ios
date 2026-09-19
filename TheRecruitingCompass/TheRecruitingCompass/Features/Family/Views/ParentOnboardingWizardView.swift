@@ -1,7 +1,8 @@
 import SwiftUI
 import UIKit
 
-/// 2-step parent onboarding: (1) Player details, (2) Send invite by email with prefill.
+/// Onboarding (`skipInviteStep == true`): single player-details step, saved directly, no invite sent — matches web.
+/// Dashboard "Invite Athlete" re-entry (`skipInviteStep == false`): 2-step wizard, (1) player details, (2) send invite by email.
 struct ParentOnboardingWizardView: View {
   @Bindable var viewModel: ParentOnboardingWizardViewModel
   var onDismiss: (() -> Void)?
@@ -13,7 +14,9 @@ struct ParentOnboardingWizardView: View {
           .ignoresSafeArea()
 
         VStack(spacing: 0) {
-          stepIndicator
+          if !viewModel.skipInviteStep {
+            stepIndicator
+          }
           ScrollView {
             currentStepContent
               .padding(FamilyConstants.Spacing.medium)
@@ -32,7 +35,7 @@ struct ParentOnboardingWizardView: View {
         .padding(.horizontal, 24)
         .padding(.vertical, 24)
       }
-      .navigationTitle("Invite Player")
+      .navigationTitle(viewModel.skipInviteStep ? "Tell us about your player" : "Invite Player")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
@@ -306,16 +309,22 @@ struct ParentOnboardingWizardView: View {
         Button {
           viewModel.nextStep()
         } label: {
-          Text("Next")
-            .font(.callout.weight(.semibold))
-            .padding(.horizontal, 24)
-            .padding(.vertical, 12)
+          if viewModel.isLoading {
+            ProgressView().tint(.white)
+              .padding(.horizontal, 24)
+              .padding(.vertical, 12)
+          } else {
+            Text(viewModel.skipInviteStep ? "Get Started" : "Next")
+              .font(.callout.weight(.semibold))
+              .padding(.horizontal, 24)
+              .padding(.vertical, 12)
+          }
         }
         .foregroundStyle(.white)
         .background(LinearGradient.primaryButton)
         .clipShape(.rect(cornerRadius: 8))
-        .opacity(viewModel.isPlayerDetailsValid ? 1 : 0.5)
-        .disabled(!viewModel.isPlayerDetailsValid)
+        .opacity(viewModel.isPlayerDetailsValid && !viewModel.isLoading ? 1 : 0.5)
+        .disabled(!viewModel.isPlayerDetailsValid || viewModel.isLoading)
         .accessibilityLabel(String(localized: "Next step"))
       }
       // Step 2: primary action (Send Invite) is in sendInviteStep content; only Back in bar

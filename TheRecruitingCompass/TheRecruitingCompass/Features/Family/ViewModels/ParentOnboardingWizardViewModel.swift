@@ -54,6 +54,10 @@ final class ParentOnboardingWizardViewModel {
     GradeLevelHelper.allowedGraduationYears
   }
 
+  /// True for the signup onboarding flow (playerDetails only, no invite step, matches web).
+  /// False for the dashboard "Invite Athlete" re-entry point (full playerDetails → sendInvite wizard).
+  let skipInviteStep: Bool
+
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
 
@@ -88,16 +92,49 @@ final class ParentOnboardingWizardViewModel {
 
   init(
     familyService: (any FamilyManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    skipInviteStep: Bool = false
   ) {
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.skipInviteStep = skipInviteStep
   }
 
   func nextStep() {
+    if skipInviteStep {
+      Task { await finishOnboardingWithoutInvite() }
+      return
+    }
     guard currentStep.rawValue < Step.allCases.count - 1 else { return }
     currentStep = Step(rawValue: currentStep.rawValue + 1) ?? .sendInvite
     errorMessage = nil
+  }
+
+  /// Onboarding path (matches web): create the family, save player details, done — no invite sent.
+  /// Invite-sending is deferred to the dashboard's "Invite Athlete" banner (`skipInviteStep == false`).
+  func finishOnboardingWithoutInvite() async {
+    guard isPlayerDetailsValid else { return }
+    isLoading = true
+    errorMessage = nil
+    defer { isLoading = false }
+
+    do {
+      let response = try await familyService.createFamily(role: .parent)
+      let first = playerFirstName.trimmingCharacters(in: .whitespaces)
+      let last = playerLastName.trimmingCharacters(in: .whitespaces)
+      let details = PendingPlayerDetails(
+        firstName: first,
+        lastName: last.isEmpty ? "" : last,
+        sport: playerSport.isEmpty ? nil : playerSport,
+        position: playerPosition.isEmpty ? nil : playerPosition,
+        graduationYear: playerGraduationYear
+      )
+      try await familyService.savePlayerDetails(familyId: response.familyId, details: details)
+      didComplete = true
+    } catch {
+      logger.error("finishOnboardingWithoutInvite failed: \(error.localizedDescription, privacy: .public) — full error: \(String(describing: error), privacy: .private)")
+      errorMessage = (error as? FamilyError)?.errorDescription ?? "Couldn't save your athlete's details. Please try again."
+    }
   }
 
   func previousStep() {
