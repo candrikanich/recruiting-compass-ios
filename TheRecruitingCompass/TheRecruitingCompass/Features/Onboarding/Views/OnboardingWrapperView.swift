@@ -18,7 +18,8 @@ struct OnboardingWrapperView: View {
   }
 }
 
-/// Parent onboarding: 2-step wizard (player details → schools to explore), matching web's content.
+/// Parent onboarding: single player-details step, saved directly, straight to dashboard — matches
+/// production web. Inviting the athlete is deferred to the dashboard's "Invite Athlete" banner.
 /// The "Skip for now" escape hatch is iOS-only — web's equivalent wizard has no skip button.
 private struct ParentOnboardingWrapperContent: View {
   var onComplete: () -> Void

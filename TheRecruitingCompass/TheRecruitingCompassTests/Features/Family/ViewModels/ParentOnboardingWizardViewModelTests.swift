@@ -8,14 +8,10 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
   var viewModel: ParentOnboardingWizardViewModel!
   var mockFamilyService: MockFamilyService!
   var mockAuthManager: MockAuthManager!
-  var stubSchoolsRepository: StubParentSchoolsRepository!
-  var stubRecommendationService: StubParentRecommendationService!
 
   override func setUp() {
     mockFamilyService = MockFamilyService()
     mockAuthManager = MockAuthManager()
-    stubSchoolsRepository = StubParentSchoolsRepository()
-    stubRecommendationService = StubParentRecommendationService()
     mockAuthManager.setMockUser(User(
       id: "parent-1",
       email: "parent@example.com",
@@ -26,9 +22,7 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     ))
     viewModel = ParentOnboardingWizardViewModel(
       familyService: mockFamilyService,
-      authManager: mockAuthManager,
-      schoolsRepository: stubSchoolsRepository,
-      recommendationService: stubRecommendationService
+      authManager: mockAuthManager
     )
   }
 
@@ -36,38 +30,6 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     viewModel = nil
     mockFamilyService = nil
     mockAuthManager = nil
-    stubSchoolsRepository = nil
-    stubRecommendationService = nil
-  }
-
-  // MARK: - Step Navigation
-
-  func testNextStep_advancesFromPlayerDetailsToSchoolsToExplore() {
-    viewModel.nextStep()
-    XCTAssertEqual(viewModel.currentStep, .schoolsToExplore)
-  }
-
-  func testNextStep_atLastStep_isNoOp() {
-    viewModel.nextStep()
-    viewModel.nextStep()
-    XCTAssertEqual(viewModel.currentStep, .schoolsToExplore)
-  }
-
-  func testPreviousStep_returnsToPlayerDetails() {
-    viewModel.nextStep()
-    viewModel.previousStep()
-    XCTAssertEqual(viewModel.currentStep, .playerDetails)
-  }
-
-  func testPreviousStep_atFirstStep_isNoOp() {
-    viewModel.previousStep()
-    XCTAssertEqual(viewModel.currentStep, .playerDetails)
-  }
-
-  func testNextStep_clearsErrorMessage() {
-    viewModel.errorMessage = "some error"
-    viewModel.nextStep()
-    XCTAssertNil(viewModel.errorMessage)
   }
 
   // MARK: - onSportChange / onDateOfBirthChange
@@ -224,23 +186,25 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.errorMessage, "Failed to send invite. Please try again.")
   }
 
-  // MARK: - proceedFromPlayerDetails
+  // MARK: - finishOnboarding (single step, matches production web: no invite, no schools step)
 
-  func testProceedFromPlayerDetails_invalid_isNoOp() async {
+  func testFinishOnboarding_invalidDetails_isNoOpAndSkipsFamilyCreation() async {
     viewModel.playerFirstName = ""
 
-    await viewModel.proceedFromPlayerDetails()
+    await viewModel.finishOnboarding()
 
-    XCTAssertEqual(viewModel.currentStep, .playerDetails)
-    XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 0)
+    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 0)
+    XCTAssertFalse(viewModel.didComplete)
   }
 
-  func testProceedFromPlayerDetails_valid_savesDetailsAndAdvances() async {
+  func testFinishOnboarding_success_createsFamilySavesDetailsAndCompletes() async {
     viewModel.playerFirstName = "Alex"
+    viewModel.playerLastName = "Rivera"
+    viewModel.playerSport = "Baseball"
+    viewModel.playerPosition = "Pitcher"
+    viewModel.playerGraduationYear = 2028
     viewModel.hasConfirmedDateOfBirth = true
     viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
-    viewModel.playerSport = "Baseball"
-    viewModel.playerGraduationYear = 2028
     mockFamilyService.mockCreateFamilyResponse = CreateFamilyResponse(
       success: true,
       familyCode: "FAM-TEST01",
@@ -248,147 +212,34 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
       familyName: "Test Family"
     )
 
-    await viewModel.proceedFromPlayerDetails()
+    await viewModel.finishOnboarding()
 
-    XCTAssertEqual(viewModel.currentStep, .schoolsToExplore)
+    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 1)
+    XCTAssertEqual(mockFamilyService.lastCreatedFamilyRole, .parent)
     XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 1)
     XCTAssertEqual(mockFamilyService.lastSavePlayerDetailsFamilyId, "family-42")
     XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.firstName, "Alex")
+    XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.lastName, "Rivera")
     XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.sport, "Baseball")
+    XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.position, "Pitcher")
+    XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.graduationYear, 2028)
+    XCTAssertEqual(mockFamilyService.sendEmailInviteCallCount, 0)
     XCTAssertEqual(viewModel.familyCode, "FAM-TEST01")
+    XCTAssertTrue(viewModel.didComplete)
     XCTAssertNil(viewModel.errorMessage)
   }
 
-  func testProceedFromPlayerDetails_serviceFails_staysOnStepWithError() async {
+  func testFinishOnboarding_createFamilyFails_setsErrorAndSkipsCompletion() async {
     viewModel.playerFirstName = "Alex"
     viewModel.hasConfirmedDateOfBirth = true
     viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
     mockFamilyService.shouldSucceed = false
     mockFamilyService.mockError = FamilyError.notAuthenticated
 
-    await viewModel.proceedFromPlayerDetails()
+    await viewModel.finishOnboarding()
 
-    XCTAssertEqual(viewModel.currentStep, .playerDetails)
     XCTAssertEqual(viewModel.errorMessage, FamilyError.notAuthenticated.errorDescription)
-  }
-
-  // MARK: - loadRecommendations
-
-  func testLoadRecommendations_populatesFromService() async {
-    stubRecommendationService.stubbedRecommendations = [
-      SchoolRecommendation(catalogKey: "duke", name: "Duke", score: 0.9, reasons: [])
-    ]
-
-    await viewModel.loadRecommendations()
-
-    XCTAssertEqual(viewModel.recommendations.count, 1)
-    XCTAssertEqual(viewModel.recommendations.first?.name, "Duke")
-    XCTAssertFalse(viewModel.isLoadingRecommendations)
-  }
-
-  func testLoadRecommendations_serviceFails_clearsRecommendations() async {
-    stubRecommendationService.errorToThrow = NSError(domain: "test", code: 1)
-    viewModel.recommendations = [SchoolRecommendation(catalogKey: "stale", name: "Stale U", score: 0.1, reasons: [])]
-
-    await viewModel.loadRecommendations()
-
-    XCTAssertTrue(viewModel.recommendations.isEmpty)
-  }
-
-  // MARK: - addSchool
-
-  func testAddSchool_noFamilyUnit_returnsFalse() async {
-    mockFamilyService.stubbedFamilyUnit = nil
-    let recommendation = SchoolRecommendation(catalogKey: "duke", name: "Duke", score: 0.9, reasons: [])
-
-    let result = await viewModel.addSchool(recommendation)
-
-    XCTAssertFalse(result)
-  }
-
-  func testAddSchool_success_removesRecommendationAndIncrementsCount() async {
-    mockFamilyService.stubbedFamilyUnit = FamilyUnit(
-      id: "family-1",
-      createdByUserId: "parent-1",
-      familyName: "Test Family",
-      familyCode: "FAM-TEST01",
-      codeGeneratedAt: nil,
-      createdAt: "2026-01-01T00:00:00Z",
-      updatedAt: "2026-01-01T00:00:00Z",
-      homeLatitude: nil,
-      homeLongitude: nil
-    )
-    let recommendation = SchoolRecommendation(catalogKey: "duke", name: "Duke", score: 0.9, reasons: [])
-    viewModel.recommendations = [recommendation]
-
-    let result = await viewModel.addSchool(recommendation)
-
-    XCTAssertTrue(result)
-    XCTAssertTrue(viewModel.recommendations.isEmpty)
-    XCTAssertEqual(viewModel.schoolsAdded, 1)
-  }
-
-  // MARK: - dismissRecommendation
-
-  func testDismissRecommendation_removesFromList() async {
-    let recommendation = SchoolRecommendation(catalogKey: "duke", name: "Duke", score: 0.9, reasons: [])
-    viewModel.recommendations = [recommendation]
-
-    await viewModel.dismissRecommendation(recommendation)
-
-    XCTAssertTrue(viewModel.recommendations.isEmpty)
-    XCTAssertEqual(stubRecommendationService.dismissedKeys, ["duke"])
-  }
-
-  // MARK: - finishOnboarding
-
-  func testFinishOnboarding_setsDidComplete() {
+    XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 0)
     XCTAssertFalse(viewModel.didComplete)
-    viewModel.finishOnboarding()
-    XCTAssertTrue(viewModel.didComplete)
-  }
-}
-
-// MARK: - Minimal stubs for schools/recommendations dependencies
-
-final class StubParentSchoolsRepository: SchoolsRepository, @unchecked Sendable {
-  private static let placeholder = School.mock(id: "stub", name: "Stub U")
-
-  func createSchool(request: SchoolCreateRequest) async throws -> School { Self.placeholder }
-  func fetchSchools(familyUnitId: String) async throws -> [School] { [] }
-  func fetchSchool(id: String, familyUnitId: String) async throws -> School { Self.placeholder }
-  func deleteSchool(id: String) async throws {}
-  func cascadeDeleteSchool(id: String) async throws -> DeleteResult {
-    DeleteResult(isCascadeUsed: false, deletedInteractions: 0, deletedNotes: 0)
-  }
-  func toggleFavorite(id: String, isFavorite: Bool) async throws {}
-  func updateStatus(id: String, newStatus: SchoolStatus, previousStatus: SchoolStatus, userId: String) async throws -> School { Self.placeholder }
-  func fetchStatusHistory(schoolId: String) async throws -> [SchoolStatusHistory] { [] }
-  func reactivateSchool(id: String, familyUnitId: String, userId: String) async throws -> School { Self.placeholder }
-  func updateNotes(id: String, notes: String) async throws -> School { Self.placeholder }
-  func fetchOutreachNotes(id: String) async throws -> SchoolOutreachNotes { SchoolOutreachNotes(whyProgram: nil, fitReason: nil) }
-  func updateOutreachNotes(id: String, whyProgram: String?, fitReason: String?) async throws {}
-  func updateQuestionnaireCompleted(id: String, completed: Bool) async throws {}
-  func addPro(id: String, familyUnitId: String, text: String) async throws -> School { Self.placeholder }
-  func removePro(id: String, familyUnitId: String, index: Int) async throws -> School { Self.placeholder }
-  func addCon(id: String, familyUnitId: String, text: String) async throws -> School { Self.placeholder }
-  func removeCon(id: String, familyUnitId: String, index: Int) async throws -> School { Self.placeholder }
-  func updateBasicInfo(id: String, info: EditableBasicInfo, existingAcademicInfo: AcademicInfo?) async throws -> School { Self.placeholder }
-  func mergeCollegeData(id: String, data: CollegeDataResult) async throws -> School { Self.placeholder }
-  func updateCoachingPhilosophy(id: String, philosophy: EditableCoachingPhilosophy) async throws -> School { Self.placeholder }
-}
-
-final class StubParentRecommendationService: SchoolRecommendationManaging, @unchecked Sendable {
-  var stubbedRecommendations: [SchoolRecommendation] = []
-  var errorToThrow: Error?
-  var dismissedKeys: [String] = []
-
-  func fetchRecommendations(athleteId: String, limit: Int) async throws -> [SchoolRecommendation] {
-    if let errorToThrow { throw errorToThrow }
-    return stubbedRecommendations
-  }
-
-  func dismissRecommendation(catalogKey: String, athleteId: String) async throws {
-    dismissedKeys.append(catalogKey)
   }
 }
