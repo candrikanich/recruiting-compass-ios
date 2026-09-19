@@ -8,10 +8,12 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
   var viewModel: ParentOnboardingWizardViewModel!
   var mockFamilyService: MockFamilyService!
   var mockAuthManager: MockAuthManager!
+  var mockOnboardingService: MockOnboardingService!
 
   override func setUp() {
     mockFamilyService = MockFamilyService()
     mockAuthManager = MockAuthManager()
+    mockOnboardingService = MockOnboardingService()
     mockAuthManager.setMockUser(User(
       id: "parent-1",
       email: "parent@example.com",
@@ -22,7 +24,8 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     ))
     viewModel = ParentOnboardingWizardViewModel(
       familyService: mockFamilyService,
-      authManager: mockAuthManager
+      authManager: mockAuthManager,
+      onboardingService: mockOnboardingService
     )
   }
 
@@ -30,6 +33,7 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     viewModel = nil
     mockFamilyService = nil
     mockAuthManager = nil
+    mockOnboardingService = nil
   }
 
   // MARK: - onSportChange / onDateOfBirthChange
@@ -225,6 +229,25 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.graduationYear, 2028)
     XCTAssertEqual(mockFamilyService.sendEmailInviteCallCount, 0)
     XCTAssertEqual(viewModel.familyCode, "FAM-TEST01")
+    XCTAssertTrue(viewModel.didComplete)
+    XCTAssertNil(viewModel.errorMessage)
+
+    // Matches web's goToDashboard(): completeOnboarding writes the shared
+    // phase_milestone_data.onboarding_complete flag web's middleware gates on.
+    XCTAssertEqual(mockOnboardingService.completeOnboardingCallCount, 1)
+    XCTAssertEqual(mockOnboardingService.lastStartingPhase, "freshman")
+  }
+
+  func testFinishOnboarding_completeOnboardingFails_stillCompletesLocally() async {
+    viewModel.playerFirstName = "Alex"
+    viewModel.hasConfirmedDateOfBirth = true
+    viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockOnboardingService.shouldThrowError = true
+
+    await viewModel.finishOnboarding()
+
+    // Matches web: a failed completeOnboarding() is logged, never blocks reaching the dashboard.
+    XCTAssertEqual(mockOnboardingService.completeOnboardingCallCount, 1)
     XCTAssertTrue(viewModel.didComplete)
     XCTAssertNil(viewModel.errorMessage)
   }

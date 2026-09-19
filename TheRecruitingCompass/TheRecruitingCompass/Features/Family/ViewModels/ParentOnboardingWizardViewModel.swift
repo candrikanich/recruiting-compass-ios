@@ -50,6 +50,7 @@ final class ParentOnboardingWizardViewModel {
 
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
+  private let onboardingService: any OnboardingManaging
 
   private var playerDateOfBirthString: String? {
     let formatter = DateFormatter()
@@ -82,10 +83,12 @@ final class ParentOnboardingWizardViewModel {
 
   init(
     familyService: (any FamilyManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    onboardingService: (any OnboardingManaging)? = nil
   ) {
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
+    self.onboardingService = onboardingService ?? OnboardingServiceImpl(supabaseManager: .shared)
   }
 
   func onSportChange() {
@@ -136,6 +139,21 @@ final class ParentOnboardingWizardViewModel {
       let response = try await familyService.createFamily(role: .parent)
       try await familyService.savePlayerDetails(familyId: response.familyId, details: pendingPlayerDetails)
       familyCode = response.familyCode
+
+      // Matches web's savePlayerDetails(): a failure here is logged but never blocks
+      // reaching the dashboard — the shared onboarding_complete flag is best-effort.
+      if let userId = authManager.user?.id {
+        do {
+          try await onboardingService.completeOnboarding(
+            userId: userId,
+            assessment: .defaultForOnboarding,
+            startingPhase: OnboardingAssessment.startingPhase(for: .defaultForOnboarding, graduationYear: nil)
+          )
+        } catch {
+          logger.error("completeOnboarding failed during parent onboarding: \(error.localizedDescription, privacy: .public)")
+        }
+      }
+
       didComplete = true
     } catch {
       logger.error("finishOnboarding failed: \(error.localizedDescription, privacy: .public) — full error: \(String(describing: error), privacy: .private)")
