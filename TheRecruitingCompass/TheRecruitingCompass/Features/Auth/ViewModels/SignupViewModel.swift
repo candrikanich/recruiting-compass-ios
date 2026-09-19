@@ -352,7 +352,8 @@ final class SignupViewModel {
         primarySport: draftsStep1 ? primarySport : nil,
         gender: draftsStep1 ? (derivedGender ?? (gender.isEmpty ? nil : gender)) : nil,
         zipCode: draftsStep1 && !trimmedZipCode.isEmpty ? trimmedZipCode : nil,
-        captchaToken: captchaToken
+        captchaToken: captchaToken,
+        beforePublish: nil
       )
 
       // Create family for both roles (mirrors web: POST /api/family/create)

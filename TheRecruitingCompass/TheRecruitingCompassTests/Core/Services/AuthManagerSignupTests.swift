@@ -68,6 +68,56 @@ final class AuthManagerSignupTests: XCTestCase {
     }
   }
 
+  // MARK: - beforePublish
+
+  func testSignup_beforePublish_runsBeforeIsAuthenticatedPublishes() async throws {
+    mockSupabaseManager.signUpResult = .success((user: userMock(), session: sessionMock()))
+    var isAuthenticatedWhenHookRan: Bool?
+
+    try await sut.signup(
+      email: "player@example.com",
+      password: "password123",
+      fullName: "New Player",
+      role: .player,
+      familyCode: nil,
+      captchaToken: "test-captcha-token",
+      beforePublish: { [self] in
+        isAuthenticatedWhenHookRan = self.sut.isAuthenticated
+      }
+    )
+
+    XCTAssertEqual(isAuthenticatedWhenHookRan, false, "beforePublish must observe isAuthenticated still false")
+    XCTAssertTrue(sut.isAuthenticated, "signup must still publish isAuthenticated once beforePublish completes")
+  }
+
+  func testSignup_beforePublish_notCalledWhenNoSessionReturned() async throws {
+    mockSupabaseManager.signUpResult = .success((user: userMock(), session: nil))
+    var hookCalled = false
+
+    try await sut.signup(
+      email: "player@example.com",
+      password: "password123",
+      fullName: "New Player",
+      role: .player,
+      familyCode: nil,
+      captchaToken: "test-captcha-token",
+      beforePublish: { hookCalled = true }
+    )
+
+    XCTAssertFalse(hookCalled, "email-confirmation signups have no session yet, so there's nothing to gate")
+  }
+
+  private func sessionMock() -> Session {
+    Session(
+      accessToken: "test-access-token",
+      tokenType: "bearer",
+      expiresIn: 3600,
+      expiresAt: Int(Date().timeIntervalSince1970) + 3600,
+      refreshToken: "test-refresh-token",
+      user: userMock()
+    )
+  }
+
   private func userMock() -> User {
     User(
       id: "user-1",

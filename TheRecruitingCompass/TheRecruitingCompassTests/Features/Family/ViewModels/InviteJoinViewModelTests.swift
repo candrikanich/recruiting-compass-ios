@@ -8,19 +8,16 @@ final class InviteJoinViewModelTests: XCTestCase {
   var viewModel: InviteJoinViewModel!
   var mockFamilyService: MockFamilyService!
   var mockAuthManager: MockAuthManager!
-  var mockPreferenceManager: MockPreferenceManager!
   var mockTurnstileProvider: MockTurnstileTokenProvider!
 
   override func setUp() {
     mockFamilyService = MockFamilyService()
     mockAuthManager = MockAuthManager()
-    mockPreferenceManager = MockPreferenceManager()
     mockTurnstileProvider = MockTurnstileTokenProvider()
     viewModel = InviteJoinViewModel(
       token: "invite-token-1",
       familyService: mockFamilyService,
       authManager: mockAuthManager,
-      preferenceService: mockPreferenceManager,
       turnstileTokenProvider: mockTurnstileProvider
     )
   }
@@ -29,7 +26,6 @@ final class InviteJoinViewModelTests: XCTestCase {
     viewModel = nil
     mockFamilyService = nil
     mockAuthManager = nil
-    mockPreferenceManager = nil
     mockTurnstileProvider = nil
   }
 
@@ -216,38 +212,38 @@ final class InviteJoinViewModelTests: XCTestCase {
     XCTAssertNil(viewModel.signupError)
   }
 
-  func testSignupAndConnect_withPrefillSport_routesSportAndGradYearThroughSignup() async {
-    mockFamilyService.stubbedInviteDetails = makeInviteDetails(
-      role: "player",
-      prefill: InvitePrefill(firstName: "Alex", lastName: "Rivera", sport: "Baseball", graduationYear: 2028)
-    )
+  // Athlete PII (sport/gradYear/position) is never present in InviteDetails.prefill — the
+  // unauthenticated invite-preview lookup deliberately withholds it (see loadInvite's
+  // emailExists comment). It's hydrated server-side by the accept endpoint instead
+  // (hydrateAthleteFromPendingDetails), which is why signupAndConnect no longer reads
+  // invite.prefill at all: accepting the invite (not passing prefill data through signup)
+  // is what makes that hydration happen before the onboarding gate can observe an empty sport.
+  func testSignupAndConnect_playerRole_doesNotPassPrefillIntoSignup() async {
+    mockFamilyService.stubbedInviteDetails = makeInviteDetails(role: "player")
     await viewModel.loadInvite()
     setValidSignupFields()
     viewModel.signupDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
 
     await viewModel.signupAndConnect()
 
-    // Sport/gradYear flow through signup's pending_* metadata + flush-before-publish guard
-    // (not a separate savePreferences call) so the onboarding gate never observes them empty.
-    XCTAssertEqual(mockAuthManager.capturedSignupPrimarySport, "Baseball")
-    XCTAssertEqual(mockAuthManager.capturedSignupGraduationYear, 2028)
-    XCTAssertEqual(mockPreferenceManager.savePreferencesCalls.count, 0)
+    XCTAssertNil(mockAuthManager.capturedSignupPrimarySport)
+    XCTAssertNil(mockAuthManager.capturedSignupGraduationYear)
+    XCTAssertEqual(mockFamilyService.acceptInviteCallCount, 1)
     XCTAssertEqual(viewModel.successMessage, "You're connected!")
   }
 
-  func testSignupAndConnect_withPrefillPosition_savesPositionOnly() async {
-    mockFamilyService.stubbedInviteDetails = makeInviteDetails(
-      role: "player",
-      prefill: InvitePrefill(firstName: "Alex", lastName: "Rivera", position: "Pitcher")
-    )
+  func testSignupAndConnect_acceptInviteFails_setsSignupErrorAndDoesNotNavigate() async {
+    mockFamilyService.stubbedInviteDetails = makeInviteDetails(role: "player")
     await viewModel.loadInvite()
     setValidSignupFields()
     viewModel.signupDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.shouldSucceed = false
 
     await viewModel.signupAndConnect()
 
-    XCTAssertEqual(mockPreferenceManager.savePreferencesCalls.count, 1)
-    XCTAssertEqual(viewModel.successMessage, "You're connected!")
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+    XCTAssertNotNil(viewModel.signupError)
+    XCTAssertFalse(viewModel.navigateToDashboard)
   }
 
   func testSignupAndConnect_signupFails_setsSignupError() async {

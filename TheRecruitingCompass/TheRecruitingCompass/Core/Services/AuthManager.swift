@@ -92,7 +92,8 @@ final class AuthManager: AuthManaging {
     primarySport: String? = nil,
     gender: String? = nil,
     zipCode: String? = nil,
-    captchaToken: String
+    captchaToken: String,
+    beforePublish: (() async -> Void)? = nil
   ) async throws {
     logger.debug("Attempting signup for: \(email.prefix(3))*** role: \(role.rawValue)")
     if let dob = dateOfBirth, COPPAHelper.isUnderAge(dob) {
@@ -118,6 +119,7 @@ final class AuthManager: AuthManaging {
       // not let the onboarding container see this user as authenticated before their
       // own signup-time sport/grad-year metadata has landed in canonical preferences.
       if session != nil {
+        await beforePublish?()
         await accountProvisioning.flushPendingOnboardingStep1()
       }
       self.user = user
