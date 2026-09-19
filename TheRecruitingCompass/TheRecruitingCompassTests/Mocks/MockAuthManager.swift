@@ -121,7 +121,8 @@ class MockAuthManager: AuthManaging {
     primarySport: String? = nil,
     gender: String? = nil,
     zipCode: String? = nil,
-    captchaToken: String
+    captchaToken: String,
+    beforePublish: (() async -> Void)? = nil
   ) async throws {
     signupCallCount += 1
     capturedSignupCaptchaToken = captchaToken
@@ -153,6 +154,8 @@ class MockAuthManager: AuthManaging {
       refreshToken: "test-refresh-token",
       user: user
     )
+
+    await beforePublish?()
 
     self.user = user
     self.session = session
