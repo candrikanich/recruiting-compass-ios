@@ -7,14 +7,23 @@ struct InviteJoinView: View {
 
   var body: some View {
     NavigationStack {
-      InviteJoinStateContent(viewModel: viewModel, presentedLegal: $presentedLegal, dismiss: dismiss)
-        .navigationTitle("Join Family")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-          ToolbarItem(placement: .cancellationAction) {
-            Button("Close") { dismiss() }
-          }
+      ZStack {
+        LinearGradient.primaryBackground
+          .ignoresSafeArea()
+
+        InviteJoinStateContent(viewModel: viewModel, presentedLegal: $presentedLegal, dismiss: dismiss)
+          .background(Color.white.opacity(0.95))
+          .clipShape(.rect(cornerRadius: 16))
+          .padding(.horizontal, 24)
+          .padding(.vertical, 24)
+      }
+      .navigationTitle("Join Family")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Close") { dismiss() }
         }
+      }
     }
     .task { await viewModel.loadInvite() }
     .onChange(of: viewModel.navigateToDashboard) { _, navigates in
