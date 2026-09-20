@@ -81,6 +81,28 @@ final class AuthManager: AuthManaging {
     }
   }
 
+  func establishSession(fromTokenHash tokenHash: String) async throws {
+    logger.debug("Establishing session from magiclink token hash")
+    do {
+      let (user, session) = try await supabaseManager.signInWithTokenHash(tokenHash)
+      // Same ordering guarantee as login()/signup() above.
+      await accountProvisioning.flushPendingOnboardingStep1()
+      self.user = user
+      self.session = session
+      self.isAuthenticated = true
+      self.errorMessage = nil
+
+      try keychain.save(session, forKey: sessionKey)
+      Analytics.identify(userId: user.id, email: user.email)
+      logger.info("Session established for user: \(user.id, privacy: .private)")
+    } catch {
+      self.isAuthenticated = false
+      self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
+      logger.error("Session establishment failed: \(error.localizedDescription)")
+      throw error
+    }
+  }
+
   func signup(
     email: String,
     password: String,

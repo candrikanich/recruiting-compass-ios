@@ -110,6 +110,44 @@ class MockAuthManager: AuthManaging {
     self.errorMessage = nil
   }
 
+  var establishSessionCallCount = 0
+  var shouldThrowEstablishSessionError = false
+  private(set) var capturedTokenHash: String?
+
+  func establishSession(fromTokenHash tokenHash: String) async throws {
+    establishSessionCallCount += 1
+    capturedTokenHash = tokenHash
+
+    if shouldThrowEstablishSessionError {
+      throw mockErrorToThrow
+    }
+
+    let user = mockUserToReturn ?? User(
+      id: "test-user-id",
+      email: "test@example.com",
+      emailConfirmedAt: nil,
+      fullName: nil,
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2024-01-01T00:00:00Z",
+      role: nil,
+      dateOfBirth: nil
+    )
+
+    let session = mockSessionToReturn ?? Session(
+      accessToken: "test-access-token",
+      tokenType: "bearer",
+      expiresIn: 3600,
+      expiresAt: Int(Date().timeIntervalSince1970) + 3600,
+      refreshToken: "test-refresh-token",
+      user: user
+    )
+
+    self.user = user
+    self.session = session
+    self.isAuthenticated = true
+    self.errorMessage = nil
+  }
+
   func signup(
     email: String,
     password: String,

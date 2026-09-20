@@ -379,8 +379,11 @@ final class SignupViewModel {
 
   /// Standalone signup for a 13-17 player who names a guardian, via the
   /// dedicated `signup-minor` endpoint (parity with web PR #784). No family
-  /// is created here and no session is returned — the guardian's later
-  /// confirmation creates the family unit and links the player into it.
+  /// is created here — the guardian's later confirmation creates the family
+  /// unit and links the player into it. The account itself IS auto-confirmed
+  /// and sessioned immediately though (parity with the adult path, #167) —
+  /// establishSession(fromTokenHash:) below lands the player on the
+  /// dashboard, where GuardianPendingBanner/EmailVerificationBanner show.
   private func signupMinor() async {
     do {
       let captchaToken = try await turnstileTokenProvider.getToken()
@@ -388,7 +391,7 @@ final class SignupViewModel {
       // year and sport must be present together, or neither is sent.
       let draftsStep1 = hasDraftedOnboardingStep1
       let trimmedGuardianEmail = guardianEmail.trimmingCharacters(in: .whitespaces)
-      _ = try await guardianService.signupMinor(
+      let result = try await guardianService.signupMinor(
         email: email,
         password: password,
         firstName: trimmedFirstName,
@@ -401,7 +404,15 @@ final class SignupViewModel {
         gender: draftsStep1 ? (derivedGender ?? (gender.isEmpty ? nil : gender)) : nil,
         zipCode: draftsStep1 && !trimmedZipCode.isEmpty ? trimmedZipCode : nil
       )
-      shouldNavigateToVerifyEmail = true
+      if let tokenHash = result.tokenHash {
+        try await authManager.establishSession(fromTokenHash: tokenHash)
+      } else {
+        // Fallback for the rare case the server couldn't mint a tokenHash — the
+        // captchaToken above was already consumed by signup-minor's own check,
+        // so a fresh one is needed here. Mirrors #167's adult-signup fallback.
+        let freshCaptchaToken = try await turnstileTokenProvider.getToken()
+        try await authManager.login(email: email, password: password, captchaToken: freshCaptchaToken)
+      }
     } catch {
       errorMessage = (error as? GuardianServiceError)?.errorDescription
         ?? mapAuthError(error).userMessage

@@ -44,6 +44,11 @@ protocol AuthManaging: AnyObject {
     captchaToken: String,
     beforePublish: (() async -> Void)?
   ) async throws
+  /// Establishes a session from a service-role magiclink token hash (minted
+  /// by signup-minor.post.ts) and persists it to Keychain — the minor-signup
+  /// equivalent of `signup`'s session-establishment step, since a minor
+  /// signup never returns a password-flow session of its own.
+  func establishSession(fromTokenHash tokenHash: String) async throws
   /// Signs out, revokes the Supabase session, and clears Keychain tokens.
   func logout() async throws
   /// Refreshes the access token using the stored refresh token and returns the updated user.
