@@ -4,6 +4,7 @@ struct DashboardView: View {
   @State private var viewModel = DashboardViewModel()
   @State private var timelineViewModel = TimelineViewModel()
   @State private var showParentWizard = false
+  @State private var parentOnboardingWizardViewModel = ParentOnboardingWizardViewModel()
   @State private var showAddSchool = false
   @State private var realtimeService: DashboardRealtimeService?
   @State private var guardianStatusViewModel = GuardianStatusViewModel()
@@ -59,12 +60,17 @@ struct DashboardView: View {
       .navigationBarTitleDisplayMode(.inline)
       .sheet(isPresented: $showParentWizard) {
         InviteAthleteView(
-          viewModel: ParentOnboardingWizardViewModel(),
+          viewModel: parentOnboardingWizardViewModel,
           onDismiss: {
             showParentWizard = false
             Task { await familyManager.loadFamilyData() }
           }
         )
+      }
+      .onChange(of: showParentWizard) { _, isShowing in
+        if !isShowing {
+          parentOnboardingWizardViewModel = ParentOnboardingWizardViewModel()
+        }
       }
       .sheet(
         isPresented: $showAddSchool,
