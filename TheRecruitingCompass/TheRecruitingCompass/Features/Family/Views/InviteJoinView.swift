@@ -14,6 +14,7 @@ struct InviteJoinView: View {
         InviteJoinStateContent(viewModel: viewModel, presentedLegal: $presentedLegal, dismiss: dismiss)
           .background(Color.white.opacity(0.95))
           .clipShape(.rect(cornerRadius: 16))
+          .colorScheme(.light)
           .padding(.horizontal, 24)
           .padding(.vertical, 24)
       }
@@ -239,6 +240,7 @@ private struct InviteJoinAuthenticatedConnectSection: View {
 private struct InviteJoinLoginSection: View {
   let invite: InviteDetails
   @Bindable var viewModel: InviteJoinViewModel
+  @FocusState private var focusedField: String?
 
   var body: some View {
     VStack(spacing: 16) {
@@ -269,8 +271,14 @@ private struct InviteJoinLoginSection: View {
           isSecure: true,
           keyboardType: .default,
           textContentType: .password,
-          onBlur: {}
+          onBlur: {},
+          focusedField: $focusedField,
+          fieldID: "password",
+          submitLabel: .done
         )
+        .onSubmit {
+          Task { await viewModel.accept() }
+        }
       }
 
       AsyncButton(
@@ -285,6 +293,7 @@ private struct InviteJoinLoginSection: View {
         Task { await viewModel.decline() }
       }
     }
+    .keyboardFieldNavigation(focusedField: $focusedField, order: ["password"])
   }
 }
 
@@ -292,6 +301,7 @@ private struct InviteJoinSignupSection: View {
   let invite: InviteDetails
   @Bindable var viewModel: InviteJoinViewModel
   @Binding var presentedLegal: LegalDocument?
+  @FocusState private var focusedField: String?
 
   var body: some View {
     VStack(spacing: 16) {
@@ -313,8 +323,11 @@ private struct InviteJoinSignupSection: View {
           isSecure: false,
           keyboardType: .default,
           textContentType: .givenName,
-          onBlur: {}
+          onBlur: {},
+          focusedField: $focusedField,
+          fieldID: "firstName"
         )
+        .onSubmit { focusedField = "lastName" }
 
         LoginFormField(
           label: String(localized: "Last Name"),
@@ -325,8 +338,11 @@ private struct InviteJoinSignupSection: View {
           isSecure: false,
           keyboardType: .default,
           textContentType: .familyName,
-          onBlur: {}
+          onBlur: {},
+          focusedField: $focusedField,
+          fieldID: "lastName"
         )
+        .onSubmit { focusedField = "password" }
 
         LoginFormField(
           label: String(localized: "Email"),
@@ -355,8 +371,11 @@ private struct InviteJoinSignupSection: View {
             isSecure: true,
             keyboardType: .default,
             textContentType: .newPassword,
-            onBlur: {}
+            onBlur: {},
+            focusedField: $focusedField,
+            fieldID: "password"
           )
+          .onSubmit { focusedField = "confirmPassword" }
 
           PasswordStrengthIndicator(password: viewModel.signupPassword)
             .padding(.horizontal, 16)
@@ -372,8 +391,12 @@ private struct InviteJoinSignupSection: View {
           isSecure: true,
           keyboardType: .default,
           textContentType: .newPassword,
-          onBlur: {}
+          onBlur: {},
+          focusedField: $focusedField,
+          fieldID: "confirmPassword",
+          submitLabel: .done
         )
+        .onSubmit { focusedField = nil }
 
         TermsCheckbox(
           isChecked: $viewModel.signupAgreeToTerms,
@@ -394,6 +417,7 @@ private struct InviteJoinSignupSection: View {
         Task { await viewModel.decline() }
       }
     }
+    .keyboardFieldNavigation(focusedField: $focusedField, order: ["firstName", "lastName", "password", "confirmPassword"])
   }
 }
 

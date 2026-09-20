@@ -5,6 +5,17 @@ import OSLog
 // MARK: - Invite Methods
 
 extension FamilyServiceImpl {
+  // Surfaces the h3 `createError` body (`{statusCode, statusMessage}`) from the invite API
+  // so the UI shows the real reason (e.g. "already a member") instead of a generic string.
+  static func serverErrorMessage(from data: Data, statusCode: Int) -> String {
+    struct ServerError: Decodable { let statusMessage: String? }
+    if let decoded = try? JSONDecoder().decode(ServerError.self, from: data),
+       let message = decoded.statusMessage, !message.isEmpty {
+      return message
+    }
+    return "Failed to send invite (status \(statusCode))"
+  }
+
   func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails? = nil) async throws {
     guard let baseURL = SupabaseConfig.apiBaseURL else {
       familyServiceLogger.error("sendEmailInvite: API_BASE_URL not configured")
@@ -50,7 +61,7 @@ extension FamilyServiceImpl {
     guard (200..<300).contains(http.statusCode) else {
       let bodyString = String(data: data, encoding: .utf8) ?? "(unable to decode)"
       familyServiceLogger.error("sendEmailInvite failed: status=\(http.statusCode), body=\(bodyString, privacy: .private)")
-      throw FamilyError.serverError("Failed to send invite")
+      throw FamilyError.serverError(Self.serverErrorMessage(from: data, statusCode: http.statusCode))
     }
 
     familyServiceLogger.info("sendEmailInvite success: status=\(http.statusCode)")

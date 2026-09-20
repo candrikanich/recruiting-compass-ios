@@ -38,6 +38,11 @@ struct SignupMinorResult: Decodable, Equatable, Sendable {
   /// server/api/auth/signup-minor.post.ts's `guardianEmail: null` response.
   let guardianEmail: String?
   let guardianEmailSent: Bool
+  /// Service-role magiclink token, present when minting succeeds server-side.
+  /// Consumed via `SupabaseManager.signInWithTokenHash` to establish the
+  /// player's session with no second CAPTCHA hop — same mechanism as the
+  /// adult signup path (see SupabaseManager.signUp's WebSignupResult).
+  let tokenHash: String?
 }
 
 /// Response from `POST /api/guardian/claim/[token]/accept`.

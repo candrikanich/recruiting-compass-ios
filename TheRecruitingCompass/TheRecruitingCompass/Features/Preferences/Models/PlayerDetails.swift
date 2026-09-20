@@ -3,10 +3,23 @@ import Foundation
 /// One travel/club team an athlete has played for. These keys are plain
 /// (year/name/coach) because they are object keys INSIDE the `travel_teams`
 /// JSON array — only top-level prefs keys are snake_cased.
-struct TravelTeam: Codable, Equatable, Sendable {
+struct TravelTeam: Codable, Sendable, Identifiable {
+  /// Local-only identity for SwiftUI list diffing and keyboard-focus tracking — not persisted.
+  /// Autosave prunes/sorts `travelTeams`, so array index alone can't safely track a row.
+  let id = UUID()
   var year: Int?
   var name: String?
   var coach: String?
+
+  private enum CodingKeys: String, CodingKey {
+    case year, name, coach
+  }
+}
+
+extension TravelTeam: Equatable {
+  static func == (lhs: TravelTeam, rhs: TravelTeam) -> Bool {
+    lhs.year == rhs.year && lhs.name == rhs.name && lhs.coach == rhs.coach
+  }
 }
 
 struct PlayerDetails: Codable, Equatable, Sendable {

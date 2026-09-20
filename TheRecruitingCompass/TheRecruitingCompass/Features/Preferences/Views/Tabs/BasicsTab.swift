@@ -4,6 +4,17 @@ import PhotosUI
 struct BasicsTab: View {
     @Bindable var viewModel: PlayerDetailsViewModel
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @FocusState private var focusedField: String?
+    private let contactFieldOrder = ["phone", "email", "twitter", "instagram", "tiktok", "facebookUrl"]
+
+    private func advanceContactFocus(from fieldID: String) {
+        guard let index = contactFieldOrder.firstIndex(of: fieldID) else {
+            focusedField = nil
+            return
+        }
+        let nextIndex = index + 1
+        focusedField = nextIndex < contactFieldOrder.count ? contactFieldOrder[nextIndex] : nil
+    }
 
     private let sports = [
         "Baseball", "Softball", "Basketball", "Football", "Soccer",
@@ -40,6 +51,7 @@ struct BasicsTab: View {
             .padding()
         }
         .background(Color(.secondarySystemBackground))
+        .keyboardFieldNavigation(focusedField: $focusedField, order: contactFieldOrder)
         .onChange(of: selectedPhotoItem) { _, newItem in
             guard let newItem else { return }
             Task {
@@ -131,10 +143,10 @@ struct BasicsTab: View {
     private var contactCard: some View {
         VStack(spacing: 0) {
             phoneRow(String(localized: "Phone"), placeholder: String(localized: "(555) 123-4567"),
-                     keyPath: \.phone)
+                     keyPath: \.phone, fieldID: "phone")
             divider
             handleRow(String(localized: "Email"), placeholder: String(localized: "Email"),
-                      keyPath: \.email, keyboardType: .emailAddress)
+                      keyPath: \.email, keyboardType: .emailAddress, fieldID: "email")
             divider
             toggleRow(String(localized: "Share phone with coaches"), keyPath: \.allowSharePhone)
             divider
@@ -147,13 +159,13 @@ struct BasicsTab: View {
     @ViewBuilder
     private var socialCard: some View {
         VStack(spacing: 0) {
-            handleRow(String(localized: "Twitter"), placeholder: String(localized: "@username"), keyPath: \.twitterHandle)
+            handleRow(String(localized: "Twitter"), placeholder: String(localized: "@username"), keyPath: \.twitterHandle, fieldID: "twitter")
             divider
-            handleRow(String(localized: "Instagram"), placeholder: String(localized: "@username"), keyPath: \.instagramHandle)
+            handleRow(String(localized: "Instagram"), placeholder: String(localized: "@username"), keyPath: \.instagramHandle, fieldID: "instagram")
             divider
-            handleRow(String(localized: "TikTok"), placeholder: String(localized: "@username"), keyPath: \.tiktokHandle)
+            handleRow(String(localized: "TikTok"), placeholder: String(localized: "@username"), keyPath: \.tiktokHandle, fieldID: "tiktok")
             divider
-            handleRow(String(localized: "Facebook URL"), placeholder: String(localized: "https://..."), keyPath: \.facebookUrl, keyboardType: .URL)
+            handleRow(String(localized: "Facebook URL"), placeholder: String(localized: "https://..."), keyPath: \.facebookUrl, keyboardType: .URL, fieldID: "facebookUrl")
         }
     }
 
@@ -161,7 +173,8 @@ struct BasicsTab: View {
         _ label: String,
         placeholder: String = "",
         keyPath: WritableKeyPath<PlayerDetails, String?>,
-        keyboardType: UIKeyboardType = .default
+        keyboardType: UIKeyboardType = .default,
+        fieldID: String
     ) -> some View {
         HStack {
             Text(label).font(.body)
@@ -179,6 +192,9 @@ struct BasicsTab: View {
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
             .disabled(viewModel.isReadOnly)
+            .submitLabel(fieldID == contactFieldOrder.last ? .done : .next)
+            .focused($focusedField, equals: fieldID)
+            .onSubmit { advanceContactFocus(from: fieldID) }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -187,7 +203,8 @@ struct BasicsTab: View {
     private func phoneRow(
         _ label: String,
         placeholder: String = "",
-        keyPath: WritableKeyPath<PlayerDetails, String?>
+        keyPath: WritableKeyPath<PlayerDetails, String?>,
+        fieldID: String
     ) -> some View {
         HStack {
             Text(label).font(.body)
@@ -203,6 +220,7 @@ struct BasicsTab: View {
             .foregroundStyle(.secondary)
             .keyboardType(.phonePad)
             .disabled(viewModel.isReadOnly)
+            .focused($focusedField, equals: fieldID)
         }
         .padding(.horizontal)
         .padding(.vertical, 12)

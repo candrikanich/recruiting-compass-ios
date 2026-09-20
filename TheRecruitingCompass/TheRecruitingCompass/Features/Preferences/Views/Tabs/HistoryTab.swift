@@ -2,22 +2,58 @@ import SwiftUI
 
 struct HistoryTab: View {
     @Bindable var viewModel: PlayerDetailsViewModel
+    @FocusState private var focusedField: String?
+
+    private static let gradeLevels = ["ninthGrade", "tenthGrade", "eleventhGrade", "twelfthGrade"]
+
+    /// Text fields in on-screen order — grade rows are fixed, travel team rows repeat per team.
+    /// Keyed by each team's stable `id`, not its array position: autosave prunes/sorts
+    /// `travelTeams` while the user edits, so an index-based key could silently retarget
+    /// focus and navigation onto a different team occupying the old slot.
+    private var fieldOrder: [String] {
+        var ids = Self.gradeLevels.flatMap { ["\($0)Team", "\($0)Coach"] }
+        for team in viewModel.details.travelTeams ?? [] {
+            ids.append(contentsOf: travelFieldIDs(for: team.id))
+        }
+        return ids
+    }
+
+    private func travelFieldIDs(for teamId: TravelTeam.ID) -> [String] {
+        ["travel-\(teamId)-year", "travel-\(teamId)-name", "travel-\(teamId)-coach"]
+    }
+
+    private func advanceFocus(from fieldID: String) {
+        guard let index = fieldOrder.firstIndex(of: fieldID) else {
+            focusedField = nil
+            return
+        }
+        let nextIndex = index + 1
+        focusedField = nextIndex < fieldOrder.count ? fieldOrder[nextIndex] : nil
+    }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 cardSection(String(localized: "High School Career")) {
                     VStack(spacing: 0) {
-                        gradeSection(String(localized: "9th Grade"), team: \.ninthGradeTeam, coach: \.ninthGradeCoach)
-                        Divider()
-                        gradeSection(String(localized: "10th Grade"), team: \.tenthGradeTeam, coach: \.tenthGradeCoach)
-                        Divider()
                         gradeSection(
-                            String(localized: "11th Grade"), team: \.eleventhGradeTeam, coach: \.eleventhGradeCoach
+                            String(localized: "9th Grade"), team: \.ninthGradeTeam, coach: \.ninthGradeCoach,
+                            fieldPrefix: "ninthGrade"
                         )
                         Divider()
                         gradeSection(
-                            String(localized: "12th Grade"), team: \.twelfthGradeTeam, coach: \.twelfthGradeCoach
+                            String(localized: "10th Grade"), team: \.tenthGradeTeam, coach: \.tenthGradeCoach,
+                            fieldPrefix: "tenthGrade"
+                        )
+                        Divider()
+                        gradeSection(
+                            String(localized: "11th Grade"), team: \.eleventhGradeTeam, coach: \.eleventhGradeCoach,
+                            fieldPrefix: "eleventhGrade"
+                        )
+                        Divider()
+                        gradeSection(
+                            String(localized: "12th Grade"), team: \.twelfthGradeTeam, coach: \.twelfthGradeCoach,
+                            fieldPrefix: "twelfthGrade"
                         )
                     }
                 }
@@ -29,6 +65,7 @@ struct HistoryTab: View {
             .padding()
         }
         .background(Color(.secondarySystemBackground))
+        .keyboardFieldNavigation(focusedField: $focusedField, order: fieldOrder)
     }
 
     // MARK: - Travel Teams
@@ -52,9 +89,9 @@ struct HistoryTab: View {
                     .padding(.horizontal)
                     .padding(.vertical, 12)
             } else {
-                ForEach(teams.indices, id: \.self) { index in
+                ForEach(teams) { team in
                     Divider().padding(.leading)
-                    travelTeamRow(index: index)
+                    travelTeamRow(teamId: team.id)
                 }
             }
 
@@ -72,48 +109,55 @@ struct HistoryTab: View {
     }
 
     @ViewBuilder
-    private func travelTeamRow(index: Int) -> some View {
+    private func travelTeamRow(teamId: TravelTeam.ID) -> some View {
+        let fieldIDs = travelFieldIDs(for: teamId)
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Team \(index + 1)")
+                Text("Team \((currentIndex(of: teamId) ?? 0) + 1)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button(role: .destructive) {
+                    guard let index = currentIndex(of: teamId) else { return }
                     viewModel.removeTravelTeam(at: index)
                 } label: {
                     Image(systemName: "trash")
                 }
                 .buttonStyle(.borderless)
-                .accessibilityLabel(String(localized: "Remove travel team \(index + 1)"))
+                .accessibilityLabel(String(localized: "Remove travel team \((currentIndex(of: teamId) ?? 0) + 1)"))
                 .disabled(viewModel.isReadOnly)
             }
             .padding(.horizontal)
             .padding(.top, 10)
 
-            travelYearRow(index: index)
+            travelYearRow(teamId: teamId, fieldID: fieldIDs[0])
             Divider().padding(.leading)
-            travelTextRow(String(localized: "Organization"), index: index, field: \.name)
+            travelTextRow(String(localized: "Organization"), teamId: teamId, field: \.name, fieldID: fieldIDs[1])
             Divider().padding(.leading)
-            travelTextRow(String(localized: "Head Coach"), index: index, field: \.coach)
+            travelTextRow(String(localized: "Head Coach"), teamId: teamId, field: \.coach, fieldID: fieldIDs[2])
         }
     }
 
-    private func team(at index: Int) -> TravelTeam? {
-        guard let teams = viewModel.details.travelTeams, teams.indices.contains(index) else { return nil }
-        return teams[index]
+    private func team(withId id: TravelTeam.ID) -> TravelTeam? {
+        viewModel.details.travelTeams?.first(where: { $0.id == id })
     }
 
-    private func travelYearRow(index: Int) -> some View {
+    /// Resolves a team's current array position from its stable `id` — never cache this,
+    /// since autosave can reorder or prune `travelTeams` between reads.
+    private func currentIndex(of id: TravelTeam.ID) -> Int? {
+        viewModel.details.travelTeams?.firstIndex(where: { $0.id == id })
+    }
+
+    private func travelYearRow(teamId: TravelTeam.ID, fieldID: String) -> some View {
         HStack {
             Text("Season Year").font(.body)
             Spacer()
             TextField(
                 "Season Year",
                 value: Binding(
-                    get: { team(at: index)?.year },
+                    get: { team(withId: teamId)?.year },
                     set: {
-                        guard viewModel.details.travelTeams?.indices.contains(index) == true else { return }
+                        guard let index = currentIndex(of: teamId) else { return }
                         viewModel.details.travelTeams?[index].year = $0
                         viewModel.markChanged()
                     }
@@ -124,6 +168,7 @@ struct HistoryTab: View {
             .foregroundStyle(.secondary)
             .keyboardType(.numberPad)
             .disabled(viewModel.isReadOnly)
+            .focused($focusedField, equals: fieldID)
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -131,16 +176,17 @@ struct HistoryTab: View {
 
     private func travelTextRow(
         _ label: String,
-        index: Int,
-        field: WritableKeyPath<TravelTeam, String?>
+        teamId: TravelTeam.ID,
+        field: WritableKeyPath<TravelTeam, String?>,
+        fieldID: String
     ) -> some View {
         HStack {
             Text(label).font(.body)
             Spacer()
             TextField(label, text: Binding(
-                get: { team(at: index)?[keyPath: field] ?? "" },
+                get: { team(withId: teamId)?[keyPath: field] ?? "" },
                 set: {
-                    guard viewModel.details.travelTeams?.indices.contains(index) == true else { return }
+                    guard let index = currentIndex(of: teamId) else { return }
                     viewModel.details.travelTeams?[index][keyPath: field] = $0.isEmpty ? nil : $0
                     viewModel.markChanged()
                 }
@@ -148,6 +194,9 @@ struct HistoryTab: View {
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
             .disabled(viewModel.isReadOnly)
+            .submitLabel(fieldID == fieldOrder.last ? .done : .next)
+            .focused($focusedField, equals: fieldID)
+            .onSubmit { advanceFocus(from: fieldID) }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -155,7 +204,7 @@ struct HistoryTab: View {
 
     // MARK: - Helpers
 
-    private func textRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, String?>) -> some View {
+    private func textRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, String?>, fieldID: String) -> some View {
         HStack {
             Text(label).font(.body)
             Spacer()
@@ -169,6 +218,9 @@ struct HistoryTab: View {
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
             .disabled(viewModel.isReadOnly)
+            .submitLabel(fieldID == fieldOrder.last ? .done : .next)
+            .focused($focusedField, equals: fieldID)
+            .onSubmit { advanceFocus(from: fieldID) }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -177,7 +229,8 @@ struct HistoryTab: View {
     private func gradeSection(
         _ label: String,
         team: WritableKeyPath<PlayerDetails, String?>,
-        coach: WritableKeyPath<PlayerDetails, String?>
+        coach: WritableKeyPath<PlayerDetails, String?>,
+        fieldPrefix: String
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(label)
@@ -185,9 +238,9 @@ struct HistoryTab: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
                 .padding(.top, 10)
-            textRow(String(localized: "Team"), keyPath: team)
+            textRow(String(localized: "Team"), keyPath: team, fieldID: "\(fieldPrefix)Team")
             Divider().padding(.leading)
-            textRow(String(localized: "Coach"), keyPath: coach)
+            textRow(String(localized: "Coach"), keyPath: coach, fieldID: "\(fieldPrefix)Coach")
         }
     }
 

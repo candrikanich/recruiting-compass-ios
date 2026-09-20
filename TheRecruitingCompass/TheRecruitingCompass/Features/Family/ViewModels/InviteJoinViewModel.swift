@@ -51,7 +51,6 @@ final class InviteJoinViewModel {
   private let token: String
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
-  private let preferenceService: any PreferenceManaging
   private let turnstileTokenProvider: any TurnstileTokenProviding
 
   var isAuthenticated: Bool { authManager.isAuthenticated }
@@ -72,13 +71,11 @@ final class InviteJoinViewModel {
     token: String,
     familyService: (any FamilyManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
-    preferenceService: (any PreferenceManaging)? = nil,
     turnstileTokenProvider: (any TurnstileTokenProviding)? = nil
   ) {
     self.token = token
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
-    self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
   }
 
@@ -163,9 +160,18 @@ final class InviteJoinViewModel {
     isAccepting = true
     defer { isAccepting = false }
 
+    var acceptError: Error?
+
     do {
       let fullName = "\(first) \(last)"
       let captchaToken = try await turnstileTokenProvider.getToken()
+      // Accepting the invite must run BEFORE authManager publishes isAuthenticated: it's what
+      // triggers the server's hydrateAthleteFromPendingDetails() write (sport/gradYear/position
+      // into the same user_preferences row iOS reads), and the onboarding gate reads that row
+      // the instant isAuthenticated flips true. The unauthenticated invite-preview lookup
+      // (loadInvite/InviteDetails.prefill) never carries this player data — Athlete PII is only
+      // released here, after the authenticated caller has proven they're the invitee — so there
+      // is nothing for signupAndConnect to pass into signup()'s own pending_* metadata.
       try await authManager.signup(
         email: invite.email,
         password: signupPassword,
@@ -177,16 +183,21 @@ final class InviteJoinViewModel {
         primarySport: nil,
         gender: nil,
         zipCode: nil,
-        captchaToken: captchaToken
+        captchaToken: captchaToken,
+        beforePublish: { [weak self] in
+          guard let self else { return }
+          do {
+            try await self.familyService.acceptInvite(token: self.token)
+          } catch {
+            acceptError = error
+          }
+        }
       )
-      try await familyService.acceptInvite(token: token)
-      let prefillSaved = await savePrefillPreferences(from: invite.prefill)
+      if let acceptError { throw acceptError }
+
       successMessage = "You're connected!"
       if inviteDetails?.emailMismatch == true {
         successMessage = "You're connected! (You used a different email than the invite.)"
-      }
-      if !prefillSaved {
-        successMessage = "You're connected! We couldn't save your player details — you can add them later in Preferences."
       }
       showSuccessToast = true
       try? await Task.sleep(for: .milliseconds(1500))
@@ -194,25 +205,6 @@ final class InviteJoinViewModel {
     } catch {
       logger.error("signupAndConnect: \(error.localizedDescription)")
       signupError = (error as? AuthError)?.errorDescription ?? "Could not create account. Please try again."
-    }
-  }
-
-  /// Returns false when the user's player details could not be persisted, so the
-  /// caller can tell them instead of silently discarding what they entered.
-  private func savePrefillPreferences(from prefill: InvitePrefill?) async -> Bool {
-    guard let prefill,
-          prefill.sport != nil || prefill.position != nil || prefill.graduationYear != nil else { return true }
-    var details = PlayerDetails.default
-    details.primarySport = prefill.sport
-    details.primaryPosition = prefill.position
-    details.graduationYear = prefill.graduationYear
-    do {
-      _ = try await preferenceService.savePreferences(category: .player, data: details)
-      logger.debug("Saved prefill player preferences from invite")
-      return true
-    } catch {
-      logger.error("Failed to save prefill player preferences: \(error.localizedDescription)")
-      return false
     }
   }
 

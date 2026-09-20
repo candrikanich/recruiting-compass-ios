@@ -26,6 +26,10 @@ protocol AuthManaging: AnyObject {
   /// - Parameter dateOfBirth: ISO 8601 date string used for COPPA age-gate enforcement.
   /// - Parameters graduationYear/primarySport/gender/zipCode: player-only onboarding-step-1 draft,
   ///   carried as `pending_*` auth metadata and flushed by `AccountProvisioning` on first session.
+  /// - Parameter beforePublish: runs after a session is created but before `isAuthenticated`
+  ///   publishes — same ordering guarantee as the `pending_*` flush, for a caller (e.g. invite
+  ///   acceptance) with its own server-side write the onboarding gate depends on. Never blocks
+  ///   publish: catch your own errors inside the closure and surface them after `signup` returns.
   func signup(
     email: String,
     password: String,
@@ -37,8 +41,14 @@ protocol AuthManaging: AnyObject {
     primarySport: String?,
     gender: String?,
     zipCode: String?,
-    captchaToken: String
+    captchaToken: String,
+    beforePublish: (() async -> Void)?
   ) async throws
+  /// Establishes a session from a service-role magiclink token hash (minted
+  /// by signup-minor.post.ts) and persists it to Keychain — the minor-signup
+  /// equivalent of `signup`'s session-establishment step, since a minor
+  /// signup never returns a password-flow session of its own.
+  func establishSession(fromTokenHash tokenHash: String) async throws
   /// Signs out, revokes the Supabase session, and clears Keychain tokens.
   func logout() async throws
   /// Refreshes the access token using the stored refresh token and returns the updated user.

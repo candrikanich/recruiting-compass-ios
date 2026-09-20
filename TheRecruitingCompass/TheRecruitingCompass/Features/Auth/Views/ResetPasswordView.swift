@@ -3,6 +3,7 @@ import SwiftUI
 struct ResetPasswordView: View {
   @State private var viewModel: ResetPasswordViewModel
   @State private var showForgotPassword = false
+  @FocusState private var focusedField: String?
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
   @Environment(\.horizontalSizeClass) private var sizeClass
@@ -46,6 +47,7 @@ struct ResetPasswordView: View {
         }
         .background(Color.white.opacity(0.95))
         .clipShape(.rect(cornerRadius: 16))
+        .colorScheme(.light)
         .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
         .padding(24)
 
@@ -104,9 +106,12 @@ struct ResetPasswordView: View {
         text: $viewModel.newPassword,
         error: viewModel.errorBinding(for: .newPassword),
         isPasswordVisible: $viewModel.isPasswordVisible,
-        onBlur: viewModel.validateNewPassword
+        onBlur: viewModel.validateNewPassword,
+        focusedField: $focusedField,
+        fieldID: "newPassword"
       )
       .disabled(viewModel.isLoading)
+      .onSubmit { focusedField = "confirmPassword" }
 
       PasswordStrengthIndicator(password: viewModel.newPassword)
         .padding(.horizontal, 16)
@@ -117,9 +122,13 @@ struct ResetPasswordView: View {
         text: $viewModel.confirmPassword,
         error: viewModel.errorBinding(for: .confirmPassword),
         isPasswordVisible: $viewModel.isPasswordVisible,
-        onBlur: viewModel.validateConfirmPassword
+        onBlur: viewModel.validateConfirmPassword,
+        focusedField: $focusedField,
+        fieldID: "confirmPassword",
+        submitLabel: .done
       )
       .disabled(viewModel.isLoading)
+      .onSubmit { focusedField = nil }
 
       if !viewModel.confirmPassword.isEmpty {
         passwordMatchIndicator
@@ -152,6 +161,7 @@ struct ResetPasswordView: View {
       .accessibilityLabel(viewModel.isLoading ? String(localized: "Resetting password") : String(localized: "Reset password"))
       .accessibilityHint("Sets your new password")
     }
+    .keyboardFieldNavigation(focusedField: $focusedField, order: ["newPassword", "confirmPassword"])
     .padding(32)
   }
 

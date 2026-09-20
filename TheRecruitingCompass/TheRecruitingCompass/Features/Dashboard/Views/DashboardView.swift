@@ -4,9 +4,11 @@ struct DashboardView: View {
   @State private var viewModel = DashboardViewModel()
   @State private var timelineViewModel = TimelineViewModel()
   @State private var showParentWizard = false
+  @State private var parentOnboardingWizardViewModel = ParentOnboardingWizardViewModel()
   @State private var showAddSchool = false
   @State private var realtimeService: DashboardRealtimeService?
   @State private var guardianStatusViewModel = GuardianStatusViewModel()
+  @State private var emailVerificationBannerViewModel = EmailVerificationBannerViewModel()
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
   @Environment(\.openMoreSection) private var openMoreSection
@@ -14,9 +16,12 @@ struct DashboardView: View {
 
   private var nuxProgressManager: NuxProgressManager { .shared }
 
-  init(viewModel: DashboardViewModel? = nil) {
+  init(viewModel: DashboardViewModel? = nil, emailVerificationBannerViewModel: EmailVerificationBannerViewModel? = nil) {
     if let viewModel {
       _viewModel = State(initialValue: viewModel)
+    }
+    if let emailVerificationBannerViewModel {
+      _emailVerificationBannerViewModel = State(initialValue: emailVerificationBannerViewModel)
     }
   }
 
@@ -43,6 +48,8 @@ struct DashboardView: View {
           GuardianPendingBanner(viewModel: guardianStatusViewModel)
         }
 
+        EmailVerificationBanner(viewModel: emailVerificationBannerViewModel)
+
         ScrollView {
           if sizeClass == .regular {
             dashboardRegularLayout
@@ -59,12 +66,17 @@ struct DashboardView: View {
       .navigationBarTitleDisplayMode(.inline)
       .sheet(isPresented: $showParentWizard) {
         InviteAthleteView(
-          viewModel: ParentOnboardingWizardViewModel(),
+          viewModel: parentOnboardingWizardViewModel,
           onDismiss: {
             showParentWizard = false
             Task { await familyManager.loadFamilyData() }
           }
         )
+      }
+      .onChange(of: showParentWizard) { _, isShowing in
+        if !isShowing {
+          parentOnboardingWizardViewModel = ParentOnboardingWizardViewModel()
+        }
       }
       .sheet(
         isPresented: $showAddSchool,

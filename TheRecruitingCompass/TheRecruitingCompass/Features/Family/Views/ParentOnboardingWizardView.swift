@@ -29,6 +29,7 @@ struct ParentOnboardingWizardView: View {
         }
         .background(Color.white.opacity(0.95))
         .clipShape(.rect(cornerRadius: 16))
+        .colorScheme(.light)
         .padding(.horizontal, 24)
         .padding(.vertical, 24)
       }

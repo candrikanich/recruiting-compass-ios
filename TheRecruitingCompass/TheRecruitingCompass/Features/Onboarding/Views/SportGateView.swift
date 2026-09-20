@@ -145,6 +145,7 @@ struct SportGateView: View {
       }
       .padding(24)
     }
+    .colorScheme(.light)
     .accessibilityElement(children: .contain)
     .accessibilityIdentifier("sportGateView")
   }

@@ -81,6 +81,44 @@ final class AuthManager: AuthManaging {
     }
   }
 
+  func establishSession(fromTokenHash tokenHash: String) async throws {
+    logger.debug("Establishing session from magiclink token hash")
+    do {
+      let (user, session) = try await supabaseManager.signInWithTokenHash(tokenHash)
+
+      // Persist before publishing: verifyOTP already consumed the single-use
+      // tokenHash and left the Supabase client's own session live, so a
+      // Keychain-save failure here must not present as "signup failed" (the
+      // account exists and retrying would hit a duplicate-account response)
+      // — it's cleaned up in the catch below and surfaced as
+      // accountCreatedButSignInFailed, directing the player to log in.
+      try keychain.save(session, forKey: sessionKey)
+
+      // Same ordering guarantee as login()/signup() above.
+      await accountProvisioning.flushPendingOnboardingStep1()
+      self.user = user
+      self.session = session
+      self.isAuthenticated = true
+      self.errorMessage = nil
+
+      Analytics.identify(userId: user.id, email: user.email)
+      logger.info("Session established for user: \(user.id, privacy: .private)")
+    } catch {
+      // The Supabase client may already hold a live session from verifyOTP
+      // even though we're not publishing it — sign it out so the client and
+      // our own published state (both never set, or already reset here if a
+      // later step failed) stay consistent.
+      try? await supabaseManager.signOut()
+      self.user = nil
+      self.session = nil
+      self.isAuthenticated = false
+      let message = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
+      self.errorMessage = message
+      logger.error("Session establishment failed: \(error.localizedDescription)")
+      throw AuthError.accountCreatedButSignInFailed(message)
+    }
+  }
+
   func signup(
     email: String,
     password: String,
@@ -92,7 +130,8 @@ final class AuthManager: AuthManaging {
     primarySport: String? = nil,
     gender: String? = nil,
     zipCode: String? = nil,
-    captchaToken: String
+    captchaToken: String,
+    beforePublish: (() async -> Void)? = nil
   ) async throws {
     logger.debug("Attempting signup for: \(email.prefix(3))*** role: \(role.rawValue)")
     if let dob = dateOfBirth, COPPAHelper.isUnderAge(dob) {
@@ -118,6 +157,7 @@ final class AuthManager: AuthManaging {
       // not let the onboarding container see this user as authenticated before their
       // own signup-time sport/grad-year metadata has landed in canonical preferences.
       if session != nil {
+        await beforePublish?()
         await accountProvisioning.flushPendingOnboardingStep1()
       }
       self.user = user

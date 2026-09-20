@@ -45,6 +45,11 @@ enum AuthError: LocalizedError {
   /// The Cloudflare Turnstile captcha challenge failed, timed out, or could not be
   /// completed (e.g. no network reaching Cloudflare, widget error, expired token).
   case captchaFailed
+  /// Account creation on the server already succeeded, but establishing the local
+  /// session afterward (sign-in, profile upsert/fetch) failed. Distinct from a
+  /// failed signup so callers don't retry account creation against an email that's
+  /// now actually registered — route to login instead.
+  case accountCreatedButSignInFailed(String)
   /// An unexpected error occurred; the associated value wraps the underlying `Error`.
   case unknown(Error)
 
@@ -91,6 +96,8 @@ enum AuthError: LocalizedError {
       return "You must be at least 13 years old to create an account."
     case .captchaFailed:
       return "Couldn't verify you're human. Please try again."
+    case .accountCreatedButSignInFailed:
+      return "Your account was created. Please log in to continue."
     case .unknown(let err):
       let msg = err.localizedDescription.trimmingCharacters(in: .whitespaces)
       if msg.isEmpty || msg.contains("The operation couldn't be completed") {
@@ -136,6 +143,8 @@ enum AuthError: LocalizedError {
       return "Accounts are for users 13 and older. A parent or guardian can create an account and invite you."
     case .captchaFailed:
       return "Check your internet connection and try again."
+    case .accountCreatedButSignInFailed:
+      return "Sign in with the email and password you just created."
     case .unknown:
       return "Please try again or contact support."
     }

@@ -4,6 +4,7 @@ import SwiftUI
 /// link. Mirrors web's `pages/guardian/claim/[token].vue`.
 struct GuardianClaimView: View {
   @State private var viewModel: GuardianClaimViewModel
+  @FocusState private var focusedField: String?
   @Environment(\.dismiss) private var dismiss
 
   init(viewModel: GuardianClaimViewModel) {
@@ -96,8 +97,11 @@ struct GuardianClaimView: View {
           isSecure: false,
           keyboardType: .emailAddress,
           textContentType: .emailAddress,
-          onBlur: {}
+          onBlur: {},
+          focusedField: $focusedField,
+          fieldID: "email"
         )
+        .onSubmit { focusedField = "password" }
         LoginFormField(
           label: String(localized: "Password"),
           placeholder: "Password",
@@ -107,8 +111,15 @@ struct GuardianClaimView: View {
           isSecure: true,
           keyboardType: .default,
           textContentType: .password,
-          onBlur: {}
+          onBlur: {},
+          focusedField: $focusedField,
+          fieldID: "password",
+          submitLabel: .done
         )
+        .onSubmit {
+          focusedField = nil
+          Task { await viewModel.confirm() }
+        }
 
         Button(action: { Task { await viewModel.confirm() } }) {
           if viewModel.isConfirming {
@@ -125,5 +136,6 @@ struct GuardianClaimView: View {
           .foregroundStyle(.secondary)
       }
     }
+    .keyboardFieldNavigation(focusedField: $focusedField, order: ["email", "password"])
   }
 }

@@ -34,7 +34,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     enum CodingKeys: String, CodingKey {
       case id
       case email
-      case emailConfirmedAt = "email_confirmed_at"
+      // public.users.email_verified_at — this app's own decoupled-verification
+      // record (web migration 20260928000000_email_verified_at.sql), distinct
+      // from auth.users.email_confirmed_at (a different table/schema).
+      case emailConfirmedAt = "email_verified_at"
       case fullName = "full_name"
       case role
       case createdAt = "created_at"
@@ -57,6 +60,35 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       case fullName = "full_name"
       case dateOfBirth = "date_of_birth"
     }
+  }
+
+  /// Request body for `POST /api/auth/signup` — mirrors `SignupBody` in
+  /// server/api/auth/signup.post.ts. That endpoint (not the Supabase SDK) owns
+  /// account creation and the custom verification email for every platform;
+  /// calling Supabase Auth directly here would bypass sendVerificationEmail()
+  /// entirely, which is what left iOS parent signups with no verification email.
+  private struct WebSignupBody: Encodable {
+    let email: String
+    let password: String
+    let fullName: String
+    let role: String
+    let dateOfBirth: String?
+    let captchaToken: String
+    let metadata: [String: String]
+  }
+
+  private struct WebSignupResult: Decodable {
+    let userId: String
+    /// Service-role magiclink token, present when minting succeeds server-side.
+    /// Consumed via `client.auth.verifyOTP(tokenHash:type:)` to establish the
+    /// session with no second CAPTCHA hop. Falls back to a fresh-token
+    /// `signIn` when absent (mirrors composables/useAuth.ts on web).
+    let tokenHash: String?
+  }
+
+  /// Parses a Nitro/H3 error response body (`{ "statusMessage": "..." }`).
+  private struct WebSignupErrorBody: Decodable {
+    let statusMessage: String?
   }
 
   private static let isoFormatter: ISO8601DateFormatter = {
@@ -114,67 +146,116 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     zipCode: String? = nil,
     captchaToken: String
   ) async throws -> (user: User, session: Session?) {
-    var metadata: [String: AnyJSON] = [
-      "full_name": .string(fullName),
-      "role": .string(role.rawValue)
-    ]
-
-    if let familyCode, !familyCode.trimmingCharacters(in: .whitespaces).isEmpty {
-      metadata["family_code"] = .string(familyCode)
-    }
-
-    if let dateOfBirth, !dateOfBirth.isEmpty {
-      metadata["date_of_birth"] = .string(dateOfBirth)
-    }
+    // family_code isn't accepted by the web signup endpoint's metadata (server/api/auth/signup.post.ts
+    // ALLOWED_METADATA_KEYS) — family creation is its own step after signup (see
+    // SignupViewModel.signup(), which already passes familyCode: nil here and calls
+    // familyService.createFamily(role:) afterward, mirroring web's flow).
+    _ = familyCode
 
     // Carried across the email-confirmation gap and flushed into real preferences by
     // AccountProvisioningService on first authenticated session. See planning/iOS_SPEC_preconfirm-onboarding-step1-2026-09-11.md.
+    var metadata: [String: String] = [:]
     if let graduationYear {
-      metadata["pending_graduation_year"] = .string(String(graduationYear))
+      metadata["pending_graduation_year"] = String(graduationYear)
     }
     if let primarySport, !primarySport.isEmpty {
-      metadata["pending_primary_sport"] = .string(primarySport)
+      metadata["pending_primary_sport"] = primarySport
     }
     if let gender, !gender.isEmpty {
-      metadata["pending_gender"] = .string(gender)
+      metadata["pending_gender"] = gender
     }
     if let zipCode, !zipCode.isEmpty {
-      metadata["pending_zip_code"] = .string(zipCode)
+      metadata["pending_zip_code"] = zipCode
     }
 
-    do {
-      let response = try await client.auth.signUp(
+    let created = try await createAccountViaWebSignup(
+      WebSignupBody(
         email: email,
         password: password,
-        data: metadata,
-        captchaToken: captchaToken
+        fullName: fullName,
+        role: role.rawValue,
+        dateOfBirth: (dateOfBirth?.isEmpty == false) ? dateOfBirth : nil,
+        captchaToken: captchaToken,
+        metadata: metadata
+      )
+    )
+
+    // The account is already committed and auto-confirmed at this point. Everything
+    // below only establishes/persists local session state, so its failures must not
+    // read as "signup failed" (retrying would hit the server's deliberately generic
+    // duplicate-account response for an email that's now actually taken) — tag them
+    // as AuthError.accountCreatedButSignInFailed instead, mirroring useAuth.ts's
+    // `accountCreatedButSignInFailed` flag on web.
+    do {
+      var authSession: Supabase.Session
+      if let tokenHash = created.tokenHash {
+        guard case .session(let session) = try await client.auth.verifyOTP(
+          tokenHash: tokenHash,
+          type: .magiclink
+        ) else {
+          throw AuthError.serverError("Sign-in did not return a session")
+        }
+        authSession = session
+      } else {
+        // Fallback for the rare case the server couldn't mint a tokenHash: the
+        // signup captchaToken was already consumed by the endpoint's own check,
+        // so a fresh one is needed here.
+        let freshCaptchaToken = try await TurnstileTokenProvider.shared.getToken()
+        authSession = try await client.auth.signIn(
+          email: email,
+          password: password,
+          captchaToken: freshCaptchaToken
+        )
+      }
+
+      // Re-derive the canonical session via setSession (same pattern as
+      // restoreSession/AuthManager's Keychain restore below) instead of trusting
+      // verifyOTP/signIn's response object directly. setSession reads expiresAt from
+      // the access token's own `exp` claim, which is what the client's sessionManager
+      // uses to decide whether requests are sent authenticated — the raw response
+      // session's expiresAt going stale/mismatched here is what let the immediately
+      // following `.from("users").upsert()` fall back to the anon key and hit the
+      // get_user_family_ids() RLS permission-denied error (42501, prod 2026-09-20).
+      authSession = try await client.auth.setSession(
+        accessToken: authSession.accessToken,
+        refreshToken: authSession.refreshToken
       )
 
-      let userId = response.user.id.uuidString
-      let userEmail = response.user.email ?? email
+      let userEmail = authSession.user.email ?? email
 
-      // Upsert users row (mirrors web signup). Required for user_preferences FK.
-      try await client
-        .from("users")
-        .upsert(
-          UsersUpsertPayload(
-            id: userId,
-            email: userEmail,
-            fullName: fullName,
-            role: role.rawValue,
-            dateOfBirth: dateOfBirth
-          ),
-          onConflict: "id"
-        )
-        .execute()
+      // Upsert users row (mirrors web signup). Defensive fallback alongside the
+      // handle_new_user() DB trigger, which already creates this row server-side —
+      // so a failure here (e.g. a transient RLS/grant hiccup on the upsert's
+      // ON CONFLICT DO UPDATE path) must not read as "signup failed": the account
+      // is already committed (see comment above), the trigger already covers the
+      // row, and fetchUserProfileWithRetry below has its own metadata fallback.
+      var upsertSucceeded = true
+      do {
+        try await client
+          .from("users")
+          .upsert(
+            UsersUpsertPayload(
+              id: created.userId,
+              email: userEmail,
+              fullName: fullName,
+              role: role.rawValue,
+              dateOfBirth: dateOfBirth
+            ),
+            onConflict: "id"
+          )
+          .execute()
+      } catch {
+        upsertSucceeded = false
+        logger.warning("Non-fatal: users upsert after signup failed: \(error.localizedDescription)")
+      }
 
       // Try to fetch from database, fall back to metadata for new users
       let user = try await fetchUserProfileWithRetry(
-        userId: userId,
+        userId: created.userId,
         email: userEmail,
-        fallbackMetadata: response.user.userMetadata
+        fallbackMetadata: authSession.user.userMetadata
       ) ?? User(
-        id: userId,
+        id: created.userId,
         email: userEmail,
         emailConfirmedAt: nil,
         fullName: fullName,
@@ -184,9 +265,98 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         dateOfBirth: nil
       )
 
-      let session = response.session.map { mapToSession($0, user: user) }
+      // fetchUserProfileWithRetry falls back to a metadata-only User (and its own
+      // best-effort repair upsert) without confirming persistence. If our own upsert
+      // above also failed, that fallback could otherwise mask a genuinely missing
+      // public.users row — publishing a session whose FK-dependent writes (e.g.
+      // user_preferences) would fail later. Confirm a row actually exists before
+      // accepting that outcome.
+      if !upsertSucceeded {
+        do {
+          _ = try await fetchUserProfile(userId: created.userId)
+        } catch {
+          throw AuthError.accountCreatedButSignInFailed(
+            mapSupabaseSignUpError(error).errorDescription ?? "Sign-in failed"
+          )
+        }
+      }
+
+      let session = mapToSession(authSession, user: user)
 
       return (user, session)
+    } catch {
+      throw AuthError.accountCreatedButSignInFailed(mapSupabaseSignUpError(error).errorDescription ?? "Sign-in failed")
+    }
+  }
+
+  /// Establishes a session from a service-role magiclink token hash — used by
+  /// the minor-signup flow (signup-minor.post.ts mints tokenHash the same way
+  /// the adult path's createAccountViaWebSignup does). By the time this is
+  /// called the account already exists server-side, so failures here are
+  /// tagged accountCreatedButSignInFailed, same reasoning as signUp() above.
+  func signInWithTokenHash(_ tokenHash: String) async throws -> (user: User, session: Session) {
+    do {
+      guard case .session(let authSession) = try await client.auth.verifyOTP(
+        tokenHash: tokenHash,
+        type: .magiclink
+      ) else {
+        throw AuthError.serverError("Sign-in did not return a session")
+      }
+
+      let userEmail = authSession.user.email ?? ""
+      let user = try await fetchUserProfileWithRetry(
+        userId: authSession.user.id.uuidString,
+        email: userEmail,
+        fallbackMetadata: authSession.user.userMetadata
+      ) ?? User(
+        id: authSession.user.id.uuidString,
+        email: userEmail,
+        emailConfirmedAt: nil,
+        fullName: nil,
+        createdAt: Self.isoFormatter.string(from: Date.now),
+        updatedAt: Self.isoFormatter.string(from: Date.now),
+        role: nil,
+        dateOfBirth: nil
+      )
+
+      let session = mapToSession(authSession, user: user)
+      return (user, session)
+    } catch {
+      throw AuthError.accountCreatedButSignInFailed(mapSupabaseSignUpError(error).errorDescription ?? "Sign-in failed")
+    }
+  }
+
+  /// Calls the web app's `POST /api/auth/signup` — the account-creation and
+  /// verification-email owner for every platform (server/utils/accountCreation.ts).
+  /// `/api/auth/*` is CSRF-exempt (server/middleware/csrf.ts) so no CSRF token is needed.
+  private func createAccountViaWebSignup(_ body: WebSignupBody) async throws -> WebSignupResult {
+    do {
+      guard let baseURL = SupabaseConfig.apiBaseURL else {
+        throw AuthError.networkError("Could not reach the server.")
+      }
+      var request = URLRequest(url: baseURL.appendingPathComponent("api/auth/signup"))
+      request.httpMethod = "POST"
+      request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+      request.httpBody = try JSONEncoder().encode(body)
+
+      let (data, response) = try await URLSession.shared.data(for: request)
+      guard let http = response as? HTTPURLResponse else {
+        throw AuthError.networkError("Could not reach the server.")
+      }
+      guard (200...299).contains(http.statusCode) else {
+        if http.statusCode == 403 {
+          throw AuthError.captchaFailed
+        }
+        if http.statusCode == 429 {
+          throw AuthError.tooManyAttempts(retryAfter: nil)
+        }
+        // 400 is deliberately generic server-side — duplicate-email and other creation
+        // failures are indistinguishable (accountCreation.ts) to avoid an
+        // account-existence-enumeration oracle. Surface the server's message as-is.
+        let errorBody = try? JSONDecoder().decode(WebSignupErrorBody.self, from: data)
+        throw AuthError.serverError(errorBody?.statusMessage ?? "Unable to create account. Please try again.")
+      }
+      return try JSONDecoder().decode(WebSignupResult.self, from: data)
     } catch {
       throw mapSupabaseSignUpError(error)
     }

@@ -478,7 +478,9 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertEqual(mockGuardianService.capturedSignupMinorEmail, "john@example.com")
     XCTAssertEqual(mockGuardianService.capturedSignupMinorGuardianEmail, "guardian@example.com")
     XCTAssertEqual(mockAuthManager.signupCallCount, 0, "Minor signup must not go through the ordinary authManager.signup path")
-    XCTAssertTrue(sut.shouldNavigateToVerifyEmail, "signup-minor never returns a session — email confirmation is always required")
+    XCTAssertEqual(mockAuthManager.establishSessionCallCount, 1, "A minted tokenHash must establish a session, landing the player on the dashboard")
+    XCTAssertEqual(mockAuthManager.capturedTokenHash, "mock-token-hash")
+    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
   }
 
   func testSignupMinorSurfacesServerErrorMessage() async {
@@ -491,7 +493,7 @@ final class SignupViewModelTests: XCTestCase {
     await sut.signup()
 
     XCTAssertEqual(sut.errorMessage, "An account with this email already exists")
-    XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
+    XCTAssertEqual(mockAuthManager.establishSessionCallCount, 0)
   }
 
   func testSignupDoesNotRouteAdultPlayerThroughGuardianService() async {
@@ -527,7 +529,7 @@ final class SignupViewModelTests: XCTestCase {
     // exercises the VM handling that result, not just a fixture that always
     // has an address regardless of what was actually sent.
     mockGuardianService.mockSignupMinorResult = SignupMinorResult(
-      ok: true, guardianEmail: nil, guardianEmailSent: false)
+      ok: true, guardianEmail: nil, guardianEmailSent: false, tokenHash: "mock-token-hash")
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
     sut.guardianEmail = ""
@@ -536,7 +538,7 @@ final class SignupViewModelTests: XCTestCase {
 
     XCTAssertEqual(mockGuardianService.signupMinorCallCount, 1)
     XCTAssertNil(mockGuardianService.capturedSignupMinorGuardianEmail)
-    XCTAssertTrue(sut.shouldNavigateToVerifyEmail, "A successful guardian-free result must not surface as an error")
+    XCTAssertEqual(mockAuthManager.establishSessionCallCount, 1, "A successful guardian-free result must still establish a session")
     XCTAssertNil(sut.errorMessage)
   }
 

@@ -6,6 +6,7 @@ struct AddOfferForm: View {
   let isSubmitting: Bool
   let onSave: () -> Void
   let onCancel: () -> Void
+  @FocusState private var focusedField: String?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
@@ -50,6 +51,7 @@ struct AddOfferForm: View {
         TextField("e.g. 50000", text: $formState.scholarshipAmount)
           .keyboardType(.decimalPad)
           .textFieldStyle(.roundedBorder)
+          .focused($focusedField, equals: "amount")
           .accessibilityLabel(String(localized: "Scholarship amount in dollars"))
       }
 
@@ -75,6 +77,7 @@ struct AddOfferForm: View {
             RoundedRectangle(cornerRadius: 8)
               .stroke(Color(.systemGray4), lineWidth: 1)
           )
+          .focused($focusedField, equals: "notes")
           .accessibilityLabel(String(localized: "Offer notes"))
       }
 
@@ -120,5 +123,6 @@ struct AddOfferForm: View {
     .padding(16)
     .background(Color(.secondarySystemBackground))
     .clipShape(.rect(cornerRadius: 12))
+    .keyboardFieldNavigation(focusedField: $focusedField, order: ["amount", "notes"])
   }
 }
