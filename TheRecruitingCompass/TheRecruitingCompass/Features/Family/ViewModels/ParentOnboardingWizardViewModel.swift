@@ -181,6 +181,7 @@ final class ParentOnboardingWizardViewModel {
       showSuccessToast = true
       didComplete = true
     } catch {
+      logger.error("sendInvite failed: \(error.localizedDescription, privacy: .public)")
       errorMessage = (error as? FamilyError)?.errorDescription ?? "Failed to send invite. Please try again."
     }
   }
