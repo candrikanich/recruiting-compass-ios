@@ -187,7 +187,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     // as AuthError.accountCreatedButSignInFailed instead, mirroring useAuth.ts's
     // `accountCreatedButSignInFailed` flag on web.
     do {
-      let authSession: Supabase.Session
+      var authSession: Supabase.Session
       if let tokenHash = created.tokenHash {
         guard case .session(let session) = try await client.auth.verifyOTP(
           tokenHash: tokenHash,
@@ -207,6 +207,19 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
           captchaToken: freshCaptchaToken
         )
       }
+
+      // Re-derive the canonical session via setSession (same pattern as
+      // restoreSession/AuthManager's Keychain restore below) instead of trusting
+      // verifyOTP/signIn's response object directly. setSession reads expiresAt from
+      // the access token's own `exp` claim, which is what the client's sessionManager
+      // uses to decide whether requests are sent authenticated — the raw response
+      // session's expiresAt going stale/mismatched here is what let the immediately
+      // following `.from("users").upsert()` fall back to the anon key and hit the
+      // get_user_family_ids() RLS permission-denied error (42501, prod 2026-09-20).
+      authSession = try await client.auth.setSession(
+        accessToken: authSession.accessToken,
+        refreshToken: authSession.refreshToken
+      )
 
       let userEmail = authSession.user.email ?? email
 
