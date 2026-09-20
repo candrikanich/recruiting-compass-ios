@@ -131,33 +131,54 @@ private struct SignupRoleSelectionView: View {
 
 // MARK: - Signup Form Step
 
+/// Text fields eligible for keyboard next/previous navigation, in on-screen order.
+/// Pickers and the DatePicker aren't included — they don't use the software keyboard.
+private enum SignupField: Hashable {
+  case firstName, lastName, email, guardianEmail, password, confirmPassword, familyCode
+}
+
 private struct SignupFormView: View {
   @Bindable var viewModel: SignupViewModel
   @Binding var presentedLegal: LegalDocument?
   let onSignIn: () -> Void
+  @FocusState private var focusedField: SignupField?
+
+  /// Only the fields actually visible for the current role/minor-status, in order.
+  private var visibleFields: [SignupField] {
+    var fields: [SignupField] = [.firstName, .lastName, .email]
+    if viewModel.isMinorSignup {
+      fields.append(.guardianEmail)
+    }
+    fields.append(contentsOf: [.password, .confirmPassword])
+    if viewModel.selectedRole?.requiresFamilyCode == true {
+      fields.append(.familyCode)
+    }
+    return fields
+  }
 
   var body: some View {
     VStack(spacing: 24) {
       SignupRoleHeaderView(viewModel: viewModel)
       SignupErrorBannerView(viewModel: viewModel)
-      SignupFirstNameFieldView(viewModel: viewModel)
-      SignupLastNameFieldView(viewModel: viewModel)
-      SignupEmailFieldView(viewModel: viewModel)
+      SignupFirstNameFieldView(viewModel: viewModel, focusedField: $focusedField)
+      SignupLastNameFieldView(viewModel: viewModel, focusedField: $focusedField)
+      SignupEmailFieldView(viewModel: viewModel, focusedField: $focusedField)
       if viewModel.selectedRole == .player {
         SignupDateOfBirthFieldView(viewModel: viewModel)
         SignupPlayerDetailsFieldsView(viewModel: viewModel)
       }
       if viewModel.isMinorSignup {
-        SignupGuardianEmailFieldView(viewModel: viewModel)
+        SignupGuardianEmailFieldView(viewModel: viewModel, focusedField: $focusedField)
       }
-      SignupPasswordSectionView(viewModel: viewModel)
-      SignupConfirmPasswordFieldView(viewModel: viewModel)
-      SignupFamilyCodeFieldView(viewModel: viewModel)
+      SignupPasswordSectionView(viewModel: viewModel, focusedField: $focusedField)
+      SignupConfirmPasswordFieldView(viewModel: viewModel, focusedField: $focusedField)
+      SignupFamilyCodeFieldView(viewModel: viewModel, focusedField: $focusedField)
       SignupTermsSectionView(viewModel: viewModel, presentedLegal: $presentedLegal)
       SignupCreateAccountButtonView(viewModel: viewModel)
       SignupSignInSectionView(onSignIn: onSignIn)
     }
     .padding(32)
+    .keyboardFieldNavigation(focusedField: $focusedField, fields: visibleFields)
   }
 }
 
@@ -216,6 +237,7 @@ private struct SignupErrorBannerView: View {
 
 private struct SignupFirstNameFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<SignupField?>.Binding
 
   var body: some View {
     LoginFormField(
@@ -229,11 +251,13 @@ private struct SignupFirstNameFieldView: View {
       textContentType: .givenName,
       onBlur: viewModel.validateFirstName
     )
+    .focused(focusedField, equals: .firstName)
   }
 }
 
 private struct SignupLastNameFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<SignupField?>.Binding
 
   var body: some View {
     LoginFormField(
@@ -247,6 +271,7 @@ private struct SignupLastNameFieldView: View {
       textContentType: .familyName,
       onBlur: viewModel.validateLastName
     )
+    .focused(focusedField, equals: .lastName)
   }
 }
 
@@ -395,6 +420,7 @@ private struct SignupPlayerDetailsFieldsView: View {
 
 private struct SignupGuardianEmailFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<SignupField?>.Binding
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -409,6 +435,7 @@ private struct SignupGuardianEmailFieldView: View {
         textContentType: .emailAddress,
         onBlur: viewModel.validateGuardianEmail
       )
+      .focused(focusedField, equals: .guardianEmail)
 
       Text("Add a parent or guardian now, or invite one later from your dashboard. We'll email them a link — you can start using the app right away, but sending messages to coaches and publishing your profile stay locked until they confirm.")
         .font(.caption)
@@ -419,6 +446,7 @@ private struct SignupGuardianEmailFieldView: View {
 
 private struct SignupEmailFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<SignupField?>.Binding
 
   var body: some View {
     LoginFormField(
@@ -432,11 +460,13 @@ private struct SignupEmailFieldView: View {
       textContentType: .emailAddress,
       onBlur: viewModel.validateEmail
     )
+    .focused(focusedField, equals: .email)
   }
 }
 
 private struct SignupPasswordSectionView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<SignupField?>.Binding
 
   // Suppress iOS "Use Strong Password?" sheet during UI testing.
   // Setting textContentType: nil doesn't help — iOS infers .newPassword from two
@@ -459,6 +489,7 @@ private struct SignupPasswordSectionView: View {
         textContentType: passwordTextContentType,
         onBlur: viewModel.validatePassword
       )
+      .focused(focusedField, equals: .password)
 
       PasswordStrengthIndicator(password: viewModel.password)
         .padding(.horizontal, 16)
@@ -469,6 +500,7 @@ private struct SignupPasswordSectionView: View {
 
 private struct SignupConfirmPasswordFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<SignupField?>.Binding
 
   private var passwordTextContentType: UITextContentType? {
     ProcessInfo.processInfo.arguments.contains("--uitesting") ? .oneTimeCode : .newPassword
@@ -486,11 +518,13 @@ private struct SignupConfirmPasswordFieldView: View {
       textContentType: passwordTextContentType,
       onBlur: viewModel.validateConfirmPassword
     )
+    .focused(focusedField, equals: .confirmPassword)
   }
 }
 
 private struct SignupFamilyCodeFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<SignupField?>.Binding
 
   var body: some View {
     if viewModel.selectedRole?.requiresFamilyCode == true {
@@ -504,6 +538,7 @@ private struct SignupFamilyCodeFieldView: View {
         keyboardType: .default,
         onBlur: viewModel.validateFamilyCode
       )
+      .focused(focusedField, equals: .familyCode)
     }
   }
 }
