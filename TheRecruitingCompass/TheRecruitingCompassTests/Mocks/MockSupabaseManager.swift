@@ -11,6 +11,7 @@ final class MockSupabaseManager: SupabaseManaging {
   var setSessionError: Error?
   var signInResult: Result<(user: User, session: Session), Error> = .failure(AuthError.networkError("Mock: not configured"))
   var signUpResult: Result<(user: User, session: Session?), Error> = .failure(AuthError.networkError("Mock: not configured"))
+  var signInWithTokenHashResult: Result<(user: User, session: Session), Error> = .failure(AuthError.networkError("Mock: not configured"))
   var signOutError: Error?
   var currentSessionResult: Session?
   var refreshSessionResult: Result<User, Error> = .failure(AuthError.networkError("Mock: not configured"))
@@ -30,6 +31,13 @@ final class MockSupabaseManager: SupabaseManaging {
   func signIn(email: String, password: String, captchaToken: String) async throws -> (user: User, session: Session) {
     capturedSignInCaptchaToken = captchaToken
     return try signInResult.get()
+  }
+
+  private(set) var capturedSignInWithTokenHash: String?
+
+  func signInWithTokenHash(_ tokenHash: String) async throws -> (user: User, session: Session) {
+    capturedSignInWithTokenHash = tokenHash
+    return try signInWithTokenHashResult.get()
   }
 
   private(set) var capturedSignUpDateOfBirth: String?

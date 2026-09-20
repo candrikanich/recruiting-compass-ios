@@ -276,6 +276,43 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     }
   }
 
+  /// Establishes a session from a service-role magiclink token hash — used by
+  /// the minor-signup flow (signup-minor.post.ts mints tokenHash the same way
+  /// the adult path's createAccountViaWebSignup does). By the time this is
+  /// called the account already exists server-side, so failures here are
+  /// tagged accountCreatedButSignInFailed, same reasoning as signUp() above.
+  func signInWithTokenHash(_ tokenHash: String) async throws -> (user: User, session: Session) {
+    do {
+      guard case .session(let authSession) = try await client.auth.verifyOTP(
+        tokenHash: tokenHash,
+        type: .magiclink
+      ) else {
+        throw AuthError.serverError("Sign-in did not return a session")
+      }
+
+      let userEmail = authSession.user.email ?? ""
+      let user = try await fetchUserProfileWithRetry(
+        userId: authSession.user.id.uuidString,
+        email: userEmail,
+        fallbackMetadata: authSession.user.userMetadata
+      ) ?? User(
+        id: authSession.user.id.uuidString,
+        email: userEmail,
+        emailConfirmedAt: nil,
+        fullName: nil,
+        createdAt: Self.isoFormatter.string(from: Date.now),
+        updatedAt: Self.isoFormatter.string(from: Date.now),
+        role: nil,
+        dateOfBirth: nil
+      )
+
+      let session = mapToSession(authSession, user: user)
+      return (user, session)
+    } catch {
+      throw AuthError.accountCreatedButSignInFailed(mapSupabaseSignUpError(error).errorDescription ?? "Sign-in failed")
+    }
+  }
+
   /// Calls the web app's `POST /api/auth/signup` — the account-creation and
   /// verification-email owner for every platform (server/utils/accountCreation.ts).
   /// `/api/auth/*` is CSRF-exempt (server/middleware/csrf.ts) so no CSRF token is needed.

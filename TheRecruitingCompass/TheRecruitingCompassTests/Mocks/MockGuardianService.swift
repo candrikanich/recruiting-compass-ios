@@ -16,7 +16,7 @@ final class MockGuardianService: GuardianManaging, @unchecked Sendable {
 
   var mockErrorToThrow: Error = GuardianServiceError.server(500, message: "Mock error")
 
-  var mockSignupMinorResult = SignupMinorResult(ok: true, guardianEmail: "guardian@example.com", guardianEmailSent: true)
+  var mockSignupMinorResult = SignupMinorResult(ok: true, guardianEmail: "guardian@example.com", guardianEmailSent: true, tokenHash: "mock-token-hash")
   var mockStatus = GuardianStatus(locked: false, guardianEmailMasked: nil, expiresAt: nil, status: nil)
   var mockClaimDetails = GuardianClaimDetails(
     guardianEmail: "guardian@example.com", playerName: "Test Player",

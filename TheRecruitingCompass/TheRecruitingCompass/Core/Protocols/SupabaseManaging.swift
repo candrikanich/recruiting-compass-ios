@@ -21,6 +21,10 @@ protocol SupabaseManaging: Sendable {
     zipCode: String?,
     captchaToken: String
   ) async throws -> (user: User, session: Session?)
+  /// Establishes a session from a service-role magiclink token hash (minted by
+  /// signup-minor.post.ts), consumed via `verifyOTP`. No password/captcha
+  /// needed — the token itself is the authorization.
+  func signInWithTokenHash(_ tokenHash: String) async throws -> (user: User, session: Session)
   /// Invalidates the current session on the Supabase backend.
   func signOut() async throws
   /// Returns the active session if one exists and the token has not expired, otherwise `nil`.
