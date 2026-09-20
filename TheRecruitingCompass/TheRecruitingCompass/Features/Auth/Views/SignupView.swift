@@ -33,6 +33,7 @@ struct SignupView: View {
         )
         .background(Color.white.opacity(0.95))
         .clipShape(.rect(cornerRadius: 16))
+        .colorScheme(.light)
         .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
         .padding(.horizontal, 24)
         .padding(.vertical, 24)
