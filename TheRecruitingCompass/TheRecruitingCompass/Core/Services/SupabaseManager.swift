@@ -213,6 +213,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       // ON CONFLICT DO UPDATE path) must not read as "signup failed": the account
       // is already committed (see comment above), the trigger already covers the
       // row, and fetchUserProfileWithRetry below has its own metadata fallback.
+      var upsertSucceeded = true
       do {
         try await client
           .from("users")
@@ -228,6 +229,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
           )
           .execute()
       } catch {
+        upsertSucceeded = false
         logger.warning("Non-fatal: users upsert after signup failed: \(error.localizedDescription)")
       }
 
@@ -246,6 +248,22 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         role: role,
         dateOfBirth: nil
       )
+
+      // fetchUserProfileWithRetry falls back to a metadata-only User (and its own
+      // best-effort repair upsert) without confirming persistence. If our own upsert
+      // above also failed, that fallback could otherwise mask a genuinely missing
+      // public.users row — publishing a session whose FK-dependent writes (e.g.
+      // user_preferences) would fail later. Confirm a row actually exists before
+      // accepting that outcome.
+      if !upsertSucceeded {
+        do {
+          _ = try await fetchUserProfile(userId: created.userId)
+        } catch {
+          throw AuthError.accountCreatedButSignInFailed(
+            mapSupabaseSignUpError(error).errorDescription ?? "Sign-in failed"
+          )
+        }
+      }
 
       let session = mapToSession(authSession, user: user)
 
