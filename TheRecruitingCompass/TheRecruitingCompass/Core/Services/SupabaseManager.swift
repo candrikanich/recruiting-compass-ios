@@ -34,7 +34,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     enum CodingKeys: String, CodingKey {
       case id
       case email
-      case emailConfirmedAt = "email_confirmed_at"
+      // public.users.email_verified_at — this app's own decoupled-verification
+      // record (web migration 20260928000000_email_verified_at.sql), distinct
+      // from auth.users.email_confirmed_at (a different table/schema).
+      case emailConfirmedAt = "email_verified_at"
       case fullName = "full_name"
       case role
       case createdAt = "created_at"

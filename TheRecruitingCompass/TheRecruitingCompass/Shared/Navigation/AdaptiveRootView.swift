@@ -10,6 +10,7 @@ struct AdaptiveRootView: View {
   @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
   @State private var coachesPrefilterSchoolId: String?
   @State private var dashboardViewModel = DashboardViewModel()
+  @State private var emailVerificationBannerViewModel = EmailVerificationBannerViewModel()
 
   init(pendingPushDestination: Binding<NotificationDestination?> = .constant(nil)) {
     self._pendingPushDestination = pendingPushDestination
@@ -109,7 +110,7 @@ struct AdaptiveRootView: View {
         Group {
           switch destination {
           case .dashboard:
-            DashboardView(viewModel: dashboardViewModel)
+            DashboardView(viewModel: dashboardViewModel, emailVerificationBannerViewModel: emailVerificationBannerViewModel)
               .activityNavigation()
               .navigationDestination(for: DashboardDestination.self) { dashboardDestination in
                 dashboardDestinationView(for: dashboardDestination)
