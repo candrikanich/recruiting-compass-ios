@@ -30,8 +30,7 @@ struct PasswordFormField: View {
     .accessibilityValue(accessibilityErrorValue)
     .autocorrectionDisabled()
     .textInputAutocapitalization(.never)
-    .submitLabel(submitLabel)
-    .modifier(FocusableFieldModifier(focusedField: focusedField, fieldID: fieldID))
+    .modifier(FocusableFieldModifier(focusedField: focusedField, fieldID: fieldID, submitLabel: submitLabel))
     .onSubmit(onBlur)
   }
 

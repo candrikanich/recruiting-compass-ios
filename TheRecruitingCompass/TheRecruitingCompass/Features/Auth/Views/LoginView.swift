@@ -142,6 +142,7 @@ struct LoginView: View {
       fieldID: "email"
     )
     .disabled(viewModel.isLoading)
+    .onSubmit { focusedField = "password" }
   }
 
   @ViewBuilder

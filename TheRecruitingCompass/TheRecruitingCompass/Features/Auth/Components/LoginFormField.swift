@@ -14,20 +14,6 @@ private struct TextContentTypeModifier: ViewModifier {
   }
 }
 
-/// Wires keyboard "next/done" focus chaining when the caller opts in via `focusedField`/`fieldID`.
-struct FocusableFieldModifier: ViewModifier {
-  let focusedField: FocusState<String?>.Binding?
-  let fieldID: String?
-
-  func body(content: Content) -> some View {
-    if let focusedField, let fieldID {
-      content.focused(focusedField, equals: fieldID)
-    } else {
-      content
-    }
-  }
-}
-
 struct LoginFormField: View {
   let label: String
   let placeholder: String
@@ -63,8 +49,7 @@ struct LoginFormField: View {
     .autocorrectionDisabled()
     .textInputAutocapitalization(.never)
     .modifier(TextContentTypeModifier(contentType: textContentType))
-    .submitLabel(submitLabel)
-    .modifier(FocusableFieldModifier(focusedField: focusedField, fieldID: fieldID))
+    .modifier(FocusableFieldModifier(focusedField: focusedField, fieldID: fieldID, submitLabel: submitLabel))
     .onSubmit(onBlur)
   }
 

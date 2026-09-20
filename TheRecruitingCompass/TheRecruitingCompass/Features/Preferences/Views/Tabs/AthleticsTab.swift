@@ -14,6 +14,15 @@ struct AthleticsTab: View {
         return ids
     }
 
+    private func advanceFocus(from fieldID: String) {
+        guard let index = fieldOrder.firstIndex(of: fieldID) else {
+            focusedField = nil
+            return
+        }
+        let nextIndex = index + 1
+        focusedField = nextIndex < fieldOrder.count ? fieldOrder[nextIndex] : nil
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
@@ -243,7 +252,9 @@ struct AthleticsTab: View {
             .keyboardType(service.valueKind == .url ? .URL : .default)
             .textInputAutocapitalization(.never)
             .disabled(viewModel.isReadOnly)
+            .submitLabel(service.key == fieldOrder.last ? .done : .next)
             .focused($focusedField, equals: service.key)
+            .onSubmit { advanceFocus(from: service.key) }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -272,7 +283,9 @@ struct AthleticsTab: View {
             .foregroundStyle(.secondary)
             .textInputAutocapitalization(.characters)
             .disabled(viewModel.isReadOnly)
+            .submitLabel("prepBaseballState" == fieldOrder.last ? .done : .next)
             .focused($focusedField, equals: "prepBaseballState")
+            .onSubmit { advanceFocus(from: "prepBaseballState") }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -406,7 +419,9 @@ struct AthleticsTab: View {
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
             .disabled(viewModel.isReadOnly)
+            .submitLabel(fieldID == fieldOrder.last ? .done : .next)
             .focused($focusedField, equals: fieldID)
+            .onSubmit { advanceFocus(from: fieldID) }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
