@@ -36,6 +36,11 @@ struct SignupView: View {
         .frame(maxWidth: sizeClass == .regular ? 672 : .infinity)
         .padding(.horizontal, 24)
         .padding(.vertical, 24)
+        // The card is a fixed light surface (Color.white above) that never adapts to
+        // Dark Mode, but adaptive colors inside it (LoginFormField's
+        // secondarySystemBackground/.primary) still followed the system appearance —
+        // rendering black-on-white input fields. Pin the card's content to light.
+        .environment(\.colorScheme, .light)
 
         Spacer()
       }

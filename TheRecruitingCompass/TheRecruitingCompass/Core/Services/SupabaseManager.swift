@@ -207,21 +207,31 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
 
       let userEmail = authSession.user.email ?? email
 
-      // Upsert users row (mirrors web signup). Required for user_preferences FK;
-      // defensive fallback alongside the handle_new_user() DB trigger.
-      try await client
-        .from("users")
-        .upsert(
-          UsersUpsertPayload(
-            id: created.userId,
-            email: userEmail,
-            fullName: fullName,
-            role: role.rawValue,
-            dateOfBirth: dateOfBirth
-          ),
-          onConflict: "id"
-        )
-        .execute()
+      // Upsert users row (mirrors web signup). Defensive fallback alongside the
+      // handle_new_user() DB trigger, which already creates this row server-side —
+      // so a failure here (e.g. a transient RLS/grant hiccup on the upsert's
+      // ON CONFLICT DO UPDATE path) must not read as "signup failed": the account
+      // is already committed (see comment above), the trigger already covers the
+      // row, and fetchUserProfileWithRetry below has its own metadata fallback.
+      var upsertSucceeded = true
+      do {
+        try await client
+          .from("users")
+          .upsert(
+            UsersUpsertPayload(
+              id: created.userId,
+              email: userEmail,
+              fullName: fullName,
+              role: role.rawValue,
+              dateOfBirth: dateOfBirth
+            ),
+            onConflict: "id"
+          )
+          .execute()
+      } catch {
+        upsertSucceeded = false
+        logger.warning("Non-fatal: users upsert after signup failed: \(error.localizedDescription)")
+      }
 
       // Try to fetch from database, fall back to metadata for new users
       let user = try await fetchUserProfileWithRetry(
@@ -238,6 +248,22 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         role: role,
         dateOfBirth: nil
       )
+
+      // fetchUserProfileWithRetry falls back to a metadata-only User (and its own
+      // best-effort repair upsert) without confirming persistence. If our own upsert
+      // above also failed, that fallback could otherwise mask a genuinely missing
+      // public.users row — publishing a session whose FK-dependent writes (e.g.
+      // user_preferences) would fail later. Confirm a row actually exists before
+      // accepting that outcome.
+      if !upsertSucceeded {
+        do {
+          _ = try await fetchUserProfile(userId: created.userId)
+        } catch {
+          throw AuthError.accountCreatedButSignInFailed(
+            mapSupabaseSignUpError(error).errorDescription ?? "Sign-in failed"
+          )
+        }
+      }
 
       let session = mapToSession(authSession, user: user)
 
