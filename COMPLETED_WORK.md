@@ -74,3 +74,28 @@
 | general | 2 | Profile completeness canonical spec, cross-platform video links design |
 | ui | 1 | Web parity public profile socials |
 | onboarding | 1 | Canonical positions parity spec |
+
+## Doc Cleanup Run — 2026-09-20
+- Deleted: 5 files (4 session debris + 1 superseded launch checklist)
+- Compressed: 16 files → docs/history/ios.md (14), docs/history/family.md (2)
+- Kept: 28 files (active/future-looking specs, launch/business/marketing plans, design & architecture guides)
+
+| Doc | Domain | Summary |
+|-----|--------|---------|
+| 2026-08-23-sport-recruiting-calendar-design.md | ios | Sport/gender/division-aware NCAA calendar architecture design |
+| 2026-08-23-sport-calendar-phase1-gender-field-plan.md | ios | Gender profile field implementation plan |
+| 2026-08-23-sport-calendar-phase2-3-data-resolver-rewire-plan.md | ios | Web calendar dataset + resolver + consumer rewire plan |
+| 2026-08-23-sport-calendar-phase4-ios-plan.md | ios | iOS calendar registry + dashboard widget plan |
+| 2026-08-24-ios-timeline-guidance-parity-design.md | ios | Timeline guidance sidebar parity design (5 panels) |
+| 2026-08-24-ios-timeline-guidance-parity-plan.md | ios | Timeline guidance implementation plan |
+| 2026-08-24-merge-calendar-milestones-design.md | ios | Merge calendar + milestones render design |
+| 2026-08-24-merge-calendar-milestones-plan.md | ios | Merge calendar + milestones implementation plan |
+| 2026-08-24-timeline-guidance-followups-plan.md | ios | Timeline guidance follow-up refinements plan |
+| 2026-08-21-multi-sport-metrics-plan.md | ios | Multi-sport MetricRegistry implementation plan |
+| 2026-08-21-multi-sport-metrics-spec.md | ios | Multi-sport MetricRegistry design spec |
+| 2026-09-03-entitlement-plumbing-phase0-plan.md | family | Family entitlement plumbing Phase 0 implementation plan |
+| 2026-09-03-pricing-model-and-entitlement-plumbing-spec.md | family | Pricing model + entitlement architecture spec |
+| iOS_SPEC_inbound-draft-coach-email-school-creation-2026-09-09.md | ios | Inbound-draft coach/school-creation parity spec (shipped PR #128) |
+| docs/superpowers/plans/2026-08-25-coach-detail-redesign.md | ios | Coach detail redesign implementation plan |
+| docs/superpowers/plans/2026-09-09-turnstile-captcha-ios.md | ios | Turnstile captcha auth implementation plan |
+| planning/APP_STORE_LAUNCH_CHECKLIST.md | (deleted, not compressed) | Superseded by the more current app-store-submission-plan.md |
