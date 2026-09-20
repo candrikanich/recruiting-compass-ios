@@ -6,6 +6,7 @@ struct AddInteractionView: View {
   @Environment(\.horizontalSizeClass) private var sizeClass
   @State private var hapticSuccessTrigger = 0
   @State private var hapticErrorTrigger = 0
+  @FocusState private var focusedField: String?
 
   private let schoolsService: any SchoolsManaging
   private let familyUnitId: String
@@ -53,6 +54,7 @@ struct AddInteractionView: View {
     .navigationBarTitleDisplayMode(.inline)
     .scrollDismissesKeyboard(.interactively)
     .navigationBarBackButtonHidden(true)
+    .keyboardFieldNavigation(focusedField: $focusedField, order: ["subject", "content"])
     .toolbar {
       ToolbarItem(placement: .topBarLeading) {
         Button("Cancel") {
@@ -270,6 +272,9 @@ struct AddInteractionView: View {
     Section("Details (Optional)") {
       TextField("Subject", text: $viewModel.formState.subject, axis: .vertical)
         .lineLimit(2...4)
+        .submitLabel(.next)
+        .focused($focusedField, equals: "subject")
+        .onSubmit { focusedField = "content" }
         .accessibilityLabel(String(localized: "Subject field"))
         .accessibilityHint("Optional. Email subject, call topic, etc. Max 500 characters")
 
@@ -282,6 +287,7 @@ struct AddInteractionView: View {
 
       TextEditor(text: $viewModel.formState.content)
         .frame(minHeight: 100)
+        .focused($focusedField, equals: "content")
         .accessibilityLabel(String(localized: "Content field"))
         .accessibilityHint("Optional. Details about the interaction. Max 10,000 characters")
 

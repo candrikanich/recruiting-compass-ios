@@ -6,6 +6,7 @@ struct LoginView: View {
   @State private var viewModel: LoginViewModel
   @State private var showForgotPassword = false
   @State private var showSignup = false
+  @FocusState private var focusedField: String?
   @Environment(\.dismiss) var dismiss
   @Environment(\.sizeCategory) var sizeCategory
   @Environment(\.horizontalSizeClass) private var sizeClass
@@ -42,6 +43,7 @@ struct LoginView: View {
             .padding(.bottom, 32)
           }
           .scrollDismissesKeyboard(.interactively)
+          .keyboardFieldNavigation(focusedField: $focusedField, order: ["email", "password"])
           .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
             withAnimation(.easeOut(duration: 0.25)) {
               proxy.scrollTo(LoginView.ScrollAnchor.signInButton, anchor: .bottom)
@@ -135,7 +137,9 @@ struct LoginView: View {
       isSecure: false,
       keyboardType: .emailAddress,
       textContentType: .emailAddress,
-      onBlur: viewModel.validateEmail
+      onBlur: viewModel.validateEmail,
+      focusedField: $focusedField,
+      fieldID: "email"
     )
     .disabled(viewModel.isLoading)
   }
@@ -151,7 +155,10 @@ struct LoginView: View {
       isSecure: true,
       keyboardType: .default,
       textContentType: .password,
-      onBlur: viewModel.validatePassword
+      onBlur: viewModel.validatePassword,
+      focusedField: $focusedField,
+      fieldID: "password",
+      submitLabel: .done
     )
     .disabled(viewModel.isLoading)
     .onSubmit {

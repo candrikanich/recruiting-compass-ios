@@ -14,6 +14,20 @@ private struct TextContentTypeModifier: ViewModifier {
   }
 }
 
+/// Wires keyboard "next/done" focus chaining when the caller opts in via `focusedField`/`fieldID`.
+struct FocusableFieldModifier: ViewModifier {
+  let focusedField: FocusState<String?>.Binding?
+  let fieldID: String?
+
+  func body(content: Content) -> some View {
+    if let focusedField, let fieldID {
+      content.focused(focusedField, equals: fieldID)
+    } else {
+      content
+    }
+  }
+}
+
 struct LoginFormField: View {
   let label: String
   let placeholder: String
@@ -27,6 +41,10 @@ struct LoginFormField: View {
   /// Optional identifier for UI testing (E2E).
   var accessibilityIdentifier: String?
   let onBlur: () -> Void
+  /// Keyboard "next/done" chaining — pass alongside `fieldID` to advance focus across a form.
+  var focusedField: FocusState<String?>.Binding?
+  var fieldID: String?
+  var submitLabel: SubmitLabel = .next
   @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 20
 
   @ViewBuilder
@@ -45,6 +63,8 @@ struct LoginFormField: View {
     .autocorrectionDisabled()
     .textInputAutocapitalization(.never)
     .modifier(TextContentTypeModifier(contentType: textContentType))
+    .submitLabel(submitLabel)
+    .modifier(FocusableFieldModifier(focusedField: focusedField, fieldID: fieldID))
     .onSubmit(onBlur)
   }
 

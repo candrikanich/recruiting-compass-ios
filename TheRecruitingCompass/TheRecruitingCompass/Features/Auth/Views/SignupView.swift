@@ -129,29 +129,57 @@ private struct SignupFormView: View {
   @Bindable var viewModel: SignupViewModel
   @Binding var presentedLegal: LegalDocument?
   let onSignIn: () -> Void
+  @FocusState private var focusedField: String?
+
+  /// Visible text fields in on-screen order, gated by the same conditionals as `body` — drives
+  /// keyboard "next" chaining so it skips fields the current role/minor-status hides.
+  private var fieldOrder: [String] {
+    var ids = ["firstName", "lastName", "email"]
+    if viewModel.selectedRole == .player {
+      ids.append("zipCode")
+    }
+    if viewModel.isMinorSignup {
+      ids.append("guardianEmail")
+    }
+    ids.append(contentsOf: ["password", "confirmPassword"])
+    if viewModel.selectedRole?.requiresFamilyCode == true {
+      ids.append("familyCode")
+    }
+    return ids
+  }
+
+  private func advanceFocus(from fieldID: String) {
+    guard let index = fieldOrder.firstIndex(of: fieldID) else {
+      focusedField = nil
+      return
+    }
+    let nextIndex = index + 1
+    focusedField = nextIndex < fieldOrder.count ? fieldOrder[nextIndex] : nil
+  }
 
   var body: some View {
     VStack(spacing: 24) {
       SignupRoleHeaderView(viewModel: viewModel)
       SignupErrorBannerView(viewModel: viewModel)
-      SignupFirstNameFieldView(viewModel: viewModel)
-      SignupLastNameFieldView(viewModel: viewModel)
-      SignupEmailFieldView(viewModel: viewModel)
+      SignupFirstNameFieldView(viewModel: viewModel, focusedField: $focusedField, onAdvance: advanceFocus)
+      SignupLastNameFieldView(viewModel: viewModel, focusedField: $focusedField, onAdvance: advanceFocus)
+      SignupEmailFieldView(viewModel: viewModel, focusedField: $focusedField, onAdvance: advanceFocus)
       if viewModel.selectedRole == .player {
         SignupDateOfBirthFieldView(viewModel: viewModel)
-        SignupPlayerDetailsFieldsView(viewModel: viewModel)
+        SignupPlayerDetailsFieldsView(viewModel: viewModel, focusedField: $focusedField, onAdvance: advanceFocus)
       }
       if viewModel.isMinorSignup {
-        SignupGuardianEmailFieldView(viewModel: viewModel)
+        SignupGuardianEmailFieldView(viewModel: viewModel, focusedField: $focusedField, onAdvance: advanceFocus)
       }
-      SignupPasswordSectionView(viewModel: viewModel)
-      SignupConfirmPasswordFieldView(viewModel: viewModel)
-      SignupFamilyCodeFieldView(viewModel: viewModel)
+      SignupPasswordSectionView(viewModel: viewModel, focusedField: $focusedField, onAdvance: advanceFocus)
+      SignupConfirmPasswordFieldView(viewModel: viewModel, focusedField: $focusedField, onAdvance: advanceFocus)
+      SignupFamilyCodeFieldView(viewModel: viewModel, focusedField: $focusedField, onAdvance: advanceFocus)
       SignupTermsSectionView(viewModel: viewModel, presentedLegal: $presentedLegal)
       SignupCreateAccountButtonView(viewModel: viewModel)
       SignupSignInSectionView(onSignIn: onSignIn)
     }
     .padding(32)
+    .keyboardFieldNavigation(focusedField: $focusedField, order: fieldOrder)
   }
 }
 
@@ -210,6 +238,8 @@ private struct SignupErrorBannerView: View {
 
 private struct SignupFirstNameFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<String?>.Binding
+  let onAdvance: (String) -> Void
 
   var body: some View {
     LoginFormField(
@@ -221,13 +251,20 @@ private struct SignupFirstNameFieldView: View {
       isSecure: false,
       keyboardType: .default,
       textContentType: .givenName,
-      onBlur: viewModel.validateFirstName
+      onBlur: {
+        viewModel.validateFirstName()
+        onAdvance("firstName")
+      },
+      focusedField: focusedField,
+      fieldID: "firstName"
     )
   }
 }
 
 private struct SignupLastNameFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<String?>.Binding
+  let onAdvance: (String) -> Void
 
   var body: some View {
     LoginFormField(
@@ -239,7 +276,12 @@ private struct SignupLastNameFieldView: View {
       isSecure: false,
       keyboardType: .default,
       textContentType: .familyName,
-      onBlur: viewModel.validateLastName
+      onBlur: {
+        viewModel.validateLastName()
+        onAdvance("lastName")
+      },
+      focusedField: focusedField,
+      fieldID: "lastName"
     )
   }
 }
@@ -288,6 +330,8 @@ private struct SignupDateOfBirthFieldView: View {
 /// re-asked. Carried as `pending_*` auth metadata; flushed by `AccountProvisioning`.
 private struct SignupPlayerDetailsFieldsView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<String?>.Binding
+  let onAdvance: (String) -> Void
 
   private var showGenderField: Bool {
     SportGenderMap.gender(for: viewModel.primarySport) == .neutral
@@ -378,7 +422,12 @@ private struct SignupPlayerDetailsFieldsView: View {
         error: viewModel.errorBinding(for: .zipCode),
         isSecure: false,
         keyboardType: .numberPad,
-        onBlur: viewModel.validateZipCode
+        onBlur: {
+          viewModel.validateZipCode()
+          onAdvance("zipCode")
+        },
+        focusedField: focusedField,
+        fieldID: "zipCode"
       )
       .onChange(of: viewModel.zipCode) { _, newValue in
         viewModel.zipCode = String(newValue.prefix(5))
@@ -389,6 +438,8 @@ private struct SignupPlayerDetailsFieldsView: View {
 
 private struct SignupGuardianEmailFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<String?>.Binding
+  let onAdvance: (String) -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -401,7 +452,12 @@ private struct SignupGuardianEmailFieldView: View {
         isSecure: false,
         keyboardType: .emailAddress,
         textContentType: .emailAddress,
-        onBlur: viewModel.validateGuardianEmail
+        onBlur: {
+          viewModel.validateGuardianEmail()
+          onAdvance("guardianEmail")
+        },
+        focusedField: focusedField,
+        fieldID: "guardianEmail"
       )
 
       Text("Add a parent or guardian now, or invite one later from your dashboard. We'll email them a link — you can start using the app right away, but sending messages to coaches and publishing your profile stay locked until they confirm.")
@@ -413,6 +469,8 @@ private struct SignupGuardianEmailFieldView: View {
 
 private struct SignupEmailFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<String?>.Binding
+  let onAdvance: (String) -> Void
 
   var body: some View {
     LoginFormField(
@@ -424,13 +482,20 @@ private struct SignupEmailFieldView: View {
       isSecure: false,
       keyboardType: .emailAddress,
       textContentType: .emailAddress,
-      onBlur: viewModel.validateEmail
+      onBlur: {
+        viewModel.validateEmail()
+        onAdvance("email")
+      },
+      focusedField: focusedField,
+      fieldID: "email"
     )
   }
 }
 
 private struct SignupPasswordSectionView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<String?>.Binding
+  let onAdvance: (String) -> Void
 
   // Suppress iOS "Use Strong Password?" sheet during UI testing.
   // Setting textContentType: nil doesn't help — iOS infers .newPassword from two
@@ -451,7 +516,12 @@ private struct SignupPasswordSectionView: View {
         isSecure: true,
         keyboardType: .default,
         textContentType: passwordTextContentType,
-        onBlur: viewModel.validatePassword
+        onBlur: {
+          viewModel.validatePassword()
+          onAdvance("password")
+        },
+        focusedField: focusedField,
+        fieldID: "password"
       )
 
       PasswordStrengthIndicator(password: viewModel.password)
@@ -463,6 +533,8 @@ private struct SignupPasswordSectionView: View {
 
 private struct SignupConfirmPasswordFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<String?>.Binding
+  let onAdvance: (String) -> Void
 
   private var passwordTextContentType: UITextContentType? {
     ProcessInfo.processInfo.arguments.contains("--uitesting") ? .oneTimeCode : .newPassword
@@ -478,13 +550,20 @@ private struct SignupConfirmPasswordFieldView: View {
       isSecure: true,
       keyboardType: .default,
       textContentType: passwordTextContentType,
-      onBlur: viewModel.validateConfirmPassword
+      onBlur: {
+        viewModel.validateConfirmPassword()
+        onAdvance("confirmPassword")
+      },
+      focusedField: focusedField,
+      fieldID: "confirmPassword"
     )
   }
 }
 
 private struct SignupFamilyCodeFieldView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<String?>.Binding
+  let onAdvance: (String) -> Void
 
   var body: some View {
     if viewModel.selectedRole?.requiresFamilyCode == true {
@@ -496,7 +575,13 @@ private struct SignupFamilyCodeFieldView: View {
         error: viewModel.errorBinding(for: .familyCode),
         isSecure: false,
         keyboardType: .default,
-        onBlur: viewModel.validateFamilyCode
+        onBlur: {
+          viewModel.validateFamilyCode()
+          onAdvance("familyCode")
+        },
+        focusedField: focusedField,
+        fieldID: "familyCode",
+        submitLabel: .done
       )
     }
   }

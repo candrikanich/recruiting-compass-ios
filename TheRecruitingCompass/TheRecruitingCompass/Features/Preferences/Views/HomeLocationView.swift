@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeLocationView: View {
   @State private var viewModel: HomeLocationViewModel
+  @FocusState private var focusedField: String?
 
   init(preferenceService: PreferenceManaging, targetUserId: String? = nil) {
     _viewModel = State(initialValue: HomeLocationViewModel(
@@ -32,18 +33,27 @@ struct HomeLocationView: View {
         TextField("Street Address", text: $viewModel.address)
           .textContentType(.streetAddressLine1)
           .autocapitalization(.words)
+          .submitLabel(.next)
+          .focused($focusedField, equals: "address")
+          .onSubmit { focusedField = "city" }
           .accessibilityLabel(String(localized: "Street address"))
 
         HStack(spacing: 12) {
           TextField("City", text: $viewModel.city)
             .textContentType(.addressCity)
             .autocapitalization(.words)
+            .submitLabel(.next)
+            .focused($focusedField, equals: "city")
+            .onSubmit { focusedField = "state" }
             .accessibilityLabel(String(localized: "City"))
 
           TextField("State", text: $viewModel.state)
             .textContentType(.addressState)
             .autocapitalization(.allCharacters)
             .frame(width: 60)
+            .submitLabel(.next)
+            .focused($focusedField, equals: "state")
+            .onSubmit { focusedField = "zip" }
             .accessibilityLabel(String(localized: "State (2 letters)"))
             .accessibilityHint("Enter 2-letter state code")
         }
@@ -51,6 +61,7 @@ struct HomeLocationView: View {
         TextField("ZIP Code", text: $viewModel.zip)
           .textContentType(.postalCode)
           .keyboardType(.numberPad)
+          .focused($focusedField, equals: "zip")
           .accessibilityLabel(String(localized: "ZIP code"))
       } header: {
         Text("Address")
@@ -141,6 +152,7 @@ struct HomeLocationView: View {
       )
     }
     .preferenceErrorAlert(errorMessage: $viewModel.errorMessage)
+    .keyboardFieldNavigation(focusedField: $focusedField, order: ["address", "city", "state", "zip"])
     .sensoryFeedback(.success, trigger: viewModel.hapticSuccessTrigger)
     .task {
       await viewModel.loadLocation()

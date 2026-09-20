@@ -2,22 +2,52 @@ import SwiftUI
 
 struct HistoryTab: View {
     @Bindable var viewModel: PlayerDetailsViewModel
+    @FocusState private var focusedField: String?
+
+    private static let gradeLevels = ["ninthGrade", "tenthGrade", "eleventhGrade", "twelfthGrade"]
+
+    /// Text fields in on-screen order — grade rows are fixed, travel team rows repeat per team.
+    private var fieldOrder: [String] {
+        var ids = Self.gradeLevels.flatMap { ["\($0)Team", "\($0)Coach"] }
+        let travelCount = viewModel.details.travelTeams?.count ?? 0
+        for index in 0..<travelCount {
+            ids.append(contentsOf: ["travel\(index)Year", "travel\(index)Name", "travel\(index)Coach"])
+        }
+        return ids
+    }
+
+    private func advanceFocus(from fieldID: String) {
+        guard let index = fieldOrder.firstIndex(of: fieldID) else {
+            focusedField = nil
+            return
+        }
+        let nextIndex = index + 1
+        focusedField = nextIndex < fieldOrder.count ? fieldOrder[nextIndex] : nil
+    }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 cardSection(String(localized: "High School Career")) {
                     VStack(spacing: 0) {
-                        gradeSection(String(localized: "9th Grade"), team: \.ninthGradeTeam, coach: \.ninthGradeCoach)
-                        Divider()
-                        gradeSection(String(localized: "10th Grade"), team: \.tenthGradeTeam, coach: \.tenthGradeCoach)
-                        Divider()
                         gradeSection(
-                            String(localized: "11th Grade"), team: \.eleventhGradeTeam, coach: \.eleventhGradeCoach
+                            String(localized: "9th Grade"), team: \.ninthGradeTeam, coach: \.ninthGradeCoach,
+                            fieldPrefix: "ninthGrade"
                         )
                         Divider()
                         gradeSection(
-                            String(localized: "12th Grade"), team: \.twelfthGradeTeam, coach: \.twelfthGradeCoach
+                            String(localized: "10th Grade"), team: \.tenthGradeTeam, coach: \.tenthGradeCoach,
+                            fieldPrefix: "tenthGrade"
+                        )
+                        Divider()
+                        gradeSection(
+                            String(localized: "11th Grade"), team: \.eleventhGradeTeam, coach: \.eleventhGradeCoach,
+                            fieldPrefix: "eleventhGrade"
+                        )
+                        Divider()
+                        gradeSection(
+                            String(localized: "12th Grade"), team: \.twelfthGradeTeam, coach: \.twelfthGradeCoach,
+                            fieldPrefix: "twelfthGrade"
                         )
                     }
                 }
@@ -29,6 +59,7 @@ struct HistoryTab: View {
             .padding()
         }
         .background(Color(.secondarySystemBackground))
+        .keyboardFieldNavigation(focusedField: $focusedField, order: fieldOrder)
     }
 
     // MARK: - Travel Teams
@@ -93,9 +124,9 @@ struct HistoryTab: View {
 
             travelYearRow(index: index)
             Divider().padding(.leading)
-            travelTextRow(String(localized: "Organization"), index: index, field: \.name)
+            travelTextRow(String(localized: "Organization"), index: index, field: \.name, fieldID: "travel\(index)Name")
             Divider().padding(.leading)
-            travelTextRow(String(localized: "Head Coach"), index: index, field: \.coach)
+            travelTextRow(String(localized: "Head Coach"), index: index, field: \.coach, fieldID: "travel\(index)Coach")
         }
     }
 
@@ -124,6 +155,7 @@ struct HistoryTab: View {
             .foregroundStyle(.secondary)
             .keyboardType(.numberPad)
             .disabled(viewModel.isReadOnly)
+            .focused($focusedField, equals: "travel\(index)Year")
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -132,7 +164,8 @@ struct HistoryTab: View {
     private func travelTextRow(
         _ label: String,
         index: Int,
-        field: WritableKeyPath<TravelTeam, String?>
+        field: WritableKeyPath<TravelTeam, String?>,
+        fieldID: String
     ) -> some View {
         HStack {
             Text(label).font(.body)
@@ -148,6 +181,9 @@ struct HistoryTab: View {
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
             .disabled(viewModel.isReadOnly)
+            .submitLabel(fieldID == fieldOrder.last ? .done : .next)
+            .focused($focusedField, equals: fieldID)
+            .onSubmit { advanceFocus(from: fieldID) }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -155,7 +191,7 @@ struct HistoryTab: View {
 
     // MARK: - Helpers
 
-    private func textRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, String?>) -> some View {
+    private func textRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, String?>, fieldID: String) -> some View {
         HStack {
             Text(label).font(.body)
             Spacer()
@@ -169,6 +205,9 @@ struct HistoryTab: View {
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
             .disabled(viewModel.isReadOnly)
+            .submitLabel(fieldID == fieldOrder.last ? .done : .next)
+            .focused($focusedField, equals: fieldID)
+            .onSubmit { advanceFocus(from: fieldID) }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -177,7 +216,8 @@ struct HistoryTab: View {
     private func gradeSection(
         _ label: String,
         team: WritableKeyPath<PlayerDetails, String?>,
-        coach: WritableKeyPath<PlayerDetails, String?>
+        coach: WritableKeyPath<PlayerDetails, String?>,
+        fieldPrefix: String
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(label)
@@ -185,9 +225,9 @@ struct HistoryTab: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
                 .padding(.top, 10)
-            textRow(String(localized: "Team"), keyPath: team)
+            textRow(String(localized: "Team"), keyPath: team, fieldID: "\(fieldPrefix)Team")
             Divider().padding(.leading)
-            textRow(String(localized: "Coach"), keyPath: coach)
+            textRow(String(localized: "Coach"), keyPath: coach, fieldID: "\(fieldPrefix)Coach")
         }
     }
 

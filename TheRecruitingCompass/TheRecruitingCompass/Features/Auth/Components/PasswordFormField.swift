@@ -7,7 +7,33 @@ struct PasswordFormField: View {
   @Binding var error: String?
   @Binding var isPasswordVisible: Bool
   let onBlur: () -> Void
+  var focusedField: FocusState<String?>.Binding?
+  var fieldID: String?
+  var submitLabel: SubmitLabel = .next
   @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 20
+
+  private var accessibilityErrorValue: String {
+    error.map { "Error: \($0)" } ?? ""
+  }
+
+  @ViewBuilder
+  private var inputField: some View {
+    Group {
+      if isPasswordVisible {
+        TextField(placeholder, text: $text)
+      } else {
+        SecureField(placeholder, text: $text)
+      }
+    }
+    .foregroundStyle(Color.primary)
+    .accessibilityLabel(label)
+    .accessibilityValue(accessibilityErrorValue)
+    .autocorrectionDisabled()
+    .textInputAutocapitalization(.never)
+    .submitLabel(submitLabel)
+    .modifier(FocusableFieldModifier(focusedField: focusedField, fieldID: fieldID))
+    .onSubmit(onBlur)
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
@@ -22,23 +48,7 @@ struct PasswordFormField: View {
           .frame(width: iconWidth)
           .accessibilityHidden(true)
 
-        if isPasswordVisible {
-          TextField(placeholder, text: $text)
-            .foregroundStyle(Color.primary)
-            .accessibilityLabel(label)
-            .accessibilityValue(error.map { "Error: \($0)" } ?? "")
-            .autocorrectionDisabled()
-            .textInputAutocapitalization(.never)
-            .onSubmit(onBlur)
-        } else {
-          SecureField(placeholder, text: $text)
-            .foregroundStyle(Color.primary)
-            .accessibilityLabel(label)
-            .accessibilityValue(error.map { "Error: \($0)" } ?? "")
-            .autocorrectionDisabled()
-            .textInputAutocapitalization(.never)
-            .onSubmit(onBlur)
-        }
+        inputField
 
         Button(action: { isPasswordVisible.toggle() }) {
           Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
