@@ -207,21 +207,29 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
 
       let userEmail = authSession.user.email ?? email
 
-      // Upsert users row (mirrors web signup). Required for user_preferences FK;
-      // defensive fallback alongside the handle_new_user() DB trigger.
-      try await client
-        .from("users")
-        .upsert(
-          UsersUpsertPayload(
-            id: created.userId,
-            email: userEmail,
-            fullName: fullName,
-            role: role.rawValue,
-            dateOfBirth: dateOfBirth
-          ),
-          onConflict: "id"
-        )
-        .execute()
+      // Upsert users row (mirrors web signup). Defensive fallback alongside the
+      // handle_new_user() DB trigger, which already creates this row server-side —
+      // so a failure here (e.g. a transient RLS/grant hiccup on the upsert's
+      // ON CONFLICT DO UPDATE path) must not read as "signup failed": the account
+      // is already committed (see comment above), the trigger already covers the
+      // row, and fetchUserProfileWithRetry below has its own metadata fallback.
+      do {
+        try await client
+          .from("users")
+          .upsert(
+            UsersUpsertPayload(
+              id: created.userId,
+              email: userEmail,
+              fullName: fullName,
+              role: role.rawValue,
+              dateOfBirth: dateOfBirth
+            ),
+            onConflict: "id"
+          )
+          .execute()
+      } catch {
+        logger.warning("Non-fatal: users upsert after signup failed: \(error.localizedDescription)")
+      }
 
       // Try to fetch from database, fall back to metadata for new users
       let user = try await fetchUserProfileWithRetry(
