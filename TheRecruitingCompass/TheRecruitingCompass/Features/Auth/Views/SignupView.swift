@@ -131,12 +131,6 @@ private struct SignupRoleSelectionView: View {
 
 // MARK: - Signup Form Step
 
-/// Text fields eligible for keyboard next/previous navigation, in on-screen order.
-/// Pickers and the DatePicker aren't included — they don't use the software keyboard.
-private enum SignupField: Hashable {
-  case firstName, lastName, email, guardianEmail, password, confirmPassword, familyCode
-}
-
 private struct SignupFormView: View {
   @Bindable var viewModel: SignupViewModel
   @Binding var presentedLegal: LegalDocument?
@@ -146,6 +140,9 @@ private struct SignupFormView: View {
   /// Only the fields actually visible for the current role/minor-status, in order.
   private var visibleFields: [SignupField] {
     var fields: [SignupField] = [.firstName, .lastName, .email]
+    if viewModel.selectedRole == .player {
+      fields.append(.zipCode)
+    }
     if viewModel.isMinorSignup {
       fields.append(.guardianEmail)
     }
@@ -165,7 +162,7 @@ private struct SignupFormView: View {
       SignupEmailFieldView(viewModel: viewModel, focusedField: $focusedField)
       if viewModel.selectedRole == .player {
         SignupDateOfBirthFieldView(viewModel: viewModel)
-        SignupPlayerDetailsFieldsView(viewModel: viewModel)
+        SignupPlayerDetailsFieldsView(viewModel: viewModel, focusedField: $focusedField)
       }
       if viewModel.isMinorSignup {
         SignupGuardianEmailFieldView(viewModel: viewModel, focusedField: $focusedField)
@@ -319,6 +316,7 @@ private struct SignupDateOfBirthFieldView: View {
 /// re-asked. Carried as `pending_*` auth metadata; flushed by `AccountProvisioning`.
 private struct SignupPlayerDetailsFieldsView: View {
   @Bindable var viewModel: SignupViewModel
+  var focusedField: FocusState<SignupField?>.Binding
 
   private var showGenderField: Bool {
     SportGenderMap.gender(for: viewModel.primarySport) == .neutral
@@ -411,6 +409,7 @@ private struct SignupPlayerDetailsFieldsView: View {
         keyboardType: .numberPad,
         onBlur: viewModel.validateZipCode
       )
+      .focused(focusedField, equals: .zipCode)
       .onChange(of: viewModel.zipCode) { _, newValue in
         viewModel.zipCode = String(newValue.prefix(5))
       }
