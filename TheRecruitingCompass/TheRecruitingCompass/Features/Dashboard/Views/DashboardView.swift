@@ -8,6 +8,7 @@ struct DashboardView: View {
   @State private var showAddSchool = false
   @State private var realtimeService: DashboardRealtimeService?
   @State private var guardianStatusViewModel = GuardianStatusViewModel()
+  @State private var emailVerificationBannerViewModel = EmailVerificationBannerViewModel()
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
   @Environment(\.openMoreSection) private var openMoreSection
@@ -43,6 +44,8 @@ struct DashboardView: View {
         if familyManager.currentMember?.isAthlete == true {
           GuardianPendingBanner(viewModel: guardianStatusViewModel)
         }
+
+        EmailVerificationBanner(viewModel: emailVerificationBannerViewModel)
 
         ScrollView {
           if sizeClass == .regular {
