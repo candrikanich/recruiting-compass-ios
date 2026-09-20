@@ -2,29 +2,40 @@ import SwiftUI
 
 struct AcademicsSocialTab: View {
     @Bindable var viewModel: PlayerDetailsViewModel
+    @FocusState private var focusedField: String?
+    private let fieldOrder = ["highSchool", "schoolCity", "schoolState", "gpa", "satScore", "actScore", "intendedMajor"]
+
+    private func advanceFocus(from fieldID: String) {
+        guard let index = fieldOrder.firstIndex(of: fieldID) else {
+            focusedField = nil
+            return
+        }
+        let nextIndex = index + 1
+        focusedField = nextIndex < fieldOrder.count ? fieldOrder[nextIndex] : nil
+    }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 cardSection(String(localized: "High School")) {
                     VStack(spacing: 0) {
-                        textRow(String(localized: "High School"), keyPath: \.highSchool)
+                        textRow(String(localized: "High School"), keyPath: \.highSchool, fieldID: "highSchool")
                         divider
-                        textRow(String(localized: "City"), keyPath: \.schoolCity)
+                        textRow(String(localized: "City"), keyPath: \.schoolCity, fieldID: "schoolCity")
                         divider
-                        textRow(String(localized: "State"), keyPath: \.schoolState, autocapitalization: .characters)
+                        textRow(String(localized: "State"), keyPath: \.schoolState, autocapitalization: .characters, fieldID: "schoolState")
                     }
                 }
 
                 cardSection(String(localized: "Academics")) {
                     VStack(spacing: 0) {
-                        numericRow(String(localized: "GPA"), keyPath: \.gpa)
+                        numericRow(String(localized: "GPA"), keyPath: \.gpa, fieldID: "gpa")
                         divider
-                        intRow(String(localized: "SAT Score"), keyPath: \.satScore)
+                        intRow(String(localized: "SAT Score"), keyPath: \.satScore, fieldID: "satScore")
                         divider
-                        intRow(String(localized: "ACT Score"), keyPath: \.actScore)
+                        intRow(String(localized: "ACT Score"), keyPath: \.actScore, fieldID: "actScore")
                         divider
-                        textRow(String(localized: "Intended Major"), keyPath: \.intendedMajor)
+                        textRow(String(localized: "Intended Major"), keyPath: \.intendedMajor, fieldID: "intendedMajor")
                     }
                 }
 
@@ -44,6 +55,7 @@ struct AcademicsSocialTab: View {
             .padding()
         }
         .background(Color(.secondarySystemBackground))
+        .keyboardFieldNavigation(focusedField: $focusedField, order: fieldOrder)
     }
 
     // MARK: - Row Helpers
@@ -53,7 +65,8 @@ struct AcademicsSocialTab: View {
         placeholder: String = "",
         keyPath: WritableKeyPath<PlayerDetails, String?>,
         keyboardType: UIKeyboardType = .default,
-        autocapitalization: TextInputAutocapitalization = .sentences
+        autocapitalization: TextInputAutocapitalization = .sentences,
+        fieldID: String
     ) -> some View {
         HStack {
             Text(label).font(.body)
@@ -70,12 +83,15 @@ struct AcademicsSocialTab: View {
             .keyboardType(keyboardType)
             .textInputAutocapitalization(autocapitalization)
             .disabled(viewModel.isReadOnly)
+            .submitLabel(fieldID == fieldOrder.last ? .done : .next)
+            .focused($focusedField, equals: fieldID)
+            .onSubmit { advanceFocus(from: fieldID) }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
     }
 
-    private func numericRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, Double?>) -> some View {
+    private func numericRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, Double?>, fieldID: String) -> some View {
         HStack {
             Text(label).font(.body)
             Spacer()
@@ -91,12 +107,13 @@ struct AcademicsSocialTab: View {
             .foregroundStyle(.secondary)
             .disabled(viewModel.isReadOnly)
             .frame(width: 80)
+            .focused($focusedField, equals: fieldID)
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
     }
 
-    private func intRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, Int?>) -> some View {
+    private func intRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, Int?>, fieldID: String) -> some View {
         HStack {
             Text(label).font(.body)
             Spacer()
@@ -112,6 +129,7 @@ struct AcademicsSocialTab: View {
             .foregroundStyle(.secondary)
             .disabled(viewModel.isReadOnly)
             .frame(width: 80)
+            .focused($focusedField, equals: fieldID)
         }
         .padding(.horizontal)
         .padding(.vertical, 12)

@@ -170,6 +170,7 @@ private struct InteractionAddSchoolAutocompleteToggleSection: View {
               .textFieldStyle(.roundedBorder)
               .textContentType(.organizationName)
               .autocapitalization(.words)
+              .submitLabel(.search)
               .accessibilityLabel(String(localized: "College search"))
               .accessibilityHint("Type at least 3 characters to search")
               .onChange(of: searchQuery) { _, newValue in

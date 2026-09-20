@@ -27,6 +27,10 @@ struct LoginFormField: View {
   /// Optional identifier for UI testing (E2E).
   var accessibilityIdentifier: String?
   let onBlur: () -> Void
+  /// Keyboard "next/done" chaining — pass alongside `fieldID` to advance focus across a form.
+  var focusedField: FocusState<String?>.Binding?
+  var fieldID: String?
+  var submitLabel: SubmitLabel = .next
   @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 20
 
   @ViewBuilder
@@ -45,6 +49,7 @@ struct LoginFormField: View {
     .autocorrectionDisabled()
     .textInputAutocapitalization(.never)
     .modifier(TextContentTypeModifier(contentType: textContentType))
+    .modifier(FocusableFieldModifier(focusedField: focusedField, fieldID: fieldID, submitLabel: submitLabel))
     .onSubmit(onBlur)
   }
 

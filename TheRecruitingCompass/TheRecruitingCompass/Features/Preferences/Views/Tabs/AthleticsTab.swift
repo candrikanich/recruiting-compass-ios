@@ -2,6 +2,26 @@ import SwiftUI
 
 struct AthleticsTab: View {
     @Bindable var viewModel: PlayerDetailsViewModel
+    @FocusState private var focusedField: String?
+
+    /// Text fields in on-screen order — services and the PBR state row are sport-dependent.
+    private var fieldOrder: [String] {
+        let services = RecruitingServices.servicesForSport(viewModel.details.primarySport)
+        var ids = ["weight", "ncaaId"] + services.map(\.key)
+        if services.contains(where: { $0.linkKind == .prepBaseball }) {
+            ids.append("prepBaseballState")
+        }
+        return ids
+    }
+
+    private func advanceFocus(from fieldID: String) {
+        guard let index = fieldOrder.firstIndex(of: fieldID) else {
+            focusedField = nil
+            return
+        }
+        let nextIndex = index + 1
+        focusedField = nextIndex < fieldOrder.count ? fieldOrder[nextIndex] : nil
+    }
 
     var body: some View {
         ScrollView {
@@ -48,6 +68,7 @@ struct AthleticsTab: View {
             .padding()
         }
         .background(Color(.secondarySystemBackground))
+        .keyboardFieldNavigation(focusedField: $focusedField, order: fieldOrder)
     }
 
     // MARK: - Physical Stats Card
@@ -157,6 +178,7 @@ struct AthleticsTab: View {
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
             .disabled(viewModel.isReadOnly)
+            .focused($focusedField, equals: "weight")
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -202,7 +224,7 @@ struct AthleticsTab: View {
         let services = RecruitingServices.servicesForSport(viewModel.details.primarySport)
         VStack(spacing: 0) {
             // NCAA Eligibility Center — always shown; not a registry recruiting service.
-            textRow(String(localized: "NCAA ID"), keyPath: \.ncaaId)
+            textRow(String(localized: "NCAA ID"), keyPath: \.ncaaId, fieldID: "ncaaId")
             helperLink(String(localized: "Register at NCAA Eligibility Center"), "https://web3.ncaa.org/ecwr3/")
             ForEach(services, id: \.key) { service in
                 divider
@@ -230,6 +252,9 @@ struct AthleticsTab: View {
             .keyboardType(service.valueKind == .url ? .URL : .default)
             .textInputAutocapitalization(.never)
             .disabled(viewModel.isReadOnly)
+            .submitLabel(service.key == fieldOrder.last ? .done : .next)
+            .focused($focusedField, equals: service.key)
+            .onSubmit { advanceFocus(from: service.key) }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -258,6 +283,9 @@ struct AthleticsTab: View {
             .foregroundStyle(.secondary)
             .textInputAutocapitalization(.characters)
             .disabled(viewModel.isReadOnly)
+            .submitLabel("prepBaseballState" == fieldOrder.last ? .done : .next)
+            .focused($focusedField, equals: "prepBaseballState")
+            .onSubmit { advanceFocus(from: "prepBaseballState") }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -377,7 +405,7 @@ struct AthleticsTab: View {
 
     // MARK: - Row Helpers
 
-    private func textRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, String?>) -> some View {
+    private func textRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, String?>, fieldID: String) -> some View {
         HStack {
             Text(label).font(.body)
             Spacer()
@@ -391,6 +419,9 @@ struct AthleticsTab: View {
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
             .disabled(viewModel.isReadOnly)
+            .submitLabel(fieldID == fieldOrder.last ? .done : .next)
+            .focused($focusedField, equals: fieldID)
+            .onSubmit { advanceFocus(from: fieldID) }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)

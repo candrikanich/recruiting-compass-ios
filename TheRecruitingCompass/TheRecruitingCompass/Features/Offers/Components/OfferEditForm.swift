@@ -5,6 +5,8 @@ struct OfferEditForm: View {
   let isUpdating: Bool
   let onSave: () async -> Void
   let onCancel: () -> Void
+  @FocusState private var focusedField: String?
+  private let fieldOrder = ["amount", "percentage", "conditions", "notes"]
 
   var body: some View {
     VStack(alignment: .leading, spacing: 20) {
@@ -26,6 +28,7 @@ struct OfferEditForm: View {
     .background(.ultraThinMaterial)
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .padding(.horizontal)
+    .keyboardFieldNavigation(focusedField: $focusedField, order: fieldOrder)
   }
 
   // MARK: - Form Fields
@@ -78,6 +81,7 @@ struct OfferEditForm: View {
       )
       .keyboardType(.numberPad)
       .textFieldStyle(.roundedBorder)
+      .focused($focusedField, equals: "amount")
       .accessibilityLabel(String(localized: "Scholarship amount in dollars"))
     }
   }
@@ -96,6 +100,7 @@ struct OfferEditForm: View {
       )
       .keyboardType(.numberPad)
       .textFieldStyle(.roundedBorder)
+      .focused($focusedField, equals: "percentage")
       .accessibilityLabel(String(localized: "Scholarship percentage, enter 0 to 100"))
     }
   }
@@ -162,6 +167,9 @@ struct OfferEditForm: View {
       TextField("Conditions or requirements...", text: $editData.conditions, axis: .vertical)
         .lineLimit(3...6)
         .textFieldStyle(.roundedBorder)
+        .submitLabel(.next)
+        .focused($focusedField, equals: "conditions")
+        .onSubmit { focusedField = "notes" }
         .accessibilityLabel(String(localized: "Offer conditions"))
     }
   }
@@ -176,6 +184,9 @@ struct OfferEditForm: View {
       TextField("Additional notes...", text: $editData.notes, axis: .vertical)
         .lineLimit(3...6)
         .textFieldStyle(.roundedBorder)
+        .submitLabel(.done)
+        .focused($focusedField, equals: "notes")
+        .onSubmit { focusedField = nil }
         .accessibilityLabel(String(localized: "Offer notes"))
     }
   }
