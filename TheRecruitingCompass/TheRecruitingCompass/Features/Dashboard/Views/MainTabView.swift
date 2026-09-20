@@ -15,6 +15,7 @@ struct MainTabView: View {
   @Environment(FamilyManager.self) private var familyManager
   @State private var notificationsViewModel = NotificationsListViewModel()
   @State private var dashboardViewModel = DashboardViewModel()
+  @State private var emailVerificationBannerViewModel = EmailVerificationBannerViewModel()
   @State private var selectedTab: AppTab = .dashboard
   @State private var schoolsPath = NavigationPath()
   @State private var coachesPath = NavigationPath()
@@ -32,7 +33,7 @@ struct MainTabView: View {
     TabView(selection: $selectedTab) {
       Tab("Dashboard", systemImage: "house", value: AppTab.dashboard) {
         NavigationStack {
-          DashboardView(viewModel: dashboardViewModel)
+          DashboardView(viewModel: dashboardViewModel, emailVerificationBannerViewModel: emailVerificationBannerViewModel)
             .activityNavigation()
             .navigationDestination(for: DashboardDestination.self) { destination in
               dashboardDestinationView(for: destination)

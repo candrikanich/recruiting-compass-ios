@@ -18,6 +18,11 @@ final class EmailVerificationBannerViewModel {
   var isResending = false
   var resendMessage: String?
   var resendFailed = false
+  /// Owned here (not view-local @State) so it survives DashboardView being
+  /// recreated — e.g. iPad's NavigationSplitView rebuilds the detail branch
+  /// on every destination switch, which would otherwise reset a view-local
+  /// dismiss flag on every trip back to the dashboard.
+  var isDismissed = false
 
   private let emailVerificationService: any EmailVerificationManaging
   private let authManager: any AuthManaging
@@ -44,15 +49,41 @@ final class EmailVerificationBannerViewModel {
   }
 
   func resend() async {
-    guard let token = authManager.session?.accessToken else { return }
+    guard let token = authManager.session?.accessToken else {
+      resendMessage = "Please sign in again to resend."
+      resendFailed = true
+      return
+    }
     isResending = true
     defer { isResending = false }
     do {
       try await emailVerificationService.resend(accessToken: token)
       resendMessage = "Sent!"
       resendFailed = false
+    } catch EmailVerificationServiceError.server(401, message: _) {
+      // Dashboard may have stayed mounted past the token's expiry — refresh
+      // once and retry, same as DashboardViewModel.fetchSuggestions().
+      await retryAfterRefresh()
     } catch {
       resendMessage = (error as? EmailVerificationServiceError)?.errorDescription ?? "Could not resend. Please try again."
+      resendFailed = true
+    }
+  }
+
+  private func retryAfterRefresh() async {
+    do {
+      _ = try await authManager.refreshSession()
+      guard let token = authManager.session?.accessToken else {
+        resendMessage = "Please sign in again to resend."
+        resendFailed = true
+        return
+      }
+      try await emailVerificationService.resend(accessToken: token)
+      resendMessage = "Sent!"
+      resendFailed = false
+    } catch {
+      logger.warning("Resend failed after session refresh: \(error.localizedDescription)")
+      resendMessage = "Could not resend. Please try again."
       resendFailed = true
     }
   }

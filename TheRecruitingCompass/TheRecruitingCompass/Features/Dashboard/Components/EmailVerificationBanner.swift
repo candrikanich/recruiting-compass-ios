@@ -7,13 +7,9 @@ import SwiftUI
 struct EmailVerificationBanner: View {
   @Bindable var viewModel: EmailVerificationBannerViewModel
 
-  /// In-memory only — resets on app relaunch, mirroring web's sessionStorage
-  /// dismiss (comes back next session, not next screen visit).
-  @State private var isDismissed = false
-
   var body: some View {
     Group {
-      if !isDismissed && !viewModel.isVerified {
+      if !viewModel.isDismissed && !viewModel.isVerified {
         content
       }
     }
@@ -30,7 +26,7 @@ struct EmailVerificationBanner: View {
         Text("Please verify your email address")
           .font(.subheadline.weight(.semibold))
         Spacer()
-        Button(action: { isDismissed = true }) {
+        Button(action: { viewModel.isDismissed = true }) {
           Image(systemName: "xmark")
             .foregroundStyle(.secondary)
         }

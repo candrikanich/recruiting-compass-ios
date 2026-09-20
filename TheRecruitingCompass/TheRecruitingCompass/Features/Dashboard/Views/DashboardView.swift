@@ -16,9 +16,12 @@ struct DashboardView: View {
 
   private var nuxProgressManager: NuxProgressManager { .shared }
 
-  init(viewModel: DashboardViewModel? = nil) {
+  init(viewModel: DashboardViewModel? = nil, emailVerificationBannerViewModel: EmailVerificationBannerViewModel? = nil) {
     if let viewModel {
       _viewModel = State(initialValue: viewModel)
+    }
+    if let emailVerificationBannerViewModel {
+      _emailVerificationBannerViewModel = State(initialValue: emailVerificationBannerViewModel)
     }
   }
 
