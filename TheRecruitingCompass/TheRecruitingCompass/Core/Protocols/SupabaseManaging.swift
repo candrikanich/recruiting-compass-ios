@@ -19,7 +19,8 @@ protocol SupabaseManaging: Sendable {
     primarySport: String?,
     gender: String?,
     zipCode: String?,
-    captchaToken: String
+    captchaToken: String,
+    skipVerificationEmail: Bool
   ) async throws -> (user: User, session: Session?)
   /// Establishes a session from a service-role magiclink token hash (minted by
   /// signup-minor.post.ts), consumed via `verifyOTP`. No password/captcha

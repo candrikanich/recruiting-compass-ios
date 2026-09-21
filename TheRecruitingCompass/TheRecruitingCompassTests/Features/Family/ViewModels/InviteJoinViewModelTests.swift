@@ -267,6 +267,21 @@ final class InviteJoinViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.successMessage, "You're connected!")
   }
 
+  // accept.post.ts stamps email_verified_at the moment the invite is accepted (moments
+  // after this signup call returns), so an invite signup must never trigger the
+  // verify-email flow — regression test for the bug where invited players received a
+  // "verify your email" email despite acceptance auto-verifying them.
+  func testSignupAndConnect_passesSkipVerificationEmailTrue() async {
+    mockFamilyService.stubbedInviteDetails = makeInviteDetails(role: "player")
+    await viewModel.loadInvite()
+    setValidSignupFields()
+    viewModel.signupDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+
+    await viewModel.signupAndConnect()
+
+    XCTAssertEqual(mockAuthManager.capturedSignupSkipVerificationEmail, true)
+  }
+
   func testSignupAndConnect_acceptInviteFails_setsSignupErrorAndDoesNotNavigate() async {
     mockFamilyService.stubbedInviteDetails = makeInviteDetails(role: "player")
     await viewModel.loadInvite()
