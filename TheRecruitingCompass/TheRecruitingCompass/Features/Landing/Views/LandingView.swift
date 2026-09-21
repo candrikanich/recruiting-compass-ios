@@ -181,6 +181,7 @@ struct LandingView: View {
             .foregroundStyle(Color.nearBlack)
             .clipShape(.rect(cornerRadius: 12))
             .shadow(radius: 5)
+            .colorScheme(.light)
         }
       )
       .accessibilityLabel(String(localized: "Sign in to your account"))
