@@ -53,11 +53,13 @@ final class ParentOnboardingWizardViewModel {
   private let authManager: any AuthManaging
   private let onboardingService: any OnboardingManaging
 
+  // No explicit timeZone: DatePicker's underlying Date represents local midnight for the
+  // selected calendar day, so formatting must use the device's local timezone too (matching
+  // COPPAHelper's parser) — forcing GMT here shifts the day for any device not on UTC.
   private var playerDateOfBirthString: String? {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
     formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(secondsFromGMT: 0)
     return formatter.string(from: playerDateOfBirth)
   }
 

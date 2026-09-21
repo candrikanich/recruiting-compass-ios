@@ -46,6 +46,8 @@ final class InviteJoinViewModel {
   var dateOfBirthWasPrefilled = false
   var birthdayConfirmError: String?
   var isConfirmingBirthday = false
+  var showBirthdaySaveFailedToast = false
+  var birthdaySaveFailedMessage: String?
 
   // GET /api/family/invite/:token deliberately withholds emailExists (no
   // account-existence disclosure pre-acceptance — see InviteDetails), so it
@@ -63,6 +65,16 @@ final class InviteJoinViewModel {
   private let profileService: any ProfileManaging
 
   var isAuthenticated: Bool { authManager.isAuthenticated }
+
+  // No explicit timeZone: DatePicker's underlying Date represents local midnight for the
+  // selected calendar day, so formatting/parsing must use the device's local timezone
+  // (matching COPPAHelper's parser) — forcing GMT shifts the day for any device not on UTC.
+  private static var dateOnlyFormatter: DateFormatter {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    return formatter
+  }
 
   var inviteDetails: InviteDetails? {
     if case .loaded(let d) = state { return d }
@@ -159,11 +171,7 @@ final class InviteJoinViewModel {
     }
 
     let role = UserRole(rawValue: invite.role) ?? .player
-    let dobFormatter = DateFormatter()
-    dobFormatter.dateFormat = "yyyy-MM-dd"
-    dobFormatter.locale = Locale(identifier: "en_US_POSIX")
-    dobFormatter.timeZone = TimeZone(secondsFromGMT: 0)
-    let dobString = dobFormatter.string(from: signupDateOfBirth)
+    let dobString = Self.dateOnlyFormatter.string(from: signupDateOfBirth)
 
     if role == .player && COPPAHelper.isUnderAge(dobString) {
       signupError = "Players must be 13 or older"
@@ -241,11 +249,8 @@ final class InviteJoinViewModel {
   }
 
   private func prefillBirthdayConfirmStep(from response: AcceptInviteResponse?) {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(secondsFromGMT: 0)
-    if let dobString = response?.prefill?.dateOfBirth, let date = formatter.date(from: dobString) {
+    if let dobString = response?.prefill?.dateOfBirth,
+       let date = Self.dateOnlyFormatter.date(from: dobString) {
       confirmedDateOfBirth = date
       dateOfBirthWasPrefilled = true
     } else {
@@ -261,12 +266,7 @@ final class InviteJoinViewModel {
   /// player on this screen.
   func confirmBirthday() async {
     birthdayConfirmError = nil
-
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(secondsFromGMT: 0)
-    let dobString = formatter.string(from: confirmedDateOfBirth)
+    let dobString = Self.dateOnlyFormatter.string(from: confirmedDateOfBirth)
 
     if COPPAHelper.isUnderAge(dobString) {
       birthdayConfirmError = "Players must be 13 or older"
@@ -281,6 +281,11 @@ final class InviteJoinViewModel {
       try await profileService.updatePersonalInfo(fullName: fullName, dateOfBirth: dobString)
     } catch {
       logger.error("confirmBirthday: failed to persist DOB, continuing anyway: \(error.localizedDescription)")
+      // Tell the player their edit didn't save, but never block reaching the dashboard over it —
+      // they can retry from their profile. Toast is on InviteJoinView, shown right before dismiss.
+      birthdaySaveFailedMessage = "Couldn't save your birthday. You can update it later in your profile."
+      showBirthdaySaveFailedToast = true
+      try? await Task.sleep(for: .milliseconds(1200))
     }
 
     showBirthdayConfirmStep = false

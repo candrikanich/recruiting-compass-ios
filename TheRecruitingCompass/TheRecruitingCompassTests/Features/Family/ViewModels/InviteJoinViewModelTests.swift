@@ -410,6 +410,8 @@ final class InviteJoinViewModelTests: XCTestCase {
     XCTAssertEqual(mockProfileService.updatePersonalInfoCallCount, 1)
     XCTAssertFalse(viewModel.showBirthdayConfirmStep)
     XCTAssertTrue(viewModel.navigateToDashboard, "a DOB PATCH failure must fail open, not strand the player")
+    XCTAssertTrue(viewModel.showBirthdaySaveFailedToast, "player must be told the edit didn't save")
+    XCTAssertNotNil(viewModel.birthdaySaveFailedMessage)
   }
 
   // MARK: - decline()

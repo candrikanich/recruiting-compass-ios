@@ -47,6 +47,18 @@ struct InviteJoinView: View {
       type: .success,
       duration: 2.0
     )
+    .toast(
+      isShowing: Binding(
+        get: { viewModel.showBirthdaySaveFailedToast },
+        set: { viewModel.showBirthdaySaveFailedToast = $0 }
+      ),
+      message: Binding(
+        get: { viewModel.birthdaySaveFailedMessage },
+        set: { viewModel.birthdaySaveFailedMessage = $0 }
+      ),
+      type: .error,
+      duration: 3.0
+    )
   }
 }
 
