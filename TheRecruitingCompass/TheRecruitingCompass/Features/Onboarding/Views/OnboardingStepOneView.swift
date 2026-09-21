@@ -26,7 +26,7 @@ struct OnboardingStepOneView: View {
       }
       .padding(24)
     }
-    .background(Color(uiColor: .systemGroupedBackground))
+    .scrollContentBackground(.hidden)
     .navigationTitle("Tell Us About You")
     .navigationBarTitleDisplayMode(.large)
     .alert("Error", isPresented: .init(
