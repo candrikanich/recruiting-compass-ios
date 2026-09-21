@@ -70,6 +70,9 @@ final class OnboardingV2ViewModel {
   private let schoolsRepository: any SchoolsRepository
   private let recommendationService: any SchoolRecommendationManaging
   private let familyService: any FamilyManaging
+  private let ncaaDatabase: any NcaaDatabaseManaging
+  private let collegeScorecardService: any CollegeScorecardManaging
+  private let faviconService: any SchoolFaviconManaging
 
   init(
     onboardingService: (any OnboardingManaging)? = nil,
@@ -77,7 +80,10 @@ final class OnboardingV2ViewModel {
     authManager: (any AuthManaging)? = nil,
     schoolsRepository: (any SchoolsRepository)? = nil,
     recommendationService: (any SchoolRecommendationManaging)? = nil,
-    familyService: (any FamilyManaging)? = nil
+    familyService: (any FamilyManaging)? = nil,
+    ncaaDatabase: (any NcaaDatabaseManaging)? = nil,
+    collegeScorecardService: (any CollegeScorecardManaging)? = nil,
+    faviconService: (any SchoolFaviconManaging)? = nil
   ) {
     self.onboardingService = onboardingService ?? OnboardingServiceImpl(supabaseManager: .shared)
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
@@ -85,6 +91,9 @@ final class OnboardingV2ViewModel {
     self.schoolsRepository = schoolsRepository ?? SchoolsRepositoryImpl(supabaseManager: .shared)
     self.recommendationService = recommendationService ?? SchoolRecommendationServiceImpl(supabaseManager: .shared)
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
+    self.ncaaDatabase = ncaaDatabase ?? NcaaDatabase.shared
+    self.collegeScorecardService = collegeScorecardService ?? CollegeScorecardService()
+    self.faviconService = faviconService ?? SchoolFaviconService()
   }
 
   // MARK: - Step 1
@@ -186,6 +195,10 @@ final class OnboardingV2ViewModel {
     }
   }
 
+  /// Adds a recommended school with the same enrichment the Schools-page "Add School" flow
+  /// runs on selection (NCAA division/conference, College Scorecard location/academic data,
+  /// favicon) — otherwise onboarding-added schools save with those fields null. See
+  /// AddSchoolViewModel+NcaaLookup.swift / +Enrichment.swift for the reference flow.
   func addSchool(_ recommendation: SchoolRecommendation) async -> Bool {
     guard let userId = authManager.user?.id else { return false }
 
@@ -196,25 +209,32 @@ final class OnboardingV2ViewModel {
         return false
       }
 
-      let request = SchoolCreateRequest(
-        userId: userId,
-        familyUnitId: familyUnitId,
+      var division = recommendation.division.flatMap(Division.init(rawValue:))
+      var conference = recommendation.conference
+      if division == nil || conference == nil,
+         let ncaaResult = await ncaaDatabase.lookup(schoolName: recommendation.name) {
+        division = division ?? ncaaResult.division
+        conference = conference ?? ncaaResult.conference
+      }
+
+      let scorecardData = try? await collegeScorecardService.lookupCollege(name: recommendation.name)
+
+      let form = SchoolFormState(
         name: recommendation.name,
-        location: nil,
-        city: nil,
-        state: recommendation.state,
-        division: recommendation.division,
-        conference: recommendation.conference,
-        website: nil,
-        twitterHandle: nil,
-        instagramHandle: nil,
-        ncaaId: nil,
-        notes: nil,
-        status: "researching",
-        academicInfo: nil,
-        faviconUrl: nil
+        state: recommendation.state ?? "",
+        division: division,
+        conference: conference ?? "",
+        website: recommendation.website ?? scorecardData?.website ?? "",
+        status: .researching
       )
-      _ = try await schoolsRepository.createSchool(request: request)
+      let request = SchoolCreateRequest.from(
+        form: form,
+        scorecardData: scorecardData,
+        userId: userId,
+        familyUnitId: familyUnitId
+      )
+      let created = try await schoolsRepository.createSchool(request: request)
+      await faviconService.fetchAndPersist(school: created)
 
       recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
       schoolsAdded += 1
