@@ -218,6 +218,10 @@ final class DashboardViewModel {
 
       loadQuickTasks()
       await fetchVisibleWidgets(familyUnitId: familyUnitId)
+    } catch is CancellationError {
+      // Superseded by a newer fetch (e.g. pull-to-refresh racing the view's .task) — that one owns the result.
+      logger.debug("fetchDashboardData cancelled, superseded by a newer fetch")
+      return
     } catch {
       logger.error("Failed to load dashboard data: \(error.localizedDescription)")
       errorMessage = "Failed to load dashboard. Pull to refresh."
