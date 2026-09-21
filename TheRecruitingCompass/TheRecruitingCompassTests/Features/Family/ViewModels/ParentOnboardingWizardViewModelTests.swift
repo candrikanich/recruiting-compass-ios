@@ -227,6 +227,7 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.sport, "Baseball")
     XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.position, "Pitcher")
     XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.graduationYear, 2028)
+    XCTAssertNotNil(mockFamilyService.lastSavePlayerDetails?.playerDob)
     XCTAssertEqual(mockFamilyService.sendEmailInviteCallCount, 0)
     XCTAssertEqual(viewModel.familyCode, "FAM-TEST01")
     XCTAssertTrue(viewModel.didComplete)

@@ -36,8 +36,10 @@ protocol FamilyManaging: Sendable {
   func resendInvitation(id: String, email: String, role: String) async throws
   /// Looks up invite details by the token embedded in a deep-link URL.
   func lookupInviteByToken(_ token: String) async throws -> InviteDetails
-  /// Accepts a family invitation, adding the current user to the family.
-  func acceptInvite(token: String) async throws
+  /// Accepts a family invitation, adding the current user to the family. Returns the response,
+  /// including a player-role invite's prefill data (e.g. parent-entered date of birth).
+  @discardableResult
+  func acceptInvite(token: String) async throws -> AcceptInviteResponse
   /// Declines a family invitation without joining.
   func declineInvite(token: String) async throws
   /// Saves pending player profile details to the family record before the player creates their account.

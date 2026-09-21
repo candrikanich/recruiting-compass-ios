@@ -201,11 +201,19 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     return stubbedInviteDetails
   }
 
-  func acceptInvite(token: String) async throws {
+  var stubbedAcceptInviteResponse = AcceptInviteResponse(
+    success: true,
+    familyUnitId: "family-1",
+    onboardingComplete: true,
+    prefill: nil
+  )
+
+  func acceptInvite(token: String) async throws -> AcceptInviteResponse {
     acceptInviteCallCount += 1
     lastAcceptedToken = token
     onAcceptInvite?()
     if !shouldSucceed { throw mockError }
+    return stubbedAcceptInviteResponse
   }
 
   func declineInvite(token: String) async throws {

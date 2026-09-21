@@ -9,16 +9,19 @@ final class InviteJoinViewModelTests: XCTestCase {
   var mockFamilyService: MockFamilyService!
   var mockAuthManager: MockAuthManager!
   var mockTurnstileProvider: MockTurnstileTokenProvider!
+  var mockProfileService: MockProfileService!
 
   override func setUp() {
     mockFamilyService = MockFamilyService()
     mockAuthManager = MockAuthManager()
     mockTurnstileProvider = MockTurnstileTokenProvider()
+    mockProfileService = MockProfileService()
     viewModel = InviteJoinViewModel(
       token: "invite-token-1",
       familyService: mockFamilyService,
       authManager: mockAuthManager,
-      turnstileTokenProvider: mockTurnstileProvider
+      turnstileTokenProvider: mockTurnstileProvider,
+      profileService: mockProfileService
     )
   }
 
@@ -27,6 +30,7 @@ final class InviteJoinViewModelTests: XCTestCase {
     mockFamilyService = nil
     mockAuthManager = nil
     mockTurnstileProvider = nil
+    mockProfileService = nil
   }
 
   // MARK: - loadInvite
@@ -308,6 +312,104 @@ final class InviteJoinViewModelTests: XCTestCase {
     XCTAssertNotNil(viewModel.signupError)
     XCTAssertEqual(mockFamilyService.acceptInviteCallCount, 0)
     XCTAssertFalse(viewModel.navigateToDashboard)
+  }
+
+  // MARK: - signupAndConnect() birthday confirm step
+
+  func testSignupAndConnect_playerRole_withPrefillDob_showsConfirmStepPrefilled() async {
+    mockFamilyService.stubbedInviteDetails = makeInviteDetails(role: "player")
+    mockFamilyService.stubbedAcceptInviteResponse = AcceptInviteResponse(
+      success: true,
+      familyUnitId: "family-1",
+      onboardingComplete: true,
+      prefill: InvitePrefill(firstName: "Alex", lastName: "Rivera", dateOfBirth: "2010-05-01")
+    )
+    await viewModel.loadInvite()
+    setValidSignupFields()
+    viewModel.signupDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+
+    await viewModel.signupAndConnect()
+
+    XCTAssertTrue(viewModel.showBirthdayConfirmStep)
+    XCTAssertFalse(viewModel.navigateToDashboard)
+    XCTAssertTrue(viewModel.dateOfBirthWasPrefilled)
+
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    XCTAssertEqual(formatter.string(from: viewModel.confirmedDateOfBirth), "2010-05-01")
+  }
+
+  func testSignupAndConnect_playerRole_withoutPrefillDob_fallsBackToSignupValue() async {
+    mockFamilyService.stubbedInviteDetails = makeInviteDetails(role: "player")
+    mockFamilyService.stubbedAcceptInviteResponse = AcceptInviteResponse(
+      success: true,
+      familyUnitId: "family-1",
+      onboardingComplete: true,
+      prefill: nil
+    )
+    await viewModel.loadInvite()
+    setValidSignupFields()
+    let signupDob = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    viewModel.signupDateOfBirth = signupDob
+
+    await viewModel.signupAndConnect()
+
+    XCTAssertTrue(viewModel.showBirthdayConfirmStep)
+    XCTAssertFalse(viewModel.dateOfBirthWasPrefilled)
+    XCTAssertEqual(
+      Calendar.current.startOfDay(for: viewModel.confirmedDateOfBirth),
+      Calendar.current.startOfDay(for: signupDob)
+    )
+  }
+
+  func testSignupAndConnect_parentRole_neverShowsConfirmStep() async {
+    mockFamilyService.stubbedInviteDetails = makeInviteDetails(role: "parent")
+    await viewModel.loadInvite()
+    setValidSignupFields()
+
+    await viewModel.signupAndConnect()
+
+    XCTAssertFalse(viewModel.showBirthdayConfirmStep)
+    XCTAssertTrue(viewModel.navigateToDashboard)
+  }
+
+  // MARK: - confirmBirthday()
+
+  func testConfirmBirthday_success_persistsAndNavigates() async {
+    viewModel.signupFirstName = "Alex"
+    viewModel.signupLastName = "Rivera"
+    viewModel.confirmedDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+
+    await viewModel.confirmBirthday()
+
+    XCTAssertEqual(mockProfileService.updatePersonalInfoCallCount, 1)
+    XCTAssertEqual(mockProfileService.lastFullName, "Alex Rivera")
+    XCTAssertFalse(viewModel.showBirthdayConfirmStep)
+    XCTAssertTrue(viewModel.navigateToDashboard)
+    XCTAssertNil(viewModel.birthdayConfirmError)
+  }
+
+  func testConfirmBirthday_underage_setsErrorAndDoesNotNavigate() async {
+    viewModel.confirmedDateOfBirth = Calendar.current.date(byAdding: .year, value: -10, to: .now) ?? .now
+
+    await viewModel.confirmBirthday()
+
+    XCTAssertEqual(mockProfileService.updatePersonalInfoCallCount, 0)
+    XCTAssertNotNil(viewModel.birthdayConfirmError)
+    XCTAssertFalse(viewModel.navigateToDashboard)
+  }
+
+  func testConfirmBirthday_profileServiceThrows_stillNavigates() async {
+    mockProfileService.shouldThrowOnUpdatePersonalInfo = true
+    viewModel.confirmedDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+
+    await viewModel.confirmBirthday()
+
+    XCTAssertEqual(mockProfileService.updatePersonalInfoCallCount, 1)
+    XCTAssertFalse(viewModel.showBirthdayConfirmStep)
+    XCTAssertTrue(viewModel.navigateToDashboard, "a DOB PATCH failure must fail open, not strand the player")
   }
 
   // MARK: - decline()

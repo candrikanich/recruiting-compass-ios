@@ -15,7 +15,8 @@ final class ParentOnboardingWizardViewModel {
   var playerSport: String = ""
   var playerPosition: String = ""
   var playerGraduationYear: Int?
-  /// Local-only COPPA gate; not persisted in PendingPlayerDetails.
+  /// COPPA gate; persisted into PendingPlayerDetails.playerDob once confirmed so the invited
+  /// player can be prefilled with it at signup.
   var playerDateOfBirth: Date = Calendar.current.date(
     byAdding: .year,
     value: -16,
@@ -121,7 +122,8 @@ final class ParentOnboardingWizardViewModel {
       lastName: lastTrimmed,
       sport: playerSport.isEmpty ? nil : playerSport,
       position: playerPosition.isEmpty ? nil : playerPosition,
-      graduationYear: playerGraduationYear
+      graduationYear: playerGraduationYear,
+      playerDob: hasConfirmedDateOfBirth ? playerDateOfBirthString : nil
     )
   }
 
