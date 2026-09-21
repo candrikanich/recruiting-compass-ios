@@ -23,16 +23,17 @@ protocol AuthManaging: AnyObject {
   /// Signs in with email and password. Persists the resulting session to Keychain.
   /// - Parameter beforePublish: runs after a session is created but before `isAuthenticated`
   ///   publishes — same ordering guarantee as `signup`'s `beforePublish`, for a caller (e.g.
-  ///   invite acceptance) with its own server-side write the onboarding gate depends on.
-  func login(email: String, password: String, captchaToken: String, beforePublish: (() async -> Void)?) async throws
+  ///   invite acceptance) with its own server-side write the onboarding gate depends on. Throwing
+  ///   aborts the login: `isAuthenticated` is never published, matching the caller's own failure.
+  func login(email: String, password: String, captchaToken: String, beforePublish: (() async throws -> Void)?) async throws
   /// Creates a new account and signs in. Passes `familyCode` to join an existing family unit.
   /// - Parameter dateOfBirth: ISO 8601 date string used for COPPA age-gate enforcement.
   /// - Parameters graduationYear/primarySport/gender/zipCode: player-only onboarding-step-1 draft,
   ///   carried as `pending_*` auth metadata and flushed by `AccountProvisioning` on first session.
   /// - Parameter beforePublish: runs after a session is created but before `isAuthenticated`
   ///   publishes — same ordering guarantee as the `pending_*` flush, for a caller (e.g. invite
-  ///   acceptance) with its own server-side write the onboarding gate depends on. Never blocks
-  ///   publish: catch your own errors inside the closure and surface them after `signup` returns.
+  ///   acceptance) with its own server-side write the onboarding gate depends on. Throwing aborts
+  ///   the signup: `isAuthenticated` is never published, matching the caller's own failure.
   func signup(
     email: String,
     password: String,
@@ -45,7 +46,7 @@ protocol AuthManaging: AnyObject {
     gender: String?,
     zipCode: String?,
     captchaToken: String,
-    beforePublish: (() async -> Void)?
+    beforePublish: (() async throws -> Void)?
   ) async throws
   /// Establishes a session from a service-role magiclink token hash (minted
   /// by signup-minor.post.ts) and persists it to Keychain — the minor-signup

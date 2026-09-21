@@ -2,9 +2,14 @@ import Foundation
 
 /// Graduation year and grade-level helpers. Aligns with web `getGraduationYearOptions()`: current year through current+5.
 enum GradeLevelHelper {
-  /// Allowed graduation years for pickers: floor through floor+5 (6 years), where floor is the
-  /// earliest class that hasn't graduated yet. The +5 upper bound lets rising 8th graders (13+)
-  /// pick their class. Age eligibility is enforced separately by the 13+ COPPA gate, not by this range.
+  /// Allowed graduation years for pickers: floor through calendarYear+5, where floor is the
+  /// earliest class that hasn't graduated yet. The ceiling is pinned to the raw calendar year
+  /// (not the pivoted floor) so it never exceeds web's canonical `currentYear...currentYear+5`
+  /// range (`utils/graduationYears.ts`) — the shared signup API validates against that fixed
+  /// ceiling, so a wandering upper bound here would get rejected server-side. This means the
+  /// window is 6 years through June and 5 years from July through December, shrinking rather
+  /// than sliding — an accepted trade-off vs. coordinating a matching web pivot. Age eligibility
+  /// is enforced separately by the 13+ COPPA gate, not by this range.
   static var allowedGraduationYears: [Int] {
     allowedGraduationYears(referenceDate: Date.now)
   }
@@ -19,7 +24,7 @@ enum GradeLevelHelper {
     let year = calendar.component(.year, from: referenceDate)
     let month = calendar.component(.month, from: referenceDate)
     let floor = month >= 7 ? year + 1 : year
-    return Array(floor...(floor + 5))
+    return Array(floor...(year + 5))
   }
 
   /// Returns current grade (9–12) for the given graduation year, using a July 1 roll pivot.

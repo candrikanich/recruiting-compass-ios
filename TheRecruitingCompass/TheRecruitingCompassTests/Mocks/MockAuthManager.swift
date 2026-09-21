@@ -76,7 +76,7 @@ class MockAuthManager: AuthManaging {
 
   // MARK: - AuthManaging Methods
 
-  func login(email: String, password: String, captchaToken: String, beforePublish: (() async -> Void)? = nil) async throws {
+  func login(email: String, password: String, captchaToken: String, beforePublish: (() async throws -> Void)? = nil) async throws {
     loginCallCount += 1
     capturedLoginCaptchaToken = captchaToken
 
@@ -104,7 +104,7 @@ class MockAuthManager: AuthManaging {
       user: user
     )
 
-    await beforePublish?()
+    try await beforePublish?()
 
     self.user = user
     self.session = session
@@ -162,7 +162,7 @@ class MockAuthManager: AuthManaging {
     gender: String? = nil,
     zipCode: String? = nil,
     captchaToken: String,
-    beforePublish: (() async -> Void)? = nil
+    beforePublish: (() async throws -> Void)? = nil
   ) async throws {
     signupCallCount += 1
     capturedSignupCaptchaToken = captchaToken
@@ -195,7 +195,7 @@ class MockAuthManager: AuthManaging {
       user: user
     )
 
-    await beforePublish?()
+    try await beforePublish?()
 
     self.user = user
     self.session = session

@@ -150,6 +150,10 @@ final class InviteJoinViewModelTests: XCTestCase {
 
     XCTAssertEqual(viewModel.errorMessage, InviteError.alreadyAccepted.errorDescription)
     XCTAssertFalse(viewModel.navigateToDashboard)
+    // Regression: a failed acceptInvite must abort login() entirely — isAuthenticated must never
+    // publish true for an invite that didn't actually get accepted, or the onboarding gate would
+    // load an unhydrated preferences row for a user who isn't really connected to the family.
+    XCTAssertFalse(mockAuthManager.isAuthenticated, "login must not publish isAuthenticated when the beforePublish hook throws")
   }
 
   func testAccept_acceptInviteFails_setsErrorMessage() async {
@@ -275,6 +279,7 @@ final class InviteJoinViewModelTests: XCTestCase {
     XCTAssertEqual(mockAuthManager.signupCallCount, 1)
     XCTAssertNotNil(viewModel.signupError)
     XCTAssertFalse(viewModel.navigateToDashboard)
+    XCTAssertFalse(mockAuthManager.isAuthenticated, "signup must not publish isAuthenticated when the beforePublish hook throws")
   }
 
   func testSignupAndConnect_signupFails_setsSignupError() async {
