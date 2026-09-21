@@ -103,11 +103,28 @@ final class InviteJoinViewModel {
     defer { isAccepting = false }
 
     do {
-      if !authManager.isAuthenticated {
+      if authManager.isAuthenticated {
+        try await familyService.acceptInvite(token: token)
+      } else {
         let captchaToken = try await turnstileTokenProvider.getToken()
-        try await authManager.login(email: loginEmail, password: loginPassword, captchaToken: captchaToken)
+        // Accepting the invite must run BEFORE authManager publishes isAuthenticated: it's what
+        // triggers the server's hydrateAthleteFromPendingDetails() write (sport/gradYear/position
+        // into the same user_preferences row iOS reads), and the onboarding gate reads that row
+        // the instant isAuthenticated flips true. See signupAndConnect()'s matching comment.
+        var acceptError: Error?
+        try await authManager.login(
+          email: loginEmail, password: loginPassword, captchaToken: captchaToken,
+          beforePublish: { [weak self] in
+            guard let self else { return }
+            do {
+              try await self.familyService.acceptInvite(token: self.token)
+            } catch {
+              acceptError = error
+            }
+          }
+        )
+        if let acceptError { throw acceptError }
       }
-      try await familyService.acceptInvite(token: token)
       successMessage = "You're connected!"
       if inviteDetails?.emailMismatch == true {
         successMessage = "You're connected! (You used a different email than the invite.)"

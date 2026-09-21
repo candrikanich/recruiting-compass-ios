@@ -21,7 +21,10 @@ protocol AuthManaging: AnyObject {
   var pendingBiometricEnrollmentOffer: Bool { get set }
 
   /// Signs in with email and password. Persists the resulting session to Keychain.
-  func login(email: String, password: String, captchaToken: String) async throws
+  /// - Parameter beforePublish: runs after a session is created but before `isAuthenticated`
+  ///   publishes — same ordering guarantee as `signup`'s `beforePublish`, for a caller (e.g.
+  ///   invite acceptance) with its own server-side write the onboarding gate depends on.
+  func login(email: String, password: String, captchaToken: String, beforePublish: (() async -> Void)?) async throws
   /// Creates a new account and signs in. Passes `familyCode` to join an existing family unit.
   /// - Parameter dateOfBirth: ISO 8601 date string used for COPPA age-gate enforcement.
   /// - Parameters graduationYear/primarySport/gender/zipCode: player-only onboarding-step-1 draft,

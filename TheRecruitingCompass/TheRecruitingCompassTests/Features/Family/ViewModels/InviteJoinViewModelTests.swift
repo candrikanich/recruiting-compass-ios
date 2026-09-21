@@ -121,6 +121,37 @@ final class InviteJoinViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.navigateToDashboard)
   }
 
+  // Regression: acceptInvite must run BEFORE authManager publishes isAuthenticated, so the
+  // onboarding gate's fetch (triggered the instant isAuthenticated flips true) never races the
+  // server's hydrateAthleteFromPendingDetails() write.
+  func testAccept_notAuthenticated_acceptsInviteBeforeAuthPublishes() async {
+    mockAuthManager.isAuthenticated = false
+    viewModel.loginEmail = "user@example.com"
+    viewModel.loginPassword = "password123"
+    var isAuthenticatedDuringAccept: Bool?
+    mockFamilyService.onAcceptInvite = { [weak mockAuthManager] in
+      isAuthenticatedDuringAccept = mockAuthManager?.isAuthenticated
+    }
+
+    await viewModel.accept()
+
+    XCTAssertEqual(mockFamilyService.acceptInviteCallCount, 1)
+    XCTAssertEqual(isAuthenticatedDuringAccept, false, "acceptInvite must run before isAuthenticated publishes")
+    XCTAssertTrue(mockAuthManager.isAuthenticated, "isAuthenticated should still publish true after a successful accept")
+    XCTAssertTrue(viewModel.navigateToDashboard)
+  }
+
+  func testAccept_notAuthenticated_acceptInviteFails_setsErrorMessage_doesNotPublishSuccess() async {
+    mockAuthManager.isAuthenticated = false
+    mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = InviteError.alreadyAccepted
+
+    await viewModel.accept()
+
+    XCTAssertEqual(viewModel.errorMessage, InviteError.alreadyAccepted.errorDescription)
+    XCTAssertFalse(viewModel.navigateToDashboard)
+  }
+
   func testAccept_acceptInviteFails_setsErrorMessage() async {
     mockAuthManager.isAuthenticated = true
     mockFamilyService.shouldSucceed = false

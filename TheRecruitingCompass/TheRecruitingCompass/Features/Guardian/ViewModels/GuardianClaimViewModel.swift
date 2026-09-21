@@ -87,7 +87,7 @@ final class GuardianClaimViewModel {
     do {
       if !authManager.isAuthenticated {
         let captchaToken = try await turnstileTokenProvider.getToken()
-        try await authManager.login(email: loginEmail, password: loginPassword, captchaToken: captchaToken)
+        try await authManager.login(email: loginEmail, password: loginPassword, captchaToken: captchaToken, beforePublish: nil)
       }
       guard isAuthenticatedAsGuardian, let accessToken = authManager.session?.accessToken else {
         errorMessage = "Please sign in with the guardian email this claim was sent to."

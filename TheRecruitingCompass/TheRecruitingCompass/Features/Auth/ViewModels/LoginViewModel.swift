@@ -108,7 +108,7 @@ final class LoginViewModel {
 
     do {
       let captchaToken = try await turnstileTokenProvider.getToken()
-      try await authManager.login(email: email, password: password, captchaToken: captchaToken)
+      try await authManager.login(email: email, password: password, captchaToken: captchaToken, beforePublish: nil)
       if !authManager.biometricEnabled && biometricService.canEvaluateBiometrics() {
         authManager.pendingBiometricEnrollmentOffer = true
       }

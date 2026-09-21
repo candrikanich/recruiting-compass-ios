@@ -5,12 +5,33 @@ final class GradeLevelHelperTests: XCTestCase {
 
   var calendar: Calendar { Calendar.current }
 
-  func testAllowedGraduationYears_IsCurrentThroughCurrentPlus5() {
+  func testAllowedGraduationYears_IsSixConsecutiveYears() {
     let years = GradeLevelHelper.allowedGraduationYears
-    let current = calendar.component(.year, from: Date())
-    XCTAssertEqual(years.count, 6, "Should show current year + 5 (6 years total) — web parity, lets rising 8th graders pick")
-    XCTAssertEqual(years, Array(current...(current + 5)), "Should be consecutive from current through current+5")
-    XCTAssertEqual(years.last, current + 5, "Upper bound must be current+5")
+    XCTAssertEqual(years.count, 6, "Should show 6 years total — lets rising 8th graders pick")
+    XCTAssertEqual(years, Array(years[0]...(years[0] + 5)), "Should be consecutive")
+  }
+
+  func testAllowedGraduationYears_June_FloorIsCurrentYear() {
+    // Class of 2026 hasn't graduated yet as of June 1 (graduation lands June 1) — still selectable.
+    let ref = date(2026, 6, 1)
+    let years = GradeLevelHelper.allowedGraduationYears(referenceDate: ref)
+    XCTAssertEqual(years, Array(2026...2031))
+  }
+
+  func testAllowedGraduationYears_July_FloorRollsToNextYear() {
+    // Class of 2026 graduated in May/June — by July it should no longer be a pickable "expected" year.
+    let ref = date(2026, 7, 1)
+    let years = GradeLevelHelper.allowedGraduationYears(referenceDate: ref)
+    XCTAssertEqual(years, Array(2027...2032), "Already-graduated class of 2026 must be dropped from the floor")
+  }
+
+  func testAllowedGraduationYears_September_CurrentFreshmanClassIsIncluded() {
+    // Sept 2026: current freshmen (started HS this fall) graduate 2030 — must be in the range.
+    let ref = date(2026, 9, 21)
+    let years = GradeLevelHelper.allowedGraduationYears(referenceDate: ref)
+    XCTAssertEqual(years, Array(2027...2032))
+    XCTAssertTrue(years.contains(2030), "Current freshman class (2030) must be selectable")
+    XCTAssertFalse(years.contains(2026), "Class of 2026 already graduated, should not be offered")
   }
 
   func testCalculateCurrentGrade_ReturnsValueIn9To12() {

@@ -56,13 +56,20 @@ final class AuthManager: AuthManaging {
     }
   }
 
-  func login(email: String, password: String, captchaToken: String) async throws {
+  func login(
+    email: String,
+    password: String,
+    captchaToken: String,
+    beforePublish: (() async -> Void)? = nil
+  ) async throws {
     logger.debug("Attempting login for: \(email.prefix(3))***")
     do {
       let (user, session) = try await supabaseManager.signIn(email: email, password: password, captchaToken: captchaToken)
-      // Flush BEFORE publishing isAuthenticated: anything reacting to that flag (e.g.
-      // OnboardingContainerView deciding its starting step) must only ever see canonical
-      // preferences after any pending signup-time metadata has already landed there.
+      // Run caller's hook, then flush, BEFORE publishing isAuthenticated: anything reacting to
+      // that flag (e.g. OnboardingContainerView deciding its starting step) must only ever see
+      // canonical preferences after any pending signup/invite-time metadata has already landed
+      // there. Mirrors signup()'s beforePublish ordering — see its comment for the same rationale.
+      await beforePublish?()
       await accountProvisioning.flushPendingOnboardingStep1()
       self.user = user
       self.session = session

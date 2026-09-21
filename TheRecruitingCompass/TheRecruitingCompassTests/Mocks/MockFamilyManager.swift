@@ -147,6 +147,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   var lastRevokedInvitationId: String?
   var lastLookedUpToken: String?
   var lastAcceptedToken: String?
+  var onAcceptInvite: (() -> Void)?
   var stubbedPendingInvitations: [FamilyInvitation] = []
   var stubbedInviteDetails = InviteDetails(
     invitationId: "inv-1",
@@ -203,6 +204,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   func acceptInvite(token: String) async throws {
     acceptInviteCallCount += 1
     lastAcceptedToken = token
+    onAcceptInvite?()
     if !shouldSucceed { throw mockError }
   }
 

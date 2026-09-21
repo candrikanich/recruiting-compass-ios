@@ -76,7 +76,7 @@ class MockAuthManager: AuthManaging {
 
   // MARK: - AuthManaging Methods
 
-  func login(email: String, password: String, captchaToken: String) async throws {
+  func login(email: String, password: String, captchaToken: String, beforePublish: (() async -> Void)? = nil) async throws {
     loginCallCount += 1
     capturedLoginCaptchaToken = captchaToken
 
@@ -103,6 +103,8 @@ class MockAuthManager: AuthManaging {
       refreshToken: "test-refresh-token",
       user: user
     )
+
+    await beforePublish?()
 
     self.user = user
     self.session = session
