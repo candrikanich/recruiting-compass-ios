@@ -23,7 +23,7 @@ NEEDS-HUMAN-VERIFICATION.
 | 3 | No hardcoded secrets in source | PASS (see note) | PASS |
 | 4 | Authentication required | PASS | PASS |
 | 5 | Permissions verified server-side, no trusted client user IDs | PASS | PASS |
-| 6 | User data isolation / RLS | NEEDS-VERIFICATION → root cause confirmed, see [#912](https://github.com/candrikanich/recruiting-compass-web/issues/912) | **FAIL** — [#912](https://github.com/candrikanich/recruiting-compass-web/issues/912) |
+| 6 | User data isolation / RLS | NEEDS-VERIFICATION — iOS queries Supabase directly with the anon key (not the web service-role path); RLS policy behavior not independently exercised, see [#912](https://github.com/candrikanich/recruiting-compass-web/issues/912) for the related web finding | **FAIL** — [#912](https://github.com/candrikanich/recruiting-compass-web/issues/912) |
 | 7 | Admin routes protected | PASS (N/A, no admin UI) | PASS |
 | 8 | Production debug mode disabled | PASS | PASS |
 | 9 | Detailed errors hidden from users | minor gaps, [#180](https://github.com/candrikanich/recruiting-compass-ios/issues/180) | PASS, 1 item folded into [#914](https://github.com/candrikanich/recruiting-compass-web/issues/914) |
@@ -38,7 +38,7 @@ NEEDS-HUMAN-VERIFICATION.
 
 ## Confirmed issues filed
 
-- **[web #912](https://github.com/candrikanich/recruiting-compass-web/issues/912)** — P0. RLS bypassed on 114/117 Supabase-touching API routes via service-role client. This is the root cause behind item #6 for both platforms — iOS's own direct Supabase queries rely on the same RLS policies.
+- **[web #912](https://github.com/candrikanich/recruiting-compass-web/issues/912)** — P0. RLS bypassed on 114/117 Supabase-touching API routes via service-role client. This confirms item #6 FAIL on web. iOS does not go through this service-role path — it queries Supabase directly with the anon key — so item #6 on iOS is NEEDS-VERIFICATION against the RLS policies themselves, not a consequence of this bug.
 - **[web #913](https://github.com/candrikanich/recruiting-compass-web/issues/913)** — Only 16% Zod coverage across API routes; unauthenticated/high-exposure routes (signup, signup-minor, inbound-email webhook) have no schema validation.
 - **[web #914](https://github.com/candrikanich/recruiting-compass-web/issues/914)** — Verification bundle: prod error handler default behavior, single-instance rate-limit store, no explicit CORS allowlist for iOS API consumers.
 - **[iOS #180](https://github.com/candrikanich/recruiting-compass-ios/issues/180)** — Two raw system error strings shown to users instead of friendly app-defined messages.
