@@ -29,28 +29,31 @@ struct OnboardingContainerView: View {
   var body: some View {
     NavigationStack {
       ZStack {
-        LinearGradient(
-          colors: [Color(red: 0.94, green: 0.96, blue: 1), Color(red: 0.88, green: 0.9, blue: 1)],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-        .ignoresSafeArea()
+        LinearGradient.primaryBackground
+          .ignoresSafeArea()
 
         VStack(spacing: 0) {
           signOutHeader
 
-          if loadFailed {
-            loadFailedView
-          } else if let currentStep {
-            if showsTwoSteps {
-              progressIndicator(currentStep)
+          VStack(spacing: 0) {
+            if loadFailed {
+              loadFailedView
+            } else if let currentStep {
+              if showsTwoSteps {
+                progressIndicator(currentStep)
+              }
+              stepContent(currentStep)
+            } else {
+              Spacer()
+              ProgressView()
+              Spacer()
             }
-            stepContent(currentStep)
-          } else {
-            Spacer()
-            ProgressView()
-            Spacer()
           }
+          .background(Color.white.opacity(0.95))
+          .clipShape(.rect(cornerRadius: 16))
+          .colorScheme(.light)
+          .padding(.horizontal, 24)
+          .padding(.bottom, 24)
         }
       }
       .overlay {

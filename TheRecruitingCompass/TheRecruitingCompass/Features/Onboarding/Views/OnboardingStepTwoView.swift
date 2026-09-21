@@ -32,7 +32,7 @@ struct OnboardingStepTwoView: View {
       }
       .padding(.vertical, 24)
     }
-    .background(Color(uiColor: .systemGroupedBackground))
+    .scrollContentBackground(.hidden)
     .navigationTitle("Schools to Explore")
     .navigationBarTitleDisplayMode(.large)
     .alert("Error", isPresented: .init(
