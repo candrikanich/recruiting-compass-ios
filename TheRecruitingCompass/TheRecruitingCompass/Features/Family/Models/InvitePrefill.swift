@@ -7,6 +7,9 @@ struct InvitePrefill: Codable, Sendable, Equatable {
   let sport: String?
   let position: String?
   let graduationYear: Int?
+  /// "yyyy-MM-dd". Only ever populated on the authenticated accept-invite response — the
+  /// unauthenticated invite-lookup endpoint deliberately omits player PII including DOB.
+  let dateOfBirth: String?
 
   enum CodingKeys: String, CodingKey {
     case firstName
@@ -14,14 +17,23 @@ struct InvitePrefill: Codable, Sendable, Equatable {
     case sport
     case position
     case graduationYear
+    case dateOfBirth
   }
 
-  init(firstName: String, lastName: String, sport: String? = nil, position: String? = nil, graduationYear: Int? = nil) {
+  init(
+    firstName: String,
+    lastName: String,
+    sport: String? = nil,
+    position: String? = nil,
+    graduationYear: Int? = nil,
+    dateOfBirth: String? = nil
+  ) {
     self.firstName = firstName
     self.lastName = lastName
     self.sport = sport
     self.position = position
     self.graduationYear = graduationYear
+    self.dateOfBirth = dateOfBirth
   }
 
   init(from decoder: Decoder) throws {
@@ -31,6 +43,7 @@ struct InvitePrefill: Codable, Sendable, Equatable {
     sport = try c.decodeIfPresent(String.self, forKey: .sport)
     position = try c.decodeIfPresent(String.self, forKey: .position)
     graduationYear = try c.decodeIfPresent(Int.self, forKey: .graduationYear)
+    dateOfBirth = try c.decodeIfPresent(String.self, forKey: .dateOfBirth)
   }
 
   func encode(to encoder: Encoder) throws {
@@ -40,5 +53,6 @@ struct InvitePrefill: Codable, Sendable, Equatable {
     try c.encodeIfPresent(sport, forKey: .sport)
     try c.encodeIfPresent(position, forKey: .position)
     try c.encodeIfPresent(graduationYear, forKey: .graduationYear)
+    try c.encodeIfPresent(dateOfBirth, forKey: .dateOfBirth)
   }
 }

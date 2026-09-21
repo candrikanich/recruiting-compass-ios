@@ -39,6 +39,16 @@ final class InviteJoinViewModel {
   var signupAgreeToTerms = false
   var signupError: String?
 
+  // Shown after signupAndConnect() succeeds for a player invite, letting the player confirm (or
+  // correct) the birthday their parent entered during onboarding before landing on the dashboard.
+  var showBirthdayConfirmStep = false
+  var confirmedDateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: .now) ?? .now
+  var dateOfBirthWasPrefilled = false
+  var birthdayConfirmError: String?
+  var isConfirmingBirthday = false
+  var showBirthdaySaveFailedToast = false
+  var birthdaySaveFailedMessage: String?
+
   // GET /api/family/invite/:token deliberately withholds emailExists (no
   // account-existence disclosure pre-acceptance — see InviteDetails), so it
   // always decodes false, defaulting every unauthenticated invitee to the
@@ -52,8 +62,19 @@ final class InviteJoinViewModel {
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
   private let turnstileTokenProvider: any TurnstileTokenProviding
+  private let profileService: any ProfileManaging
 
   var isAuthenticated: Bool { authManager.isAuthenticated }
+
+  // No explicit timeZone: DatePicker's underlying Date represents local midnight for the
+  // selected calendar day, so formatting/parsing must use the device's local timezone
+  // (matching COPPAHelper's parser) — forcing GMT shifts the day for any device not on UTC.
+  private static var dateOnlyFormatter: DateFormatter {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    return formatter
+  }
 
   var inviteDetails: InviteDetails? {
     if case .loaded(let d) = state { return d }
@@ -71,12 +92,14 @@ final class InviteJoinViewModel {
     token: String,
     familyService: (any FamilyManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
-    turnstileTokenProvider: (any TurnstileTokenProviding)? = nil
+    turnstileTokenProvider: (any TurnstileTokenProviding)? = nil,
+    profileService: (any ProfileManaging)? = nil
   ) {
     self.token = token
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
+    self.profileService = profileService ?? ProfileServiceImpl(supabaseManager: .shared)
   }
 
   func loadInvite() async {
@@ -148,9 +171,7 @@ final class InviteJoinViewModel {
     }
 
     let role = UserRole(rawValue: invite.role) ?? .player
-    let dobFormatter = DateFormatter()
-    dobFormatter.dateFormat = "yyyy-MM-dd"
-    let dobString = dobFormatter.string(from: signupDateOfBirth)
+    let dobString = Self.dateOnlyFormatter.string(from: signupDateOfBirth)
 
     if role == .player && COPPAHelper.isUnderAge(dobString) {
       signupError = "Players must be 13 or older"
@@ -173,6 +194,7 @@ final class InviteJoinViewModel {
     isAccepting = true
     defer { isAccepting = false }
 
+    var acceptResponse: AcceptInviteResponse?
     do {
       let fullName = "\(first) \(last)"
       let captchaToken = try await turnstileTokenProvider.getToken()
@@ -203,7 +225,7 @@ final class InviteJoinViewModel {
         skipVerificationEmail: true,
         beforePublish: { [weak self] in
           guard let self else { return }
-          try await self.familyService.acceptInvite(token: self.token)
+          acceptResponse = try await self.familyService.acceptInvite(token: self.token)
         }
       )
 
@@ -213,11 +235,61 @@ final class InviteJoinViewModel {
       }
       showSuccessToast = true
       try? await Task.sleep(for: .milliseconds(1500))
-      navigateToDashboard = true
+
+      if role == .player {
+        prefillBirthdayConfirmStep(from: acceptResponse)
+        showBirthdayConfirmStep = true
+      } else {
+        navigateToDashboard = true
+      }
     } catch {
       logger.error("signupAndConnect: \(error.localizedDescription)")
       signupError = (error as? AuthError)?.errorDescription ?? "Could not create account. Please try again."
     }
+  }
+
+  private func prefillBirthdayConfirmStep(from response: AcceptInviteResponse?) {
+    if let dobString = response?.prefill?.dateOfBirth,
+       let date = Self.dateOnlyFormatter.date(from: dobString) {
+      confirmedDateOfBirth = date
+      dateOfBirthWasPrefilled = true
+    } else {
+      // No parent-entered value to prefill — fall back to whatever the player already
+      // entered (or left at the default) on the signup form.
+      confirmedDateOfBirth = signupDateOfBirth
+      dateOfBirthWasPrefilled = false
+    }
+  }
+
+  /// Persists the (possibly edited) confirmed birthday, then proceeds to the dashboard.
+  /// Fails open on a network/server error — a DOB PATCH failure should never strand the
+  /// player on this screen.
+  func confirmBirthday() async {
+    birthdayConfirmError = nil
+    let dobString = Self.dateOnlyFormatter.string(from: confirmedDateOfBirth)
+
+    if COPPAHelper.isUnderAge(dobString) {
+      birthdayConfirmError = "Players must be 13 or older"
+      return
+    }
+
+    isConfirmingBirthday = true
+    defer { isConfirmingBirthday = false }
+
+    do {
+      let fullName = "\(signupFirstName.trimmingCharacters(in: .whitespaces)) \(signupLastName.trimmingCharacters(in: .whitespaces))"
+      try await profileService.updatePersonalInfo(fullName: fullName, dateOfBirth: dobString)
+    } catch {
+      logger.error("confirmBirthday: failed to persist DOB, continuing anyway: \(error.localizedDescription)")
+      // Tell the player their edit didn't save, but never block reaching the dashboard over it —
+      // they can retry from their profile. Toast is on InviteJoinView, shown right before dismiss.
+      birthdaySaveFailedMessage = "Couldn't save your birthday. You can update it later in your profile."
+      showBirthdaySaveFailedToast = true
+      try? await Task.sleep(for: .milliseconds(1200))
+    }
+
+    showBirthdayConfirmStep = false
+    navigateToDashboard = true
   }
 
   func decline() async {

@@ -158,7 +158,8 @@ extension FamilyServiceImpl {
     }
   }
 
-  func acceptInvite(token: String) async throws {
+  @discardableResult
+  func acceptInvite(token: String) async throws -> AcceptInviteResponse {
     familyServiceLogger.debug("Accepting invite")
     guard let baseURL = SupabaseConfig.apiBaseURL else {
       throw FamilyError.serverError("API base URL not configured")
@@ -177,12 +178,20 @@ extension FamilyServiceImpl {
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.httpBody = Data("{}".utf8)
 
-    let (_, response) = try await URLSession.shared.data(for: request)
+    let (data, response) = try await URLSession.shared.data(for: request)
     guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
       familyServiceLogger.error("acceptInvite failed: status=\((response as? HTTPURLResponse)?.statusCode ?? -1)")
       throw FamilyError.serverError("Failed to accept invite")
     }
-    familyServiceLogger.info("Invite accepted: status=\(http.statusCode)")
+    do {
+      let decoded = try JSONDecoder().decode(AcceptInviteResponse.self, from: data)
+      familyServiceLogger.info("Invite accepted: status=\(http.statusCode)")
+      return decoded
+    } catch {
+      let bodyPreview = String(data: data.prefix(500), encoding: .utf8) ?? "(unable to decode)"
+      familyServiceLogger.error("acceptInvite decode failed: \(error.localizedDescription, privacy: .public), body=\(bodyPreview, privacy: .private)")
+      throw error
+    }
   }
 
   // Decline does NOT require authentication (spec: public endpoint)

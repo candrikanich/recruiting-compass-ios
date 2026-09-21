@@ -31,6 +31,10 @@ struct InviteJoinView: View {
       if navigates { dismiss() }
     }
     .sheet(item: $presentedLegal) { $0.view }
+    .sheet(isPresented: $viewModel.showBirthdayConfirmStep) {
+      InviteJoinBirthdayConfirmView(viewModel: viewModel)
+        .presentationDetents([.medium])
+    }
     .toast(
       isShowing: Binding(
         get: { viewModel.showSuccessToast },
@@ -42,6 +46,18 @@ struct InviteJoinView: View {
       ),
       type: .success,
       duration: 2.0
+    )
+    .toast(
+      isShowing: Binding(
+        get: { viewModel.showBirthdaySaveFailedToast },
+        set: { viewModel.showBirthdaySaveFailedToast = $0 }
+      ),
+      message: Binding(
+        get: { viewModel.birthdaySaveFailedMessage },
+        set: { viewModel.birthdaySaveFailedMessage = $0 }
+      ),
+      type: .error,
+      duration: 3.0
     )
   }
 }

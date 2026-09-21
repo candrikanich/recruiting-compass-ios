@@ -441,7 +441,9 @@ private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
   func lookupInviteByToken(_ token: String) async throws -> InviteDetails {
     fatalError("Not used in onboarding v2 tests")
   }
-  func acceptInvite(token: String) async throws {}
+  func acceptInvite(token: String) async throws -> AcceptInviteResponse {
+    AcceptInviteResponse(success: true, familyUnitId: "family-1", onboardingComplete: true, prefill: nil)
+  }
   func declineInvite(token: String) async throws {}
   func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws {}
 }
