@@ -132,7 +132,11 @@ final class HomeLocationViewModel {
       logger.info("Current location applied: \(clLocation.coordinate.latitude), \(clLocation.coordinate.longitude)")
     } catch {
       logger.error("Current location failed: \(error.localizedDescription)")
-      errorMessage = error.localizedDescription
+      // LocationError already has friendly, app-defined messages; anything
+      // else (e.g. a raw CLError from the live-updates loop) must not leak
+      // SDK-internal wording to the user.
+      errorMessage = (error as? LocationError)?.errorDescription
+        ?? String(localized: "Unable to determine your current location. Please try again.")
     }
 
     isRequestingLocation = false

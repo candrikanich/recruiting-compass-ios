@@ -65,4 +65,16 @@ final class EntitlementStoreTests: XCTestCase {
     XCTAssertNotNil(store.errorMessage)
     XCTAssertTrue(store.hasLoaded)
   }
+
+  // #180: fetchSubscription has no typed error of its own -- assert the raw
+  // SDK error's own description never reaches the user-facing errorMessage.
+  func test_serviceErrorShowsGenericFriendlyMessageNotRawSDKText() async {
+    let (store, mock) = makeStore(nil)
+    mock.error = URLError(.notConnectedToInternet)
+    await store.load(familyUnitId: "fam-1")
+    XCTAssertEqual(store.errorMessage, "Unable to load your plan. Please try again.")
+    XCTAssertFalse(
+      store.errorMessage?.localizedCaseInsensitiveContains("internet") ?? true
+    )
+  }
 }

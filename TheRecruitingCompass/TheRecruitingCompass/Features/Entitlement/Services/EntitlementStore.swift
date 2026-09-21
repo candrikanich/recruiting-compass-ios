@@ -50,7 +50,9 @@ final class EntitlementStore {
       errorMessage = nil
     } catch {
       subscription = nil
-      errorMessage = error.localizedDescription
+      // fetchSubscription has no typed error of its own (raw Supabase SDK
+      // errors) -- never surface that wording to the user directly.
+      errorMessage = String(localized: "Unable to load your plan. Please try again.")
       logger.error("Failed to load entitlement: \(error.localizedDescription)")
     }
   }
