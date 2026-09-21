@@ -52,6 +52,11 @@ final class DashboardViewModel {
   var isLoggingOut = false
   var errorMessage: String?
 
+  /// Bumped at the start of each `fetchDashboardData()` call so a superseded fetch's
+  /// `defer` (or cancellation branch) can detect it's no longer current and skip
+  /// mutating `isLoading`/`errorMessage` out from under the newer fetch.
+  private var fetchGeneration = 0
+
   func dismissError() {
     errorMessage = nil
   }
@@ -201,10 +206,18 @@ final class DashboardViewModel {
 
     logger.debug("fetchDashboardData - familyUnitId: \(familyUnitId), targetUserId: \(targetUserId)")
 
+    fetchGeneration += 1
+    let myGeneration = fetchGeneration
+
     isLoading = true
     errorMessage = nil
 
-    defer { isLoading = false }
+    defer {
+      // A superseded fetch's defer must not clear isLoading for a newer, still-running fetch.
+      if fetchGeneration == myGeneration {
+        isLoading = false
+      }
+    }
 
     do {
       async let visibilityTask: Void = fetchWidgetVisibility()
@@ -224,6 +237,12 @@ final class DashboardViewModel {
       return
     } catch {
       logger.error("Failed to load dashboard data: \(error.localizedDescription)")
+
+      guard fetchGeneration == myGeneration else {
+        // A newer fetch superseded this one; don't clobber its in-progress or completed state.
+        return
+      }
+
       errorMessage = "Failed to load dashboard. Pull to refresh."
 
       #if DEBUG
