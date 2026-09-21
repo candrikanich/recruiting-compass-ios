@@ -197,6 +197,10 @@ final class InviteJoinViewModel {
         gender: nil,
         zipCode: nil,
         captchaToken: captchaToken,
+        // This account's email_verified_at is stamped by acceptInvite() in beforePublish
+        // below the instant the invite is accepted — skip the verify-email flow entirely
+        // (mirrors web's join.vue invite-signup call), matching accept.post.ts:103-111.
+        skipVerificationEmail: true,
         beforePublish: { [weak self] in
           guard let self else { return }
           try await self.familyService.acceptInvite(token: self.token)

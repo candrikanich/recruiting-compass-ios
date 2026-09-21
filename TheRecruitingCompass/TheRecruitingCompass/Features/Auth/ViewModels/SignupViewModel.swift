@@ -353,6 +353,7 @@ final class SignupViewModel {
         gender: draftsStep1 ? (derivedGender ?? (gender.isEmpty ? nil : gender)) : nil,
         zipCode: draftsStep1 && !trimmedZipCode.isEmpty ? trimmedZipCode : nil,
         captchaToken: captchaToken,
+        skipVerificationEmail: false,
         beforePublish: nil
       )
 

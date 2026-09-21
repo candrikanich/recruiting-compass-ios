@@ -34,6 +34,9 @@ protocol AuthManaging: AnyObject {
   ///   publishes — same ordering guarantee as the `pending_*` flush, for a caller (e.g. invite
   ///   acceptance) with its own server-side write the onboarding gate depends on. Throwing aborts
   ///   the signup: `isAuthenticated` is never published, matching the caller's own failure.
+  /// - Parameter skipVerificationEmail: pass `true` for invite/guardian-claim signups, whose
+  ///   acceptance handler stamps `email_verified_at` moments later — mirrors web's join.vue/
+  ///   guardian-claim callers (see server/api/auth/signup.post.ts).
   func signup(
     email: String,
     password: String,
@@ -46,6 +49,7 @@ protocol AuthManaging: AnyObject {
     gender: String?,
     zipCode: String?,
     captchaToken: String,
+    skipVerificationEmail: Bool,
     beforePublish: (() async throws -> Void)?
   ) async throws
   /// Establishes a session from a service-role magiclink token hash (minted

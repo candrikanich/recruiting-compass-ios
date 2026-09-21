@@ -25,6 +25,7 @@ final class MockSupabaseManager: SupabaseManaging {
 
   private(set) var capturedSignInCaptchaToken: String?
   private(set) var capturedSignUpCaptchaToken: String?
+  private(set) var capturedSignUpSkipVerificationEmail: Bool?
   private(set) var capturedResetPasswordCaptchaToken: String?
   private(set) var capturedResendVerificationCaptchaToken: String?
 
@@ -57,7 +58,8 @@ final class MockSupabaseManager: SupabaseManaging {
     primarySport: String?,
     gender: String?,
     zipCode: String?,
-    captchaToken: String
+    captchaToken: String,
+    skipVerificationEmail: Bool
   ) async throws -> (user: User, session: Session?) {
     capturedSignUpDateOfBirth = dateOfBirth
     capturedSignUpGraduationYear = graduationYear
@@ -65,6 +67,7 @@ final class MockSupabaseManager: SupabaseManaging {
     capturedSignUpGender = gender
     capturedSignUpZipCode = zipCode
     capturedSignUpCaptchaToken = captchaToken
+    capturedSignUpSkipVerificationEmail = skipVerificationEmail
     return try signUpResult.get()
   }
 

@@ -75,6 +75,10 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     let dateOfBirth: String?
     let captchaToken: String
     let metadata: [String: String]
+    // Invite/guardian-claim signups stamp email_verified_at when the invite is
+    // accepted moments later, so they must skip the verify-email flow entirely —
+    // matches web's join.vue/guardian claim callers (server/api/auth/signup.post.ts).
+    let skipVerificationEmail: Bool
   }
 
   private struct WebSignupResult: Decodable {
@@ -144,7 +148,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     primarySport: String? = nil,
     gender: String? = nil,
     zipCode: String? = nil,
-    captchaToken: String
+    captchaToken: String,
+    skipVerificationEmail: Bool = false
   ) async throws -> (user: User, session: Session?) {
     // family_code isn't accepted by the web signup endpoint's metadata (server/api/auth/signup.post.ts
     // ALLOWED_METADATA_KEYS) — family creation is its own step after signup (see
@@ -176,7 +181,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         role: role.rawValue,
         dateOfBirth: (dateOfBirth?.isEmpty == false) ? dateOfBirth : nil,
         captchaToken: captchaToken,
-        metadata: metadata
+        metadata: metadata,
+        skipVerificationEmail: skipVerificationEmail
       )
     )
 
