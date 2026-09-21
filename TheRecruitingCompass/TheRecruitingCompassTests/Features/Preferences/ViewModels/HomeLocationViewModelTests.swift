@@ -269,6 +269,34 @@ final class HomeLocationViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.isRequestingLocation)
   }
 
+  // #180: a raw (non-LocationError) SDK error must never reach errorMessage
+  // verbatim -- assert the generic friendly fallback, not the raw NSError
+  // text, so this test would fail if that mapping regressed.
+  func testUseCurrentLocation_WhenErrorIsNotLocationError_ShowsGenericFriendlyMessage() async {
+    // Given
+    let mockLocation = MockLocationProvider()
+    mockLocation.errorToThrow = NSError(
+      domain: "kCLErrorDomain",
+      code: 0,
+      userInfo: [NSLocalizedDescriptionKey: "The operation couldn't be completed. (kCLErrorDomain error 0.)"]
+    )
+    viewModel = HomeLocationViewModel(
+      preferenceService: mockService,
+      geocoder: mockGeocoder,
+      locationService: mockLocation
+    )
+
+    // When
+    await viewModel.useCurrentLocation()
+
+    // Then
+    XCTAssertEqual(
+      viewModel.errorMessage,
+      "Unable to determine your current location. Please try again."
+    )
+    XCTAssertFalse(viewModel.errorMessage?.contains("kCLErrorDomain") ?? true)
+  }
+
   func testUseCurrentLocation_SetsIsRequestingLocationDuringRequest() async {
     // Given
     let mockLocation = MockLocationProvider()
