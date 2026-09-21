@@ -5,12 +5,38 @@ final class GradeLevelHelperTests: XCTestCase {
 
   var calendar: Calendar { Calendar.current }
 
-  func testAllowedGraduationYears_IsCurrentThroughCurrentPlus5() {
+  func testAllowedGraduationYears_CeilingIsAlwaysCalendarYearPlus5() {
+    // Ceiling never exceeds calendarYear+5 regardless of month — this is web's canonical fixed
+    // ceiling (utils/graduationYears.ts), which the shared signup API validates against.
     let years = GradeLevelHelper.allowedGraduationYears
     let current = calendar.component(.year, from: Date())
-    XCTAssertEqual(years.count, 6, "Should show current year + 5 (6 years total) — web parity, lets rising 8th graders pick")
-    XCTAssertEqual(years, Array(current...(current + 5)), "Should be consecutive from current through current+5")
-    XCTAssertEqual(years.last, current + 5, "Upper bound must be current+5")
+    XCTAssertEqual(years.last, current + 5, "Ceiling must never exceed calendarYear+5 (web parity)")
+    XCTAssertEqual(years, Array(years.first!...years.last!), "Should be consecutive")
+  }
+
+  func testAllowedGraduationYears_June_IsSixConsecutiveYears_FloorIsCurrentYear() {
+    // Class of 2026 hasn't graduated yet as of June 1 (graduation lands June 1) — still selectable.
+    let ref = date(2026, 6, 1)
+    let years = GradeLevelHelper.allowedGraduationYears(referenceDate: ref)
+    XCTAssertEqual(years, Array(2026...2031), "6 years through June, matching web's fixed currentYear...+5")
+  }
+
+  func testAllowedGraduationYears_July_FloorRollsToNextYear_CeilingStaysPinned() {
+    // Class of 2026 graduated in May/June — by July it should no longer be a pickable "expected"
+    // year. The window shrinks to 5 (rather than sliding to 2032) so the ceiling never exceeds
+    // web's fixed currentYear+5 validation.
+    let ref = date(2026, 7, 1)
+    let years = GradeLevelHelper.allowedGraduationYears(referenceDate: ref)
+    XCTAssertEqual(years, Array(2027...2031), "Already-graduated class of 2026 dropped; ceiling stays at calendarYear+5")
+  }
+
+  func testAllowedGraduationYears_September_CurrentFreshmanClassIsIncluded() {
+    // Sept 2026: current freshmen (started HS this fall) graduate 2030 — must be in the range.
+    let ref = date(2026, 9, 21)
+    let years = GradeLevelHelper.allowedGraduationYears(referenceDate: ref)
+    XCTAssertEqual(years, Array(2027...2031))
+    XCTAssertTrue(years.contains(2030), "Current freshman class (2030) must be selectable")
+    XCTAssertFalse(years.contains(2026), "Class of 2026 already graduated, should not be offered")
   }
 
   func testCalculateCurrentGrade_ReturnsValueIn9To12() {

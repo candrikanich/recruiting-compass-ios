@@ -411,7 +411,7 @@ final class SignupViewModel {
         // captchaToken above was already consumed by signup-minor's own check,
         // so a fresh one is needed here. Mirrors #167's adult-signup fallback.
         let freshCaptchaToken = try await turnstileTokenProvider.getToken()
-        try await authManager.login(email: email, password: password, captchaToken: freshCaptchaToken)
+        try await authManager.login(email: email, password: password, captchaToken: freshCaptchaToken, beforePublish: nil)
       }
     } catch {
       errorMessage = (error as? GuardianServiceError)?.errorDescription

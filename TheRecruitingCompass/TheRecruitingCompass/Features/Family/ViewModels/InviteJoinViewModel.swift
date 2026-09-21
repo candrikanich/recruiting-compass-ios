@@ -103,11 +103,24 @@ final class InviteJoinViewModel {
     defer { isAccepting = false }
 
     do {
-      if !authManager.isAuthenticated {
+      if authManager.isAuthenticated {
+        try await familyService.acceptInvite(token: token)
+      } else {
         let captchaToken = try await turnstileTokenProvider.getToken()
-        try await authManager.login(email: loginEmail, password: loginPassword, captchaToken: captchaToken)
+        // Accepting the invite must run BEFORE authManager publishes isAuthenticated: it's what
+        // triggers the server's hydrateAthleteFromPendingDetails() write (sport/gradYear/position
+        // into the same user_preferences row iOS reads), and the onboarding gate reads that row
+        // the instant isAuthenticated flips true. See signupAndConnect()'s matching comment.
+        // beforePublish is throwing: a failed acceptInvite aborts login() itself, so
+        // isAuthenticated never publishes true for an invite that didn't actually get accepted.
+        try await authManager.login(
+          email: loginEmail, password: loginPassword, captchaToken: captchaToken,
+          beforePublish: { [weak self] in
+            guard let self else { return }
+            try await self.familyService.acceptInvite(token: self.token)
+          }
+        )
       }
-      try await familyService.acceptInvite(token: token)
       successMessage = "You're connected!"
       if inviteDetails?.emailMismatch == true {
         successMessage = "You're connected! (You used a different email than the invite.)"
@@ -160,8 +173,6 @@ final class InviteJoinViewModel {
     isAccepting = true
     defer { isAccepting = false }
 
-    var acceptError: Error?
-
     do {
       let fullName = "\(first) \(last)"
       let captchaToken = try await turnstileTokenProvider.getToken()
@@ -172,6 +183,8 @@ final class InviteJoinViewModel {
       // (loadInvite/InviteDetails.prefill) never carries this player data — Athlete PII is only
       // released here, after the authenticated caller has proven they're the invitee — so there
       // is nothing for signupAndConnect to pass into signup()'s own pending_* metadata.
+      // beforePublish is throwing: a failed acceptInvite aborts signup() itself, so
+      // isAuthenticated never publishes true for an invite that didn't actually get accepted.
       try await authManager.signup(
         email: invite.email,
         password: signupPassword,
@@ -186,14 +199,9 @@ final class InviteJoinViewModel {
         captchaToken: captchaToken,
         beforePublish: { [weak self] in
           guard let self else { return }
-          do {
-            try await self.familyService.acceptInvite(token: self.token)
-          } catch {
-            acceptError = error
-          }
+          try await self.familyService.acceptInvite(token: self.token)
         }
       )
-      if let acceptError { throw acceptError }
 
       successMessage = "You're connected!"
       if inviteDetails?.emailMismatch == true {

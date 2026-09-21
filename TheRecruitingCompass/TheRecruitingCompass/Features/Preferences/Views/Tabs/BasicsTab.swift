@@ -25,6 +25,15 @@ struct BasicsTab: View {
         Calendar.current.component(.year, from: .now)
     }
 
+    // Union of the onboarding-oriented allowed range with a persisted year that falls outside it
+    // (e.g. GradeLevelHelper's July cutoff dropping a just-graduated year an existing profile
+    // still has saved) — the wheel must always have a tag matching the bound selection.
+    private var gradYearOptions: [Int] {
+        let allowed = GradeLevelHelper.allowedGraduationYears
+        guard let saved = viewModel.details.graduationYear, !allowed.contains(saved) else { return allowed }
+        return ([saved] + allowed).sorted()
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
@@ -320,11 +329,11 @@ struct BasicsTab: View {
             Picker(
                 "Graduation Year",
                 selection: Binding(
-                    get: { viewModel.details.graduationYear ?? currentYear },
+                    get: { viewModel.details.graduationYear ?? gradYearOptions.first ?? currentYear },
                     set: { viewModel.updateGraduationYear($0) }
                 )
             ) {
-                ForEach(GradeLevelHelper.allowedGraduationYears, id: \.self) { year in
+                ForEach(gradYearOptions, id: \.self) { year in
                     Text(String(year)).tag(year)
                 }
             }

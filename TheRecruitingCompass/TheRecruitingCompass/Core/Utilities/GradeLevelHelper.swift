@@ -2,12 +2,29 @@ import Foundation
 
 /// Graduation year and grade-level helpers. Aligns with web `getGraduationYearOptions()`: current year through current+5.
 enum GradeLevelHelper {
-  /// Allowed graduation years for pickers: current year through current+5 (6 years). Matches web canonical
-  /// `utils/graduationYears.ts`; the +5 upper bound lets rising 8th graders (13+) pick their class. Age
-  /// eligibility is enforced separately by the 13+ COPPA gate, not by this range.
+  /// Allowed graduation years for pickers: floor through calendarYear+5, where floor is the
+  /// earliest class that hasn't graduated yet. The ceiling is pinned to the raw calendar year
+  /// (not the pivoted floor) so it never exceeds web's canonical `currentYear...currentYear+5`
+  /// range (`utils/graduationYears.ts`) — the shared signup API validates against that fixed
+  /// ceiling, so a wandering upper bound here would get rejected server-side. This means the
+  /// window is 6 years through June and 5 years from July through December, shrinking rather
+  /// than sliding — an accepted trade-off vs. coordinating a matching web pivot. Age eligibility
+  /// is enforced separately by the 13+ COPPA gate, not by this range.
   static var allowedGraduationYears: [Int] {
-    let year = Calendar.current.component(.year, from: Date.now)
-    return Array(year...(year + 5))
+    allowedGraduationYears(referenceDate: Date.now)
+  }
+
+  /// Same as above with an explicit reference date (for testing month boundaries).
+  ///
+  /// Graduation lands June 1 (see `graduationDate`); by July the just-graduated class shouldn't
+  /// still be offered as a pickable "expected" graduation year, so the floor rolls to next year
+  /// starting July 1 — same pivot month as `calculateCurrentGrade`, kept in sync for consistency.
+  static func allowedGraduationYears(referenceDate: Date) -> [Int] {
+    let calendar = Calendar.current
+    let year = calendar.component(.year, from: referenceDate)
+    let month = calendar.component(.month, from: referenceDate)
+    let floor = month >= 7 ? year + 1 : year
+    return Array(floor...(year + 5))
   }
 
   /// Returns current grade (9–12) for the given graduation year, using a July 1 roll pivot.
