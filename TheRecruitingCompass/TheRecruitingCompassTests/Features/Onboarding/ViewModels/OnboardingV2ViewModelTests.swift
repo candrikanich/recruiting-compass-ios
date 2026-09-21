@@ -9,15 +9,23 @@ struct OnboardingV2ViewModelTests {
   private func makeSUT(
     onboardingService: (any OnboardingManaging)? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
-    authManager: MockAuthManager? = nil
+    authManager: MockAuthManager? = nil,
+    schoolsRepository: SpySchoolsRepository? = nil,
+    familyService: StubFamilyService? = nil,
+    ncaaDatabase: StubNcaaDatabase? = nil,
+    collegeScorecardService: StubCollegeScorecardService? = nil,
+    faviconService: SpyFaviconService? = nil
   ) -> OnboardingV2ViewModel {
     OnboardingV2ViewModel(
       onboardingService: onboardingService ?? MockOnboardingService(),
       preferenceService: preferenceService ?? StubPreferenceService(),
       authManager: authManager ?? MockAuthManager(),
-      schoolsRepository: StubSchoolsRepository(),
+      schoolsRepository: schoolsRepository ?? SpySchoolsRepository(),
       recommendationService: StubRecommendationService(),
-      familyService: StubFamilyService()
+      familyService: familyService ?? StubFamilyService(),
+      ncaaDatabase: ncaaDatabase ?? StubNcaaDatabase(),
+      collegeScorecardService: collegeScorecardService ?? StubCollegeScorecardService(),
+      faviconService: faviconService ?? SpyFaviconService()
     )
   }
 
@@ -364,10 +372,15 @@ private final class StubPreferenceService: PreferenceManaging, @unchecked Sendab
   func deletePreferences(category: PreferenceCategory) async throws {}
 }
 
-private final class StubSchoolsRepository: SchoolsRepository, @unchecked Sendable {
+private final class SpySchoolsRepository: SchoolsRepository, @unchecked Sendable {
   private static let placeholder = School.mock(id: "stub", name: "Stub U")
 
-  func createSchool(request: SchoolCreateRequest) async throws -> School { Self.placeholder }
+  private(set) var lastCreateRequest: SchoolCreateRequest?
+
+  func createSchool(request: SchoolCreateRequest) async throws -> School {
+    lastCreateRequest = request
+    return Self.placeholder
+  }
   func fetchSchools(familyUnitId: String) async throws -> [School] { [] }
   func fetchSchool(id: String, familyUnitId: String) async throws -> School { Self.placeholder }
   func deleteSchool(id: String) async throws {}
@@ -397,7 +410,19 @@ private final class StubRecommendationService: SchoolRecommendationManaging, @un
 }
 
 private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
-  func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit? { nil }
+  var stubbedFamilyUnit: FamilyUnit? = FamilyUnit(
+    id: "family-1",
+    createdByUserId: "user-1",
+    familyName: nil,
+    familyCode: nil,
+    codeGeneratedAt: nil,
+    createdAt: nil,
+    updatedAt: nil,
+    homeLatitude: nil,
+    homeLongitude: nil
+  )
+
+  func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit? { stubbedFamilyUnit }
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember] { [] }
   func getCurrentMember(userId: String) async throws -> FamilyMember? { nil }
   func createFamily(role: UserRole) async throws -> CreateFamilyResponse {
@@ -419,4 +444,221 @@ private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
   func acceptInvite(token: String) async throws {}
   func declineInvite(token: String) async throws {}
   func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws {}
+}
+
+private final class StubNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
+  var stubbedResult: NcaaLookupResult?
+  private(set) var lookupCallCount = 0
+
+  func lookup(schoolName: String) async -> NcaaLookupResult? {
+    lookupCallCount += 1
+    return stubbedResult
+  }
+}
+
+private final class StubCollegeScorecardService: CollegeScorecardManaging, @unchecked Sendable {
+  var stubbedResult: CollegeDataResult?
+  private(set) var lookupCallCount = 0
+
+  func lookupCollege(name: String) async throws -> CollegeDataResult? {
+    lookupCallCount += 1
+    return stubbedResult
+  }
+  func lookupCollege(id: String) async throws -> CollegeDataResult? { stubbedResult }
+  func searchColleges(query: String) async throws -> [CollegeSearchResult] { [] }
+}
+
+// Fire-and-forget in production (see addSchool), so tests that need to observe the call
+// must await it explicitly rather than checking the count right after addSchool returns.
+private actor SpyFaviconService: SchoolFaviconManaging {
+  private(set) var fetchAndPersistCallCount = 0
+  private(set) var lastSchool: School?
+  private var continuation: CheckedContinuation<Void, Never>?
+
+  func fetchAndPersist(school: School) async {
+    fetchAndPersistCallCount += 1
+    lastSchool = school
+    continuation?.resume()
+    continuation = nil
+  }
+
+  func waitForCall() async {
+    if fetchAndPersistCallCount > 0 { return }
+    await withCheckedContinuation { continuation = $0 }
+  }
+}
+
+// MARK: - addSchool enrichment parity with Schools-page "Add School" flow
+
+@Suite("OnboardingV2ViewModel — addSchool enrichment")
+@MainActor
+struct OnboardingV2ViewModelAddSchoolTests {
+
+  private func makeSUT(
+    schoolsRepository: SpySchoolsRepository = SpySchoolsRepository(),
+    ncaaDatabase: StubNcaaDatabase = StubNcaaDatabase(),
+    collegeScorecardService: any CollegeScorecardManaging = StubCollegeScorecardService(),
+    faviconService: any SchoolFaviconManaging = SpyFaviconService(),
+    authManager: MockAuthManager? = nil
+  ) -> OnboardingV2ViewModel {
+    let auth = authManager ?? MockAuthManager()
+    if auth.user == nil {
+      auth.setMockUser(User(
+        id: "user-1",
+        email: "test@example.com",
+        emailConfirmedAt: nil,
+        createdAt: "2026-01-01T00:00:00Z",
+        updatedAt: "2026-01-01T00:00:00Z",
+        role: .player
+      ))
+    }
+    return OnboardingV2ViewModel(
+      onboardingService: MockOnboardingService(),
+      preferenceService: StubPreferenceService(),
+      authManager: auth,
+      schoolsRepository: schoolsRepository,
+      recommendationService: StubRecommendationService(),
+      familyService: StubFamilyService(),
+      ncaaDatabase: ncaaDatabase,
+      collegeScorecardService: collegeScorecardService,
+      faviconService: faviconService
+    )
+  }
+
+  private func makeRecommendation(
+    division: String? = "D1",
+    conference: String? = "Mid-American Conference",
+    website: String? = nil
+  ) -> SchoolRecommendation {
+    SchoolRecommendation(
+      catalogKey: "bgsu",
+      name: "Bowling Green State University",
+      division: division,
+      conference: conference,
+      state: "OH",
+      website: website,
+      athleticsUrl: nil,
+      score: 1.0,
+      reasons: []
+    )
+  }
+
+  // Regression for the onboarding-added-school data gap: schools added from Step 2 must run
+  // the same College Scorecard enrichment + favicon fetch the Schools-page AddSchoolViewModel
+  // runs, or they save with null location/website/academic info (see screenshot in the bug report).
+  @Test func addSchoolEnrichesRequestWithScorecardData() async {
+    let scorecard = StubCollegeScorecardService()
+    scorecard.stubbedResult = CollegeDataResult(
+      id: "123",
+      name: "Bowling Green State University",
+      website: "www.bgsu.edu",
+      address: "123 Campus Dr",
+      city: "Bowling Green",
+      state: "OH",
+      studentSize: 14000,
+      carnegieSize: nil,
+      enrollmentAll: nil,
+      admissionRate: nil,
+      studentFacultyRatio: nil,
+      tuitionInState: nil,
+      tuitionOutOfState: nil,
+      avgNetPrice: nil,
+      graduationRate: nil,
+      latitude: 41.3,
+      longitude: -83.6
+    )
+    let repo = SpySchoolsRepository()
+    let vm = makeSUT(schoolsRepository: repo, collegeScorecardService: scorecard)
+
+    let result = await vm.addSchool(makeRecommendation())
+
+    #expect(result)
+    #expect(scorecard.lookupCallCount == 1)
+    let request = repo.lastCreateRequest
+    #expect(request?.academicInfo?.address == "123 Campus Dr")
+    #expect(request?.academicInfo?.latitude == 41.3)
+    #expect(request?.website == "www.bgsu.edu")
+    // Top-level city/location must also be populated — schools-list and city-based
+    // search read these fields directly, not academicInfo (Qodo review finding #2).
+    #expect(request?.city == "Bowling Green")
+    #expect(request?.location == "Bowling Green, OH")
+  }
+
+  @Test func addSchoolFetchesAndPersistsFavicon() async {
+    let favicon = SpyFaviconService()
+    let vm = makeSUT(faviconService: favicon)
+
+    _ = await vm.addSchool(makeRecommendation())
+    await favicon.waitForCall()
+
+    let count = await favicon.fetchAndPersistCallCount
+    #expect(count == 1)
+  }
+
+  // Recommendation already carries division/conference (from the recommendation engine) —
+  // must not be silently overwritten by a redundant NCAA lookup.
+  @Test func addSchoolKeepsRecommendationDivisionAndConferenceWithoutNcaaLookup() async {
+    let ncaa = StubNcaaDatabase()
+    let repo = SpySchoolsRepository()
+    let vm = makeSUT(schoolsRepository: repo, ncaaDatabase: ncaa)
+
+    _ = await vm.addSchool(makeRecommendation(division: "D1", conference: "Mid-American Conference"))
+
+    #expect(ncaa.lookupCallCount == 0)
+    #expect(repo.lastCreateRequest?.division == "D1")
+    #expect(repo.lastCreateRequest?.conference == "Mid-American Conference")
+  }
+
+  @Test func addSchoolFallsBackToNcaaLookupWhenRecommendationMissingDivision() async {
+    let ncaa = StubNcaaDatabase()
+    ncaa.stubbedResult = NcaaLookupResult(division: .d1, conference: "Mid-American Conference")
+    let repo = SpySchoolsRepository()
+    let vm = makeSUT(schoolsRepository: repo, ncaaDatabase: ncaa)
+
+    _ = await vm.addSchool(makeRecommendation(division: nil, conference: nil))
+
+    #expect(ncaa.lookupCallCount == 1)
+    #expect(repo.lastCreateRequest?.division == "D1")
+    #expect(repo.lastCreateRequest?.conference == "Mid-American Conference")
+  }
+
+  @Test func addSchoolSucceedsWhenEnrichmentLookupsFail() async {
+    // Enrichment is best-effort: a College Scorecard failure must not block school creation.
+    let scorecard = FailingCollegeScorecardService()
+    let repo = SpySchoolsRepository()
+    let vm = makeSUT(schoolsRepository: repo, collegeScorecardService: scorecard)
+
+    let result = await vm.addSchool(makeRecommendation())
+
+    #expect(result)
+    #expect(repo.lastCreateRequest != nil)
+  }
+
+  // Regression: favicon persistence must not block the recommendation being removed /
+  // the Add button re-enabling — a slow favicon fetch previously left the same
+  // recommendation submittable again, risking a duplicate createSchool call (Qodo finding #4).
+  @Test func addSchoolDoesNotWaitOnFaviconBeforeRemovingRecommendation() async {
+    let vm = makeSUT(faviconService: HangingFaviconService())
+    let recommendation = makeRecommendation()
+    vm.recommendations = [recommendation]
+
+    let result = await vm.addSchool(recommendation)
+
+    #expect(result)
+    #expect(vm.recommendations.isEmpty)
+    #expect(vm.schoolsAdded == 1)
+  }
+}
+
+/// Never resumes — proves addSchool doesn't await favicon persistence before completing.
+private actor HangingFaviconService: SchoolFaviconManaging {
+  func fetchAndPersist(school: School) async {
+    await withCheckedContinuation { (_: CheckedContinuation<Void, Never>) in }
+  }
+}
+
+private final class FailingCollegeScorecardService: CollegeScorecardManaging, @unchecked Sendable {
+  func lookupCollege(name: String) async throws -> CollegeDataResult? { throw CollegeDataError.schoolNotFound }
+  func lookupCollege(id: String) async throws -> CollegeDataResult? { throw CollegeDataError.schoolNotFound }
+  func searchColleges(query: String) async throws -> [CollegeSearchResult] { [] }
 }
