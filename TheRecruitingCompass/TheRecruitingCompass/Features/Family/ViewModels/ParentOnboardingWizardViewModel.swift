@@ -172,10 +172,16 @@ final class ParentOnboardingWizardViewModel {
     defer { isLoading = false }
 
     do {
+      // The standalone dashboard invite flow (InviteAthleteView) never collects
+      // playerFirstName/playerLastName — those are only set by the onboarding wizard's
+      // player-details step, and are already persisted via finishOnboarding()'s
+      // savePlayerDetails() call. Sending pendingPlayerDetails here with an empty
+      // first_name trips the server's Zod min(1) check (400: "Too small...").
+      let hasPlayerDetails = !playerFirstName.trimmingCharacters(in: .whitespaces).isEmpty
       try await familyService.sendEmailInvite(
         email: inviteEmail.trimmingCharacters(in: .whitespaces),
         role: "player",
-        pendingPlayerDetails: pendingPlayerDetails
+        pendingPlayerDetails: hasPlayerDetails ? pendingPlayerDetails : nil
       )
       successMessage = "Invite sent to \(inviteEmail.trimmingCharacters(in: .whitespaces))!"
       showSuccessToast = true
