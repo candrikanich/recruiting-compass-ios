@@ -468,13 +468,23 @@ private final class StubCollegeScorecardService: CollegeScorecardManaging, @unch
   func searchColleges(query: String) async throws -> [CollegeSearchResult] { [] }
 }
 
-private final class SpyFaviconService: SchoolFaviconManaging, @unchecked Sendable {
+// Fire-and-forget in production (see addSchool), so tests that need to observe the call
+// must await it explicitly rather than checking the count right after addSchool returns.
+private actor SpyFaviconService: SchoolFaviconManaging {
   private(set) var fetchAndPersistCallCount = 0
   private(set) var lastSchool: School?
+  private var continuation: CheckedContinuation<Void, Never>?
 
   func fetchAndPersist(school: School) async {
     fetchAndPersistCallCount += 1
     lastSchool = school
+    continuation?.resume()
+    continuation = nil
+  }
+
+  func waitForCall() async {
+    if fetchAndPersistCallCount > 0 { return }
+    await withCheckedContinuation { continuation = $0 }
   }
 }
 
@@ -488,7 +498,7 @@ struct OnboardingV2ViewModelAddSchoolTests {
     schoolsRepository: SpySchoolsRepository = SpySchoolsRepository(),
     ncaaDatabase: StubNcaaDatabase = StubNcaaDatabase(),
     collegeScorecardService: any CollegeScorecardManaging = StubCollegeScorecardService(),
-    faviconService: SpyFaviconService = SpyFaviconService(),
+    faviconService: any SchoolFaviconManaging = SpyFaviconService(),
     authManager: MockAuthManager? = nil
   ) -> OnboardingV2ViewModel {
     let auth = authManager ?? MockAuthManager()
@@ -568,6 +578,10 @@ struct OnboardingV2ViewModelAddSchoolTests {
     #expect(request?.academicInfo?.address == "123 Campus Dr")
     #expect(request?.academicInfo?.latitude == 41.3)
     #expect(request?.website == "www.bgsu.edu")
+    // Top-level city/location must also be populated — schools-list and city-based
+    // search read these fields directly, not academicInfo (Qodo review finding #2).
+    #expect(request?.city == "Bowling Green")
+    #expect(request?.location == "Bowling Green, OH")
   }
 
   @Test func addSchoolFetchesAndPersistsFavicon() async {
@@ -575,8 +589,10 @@ struct OnboardingV2ViewModelAddSchoolTests {
     let vm = makeSUT(faviconService: favicon)
 
     _ = await vm.addSchool(makeRecommendation())
+    await favicon.waitForCall()
 
-    #expect(favicon.fetchAndPersistCallCount == 1)
+    let count = await favicon.fetchAndPersistCallCount
+    #expect(count == 1)
   }
 
   // Recommendation already carries division/conference (from the recommendation engine) —
@@ -616,6 +632,28 @@ struct OnboardingV2ViewModelAddSchoolTests {
 
     #expect(result)
     #expect(repo.lastCreateRequest != nil)
+  }
+
+  // Regression: favicon persistence must not block the recommendation being removed /
+  // the Add button re-enabling — a slow favicon fetch previously left the same
+  // recommendation submittable again, risking a duplicate createSchool call (Qodo finding #4).
+  @Test func addSchoolDoesNotWaitOnFaviconBeforeRemovingRecommendation() async {
+    let vm = makeSUT(faviconService: HangingFaviconService())
+    let recommendation = makeRecommendation()
+    vm.recommendations = [recommendation]
+
+    let result = await vm.addSchool(recommendation)
+
+    #expect(result)
+    #expect(vm.recommendations.isEmpty)
+    #expect(vm.schoolsAdded == 1)
+  }
+}
+
+/// Never resumes — proves addSchool doesn't await favicon persistence before completing.
+private actor HangingFaviconService: SchoolFaviconManaging {
+  func fetchAndPersist(school: School) async {
+    await withCheckedContinuation { (_: CheckedContinuation<Void, Never>) in }
   }
 }
 

@@ -217,11 +217,22 @@ final class OnboardingV2ViewModel {
         conference = conference ?? ncaaResult.conference
       }
 
-      let scorecardData = try? await collegeScorecardService.lookupCollege(name: recommendation.name)
+      var scorecardData: CollegeDataResult?
+      do {
+        scorecardData = try await collegeScorecardService.lookupCollege(name: recommendation.name)
+      } catch {
+        // Best-effort: an enrichment failure must not block adding the school itself —
+        // it just saves without location/academic data instead.
+        logger.warning("Scorecard enrichment failed for \(recommendation.name): \(error.localizedDescription)")
+      }
 
+      let city = scorecardData?.city ?? ""
+      let state = recommendation.state ?? scorecardData?.state ?? ""
       let form = SchoolFormState(
         name: recommendation.name,
-        state: recommendation.state ?? "",
+        location: [city, state].filter { !$0.isEmpty }.joined(separator: ", "),
+        city: city,
+        state: state,
         division: division,
         conference: conference ?? "",
         website: recommendation.website ?? scorecardData?.website ?? "",
@@ -234,7 +245,14 @@ final class OnboardingV2ViewModel {
         familyUnitId: familyUnitId
       )
       let created = try await schoolsRepository.createSchool(request: request)
-      await faviconService.fetchAndPersist(school: created)
+
+      // Fire-and-forget, matching AddSchoolViewModel+DuplicateDetection.swift's
+      // createSchoolInternal — awaiting here would leave the Add button re-tappable
+      // on the same recommendation until the favicon fetch resolves.
+      let favicon = faviconService
+      Task {
+        await favicon.fetchAndPersist(school: created)
+      }
 
       recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
       schoolsAdded += 1
