@@ -24,7 +24,7 @@ final class FamilyManagementViewModel {
   var codeInput: String = ""
 
   // MARK: - Inbound Email State
-  var inboundAddress: String?
+  var inboundAddresses: [InboundFamilyAddress] = []
 
   // MARK: - Shared State
   var isLoading = false
@@ -95,7 +95,7 @@ final class FamilyManagementViewModel {
 
   private func loadInboundAddress() async {
     do {
-      inboundAddress = try await inboundDraftsService.fetchForwardingAddress(accessToken: accessToken)
+      inboundAddresses = try await inboundDraftsService.fetchForwardingAddress(accessToken: accessToken)
     } catch {
       // Non-critical display — a fetch failure here must never break the page —
       // but log at error level so recurring outages are still visible in telemetry.
@@ -103,8 +103,7 @@ final class FamilyManagementViewModel {
     }
   }
 
-  func copyInboundAddressToClipboard() {
-    guard let address = inboundAddress else { return }
+  func copyInboundAddressToClipboard(_ address: String) {
     UIPasteboard.general.string = address
     showSuccess("Address copied to clipboard!")
   }

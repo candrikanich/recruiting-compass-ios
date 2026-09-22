@@ -180,7 +180,7 @@ struct SettingsView: View {
 
         // Coach Email Forwarding Section — best-effort, non-blocking: web renders nothing
         // while the fetch is pending or fails, so this section only appears once loaded.
-        if let address = viewModel.inboundAddress {
+        ForEach(viewModel.inboundAddresses) { entry in
           Section {
             VStack(alignment: .leading, spacing: 8) {
               Text("Forward or CC emails from coaches to this address to automatically draft an interaction log entry for your family.")
@@ -188,13 +188,13 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
 
               HStack {
-                Text(address)
+                Text(entry.address)
                   .font(.system(.body, design: .monospaced).weight(.medium))
                   .lineLimit(1)
                   .truncationMode(.middle)
                 Spacer()
                 Button {
-                  UIPasteboard.general.string = address
+                  UIPasteboard.general.string = entry.address
                   showInboundAddressCopied = true
                   Task {
                     try? await Task.sleep(for: .seconds(2))
@@ -220,8 +220,9 @@ struct SettingsView: View {
               )
             }
           } header: {
-            Text("Coach Email Forwarding")
+            Text(viewModel.inboundAddresses.count > 1 ? "Coach Email Forwarding — \(entry.familyName)" : "Coach Email Forwarding")
           }
+        }
         }
 
         // User Settings Section

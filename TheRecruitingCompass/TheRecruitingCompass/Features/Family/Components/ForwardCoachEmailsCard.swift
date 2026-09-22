@@ -2,11 +2,19 @@ import SwiftUI
 
 struct ForwardCoachEmailsCard: View {
   let address: String
+  var familyName: String?
   let onCopy: () -> Void
 
   var body: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       VStack(spacing: FamilyConstants.Spacing.medium) {
+        if let familyName {
+          Text(familyName)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
         Text("Forward Coach Emails")
           .font(.headline)
           .frame(maxWidth: .infinity, alignment: .leading)

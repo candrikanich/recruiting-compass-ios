@@ -272,8 +272,12 @@ struct FamilyManagementPlayerView: View {
   // MARK: - Forward Coach Emails
   @ViewBuilder
   private var forwardCoachEmailsSection: some View {
-    if let address = viewModel.inboundAddress {
-      ForwardCoachEmailsCard(address: address, onCopy: { viewModel.copyInboundAddressToClipboard() })
+    ForEach(viewModel.inboundAddresses) { entry in
+      ForwardCoachEmailsCard(
+        address: entry.address,
+        familyName: viewModel.inboundAddresses.count > 1 ? entry.familyName : nil,
+        onCopy: { viewModel.copyInboundAddressToClipboard(entry.address) }
+      )
     }
   }
 

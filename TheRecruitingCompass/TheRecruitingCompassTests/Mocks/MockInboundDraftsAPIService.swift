@@ -3,7 +3,9 @@ import Foundation
 
 final class MockInboundDraftsAPIService: InboundDraftsAPIManaging, @unchecked Sendable {
   var draftsToReturn: [InboundEmailDraft] = []
-  var addressToReturn = "family-a1b2c3d4@inbound.therecruitingcompass.com"
+  var addressesToReturn: [InboundFamilyAddress] = [
+    InboundFamilyAddress(familyUnitId: "family-1", familyName: "Smith Family", address: "family-a1b2c3d4@inbound.therecruitingcompass.com")
+  ]
   var confirmResponse = InboundDraftConfirmResponse(ok: true, interactionId: "interaction-1")
   var discardResponse = InboundDraftDiscardResponse(ok: true)
 
@@ -57,8 +59,8 @@ final class MockInboundDraftsAPIService: InboundDraftsAPIManaging, @unchecked Se
     return discardResponse
   }
 
-  func fetchForwardingAddress(accessToken: String?) async throws -> String {
+  func fetchForwardingAddress(accessToken: String?) async throws -> [InboundFamilyAddress] {
     if let errorToThrow { throw errorToThrow }
-    return addressToReturn
+    return addressesToReturn
   }
 }

@@ -16,5 +16,5 @@ protocol InboundDraftsAPIManaging: Sendable {
     accessToken: String?
   ) async throws -> InboundDraftConfirmResponse
   func discardDraft(id: String, accessToken: String?) async throws -> InboundDraftDiscardResponse
-  func fetchForwardingAddress(accessToken: String?) async throws -> String
+  func fetchForwardingAddress(accessToken: String?) async throws -> [InboundFamilyAddress]
 }

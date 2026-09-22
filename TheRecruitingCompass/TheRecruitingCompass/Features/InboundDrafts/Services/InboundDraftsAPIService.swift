@@ -65,9 +65,9 @@ final class InboundDraftsAPIService: InboundDraftsAPIManaging, Sendable {
     return try decode(InboundDraftDiscardResponse.self, from: data)
   }
 
-  func fetchForwardingAddress(accessToken: String?) async throws -> String {
+  func fetchForwardingAddress(accessToken: String?) async throws -> [InboundFamilyAddress] {
     let data = try await request(path: "api/family/inbound-address", method: "GET", body: EmptyBody?.none, accessToken: accessToken)
-    return try decode(InboundAddressResponse.self, from: data).address
+    return try decode(InboundAddressResponse.self, from: data).addresses
   }
 
   // MARK: - Private
