@@ -17,7 +17,7 @@ final class SettingsViewModel {
   var schoolPreferencesStatus: SettingsBadgeStatus?
   /// nil until loaded — the forwarding-address section stays hidden until this
   /// is set (never shows a loading/error placeholder; mirrors web's best-effort fetch).
-  var inboundAddress: String?
+  var inboundAddresses: [InboundFamilyAddress] = []
 
   private let preferenceService: any PreferenceManaging
   private let inboundDraftsAPIService: any InboundDraftsAPIManaging
@@ -37,7 +37,7 @@ final class SettingsViewModel {
   /// of Settings, per spec. The section itself only renders once `inboundAddress` is set.
   func loadInboundAddress() async {
     do {
-      inboundAddress = try await inboundDraftsAPIService.fetchForwardingAddress(accessToken: authManager.session?.accessToken)
+      inboundAddresses = try await inboundDraftsAPIService.fetchForwardingAddress(accessToken: authManager.session?.accessToken)
     } catch {
       logger.error("Failed to fetch inbound forwarding address: \(error.localizedDescription)")
     }

@@ -133,7 +133,3 @@ struct InboundDraftConfirmResponse: Codable, Sendable {
 struct InboundDraftDiscardResponse: Codable, Sendable {
   let ok: Bool
 }
-
-struct InboundAddressResponse: Codable, Sendable {
-  let address: String
-}

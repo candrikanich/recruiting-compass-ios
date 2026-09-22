@@ -21,7 +21,7 @@ struct SettingsView: View {
   @Environment(EntitlementStore.self) private var entitlementStore
   @State private var presentedLegal: LegalDocument?
   @State private var showCodeCopied = false
-  @State private var showInboundAddressCopied = false
+  @State private var copiedFamilyUnitId: String?
   @State private var viewModel: SettingsViewModel
 
   private let preferenceService: PreferenceManaging
@@ -180,7 +180,7 @@ struct SettingsView: View {
 
         // Coach Email Forwarding Section — best-effort, non-blocking: web renders nothing
         // while the fetch is pending or fails, so this section only appears once loaded.
-        if let address = viewModel.inboundAddress {
+        ForEach(viewModel.inboundAddresses) { entry in
           Section {
             VStack(alignment: .leading, spacing: 8) {
               Text("Forward or CC emails from coaches to this address to automatically draft an interaction log entry for your family.")
@@ -188,25 +188,27 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
 
               HStack {
-                Text(address)
+                Text(entry.address)
                   .font(.system(.body, design: .monospaced).weight(.medium))
                   .lineLimit(1)
                   .truncationMode(.middle)
                 Spacer()
                 Button {
-                  UIPasteboard.general.string = address
-                  showInboundAddressCopied = true
+                  UIPasteboard.general.string = entry.address
+                  copiedFamilyUnitId = entry.familyUnitId
                   Task {
                     try? await Task.sleep(for: .seconds(2))
-                    showInboundAddressCopied = false
+                    if copiedFamilyUnitId == entry.familyUnitId {
+                      copiedFamilyUnitId = nil
+                    }
                   }
                 } label: {
-                  Text(showInboundAddressCopied ? String(localized: "Copied!") : String(localized: "Copy"))
+                  Text(copiedFamilyUnitId == entry.familyUnitId ? String(localized: "Copied!") : String(localized: "Copy"))
                     .font(.caption.weight(.medium))
                 }
                 .buttonStyle(.bordered)
-                .disabled(showInboundAddressCopied)
-                .accessibilityLabel(showInboundAddressCopied ? String(localized: "Copied to clipboard") : String(localized: "Copy forwarding address"))
+                .disabled(copiedFamilyUnitId == entry.familyUnitId)
+                .accessibilityLabel(copiedFamilyUnitId == entry.familyUnitId ? String(localized: "Copied to clipboard") : String(localized: "Copy forwarding address"))
               }
             }
             .padding(.vertical, 4)
@@ -220,7 +222,7 @@ struct SettingsView: View {
               )
             }
           } header: {
-            Text("Coach Email Forwarding")
+            Text(viewModel.inboundAddresses.count > 1 ? "Coach Email Forwarding — \(entry.familyName)" : "Coach Email Forwarding")
           }
         }
 

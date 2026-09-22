@@ -24,22 +24,18 @@ final class InboundDraftsViewModel {
   var toastMessage: String?
 
   private let apiService: any InboundDraftsAPIManaging
-  private let familyManager: FamilyManager
   private let authManager: any AuthManaging
 
   init(
     apiService: (any InboundDraftsAPIManaging)? = nil,
-    familyManager: FamilyManager? = nil,
     authManager: (any AuthManaging)? = nil
   ) {
     self.apiService = apiService ?? InboundDraftsAPIService()
-    self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
   }
 
   private var accessToken: String? { authManager.session?.accessToken }
 
-  var familyUnitId: String? { familyManager.familyUnitId }
   var currentUserId: String? { authManager.user?.id }
 
   func loadDrafts() async {

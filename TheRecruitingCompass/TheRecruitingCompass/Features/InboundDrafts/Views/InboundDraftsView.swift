@@ -19,11 +19,11 @@ struct InboundDraftsView: View {
         duration: 4.0
       )
       .sheet(item: $viewModel.draftToReview) { draft in
-        if let familyUnitId = viewModel.familyUnitId, let userId = viewModel.currentUserId {
+        if let userId = viewModel.currentUserId {
           NavigationStack {
             AddInteractionView(
               interactionsService: InteractionsServiceImpl(supabaseManager: .shared),
-              familyUnitId: familyUnitId,
+              familyUnitId: draft.familyUnitId,
               userId: userId,
               draftToConfirm: draft,
               onLogged: { _ in viewModel.handleDraftConfirmed(draft.id) }
