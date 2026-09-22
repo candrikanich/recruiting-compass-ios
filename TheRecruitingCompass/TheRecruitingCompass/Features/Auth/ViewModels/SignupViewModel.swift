@@ -301,6 +301,7 @@ final class SignupViewModel {
   // MARK: - Actions
 
   func signup() async {
+    guard !isLoading else { return }
     isLoading = true
     errorMessage = nil
     defer { isLoading = false }

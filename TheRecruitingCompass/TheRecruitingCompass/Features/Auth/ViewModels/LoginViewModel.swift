@@ -88,6 +88,7 @@ final class LoginViewModel {
   // MARK: - Actions
 
   func login() async {
+    guard !isLoading else { return }
     isLoading = true
     errorMessage = nil
     defer { isLoading = false }
