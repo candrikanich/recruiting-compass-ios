@@ -73,7 +73,7 @@ struct SchoolsListView: View {
         }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
-            viewModel.prepareSchoolExport()
+            Task { await viewModel.prepareSchoolExport() }
           } label: {
             Image(systemName: "square.and.arrow.up")
               .frame(minWidth: 44, minHeight: 44)

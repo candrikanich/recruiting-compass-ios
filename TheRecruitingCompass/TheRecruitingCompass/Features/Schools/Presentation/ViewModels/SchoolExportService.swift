@@ -7,18 +7,42 @@ private let logger = Logger(
 )
 
 struct SchoolExportService {
-  func prepareCSV(schools: [School]) throws -> URL {
+  private static let deadlineFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateStyle = .short
+    formatter.timeStyle = .none
+    return formatter
+  }()
+
+  func prepareCSV(
+    schools: [School],
+    coaches: [Coach] = [],
+    offers: [Offer] = [],
+    interactions: [Interaction] = []
+  ) throws -> URL {
+    let coachCounts = Dictionary(grouping: coaches, by: \.schoolId).mapValues(\.count)
+    let interactionCounts = Dictionary(grouping: interactions, by: { $0.schoolId ?? "" }).mapValues(\.count)
+    let offersBySchool = Dictionary(grouping: offers, by: \.schoolId).compactMapValues(\.first)
+
     var rows: [String] = [
-      "School Name,Division,Conference,Location,Status,Pros,Cons"
+      "School Name,Division,Conference,Location,Status,Coaches,Interactions,Offer Type,Scholarship %,Offer Status,Deadline,Pros,Cons"
     ]
     for school in schools {
       let status = SchoolStatus(rawValue: school.status)?.displayName ?? school.status
+      let offer = offersBySchool[school.id]
+      let deadline = offer?.displayDeadlineDate.map { Self.deadlineFormatter.string(from: $0) } ?? ""
       let fields: [String] = [
         school.name,
         school.division ?? "",
         school.conference ?? "",
         school.location ?? "",
         status,
+        String(coachCounts[school.id] ?? 0),
+        String(interactionCounts[school.id] ?? 0),
+        offer?.offerType.displayName ?? "",
+        offer?.scholarshipPercentage.map { "\($0)%" } ?? "",
+        offer?.status.displayName ?? "",
+        deadline,
         school.pros.joined(separator: "; "),
         school.cons.joined(separator: "; ")
       ]

@@ -60,6 +60,8 @@ final class SchoolsListViewModel {
   private let authManager: any AuthManaging
   private let interactionsService: any InteractionsManaging
   private let eventsService: any EventsManaging
+  private let coachesService: any CoachesManaging
+  private let offersService: any OffersManaging
   private let filterAndSort = FilterAndSortSchoolsUseCase()
   private let computeAnalytics = ComputeSchoolAnalyticsUseCase()
   private let deleteSchoolUseCase: DeleteSchoolUseCase
@@ -73,6 +75,9 @@ final class SchoolsListViewModel {
   /// stat (activity-derived, matching the dashboard's interaction count — NOT the
   /// `status` field). Populated alongside `visitedSchoolIds` in `loadSchools()`.
   private(set) var contactedSchoolIds: Set<String> = []
+  /// Family-scoped interaction list from the most recent `loadSchools()` — reused by
+  /// `prepareSchoolExport()` for per-school interaction counts without a second fetch.
+  private var lastInteractions: [Interaction] = []
   private var distanceCache: [String: Double] = [:]
   private var distanceCacheOrderedKeys: [String] = []
   private static let maxDistanceCacheEntries = 300
@@ -140,6 +145,8 @@ final class SchoolsListViewModel {
     authManager: (any AuthManaging)? = nil,
     interactionsService: (any InteractionsManaging)? = nil,
     eventsService: (any EventsManaging)? = nil,
+    coachesService: (any CoachesManaging)? = nil,
+    offersService: (any OffersManaging)? = nil,
     cache: (any CacheManaging)? = nil,
     deleteSchool: DeleteSchoolUseCase? = nil
   ) {
@@ -150,6 +157,8 @@ final class SchoolsListViewModel {
     self.authManager = authManager ?? AuthManager.shared
     self.interactionsService = interactionsService ?? InteractionsServiceImpl(supabaseManager: .shared)
     self.eventsService = eventsService ?? EventsServiceImpl(supabaseManager: .shared)
+    self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
+    self.offersService = offersService ?? OffersServiceImpl(supabaseManager: .shared)
     self.cache = cache
     self.deleteSchoolUseCase = deleteSchool ?? DeleteSchoolUseCase(repository: repository)
   }
@@ -258,7 +267,9 @@ final class SchoolsListViewModel {
 
   private func fetchVisitInteractions(familyUnitId: String) async -> [Interaction] {
     do {
-      return try await interactionsService.fetchInteractions(familyUnitId: familyUnitId)
+      let interactions = try await interactionsService.fetchInteractions(familyUnitId: familyUnitId)
+      lastInteractions = interactions
+      return interactions
     } catch {
       logger.debug("Could not load interactions for visit signal: \(error.localizedDescription)")
       return []
@@ -376,12 +387,43 @@ final class SchoolsListViewModel {
     return distance
   }
 
-  func prepareSchoolExport() {
+  func prepareSchoolExport() async {
     do {
-      exportFileURL = try SchoolExportService().prepareCSV(schools: filteredSchools)
+      let schoolIds = filteredSchools.map(\.id)
+      async let coaches = fetchCoachesForExport(schoolIds: schoolIds)
+      async let offers = fetchOffersForExport()
+      exportFileURL = try SchoolExportService().prepareCSV(
+        schools: filteredSchools,
+        coaches: await coaches,
+        offers: await offers,
+        interactions: lastInteractions
+      )
     } catch {
       logger.error("Failed to prepare school export: \(error.localizedDescription)")
       errorMessage = "Failed to export schools. Please try again."
+    }
+  }
+
+  /// Coach fetch failure degrades to an empty list rather than blocking export —
+  /// counts just read as 0, matching the silent-fallback pattern used elsewhere
+  /// in this file (home location, visit events).
+  private func fetchCoachesForExport(schoolIds: [String]) async -> [Coach] {
+    guard !schoolIds.isEmpty else { return [] }
+    do {
+      return try await coachesService.fetchCoaches(schoolIds: schoolIds)
+    } catch {
+      logger.debug("Could not load coaches for export: \(error.localizedDescription)")
+      return []
+    }
+  }
+
+  private func fetchOffersForExport() async -> [Offer] {
+    guard let userId = familyManager.selectedAthlete?.userId else { return [] }
+    do {
+      return try await offersService.fetchOffers(userId: userId)
+    } catch {
+      logger.debug("Could not load offers for export: \(error.localizedDescription)")
+      return []
     }
   }
 
