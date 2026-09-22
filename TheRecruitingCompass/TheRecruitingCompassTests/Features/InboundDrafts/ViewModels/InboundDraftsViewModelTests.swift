@@ -27,8 +27,7 @@ struct InboundDraftsViewModelTests {
       expiresAt: 9_999_999_999, refreshToken: "refresh",
       user: user
     ))
-    let familyManager = FamilyManager(familyService: MockFamilyService(), authManager: mockAuth)
-    return InboundDraftsViewModel(apiService: api, familyManager: familyManager, authManager: mockAuth)
+    return InboundDraftsViewModel(apiService: api, authManager: mockAuth)
   }
 
   @Test func loadDraftsPopulatesFromService() async {
