@@ -31,6 +31,56 @@ struct Offer: Codable, Identifiable, Equatable, Sendable {
     case updatedAt = "updated_at"
   }
 
+  init(
+    id: String,
+    userId: String,
+    schoolId: String,
+    offerType: OfferType,
+    scholarshipAmount: Double?,
+    scholarshipPercentage: Int?,
+    offerDate: String,
+    deadlineDate: String?,
+    status: OfferStatus,
+    conditions: String?,
+    notes: String?,
+    createdAt: String,
+    updatedAt: String
+  ) {
+    self.id = id
+    self.userId = userId
+    self.schoolId = schoolId
+    self.offerType = offerType
+    self.scholarshipAmount = scholarshipAmount
+    self.scholarshipPercentage = scholarshipPercentage
+    self.offerDate = offerDate
+    self.deadlineDate = deadlineDate
+    self.status = status
+    self.conditions = conditions
+    self.notes = notes
+    self.createdAt = createdAt
+    self.updatedAt = updatedAt
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    id = try container.decode(String.self, forKey: .id)
+    userId = try container.decode(String.self, forKey: .userId)
+    schoolId = try container.decode(String.self, forKey: .schoolId)
+    offerType = try container.decode(OfferType.self, forKey: .offerType)
+    scholarshipAmount = try container.decodeIfPresent(Double.self, forKey: .scholarshipAmount)
+    // DB column is numeric(5,2) (fractional, e.g. 12.5) — decode as Double and round rather than
+    // `Int?` directly, which throws and discards the whole containing array on any fractional value.
+    scholarshipPercentage = try container.decodeIfPresent(Double.self, forKey: .scholarshipPercentage)
+      .map { Int($0.rounded()) }
+    offerDate = try container.decode(String.self, forKey: .offerDate)
+    deadlineDate = try container.decodeIfPresent(String.self, forKey: .deadlineDate)
+    status = try container.decode(OfferStatus.self, forKey: .status)
+    conditions = try container.decodeIfPresent(String.self, forKey: .conditions)
+    notes = try container.decodeIfPresent(String.self, forKey: .notes)
+    createdAt = try container.decode(String.self, forKey: .createdAt)
+    updatedAt = try container.decode(String.self, forKey: .updatedAt)
+  }
+
   // MARK: - Date Parsing
 
   var displayOfferDate: Date {

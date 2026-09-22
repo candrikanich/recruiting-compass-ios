@@ -14,6 +14,24 @@ struct SchoolExportService {
     return formatter
   }()
 
+  /// `deadline_date` is a date-only DB column (`YYYY-MM-DD`). `Offer.displayDeadlineDate`
+  /// parses it at UTC midnight, which renders a day early in negative-UTC-offset timezones
+  /// (every US timezone) — parse the calendar components directly at LOCAL midnight instead,
+  /// matching web's `parseLocalDateOnly`.
+  private static let deadlineDateOnlyParser: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = .current
+    return formatter
+  }()
+
+  private func formattedDeadline(_ offer: Offer?) -> String {
+    guard let dateOnly = offer?.deadlineDate?.prefix(10),
+          let date = Self.deadlineDateOnlyParser.date(from: String(dateOnly)) else { return "" }
+    return Self.deadlineFormatter.string(from: date)
+  }
+
   func prepareCSV(
     schools: [School],
     coaches: [Coach] = [],
@@ -30,7 +48,6 @@ struct SchoolExportService {
     for school in schools {
       let status = SchoolStatus(rawValue: school.status)?.displayName ?? school.status
       let offer = offersBySchool[school.id]
-      let deadline = offer?.displayDeadlineDate.map { Self.deadlineFormatter.string(from: $0) } ?? ""
       let fields: [String] = [
         school.name,
         school.division ?? "",
@@ -42,7 +59,7 @@ struct SchoolExportService {
         offer?.offerType.displayName ?? "",
         offer?.scholarshipPercentage.map { "\($0)%" } ?? "",
         offer?.status.displayName ?? "",
-        deadline,
+        formattedDeadline(offer),
         school.pros.joined(separator: "; "),
         school.cons.joined(separator: "; ")
       ]

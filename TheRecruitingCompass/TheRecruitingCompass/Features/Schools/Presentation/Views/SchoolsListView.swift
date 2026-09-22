@@ -79,7 +79,7 @@ struct SchoolsListView: View {
               .frame(minWidth: 44, minHeight: 44)
               .contentShape(Rectangle())
           }
-          .disabled(viewModel.filteredSchools.isEmpty)
+          .disabled(viewModel.filteredSchools.isEmpty || viewModel.isExporting)
           .accessibilityLabel(String(localized: "Export schools to CSV"))
         }
       }

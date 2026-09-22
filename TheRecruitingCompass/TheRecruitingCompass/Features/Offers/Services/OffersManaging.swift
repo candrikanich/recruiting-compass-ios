@@ -4,6 +4,10 @@ import Foundation
 protocol OffersManaging: Sendable {
   /// Returns all offers received by the given user.
   func fetchOffers(userId: String) async throws -> [Offer]
+  /// Returns all offers for every member of the family unit — matches web's
+  /// family-keyed offers fetch, unlike `fetchOffers(userId:)` which only sees the
+  /// signed-in user's own offers.
+  func fetchOffers(familyUnitId: String) async throws -> [Offer]
   /// Returns a single offer by ID.
   func fetchOffer(id: String) async throws -> Offer
   /// Returns all schools for the family unit (used to populate school pickers in the offer form).
