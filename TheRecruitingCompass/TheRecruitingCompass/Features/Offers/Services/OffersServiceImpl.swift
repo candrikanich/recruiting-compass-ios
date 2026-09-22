@@ -23,6 +23,18 @@ final class OffersServiceImpl: OffersManaging, Sendable {
     }
   }
 
+  func fetchOffers(familyUnitId: String) async throws -> [Offer] {
+    try await logger.fetch("offers") {
+      try await supabaseManager.client
+        .from("offers")
+        .select()
+        .eq("family_unit_id", value: familyUnitId)
+        .order("offer_date", ascending: false)
+        .execute()
+        .value
+    }
+  }
+
   func fetchOffer(id: String) async throws -> Offer {
     try await logger.fetchOne("offer \(id)") {
       try await supabaseManager.client

@@ -16,6 +16,8 @@ final class MockOffersService: OffersManaging, @unchecked Sendable {
   var shouldThrowDeleteError = false
 
   var fetchOffersCallCount = 0
+  var fetchOffersByFamilyCallCount = 0
+  var lastFetchOffersFamilyUnitId: String?
   var fetchOfferCallCount = 0
   var fetchSchoolsCallCount = 0
   var fetchSchoolCallCount = 0
@@ -29,6 +31,15 @@ final class MockOffersService: OffersManaging, @unchecked Sendable {
 
   func fetchOffers(userId: String) async throws -> [Offer] {
     fetchOffersCallCount += 1
+    if shouldThrowFetchError {
+      throw NSError(domain: "MockError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Fetch failed"])
+    }
+    return stubbedOffers
+  }
+
+  func fetchOffers(familyUnitId: String) async throws -> [Offer] {
+    fetchOffersByFamilyCallCount += 1
+    lastFetchOffersFamilyUnitId = familyUnitId
     if shouldThrowFetchError {
       throw NSError(domain: "MockError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Fetch failed"])
     }

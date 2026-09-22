@@ -73,13 +73,13 @@ struct SchoolsListView: View {
         }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
-            viewModel.prepareSchoolExport()
+            Task { await viewModel.prepareSchoolExport() }
           } label: {
             Image(systemName: "square.and.arrow.up")
               .frame(minWidth: 44, minHeight: 44)
               .contentShape(Rectangle())
           }
-          .disabled(viewModel.filteredSchools.isEmpty)
+          .disabled(viewModel.filteredSchools.isEmpty || viewModel.isExporting)
           .accessibilityLabel(String(localized: "Export schools to CSV"))
         }
       }

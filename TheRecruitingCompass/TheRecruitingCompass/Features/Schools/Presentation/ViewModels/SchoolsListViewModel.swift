@@ -5,6 +5,13 @@ import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "SchoolsListViewModel")
 
+/// Result of a best-effort export-time fetch: `succeeded` distinguishes a confirmed-empty
+/// result from a swallowed fetch failure that also produced an empty array.
+private struct ExportFetchResult<T> {
+  let items: [T]
+  let succeeded: Bool
+}
+
 @Observable
 @MainActor
 final class SchoolsListViewModel {
@@ -60,6 +67,8 @@ final class SchoolsListViewModel {
   private let authManager: any AuthManaging
   private let interactionsService: any InteractionsManaging
   private let eventsService: any EventsManaging
+  private let coachesService: any CoachesManaging
+  private let offersService: any OffersManaging
   private let filterAndSort = FilterAndSortSchoolsUseCase()
   private let computeAnalytics = ComputeSchoolAnalyticsUseCase()
   private let deleteSchoolUseCase: DeleteSchoolUseCase
@@ -73,6 +82,9 @@ final class SchoolsListViewModel {
   /// stat (activity-derived, matching the dashboard's interaction count — NOT the
   /// `status` field). Populated alongside `visitedSchoolIds` in `loadSchools()`.
   private(set) var contactedSchoolIds: Set<String> = []
+  /// Family-scoped interaction list from the most recent `loadSchools()` — reused by
+  /// `prepareSchoolExport()` for per-school interaction counts without a second fetch.
+  private var lastInteractions: [Interaction] = []
   private var distanceCache: [String: Double] = [:]
   private var distanceCacheOrderedKeys: [String] = []
   private static let maxDistanceCacheEntries = 300
@@ -140,6 +152,8 @@ final class SchoolsListViewModel {
     authManager: (any AuthManaging)? = nil,
     interactionsService: (any InteractionsManaging)? = nil,
     eventsService: (any EventsManaging)? = nil,
+    coachesService: (any CoachesManaging)? = nil,
+    offersService: (any OffersManaging)? = nil,
     cache: (any CacheManaging)? = nil,
     deleteSchool: DeleteSchoolUseCase? = nil
   ) {
@@ -150,6 +164,8 @@ final class SchoolsListViewModel {
     self.authManager = authManager ?? AuthManager.shared
     self.interactionsService = interactionsService ?? InteractionsServiceImpl(supabaseManager: .shared)
     self.eventsService = eventsService ?? EventsServiceImpl(supabaseManager: .shared)
+    self.coachesService = coachesService ?? CoachesServiceImpl(supabaseManager: .shared)
+    self.offersService = offersService ?? OffersServiceImpl(supabaseManager: .shared)
     self.cache = cache
     self.deleteSchoolUseCase = deleteSchool ?? DeleteSchoolUseCase(repository: repository)
   }
@@ -258,7 +274,9 @@ final class SchoolsListViewModel {
 
   private func fetchVisitInteractions(familyUnitId: String) async -> [Interaction] {
     do {
-      return try await interactionsService.fetchInteractions(familyUnitId: familyUnitId)
+      let interactions = try await interactionsService.fetchInteractions(familyUnitId: familyUnitId)
+      lastInteractions = interactions
+      return interactions
     } catch {
       logger.debug("Could not load interactions for visit signal: \(error.localizedDescription)")
       return []
@@ -376,16 +394,84 @@ final class SchoolsListViewModel {
     return distance
   }
 
-  func prepareSchoolExport() {
+  private(set) var isExporting = false
+
+  /// Snapshots `filteredSchools`/`familyUnitId` before the two awaits below so a filter change,
+  /// family switch, or list refresh mid-suspension can't produce coach/offer/interaction data
+  /// scoped to a different set of schools than the rows actually written to the CSV.
+  func prepareSchoolExport() async {
+    guard !isExporting else { return }
+    isExporting = true
+    defer { isExporting = false }
+
+    let schools = filteredSchools
+    let schoolIds = schools.map(\.id)
+    let familyUnitId = familyManager.currentMember?.familyUnitId
     do {
-      exportFileURL = try SchoolExportService().prepareCSV(schools: filteredSchools)
+      async let coaches = fetchCoachesForExport(schoolIds: schoolIds)
+      async let offers = fetchOffersForExport(familyUnitId: familyUnitId)
+      async let interactions = fetchInteractionsForExport(familyUnitId: familyUnitId)
+      let (coachResult, offerResult, interactionResult) = await (coaches, offers, interactions)
+      exportFileURL = try SchoolExportService().prepareCSV(
+        schools: schools,
+        coaches: coachResult.items,
+        offers: offerResult.items,
+        interactions: interactionResult.items
+      )
+      // The CSV still generates on a partial fetch failure — zero counts / blank offer columns
+      // read the same as genuinely-empty data. Surface which ones couldn't be confirmed so the
+      // user doesn't mistake "failed to fetch" for "confirmed zero."
+      var missing: [String] = []
+      if !coachResult.succeeded { missing.append("coach") }
+      if !offerResult.succeeded { missing.append("offer") }
+      if !interactionResult.succeeded { missing.append("interaction") }
+      if !missing.isEmpty {
+        errorMessage = "Exported, but \(missing.joined(separator: "/")) data could not be confirmed and may show as empty."
+      }
     } catch {
       logger.error("Failed to prepare school export: \(error.localizedDescription)")
       errorMessage = "Failed to export schools. Please try again."
     }
   }
 
+  /// Coach fetch failure degrades to an empty list rather than blocking export — `succeeded`
+  /// tells the caller whether that's a confirmed zero or an unconfirmed fetch failure.
+  private func fetchCoachesForExport(schoolIds: [String]) async -> ExportFetchResult<Coach> {
+    guard !schoolIds.isEmpty else { return ExportFetchResult(items: [], succeeded: true) }
+    do {
+      return ExportFetchResult(items: try await coachesService.fetchCoaches(schoolIds: schoolIds), succeeded: true)
+    } catch {
+      logger.debug("Could not load coaches for export: \(error.localizedDescription)")
+      return ExportFetchResult(items: [], succeeded: false)
+    }
+  }
+
+  /// Family-scoped (not `userId`-scoped) so an export includes offers belonging to every
+  /// athlete in the family, matching web's family-keyed offers fetch.
+  private func fetchOffersForExport(familyUnitId: String?) async -> ExportFetchResult<Offer> {
+    guard let familyUnitId else { return ExportFetchResult(items: [], succeeded: true) }
+    do {
+      return ExportFetchResult(items: try await offersService.fetchOffers(familyUnitId: familyUnitId), succeeded: true)
+    } catch {
+      logger.debug("Could not load offers for export: \(error.localizedDescription)")
+      return ExportFetchResult(items: [], succeeded: false)
+    }
+  }
+
+  /// Fetched fresh (not `lastInteractions`) so a family switch, or an interaction logged/deleted
+  /// since the list last loaded, is reflected in the export rather than a stale cached snapshot.
+  private func fetchInteractionsForExport(familyUnitId: String?) async -> ExportFetchResult<Interaction> {
+    guard let familyUnitId else { return ExportFetchResult(items: [], succeeded: true) }
+    do {
+      return ExportFetchResult(items: try await interactionsService.fetchInteractions(familyUnitId: familyUnitId), succeeded: true)
+    } catch {
+      logger.debug("Could not load interactions for export: \(error.localizedDescription)")
+      return ExportFetchResult(items: [], succeeded: false)
+    }
+  }
+
   func cleanupExport(url: URL) {
+    guard exportFileURL == url else { return }
     SchoolExportService().cleanup(url: url)
     exportFileURL = nil
   }

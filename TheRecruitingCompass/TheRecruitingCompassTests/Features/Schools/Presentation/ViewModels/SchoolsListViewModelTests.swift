@@ -13,6 +13,8 @@ final class SchoolsListViewModelTests: XCTestCase {
   private var mockFamilyService: MockFamilyService!
   private var mockInteractionsService: MockInteractionsService!
   private var mockEventsService: MockEventsService!
+  private var mockCoachesService: MockCoachesService!
+  private var mockOffersService: MockOffersService!
   private var mockCache: InMemoryCache!
   private var mockPreferenceService: MockPreferenceManager!
 
@@ -22,6 +24,8 @@ final class SchoolsListViewModelTests: XCTestCase {
     mockFamilyService = MockFamilyService()
     mockInteractionsService = MockInteractionsService()
     mockEventsService = MockEventsService()
+    mockCoachesService = MockCoachesService()
+    mockOffersService = MockOffersService()
     mockPreferenceService = MockPreferenceManager()
     // Fresh instance per test — InMemoryCache.shared would leak state across tests.
     mockCache = InMemoryCache()
@@ -59,6 +63,8 @@ final class SchoolsListViewModelTests: XCTestCase {
       authManager: mockAuthManager,
       interactionsService: mockInteractionsService,
       eventsService: mockEventsService,
+      coachesService: mockCoachesService,
+      offersService: mockOffersService,
       cache: mockCache
     )
   }
@@ -71,6 +77,8 @@ final class SchoolsListViewModelTests: XCTestCase {
     mockFamilyService = nil
     mockInteractionsService = nil
     mockEventsService = nil
+    mockCoachesService = nil
+    mockOffersService = nil
     mockCache = nil
     mockPreferenceService = nil
   }
@@ -831,18 +839,194 @@ final class SchoolsListViewModelTests: XCTestCase {
 
   // MARK: - School Export Tests
 
+  private static let exportHeader =
+    "School Name,Division,Conference,Location,Status,Coaches,Interactions,Offer Type,Scholarship %,Offer Status,Deadline,Pros,Cons\n"
+
+  private func makeOffer(
+    id: String = "offer-1",
+    schoolId: String,
+    offerType: OfferType = .scholarship,
+    scholarshipPercentage: Int? = 50,
+    deadlineDate: String? = "2026-06-01",
+    status: OfferStatus = .pending
+  ) -> Offer {
+    Offer(
+      id: id,
+      userId: "user-1",
+      schoolId: schoolId,
+      offerType: offerType,
+      scholarshipAmount: nil,
+      scholarshipPercentage: scholarshipPercentage,
+      offerDate: "2026-01-01T00:00:00Z",
+      deadlineDate: deadlineDate,
+      status: status,
+      conditions: nil,
+      notes: nil,
+      createdAt: "2026-01-01T00:00:00Z",
+      updatedAt: "2026-01-01T00:00:00Z"
+    )
+  }
+
+  private func makeCoach(id: String = UUID().uuidString, schoolId: String) -> Coach {
+    Coach(
+      id: id,
+      firstName: "Jane",
+      lastName: "Doe",
+      schoolId: schoolId,
+      createdAt: "2026-01-01T00:00:00Z",
+      updatedAt: "2026-01-01T00:00:00Z"
+    )
+  }
+
   func testPrepareSchoolExport_generatesCSVWithHeaderAndRows() async {
     mockService.stubbedSchools = [
       makeSchool(id: "1", name: "Stanford University", location: "Stanford, CA", division: "D1", conference: "Pac-12", status: "interested")
     ]
     await sut.loadSchools()
 
-    sut.prepareSchoolExport()
+    await sut.prepareSchoolExport()
     let url = try? XCTUnwrap(sut.exportFileURL)
     let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
 
-    XCTAssertTrue(csv?.hasPrefix("School Name,Division,Conference,Location,Status,Pros,Cons\n") ?? false)
-    XCTAssertTrue(csv?.contains("Stanford University,D1,Pac-12,\"Stanford, CA\",Interested,,\n") ?? false)
+    XCTAssertTrue(csv?.hasPrefix(Self.exportHeader) ?? false)
+    XCTAssertTrue(csv?.contains("Stanford University,D1,Pac-12,\"Stanford, CA\",Interested,0,0,,,,,,\n") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_includesCoachAndInteractionCounts() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    mockInteractionsService.mockInteractions = [
+      makeVisitInteraction(schoolId: "1", type: .phoneCall),
+      makeVisitInteraction(schoolId: "1", type: .email)
+    ]
+    mockCoachesService.stubbedCoaches = [makeCoach(schoolId: "1"), makeCoach(schoolId: "1")]
+    await sut.loadSchools()
+
+    await sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertEqual(mockCoachesService.lastFetchCoachesSchoolIds, ["1"])
+    XCTAssertTrue(csv?.contains(",2,2,") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_includesOfferDetails() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    mockOffersService.stubbedOffers = [
+      makeOffer(schoolId: "1", offerType: .fullRide, scholarshipPercentage: 100, deadlineDate: "2026-06-01", status: .accepted)
+    ]
+    await sut.loadSchools()
+
+    await sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.contains("Full Ride,100%,Accepted,") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_fetchesOffersScopedByFamilyUnit_notSelectedUserOnly() async {
+    // A family with two athletes: the export must include offers on BOTH, not just the
+    // currently-selected athlete's own userId (web scopes offers by family_unit_id).
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    mockOffersService.stubbedOffers = [
+      makeOffer(id: "offer-mine", schoolId: "1"),
+      makeOffer(id: "offer-sibling", schoolId: "1")
+    ]
+    await sut.loadSchools()
+
+    await sut.prepareSchoolExport()
+
+    XCTAssertEqual(mockOffersService.lastFetchOffersFamilyUnitId, "family-1")
+    XCTAssertEqual(mockOffersService.fetchOffersByFamilyCallCount, 1)
+    XCTAssertEqual(mockOffersService.fetchOffersCallCount, 0)
+
+    if let url = sut.exportFileURL { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_deadlineDate_notShiftedByUTCParsing() async {
+    // Regression: `Offer.displayDeadlineDate` parses date-only strings at UTC midnight,
+    // which renders the previous calendar day in negative-UTC-offset timezones (every US
+    // timezone). The export must show the deadline's own calendar date, not a UTC-shifted one.
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    mockOffersService.stubbedOffers = [makeOffer(schoolId: "1", deadlineDate: "2026-06-01")]
+    await sut.loadSchools()
+
+    await sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    let expectedDeadline = DateFormatter.localizedString(
+      from: DateComponents(calendar: .current, year: 2026, month: 6, day: 1).date!,
+      dateStyle: .short,
+      timeStyle: .none
+    )
+    XCTAssertTrue(csv?.contains(expectedDeadline) ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testCleanupExport_ignoresMismatchedURL_doesNotClearCurrentExport() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    await sut.loadSchools()
+    await sut.prepareSchoolExport()
+    let currentURL = try? XCTUnwrap(sut.exportFileURL)
+    let staleURL = FileManager.default.temporaryDirectory.appendingPathComponent("stale-\(UUID()).csv")
+
+    sut.cleanupExport(url: staleURL)
+
+    XCTAssertNotNil(sut.exportFileURL)
+    XCTAssertEqual(sut.exportFileURL, currentURL)
+
+    if let currentURL { sut.cleanupExport(url: currentURL) }
+  }
+
+  func testPrepareSchoolExport_noOffer_leavesOfferColumnsEmpty() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    await sut.loadSchools()
+
+    await sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertTrue(csv?.contains(",0,0,,,,,,\n") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_coachAndOfferFetchFailure_degradesGracefully() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    mockCoachesService.shouldThrowFetchCoaches = true
+    mockOffersService.shouldThrowFetchError = true
+    await sut.loadSchools()
+
+    await sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+    let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
+
+    XCTAssertNotNil(url)
+    XCTAssertTrue(csv?.contains(",0,0,,,,,,\n") ?? false)
+    // Export still succeeds and produces a file, but the empty coach/offer columns are
+    // unconfirmed (fetch failed) rather than a genuine zero — the user must be told.
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.errorMessage?.contains("coach") ?? false)
+    XCTAssertTrue(sut.errorMessage?.contains("offer") ?? false)
+
+    if let url { sut.cleanupExport(url: url) }
+  }
+
+  func testPrepareSchoolExport_allFetchesSucceed_leavesErrorMessageNil() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    await sut.loadSchools()
+
+    await sut.prepareSchoolExport()
+    let url = try? XCTUnwrap(sut.exportFileURL)
+
+    XCTAssertNil(sut.errorMessage)
 
     if let url { sut.cleanupExport(url: url) }
   }
@@ -853,7 +1037,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     ]
     await sut.loadSchools()
 
-    sut.prepareSchoolExport()
+    await sut.prepareSchoolExport()
     let url = try? XCTUnwrap(sut.exportFileURL)
     let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
 
@@ -868,7 +1052,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     ]
     await sut.loadSchools()
 
-    sut.prepareSchoolExport()
+    await sut.prepareSchoolExport()
     let url = try? XCTUnwrap(sut.exportFileURL)
     let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
 
@@ -883,7 +1067,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     ]
     await sut.loadSchools()
 
-    sut.prepareSchoolExport()
+    await sut.prepareSchoolExport()
     let url = try? XCTUnwrap(sut.exportFileURL)
     let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
 
@@ -899,7 +1083,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     ]
     await sut.loadSchools()
 
-    sut.prepareSchoolExport()
+    await sut.prepareSchoolExport()
     let url = try? XCTUnwrap(sut.exportFileURL)
     let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
 
@@ -912,11 +1096,11 @@ final class SchoolsListViewModelTests: XCTestCase {
     mockService.stubbedSchools = []
     await sut.loadSchools()
 
-    sut.prepareSchoolExport()
+    await sut.prepareSchoolExport()
     let url = try? XCTUnwrap(sut.exportFileURL)
     let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
 
-    XCTAssertEqual(csv, "School Name,Division,Conference,Location,Status,Pros,Cons\n")
+    XCTAssertEqual(csv, Self.exportHeader)
 
     if let url { sut.cleanupExport(url: url) }
   }
@@ -927,7 +1111,7 @@ final class SchoolsListViewModelTests: XCTestCase {
     ]
     await sut.loadSchools()
 
-    sut.prepareSchoolExport()
+    await sut.prepareSchoolExport()
     let url = try? XCTUnwrap(sut.exportFileURL)
     let csv = try? String(contentsOf: XCTUnwrap(url), encoding: .utf8)
 
@@ -940,9 +1124,9 @@ final class SchoolsListViewModelTests: XCTestCase {
     mockService.stubbedSchools = [makeSchool(id: "1")]
     await sut.loadSchools()
 
-    sut.prepareSchoolExport()
+    await sut.prepareSchoolExport()
     let firstURL = try? XCTUnwrap(sut.exportFileURL)
-    sut.prepareSchoolExport()
+    await sut.prepareSchoolExport()
     let secondURL = try? XCTUnwrap(sut.exportFileURL)
 
     XCTAssertNotEqual(firstURL, secondURL)

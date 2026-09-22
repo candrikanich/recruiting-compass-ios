@@ -344,4 +344,55 @@ final class OfferTests: XCTestCase {
     )
     XCTAssertNotEqual(pending, accepted)
   }
+
+  // MARK: - Decoding: fractional scholarship_percentage
+
+  /// DB column is `numeric(5,2)` (fractional, e.g. 12.5%) — decoding it straight into `Int?`
+  /// throws and previously discarded the entire containing `[Offer]` array on one bad row.
+  private func makeOfferJSON(scholarshipPercentage: String) -> Data {
+    """
+    {
+      "id": "offer-1",
+      "user_id": "user-1",
+      "school_id": "school-1",
+      "offer_type": "scholarship",
+      "scholarship_amount": null,
+      "scholarship_percentage": \(scholarshipPercentage),
+      "offer_date": "2026-01-01T00:00:00Z",
+      "deadline_date": null,
+      "status": "pending",
+      "conditions": null,
+      "notes": null,
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    }
+    """.data(using: .utf8)!
+  }
+
+  func testDecode_fractionalScholarshipPercentage_roundsInsteadOfThrowing() throws {
+    let offer = try JSONDecoder().decode(Offer.self, from: makeOfferJSON(scholarshipPercentage: "12.5"))
+    XCTAssertEqual(offer.scholarshipPercentage, 13)
+  }
+
+  func testDecode_fractionalScholarshipPercentage_roundsDown() throws {
+    let offer = try JSONDecoder().decode(Offer.self, from: makeOfferJSON(scholarshipPercentage: "12.4"))
+    XCTAssertEqual(offer.scholarshipPercentage, 12)
+  }
+
+  func testDecode_wholeNumberScholarshipPercentage_unaffected() throws {
+    let offer = try JSONDecoder().decode(Offer.self, from: makeOfferJSON(scholarshipPercentage: "50"))
+    XCTAssertEqual(offer.scholarshipPercentage, 50)
+  }
+
+  func testDecode_nullScholarshipPercentage_decodesToNil() throws {
+    let offer = try JSONDecoder().decode(Offer.self, from: makeOfferJSON(scholarshipPercentage: "null"))
+    XCTAssertNil(offer.scholarshipPercentage)
+  }
+
+  func testDecode_arrayWithOneFractionalOffer_doesNotDiscardSiblings() throws {
+    let arrayJSON = "[\(String(data: makeOfferJSON(scholarshipPercentage: "12.5"), encoding: .utf8)!)]"
+    let offers = try JSONDecoder().decode([Offer].self, from: arrayJSON.data(using: .utf8)!)
+    XCTAssertEqual(offers.count, 1)
+    XCTAssertEqual(offers.first?.scholarshipPercentage, 13)
+  }
 }

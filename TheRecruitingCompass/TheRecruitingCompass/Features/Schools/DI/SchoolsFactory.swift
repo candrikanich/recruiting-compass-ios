@@ -18,6 +18,8 @@ enum SchoolsFactory {
     authManager: (any AuthManaging)? = nil,
     interactionsService: (any InteractionsManaging)? = nil,
     eventsService: (any EventsManaging)? = nil,
+    coachesService: (any CoachesManaging)? = nil,
+    offersService: (any OffersManaging)? = nil,
     cache: (any CacheManaging)? = nil
   ) -> SchoolsListViewModel {
     let repository = schoolsService ?? makeRepository()
@@ -28,6 +30,8 @@ enum SchoolsFactory {
       authManager: authManager,
       interactionsService: interactionsService,
       eventsService: eventsService,
+      coachesService: coachesService,
+      offersService: offersService,
       cache: cache,
       deleteSchool: DeleteSchoolUseCase(repository: repository)
     )
