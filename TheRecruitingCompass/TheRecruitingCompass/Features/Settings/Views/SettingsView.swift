@@ -21,7 +21,7 @@ struct SettingsView: View {
   @Environment(EntitlementStore.self) private var entitlementStore
   @State private var presentedLegal: LegalDocument?
   @State private var showCodeCopied = false
-  @State private var showInboundAddressCopied = false
+  @State private var copiedFamilyUnitId: String?
   @State private var viewModel: SettingsViewModel
 
   private let preferenceService: PreferenceManaging
@@ -195,18 +195,20 @@ struct SettingsView: View {
                 Spacer()
                 Button {
                   UIPasteboard.general.string = entry.address
-                  showInboundAddressCopied = true
+                  copiedFamilyUnitId = entry.familyUnitId
                   Task {
                     try? await Task.sleep(for: .seconds(2))
-                    showInboundAddressCopied = false
+                    if copiedFamilyUnitId == entry.familyUnitId {
+                      copiedFamilyUnitId = nil
+                    }
                   }
                 } label: {
-                  Text(showInboundAddressCopied ? String(localized: "Copied!") : String(localized: "Copy"))
+                  Text(copiedFamilyUnitId == entry.familyUnitId ? String(localized: "Copied!") : String(localized: "Copy"))
                     .font(.caption.weight(.medium))
                 }
                 .buttonStyle(.bordered)
-                .disabled(showInboundAddressCopied)
-                .accessibilityLabel(showInboundAddressCopied ? String(localized: "Copied to clipboard") : String(localized: "Copy forwarding address"))
+                .disabled(copiedFamilyUnitId == entry.familyUnitId)
+                .accessibilityLabel(copiedFamilyUnitId == entry.familyUnitId ? String(localized: "Copied to clipboard") : String(localized: "Copy forwarding address"))
               }
             }
             .padding(.vertical, 4)
@@ -222,7 +224,6 @@ struct SettingsView: View {
           } header: {
             Text(viewModel.inboundAddresses.count > 1 ? "Coach Email Forwarding — \(entry.familyName)" : "Coach Email Forwarding")
           }
-        }
         }
 
         // User Settings Section
