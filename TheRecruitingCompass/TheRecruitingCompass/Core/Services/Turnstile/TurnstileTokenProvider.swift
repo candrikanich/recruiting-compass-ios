@@ -1,4 +1,5 @@
 import Foundation
+import os
 import WebKit
 
 /// Owns the single WKWebView that runs an invisible Cloudflare Turnstile widget and
@@ -23,9 +24,12 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   private var readyContinuations: [CheckedContinuation<Void, Error>] = []
   private var readyTimeoutTask: Task<Void, Never>?
   private var hasRetriedAfterExpiry = false
+  private static let log = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "Turnstile")
 
   private override init() {
     let configuration = WKWebViewConfiguration()
+    // iPadOS defaults to desktop-class content (Mac UA), which Turnstile can score as riskier.
+    configuration.defaultWebpagePreferences.preferredContentMode = .mobile
     webView = WKWebView(frame: .zero, configuration: configuration)
     super.init()
     configuration.userContentController.add(self, name: "turnstile")
@@ -58,6 +62,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
         let waiters = self.readyContinuations
         self.readyContinuations.removeAll()
         self.readyTimeoutTask = nil
+        Self.log.error("Turnstile widget not ready after 10s")
         waiters.forEach { $0.resume(throwing: AuthError.captchaFailed) }
       }
     }
@@ -80,6 +85,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
     let timeoutTask = Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(10))
       guard let self, self.pendingContinuation != nil else { return }
+      Self.log.error("Turnstile token timeout after 10s")
       self.pendingContinuation?.resume(throwing: AuthError.captchaFailed)
       self.pendingContinuation = nil
     }
@@ -144,8 +150,8 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
         callback: function(token) {
           webkit.messageHandlers.turnstile.postMessage({type: 'token', token: token});
         },
-        'error-callback': function() {
-          webkit.messageHandlers.turnstile.postMessage({type: 'error'});
+        'error-callback': function(code) {
+          webkit.messageHandlers.turnstile.postMessage({type: 'error', code: String(code)});
         },
         'expired-callback': function() {
           webkit.messageHandlers.turnstile.postMessage({type: 'expired'});
@@ -179,6 +185,9 @@ extension TurnstileTokenProvider: WKScriptMessageHandler {
         }
       case "expired":
         self.handleExpired()
+      case "error":
+        Self.log.error("Turnstile error-callback code=\(body["code"] as? String ?? "none", privacy: .public)")
+        self.handleError()
       default:
         self.handleError()
       }
