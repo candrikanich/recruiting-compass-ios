@@ -601,6 +601,17 @@ final class AddSchoolViewModelTests: XCTestCase {
     XCTAssertEqual(scorecard.searchCollegesCallCount, 1)
   }
 
+  func testAutocomplete_cancelledSearch_doesNotSurfaceError() async {
+    let (vm, scorecard) = makeViewModelForTypoSearch(suggestions: [], resultsByQuery: [:])
+    scorecard.shouldThrowError = true
+    scorecard.errorToThrow = CancellationError()
+
+    await vm.performAutocompleteSearch(query: "Michgan")
+
+    XCTAssertNil(vm.searchError)
+    XCTAssertTrue(vm.searchResults.isEmpty)
+  }
+
   func testAutocomplete_suggestionEqualToQuery_doesNotRetry() async {
     let (vm, scorecard) = makeViewModelForTypoSearch(
       suggestions: ["Stanford University"],

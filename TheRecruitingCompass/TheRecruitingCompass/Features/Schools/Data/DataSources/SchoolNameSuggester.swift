@@ -12,7 +12,7 @@ import Foundation
 /// so "Michgan" finds "University of Michigan" while unrelated names never qualify.
 enum SchoolNameSuggester {
   /// Words that appear in most school names and would make every school a fuzzy match.
-  private static let genericTokens: Set<String> = ["university", "college", "of", "the", "at", "state"]
+  private static let genericTokens: Set<String> = ["university", "college", "of", "the", "at"]
 
   nonisolated static func suggestions(for query: String, from names: [String], limit: Int = 3) -> [String] {
     let queryTokens = tokens(in: query).filter { !genericTokens.contains($0) }

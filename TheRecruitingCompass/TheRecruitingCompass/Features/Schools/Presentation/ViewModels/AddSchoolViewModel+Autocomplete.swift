@@ -37,7 +37,8 @@ extension AddSchoolViewModel {
     autocompleteLogger.debug("Performing autocomplete search: \(query)")
     isSearching = true
     searchError = nil
-    defer { isSearching = false }
+    // A cancelled search was superseded; the newer search owns the loading state.
+    defer { if !Task.isCancelled { isSearching = false } }
 
     do {
       var results = try await collegeScorecardService.searchColleges(query: query)
@@ -52,6 +53,9 @@ extension AddSchoolViewModel {
       let resultCount = results.count
       let announcement = "\(resultCount) college\(resultCount == 1 ? "" : "s") found"
       announcer.announce(announcement)
+
+    } catch is CancellationError {
+      autocompleteLogger.debug("Autocomplete search cancelled: \(query)")
 
     } catch let error as CollegeDataError {
       autocompleteLogger.error("Autocomplete search failed: \(error.localizedDescription)")

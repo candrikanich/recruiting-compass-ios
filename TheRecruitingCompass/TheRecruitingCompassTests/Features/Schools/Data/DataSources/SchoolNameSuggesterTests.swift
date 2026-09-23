@@ -60,6 +60,11 @@ final class SchoolNameSuggesterTests: XCTestCase {
     XCTAssertEqual(result.count, 2)
   }
 
+  func testSuggestions_stateIsSignificant_ranksStateSchoolOverFlagship() {
+    let result = SchoolNameSuggester.suggestions(for: "Michgan State", from: names)
+    XCTAssertEqual(result, ["Michigan State University"])
+  }
+
   func testSuggestions_respectsLimit() {
     let result = SchoolNameSuggester.suggestions(for: "Michgan", from: names, limit: 1)
     XCTAssertEqual(result.count, 1)

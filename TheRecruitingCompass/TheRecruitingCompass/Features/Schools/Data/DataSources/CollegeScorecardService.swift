@@ -167,6 +167,11 @@ actor CollegeScorecardService: CollegeScorecardManaging {
       return data
     } catch let error as CollegeDataError {
       throw error
+    } catch is CancellationError {
+      throw CancellationError()
+    } catch let error as URLError where error.code == .cancelled {
+      // Superseded requests must not surface as user-visible network errors
+      throw CancellationError()
     } catch {
       logger.error("Network error: \(error.localizedDescription)")
       throw CollegeDataError.networkError(error)
