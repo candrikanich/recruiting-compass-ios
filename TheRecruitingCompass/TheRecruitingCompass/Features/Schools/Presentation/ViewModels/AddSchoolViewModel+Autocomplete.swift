@@ -37,10 +37,14 @@ extension AddSchoolViewModel {
     autocompleteLogger.debug("Performing autocomplete search: \(query)")
     isSearching = true
     searchError = nil
-    defer { isSearching = false }
+    // A cancelled search was superseded; the newer search owns the loading state.
+    defer { if !Task.isCancelled { isSearching = false } }
 
     do {
-      let results = try await collegeScorecardService.searchColleges(query: query)
+      var results = try await collegeScorecardService.searchColleges(query: query)
+      if results.isEmpty {
+        results = try await searchWithSpellingCorrection(for: query)
+      }
 
       searchResults = results
       autocompleteLogger.info("Found \(results.count) colleges for query: \(query)")
@@ -49,6 +53,9 @@ extension AddSchoolViewModel {
       let resultCount = results.count
       let announcement = "\(resultCount) college\(resultCount == 1 ? "" : "s") found"
       announcer.announce(announcement)
+
+    } catch is CancellationError {
+      autocompleteLogger.debug("Autocomplete search cancelled: \(query)")
 
     } catch let error as CollegeDataError {
       autocompleteLogger.error("Autocomplete search failed: \(error.localizedDescription)")
@@ -60,6 +67,21 @@ extension AddSchoolViewModel {
       searchError = String(localized: "Unable to search colleges. Please try again.")
       searchResults = []
     }
+  }
+
+  /// Scorecard matches names literally, so a typo yields nothing. Retry with the closest
+  /// known NCAA spellings; the first one that returns results wins.
+  private func searchWithSpellingCorrection(for query: String) async throws -> [CollegeSearchResult] {
+    let corrections = await ncaaDatabase.suggestNames(for: query)
+      .filter { $0.caseInsensitiveCompare(query) != .orderedSame }
+      .prefix(2)
+
+    for correction in corrections {
+      autocompleteLogger.debug("No results for \(query); retrying as \(correction)")
+      let results = try await collegeScorecardService.searchColleges(query: correction)
+      if !results.isEmpty { return results }
+    }
+    return []
   }
 
   /// Selects a college from autocomplete results

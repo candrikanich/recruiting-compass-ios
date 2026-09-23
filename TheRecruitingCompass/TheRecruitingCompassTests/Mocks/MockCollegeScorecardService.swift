@@ -7,6 +7,8 @@ final class MockCollegeScorecardService: CollegeScorecardManaging {
 
   var stubbedResult: CollegeDataResult? // Backward compatibility
   var stubbedSearchResults: [CollegeSearchResult] = []
+  /// Per-query override; queries not listed fall back to `stubbedSearchResults`.
+  var stubbedSearchResultsByQuery: [String: [CollegeSearchResult]] = [:]
   var shouldThrowError = false
   var errorToThrow: Error = CollegeDataError.schoolNotFound
 
@@ -40,7 +42,7 @@ final class MockCollegeScorecardService: CollegeScorecardManaging {
     let (shouldThrow, error, results) = await MainActor.run {
       searchCollegesCallCount += 1
       lastSearchQuery = query
-      return (shouldThrowError, errorToThrow, stubbedSearchResults)
+      return (shouldThrowError, errorToThrow, stubbedSearchResultsByQuery[query] ?? stubbedSearchResults)
     }
     if shouldThrow {
       throw error

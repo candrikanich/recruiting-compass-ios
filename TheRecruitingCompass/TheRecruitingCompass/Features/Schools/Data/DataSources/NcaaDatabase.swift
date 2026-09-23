@@ -17,6 +17,12 @@ nonisolated private let logger = Logger(
 /// Protocol for NCAA database lookups (enables testing)
 protocol NcaaDatabaseManaging: Sendable {
   func lookup(schoolName: String) async -> NcaaLookupResult?
+  /// Correctly spelled NCAA school names close to a misspelled query, best match first.
+  func suggestNames(for query: String) async -> [String]
+}
+
+extension NcaaDatabaseManaging {
+  func suggestNames(for query: String) async -> [String] { [] }
 }
 
 /// NCAA Division database singleton
@@ -103,6 +109,10 @@ actor NcaaDatabase: NcaaDatabaseManaging {
 
     logger.debug("No NCAA match found for: \(schoolName)")
     return nil
+  }
+
+  func suggestNames(for query: String) async -> [String] {
+    SchoolNameSuggester.suggestions(for: query, from: (d1Schools + d2Schools + d3Schools).map(\.name))
   }
 
   /// Clear the session cache
