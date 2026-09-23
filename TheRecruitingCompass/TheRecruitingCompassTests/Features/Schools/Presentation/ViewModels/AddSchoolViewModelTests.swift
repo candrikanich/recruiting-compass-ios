@@ -21,6 +21,12 @@ private final class MockNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable 
     lastLookedUpName = schoolName
     return mockResult
   }
+
+  var mockSuggestions: [String] = []
+
+  func suggestNames(for query: String) async -> [String] {
+    mockSuggestions
+  }
 }
 
 private final class MockSchoolFaviconService: SchoolFaviconManaging, @unchecked Sendable {
@@ -535,6 +541,75 @@ final class AddSchoolViewModelTests: XCTestCase {
     XCTAssertNil(viewModel.formState.division)
     XCTAssertFalse(viewModel.formErrors.hasErrors)
     XCTAssertNil(viewModel.submitError)
+  }
+
+  // MARK: - performAutocompleteSearch() Typo Tolerance Tests (#140)
+
+  private func makeViewModelForTypoSearch(
+    suggestions: [String],
+    resultsByQuery: [String: [CollegeSearchResult]]
+  ) -> (AddSchoolViewModel, MockCollegeScorecardService) {
+    let mockNcaa = MockNcaaDatabase()
+    mockNcaa.mockSuggestions = suggestions
+    let mockScorecard = MockCollegeScorecardService()
+    mockScorecard.stubbedSearchResultsByQuery = resultsByQuery
+    let vm = AddSchoolViewModel(
+      schoolsService: mockService,
+      collegeScorecardService: mockScorecard,
+      ncaaDatabase: mockNcaa,
+      schoolFaviconService: MockSchoolFaviconService(),
+      familyUnitId: "test-family-123",
+      userId: "test-user-456",
+      announcer: MockAccessibilityAnnouncer()
+    )
+    return (vm, mockScorecard)
+  }
+
+  func testAutocomplete_misspelledQuery_retriesWithSuggestionAndShowsResults() async {
+    let michigan = makeCollegeSearchResult(name: "University of Michigan")
+    let (vm, scorecard) = makeViewModelForTypoSearch(
+      suggestions: ["University of Michigan"],
+      resultsByQuery: ["Michgan": [], "University of Michigan": [michigan]]
+    )
+
+    await vm.performAutocompleteSearch(query: "Michgan")
+
+    XCTAssertEqual(vm.searchResults, [michigan])
+    XCTAssertEqual(scorecard.lastSearchQuery, "University of Michigan")
+    XCTAssertNil(vm.searchError)
+  }
+
+  func testAutocomplete_noSuggestions_staysEmpty() async {
+    let (vm, scorecard) = makeViewModelForTypoSearch(suggestions: [], resultsByQuery: ["Zzzzqqq": []])
+
+    await vm.performAutocompleteSearch(query: "Zzzzqqq")
+
+    XCTAssertTrue(vm.searchResults.isEmpty)
+    XCTAssertEqual(scorecard.searchCollegesCallCount, 1)
+  }
+
+  func testAutocomplete_resultsFound_doesNotRetry() async {
+    let florida = makeCollegeSearchResult()
+    let (vm, scorecard) = makeViewModelForTypoSearch(
+      suggestions: ["Should Not Be Used"],
+      resultsByQuery: ["Florida": [florida]]
+    )
+
+    await vm.performAutocompleteSearch(query: "Florida")
+
+    XCTAssertEqual(vm.searchResults, [florida])
+    XCTAssertEqual(scorecard.searchCollegesCallCount, 1)
+  }
+
+  func testAutocomplete_suggestionEqualToQuery_doesNotRetry() async {
+    let (vm, scorecard) = makeViewModelForTypoSearch(
+      suggestions: ["Stanford University"],
+      resultsByQuery: ["Stanford University": []]
+    )
+
+    await vm.performAutocompleteSearch(query: "Stanford University")
+
+    XCTAssertEqual(scorecard.searchCollegesCallCount, 1)
   }
 
   // MARK: - selectCollege() NCAA Lookup Tests

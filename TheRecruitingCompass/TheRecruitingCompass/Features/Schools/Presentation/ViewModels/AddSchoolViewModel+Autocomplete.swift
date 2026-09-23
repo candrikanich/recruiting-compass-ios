@@ -40,7 +40,10 @@ extension AddSchoolViewModel {
     defer { isSearching = false }
 
     do {
-      let results = try await collegeScorecardService.searchColleges(query: query)
+      var results = try await collegeScorecardService.searchColleges(query: query)
+      if results.isEmpty {
+        results = try await searchWithSpellingCorrection(for: query)
+      }
 
       searchResults = results
       autocompleteLogger.info("Found \(results.count) colleges for query: \(query)")
@@ -60,6 +63,21 @@ extension AddSchoolViewModel {
       searchError = String(localized: "Unable to search colleges. Please try again.")
       searchResults = []
     }
+  }
+
+  /// Scorecard matches names literally, so a typo yields nothing. Retry with the closest
+  /// known NCAA spellings; the first one that returns results wins.
+  private func searchWithSpellingCorrection(for query: String) async throws -> [CollegeSearchResult] {
+    let corrections = await ncaaDatabase.suggestNames(for: query)
+      .filter { $0.caseInsensitiveCompare(query) != .orderedSame }
+      .prefix(2)
+
+    for correction in corrections {
+      autocompleteLogger.debug("No results for \(query); retrying as \(correction)")
+      let results = try await collegeScorecardService.searchColleges(query: correction)
+      if !results.isEmpty { return results }
+    }
+    return []
   }
 
   /// Selects a college from autocomplete results
