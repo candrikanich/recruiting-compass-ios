@@ -12,6 +12,7 @@ enum ProfileServiceError: LocalizedError {
     case serverError(String)
     case networkError(Error)
     case noPendingDeletion
+    case exportRateLimited
 
     var errorDescription: String? {
         switch self {
@@ -25,6 +26,8 @@ enum ProfileServiceError: LocalizedError {
             return "Network error. Please check your connection."
         case .noPendingDeletion:
             return "No pending deletion to cancel."
+        case .exportRateLimited:
+            return "You can only export your data once per day. Please try again tomorrow."
         }
     }
 }
@@ -38,6 +41,7 @@ protocol ProfileManaging: Sendable {
     func getDeletionStatus() async throws -> Date?
     func requestDeletion() async throws
     func cancelDeletion() async throws
+    func requestDataExport() async throws -> URL
 }
 
 // MARK: - Implementation
@@ -130,6 +134,89 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
     func cancelDeletion() async throws {
         struct EmptyBody: Encodable {}
         try await post(path: "api/account/cancel-deletion", method: "POST", body: EmptyBody())
+    }
+
+    /// Web returns a signed ZIP link (7-day expiry) rather than the bytes. The archive is
+    /// downloaded to a local file so the share sheet hands over the ZIP itself, not a link
+    /// that expires.
+    func requestDataExport() async throws -> URL {
+        let downloadURL = try await requestExportLink()
+        return try await downloadArchive(from: downloadURL)
+    }
+
+    private func requestExportLink() async throws -> URL {
+        guard let baseURL = SupabaseConfig.apiBaseURL else {
+            logger.error("apiBaseURL not configured")
+            throw ProfileServiceError.notConfigured
+        }
+        let token = try await supabaseManager.client.auth.session.accessToken
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/user/export"))
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Data("{}".utf8)
+
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            logger.error("requestDataExport network error: \(error.localizedDescription)")
+            throw ProfileServiceError.networkError(error)
+        }
+
+        guard let http = response as? HTTPURLResponse else {
+            throw ProfileServiceError.serverError("Invalid response.")
+        }
+        if http.statusCode == 429 { throw Self.rateLimitError(from: data) }
+
+        struct ExportResponse: Decodable {
+            let downloadUrl: URL
+        }
+        guard (200..<300).contains(http.statusCode),
+              let decoded = try? JSONDecoder().decode(ExportResponse.self, from: data) else {
+            logger.error("requestDataExport failed (\(http.statusCode))")
+            throw ProfileServiceError.serverError("Could not generate your data export. Please try again later.")
+        }
+        return decoded.downloadUrl
+    }
+
+    private func downloadArchive(from url: URL) async throws -> URL {
+        let tempURL: URL
+        let response: URLResponse
+        do {
+            (tempURL, response) = try await URLSession.shared.download(from: url)
+        } catch {
+            logger.error("requestDataExport download error: \(error.localizedDescription)")
+            throw ProfileServiceError.networkError(error)
+        }
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw ProfileServiceError.serverError("Could not download your data export. Please try again later.")
+        }
+
+        let destination = FileManager.default.temporaryDirectory
+            .appendingPathComponent("recruiting-compass-data-export.zip")
+        do {
+            try? FileManager.default.removeItem(at: destination)
+            try FileManager.default.moveItem(at: tempURL, to: destination)
+        } catch {
+            logger.error("requestDataExport file move error: \(error.localizedDescription)")
+            throw ProfileServiceError.serverError("Could not save your data export. Please try again.")
+        }
+        return destination
+    }
+
+    /// The export endpoint's 429 carries `data.retryAfter` (one day); the global request
+    /// limiter's 429 does not, and should not tell the user to wait until tomorrow.
+    static func rateLimitError(from body: Data) -> ProfileServiceError {
+        struct Body: Decodable {
+            struct Payload: Decodable { let retryAfter: Int? }
+            let data: Payload?
+        }
+        let retryAfter = (try? JSONDecoder().decode(Body.self, from: body))?.data?.retryAfter
+        return (retryAfter ?? 0) >= 86_400
+            ? .exportRateLimited
+            : .serverError("Too many requests. Please wait a moment and try again.")
     }
 
     // MARK: - Shared request helper

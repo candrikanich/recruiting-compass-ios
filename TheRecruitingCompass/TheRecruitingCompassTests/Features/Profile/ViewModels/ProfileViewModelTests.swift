@@ -326,6 +326,68 @@ final class ProfileViewModelTests: XCTestCase {
     XCTAssertNotNil(viewModel.deletionError)
   }
 
+  // MARK: - Data export (GDPR Art. 20)
+
+  func testRequestDataExport_success_storesDownloadURL() async {
+    let url = URL(string: "https://example.com/export.zip")!
+    mockProfileService.stubbedExportURL = url
+
+    await viewModel.requestDataExport()
+
+    XCTAssertEqual(mockProfileService.requestDataExportCallCount, 1)
+    XCTAssertEqual(viewModel.exportDownloadURL, url)
+    XCTAssertNil(viewModel.exportError)
+    XCTAssertFalse(viewModel.isExportingData)
+  }
+
+  func testRequestDataExport_failure_setsErrorAndNoURL() async {
+    mockProfileService.shouldThrowOnRequestDataExport = true
+
+    await viewModel.requestDataExport()
+
+    XCTAssertNil(viewModel.exportDownloadURL)
+    XCTAssertNotNil(viewModel.exportError)
+    XCTAssertFalse(viewModel.isExportingData)
+  }
+
+  func testRequestDataExport_retryAfterFailure_clearsPreviousError() async {
+    mockProfileService.shouldThrowOnRequestDataExport = true
+    await viewModel.requestDataExport()
+
+    mockProfileService.shouldThrowOnRequestDataExport = false
+    await viewModel.requestDataExport()
+
+    XCTAssertNil(viewModel.exportError)
+    XCTAssertNotNil(viewModel.exportDownloadURL)
+  }
+
+  func testRequestDataExport_whileInFlight_isIgnored() async {
+    viewModel.isExportingData = true
+
+    await viewModel.requestDataExport()
+
+    XCTAssertEqual(mockProfileService.requestDataExportCallCount, 0)
+  }
+
+  // MARK: - Export 429 mapping
+
+  func testRateLimitError_exportBodyWithDailyRetryAfter_isExportRateLimited() {
+    let body = Data(#"{"statusCode":429,"data":{"message":"x","retryAfter":86400}}"#.utf8)
+
+    guard case .exportRateLimited = ProfileServiceImpl.rateLimitError(from: body) else {
+      return XCTFail("Expected .exportRateLimited")
+    }
+  }
+
+  func testRateLimitError_globalLimiterBody_isGenericThrottleNotDaily() {
+    let body = Data(#"{"statusCode":429,"statusMessage":"Too Many Requests"}"#.utf8)
+
+    guard case .serverError(let message) = ProfileServiceImpl.rateLimitError(from: body) else {
+      return XCTFail("Expected .serverError")
+    }
+    XCTAssertFalse(message.contains("tomorrow"))
+  }
+
   // MARK: - Helpers
 
   private func userMock(profilePhotoUrl: String? = nil) -> User {

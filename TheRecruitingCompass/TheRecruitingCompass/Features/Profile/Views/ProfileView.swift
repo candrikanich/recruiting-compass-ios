@@ -375,6 +375,8 @@ private struct ProfileDataPrivacySection: View {
 
     var body: some View {
         Section {
+            ProfileDataExportRow(viewModel: viewModel)
+
             switch viewModel.deletionState {
             case .noRequest:
                 ProfileDeletionDefaultState(viewModel: viewModel)
