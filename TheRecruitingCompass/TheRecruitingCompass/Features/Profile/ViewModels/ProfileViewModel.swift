@@ -53,6 +53,12 @@ final class ProfileViewModel {
     var isLoadingDeletion = false
     var deletionError: String?
 
+    // MARK: - Data export state
+
+    var isExportingData = false
+    var exportDownloadURL: URL?
+    var exportError: String?
+
     // MARK: - Shared types
 
     enum SectionMessage {
@@ -300,6 +306,21 @@ final class ProfileViewModel {
         } catch {
             logger.error("Cancel deletion failed: \(error.localizedDescription)")
             deletionError = error.localizedDescription
+        }
+    }
+
+    // MARK: - Data export
+
+    func requestDataExport() async {
+        isExportingData = true
+        exportError = nil
+        defer { isExportingData = false }
+
+        do {
+            exportDownloadURL = try await profileService.requestDataExport()
+        } catch {
+            logger.error("Data export failed: \(error.localizedDescription)")
+            exportError = error.localizedDescription
         }
     }
 

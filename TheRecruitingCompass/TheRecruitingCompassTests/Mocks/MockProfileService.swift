@@ -8,6 +8,9 @@ final class MockProfileService: ProfileManaging, @unchecked Sendable {
   var shouldThrowOnGetDeletionStatus = false
   var shouldThrowOnRequestDeletion = false
   var shouldThrowOnCancelDeletion = false
+  var shouldThrowOnRequestDataExport = false
+  var stubbedExportURL = URL(string: "https://example.com/export.zip")!
+  var requestDataExportCallCount = 0
 
   var errorToThrow: Error = ProfileServiceError.serverError("Mock error")
 
@@ -64,5 +67,11 @@ final class MockProfileService: ProfileManaging, @unchecked Sendable {
   func cancelDeletion() async throws {
     cancelDeletionCallCount += 1
     if shouldThrowOnCancelDeletion { throw errorToThrow }
+  }
+
+  func requestDataExport() async throws -> URL {
+    requestDataExportCallCount += 1
+    if shouldThrowOnRequestDataExport { throw errorToThrow }
+    return stubbedExportURL
   }
 }

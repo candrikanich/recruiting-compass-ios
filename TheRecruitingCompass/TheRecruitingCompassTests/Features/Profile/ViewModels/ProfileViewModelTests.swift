@@ -326,6 +326,41 @@ final class ProfileViewModelTests: XCTestCase {
     XCTAssertNotNil(viewModel.deletionError)
   }
 
+  // MARK: - Data export (GDPR Art. 20)
+
+  func testRequestDataExport_success_storesDownloadURL() async {
+    let url = URL(string: "https://example.com/export.zip")!
+    mockProfileService.stubbedExportURL = url
+
+    await viewModel.requestDataExport()
+
+    XCTAssertEqual(mockProfileService.requestDataExportCallCount, 1)
+    XCTAssertEqual(viewModel.exportDownloadURL, url)
+    XCTAssertNil(viewModel.exportError)
+    XCTAssertFalse(viewModel.isExportingData)
+  }
+
+  func testRequestDataExport_failure_setsErrorAndNoURL() async {
+    mockProfileService.shouldThrowOnRequestDataExport = true
+
+    await viewModel.requestDataExport()
+
+    XCTAssertNil(viewModel.exportDownloadURL)
+    XCTAssertNotNil(viewModel.exportError)
+    XCTAssertFalse(viewModel.isExportingData)
+  }
+
+  func testRequestDataExport_retryAfterFailure_clearsPreviousError() async {
+    mockProfileService.shouldThrowOnRequestDataExport = true
+    await viewModel.requestDataExport()
+
+    mockProfileService.shouldThrowOnRequestDataExport = false
+    await viewModel.requestDataExport()
+
+    XCTAssertNil(viewModel.exportError)
+    XCTAssertNotNil(viewModel.exportDownloadURL)
+  }
+
   // MARK: - Helpers
 
   private func userMock(profilePhotoUrl: String? = nil) -> User {
