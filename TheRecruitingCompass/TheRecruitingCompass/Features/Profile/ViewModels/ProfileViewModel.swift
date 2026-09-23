@@ -312,6 +312,7 @@ final class ProfileViewModel {
     // MARK: - Data export
 
     func requestDataExport() async {
+        guard !isExportingData else { return }
         isExportingData = true
         exportError = nil
         defer { isExportingData = false }
