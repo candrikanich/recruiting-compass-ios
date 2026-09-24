@@ -14,6 +14,7 @@ final class AppStoreScreenshotTests: XCTestCase {
     )
     app = XCUIApplication()
     E2ETestEnvironment.configure(app)
+    app.launchArguments.append("--local-captcha-bypass")
     // Timeline and Action Items are served by the web API; run it locally (`nuxi dev` on :3003).
     app.launchEnvironment["API_BASE_URL"] =
       ProcessInfo.processInfo.environment["SCREENSHOT_API_BASE_URL"] ?? "http://localhost:3003"
@@ -21,16 +22,20 @@ final class AppStoreScreenshotTests: XCTestCase {
   }
 
   @MainActor
-  func testCaptureIPadScreens() throws {
-    continueAfterFailure = true
+  func testCaptureScreens() throws {
+    // continueAfterFailure stays false: a failed sign-in or navigation must stop the run rather than
+    // save the previous screen under the next destination's name.
     signIn()
     dismissNoise()
     capture("01-dashboard")
 
     openSection("Schools")
     capture("02-schools")
-    openRow(containing: "Stanford")
+    openRow(containing: "Vanderbilt")
+    sleep(10) // Apple Maps tiles load over the network; an unloaded map is a blank grid.
     capture("03-school-detail")
+    scrollPageUp()
+    capture("03b-school-data")
 
     openSection("Coaches")
     capture("04-coaches")
@@ -41,24 +46,10 @@ final class AppStoreScreenshotTests: XCTestCase {
     capture("06-interactions")
     openSection("Timeline")
     capture("07-timeline")
-    let guidance = app.buttons["Guidance"]
-    if guidance.waitForExistence(timeout: 3) {
-      guidance.tap()
-      sleep(1)
-      for section in ["Common Worries", "What NOT to Stress About"] {
-        let header = app.staticTexts[section]
-        if header.exists { header.tap() }
-      }
-      capture("07b-timeline-guidance")
-    }
     openSection("Performance")
     capture("08-performance")
-    openSection("Offers")
-    capture("09-offers")
     openSection("Events")
-    capture("10-events")
-    openSection("Analytics")
-    capture("11-analytics")
+    capture("09-events")
   }
 
   // MARK: - Helpers
@@ -78,10 +69,8 @@ final class AppStoreScreenshotTests: XCTestCase {
     password.typeText("DemoPassword1")
 
     app.buttons["Sign in to account"].tap()
-    XCTAssertTrue(
-      app.buttons["Show Sidebar"].waitForExistence(timeout: 30),
-      "Never reached the dashboard — sign-in failed"
-    )
+    let landmark = isPad ? app.buttons["Show Sidebar"] : app.tabBars.firstMatch
+    XCTAssertTrue(landmark.waitForExistence(timeout: 30), "Never reached the dashboard — sign-in failed")
     sleep(5)
   }
 
@@ -94,9 +83,44 @@ final class AppStoreScreenshotTests: XCTestCase {
     sleep(1)
   }
 
-  /// Opens a sidebar destination, revealing the sidebar first when it is collapsed. The dashboard has
-  /// same-named stat tiles, so the sidebar entry is the match sitting in the leading column.
+  private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+
+  /// iPad: sidebar destination. iPhone: tab-bar tab, or a row in the More menu for the overflow features.
   private func openSection(_ title: String) {
+    guard isPad else { openPhoneSection(title); return }
+    openSidebarSection(title)
+  }
+
+  private func openPhoneSection(_ title: String) {
+    // Pushed detail screens hide the tab bar; pop back to a root screen first.
+    for _ in 0..<3 where !app.tabBars.firstMatch.exists {
+      app.navigationBars.buttons.firstMatch.tap()
+      sleep(1)
+    }
+    let navigator = MainTabNavigator(app: app)
+    let tabs = ["Dashboard", "Schools", "Coaches", "Interactions"]
+    if tabs.contains(title) {
+      let tab = MainTabNavigator.Tab(rawValue: title)!
+      XCTAssertTrue(navigator.goTo(tab), "Tab \(title) not reached")
+    } else {
+      openMoreRow(title == "Timeline" ? "Recruiting Timeline" : title, navigator: navigator)
+    }
+    sleep(3)
+  }
+
+  /// Opens a More-menu row. Destination nav-bar titles differ from row titles ("Performance Metrics"),
+  /// so success means leaving the More screen, not matching a title.
+  private func openMoreRow(_ rowTitle: String, navigator: MainTabNavigator) {
+    XCTAssertTrue(navigator.goToMore(), "More tab not reached")
+    let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", rowTitle)).firstMatch
+    XCTAssertTrue(row.waitForExistence(timeout: 5), "More row \(rowTitle) not found")
+    row.tap()
+    XCTAssertTrue(app.navigationBars["More"].waitForNonExistence(timeout: 10), "Still on More after tapping \(rowTitle)")
+  }
+
+  /// Reveals the sidebar first when it is collapsed. The dashboard has same-named stat tiles, so the
+  /// sidebar entry is the match sitting in the leading column.
+  private func openSidebarSection(_ title: String) {
     func sidebarItem() -> XCUIElement? {
       app.staticTexts.matching(NSPredicate(format: "label == %@", title))
         .allElementsBoundByIndex.first { $0.frame.midX < 330 && $0.frame.midY > 100 }
@@ -119,6 +143,16 @@ final class AppStoreScreenshotTests: XCTestCase {
     }
     row.tap()
     sleep(3)
+  }
+
+  /// Drags from the bottom third, where no map sits, so the page scrolls instead of the map panning.
+  private func scrollPageUp() {
+    let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.88))
+    let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2))
+    start.press(forDuration: 0.1, thenDragTo: end)
+    sleep(1)
+    start.press(forDuration: 0.1, thenDragTo: end)
+    sleep(1)
   }
 
   private func capture(_ name: String) {

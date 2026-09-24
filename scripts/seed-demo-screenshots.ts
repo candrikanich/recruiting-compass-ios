@@ -1,4 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 // Seeds a realistic, entirely fictional family into the LOCAL Supabase stack so
 // App Store screenshots show a populated app. Idempotent: reseeding wipes and
@@ -11,7 +14,17 @@ if (!SERVICE_ROLE_KEY) {
   console.error("SUPABASE_SERVICE_ROLE_KEY is required (`supabase status -o env`)");
   process.exit(1);
 }
-if (!/(?:127\.0\.0\.1|localhost)/.test(SUPABASE_URL)) {
+// The seed wipes tables with the service-role key, so require a loopback host. A substring match
+// would accept e.g. https://localhost.example.com.
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+const isLoopback = (raw: string): boolean => {
+  try {
+    return LOOPBACK_HOSTS.has(new URL(raw).hostname);
+  } catch {
+    return false;
+  }
+};
+if (!isLoopback(SUPABASE_URL)) {
   console.error(`Refusing non-local target: ${SUPABASE_URL}`);
   process.exit(1);
 }
@@ -60,6 +73,12 @@ async function ensureAuthUser(email: string, name: string, role: string): Promis
     console.error(`Cannot create or find ${email}:`, created.error?.message);
     process.exit(1);
   }
+  // A leftover account may have a different password; the capture test signs in with PASSWORD.
+  must("reset demo credentials", await supabase.auth.admin.updateUserById(existing.id, {
+    password: PASSWORD,
+    email_confirm: true,
+    user_metadata: { display_name: name, role },
+  }));
   return existing.id;
 }
 
@@ -82,6 +101,12 @@ async function ensureFamily(parentId: string, playerId: string): Promise<string>
     familyId = unit.id as string;
     must("parent member", await supabase.from("family_members")
       .insert({ family_unit_id: familyId, user_id: parentId, role: "parent" }).select("id"));
+  }
+
+  // Checked separately: the parent may already belong to a family that lacks the player.
+  const { data: playerMember } = await supabase
+    .from("family_members").select("id").eq("user_id", playerId).eq("family_unit_id", familyId).maybeSingle();
+  if (!playerMember) {
     must("player member", await supabase.from("family_members")
       .insert({ family_unit_id: familyId, user_id: playerId, role: "player" }).select("id"));
   }
@@ -127,10 +152,144 @@ const SCHOOLS: SchoolSeed[] = [
   { name: "Tulane University", city: "New Orleans", state: "LA", division: "D1", conference: "AAC", status: "researching", fit_tier: "match", website: "https://tulanegreenwave.com", coach: { first: "Sam", last: "Okafor", role: "recruiting" } },
 ];
 
+const SCORECARD_FIELDS = [
+  "school.school_url", "school.address", "latest.student.size", "latest.admissions.admission_rate.overall",
+  "latest.cost.tuition.in_state", "latest.cost.tuition.out_of_state", "location.lat", "location.lon",
+  "latest.admissions.sat_scores.25th_percentile.overall", "latest.admissions.sat_scores.75th_percentile.overall",
+  "latest.admissions.act_scores.25th_percentile.cumulative", "latest.admissions.act_scores.75th_percentile.cumulative",
+];
+
+type ScorecardRow = Record<string, string | number | null>;
+
+// The same College Scorecard data the app's "Lookup college data" button stores in schools.academic_info,
+// so School Detail renders the map, College Data and Academic Fit sections instead of empty states.
+// DEMO_KEY allows only 30 requests/hour, so successful lookups are cached on disk (outside the repo).
+const CACHE_PATH = process.env.SCORECARD_CACHE ?? join(tmpdir(), "rc-scorecard-cache.json");
+const cache: Record<string, ScorecardRow> = existsSync(CACHE_PATH)
+  ? (JSON.parse(readFileSync(CACHE_PATH, "utf8")) as Record<string, ScorecardRow>)
+  : {};
+const cacheKey = (school: SchoolSeed) => `${school.name}|${school.state}`;
+
+async function lookupScorecard(school: SchoolSeed): Promise<ScorecardRow | null> {
+  const cached = cache[cacheKey(school)];
+  if (cached) return cached;
+
+  const key = process.env.COLLEGE_SCORECARD_API_KEY ?? "DEMO_KEY";
+  const params = new URLSearchParams({
+    api_key: key, "school.name": school.name, "school.state": school.state,
+    fields: SCORECARD_FIELDS.join(","), per_page: "1",
+  });
+  try {
+    const res = await fetch(`https://api.data.gov/ed/collegescorecard/v1/schools.json?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = (await res.json()) as { results: ScorecardRow[] };
+    const row = body.results[0] ?? null;
+    if (row) {
+      cache[cacheKey(school)] = row;
+      writeFileSync(CACHE_PATH, JSON.stringify(cache));
+    }
+    return row;
+  } catch (error) {
+    console.warn(`Scorecard lookup failed for ${school.name}:`, (error as Error).message);
+    return null;
+  }
+}
+
+// Runs before anything is wiped: a rate-limited lookup must not leave schools seeded without data.
+async function requireScorecardData() {
+  const missing: string[] = [];
+  for (const school of SCHOOLS) {
+    if (!(await lookupScorecard(school))) missing.push(school.name);
+  }
+  if (missing.length > 0) {
+    console.error(`No Scorecard data for: ${missing.join(", ")}. Nothing was changed; retry later (cached lookups are kept).`);
+    process.exit(1);
+  }
+}
+
+const compact = <T extends Record<string, unknown>>(obj: T) =>
+  Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== null && v !== undefined));
+
+async function enrichSchool(school: SchoolSeed) {
+  const row = await lookupScorecard(school);
+  if (!row) return {};
+  const domain = String(row["school.school_url"] ?? "").replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, "");
+  return {
+    favicon_url: domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : null,
+    academic_info: compact({
+      address: row["school.address"], city: school.city, state: school.state,
+      latitude: row["location.lat"], longitude: row["location.lon"],
+      student_size: row["latest.student.size"],
+      admission_rate: row["latest.admissions.admission_rate.overall"],
+      tuition_in_state: row["latest.cost.tuition.in_state"],
+      tuition_out_of_state: row["latest.cost.tuition.out_of_state"],
+      sat_25th: row["latest.admissions.sat_scores.25th_percentile.overall"],
+      sat_75th: row["latest.admissions.sat_scores.75th_percentile.overall"],
+      act_25th: row["latest.admissions.act_scores.25th_percentile.cumulative"],
+      act_75th: row["latest.admissions.act_scores.75th_percentile.cumulative"],
+    }),
+  };
+}
+
+// The family's own research notes, so School Detail shows filled Pros/Cons and Why sections.
+type FamilyNotes = { pros: string[]; cons: string[]; why_program: string; fit_reason: string };
+const FAMILY_NOTES: Record<string, FamilyNotes> = {
+  "Stanford University": {
+    pros: ["Written offer in hand", "Top-tier academics", "Strong pitching development"],
+    cons: ["Far from home", "Very competitive admissions"],
+    why_program: "Elite academics with a real shot at playing early. Jordan loved the coaching staff on the call.",
+    fit_reason: "Offer received; official visit is scheduled.",
+  },
+  "Vanderbilt University": {
+    pros: ["Great campus and facilities", "SEC competition", "Enthusiastic recruiting coordinator"],
+    cons: ["High cost of attendance", "Roster is deep at pitcher"],
+    why_program: "Loved the official visit: the ballpark, the players, and how the staff talked about development.",
+    fit_reason: "Mid-size campus and top academics match Jordan's list.",
+  },
+  "University of Virginia": {
+    pros: ["Strong academics", "ACC schedule", "Camp invite received"],
+    cons: ["Large campus"],
+    why_program: "Great balance of academics and baseball. Waiting to hear back on the questionnaire.",
+    fit_reason: "Sending highlight video after the fall season.",
+  },
+  "Wake Forest University": {
+    pros: ["Close to home", "Smaller classes"],
+    cons: ["No response from staff yet"],
+    why_program: "Close to home with a strong academic reputation. Good ACC exposure.",
+    fit_reason: "DM sent to the recruiting coordinator; following up next week.",
+  },
+  "Rice University": {
+    pros: ["Excellent academics", "Small campus"],
+    cons: ["Long travel from Charlotte"],
+    why_program: "Top academics and a small, close-knit program.",
+    fit_reason: "Still researching; adding to the fall showcase list.",
+  },
+  "Davidson College": {
+    pros: ["Close to home", "Small classes", "Chance to play right away"],
+    cons: ["Smaller baseball program"],
+    why_program: "Local school with a great reputation and a real path to playing time.",
+    fit_reason: "A strong safety option with excellent academics.",
+  },
+  "Emory University": {
+    pros: ["Top academics", "Great location in Atlanta"],
+    cons: ["D3: no athletic scholarship"],
+    why_program: "Strong pre-med path; Jordan is interested in the sports-medicine program.",
+    fit_reason: "Emailed the head coach about roster needs.",
+  },
+  "Tulane University": {
+    pros: ["Great city", "Competitive AAC schedule"],
+    cons: ["Far from home"],
+    why_program: "Fun campus and a competitive baseball program.",
+    fit_reason: "Just getting started; need to review the questionnaire.",
+  },
+};
+
 async function seedSchoolsAndCoaches(parentId: string, familyId: string) {
-  const schools = must("schools", await supabase.from("schools").insert(
-    SCHOOLS.map(({ coach: _c, ...s }) => ({ ...s, user_id: parentId, family_unit_id: familyId, location: `${s.city}, ${s.state}` }))
-  ).select("id, name"));
+  const rows = await Promise.all(SCHOOLS.map(async ({ coach: _c, ...s }) => ({
+    ...s, user_id: parentId, family_unit_id: familyId, location: `${s.city}, ${s.state}`,
+    ...FAMILY_NOTES[s.name], ...(await enrichSchool({ ...s, coach: _c })),
+  })));
+  const schools = must("schools", await supabase.from("schools").insert(rows).select("id, name"));
   const schoolId = (name: string) => schools.find((s) => s.name === name)!.id as string;
 
   const coaches = must("coaches", await supabase.from("coaches").insert(
@@ -222,8 +381,20 @@ async function seedPlayerPreferences(playerId: string) {
       weight_lbs: 185,
       gpa: 3.9,
       sat_score: 1420,
+      act_score: 34,
+      school_state: "NC",
+      campus_size_preference: "medium",
+      cost_sensitivity: "medium",
       gender: "male",
     },
+  }).select("id"));
+
+  // Home location powers distance labels, the distance filter and the map's "Distance from Home".
+  await supabase.from("user_preferences").delete().eq("user_id", playerId).eq("category", "location");
+  must("home location", await supabase.from("user_preferences").insert({
+    user_id: playerId,
+    category: "location",
+    data: { city: "Charlotte", state: "NC", zip: "28277", latitude: 35.0527, longitude: -80.8431 },
   }).select("id"));
 }
 
@@ -240,6 +411,7 @@ async function seedTasks(playerId: string) {
 }
 
 async function main() {
+  await requireScorecardData();
   const parentId = await ensureAuthUser(PARENT.email, PARENT.name, PARENT.role);
   const playerId = await ensureAuthUser(PLAYER.email, PLAYER.name, PLAYER.role);
   await upsertUserRow(parentId, PARENT.email, PARENT.name, PARENT.role);
@@ -251,6 +423,9 @@ async function main() {
     hometown_city: "Charlotte", hometown_state: "NC", height_inches: 74, weight_lbs: 185,
     jersey_number: "22", dominant_side: "left", profile_completeness: 92,
     phase_milestone_data: { onboarding_complete: true },
+    // Explicit: web's get_athlete_status maps a null phase to grade 12, which would score the
+    // seeded grade-11 tasks against the senior-year denominator.
+    current_phase: "junior",
   });
   const familyId = await ensureFamily(parentId, playerId);
 
