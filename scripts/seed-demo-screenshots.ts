@@ -227,6 +227,18 @@ async function seedPlayerPreferences(playerId: string) {
   }).select("id"));
 }
 
+// Timeline "status" scores completed required tasks for the athlete's grade level.
+async function seedTasks(playerId: string) {
+  await supabase.from("athlete_task").delete().eq("athlete_id", playerId);
+  const tasks = must("tasks", await supabase.from("task").select("id, required").eq("grade_level", 11));
+  const required = tasks.filter((t) => t.required).map((t) => t.id as string);
+  const done = required.slice(0, 9).map((task_id) => ({
+    athlete_id: playerId, task_id, status: "completed", completed_at: isoOffset(-14),
+  }));
+  const inProgress = required.slice(9, 11).map((task_id) => ({ athlete_id: playerId, task_id, status: "in_progress" }));
+  must("athlete_task", await supabase.from("athlete_task").insert([...done, ...inProgress]).select("id"));
+}
+
 async function main() {
   const parentId = await ensureAuthUser(PARENT.email, PARENT.name, PARENT.role);
   const playerId = await ensureAuthUser(PLAYER.email, PLAYER.name, PLAYER.role);
@@ -248,6 +260,7 @@ async function main() {
   await seedInteractions(playerId, familyId, ids);
   await seedAthleteData(playerId, familyId, ids);
   await seedNotifications(playerId);
+  await seedTasks(playerId);
 
   console.log(`Demo seed complete. Login: ${PLAYER.email} / ${PASSWORD}`);
 }

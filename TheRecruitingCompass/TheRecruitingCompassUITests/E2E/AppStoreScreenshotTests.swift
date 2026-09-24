@@ -14,6 +14,9 @@ final class AppStoreScreenshotTests: XCTestCase {
     )
     app = XCUIApplication()
     E2ETestEnvironment.configure(app)
+    // Timeline and Action Items are served by the web API; run it locally (`nuxi dev` on :3003).
+    app.launchEnvironment["API_BASE_URL"] =
+      ProcessInfo.processInfo.environment["SCREENSHOT_API_BASE_URL"] ?? "http://localhost:3003"
     app.launch()
   }
 
@@ -38,6 +41,16 @@ final class AppStoreScreenshotTests: XCTestCase {
     capture("06-interactions")
     openSection("Timeline")
     capture("07-timeline")
+    let guidance = app.buttons["Guidance"]
+    if guidance.waitForExistence(timeout: 3) {
+      guidance.tap()
+      sleep(1)
+      for section in ["Common Worries", "What NOT to Stress About"] {
+        let header = app.staticTexts[section]
+        if header.exists { header.tap() }
+      }
+      capture("07b-timeline-guidance")
+    }
     openSection("Performance")
     capture("08-performance")
     openSection("Offers")
