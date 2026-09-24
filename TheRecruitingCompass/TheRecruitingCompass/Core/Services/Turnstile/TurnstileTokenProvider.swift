@@ -1,6 +1,11 @@
 import Foundation
-import os
 import WebKit
+
+/// Plain `print` so diagnostics show in the Xcode console even when os_log output is filtered.
+private struct TurnstileLog {
+  func error(_ message: String) { print("[Turnstile] ERROR \(message)") }
+  func notice(_ message: String) { print("[Turnstile] \(message)") }
+}
 
 /// Owns the single WKWebView that runs an invisible Cloudflare Turnstile widget and
 /// bridges its JS callbacks back to Swift. One shared instance backs every auth flow
@@ -24,7 +29,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   private var readyContinuations: [CheckedContinuation<Void, Error>] = []
   private var readyTimeoutTask: Task<Void, Never>?
   private var hasRetriedAfterExpiry = false
-  private static let log = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "Turnstile")
+  private static let log = TurnstileLog()
 
   private override init() {
     let configuration = WKWebViewConfiguration()
@@ -99,7 +104,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
         do {
           try await self.webView.evaluateJavaScript("window.twReset(); window.twExecute(); null;")
         } catch {
-          Self.log.error("Turnstile evaluateJavaScript failed: \(error.localizedDescription, privacy: .public)")
+          Self.log.error("Turnstile evaluateJavaScript failed: \(error.localizedDescription)")
           // A JS-evaluation failure must still surface as `.captchaFailed`, not the raw
           // WKError — and only if this continuation hasn't already been resumed by a
           // callback or the timeout.
@@ -191,7 +196,7 @@ extension TurnstileTokenProvider: WKScriptMessageHandler {
       case "expired":
         self.handleExpired()
       case "error":
-        Self.log.error("Turnstile error-callback code=\(body["code"] as? String ?? "none", privacy: .public)")
+        Self.log.error("Turnstile error-callback code=\(body["code"] as? String ?? "none")")
         self.handleError()
       default:
         self.handleError()
