@@ -89,7 +89,9 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
     }
 
     let timeoutTask = Task { @MainActor [weak self] in
-      try? await Task.sleep(for: .seconds(10))
+      // A cancelled sleep means this call already finished (or was superseded); bail out so a
+      // stale task can't time out the newer call's `pendingContinuation`.
+      do { try await Task.sleep(for: .seconds(10)) } catch { return }
       guard let self, self.pendingContinuation != nil else { return }
       Self.log.error("Turnstile token timeout after 10s")
       self.pendingContinuation?.resume(throwing: AuthError.captchaFailed)
