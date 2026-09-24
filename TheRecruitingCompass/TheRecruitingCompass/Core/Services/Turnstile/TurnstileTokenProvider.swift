@@ -1,10 +1,10 @@
 import Foundation
 import WebKit
 
-/// Plain `print` so diagnostics show in the Xcode console even when os_log output is filtered.
+/// Plain `print` (like the rest of the app) so failures show in the Xcode console;
+/// failures otherwise collapse into a generic `.captchaFailed`.
 private struct TurnstileLog {
-  func error(_ message: String) { print("[Turnstile] ERROR \(message)") }
-  func notice(_ message: String) { print("[Turnstile] \(message)") }
+  func error(_ message: String) { print("[Turnstile] \(message)") }
 }
 
 /// Owns the single WKWebView that runs an invisible Cloudflare Turnstile widget and
@@ -118,7 +118,6 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   }
 
   fileprivate func handleReady() {
-    Self.log.notice("Turnstile widget ready")
     isWidgetReady = true
     readyTimeoutTask?.cancel()
     readyTimeoutTask = nil
@@ -127,7 +126,6 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   }
 
   fileprivate func handleToken(_ token: String) {
-    Self.log.notice("Turnstile token received (\(token.count) chars)")
     pendingContinuation?.resume(returning: token)
     pendingContinuation = nil
   }
