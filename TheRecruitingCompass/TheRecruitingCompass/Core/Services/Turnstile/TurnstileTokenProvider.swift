@@ -40,6 +40,9 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   }
 
   func getToken() async throws -> String {
+    // The local Supabase stack used by UI tests / screenshot capture has captcha disabled
+    // and can't complete a real Cloudflare challenge; it ignores this token.
+    if ProcessInfo.processInfo.arguments.contains("--uitesting") { return "uitesting-captcha-bypass" }
     hasRetriedAfterExpiry = false
     try await waitUntilReady()
     return try await executeChallenge()
