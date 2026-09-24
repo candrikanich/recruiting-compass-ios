@@ -78,6 +78,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
     // Single-flight: this app never runs two captcha challenges concurrently. Superseding
     // a still-pending call (rather than leaking its continuation) is correct behavior here.
     if let existing = pendingContinuation {
+      Self.log.error("Turnstile challenge superseded by a newer request")
       existing.resume(throwing: AuthError.captchaFailed)
       pendingContinuation = nil
     }
@@ -98,6 +99,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
         do {
           try await self.webView.evaluateJavaScript("window.twReset(); window.twExecute(); null;")
         } catch {
+          Self.log.error("Turnstile evaluateJavaScript failed: \(error.localizedDescription, privacy: .public)")
           // A JS-evaluation failure must still surface as `.captchaFailed`, not the raw
           // WKError — and only if this continuation hasn't already been resumed by a
           // callback or the timeout.
@@ -111,6 +113,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   }
 
   fileprivate func handleReady() {
+    Self.log.notice("Turnstile widget ready")
     isWidgetReady = true
     readyTimeoutTask?.cancel()
     readyTimeoutTask = nil
@@ -119,6 +122,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   }
 
   fileprivate func handleToken(_ token: String) {
+    Self.log.notice("Turnstile token received (\(token.count) chars)")
     pendingContinuation?.resume(returning: token)
     pendingContinuation = nil
   }
@@ -129,6 +133,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   }
 
   fileprivate func handleExpired() {
+    Self.log.error("Turnstile expired-callback (already retried: \(self.hasRetriedAfterExpiry))")
     guard !hasRetriedAfterExpiry else {
       pendingContinuation?.resume(throwing: AuthError.captchaFailed)
       pendingContinuation = nil
