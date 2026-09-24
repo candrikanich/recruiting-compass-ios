@@ -1,6 +1,12 @@
 import Foundation
 import WebKit
 
+/// Plain `print` (like the rest of the app) so failures show in the Xcode console;
+/// failures otherwise collapse into a generic `.captchaFailed`.
+private struct TurnstileLog {
+  func error(_ message: String) { print("[Turnstile] \(message)") }
+}
+
 /// Owns the single WKWebView that runs an invisible Cloudflare Turnstile widget and
 /// bridges its JS callbacks back to Swift. One shared instance backs every auth flow
 /// that needs a captcha token (login, signup, password reset).
@@ -23,9 +29,12 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   private var readyContinuations: [CheckedContinuation<Void, Error>] = []
   private var readyTimeoutTask: Task<Void, Never>?
   private var hasRetriedAfterExpiry = false
+  private static let log = TurnstileLog()
 
   private override init() {
     let configuration = WKWebViewConfiguration()
+    // iPadOS defaults to desktop-class content (Mac UA), which Turnstile can score as riskier.
+    configuration.defaultWebpagePreferences.preferredContentMode = .mobile
     webView = WKWebView(frame: .zero, configuration: configuration)
     super.init()
     configuration.userContentController.add(self, name: "turnstile")
@@ -58,6 +67,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
         let waiters = self.readyContinuations
         self.readyContinuations.removeAll()
         self.readyTimeoutTask = nil
+        Self.log.error("Turnstile widget not ready after 10s")
         waiters.forEach { $0.resume(throwing: AuthError.captchaFailed) }
       }
     }
@@ -73,13 +83,17 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
     // Single-flight: this app never runs two captcha challenges concurrently. Superseding
     // a still-pending call (rather than leaking its continuation) is correct behavior here.
     if let existing = pendingContinuation {
+      Self.log.error("Turnstile challenge superseded by a newer request")
       existing.resume(throwing: AuthError.captchaFailed)
       pendingContinuation = nil
     }
 
     let timeoutTask = Task { @MainActor [weak self] in
-      try? await Task.sleep(for: .seconds(10))
+      // A cancelled sleep means this call already finished (or was superseded); bail out so a
+      // stale task can't time out the newer call's `pendingContinuation`.
+      do { try await Task.sleep(for: .seconds(10)) } catch { return }
       guard let self, self.pendingContinuation != nil else { return }
+      Self.log.error("Turnstile token timeout after 10s")
       self.pendingContinuation?.resume(throwing: AuthError.captchaFailed)
       self.pendingContinuation = nil
     }
@@ -92,6 +106,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
         do {
           try await self.webView.evaluateJavaScript("window.twReset(); window.twExecute(); null;")
         } catch {
+          Self.log.error("Turnstile evaluateJavaScript failed: \(error.localizedDescription)")
           // A JS-evaluation failure must still surface as `.captchaFailed`, not the raw
           // WKError — and only if this continuation hasn't already been resumed by a
           // callback or the timeout.
@@ -123,6 +138,7 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   }
 
   fileprivate func handleExpired() {
+    Self.log.error("Turnstile expired-callback (already retried: \(self.hasRetriedAfterExpiry))")
     guard !hasRetriedAfterExpiry else {
       pendingContinuation?.resume(throwing: AuthError.captchaFailed)
       pendingContinuation = nil
@@ -144,8 +160,8 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
         callback: function(token) {
           webkit.messageHandlers.turnstile.postMessage({type: 'token', token: token});
         },
-        'error-callback': function() {
-          webkit.messageHandlers.turnstile.postMessage({type: 'error'});
+        'error-callback': function(code) {
+          webkit.messageHandlers.turnstile.postMessage({type: 'error', code: String(code)});
         },
         'expired-callback': function() {
           webkit.messageHandlers.turnstile.postMessage({type: 'expired'});
@@ -179,6 +195,9 @@ extension TurnstileTokenProvider: WKScriptMessageHandler {
         }
       case "expired":
         self.handleExpired()
+      case "error":
+        Self.log.error("Turnstile error-callback code=\(body["code"] as? String ?? "none")")
+        self.handleError()
       default:
         self.handleError()
       }
