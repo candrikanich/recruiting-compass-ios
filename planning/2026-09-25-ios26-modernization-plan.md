@@ -175,13 +175,26 @@ split widget and intents into separate PRs.
 ## Cut / not doing
 - **SwiftData:** app is Supabase-backed; no local persistence need.
 
-## Open questions (need Chris)
-1. **iOS floor:** OK to drop iOS 18–25 (Phase 0)? Need OS-adoption % from App Store Connect.
-2. **Phase 7 scope:** widget only, intents only, or both? Any lock-screen/Live Activity interest?
-3. **Rich text:** worth the web-parity work, or drop Phase 5?
-4. **Swift 6 timing:** before or after the App Store submission (#82)? Phase 4 is regression-prone;
-   recommend after submission.
-5. **iOS 27:** when the Xcode 27 SDK docs are available, want a follow-up audit added as Phase 8?
+## Phase 8 — iOS 27 SDK re-audit
+Once Apple's iOS 27 SwiftUI/WidgetKit docs are indexed (context7 had none on 2026-09-25) or via Xcode 27
+release notes: re-run the API audit, fold new APIs into Phases 1/6/7. Output: addendum to this doc.
+
+## Decisions (2026-09-25)
+1. **iOS floor:** open — see recommendation below (Chris leaning "allow all, scale back with data").
+2. **Widgets + App Intents:** both, post-launch. Tracked in **#24** (re-scoped via comment). App Intents =
+   plumbing for Siri/Shortcuts/Spotlight/widget actions; same phase, separate PRs.
+3. **Rich text:** go, in parallel with web, same release. Handoff:
+   `planning/2026-09-25-web-handoff-rich-text-notes.md`. Nice-to-have, not table stakes.
+4. **Swift 6:** after App Store submission. Tracked in **#201**.
+5. **iOS 27 re-audit:** yes → Phase 8.
+
+## Floor recommendation (pending Chris)
+No users yet, so a lower floor costs nothing in churn — the cost is dev effort (`#available` forks).
+Recommend **keep iOS 18 at launch** (already set; roughly N-1/N-2), gate 26-only features (Phases 1/2/5)
+with `#available` + fallback, and raise the floor later once real OS-adoption data exists. Liquid Glass
+system chrome applies on iOS 26 devices automatically with no floor change. Don't go *below* 18 — it
+gives up current APIs for little reach. Phase 0 then reduces to fixing the stale README ("iOS 17+").
 
 ## Suggested order & rough size
-P0 (S) → P3 (S) → P1 (M) → P2 spike (S) → P6 (M) → P4 (L) → P7 (L) → P5 (M, if approved).
+P0 (S) → P3 (S) → P1 (M) → P2 spike (S) → P6 (M) → P5 (M, with web) → P4 (L, post-launch) →
+P7 (L, post-launch) → P8.
