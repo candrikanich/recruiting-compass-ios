@@ -59,6 +59,7 @@ struct MainTabView: View {
       }
       .badge(notificationsViewModel.unreadCount > 0 ? notificationsViewModel.unreadCount : 0)
     }
+    .minimizesTabBarOnScroll()
     .environment(\.switchTab, { selectedTab = $0 })
     .environment(\.filterCoachesBySchool, { schoolId in
       coachesPrefilterSchoolId = schoolId
@@ -128,6 +129,18 @@ struct MainTabView: View {
       SuggestionsListView(viewModel: dashboardViewModel)
     case .familyManagement:
       FamilyManagementView()
+    }
+  }
+}
+
+private extension View {
+  /// Liquid Glass tab-bar collapse (iPhone only); older OS versions keep the static bar.
+  @ViewBuilder
+  func minimizesTabBarOnScroll() -> some View {
+    if #available(iOS 26, *) {
+      tabBarMinimizeBehavior(.onScrollDown)
+    } else {
+      self
     }
   }
 }

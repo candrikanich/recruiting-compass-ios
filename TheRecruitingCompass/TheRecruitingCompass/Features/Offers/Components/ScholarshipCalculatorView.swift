@@ -62,7 +62,7 @@ struct ScholarshipCalculatorView: View {
       }
     }
     .padding()
-    .background(.ultraThinMaterial)
+    .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .padding(.horizontal)
     .accessibilityIdentifier("offer-scholarship-calculator")

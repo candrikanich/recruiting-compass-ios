@@ -42,7 +42,7 @@ struct MetricCardView: View {
       }
     }
     .padding()
-    .background(.ultraThinMaterial)
+    .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: Layout.cornerRadius))
     .accessibilityElement(children: .combine)
     .accessibilityLabel(metricAccessibilityLabel)
