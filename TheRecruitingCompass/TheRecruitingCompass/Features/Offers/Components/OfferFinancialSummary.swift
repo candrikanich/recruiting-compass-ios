@@ -49,7 +49,7 @@ struct OfferFinancialSummary: View {
       }
       .frame(maxWidth: .infinity)
       .padding(.vertical, 12)
-      .background(.ultraThinMaterial)
+      .background(Color(.secondarySystemBackground))
       .clipShape(RoundedRectangle(cornerRadius: 12))
       .accessibilityIdentifier("offer-deadline-card")
       .accessibilityElement(children: .combine)
@@ -92,7 +92,7 @@ struct OfferFinancialSummary: View {
     }
     .frame(maxWidth: .infinity)
     .padding(.vertical, 12)
-    .background(.ultraThinMaterial)
+    .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityIdentifier(identifier)
     .accessibilityElement(children: .combine)

@@ -25,7 +25,7 @@ struct OfferEditForm: View {
       actionButtons
     }
     .padding()
-    .background(.ultraThinMaterial)
+    .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .padding(.horizontal)
     .keyboardFieldNavigation(focusedField: $focusedField, order: fieldOrder)

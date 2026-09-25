@@ -29,7 +29,7 @@ struct OfferDetailsGrid: View {
       }
     }
     .padding()
-    .background(.ultraThinMaterial)
+    .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .padding(.horizontal)
   }

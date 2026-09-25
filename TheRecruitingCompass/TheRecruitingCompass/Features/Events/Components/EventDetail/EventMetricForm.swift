@@ -64,7 +64,7 @@ struct EventMetricForm: View {
       }
     }
     .padding()
-    .background(.ultraThinMaterial)
+    .background(Color(.secondarySystemBackground))
     .clipShape(RoundedRectangle(cornerRadius: Layout.cornerRadius))
     .onChange(of: data.metricType) { _, newValue in
       if data.unit.isEmpty {
