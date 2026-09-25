@@ -9,7 +9,7 @@ struct InteractionTrendsChartDescriptor: AXChartDescriptorRepresentable {
   var counts: [Int] { trends.map(\.count) }
 
   func makeChartDescriptor() -> AXChartDescriptor {
-    let labels = trends.map { $0.dateFormatted.formatted(.dateTime.month(.abbreviated).day()) }
+    let labels = trends.map { $0.calendarDay().formatted(.dateTime.month(.abbreviated).day()) }
     let total = counts.reduce(0, +)
 
     let xAxis = AXCategoricalDataAxisDescriptor(title: String(localized: "Day"), categoryOrder: labels)
@@ -34,5 +34,7 @@ struct InteractionTrendsChartDescriptor: AXChartDescriptorRepresentable {
     )
   }
 
-  func updateChartDescriptor(_ descriptor: AXChartDescriptor) {}
+  func updateChartDescriptor(_ descriptor: AXChartDescriptor) {
+    descriptor.replaceContents(with: makeChartDescriptor())
+  }
 }

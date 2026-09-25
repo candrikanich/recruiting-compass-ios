@@ -19,8 +19,12 @@ struct PerformanceChartDescriptor: AXChartDescriptorRepresentable {
   }
 
   func makeChartDescriptor() -> AXChartDescriptor {
+    let sorted = metrics.sorted { $0.recordedDate < $1.recordedDate }
     let points = points
-    let unit = metrics.first?.unit ?? ""
+    // `.other` metrics can mix units under one type; only label the axis when they agree,
+    // and give every point its own unit so no value is announced with the wrong one.
+    let units = Set(metrics.map(\.unit))
+    let axisUnit = units.count == 1 ? units.first ?? "" : ""
     let format = metricType?.format ?? { String($0) }
 
     let xAxis = AXNumericDataAxisDescriptor(
@@ -33,12 +37,18 @@ struct PerformanceChartDescriptor: AXChartDescriptorRepresentable {
       title: metricType?.displayName ?? String(localized: "Value"),
       range: Self.nonEmptyRange(points.map(\.y), padding: 1),
       gridlinePositions: []
-    ) { "\(format($0)) \(unit)".trimmingCharacters(in: .whitespaces) }
+    ) { "\(format($0)) \(axisUnit)".trimmingCharacters(in: .whitespaces) }
 
     let series = AXDataSeriesDescriptor(
       name: metricType?.displayName ?? String(localized: "Performance"),
       isContinuous: true,
-      dataPoints: points.map { AXDataPoint(x: $0.x, y: $0.y) }
+      dataPoints: zip(points, sorted).map { point, metric in
+        AXDataPoint(
+          x: point.x,
+          y: point.y,
+          label: "\(metric.metricType.format(metric.value)) \(metric.unit)".trimmingCharacters(in: .whitespaces)
+        )
+      }
     )
 
     return AXChartDescriptor(
@@ -50,7 +60,9 @@ struct PerformanceChartDescriptor: AXChartDescriptorRepresentable {
     )
   }
 
-  func updateChartDescriptor(_ descriptor: AXChartDescriptor) {}
+  func updateChartDescriptor(_ descriptor: AXChartDescriptor) {
+    descriptor.replaceContents(with: makeChartDescriptor())
+  }
 
   static func nearestMetric(to date: Date, in metrics: [PerformanceMetric]) -> PerformanceMetric? {
     metrics.min {

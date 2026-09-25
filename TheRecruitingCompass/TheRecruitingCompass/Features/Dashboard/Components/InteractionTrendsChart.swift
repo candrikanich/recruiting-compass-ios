@@ -38,7 +38,7 @@ struct InteractionTrendsChart: View {
       } else {
         Chart(trends) { trend in
           BarMark(
-            x: .value("Date", trend.dateFormatted, unit: .day),
+            x: .value("Date", trend.calendarDay(), unit: .day),
             y: .value("Count", trend.count)
           )
           .foregroundStyle(Color.primaryGreen.gradient)
