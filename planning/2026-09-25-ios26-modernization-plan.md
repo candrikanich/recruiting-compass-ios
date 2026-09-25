@@ -132,9 +132,9 @@ Highest churn. Incremental, one target-level flag flip at the end.
 radius. UI-test smoke on iPhone + iPad.
 **Risk:** Supabase SDK + PostHog Sendable gaps force `@preconcurrency import`; acceptable, list each.
 
-## Phase 5 — Rich-text TextEditor (rec 4, optional)
+## Phase 5 — Rich-text TextEditor (rec 4) — **DEFERRED, see #202**
 
-Product-optional; do only after Q3 answered. Docs confirm `TextEditor` + `AttributedString` rich text.
+Not scheduled. Notes below kept for whenever it's revived. Docs confirm `TextEditor` + `AttributedString` rich text.
 1. Pick 1–2 fields with real value (Interaction notes, coach notes). Not all 12 `TextEditor`s.
 2. **Backend blocker:** notes are stored/synced with web as plain text. Rich text needs a serialization
    decision (Markdown vs attributed JSON) and **web parity** (Nuxt renders it). Cross-platform rule:
@@ -179,16 +179,18 @@ split widget and intents into separate PRs.
 Once Apple's iOS 27 SwiftUI/WidgetKit docs are indexed (context7 had none on 2026-09-25) or via Xcode 27
 release notes: re-run the API audit, fold new APIs into Phases 1/6/7. Output: addendum to this doc.
 
-## Decisions (2026-09-25)
-1. **iOS floor:** open — see recommendation below (Chris leaning "allow all, scale back with data").
+## Decisions (2026-09-25) — ALL RESOLVED
+1. **iOS floor:** keep iOS 18 at launch; gate 26-only features with `#available`; raise later with
+   real adoption data (see below). Phase 0 = fix stale README only.
 2. **Widgets + App Intents:** both, post-launch. Tracked in **#24** (re-scoped via comment). App Intents =
    plumbing for Siri/Shortcuts/Spotlight/widget actions; same phase, separate PRs.
-3. **Rich text:** go, in parallel with web, same release. Handoff:
-   `planning/2026-09-25-web-handoff-rich-text-notes.md`. Nice-to-have, not table stakes.
+3. **Rich text: DEFERRED (Phase 5 not scheduled).** Most text entry is notes/data; not worth the cost
+   pre-launch. Icebox issue **#202**; design retained in
+   `planning/2026-09-25-web-handoff-rich-text-notes.md`.
 4. **Swift 6:** after App Store submission. Tracked in **#201**.
 5. **iOS 27 re-audit:** yes → Phase 8.
 
-## Floor recommendation (pending Chris)
+## Floor decision (approved)
 No users yet, so a lower floor costs nothing in churn — the cost is dev effort (`#available` forks).
 Recommend **keep iOS 18 at launch** (already set; roughly N-1/N-2), gate 26-only features (Phases 1/2/5)
 with `#available` + fallback, and raise the floor later once real OS-adoption data exists. Liquid Glass
@@ -196,5 +198,5 @@ system chrome applies on iOS 26 devices automatically with no floor change. Don'
 gives up current APIs for little reach. Phase 0 then reduces to fixing the stale README ("iOS 17+").
 
 ## Suggested order & rough size
-P0 (S) → P3 (S) → P1 (M) → P2 spike (S) → P6 (M) → P5 (M, with web) → P4 (L, post-launch) →
-P7 (L, post-launch) → P8.
+P0 (S) → P3 (S) → P1 (M) → P2 spike (S) → P6 (M) → P4 (L, post-launch, #201) →
+P7 (L, post-launch, #24) → P8. **P5 deferred (#202).**

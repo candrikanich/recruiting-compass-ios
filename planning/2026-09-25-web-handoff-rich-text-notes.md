@@ -1,6 +1,6 @@
 # Web Handoff — Rich-Text Notes (iOS + web in parallel)
 
-**Date:** 2026-09-25 · **Status:** DRAFT · **From:** iOS · **To:** web repo (`recruiting-compass-web`)
+**Date:** 2026-09-25 · **Status:** DEFERRED (icebox, iOS issue #202) — not to be implemented now · **From:** iOS · **To:** web repo (`recruiting-compass-web`)
 **Parent plan:** `planning/2026-09-25-ios26-modernization-plan.md` (Phase 5)
 **Goal:** basic formatting (bold / italic / bullet / numbered list) in long-form notes, shipped on
 **both platforms in the same release** so neither shows raw markup.
