@@ -56,6 +56,7 @@ struct InteractionTrendsChart: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(String(localized: "Bar chart showing interaction trends over \(trends.count) days"))
         .accessibilityValue("\(totalInteractions) total interactions, latest: \(trends.last?.count ?? 0)")
+        .accessibilityChartDescriptor(InteractionTrendsChartDescriptor(trends: trends))
 
         Text("\(totalInteractions) total interactions over \(trends.count) days")
           .font(.caption)
