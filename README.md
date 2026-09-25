@@ -27,7 +27,7 @@ Modern iOS app with authentication, signup, and email verification flows. Built 
 ### Prerequisites
 
 - Xcode 16+
-- iOS 17+ deployment target
+- iOS 18+ deployment target
 - Supabase account (free tier works: https://app.supabase.com)
 
 ### 1. Configure Supabase
