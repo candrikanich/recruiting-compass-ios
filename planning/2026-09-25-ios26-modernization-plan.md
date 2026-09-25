@@ -85,6 +85,18 @@ confirm the `WebView`/`WebPage` types' surface. **Spike first, migrate only on p
    `TurnstileTokenProvider` protocol unchanged; manual test login + signup on iPhone AND iPad sim +
    physical iPad.
 4. Fail → leave as-is, document why here. Zero-cost outcome.
+
+**Spike result (2026-09-25): FAIL on cost/benefit — do not migrate. Revisit when the floor reaches iOS 26.**
+- `TurnstileWidgetView` is a 4-line `UIViewRepresentable` mounting a shared hidden `WKWebView`; all logic
+  lives in `TurnstileTokenProvider`. Migrating removes ~4 lines of wrapper.
+- `WebPage` covers the needs on paper (WebKit docs via context7): `defaultNavigationPreferences
+  .preferredContentMode` (mobile UA ✓), `load(html:baseURL:)` ✓, `callJavaScript` ✓. But the JS bridge is
+  still `WebPage.Configuration.userContentController: WKUserContentController` + `WKScriptMessageHandler`
+  — provider stays WebKit-coupled either way.
+- **No confirmed equivalent of `webViewWebContentProcessDidTerminate`** (jetsam recovery — without it,
+  every later `getToken()` silently fails). Losing that is a regression on the auth path.
+- iOS 18 floor ⇒ migration means **two implementations** of auth-critical captcha behind `#available`.
+  More code + test surface for zero user-visible gain.
 **Risk:** auth-critical path. Do not merge without physical-iPad verification.
 
 ## Phase 3 — Small cleanups + subtitles (rec 6, 8)
@@ -198,5 +210,5 @@ system chrome applies on iOS 26 devices automatically with no floor change. Don'
 gives up current APIs for little reach. Phase 0 then reduces to fixing the stale README ("iOS 17+").
 
 ## Suggested order & rough size
-P0 (S) → P3 (S) → P1 (M) → P2 spike (S) → P6 (M) → P4 (L, post-launch, #201) →
+P0 ✅ → P3 ✅ (#204) → P1 ✅ (#205, A+B only) → P2 ❌ spike: don't migrate → P6 (M) → P4 (L, post-launch, #201) →
 P7 (L, post-launch, #24) → P8. **P5 deferred (#202).**
