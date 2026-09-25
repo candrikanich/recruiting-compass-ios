@@ -129,7 +129,8 @@ struct RecruitingTimelineView: View {
       .onChange(of: selectedTab) { _, newValue in
         guard newValue == .tasks, let grade = pendingScrollGrade else { return }
         pendingScrollGrade = nil
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+        Task { @MainActor in
+          try? await Task.sleep(for: .milliseconds(350))
           withAnimation {
             proxy.scrollTo("phase-\(grade)", anchor: .top)
           }

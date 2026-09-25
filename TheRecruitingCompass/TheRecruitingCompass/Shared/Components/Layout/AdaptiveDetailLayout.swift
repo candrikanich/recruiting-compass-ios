@@ -1,13 +1,13 @@
 import SwiftUI
 
-struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
+struct AdaptiveDetailLayout<Content: View, Sidebar: View, Compact: View>: View {
   let sidebarPlacement: SidebarPlacement
   let sidebarWidth: CGFloat
   @ViewBuilder let content: () -> Content
   @ViewBuilder let sidebar: () -> Sidebar
   /// Overrides the stacked (compact-width) order. When nil, compact falls back to
   /// `content()` followed by `sidebar()`, in that order.
-  let compactContent: (() -> AnyView)?
+  let compactContent: (() -> Compact)?
   @Environment(\.horizontalSizeClass) private var sizeClass
 
   enum SidebarPlacement {
@@ -19,19 +19,6 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
     sidebarPlacement: SidebarPlacement,
     sidebarWidth: CGFloat = 300,
     @ViewBuilder content: @escaping () -> Content,
-    @ViewBuilder sidebar: @escaping () -> Sidebar
-  ) {
-    self.sidebarPlacement = sidebarPlacement
-    self.sidebarWidth = sidebarWidth
-    self.content = content
-    self.sidebar = sidebar
-    self.compactContent = nil
-  }
-
-  init<Compact: View>(
-    sidebarPlacement: SidebarPlacement,
-    sidebarWidth: CGFloat = 300,
-    @ViewBuilder content: @escaping () -> Content,
     @ViewBuilder sidebar: @escaping () -> Sidebar,
     @ViewBuilder compact: @escaping () -> Compact
   ) {
@@ -39,7 +26,7 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
     self.sidebarWidth = sidebarWidth
     self.content = content
     self.sidebar = sidebar
-    self.compactContent = { AnyView(compact()) }
+    self.compactContent = compact
   }
 
   /// Minimum total width required to show the two-column layout.
@@ -110,5 +97,20 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View>: View {
       }
       .padding()
     }
+  }
+}
+
+extension AdaptiveDetailLayout where Compact == EmptyView {
+  init(
+    sidebarPlacement: SidebarPlacement,
+    sidebarWidth: CGFloat = 300,
+    @ViewBuilder content: @escaping () -> Content,
+    @ViewBuilder sidebar: @escaping () -> Sidebar
+  ) {
+    self.sidebarPlacement = sidebarPlacement
+    self.sidebarWidth = sidebarWidth
+    self.content = content
+    self.sidebar = sidebar
+    self.compactContent = nil
   }
 }
