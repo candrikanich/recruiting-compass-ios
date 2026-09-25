@@ -48,7 +48,20 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
     webView.loadHTMLString(Self.html, baseURL: URL(string: "https://myrecruitingcompass.com"))
   }
 
+  #if DEBUG
+  /// The local Supabase stack used for App Store screenshot capture has captcha disabled and can't
+  /// complete a real Cloudflare challenge, so it ignores the token. Opt-in via a dedicated launch flag
+  /// and only when Supabase is a loopback host, so no remote stack is ever handed a fake token.
+  private static var shouldBypassCaptcha: Bool {
+    ProcessInfo.processInfo.arguments.contains("--local-captcha-bypass")
+      && ["localhost", "127.0.0.1", "::1"].contains(SupabaseConfig.url.host ?? "")
+  }
+  #endif
+
   func getToken() async throws -> String {
+    #if DEBUG
+    if Self.shouldBypassCaptcha { return "local-captcha-bypass" }
+    #endif
     hasRetriedAfterExpiry = false
     try await waitUntilReady()
     return try await executeChallenge()
