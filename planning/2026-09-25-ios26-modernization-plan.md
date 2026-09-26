@@ -1,6 +1,20 @@
 # iOS 26 SDK Modernization Plan
 
-**Date:** 2026-09-25 · **Status:** DRAFT — awaiting decisions in "Open questions"
+**Date:** 2026-09-25 · **Status:** PRE-LAUNCH PHASES SHIPPED 2026-09-25 — remaining work is post-launch (see below)
+
+## Shipped (2026-09-25)
+
+| Phase | Outcome | PR / merge |
+|---|---|---|
+| P0 floor | Kept iOS 18; README fixed (17+ → 18+) | #204 `6de8b23c` |
+| P3 cleanups | `AdaptiveDetailLayout` `AnyView` → generic; timeline `asyncAfter` → `Task.sleep` | #204 `6de8b23c` |
+| P1 Liquid Glass | Tab bar minimizes on scroll (iOS 26+, iPhone); 7 `.ultraThinMaterial` cards → solid | #205 `0cf65c16` |
+| P2 Turnstile `WebView` | Spike: **don't migrate** (reasons under Phase 2) | this doc |
+| P6 Charts | VoiceOver Audio Graphs (performance + interaction charts); tap-to-inspect performance chart; interaction chart day labels fixed west of UTC | #206 `3a0dbf3e` |
+| Plan docs | This plan + deferred rich-text handoff | #203 `c28d3e96` |
+
+**Post-launch / tracked:** Swift 6 → #201 · Widgets + App Intents → #24 · Rich text (deferred) → #202 ·
+hollow chart a11y tests → #207 · `.other` mixed-unit charts → #208 (web #1009) · iOS 27 re-audit → Phase 8.
 **Source:** SwiftUI audit against context7 docs. context7 has **no iOS 27 SwiftUI docs** (only iOS 26-era
 material), so this targets the documented iOS 26 SDK. Re-audit against Apple's "What's new in SwiftUI"
 / Xcode 27 release notes before starting Phase 7 (new-API bets).
@@ -72,6 +86,14 @@ becomes a no-op and PRs grow ~30%.
 **Done when:** no visual regressions vs baseline screenshots; a11y settings pass; App Store screenshots
 (PR #200 set) re-captured if chrome changed.
 
+**Outcome (#205):** step 1 was moot. The app already builds against the iOS 26 SDK with no
+`UIDesignRequiresCompatibility` and no custom bar appearance, so system glass was already live. Shipped
+(A) `tabBarMinimizeBehavior(.onScrollDown)` behind `#available(iOS 26, *)` in `MainTabView`, and (B) 7
+`.ultraThinMaterial` content cards (Offers ×5, Events ×2) → `Color(.secondarySystemBackground)`.
+**Skipped on purpose:** glass button styles (meant for floating controls, not in-content buttons) and
+`backgroundExtensionEffect` (no hero imagery). `searchToolbarBehavior` wasn't evaluated. Visual check
+passed (Chris).
+
 ## Phase 2 — Turnstile WebView spike (rec 3)
 
 Context7 confirmed SwiftUI web-view *modifiers* (`webViewOnScrollGeometryChange` etc.); it did **not**
@@ -113,6 +135,11 @@ Single small PR.
 5. `NetworkMonitor.swift` `DispatchQueue` is required by `NWPathMonitor` — leave.
 **Tests:** none needed for pure refactors beyond existing; add a view-model test only if subtitle text is
 computed logic.
+
+**Outcome (#204):** items 2, 3 shipped. **Item 1 was wrong:** `MiniBarChart`'s `.cornerRadius(3)` is the
+Swift Charts `BarMark` modifier, not the deprecated `View` one, so it's left as-is. **Item 4 skipped:**
+`.navigationSubtitle` is iOS 26-only and detail screens use generic inline titles ("School Details"), so
+it only makes sense with a retitle design decision.
 
 ## Phase 4 — Swift 6 language mode (rec 5)
 
@@ -164,6 +191,15 @@ Not scheduled. Notes below kept for whenever it's revived. Docs confirm `TextEdi
 2. Add tap-to-inspect on performance-metric trend chart; keep MiniBarChart lightweight.
 3. Cross-platform: check web charts show same data/interaction — parity only for data, not gestures.
 
+**Outcome (#206):** `PerformanceChartDescriptor` + `InteractionTrendsChartDescriptor`
+(`AXChartDescriptorRepresentable`) with a shared `AXChartDescriptor.replaceContents(with:)` so updates
+don't go stale; per-point unit labels; `chartXSelection` + `RuleMark` callout on the performance chart.
+All iOS 15/17 APIs, so no `#available` gates. The Qodo review caught 3 real bugs, all fixed before merge:
+empty `updateChartDescriptor`, first-metric unit applied to all points, and UTC day buckets read
+in local time. The last also fixed an older off-by-one on the visible interaction chart axis
+(`InteractionTrend.calendarDay(in:)` replaced `dateFormatted`). 16 new tests. `chartScrollableAxes`
+wasn't needed. Follow-ups: #207 (hollow a11y tests), #208 / web #1009 (mixed units).
+
 ## Phase 7 — WidgetKit + App Intents (rec 7a)
 
 **Blocked on:** Q2 (scope), and re-audit for iOS 27 APIs.
@@ -210,5 +246,5 @@ system chrome applies on iOS 26 devices automatically with no floor change. Don'
 gives up current APIs for little reach. Phase 0 then reduces to fixing the stale README ("iOS 17+").
 
 ## Suggested order & rough size
-P0 ✅ → P3 ✅ (#204) → P1 ✅ (#205, A+B only) → P2 ❌ spike: don't migrate → P6 (M) → P4 (L, post-launch, #201) →
-P7 (L, post-launch, #24) → P8. **P5 deferred (#202).**
+P0 ✅ (#204) → P3 ✅ (#204) → P1 ✅ (#205, A+B only) → P2 ❌ spike: don't migrate → P6 ✅ (#206) →
+P4 (L, post-launch, #201) → P7 (L, post-launch, #24) → P8. **P5 deferred (#202).**
