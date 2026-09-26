@@ -71,7 +71,9 @@ platform :ios do
       skip_screenshots: true,
       skip_binary_upload: true,
       submit_for_review: false,
-      run_precheck_before_submit: false
+      run_precheck_before_submit: false,
+      # Skip the interactive HTML preview prompt; review happens on the metadata diff instead.
+      force: true
     )
   end
 

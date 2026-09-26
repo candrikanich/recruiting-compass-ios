@@ -1,1 +1,1 @@
-recruiting,college,NCAA,athlete,high school,sports,coach,scholarship,prospect,recruiting calendar
+college,NCAA,athlete,high school,sports,coach,scholarship,calendar,D1,commit,camp,showcase,tracker
