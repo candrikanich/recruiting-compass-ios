@@ -1,0 +1,94 @@
+require "json"
+require "tmpdir"
+require "fileutils"
+
+default_platform(:ios)
+
+REPO_ROOT = File.expand_path("..", __dir__)
+METADATA_PATH = File.join(REPO_ROOT, "fastlane/metadata")
+SCREENSHOT_SOURCE = File.join(REPO_ROOT, "planning/app-store")
+DEVICE_FOLDERS = %w[iphone ipad].freeze
+
+# Key ID and Issuer ID are not secrets on their own; the .p8 is, and it stays outside the repo.
+def asc_api_key
+  key_id = ENV.fetch("ASC_KEY_ID", "XMUY74WLK7")
+  app_store_connect_api_key(
+    key_id: key_id,
+    issuer_id: ENV.fetch("ASC_ISSUER_ID", "9359bbe9-c1f5-4821-8314-cce0788f1224"),
+    key_filepath: ENV.fetch("ASC_KEY_PATH", File.expand_path("~/.appstoreconnect/AuthKey_#{key_id}.p8"))
+  )
+end
+
+# The `deliver download_*` CLI commands only accept a JSON key file that embeds the key,
+# so write one to a private temp dir that is deleted when the block returns.
+def with_api_key_json
+  Dir.mktmpdir("asc") do |dir|
+    path = File.join(dir, "key.json")
+    File.write(path, JSON.generate(asc_api_key.slice(:key_id, :issuer_id, :key, :in_house)))
+    File.chmod(0o600, path)
+    yield path
+  end
+end
+
+# deliver expects <path>/<locale>/*.png and infers the device from pixel size;
+# prefixing with the device keeps iPhone and iPad files from colliding.
+def stage_screenshots(dir)
+  locale_dir = File.join(dir, "en-US")
+  FileUtils.mkdir_p(locale_dir)
+  DEVICE_FOLDERS.each do |device|
+    Dir[File.join(SCREENSHOT_SOURCE, device, "*.png")].sort.each do |png|
+      FileUtils.cp(png, File.join(locale_dir, "#{device}-#{File.basename(png)}"))
+    end
+  end
+  dir
+end
+
+platform :ios do
+  desc "Read-only: download the live App Store listing text into fastlane/metadata"
+  lane :pull_metadata do
+    with_api_key_json do |key_path|
+      sh("fastlane", "deliver", "download_metadata",
+         "--api_key_path", key_path,
+         "--metadata_path", METADATA_PATH,
+         "--force")
+    end
+  end
+
+  desc "Read-only: download the live App Store screenshots into fastlane/screenshots (gitignored)"
+  lane :pull_screenshots do
+    with_api_key_json do |key_path|
+      sh("fastlane", "deliver", "download_screenshots",
+         "--api_key_path", key_path,
+         "--screenshots_path", File.join(REPO_ROOT, "fastlane/screenshots"))
+    end
+  end
+
+  desc "Upload fastlane/metadata text to the editable App Store version (no screenshots, no submit)"
+  lane :push_metadata do
+    deliver(
+      api_key: asc_api_key,
+      metadata_path: METADATA_PATH,
+      skip_screenshots: true,
+      skip_binary_upload: true,
+      submit_for_review: false,
+      run_precheck_before_submit: false,
+      # Skip the interactive HTML preview prompt; review happens on the metadata diff instead.
+      force: true
+    )
+  end
+
+  desc "Replace App Store screenshots with planning/app-store/{iphone,ipad} (no metadata, no submit)"
+  lane :push_screenshots do
+    Dir.mktmpdir("screenshots") do |dir|
+      deliver(
+        api_key: asc_api_key,
+        screenshots_path: stage_screenshots(dir),
+        overwrite_screenshots: true,
+        skip_metadata: true,
+        skip_binary_upload: true,
+        submit_for_review: false,
+        run_precheck_before_submit: false
+      )
+    end
+  end
+end

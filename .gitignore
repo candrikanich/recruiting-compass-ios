@@ -64,3 +64,12 @@ scripts/dist/
 
 # Session scratch memory (local-only)
 CLAUDE.local.md
+
+# fastlane (App Store Connect .p8 keys live in ~/.appstoreconnect, never here)
+*.p8
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+# App Review contact info + demo account password
+fastlane/metadata/review_information/
+fastlane/test_output/
