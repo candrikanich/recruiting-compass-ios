@@ -167,7 +167,7 @@ jobs:
 
       - name: Boot simulator
         run: |
-          UDID=$(xcrun simctl list devices available | grep 'iPhone 16' | grep -v 'Plus\|Pro' | head -1 | grep -oE '[0-9A-F-]{36}')
+          UDID=$(xcrun simctl list devices available | grep -E "^ +iPhone 16 \(" | tail -1 | grep -oE '[0-9A-F-]{36}')
           echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
           xcrun simctl boot "$UDID" || true
 
@@ -257,7 +257,7 @@ jobs:
             set +e
             xcodebuild test-without-building \
               -scheme TheRecruitingCompass \
-              -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+              -destination "id=$SIMULATOR_UDID" \
               -only-testing:TheRecruitingCompassUITests \
               -parallel-testing-enabled NO \
               -test-timeouts-enabled YES \
