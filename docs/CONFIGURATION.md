@@ -34,7 +34,8 @@ This document describes environment configuration and where to set it for develo
 
 App Store Connect rejects builds made with a beta Xcode or beta SDK. The dev Mac runs a beta macOS and a beta Xcode, so **App Store builds are archived in Xcode Cloud** on a release Xcode.
 
-- `TheRecruitingCompass/ci_scripts/ci_post_clone.sh` writes `Release.xcconfig` from workflow environment variables: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `API_BASE_URL`, `POSTHOG_API_KEY`, and optionally `TURNSTILE_SITE_KEY`. Store them as **Secret** in the workflow's Environment settings. The script fails the build if a required variable is missing.
+- `TheRecruitingCompass/ci_scripts/ci_post_clone.sh` writes `Release.xcconfig` from workflow environment variables: `SUPABASE_ANON_KEY`, `API_BASE_URL`, `POSTHOG_API_KEY`, and optionally `TURNSTILE_SITE_KEY`. Store them as **Secret** in the workflow's Environment settings. The script fails the build if a required variable is missing.
+- `SUPABASE_URL` is **not** a workflow variable. `project.pbxproj` pins it to the production project at the project level (Debug and Release), which overrides any xcconfig value. So `SUPABASE_ANON_KEY` must be the **production** anon key, or auth breaks.
 - Workflow environment: Xcode **Latest Release**. Action: **Archive** (iOS) with distribution to **App Store Connect**. Post-action: TestFlight internal testing.
 - Xcode Cloud numbers builds with its own counter. Set **Next Build Number** above the highest build already uploaded for the version, or the upload is rejected as a duplicate.
 - Local archives from the beta Xcode are still fine for TestFlight internal testing, but can't be submitted for review.

@@ -4,8 +4,12 @@
 # PostHogConfigEmbedded.swift, and fails the build if the Supabase values are empty.
 #
 # Set in App Store Connect → Xcode Cloud → workflow → Environment (mark the keys Secret):
-#   SUPABASE_URL, SUPABASE_ANON_KEY, API_BASE_URL, POSTHOG_API_KEY
+#   SUPABASE_ANON_KEY, API_BASE_URL, POSTHOG_API_KEY
 # Optional: TURNSTILE_SITE_KEY (the build phase has a default).
+#
+# SUPABASE_URL is deliberately not written here: project.pbxproj pins it (production) at the
+# project level for Debug and Release, which overrides any xcconfig value. SUPABASE_ANON_KEY
+# must therefore be the production project's anon key.
 
 set -eu
 
@@ -22,7 +26,6 @@ xcconfig_url() {
   printf '%s' "$1" | sed 's#//#$(_SLASH)$(_SLASH)#g'
 }
 
-require SUPABASE_URL
 require SUPABASE_ANON_KEY
 require API_BASE_URL
 require POSTHOG_API_KEY
@@ -31,7 +34,6 @@ OUT="$CI_PRIMARY_REPOSITORY_PATH/TheRecruitingCompass/Release.xcconfig"
 
 {
   echo "_SLASH = /"
-  echo "SUPABASE_URL = $(xcconfig_url "$SUPABASE_URL")"
   echo "SUPABASE_ANON_KEY = $SUPABASE_ANON_KEY"
   echo "API_BASE_URL = $(xcconfig_url "$API_BASE_URL")"
   echo "POSTHOG_API_KEY = $POSTHOG_API_KEY"
@@ -40,4 +42,4 @@ OUT="$CI_PRIMARY_REPOSITORY_PATH/TheRecruitingCompass/Release.xcconfig"
   fi
 } > "$OUT"
 
-echo "Wrote Release.xcconfig (Supabase URL length ${#SUPABASE_URL}, PostHog key length ${#POSTHOG_API_KEY})"
+echo "Wrote Release.xcconfig (anon key length ${#SUPABASE_ANON_KEY}, PostHog key length ${#POSTHOG_API_KEY})"
