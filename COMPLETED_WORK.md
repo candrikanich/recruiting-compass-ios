@@ -99,3 +99,10 @@
 | docs/superpowers/plans/2026-08-25-coach-detail-redesign.md | ios | Coach detail redesign implementation plan |
 | docs/superpowers/plans/2026-09-09-turnstile-captcha-ios.md | ios | Turnstile captcha auth implementation plan |
 | planning/APP_STORE_LAUNCH_CHECKLIST.md | (deleted, not compressed) | Superseded by the more current app-store-submission-plan.md |
+
+## Doc Cleanup Run — 2026-09-27
+- Deleted: 0 files (session debris)
+- Compressed: 0 files → domain history
+- Kept: 0 files (active/future-looking)
+
+No auto-delete, compress, or review candidates found by the scanner this run.
