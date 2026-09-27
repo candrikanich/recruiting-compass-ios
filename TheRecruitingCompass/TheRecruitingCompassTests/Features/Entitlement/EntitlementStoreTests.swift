@@ -89,4 +89,20 @@ final class EntitlementStoreTests: XCTestCase {
     XCTAssertFalse(store.hasLoaded)
     XCTAssertFalse(store.canWrite)
   }
+
+  func test_fetchStartedBeforeResetIsDiscarded() async {
+    let (store, mock) = makeStore(founding)
+    let gate = AsyncGate()
+    mock.fetchGate = { await gate.wait() }
+
+    let staleLoad = Task { await store.load(familyUnitId: "fam-1") }
+    await gate.untilEntered()
+    store.reset()
+    gate.open()
+    await staleLoad.value
+
+    XCTAssertNil(store.subscription)
+    XCTAssertFalse(store.hasLoaded)
+    XCTAssertFalse(store.isLoading)
+  }
 }

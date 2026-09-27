@@ -2,32 +2,6 @@ import Foundation
 import Testing
 @testable import TheRecruitingCompass
 
-/// Holds an async call until `open()` so a test can interleave work with an in-flight load.
-@MainActor
-private final class AsyncGate {
-  nonisolated deinit {}
-
-  private(set) var enteredCount = 0
-  private var isOpen = false
-  private var waiters: [CheckedContinuation<Void, Never>] = []
-
-  func wait() async {
-    enteredCount += 1
-    guard !isOpen else { return }
-    await withCheckedContinuation { waiters.append($0) }
-  }
-
-  func open() {
-    isOpen = true
-    waiters.forEach { $0.resume() }
-    waiters = []
-  }
-
-  func untilEntered() async {
-    while enteredCount == 0 { await Task.yield() }
-  }
-}
-
 @Suite("FamilyManager — account switching")
 @MainActor
 struct FamilyManagerTests {
@@ -129,5 +103,29 @@ struct FamilyManagerTests {
     #expect(sut.currentMember == nil)
     #expect(sut.familyUnitId == nil)
     #expect(sut.familyMembers.isEmpty)
+  }
+
+  @Test func loadFromAnEarlierSessionOfTheSameUserIsDiscarded() async {
+    let service = MockFamilyService()
+    let gate = AsyncGate(blockedEntries: 1)
+    service.getCurrentMemberGate = { await gate.wait() }
+    let auth = MockAuthManager()
+    auth.setMockUser(user("user-a", role: .player))
+    let sut = FamilyManager(familyService: service, authManager: auth)
+
+    let staleLoad = Task { await sut.loadFamilyData() }
+    await gate.untilEntered()
+    auth.setMockUser(user("user-b", role: .player))
+    sut.reset()
+    auth.setMockUser(user("user-a", role: .player))
+    sut.reset()
+    service.stubbedCurrentMember = member(id: "m-a", userId: "user-a", familyUnitId: "family-new", role: "player")
+    await sut.loadFamilyData()
+
+    service.stubbedCurrentMember = member(id: "m-a", userId: "user-a", familyUnitId: "family-old", role: "player")
+    gate.open()
+    await staleLoad.value
+
+    #expect(sut.familyUnitId == "family-new")
   }
 }

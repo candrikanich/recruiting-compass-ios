@@ -19,6 +19,8 @@ final class NuxProgressManager {
 
   private let service: any NuxProgressManaging
   private var currentUserId: String?
+  /// Advanced by `reset()`; a fetch only applies while its session is still current.
+  private var session = 0
 
   init(service: (any NuxProgressManaging)? = nil) {
     self.service = service ?? NuxProgressServiceImpl(supabaseManager: .shared)
@@ -26,14 +28,15 @@ final class NuxProgressManager {
 
   func load(userId: String) async {
     currentUserId = userId
+    let loadSession = session
     do {
       let fetched = try await service.fetchNuxProgress(userId: userId)
-      guard currentUserId == userId else { return }
+      guard loadSession == session, currentUserId == userId else { return }
       progress = fetched
       isLoaded = true
       logger.info("NUX progress loaded for user \(userId, privacy: .private) (\(self.progress.checklist.completedCount)/\(NuxChecklistKey.allCases.count))")
     } catch {
-      guard currentUserId == userId else { return }
+      guard loadSession == session, currentUserId == userId else { return }
       logger.error("Failed to load NUX progress: \(error.localizedDescription)")
       progress = .empty
       isLoaded = true
@@ -87,6 +90,7 @@ final class NuxProgressManager {
 
   /// Clears the previous user's progress and stops background saves from targeting them.
   func reset() {
+    session += 1
     currentUserId = nil
     progress = .empty
     isLoaded = false

@@ -226,7 +226,9 @@ private struct AuthenticatedContent: View {
         SessionLoadingView()
       }
     }
-    .task(id: authManager.isAuthenticated) {
+    // Keyed by user id, not isAuthenticated: resetUserScopedState() puts onboarding back to
+    // "loading", so any change of user must reload it or routing would stall.
+    .task(id: authManager.user?.id) {
       if authManager.isAuthenticated {
         await onboardingManager.loadStatus()
         if let userId = authManager.user?.id {

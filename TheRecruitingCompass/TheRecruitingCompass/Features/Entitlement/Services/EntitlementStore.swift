@@ -18,6 +18,9 @@ final class EntitlementStore {
   /// leave `subscription` nil, but only the latter should render `planLabel`/`canWrite` as final.
   private(set) var hasLoaded = false
 
+  /// Advanced by `reset()`; a fetch only applies while its session is still current.
+  private var session = 0
+
   private let service: any EntitlementManaging
   private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "EntitlementStore")
 
@@ -35,8 +38,10 @@ final class EntitlementStore {
 
   /// Forgets the previous family's plan on sign-out or account switch.
   func reset() {
+    session += 1
     subscription = nil
     errorMessage = nil
+    isLoading = false
     hasLoaded = false
   }
 
@@ -48,14 +53,21 @@ final class EntitlementStore {
       return
     }
     isLoading = true
-    defer {
-      isLoading = false
-      hasLoaded = true
-    }
+    let loadSession = session
+    let result: Result<FamilySubscription?, Error>
     do {
-      subscription = try await service.fetchSubscription(familyUnitId: familyUnitId)
-      errorMessage = nil
+      result = .success(try await service.fetchSubscription(familyUnitId: familyUnitId))
     } catch {
+      result = .failure(error)
+    }
+    guard loadSession == session else { return }
+    isLoading = false
+    hasLoaded = true
+    switch result {
+    case .success(let fetched):
+      subscription = fetched
+      errorMessage = nil
+    case .failure(let error):
       subscription = nil
       // fetchSubscription has no typed error of its own (raw Supabase SDK
       // errors) -- never surface that wording to the user directly.

@@ -260,4 +260,19 @@ final class OnboardingManagerTests: XCTestCase {
     XCTAssertNil(sut.needsOnboarding)
     XCTAssertFalse(sut.needsSportOnly)
   }
+
+  func testStatusCheckStartedBeforeResetIsDiscarded() async {
+    mockAuthManager.user = makeUser(role: .player)
+    mockOnboardingService.isOnboardingCompleteResult = false
+    let gate = AsyncGate()
+    mockOnboardingService.isOnboardingCompleteGate = { await gate.wait() }
+
+    let staleCheck = Task { await sut.loadStatus() }
+    await gate.untilEntered()
+    sut.reset()
+    gate.open()
+    await staleCheck.value
+
+    XCTAssertNil(sut.needsOnboarding)
+  }
 }
