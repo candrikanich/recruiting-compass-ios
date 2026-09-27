@@ -98,6 +98,12 @@ final class OnboardingManager {
     }
   }
 
+  /// Back to "loading" so the next user is routed by their own status, not the previous user's.
+  func reset() {
+    needsOnboarding = nil
+    needsSportOnly = false
+  }
+
   func markComplete() {
     needsOnboarding = false
   }

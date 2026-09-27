@@ -27,10 +27,13 @@ final class NuxProgressManager {
   func load(userId: String) async {
     currentUserId = userId
     do {
-      progress = try await service.fetchNuxProgress(userId: userId)
+      let fetched = try await service.fetchNuxProgress(userId: userId)
+      guard currentUserId == userId else { return }
+      progress = fetched
       isLoaded = true
       logger.info("NUX progress loaded for user \(userId, privacy: .private) (\(self.progress.checklist.completedCount)/\(NuxChecklistKey.allCases.count))")
     } catch {
+      guard currentUserId == userId else { return }
       logger.error("Failed to load NUX progress: \(error.localizedDescription)")
       progress = .empty
       isLoaded = true
@@ -80,6 +83,13 @@ final class NuxProgressManager {
     progress.firstVisits[key] = Date()
     logger.info("NUX first visit recorded: \(key)")
     persistInBackground()
+  }
+
+  /// Clears the previous user's progress and stops background saves from targeting them.
+  func reset() {
+    currentUserId = nil
+    progress = .empty
+    isLoaded = false
   }
 
   private func persistInBackground() {

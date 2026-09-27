@@ -33,6 +33,13 @@ final class EntitlementStore {
     self.service = service
   }
 
+  /// Forgets the previous family's plan on sign-out or account switch.
+  func reset() {
+    subscription = nil
+    errorMessage = nil
+    hasLoaded = false
+  }
+
   func load(familyUnitId: String?) async {
     guard let familyUnitId else {
       subscription = nil

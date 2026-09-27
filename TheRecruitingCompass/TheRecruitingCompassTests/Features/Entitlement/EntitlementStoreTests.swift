@@ -77,4 +77,16 @@ final class EntitlementStoreTests: XCTestCase {
       store.errorMessage?.localizedCaseInsensitiveContains("internet") ?? true
     )
   }
+
+  func test_resetForgetsThePreviousFamilysPlan() async {
+    let (store, _) = makeStore(founding)
+    await store.load(familyUnitId: "fam-1")
+
+    store.reset()
+
+    XCTAssertNil(store.subscription)
+    XCTAssertNil(store.errorMessage)
+    XCTAssertFalse(store.hasLoaded)
+    XCTAssertFalse(store.canWrite)
+  }
 }

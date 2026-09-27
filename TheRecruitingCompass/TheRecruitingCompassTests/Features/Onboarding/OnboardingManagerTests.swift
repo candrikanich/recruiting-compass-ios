@@ -248,4 +248,16 @@ final class OnboardingManagerTests: XCTestCase {
       homeLongitude: nil
     )
   }
+
+  // MARK: - Reset (account switch)
+
+  func testResetReturnsToLoadingSoTheNextUserNeverSeesThePreviousRoute() {
+    sut.needsOnboarding = false
+    sut.needsSportOnly = true
+
+    sut.reset()
+
+    XCTAssertNil(sut.needsOnboarding)
+    XCTAssertFalse(sut.needsSportOnly)
+  }
 }
