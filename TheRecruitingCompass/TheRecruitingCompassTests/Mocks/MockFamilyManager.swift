@@ -67,9 +67,13 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     return result
   }
 
+  /// Awaited inside `getCurrentMember` so tests can hold a load in flight.
+  var getCurrentMemberGate: (@Sendable () async -> Void)?
+
   func getCurrentMember(userId: String) async throws -> FamilyMember? {
     getCurrentMemberCallCount += 1
     lastUserIdFetched = userId
+    await getCurrentMemberGate?()
 
     if !shouldSucceed {
       throw mockError

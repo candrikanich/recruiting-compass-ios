@@ -131,6 +131,12 @@ struct TheRecruitingCompassApp: App {
       .onOpenURL { url in
         handleDeepLink(url)
       }
+      // AuthManager clears the user from several paths (logout, failed session restore,
+      // aborted signup), so key off the user id itself rather than any one of them.
+      .onChange(of: authManager.user?.id) { previousUserId, _ in
+        guard previousUserId != nil else { return }
+        resetUserScopedState()
+      }
       .onChange(of: authManager.isCheckingSession) { _, isChecking in
         if !isChecking, !authManager.isAuthenticated, pendingResetPasswordFromDeepLink {
           pendingResetPasswordFromDeepLink = false
@@ -159,6 +165,15 @@ struct TheRecruitingCompassApp: App {
       .environment(nuxProgressManager)
       .environment(entitlementStore)
     }
+  }
+
+  /// App-lifetime state that belongs to one user. Mirrors web's `resetAppState()`.
+  private func resetUserScopedState() {
+    familyManager.reset()
+    nuxProgressManager.reset()
+    onboardingManager.reset()
+    entitlementStore.reset()
+    Task { await InMemoryCache.shared.removeAll() }
   }
 
   private func handleDeepLink(_ url: URL) {
@@ -211,7 +226,9 @@ private struct AuthenticatedContent: View {
         SessionLoadingView()
       }
     }
-    .task(id: authManager.isAuthenticated) {
+    // Keyed by user id, not isAuthenticated: resetUserScopedState() puts onboarding back to
+    // "loading", so any change of user must reload it or routing would stall.
+    .task(id: authManager.user?.id) {
       if authManager.isAuthenticated {
         await onboardingManager.loadStatus()
         if let userId = authManager.user?.id {

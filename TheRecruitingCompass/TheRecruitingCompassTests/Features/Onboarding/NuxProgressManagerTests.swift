@@ -196,4 +196,53 @@ struct NuxProgressManagerTests {
 
     #expect(mockService.saveCallCount == saveCountAfterFirstUpdate)
   }
+
+  // MARK: - reset (account switch)
+
+  @Test func resetClearsPreviousUsersProgress() async {
+    let mockService = MockNuxProgressService()
+    var stubbedProgress = NuxProgress.empty
+    stubbedProgress.completeItem(.sport)
+    mockService.stubbedProgress = stubbedProgress
+    let (sut, _) = makeSUT(service: mockService)
+    await sut.load(userId: "user-a")
+
+    sut.reset()
+
+    #expect(!sut.isLoaded)
+    #expect(!sut.progress.isItemCompleted(.sport))
+  }
+
+  @Test func resetStopsWritesToThePreviousUser() async throws {
+    let (sut, mockService) = makeSUT()
+    await sut.load(userId: "user-a")
+
+    sut.reset()
+    sut.completeItem(.firstSchool)
+    try await Task.sleep(for: .milliseconds(100))
+
+    #expect(mockService.saveCallCount == 0)
+  }
+
+  @Test func fetchFromAnEarlierSessionOfTheSameUserIsIgnored() async {
+    let mockService = MockNuxProgressService()
+    let gate = AsyncGate(blockedEntries: 1)
+    mockService.fetchGate = { await gate.wait() }
+    let (sut, _) = makeSUT(service: mockService)
+
+    let staleLoad = Task { await sut.load(userId: "user-a") }
+    await gate.untilEntered()
+    sut.reset()  // user-a signs out, user-b signs in
+    sut.reset()  // user-b signs out, user-a signs back in
+    var fresh = NuxProgress.empty
+    fresh.completeItem(.sport)
+    mockService.stubbedProgress = fresh
+    await sut.load(userId: "user-a")
+
+    mockService.stubbedProgress = .empty
+    gate.open()
+    await staleLoad.value
+
+    #expect(sut.progress.isItemCompleted(.sport))
+  }
 }

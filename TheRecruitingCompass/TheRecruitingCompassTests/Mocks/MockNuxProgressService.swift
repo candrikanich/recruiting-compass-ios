@@ -12,8 +12,12 @@ final class MockNuxProgressService: NuxProgressManaging, @unchecked Sendable {
   private(set) var lastSavedProgress: NuxProgress?
   private(set) var lastSavedUserId: String?
 
+  /// Awaited inside `fetchNuxProgress` so tests can hold a fetch in flight.
+  var fetchGate: (@Sendable () async -> Void)?
+
   func fetchNuxProgress(userId: String) async throws -> NuxProgress {
     fetchCallCount += 1
+    await fetchGate?()
     if shouldThrowOnFetch { throw mockError }
     return stubbedProgress
   }
