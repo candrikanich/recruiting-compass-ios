@@ -62,6 +62,7 @@ struct AthleteMessagesServiceImpl: AthleteMessagesServicing {
     }
     let csrf = try await fetchCSRFToken(baseURL: baseURL)
     var request = URLRequest(url: baseURL.appendingPathComponent(path))
+    request.addClientHeaders()
     request.httpMethod = "POST"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -77,6 +78,7 @@ struct AthleteMessagesServiceImpl: AthleteMessagesServicing {
   /// Port of `PublicProfileServiceImpl.fetchCSRFToken` (GET /api/csrf-token → csrf-token cookie).
   private func fetchCSRFToken(baseURL: URL) async throws -> String {
     var request = URLRequest(url: baseURL.appendingPathComponent("api/csrf-token"))
+    request.addClientHeaders()
     request.httpMethod = "GET"
     let (_, response) = try await session.data(for: request)
     guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {

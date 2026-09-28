@@ -98,6 +98,7 @@ final class InboundDraftsAPIService: InboundDraftsAPIManaging, Sendable {
     }
 
     var request = URLRequest(url: baseURL.appendingPathComponent(path))
+    request.addClientHeaders()
     request.httpMethod = method
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Accept")

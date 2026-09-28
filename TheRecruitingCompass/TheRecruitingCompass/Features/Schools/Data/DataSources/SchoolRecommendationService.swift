@@ -47,6 +47,7 @@ final class SchoolRecommendationServiceImpl: SchoolRecommendationManaging, Senda
     }
 
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
 
@@ -89,6 +90,7 @@ final class SchoolRecommendationServiceImpl: SchoolRecommendationManaging, Senda
 
     let url = baseURL.appendingPathComponent("api/schools/recommendations/dismiss")
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.httpMethod = "POST"
     request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")

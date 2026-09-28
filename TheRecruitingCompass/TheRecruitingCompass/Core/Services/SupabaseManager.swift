@@ -105,7 +105,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       supabaseURL: SupabaseConfig.url,
       supabaseKey: SupabaseConfig.anonKey,
       options: SupabaseClientOptions(
-        auth: .init(emitLocalSessionAsInitialSession: true)
+        auth: .init(emitLocalSessionAsInitialSession: true),
+        global: .init(headers: AppInfo.clientHeaders)
       )
     )
   }
@@ -341,6 +342,7 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         throw AuthError.networkError("Could not reach the server.")
       }
       var request = URLRequest(url: baseURL.appendingPathComponent("api/auth/signup"))
+      request.addClientHeaders()
       request.httpMethod = "POST"
       request.setValue("application/json", forHTTPHeaderField: "Content-Type")
       request.httpBody = try JSONEncoder().encode(body)

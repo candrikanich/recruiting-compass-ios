@@ -78,6 +78,7 @@ struct SchoolEnrichmentServiceImpl: SchoolEnriching {
     let url = baseURL.appendingPathComponent("api/schools").appendingPathComponent(safeId)
       .appendingPathComponent("enrich")
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.httpMethod = "POST"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -102,6 +103,7 @@ struct SchoolEnrichmentServiceImpl: SchoolEnriching {
   private func fetchCSRFToken(baseURL: URL) async throws -> String {
     let url = baseURL.appendingPathComponent("api/csrf-token")
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.httpMethod = "GET"
     let (_, response) = try await session.data(for: request)
     guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {

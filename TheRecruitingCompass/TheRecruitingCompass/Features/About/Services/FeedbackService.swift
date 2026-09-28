@@ -48,6 +48,7 @@ final class FeedbackServiceImpl: FeedbackManaging, Sendable {
         )
 
         var request = URLRequest(url: url)
+        request.addClientHeaders()
         request.httpMethod = "POST"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

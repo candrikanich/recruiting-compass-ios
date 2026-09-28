@@ -39,6 +39,7 @@ extension FamilyServiceImpl {
     }
 
     var request = URLRequest(url: baseURL.appendingPathComponent("api/family/invite"))
+    request.addClientHeaders()
     request.httpMethod = "POST"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -76,6 +77,7 @@ extension FamilyServiceImpl {
     let token = try await supabaseManager.client.auth.session.accessToken
 
     var request = URLRequest(url: baseURL.appendingPathComponent("api/family/invitations"))
+    request.addClientHeaders()
     request.httpMethod = "GET"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
@@ -112,6 +114,7 @@ extension FamilyServiceImpl {
         .appendingPathComponent("api/family/invitations")
         .appendingPathComponent(safeId)
     )
+    request.addClientHeaders()
     request.httpMethod = "DELETE"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
@@ -173,6 +176,7 @@ extension FamilyServiceImpl {
         .appendingPathComponent(safeToken)
         .appendingPathComponent("accept")
     )
+    request.addClientHeaders()
     request.httpMethod = "POST"
     request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -208,6 +212,7 @@ extension FamilyServiceImpl {
         .appendingPathComponent(safeToken)
         .appendingPathComponent("decline")
     )
+    request.addClientHeaders()
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.httpBody = Data("{}".utf8)

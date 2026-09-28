@@ -298,6 +298,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
 
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
     // API expects JWT access token only; refresh_token would 401 (supabase.auth.getUser(accessToken))
@@ -350,6 +351,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       .appendingPathComponent(safeId)
       .appendingPathComponent("dismiss")
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.httpMethod = "PATCH"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -384,6 +386,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       .appendingPathComponent(safeId)
       .appendingPathComponent("complete")
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.httpMethod = "PATCH"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -409,6 +412,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
   private func fetchCSRFToken(baseURL: URL) async throws -> String {
     let url = baseURL.appendingPathComponent("api/csrf-token")
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.httpMethod = "GET"
 
     let (_, response) = try await URLSession.shared.data(for: request)
