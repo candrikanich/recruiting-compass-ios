@@ -1,5 +1,5 @@
 {
-  "originHash" : "f96cd1d0cb5cc8deb50182d1a45efb7dd307d7d1650265cf71e50e99bc6fbd5b",
+  "originHash" : "7be134149752ba19ffe4f2993fab6defb60659f10bef92fcf606d9f5b93e4936",
   "pins" : [
     {
       "identity" : "posthog-ios",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "d933f3050645b5df9fe86862110c1726e0c5b135",
         "version" : "3.71.0"
+      }
+    },
+    {
+      "identity" : "sentry-cocoa",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/getsentry/sentry-cocoa.git",
+      "state" : {
+        "revision" : "8689e780a295dfdc6501ac0dbb502461e16d6551",
+        "version" : "9.29.2"
       }
     },
     {

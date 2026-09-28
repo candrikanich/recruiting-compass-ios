@@ -10,6 +10,7 @@
 		988EFDDF2F3549A1009C60F5 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 988EFDDE2F3549A1009C60F5 /* Supabase */; };
 		98AA1B602F3C1746000E4755 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 98AA1B5F2F3C1746000E4755 /* Supabase */; };
 		98C72ABF3047649C005939FA /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D62F90000100000001 /* PostHog */; };
+		A1B2C3D92F90000100000001 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D82F90000100000001 /* Sentry */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +61,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				98C72ABF3047649C005939FA /* PostHog in Frameworks */,
+				A1B2C3D92F90000100000001 /* Sentry in Frameworks */,
 				988EFDDF2F3549A1009C60F5 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -190,6 +192,7 @@
 			packageProductDependencies = (
 				988EFDDE2F3549A1009C60F5 /* Supabase */,
 				A1B2C3D62F90000100000001 /* PostHog */,
+				A1B2C3D82F90000100000001 /* Sentry */,
 			);
 			productName = TheRecruitingCompass;
 			productReference = 988EFDAA2F35489B009C60F5 /* myCompass.app */;
@@ -272,6 +275,7 @@
 			packageReferences = (
 				988EFDDD2F3549A1009C60F5 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				A1B2C3D42F90000100000001 /* XCRemoteSwiftPackageReference "posthog-ios" */,
+				A1B2C3D72F90000100000001 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 988EFDAB2F35489B009C60F5 /* Products */;
@@ -717,6 +721,14 @@
 				minimumVersion = 3.0.0;
 			};
 		};
+		A1B2C3D72F90000100000001 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.29.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -734,6 +746,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A1B2C3D42F90000100000001 /* XCRemoteSwiftPackageReference "posthog-ios" */;
 			productName = PostHog;
+		};
+		A1B2C3D82F90000100000001 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3D72F90000100000001 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

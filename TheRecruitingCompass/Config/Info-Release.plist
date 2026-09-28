@@ -15,5 +15,9 @@
 	-->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- Sentry DSN from the SENTRY_DSN build setting (Release.xcconfig / Xcode Cloud env).
+	     Empty = crash reporting disabled. Release-only so Debug builds never report. -->
+	<key>SentryDSN</key>
+	<string>$(SENTRY_DSN)</string>
 </dict>
 </plist>
