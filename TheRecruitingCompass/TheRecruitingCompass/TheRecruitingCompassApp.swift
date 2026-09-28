@@ -37,7 +37,12 @@ struct TheRecruitingCompassApp: App {
   var body: some Scene {
     WindowGroup {
       Group {
-        if authManager.isCheckingSession {
+        // Replaces the whole UI rather than overlaying it, so nothing behind it stays reachable —
+        // not by VoiceOver, and not by sheets presented from inside the app.
+        if case .updateRequired(let version) = appUpdateManager.status {
+          UpdateRequiredView(requiredVersion: version)
+            .transition(.opacity)
+        } else if authManager.isCheckingSession {
           SessionLoadingView()
         } else if authManager.isAuthenticated {
           AuthenticatedContent(
@@ -93,7 +98,7 @@ struct TheRecruitingCompassApp: App {
         value: authManager.isCheckingSession
       )
       .overlay {
-        if showBiometricLock {
+        if showBiometricLock && !appUpdateManager.isUpdateRequired {
           BiometricLockView(
             authManager: authManager,
             onSuccess: { showBiometricLock = false },
@@ -119,15 +124,15 @@ struct TheRecruitingCompassApp: App {
             .accessibilityHidden(true)
         }
       }
-      // Last overlay so it sits above biometric lock, onboarding and landing alike.
-      .overlay {
-        if case .updateRequired(let version) = appUpdateManager.status {
-          UpdateRequiredView(requiredVersion: version)
-            .transition(.opacity)
-        }
-      }
       .task {
         await appUpdateManager.check()
+      }
+      .onChange(of: appUpdateManager.isUpdateRequired) { _, isRequired in
+        guard isRequired else { return }
+        // App-level sheets are presented above the Group, so close them explicitly.
+        showResetPassword = false
+        pendingInvite = nil
+        pendingGuardianClaim = nil
       }
       .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
         Task { await appUpdateManager.checkIfStale() }
@@ -212,6 +217,8 @@ struct TheRecruitingCompassApp: App {
   }
 
   private func handleDeepLink(_ url: URL) {
+    // A blocked build can't complete invite/reset flows; the link works again after updating.
+    guard !appUpdateManager.isUpdateRequired else { return }
     let route = DeepLinkHandler.parse(url)
     switch route {
     case .resetPassword:

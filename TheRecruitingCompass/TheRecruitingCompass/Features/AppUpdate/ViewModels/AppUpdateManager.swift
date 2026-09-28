@@ -27,6 +27,7 @@ final class AppUpdateManager {
   private let whatsNewCatalog: [WhatsNewRelease]
   private let now: () -> Date
   private var lastSuccessfulCheck: Date?
+  private var latestCheck = 0
 
   init(
     service: AppVersionPolicyFetching = AppVersionPolicyService(),
@@ -47,10 +48,13 @@ final class AppUpdateManager {
   // MARK: - Update gate
 
   /// Fails open: on error the previous status stands, so a flaky network never blocks a user who wasn't
-  /// already blocked.
+  /// already blocked. Launch and foreground checks can overlap; only the most recently started one applies.
   func check() async {
+    latestCheck += 1
+    let thisCheck = latestCheck
     do {
       let policy = try await service.fetchPolicy()
+      guard thisCheck == latestCheck else { return }
       lastSuccessfulCheck = now()
       apply(AppUpdateStatus.evaluate(current: currentVersion, policy: policy))
     } catch {

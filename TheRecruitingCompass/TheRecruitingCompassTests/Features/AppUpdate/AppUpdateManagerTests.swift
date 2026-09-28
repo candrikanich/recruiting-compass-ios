@@ -71,6 +71,25 @@ final class AppUpdateManagerTests: XCTestCase {
     XCTAssertFalse(manager.isUpdateRequired)
   }
 
+  func test_slowOlderResponseDoesNotOverwriteNewerCheck() async {
+    let (manager, service) = makeManager(current: "1.0", minimum: "1.1")
+    let (stream, continuation) = AsyncStream<Void>.makeStream()
+    service.fetchGate = { for await _ in stream { return } }
+
+    // Launch check captures the stale "minimum 1.1" policy and stalls.
+    let stale = Task { await manager.check() }
+    while service.fetchCount < 1 { await Task.yield() }
+
+    // Policy is lowered; a newer check completes first.
+    service.policy = AppVersionPolicy(minimumVersion: nil, recommendedVersion: nil)
+    await manager.check()
+    XCTAssertFalse(manager.isUpdateRequired)
+
+    continuation.yield()
+    await stale.value
+    XCTAssertFalse(manager.isUpdateRequired, "Stale response must not re-block the user")
+  }
+
   // MARK: - Soft prompt
 
   func test_recommendedVersionShowsPromptOnce() async {

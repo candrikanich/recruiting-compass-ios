@@ -60,7 +60,10 @@ Copy into the release PR description.
   git switch -c hotfix/1.0.2 v1.0.1
   # fix, bump MARKETING_VERSION to 1.0.2, push; run the Xcode Cloud workflow manually on this branch
   ```
-  Submit that build, tag it, then merge the hotfix branch back into `main`.
+  Submit that build and tag it. Then bring the fix to `main` by **cherry-picking the fix commit(s) only**
+  (`git cherry-pick <sha>` on a branch → PR) — never merge the hotfix branch, or its older
+  `MARKETING_VERSION` conflicts with `main`'s. If `main` was already on the hotfix's version (e.g. both 1.0.2),
+  run `fastlane bump_version type:patch` on `main` too, since that version is now taken.
 - **Critical bug in review/live:** App Store Connect → *Contact Us* → **Request Expedited Review**
   (use sparingly — for crashes/data loss, not polish). Meanwhile pause the phased release.
 - **A feature is broken but the app works:** flip its PostHog kill switch (below) — no review needed.
