@@ -23,7 +23,7 @@ fi
 
 sentry-cli debug-files upload \
   --org chris-andrikanich \
-  --project recruiting-compass-ios \
+  --project apple-ios \
   --include-sources \
   "$CI_ARCHIVE_PATH/dSYMs" \
   || echo "warning: Sentry dSYM upload failed." >&2

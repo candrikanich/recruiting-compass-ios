@@ -42,7 +42,7 @@ App Store Connect rejects builds made with a beta Xcode or beta SDK. The dev Mac
 
 ### Crash reporting: Sentry
 
-Release builds report crashes and app hangs to Sentry project `chris-andrikanich/recruiting-compass-ios`
+Release builds report crashes and app hangs to Sentry project `chris-andrikanich/apple-ios`
 (`Core/Services/CrashReporting.swift`). Anonymous by design — no user id, no screenshots, no tracing.
 
 - `SENTRY_DSN` (Xcode Cloud workflow env, or `Release.xcconfig` for local archives) → `SentryDSN` in
