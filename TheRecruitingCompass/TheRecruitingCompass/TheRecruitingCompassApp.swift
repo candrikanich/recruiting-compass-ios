@@ -21,6 +21,7 @@ struct TheRecruitingCompassApp: App {
   @State private var networkMonitor = NetworkMonitor()
   @State private var nuxProgressManager = NuxProgressManager.shared
   @State private var entitlementStore = EntitlementStore()
+  @State private var appUpdateManager = AppUpdateManager()
   @State private var showResetPassword = false
   @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
@@ -37,7 +38,12 @@ struct TheRecruitingCompassApp: App {
   var body: some Scene {
     WindowGroup {
       Group {
-        if authManager.isCheckingSession {
+        // Replaces the whole UI rather than overlaying it, so nothing behind it stays reachable —
+        // not by VoiceOver, and not by sheets presented from inside the app.
+        if case .updateRequired(let version) = appUpdateManager.status {
+          UpdateRequiredView(requiredVersion: version)
+            .transition(.opacity)
+        } else if authManager.isCheckingSession {
           SessionLoadingView()
         } else if authManager.isAuthenticated {
           AuthenticatedContent(
@@ -73,6 +79,17 @@ struct TheRecruitingCompassApp: App {
           }
         }
       }
+      .alert("Update Available", isPresented: updatePromptBinding) {
+        Button("Update") {
+          appUpdateManager.dismissUpdatePrompt()
+          UIApplication.shared.open(AppInfo.appStoreURL)
+        }
+        Button("Not Now", role: .cancel) {
+          appUpdateManager.dismissUpdatePrompt()
+        }
+      } message: {
+        Text("A new version of The Recruiting Compass is available with the latest improvements and fixes.")
+      }
       .animation(
         reduceMotion ? nil : .easeInOut(duration: 0.3),
         value: authManager.isAuthenticated
@@ -82,7 +99,7 @@ struct TheRecruitingCompassApp: App {
         value: authManager.isCheckingSession
       )
       .overlay {
-        if showBiometricLock {
+        if showBiometricLock && !appUpdateManager.isUpdateRequired {
           BiometricLockView(
             authManager: authManager,
             onSuccess: { showBiometricLock = false },
@@ -107,6 +124,19 @@ struct TheRecruitingCompassApp: App {
             .allowsHitTesting(false)
             .accessibilityHidden(true)
         }
+      }
+      .task {
+        await appUpdateManager.check()
+      }
+      .onChange(of: appUpdateManager.isUpdateRequired) { _, isRequired in
+        guard isRequired else { return }
+        // App-level sheets are presented above the Group, so close them explicitly.
+        showResetPassword = false
+        pendingInvite = nil
+        pendingGuardianClaim = nil
+      }
+      .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+        Task { await appUpdateManager.checkIfStale() }
       }
       .task {
         if authManager.isAuthenticated && authManager.biometricEnabled {
@@ -165,7 +195,17 @@ struct TheRecruitingCompassApp: App {
       .environment(onboardingManager)
       .environment(nuxProgressManager)
       .environment(entitlementStore)
+      .environment(appUpdateManager)
     }
+  }
+
+  private var updatePromptBinding: Binding<Bool> {
+    Binding(
+      get: { appUpdateManager.isShowingUpdatePrompt },
+      set: { isShowing in
+        if !isShowing { appUpdateManager.dismissUpdatePrompt() }
+      }
+    )
   }
 
   /// App-lifetime state that belongs to one user. Mirrors web's `resetAppState()`.
@@ -178,6 +218,8 @@ struct TheRecruitingCompassApp: App {
   }
 
   private func handleDeepLink(_ url: URL) {
+    // A blocked build can't complete invite/reset flows; the link works again after updating.
+    guard !appUpdateManager.isUpdateRequired else { return }
     let route = DeepLinkHandler.parse(url)
     switch route {
     case .resetPassword:
@@ -204,6 +246,7 @@ private struct AuthenticatedContent: View {
   let networkMonitor: NetworkMonitor
   @Binding var pendingPushDestination: NotificationDestination?
   @Environment(NuxProgressManager.self) private var nuxProgressManager
+  @Environment(AppUpdateManager.self) private var appUpdateManager
 
   var body: some View {
     ZStack(alignment: .top) {
@@ -219,6 +262,10 @@ private struct AuthenticatedContent: View {
           })
         } else {
           AdaptiveRootView(pendingPushDestination: $pendingPushDestination)
+            .task { appUpdateManager.evaluateWhatsNew() }
+            .sheet(item: whatsNewBinding) { release in
+              WhatsNewView(release: release, onDismiss: appUpdateManager.dismissWhatsNew)
+            }
           if !networkMonitor.isConnected {
             OfflineBanner()
           }
@@ -237,6 +284,15 @@ private struct AuthenticatedContent: View {
         }
       }
     }
+  }
+
+  private var whatsNewBinding: Binding<WhatsNewRelease?> {
+    Binding(
+      get: { appUpdateManager.pendingWhatsNew },
+      set: { release in
+        if release == nil { appUpdateManager.dismissWhatsNew() }
+      }
+    )
   }
 }
 

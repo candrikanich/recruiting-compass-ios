@@ -16,6 +16,7 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
     func fetchProfile(accessToken: String?) async throws -> PlayerProfile? {
         guard let baseURL, let token = accessToken, !token.isEmpty else { return nil }
         var request = URLRequest(url: baseURL.appendingPathComponent("api/player/profile"))
+        request.addClientHeaders()
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         let (data, response) = try await session.data(for: request)
@@ -30,6 +31,7 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         }
         let csrf = try await fetchCSRFToken(baseURL: baseURL)
         var request = URLRequest(url: baseURL.appendingPathComponent("api/player/profile"))
+        request.addClientHeaders()
         request.httpMethod = "PUT"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -44,6 +46,7 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         let safeId = coachId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? coachId
         let url = baseURL.appendingPathComponent("api/player/profile/tracking-links").appendingPathComponent(safeId)
         var request = URLRequest(url: url)
+        request.addClientHeaders()
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         let (data, response) = try await session.data(for: request)
@@ -60,6 +63,7 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         let safeId = coachId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? coachId
         let url = baseURL.appendingPathComponent("api/player/profile/tracking-links").appendingPathComponent(safeId)
         var request = URLRequest(url: url)
+        request.addClientHeaders()
         request.httpMethod = "POST"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -87,6 +91,7 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
     private func fetchCSRFToken(baseURL: URL) async throws -> String {
         let url = baseURL.appendingPathComponent("api/csrf-token")
         var request = URLRequest(url: url)
+        request.addClientHeaders()
         request.httpMethod = "GET"
 
         let (_, response) = try await session.data(for: request)

@@ -97,6 +97,7 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
         let url = baseURL.appendingPathComponent("api/account/deletion-status")
         let token = try await supabaseManager.client.auth.session.accessToken
         var request = URLRequest(url: url)
+        request.addClientHeaders()
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
@@ -151,6 +152,7 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
         }
         let token = try await supabaseManager.client.auth.session.accessToken
         var request = URLRequest(url: baseURL.appendingPathComponent("api/user/export"))
+        request.addClientHeaders()
         request.httpMethod = "POST"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -230,6 +232,7 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
         let token = try await supabaseManager.client.auth.session.accessToken
 
         var request = URLRequest(url: url)
+        request.addClientHeaders()
         request.httpMethod = method
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

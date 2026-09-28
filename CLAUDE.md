@@ -220,9 +220,21 @@ class MockAuthManager: AuthManaging { /* ... */ }
 
 ---
 
+## Releases & Versioning
+
+The app is live; old versions stay installed for months. Follow `docs/RELEASE.md`. Rules that affect everyday work:
+- **New web-API `URLRequest`s must call `request.addClientHeaders()`** (Supabase requests get them automatically).
+- **Server changes are expand-then-contract** — never remove/rename a column, endpoint or response field that an
+  iOS version ≥ `app_config.ios_minimum_version` still reads.
+- `MARKETING_VERSION` stays numeric `X.Y.Z`; bump it with `fastlane bump_version type:patch|minor|major`, never by hand.
+- User-visible features get a `WhatsNewCatalog` entry + `fastlane/metadata/en-US/release_notes.txt` text.
+
+---
+
 ## Documentation & References
 
 **Key Docs:**
+- `docs/RELEASE.md` - Release checklist, versioning, update gate, hotfixes
 - `docs/CODE_PATTERNS.md` - Reusable code patterns
 - `docs/TROUBLESHOOTING.md` - Common issues & solutions
 - `docs/ACCESSIBILITY_AUDIT.md` - Accessibility testing guide

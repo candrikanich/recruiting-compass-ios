@@ -85,6 +85,12 @@ struct AboutView: View {
             } header: {
                 Text("Direct Contact")
             }
+
+            Section {
+                LabeledContent("Version", value: AppInfo.displayVersion)
+                    .textSelection(.enabled)
+                    .accessibilityIdentifier("aboutAppVersion")
+            }
         }
         .navigationTitle("About")
         .navigationBarTitleDisplayMode(.inline)

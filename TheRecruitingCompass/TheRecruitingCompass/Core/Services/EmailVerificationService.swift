@@ -45,6 +45,7 @@ struct EmailVerificationServiceImpl: EmailVerificationManaging {
   func resend(accessToken: String) async throws {
     guard let baseURL else { throw EmailVerificationServiceError.notConfigured }
     var request = URLRequest(url: baseURL.appendingPathComponent("api/auth/verify-email/resend"))
+    request.addClientHeaders()
     request.httpMethod = "POST"
     request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 

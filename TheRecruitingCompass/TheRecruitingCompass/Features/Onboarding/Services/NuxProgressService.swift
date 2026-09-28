@@ -58,6 +58,7 @@ final class NuxProgressServiceImpl: NuxProgressManaging, Sendable {
 
     let url = baseURL.appendingPathComponent("api/user/nux-progress")
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.httpMethod = "PATCH"
     request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")

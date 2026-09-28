@@ -125,6 +125,7 @@ struct GuardianServiceImpl: GuardianManaging {
   ) async throws -> Data {
     guard let baseURL else { throw GuardianServiceError.notConfigured }
     var request = URLRequest(url: baseURL.appendingPathComponent(path))
+    request.addClientHeaders()
     request.httpMethod = method
     if let accessToken {
       request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
@@ -151,6 +152,7 @@ struct GuardianServiceImpl: GuardianManaging {
   /// Port of `AthleteMessagesServiceImpl.fetchCSRFToken` (GET /api/csrf-token → cookie).
   private func fetchCSRFToken(baseURL: URL) async throws -> String {
     var request = URLRequest(url: baseURL.appendingPathComponent("api/csrf-token"))
+    request.addClientHeaders()
     request.httpMethod = "GET"
     let (_, response) = try await session.data(for: request)
     guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {

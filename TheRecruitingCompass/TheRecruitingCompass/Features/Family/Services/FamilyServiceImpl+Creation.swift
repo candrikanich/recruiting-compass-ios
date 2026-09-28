@@ -27,6 +27,7 @@ extension FamilyServiceImpl {
     let url = baseURL.appendingPathComponent("api/family/create")
     let token = try await supabaseManager.client.auth.session.accessToken
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.httpMethod = "POST"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -102,6 +103,7 @@ extension FamilyServiceImpl {
       var request = URLRequest(
         url: baseURL.appendingPathComponent("api/family/code/join")
       )
+      request.addClientHeaders()
       request.httpMethod = "POST"
       request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
       request.setValue("application/json", forHTTPHeaderField: "Content-Type")
