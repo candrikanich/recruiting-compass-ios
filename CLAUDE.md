@@ -149,7 +149,7 @@ App Launch → AuthManager.restoreSession() (Keychain → Supabase)
 
 ## Testing Strategy
 
-**126+ Tests (All Passing)**
+**~3700 unit tests.** The full suite exceeds 10 minutes — run the affected test classes via `-only-testing:` for fast evidence and trust the xcodebuild exit code.
 - **Unit Tests** - ViewModels, utilities, models
 - **Integration Tests** - AuthManager + Supabase flows with mocks
 - **Accessibility Tests** - VoiceOver labels, traits
