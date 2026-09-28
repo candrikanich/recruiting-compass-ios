@@ -5,7 +5,8 @@
 #
 # Set in App Store Connect → Xcode Cloud → workflow → Environment (mark the keys Secret):
 #   SUPABASE_ANON_KEY, API_BASE_URL, POSTHOG_API_KEY
-# Optional: TURNSTILE_SITE_KEY (the build phase has a default).
+# Optional: TURNSTILE_SITE_KEY (the build phase has a default), SENTRY_DSN (crash reporting;
+# empty = disabled), SENTRY_AUTH_TOKEN (dSYM upload in ci_post_xcodebuild.sh).
 #
 # SUPABASE_URL is deliberately not written here: project.pbxproj pins it (production) at the
 # project level for Debug and Release, which overrides any xcconfig value. SUPABASE_ANON_KEY
@@ -39,6 +40,11 @@ OUT="$CI_PRIMARY_REPOSITORY_PATH/TheRecruitingCompass/Release.xcconfig"
   echo "POSTHOG_API_KEY = $POSTHOG_API_KEY"
   if [ -n "${TURNSTILE_SITE_KEY:-}" ]; then
     echo "TURNSTILE_SITE_KEY = $TURNSTILE_SITE_KEY"
+  fi
+  if [ -n "${SENTRY_DSN:-}" ]; then
+    echo "SENTRY_DSN = $(xcconfig_url "$SENTRY_DSN")"
+  else
+    echo "warning: SENTRY_DSN not set — this build will not report crashes." >&2
   fi
 } > "$OUT"
 

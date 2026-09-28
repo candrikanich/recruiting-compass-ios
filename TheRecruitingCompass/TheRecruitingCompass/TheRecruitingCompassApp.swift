@@ -30,6 +30,7 @@ struct TheRecruitingCompassApp: App {
   @Environment(\.accessibilityReduceMotion) var reduceMotion
 
   init() {
+    CrashReporting.start()
     Analytics.setup()
   }
 

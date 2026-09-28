@@ -40,6 +40,18 @@ App Store Connect rejects builds made with a beta Xcode or beta SDK. The dev Mac
 - Xcode Cloud numbers builds with its own counter. Set **Next Build Number** above the highest build already uploaded for the version, or the upload is rejected as a duplicate.
 - Local archives from the beta Xcode are still fine for TestFlight internal testing, but can't be submitted for review.
 
+### Crash reporting: Sentry
+
+Release builds report crashes and app hangs to Sentry project `chris-andrikanich/apple-ios`
+(`Core/Services/CrashReporting.swift`). Anonymous by design — no user id, no screenshots, no tracing.
+
+- `SENTRY_DSN` (Xcode Cloud workflow env, or `Release.xcconfig` for local archives) → `SentryDSN` in
+  `Config/Info-Release.plist`. Empty = disabled. Debug builds never report (the key isn't in `Config/Info.plist`).
+- `SENTRY_AUTH_TOKEN` (**Secret**, org auth token with `project:releases`) → `ci_scripts/ci_post_xcodebuild.sh`
+  uploads the archive's dSYMs so stack traces are symbolicated. Missing token = warning, build still succeeds.
+- Privacy: `PrivacyInfo.xcprivacy` declares Crash Data + Other Diagnostic Data (not linked, not tracking). The
+  **App Privacy** answers in App Store Connect must match — update them if Sentry options change.
+
 ---
 
 ## Keychain Keys
