@@ -28,6 +28,13 @@ enum CrashReporting {
       options.enableAppHangTracking = true
       options.attachScreenshot = false
       options.attachViewHierarchy = false
+      // Request URLs carry secrets in their paths (e.g. /api/family/invite/<token>/accept) and Sentry's
+      // sanitizer only strips query strings, so no network breadcrumbs or failed-request events.
+      options.enableNetworkBreadcrumbs = false
+      options.enableCaptureFailedRequests = false
+      // Session tracking sends a per-install id on every launch — a Device ID the privacy label doesn't
+      // declare. Crash rates come from Xcode Organizer instead.
+      options.enableAutoSessionTracking = false
     }
   }
 }
