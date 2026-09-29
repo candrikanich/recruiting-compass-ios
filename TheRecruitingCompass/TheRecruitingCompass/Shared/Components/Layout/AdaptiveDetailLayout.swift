@@ -45,28 +45,34 @@ struct AdaptiveDetailLayout<Content: View, Sidebar: View, Compact: View>: View {
   private var regularLayout: some View {
     GeometryReader { geo in
       if geo.size.width > 0 {
-        if geo.size.width < Self.minimumTwoColumnWidth {
+        if let fold = geo.verticalFoldSplit {
+          // Foldable inner display: each column gets one half so nothing straddles the hinge.
+          let foldSidebarWidth = sidebarPlacement == .leading ? fold.leadingWidth : fold.trailingWidth
+          twoColumnLayout(sidebarWidth: foldSidebarWidth, spacing: fold.gap)
+        } else if geo.size.width < Self.minimumTwoColumnWidth {
           // iPad portrait detail pane too narrow — stack vertically
           compactLayout
         } else {
-          let resolvedSidebarWidth = min(sidebarWidth, geo.size.width * 0.38)
-
-          HStack(alignment: .top, spacing: 16) {
-            if sidebarPlacement == .leading {
-              sidebarColumn(width: resolvedSidebarWidth)
-            }
-
-            ScrollView {
-              content()
-                .padding()
-            }
-            .frame(maxWidth: .infinity)
-
-            if sidebarPlacement == .trailing {
-              sidebarColumn(width: resolvedSidebarWidth)
-            }
-          }
+          twoColumnLayout(sidebarWidth: min(sidebarWidth, geo.size.width * 0.38), spacing: 16)
         }
+      }
+    }
+  }
+
+  private func twoColumnLayout(sidebarWidth: CGFloat, spacing: CGFloat) -> some View {
+    HStack(alignment: .top, spacing: spacing) {
+      if sidebarPlacement == .leading {
+        sidebarColumn(width: sidebarWidth)
+      }
+
+      ScrollView {
+        content()
+          .padding()
+      }
+      .frame(maxWidth: .infinity)
+
+      if sidebarPlacement == .trailing {
+        sidebarColumn(width: sidebarWidth)
       }
     }
   }

@@ -14,6 +14,10 @@ enum PublicProfilePDFRenderer {
   /// the device the export runs on.
   static let contentWidth: CGFloat = 540
 
+  /// Fixed raster scale for embedded images. `UIScreen.main` is ambiguous on multi-display devices
+  /// (iPhone Duo), and the PDF shouldn't get blurrier just because it was exported from an older phone.
+  static let renderScale: CGFloat = 3
+
   /// Fetches the header photo (so it can be drawn synchronously), then renders the PDF.
   /// Photo-load failure is non-fatal — the card falls back to its placeholder.
   @MainActor
@@ -31,7 +35,7 @@ enum PublicProfilePDFRenderer {
       .environment(\.colorScheme, .light)
 
     let renderer = ImageRenderer(content: card)
-    renderer.scale = UIScreen.main.scale
+    renderer.scale = renderScale
 
     let pdfData = NSMutableData()
     var succeeded = false
