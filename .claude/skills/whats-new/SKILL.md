@@ -20,12 +20,17 @@ the raw material is written for code review, and the output has to make sense to
 ### 1. Gather what shipped
 
 ```bash
-scripts/release/changes-since-release.sh          # since the newest v* tag
-scripts/release/changes-since-release.sh v1.0.1   # or since a specific tag
+scripts/release/changes-since-release.sh                        # newest v* tag → origin/main
+scripts/release/changes-since-release.sh v1.0.1                 # a specific tag → origin/main
+scripts/release/changes-since-release.sh v1.0.1 hotfix/1.0.2    # hotfix: tag → the hotfix branch
 ```
 
-It prints the version being prepared (`MARKETING_VERSION`) and, for every commit on `main` since the tag, the PR title
-plus its description (quoted). Read the descriptions, not just the titles — a `fix:` title often hides a visible
+The range must end at whatever the release build is made from. For a normal release that's `main`; for a hotfix
+built from a release tag it's the hotfix branch — ending at `main` would advertise unreleased work to users.
+
+It prints the version being prepared (`MARKETING_VERSION` at the end ref) and, for every commit in the range, the PR
+title plus its full description (quoted). If a PR description can't be fetched it says so and falls back to the
+commit body — treat those entries with extra care when classifying. Read the descriptions, not just the titles — a `fix:` title often hides a visible
 behavior change, and a `feat:` can be purely internal.
 
 **Check the version first.** If `MARKETING_VERSION` still equals the last tag's version (e.g. tag `v1.0.0`, version

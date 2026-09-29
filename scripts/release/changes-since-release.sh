@@ -1,39 +1,49 @@
 #!/bin/sh
-# Lists everything merged to main since the last release tag, as raw material for release notes.
+# Lists everything merged since the last release tag, as raw material for release notes.
 #
-#   scripts/release/changes-since-release.sh            # since the newest v* tag
-#   scripts/release/changes-since-release.sh v1.0.1     # since a specific tag/ref
+#   scripts/release/changes-since-release.sh                          # newest v* tag → origin/main
+#   scripts/release/changes-since-release.sh v1.0.1                   # a specific tag/ref → origin/main
+#   scripts/release/changes-since-release.sh v1.0.1 hotfix/1.0.2      # hotfix: tag → the branch being released
 #
-# Output: markdown with the version being prepared, then one section per commit on main
-# (squash-merged PRs include the PR title, labels and description; direct commits include
-# the commit body). Used by the whats-new skill (.claude/skills/whats-new).
+# The end ref must be whatever the release build is made from — for a hotfix that's the hotfix branch,
+# not main, or the notes would advertise unreleased work sitting on main.
+#
+# Output: markdown with the version being prepared (MARKETING_VERSION at the end ref), then one section
+# per first-parent commit (squash-merged PRs include labels + full description; direct commits, or PRs
+# gh can't fetch, include the commit body). Used by the whats-new skill (.claude/skills/whats-new).
 
 set -eu
 
-REPO_ROOT=$(git rev-parse --show-toplevel)
-PBXPROJ="$REPO_ROOT/TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj"
+PBXPROJ_PATH="TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj"
 
-git fetch --quiet --tags origin main
+git fetch --quiet --tags origin
 
 BASE=${1:-$(git tag --list 'v*' --sort=-version:refname | head -n 1)}
 if [ -z "$BASE" ]; then
   echo "error: no v* release tag found; pass a base ref explicitly." >&2
   exit 1
 fi
+END=${2:-origin/main}
 
-VERSION=$(grep -o 'MARKETING_VERSION = [0-9.]*;' "$PBXPROJ" | sort -u | sed 's/MARKETING_VERSION = //; s/;//')
+VERSION=$(git show "$END:$PBXPROJ_PATH" | grep -o 'MARKETING_VERSION = [0-9.]*;' | sort -u \
+  | sed 's/MARKETING_VERSION = //; s/;//')
 
-echo "# Changes on main since $BASE"
+echo "# Changes since $BASE"
 echo
-echo "- Version being prepared (MARKETING_VERSION): $VERSION"
-echo "- Base: $BASE ($(git rev-parse --short "$BASE"))  →  origin/main ($(git rev-parse --short origin/main))"
+echo "- Version being prepared (MARKETING_VERSION at $END): $VERSION"
+echo "- Range: $BASE ($(git rev-parse --short "$BASE"))  →  $END ($(git rev-parse --short "$END"))"
 echo
 
-COMMITS=$(git log --first-parent --reverse --format='%H' "$BASE..origin/main")
+COMMITS=$(git log --first-parent --reverse --format='%H' "$BASE..$END")
 if [ -z "$COMMITS" ]; then
   echo "_No commits since $BASE._"
   exit 0
 fi
+
+pr_details() {
+  gh pr view "$1" --json labels,body \
+    --template '{{if .labels}}Labels: {{range $i, $l := .labels}}{{if $i}}, {{end}}{{$l.name}}{{end}}{{"\n\n"}}{{end}}{{.body}}{{"\n"}}'
+}
 
 for sha in $COMMITS; do
   subject=$(git log -1 --format='%s' "$sha")
@@ -42,11 +52,13 @@ for sha in $COMMITS; do
   echo
   # Bodies are quoted so their own markdown headings don't read as new commits.
   {
-    if [ -n "$pr" ] && command -v gh >/dev/null 2>&1; then
-      gh pr view "$pr" --json labels,body \
-        --template '{{if .labels}}Labels: {{range $i, $l := .labels}}{{if $i}}, {{end}}{{$l.name}}{{end}}{{"\n\n"}}{{end}}{{.body}}{{"\n"}}' \
-        2>/dev/null | sed -n '1,60p' || git log -1 --format='%b' "$sha"
+    if [ -n "$pr" ] && command -v gh >/dev/null 2>&1 && details=$(pr_details "$pr" 2>/dev/null); then
+      printf '%s\n' "$details"
     else
+      if [ -n "$pr" ]; then
+        echo "(PR #$pr description unavailable — gh missing or lookup failed; commit body below)"
+        echo
+      fi
       git log -1 --format='%b' "$sha"
     fi
   } | sed 's/^/> /'
