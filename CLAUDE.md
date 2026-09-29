@@ -89,7 +89,8 @@ The app is live; old versions stay installed for months. Follow `docs/RELEASE.md
 - **Server changes are expand-then-contract** — never remove/rename a column, endpoint or response field that an
   iOS version ≥ `app_config.ios_minimum_version` still reads.
 - `MARKETING_VERSION` stays numeric `X.Y.Z`; bump it with `fastlane bump_version type:patch|minor|major`, never by hand.
-- User-visible features get a `WhatsNewCatalog` entry + `fastlane/metadata/en-US/release_notes.txt` text.
+- User-visible features get a `WhatsNewCatalog` entry + `fastlane/metadata/en-US/release_notes.txt` text — drafted per
+  release by the `whats-new` skill (`.claude/skills/whats-new`) from `scripts/release/changes-since-release.sh`.
 
 ---
 
