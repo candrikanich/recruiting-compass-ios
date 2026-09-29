@@ -31,6 +31,7 @@ Lead your reply with the stage in plain words ("1.0 is in review — nothing to 
 |---|---|---|
 | `in-review` | Nothing. Mention merges can continue but the version must not be bumped until approval (a rejection would need another build of the same version). | Wait. |
 | `rejected` | Help read and fix the rejection; if code changed, it ships as a new build of the same version. | Paste Apple's message; resubmit after the fix. |
+| `approved-held` | Explain Apple approved it but is holding release until the matching iOS version ships (it goes out automatically). Tag + bump are safe now, same as `released`. | Nothing; wait for Apple's OS release. |
 | `released` | Walk the post-release list in the Next line, in order. You may create the version tag **after he confirms** the commit (`git tag vX.Y.Z <sha> && git push origin vX.Y.Z` — the sha is the commit of the build that was approved; the status report lists build → commit). You may open the bump PR (`fastlane bump_version type:patch` on a branch). | Release it in App Store Connect if pending; watch the rollout. |
 | `needs-bump` | Open the bump PR: branch, `fastlane bump_version type:patch` (minor if features are already merged), commit `chore: bump version to X.Y.Z`, PR. | Merge it. |
 | `nothing-to-release` | Say so. | Keep building. |
@@ -38,6 +39,10 @@ Lead your reply with the stage in plain words ("1.0 is in review — nothing to 
 | `waiting-for-build` / `build-failed` | Report the build; for failures, fetch the logs if asked (App Store Connect → Xcode Cloud, or the ASC API). | Wait / decide on a fix. |
 | `ready-to-prepare` | Remind him to smoke-test that exact build from TestFlight first. | `! fastlane prepare_release` |
 | `ready-to-submit` | Give the exact command with the build number from the Next line. | `! fastlane submit_release build:N` |
+
+When the Next line ends with **"Also: X.Y.Z rollout: …"**, the previous version is still rolling out while main has
+moved on — mention it every time until it completes; that's the version users are actually getting. If it reports a
+tag pointing at the wrong commit, show both shas and ask before moving the tag (`git tag -f` + force-push of a tag).
 
 After a release reaches 100% (phased release `COMPLETE`), also offer the optional nudge for people on older versions:
 `update public.app_config set ios_recommended_version = 'X.Y.Z', updated_at = now() where id;` in the Supabase SQL

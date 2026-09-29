@@ -9,6 +9,7 @@ const git = (overrides = {}) => ({
   mainHead: 'aaaa1111',
   lastTag: 'v1.0.0',
   tags: ['v1.0.0'],
+  tagCommits: {},
   commitsSinceTag: ['aaaa111 fix: something (#300)'],
   notesReady: true,
   ...overrides,
@@ -80,6 +81,47 @@ test('version prepared in ASC → ready-to-submit with the head build number', (
   const r = decideStage(git(), a);
   assert.equal(r.stage, 'ready-to-submit');
   assert.match(r.next, /submit_release build:36/);
+});
+
+test('prepared version never suggests a build from another commit', () => {
+  const a = {
+    versions: [{ version: '1.0.1', state: 'PREPARE_FOR_SUBMISSION' }, live10],
+    builds: [build(37, 'aaaa1111', null, 'RUNNING'), build(36, 'cccc3333')],
+  };
+  const r = decideStage(git(), a);
+  assert.equal(r.stage, 'waiting-for-build');
+  assert.doesNotMatch(r.next, /build:36/);
+});
+
+test('approved but held by Apple for an OS release → approved-held (bump allowed)', () => {
+  const r = decideStage(git({ mainVersion: '1.0' }), { versions: [{ version: '1.0', state: 'PENDING_APPLE_RELEASE', build: '32' }], builds: [] });
+  assert.equal(r.stage, 'approved-held');
+  assert.match(r.next, /bump_version/);
+});
+
+test('live rollout stays visible after main is bumped', () => {
+  const live = { ...live10, version: '1.0.1', phased: { phasedReleaseState: 'ACTIVE', currentDayNumber: 3 } };
+  const r = decideStage(git({ mainVersion: '1.0.2', tags: ['v1.0.1', 'v1.0.0'], lastTag: 'v1.0.1', commitsSinceTag: [] }),
+    { versions: [live], builds: [] });
+  assert.equal(r.stage, 'nothing-to-release');
+  assert.match(r.next, /1\.0\.1 rollout: ACTIVE, day 3 of 7/);
+});
+
+test('tag pointing at a different commit than the approved build is reported', () => {
+  const r = decideStage(
+    git({ mainVersion: '1.0', tagCommits: { 'v1.0.0': 'dddd4444' } }),
+    { versions: [live10], builds: [build(32, 'eeee5555')] },
+  );
+  assert.match(r.next, /v1\.0\.0 points at dddd4444 but build 32 came from eeee5555/);
+});
+
+test('tag on the approved build commit is not flagged', () => {
+  const r = decideStage(
+    git({ mainVersion: '1.0', tagCommits: { 'v1.0.0': 'eeee5555' } }),
+    { versions: [live10], builds: [build(32, 'eeee5555')] },
+  );
+  assert.doesNotMatch(r.next, /points at/);
+  assert.doesNotMatch(r.next, /Tag the commit/);
 });
 
 test('mismatched MARKETING_VERSION → version-conflict', () => {

@@ -23,7 +23,7 @@ const PBXPROJ = 'TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbx
 const NOTES = 'fastlane/metadata/en-US/release_notes.txt';
 const WHATS_NEW = 'TheRecruitingCompass/TheRecruitingCompass/Features/AppUpdate/Models/WhatsNew.swift';
 
-const REVIEW_STATES = new Set(['WAITING_FOR_REVIEW', 'IN_REVIEW', 'PENDING_APPLE_RELEASE']);
+const REVIEW_STATES = new Set(['WAITING_FOR_REVIEW', 'IN_REVIEW']);
 const APPROVED_STATES = new Set([
   'PENDING_DEVELOPER_RELEASE', 'PROCESSING_FOR_APP_STORE', 'READY_FOR_DISTRIBUTION', 'READY_FOR_SALE',
 ]);
@@ -48,12 +48,41 @@ export const tagFor = (version) => `v${parseVersion(version)?.join('.') ?? versi
 
 // ---------- stage ----------
 
+const sameCommit = (x, y) => Boolean(x && y && (x.startsWith(y) || y.startsWith(x)));
+
+/** Whatever version is mid-rollout matters on every stage, even after main moves on to the next version. */
+function rolloutNote(a, exceptVersion) {
+  const rolling = a.versions.find((v) => v.phased && v.phased.phasedReleaseState !== 'COMPLETE' &&
+    APPROVED_STATES.has(v.state) && compareVersions(v.version, exceptVersion) !== 0);
+  if (!rolling) return null;
+  return `${rolling.version} rollout: ${rolling.phased.phasedReleaseState}, day ${rolling.phased.currentDayNumber ?? '-'} ` +
+    'of 7 — watch Sentry (apple-ios) and Xcode Organizer; pause it in App Store Connect if something breaks.';
+}
+
+/** Tag step for an approved version: missing, pointing at the wrong commit, or fine (null). */
+function tagNote(g, a, version, build) {
+  const tag = tagFor(version);
+  const buildCommit = a.builds.find((b) => String(b.number) === String(build))?.commit ?? null;
+  const tagCommit = g.tagCommits?.[tag] ?? (g.tags.includes(tag) ? 'unknown' : null);
+  if (!tagCommit) return `Tag the commit build ${build ?? '?'} came from (${buildCommit ?? 'see Xcode Cloud'}) as ${tag}.`;
+  if (buildCommit && tagCommit !== 'unknown' && !sameCommit(tagCommit, buildCommit)) {
+    return `${tag} points at ${tagCommit} but build ${build} came from ${buildCommit} — move the tag to ${buildCommit}.`;
+  }
+  return null;
+}
+
 /**
  * Pure: git facts + App Store Connect facts → { stage, next }.
- * g: { mainVersion, mainVersionConflict, mainHead, lastTag, tags, commitsSinceTag, notesReady }
+ * g: { mainVersion, mainVersionConflict, mainHead, lastTag, tags, tagCommits, commitsSinceTag, notesReady }
  * a: { versions: [{ version, state, build, phased }], builds: [{ number, progress, status, commit }] }
  */
 export function decideStage(g, a) {
+  const decision = decideCore(g, a);
+  const note = rolloutNote(a, g.mainVersion);
+  return note ? { ...decision, next: `${decision.next} Also: ${note}` } : decision;
+}
+
+function decideCore(g, a) {
   const main = g.mainVersion;
   if (!main) {
     return {
@@ -65,8 +94,7 @@ export function decideStage(g, a) {
 
   const forMain = a.versions.find((v) => compareVersions(v.version, main) === 0) ?? null;
   const live = a.versions.find((v) => v.state === 'READY_FOR_SALE') ?? null;
-  const headBuild = a.builds.find((b) => b.commit && (b.commit.startsWith(g.mainHead) || g.mainHead.startsWith(b.commit)));
-  const latestGoodBuild = a.builds.find((b) => b.status === 'SUCCEEDED');
+  const headBuild = a.builds.find((b) => sameCommit(b.commit, g.mainHead));
 
   if (forMain && REJECTED_STATES.has(forMain.state)) {
     return {
@@ -82,6 +110,14 @@ export function decideStage(g, a) {
         "(usually under 48h). Keep merging to main, but don't bump the version until it's approved.",
     };
   }
+  if (forMain && forMain.state === 'PENDING_APPLE_RELEASE') {
+    const steps = [
+      `${main} passed review; Apple is holding it until the matching iOS version ships, then releases it automatically.`,
+      tagNote(g, a, main, forMain.build),
+      'Safe to bump main now: fastlane bump_version type:patch (or minor) on a branch → PR.',
+    ];
+    return { stage: 'approved-held', next: steps.filter(Boolean).join(' ') };
+  }
   if (forMain && APPROVED_STATES.has(forMain.state)) {
     const steps = [];
     if (forMain.state === 'PENDING_DEVELOPER_RELEASE') {
@@ -92,16 +128,30 @@ export function decideStage(g, a) {
       steps.push(`Phased release ${phased.phasedReleaseState}, day ${phased.currentDayNumber ?? '-'} of 7: watch Sentry ` +
         '(apple-ios) and Xcode Organizer; pause it in App Store Connect if something breaks.');
     }
-    if (!g.tags.includes(tagFor(main))) steps.push(`Tag the commit build ${forMain.build ?? '?'} came from as ${tagFor(main)}.`);
+    steps.push(tagNote(g, a, main, forMain.build));
     steps.push('Bump main for the next release: fastlane bump_version type:patch (or minor) on a branch → PR.');
-    return { stage: 'released', next: steps.join(' ') };
+    return { stage: 'released', next: steps.filter(Boolean).join(' ') };
   }
   if (forMain && forMain.state === 'PREPARE_FOR_SUBMISSION') {
-    const build = headBuild?.status === 'SUCCEEDED' ? headBuild : latestGoodBuild;
+    // Only ever suggest the build of main's current commit: an older green build may be a different version.
+    if (!headBuild || headBuild.progress !== 'COMPLETE') {
+      return {
+        stage: 'waiting-for-build',
+        next: `App Store version ${main} is prepared, but Xcode Cloud hasn't finished building main @ ${g.mainHead}. ` +
+          'Wait for it, smoke-test it from TestFlight, then submit that build.',
+      };
+    }
+    if (headBuild.status !== 'SUCCEEDED') {
+      return {
+        stage: 'build-failed',
+        next: `Xcode Cloud build ${headBuild.number} of main @ ${g.mainHead} ended ${headBuild.status}. ` +
+          'Fix it and merge; submit the next green build of main.',
+      };
+    }
     return {
       stage: 'ready-to-submit',
-      next: `App Store version ${main} is prepared. After smoke-testing build ${build?.number ?? '<N>'} from TestFlight, ` +
-        `run: fastlane submit_release build:${build?.number ?? '<N>'}`,
+      next: `App Store version ${main} is prepared. After smoke-testing build ${headBuild.number} from TestFlight, ` +
+        `run: fastlane submit_release build:${headBuild.number}`,
     };
   }
   if (live && compareVersions(main, live.version) <= 0) {
@@ -152,7 +202,10 @@ function gitState() {
   const pbx = git('show', `origin/main:${PBXPROJ}`);
   const versions = [...new Set([...pbx.matchAll(/MARKETING_VERSION = ([0-9.]+);/g)].map((m) => m[1]))];
   const tags = gitOr('', 'tag', '--list', 'v*', '--sort=-version:refname').split('\n').filter(Boolean);
-  const lastTag = tags[0] ?? null;
+  // Baseline = newest release tag that's actually in main's history; a hotfix tag on a side branch isn't.
+  const lastTag = gitOr('', 'tag', '--list', 'v*', '--merged', 'origin/main', '--sort=-version:refname')
+    .split('\n').filter(Boolean)[0] ?? null;
+  const tagCommits = Object.fromEntries(tags.map((t) => [t, gitOr('', 'rev-list', '-n', '1', t).slice(0, 8)]));
   const range = lastTag ? `${lastTag}..origin/main` : 'origin/main';
   const notes = gitOr('', 'show', `origin/main:${NOTES}`);
   const notesTouched = lastTag ? gitOr('', 'log', '-1', '--format=%h', range, '--', NOTES) !== '' : notes.trim() !== '';
@@ -165,6 +218,7 @@ function gitState() {
     mainHead: git('rev-parse', '--short=8', 'origin/main'),
     lastTag,
     tags,
+    tagCommits,
     commitsSinceTag: gitOr('', 'log', '--first-parent', '--format=%h %s', range).split('\n').filter(Boolean),
     notesText: notes,
     notesReady: notesTouched && notes.trim() !== '',
@@ -208,7 +262,9 @@ async function ascState(token) {
   const workflows = await asc(`/v1/ciProducts/${product.data.id}/workflows?fields[ciWorkflows]=name`, token);
   const runs = (await Promise.all(workflows.data.map(async (wf) => {
     const r = await asc(
-      `/v1/ciWorkflows/${wf.id}/buildRuns?limit=5&sort=-number` +
+      // Decisions need the build for main's head and for each approved version, which may not be the newest
+      // few (other branches/workflows build too) — so fetch deep, and only trim for display.
+      `/v1/ciWorkflows/${wf.id}/buildRuns?limit=50&sort=-number` +
         '&fields[ciBuildRuns]=number,executionProgress,completionStatus,sourceCommit,createdDate',
       token,
     );
@@ -230,7 +286,7 @@ async function ascState(token) {
       build: rel(v, 'build')?.version ?? null,
       phased: rel(v, 'appStoreVersionPhasedRelease'),
     })),
-    builds: runs.slice(0, 5),
+    builds: runs,
   };
 }
 
@@ -254,7 +310,7 @@ function render(g, a, ascError, decision) {
     lines.push(`- ${v.version}: ${v.state} · build ${v.build ?? '-'} · ${v.releaseType ?? ''}${ph}`);
   }
   lines.push('', '## Xcode Cloud (latest builds)');
-  for (const b of a.builds) {
+  for (const b of a.builds.slice(0, 5)) {
     lines.push(`- #${b.number} ${b.workflow}: ${b.progress}${b.status ? `/${b.status}` : ''} · ` +
       `commit ${b.commit ?? '-'} · ${b.created?.slice(0, 16)}`);
   }
