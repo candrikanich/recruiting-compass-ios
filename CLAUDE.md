@@ -222,7 +222,8 @@ class MockAuthManager: AuthManaging { /* ... */ }
 
 ## Releases & Versioning
 
-The app is live; old versions stay installed for months. Follow `docs/RELEASE.md`. Rules that affect everyday work:
+The app is live; old versions stay installed for months. Follow `docs/RELEASE.md`; the `release` skill (`/release`)
+walks a release stage by stage from `scripts/release/release-status.mjs`. Rules that affect everyday work:
 - **New web-API `URLRequest`s must call `request.addClientHeaders()`** (Supabase requests get them automatically).
 - **Server changes are expand-then-contract** — never remove/rename a column, endpoint or response field that an
   iOS version ≥ `app_config.ios_minimum_version` still reads.

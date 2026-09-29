@@ -3,6 +3,10 @@
 How an app update goes from `main` to users, and the systems that keep old versions in check.
 Plan/rationale: `planning/2026-09-28-release-infrastructure-plan.md`.
 
+**Don't want to read all this?** Run `/release` in Claude Code. It checks where the current release stands
+(`node scripts/release/release-status.mjs`: git + App Store Connect + Xcode Cloud) and walks you through the one
+next step.
+
 ```
 PR → main ──(Xcode Cloud "Default")──▶ build N in TestFlight
                                             │  test on device
