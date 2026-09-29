@@ -34,8 +34,10 @@ Copy into the release PR description.
 
 - [ ] `main` is green (GitHub Actions `ci.yml`) and the TestFlight build was smoke-tested on a device.
 - [ ] `MARKETING_VERSION` is the version you are shipping (`fastlane bump_version` if not).
-- [ ] `fastlane/metadata/en-US/release_notes.txt` — user-facing "What's New" (plain language, no ticket numbers).
-- [ ] `WhatsNewCatalog` entry added **if** the release has something users should notice (optional for fixes).
+- [ ] What's New drafted from what merged since the last tag — ask Claude "write the what's new" (the `whats-new`
+      skill runs `scripts/release/changes-since-release.sh` and drafts both of these for you to edit):
+  - `fastlane/metadata/en-US/release_notes.txt` — user-facing "What's New" (plain language, no ticket numbers).
+  - `WhatsNewCatalog` entry **if** the release has a feature users should go try (skip for fixes-only releases).
 - [ ] Privacy: if an SDK or analytics event changed, `PrivacyInfo.xcprivacy` **and** the App Privacy
       label in App Store Connect both updated.
 - [ ] Screenshots: re-shot only if the UI in them changed (`planning/app-store/`, `fastlane push_screenshots`).
