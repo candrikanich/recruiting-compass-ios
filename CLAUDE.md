@@ -35,6 +35,9 @@ When editing or creating source files, always use the full double-nested path, e
 
 DEBUG runs read `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `API_BASE_URL` from a **local (unshared) scheme's** Run environment variables; archived builds read only `Release.xcconfig` (gitignored). Full setup: `docs/CONFIGURATION.md`.
 
+**App Store builds go through Xcode Cloud** — `ci_scripts/ci_post_clone.sh` writes `Release.xcconfig` from the workflow
+environment. Local archives (beta Xcode) are for internal TestFlight only; App Store Connect rejects them.
+
 **`API_BASE_URL` is required**, not optional — family creation (signup/onboarding) has no direct-Supabase fallback and throws without it, and the dashboard Action Items widget silently shows empty.
 
 ---
