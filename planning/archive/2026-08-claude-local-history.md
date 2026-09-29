@@ -169,3 +169,31 @@ gap.
 - Build clean, `RoleSelectionCardTests` /
   `CommunicationTemplatesAccessibilityTests` / `CommunicationTemplatesViewModelTests`
   pass.
+
+---
+
+## Session 2026-08-24: sport-calendar pre-existing issues + low-pri + QA close-out
+
+(Archived from CLAUDE.local.md on 2026-09-29 by /doctor.)
+
+**Status:** Sport-recruiting-calendar arc fully CLOSED + device-QA PASSED (Chris "looks good"). All
+this-session work shipped. Remaining items are externally blocked only (services DEFERRED-4 needs
+on-device URL capture; next-cycle re-transcription fires via routine 2026-11-01).
+**Branch:** iOS `main` pushed → `origin/main` @ `218775ac`. Web fix shipped via PR #447 MERGED→develop.
+**Build:** PASS — `xcodebuild build` EXIT 0, 0 errors (iPhone 17 sim).
+**Tests:** PASS — RecruitingCalendarWidgetTests + RecruitingCalendarTests green; web 48/48 affected.
+**Handoff:** `planning/2026-08-23-sport-calendar-handoff-and-followups.md`.
+
+**What shipped:**
+- **web PR #447** (MERGED→develop): NCAA milestone division-encoding fix — entries tagged `"DI"`
+  never matched prod `Division="D1"|"D2"|"D3"` → NCAA D1 milestones silently hidden. Retagged
+  eligibility→`"D1"`, dropped redundant generic "D1 Contact Period Begins", fixed backwards comment,
+  killed `server/utils` unimport WARN (relative-path re-export).
+- **Pre-existing #2/#3 = NOT reproducible** on develop tip (`42cf229d`): pre-push Abort-trap-6 +
+  2 LogMetricModal failures (25/25 pass). Transient/flake, no code needed.
+- **iOS main** `d5d46440` — `RecruitingCalendarWidget` low-pri: injectable `now: Date` seam +
+  `.onChange(of: sport/gender)` toggle reset. `a887bcc1` — doc retirement. `218775ac` — QA-passed.
+- **Recovered:** local `main` was STALE at `fd6af1a5` — FF'd to `4a1fca55`.
+
+**Gotchas:** shared web checkout had a CONCURRENT Claude session switching branches underneath; pushed
+commits/PRs unaffected (verify remote, not local tree). Use absolute paths for xcodebuild (cwd persists).

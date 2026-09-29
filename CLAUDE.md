@@ -23,57 +23,19 @@ When editing or creating source files, always use the full double-nested path, e
 
 ---
 
-## Quick Start Commands
+## Build & Test
 
-### Build
-```bash
-make build
-# Or directly:
-cd TheRecruitingCompass
-xcodebuild build -scheme TheRecruitingCompass \
- -destination 'platform=iOS Simulator,name=iPhone 17'
-```
+`make build`, `make test`, `make test-unit`, `make test-unit-fast` (see `Makefile`), or `xcodebuild build|test -scheme TheRecruitingCompass` from `TheRecruitingCompass/`.
 
-### Run Tests
-```bash
-make test              # Full suite (unit + UI)
-make test-unit         # Unit tests only (faster, skip UI tests)
-make test-unit-fast    # Unit tests with parallel execution (fastest)
-
-# Or directly:
-cd TheRecruitingCompass
-xcodebuild test -scheme TheRecruitingCompass \
- -destination 'platform=iOS Simulator,name=iPhone 17'
-```
-
-**Note:**
-- Local development uses iPhone 17 (available in Xcode 16.4+)
-- CI/CD uses `platform=iOS Simulator,OS=latest,name=iPhone 16` with explicit boot
-- The `OS=latest` parameter prevents xcodebuild from selecting unstable simulator clones
-- Use whatever iPhone simulator you have available locally
+- **Simulator names churn** between Xcode betas — run `xcrun simctl list devices available | grep iPhone` and target by `id=` rather than assuming `name=iPhone 17` exists.
+- CI uses `platform=iOS Simulator,OS=latest,name=iPhone 16` with explicit boot; `OS=latest` prevents xcodebuild from selecting unstable simulator clones.
+- **~3700 unit tests.** The full suite exceeds 10 minutes — run the affected test classes via `-only-testing:` for fast evidence and trust the xcodebuild exit code.
 
 ### Environment Configuration
-Supabase credentials must be configured before running:
 
-**Setup Steps (First Time):**
-1. **Product → Scheme → Manage Schemes**
-2. **Uncheck "Shared"** for TheRecruitingCompass (creates local user scheme)
-3. **Product → Scheme → Edit Scheme**
-4. **Run** tab → **Arguments** → **Environment Variables**
-5. Set values:
-   - `SUPABASE_URL`: `https://your-project.supabase.co`
-   - `SUPABASE_ANON_KEY`: `your-anon-key-here`
-   - `API_BASE_URL`: `https://your-app.vercel.app` (**required** — see below)
+DEBUG runs read `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `API_BASE_URL` from a **local (unshared) scheme's** Run environment variables; archived builds read only `Release.xcconfig` (gitignored). Full setup: `docs/CONFIGURATION.md`.
 
-**Why:** Shared scheme (in git) has empty placeholders. Your local user scheme (NOT in git) has real credentials.
-
-**`API_BASE_URL` is required**, not optional. Omitting it breaks both:
-- **Family creation.** `createFamily(role:)` always routes through `POST /api/family/create` — that's the only path that gets the server's race-hardening (idx_family_units_one_per_creator recovery, idx_player_one_family disambiguation). There is no direct-Supabase fallback; a missing `API_BASE_URL` throws instead of silently falling back. Family creation runs during signup/onboarding, so a missing value breaks onboarding too.
-- **Action Items (Suggestions).** The dashboard Action Items widget uses the web app API (`GET /api/suggestions`, `PATCH .../dismiss`, `PATCH .../complete`). Authorization uses the Supabase session token (Bearer). If unset, the widget shows "No action items at this time."
-
-Set it to your web app base URL (e.g. a Vercel deployment). Release/TestFlight/App Store builds already have a production fallback baked in (`SupabaseConfig.swift`) — this only matters for local DEBUG runs from Xcode.
-
-**Production / TestFlight / App Store:** Release builds require real `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Scheme environment variables are **not** embedded in archived builds. Edit **`TheRecruitingCompass/Release.xcconfig`** and replace the placeholder URL and key with your real values before creating an Archive. See `docs/CONFIGURATION.md`.
+**`API_BASE_URL` is required**, not optional — family creation (signup/onboarding) has no direct-Supabase fallback and throws without it, and the dashboard Action Items widget silently shows empty.
 
 ---
 
@@ -81,91 +43,16 @@ Set it to your web app base URL (e.g. a Vercel deployment). Release/TestFlight/A
 
 Schools is the **clean-architecture reference**. Other features still use feature-MVVM. See `docs/CLEAN_ARCHITECTURE.md`.
 
-### Schools (Clean Architecture)
-
-```
-Features/Schools/
-├── Domain/          # Entities, SchoolsRepository, use cases
-├── Data/            # Repository impl, data sources, DTOs
-├── Presentation/    # ViewModels, Views, Components, form models
-└── DI/              # SchoolsFactory (composition root)
-```
-
 Views call `SchoolsFactory.makeListViewModel()` (etc.). Do not construct `SchoolsRepositoryImpl` in a view.
 
 `SchoolsManaging` and `SchoolsServiceImpl` remain as typealiases so unconverted features keep compiling.
 
-### Other features — MVVM (until converted)
-
-```
-Feature/
-├── Models/              # Data structures (Codable, Identifiable)
-├── ViewModels/          # Business logic (@MainActor, @Observable)
-├── Views/               # SwiftUI views (presentation only)
-└── Components/          # Reusable UI components
-```
-
-**Rules:**
+**MVVM rules (non-Schools features, until converted):**
 - **Service** = Data fetching only (no UI state, no @Published)
 - **ViewModel** = State management (@Observable, plain properties, async methods)
 - **View** = Display state + call ViewModel methods (no business logic)
-- **@MainActor** = Required on all ViewModels for thread-safe UI updates
+- **@MainActor** = Required on all ViewModels; Services are NOT @MainActor
 - **Protocol-based DI** = All services have protocol interfaces for testing
-
-### Core Layers
-
-**Core/** - Shared infrastructure
-- `Services/` - AuthManager (singleton, Keychain-backed), SupabaseManager
-- `Models/` - User, Session, AuthError, UserRole
-- `Protocols/` - AuthManaging (enables MockAuthManager for tests)
-- `Utilities/` - KeychainHelper, DeepLinkHandler
-- `Theme/` - AppColors, AppGradients
-
-**Features/** - Feature modules (Auth, Dashboard, Landing, Schools, Coaches)
-- Schools: Domain / Data / Presentation / DI (see `docs/CLEAN_ARCHITECTURE.md`)
-- Other features: Models + ViewModels + Views + Components until converted
-
-**Shared/** - Cross-feature reusable components
-- `Components/` - Buttons, form fields, cards
-- `Utilities/` - FormValidator, date formatters
-
-### Authentication Flow
-
-```
-App Launch → AuthManager.restoreSession() (Keychain → Supabase)
-  ├─ Valid Session → isAuthenticated = true → DashboardView
-  ├─ Expired Session → Refresh token → Update Keychain
-  └─ No Session → isAuthenticated = false → LandingView
-      └─ Login/Signup → Save to Keychain → DashboardView
-```
-
-**Key Files:**
-- `TheRecruitingCompassApp.swift` - Root navigation
-- `Core/Services/AuthManager.swift` - Singleton auth manager
-- `Core/Utilities/KeychainHelper.swift` - Keychain storage
-- `Features/Auth/ViewModels/LoginViewModel.swift` - Login logic
-
----
-
-## Testing Strategy
-
-**126+ Tests (All Passing)**
-- **Unit Tests** - ViewModels, utilities, models
-- **Integration Tests** - AuthManager + Supabase flows with mocks
-- **Accessibility Tests** - VoiceOver labels, traits
-- **E2E Tests** - Full flows with real UI
-
-**Test File Naming:**
-- `*Tests.swift` for unit tests
-- `*IntegrationTests.swift` for integration tests
-- `*AccessibilityTests.swift` for accessibility tests
-- `*E2ETests.swift` for E2E UI tests
-
-**Mock Pattern:**
-```swift
-protocol AuthManaging { /* ... */ }
-class MockAuthManager: AuthManaging { /* ... */ }
-```
 
 ---
 
@@ -178,45 +65,20 @@ class MockAuthManager: AuthManaging { /* ... */ }
 - Use semantic fonts (.title, .body, .caption) - NEVER `.system(size: 14)`
 - Button hit targets minimum 44x44pt
 
-**Testing:**
-- Manual VoiceOver: Cmd+F5 (Simulator)
-- Dynamic Type: Settings → Accessibility → Display & Text Size
-
 ---
 
 ## Creating New Screens
 
 **Xcode project:** This repo uses `PBXFileSystemSynchronizedRootGroup`; new .swift files are included automatically. Do **not** run `scripts/add_files_to_xcode.rb` — it corrupts the project file.
 
-**Template:** `TheRecruitingCompass/UI/Screens/_ScreenTemplate/`
-
-**Quick Workflow:**
-1. Copy `_ScreenTemplate/` → rename to feature (e.g., `Schools/`)
-2. Rename files: `ExampleScreen*` → `SchoolsList*`
-3. Update ViewModel: Add observable properties, async methods
-4. Update View: Display ViewModel state, call ViewModel methods
-5. Create Service: Add API calls (pure async functions, no UI state)
-6. Add to navigation
-
-**See:** `TheRecruitingCompass/UI/Screens/HOW_TO_CREATE_SCREENS.md`
+Start from `TheRecruitingCompass/UI/Screens/_ScreenTemplate/`; workflow in `TheRecruitingCompass/UI/Screens/HOW_TO_CREATE_SCREENS.md`.
 
 ---
 
 ## Project Guidelines
 
-### File Organization
 - **Never save working files to root** - use `planning/`, `docs/`, etc.
 - Test files mirror source structure
-
-### Naming Conventions
-- ViewModels: `FeatureNameViewModel` (e.g., `LoginViewModel`)
-- Views: `FeatureNameView` (e.g., `LoginView`)
-- Services: `FeatureNameService` (e.g., `SchoolsService`)
-- Protocols: `FeatureNameManaging` (e.g., `AuthManaging`)
-
-### Thread Safety
-- All ViewModels MUST be `@MainActor`
-- Services are NOT @MainActor
 
 ---
 
@@ -233,13 +95,6 @@ The app is live; old versions stay installed for months. Follow `docs/RELEASE.md
 
 ## Documentation & References
 
-**Key Docs:**
 - `docs/RELEASE.md` - Release checklist, versioning, update gate, hotfixes
 - `docs/CODE_PATTERNS.md` - Reusable code patterns
 - `docs/TROUBLESHOOTING.md` - Common issues & solutions
-- `docs/ACCESSIBILITY_AUDIT.md` - Accessibility testing guide
-- `README.md` - Quick start and project overview
-
-**Implementation Guides:**
-- `TheRecruitingCompass/UI/Screens/HOW_TO_CREATE_SCREENS.md`
-- `planning/iOS_SPEC_Phase1_Login.md` - Login feature spec (reference)
