@@ -47,6 +47,8 @@ final class DashboardViewModel {
   /// Whether the target athlete has at least one video link. Loaded alongside
   /// playerDetails; feeds profileCompleteness/missingProfileFields.
   var hasHighlightVideo = false
+  /// True only after the last `fetchPlayerProfile()` loaded every completeness input without error.
+  private var isProfileCompletenessSettled = false
   var recommendations: [SchoolRecommendation] = []
   var isLoading = false
   var isLoggingOut = false
@@ -140,6 +142,13 @@ final class DashboardViewModel {
   /// details haven't loaded yet.
   var profileCompleteness: Double {
     playerDetails?.completenessScore(hasHighlightVideo: hasHighlightVideo, hasHomeLocation: hasHomeLocation) ?? 0
+  }
+
+  /// `profileCompleteness`, or nil while its inputs are loading or after any of them failed (a
+  /// cancelled fetch reads as 0%). Anything that persists completeness must use this, not the
+  /// display value, or a half-loaded dashboard clears the saved "profile complete" timestamp.
+  var settledProfileCompleteness: Double? {
+    isProfileCompletenessSettled ? profileCompleteness : nil
   }
 
   var missingProfileFields: [MissingField] {
@@ -524,6 +533,8 @@ final class DashboardViewModel {
   /// sport-aware widgets fall back to a generic presentation), mirroring fetchWidgetVisibility.
   func fetchPlayerProfile() async {
     guard let userId = targetUserId else { return }
+    isProfileCompletenessSettled = false
+    var loadedAllCompletenessInputs = true
     do {
       let details: PlayerDetails? = try await preferenceService.fetchPreferences(category: .player, userId: userId)
       playerDetails = details
@@ -532,6 +543,7 @@ final class DashboardViewModel {
       athleteGender = details?.gender
     } catch {
       logger.debug("Could not load graduation year/sport/gender: \(error.localizedDescription)")
+      loadedAllCompletenessInputs = false
     }
 
     do {
@@ -540,6 +552,7 @@ final class DashboardViewModel {
     } catch {
       logger.debug("Could not load home location for completeness: \(error.localizedDescription)")
       hasHomeLocation = false
+      loadedAllCompletenessInputs = false
     }
 
     do {
@@ -548,7 +561,9 @@ final class DashboardViewModel {
     } catch {
       logger.debug("Could not load video links for completeness: \(error.localizedDescription)")
       hasHighlightVideo = false
+      loadedAllCompletenessInputs = false
     }
+    isProfileCompletenessSettled = loadedAllCompletenessInputs
   }
 
   func fetchRecommendations() async {

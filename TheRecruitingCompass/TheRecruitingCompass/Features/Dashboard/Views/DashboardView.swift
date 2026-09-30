@@ -260,7 +260,7 @@ struct DashboardView: View {
         onDismiss: { nuxProgressManager.dismissChecklist() },
         onResume: { nuxProgressManager.resumeChecklist() }
       )
-      .task {
+      .task(id: viewModel.settledProfileCompleteness) {
         autoEvaluateChecklist()
       }
 
@@ -286,11 +286,11 @@ struct DashboardView: View {
   private func autoEvaluateChecklist() {
     let schoolCount = viewModel.stats?.schoolCount ?? 0
     let coachCount = viewModel.stats?.coachCount ?? 0
-    let completeness = viewModel.profileCompleteness
+    let completeness = viewModel.settledProfileCompleteness
 
     if schoolCount > 0 { nuxProgressManager.completeItem(.firstSchool) }
     if coachCount > 0 { nuxProgressManager.completeItem(.firstCoach) }
-    if completeness >= 0.80 { nuxProgressManager.completeItem(.profile80) }
+    if let completeness, completeness >= 0.80 { nuxProgressManager.completeItem(.profile80) }
     if viewModel.athleteSport != nil { nuxProgressManager.completeItem(.sport) }
     if viewModel.playerDetails?.gpa != nil ||
        viewModel.playerDetails?.satScore != nil ||
@@ -298,7 +298,7 @@ struct DashboardView: View {
       nuxProgressManager.completeItem(.academics)
     }
     if familyManager.familyMembers.count > 1 { nuxProgressManager.completeItem(.inviteFamily) }
-    nuxProgressManager.updateProfileCompletion(percentage: completeness)
+    if let completeness { nuxProgressManager.updateProfileCompletion(percentage: completeness) }
   }
 
   @ViewBuilder
