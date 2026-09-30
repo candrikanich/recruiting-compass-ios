@@ -42,7 +42,7 @@ actor DocumentsRealtimeService: DocumentsRealtimeManaging {
 
     let channel = supabaseManager.client
       .realtimeV2
-      .channel("documents-list-\(familyUnitId)")
+      .exclusiveChannel("documents-list-\(familyUnitId)")
 
     _ = channel.onPostgresChange(
       AnyAction.self,
@@ -61,6 +61,7 @@ actor DocumentsRealtimeService: DocumentsRealtimeManaging {
       self.channel = channel
       logger.info("Subscribed to documents channel")
     } catch {
+      await supabaseManager.client.realtimeV2.removeChannel(channel)
       logger.error("Failed to subscribe to documents: \(error.localizedDescription)")
       throw error
     }
@@ -68,7 +69,7 @@ actor DocumentsRealtimeService: DocumentsRealtimeManaging {
 
   func unsubscribe() async {
     if let channel {
-      await channel.unsubscribe()
+      await supabaseManager.client.realtimeV2.removeChannel(channel)
       self.channel = nil
       logger.info("Unsubscribed from documents channel")
     }

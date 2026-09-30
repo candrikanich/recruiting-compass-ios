@@ -41,7 +41,7 @@ actor TasksRealtimeService: TasksRealtimeManaging {
 
     let channel = supabaseManager.client
       .realtimeV2
-      .channel("tasks-list-\(athleteId)")
+      .exclusiveChannel("tasks-list-\(athleteId)")
 
     _ = channel.onPostgresChange(
       AnyAction.self,
@@ -60,6 +60,7 @@ actor TasksRealtimeService: TasksRealtimeManaging {
       self.channel = channel
       logger.info("Subscribed to tasks channel")
     } catch {
+      await supabaseManager.client.realtimeV2.removeChannel(channel)
       logger.error("Failed to subscribe to tasks: \(error.localizedDescription)")
       throw error
     }
@@ -67,7 +68,7 @@ actor TasksRealtimeService: TasksRealtimeManaging {
 
   func unsubscribe() async {
     if let channel {
-      await channel.unsubscribe()
+      await supabaseManager.client.realtimeV2.removeChannel(channel)
       self.channel = nil
       logger.info("Unsubscribed from tasks channel")
     }
