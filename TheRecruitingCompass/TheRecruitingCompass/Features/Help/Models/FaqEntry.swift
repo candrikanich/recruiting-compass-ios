@@ -31,8 +31,8 @@ enum FaqEntries {
       category: "general",
       question: "Where can I use it?",
       answer: """
-        Right now on the web at myrecruitingcompass.com, on any computer, tablet, or phone browser. The \
-        iPhone and iPad app is on its way to the App Store.
+        On the web at myrecruitingcompass.com and on iPhone and iPad — download it from the App Store. \
+        Same account and data everywhere.
         """
     ),
     FaqEntry(
