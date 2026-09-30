@@ -40,7 +40,7 @@ actor SchoolDetailRealtimeService: SchoolDetailRealtimeManaging {
 
     let channel = supabaseManager.client
       .realtimeV2
-      .channel("school-detail-\(schoolId)")
+      .exclusiveChannel("school-detail-\(schoolId)")
 
     _ = channel.onPostgresChange(
       AnyAction.self,
@@ -59,6 +59,7 @@ actor SchoolDetailRealtimeService: SchoolDetailRealtimeManaging {
       self.channel = channel
       logger.info("Subscribed to school detail channel")
     } catch {
+      await supabaseManager.client.realtimeV2.removeChannel(channel)
       logger.error("Failed to subscribe to school detail: \(error.localizedDescription)")
       throw error
     }
@@ -66,7 +67,7 @@ actor SchoolDetailRealtimeService: SchoolDetailRealtimeManaging {
 
   func unsubscribe() async {
     if let channel {
-      await channel.unsubscribe()
+      await supabaseManager.client.realtimeV2.removeChannel(channel)
       self.channel = nil
       logger.info("Unsubscribed from school detail channel")
     }

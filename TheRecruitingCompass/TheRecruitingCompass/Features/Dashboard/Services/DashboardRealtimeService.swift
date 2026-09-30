@@ -44,7 +44,7 @@ actor DashboardRealtimeService: DashboardRealtimeManaging {
     // Schools channel
     let schoolsCh = supabaseManager.client
       .realtimeV2
-      .channel("dashboard-schools-\(familyUnitId)")
+      .exclusiveChannel("dashboard-schools-\(familyUnitId)")
 
     _ = schoolsCh.onPostgresChange(
       AnyAction.self,
@@ -62,6 +62,7 @@ actor DashboardRealtimeService: DashboardRealtimeManaging {
       try await schoolsCh.subscribeWithError()
       self.schoolsChannel = schoolsCh
     } catch {
+      await supabaseManager.client.realtimeV2.removeChannel(schoolsCh)
       logger.error("Failed to subscribe to dashboard schools: \(error.localizedDescription)")
       throw error
     }
@@ -69,7 +70,7 @@ actor DashboardRealtimeService: DashboardRealtimeManaging {
     // Interactions channel
     let interactionsCh = supabaseManager.client
       .realtimeV2
-      .channel("dashboard-interactions-\(familyUnitId)")
+      .exclusiveChannel("dashboard-interactions-\(familyUnitId)")
 
     _ = interactionsCh.onPostgresChange(
       AnyAction.self,
@@ -87,6 +88,7 @@ actor DashboardRealtimeService: DashboardRealtimeManaging {
       try await interactionsCh.subscribeWithError()
       self.interactionsChannel = interactionsCh
     } catch {
+      await supabaseManager.client.realtimeV2.removeChannel(interactionsCh)
       logger.error("Failed to subscribe to dashboard interactions: \(error.localizedDescription)")
       throw error
     }
@@ -96,11 +98,11 @@ actor DashboardRealtimeService: DashboardRealtimeManaging {
 
   func unsubscribe() async {
     if let channel = schoolsChannel {
-      await channel.unsubscribe()
+      await supabaseManager.client.realtimeV2.removeChannel(channel)
       schoolsChannel = nil
     }
     if let channel = interactionsChannel {
-      await channel.unsubscribe()
+      await supabaseManager.client.realtimeV2.removeChannel(channel)
       interactionsChannel = nil
     }
     logger.info("Unsubscribed from dashboard channels")
