@@ -3,15 +3,21 @@ import UserNotifications
 
 struct NotificationPreferencesView: View {
   @State private var viewModel: NotificationPreferencesViewModel
+  @State private var marketingViewModel: MarketingConsentViewModel
   @Environment(\.openURL) private var openURL
   @Environment(AuthManager.self) private var authManager
   @State private var pushAuthStatus: UNAuthorizationStatus = .notDetermined
 
-  init(preferenceService: any PreferenceManaging, pushPreferencesService: (any PushPreferencesManaging)? = nil) {
+  init(
+    preferenceService: any PreferenceManaging,
+    pushPreferencesService: (any PushPreferencesManaging)? = nil,
+    marketingConsentService: (any MarketingConsentManaging)? = nil
+  ) {
     _viewModel = State(initialValue: NotificationPreferencesViewModel(
       preferenceService: preferenceService,
       pushPreferencesService: pushPreferencesService
     ))
+    _marketingViewModel = State(initialValue: MarketingConsentViewModel(service: marketingConsentService))
   }
 
   var body: some View {
@@ -76,6 +82,10 @@ struct NotificationPreferencesView: View {
         }
       } header: {
         Text("Email Notifications")
+      }
+
+      if marketingViewModel.isEligible {
+        MarketingEmailsSection(viewModel: marketingViewModel)
       }
 
       // Push Notifications Section
@@ -165,6 +175,37 @@ struct NotificationPreferencesView: View {
       if let userId = authManager.user?.id {
         await viewModel.loadPushPreferences(userId: userId)
       }
+    }
+    .task { await marketingViewModel.load() }
+  }
+}
+
+/// Marketing consent (web #1066) saves through its own endpoint, independent of the
+/// auto-saved notification settings above, and is shown only to marketing-eligible adults.
+private struct MarketingEmailsSection: View {
+  let viewModel: MarketingConsentViewModel
+
+  var body: some View {
+    Section {
+      if let errorMessage = viewModel.errorMessage {
+        Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+          .font(.subheadline)
+          .foregroundStyle(Color.errorRed)
+      }
+      Toggle("Marketing Emails", isOn: Binding(
+        get: { viewModel.optIn },
+        set: { newValue in Task { await viewModel.setOptIn(newValue) } }
+      ))
+      .disabled(viewModel.isSaving)
+      .accessibilityLabel(String(localized: "Receive marketing emails"))
+      .accessibilityIdentifier("marketingEmailsToggle")
+    } header: {
+      Text("Marketing Emails")
+    } footer: {
+      Text(
+        "Recruiting tips, product updates and offers from The Recruiting Compass. You can unsubscribe anytime."
+      )
+      .font(.caption)
     }
   }
 }

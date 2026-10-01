@@ -33,10 +33,14 @@ final class InviteJoinViewModel {
 
   var signupFirstName: String = ""
   var signupLastName: String = ""
-  var signupDateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: .now) ?? .now
+  var signupDateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: .now) ?? .now {
+    didSet { if signupDateOfBirth != oldValue { signupMarketingOptIn = false } }
+  }
   var signupPassword: String = ""
   var signupConfirmPassword: String = ""
   var signupAgreeToTerms = false
+  /// Marketing email consent (web #1066) — unchecked by default, cleared on DOB change.
+  var signupMarketingOptIn = false
   var signupError: String?
 
   // Shown after signupAndConnect() succeeds for a player invite, letting the player confirm (or
@@ -79,6 +83,13 @@ final class InviteJoinViewModel {
   var inviteDetails: InviteDetails? {
     if case .loaded(let d) = state { return d }
     return nil
+  }
+
+  /// The invite fixes the role; only parents and 18+ players see the marketing opt-in (web #1066).
+  var isMarketingOptInVisible: Bool {
+    guard let invite = inviteDetails else { return false }
+    let role = UserRole(rawValue: invite.role) ?? .player
+    return MarketingEligibility.isEligible(role: role, dateOfBirth: signupDateOfBirth)
   }
 
   /// Whether the unauthenticated invitee should see the login form (vs.
@@ -223,6 +234,7 @@ final class InviteJoinViewModel {
         // below the instant the invite is accepted — skip the verify-email flow entirely
         // (mirrors web's join.vue invite-signup call), matching accept.post.ts:103-111.
         skipVerificationEmail: true,
+        marketingEmailOptIn: isMarketingOptInVisible ? signupMarketingOptIn : nil,
         beforePublish: { [weak self] in
           guard let self else { return }
           acceptResponse = try await self.familyService.acceptInvite(token: self.token)
