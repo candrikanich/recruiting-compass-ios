@@ -12,7 +12,9 @@ final class SignupViewModel {
   nonisolated deinit {}
   // MARK: - Two-Step State
 
-  var selectedRole: UserRole?
+  var selectedRole: UserRole? {
+    didSet { if selectedRole != oldValue { marketingOptIn = false } }
+  }
   var showForm = false
 
   // MARK: - Form Fields
@@ -20,11 +22,16 @@ final class SignupViewModel {
   var firstName = ""
   var lastName = ""
   var email = ""
-  var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -15, to: .now) ?? .now
+  var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -15, to: .now) ?? .now {
+    didSet { if dateOfBirth != oldValue { marketingOptIn = false } }
+  }
   var password = ""
   var confirmPassword = ""
   var familyCode = ""
   var termsAccepted = false
+  /// Marketing email consent (web #1066): optional, unchecked by default, and cleared whenever
+  /// role or DOB changes so a choice made under one eligibility state never carries to another.
+  var marketingOptIn = false
   /// Only shown for players aged 13-17 (see `isMinorSignup`) — optional. A
   /// player who leaves this blank can invite a guardian later from the
   /// dashboard (parity with web's guardian-optional signup wizard).
@@ -171,6 +178,16 @@ final class SignupViewModel {
     selectedRole == .player && COPPAHelper.requiresGuardianInvite(dobString)
   }
 
+  /// Parents always; players only when the entered DOB makes them 18+ (web #1066).
+  var isMarketingOptInVisible: Bool {
+    MarketingEligibility.isEligible(role: selectedRole, dateOfBirth: dateOfBirth)
+  }
+
+  /// nil (field omitted from the request) unless the user was actually offered the choice.
+  private var marketingEmailOptInForSignup: Bool? {
+    isMarketingOptInVisible ? marketingOptIn : nil
+  }
+
   init(
     authManager: (any AuthManaging)? = nil,
     familyService: (any FamilyManaging)? = nil,
@@ -204,6 +221,7 @@ final class SignupViewModel {
     confirmPassword = ""
     familyCode = ""
     termsAccepted = false
+    marketingOptIn = false
     graduationYear = nil
     primarySport = ""
     gender = ""
@@ -355,6 +373,7 @@ final class SignupViewModel {
         zipCode: draftsStep1 && !trimmedZipCode.isEmpty ? trimmedZipCode : nil,
         captchaToken: captchaToken,
         skipVerificationEmail: false,
+        marketingEmailOptIn: marketingEmailOptInForSignup,
         beforePublish: nil
       )
 

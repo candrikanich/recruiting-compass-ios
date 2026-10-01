@@ -419,6 +419,10 @@ private struct InviteJoinSignupSection: View {
           onTermsPressed: { presentedLegal = .termsOfService },
           onPrivacyPressed: { presentedLegal = .privacyPolicy }
         )
+
+        if viewModel.isMarketingOptInVisible {
+          MarketingOptInCheckbox(isChecked: $viewModel.signupMarketingOptIn)
+        }
       }
 
       AsyncButton(

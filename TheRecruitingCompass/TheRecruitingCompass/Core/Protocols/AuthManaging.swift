@@ -37,6 +37,8 @@ protocol AuthManaging: AnyObject {
   /// - Parameter skipVerificationEmail: pass `true` for invite/guardian-claim signups, whose
   ///   acceptance handler stamps `email_verified_at` moments later — mirrors web's join.vue/
   ///   guardian-claim callers (see server/api/auth/signup.post.ts).
+  /// - Parameter marketingEmailOptIn: marketing consent (web #1066); pass a value only for
+  ///   marketing-eligible adults (`MarketingEligibility`), `nil` otherwise so the field is omitted.
   func signup(
     email: String,
     password: String,
@@ -50,6 +52,7 @@ protocol AuthManaging: AnyObject {
     zipCode: String?,
     captchaToken: String,
     skipVerificationEmail: Bool,
+    marketingEmailOptIn: Bool?,
     beforePublish: (() async throws -> Void)?
   ) async throws
   /// Establishes a session from a service-role magiclink token hash (minted
