@@ -5,12 +5,16 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  # E2E UITests run nightly + on demand, NOT on PRs: XCUITest app launch is
+  # E2E UITests run on demand only, NOT on PRs: XCUITest app launch is
   # deterministically broken on GitHub macos-15 runners (the simulator service
   # hub fails to "bless", so no test ever runs and the job just times out).
   # Lint + unit tests still gate every PR.
-  schedule:
-    - cron: "0 8 * * *"
+  #
+  # The nightly schedule is paused: every run hung on all 3 attempts and burned
+  # ~45 macOS runner minutes to report nothing. Restore the two lines below once
+  # E2E has a runner that can launch XCUITest (self-hosted Mac or a fixed image).
+  # schedule:
+  #   - cron: "0 8 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -149,7 +153,7 @@ jobs:
     name: E2E UITests
     runs-on: macos-15
     timeout-minutes: 70
-    # Nightly + manual only — see the `on:` comment above. Not a PR gate.
+    # Manual only while the nightly is paused — see the `on:` comment above. Not a PR gate.
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     # Serialize across ALL refs: every run seeds/wipes the one shared
     # e2e-test Supabase project, so concurrent PRs would race the reset.
