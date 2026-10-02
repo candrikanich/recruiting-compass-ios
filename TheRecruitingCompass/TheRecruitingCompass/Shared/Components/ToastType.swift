@@ -23,4 +23,13 @@ enum ToastType {
     case .warning: return Color(hex: "F59E0B") // Amber
     }
   }
+
+  /// What VoiceOver says for a toast. The type is otherwise carried only by the hidden icon.
+  func announcement(for message: String) -> String {
+    switch self {
+    case .success, .info: return message
+    case .error: return String(localized: "Error: \(message)")
+    case .warning: return String(localized: "Warning: \(message)")
+    }
+  }
 }

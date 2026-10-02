@@ -6,7 +6,8 @@ struct ExportFormatSheet: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.sizeCategory) private var sizeCategory
   @State private var selectedFormat: ExportFormat = .csv
-  @State private var showShareSheet = false
+  @State private var exportFile: PerformanceExportFile?
+  @State private var showExportError = false
 
   private var iconSize: CGFloat {
     sizeCategory.isAccessibilityCategory ? 56 : 48
@@ -47,7 +48,7 @@ struct ExportFormatSheet: View {
 
         // Export Button
         Button {
-          showShareSheet = true
+          export()
         } label: {
           Label("Export \(selectedFormat.rawValue)", systemImage: "square.and.arrow.up")
             .fontWeight(.semibold)
@@ -63,8 +64,12 @@ struct ExportFormatSheet: View {
           Button("Cancel") { dismiss() }
         }
       }
-      .sheet(isPresented: $showShareSheet) {
-        ShareSheetView(data: currentFormatData, filename: currentFilename)
+      .sheet(item: $exportFile) { file in
+        ActivityShareSheet(activityItems: [file.url])
+      }
+      .alert("Export Failed", isPresented: $showExportError) {
+      } message: {
+        Text("Couldn't create the export file. Please try again.")
       }
     }
   }
@@ -73,11 +78,12 @@ struct ExportFormatSheet: View {
     selectedFormat == .csv ? csvData : pdfData
   }
 
-  private var currentFilename: String {
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "yyyy-MM-dd"
-    let dateString = dateFormatter.string(from: .now)
-    return "performance_metrics_\(dateString).\(selectedFormat.rawValue.lowercased())"
+  private func export() {
+    do {
+      exportFile = try PerformanceExportFile.write(currentFormatData, named: selectedFormat.filename(on: .now))
+    } catch {
+      showExportError = true
+    }
   }
 }
 

@@ -18,6 +18,7 @@ struct Toast: View {
         .font(.subheadline)
         .foregroundStyle(.primary)
         .multilineTextAlignment(.leading)
+        .accessibilityLabel(type.announcement(for: message))
 
       Spacer()
 
@@ -36,9 +37,6 @@ struct Toast: View {
     .background(Color.Surface.card, in: RoundedRectangle(cornerRadius: 12))
     .brandShadowMd()
     .padding(.horizontal, 16)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(message)
-    .accessibilityAddTraits(.updatesFrequently)
   }
 }
 
