@@ -92,16 +92,15 @@ struct DashboardView: View {
         await viewModel.fetchDashboardData()
         await subscribeRealtime()
       }
-      .task {
+      // Keyed on the athlete being viewed, not `selectedAthleteId`: for a player that selection goes from
+      // nil to their own member row once the family loads, which is the same athlete and no reason to reload.
+      .task(id: timelineViewModel.currentAthleteId) {
         await timelineViewModel.loadSummary()
       }
       .task {
         if let userId = authManager.user?.id {
           await nuxProgressManager.load(userId: userId)
         }
-      }
-      .onChange(of: familyManager.selectedAthleteId) { _, _ in
-        Task { await timelineViewModel.loadSummary() }
       }
       .onChange(of: familyManager.familyUnitId) { _, _ in
         let service = realtimeService

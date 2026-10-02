@@ -20,13 +20,22 @@ if (marks.length < 2) {
 }
 const windows = marks.slice(0, -1).map((mark, i) => ({ screen: mark.screen, from: mark.ts, to: marks[i + 1].ts }));
 
-// The web API calls Supabase server-side with a "node" user agent; those rows are its fan-out, not the app's.
+// The local stack is shared: only the iOS app's own user agent counts as the app. The web API calls
+// Supabase server-side as "node" (its fan-out, and any other Node process's); browsers and other
+// clients using the stack at the same time are dropped.
+const APP_USER_AGENT = /^myCompass\//;
+const sourceFor = (agent) => {
+  if (APP_USER_AGENT.test(agent)) return "app → Supabase";
+  if (agent === "node") return "web API → Supabase";
+  return null;
+};
 const KONG_LINE = /^(\S+) \S+ - - \[[^\]]+\] "(\w+) (\S+) HTTP\/[\d.]+" (\d+) (\d+) "[^"]*" "([^"]*)"/;
 const kong = readFileSync(kongLogPath, "utf8").split("\n").flatMap((line) => {
   const match = KONG_LINE.exec(line);
   if (!match) return [];
   const [, stamp, method, path, status, bytes, agent] = match;
-  const source = agent === "node" ? "web API → Supabase" : "app → Supabase";
+  const source = sourceFor(agent);
+  if (!source) return [];
   return [{ ts: Date.parse(stamp) / 1000, method, path, status: Number(status), bytes: Number(bytes), source }];
 });
 
