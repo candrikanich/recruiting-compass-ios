@@ -172,7 +172,7 @@ extension XCUIApplication {
     }
 
     // Wait for landing screen to appear
-    let createAccountButton = buttons["Create a new account"]
+    let createAccountButton = buttons["Start now — create a new account"]
     _ = createAccountButton.waitForExistence(timeout: 10)
   }
 
