@@ -18,6 +18,8 @@ protocol EventsManaging: Sendable {
   func fetchEvent(id: String, userId: String) async throws -> FullEvent
   /// Returns all events belonging to the given user.
   func fetchEvents(userId: String) async throws -> [FullEvent]
+  /// Returns the user's official and unofficial visit events, past and future, as `school_id` + `start_date`.
+  func fetchVisitEvents(userId: String) async throws -> [SchoolVisitEvent]
   /// Applies updates to an existing event and returns the updated entity.
   func updateEvent(id: String, request: EventUpdateRequest) async throws -> FullEvent
   /// Permanently deletes an event and all associated performance metrics.

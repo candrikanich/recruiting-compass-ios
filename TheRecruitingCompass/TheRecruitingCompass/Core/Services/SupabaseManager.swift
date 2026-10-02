@@ -402,18 +402,11 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     }
   }
 
-  func refreshSession() async throws -> User {
-    let authSession = try await client.auth.session
-
-    guard let user = try await fetchUserProfileWithRetry(
-      userId: authSession.user.id.uuidString,
-      email: authSession.user.email ?? "",
-      fallbackMetadata: authSession.user.userMetadata
-    ) else {
-      throw AuthError.serverError("Failed to fetch user profile")
-    }
-
-    return user
+  /// The signed-in user's id from the local auth session — no `users` read, unlike `getCurrentSession()`.
+  func currentAuthUserId() async throws -> String? {
+    let authUserId = try await client.auth.session.user.id
+    guard authUserId != UUID(uuidString: "00000000-0000-0000-0000-000000000000") else { return nil }
+    return authUserId.uuidString.lowercased()
   }
 
   func resendVerificationEmail(email: String, captchaToken: String) async throws {

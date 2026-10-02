@@ -39,6 +39,27 @@ struct NuxProgressManagerTests {
     #expect(sut.progress.checklist.completedCount == 0)
   }
 
+  // The app root and the dashboard both ask at launch, milliseconds apart.
+  @Test func overlappingLoadsForSameUserFetchOnce() async {
+    let (sut, mockService) = makeSUT()
+
+    async let first: Void = sut.load(userId: "user-1")
+    async let second: Void = sut.load(userId: "user-1")
+    _ = await (first, second)
+
+    #expect(mockService.fetchCallCount == 1)
+    #expect(sut.isLoaded)
+  }
+
+  @Test func sequentialLoadsFetchEachTime() async {
+    let (sut, mockService) = makeSUT()
+
+    await sut.load(userId: "user-1")
+    await sut.load(userId: "user-1")
+
+    #expect(mockService.fetchCallCount == 2)
+  }
+
   // MARK: - completeItem
 
   @Test func completeItemUpdatesProgressOptimistically() {
