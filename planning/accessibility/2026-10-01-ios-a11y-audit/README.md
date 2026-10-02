@@ -4,8 +4,8 @@
 not currently true.** Basic labelling is good (796 `accessibilityLabel` uses, semantic fonts almost everywhere,
 decorative icons hidden), but there are four blockers and a set of shared root causes behind most of the rest.
 
-Audited commit `d775d198` (origin/main). The issues below are drafted in [`issues/`](issues/) and **not yet filed** —
-run [`file-issues.sh`](file-issues.sh) to create them on GitHub with a tracking issue.
+Audited commit `d775d198` (origin/main). Tracking issue: #249. Issues #250–#264 were filed on 2026-10-02
+from the drafts in [`issues/`](issues/).
 
 ## How it was done
 
@@ -39,20 +39,21 @@ only. Each issue says what was and was not verified.
 
 | # | Severity | Issue | Verified |
 |---|---|---|---|
-| 1 | Blocker | [VoiceOver reads "Interaction content" instead of the message](issues/01-interaction-content.md) | Source + simulator |
-| 2 | Blocker | [Timeline tasks cannot be read or completed with VoiceOver](issues/02-timeline-phase-card.md) | Source |
-| 3 | Blocker | [Performance export share sheet dismisses itself after 0.5 s (looks broken for everyone)](issues/03-performance-export.md) | Source; not run |
-| 4 | Blocker | [Document viewer hides Close and all controls after 3 s on videos](issues/04-document-viewer.md) | Source |
-| 5 | High | [Results and errors are never announced; success messages vanish in 2–3 s](issues/05-status-messages.md) | Source |
-| 6 | High | [Merged elements swallow buttons and drop visible information](issues/06-combined-elements.md) | Source; partly simulator |
-| 7 | High | [Colour contrast below WCAG AA in light and dark mode](issues/07-contrast.md) | Computed + simulator |
-| 8 | High | [Meaning conveyed by colour alone](issues/08-color-only.md) | Source |
-| 9 | High | [Layouts that truncate, clip or cannot scroll at accessibility text sizes](issues/09-larger-text.md) | Source + simulator |
-| 10 | High | [Hit targets under 44 pt; full-width buttons where only the word is tappable](issues/10-hit-targets.md) | Source + simulator |
-| 11 | High | [Unnamed or misnamed controls and form fields; state not exposed](issues/11-names-and-forms.md) | Source |
-| 12 | Medium | [Spoken names that do not contain the visible text](issues/12-voice-control.md) | Source |
-| 13 | Medium | [Analytics charts lack Audio Graphs and per-point access](issues/13-charts.md) | Source |
-| 14 | Low | [Reduce Motion, raw values, noise, unconfirmed discard, dead code](issues/14-polish.md) | Source |
+| #250 | Blocker | [VoiceOver reads "Interaction content" instead of the message](issues/01-interaction-content.md) | Source + simulator |
+| #251 | Blocker | [Timeline tasks cannot be read or completed with VoiceOver](issues/02-timeline-phase-card.md) | Source |
+| #252 | Blocker | [Performance export share sheet dismisses itself after 0.5 s (looks broken for everyone)](issues/03-performance-export.md) | Source; not run |
+| #253 | Blocker | [Document viewer hides Close and all controls after 3 s on videos](issues/04-document-viewer.md) | Source |
+| #254 | High | [Results and errors are never announced; success messages vanish in 2–3 s](issues/05-status-messages.md) | Source |
+| #255 | High | [Merged elements swallow buttons and drop visible information](issues/06-combined-elements.md) | Source; partly simulator |
+| #256 | High | [Colour contrast below WCAG AA in light and dark mode](issues/07-contrast.md) | Computed + simulator |
+| #257 | High | [Meaning conveyed by colour alone](issues/08-color-only.md) | Source |
+| #258 | High | [Layouts that truncate, clip or cannot scroll at accessibility text sizes](issues/09-larger-text.md) | Source + simulator |
+| #259 | High | [Hit targets under 44 pt; full-width buttons where only the word is tappable](issues/10-hit-targets.md) | Source + simulator |
+| #260 | High | [Unnamed or misnamed controls and form fields; state not exposed](issues/11-names-and-forms.md) | Source |
+| #261 | Medium | [Spoken names that do not contain the visible text](issues/12-voice-control.md) | Source |
+| #262 | Medium | [Analytics charts lack Audio Graphs and per-point access](issues/13-charts.md) | Source |
+| #263 | Low | [Reduce Motion, raw values, noise, unconfirmed discard, dead code](issues/14-polish.md) | Source |
+| #264 | — | [Final verification before declaring App Store labels or WCAG AA](issues/15-final-verification.md) | To do last |
 
 One further High finding is privacy-sensitive and unverified on device. This repository is public, so it was reported
 to the maintainer directly and is not in these files.
@@ -66,6 +67,8 @@ to the maintainer directly and is not in these files.
 3. Colour tokens in `AppColors.swift`, decided together with the web app (recruiting-compass-web#1083).
 4. The text-only tappable bars and the gate screens that do not scroll — both sit on first-run paths.
 5. Everything else, area by area.
+6. The final verification issue: a clean automated audit, manual VoiceOver / Voice Control / Switch Control / Larger
+   Text passes on a device, and a recorded yes or no per label.
 
 ## Corrections made after checking on the simulator
 
