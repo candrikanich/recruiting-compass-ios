@@ -57,6 +57,18 @@ final class EventsServiceImpl: EventsManaging, Sendable {
     }
   }
 
+  func fetchVisitEvents(userId: String) async throws -> [SchoolVisitEvent] {
+    try await logger.fetch("visit events") {
+      try await supabaseManager.client
+        .from("events")
+        .select("school_id, start_date")
+        .eq("user_id", value: userId)
+        .in("type", values: [EventType.officialVisit.rawValue, EventType.unofficialVisit.rawValue])
+        .execute()
+        .value
+    }
+  }
+
   func fetchSchools(familyUnitId: String) async throws -> [SchoolSummary] {
     try await logger.fetch("schools") {
       try await supabaseManager.client

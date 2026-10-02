@@ -7,6 +7,7 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   var createEventCallCount = 0
   var fetchEventCallCount = 0
   var fetchEventsCallCount = 0
+  var fetchVisitEventsCallCount = 0
   var fetchSchoolsCallCount = 0
   var createSchoolCallCount = 0
   var updateEventCallCount = 0
@@ -125,6 +126,22 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
       )
     }
     return stubbedEvents
+  }
+
+  /// Derived from `stubbedEvents` with the same type filter the real query applies server-side.
+  func fetchVisitEvents(userId: String) async throws -> [SchoolVisitEvent] {
+    fetchVisitEventsCallCount += 1
+    if shouldThrowFetchEvents {
+      throw NSError(
+        domain: "MockEventsService",
+        code: 5,
+        userInfo: [NSLocalizedDescriptionKey: "Mock fetch events error"]
+      )
+    }
+    let visitTypes = [EventType.officialVisit.rawValue, EventType.unofficialVisit.rawValue]
+    return stubbedEvents
+      .filter { visitTypes.contains($0.type) }
+      .map { SchoolVisitEvent(schoolId: $0.schoolId, startDate: $0.startDate) }
   }
 
   func fetchSchools(familyUnitId: String) async throws -> [SchoolSummary] {
