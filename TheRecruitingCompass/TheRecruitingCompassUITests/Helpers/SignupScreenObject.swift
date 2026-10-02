@@ -14,7 +14,7 @@ final class SignupScreenObject {
   }
 
   var landingCreateAccountButton: XCUIElement {
-    app.buttons["Create a new account"]
+    app.buttons["Start now — create a new account"]
   }
 
   // MARK: - Role Selection Elements
