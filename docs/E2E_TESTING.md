@@ -26,6 +26,19 @@ xcodebuild test -scheme TheRecruitingCompass \
   -only-testing:TheRecruitingCompassUITests/OffersListE2ETests/testOffersList_navigate_displaysScreen
 ```
 
+## CI: smoke suite by default
+
+The CI E2E job runs only the classes listed in `scripts/ci/e2e-smoke-suite.txt`
+(signup, add school, log interaction). A class belongs there only if its failure
+would block a release. Run the whole target on demand:
+
+```bash
+gh workflow run ci.yml -f e2e_suite=full
+```
+
+A smoke test that hits `XCTSkip` (e.g. "Login failed") still reports green —
+read the skip count before trusting a pass.
+
 ## Why local only (and how it's enforced)
 
 The web repo's `.env` points at the **production** Supabase project, and a
