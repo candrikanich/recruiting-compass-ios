@@ -12,8 +12,13 @@ on:
     - cron: "0 8 * * *"
   workflow_dispatch:
     inputs:
+      e2e_suite:
+        description: "E2E UITests to run (smoke = scripts/ci/e2e-smoke-suite.txt)"
+        type: choice
+        options: [smoke, full]
+        default: smoke
       e2e_only_testing:
-        description: "E2E -only-testing filter, e.g. TheRecruitingCompassUITests/OffersListE2ETests (blank = whole UI test target)"
+        description: "E2E -only-testing filter, e.g. TheRecruitingCompassUITests/OffersListE2ETests (overrides e2e_suite; blank = use e2e_suite)"
         required: false
         default: ""
 
@@ -22,10 +27,42 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Docs-only changes skip the macOS jobs. This is a job-level skip rather than
+  # `paths-ignore` on purpose: the main ruleset requires "Build & Unit Tests",
+  # and a workflow that never starts leaves that check pending forever, while a
+  # skipped job reports as passed.
+  changes:
+    name: Detect code changes
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    outputs:
+      code: ${{ steps.classify.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Self-test path classifier
+        run: scripts/ci/has-code-changes.test.sh
+
+      - name: Classify changed paths
+        id: classify
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          # A range git can't resolve (new branch, force-push) yields no paths,
+          # which the classifier treats as code.
+          code=$({ git diff --name-only "$BASE...$HEAD" 2>/dev/null || true; } | scripts/ci/has-code-changes.sh)
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "Code changes: $code" >> "$GITHUB_STEP_SUMMARY"
+
   lint:
     name: SwiftLint
     runs-on: macos-15
-    if: github.event_name != 'schedule'
+    needs: changes
+    # Only an explicit "false" skips: if `changes` fails or is skipped, run.
+    if: ${{ !cancelled() && github.event_name != 'schedule' && needs.changes.outputs.code != 'false' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -44,7 +81,8 @@ jobs:
   build-and-test:
     name: Build & Unit Tests
     runs-on: macos-15
-    if: github.event_name != 'schedule'
+    needs: changes
+    if: ${{ !cancelled() && github.event_name != 'schedule' && needs.changes.outputs.code != 'false' }}
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -259,6 +297,24 @@ jobs:
           # runs that were executing tests). Per-test allowances cap a single test
           # at 300s, so 10 quiet minutes means the run is wedged.
           STALL_SECONDS=600
+
+          # Scheduled runs and the dispatch default cover only the launch-blocking
+          # flows. An explicit filter wins; `full` runs the whole target.
+          ONLY_TESTING=(-only-testing:TheRecruitingCompassUITests)
+          if [ -n "$E2E_ONLY_TESTING" ]; then
+            ONLY_TESTING=("-only-testing:$E2E_ONLY_TESTING")
+          elif [ "$E2E_SUITE" != "full" ]; then
+            ONLY_TESTING=()
+            while IFS= read -r class; do
+              # A name xcodebuild can't match runs zero tests and still exits 0.
+              if ! grep -rqs "class $class: XCTestCase" TheRecruitingCompassUITests; then
+                echo "::error::Smoke suite lists $class, which is not a UI test class"
+                exit 1
+              fi
+              ONLY_TESTING+=("-only-testing:TheRecruitingCompassUITests/$class")
+            done < <(grep -Ev '^(#|$)' ../scripts/ci/e2e-smoke-suite.txt)
+          fi
+
           run_uitests() {
             local attempt=$1
             local log="e2e-attempt-$attempt.log"
@@ -268,7 +324,7 @@ jobs:
             xcodebuild test-without-building \
               -scheme TheRecruitingCompass \
               -destination "id=$SIMULATOR_UDID" \
-              -only-testing:"${E2E_ONLY_TESTING:-TheRecruitingCompassUITests}" \
+              "${ONLY_TESTING[@]}" \
               -parallel-testing-enabled NO \
               -test-timeouts-enabled YES \
               -default-test-execution-time-allowance 120 \
@@ -341,6 +397,7 @@ jobs:
           TEST_RUNNER_E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
           TEST_RUNNER_E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
           E2E_ONLY_TESTING: ${{ inputs.e2e_only_testing }}
+          E2E_SUITE: ${{ inputs.e2e_suite || 'smoke' }}
 
       - name: Summarize E2E results
         if: always()
