@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "seed:e2e": "tsx seed-e2e.ts"
+    "seed:e2e": "tsx seed-e2e.ts",
+    "export:calendar-fixture": "tsx export-web-calendar-fixture.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1"
