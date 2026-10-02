@@ -10,7 +10,7 @@ How to reproduce everything on this page: [Running it](#running-it).
 |---|---|
 | Network per screen (#240) | Recorded 2026-10-02 — see below |
 | Memory, simulator (#239) | Recorded 2026-10-02, stable across two runs |
-| Cold launch, simulator (#239) | **Not recorded** — three runs, 19–37% run-to-run spread; the Mac was under heavy load |
+| Cold launch, simulator (#239) | Recorded 2026-10-02 — 2.48 s, three runs within 3.5% |
 | Scroll hitches | **Not measurable on the simulator** — needs a device (#242) |
 | Device (Instruments) | Not yet run (#242) |
 | Field (Organizer, Sentry hangs) | Blocked until 1.0 has been live 14 days (#243) |
@@ -72,16 +72,23 @@ compare commit to commit on the same machine; they are not judged against the de
 | Recruiting Timeline | 108.9 | 108.6 | 0.2% |
 | Notifications | 109.5 | 109.8 | 0.1% |
 
-### Cold launch — not a baseline
+### Cold launch
 
-| Run | Average (s) | Run-to-run spread |
+Process start to the first frame of the landing screen (`--uitesting` clears the session). Three runs of five
+launches each, `test-without-building`, with no other job running.
+
+| Run | Average (s) | Spread within the run |
 |---|---|---|
-| 1 | 3.58 | 21.5% |
-| 2 | 4.64 | 19.1% |
-| 3 | 5.24 | 37.4% |
+| 1 | 2.53 | 3.8% |
+| 2 | 2.44 | 1.0% |
+| 3 | 2.47 | 1.4% |
 
-The Mac's load average was between 13 and 276 during these runs (other jobs were building and testing at the
-same time). Re-run `testColdLaunch` on an idle machine and replace this table once the spread is under 10%.
+**Baseline: 2.48 s** (mean of the three; they agree within 3.5%). A change of more than about 5% is a real
+regression.
+
+This is a Debug build on the simulator, launched through the XCTest harness, so it is not comparable to the
+400 ms device budget — that is judged in #242. It replaces three earlier runs taken while other jobs were
+building (3.58–5.24 s, 19–37% spread), which were discarded.
 
 ### Scroll hitches — device only
 
