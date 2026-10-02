@@ -262,7 +262,7 @@ jobs:
           run_uitests() {
             local attempt=$1
             local log="e2e-attempt-$attempt.log"
-            rm -rf "E2EResults-$attempt.xcresult" e2e-stalled
+            rm -rf "E2EResults-$attempt.xcresult" e2e-stalled e2e-login-blocked
             : > "$log"
             set +e
             xcodebuild test-without-building \
@@ -288,6 +288,17 @@ jobs:
                   kill -9 "$xpid" 2>/dev/null
                   break
                 fi
+                # Every E2E test XCTSkips (after ~45s) when sign-in fails. If the
+                # run opens with nothing but those, the app cannot sign in at all
+                # and the remaining ~335 tests would burn hours to say the same.
+                blocked=$(grep -c "Test skipped - Login failed" "$log" || true)
+                passed=$(grep -cE "^Test Case .* passed" "$log" || true)
+                if [ "$blocked" -ge 5 ] && [ "$passed" -eq 0 ]; then
+                  echo "::error::first $blocked tests all skipped on 'Login failed' — the app cannot sign in to the E2E project; stopping the run"
+                  touch e2e-login-blocked
+                  kill -9 "$xpid" 2>/dev/null
+                  break
+                fi
               done
             ) &
             local wpid=$!
@@ -304,6 +315,9 @@ jobs:
             echo "::endgroup::"
             if [ "$rc" -eq 0 ]; then
               exit 0
+            fi
+            if [ -f e2e-login-blocked ]; then
+              exit 1
             fi
             # Retry only infrastructure failures (stalled, or died before any test
             # finished). Real test failures must fail the job, not rerun the suite.
