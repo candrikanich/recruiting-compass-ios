@@ -38,6 +38,8 @@ final class TimelineViewModel {
     return authManager.user?.id
   }
 
+  @ObservationIgnored private var inFlightLoad: (key: String, task: Task<Void, Never>)?
+
   private let tasksService: any TasksManaging
   private let apiService: any TimelineAPIManaging
   private let preferenceService: any PreferenceManaging
@@ -86,60 +88,110 @@ final class TimelineViewModel {
       errorMessage = "Unable to load timeline."
       return
     }
+    await coalescing("full:\(athleteId)") { await self.performLoad(athleteId: athleteId) }
+  }
 
+  /// Phase, status score and top priority only — what the dashboard card shows. Skips the task list
+  /// and player preferences, which only the Timeline screen reads.
+  func loadSummary() async {
+    guard let athleteId = currentAthleteId else {
+      errorMessage = "Unable to load timeline."
+      return
+    }
+    await coalescing("summary:\(athleteId)") { await self.performSummaryLoad() }
+  }
+
+  /// Joins a load already in flight for the same key instead of starting a second one. The dashboard
+  /// asks twice at launch: from `.task`, then again when the family finishes loading.
+  private func coalescing(_ key: String, _ operation: @escaping @MainActor () async -> Void) async {
+    if let inFlightLoad, inFlightLoad.key == key {
+      await inFlightLoad.task.value
+      return
+    }
+    let task = Task { await operation() }
+    inFlightLoad = (key, task)
+    await task.value
+    if inFlightLoad?.key == key { inFlightLoad = nil }
+  }
+
+  private func performLoad(athleteId: String) async {
     isLoading = true
     errorMessage = nil
     defer { isLoading = false }
 
     do {
-      let token = authManager.session?.accessToken
-
-      async let prefsResult = preferenceService.fetchPreferences(category: .player, userId: currentAthleteId) as PlayerDetails?
+      async let prefsResult = preferenceService.fetchPreferences(category: .player, userId: athleteId) as PlayerDetails?
       async let tasksResult = tasksService.fetchAllTasksWithStatus(athleteId: athleteId)
-      async let phaseResult = apiService.fetchPhase(accessToken: token)
-      async let statusResult = apiService.fetchStatus(accessToken: token)
-      async let whatMattersResult = apiService.fetchWhatMattersNow(accessToken: token)
+      async let summaryResult: Void = fetchSummary()
 
       let prefs = try await prefsResult
       graduationYear = prefs?.graduationYear
       athleteSport = prefs?.primarySport
       athleteGender = prefs?.gender
       tasksByGrade = try await tasksResult.mapValues { TimelineTaskSort.sorted($0) }
-
-      let phaseData = try await phaseResult
-      currentPhase = phaseData.phase
-      milestoneProgress = phaseData.milestoneProgress
-      canAdvancePhase = phaseData.canAdvance
-
-      let status = try await statusResult
-      statusScore = StatusScore(score: status.score, label: status.label, breakdown: status.breakdown)
-
-      // Non-fatal: a missing/failing what-matters-now endpoint must degrade to
-      // "no pending priorities", not abort the whole timeline load. The card
-      // already renders on statusScore alone.
-      do {
-        let items = try await whatMattersResult
-        whatMattersItems = Array(items.prefix(5))
-        currentTask = items.first
-      } catch {
-        logger.error("what-matters-now failed (non-fatal): \(error.localizedDescription)")
-        whatMattersItems = []
-        currentTask = nil
-      }
+      try await summaryResult
 
       if expandedPhaseGrade == nil {
         expandedPhaseGrade = currentPhase.gradeLevel
       }
-
-      logger.info("Timeline loaded: phase=\(phaseData.phase.rawValue), status=\(status.score)/100")
     } catch {
       logger.error("Failed to load timeline: \(error.localizedDescription)")
       errorMessage = "Failed to load timeline. Please try again."
     }
   }
 
+  private func performSummaryLoad() async {
+    isLoading = true
+    errorMessage = nil
+    defer { isLoading = false }
+
+    do {
+      try await fetchSummary()
+    } catch {
+      logger.error("Failed to load timeline summary: \(error.localizedDescription)")
+      errorMessage = "Failed to load timeline. Please try again."
+    }
+  }
+
+  private func fetchSummary() async throws {
+    let token = authManager.session?.accessToken
+
+    async let phaseResult = apiService.fetchPhase(accessToken: token)
+    async let statusResult = apiService.fetchStatus(accessToken: token)
+    async let whatMattersResult = apiService.fetchWhatMattersNow(accessToken: token)
+
+    let phaseData = try await phaseResult
+    currentPhase = phaseData.phase
+    milestoneProgress = phaseData.milestoneProgress
+    canAdvancePhase = phaseData.canAdvance
+
+    let status = try await statusResult
+    statusScore = StatusScore(score: status.score, label: status.label, breakdown: status.breakdown)
+
+    // Non-fatal: a missing/failing what-matters-now endpoint must degrade to
+    // "no pending priorities", not abort the whole timeline load. The card
+    // already renders on statusScore alone.
+    do {
+      let items = try await whatMattersResult
+      whatMattersItems = Array(items.prefix(5))
+      currentTask = items.first
+    } catch {
+      logger.error("what-matters-now failed (non-fatal): \(error.localizedDescription)")
+      whatMattersItems = []
+      currentTask = nil
+    }
+
+    logger.info("Timeline loaded: phase=\(phaseData.phase.rawValue), status=\(status.score)/100")
+  }
+
+  /// Always fetches: a refresh follows a write or a pull-to-refresh, so joining a load that started
+  /// earlier would show stale data.
   func refresh() async {
-    await load()
+    guard let athleteId = currentAthleteId else {
+      errorMessage = "Unable to load timeline."
+      return
+    }
+    await performLoad(athleteId: athleteId)
   }
 
   func setExpandedPhase(grade: Int?) {

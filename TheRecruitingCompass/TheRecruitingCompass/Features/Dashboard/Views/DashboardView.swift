@@ -59,7 +59,7 @@ struct DashboardView: View {
         }
         .refreshable {
           await viewModel.refresh()
-          await timelineViewModel.refresh()
+          await timelineViewModel.loadSummary()
         }
       }
       .navigationTitle("Dashboard")
@@ -93,7 +93,7 @@ struct DashboardView: View {
         await subscribeRealtime()
       }
       .task {
-        await timelineViewModel.load()
+        await timelineViewModel.loadSummary()
       }
       .task {
         if let userId = authManager.user?.id {
@@ -101,7 +101,7 @@ struct DashboardView: View {
         }
       }
       .onChange(of: familyManager.selectedAthleteId) { _, _ in
-        Task { await timelineViewModel.load() }
+        Task { await timelineViewModel.loadSummary() }
       }
       .onChange(of: familyManager.familyUnitId) { _, _ in
         let service = realtimeService

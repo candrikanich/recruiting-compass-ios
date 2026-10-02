@@ -5,7 +5,7 @@ import Supabase
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "TasksService")
 
 /// Raw row from Supabase `task` table (snake_case columns).
-private struct TaskRow: Codable {
+struct TaskRow: Codable {
   let id: String
   let title: String
   let description: String?
@@ -99,32 +99,38 @@ final class TasksServiceImpl: TasksManaging, Sendable {
       .execute()
       .value
 
-    async let athleteTasksResult: [AthleteTaskStatus] = supabaseManager.client
+    async let athleteTasksResult = fetchAthleteTasks(athleteId: athleteId)
+
+    let (rows, athleteTasks) = try await (rowsResult, athleteTasksResult)
+    let result = Self.tasksWithStatus(rows: rows, athleteTasks: athleteTasks, graduationYear: graduationYear)
+
+    logger.info("Fetched \(result.count) tasks with status")
+    return result
+  }
+
+  private func fetchAthleteTasks(athleteId: String) async throws -> [AthleteTaskStatus] {
+    try await supabaseManager.client
       .from("athlete_task")
       .select()
       .eq("athlete_id", value: athleteId)
       .execute()
       .value
+  }
 
-    let (rows, athleteTasks) = try await (rowsResult, athleteTasksResult)
+  /// Joins one grade's task rows with the athlete's statuses. Prerequisites are listed by title only when
+  /// they are among `rows`; completion is checked against every status, whatever its grade.
+  static func tasksWithStatus(
+    rows: [TaskRow], athleteTasks: [AthleteTaskStatus], graduationYear: Int?
+  ) -> [TaskWithStatus] {
     let athleteTaskByTaskId = Dictionary(uniqueKeysWithValues: athleteTasks.map { ($0.taskId, $0) })
-
     let taskSummariesById: [String: TaskSummary] = Dictionary(
       uniqueKeysWithValues: rows.map { ($0.id, TaskSummary(id: $0.id, title: $0.title)) }
     )
+    let completedTaskIds = Set(athleteTasks.filter { $0.status == .completed }.map(\.taskId))
 
-    var result: [TaskWithStatus] = []
-    for row in rows {
-      let athleteTask = athleteTaskByTaskId[row.id]
-      let prerequisiteTasks = (row.dependencyTaskIds ?? []).compactMap { taskSummariesById[$0] }
-      let completedTaskIds = Set(athleteTasks.filter { $0.status == .completed }.map(\.taskId))
-      let hasIncompletePrerequisites = (row.dependencyTaskIds ?? []).contains { !completedTaskIds.contains($0) }
-
-      let deadlineDate = TaskDeadlineCalculator.deadlineDate(
-        graduationYear: graduationYear, offsetMonths: row.deadlineOffsetMonths
-      )
-
-      let task = TaskWithStatus(
+    return rows.map { row in
+      let dependencyTaskIds = row.dependencyTaskIds ?? []
+      return TaskWithStatus(
         id: row.id,
         title: row.title,
         description: row.description,
@@ -132,39 +138,50 @@ final class TasksServiceImpl: TasksManaging, Sendable {
         category: row.category,
         division: row.division,
         required: row.required,
-        deadlineDate: deadlineDate,
+        deadlineDate: TaskDeadlineCalculator.deadlineDate(
+          graduationYear: graduationYear, offsetMonths: row.deadlineOffsetMonths
+        ),
         whyItMatters: row.whyItMatters,
         failureRisk: row.failureRisk,
-        dependencyTaskIds: row.dependencyTaskIds ?? [],
-        athleteTask: athleteTask,
-        prerequisiteTasks: prerequisiteTasks,
-        hasIncompletePrerequisites: hasIncompletePrerequisites
+        dependencyTaskIds: dependencyTaskIds,
+        athleteTask: athleteTaskByTaskId[row.id],
+        prerequisiteTasks: dependencyTaskIds.compactMap { taskSummariesById[$0] },
+        hasIncompletePrerequisites: dependencyTaskIds.contains { !completedTaskIds.contains($0) }
       )
-      result.append(task)
     }
-
-    logger.info("Fetched \(result.count) tasks with status")
-    return result
   }
 
+  static func tasksByGrade(
+    rows: [TaskRow], athleteTasks: [AthleteTaskStatus], graduationYear: Int?, grades: [Int]
+  ) -> [Int: [TaskWithStatus]] {
+    let rowsByGrade = Dictionary(grouping: rows, by: \.gradeLevel)
+    return Dictionary(uniqueKeysWithValues: grades.map { grade in
+      (grade, tasksWithStatus(
+        rows: rowsByGrade[grade] ?? [], athleteTasks: athleteTasks, graduationYear: graduationYear
+      ))
+    })
+  }
+
+  /// Three requests however many grades there are: the athlete's statuses are the same for every grade,
+  /// so they are fetched once rather than once per grade.
   func fetchAllTasksWithStatus(athleteId: String) async throws -> [Int: [TaskWithStatus]] {
     let grades = [9, 10, 11, 12]
-    let graduationYear = try await fetchGraduationYear(athleteId: athleteId)
-    let result = try await withThrowingTaskGroup(of: (Int, [TaskWithStatus]).self) { group in
-      for grade in grades {
-        group.addTask {
-          (grade, try await self.fetchTasksWithStatus(
-            gradeLevel: grade, athleteId: athleteId, graduationYear: graduationYear
-          ))
-        }
-      }
-      var byGrade: [Int: [TaskWithStatus]] = [:]
-      for try await (grade, tasks) in group {
-        byGrade[grade] = tasks
-      }
-      return byGrade
-    }
-    logger.info("Fetched tasks for all grades, total: \(result.values.flatMap { $0 }.count)")
+
+    async let graduationYearResult = fetchGraduationYear(athleteId: athleteId)
+    async let rowsResult: [TaskRow] = supabaseManager.client
+      .from("task")
+      .select()
+      .in("grade_level", values: grades)
+      .order("id", ascending: true)
+      .execute()
+      .value
+    async let athleteTasksResult = fetchAthleteTasks(athleteId: athleteId)
+
+    let (graduationYear, rows, athleteTasks) = try await (graduationYearResult, rowsResult, athleteTasksResult)
+    let result = Self.tasksByGrade(
+      rows: rows, athleteTasks: athleteTasks, graduationYear: graduationYear, grades: grades
+    )
+    logger.info("Fetched tasks for all grades, total: \(rows.count)")
     return result
   }
 
