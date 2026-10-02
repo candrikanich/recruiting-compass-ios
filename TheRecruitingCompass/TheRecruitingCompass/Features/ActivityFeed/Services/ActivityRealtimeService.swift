@@ -48,13 +48,15 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     onInsert: @escaping @MainActor @Sendable (ActivityEvent) -> Void,
     onChange: @escaping @MainActor @Sendable () -> Void
   ) async throws {
+    await unsubscribe()
+
     logger.info("Subscribing to realtime activity updates for user: \(userId), family: \(familyUnitId ?? "none")")
 
     // Interactions — use family_unit_id when available (catches family member changes)
     let interactionsFilter = familyUnitId.map { "family_unit_id=eq.\($0)" } ?? "logged_by=eq.\(userId)"
     let interactionsChannel = supabaseManager.client
       .realtimeV2
-      .channel("activity-interactions-\(familyUnitId ?? userId)")
+      .exclusiveChannel("activity-interactions-\(familyUnitId ?? userId)")
 
     _ = interactionsChannel
       .onPostgresChange(
@@ -93,6 +95,7 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
       try await interactionsChannel.subscribeWithError()
       self.interactionsChannel = interactionsChannel
     } catch {
+      await supabaseManager.client.realtimeV2.removeChannel(interactionsChannel)
       logger.error("Failed to subscribe to interactions: \(error.localizedDescription)")
       throw ActivityRealtimeError.subscriptionFailed
     }
@@ -100,7 +103,7 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     // School status history — no family_unit_id column, stays user-scoped
     let statusChangesChannel = supabaseManager.client
       .realtimeV2
-      .channel("activity-status-\(userId)")
+      .exclusiveChannel("activity-status-\(userId)")
 
     _ = statusChangesChannel
       .onPostgresChange(
@@ -139,6 +142,7 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
       try await statusChangesChannel.subscribeWithError()
       self.statusChangesChannel = statusChangesChannel
     } catch {
+      await supabaseManager.client.realtimeV2.removeChannel(statusChangesChannel)
       logger.error("Failed to subscribe to status changes: \(error.localizedDescription)")
       throw ActivityRealtimeError.subscriptionFailed
     }
@@ -147,7 +151,7 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     let documentsFilter = familyUnitId.map { "family_unit_id=eq.\($0)" } ?? "user_id=eq.\(userId)"
     let documentsChannel = supabaseManager.client
       .realtimeV2
-      .channel("activity-documents-\(familyUnitId ?? userId)")
+      .exclusiveChannel("activity-documents-\(familyUnitId ?? userId)")
 
     _ = documentsChannel
       .onPostgresChange(
@@ -186,6 +190,7 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
       try await documentsChannel.subscribeWithError()
       self.documentsChannel = documentsChannel
     } catch {
+      await supabaseManager.client.realtimeV2.removeChannel(documentsChannel)
       logger.error("Failed to subscribe to documents: \(error.localizedDescription)")
       throw ActivityRealtimeError.subscriptionFailed
     }
@@ -197,17 +202,17 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     logger.info("Unsubscribing from all activity channels")
 
     if let channel = interactionsChannel {
-      await channel.unsubscribe()
+      await supabaseManager.client.realtimeV2.removeChannel(channel)
       interactionsChannel = nil
     }
 
     if let channel = statusChangesChannel {
-      await channel.unsubscribe()
+      await supabaseManager.client.realtimeV2.removeChannel(channel)
       statusChangesChannel = nil
     }
 
     if let channel = documentsChannel {
-      await channel.unsubscribe()
+      await supabaseManager.client.realtimeV2.removeChannel(channel)
       documentsChannel = nil
     }
 

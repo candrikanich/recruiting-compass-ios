@@ -633,11 +633,17 @@ private struct SignupTermsSectionView: View {
   @Binding var presentedLegal: LegalDocument?
 
   var body: some View {
-    TermsCheckbox(
-      isChecked: $viewModel.termsAccepted,
-      onTermsPressed: { presentedLegal = .termsOfService },
-      onPrivacyPressed: { presentedLegal = .privacyPolicy }
-    )
+    VStack(alignment: .leading, spacing: 8) {
+      TermsCheckbox(
+        isChecked: $viewModel.termsAccepted,
+        onTermsPressed: { presentedLegal = .termsOfService },
+        onPrivacyPressed: { presentedLegal = .privacyPolicy }
+      )
+
+      if viewModel.isMarketingOptInVisible {
+        MarketingOptInCheckbox(isChecked: $viewModel.marketingOptIn)
+      }
+    }
   }
 }
 

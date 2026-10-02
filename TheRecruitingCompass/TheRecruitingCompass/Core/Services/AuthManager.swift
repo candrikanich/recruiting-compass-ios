@@ -141,6 +141,7 @@ final class AuthManager: AuthManaging {
     zipCode: String? = nil,
     captchaToken: String,
     skipVerificationEmail: Bool = false,
+    marketingEmailOptIn: Bool? = nil,
     beforePublish: (() async throws -> Void)? = nil
   ) async throws {
     logger.debug("Attempting signup for: \(email.prefix(3))*** role: \(role.rawValue)")
@@ -161,7 +162,8 @@ final class AuthManager: AuthManaging {
         gender: gender,
         zipCode: zipCode,
         captchaToken: captchaToken,
-        skipVerificationEmail: skipVerificationEmail
+        skipVerificationEmail: skipVerificationEmail,
+        marketingEmailOptIn: marketingEmailOptIn
       )
       // Flush BEFORE publishing isAuthenticated (see login()'s equivalent comment) — a
       // signup that returns a session immediately (no email confirmation required) must

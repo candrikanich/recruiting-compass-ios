@@ -96,7 +96,8 @@ async function ensureFamily(parentId: string, playerId: string): Promise<string>
 
   if (!familyId) {
     const unit = must("family_units", await supabase
-      .from("family_units").insert({ family_name: "Rivera Family", created_by_user_id: parentId })
+      // inbound_token is NOT NULL (^[a-z0-9]{8}$); a fixed token keeps the forwarding address stable on camera.
+      .from("family_units").insert({ family_name: "Rivera Family", created_by_user_id: parentId, inbound_token: "rvra2026" })
       .select("id").single());
     familyId = unit.id as string;
     must("parent member", await supabase.from("family_members")
