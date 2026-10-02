@@ -60,17 +60,7 @@ final class RecruitingCalendarTests: XCTestCase {
             }
         }
     }
-    // PARITY GUARD: per-key period counts match web (fill EXPECTED from the web calendarData.ts you port from)
-    func test_parity_periodCounts() {
-        let expected: [NcaaCalendarKey: Int] = [
-            .MBA: 12, .WSB: 13, .MBB: 18, .WBB: 24, .FBS: 4, .FCS: 7, .XCTF: 7, .WVB: 13,
-            .MGO: 7, .MLA: 16, .WLA: 18, .other: 1, .OTHER_MSOCCER: 3, .OTHER_WSOCCER: 4,
-            .OTHER_SWIM: 4, .OTHER_MICEHOCKEY: 2, .OTHER_WICEHOCKEY: 3, .OTHER_ROWING: 2,
-            .OTHER_FIELDHOCKEY: 2, .OTHER_MWRESTLING: 3, .OTHER_WWRESTLING: 2,
-            .otherWGYM: 7,
-        ]
-        for (key, n) in expected { XCTAssertEqual(RecruitingCalendar.calendarFor(key: key).periods.count, n, "\(key)") }
-    }
+    // Web parity (every period/milestone field) lives in RecruitingCalendarWebParityTests.
     // sport-specificity regression (mirrors web): July-4 dead for Baseball, not Tennis
     func test_isDeadPeriod_sportSpecific() {
         XCTAssertTrue(RecruitingCalendar.isDeadPeriod("2027-07-04", sport: "Baseball", division: "D1"))
