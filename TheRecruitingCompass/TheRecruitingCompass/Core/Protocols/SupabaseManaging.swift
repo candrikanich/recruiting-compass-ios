@@ -3,7 +3,7 @@ import Helpers
 
 /// Protocol for Supabase auth operations. Enables dependency injection and testing (e.g. MockSupabaseManager).
 protocol SupabaseManaging: Sendable {
-  /// Restores the Supabase client session from stored tokens. Call before refreshSession when restoring from Keychain.
+  /// Restores the Supabase client session from stored tokens. Call before getCurrentSession when restoring from Keychain.
   func setSession(accessToken: String, refreshToken: String) async throws
   /// Authenticates with email and password and returns the resolved user and session.
   func signIn(email: String, password: String, captchaToken: String) async throws -> (user: User, session: Session)
@@ -29,10 +29,9 @@ protocol SupabaseManaging: Sendable {
   func signInWithTokenHash(_ tokenHash: String) async throws -> (user: User, session: Session)
   /// Invalidates the current session on the Supabase backend.
   func signOut() async throws
-  /// Returns the active session if one exists and the token has not expired, otherwise `nil`.
+  /// Returns the active session — refreshing the access token if it has expired — with the user's profile
+  /// freshly read from `users`, or `nil` when there is no session. Each call costs that profile read.
   func getCurrentSession() async throws -> Session?
-  /// Uses the stored refresh token to obtain a new access token and returns the updated user.
-  func refreshSession() async throws -> User
   /// Sends a new verification email to the given address.
   func resendVerificationEmail(email: String, captchaToken: String) async throws
   /// Sends a password-reset email to the given address.
