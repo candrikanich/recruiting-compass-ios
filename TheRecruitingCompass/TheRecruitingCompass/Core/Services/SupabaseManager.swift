@@ -8,6 +8,28 @@ private let logger = Logger(
   category: "SupabaseManager"
 )
 
+/// Request body for `POST /api/auth/signup` — mirrors `SignupBody` in
+/// server/api/auth/signup.post.ts. That endpoint (not the Supabase SDK) owns
+/// account creation and the custom verification email for every platform;
+/// calling Supabase Auth directly here would bypass sendVerificationEmail()
+/// entirely, which is what left iOS parent signups with no verification email.
+struct WebSignupBody: Encodable {
+  let email: String
+  let password: String
+  let fullName: String
+  let role: String
+  let dateOfBirth: String?
+  let captchaToken: String
+  let metadata: [String: String]
+  // Invite/guardian-claim signups stamp email_verified_at when the invite is
+  // accepted moments later, so they must skip the verify-email flow entirely —
+  // matches web's join.vue/guardian claim callers (server/api/auth/signup.post.ts).
+  let skipVerificationEmail: Bool
+  /// Marketing consent (web #1066). Set only for marketing-eligible adults; nil is omitted
+  /// from the JSON (synthesized `encodeIfPresent`), which the server treats as false.
+  let marketingEmailOptIn: Bool?
+}
+
 /// @unchecked Sendable: Wraps the Supabase Swift SDK's SupabaseClient,
 /// which is not Sendable but is designed for concurrent use. All operations
 /// delegate to the underlying client which handles its own thread safety.
@@ -60,25 +82,6 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
       case fullName = "full_name"
       case dateOfBirth = "date_of_birth"
     }
-  }
-
-  /// Request body for `POST /api/auth/signup` — mirrors `SignupBody` in
-  /// server/api/auth/signup.post.ts. That endpoint (not the Supabase SDK) owns
-  /// account creation and the custom verification email for every platform;
-  /// calling Supabase Auth directly here would bypass sendVerificationEmail()
-  /// entirely, which is what left iOS parent signups with no verification email.
-  private struct WebSignupBody: Encodable {
-    let email: String
-    let password: String
-    let fullName: String
-    let role: String
-    let dateOfBirth: String?
-    let captchaToken: String
-    let metadata: [String: String]
-    // Invite/guardian-claim signups stamp email_verified_at when the invite is
-    // accepted moments later, so they must skip the verify-email flow entirely —
-    // matches web's join.vue/guardian claim callers (server/api/auth/signup.post.ts).
-    let skipVerificationEmail: Bool
   }
 
   private struct WebSignupResult: Decodable {
@@ -150,7 +153,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     gender: String? = nil,
     zipCode: String? = nil,
     captchaToken: String,
-    skipVerificationEmail: Bool = false
+    skipVerificationEmail: Bool = false,
+    marketingEmailOptIn: Bool? = nil
   ) async throws -> (user: User, session: Session?) {
     // family_code isn't accepted by the web signup endpoint's metadata (server/api/auth/signup.post.ts
     // ALLOWED_METADATA_KEYS) — family creation is its own step after signup (see
@@ -183,7 +187,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         dateOfBirth: (dateOfBirth?.isEmpty == false) ? dateOfBirth : nil,
         captchaToken: captchaToken,
         metadata: metadata,
-        skipVerificationEmail: skipVerificationEmail
+        skipVerificationEmail: skipVerificationEmail,
+        marketingEmailOptIn: marketingEmailOptIn
       )
     )
 

@@ -20,6 +20,11 @@ enum COPPAHelper {
     return f
   }()
 
+  /// Whole years elapsed between a date of birth and `now`.
+  static func age(fromDateOfBirth dob: Date, now: Date = .now, calendar: Calendar = .current) -> Int {
+    calendar.dateComponents([.year], from: dob, to: now).year ?? 0
+  }
+
   /// Returns true if the given date of birth indicates the user is under 13.
   /// Fails closed: a date string that parses as neither format is treated as under-age,
   /// so a malformed DOB can never bypass the age gate.
@@ -30,9 +35,7 @@ enum COPPAHelper {
       date = fallbackFormatter.date(from: dateOfBirth)
     }
     guard let dob = date else { return true }
-    let calendar = Calendar.current
-    let age = calendar.dateComponents([.year], from: dob, to: Date.now).year ?? 0
-    return age < minimumAge
+    return age(fromDateOfBirth: dob) < minimumAge
   }
 
   /// Returns true when the date of birth indicates ages 13-17 (inclusive) — a minor
@@ -46,7 +49,7 @@ enum COPPAHelper {
       date = fallbackFormatter.date(from: dateOfBirth)
     }
     guard let dob = date else { return false }
-    let age = Calendar.current.dateComponents([.year], from: dob, to: Date.now).year ?? 0
-    return age >= minimumAge && age < adultAge
+    let years = age(fromDateOfBirth: dob)
+    return years >= minimumAge && years < adultAge
   }
 }

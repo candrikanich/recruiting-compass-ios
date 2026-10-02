@@ -39,6 +39,7 @@ class MockAuthManager: AuthManaging {
   private(set) var capturedLoginCaptchaToken: String?
   private(set) var capturedSignupCaptchaToken: String?
   private(set) var capturedSignupSkipVerificationEmail: Bool?
+  private(set) var capturedSignupMarketingEmailOptIn: Bool?
   private(set) var capturedResetEmailCaptchaToken: String?
   private(set) var capturedResendEmailCaptchaToken: String?
   private(set) var capturedSignupGraduationYear: Int?
@@ -164,9 +165,11 @@ class MockAuthManager: AuthManaging {
     zipCode: String? = nil,
     captchaToken: String,
     skipVerificationEmail: Bool = false,
+    marketingEmailOptIn: Bool? = nil,
     beforePublish: (() async throws -> Void)? = nil
   ) async throws {
     signupCallCount += 1
+    capturedSignupMarketingEmailOptIn = marketingEmailOptIn
     capturedSignupCaptchaToken = captchaToken
     capturedSignupGraduationYear = graduationYear
     capturedSignupPrimarySport = primarySport
@@ -298,6 +301,7 @@ class MockAuthManager: AuthManaging {
     capturedLoginCaptchaToken = nil
     capturedSignupCaptchaToken = nil
     capturedSignupSkipVerificationEmail = nil
+    capturedSignupMarketingEmailOptIn = nil
     capturedResetEmailCaptchaToken = nil
     capturedResendEmailCaptchaToken = nil
     capturedSignupGraduationYear = nil

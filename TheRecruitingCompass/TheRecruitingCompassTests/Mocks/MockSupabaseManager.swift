@@ -46,6 +46,7 @@ final class MockSupabaseManager: SupabaseManaging {
   private(set) var capturedSignUpPrimarySport: String?
   private(set) var capturedSignUpGender: String?
   private(set) var capturedSignUpZipCode: String?
+  private(set) var capturedSignUpMarketingEmailOptIn: Bool?
 
   func signUp(
     email: String,
@@ -59,8 +60,10 @@ final class MockSupabaseManager: SupabaseManaging {
     gender: String?,
     zipCode: String?,
     captchaToken: String,
-    skipVerificationEmail: Bool
+    skipVerificationEmail: Bool,
+    marketingEmailOptIn: Bool?
   ) async throws -> (user: User, session: Session?) {
+    capturedSignUpMarketingEmailOptIn = marketingEmailOptIn
     capturedSignUpDateOfBirth = dateOfBirth
     capturedSignUpGraduationYear = graduationYear
     capturedSignUpPrimarySport = primarySport
