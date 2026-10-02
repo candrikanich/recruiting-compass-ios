@@ -44,6 +44,8 @@ tracking only (`Core/Services/CrashReporting.swift`), and nothing uses MetricKit
 ## Files
 
 - Create: `TheRecruitingCompass/TheRecruitingCompassUITests/Performance/PerformanceBaselineTests.swift`
+- Create: `scripts/seed-perf-large.ts` — layers a large account (60 schools, 240 interactions, 120 notifications)
+  on top of `seed-demo-screenshots.ts`; the base seed alone has 8 schools and 2 notifications, too few to scroll
 - Create: `docs/performance/baseline.md` — every number from Tasks 1–5, with device, OS, commit, date
 - Modify: `TheRecruitingCompass/TheRecruitingCompassUITests/TheRecruitingCompassUITests.swift` — delete the
   Xcode-template `testExample` and `testLaunchPerformance` (delete the file if nothing else is left)
@@ -222,8 +224,8 @@ git commit -m "test(perf): opt-in XCTest performance baseline for the five hot f
 
 ### Task 4: Instruments session on device — #242 (Chris)
 
-- [ ] **Step 1:** Install a Release-configuration build made with the iOS 27.1 SDK on a physical iPhone; sign in
-  with an account that has realistic volume (50+ schools, 200+ interactions, 100+ notifications).
+- [ ] **Step 1:** Install a Release-configuration build made with the iOS 27.1 SDK on the iPhone 17; sign in with
+  Chris's own production account (50+ schools). Read-only walkthrough — do not create, edit or delete data.
 - [ ] **Step 2:** Product → Profile, **App Launch** template. Three cold launches (force-quit between). Record time
   to first frame and time until dashboard content is on screen.
 - [ ] **Step 3:** **Hangs** track enabled, walk the five flows, scrolling each list top to bottom. Record every hang
@@ -240,6 +242,15 @@ git commit -m "test(perf): opt-in XCTest performance baseline for the five hot f
 - [ ] **Step 3:** Compare against the device baseline. Append a "Field, 1.0" section to `docs/performance/baseline.md`.
 - [ ] **Step 4:** Open `performance` issues for anything outside budget, or close #244 if everything is inside.
 
+### Task 6: Automatic baseline — #248 (blocked: #247)
+
+- [ ] **Step 1:** Once #247 gives a working scheduled UITest environment, add a job that starts the local stack,
+  runs both seed scripts, and runs `PerformanceBaselineTests` with `TEST_RUNNER_PERF_BASELINE=1`.
+- [ ] **Step 2:** Compare each metric with the committed value in `docs/performance/baseline.md`; flag a regression
+  only when it exceeds that metric's recorded run-to-run noise.
+- [ ] **Step 3:** Report by commenting on #244 (or a dedicated issue). Compare only runs from the same machine and
+  simulator.
+
 ---
 
 ## Order and owners
@@ -251,14 +262,19 @@ git commit -m "test(perf): opt-in XCTest performance baseline for the five hot f
 | 3 swiftui-pro review | #241 | Claude | 1, 2 for confirmation |
 | 4 Instruments on device | #242 | Chris | 27.1 SDK build (#219) |
 | 5 Field data | #243 | Chris + Claude | 1.0 live 14 days |
+| 6 Automatic baseline | #248 | Claude | scheduled UITests working (#247) |
 
 Tasks 1 and 2 can run in parallel. Fixes are separate issues and PRs, each re-running the Task 1 test for a
 before/after number.
 
-## Unresolved questions
+## Decisions (Chris, 2026-10-02)
 
-1. **Device and account for Task 4** — which iPhone, and is there a real account at the 50/200/100 volume, or should
-   the seed script grow a "large account" mode?
-2. **Is the 400 ms launch budget the right bar** on the oldest supported device, or only on current hardware?
-3. **Should the perf test run on a schedule?** The nightly E2E job is currently broken on hosted runners, so this
-   plan keeps it manual and opt-in.
+1. **Device and account for Task 4:** iPhone 17, signed in as Chris's own production account with 50+ schools.
+   That account is used only by Chris, on the device, for a read-only walkthrough. Automated runs (Tasks 1, 2, 6)
+   never touch a real account — they use the local stack with the large-account seed layer
+   (`scripts/seed-perf-large.ts`).
+2. **Older devices:** the budgets are a hard gate on current hardware and the target on older hardware. The
+   deployment target is iOS 18.0, so the oldest supported phones are the A12 generation. Older-device numbers come
+   from Organizer's per-device breakdown in Task 5, plus a manual run if an older phone is on hand.
+3. **Automation:** yes — the perf test should run on a schedule. That needs the scheduled UITest environment fixed
+   first (#247); the automation itself is Task 6 / #248.
