@@ -28,6 +28,12 @@ enum E2ETestEnvironment {
   /// Launch arguments + environment every E2E test should apply to its XCUIApplication.
   static func configure(_ app: XCUIApplication) {
     app.launchArguments = ["--uitesting"]
+    // A remote E2E project means a CI runner, which never completes the Cloudflare
+    // challenge; that project has captcha disabled, so the app may skip it. Local runs
+    // keep exercising the real widget.
+    if !(ProcessInfo.processInfo.environment["E2E_SUPABASE_URL"] ?? "").isEmpty {
+      app.launchArguments.append("--e2e-captcha-bypass")
+    }
     app.launchEnvironment = [
       "SUPABASE_URL": supabaseURL,
       "SUPABASE_ANON_KEY": supabaseAnonKey

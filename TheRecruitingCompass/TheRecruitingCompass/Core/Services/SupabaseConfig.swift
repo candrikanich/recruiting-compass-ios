@@ -60,6 +60,12 @@ private func supabaseAnonKey() -> String {
 }
 
 struct SupabaseConfig {
+  /// True when the UI-test launch environment supplied the backend, i.e. `url` is a test
+  /// stack rather than the embedded project. Always false in Release.
+  static var isUITestBackendOverride: Bool {
+    isUITesting && !(ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? "").isEmpty
+  }
+
   static let url: URL = {
     let urlString = supabaseURLString()
     if let url = URL(string: urlString), !urlString.isEmpty, !urlString.contains("placeholder") {
