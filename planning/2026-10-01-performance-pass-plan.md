@@ -186,8 +186,13 @@ as unstable in the baseline rather than quoting it.
 
 - [ ] **Step 4: Write `docs/performance/baseline.md`**
 
-One table per run: simulator model, iOS runtime, commit SHA, date, and per test — launch duration, scroll duration,
-hitch time ratio, number of hitches, peak memory. Add an empty "Device" section for Task 4 to fill.
+One table per run: simulator model, iOS runtime, commit SHA, date, and per test — launch duration and peak memory.
+Add an empty "Device" section for Task 4 to fill.
+
+> **Corrected 2026-10-02:** the simulator does not report hitch metrics — `scrollingAndDecelerationMetric` yields
+> only the gesture duration there. Hitch time ratio comes from a device (Task 4), by running these same tests with
+> a device destination or from Instruments. Also run with `-parallel-testing-enabled NO` on a simulator no other
+> job is using, and only on an idle machine: launch time varied 19–37% between runs under load.
 
 - [ ] **Step 5: Delete the template tests, build, commit**
 
