@@ -117,71 +117,37 @@ final class SignupFlowE2ETests: XCTestCase {
     add(app.takeScreenshot(name: "08-returned-to-landing"))
   }
 
-  // MARK: - Full Parent Signup Flow
+  // MARK: - Completed Parent Form
 
+  /// Fills every required field and checks the form becomes submittable. It stops short of
+  /// tapping "Create account": signup goes through the web API, which the E2E job points at
+  /// production (API_BASE_URL), so a real submit would hit prod with a placeholder captcha.
+  /// The account is auto-confirmed and signed in on success, so there is no
+  /// "Verify Your Email" screen to wait for either.
   @MainActor
-  func testFullParentSignupFlow() throws {
-    let userData = TestUserData.uniqueParent()
-
-    screen.navigateToSignup()
-    add(app.takeScreenshot(name: "09-signup-start"))
-
-    screen.selectRole(.parent)
-    add(app.takeScreenshot(name: "10-parent-selected"))
-
-    screen.fillSignupForm(with: userData)
-    add(app.takeScreenshot(name: "11-form-filled"))
-
-    screen.acceptTerms()
-    add(app.takeScreenshot(name: "12-terms-accepted"))
-
-    screen.submitSignup()
-
-    // Wait for either the email verification screen or an error
-    let verifyEmailExists = screen.verifyYourEmailHeadline.waitForExistence(timeout: 15)
-
-    if verifyEmailExists {
-      add(app.takeScreenshot(name: "13-email-verification-screen"))
-      XCTAssertTrue(true, "Successfully navigated to email verification screen")
-    } else {
-      add(app.takeScreenshot(name: "13-signup-error"))
-      // If we get an error (e.g., SUPABASE not configured), capture it
-      // Use descendants(matching: .any) to find combined accessibility elements
-      let errorExists = app.descendants(matching: .any).matching(
-        NSPredicate(format: "label CONTAINS[cd] 'error' OR label CONTAINS[cd] 'failed'")
-      ).firstMatch.exists
-
-      if errorExists {
-        throw XCTSkip("Signup failed with an error — Supabase may not be configured")
-      } else {
-        throw XCTSkip("Did not navigate to email verification screen within timeout — Supabase may not be configured")
-      }
-    }
-  }
-
-  // MARK: - Parent Signup (no family code field in current flow)
-
-  @MainActor
-  func testParentSignupWithoutFamilyCode() throws {
+  func testCompletedParentFormEnablesCreateAccount() throws {
     let userData = TestUserData.uniqueParent()
 
     screen.navigateToSignup()
     screen.selectRole(.parent)
+    add(app.takeScreenshot(name: "09-parent-selected"))
 
-    XCTAssertTrue(screen.firstNameField.waitForExistence(timeout: 5))
+    XCTAssertFalse(screen.createAccountButton.isEnabled, "Create account should start disabled")
 
     screen.fillSignupForm(with: userData)
+    add(app.takeScreenshot(name: "10-form-filled"))
+
     screen.acceptTerms()
+    add(app.takeScreenshot(name: "11-terms-accepted"))
 
-    add(app.takeScreenshot(name: "14-parent-form-filled"))
-
-    screen.submitSignup()
-
-    let verifyEmailExists = screen.verifyYourEmailHeadline.waitForExistence(timeout: 15)
-
-    if verifyEmailExists {
-      add(app.takeScreenshot(name: "15-parent-verification-screen"))
-    }
+    let enabled = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "isEnabled == true"),
+      object: screen.createAccountButton
+    )
+    XCTAssertEqual(
+      XCTWaiter.wait(for: [enabled], timeout: 5), .completed,
+      "Create account should be enabled once every required field and the terms box are filled"
+    )
   }
 
   // MARK: - Sign In Link Navigation

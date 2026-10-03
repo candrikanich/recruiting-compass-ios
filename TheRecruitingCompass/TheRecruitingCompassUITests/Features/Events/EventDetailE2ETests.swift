@@ -389,18 +389,6 @@ final class EventDetailE2ETests: XCTestCase {
     add(app.takeScreenshot(name: "27-quick-log-dismissed"))
   }
 
-  // MARK: - Error State
-
-  @MainActor
-  func test_eventNotFound_showsErrorMessage() throws {
-    // This test requires navigating to a non-existent event, which
-    // is difficult to trigger in a live E2E context without deep link support
-    throw XCTSkip(
-      "Cannot test event-not-found in E2E without deep link to non-existent event ID. " +
-      "Error state is covered by unit tests with MockEventsService."
-    )
-  }
-
   // MARK: - Full Journey
 
   @MainActor
