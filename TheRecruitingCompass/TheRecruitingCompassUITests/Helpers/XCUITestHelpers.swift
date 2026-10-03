@@ -116,7 +116,12 @@ extension XCUIApplication {
     // screen, so firstMatch is unambiguous.
     let emailField = textFields.firstMatch
     if emailField.waitForExistence(timeout: 5) {
-      emailField.tap()
+      // On a slow CI runner the first tap can land while the login screen is still
+      // settling and focus nothing (run 37130011653); retry until the keyboard is up.
+      for _ in 0..<3 {
+        emailField.tap()
+        if keyboards.firstMatch.waitForExistence(timeout: 5) { break }
+      }
       emailField.typeText(email)
     }
 
@@ -181,6 +186,19 @@ extension XCUIApplication {
   /// - Returns: True if dashboard appeared, false otherwise
   func waitForLogin(timeout: TimeInterval = 10) -> Bool {
     let dashboardTitle = navigationBars["Dashboard"]
-    return dashboardTitle.waitForExistence(timeout: timeout)
+    guard dashboardTitle.waitForExistence(timeout: timeout) else { return false }
+    dismissSavePasswordPrompt()
+    return true
+  }
+
+  /// iOS offers to save the just-typed password a moment after sign-in. The sheet sits
+  /// on top of the app and swallows taps, so a following tab or toolbar tap silently
+  /// misses (nightly run 37124806803). It is hosted in the app's own hierarchy.
+  func dismissSavePasswordPrompt(timeout: TimeInterval = 3) {
+    let notNow = buttons["Not Now"]
+    if notNow.waitForExistence(timeout: timeout) {
+      notNow.tap()
+      _ = notNow.waitForNonExistence(timeout: 3)
+    }
   }
 }

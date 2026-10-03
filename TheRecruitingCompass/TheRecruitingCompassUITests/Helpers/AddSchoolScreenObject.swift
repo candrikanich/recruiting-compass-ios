@@ -10,15 +10,15 @@ final class AddSchoolScreenObject {
   // MARK: - Navigation Elements
 
   var navigationTitle: XCUIElement {
-    app.navigationBars["Add New School"]
+    app.navigationBars["Add School"]
   }
 
   var backButton: XCUIElement {
-    app.navigationBars.buttons["Schools"]
+    app.navigationBars.buttons["Back to schools list"]
   }
 
   var cancelButton: XCUIElement {
-    app.buttons["Cancel"]
+    app.buttons["Cancel adding school"]
   }
 
   // MARK: - Toggle Elements
@@ -30,7 +30,7 @@ final class AddSchoolScreenObject {
   // MARK: - Autocomplete Elements
 
   var autocompleteSearchField: XCUIElement {
-    app.textFields["Type college name..."]
+    app.textFields["College search"]
   }
 
   var autocompleteDropdown: XCUIElement {
@@ -73,12 +73,15 @@ final class AddSchoolScreenObject {
 
   // MARK: - Form Field Elements
 
+  // FormFieldWrapper merges its title into one "Other" element ("School Name, required",
+  // "City", ...); the input inside it carries no label of its own.
   var nameTextField: XCUIElement {
-    app.textFields["School Name"]
+    fieldInput("School Name, required")
   }
 
+  /// The form no longer has a single Location field; City replaced it.
   var locationTextField: XCUIElement {
-    app.textFields["Location"]
+    fieldInput("City")
   }
 
   var divisionPicker: XCUIElement {
@@ -86,23 +89,27 @@ final class AddSchoolScreenObject {
   }
 
   var conferenceTextField: XCUIElement {
-    app.textFields["Conference"]
+    fieldInput("Conference")
   }
 
   var websiteTextField: XCUIElement {
-    app.textFields["Website"]
+    fieldInput("Website")
   }
 
   var twitterHandleTextField: XCUIElement {
-    app.textFields["Twitter Handle"]
+    fieldInput("Twitter Handle")
   }
 
   var instagramHandleTextField: XCUIElement {
-    app.textFields["Instagram Handle"]
+    fieldInput("Instagram Handle")
   }
 
   var notesTextView: XCUIElement {
-    app.textViews["Notes"]
+    app.otherElements["Notes"].textViews.firstMatch
+  }
+
+  private func fieldInput(_ fieldTitle: String) -> XCUIElement {
+    app.otherElements[fieldTitle].textFields.firstMatch
   }
 
   var statusPicker: XCUIElement {
@@ -191,28 +198,28 @@ final class AddSchoolScreenObject {
 
   // MARK: - Helper Methods - Navigation
 
-  func navigateToAddSchoolFromDashboard() {
-    // 1. Wait for dashboard to load
-    let dashboard = app.navigationBars["Dashboard"]
-    _ = dashboard.waitForExistence(timeout: 10)
-
-    // 2. Tap Schools tab
-    if app.tabBars.buttons["Schools"].exists {
-      app.tabBars.buttons["Schools"].tap()
+  /// Dashboard -> Schools tab -> "+" -> Add School. Fails the test at the step that
+  /// didn't happen instead of continuing on the wrong screen.
+  @discardableResult
+  func navigateToAddSchoolFromDashboard(file: StaticString = #filePath, line: UInt = #line) -> Bool {
+    guard MainTabNavigator(app: app).goTo(.schools),
+          app.navigationBars["Schools"].waitForExistence(timeout: 10) else {
+      XCTFail("Schools list did not open from the tab bar", file: file, line: line)
+      return false
     }
 
-    // 3. Wait for Schools List
-    let schoolsList = app.navigationBars["Schools"]
-    _ = schoolsList.waitForExistence(timeout: 5)
-
-    // 4. Tap Add School button
     let addButton = app.navigationBars.buttons["Add new school"]
-    if addButton.waitForExistence(timeout: 5) {
-      addButton.tap()
+    guard addButton.waitForExistence(timeout: 10) else {
+      XCTFail("\"Add new school\" toolbar button not found on Schools list", file: file, line: line)
+      return false
     }
+    addButton.tap()
 
-    // 5. Verify Add School screen loaded
-    _ = navigationTitle.waitForExistence(timeout: 5)
+    guard waitForScreenToLoad() else {
+      XCTFail("Add School screen did not open after tapping \"Add new school\"", file: file, line: line)
+      return false
+    }
+    return true
   }
 
   func waitForScreenToLoad(timeout: TimeInterval = 10) -> Bool {
