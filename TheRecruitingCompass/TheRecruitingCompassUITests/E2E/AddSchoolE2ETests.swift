@@ -10,6 +10,9 @@ final class AddSchoolE2ETests: XCTestCase {
 
   override func setUpWithError() throws {
     continueAfterFailure = false
+    // Sign-in alone takes up to ~90s on the hosted CI simulator; the job's 120s default
+    // allowance kills a passing journey (run 37130011653). 300s is the job's maximum.
+    executionTimeAllowance = 300
 
     app = XCUIApplication()
     E2ETestEnvironment.configure(app)

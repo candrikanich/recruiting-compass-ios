@@ -116,7 +116,12 @@ extension XCUIApplication {
     // screen, so firstMatch is unambiguous.
     let emailField = textFields.firstMatch
     if emailField.waitForExistence(timeout: 5) {
-      emailField.tap()
+      // On a slow CI runner the first tap can land while the login screen is still
+      // settling and focus nothing (run 37130011653); retry until the keyboard is up.
+      for _ in 0..<3 {
+        emailField.tap()
+        if keyboards.firstMatch.waitForExistence(timeout: 5) { break }
+      }
       emailField.typeText(email)
     }
 
