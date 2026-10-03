@@ -9,9 +9,11 @@ final class TasksListViewModelTests: XCTestCase {
   var mockAuthManager: MockAuthManager!
   var familyManager: FamilyManager!
   var mockCache: InMemoryCache!
+  var mockPreferences: MockPreferenceService!
 
   override func setUp() async throws {
     mockService = MockTasksService()
+    mockPreferences = MockPreferenceService()
     mockAuthManager = MockAuthManager()
     // Fresh instance per test — InMemoryCache.shared would leak state across tests.
     mockCache = InMemoryCache()
@@ -31,16 +33,44 @@ final class TasksListViewModelTests: XCTestCase {
       tasksService: mockService,
       authManager: mockAuthManager,
       familyManager: familyManager,
-      cache: mockCache
+      cache: mockCache,
+      preferenceService: mockPreferences
     )
   }
 
   override func tearDown() {
     viewModel = nil
     mockService = nil
+    mockPreferences = nil
     mockAuthManager = nil
     familyManager = nil
     mockCache = nil
+  }
+
+  // The athlete's grad year lives in player preferences; a senior must get grade 12
+  // tasks, not the "current year + 2" default.
+  func testLoadTasks_UsesGraduationYearFromPlayerPreferences() async throws {
+    var details = PlayerDetails.default
+    details.graduationYear = try XCTUnwrap(GradeLevelHelper.allowedGraduationYears.first)
+    mockPreferences.stubbedPlayerDetails = details
+
+    await viewModel.loadTasks()
+
+    XCTAssertEqual(viewModel.currentGradeLevel, 12)
+    XCTAssertEqual(mockService.lastFetchGradeLevel, 12)
+    XCTAssertEqual(mockPreferences.fetchedUserIds, ["athlete-1"])
+  }
+
+  func testLoadTasks_PreferencesFetchFails_StillLoadsTasks() async {
+    mockPreferences.errorToThrow = NSError(domain: "test", code: 1)
+    mockService.stubbedTasks = [
+      TaskWithStatus(id: "t1", title: "Task 1", gradeLevel: 10, category: "c", required: true, hasIncompletePrerequisites: false)
+    ]
+
+    await viewModel.loadTasks()
+
+    XCTAssertEqual(viewModel.tasks.count, 1)
+    XCTAssertNil(viewModel.errorMessage)
   }
 
   func testLoadTasks_Success() async {

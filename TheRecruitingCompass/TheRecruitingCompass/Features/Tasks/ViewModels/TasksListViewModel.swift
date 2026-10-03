@@ -43,6 +43,7 @@ final class TasksListViewModel {
   private let tasksService: any TasksManaging
   private let authManager: any AuthManaging
   private let familyManager: FamilyManager
+  private let preferenceService: any PreferenceManaging
 
   /// When set, used to compute currentGradeLevel; otherwise a default grade is used.
   var graduationYear: Int?
@@ -85,12 +86,14 @@ final class TasksListViewModel {
     tasksService: (any TasksManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
     familyManager: FamilyManager? = nil,
-    cache: (any CacheManaging)? = nil
+    cache: (any CacheManaging)? = nil,
+    preferenceService: (any PreferenceManaging)? = nil
   ) {
     self.tasksService = tasksService ?? TasksServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.familyManager = familyManager ?? .shared
     self.cache = cache
+    self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
   }
 
   private func persistFilters() {
@@ -108,11 +111,24 @@ final class TasksListViewModel {
     await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.tasks(athleteId: athleteId, gradeLevel: currentGradeLevel))
   }
 
+  /// Player preferences are where every edit screen stores the grad year. A failed
+  /// read keeps whatever is already set so tasks still load on the default grade.
+  private func loadGraduationYear(athleteId: String) async {
+    do {
+      let details: PlayerDetails? = try await preferenceService.fetchPreferences(category: .player, userId: athleteId)
+      if let year = details?.graduationYear { graduationYear = year }
+    } catch {
+      logger.debug("Could not load graduation year: \(error.localizedDescription)")
+    }
+  }
+
   func loadTasks() async {
     guard let athleteId = currentAthleteId else {
       errorMessage = "Unable to load tasks."
       return
     }
+
+    await loadGraduationYear(athleteId: athleteId)
 
     if let year = graduationYear {
       currentGradeLevel = GradeLevelHelper.calculateCurrentGrade(graduationYear: year)
