@@ -201,10 +201,14 @@ final class AddInteractionScreenObject {
     }
   }
 
+  /// A Form picker row reads "<title>, <accessibility label>", e.g. "School, School picker".
   private func menuPicker(_ label: String) -> XCUIElement {
     let types = [XCUIElement.ElementType.button, .popUpButton].map { NSNumber(value: $0.rawValue) }
     return app.descendants(matching: .any)
-      .matching(NSPredicate(format: "label == %@ AND elementType IN %@", label, types))
+      .matching(NSPredicate(
+        format: "(label == %@ OR label ENDSWITH %@) AND elementType IN %@",
+        label, ", " + label, types
+      ))
       .firstMatch
   }
 

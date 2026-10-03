@@ -73,13 +73,15 @@ final class AddSchoolScreenObject {
 
   // MARK: - Form Field Elements
 
+  // FormFieldWrapper merges its title into one "Other" element ("School Name, required",
+  // "City", ...); the input inside it carries no label of its own.
   var nameTextField: XCUIElement {
-    app.textFields["School name, required"]
+    fieldInput("School Name, required")
   }
 
   /// The form no longer has a single Location field; City replaced it.
   var locationTextField: XCUIElement {
-    app.textFields["City, optional"]
+    fieldInput("City")
   }
 
   var divisionPicker: XCUIElement {
@@ -87,23 +89,27 @@ final class AddSchoolScreenObject {
   }
 
   var conferenceTextField: XCUIElement {
-    app.textFields["Conference, optional"]
+    fieldInput("Conference")
   }
 
   var websiteTextField: XCUIElement {
-    app.textFields["Website, optional"]
+    fieldInput("Website")
   }
 
   var twitterHandleTextField: XCUIElement {
-    app.textFields["Twitter handle, optional"]
+    fieldInput("Twitter Handle")
   }
 
   var instagramHandleTextField: XCUIElement {
-    app.textFields["Instagram handle, optional"]
+    fieldInput("Instagram Handle")
   }
 
   var notesTextView: XCUIElement {
-    app.textViews["Notes"]
+    app.otherElements["Notes"].textViews.firstMatch
+  }
+
+  private func fieldInput(_ fieldTitle: String) -> XCUIElement {
+    app.otherElements[fieldTitle].textFields.firstMatch
   }
 
   var statusPicker: XCUIElement {
