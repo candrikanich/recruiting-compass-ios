@@ -267,6 +267,7 @@ run_attempt() {
   local wpid=$!
   wait "$xpid"; local rc=$?
   kill "$wpid" 2>/dev/null
+  wait "$wpid" 2>/dev/null || true
   set -e
   grep -E "^Test Case .* (passed|failed|skipped)|error:|\*\* TEST" "$alog" | tail -60 || true
   return $rc
