@@ -5,22 +5,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  # E2E UITests run nightly + on demand, NOT on PRs: the full suite is serial
-  # (one shared Supabase project) and far too slow to gate a PR.
-  # Lint + unit tests still gate every PR.
-  schedule:
-    - cron: "0 8 * * *"
   workflow_dispatch:
-    inputs:
-      e2e_suite:
-        description: "E2E UITests to run (smoke = scripts/ci/e2e-smoke-suite.txt)"
-        type: choice
-        options: [smoke, full]
-        default: smoke
-      e2e_only_testing:
-        description: "E2E -only-testing filter, e.g. TheRecruitingCompassUITests/OffersListE2ETests (overrides e2e_suite; blank = use e2e_suite)"
-        required: false
-        default: ""
+  # E2E UITests don't run here: they need a Supabase stack, GitHub's macOS
+  # runners have no Docker, and this repo is public, so they run nightly on
+  # Chris's Mac via launchd instead — scripts/e2e/nightly-local.sh,
+  # docs/E2E_TESTING.md. Lint + unit tests gate every PR.
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -62,7 +51,7 @@ jobs:
     runs-on: macos-15
     needs: changes
     # Only an explicit "false" skips: if `changes` fails or is skipped, run.
-    if: ${{ !cancelled() && github.event_name != 'schedule' && needs.changes.outputs.code != 'false' }}
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -82,7 +71,7 @@ jobs:
     name: Build & Unit Tests
     runs-on: macos-15
     needs: changes
-    if: ${{ !cancelled() && github.event_name != 'schedule' && needs.changes.outputs.code != 'false' }}
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -185,247 +174,4 @@ jobs:
         with:
           name: xcresult-unit
           path: TheRecruitingCompass/TestResults-*.xcresult
-          retention-days: 7
-
-  e2e-tests:
-    name: E2E UITests
-    runs-on: macos-15
-    # ~340 serial UI tests; the stall watchdog in "Run UITests" catches wedges
-    # long before this, so it only bounds a genuinely slow full run.
-    timeout-minutes: 240
-    # Nightly + manual only — see the `on:` comment above. Not a PR gate.
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    # Serialize across ALL refs: every run seeds/wipes the one shared
-    # e2e-test Supabase project, so concurrent PRs would race the reset.
-    concurrency:
-      group: e2e-shared-supabase
-      cancel-in-progress: false
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
-
-      - name: Select simulator
-        run: |
-          # Exact-name match on the newest runtime (simctl lists runtimes oldest
-          # first). A fuzzy 'iPhone 16' grep picked an iPhone 16e, so the device
-          # that got erased/booted/waited-on was never the one xcodebuild tested
-          # on: the real target cold-booted under xcodebuild alongside a second
-          # live simulator and the test-runner launch hung. Every later step
-          # addresses this one UDID.
-          UDID=$(xcrun simctl list devices available | grep -E '^ +iPhone 16 \(' | tail -1 | grep -oE '[0-9A-F-]{36}')
-          if [ -z "$UDID" ]; then
-            echo "::error::no available simulator named exactly 'iPhone 16'"
-            xcrun simctl list devices available
-            exit 1
-          fi
-          echo "SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
-
-      - name: Create Release.xcconfig
-        run: |
-          cat > TheRecruitingCompass/Release.xcconfig << 'XCCONFIG'
-          _SLASH = /
-          SUPABASE_URL = https:$(_SLASH)$(_SLASH)ci-placeholder.supabase.co
-          SUPABASE_ANON_KEY = ci_placeholder_key
-          API_BASE_URL = https:$(_SLASH)$(_SLASH)myrecruitingcompass.com
-          XCCONFIG
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install seed script dependencies
-        run: cd scripts && npm ci
-
-      - name: Seed E2E test data
-        run: cd scripts && npm run seed:e2e
-        env:
-          # Dedicated throwaway project (recruiting-compass-e2e-test), never prod.
-          # ALLOW_REMOTE_SEED satisfies the seed guard now that the target is a
-          # disposable cloud project rather than the local stack.
-          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-          ALLOW_REMOTE_SEED: "1"
-
-      - name: Cache SPM packages
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
-          key: spm-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
-          restore-keys: spm-
-
-      - name: Cache DerivedData
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: deriveddata-e2e-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj', 'TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
-          restore-keys: deriveddata-e2e-
-
-      - name: Build for testing
-        run: |
-          cd TheRecruitingCompass
-          xcodebuild build-for-testing \
-            -scheme TheRecruitingCompass \
-            -destination "id=$SIMULATOR_UDID" \
-            -showBuildTimingSummary
-
-      - name: Run UITests
-        run: |
-          cd TheRecruitingCompass
-          # CoreSimulator on the CI runner can wedge on app launch, and xcodebuild
-          # does NOT exit when that happens — it sits silent until the job timeout.
-          # reset_sim_stack does a full erase (a wedge can leave on-disk state that
-          # re-wedges the next boot) and bootstatus waits for a real Booted state,
-          # so xcodebuild never launches the runner onto a half-booted device.
-          reset_sim_stack() {
-            xcrun simctl shutdown all || true
-            killall -9 CoreSimulatorService || true
-            sleep 5
-            xcrun simctl erase "$SIMULATOR_UDID" || true
-            xcrun simctl boot "$SIMULATOR_UDID" || true
-            xcrun simctl bootstatus "$SIMULATOR_UDID" -b || true
-          }
-          reset_sim_stack
-
-          # Watch for SILENCE, not total duration: a healthy full run takes far
-          # longer than any fixed per-attempt wall clock (an 8m one used to kill
-          # runs that were executing tests). Per-test allowances cap a single test
-          # at 300s, so 10 quiet minutes means the run is wedged.
-          STALL_SECONDS=600
-
-          # Scheduled runs and the dispatch default cover only the launch-blocking
-          # flows. An explicit filter wins; `full` runs the whole target.
-          ONLY_TESTING=(-only-testing:TheRecruitingCompassUITests)
-          if [ -n "$E2E_ONLY_TESTING" ]; then
-            ONLY_TESTING=("-only-testing:$E2E_ONLY_TESTING")
-          elif [ "$E2E_SUITE" != "full" ]; then
-            ONLY_TESTING=()
-            while IFS= read -r class; do
-              # A name xcodebuild can't match runs zero tests and still exits 0.
-              if ! grep -rqs "class $class: XCTestCase" TheRecruitingCompassUITests; then
-                echo "::error::Smoke suite lists $class, which is not a UI test class"
-                exit 1
-              fi
-              ONLY_TESTING+=("-only-testing:TheRecruitingCompassUITests/$class")
-            done < <(grep -Ev '^(#|$)' ../scripts/ci/e2e-smoke-suite.txt)
-          fi
-
-          run_uitests() {
-            local attempt=$1
-            local log="e2e-attempt-$attempt.log"
-            rm -rf "E2EResults-$attempt.xcresult" e2e-stalled e2e-login-blocked
-            : > "$log"
-            set +e
-            xcodebuild test-without-building \
-              -scheme TheRecruitingCompass \
-              -destination "id=$SIMULATOR_UDID" \
-              "${ONLY_TESTING[@]}" \
-              -parallel-testing-enabled NO \
-              -test-timeouts-enabled YES \
-              -default-test-execution-time-allowance 120 \
-              -maximum-test-execution-time-allowance 300 \
-              -resultBundlePath "E2EResults-$attempt.xcresult" \
-              > "$log" 2>&1 &
-            local xpid=$!
-            tail -f "$log" &
-            local tpid=$!
-            (
-              while kill -0 "$xpid" 2>/dev/null; do
-                sleep 30
-                idle=$(( $(date +%s) - $(stat -f %m "$log") ))
-                if [ "$idle" -ge "$STALL_SECONDS" ]; then
-                  echo "::warning::no xcodebuild output for ${idle}s — killing stalled attempt $attempt"
-                  touch e2e-stalled
-                  kill -9 "$xpid" 2>/dev/null
-                  break
-                fi
-                # Every E2E test XCTSkips (after ~45s) when sign-in fails. If the
-                # run opens with nothing but those, the app cannot sign in at all
-                # and the remaining ~335 tests would burn hours to say the same.
-                blocked=$(grep -c "Test skipped - Login failed" "$log" || true)
-                passed=$(grep -cE "^Test Case .* passed" "$log" || true)
-                if [ "$blocked" -ge 5 ] && [ "$passed" -eq 0 ]; then
-                  echo "::error::first $blocked tests all skipped on 'Login failed' — the app cannot sign in to the E2E project; stopping the run"
-                  touch e2e-login-blocked
-                  kill -9 "$xpid" 2>/dev/null
-                  break
-                fi
-              done
-            ) &
-            local wpid=$!
-            wait "$xpid"; local rc=$?
-            kill "$wpid" "$tpid" 2>/dev/null
-            set -e
-            return $rc
-          }
-
-          for attempt in 1 2 3; do
-            echo "::group::E2E UITests attempt $attempt"
-            rc=0
-            run_uitests "$attempt" || rc=$?
-            echo "::endgroup::"
-            if [ "$rc" -eq 0 ]; then
-              exit 0
-            fi
-            if [ -f e2e-login-blocked ]; then
-              exit 1
-            fi
-            # Retry only infrastructure failures (stalled, or died before any test
-            # finished). Real test failures must fail the job, not rerun the suite.
-            finished=$(grep -cE "^Test Case .* (passed|failed|skipped)" "e2e-attempt-$attempt.log" || true)
-            if [ ! -f e2e-stalled ] && [ "$finished" -gt 0 ]; then
-              echo "E2E UITests failed (xcodebuild exit $rc) after $finished tests ran."
-              exit "$rc"
-            fi
-            echo "Attempt $attempt stalled or never started a test; resetting simulator stack before retry."
-            reset_sim_stack
-          done
-          echo "E2E UITests could not complete a run in 3 attempts."
-          exit 1
-        env:
-          # App under test must talk to the same project it was seeded into.
-          # The TEST_RUNNER_ prefix is what gets a variable into the test runner:
-          # xcodebuild strips it and exports the rest (E2E_SUPABASE_URL / _ANON_KEY,
-          # the exact keys E2ETestEnvironment reads). Unprefixed variables stay in
-          # xcodebuild's own environment, the tests fall back to the local stack
-          # (127.0.0.1:54321) that no runner has, login fails and every test skips.
-          TEST_RUNNER_E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
-          TEST_RUNNER_E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
-          E2E_ONLY_TESTING: ${{ inputs.e2e_only_testing }}
-          E2E_SUITE: ${{ inputs.e2e_suite || 'smoke' }}
-
-      - name: Summarize E2E results
-        if: always()
-        run: |
-          cd TheRecruitingCompass
-          RESULT=$(ls -td E2EResults-*.xcresult 2>/dev/null | head -1)
-          if [ ! -f "$RESULT/Info.plist" ]; then
-            echo "No complete result bundle (run was killed or never started)."
-            exit 0
-          fi
-          xcrun xcresulttool get test-results summary --path "$RESULT" > e2e-summary.json
-          passed=$(jq -r '.passedTests' e2e-summary.json)
-          failed=$(jq -r '.failedTests' e2e-summary.json)
-          skipped=$(jq -r '.skippedTests' e2e-summary.json)
-          echo "### E2E UITests: $passed passed, $failed failed, $skipped skipped" >> "$GITHUB_STEP_SUMMARY"
-          # E2E tests XCTSkip when login fails, so a run where nothing passed is a
-          # broken environment reporting green, not a passing suite.
-          if [ "$passed" -eq 0 ]; then
-            echo "::error::no E2E test passed ($skipped skipped) — check login/seed against the E2E Supabase project"
-            exit 1
-          fi
-
-      - name: Upload xcresult
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: xcresult-e2e
-          path: |
-            TheRecruitingCompass/E2EResults-*.xcresult
-            TheRecruitingCompass/e2e-attempt-*.log
           retention-days: 7
