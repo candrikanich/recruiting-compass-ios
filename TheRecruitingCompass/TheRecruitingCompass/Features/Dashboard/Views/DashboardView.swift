@@ -318,6 +318,7 @@ struct DashboardView: View {
       allSchools: viewModel.allSchools,
       events: viewModel.events,
       interactionTrends: viewModel.interactionTrends,
+      interactionTrendsLastDate: viewModel.interactionTrendsLastDate,
       metrics: viewModel.metrics,
       schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
       interactionsThisMonth: viewModel.interactionsThisMonth,

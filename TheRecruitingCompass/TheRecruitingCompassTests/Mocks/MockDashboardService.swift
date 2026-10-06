@@ -8,6 +8,7 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   var fetchSchoolsCallCount = 0
   var fetchCoachesCallCount = 0
   var fetchInteractionsCallCount = 0
+  var fetchInteractionsSinceCallCount = 0
   var fetchOffersCallCount = 0
   var fetchEventsCallCount = 0
   var fetchMetricsCallCount = 0
@@ -75,6 +76,14 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
 
   func fetchInteractions(userId: String, limit: Int?) async throws -> [Interaction] {
     fetchInteractionsCallCount += 1
+    if shouldThrowFetchInteractions {
+      throw NSError(domain: "MockDashboard", code: 6, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
+    }
+    return stubbedInteractions
+  }
+
+  func fetchInteractions(userId: String, since: Date) async throws -> [Interaction] {
+    fetchInteractionsSinceCallCount += 1
     if shouldThrowFetchInteractions {
       throw NSError(domain: "MockDashboard", code: 6, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
     }

@@ -36,6 +36,8 @@ final class DashboardViewModel {
   var allSchools: [School] = []
   var metrics: [PerformanceMetric] = []
   var interactionTrends: [InteractionTrend] = []
+  /// Most recent interaction of any age; drives the "Last one" line when the 30-day window is empty.
+  var interactionTrendsLastDate: Date?
   /// Family-scoped user deadlines, merged into the recruiting-calendar
   /// widget's "Upcoming" list alongside NCAA milestones (see
   /// `RecruitingCalendarWidget.userDeadlines`).
@@ -321,6 +323,7 @@ final class DashboardViewModel {
   private func fetchTrendsIfNeeded(_ needed: Bool) async {
     guard needed else {
       interactionTrends = []
+      interactionTrendsLastDate = nil
       return
     }
     await fetchInteractionTrends()
@@ -504,14 +507,17 @@ final class DashboardViewModel {
   func fetchInteractionTrends() async {
     guard let userId = targetUserId else { return }
     do {
-      let interactions = try await dashboardService.fetchInteractions(userId: userId, limit: 30)
-      let groupedByDate = Dictionary(grouping: interactions) { interaction -> String in
-        String((interaction.occurredAt ?? interaction.createdAt).prefix(10))
+      let now = Date.now
+      let windowStart = InteractionTrendWindow.windowStart(now: now)
+      let inWindow = try await dashboardService.fetchInteractions(userId: userId, since: windowStart)
+      var summary = InteractionTrendWindow.summarize(inWindow, now: now)
+      if summary.trends.isEmpty {
+        // Only needed for the "Last one: <date>" line; recent rows by created_at are enough to find it.
+        let recent = try await dashboardService.fetchInteractions(userId: userId, limit: 20)
+        summary = InteractionTrendWindow.summarize(recent, now: now)
       }
-      interactionTrends = groupedByDate.map { datePrefix, interactions in
-        // datePrefix is "YYYY-MM-DD" extracted from ISO8601 timestamp
-        InteractionTrend(id: datePrefix, date: datePrefix + "T00:00:00Z", count: interactions.count)
-      }.sorted { $0.date < $1.date }
+      interactionTrends = summary.trends
+      interactionTrendsLastDate = summary.lastInteractionDate
     } catch {
       logger.warning("Failed to load interaction trends: \(error.localizedDescription)")
     }

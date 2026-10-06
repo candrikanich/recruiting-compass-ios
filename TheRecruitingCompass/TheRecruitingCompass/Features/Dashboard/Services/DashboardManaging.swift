@@ -10,6 +10,8 @@ protocol DashboardManaging: Sendable {
   func fetchCoaches(schoolIds: [String]) async throws -> [Coach]
   /// Returns recent interactions for the user, optionally capped at `limit`.
   func fetchInteractions(userId: String, limit: Int?) async throws -> [Interaction]
+  /// Returns every interaction the user logged at or after `since` (by `occurredAt`, or `createdAt` when it is nil).
+  func fetchInteractions(userId: String, since: Date) async throws -> [Interaction]
   /// Returns scholarship offers received by the user.
   func fetchOffers(userId: String) async throws -> [Offer]
   /// Returns upcoming and past events for the user, optionally capped at `limit`.
