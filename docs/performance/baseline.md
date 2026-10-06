@@ -11,8 +11,8 @@ How to reproduce everything on this page: [Running it](#running-it).
 | Network per screen (#240) | Recorded 2026-10-02 — see below |
 | Memory, simulator (#239) | Recorded 2026-10-02, stable across two runs |
 | Cold launch, simulator (#239) | Recorded 2026-10-02 — 2.48 s, three runs within 3.5% |
-| Scroll hitches | **Not measurable on the simulator** — needs a device (#242) |
-| Device (Instruments) | Not yet run (#242) |
+| Scroll hitches | Recorded on device 2026-10-06 — all four screens under budget (#242) |
+| Device (Instruments) | Recorded 2026-10-05/06 — one budget miss: School Detail map hang (#286) |
 | Field (Organizer, Sentry hangs) | Blocked until 1.0 has been live 14 days (#243) |
 
 ## Network per screen — 2026-10-02
@@ -96,9 +96,60 @@ building (3.58–5.24 s, 19–37% spread), which were discarded.
 constant 2.56 s) and no hitch metrics; the Dashboard reported no scroll metric at all. Hitch time ratio has to
 come from a device: run the same tests with a device destination, or use Instruments (#242).
 
-## Device
+## Device — 2026-10-05/06
 
-Not yet run — #242.
+iPhone 17 Pro Max, iOS 27.2, the installed 1.0 (1) build, a real signed-in account (50+ schools). This is not
+the 27.1-SDK Release build from the plan; re-run on that build when #219 unblocks. Traces are kept off-repo.
+
+### Cold launch (App Launch template)
+
+Process start to the first frame (start of *Foreground – Active*).
+
+| Run | Start → first frame | Initial frame rendering | `sceneWillConnectTo` |
+|---|---|---|---|
+| 1 (cold) | 215 ms | 64 ms | 18 ms |
+| 2 | 160 ms | 42 ms | 9 ms |
+| 3 | 162 ms | 38 ms | 9 ms |
+
+Budget ≤ 400 ms: **passes**. `didFinishLaunchingWithOptions` is under 1 ms. Launch to *dashboard content* is
+not measured here; it is bound by the duplicate fetches in #269 and #270.
+
+### Scrolling (Animation Hitches template)
+
+One screen per 60 s run, scrolling continuously.
+
+| Screen | Hitch time ratio | App hitches (max) | Hangs ≥ 250 ms |
+|---|---|---|---|
+| Dashboard | 2.5 ms/s | 4 (83 ms) | none |
+| Schools list | 1.1 ms/s | 2 (50 ms) | none |
+| Recruiting Timeline | 1.3 ms/s | 4 (25 ms) | none |
+| Notifications | 0.8 ms/s | 3 (17 ms) | none |
+
+Budget < 5 ms/s and no hang ≥ 250 ms: **passes** on every list.
+
+**Budget miss — School Detail.** The first School Detail opened in a session freezes the main thread for about
+2.4 s while `SchoolMapView` creates the first `MKMapView` (#286).
+
+### Memory (Allocations template)
+
+Five round trips through every tab in 75 s. About 2.2 MB stays alive after the first trip. It is one-time
+setup (Swift conformance caches, a JavaScriptCore stack, tab-bar layers) and does not grow per trip:
+**passes**.
+
+### SwiftUI updates
+
+45 s on Dashboard: total body-update work is small (`Text` 42 ms, `_ConditionalContent` 37 ms; no app view above
+6 ms). `DashboardView` re-evaluated its body 25 times, which is cheap but may be the same churn as #270.
+Schools-list body counts are not yet captured; they are part of #241.
+
+### Recording gotchas
+
+- Write the trace and `TMPDIR` to an external drive. A full internal disk crashes `xctrace` while it saves.
+- After any `xctrace` crash the phone shows as offline ("Timed out waiting for device to boot"). Kill the stale
+  helpers (`dtsecurity`, `xctrace`, `Instruments`) and it comes back.
+- Keep runs to 75 s or less. In a 90 s deferred-mode run, CPU data stopped at 79.9 s and Instruments reported a
+  fake open-ended "Severe Hang" for the rest of the recording.
+- Saving a trace takes 3–5 minutes.
 
 ## Running it
 
