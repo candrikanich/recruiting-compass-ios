@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { randomInt } from "crypto";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -256,6 +257,14 @@ async function linkPlayerToFamily(
 // ---------------------------------------------------------------------------
 // Step 3 — Create / find family unit + membership
 // ---------------------------------------------------------------------------
+// family_units.inbound_token is NOT NULL, CHECK '^[a-z0-9]{8}$' (web migration
+// 20260906000000) and has no default: the app gets one from the web API, a
+// direct insert must supply it.
+function randomInboundToken(): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  return Array.from({ length: 8 }, () => chars[randomInt(chars.length)]).join("");
+}
+
 async function resolveFamily(userId: string): Promise<string> {
   // Check for existing membership first (idempotent)
   const { data: existing } = await supabase
@@ -271,7 +280,11 @@ async function resolveFamily(userId: string): Promise<string> {
 
   const { data: unit, error: unitError } = await supabase
     .from("family_units")
-    .insert({ family_name: "E2E Test Family", created_by_user_id: userId })
+    .insert({
+      family_name: "E2E Test Family",
+      created_by_user_id: userId,
+      inbound_token: randomInboundToken(),
+    })
     .select()
     .single();
 
