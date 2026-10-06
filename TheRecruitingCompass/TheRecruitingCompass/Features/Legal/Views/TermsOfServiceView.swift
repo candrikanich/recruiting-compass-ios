@@ -514,11 +514,11 @@ struct TermsOfServiceView: View {
       )
 
       VStack(alignment: .leading, spacing: 8) {
-        Text("The Recruiting Compass")
+        Text("The Recruiting Compass LLC")
           .font(.headline)
           .foregroundStyle(Color.darkSlate)
 
-        Text("Olmsted Township, OH 44138")
+        Text("34125 Center Ridge Rd #1012\nNorth Ridgeville, OH 44039")
           .font(.body)
           .foregroundStyle(Color.secondaryText)
 
