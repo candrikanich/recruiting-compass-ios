@@ -52,4 +52,19 @@ final class DeepLinkHandlerTests: XCTestCase {
     let route = DeepLinkHandler.parse(url)
     XCTAssertEqual(route, .unknown)
   }
+
+  func testJoinUniversalLinkParsesToJoinInvite() {
+    let url = URL(string: "https://myrecruitingcompass.com/join?token=abc123")!
+    XCTAssertEqual(DeepLinkHandler.parse(url), .joinInvite(token: "abc123"))
+  }
+
+  func testGuardianClaimUniversalLink() {
+    let url = URL(string: "https://myrecruitingcompass.com/guardian/claim/abc123")!
+    XCTAssertEqual(DeepLinkHandler.parse(url), .guardianClaim(token: "abc123"))
+  }
+
+  func testLegacyInvitePathIsUnknown() {
+    let url = URL(string: "https://myrecruitingcompass.com/invite/abc123")!
+    XCTAssertEqual(DeepLinkHandler.parse(url), .unknown)
+  }
 }
