@@ -5,6 +5,9 @@ enum Direction: String, Codable, CaseIterable, Sendable {
   case inbound
   case unknown
 
+  /// Raw value safe to send to the server; nil for the decode-only `unknown` fallback so the key is omitted.
+  var serverValue: String? { self == .unknown ? nil : rawValue }
+
   init(from decoder: Decoder) throws {
     let rawValue = try decoder.singleValueContainer().decode(String.self)
     self = Direction(rawValue: rawValue) ?? .unknown
