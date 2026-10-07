@@ -98,7 +98,7 @@ final class DashboardViewModelTests: XCTestCase {
     return ISO8601DateFormatter().string(from: date)
   }
 
-  private func makeInteraction(id: String, date: String) -> Interaction {
+  private func makeInteraction(id: String, date: String, createdAt: String = "2024-01-01T00:00:00Z") -> Interaction {
     Interaction(
       id: id,
       type: .email,
@@ -112,7 +112,7 @@ final class DashboardViewModelTests: XCTestCase {
       loggedBy: "test-user-id",
       attachments: nil,
       familyUnitId: "family1",
-      createdAt: "2024-01-01T00:00:00Z",
+      createdAt: createdAt,
       updatedAt: "2024-01-01T00:00:00Z"
     )
   }
@@ -319,7 +319,7 @@ final class DashboardViewModelTests: XCTestCase {
     XCTAssertEqual(mockDashboardService.fetchSuggestionsCallCount, 1)
     XCTAssertEqual(mockDashboardService.fetchEventsCallCount, 1)
     XCTAssertEqual(mockDashboardService.fetchMetricsCallCount, 1)
-    XCTAssertEqual(mockDashboardService.fetchInteractionsCallCount, 1)
+    XCTAssertEqual(mockDashboardService.fetchInteractionsSinceCallCount, 1)
     // Follow-up loads schools; coaches are skipped when the school list is empty.
     XCTAssertEqual(mockDashboardService.fetchSchoolsCallCount, 1)
     XCTAssertEqual(mockDashboardService.fetchCoachesCallCount, 0)
@@ -336,7 +336,7 @@ final class DashboardViewModelTests: XCTestCase {
     XCTAssertEqual(mockDashboardService.fetchSuggestionsCallCount, 0)
     XCTAssertEqual(mockDashboardService.fetchEventsCallCount, 0)
     XCTAssertEqual(mockDashboardService.fetchMetricsCallCount, 0)
-    XCTAssertEqual(mockDashboardService.fetchInteractionsCallCount, 0)
+    XCTAssertEqual(mockDashboardService.fetchInteractionsSinceCallCount, 0)
     XCTAssertEqual(mockDashboardService.fetchSchoolsCallCount, 0)
     XCTAssertEqual(mockDashboardService.fetchCoachesCallCount, 0)
     XCTAssertTrue(sut.suggestions.isEmpty)
@@ -596,6 +596,30 @@ final class DashboardViewModelTests: XCTestCase {
 
     XCTAssertTrue(sut.interactionTrends.isEmpty)
     XCTAssertEqual(sut.interactionTrendsLastDate, ISO8601DateFormatter().date(from: "2024-01-15T10:00:00Z"))
+  }
+
+  func testFetchInteractionTrendsLastDateIgnoresBackdatedRecentlyCreatedRow() async {
+    authenticateUser()
+    mockDashboardService.stubbedInteractions = [
+      // Logged recently but backdated: newest by created_at, oldest by occurred_at.
+      makeInteraction(id: "backdated", date: "2024-01-15T10:00:00Z", createdAt: "2026-10-05T10:00:00Z"),
+      makeInteraction(id: "latest", date: "2024-06-01T10:00:00Z", createdAt: "2024-06-02T10:00:00Z")
+    ]
+
+    await sut.fetchInteractionTrends()
+
+    XCTAssertTrue(sut.interactionTrends.isEmpty)
+    XCTAssertEqual(sut.interactionTrendsLastDate, ISO8601DateFormatter().date(from: "2024-06-01T10:00:00Z"))
+    XCTAssertEqual(mockDashboardService.fetchLatestInteractionCallCount, 1)
+  }
+
+  func testFetchInteractionTrendsSkipsLatestLookupWhenWindowHasData() async {
+    authenticateUser()
+    mockDashboardService.stubbedInteractions = [makeInteraction(id: "recent", date: isoString(daysAgo: 1, from: Date()))]
+
+    await sut.fetchInteractionTrends()
+
+    XCTAssertEqual(mockDashboardService.fetchLatestInteractionCallCount, 0)
   }
 
   func testFetchInteractionTrendsNoInteractionsLeavesLastDateNil() async {
