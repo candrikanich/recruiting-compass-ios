@@ -15,6 +15,7 @@ struct MoreMenuView: View {
   var notificationsViewModel: NotificationsListViewModel
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   init(notificationsViewModel: NotificationsListViewModel, path: Binding<[MorePath]>? = nil) {
     self.notificationsViewModel = notificationsViewModel
@@ -38,10 +39,18 @@ struct MoreMenuView: View {
     }
   }
 
+  private var recruitingItems: [MoreMenuSection] {
+    var items: [MoreMenuSection] = [
+      .timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity
+    ]
+    if featureFlags.isEnabled(.inboundDrafts) { items.append(.inboundDrafts) }
+    return items
+  }
+
   @ViewBuilder
   private var moreMenuList: some View {
     List {
-      menuSectionView("More Recruiting Resources", items: [.timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity, .inboundDrafts])
+      menuSectionView("More Recruiting Resources", items: recruitingItems)
       menuSectionView("Player Settings", items: [.settings, .notifications, .publicProfile])
       menuSectionView("Support", items: [.helpCenter])
     }

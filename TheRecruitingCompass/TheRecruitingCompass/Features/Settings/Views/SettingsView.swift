@@ -19,6 +19,7 @@ struct SettingsView: View {
   @Environment(AuthManager.self) private var authManager
   @Environment(FamilyManager.self) private var familyManager
   @Environment(EntitlementStore.self) private var entitlementStore
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
   @State private var presentedLegal: LegalDocument?
   @State private var showCodeCopied = false
   @State private var copiedFamilyUnitId: String?
@@ -180,7 +181,7 @@ struct SettingsView: View {
 
         // Coach Email Forwarding Section — best-effort, non-blocking: web renders nothing
         // while the fetch is pending or fails, so this section only appears once loaded.
-        ForEach(viewModel.inboundAddresses) { entry in
+        ForEach(featureFlags.isEnabled(.inboundDrafts) ? viewModel.inboundAddresses : []) { entry in
           Section {
             VStack(alignment: .leading, spacing: 8) {
               Text("Forward or CC emails from coaches to this address to automatically draft an interaction log entry for your family.")

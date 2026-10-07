@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct CoachFollowupWidget: View {
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
   let coaches: [Coach]
   /// All coaches tracked across the family's schools (unfiltered) — distinguishes
   /// "no coaches yet" from "caught up" for the empty-state CTA, mirroring web's
@@ -67,7 +68,8 @@ struct CoachFollowupWidget: View {
               schoolName: EntityNameLookup.schoolName(for: coach.schoolId, in: schoolNameMap),
               onEmail: { presentQuickComm(coach) },
               onText: { presentQuickComm(coach) },
-              onProfile: { profileCoachId = coach.id }
+              onProfile: { profileCoachId = coach.id },
+              showsOutreach: featureFlags.isEnabled(.athleteMessages)
             )
             if coach.id != visible.last?.id { Divider() }
           }

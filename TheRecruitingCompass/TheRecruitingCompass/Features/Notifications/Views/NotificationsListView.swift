@@ -3,6 +3,7 @@ import SwiftUI
 struct NotificationsListView: View {
   @State private var viewModel: NotificationsListViewModel
   @Environment(FamilyManager.self) private var familyManager
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   @State private var showDeleteAlert = false
   @State private var showClearReadAlert = false
@@ -75,6 +76,10 @@ struct NotificationsListView: View {
       .navigationTitle("Notifications")
       .navigationBarTitleDisplayMode(.inline)
       .searchable(text: $viewModel.searchText, prompt: "Search notifications")
+      .onChange(of: viewModel.selectedDestination) { _, destination in
+        guard let destination, destination.gated(by: featureFlags) == nil else { return }
+        viewModel.selectedDestination = nil
+      }
       .navigationDestination(item: $viewModel.selectedDestination) { destination in
         destinationView(for: destination)
       }

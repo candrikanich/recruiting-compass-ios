@@ -7,6 +7,7 @@ struct CoachesListView: View {
   @State private var quickCommunicationContext: QuickCommunicationContext?
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
   @State private var navigationPath = NavigationPath()
   @Binding private var externalNavigationPath: NavigationPath
 
@@ -220,13 +221,15 @@ struct CoachesListView: View {
       }
       .buttonStyle(.plain)
       .contextMenu {
-        Button {
-          quickCommunicationContext = QuickCommunicationContext(
-            coach: coach,
-            schoolName: viewModel.schoolName(for: coach.schoolId)
-          )
-        } label: {
-          Label("Quick Communication", systemImage: "envelope.badge")
+        if featureFlags.isEnabled(.athleteMessages) {
+          Button {
+            quickCommunicationContext = QuickCommunicationContext(
+              coach: coach,
+              schoolName: viewModel.schoolName(for: coach.schoolId)
+            )
+          } label: {
+            Label("Quick Communication", systemImage: "envelope.badge")
+          }
         }
       }
     }
