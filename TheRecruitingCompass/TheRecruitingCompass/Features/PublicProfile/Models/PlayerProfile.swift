@@ -37,12 +37,23 @@ enum DefaultSectionOrder {
 }
 
 enum CommitmentStatus: String, Codable, CaseIterable, Equatable, Sendable {
-    case uncommitted, committed
+    case uncommitted, committed, unknown
+
+    init(from decoder: Decoder) throws {
+      let rawValue = try decoder.singleValueContainer().decode(String.self)
+      self = CommitmentStatus(rawValue: rawValue) ?? .unknown
+    }
+
+    /// User-selectable values. Excludes `unknown`: a decode-only fallback for server values this build lacks.
+    static var selectableCases: [CommitmentStatus] {
+      allCases.filter { $0 != .unknown }
+    }
 
     var label: String {
         switch self {
         case .uncommitted: return String(localized: "Uncommitted")
         case .committed: return String(localized: "Committed")
+        case .unknown: return String(localized: "Unknown")
         }
     }
 }

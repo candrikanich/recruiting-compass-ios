@@ -7,6 +7,17 @@ enum TimelinePhase: String, Codable, CaseIterable, Sendable {
   case junior
   case senior
   case committed
+  case unknown
+
+  init(from decoder: Decoder) throws {
+    let rawValue = try decoder.singleValueContainer().decode(String.self)
+    self = TimelinePhase(rawValue: rawValue) ?? .unknown
+  }
+
+  /// User-selectable values. Excludes `unknown`: a decode-only fallback for server values this build lacks.
+  static var selectableCases: [TimelinePhase] {
+    allCases.filter { $0 != .unknown }
+  }
 
   /// Grade level (9–12) associated with this phase.
   var gradeLevel: Int {
@@ -14,7 +25,7 @@ enum TimelinePhase: String, Codable, CaseIterable, Sendable {
     case .freshman: return 9
     case .sophomore: return 10
     case .junior: return 11
-    case .senior, .committed: return 12
+    case .senior, .committed, .unknown: return 12
     }
   }
 
@@ -25,6 +36,7 @@ enum TimelinePhase: String, Codable, CaseIterable, Sendable {
     case .junior: return String(localized: "Junior Year")
     case .senior: return String(localized: "Senior Year")
     case .committed: return String(localized: "Committed")
+    case .unknown: return String(localized: "Unknown")
     }
   }
 
@@ -36,6 +48,7 @@ enum TimelinePhase: String, Codable, CaseIterable, Sendable {
     case .junior: return String(localized: "Junior")
     case .senior: return String(localized: "Senior")
     case .committed: return String(localized: "Committed")
+    case .unknown: return String(localized: "Unknown")
     }
   }
 
@@ -46,6 +59,7 @@ enum TimelinePhase: String, Codable, CaseIterable, Sendable {
     case .junior: return String(localized: "Evaluation & Relationship Building")
     case .senior: return String(localized: "Commitment & Transition")
     case .committed: return String(localized: "Post-Commitment")
+    case .unknown: return ""
     }
   }
 

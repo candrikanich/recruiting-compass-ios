@@ -80,7 +80,7 @@ struct CoachInteractionsLogSection: View {
           isActive: viewModel.filterDirection != nil
         ) {
           Button(String(localized: "Both")) { viewModel.filterDirection = nil }
-          ForEach(Direction.allCases, id: \.self) { direction in
+          ForEach(Direction.selectableCases, id: \.self) { direction in
             Button(direction.displayName) { viewModel.filterDirection = direction }
           }
         }
@@ -90,7 +90,7 @@ struct CoachInteractionsLogSection: View {
           isActive: viewModel.filterSentiment != nil
         ) {
           Button(String(localized: "All sentiments")) { viewModel.filterSentiment = nil }
-          ForEach(Sentiment.allCases, id: \.self) { sentiment in
+          ForEach(Sentiment.selectableCases, id: \.self) { sentiment in
             Button(sentiment.displayName) { viewModel.filterSentiment = sentiment }
           }
         }

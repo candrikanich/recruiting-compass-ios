@@ -47,7 +47,7 @@ struct InteractionFilterBar: View {
 
           Divider()
 
-          ForEach(Direction.allCases, id: \.self) { direction in
+          ForEach(Direction.selectableCases, id: \.self) { direction in
             Button {
               filters.direction = direction
             } label: {
@@ -77,7 +77,7 @@ struct InteractionFilterBar: View {
 
           Divider()
 
-          ForEach(Sentiment.allCases, id: \.self) { sentiment in
+          ForEach(Sentiment.selectableCases, id: \.self) { sentiment in
             Button {
               filters.sentiment = sentiment
             } label: {
