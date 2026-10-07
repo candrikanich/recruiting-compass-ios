@@ -86,7 +86,7 @@ Serve this file at:
     "details": [
       {
         "appID": "G374A783RH.com.chrisandrikanich.TheRecruitingCompass",
-        "paths": ["/invite/*", "/join", "/guardian/claim/*"]
+        "paths": ["/join", "/guardian/claim/*"]
       }
     ]
   }
@@ -100,8 +100,9 @@ Serve this file at:
 
 Invitation emails must use links like:
 
-- `https://www.myrecruitingcompass.com/invite/TOKEN`
-- or `https://www.myrecruitingcompass.com/join?token=TOKEN`
+- `https://www.myrecruitingcompass.com/join?token=TOKEN`
+
+(The web app builds these in `server/utils/emailService.ts`. There is no `/invite/TOKEN` route on either platform.)
 
 When the app is installed, iOS opens it instead of Safari. The app presents `InviteJoinView` with the token.
 
