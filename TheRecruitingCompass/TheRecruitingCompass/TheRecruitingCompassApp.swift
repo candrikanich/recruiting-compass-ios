@@ -72,7 +72,8 @@ struct TheRecruitingCompassApp: App {
             Task { await PushNotificationManager.shared.syncBadgeCount() }
           }
           .onReceive(NotificationCenter.default.publisher(for: .pushNotificationTapped)) { notification in
-            pendingPushDestination = notification.userInfo?["destination"] as? NotificationDestination
+            pendingPushDestination = (notification.userInfo?["destination"] as? NotificationDestination)?
+              .gated(by: featureFlagStore)
           }
         } else {
           NavigationStack {

@@ -131,7 +131,7 @@ leaves everything on, and keys a build doesn't recognise are ignored.
 
 | Key | Entry points hidden when listed |
 |---|---|
-| `inbound_drafts` | Settings "Review Forwarded Coach Emails" section, More-menu and sidebar "Coach Emails" |
+| `inbound_drafts` | Settings "Review Forwarded Coach Emails" section, More-menu and sidebar "Coach Emails", and push-notification taps for new drafts (land on the default tab) |
 | `guardian_claim` | The guardian-claim deep link (`/guardian/claim/<token>`) no longer opens the claim sheet |
 | `family_invites` | "Invite by Email" cards in Family Management, the dashboard parent-invite banner, the invite deep link |
 | `athlete_messages` | Quick Communication (templates + send guardrails); email/text buttons fall back to plain `mailto:`/`sms:` |
