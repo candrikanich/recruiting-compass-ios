@@ -510,14 +510,14 @@ final class DashboardViewModel {
       let now = Date.now
       let windowStart = InteractionTrendWindow.windowStart(now: now)
       let inWindow = try await dashboardService.fetchInteractions(userId: userId, since: windowStart)
-      var summary = InteractionTrendWindow.summarize(inWindow, now: now)
-      if summary.trends.isEmpty {
-        // Only needed for the "Last one: <date>" line; recent rows by created_at are enough to find it.
-        let recent = try await dashboardService.fetchInteractions(userId: userId, limit: 20)
-        summary = InteractionTrendWindow.summarize(recent, now: now)
-      }
+      let summary = InteractionTrendWindow.summarize(inWindow, now: now)
       interactionTrends = summary.trends
-      interactionTrendsLastDate = summary.lastInteractionDate
+      if summary.trends.isEmpty {
+        // Only needed for the "Last one: <date>" line; ordered by occurred_at so backdated rows don't win.
+        interactionTrendsLastDate = try await dashboardService.fetchLatestInteraction(userId: userId)?.displayDate
+      } else {
+        interactionTrendsLastDate = summary.lastInteractionDate
+      }
     } catch {
       logger.warning("Failed to load interaction trends: \(error.localizedDescription)")
     }

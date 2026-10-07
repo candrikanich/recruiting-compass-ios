@@ -253,6 +253,20 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
   }
 
+  func fetchLatestInteraction(userId: String) async throws -> Interaction? {
+    let rows: [Interaction] = try await logger.fetch("interactions") {
+      try await supabaseManager.client
+        .from("interactions")
+        .select()
+        .eq("logged_by", value: userId)
+        .order("occurred_at", ascending: false, nullsFirst: false)
+        .limit(1)
+        .execute()
+        .value
+    }
+    return rows.first
+  }
+
   func fetchOffers(userId: String) async throws -> [Offer] {
     try await logger.fetch("offers") {
       try await supabaseManager.client

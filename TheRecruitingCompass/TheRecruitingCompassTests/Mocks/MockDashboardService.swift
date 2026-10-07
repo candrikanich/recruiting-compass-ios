@@ -9,6 +9,7 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   var fetchCoachesCallCount = 0
   var fetchInteractionsCallCount = 0
   var fetchInteractionsSinceCallCount = 0
+  var fetchLatestInteractionCallCount = 0
   var fetchOffersCallCount = 0
   var fetchEventsCallCount = 0
   var fetchMetricsCallCount = 0
@@ -88,6 +89,15 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
       throw NSError(domain: "MockDashboard", code: 6, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
     }
     return stubbedInteractions
+  }
+
+  /// Mirrors the real query: newest `occurredAt` first, rows without one last.
+  func fetchLatestInteraction(userId: String) async throws -> Interaction? {
+    fetchLatestInteractionCallCount += 1
+    if shouldThrowFetchInteractions {
+      throw NSError(domain: "MockDashboard", code: 6, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
+    }
+    return stubbedInteractions.max { ($0.occurredAt ?? "") < ($1.occurredAt ?? "") }
   }
 
   func fetchOffers(userId: String) async throws -> [Offer] {
