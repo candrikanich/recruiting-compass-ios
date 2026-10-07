@@ -77,7 +77,7 @@ final class DashboardViewModel {
   private let videoLinksService: any VideoLinksManaging
 
   /// The user whose recruiting data the dashboard shows. When a parent is
-  /// viewing an athlete, events/metrics/interactions belong to the athlete;
+  /// viewing an athlete, events/metrics/offers belong to the athlete (interactions are family-wide);
   /// quick tasks stay keyed to the signed-in user (they are a personal,
   /// device-local list).
   private var targetUserId: String? {
@@ -505,16 +505,17 @@ final class DashboardViewModel {
   }
 
   func fetchInteractionTrends() async {
-    guard let userId = targetUserId else { return }
+    guard let familyUnitId = familyManager.familyUnitId else { return }
     do {
       let now = Date.now
       let windowStart = InteractionTrendWindow.windowStart(now: now)
-      let inWindow = try await dashboardService.fetchInteractions(userId: userId, since: windowStart)
+      let inWindow = try await dashboardService.fetchInteractions(familyUnitId: familyUnitId, since: windowStart)
       let summary = InteractionTrendWindow.summarize(inWindow, now: now)
       interactionTrends = summary.trends
       if summary.trends.isEmpty {
         // Only needed for the "Last one: <date>" line; ordered by occurred_at so backdated rows don't win.
-        interactionTrendsLastDate = try await dashboardService.fetchLatestInteraction(userId: userId)?.displayDate
+        let latest = try await dashboardService.fetchLatestInteraction(familyUnitId: familyUnitId)
+        interactionTrendsLastDate = latest?.displayDate
       } else {
         interactionTrendsLastDate = summary.lastInteractionDate
       }
