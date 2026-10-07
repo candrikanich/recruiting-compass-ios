@@ -38,3 +38,13 @@ Source: https://hackernoon.com/test-the-diff-not-the-app
 - **XCTSkip hides a dead login**: Most UI tests `throw XCTSkip("Login failed…")`, so a broken login turns the suite green, not red — a smoke run is only evidence once its skip count is zero.
 - **Smoke-sized E2E suite**: Keep scheduled E2E to the few flows that would be a launch-blocking outage (login, onboarding, add school, log interaction) and delete specs nobody acts on — each one must justify its maintenance cost, which matters when reviving the paused nightly UITest job.
 - **Feedback while the PR is open**: A failure that lands after merge (nightly E2E) is worth far less than one on the open PR — on web, run Playwright against the PR's Vercel preview URL for the routes the diff touches instead of relying on the post-merge full suite.
+
+## Graph Engineering with Claude (rvaniaaa, X article) — 2026-10-07
+Source: https://x.com/rvaniaaaa/status/2083542830086000704
+
+- **Hidden edges in parallel agents**: Separate worktrees aren't enough. Parallel iOS agents still share the simulator, DerivedData, the local Docker Supabase stack, and the `chris-mac-e2e` runner. Give each `xcodebuild` agent its own `-destination id=` and `-derivedDataPath`, or run those gates one after another.
+- **Merge counts its inputs**: Any fan-out audit (a11y, perf, dual-store, security sweep) must check findings-per-node against the number of nodes it expected and name the missing ones. One dead subagent otherwise produces a report that looks complete.
+- **Loop-until-dry dedupe**: Open-ended sweeps should repeat finder rounds until two rounds in a row find nothing new. Dedupe against everything seen, rejected findings included, and also stop at a round cap and a budget cap.
+- **Stream, don't barrier**: When `/trc` dispatches several dev agents, verify each PR as it lands instead of waiting for all of them. Wait for everything only when a step really needs all the results, like the train cut or a cross-PR conflict check.
+- **Schema-shaped node output**: Subagents feeding a merge step should return a fixed shape, e.g. `{file, line, severity, claim, evidence}` per finding. Then plain code can dedupe and count without reading free text.
+- **Cap the first fan-out**: Run a new audit fan-out on 20 or fewer items first and read the usage. Go wider only if the fan-out and the verifier both found something one agent would have missed.
