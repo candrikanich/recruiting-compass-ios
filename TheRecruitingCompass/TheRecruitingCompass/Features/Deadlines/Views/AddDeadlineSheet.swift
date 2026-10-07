@@ -67,7 +67,7 @@ struct AddDeadlineSheet: View {
           DatePicker("Date", selection: $date, displayedComponents: .date)
             .accessibilityLabel(String(localized: "Deadline date"))
           Picker("Category", selection: $category) {
-            ForEach(DeadlineCategory.allCases) { option in
+            ForEach(DeadlineCategory.selectableCases) { option in
               Text(option.displayName).tag(option)
             }
           }

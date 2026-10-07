@@ -6,7 +6,7 @@ struct InteractionCreateRequest: Codable, Sendable {
   let coachId: String?
   let eventId: String?
   let type: String
-  let direction: String
+  let direction: String?
   let occurredAt: String
   let subject: String?
   let content: String?
@@ -52,8 +52,9 @@ struct InteractionCreateRequest: Codable, Sendable {
     self.coachId = coachId
     self.eventId = eventId
     self.type = type.rawValue
-    self.direction = direction.rawValue
-    self.sentiment = sentiment?.rawValue
+    assert(direction != .unknown, "Direction.unknown is decode-only")
+    self.direction = direction.serverValue
+    self.sentiment = sentiment?.serverValue
 
     // Convert date to UTC ISO8601 string
     self.occurredAt = Self.isoFormatter.string(from: occurredAt)

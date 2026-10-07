@@ -384,7 +384,7 @@ struct PublicTab: View {
     private var recruitmentStatusCard: some View {
         boxedCard(title: String(localized: "4. Recruitment Status")) {
             Picker(String(localized: "Commitment Status"), selection: $vm.commitmentStatus) {
-                ForEach(CommitmentStatus.allCases, id: \.self) { status in
+                ForEach(CommitmentStatus.selectableCases, id: \.self) { status in
                     Text(status.label).tag(status)
                 }
             }

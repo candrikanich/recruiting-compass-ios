@@ -28,7 +28,7 @@ struct TaskWithStatus: Identifiable, Sendable {
     switch athleteTask?.status {
     case .completed: return .successGreen
     case .inProgress: return Color(hex: "F59E0B")
-    case .notStarted, .none: return .secondary
+    case .notStarted, .unknown, .none: return .secondary
     }
   }
 
@@ -37,7 +37,7 @@ struct TaskWithStatus: Identifiable, Sendable {
     switch athleteTask?.status {
     case .completed: return "checkmark.circle.fill"
     case .inProgress: return "clock.fill"
-    case .notStarted, .none: return "circle"
+    case .notStarted, .unknown, .none: return "circle"
     }
   }
 

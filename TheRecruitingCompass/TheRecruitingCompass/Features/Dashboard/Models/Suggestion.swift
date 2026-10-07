@@ -17,6 +17,15 @@ struct Suggestion: Codable, Identifiable, Sendable {
     case high
     case medium
     case low
+    case unknown
+
+    /// Raw value safe to send to the server; nil for the decode-only `unknown` fallback so the key is omitted.
+    var serverValue: String? { self == .unknown ? nil : rawValue }
+
+    init(from decoder: Decoder) throws {
+      let rawValue = try decoder.singleValueContainer().decode(String.self)
+      self = UrgencyLevel(rawValue: rawValue) ?? .unknown
+    }
 
     /// high → red, medium → amber, low → blue (per web handoff)
     var color: Color {
@@ -24,6 +33,7 @@ struct Suggestion: Codable, Identifiable, Sendable {
       case .high: return .errorRed
       case .medium: return .amberGold
       case .low: return .accentBlue
+      case .unknown: return .iconGray
       }
     }
 
@@ -32,6 +42,7 @@ struct Suggestion: Codable, Identifiable, Sendable {
       case .high: return String(localized: "High")
       case .medium: return String(localized: "Medium")
       case .low: return String(localized: "Low")
+      case .unknown: return String(localized: "Unknown")
       }
     }
 
@@ -41,6 +52,7 @@ struct Suggestion: Codable, Identifiable, Sendable {
       case .high: return 0
       case .medium: return 1
       case .low: return 2
+      case .unknown: return 3
       }
     }
   }

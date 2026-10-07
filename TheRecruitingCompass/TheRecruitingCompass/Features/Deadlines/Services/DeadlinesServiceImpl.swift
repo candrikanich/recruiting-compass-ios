@@ -4,12 +4,12 @@ import Supabase
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "DeadlinesService")
 
-private struct DeadlineInsertPayload: Encodable {
+struct DeadlineInsertPayload: Encodable {
   let userId: String
   let familyUnitId: String
   let label: String
   let deadlineDate: String
-  let category: String
+  let category: String?
   let schoolId: String?
 
   enum CodingKeys: String, CodingKey {
@@ -22,10 +22,10 @@ private struct DeadlineInsertPayload: Encodable {
   }
 }
 
-private struct DeadlineUpdatePayload: Encodable {
+struct DeadlineUpdatePayload: Encodable {
   let label: String
   let deadlineDate: String
-  let category: String
+  let category: String?
   let schoolId: String?
 
   enum CodingKeys: String, CodingKey {
@@ -33,6 +33,14 @@ private struct DeadlineUpdatePayload: Encodable {
     case deadlineDate = "deadline_date"
     case category
     case schoolId = "school_id"
+  }
+}
+
+extension DeadlineUpdatePayload {
+  init(_ request: DeadlineUpdateRequest) {
+    self.init(
+      label: request.label, deadlineDate: request.deadlineDate,
+      category: request.category.serverValue, schoolId: request.schoolId)
   }
 }
 
@@ -76,7 +84,7 @@ final class DeadlinesServiceImpl: DeadlinesManaging, Sendable {
       familyUnitId: request.familyUnitId,
       label: request.label,
       deadlineDate: request.deadlineDate,
-      category: request.category.rawValue,
+      category: request.category.serverValue,
       schoolId: request.schoolId
     )
 
@@ -95,12 +103,7 @@ final class DeadlinesServiceImpl: DeadlinesManaging, Sendable {
   func updateDeadline(id: String, familyUnitId: String, request: DeadlineUpdateRequest) async throws -> Deadline {
     logger.debug("Updating deadline: \(id)")
 
-    let payload = DeadlineUpdatePayload(
-      label: request.label,
-      deadlineDate: request.deadlineDate,
-      category: request.category.rawValue,
-      schoolId: request.schoolId
-    )
+    let payload = DeadlineUpdatePayload(request)
 
     let deadline: Deadline = try await supabaseManager.client
       .from("user_deadlines")

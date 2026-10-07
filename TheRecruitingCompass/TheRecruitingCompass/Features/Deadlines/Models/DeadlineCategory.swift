@@ -6,6 +6,20 @@ enum DeadlineCategory: String, Codable, Sendable, CaseIterable, Identifiable {
   case financial_aid
   case visit
   case custom
+  case unknown
+
+  /// Raw value safe to send to the server; nil for the decode-only `unknown` fallback so the key is omitted.
+  var serverValue: String? { self == .unknown ? nil : rawValue }
+
+  init(from decoder: Decoder) throws {
+    let rawValue = try decoder.singleValueContainer().decode(String.self)
+    self = DeadlineCategory(rawValue: rawValue) ?? .unknown
+  }
+
+  /// User-selectable values. Excludes `unknown`: a decode-only fallback for server values this build lacks.
+  static var selectableCases: [DeadlineCategory] {
+    allCases.filter { $0 != .unknown }
+  }
 
   var id: String { rawValue }
 
@@ -16,6 +30,7 @@ enum DeadlineCategory: String, Codable, Sendable, CaseIterable, Identifiable {
     case .financial_aid: return String(localized: "Financial Aid")
     case .visit:         return String(localized: "Visit")
     case .custom:        return String(localized: "Custom")
+    case .unknown:       return String(localized: "Unknown")
     }
   }
 
@@ -26,6 +41,7 @@ enum DeadlineCategory: String, Codable, Sendable, CaseIterable, Identifiable {
     case .financial_aid: return "dollarsign.circle"
     case .visit:         return "mappin.and.ellipse"
     case .custom:        return "tag"
+    case .unknown:       return "questionmark.circle"
     }
   }
 
@@ -36,6 +52,7 @@ enum DeadlineCategory: String, Codable, Sendable, CaseIterable, Identifiable {
     case .financial_aid: return .orange
     case .visit:         return .purple
     case .custom:        return .gray
+    case .unknown:       return .gray
     }
   }
 }

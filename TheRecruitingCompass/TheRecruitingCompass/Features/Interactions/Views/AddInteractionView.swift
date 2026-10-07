@@ -226,7 +226,7 @@ struct AddInteractionView: View {
   private var directionSection: some View {
     Section {
       Picker("Direction", selection: $viewModel.formState.direction) {
-        ForEach(Direction.allCases, id: \.self) { direction in
+        ForEach(Direction.selectableCases, id: \.self) { direction in
           VStack(alignment: .leading) {
             Text(direction.displayName)
             Text(direction.subtitle)
@@ -308,7 +308,7 @@ struct AddInteractionView: View {
       Picker("How was this interaction?", selection: $viewModel.formState.sentiment) {
         Text("Not set").tag(nil as Sentiment?)
 
-        ForEach(Sentiment.allCases, id: \.self) { sentiment in
+        ForEach(Sentiment.selectableCases, id: \.self) { sentiment in
           Text(sentiment.displayName).tag(sentiment as Sentiment?)
         }
       }

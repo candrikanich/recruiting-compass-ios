@@ -172,7 +172,7 @@ struct DeadlinesListView: View {
         categoryChip(title: String(localized: "All"), isSelected: viewModel.selectedCategory == nil) {
           viewModel.selectedCategory = nil
         }
-        ForEach(DeadlineCategory.allCases) { category in
+        ForEach(DeadlineCategory.selectableCases) { category in
           categoryChip(title: category.displayName, isSelected: viewModel.selectedCategory == category) {
             viewModel.selectedCategory = viewModel.selectedCategory == category ? nil : category
           }
