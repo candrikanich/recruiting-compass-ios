@@ -6,6 +6,8 @@ struct CoachFollowupRow: View {
   let onEmail: () -> Void
   let onText: () -> Void
   let onProfile: () -> Void
+  /// False when the `athlete_messages` kill switch is off: email/text are outreach and must not be offered.
+  var showsOutreach = true
 
   var body: some View {
     HStack(spacing: 12) {
@@ -24,12 +26,12 @@ struct CoachFollowupRow: View {
       .buttonStyle(.plain)
       .accessibilityLabel(String(localized: "View \(coach.fullName) profile"))
 
-      if coach.contactEmail != nil {
+      if showsOutreach, coach.contactEmail != nil {
         iconAction(systemImage: "envelope.fill",
                    label: String(localized: "Email \(coach.fullName)"),
                    action: onEmail)
       }
-      if coach.contactPhone != nil {
+      if showsOutreach, coach.contactPhone != nil {
         iconAction(systemImage: "message.fill",
                    label: String(localized: "Text \(coach.fullName)"),
                    action: onText)

@@ -212,10 +212,9 @@ struct CoachesListView: View {
           schoolName: viewModel.schoolName(for: coach.schoolId),
           schoolLogoUrl: viewModel.schoolLogoUrl(for: coach.schoolId),
           schoolInitials: viewModel.schoolInitials(for: coach.schoolId),
-          // Without a handler the card falls back to plain mailto:/sms: buttons.
-          onQuickCommunication: featureFlags.isEnabled(.athleteMessages) ? { context in
+          onQuickCommunication: { context in
             quickCommunicationContext = context
-          } : nil
+          }
         )
         .padding(.horizontal, 16)
         .padding(.vertical, 4)

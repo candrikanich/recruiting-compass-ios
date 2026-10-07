@@ -257,8 +257,8 @@ struct CoachDetailView: View {
       viewModel: viewModel,
       onEdit: { viewModel.startEditing() },
       onDelete: { viewModel.confirmDelete() },
-      onEmail: { presentQuickCommunication(coach, fallback: .email(coach.contactEmail ?? "")) },
-      onText: { presentQuickCommunication(coach, fallback: .phone(coach.contactPhone ?? "")) },
+      onEmail: { presentQuickCommunication(coach) },
+      onText: { presentQuickCommunication(coach) },
       onCall: { openChannel(.call(coach.phone ?? ""), value: coach.phone) },
       onTwitter: { openSocial(.twitter, coach: coach) },
       onInstagram: { openSocial(.instagram, coach: coach) },
@@ -302,15 +302,7 @@ struct CoachDetailView: View {
     }
   }
 
-  /// With athlete messages switched off remotely, fall back to the plain mailto:/sms: handoff.
-  private func presentQuickCommunication(_ coach: Coach, fallback: CommunicationType) {
-    guard featureFlags.isEnabled(.athleteMessages) else {
-      switch fallback {
-      case .email(let value), .phone(let value): openChannel(fallback, value: value)
-      case .call, .twitter, .instagram: break
-      }
-      return
-    }
+  private func presentQuickCommunication(_ coach: Coach) {
     quickCommunicationContext = QuickCommunicationContext(coach: coach, schoolName: viewModel.school?.name)
   }
 

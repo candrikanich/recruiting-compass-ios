@@ -134,7 +134,7 @@ leaves everything on, and keys a build doesn't recognise are ignored.
 | `inbound_drafts` | Settings "Review Forwarded Coach Emails" section, More-menu and sidebar "Coach Emails", and push-notification taps for new drafts (land on the default tab) |
 | `guardian_claim` | The guardian-claim deep link (`/guardian/claim/<token>`) no longer opens the claim sheet |
 | `family_invites` | "Invite by Email" cards in Family Management, the dashboard parent-invite banner, the invite deep link |
-| `athlete_messages` | Quick Communication (templates + send guardrails); email/text buttons fall back to plain `mailto:`/`sms:` |
+| `athlete_messages` | All coach outreach actions: email, text and Instagram on coach cards, the coach detail menu and rail, the dashboard follow-up widget, and the Quick Communication menu items. No `mailto:`/`sms:` fallback, so the guardian lock and send guardrails can't be bypassed. Call and the Twitter profile link stay. |
 
 ```sql
 -- Switch a feature off
