@@ -98,7 +98,13 @@ final class DashboardViewModelTests: XCTestCase {
     return ISO8601DateFormatter().string(from: date)
   }
 
-  private func makeInteraction(id: String, date: String, createdAt: String = "2024-01-01T00:00:00Z") -> Interaction {
+  private func makeInteraction(
+    id: String,
+    date: String,
+    createdAt: String = "2024-01-01T00:00:00Z",
+    loggedBy: String = "test-user-id",
+    familyUnitId: String = "family-unit-1"
+  ) -> Interaction {
     Interaction(
       id: id,
       type: .email,
@@ -109,12 +115,17 @@ final class DashboardViewModelTests: XCTestCase {
       content: nil,
       sentiment: nil,
       occurredAt: date,
-      loggedBy: "test-user-id",
+      loggedBy: loggedBy,
       attachments: nil,
-      familyUnitId: "family1",
+      familyUnitId: familyUnitId,
       createdAt: createdAt,
       updatedAt: "2024-01-01T00:00:00Z"
     )
+  }
+
+  private func loadFamilyContext() async {
+    setupFamilyContext()
+    await familyManager.loadFamilyData()
   }
 
   private func makeParentMember() -> FamilyMember {
@@ -561,6 +572,7 @@ final class DashboardViewModelTests: XCTestCase {
 
   func testFetchInteractionTrendsGroupsByDateAndSorts() async {
     authenticateUser()
+    await loadFamilyContext()
     let now = Date()
     mockDashboardService.stubbedInteractions = [
       makeInteraction(id: "i1", date: isoString(daysAgo: 1, from: now)),
@@ -577,6 +589,7 @@ final class DashboardViewModelTests: XCTestCase {
 
   func testFetchInteractionTrendsExcludesInteractionsOlderThanThirtyDays() async {
     authenticateUser()
+    await loadFamilyContext()
     let now = Date()
     mockDashboardService.stubbedInteractions = [
       makeInteraction(id: "recent", date: isoString(daysAgo: 3, from: now)),
@@ -590,6 +603,7 @@ final class DashboardViewModelTests: XCTestCase {
 
   func testFetchInteractionTrendsOnlyStaleInteractionsSetsLastDate() async {
     authenticateUser()
+    await loadFamilyContext()
     mockDashboardService.stubbedInteractions = [makeInteraction(id: "stale", date: "2024-01-15T10:00:00Z")]
 
     await sut.fetchInteractionTrends()
@@ -600,6 +614,7 @@ final class DashboardViewModelTests: XCTestCase {
 
   func testFetchInteractionTrendsLastDateIgnoresBackdatedRecentlyCreatedRow() async {
     authenticateUser()
+    await loadFamilyContext()
     mockDashboardService.stubbedInteractions = [
       // Logged recently but backdated: newest by created_at, oldest by occurred_at.
       makeInteraction(id: "backdated", date: "2024-01-15T10:00:00Z", createdAt: "2026-10-05T10:00:00Z"),
@@ -615,6 +630,7 @@ final class DashboardViewModelTests: XCTestCase {
 
   func testFetchInteractionTrendsSkipsLatestLookupWhenWindowHasData() async {
     authenticateUser()
+    await loadFamilyContext()
     mockDashboardService.stubbedInteractions = [makeInteraction(id: "recent", date: isoString(daysAgo: 1, from: Date()))]
 
     await sut.fetchInteractionTrends()
@@ -624,6 +640,7 @@ final class DashboardViewModelTests: XCTestCase {
 
   func testFetchInteractionTrendsNoInteractionsLeavesLastDateNil() async {
     authenticateUser()
+    await loadFamilyContext()
 
     await sut.fetchInteractionTrends()
 
@@ -633,6 +650,7 @@ final class DashboardViewModelTests: XCTestCase {
 
   func testFetchInteractionTrendsRequestsDateFilteredWindow() async {
     authenticateUser()
+    await loadFamilyContext()
 
     await sut.fetchInteractionTrends()
 

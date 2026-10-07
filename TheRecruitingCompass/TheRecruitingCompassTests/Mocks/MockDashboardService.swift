@@ -21,6 +21,8 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
 
   var lastFetchStatsFamilyUnitId: String?
   var lastFetchStatsUserId: String?
+  var lastFetchInteractionsSinceFamilyUnitId: String?
+  var lastFetchLatestInteractionFamilyUnitId: String?
   var lastDismissedSuggestionId: String?
   var lastCompletedSuggestionId: String?
 
@@ -75,7 +77,7 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
     return stubbedCoaches
   }
 
-  func fetchInteractions(userId: String, limit: Int?) async throws -> [Interaction] {
+  func fetchInteractions(familyUnitId: String, limit: Int?) async throws -> [Interaction] {
     fetchInteractionsCallCount += 1
     if shouldThrowFetchInteractions {
       throw NSError(domain: "MockDashboard", code: 6, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
@@ -83,21 +85,25 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
     return stubbedInteractions
   }
 
-  func fetchInteractions(userId: String, since: Date) async throws -> [Interaction] {
+  func fetchInteractions(familyUnitId: String, since: Date) async throws -> [Interaction] {
     fetchInteractionsSinceCallCount += 1
+    lastFetchInteractionsSinceFamilyUnitId = familyUnitId
+    if shouldThrowFetchInteractions {
+      throw NSError(domain: "MockDashboard", code: 6, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
+    }
+    return stubbedInteractions.filter { $0.familyUnitId == familyUnitId }
+  }
+
+  /// Mirrors the real query: newest `occurredAt` first, rows without one last.
+  func fetchLatestInteraction(familyUnitId: String) async throws -> Interaction? {
+    fetchLatestInteractionCallCount += 1
+    lastFetchLatestInteractionFamilyUnitId = familyUnitId
     if shouldThrowFetchInteractions {
       throw NSError(domain: "MockDashboard", code: 6, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
     }
     return stubbedInteractions
-  }
-
-  /// Mirrors the real query: newest `occurredAt` first, rows without one last.
-  func fetchLatestInteraction(userId: String) async throws -> Interaction? {
-    fetchLatestInteractionCallCount += 1
-    if shouldThrowFetchInteractions {
-      throw NSError(domain: "MockDashboard", code: 6, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
-    }
-    return stubbedInteractions.max { ($0.occurredAt ?? "") < ($1.occurredAt ?? "") }
+      .filter { $0.familyUnitId == familyUnitId }
+      .max { ($0.occurredAt ?? "") < ($1.occurredAt ?? "") }
   }
 
   func fetchOffers(userId: String) async throws -> [Offer] {

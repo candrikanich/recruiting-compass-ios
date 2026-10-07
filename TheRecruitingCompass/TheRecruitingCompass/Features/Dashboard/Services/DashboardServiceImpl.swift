@@ -19,10 +19,10 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       async let schoolIdsTask = fetchSchoolIds(familyUnitId: familyUnitId)
       async let interactionCountTask = exactCount(
         table: "interactions",
-        column: "logged_by",
-        value: userId
+        column: "family_unit_id",
+        value: familyUnitId
       )
-      async let monthCountTask = countInteractionsThisMonth(userId: userId)
+      async let monthCountTask = countInteractionsThisMonth(familyUnitId: familyUnitId)
       async let upcomingTask = countUpcomingEvents(userId: userId)
       async let offerRowsTask = fetchOfferStatRows(userId: userId)
 
@@ -148,14 +148,14 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
 
   /// Counts interactions in the current calendar month using date range filters.
   /// Uses `gte`/`lt` on timestamptz columns (PostgREST `like` only works on text).
-  private func countInteractionsThisMonth(userId: String) async throws -> Int {
+  private func countInteractionsThisMonth(familyUnitId: String) async throws -> Int {
     let (monthStart, nextMonthStart) = Self.currentMonthRange()
     do {
       async let withOccurred: Int = {
         let response = try await supabaseManager.client
           .from("interactions")
           .select("id", head: true, count: .exact)
-          .eq("logged_by", value: userId)
+          .eq("family_unit_id", value: familyUnitId)
           .gte("occurred_at", value: monthStart)
           .lt("occurred_at", value: nextMonthStart)
           .execute()
@@ -165,7 +165,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
         let response = try await supabaseManager.client
           .from("interactions")
           .select("id", head: true, count: .exact)
-          .eq("logged_by", value: userId)
+          .eq("family_unit_id", value: familyUnitId)
           .is("occurred_at", value: nil)
           .gte("created_at", value: monthStart)
           .lt("created_at", value: nextMonthStart)
@@ -223,12 +223,12 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
   }
 
-  func fetchInteractions(userId: String, limit: Int?) async throws -> [Interaction] {
+  func fetchInteractions(familyUnitId: String, limit: Int?) async throws -> [Interaction] {
     try await logger.fetch("interactions") {
       var query = supabaseManager.client
         .from("interactions")
         .select()
-        .eq("logged_by", value: userId)
+        .eq("family_unit_id", value: familyUnitId)
         .order("created_at", ascending: false)
 
       if let limit {
@@ -239,13 +239,13 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
   }
 
-  func fetchInteractions(userId: String, since: Date) async throws -> [Interaction] {
+  func fetchInteractions(familyUnitId: String, since: Date) async throws -> [Interaction] {
     let cutoff = since.formatted(.iso8601)
     return try await logger.fetch("interactions") {
       try await supabaseManager.client
         .from("interactions")
         .select()
-        .eq("logged_by", value: userId)
+        .eq("family_unit_id", value: familyUnitId)
         .or("occurred_at.gte.\(cutoff),and(occurred_at.is.null,created_at.gte.\(cutoff))")
         .order("created_at", ascending: false)
         .execute()
@@ -253,12 +253,12 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
   }
 
-  func fetchLatestInteraction(userId: String) async throws -> Interaction? {
+  func fetchLatestInteraction(familyUnitId: String) async throws -> Interaction? {
     let rows: [Interaction] = try await logger.fetch("interactions") {
       try await supabaseManager.client
         .from("interactions")
         .select()
-        .eq("logged_by", value: userId)
+        .eq("family_unit_id", value: familyUnitId)
         .order("occurred_at", ascending: false, nullsFirst: false)
         .limit(1)
         .execute()
