@@ -38,3 +38,12 @@ Source: https://hackernoon.com/test-the-diff-not-the-app
 - **XCTSkip hides a dead login**: Most UI tests `throw XCTSkip("Login failed…")`, so a broken login turns the suite green, not red — a smoke run is only evidence once its skip count is zero.
 - **Smoke-sized E2E suite**: Keep scheduled E2E to the few flows that would be a launch-blocking outage (login, onboarding, add school, log interaction) and delete specs nobody acts on — each one must justify its maintenance cost, which matters when reviving the paused nightly UITest job.
 - **Feedback while the PR is open**: A failure that lands after merge (nightly E2E) is worth far less than one on the open PR — on web, run Playwright against the PR's Vercel preview URL for the routes the diff touches instead of relying on the post-merge full suite.
+
+## The Test Suite Is the New Code Review (Allen Hutchison) — 2026-10-07
+Source: https://allen.hutchison.org/2026/09/17/the-test-suite-is-the-new-code-review/
+
+- **CI is the agent-era bottleneck**: Once agents write and review PRs in minutes, wall-clock CI dominates throughput — iOS PR CI ran 30–46 min on 2026-10-06/07, so cutting it beats any further agent tuning.
+- **Test impact analysis for PRs**: Run only the test classes for touched feature folders on PRs (`-only-testing:` from `git diff --name-only origin/main...`), and keep the full ~3700-test run on push to main and nightly. Example: `Features/Coaches/**` → `-only-testing:TheRecruitingCompassTests/Coach*`
+- **Batch merges cancel main CI**: Merging several PRs within minutes makes `cancel-in-progress` drop main runs, so intermediate main commits are never tested — merge one at a time, or accept that only the last commit in a burst is verified.
+- **Contract tests at the iOS↔Supabase boundary**: Cross-boundary bugs (iOS sending `position` when the column is `role` → PGRST204) slip past green unit suites — assert iOS `CodingKeys` against the schema's real column list, the same way the calendar parity fixture guards web↔iOS.
+- **One test crosses the changed boundary**: A PR that touches an encoder, endpoint or query needs at least one test that goes through that boundary, not just mocked unit tests on either side.
