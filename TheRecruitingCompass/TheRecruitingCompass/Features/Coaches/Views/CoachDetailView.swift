@@ -36,6 +36,7 @@ struct CoachDetailView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.openURL) private var openURL
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   init(coachId: String, allCoaches: [Coach] = [], allSchools: [School] = []) {
     self.coachId = coachId
@@ -78,17 +79,19 @@ struct CoachDetailView: View {
       }
       ToolbarItem(placement: .primaryAction) {
         Menu {
-          Button {
-            if let coach = viewModel.coach {
-              quickCommunicationContext = QuickCommunicationContext(
-                coach: coach,
-                schoolName: viewModel.school?.name
-              )
+          if featureFlags.isEnabled(.athleteMessages) {
+            Button {
+              if let coach = viewModel.coach {
+                quickCommunicationContext = QuickCommunicationContext(
+                  coach: coach,
+                  schoolName: viewModel.school?.name
+                )
+              }
+            } label: {
+              Label("Quick Communication", systemImage: "envelope.badge")
             }
-          } label: {
-            Label("Quick Communication", systemImage: "envelope.badge")
+            .disabled(viewModel.isLoading || viewModel.coach == nil)
           }
-          .disabled(viewModel.isLoading || viewModel.coach == nil)
 
           Button {
             viewModel.startEditing()
@@ -254,8 +257,8 @@ struct CoachDetailView: View {
       viewModel: viewModel,
       onEdit: { viewModel.startEditing() },
       onDelete: { viewModel.confirmDelete() },
-      onEmail: { presentQuickCommunication(coach) },
-      onText: { presentQuickCommunication(coach) },
+      onEmail: { presentQuickCommunication(coach, fallback: .email(coach.contactEmail ?? "")) },
+      onText: { presentQuickCommunication(coach, fallback: .phone(coach.contactPhone ?? "")) },
       onCall: { openChannel(.call(coach.phone ?? ""), value: coach.phone) },
       onTwitter: { openSocial(.twitter, coach: coach) },
       onInstagram: { openSocial(.instagram, coach: coach) },
@@ -299,7 +302,15 @@ struct CoachDetailView: View {
     }
   }
 
-  private func presentQuickCommunication(_ coach: Coach) {
+  /// With athlete messages switched off remotely, fall back to the plain mailto:/sms: handoff.
+  private func presentQuickCommunication(_ coach: Coach, fallback: CommunicationType) {
+    guard featureFlags.isEnabled(.athleteMessages) else {
+      switch fallback {
+      case .email(let value), .phone(let value): openChannel(fallback, value: value)
+      case .call, .twitter, .instagram: break
+      }
+      return
+    }
     quickCommunicationContext = QuickCommunicationContext(coach: coach, schoolName: viewModel.school?.name)
   }
 

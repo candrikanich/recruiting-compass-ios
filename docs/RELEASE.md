@@ -121,7 +121,40 @@ The web app deploys continuously; iOS users update days to months later. Every s
   fresh installs). Keep it to 1–4 highlights that match the release notes.
 - **Version shown in the app:** Settings → About → Version `X.Y.Z (build)`. Ask users for it in support.
 
-## Kill switches (PostHog feature flags)
+## Kill switches
+
+`app_config.ios_disabled_features` (`text[]`, default `'{}'`) switches individual features off in live builds
+without an App Store release. The app reads it via `get_ios_disabled_features()` on launch and when returning
+to foreground (every foreground refreshes).
+A feature is **on unless its key is listed**. The app fails open: a missing RPC, an error or being offline
+leaves everything on, and keys a build doesn't recognise are ignored.
+
+| Key | Entry points hidden when listed |
+|---|---|
+| `inbound_drafts` | Settings "Review Forwarded Coach Emails" section, More-menu and sidebar "Coach Emails" |
+| `guardian_claim` | The guardian-claim deep link (`/guardian/claim/<token>`) no longer opens the claim sheet |
+| `family_invites` | "Invite by Email" cards in Family Management, the dashboard parent-invite banner, the invite deep link |
+| `athlete_messages` | Quick Communication (templates + send guardrails); email/text buttons fall back to plain `mailto:`/`sms:` |
+
+```sql
+-- Switch a feature off
+update public.app_config set ios_disabled_features = array_append(ios_disabled_features, 'family_invites'),
+  updated_at = now() where id and not ('family_invites' = any(ios_disabled_features));
+-- Switch it back on
+update public.app_config set ios_disabled_features = array_remove(ios_disabled_features, 'family_invites'),
+  updated_at = now() where id;
+-- Everything back on
+update public.app_config set ios_disabled_features = '{}', updated_at = now() where id;
+```
+
+Rules:
+- **Keys are permanent once shipped.** Builds in the wild only know the keys they were built with; never rename
+  or reuse a key. Add new ones to `FeatureKey` (`Features/FeatureFlags/Models/FeatureKey.swift`) and this table.
+- A switch hides entry points only. It never deletes data and never interrupts a flow already on screen.
+- A failed refresh keeps the last known state, so a flaky network won't re-enable a feature you killed.
+- Changes reach a running app on its next launch or foreground.
+
+## Analytics-driven flags (PostHog)
 
 For risky features, gate the entry point on a PostHog flag so it can be turned off without an app review:
 

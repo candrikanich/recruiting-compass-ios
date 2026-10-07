@@ -7,6 +7,7 @@ struct CoachesListView: View {
   @State private var quickCommunicationContext: QuickCommunicationContext?
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
   @State private var navigationPath = NavigationPath()
   @Binding private var externalNavigationPath: NavigationPath
 
@@ -211,22 +212,25 @@ struct CoachesListView: View {
           schoolName: viewModel.schoolName(for: coach.schoolId),
           schoolLogoUrl: viewModel.schoolLogoUrl(for: coach.schoolId),
           schoolInitials: viewModel.schoolInitials(for: coach.schoolId),
-          onQuickCommunication: { context in
+          // Without a handler the card falls back to plain mailto:/sms: buttons.
+          onQuickCommunication: featureFlags.isEnabled(.athleteMessages) ? { context in
             quickCommunicationContext = context
-          }
+          } : nil
         )
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
       }
       .buttonStyle(.plain)
       .contextMenu {
-        Button {
-          quickCommunicationContext = QuickCommunicationContext(
-            coach: coach,
-            schoolName: viewModel.schoolName(for: coach.schoolId)
-          )
-        } label: {
-          Label("Quick Communication", systemImage: "envelope.badge")
+        if featureFlags.isEnabled(.athleteMessages) {
+          Button {
+            quickCommunicationContext = QuickCommunicationContext(
+              coach: coach,
+              schoolName: viewModel.schoolName(for: coach.schoolId)
+            )
+          } label: {
+            Label("Quick Communication", systemImage: "envelope.badge")
+          }
         }
       }
     }

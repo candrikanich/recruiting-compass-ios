@@ -11,6 +11,7 @@ struct DashboardView: View {
   @State private var emailVerificationBannerViewModel = EmailVerificationBannerViewModel()
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
   @Environment(\.openMoreSection) private var openMoreSection
   @Environment(\.horizontalSizeClass) private var sizeClass
 
@@ -36,7 +37,8 @@ struct DashboardView: View {
           )
         }
 
-        if familyManager.currentMember?.isParent == true && !viewModel.isParentPreviewMode {
+        if familyManager.currentMember?.isParent == true && !viewModel.isParentPreviewMode
+          && featureFlags.isEnabled(.familyInvites) {
           ParentOnboardingBanner(onInviteTapped: {
             showParentWizard = true
           })
