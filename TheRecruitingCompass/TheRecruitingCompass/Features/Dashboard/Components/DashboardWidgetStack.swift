@@ -15,6 +15,7 @@ struct DashboardWidgetStack: View {
   let allSchools: [School]
   let events: [FullEvent]
   let interactionTrends: [InteractionTrend]
+  let interactionTrendsLastDate: Date?
   let metrics: [PerformanceMetric]
   let schoolsWithOffersPercentage: String
   let interactionsThisMonth: Int
@@ -122,8 +123,8 @@ struct DashboardWidgetStack: View {
       }
 
     case .interactionTrends:
-      if visibility.interactionTrendChart && !interactionTrends.isEmpty {
-        InteractionTrendsChart(trends: interactionTrends)
+      if visibility.interactionTrendChart {
+        InteractionTrendsChart(trends: interactionTrends, lastInteractionDate: interactionTrendsLastDate)
       }
 
     case .recentActivity:

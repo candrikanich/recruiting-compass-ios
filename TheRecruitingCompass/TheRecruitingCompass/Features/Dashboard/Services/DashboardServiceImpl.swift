@@ -239,6 +239,20 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
   }
 
+  func fetchInteractions(userId: String, since: Date) async throws -> [Interaction] {
+    let cutoff = since.formatted(.iso8601)
+    return try await logger.fetch("interactions") {
+      try await supabaseManager.client
+        .from("interactions")
+        .select()
+        .eq("logged_by", value: userId)
+        .or("occurred_at.gte.\(cutoff),and(occurred_at.is.null,created_at.gte.\(cutoff))")
+        .order("created_at", ascending: false)
+        .execute()
+        .value
+    }
+  }
+
   func fetchOffers(userId: String) async throws -> [Offer] {
     try await logger.fetch("offers") {
       try await supabaseManager.client
