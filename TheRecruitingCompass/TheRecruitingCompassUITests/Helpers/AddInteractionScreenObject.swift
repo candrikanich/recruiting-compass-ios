@@ -12,25 +12,27 @@ final class AddInteractionScreenObject {
   // MARK: - Navigation Elements
 
   var navigationTitle: XCUIElement {
-    app.navigationBars.element(matching: .navigationBar, identifier: "Add Interaction")
+    app.navigationBars["Log Interaction"]
   }
 
   var cancelButton: XCUIElement {
-    app.navigationBars.buttons["Cancel"]
+    app.navigationBars.buttons["Cancel and return to school details"]
   }
 
   // MARK: - Form Fields
 
+  // Form pickers use the menu style, which XCUITest reports as Button or PopUpButton
+  // depending on the Xcode version — match either.
   var schoolPicker: XCUIElement {
-    app.buttons["School picker"]
+    menuPicker("School picker")
   }
 
   var coachPicker: XCUIElement {
-    app.buttons["Coach picker"]
+    menuPicker("Coach picker")
   }
 
   var interactionTypePicker: XCUIElement {
-    app.buttons["Interaction type picker"]
+    menuPicker("Interaction type picker")
   }
 
   var directionPicker: XCUIElement {
@@ -50,7 +52,7 @@ final class AddInteractionScreenObject {
   }
 
   var sentimentPicker: XCUIElement {
-    app.pickers["Sentiment picker"]
+    menuPicker("Sentiment picker")
   }
 
   // MARK: - Interest Calibration
@@ -71,7 +73,7 @@ final class AddInteractionScreenObject {
   // MARK: - Submit Button
 
   var submitButton: XCUIElement {
-    app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Log'")).firstMatch
+    app.buttons["Log Interaction"]
   }
 
   // MARK: - Sheets
@@ -130,50 +132,104 @@ final class AddInteractionScreenObject {
 
   // MARK: - Helper Methods
 
-  func navigateToAddInteractionFromDashboard() {
-    // Navigate to Interactions tab
-    let interactionsTab = app.tabBars.buttons["Interactions"]
-    if interactionsTab.waitForExistence(timeout: 5) {
-      interactionsTab.tap()
+  /// Dashboard -> Interactions tab -> "+" -> Log Interaction. Fails the test at the step
+  /// that didn't happen instead of continuing on the wrong screen.
+  @discardableResult
+  func navigateToAddInteractionFromDashboard(file: StaticString = #filePath, line: UInt = #line) -> Bool {
+    guard MainTabNavigator(app: app).goTo(.interactions),
+          interactionsListNavigationBar.waitForExistence(timeout: 10) else {
+      XCTFail("Interactions list did not open from the tab bar", file: file, line: line)
+      return false
     }
 
-    // Tap + button to add interaction
-    let addButton = app.navigationBars.buttons["Add new interaction"]
-    if addButton.waitForExistence(timeout: 5) {
-      addButton.tap()
+    let addButton = app.navigationBars.buttons["Log new interaction"]
+    guard addButton.waitForExistence(timeout: 10) else {
+      XCTFail("\"Log new interaction\" toolbar button not found", file: file, line: line)
+      return false
     }
+    addButton.tap()
+
+    // The form shows a loading row until schools are fetched; the school picker marks it ready.
+    guard waitForScreenToLoad(), schoolPicker.waitForExistence(timeout: 15) else {
+      XCTFail("Log Interaction form did not open and load", file: file, line: line)
+      return false
+    }
+    return true
+  }
+
+  /// Parents see "Interactions"; athletes see "My Interactions".
+  var interactionsListNavigationBar: XCUIElement {
+    app.navigationBars.matching(NSPredicate(format: "identifier ENDSWITH 'Interactions'")).firstMatch
   }
 
   func waitForScreenToLoad() -> Bool {
     navigationTitle.waitForExistence(timeout: 10)
   }
 
-  func selectSchool(_ schoolName: String) {
-    schoolPicker.tap()
-    app.pickerWheels.element.adjust(toPickerWheelValue: schoolName)
+  func selectSchool(_ schoolName: String, file: StaticString = #filePath, line: UInt = #line) {
+    selectMenuOption(schoolName, in: schoolPicker, file: file, line: line)
   }
 
-  func selectCoach(_ coachName: String) {
-    coachPicker.tap()
-    app.pickerWheels.element.adjust(toPickerWheelValue: coachName)
+  func selectCoach(_ coachName: String, file: StaticString = #filePath, line: UInt = #line) {
+    selectMenuOption(coachName, in: coachPicker, file: file, line: line)
   }
 
-  func selectInteractionType(_ typeName: String) {
-    interactionTypePicker.tap()
-    app.pickerWheels.element.adjust(toPickerWheelValue: typeName)
+  func selectInteractionType(_ typeName: String, file: StaticString = #filePath, line: UInt = #line) {
+    selectMenuOption(typeName, in: interactionTypePicker, file: file, line: line)
   }
 
-  func selectDirection(_ direction: String) {
-    // Direction uses segmented control
-    let segment = app.buttons[direction]
-    if segment.exists {
-      segment.tap()
+  /// Direction is a segmented control whose segments carry a title plus a subtitle.
+  func selectDirection(_ direction: String, file: StaticString = #filePath, line: UInt = #line) {
+    let segment = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", direction)).firstMatch
+    guard segment.waitForExistence(timeout: 5) else {
+      XCTFail("Direction segment \"\(direction)\" not found", file: file, line: line)
+      return
+    }
+    segment.tap()
+  }
+
+  func selectSentiment(_ sentimentName: String, file: StaticString = #filePath, line: UInt = #line) {
+    selectMenuOption(sentimentName, in: sentimentPicker, file: file, line: line)
+  }
+
+  /// Scrolls the form until `element` can be tapped (the submit button sits below the fold).
+  func scrollToElement(_ element: XCUIElement, up: Bool = false, maxSwipes: Int = 8) {
+    var swipes = 0
+    while !element.isHittable && swipes < maxSwipes {
+      if up { app.swipeDown() } else { app.swipeUp() }
+      swipes += 1
     }
   }
 
-  func selectSentiment(_ sentimentName: String) {
-    sentimentPicker.tap()
-    app.pickerWheels.element.adjust(toPickerWheelValue: sentimentName)
+  /// A Form picker row reads "<title>, <accessibility label>", e.g. "School, School picker".
+  private func menuPicker(_ label: String) -> XCUIElement {
+    let types = [XCUIElement.ElementType.button, .popUpButton].map { NSNumber(value: $0.rawValue) }
+    return app.descendants(matching: .any)
+      .matching(NSPredicate(
+        format: "(label == %@ OR label ENDSWITH %@) AND elementType IN %@",
+        label, ", " + label, types
+      ))
+      .firstMatch
+  }
+
+  private func selectMenuOption(
+    _ option: String,
+    in picker: XCUIElement,
+    file: StaticString,
+    line: UInt
+  ) {
+    guard picker.waitForExistence(timeout: 10) else {
+      XCTFail("Picker \(picker) not found", file: file, line: line)
+      return
+    }
+    picker.tap()
+    let item = app.buttons[option].firstMatch
+    guard item.waitForExistence(timeout: 5) else {
+      XCTFail("Menu option \"\(option)\" did not appear after opening \(picker)", file: file, line: line)
+      return
+    }
+    item.tap()
+    _ = item.waitForNonExistence(timeout: 3)
   }
 
   func fillSubject(_ text: String) {
@@ -187,13 +243,11 @@ final class AddInteractionScreenObject {
   }
 
   func selectOtherCoach() {
-    coachPicker.tap()
-    app.pickerWheels.element.adjust(toPickerWheelValue: "Other coach (not listed)")
+    selectCoach("Other coach (not listed)")
   }
 
   func selectAddNewCoach() {
-    coachPicker.tap()
-    app.pickerWheels.element.adjust(toPickerWheelValue: "+ Add new coach")
+    selectCoach("+ Add new coach")
   }
 
   func fillNewCoachForm(firstName: String, lastName: String, role: String) {

@@ -13,6 +13,7 @@ struct CoachDirectChannelsGrid: View {
   var onLog: () -> Void = {}
 
   @Environment(\.sizeCategory) private var sizeCategory
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   private var columns: [GridItem] {
     [GridItem(.flexible(), spacing: 10),
@@ -22,23 +23,30 @@ struct CoachDirectChannelsGrid: View {
 
   var body: some View {
     LazyVGrid(columns: columns, spacing: 10) {
-      if coach.contactEmail != nil {
-        pill(label: "Email", system: "envelope.fill", fill: AnyShapeStyle(Color.Brand.blue500), action: onEmail)
-      }
-      if coach.contactPhone != nil {
-        pill(label: "Text", system: "message.fill", fill: AnyShapeStyle(Color.Brand.emerald500), action: onText)
-        pill(label: "Call", system: "phone.fill", fill: AnyShapeStyle(Color.Brand.orange500), action: onCall)
-      }
-      if coach.contactTwitter != nil {
-        pill(label: "Twitter", asset: "LogoX", fill: AnyShapeStyle(Color.Brand.sky500), action: onTwitter)
-      }
-      if coach.contactInstagram != nil {
-        pill(label: "Instagram", asset: "LogoInstagram",
-             fill: AnyShapeStyle(LinearGradient(colors: [Color.Brand.fuchsia500, Color.Brand.pink500],
-                                                startPoint: .topLeading, endPoint: .bottomTrailing)),
-             action: onInstagram)
+      ForEach(CoachChannel.visible(for: coach, outreachEnabled: featureFlags.isEnabled(.athleteMessages)),
+              id: \.self) { channel in
+        channelPill(channel)
       }
       pill(label: "Log Activity", system: "plus", fill: AnyShapeStyle(Color.Brand.slate700), action: onLog)
+    }
+  }
+
+  @ViewBuilder
+  private func channelPill(_ channel: CoachChannel) -> some View {
+    switch channel {
+    case .email:
+      pill(label: "Email", system: "envelope.fill", fill: AnyShapeStyle(Color.Brand.blue500), action: onEmail)
+    case .text:
+      pill(label: "Text", system: "message.fill", fill: AnyShapeStyle(Color.Brand.emerald500), action: onText)
+    case .call:
+      pill(label: "Call", system: "phone.fill", fill: AnyShapeStyle(Color.Brand.orange500), action: onCall)
+    case .twitter:
+      pill(label: "Twitter", asset: "LogoX", fill: AnyShapeStyle(Color.Brand.sky500), action: onTwitter)
+    case .instagram:
+      pill(label: "Instagram", asset: "LogoInstagram",
+           fill: AnyShapeStyle(LinearGradient(colors: [Color.Brand.fuchsia500, Color.Brand.pink500],
+                                              startPoint: .topLeading, endPoint: .bottomTrailing)),
+           action: onInstagram)
     }
   }
 

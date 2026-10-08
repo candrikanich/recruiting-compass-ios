@@ -36,6 +36,7 @@ struct CoachDetailView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.openURL) private var openURL
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   init(coachId: String, allCoaches: [Coach] = [], allSchools: [School] = []) {
     self.coachId = coachId
@@ -78,17 +79,19 @@ struct CoachDetailView: View {
       }
       ToolbarItem(placement: .primaryAction) {
         Menu {
-          Button {
-            if let coach = viewModel.coach {
-              quickCommunicationContext = QuickCommunicationContext(
-                coach: coach,
-                schoolName: viewModel.school?.name
-              )
+          if featureFlags.isEnabled(.athleteMessages) {
+            Button {
+              if let coach = viewModel.coach {
+                quickCommunicationContext = QuickCommunicationContext(
+                  coach: coach,
+                  schoolName: viewModel.school?.name
+                )
+              }
+            } label: {
+              Label("Quick Communication", systemImage: "envelope.badge")
             }
-          } label: {
-            Label("Quick Communication", systemImage: "envelope.badge")
+            .disabled(viewModel.isLoading || viewModel.coach == nil)
           }
-          .disabled(viewModel.isLoading || viewModel.coach == nil)
 
           Button {
             viewModel.startEditing()

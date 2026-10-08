@@ -69,6 +69,23 @@ final class FormValidatorTests: XCTestCase {
     XCTAssertNil(result)
   }
 
+  func testValidateNameAcceptsAccentedAndNonLatinLetters() {
+    for name in ["José", "Zoë", "Nguyễn", "Søren", "Łukasz", "Дмитрий", "美咲"] {
+      XCTAssertNil(FormValidator.validateName(name), name)
+    }
+  }
+
+  // The iOS keyboard's smart punctuation turns ' into ’ as the user types.
+  func testValidateNameAcceptsSmartApostrophe() {
+    XCTAssertNil(FormValidator.validateName("O’Brien"))
+  }
+
+  func testValidateNameRejectsEmojiAndSymbols() {
+    let message = "Name can only contain letters, spaces, hyphens, and apostrophes"
+    XCTAssertEqual(FormValidator.validateName("John😀"), message)
+    XCTAssertEqual(FormValidator.validateName("John<script>"), message)
+  }
+
   // MARK: - Password Strength Validation Tests
 
   func testValidatePasswordStrengthWithWeakPassword() {

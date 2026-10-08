@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { randomInt } from "crypto";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -79,6 +80,13 @@ function futureDate(daysFromNow: number): string {
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+// A partial seed makes data-dependent tests skip rather than fail, so a seed
+// error has to stop the run instead of being logged and ignored.
+function failSeed(step: string, message: string): never {
+  console.error(`${step} seed error:`, message);
+  process.exit(1);
 }
 
 // ---------------------------------------------------------------------------
@@ -249,6 +257,14 @@ async function linkPlayerToFamily(
 // ---------------------------------------------------------------------------
 // Step 3 — Create / find family unit + membership
 // ---------------------------------------------------------------------------
+// family_units.inbound_token is NOT NULL, CHECK '^[a-z0-9]{8}$' (web migration
+// 20260906000000) and has no default: the app gets one from the web API, a
+// direct insert must supply it.
+function randomInboundToken(): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  return Array.from({ length: 8 }, () => chars[randomInt(chars.length)]).join("");
+}
+
 async function resolveFamily(userId: string): Promise<string> {
   // Check for existing membership first (idempotent)
   const { data: existing } = await supabase
@@ -264,7 +280,11 @@ async function resolveFamily(userId: string): Promise<string> {
 
   const { data: unit, error: unitError } = await supabase
     .from("family_units")
-    .insert({ family_name: "E2E Test Family", created_by_user_id: userId })
+    .insert({
+      family_name: "E2E Test Family",
+      created_by_user_id: userId,
+      inbound_token: randomInboundToken(),
+    })
     .select()
     .single();
 
@@ -311,7 +331,9 @@ async function cleanupTestData(
 }
 
 // ---------------------------------------------------------------------------
-// Step 4 — Schools (2: one normal + one duplicate-name for duplicate detection)
+// Step 4 — Schools (2, distinct names: schools_family_unit_name_unique rejects
+// a repeated name within a family, and a rejected row fails the whole insert).
+// Duplicate-detection tests add a second "Duke University" through the UI.
 // ---------------------------------------------------------------------------
 async function seedSchools(
   userId: string,
@@ -332,10 +354,9 @@ async function seedSchools(
     {
       user_id: userId,
       family_unit_id: familyUnitId,
-      // Same name as first to trigger duplicate detection test
-      name: "Duke University",
-      location: "Durham, NC",
-      city: "Durham",
+      name: "Wake Forest University",
+      location: "Winston-Salem, NC",
+      city: "Winston-Salem",
       state: "NC",
       division: "D1",
       conference: "ACC",
@@ -349,7 +370,7 @@ async function seedSchools(
     .select("id, name");
 
   if (error) {
-    console.warn("Schools seed error:", error.message);
+    failSeed("Schools", error.message);
   }
 
   const ids = (data ?? []).map((r) => r.id as string);
@@ -392,7 +413,7 @@ async function seedCoaches(
     .select("id");
 
   if (error) {
-    console.warn("Coaches seed error:", error.message);
+    failSeed("Coaches", error.message);
   }
 
   const { data: fetched } = await supabase
@@ -448,7 +469,7 @@ async function seedInteractions(
     .insert(interactions);
 
   if (error) {
-    console.warn("Interactions seed error:", error.message);
+    failSeed("Interactions", error.message);
   } else {
     console.log("Interactions seeded");
   }
@@ -482,7 +503,7 @@ async function seedEvents(
     .select("id");
 
   if (error) {
-    console.warn("Events seed error:", error.message);
+    failSeed("Events", error.message);
   }
 
   const eventId = (data?.[0]?.id as string) ?? "";
@@ -526,7 +547,7 @@ async function seedOffers(
     .insert(offers);
 
   if (error) {
-    console.warn("Offers seed error:", error.message);
+    failSeed("Offers", error.message);
   } else {
     console.log("Offers seeded");
   }
@@ -581,7 +602,7 @@ async function seedPerformanceMetrics(
     .insert(metrics);
 
   if (error) {
-    console.warn("Performance metrics seed error:", error.message);
+    failSeed("Performance metrics", error.message);
   } else {
     console.log("Performance metrics seeded");
   }
@@ -613,7 +634,7 @@ async function seedNotifications(userId: string): Promise<void> {
   const { error } = await supabase.from("notifications").insert(notifications);
 
   if (error) {
-    console.warn("Notifications seed error:", error.message);
+    failSeed("Notifications", error.message);
   } else {
     console.log("Notifications seeded");
   }
@@ -645,7 +666,7 @@ async function seedDocuments(
     .insert([document]);
 
   if (error) {
-    console.warn("Documents seed error:", error.message);
+    failSeed("Documents", error.message);
   } else {
     console.log("Document seeded");
   }

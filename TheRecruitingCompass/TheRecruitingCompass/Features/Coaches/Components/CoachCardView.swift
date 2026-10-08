@@ -184,51 +184,57 @@ private struct CoachCardActionsSection: View {
   var onQuickCommunication: ((QuickCommunicationContext) -> Void)?
 
   @Environment(\.sizeCategory) private var sizeCategory
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   var body: some View {
     HStack(spacing: 2) {
+      ForEach(CoachChannel.visible(for: coach, outreachEnabled: featureFlags.isEnabled(.athleteMessages)),
+              id: \.self) { channel in
+        channelButton(channel)
+      }
+      Spacer()
+    }
+  }
+
+  @ViewBuilder
+  private func channelButton(_ channel: CoachChannel) -> some View {
+    switch channel {
+    case .email:
       if let email = coach.contactEmail {
-        if let onQuickCommunication {
-          quickCommunicationTriggerButton(
-            icon: "envelope.fill",
-            color: Color.accentBlue,
-            label: String(localized: "Email coach"),
-            hint: "Opens Quick Communication with templates"
-          ) {
-            onQuickCommunication(QuickCommunicationContext(coach: coach, schoolName: schoolName))
-          }
-        } else {
-          CommunicationButton(type: .email(email), value: email)
-        }
+        outreachButton(icon: "envelope.fill", color: Color.accentBlue, label: String(localized: "Email coach"),
+                       fallback: .email(email), value: email)
       }
-
+    case .text:
       if let phone = coach.contactPhone {
-        if let onQuickCommunication {
-          quickCommunicationTriggerButton(
-            icon: "message.fill",
-            color: .successGreen,
-            label: String(localized: "Text coach"),
-            hint: "Opens Quick Communication with templates"
-          ) {
-            onQuickCommunication(QuickCommunicationContext(coach: coach, schoolName: schoolName))
-          }
-        } else {
-          CommunicationButton(type: .phone(phone), value: phone)
-        }
-
-        // Call is always the OS dialer, never the Quick Communication modal.
-        CommunicationButton(type: .call(phone), value: phone)
+        outreachButton(icon: "message.fill", color: .successGreen, label: String(localized: "Text coach"),
+                       fallback: .phone(phone), value: phone)
       }
-
-      if let twitter = coach.contactTwitter {
-        CommunicationButton(type: .twitter(twitter), value: twitter)
-      }
-
+    // Call is always the OS dialer, never the Quick Communication modal.
+    case .call:
+      if let phone = coach.contactPhone { CommunicationButton(type: .call(phone), value: phone) }
+    case .twitter:
+      if let twitter = coach.contactTwitter { CommunicationButton(type: .twitter(twitter), value: twitter) }
+    case .instagram:
       if let instagram = coach.contactInstagram {
         CommunicationButton(type: .instagram(instagram), value: instagram)
       }
+    }
+  }
 
-      Spacer()
+  @ViewBuilder
+  private func outreachButton(icon: String, color: Color, label: String,
+                              fallback: CommunicationType, value: String) -> some View {
+    if let onQuickCommunication {
+      quickCommunicationTriggerButton(
+        icon: icon,
+        color: color,
+        label: label,
+        hint: "Opens Quick Communication with templates"
+      ) {
+        onQuickCommunication(QuickCommunicationContext(coach: coach, schoolName: schoolName))
+      }
+    } else {
+      CommunicationButton(type: fallback, value: value)
     }
   }
 

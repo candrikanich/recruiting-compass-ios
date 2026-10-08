@@ -12,3 +12,14 @@ enum NotificationDestination: Hashable, Sendable {
   /// `NotificationDestinationParser`.
   case inboundDraftsList
 }
+
+extension NotificationDestination {
+  /// nil when the destination's feature is switched off remotely, so a tap lands on the default tab.
+  @MainActor
+  func gated(by flags: FeatureFlagStore?) -> NotificationDestination? {
+    switch self {
+    case .inboundDraftsList: return flags.isEnabled(.inboundDrafts) ? self : nil
+    default: return self
+    }
+  }
+}

@@ -21,6 +21,7 @@ struct DashboardTimelineSummaryCard: View {
     case .junior: return .purple
     case .senior: return Color(hex: "F59E0B")
     case .committed: return .successGreen
+    case .unknown: return .secondary
     }
   }
 

@@ -14,7 +14,7 @@ final class SignupScreenObject {
   }
 
   var landingCreateAccountButton: XCUIElement {
-    app.buttons["Create a new account"]
+    app.buttons["Start now — create a new account"]
   }
 
   // MARK: - Role Selection Elements
@@ -41,32 +41,28 @@ final class SignupScreenObject {
     app.buttons["Change role selection"]
   }
 
-  /// Signup form fields use combined accessibility (label+field); find by identifier.
+  // Each LoginFormField is an "Other" container (label + icon + input) whose identifier is
+  // the field name; the input inside carries the same accessibility label. Target the
+  // input itself: tapping the container's center can land on the keyboard once the form
+  // has scrolled (nightly run 37124806803, Email field), leaving nothing focused.
   var firstNameField: XCUIElement {
-    app.otherElements["First Name"].firstMatch
+    app.textFields["First Name"].firstMatch
   }
 
   var lastNameField: XCUIElement {
-    app.otherElements["Last Name"].firstMatch
+    app.textFields["Last Name"].firstMatch
   }
 
   var emailField: XCUIElement {
-    app.otherElements["Email"].firstMatch
+    app.textFields["Email"].firstMatch
   }
 
   var passwordField: XCUIElement {
-    // LoginFormField uses .accessibilityElement(children: .combine), so the outer
-    // container is Other type with identifier "Password". Try to get the inner
-    // SecureField for typing; fall back to the container.
-    let container = app.otherElements.matching(identifier: "Password").firstMatch
-    let inner = container.secureTextFields.firstMatch
-    return inner.exists ? inner : container
+    app.secureTextFields["Password"].firstMatch
   }
 
   var confirmPasswordField: XCUIElement {
-    let container = app.otherElements.matching(identifier: "Confirm Password").firstMatch
-    let inner = container.secureTextFields.firstMatch
-    return inner.exists ? inner : container
+    app.secureTextFields["Confirm Password"].firstMatch
   }
 
   var familyCodeField: XCUIElement {
@@ -92,12 +88,6 @@ final class SignupScreenObject {
   var createAccountButton: XCUIElement {
     app.buttons.matching(
       NSPredicate(format: "label == 'Create account'")
-    ).firstMatch
-  }
-
-  var createAccountLoadingButton: XCUIElement {
-    app.buttons.matching(
-      NSPredicate(format: "label == 'Creating account, please wait'")
     ).firstMatch
   }
 
@@ -137,50 +127,6 @@ final class SignupScreenObject {
     ).firstMatch
   }
 
-  // MARK: - Email Verification Screen Elements
-
-  var verifyYourEmailHeadline: XCUIElement {
-    // Headlines may be combined with subtitles using .accessibilityElement(children: .combine)
-    app.descendants(matching: .any).matching(
-      NSPredicate(format: "label CONTAINS 'Verify Your Email'")
-    ).firstMatch
-  }
-
-  var verifiedHeadline: XCUIElement {
-    app.descendants(matching: .any).matching(
-      NSPredicate(format: "label CONTAINS 'Verified!'")
-    ).firstMatch
-  }
-
-  var continueButton: XCUIElement {
-    app.buttons["Continue to dashboard"]
-  }
-
-  var resendButton: XCUIElement {
-    app.buttons["Resend verification email"]
-  }
-
-  var resendCooldownText: XCUIElement {
-    app.descendants(matching: .any).matching(
-      NSPredicate(format: "label CONTAINS 'Resend available in'")
-    ).firstMatch
-  }
-
-  // MARK: - Dashboard Elements
-
-  var dashboardWelcomeText: XCUIElement {
-    // Dashboard text may also be combined elements
-    app.descendants(matching: .any).matching(
-      NSPredicate(format: "label == 'Welcome!'")
-    ).firstMatch
-  }
-
-  var logoutButton: XCUIElement {
-    app.buttons.matching(
-      NSPredicate(format: "label CONTAINS 'Log Out'")
-    ).firstMatch
-  }
-
   // MARK: - Actions
 
   func navigateToSignup() {
@@ -199,12 +145,15 @@ final class SignupScreenObject {
     card.tap()
   }
 
-  func fillSignupForm(with data: TestUserData) {
+  func fillSignupForm(with data: TestUserData, file: StaticString = #filePath, line: UInt = #line) {
     let nameParts = data.fullName.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
     let first = nameParts.first.map(String.init) ?? data.fullName
     let last = nameParts.count > 1 ? String(nameParts[1]) : ""
 
-    guard firstNameField.waitForExistence(timeout: 10) else { return }
+    guard firstNameField.waitForExistence(timeout: 10) else {
+      XCTFail("Signup form did not appear", file: file, line: line)
+      return
+    }
     firstNameField.tap()
     firstNameField.typeText(first)
 
@@ -228,23 +177,13 @@ final class SignupScreenObject {
     }
   }
 
-  func acceptTerms() {
+  func acceptTerms(file: StaticString = #filePath, line: UInt = #line) {
     // Scroll down to reveal the terms checkbox if it's below the fold
     app.scrollViews.firstMatch.swipeUp()
-    guard termsCheckbox.waitForExistence(timeout: 10) else { return }
+    guard termsCheckbox.waitForExistence(timeout: 10) else {
+      XCTFail("Terms checkbox not found on the signup form", file: file, line: line)
+      return
+    }
     termsCheckbox.tap()
-  }
-
-  func submitSignup() {
-    guard createAccountButton.waitForExistence(timeout: 10) else { return }
-    createAccountButton.tap()
-  }
-
-  func performFullParentSignup(with data: TestUserData) {
-    navigateToSignup()
-    selectRole(data.role)
-    fillSignupForm(with: data)
-    acceptTerms()
-    submitSignup()
   }
 }

@@ -27,4 +27,10 @@ enum ExportFormat: String, CaseIterable, Identifiable {
     case .pdf: return String(localized: "Formatted document with charts and tables")
     }
   }
+
+  func filename(on date: Date) -> String {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "yyyy-MM-dd"
+    return "performance_metrics_\(dateFormatter.string(from: date)).\(rawValue.lowercased())"
+  }
 }

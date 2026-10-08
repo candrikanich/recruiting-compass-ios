@@ -5,6 +5,7 @@ import SwiftUI
 struct SidebarView: View {
   @Binding var selection: AppDestination?
   @Environment(AuthManager.self) private var authManager
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   var body: some View {
     List(selection: $selection) {
@@ -32,7 +33,9 @@ struct SidebarView: View {
   }
 
   private func itemsForSection(_ section: AppDestination.SidebarSection) -> [AppDestination] {
-    AppDestination.allCases.filter { $0.section == section }
+    AppDestination.allCases.filter {
+      $0.section == section && ($0 != .inboundDrafts || featureFlags.isEnabled(.inboundDrafts))
+    }
   }
 
   private func sidebarLabel(_ destination: AppDestination) -> some View {

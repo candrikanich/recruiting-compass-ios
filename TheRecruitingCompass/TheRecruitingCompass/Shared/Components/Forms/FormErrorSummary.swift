@@ -60,12 +60,18 @@ struct FormErrorSummary: View {
       .accessibilityLabel(String(localized: "Form errors"))
       .accessibilityValue("\(errors.count) error\(errors.count == 1 ? "" : "s"): \(errors.joined(separator: ", "))")
       .accessibilityAddTraits(.updatesFrequently)
-      .onChange(of: errors) { oldValue, newValue in
-        guard !newValue.isEmpty, oldValue != newValue else { return }
-        let message = "\(newValue.count) error\(newValue.count == 1 ? "" : "s"): \(newValue.joined(separator: ". "))"
+      // `initial: true` because the summary is only in the tree while there are errors: the first failed
+      // submit inserts it, and a plain onChange would stay silent until the errors change again.
+      .onChange(of: errors, initial: true) { _, newValue in
+        guard let message = Self.announcement(for: newValue) else { return }
         AccessibilityNotification.Announcement(message).post()
       }
     }
+  }
+
+  static func announcement(for errors: [String]) -> String? {
+    guard !errors.isEmpty else { return nil }
+    return "\(errors.count) error\(errors.count == 1 ? "" : "s"): \(errors.joined(separator: ". "))"
   }
 }
 

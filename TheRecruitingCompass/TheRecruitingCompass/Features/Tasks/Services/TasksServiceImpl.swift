@@ -38,11 +38,18 @@ private struct GraduationYearRow: Decodable {
 }
 
 /// Payload for upserting athlete_task (snake_case for API).
-private struct AthleteTaskUpsert: Encodable {
+struct AthleteTaskUpsert: Encodable {
   let taskId: String
   let athleteId: String
-  let status: String
+  let status: String?
   let completedAt: String?
+
+  init(taskId: String, athleteId: String, status: TaskStatus, completedAt: String?) {
+    self.taskId = taskId
+    self.athleteId = athleteId
+    self.status = status.serverValue
+    self.completedAt = completedAt
+  }
 
   enum CodingKeys: String, CodingKey {
     case taskId = "task_id"
@@ -189,7 +196,7 @@ final class TasksServiceImpl: TasksManaging, Sendable {
     logger.info("Updating task \(taskId) status to \(status.rawValue) for user \(userId)")
 
     let completedAt: String? = status == .completed ? taskIsoFormatterFractional.string(from: .now) : nil
-    let payload = AthleteTaskUpsert(taskId: taskId, athleteId: userId, status: status.rawValue, completedAt: completedAt)
+    let payload = AthleteTaskUpsert(taskId: taskId, athleteId: userId, status: status, completedAt: completedAt)
 
     let result: AthleteTaskStatus = try await supabaseManager.client
       .from("athlete_task")

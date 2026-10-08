@@ -77,11 +77,11 @@ struct AboutView: View {
             }
 
             Section {
-                Link(destination: URL(string: "mailto:info@therecruitingcompass.com")!) {
-                    Label("info@therecruitingcompass.com", systemImage: "envelope")
+                Link(destination: URL(string: "mailto:hello@therecruitingcompass.com")!) {
+                    Label("hello@therecruitingcompass.com", systemImage: "envelope")
                         .font(.subheadline)
                 }
-                .accessibilityLabel(String(localized: "Email us at info@therecruitingcompass.com"))
+                .accessibilityLabel(String(localized: "Email us at hello@therecruitingcompass.com"))
             } header: {
                 Text("Direct Contact")
             }

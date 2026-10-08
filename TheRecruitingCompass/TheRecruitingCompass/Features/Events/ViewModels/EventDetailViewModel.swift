@@ -315,8 +315,8 @@ final class EventDetailViewModel {
           eventId: eventId,
           coachId: interactionData.coachId,
           type: interactionData.type.rawValue,
-          direction: interactionData.direction.rawValue,
-          sentiment: interactionData.sentiment.rawValue,
+          direction: interactionData.direction.serverValue,
+          sentiment: interactionData.sentiment.serverValue,
           notes: interactionData.notes.isEmpty ? nil : interactionData.notes
         )
         try await eventsService.createInteraction(request)

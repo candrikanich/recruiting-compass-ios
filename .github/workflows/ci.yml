@@ -5,23 +5,53 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  # E2E UITests run nightly + on demand, NOT on PRs: XCUITest app launch is
-  # deterministically broken on GitHub macos-15 runners (the simulator service
-  # hub fails to "bless", so no test ever runs and the job just times out).
-  # Lint + unit tests still gate every PR.
-  schedule:
-    - cron: "0 8 * * *"
   workflow_dispatch:
+  # E2E UITests don't run here: they need a Supabase stack, GitHub's macOS
+  # runners have no Docker, and this repo is public, so they run nightly on
+  # Chris's Mac via launchd instead — scripts/e2e/nightly-local.sh,
+  # docs/E2E_TESTING.md. Lint + unit tests gate every PR.
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # Docs-only changes skip the macOS jobs. This is a job-level skip rather than
+  # `paths-ignore` on purpose: the main ruleset requires "Build & Unit Tests",
+  # and a workflow that never starts leaves that check pending forever, while a
+  # skipped job reports as passed.
+  changes:
+    name: Detect code changes
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    outputs:
+      code: ${{ steps.classify.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Self-test path classifier
+        run: scripts/ci/has-code-changes.test.sh
+
+      - name: Classify changed paths
+        id: classify
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          # A range git can't resolve (new branch, force-push) yields no paths,
+          # which the classifier treats as code.
+          code=$({ git diff --name-only "$BASE...$HEAD" 2>/dev/null || true; } | scripts/ci/has-code-changes.sh)
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "Code changes: $code" >> "$GITHUB_STEP_SUMMARY"
+
   lint:
     name: SwiftLint
     runs-on: macos-15
-    if: github.event_name != 'schedule'
+    needs: changes
+    # Only an explicit "false" skips: if `changes` fails or is skipped, run.
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -40,7 +70,8 @@ jobs:
   build-and-test:
     name: Build & Unit Tests
     runs-on: macos-15
-    if: github.event_name != 'schedule'
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -143,167 +174,4 @@ jobs:
         with:
           name: xcresult-unit
           path: TheRecruitingCompass/TestResults-*.xcresult
-          retention-days: 7
-
-  e2e-tests:
-    name: E2E UITests
-    runs-on: macos-15
-    timeout-minutes: 70
-    # Nightly + manual only — see the `on:` comment above. Not a PR gate.
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    # Serialize across ALL refs: every run seeds/wipes the one shared
-    # e2e-test Supabase project, so concurrent PRs would race the reset.
-    concurrency:
-      group: e2e-shared-supabase
-      cancel-in-progress: false
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
-
-      - name: Boot simulator
-        run: |
-          UDID=$(xcrun simctl list devices available | grep 'iPhone 16' | grep -v 'Plus\|Pro' | head -1 | grep -oE '[0-9A-F-]{36}')
-          echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
-          xcrun simctl boot "$UDID" || true
-
-      - name: Create Release.xcconfig
-        run: |
-          cat > TheRecruitingCompass/Release.xcconfig << 'XCCONFIG'
-          _SLASH = /
-          SUPABASE_URL = https:$(_SLASH)$(_SLASH)ci-placeholder.supabase.co
-          SUPABASE_ANON_KEY = ci_placeholder_key
-          API_BASE_URL = https:$(_SLASH)$(_SLASH)myrecruitingcompass.com
-          XCCONFIG
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install seed script dependencies
-        run: cd scripts && npm ci
-
-      - name: Seed E2E test data
-        run: cd scripts && npm run seed:e2e
-        env:
-          # Dedicated throwaway project (recruiting-compass-e2e-test), never prod.
-          # ALLOW_REMOTE_SEED satisfies the seed guard now that the target is a
-          # disposable cloud project rather than the local stack.
-          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-          ALLOW_REMOTE_SEED: "1"
-
-      - name: Cache SPM packages
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
-          key: spm-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
-          restore-keys: spm-
-
-      - name: Cache DerivedData
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: deriveddata-e2e-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj', 'TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
-          restore-keys: deriveddata-e2e-
-
-      - name: Build for testing
-        run: |
-          cd TheRecruitingCompass
-          xcodebuild build-for-testing \
-            -scheme TheRecruitingCompass \
-            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
-            -showBuildTimingSummary
-
-      - name: Run UITests
-        run: |
-          cd TheRecruitingCompass
-          # Mirror the Build & Unit job's proven harness: CoreSimulator on the CI
-          # runner intermittently wedges on app launch (a spawned clone fails to
-          # resume: "Failed to send signal 19 ... : 3", then deviceservice.lockdown
-          # times out). No in-process retry survives a dead test host, so wrap the
-          # whole xcodebuild in a retry loop that resets the simulator stack
-          # between attempts. `OS=latest,name=iPhone 16` selects the newest runtime
-          # (a bare UDID grep matched an iPhone 16e on iOS 18.5 — an SDK the app
-          # doesn't support — which hung the job). Per-test timeouts bound any
-          # single hung case; parallel clones disabled to reduce simulator churn.
-          # The manual Boot step boots a fuzzy-matched device (iPhone 16e); shut
-          # everything down first so xcodebuild boots ONLY the single iPhone 16
-          # (latest runtime) it targets — two booted sims contend for the
-          # simulator service hub, which failed to "bless" and hung a prior run.
-          #
-          # reset_sim_stack does a full erase (not just shutdown) — a wedge can
-          # leave the device's on-disk state corrupted, which survives a plain
-          # shutdown/kill and re-wedges the very next boot. bootstatus polls for
-          # an actual Booted state (or a fast failure) instead of letting
-          # xcodebuild boot-and-wait silently — that silent wait is what let a
-          # wedge run the full 20m wall clock with zero output.
-          reset_sim_stack() {
-            xcrun simctl shutdown all || true
-            killall -9 CoreSimulatorService || true
-            sleep 5
-            xcrun simctl erase "$SIMULATOR_UDID" || true
-            xcrun simctl boot "$SIMULATOR_UDID" || true
-            xcrun simctl bootstatus "$SIMULATOR_UDID" -b || true
-          }
-          reset_sim_stack
-
-          run_uitests() {
-            set +e
-            xcodebuild test-without-building \
-              -scheme TheRecruitingCompass \
-              -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
-              -only-testing:TheRecruitingCompassUITests \
-              -parallel-testing-enabled NO \
-              -test-timeouts-enabled YES \
-              -default-test-execution-time-allowance 120 \
-              -maximum-test-execution-time-allowance 300 \
-              -quiet &
-            local xpid=$!
-            # xcodebuild does NOT exit when the simulator service hub dies mid-
-            # launch — it hangs until the job timeout, so the retry below never
-            # fires. Guard each attempt with a wall clock that force-kills it,
-            # letting the loop reset the sim stack and retry. bootstatus above
-            # already confirms the device booted, so a real test run shouldn't
-            # need anywhere near 20m before producing output — shortened to 8m
-            # so a wedge is caught (and retried) faster.
-            ( sleep 480; echo "::warning::attempt exceeded 8m wall clock — killing xcodebuild"; kill -9 "$xpid" 2>/dev/null ) &
-            local wpid=$!
-            wait "$xpid"; local rc=$?
-            kill "$wpid" 2>/dev/null
-            set -e
-            return $rc
-          }
-          for attempt in 1 2 3; do
-            echo "::group::E2E UITests attempt $attempt"
-            if run_uitests; then
-              echo "::endgroup::"
-              exit 0
-            fi
-            echo "::endgroup::"
-            echo "Attempt $attempt failed/killed; resetting simulator stack before retry."
-            reset_sim_stack
-          done
-          echo "E2E UITests failed after 3 full attempts."
-          exit 1
-        env:
-          # App under test must talk to the same project it was seeded into.
-          # Names MUST be E2E_-prefixed: E2ETestEnvironment reads these exact
-          # keys and falls back to the local stack (127.0.0.1:54321) if unset —
-          # on a macOS runner that has no local stack the app hangs retrying the
-          # dead connection until the 60-min job timeout kills it.
-          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
-          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
-
-      - name: Upload xcresult
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: xcresult-e2e
-          path: ~/Library/Developer/Xcode/DerivedData/**/Logs/Test/*.xcresult
           retention-days: 7

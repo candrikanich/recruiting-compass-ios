@@ -2,12 +2,15 @@ import SwiftUI
 
 struct FamilyManagementParentView: View {
   @Bindable var viewModel: FamilyManagementViewModel
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   var body: some View {
     ScrollView {
       VStack(spacing: FamilyConstants.Spacing.large) {
         joinFamilyCard
-        inviteByEmailCard
+        if featureFlags.isEnabled(.familyInvites) {
+          inviteByEmailCard
+        }
         pendingInvitationsSection
         myFamiliesSection
         forwardCoachEmailsSection

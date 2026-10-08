@@ -191,7 +191,6 @@ struct InteractionDetailView: View {
         Text(content)
           .font(.body)
           .textSelection(.enabled)
-          .accessibilityLabel(String(localized: "Interaction content"))
       }
     }
     .padding()

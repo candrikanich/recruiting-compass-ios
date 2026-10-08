@@ -66,7 +66,7 @@ final class PrivacyPolicyAccessibilityTests: XCTestCase {
 
   func testEmailLinks_HaveSpokenLabel() {
     // emailLink() uses .accessibilityLabel with " at " and " dot " for screen reader pronunciation
-    // "privacy at recruitingcompass dot com" instead of raw "privacy@recruitingcompass.com"
+    // "privacy at therecruitingcompass dot com" instead of raw "privacy@therecruitingcompass.com"
     XCTAssertTrue(true, "Email links use spoken form for screen readers")
   }
 

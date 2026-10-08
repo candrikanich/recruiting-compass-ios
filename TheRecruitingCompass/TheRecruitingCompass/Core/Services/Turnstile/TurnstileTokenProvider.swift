@@ -53,8 +53,11 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   /// complete a real Cloudflare challenge, so it ignores the token. Opt-in via a dedicated launch flag
   /// and only when Supabase is a loopback host, so no remote stack is ever handed a fake token.
   private static var shouldBypassCaptcha: Bool {
-    ProcessInfo.processInfo.arguments.contains("--local-captcha-bypass")
-      && ["localhost", "127.0.0.1", "::1"].contains(SupabaseConfig.url.host ?? "")
+    CaptchaBypassPolicy.shouldBypass(
+      arguments: ProcessInfo.processInfo.arguments,
+      supabaseHost: SupabaseConfig.url.host,
+      isUITestBackendOverride: SupabaseConfig.isUITestBackendOverride
+    )
   }
   #endif
 

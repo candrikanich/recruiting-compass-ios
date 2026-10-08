@@ -5,8 +5,8 @@ struct CreateInteractionRequest: Encodable, Sendable {
   let eventId: String
   let coachId: String?
   let type: String
-  let direction: String
-  let sentiment: String
+  let direction: String?
+  let sentiment: String?
   let notes: String?
 
   enum CodingKeys: String, CodingKey {

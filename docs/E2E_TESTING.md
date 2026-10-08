@@ -26,6 +26,36 @@ xcodebuild test -scheme TheRecruitingCompass \
   -only-testing:TheRecruitingCompassUITests/OffersListE2ETests/testOffersList_navigate_displaysScreen
 ```
 
+## Nightly: on Chris's Mac, not GitHub
+
+E2E needs a Supabase stack, GitHub's macOS runners have no Docker, and this repo
+is public (so the Mac is never a GitHub runner for it). A launchd agent runs
+`scripts/e2e/nightly-local.sh --update --report` at 02:30 instead:
+
+- fast-forwards dedicated clones in `~/ci` (iOS `main`, web `develop`),
+- starts a throwaway stack from the web repo's `scripts/e2e/local-supabase.sh`
+  (project `rc-ios-e2e`, ports 4632x — never your dev stack on 5432x), seeds it
+  with `scripts/seed-e2e.ts`,
+- runs the smoke classes on a dedicated, erased "Nightly E2E iPhone" simulator,
+- opens/updates the issue "Nightly iOS E2E (local) is failing" on failure and
+  closes it on the next pass. Logs: `~/Library/Logs/recruiting-compass/`.
+
+```bash
+scripts/e2e/install-nightly.sh              # install / refresh the agent
+launchctl kickstart gui/$(id -u)/com.recruitingcompass.ios-nightly-e2e   # run it now
+scripts/e2e/nightly-local.sh --suite full   # whole target, this checkout, no issue
+scripts/e2e/install-nightly.sh --uninstall
+```
+
+Needs Docker Desktop (started automatically if closed), the Supabase CLI, node,
+and `gh` signed in. A Mac asleep at 02:30 runs the job when it wakes.
+
+The smoke suite is `scripts/ci/e2e-smoke-suite.txt` (signup, add school, log
+interaction). A class belongs there only if its failure would block a release.
+
+A smoke test that hits `XCTSkip` (e.g. "Login failed") still reports green —
+read the skip count before trusting a pass.
+
 ## Why local only (and how it's enforced)
 
 The web repo's `.env` points at the **production** Supabase project, and a

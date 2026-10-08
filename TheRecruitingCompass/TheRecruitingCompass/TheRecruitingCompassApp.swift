@@ -22,6 +22,7 @@ struct TheRecruitingCompassApp: App {
   @State private var nuxProgressManager = NuxProgressManager.shared
   @State private var entitlementStore = EntitlementStore()
   @State private var appUpdateManager = AppUpdateManager()
+  @State private var featureFlagStore = FeatureFlagStore()
   @State private var showResetPassword = false
   @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
@@ -71,7 +72,8 @@ struct TheRecruitingCompassApp: App {
             Task { await PushNotificationManager.shared.syncBadgeCount() }
           }
           .onReceive(NotificationCenter.default.publisher(for: .pushNotificationTapped)) { notification in
-            pendingPushDestination = notification.userInfo?["destination"] as? NotificationDestination
+            pendingPushDestination = (notification.userInfo?["destination"] as? NotificationDestination)?
+              .gated(by: featureFlagStore)
           }
         } else {
           NavigationStack {
@@ -126,7 +128,9 @@ struct TheRecruitingCompassApp: App {
         }
       }
       .task {
+        async let flags: Void = featureFlagStore.refresh()
         await appUpdateManager.check()
+        await flags
       }
       .onChange(of: appUpdateManager.isUpdateRequired) { _, isRequired in
         guard isRequired else { return }
@@ -137,6 +141,7 @@ struct TheRecruitingCompassApp: App {
       }
       .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
         Task { await appUpdateManager.checkIfStale() }
+        Task { await featureFlagStore.refresh() }
       }
       .task {
         if authManager.isAuthenticated && authManager.biometricEnabled {
@@ -196,6 +201,7 @@ struct TheRecruitingCompassApp: App {
       .environment(nuxProgressManager)
       .environment(entitlementStore)
       .environment(appUpdateManager)
+      .environment(featureFlagStore)
     }
   }
 
@@ -228,8 +234,10 @@ struct TheRecruitingCompassApp: App {
         showResetPassword = true
       }
     case .joinInvite(let token):
+      guard featureFlagStore.isEnabled(.familyInvites) else { return }
       pendingInvite = PendingInvite(id: token)
     case .guardianClaim(let token):
+      guard featureFlagStore.isEnabled(.guardianClaim) else { return }
       pendingGuardianClaim = PendingInvite(id: token)
     case .unknown:
       break
