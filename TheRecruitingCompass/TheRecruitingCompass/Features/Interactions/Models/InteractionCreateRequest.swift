@@ -5,7 +5,7 @@ struct InteractionCreateRequest: Codable, Sendable {
   let schoolId: String?
   let coachId: String?
   let eventId: String?
-  let type: String
+  let type: String?
   let direction: String?
   let occurredAt: String
   let subject: String?
@@ -51,7 +51,8 @@ struct InteractionCreateRequest: Codable, Sendable {
     self.schoolId = schoolId
     self.coachId = coachId
     self.eventId = eventId
-    self.type = type.rawValue
+    // `.unknown` is decode-only (pickers use selectableCases): omit rather than send "unknown".
+    self.type = type.serverValue
     assert(direction != .unknown, "Direction.unknown is decode-only")
     self.direction = direction.serverValue
     self.sentiment = sentiment?.serverValue

@@ -53,6 +53,9 @@ enum SchoolStatus: String, Codable, CaseIterable, Sendable {
     }
   }
 
+  /// Raw value safe to send to the server; nil for the decode-only `unknown` fallback so the key is omitted.
+  var serverValue: String? { self == .unknown ? nil : rawValue }
+
   init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
     let rawValue = try container.decode(String.self)

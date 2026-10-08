@@ -24,7 +24,7 @@ protocol CommunicationTemplatesServicing: Sendable {
 
 private struct TemplatePayload: Encodable {
   let name: String
-  let type: String
+  let type: String?
   let body: String
   let userId: String
   let familyUnitId: String?
@@ -37,9 +37,9 @@ private struct TemplatePayload: Encodable {
 }
 
 /// Payload for update only; omits user_id so ownership is not changed.
-private struct TemplateUpdatePayload: Encodable {
+struct TemplateUpdatePayload: Encodable {
   let name: String
-  let type: String
+  let type: String?
   let body: String
 }
 
@@ -147,7 +147,7 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
   ) -> TemplatePayload {
     TemplatePayload(
       name: formData.name.trimmingCharacters(in: .whitespaces),
-      type: formData.type.rawValue,
+      type: formData.type.serverValue,
       body: formData.body,
       userId: userId,
       familyUnitId: familyUnitId
@@ -162,9 +162,14 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
   }
 
   private func makeUpdatePayload(from formData: TemplateFormData) -> TemplateUpdatePayload {
+    Self.updatePayload(from: formData)
+  }
+
+  /// Omits `type` for an `.unknown` template so editing the name/body never overwrites the server's value.
+  static func updatePayload(from formData: TemplateFormData) -> TemplateUpdatePayload {
     TemplateUpdatePayload(
       name: formData.name.trimmingCharacters(in: .whitespaces),
-      type: formData.type.rawValue,
+      type: formData.type.serverValue,
       body: formData.body
     )
   }

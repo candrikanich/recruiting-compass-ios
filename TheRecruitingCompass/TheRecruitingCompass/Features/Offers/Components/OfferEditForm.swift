@@ -41,7 +41,7 @@ struct OfferEditForm: View {
         .foregroundStyle(.secondary)
 
       Picker("Offer Type", selection: $editData.offerType) {
-        ForEach(OfferType.allCases, id: \.self) { type in
+        ForEach(OfferType.selectableCases, id: \.self) { type in
           Text(type.displayName).tag(type)
         }
       }
@@ -58,7 +58,7 @@ struct OfferEditForm: View {
         .foregroundStyle(.secondary)
 
       Picker("Status", selection: $editData.status) {
-        ForEach(OfferStatus.allCases, id: \.self) { status in
+        ForEach(OfferStatus.selectableCases, id: \.self) { status in
           Text(status.displayName).tag(status)
         }
       }

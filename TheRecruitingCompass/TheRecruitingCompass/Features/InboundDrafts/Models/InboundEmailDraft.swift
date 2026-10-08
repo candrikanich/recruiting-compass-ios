@@ -73,8 +73,8 @@ struct InboundDraftsListResponse: Codable, Sendable {
 struct InboundDraftConfirmRequest: Encodable, Sendable {
   let schoolId: String?
   let coachId: String?
-  let type: String
-  let direction: String
+  let type: String?
+  let direction: String?
   let occurredAt: String
   let subject: String?
   let content: String?
@@ -100,8 +100,8 @@ struct InboundDraftConfirmRequest: Encodable, Sendable {
   ) {
     self.schoolId = schoolId
     self.coachId = coachId
-    self.type = type.rawValue
-    self.direction = direction.rawValue
+    self.type = type.serverValue
+    self.direction = direction.serverValue
     self.occurredAt = Self.isoFormatter.string(from: occurredAt)
 
     let trimmedSubject = subject?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -117,8 +117,9 @@ struct InboundDraftConfirmRequest: Encodable, Sendable {
     // instead of omitting the key — Optional's own Encodable conformance
     // handles the `null` case.
     try container.encode(coachId, forKey: .coachId)
-    try container.encode(type, forKey: .type)
-    try container.encode(direction, forKey: .direction)
+    // `.unknown` is decode-only: omit the key instead of sending the literal "unknown".
+    try container.encodeIfPresent(type, forKey: .type)
+    try container.encodeIfPresent(direction, forKey: .direction)
     try container.encode(occurredAt, forKey: .occurredAt)
     try container.encode(subject, forKey: .subject)
     try container.encode(content, forKey: .content)

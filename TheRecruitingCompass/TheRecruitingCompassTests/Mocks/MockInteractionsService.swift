@@ -67,7 +67,7 @@ final class MockInteractionsService: InteractionsManaging, @unchecked Sendable {
     // Create default interaction
     return Interaction(
       id: UUID().uuidString,
-      type: InteractionType(rawValue: interaction.type) ?? .email,
+      type: interaction.type.flatMap { InteractionType(rawValue: $0) } ?? .email,
       direction: interaction.direction.flatMap { Direction(rawValue: $0) } ?? .outbound,
       schoolId: interaction.schoolId,
       coachId: interaction.coachId,

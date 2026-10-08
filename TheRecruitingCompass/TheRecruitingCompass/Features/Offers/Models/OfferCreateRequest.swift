@@ -53,4 +53,19 @@ struct OfferCreateRequest: Codable, Sendable {
     self.conditions = nil
     self.notes = form.notes.isEmpty ? nil : form.notes
   }
+
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(userId, forKey: .userId)
+    try container.encode(schoolId, forKey: .schoolId)
+    // `.unknown` is decode-only: omit the key so the server keeps its real value.
+    try container.encodeIfPresent(offerType.serverValue, forKey: .offerType)
+    try container.encodeIfPresent(status.serverValue, forKey: .status)
+    try container.encodeIfPresent(scholarshipAmount, forKey: .scholarshipAmount)
+    try container.encodeIfPresent(scholarshipPercentage, forKey: .scholarshipPercentage)
+    try container.encode(offerDate, forKey: .offerDate)
+    try container.encodeIfPresent(deadlineDate, forKey: .deadlineDate)
+    try container.encodeIfPresent(conditions, forKey: .conditions)
+    try container.encodeIfPresent(notes, forKey: .notes)
+  }
 }

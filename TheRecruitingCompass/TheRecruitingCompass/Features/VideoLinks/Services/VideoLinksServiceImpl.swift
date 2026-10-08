@@ -7,7 +7,7 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 private struct VideoLinkInsertPayload: Encodable {
   let userId: String
   let familyUnitId: String?
-  let platform: String
+  let platform: String?
   let url: String
   let title: String?
   let position: Int
@@ -19,7 +19,7 @@ private struct VideoLinkInsertPayload: Encodable {
   }
 }
 
-private struct VideoLinkUpdatePayload: Encodable {
+struct VideoLinkUpdatePayload: Encodable {
   let platform: String?
   let url: String?
   let title: String?
@@ -54,7 +54,7 @@ final class VideoLinksServiceImpl: VideoLinksManaging, Sendable {
     let payload = VideoLinkInsertPayload(
       userId: request.userId,
       familyUnitId: request.familyUnitId,
-      platform: request.platform.rawValue,
+      platform: request.platform.serverValue,
       url: request.url,
       title: request.title,
       position: request.position
@@ -72,15 +72,20 @@ final class VideoLinksServiceImpl: VideoLinksManaging, Sendable {
     return link
   }
 
-  func updateVideoLink(id: String, userId: String, _ request: VideoLinkUpdateRequest) async throws -> VideoLink {
-    logger.debug("Updating video link: \(id)")
-
-    let payload = VideoLinkUpdatePayload(
-      platform: request.platform?.rawValue,
+  /// `.unknown` platform is decode-only; omit it so editing a link never overwrites the server's value.
+  static func updatePayload(_ request: VideoLinkUpdateRequest) -> VideoLinkUpdatePayload {
+    VideoLinkUpdatePayload(
+      platform: request.platform?.serverValue,
       url: request.url,
       title: request.title,
       position: request.position
     )
+  }
+
+  func updateVideoLink(id: String, userId: String, _ request: VideoLinkUpdateRequest) async throws -> VideoLink {
+    logger.debug("Updating video link: \(id)")
+
+    let payload = Self.updatePayload(request)
 
     let link: VideoLink = try await supabaseManager.client
       .from("video_links")

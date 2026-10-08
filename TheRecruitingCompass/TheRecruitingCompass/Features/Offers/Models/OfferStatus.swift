@@ -7,11 +7,17 @@ enum OfferStatus: String, Codable, CaseIterable, Sendable {
   case expired
   case unknown
 
+  /// Raw value safe to send to the server; nil for the decode-only `unknown` fallback so the key is omitted.
+  var serverValue: String? { self == .unknown ? nil : rawValue }
+
   init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
     let rawValue = try container.decode(String.self)
     self = OfferStatus(rawValue: rawValue) ?? .unknown
   }
+
+  /// User-selectable values. Excludes `unknown`, a decode-only fallback.
+  static var selectableCases: [OfferStatus] { allCases.filter { $0 != .unknown } }
 
   var displayName: String {
     switch self {

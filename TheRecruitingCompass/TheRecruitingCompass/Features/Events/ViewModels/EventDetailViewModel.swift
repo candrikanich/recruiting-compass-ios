@@ -314,7 +314,7 @@ final class EventDetailViewModel {
           userId: userId,
           eventId: eventId,
           coachId: interactionData.coachId,
-          type: interactionData.type.rawValue,
+          type: interactionData.type.serverValue,
           direction: interactionData.direction.serverValue,
           sentiment: interactionData.sentiment.serverValue,
           notes: interactionData.notes.isEmpty ? nil : interactionData.notes

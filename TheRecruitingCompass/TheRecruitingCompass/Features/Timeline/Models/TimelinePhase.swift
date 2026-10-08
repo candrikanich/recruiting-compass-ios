@@ -22,13 +22,14 @@ enum TimelinePhase: String, Codable, CaseIterable, Sendable {
     allCases.filter { $0 != .unknown }
   }
 
-  /// Grade level (9–12) associated with this phase.
-  var gradeLevel: Int {
+  /// Grade level (9–12) associated with this phase; nil for `unknown` so no section is treated as current.
+  var gradeLevel: Int? {
     switch self {
     case .freshman: return 9
     case .sophomore: return 10
     case .junior: return 11
-    case .senior, .committed, .unknown: return 12
+    case .senior, .committed: return 12
+    case .unknown: return nil
     }
   }
 
