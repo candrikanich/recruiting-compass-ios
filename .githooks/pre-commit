@@ -21,9 +21,8 @@ FAILED=0
 # The "Generate config" build phase rewrites these from Release.xcconfig on every
 # build, so a blanket `git add` sweeps real values over the committed stubs.
 # Intentional stub change: ALLOW_GENERATED_CONFIG=1 git commit ...
-GENERATED_CONFIG='/Core/Services/(SupabaseConfig\.generated|PostHogConfigEmbedded|TurnstileConfig\.generated)\.swift$'
-GENERATED_HITS=$(echo "$STAGED_SWIFT" | grep -E "$GENERATED_CONFIG" || true)
-if [ -n "$GENERATED_HITS" ] && [ "${ALLOW_GENERATED_CONFIG:-0}" != "1" ]; then
+GUARD="$(git rev-parse --show-toplevel)/scripts/ci/check-generated-config.sh"
+if [ "${ALLOW_GENERATED_CONFIG:-0}" != "1" ] && ! GENERATED_HITS=$(echo "$STAGED_SWIFT" | "$GUARD" paths); then
   echo -e "${RED}[pre-commit] ERROR: build-generated config staged — unstage with 'git restore --staged <file>':${NC}"
   echo "$GENERATED_HITS"
   FAILED=1

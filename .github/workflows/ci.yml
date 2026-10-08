@@ -46,6 +46,35 @@ jobs:
           echo "code=$code" >> "$GITHUB_OUTPUT"
           echo "Code changes: $code" >> "$GITHUB_STEP_SUMMARY"
 
+  # Public repo: a real Supabase/API value in a build-generated config file ships to
+  # everyone. Same logic as the pre-commit hook (scripts/ci/check-generated-config.sh).
+  generated-config-guard:
+    name: Generated config guard
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Self-test guard
+        run: scripts/ci/check-generated-config.test.sh
+
+      - name: Config files still match the committed stubs
+        run: scripts/ci/check-generated-config.sh stub
+
+      - name: Changed paths avoid generated config
+        if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'allow-generated-config')
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if ! hits=$(git diff --name-only "$BASE...$HEAD" | scripts/ci/check-generated-config.sh paths); then
+            echo "::error::Build-generated config changed (label the PR allow-generated-config if intentional):"
+            echo "$hits"
+            exit 1
+          fi
+
   lint:
     name: SwiftLint
     runs-on: macos-15
