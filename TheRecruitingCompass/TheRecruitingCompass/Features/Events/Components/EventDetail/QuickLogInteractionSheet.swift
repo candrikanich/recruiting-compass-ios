@@ -39,7 +39,7 @@ struct QuickLogInteractionSheet: View {
   private var typeSection: some View {
     Section {
       Picker("Type", selection: $data.type) {
-        ForEach(InteractionType.allCases, id: \.self) { type in
+        ForEach(InteractionType.selectableCases, id: \.self) { type in
           Label(type.displayName, systemImage: type.iconName)
             .tag(type)
         }

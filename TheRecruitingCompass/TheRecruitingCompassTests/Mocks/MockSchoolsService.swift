@@ -108,6 +108,8 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     return school
   }
 
+  var lastPreviousStatus: SchoolStatus?
+
   func updateStatus(
     id: String,
     newStatus: SchoolStatus,
@@ -115,6 +117,7 @@ final class MockSchoolsService: SchoolsManaging, @unchecked Sendable {
     userId: String
   ) async throws -> School {
     updateStatusCallCount += 1
+    lastPreviousStatus = previousStatus
     if delayDuration > 0 {
       try await Task.sleep(nanoseconds: UInt64(delayDuration * 1_000_000_000))
     }

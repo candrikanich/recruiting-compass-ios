@@ -78,6 +78,9 @@ final class DeadlinesServiceImpl: DeadlinesManaging, Sendable {
 
   func createDeadline(_ request: DeadlineCreateRequest) async throws -> Deadline {
     logger.debug("Creating deadline for user: \(request.userId)")
+    // INSERT needs a category (NOT NULL); omitting it on `.unknown` would fail server-side. Pickers use
+    // `selectableCases`, so reaching this is a programmer error (updates may omit safely).
+    assert(request.category != .unknown, "DeadlineCategory.unknown is decode-only")
 
     let payload = DeadlineInsertPayload(
       userId: request.userId,

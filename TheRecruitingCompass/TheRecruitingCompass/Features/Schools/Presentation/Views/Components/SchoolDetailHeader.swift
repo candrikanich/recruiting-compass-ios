@@ -123,7 +123,7 @@ struct SchoolDetailHeader: View {
             DivisionBadge(division: division)
           }
 
-          StatusBadge(status: SchoolStatus(rawValue: school.status) ?? .interested)
+          StatusBadge(status: SchoolStatus(rawValue: school.status) ?? .unknown)
 
           if let size = school.size {
             SizeBadge(size: size)

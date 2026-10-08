@@ -128,6 +128,16 @@ final class PublicProfileViewModel {
         }
     }
 
+    /// An `.unknown` status is never written back, so the dependent school id must be left untouched
+    /// (outer nil = omit) rather than cleared with an explicit null.
+    private var committedSchoolPayload: String?? {
+        switch commitmentStatus {
+        case .unknown: return nil
+        case .committed: return .some(committedSchoolId)
+        default: return .some(nil)
+        }
+    }
+
     private func buildPayload(slugToSend: String??) -> UpdateProfilePayload {
         UpdateProfilePayload(
             bio: .some(bio.isEmpty ? nil : bio),
@@ -138,7 +148,7 @@ final class PublicProfileViewModel {
             valuesTags: valuesTags,
             awards: awards,
             commitmentStatus: commitmentStatus,
-            committedSchoolId: .some(commitmentStatus == .committed ? committedSchoolId : nil),
+            committedSchoolId: committedSchoolPayload,
             sectionConfig: sections
         )
     }

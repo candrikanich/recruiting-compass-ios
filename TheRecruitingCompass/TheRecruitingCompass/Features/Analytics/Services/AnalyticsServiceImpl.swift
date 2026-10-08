@@ -86,23 +86,30 @@ final class AnalyticsServiceImpl: AnalyticsManaging, Sendable {
       .execute()
       .value
 
-    var typeCounts: [String: Int] = [:]
-    var sentimentCounts: [String: Int] = [:]
-    for row in interactions {
-      typeCounts[row.type, default: 0] += 1
-      if let s = row.sentiment { sentimentCounts[s, default: 0] += 1 }
+    let result = Self.interactionBreakdown(rows: interactions.map { (type: $0.type, sentiment: $0.sentiment) })
+    logger.info("Interaction analytics: \(result.byType.count) types, \(result.bySentiment.count) sentiments")
+    return result
+  }
+
+  /// Values this build doesn't recognise fall into the `.unknown` bucket instead of silently vanishing.
+  static func interactionBreakdown(
+    rows: [(type: String, sentiment: String?)]
+  ) -> InteractionAnalyticsResponse.InteractionAnalyticsData {
+    var typeCounts: [InteractionType: Int] = [:]
+    var sentimentCounts: [Sentiment: Int] = [:]
+    for row in rows {
+      typeCounts[InteractionType(rawValue: row.type) ?? .unknown, default: 0] += 1
+      if let raw = row.sentiment { sentimentCounts[Sentiment(rawValue: raw) ?? .unknown, default: 0] += 1 }
     }
 
     let byType = InteractionType.allCases.compactMap { type -> ChartDataItem? in
-      guard let count = typeCounts[type.rawValue], count > 0 else { return nil }
+      guard let count = typeCounts[type], count > 0 else { return nil }
       return ChartDataItem(label: type.displayName, value: count)
     }
     let bySentiment = Sentiment.allCases.compactMap { sentiment -> ChartDataItem? in
-      guard let count = sentimentCounts[sentiment.rawValue], count > 0 else { return nil }
+      guard let count = sentimentCounts[sentiment], count > 0 else { return nil }
       return ChartDataItem(label: sentiment.displayName, value: count)
     }
-
-    logger.info("Interaction analytics: \(byType.count) types, \(bySentiment.count) sentiments")
     return InteractionAnalyticsResponse.InteractionAnalyticsData(byType: byType, bySentiment: bySentiment)
   }
 

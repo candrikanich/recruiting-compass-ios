@@ -39,6 +39,40 @@ final class PublicProfileViewModelTests: XCTestCase {
         XCTAssertEqual(mock.updatedPayloads.last?.bio, "updated")
     }
 
+    private func encodedKeys(_ payload: UpdateProfilePayload?) throws -> Set<String> {
+        let data = try JSONEncoder().encode(try XCTUnwrap(payload))
+        let object = try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        return Set(object.keys)
+    }
+
+    func testSaveWithUnknownCommitmentStatus_omitsCommittedSchoolIdAndStatus() async throws {
+        let mock = MockPublicProfileManaging()
+        var profile = makeProfile()
+        profile.commitmentStatus = .unknown
+        profile.committedSchoolId = "school-1"
+        mock.stubProfile = profile
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        vm.bio = "edited bio only"
+        await vm.save()
+        let keys = try encodedKeys(mock.updatedPayloads.last)
+        XCTAssertFalse(keys.contains("committed_school_id"))
+        XCTAssertFalse(keys.contains("commitment_status"))
+        XCTAssertTrue(keys.contains("bio"))
+    }
+
+    func testSaveWithUncommittedStatus_stillClearsCommittedSchoolId() async throws {
+        let mock = MockPublicProfileManaging()
+        var profile = makeProfile()
+        profile.commitmentStatus = .uncommitted
+        profile.committedSchoolId = "school-1"
+        mock.stubProfile = profile
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        await vm.save()
+        XCTAssertTrue(try encodedKeys(mock.updatedPayloads.last).contains("committed_school_id"))
+    }
+
     func testSaveMapsSlugTakenToError() async {
         let mock = MockPublicProfileManaging()
         mock.stubProfile = makeProfile()

@@ -4,7 +4,7 @@ struct CreateInteractionRequest: Encodable, Sendable {
   let userId: String
   let eventId: String
   let coachId: String?
-  let type: String
+  let type: String?
   let direction: String?
   let sentiment: String?
   let notes: String?

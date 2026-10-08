@@ -17,7 +17,7 @@ struct SchoolDetailSidebar: View {
   var body: some View {
     VStack(spacing: 24) {
       SchoolRecruitingStatusAndTierSection(
-        currentStatus: SchoolStatus(rawValue: school.status) ?? .interested,
+        currentStatus: SchoolStatus(rawValue: school.status) ?? .unknown,
         isUpdatingStatus: viewModel.isUpdatingStatus,
         onStatusChange: { await viewModel.updateStatus(to: $0) }
       )

@@ -262,7 +262,7 @@ struct SchoolDetailView: View {
   @ViewBuilder
   private func statusSection(school: School) -> some View {
     SchoolRecruitingStatusAndTierSection(
-      currentStatus: SchoolStatus(rawValue: school.status) ?? .interested,
+      currentStatus: SchoolStatus(rawValue: school.status) ?? .unknown,
       isUpdatingStatus: viewModel.isUpdatingStatus,
       onStatusChange: { await viewModel.updateStatus(to: $0) }
     )

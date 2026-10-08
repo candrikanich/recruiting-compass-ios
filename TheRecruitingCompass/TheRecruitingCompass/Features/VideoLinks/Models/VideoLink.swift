@@ -6,6 +6,9 @@ enum VideoLinkPlatform: String, Codable, Sendable, CaseIterable {
   /// (`hudl`/`youtube`/`vimeo`/`other`). Never written back.
   case unknown
 
+  /// Raw value safe to send to the server; nil for the decode-only `unknown` fallback so the key is omitted.
+  var serverValue: String? { self == .unknown ? nil : rawValue }
+
   init(from decoder: Decoder) throws {
     let raw = try decoder.singleValueContainer().decode(String.self)
     self = VideoLinkPlatform(rawValue: raw) ?? .unknown
