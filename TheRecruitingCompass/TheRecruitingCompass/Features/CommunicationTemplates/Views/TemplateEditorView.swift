@@ -148,10 +148,10 @@ struct TemplateEditorView: View {
           .foregroundStyle(.white)
           .frame(maxWidth: .infinity)
           .padding(.vertical, 14)
-          .background(viewModel.formData.isValid ? Color.accentBlue : Color.gray)
+          .background(viewModel.canSave ? Color.accentBlue : Color.gray)
           .clipShape(RoundedRectangle(cornerRadius: 12))
       }
-      .disabled(!viewModel.formData.isValid)
+      .disabled(!viewModel.canSave)
       .accessibilityLabel(saveButtonLabel)
       .accessibilityIdentifier("templateEditor.saveButton")
 

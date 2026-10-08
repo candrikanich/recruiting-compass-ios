@@ -342,13 +342,31 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
     XCTAssertNotEqual(mockService.lastCreateFormData?.type, .unknown)
   }
 
-  func testFormData_unknownTypeIsInvalid() {
-    var data = TemplateFormData()
-    data.name = "n"
-    data.body = "b"
-    XCTAssertTrue(data.isValid)
-    data.type = .unknown
-    XCTAssertFalse(data.isValid)
+  func testEditOwnedUnknownTypeTemplate_canSaveAndUpdatePayloadOmitsType() async throws {
+    let owned = makeTemplate(id: "own-u", name: "Mine", type: .unknown)
+    viewModel.startEditing(template: owned)
+    viewModel.formData.body = "edited body"
+    XCTAssertTrue(viewModel.canSave)
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(mockService.updateTemplateCallCount, 1)
+    let update = try XCTUnwrap(mockService.lastUpdateFormData)
+    let payload = CommunicationTemplatesServiceImpl.updatePayload(from: update)
+    let object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(payload)) as? [String: Any]
+    XCTAssertNil(object?["type"])
+    XCTAssertNotNil(object?["body"])
+  }
+
+  func testCreateWithUnknownType_cannotSave() async {
+    viewModel.formData.name = "n"
+    viewModel.formData.body = "b"
+    viewModel.formData.type = .unknown
+    XCTAssertFalse(viewModel.canSave)
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(mockService.createTemplateCallCount, 0)
   }
 
   func testStartEditing_OwnedTemplate_EditsInPlace() {

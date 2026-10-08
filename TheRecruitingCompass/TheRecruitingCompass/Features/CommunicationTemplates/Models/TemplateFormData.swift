@@ -6,8 +6,7 @@ struct TemplateFormData {
   var body: String = ""
 
   var isValid: Bool {
-    type != .unknown
-      && !name.trimmingCharacters(in: .whitespaces).isEmpty
+    !name.trimmingCharacters(in: .whitespaces).isEmpty
       && !body.trimmingCharacters(in: .whitespaces).isEmpty
   }
 

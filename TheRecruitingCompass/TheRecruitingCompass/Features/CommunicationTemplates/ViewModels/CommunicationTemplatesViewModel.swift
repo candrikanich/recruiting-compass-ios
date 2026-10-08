@@ -86,8 +86,14 @@ final class CommunicationTemplatesViewModel {
     }
   }
 
+  /// Creating needs a real type (INSERT, NOT NULL); editing an existing template may keep an `.unknown`
+  /// type because the update payload omits it and the server keeps its value.
+  var canSave: Bool {
+    formData.isValid && (editingTemplate != nil || formData.type != .unknown)
+  }
+
   func saveTemplate() async {
-    guard formData.isValid else { return }
+    guard canSave else { return }
 
     errorMessage = nil
     isSaving = true
