@@ -34,6 +34,11 @@ final class PrivacyPolicyContentTests: XCTestCase {
     try section(heading).blocks.flatMap(\.texts).joined(separator: "\n")
   }
 
+  func testIntroUsesFullCompanyName() throws {
+    let intro = try text(of: "1. Introduction")
+    XCTAssertTrue(intro.hasPrefix("The Recruiting Compass (\"we,\""), intro)
+  }
+
   func testSectionHeadingsMatchWebPolicy() {
     XCTAssertEqual(PrivacyPolicyContent.sections.map(\.heading), expectedHeadings)
   }

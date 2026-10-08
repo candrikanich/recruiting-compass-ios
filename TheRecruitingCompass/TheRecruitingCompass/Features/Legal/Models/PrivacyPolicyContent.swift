@@ -43,7 +43,7 @@ enum PrivacyPolicyContent {
 
   private static let introduction = Section(heading: "1. Introduction", blocks: [
     .body(
-      "Recruiting Compass (\"we,\" \"us,\" \"our,\" or \"Company\") is committed to protecting your privacy. " +
+      "The Recruiting Compass (\"we,\" \"us,\" \"our,\" or \"Company\") is committed to protecting your privacy. " +
         "This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you " +
         "visit our website and use our services."
     ),
