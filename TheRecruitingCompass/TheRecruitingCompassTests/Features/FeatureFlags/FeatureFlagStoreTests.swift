@@ -79,6 +79,24 @@ final class FeatureFlagStoreTests: XCTestCase {
     FeatureKey.allCases.forEach { XCTAssertTrue(store.isEnabled($0)) }
   }
 
+  func test_supersededRefresh_doesNotResolveInitialState_untilLatestCompletes() async {
+    let gated = GatedFlagService()
+    let store = FeatureFlagStore(service: gated, defaults: defaults)
+    let first = Task { await store.refresh() }
+    await gated.waitForCalls(1)
+    let second = Task { await store.refresh() }
+    await gated.waitForCalls(2)
+
+    await gated.release(call: 0, keys: [])
+    await first.value
+    XCTAssertFalse(store.hasResolvedInitialState)
+
+    await gated.release(call: 1, keys: ["guardian_claim"])
+    await second.value
+    XCTAssertTrue(store.hasResolvedInitialState)
+    XCTAssertFalse(store.isEnabled(.guardianClaim))
+  }
+
   func test_waitForInitialState_resolvesEvenWhenRefreshFails() async {
     let (store, service) = makeStore()
     service.error = Offline()
@@ -142,5 +160,22 @@ final class FeatureFlagStoreTests: XCTestCase {
       Set(FeatureKey.allCases.map(\.rawValue)),
       ["inbound_drafts", "guardian_claim", "family_invites", "athlete_messages"]
     )
+  }
+}
+
+/// Lets a test decide when each in-flight fetch returns.
+private actor GatedFlagService: FeatureFlagFetching {
+  private var continuations: [CheckedContinuation<[String], Never>] = []
+
+  func fetchDisabledFeatureKeys() async throws -> [String] {
+    await withCheckedContinuation { continuations.append($0) }
+  }
+
+  func waitForCalls(_ count: Int) async {
+    while continuations.count < count { try? await Task.sleep(for: .milliseconds(10)) }
+  }
+
+  func release(call index: Int, keys: [String]) {
+    continuations[index].resume(returning: keys)
   }
 }

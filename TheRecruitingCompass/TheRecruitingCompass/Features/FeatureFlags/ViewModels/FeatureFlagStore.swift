@@ -47,7 +47,8 @@ final class FeatureFlagStore {
   func refresh() async {
     latestRefresh += 1
     let thisRefresh = latestRefresh
-    defer { hasResolvedInitialState = true }
+    // A superseded refresh must not release cold-launch waiters; the newest one will.
+    defer { if thisRefresh == latestRefresh { hasResolvedInitialState = true } }
     do {
       let keys = try await service.fetchDisabledFeatureKeys()
       guard thisRefresh == latestRefresh else { return }
@@ -74,6 +75,7 @@ private struct FeatureGateModifier: ViewModifier {
   @Environment(FeatureFlagStore.self) private var flags: FeatureFlagStore?
   /// Fixed on first appearance: a switch never interrupts a flow already on screen.
   @State private var admitted: Bool?
+  @Environment(\.dismiss) private var dismiss
 
   func body(content: Content) -> some View {
     let allowed = admitted ?? flags.isEnabled(key)
@@ -81,11 +83,13 @@ private struct FeatureGateModifier: ViewModifier {
       if allowed {
         content
       } else {
-        ContentUnavailableView(
-          "Temporarily Unavailable",
-          systemImage: "pause.circle",
-          description: Text("This feature is turned off right now. Please check back soon.")
-        )
+        ContentUnavailableView {
+          Label("Temporarily Unavailable", systemImage: "pause.circle")
+        } description: {
+          Text("This feature is turned off right now. Please check back soon.")
+        } actions: {
+          Button("Close") { dismiss() }
+        }
       }
     }
     .onAppear { if admitted == nil { admitted = allowed } }

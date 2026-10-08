@@ -627,7 +627,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(mockService.markAsReadCallCount, 1)
@@ -646,7 +646,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(viewModel.selectedDestination, .schoolDetail(id: "school-1"))
@@ -664,7 +664,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(viewModel.selectedDestination, .offerDetail(id: "offer-1"))
@@ -682,7 +682,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(viewModel.selectedDestination, .eventDetail(id: "event-1"))
@@ -700,7 +700,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(viewModel.selectedDestination, .interactionDetail(id: "interaction-1"))
@@ -718,7 +718,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(mockService.markAsReadCallCount, 0)
@@ -732,7 +732,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(mockService.markAsReadCallCount, 1)
@@ -751,7 +751,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertNil(viewModel.selectedDestination)

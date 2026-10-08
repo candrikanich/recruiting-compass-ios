@@ -56,6 +56,32 @@ final class KillSwitchEntryPointTests: XCTestCase {
     XCTAssertFalse(EventCoachCard.showsEmailAction(for: coach(id: "1", email: ""), flags: flags))
   }
 
+  // MARK: Coach detail identity card
+
+  func test_coachDetailHeader_hidesEmailAndInstagram_whenAthleteMessagesDisabled() async {
+    let flags = await store(disabled: ["athlete_messages"])
+    let reachable = Coach(
+      id: "1", firstName: "Pat", lastName: "Smith", email: "c@s.edu", phone: "5551234567", position: "head",
+      schoolId: "s1", twitterHandle: "pat", instagramHandle: "pat", notes: nil, lastContactDate: nil,
+      createdAt: "2026-02-10T00:00:00Z", updatedAt: "2026-02-10T00:00:00Z"
+    )
+    XCTAssertFalse(CoachDetailHeader.shows(.email, for: reachable, flags: flags))
+    XCTAssertFalse(CoachDetailHeader.shows(.instagram, for: reachable, flags: flags))
+    XCTAssertTrue(CoachDetailHeader.shows(.call, for: reachable, flags: flags))
+    XCTAssertTrue(CoachDetailHeader.shows(.twitter, for: reachable, flags: flags))
+  }
+
+  func test_coachDetailHeader_showsEmailAndInstagram_whenEnabled() async {
+    let flags = await store(disabled: [])
+    let reachable = Coach(
+      id: "1", firstName: "Pat", lastName: "Smith", email: "c@s.edu", phone: nil, position: "head",
+      schoolId: "s1", twitterHandle: nil, instagramHandle: "pat", notes: nil, lastContactDate: nil,
+      createdAt: "2026-02-10T00:00:00Z", updatedAt: "2026-02-10T00:00:00Z"
+    )
+    XCTAssertTrue(CoachDetailHeader.shows(.email, for: reachable, flags: flags))
+    XCTAssertTrue(CoachDetailHeader.shows(.instagram, for: reachable, flags: flags))
+  }
+
   // MARK: Family Management forwarding card
 
   func test_forwardCard_draftsLinkHiddenWhenInboundDraftsDisabled() async {

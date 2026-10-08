@@ -265,7 +265,7 @@ final class NotificationsListViewModel {
 
   /// A destination whose feature is switched off is dropped here, before it is ever assigned, so the
   /// navigation destination never presents (and never starts loading) a killed screen.
-  func handleNotificationTap(_ notification: AppNotification, flags: FeatureFlagStore? = nil) async {
+  func handleNotificationTap(_ notification: AppNotification, flags: FeatureFlagStore?) async {
     if !notification.isRead {
       await markAsRead(id: notification.id)
     }
