@@ -145,6 +145,8 @@ final class CommunicationTemplatesViewModel {
       isCustomizingPredefined = true
       var data = TemplateFormData(from: template)
       data.name = String(localized: "Copy of \(template.name)")
+      // A new server type shows up in global templates first; the copy is an INSERT, which needs a real type.
+      if data.type == .unknown { data.type = .email }
       formData = data
     } else {
       editingTemplate = template

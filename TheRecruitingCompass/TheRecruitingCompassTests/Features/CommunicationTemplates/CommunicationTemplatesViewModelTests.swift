@@ -325,6 +325,32 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.activeTab, .list)
   }
 
+  func testStartEditing_PredefinedUnknownType_DefaultsToKnownTypeAndCreatesWithIt() async {
+    let predefined = CommunicationTemplate(
+      id: "pre-2", userId: "", name: "Future", type: .unknown,
+      body: "Hello coach", variables: nil,
+      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z",
+      isPredefined: true
+    )
+
+    viewModel.startEditing(template: predefined)
+    XCTAssertNotEqual(viewModel.formData.type, .unknown)
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(mockService.createTemplateCallCount, 1)
+    XCTAssertNotEqual(mockService.lastCreateFormData?.type, .unknown)
+  }
+
+  func testFormData_unknownTypeIsInvalid() {
+    var data = TemplateFormData()
+    data.name = "n"
+    data.body = "b"
+    XCTAssertTrue(data.isValid)
+    data.type = .unknown
+    XCTAssertFalse(data.isValid)
+  }
+
   func testStartEditing_OwnedTemplate_EditsInPlace() {
     let owned = makeTemplate(id: "own-1", name: "My Template")
 
