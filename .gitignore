@@ -74,3 +74,6 @@ fastlane/screenshots/
 # App Review contact info + demo account password
 fastlane/metadata/review_information/
 fastlane/test_output/
+
+# Per-machine Makefile overrides
+Makefile.local

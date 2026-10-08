@@ -3,6 +3,9 @@
 
 PROJECT_DIR := TheRecruitingCompass
 SCHEME := TheRecruitingCompass
+# Per-machine overrides (gitignored), e.g. pin a simulator by id when the default
+# runtime is unusable locally: DESTINATION := platform=iOS Simulator,id=<UDID>
+-include Makefile.local
 DESTINATION ?= platform=iOS Simulator,name=iPhone 17
 WEB_DIR := ../recruiting-compass-web
 
@@ -105,3 +108,4 @@ e2e-local: e2e-seed
 
 # Override DESTINATION if needed (e.g. simulator resource limits):
 #   make test-unit DESTINATION='platform=iOS Simulator,name=iPhone 16e'
+# or set it once per machine in Makefile.local (see top of file).
