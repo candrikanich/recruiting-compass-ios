@@ -215,9 +215,16 @@ final class TimelineViewModelTests: XCTestCase {
 
   // The dashboard asks twice at launch: once from `.task`, again when the family finishes loading.
   func testLoadSummary_overlappingCallsForSameAthlete_fetchOnce() async {
-    async let first: Void = viewModel.loadSummary()
-    async let second: Void = viewModel.loadSummary()
-    _ = await (first, second)
+    let gate = AsyncGate()
+    mockAPIService.fetchPhaseGate = { await gate.wait() }
+
+    let first = Task { await viewModel.loadSummary() }
+    await gate.untilEntered()
+    let second = Task { await viewModel.loadSummary() }
+    await letPendingTasksRun()
+    gate.open()
+    await first.value
+    await second.value
 
     XCTAssertEqual(mockAPIService.phaseCallCount, 1)
     XCTAssertEqual(mockAPIService.statusCallCount, 1)
@@ -225,9 +232,16 @@ final class TimelineViewModelTests: XCTestCase {
   }
 
   func testLoad_overlappingCallsForSameAthlete_fetchOnce() async {
-    async let first: Void = viewModel.load()
-    async let second: Void = viewModel.load()
-    _ = await (first, second)
+    let gate = AsyncGate()
+    mockTasksService.fetchAllTasksGate = { await gate.wait() }
+
+    let first = Task { await viewModel.load() }
+    await gate.untilEntered()
+    let second = Task { await viewModel.load() }
+    await letPendingTasksRun()
+    gate.open()
+    await first.value
+    await second.value
 
     XCTAssertEqual(mockTasksService.fetchAllTasksCallCount, 1)
     XCTAssertEqual(mockAPIService.phaseCallCount, 1)
@@ -243,11 +257,25 @@ final class TimelineViewModelTests: XCTestCase {
 
   // A refresh follows a write, so it must not be answered by a load that started before the write.
   func testRefresh_whileLoadInFlight_fetchesAgain() async {
-    async let load: Void = viewModel.load()
-    async let refresh: Void = viewModel.refresh()
-    _ = await (load, refresh)
+    let gate = AsyncGate()
+    mockTasksService.fetchAllTasksGate = { await gate.wait() }
 
+    let load = Task { await viewModel.load() }
+    await gate.untilEntered()
+    let refresh = Task { await viewModel.refresh() }
+    await letPendingTasksRun()
+
+    // Both fetches are suspended at the gate only if refresh() did not join the load.
+    XCTAssertEqual(gate.enteredCount, 2)
+    gate.open()
+    await load.value
+    await refresh.value
     XCTAssertEqual(mockTasksService.fetchAllTasksCallCount, 2)
+  }
+
+  /// Lets tasks created just before this call reach their first suspension point on the main actor.
+  private func letPendingTasksRun() async {
+    for _ in 0..<50 { await Task.yield() }
   }
 
   // MARK: - Computed Properties

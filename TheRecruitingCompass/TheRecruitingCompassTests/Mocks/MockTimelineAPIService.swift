@@ -24,6 +24,9 @@ final class MockTimelineAPIService: TimelineAPIManaging, @unchecked Sendable {
   var stubbedWhatMatters: [WhatMattersItem] = []
   var shouldThrowError = false
 
+  /// Awaited inside `fetchPhase` so tests can hold a load in flight.
+  var fetchPhaseGate: (@Sendable () async -> Void)?
+
   var phaseCallCount = 0
   var statusCallCount = 0
   var whatMattersCallCount = 0
@@ -32,6 +35,7 @@ final class MockTimelineAPIService: TimelineAPIManaging, @unchecked Sendable {
   func fetchPhase(accessToken: String?) async throws -> AthletePhaseResponse {
     phaseCallCount += 1
     lastAccessToken = accessToken
+    await fetchPhaseGate?()
     try throwIfNeeded()
     return AthletePhaseResponse(
       phase: stubbedPhase,

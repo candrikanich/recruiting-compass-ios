@@ -41,11 +41,18 @@ struct NuxProgressManagerTests {
 
   // The app root and the dashboard both ask at launch, milliseconds apart.
   @Test func overlappingLoadsForSameUserFetchOnce() async {
-    let (sut, mockService) = makeSUT()
+    let mockService = MockNuxProgressService()
+    let gate = AsyncGate()
+    mockService.fetchGate = { await gate.wait() }
+    let (sut, _) = makeSUT(service: mockService)
 
-    async let first: Void = sut.load(userId: "user-1")
-    async let second: Void = sut.load(userId: "user-1")
-    _ = await (first, second)
+    let first = Task { await sut.load(userId: "user-1") }
+    await gate.untilEntered()
+    let second = Task { await sut.load(userId: "user-1") }
+    for _ in 0..<50 { await Task.yield() }
+    gate.open()
+    await first.value
+    await second.value
 
     #expect(mockService.fetchCallCount == 1)
     #expect(sut.isLoaded)
