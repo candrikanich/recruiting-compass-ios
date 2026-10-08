@@ -9,7 +9,11 @@ final class MockTasksService: TasksManaging, @unchecked Sendable {
   var shouldThrowFetchError = false
   var shouldThrowUpdateError = false
 
+  /// Awaited inside `fetchAllTasksWithStatus` so tests can hold a load in flight.
+  var fetchAllTasksGate: (@Sendable () async -> Void)?
+
   var fetchTasksCallCount = 0
+  var fetchAllTasksCallCount = 0
   var updateTaskStatusCallCount = 0
   var lastFetchGradeLevel: Int?
   var lastFetchAthleteId: String?
@@ -28,7 +32,9 @@ final class MockTasksService: TasksManaging, @unchecked Sendable {
   }
 
   func fetchAllTasksWithStatus(athleteId: String) async throws -> [Int: [TaskWithStatus]] {
+    fetchAllTasksCallCount += 1
     lastFetchAthleteId = athleteId
+    await fetchAllTasksGate?()
     if shouldThrowFetchError {
       throw NSError(domain: "MockError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Fetch failed"])
     }

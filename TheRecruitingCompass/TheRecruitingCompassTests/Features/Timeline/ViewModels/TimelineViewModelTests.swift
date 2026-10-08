@@ -172,6 +172,112 @@ final class TimelineViewModelTests: XCTestCase {
     XCTAssertNil(viewModel.currentTask)
   }
 
+  // MARK: - loadSummary()
+
+  func testLoadSummary_populatesCardState_withoutFetchingTasks() async {
+    mockAPIService.stubbedPhase = .junior
+    mockAPIService.stubbedStatusScore = 55
+    mockAPIService.stubbedWhatMatters = [
+      WhatMattersItem(
+        taskId: "wm1", title: "Email five coaches", whyItMatters: "Starts the conversation.",
+        category: "outreach", priority: 10, isRequired: true
+      )
+    ]
+
+    await viewModel.loadSummary()
+
+    XCTAssertNil(viewModel.errorMessage)
+    XCTAssertFalse(viewModel.isLoading)
+    XCTAssertEqual(viewModel.currentPhase, .junior)
+    XCTAssertEqual(viewModel.statusScore?.score, 55)
+    XCTAssertEqual(viewModel.currentTask?.taskId, "wm1")
+    XCTAssertEqual(mockTasksService.fetchAllTasksCallCount, 0)
+  }
+
+  func testLoadSummary_noAthleteId_setsErrorAndSkipsFetch() async {
+    mockAuthManager.user = nil
+
+    await viewModel.loadSummary()
+
+    XCTAssertEqual(viewModel.errorMessage, "Unable to load timeline.")
+    XCTAssertEqual(mockAPIService.phaseCallCount, 0)
+  }
+
+  func testLoadSummary_statusServiceThrows_setsErrorMessage() async {
+    mockAPIService.shouldThrowError = true
+
+    await viewModel.loadSummary()
+
+    XCTAssertEqual(viewModel.errorMessage, "Failed to load timeline. Please try again.")
+  }
+
+  // MARK: - Overlapping loads
+
+  // The dashboard asks twice at launch: once from `.task`, again when the family finishes loading.
+  func testLoadSummary_overlappingCallsForSameAthlete_fetchOnce() async {
+    let gate = AsyncGate()
+    mockAPIService.fetchPhaseGate = { await gate.wait() }
+
+    let first = Task { await viewModel.loadSummary() }
+    await gate.untilEntered()
+    let second = Task { await viewModel.loadSummary() }
+    await letPendingTasksRun()
+    gate.open()
+    await first.value
+    await second.value
+
+    XCTAssertEqual(mockAPIService.phaseCallCount, 1)
+    XCTAssertEqual(mockAPIService.statusCallCount, 1)
+    XCTAssertEqual(mockAPIService.whatMattersCallCount, 1)
+  }
+
+  func testLoad_overlappingCallsForSameAthlete_fetchOnce() async {
+    let gate = AsyncGate()
+    mockTasksService.fetchAllTasksGate = { await gate.wait() }
+
+    let first = Task { await viewModel.load() }
+    await gate.untilEntered()
+    let second = Task { await viewModel.load() }
+    await letPendingTasksRun()
+    gate.open()
+    await first.value
+    await second.value
+
+    XCTAssertEqual(mockTasksService.fetchAllTasksCallCount, 1)
+    XCTAssertEqual(mockAPIService.phaseCallCount, 1)
+  }
+
+  func testLoad_sequentialCalls_fetchEachTime() async {
+    await viewModel.load()
+    await viewModel.load()
+
+    XCTAssertEqual(mockTasksService.fetchAllTasksCallCount, 2)
+    XCTAssertEqual(mockAPIService.phaseCallCount, 2)
+  }
+
+  // A refresh follows a write, so it must not be answered by a load that started before the write.
+  func testRefresh_whileLoadInFlight_fetchesAgain() async {
+    let gate = AsyncGate()
+    mockTasksService.fetchAllTasksGate = { await gate.wait() }
+
+    let load = Task { await viewModel.load() }
+    await gate.untilEntered()
+    let refresh = Task { await viewModel.refresh() }
+    await letPendingTasksRun()
+
+    // Both fetches are suspended at the gate only if refresh() did not join the load.
+    XCTAssertEqual(gate.enteredCount, 2)
+    gate.open()
+    await load.value
+    await refresh.value
+    XCTAssertEqual(mockTasksService.fetchAllTasksCallCount, 2)
+  }
+
+  /// Lets tasks created just before this call reach their first suspension point on the main actor.
+  private func letPendingTasksRun() async {
+    for _ in 0..<50 { await Task.yield() }
+  }
+
   // MARK: - Computed Properties
 
   func testAllTasks_flattensAcrossGrades() async {

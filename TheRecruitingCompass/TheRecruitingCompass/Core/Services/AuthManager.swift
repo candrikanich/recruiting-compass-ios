@@ -194,7 +194,6 @@ final class AuthManager: AuthManaging {
   func refreshSession() async throws -> User {
     logger.debug("Refreshing session")
     do {
-      _ = try await supabaseManager.refreshSession()
       guard let newSession = try await supabaseManager.getCurrentSession() else {
         throw AuthError.serverError("No session after refresh")
       }
@@ -335,7 +334,6 @@ final class AuthManager: AuthManaging {
 
     // Run all Supabase network calls off the main actor so a slow/timed-out
     // refresh (can take up to ~157s on iOS) doesn't block UI input.
-    typealias RefreshResult = (user: User, session: Session?)
     let result = await Task.detached {
       if let saved = savedSession {
         do {
@@ -344,14 +342,14 @@ final class AuthManager: AuthManaging {
           log.error("Failed to set saved session: \(error.localizedDescription)")
         }
       }
-      let updatedUser = try await mgr.refreshSession()
-      let newSession = try await mgr.getCurrentSession()
-      return RefreshResult(user: updatedUser, session: newSession)
+      // Reads the user's profile row along with the session — one fetch covers both.
+      return try await mgr.getCurrentSession()
     }.result
 
     switch result {
-    case .success(let (updatedUser, newSession)):
+    case .success(let newSession):
       if let newSession {
+        let updatedUser = newSession.user
         // Flush BEFORE publishing isAuthenticated — see login()'s equivalent comment.
         // Covers a restored/refreshed session for a player who signed up, never had
         // pending_* metadata flushed (e.g. app was killed before login()'s own flush

@@ -8,7 +8,7 @@ How to reproduce everything on this page: [Running it](#running-it).
 
 | Layer | State |
 |---|---|
-| Network per screen (#240) | Recorded 2026-10-02 — see below |
+| Network per screen (#240) | Recorded 2026-10-02 — see below; re-measured after the #269–#271 fixes |
 | Memory, simulator (#239) | Recorded 2026-10-02, stable across two runs |
 | Cold launch, simulator (#239) | Recorded 2026-10-02 — 2.48 s, three runs within 3.5% |
 | Scroll hitches | Recorded on device 2026-10-06 — all four screens under budget (#242) |
@@ -42,7 +42,7 @@ Each was confirmed in the raw gateway log, then traced to code.
 |---|---|---|---|---|
 | 1 | The full four-grade task set loads twice on launch and a third time when Timeline opens. Each load sends 4 `task` + 4 **identical** `athlete_task` queries. | launch: `task` ×8 (88.3 KB), `athlete_task` ×8 (28.4 KB); Timeline: ×4 + ×4 (58.4 KB) | `TasksServiceImpl.fetchAllTasksWithStatus` fetches `athlete_task` once per grade; `DashboardView` owns its own `TimelineViewModel` and loads it from `.task` and from `onChange(of: selectedAthleteId)` | #269 |
 | 2 | The signed-in user's row is read 12 times in about two seconds on launch, and `user_preferences` 6 times. | `users?select=*` ×6, narrow `users` selects ×6, `user_preferences` ×6 | `SupabaseManager.fetchUserProfile` plus per-feature single-column reads (`graduation_year`, `nux_progress`, `phase_milestone_data`) | #270 |
-| 3 | Schools list downloads every interaction and every event for the family with `select=*` and no limit. Payload grows with account age. | `interactions` 156.6 KB for 248 rows; `events` 23.5 KB; `schools` `select=*` 88.0 KB for 68 rows, also fetched twice on launch | Schools list load path | #271 |
+| 3 | Schools list downloads every interaction and every event for the family with `select=*` and no limit. Payload grows with account age. | `interactions` 156.6 KB for 248 rows; `events` 23.5 KB; `schools` `select=*` 88.0 KB for 68 rows | `SchoolsListViewModel.refreshInteractionDerivedIds` | #271 |
 
 Written off:
 
@@ -57,6 +57,30 @@ platforms.
 
 The per-request breakdown the table was built from is in [network-2026-10-02.md](network-2026-10-02.md).
 `select=*` and "no limit" are read from the URL; a limit sent as a `Range` header would not show up.
+
+## After the fixes for #269, #270, #271 — 2026-10-02
+
+Same simulator, account and local stack. App → Supabase requests only.
+
+| Screen | Requests before | Requests after | KB before | KB after |
+|---|---|---|---|---|
+| launch → Dashboard | 61 | 37 | 383.8 | 260.3 |
+| Schools list | 5 | 5 | 268.7 | 106.4 |
+| Recruiting Timeline | 10 | 4 | 58.8 | 48.1 |
+| Notifications | 1 | 1 | 50.6 | 50.6 |
+
+"Before" here is a fresh run in the same session as "after", so it differs by a request from the table above.
+
+| Finding | Before | After | What is left |
+|---|---|---|---|
+| 1 — timeline tasks (#269) | launch: `task` ×8, `athlete_task` ×8. Timeline: ×4 + ×4 | launch: none. Timeline: `task` ×1, `athlete_task` ×1 | The single `task` query is still `select=*` (44.2 KB). Kept: an explicit column list would break older app versions if a column is ever dropped |
+| 2 — user row (#270) | launch: `users` ×12, `user_preferences` ×6 | launch: `users` ×6, `user_preferences` ×4 | Two full-profile reads (sign-in, then a session refresh a second later) and four single-column reads by separate features; `player` preferences are still read by two features. Short of the 2 + 1 target in the issue |
+| 3 — Schools list (#271) | `interactions` 156.6 KB, `events` 23.5 KB | `interactions` 17.7 KB (two columns), `events` 0.1 KB (visits only, two columns) | `schools` `select=*` (88.0 KB) is unchanged: the same rows feed School Detail, export and the fit calculators |
+
+Per-request breakdown: [network-2026-10-02-after.md](network-2026-10-02-after.md).
+
+Not shown by this walk, covered by unit tests instead: a cold start with a saved session now reads the profile
+once rather than twice (`AuthManagerSessionRefreshTests`).
 
 ## Simulator — 2026-10-02
 
@@ -192,3 +216,7 @@ TEST_RUNNER_PERF_BASELINE=1 TEST_RUNNER_PERF_API_BASE_URL=http://localhost:3004 
 docker logs -t --since "$(cat start.txt)" supabase_kong_recruiting-compass-web > kong.log 2>&1
 node scripts/perf/network-table.mjs walk.log kong.log api.log
 ```
+
+The local stack is shared with anything else running against it, so the script counts only requests carrying
+the app's own user agent (`myCompass/…`). "web API → Supabase" rows include every Node process on the stack
+and are only meaningful when nothing else is using it.
