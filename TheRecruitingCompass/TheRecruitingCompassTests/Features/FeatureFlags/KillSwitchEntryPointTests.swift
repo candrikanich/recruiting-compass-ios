@@ -82,6 +82,17 @@ final class KillSwitchEntryPointTests: XCTestCase {
     XCTAssertTrue(CoachDetailHeader.shows(.instagram, for: reachable, flags: flags))
   }
 
+  // MARK: Coach detail Send Profile
+
+  func test_sendProfile_hiddenWhenAthleteMessagesDisabled() async {
+    let off = await store(disabled: ["athlete_messages"])
+    let on = await store(disabled: [])
+    XCTAssertFalse(CoachDetailView.allowsSendProfile(isPublished: true, flags: off))
+    XCTAssertTrue(CoachDetailView.allowsSendProfile(isPublished: true, flags: on))
+    XCTAssertFalse(CoachDetailView.allowsSendProfile(isPublished: false, flags: on))
+    XCTAssertTrue(CoachDetailView.allowsSendProfile(isPublished: true, flags: nil))
+  }
+
   // MARK: Family Management forwarding card
 
   func test_forwardCard_draftsLinkHiddenWhenInboundDraftsDisabled() async {

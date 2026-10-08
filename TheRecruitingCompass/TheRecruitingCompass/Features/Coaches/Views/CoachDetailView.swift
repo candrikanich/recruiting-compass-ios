@@ -328,9 +328,15 @@ struct CoachDetailView: View {
   /// nothing shareable, so the action is hidden rather than shown-then-blocked.
   /// Once a link exists for this coach, also offers copy-link + view stats
   /// (parity with the web coach page).
+  /// Send Profile composes outreach addressed to the coach, so it follows the `athlete_messages` switch.
+  @MainActor
+  static func allowsSendProfile(isPublished: Bool, flags: FeatureFlagStore?) -> Bool {
+    isPublished && flags.isEnabled(.athleteMessages)
+  }
+
   @ViewBuilder
   private func sendProfileSection(coach: Coach) -> some View {
-    if sendProfileVM.isPublished {
+    if Self.allowsSendProfile(isPublished: sendProfileVM.isPublished, flags: featureFlags) {
       SectionCard(label: "Send Recruiting Profile") {
         VStack(alignment: .leading, spacing: 8) {
           Button {
@@ -384,6 +390,7 @@ struct CoachDetailView: View {
 
   /// Resolve the profile URL + boilerplate, then route to the matching channel.
   private func startSendProfile(coach: Coach) {
+    guard featureFlags.isEnabled(.athleteMessages) else { return }
     Task {
       switch await sendProfileVM.prepare(for: coach) {
       case let .email(message): presentComposer(.email, message)
@@ -398,6 +405,7 @@ struct CoachDetailView: View {
   /// Present the in-app composer when the device can send; otherwise fall back to
   /// the system share sheet (and log nothing — an external hand-off can't confirm).
   private func presentComposer(_ channel: SendProfileChannel, _ message: SendProfileMessage) {
+    guard featureFlags.isEnabled(.athleteMessages) else { return }
     switch channel {
     case .email:
       if MFMailComposeViewController.canSendMail() {
