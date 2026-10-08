@@ -813,6 +813,35 @@ final class NotificationsListViewModelTests: XCTestCase {
     }
   }
 
+  func testHandleNotificationTap_DisabledDestination_NeverAssignsSelectedDestination() async {
+    let service = MockFeatureFlagService()
+    service.disabledKeys = ["inbound_drafts"]
+    let flags = FeatureFlagStore(
+      service: service,
+      defaults: UserDefaults(suiteName: "NotifTap-\(UUID().uuidString)")!
+    )
+    await flags.refresh()
+    let notification = makeNotification(
+      id: "1", type: .inboundInteraction, relatedEntityType: "inbound_email_draft", relatedEntityId: "d1"
+    )
+    // Any write to selectedDestination (even transient) would present the killed screen.
+    var wasWritten = false
+    withObservationTracking({ _ = self.viewModel.selectedDestination }, onChange: { wasWritten = true })
+
+    await viewModel.handleNotificationTap(notification, flags: flags)
+
+    XCTAssertFalse(wasWritten)
+    XCTAssertNil(viewModel.selectedDestination)
+  }
+
+  func testHandleNotificationTap_EnabledInboundDestination_StillNavigates() async {
+    let notification = makeNotification(
+      id: "1", type: .inboundInteraction, relatedEntityType: "inbound_email_draft", relatedEntityId: "d1"
+    )
+    await viewModel.handleNotificationTap(notification, flags: nil)
+    XCTAssertEqual(viewModel.selectedDestination, .inboundDraftsList)
+  }
+
   private func makeNotification(
     id: String,
     type: NotificationType = .followUpReminder,

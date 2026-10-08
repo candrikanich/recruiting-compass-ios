@@ -263,12 +263,14 @@ final class NotificationsListViewModel {
     selectedTypeFilter = nil
   }
 
-  func handleNotificationTap(_ notification: AppNotification) async {
+  /// A destination whose feature is switched off is dropped here, before it is ever assigned, so the
+  /// navigation destination never presents (and never starts loading) a killed screen.
+  func handleNotificationTap(_ notification: AppNotification, flags: FeatureFlagStore? = nil) async {
     if !notification.isRead {
       await markAsRead(id: notification.id)
     }
 
-    selectedDestination = parseDestination(from: notification)
+    selectedDestination = parseDestination(from: notification)?.gated(by: flags)
   }
 
   // MARK: - Navigation Parsing

@@ -5,6 +5,7 @@ struct SchoolQuickActions: View {
   let onQuickComm: () -> Void
   let onManageCoaches: () -> Void
   let coachCount: Int
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -25,7 +26,8 @@ struct SchoolQuickActions: View {
           action: onLogInteraction
         )
 
-        QuickActionButton(
+        if featureFlags.isEnabled(.athleteMessages) {
+          QuickActionButton(
           icon: "envelope.badge.fill",
           title: String(localized: "Quick Comm"),
           gradient: LinearGradient(
@@ -35,7 +37,8 @@ struct SchoolQuickActions: View {
           ),
           action: onQuickComm,
           isDisabled: coachCount == 0
-        )
+          )
+        }
 
         QuickActionButton(
           icon: "person.2.fill",

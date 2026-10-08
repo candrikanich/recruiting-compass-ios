@@ -5,6 +5,7 @@ struct SchoolDetailView: View {
 
   @State private var viewModel: SchoolDetailViewModel
   @Environment(FamilyManager.self) private var familyManager
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
   @Environment(\.dismiss) private var dismiss
   @Environment(\.openURL) private var openURL
   @Environment(\.filterCoachesBySchool) private var filterCoachesBySchool
@@ -297,13 +298,12 @@ struct SchoolDetailView: View {
   }
 
   private func onQuickComm(school: School) {
-    let coaches = viewModel.coaches
-    if coaches.count == 1, let coach = coaches.first {
-      quickCommunicationContext = QuickCommunicationContext(
-        coach: coach,
-        schoolName: school.name
-      )
-    } else if coaches.count > 1 {
+    switch QuickCommEntry.resolve(coaches: viewModel.coaches, flags: featureFlags) {
+    case .none:
+      break
+    case .direct(let coach):
+      quickCommunicationContext = QuickCommunicationContext(coach: coach, schoolName: school.name)
+    case .pickCoach:
       showCoachPickerForQuickComm = true
     }
   }

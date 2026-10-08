@@ -53,7 +53,7 @@ struct NotificationsListView: View {
                 NotificationCard(
                   notification: notification,
                   onTap: {
-                    Task { await viewModel.handleNotificationTap(notification) }
+                    Task { await viewModel.handleNotificationTap(notification, flags: featureFlags) }
                   },
                   onMarkRead: {
                     Task { await viewModel.markAsRead(id: notification.id) }
@@ -76,10 +76,6 @@ struct NotificationsListView: View {
       .navigationTitle("Notifications")
       .navigationBarTitleDisplayMode(.inline)
       .searchable(text: $viewModel.searchText, prompt: "Search notifications")
-      .onChange(of: viewModel.selectedDestination) { _, destination in
-        guard let destination, destination.gated(by: featureFlags) == nil else { return }
-        viewModel.selectedDestination = nil
-      }
       .navigationDestination(item: $viewModel.selectedDestination) { destination in
         destinationView(for: destination)
       }

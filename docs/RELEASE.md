@@ -127,14 +127,18 @@ The web app deploys continuously; iOS users update days to months later. Every s
 without an App Store release. The app reads it via `get_ios_disabled_features()` on launch and when returning
 to foreground (every foreground refreshes).
 A feature is **on unless its key is listed**. The app fails open: a missing RPC, an error or being offline
-leaves everything on, and keys a build doesn't recognise are ignored.
+leaves the last known state (everything on on a first install), and keys a build doesn't recognise are ignored.
+The last server answer is persisted (UserDefaults), so a cold launch honours it immediately. Deep links and push
+taps that arrive on a cold launch also wait for the first refresh (max 3 s, then fail open) before routing.
+Destinations enforce their own switch (`.featureGated(_:)` on Quick Communication and Coach Emails), so a new
+entry point to a killed feature shows "Temporarily Unavailable" instead of opening it.
 
 | Key | Entry points hidden when listed |
 |---|---|
-| `inbound_drafts` | Settings "Review Forwarded Coach Emails" section, More-menu and sidebar "Coach Emails", and push-notification taps for new drafts (land on the default tab) |
+| `inbound_drafts` | Settings "Review Forwarded Coach Emails" section, the Family Management forwarding card's review link, More-menu and sidebar "Coach Emails", and push or in-app notification taps for new drafts (land on the default tab; the drafts screen is never presented) |
 | `guardian_claim` | The guardian-claim deep link (`/guardian/claim/<token>`) no longer opens the claim sheet |
 | `family_invites` | "Invite by Email" cards in Family Management, the dashboard parent-invite banner, the invite deep link |
-| `athlete_messages` | All coach outreach actions: email, text and Instagram on coach cards, the coach detail menu and rail, the dashboard follow-up widget, and the Quick Communication menu items. No `mailto:`/`sms:` fallback, so the guardian lock and send guardrails can't be bypassed. Call and the Twitter profile link stay. |
+| `athlete_messages` | All coach outreach actions: email, text and Instagram on coach cards, the coach detail menu and rail, the dashboard follow-up widget, the School detail Quick Comm action and coach picker, the Event coach card email button, and the Quick Communication menu items. Quick Communication itself refuses to open while off. No `mailto:`/`sms:` fallback anywhere (the event card now opens Quick Communication, so the guardian lock applies), so the guardian lock and send guardrails can't be bypassed. Call and the Twitter profile link stay. |
 
 ```sql
 -- Switch a feature off
@@ -150,7 +154,8 @@ update public.app_config set ios_disabled_features = '{}', updated_at = now() wh
 Rules:
 - **Keys are permanent once shipped.** Builds in the wild only know the keys they were built with; never rename
   or reuse a key. Add new ones to `FeatureKey` (`Features/FeatureFlags/Models/FeatureKey.swift`) and this table.
-- A switch hides entry points only. It never deletes data and never interrupts a flow already on screen.
+- A switch hides entry points only. It never deletes data and never interrupts a flow already on screen
+  (a gated destination decides once, when it first appears).
 - A failed refresh keeps the last known state, so a flaky network won't re-enable a feature you killed.
 - Changes reach a running app on its next launch or foreground.
 

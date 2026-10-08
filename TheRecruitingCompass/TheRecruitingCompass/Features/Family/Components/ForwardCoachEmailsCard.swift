@@ -4,6 +4,12 @@ struct ForwardCoachEmailsCard: View {
   let address: String
   var familyName: String?
   let onCopy: () -> Void
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
+
+  @MainActor
+  static func showsDraftsLink(flags: FeatureFlagStore?) -> Bool {
+    flags.isEnabled(.inboundDrafts)
+  }
 
   var body: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
@@ -45,16 +51,18 @@ struct ForwardCoachEmailsCard: View {
       .accessibilityElement(children: .combine)
       .accessibilityLabel(String(localized: "Forward Coach Emails, forwarding address \(address)"))
 
-      NavigationLink {
-        InboundDraftsView()
-      } label: {
-        HStack(spacing: 4) {
-          Text("Review forwarded coach emails")
-          Image(systemName: "arrow.right")
+      if Self.showsDraftsLink(flags: featureFlags) {
+        NavigationLink {
+          InboundDraftsView()
+        } label: {
+          HStack(spacing: 4) {
+            Text("Review forwarded coach emails")
+            Image(systemName: "arrow.right")
+          }
+          .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .font(.subheadline.weight(.medium))
       }
-      .font(.subheadline.weight(.medium))
     }
     .padding(FamilyConstants.Spacing.medium)
     .background(Color.Surface.card)
