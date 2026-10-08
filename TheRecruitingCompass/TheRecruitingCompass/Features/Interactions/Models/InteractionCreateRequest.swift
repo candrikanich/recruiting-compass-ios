@@ -51,7 +51,7 @@ struct InteractionCreateRequest: Codable, Sendable {
     self.schoolId = schoolId
     self.coachId = coachId
     self.eventId = eventId
-    // `.unknown` is decode-only (pickers use selectableCases): omit rather than send "unknown".
+    assert(type != .unknown, "InteractionType.unknown is decode-only")
     self.type = type.serverValue
     assert(direction != .unknown, "Direction.unknown is decode-only")
     self.direction = direction.serverValue

@@ -44,6 +44,9 @@ struct OfferCreateRequest: Codable, Sendable {
       logger.warning("OfferCreateRequest initialized with empty schoolId — form.schoolId was nil")
     }
     self.schoolId = resolvedSchoolId
+    // INSERT path: pickers use selectableCases. Omitting would silently save the server default
+    // (status -> "pending"), so fail loudly in debug instead.
+    assert(form.offerType != .unknown && form.status != .unknown, "OfferType/OfferStatus.unknown are decode-only")
     self.offerType = form.offerType
     self.scholarshipAmount = Double(form.scholarshipAmount)
     self.scholarshipPercentage = form.scholarshipPercentage > 0 ? form.scholarshipPercentage : nil
@@ -58,7 +61,7 @@ struct OfferCreateRequest: Codable, Sendable {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(userId, forKey: .userId)
     try container.encode(schoolId, forKey: .schoolId)
-    // `.unknown` is decode-only: omit the key so the server keeps its real value.
+    // `.unknown` is decode-only and asserted against in init; omitting here is a release-build safety net.
     try container.encodeIfPresent(offerType.serverValue, forKey: .offerType)
     try container.encodeIfPresent(status.serverValue, forKey: .status)
     try container.encodeIfPresent(scholarshipAmount, forKey: .scholarshipAmount)

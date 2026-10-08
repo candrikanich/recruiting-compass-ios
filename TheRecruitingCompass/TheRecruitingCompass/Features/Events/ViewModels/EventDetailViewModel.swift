@@ -310,6 +310,7 @@ final class EventDetailViewModel {
     guard let userId else { return }
     await ViewModelHelpers.withLoading(set: { self.isLoggingInteraction = $0 }) {
       do {
+        assert(interactionData.type != .unknown, "InteractionType.unknown is decode-only")
         let request = CreateInteractionRequest(
           userId: userId,
           eventId: eventId,

@@ -106,26 +106,18 @@ final class UnknownEnumWriteBackTests: XCTestCase {
     XCTAssertTrue(known.contains("status"))
   }
 
-  func testOfferCreateRequest_omitsUnknownTypeAndStatus_keepsKnown() throws {
+  // Create paths assert on `.unknown` (debug builds), so only known values are testable on them.
+  func testOfferCreateRequest_encodesKnownTypeAndStatus() throws {
     var form = NewOfferFormState()
     form.schoolId = "s1"
-    form.offerType = .unknown
-    form.status = .unknown
-    let unknown = try keys(OfferCreateRequest(userId: "u", form: form))
-    XCTAssertFalse(unknown.contains("offer_type"))
-    XCTAssertFalse(unknown.contains("status"))
     form.offerType = .partial
     form.status = .declined
-    let known = try keys(OfferCreateRequest(userId: "u", form: form))
-    XCTAssertTrue(known.contains("offer_type"))
-    XCTAssertTrue(known.contains("status"))
+    let encoded = try keys(OfferCreateRequest(userId: "u", form: form))
+    XCTAssertTrue(encoded.contains("offer_type"))
+    XCTAssertTrue(encoded.contains("status"))
   }
 
-  func testInteractionCreateRequest_omitsUnknownType() throws {
-    let unknown = InteractionCreateRequest(
-      schoolId: nil, coachId: nil, type: .unknown, direction: .outbound, occurredAt: .now,
-      subject: nil, content: nil, sentiment: nil, loggedBy: "u", familyUnitId: "f")
-    XCTAssertFalse(try keys(unknown).contains("type"))
+  func testInteractionCreateRequest_encodesKnownType() throws {
     let known = InteractionCreateRequest(
       schoolId: nil, coachId: nil, type: .phoneCall, direction: .outbound, occurredAt: .now,
       subject: nil, content: nil, sentiment: nil, loggedBy: "u", familyUnitId: "f")

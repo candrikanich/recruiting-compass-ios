@@ -145,7 +145,8 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
     userId: String,
     familyUnitId: String?
   ) -> TemplatePayload {
-    TemplatePayload(
+    assert(formData.type != .unknown, "TemplateType.unknown is decode-only")
+    return TemplatePayload(
       name: formData.name.trimmingCharacters(in: .whitespaces),
       type: formData.type.serverValue,
       body: formData.body,

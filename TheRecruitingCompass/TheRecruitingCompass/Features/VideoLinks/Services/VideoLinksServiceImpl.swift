@@ -51,6 +51,7 @@ final class VideoLinksServiceImpl: VideoLinksManaging, Sendable {
   func createVideoLink(_ request: VideoLinkCreateRequest) async throws -> VideoLink {
     logger.debug("Creating video link for user: \(request.userId)")
 
+    assert(request.platform != .unknown, "VideoLinkPlatform.unknown is decode-only")
     let payload = VideoLinkInsertPayload(
       userId: request.userId,
       familyUnitId: request.familyUnitId,
