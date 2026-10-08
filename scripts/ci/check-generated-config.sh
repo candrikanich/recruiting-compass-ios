@@ -13,6 +13,7 @@ set -euo pipefail
 
 GENERATED_CONFIG='/Core/Services/(SupabaseConfig\.generated|PostHogConfigEmbedded|TurnstileConfig\.generated)\.swift$'
 SUPABASE_STUB='Core/Services/SupabaseConfig.generated.swift'
+SUPABASE_STUB_SHA256='4e973927b1f6aedbf9f221ca691ab01ffd874827ad33e73b858b5bdf3bf06123'
 
 case "${1:-paths}" in
   paths)
@@ -24,14 +25,17 @@ case "${1:-paths}" in
     ;;
   stub)
     root="${2:-.}"
-    file=$(find "$root" -path "*/$SUPABASE_STUB" -not -path '*/node_modules/*' | head -1)
-    [ -n "$file" ] || { echo "$SUPABASE_STUB not found under $root"; exit 1; }
-    # The only file whose committed shape is placeholder values; the other two
-    # hold public client keys by design.
-    if ! grep -q 'urlString = "https://placeholder.supabase.co"' "$file" ||
-       ! grep -q 'anonKey = "placeholder-key"' "$file" ||
-       ! grep -q 'apiBaseURL = ""' "$file"; then
-      echo "$file is not the committed placeholder stub"
+    files=$(find "$root" -path "*/$SUPABASE_STUB" -not -path '*/node_modules/*')
+    count=$(printf '%s' "$files" | grep -c . || true)
+    if [ "$count" -ne 1 ]; then
+      echo "expected exactly one $SUPABASE_STUB under $root, found $count"
+      exit 1
+    fi
+    # Byte-for-byte: a presence grep would pass a real value hidden next to the
+    # placeholder strings. A deliberate stub edit updates this hash in the same PR.
+    actual=$(shasum -a 256 "$files" | cut -d' ' -f1)
+    if [ "$actual" != "$SUPABASE_STUB_SHA256" ]; then
+      echo "$files differs from the committed placeholder stub"
       exit 1
     fi
     ;;
