@@ -12,7 +12,7 @@
     "test:report": "npx playwright show-report"
   },
   "devDependencies": {
-    "@playwright/test": "^1.52.0",
+    "@playwright/test": "^1.63.0",
     "@supabase/supabase-js": "^2.49.0",
     "typescript": "^5.8.0"
   },
