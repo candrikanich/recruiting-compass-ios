@@ -10,6 +10,11 @@ struct SchoolSummary: Codable, Identifiable, Sendable {
   let location: String?
 }
 
+struct SchoolNameRow: Codable, Sendable {
+  let id: String
+  let name: String
+}
+
 /// Service contract for recruiting event CRUD operations, performance metrics, and related entity lookups.
 protocol EventsManaging: Sendable {
   /// Creates a new event record and returns the fully populated entity.
@@ -32,6 +37,8 @@ protocol EventsManaging: Sendable {
   /// `user_id` and `family_unit_id` so the new school shows up in the
   /// family-scoped Schools list and this picker.
   func createSchool(name: String, location: String?, userId: String, familyUnitId: String) async throws -> SchoolSummary
+  /// Returns the display name of a single school, or nil when the school can't be found.
+  func fetchSchoolName(schoolId: String) async throws -> String?
   /// Returns coaches associated with a specific school, scoped to the user.
   func fetchCoaches(schoolId: String, userId: String) async throws -> [Coach]
   /// Returns all performance metrics logged for a specific event.

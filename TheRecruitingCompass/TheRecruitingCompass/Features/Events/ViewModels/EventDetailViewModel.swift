@@ -17,6 +17,7 @@ final class EventDetailViewModel {
 
   var event: FullEvent?
   var schoolCoaches: [Coach] = []
+  var schoolName: String?
   var metrics: [PerformanceMetric] = []
   var isLoading = false
   var errorMessage: String?
@@ -203,8 +204,9 @@ final class EventDetailViewModel {
 
     async let coachesTask: () = loadCoaches(event: event, userId: userId)
     async let metricsTask: () = loadMetrics(userId: userId)
+    async let schoolNameTask: () = loadSchoolName(event: event)
 
-    _ = await (coachesTask, metricsTask)
+    _ = await (coachesTask, metricsTask, schoolNameTask)
   }
 
   private func loadCoaches(event: FullEvent, userId: String) async {
@@ -216,6 +218,18 @@ final class EventDetailViewModel {
       // intentionally silent: the event itself loaded fine; an empty
       // coaches-present list here just means the check-in picker is empty.
       logger.error("Failed to load coaches: \(error.localizedDescription)")
+    }
+  }
+
+  /// One lookup per screen (not per coach card) so Quick Communication templates can render `{{schoolName}}`.
+  private func loadSchoolName(event: FullEvent) async {
+    guard let schoolId = event.schoolId, !schoolId.isEmpty else { return }
+    do {
+      schoolName = try await eventsService.fetchSchoolName(schoolId: schoolId)
+    } catch {
+      // intentionally silent: Quick Communication still opens without a school name,
+      // same as other entry points when the name is unknown.
+      logger.error("Failed to load school name: \(error.localizedDescription)")
     }
   }
 

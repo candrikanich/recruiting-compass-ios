@@ -193,6 +193,7 @@ struct EventDetailView: View {
       }
       CoachesPresentSection(
         schoolId: event.schoolId,
+        schoolName: viewModel.schoolName,
         coachesAtEvent: viewModel.coachesAtEvent,
         availableCoaches: viewModel.availableCoaches,
         selectedCoachId: $viewModel.selectedCoachId,

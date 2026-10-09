@@ -10,6 +10,7 @@ struct EventCoachCard: View {
   }
 
   let coach: Coach
+  var schoolName: String?
   @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
   @State private var quickCommunicationContext: QuickCommunicationContext?
 
@@ -19,6 +20,10 @@ struct EventCoachCard: View {
   static func showsEmailAction(for coach: Coach, flags: FeatureFlagStore?) -> Bool {
     guard flags.isEnabled(.athleteMessages) else { return false }
     return coach.email?.isEmpty == false
+  }
+
+  static func quickCommunicationContext(for coach: Coach, schoolName: String?) -> QuickCommunicationContext {
+    QuickCommunicationContext(coach: coach, schoolName: schoolName)
   }
 
   var body: some View {
@@ -67,7 +72,7 @@ struct EventCoachCard: View {
     HStack(spacing: Layout.contactSpacing) {
       if Self.showsEmailAction(for: coach, flags: featureFlags) {
         Button {
-          quickCommunicationContext = QuickCommunicationContext(coach: coach, schoolName: nil)
+          quickCommunicationContext = Self.quickCommunicationContext(for: coach, schoolName: schoolName)
         } label: {
           Image(systemName: "envelope")
             .font(.body)
