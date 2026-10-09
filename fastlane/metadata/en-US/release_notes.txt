@@ -1,1 +1,6 @@
+Live updates are more reliable, and the app now fits iPhone Duo.
 
+• Your dashboard, activity feed, and coach and school pages keep updating on their own after you rotate your iPad or switch tabs.
+• On iPhone Duo, the dashboard and the coach and school pages now split neatly at the fold.
+• You'll get a heads-up when a new version is available, and you can see which version you have under Settings → About.
+• Fixed the "profile complete" banner staying on your dashboard longer than it should.
