@@ -56,6 +56,18 @@ final class KillSwitchEntryPointTests: XCTestCase {
     XCTAssertFalse(EventCoachCard.showsEmailAction(for: coach(id: "1", email: ""), flags: flags))
   }
 
+  func test_eventCoachQuickComm_carriesSchoolName() {
+    let context = EventCoachCard.quickCommunicationContext(for: coach(id: "1"), schoolName: "Stanford")
+    XCTAssertEqual(context.schoolName, "Stanford")
+    XCTAssertEqual(context.coach.id, "1")
+  }
+
+  func test_eventCoachQuickComm_unknownSchool_stillBuildsContext() {
+    let context = EventCoachCard.quickCommunicationContext(for: coach(id: "1"), schoolName: nil)
+    XCTAssertNil(context.schoolName)
+    XCTAssertEqual(context.coach.id, "1")
+  }
+
   // MARK: Coach detail identity card
 
   func test_coachDetailHeader_hidesEmailAndInstagram_whenAthleteMessagesDisabled() async {

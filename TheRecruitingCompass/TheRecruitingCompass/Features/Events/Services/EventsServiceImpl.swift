@@ -115,6 +115,19 @@ final class EventsServiceImpl: EventsManaging, Sendable {
     }
   }
 
+  func fetchSchoolName(schoolId: String) async throws -> String? {
+    let rows: [SchoolNameRow] = try await logger.fetch("school name") {
+      try await supabaseManager.client
+        .from("schools")
+        .select("id, name")
+        .eq("id", value: schoolId)
+        .limit(1)
+        .execute()
+        .value
+    }
+    return rows.first?.name
+  }
+
   func fetchCoaches(schoolId: String, userId: String) async throws -> [Coach] {
     try await logger.fetch("coaches") {
       try await supabaseManager.client

@@ -3,6 +3,7 @@ import SwiftUI
 
 struct CoachesPresentSection: View {
   let schoolId: String?
+  var schoolName: String?
   let coachesAtEvent: [Coach]
   let availableCoaches: [Coach]
   @Binding var selectedCoachId: String?
@@ -47,7 +48,7 @@ struct CoachesPresentSection: View {
 
         ForEach(coachesAtEvent) { coach in
           HStack {
-            EventCoachCard(coach: coach)
+            EventCoachCard(coach: coach, schoolName: schoolName)
             Spacer()
             Button(role: .destructive) {
               Task { await onRemoveCoach(coach.id) }

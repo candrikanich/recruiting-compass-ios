@@ -13,6 +13,9 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   var updateEventCallCount = 0
   var deleteEventCallCount = 0
   var fetchCoachesCallCount = 0
+  var fetchSchoolNameCallCount = 0
+  var shouldThrowFetchSchoolName = false
+  var stubbedSchoolName: String?
   var fetchMetricsCallCount = 0
   var createMetricCallCount = 0
   var deleteMetricCallCount = 0
@@ -197,6 +200,12 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
         userInfo: [NSLocalizedDescriptionKey: "Mock delete event error"]
       )
     }
+  }
+
+  func fetchSchoolName(schoolId: String) async throws -> String? {
+    fetchSchoolNameCallCount += 1
+    if shouldThrowFetchSchoolName { throw NSError(domain: "MockEventsService", code: 20) }
+    return stubbedSchoolName
   }
 
   func fetchCoaches(schoolId: String, userId: String) async throws -> [Coach] {
