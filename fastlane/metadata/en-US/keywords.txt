@@ -1,1 +1,1 @@
-college,NCAA,athlete,high school,sports,coach,scholarship,calendar,D1,commit,camp,showcase,tracker
+athlete,sports,scholarship,D1,D2,D3,NAIA,JUCO,commit,parent,showcase,camp,football,soccer,baseball
