@@ -1,4 +1,5 @@
 import XCTest
+import Supabase
 @testable import TheRecruitingCompass
 
 @MainActor
@@ -370,6 +371,83 @@ final class CreateEventViewModelTests: XCTestCase {
 
     XCTAssertNil(eventId)
     XCTAssertNotNil(sut.errorMessage)
+  }
+
+  func testCreateEvent_stampsFamilyUnitIdOnRequest() async {
+    sut.formData.type = .showcase
+    sut.formData.name = "Test Event"
+    sut.formData.startDate = date("2026-04-15")
+
+    _ = await sut.createEvent()
+
+    XCTAssertEqual(mockService.lastCreateEventRequest?.familyUnitId, "test-family-id")
+  }
+
+  func testCreateEvent_permissionDenied_postgrest42501_showsPermissionMessage() async {
+    fillRequiredFields()
+    mockService.createEventError = PostgrestError(code: "42501", message: "new row violates row-level security")
+
+    let eventId = await sut.createEvent()
+
+    XCTAssertNil(eventId)
+    XCTAssertTrue(sut.errorMessage?.contains("permission") == true)
+    XCTAssertFalse(sut.errorMessage?.contains("connection") == true)
+  }
+
+  func testCreateEvent_networkFailure_showsConnectionMessage() async {
+    fillRequiredFields()
+    mockService.createEventError = URLError(.notConnectedToInternet)
+
+    _ = await sut.createEvent()
+
+    XCTAssertTrue(sut.errorMessage?.lowercased().contains("connection") == true)
+  }
+
+  func testCreateEvent_otherFailure_doesNotBlameConnection() async {
+    fillRequiredFields()
+    mockService.createEventError = PostgrestError(code: "23502", message: "boom")
+
+    _ = await sut.createEvent()
+
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertFalse(sut.errorMessage?.lowercased().contains("connection") == true)
+  }
+
+  // MARK: - Required-field state
+
+  func testMissingRequiredFields_emptyForm_listsTypeNameStartDate() {
+    sut.formData.startDate = nil
+
+    XCTAssertEqual(sut.missingRequiredFields, ["Event type", "Event name", "Start date"])
+    XCTAssertEqual(
+      sut.submitHint,
+      "Required to create: Event type, Event name, Start date"
+    )
+  }
+
+  func testSubmitHint_freshForm_namesTypeAndName() {
+    XCTAssertEqual(sut.submitHint, "Required to create: Event type, Event name")
+    XCTAssertTrue(sut.isSubmitDisabled)
+  }
+
+  func testMissingRequiredFields_partial_listsOnlyMissing() {
+    sut.formData.type = .camp
+    sut.formData.startDate = date("2026-04-15")
+
+    XCTAssertEqual(sut.missingRequiredFields, ["Event name"])
+  }
+
+  func testSubmitHint_allRequiredFilled_isNil() {
+    fillRequiredFields()
+
+    XCTAssertTrue(sut.missingRequiredFields.isEmpty)
+    XCTAssertNil(sut.submitHint)
+  }
+
+  private func fillRequiredFields() {
+    sut.formData.type = .showcase
+    sut.formData.name = "Test Event"
+    sut.formData.startDate = date("2026-04-15")
   }
 
   func testCreateEvent_preventsDuplicateSubmission() async {

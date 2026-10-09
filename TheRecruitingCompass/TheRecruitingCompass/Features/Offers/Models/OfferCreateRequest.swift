@@ -8,6 +8,7 @@ private let logger = Logger(
 
 struct OfferCreateRequest: Codable, Sendable {
   let userId: String
+  let familyUnitId: String?
   let schoolId: String
   let offerType: OfferType
   let scholarshipAmount: Double?
@@ -20,6 +21,7 @@ struct OfferCreateRequest: Codable, Sendable {
 
   enum CodingKeys: String, CodingKey {
     case userId = "user_id"
+    case familyUnitId = "family_unit_id"
     case schoolId = "school_id"
     case offerType = "offer_type"
     case scholarshipAmount = "scholarship_amount"
@@ -37,8 +39,9 @@ struct OfferCreateRequest: Codable, Sendable {
     return formatter
   }()
 
-  init(userId: String, form: NewOfferFormState) {
+  init(userId: String, familyUnitId: String? = nil, form: NewOfferFormState) {
     self.userId = userId
+    self.familyUnitId = familyUnitId
     let resolvedSchoolId = form.schoolId ?? ""
     if resolvedSchoolId.isEmpty {
       logger.warning("OfferCreateRequest initialized with empty schoolId — form.schoolId was nil")
@@ -60,6 +63,7 @@ struct OfferCreateRequest: Codable, Sendable {
   func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(userId, forKey: .userId)
+    try container.encodeIfPresent(familyUnitId, forKey: .familyUnitId)
     try container.encode(schoolId, forKey: .schoolId)
     // `.unknown` is decode-only and asserted against in init; omitting here is a release-build safety net.
     try container.encodeIfPresent(offerType.serverValue, forKey: .offerType)

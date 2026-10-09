@@ -44,8 +44,24 @@ final class CreateEventViewModel {
 
   // MARK: - Computed Properties
 
+  /// Labels of the required fields (Type, Name, Start date) that are still empty, in form order.
+  var missingRequiredFields: [String] {
+    var missing: [String] = []
+    if formData.type == nil { missing.append(String(localized: "Event type")) }
+    if formData.name.trimmingCharacters(in: .whitespaces).isEmpty { missing.append(String(localized: "Event name")) }
+    if formData.startDate == nil { missing.append(String(localized: "Start date")) }
+    return missing
+  }
+
+  /// Explains why Create is disabled; nil once every required field is filled.
+  var submitHint: String? {
+    let missing = missingRequiredFields
+    guard !missing.isEmpty else { return nil }
+    return String(localized: "Required to create: \(missing.joined(separator: ", "))")
+  }
+
   var isSubmitDisabled: Bool {
-    isSaving || formData.type == nil || formData.name.trimmingCharacters(in: .whitespaces).isEmpty || formData.startDate == nil
+    isSaving || !missingRequiredFields.isEmpty
   }
 
   var showGetDirections: Bool {
@@ -202,7 +218,7 @@ final class CreateEventViewModel {
     errorMessage = nil
     defer { isSaving = false }
 
-    let request = CreateEventRequest.from(formData: formData, userId: userId)
+    let request = CreateEventRequest.from(formData: formData, userId: userId, familyUnitId: familyUnitId)
     do {
       let event = try await eventsService.createEvent(request)
       logger.info("Event created successfully: \(event.id)")
@@ -214,9 +230,16 @@ final class CreateEventViewModel {
       return event.id
     } catch {
       logger.error("Failed to create event: \(error.localizedDescription)")
-      self.errorMessage = String(localized: "Failed to create event. Please check your connection and try again.")
+      self.errorMessage = createEventErrorMessage(for: error)
       return nil
     }
+  }
+
+  private func createEventErrorMessage(for error: Error) -> String {
+    if isPermissionDenied(error) {
+      return String(localized: "You don't have permission to add events for this athlete.")
+    }
+    return userFacingMessage(for: error, fallback: String(localized: "Failed to create event. Please try again."))
   }
 
   // MARK: - Directions
