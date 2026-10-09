@@ -10,6 +10,16 @@ struct EventCoachCard: View {
   }
 
   let coach: Coach
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
+  @State private var quickCommunicationContext: QuickCommunicationContext?
+
+  /// Email goes through Quick Communication (guardian lock, send guardrails), never a raw `mailto:`,
+  /// and disappears with the `athlete_messages` switch.
+  @MainActor
+  static func showsEmailAction(for coach: Coach, flags: FeatureFlagStore?) -> Bool {
+    guard flags.isEnabled(.athleteMessages) else { return false }
+    return coach.email?.isEmpty == false
+  }
 
   var body: some View {
     HStack(spacing: Layout.cardSpacing) {
@@ -55,14 +65,16 @@ struct EventCoachCard: View {
   @ViewBuilder
   private var contactButtons: some View {
     HStack(spacing: Layout.contactSpacing) {
-      if let email = coach.email, !email.isEmpty,
-         let emailURL = URL(string: "mailto:\(email)") {
-        Link(destination: emailURL) {
+      if Self.showsEmailAction(for: coach, flags: featureFlags) {
+        Button {
+          quickCommunicationContext = QuickCommunicationContext(coach: coach, schoolName: nil)
+        } label: {
           Image(systemName: "envelope")
             .font(.body)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
         .accessibilityLabel(String(localized: "Email \(coach.fullName)"))
       }
 
@@ -78,5 +90,8 @@ struct EventCoachCard: View {
       }
     }
     .foregroundStyle(Color.accentColor)
+    .sheet(item: $quickCommunicationContext) { context in
+      QuickCommunicationView(context: context)
+    }
   }
 }

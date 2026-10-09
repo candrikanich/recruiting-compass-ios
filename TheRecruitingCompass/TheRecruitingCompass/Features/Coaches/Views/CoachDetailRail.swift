@@ -28,7 +28,9 @@ struct CoachDetailRail: View {
   /// width) can pull it out separately from `recordSection`.
   @ViewBuilder var identitySection: some View {
     SectionCard {
-    CoachDetailHeader(coach: coach, school: viewModel.school, onEdit: onEdit, onDelete: onDelete)
+    CoachDetailHeader(
+      coach: coach, school: viewModel.school, onEdit: onEdit, onDelete: onDelete, onEmail: onEmail
+    )
     }
 
     SectionCard(label: "Direct Channels") {

@@ -72,8 +72,15 @@ struct TheRecruitingCompassApp: App {
             Task { await PushNotificationManager.shared.syncBadgeCount() }
           }
           .onReceive(NotificationCenter.default.publisher(for: .pushNotificationTapped)) { notification in
-            pendingPushDestination = (notification.userInfo?["destination"] as? NotificationDestination)?
-              .gated(by: featureFlagStore)
+            guard let destination = notification.userInfo?["destination"] as? NotificationDestination else {
+              pendingPushDestination = nil
+              return
+            }
+            // A cold-launch tap arrives before the first flag refresh; wait for it (fails open on timeout).
+            Task {
+              await featureFlagStore.waitForInitialState()
+              pendingPushDestination = destination.gated(by: featureFlagStore)
+            }
           }
         } else {
           NavigationStack {
@@ -227,6 +234,20 @@ struct TheRecruitingCompassApp: App {
     // A blocked build can't complete invite/reset flows; the link works again after updating.
     guard !appUpdateManager.isUpdateRequired else { return }
     let route = DeepLinkHandler.parse(url)
+    switch route {
+    case .joinInvite, .guardianClaim:
+      // Gated routes wait for the first flag refresh so a cold-launch link can't beat a kill switch.
+      Task {
+        await featureFlagStore.waitForInitialState()
+        guard !appUpdateManager.isUpdateRequired else { return }
+        presentRoute(route)
+      }
+    default:
+      presentRoute(route)
+    }
+  }
+
+  private func presentRoute(_ route: DeepLinkRoute) {
     switch route {
     case .resetPassword:
       pendingResetPasswordFromDeepLink = true

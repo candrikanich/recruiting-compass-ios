@@ -37,6 +37,11 @@ struct QuickCommunicationView: View {
   }
 
   var body: some View {
+    content.featureGated(.athleteMessages)
+  }
+
+  @ViewBuilder
+  private var content: some View {
     NavigationStack(path: $path) {
       QuickCommChannelScreen(
         recipientLine: viewModel.recipientLine,

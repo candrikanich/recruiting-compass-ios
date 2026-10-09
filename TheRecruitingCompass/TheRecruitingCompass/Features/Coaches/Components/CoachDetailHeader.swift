@@ -8,8 +8,20 @@ struct CoachDetailHeader: View {
   let school: School?
   var onEdit: () -> Void = {}
   var onDelete: () -> Void = {}
+  /// Email is outreach: it opens Quick Communication (guardian lock, guardrails), never a raw `mailto:`.
+  var onEmail: () -> Void = {}
 
   @Environment(\.openURL) private var openURL
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
+
+  @MainActor
+  static func shows(_ channel: CoachChannel, for coach: Coach, flags: FeatureFlagStore?) -> Bool {
+    CoachChannel.visible(for: coach, outreachEnabled: flags.isEnabled(.athleteMessages)).contains(channel)
+  }
+
+  private func shows(_ channel: CoachChannel) -> Bool {
+    Self.shows(channel, for: coach, flags: featureFlags)
+  }
 
   private var hasContact: Bool {
     coach.contactEmail != nil || coach.contactPhone != nil
@@ -57,22 +69,20 @@ struct CoachDetailHeader: View {
   @ViewBuilder
   private var contactBlock: some View {
     VStack(alignment: .leading, spacing: 8) {
-      if let email = coach.contactEmail {
-        contactRow(icon: "envelope", asset: nil, text: email, tint: Color.accentBlue) {
-          open(.email(email), value: email)
-        }
+      if let email = coach.contactEmail, shows(.email) {
+        contactRow(icon: "envelope", asset: nil, text: email, tint: Color.accentBlue, action: onEmail)
       }
       if let phone = coach.contactPhone {
         contactRow(icon: "phone", asset: nil, text: PhoneFormatter.formatDisplay(phone), tint: .primary) {
           open(.call(phone), value: phone)
         }
       }
-      if coach.contactTwitter != nil || coach.contactInstagram != nil {
+      if shows(.twitter) || shows(.instagram) {
         HStack(spacing: 16) {
           if let twitter = coach.contactTwitter {
             socialLink(asset: "LogoX", handle: twitter) { open(.twitter(twitter), value: twitter) }
           }
-          if let instagram = coach.contactInstagram {
+          if let instagram = coach.contactInstagram, shows(.instagram) {
             socialLink(asset: "LogoInstagram", handle: instagram) { open(.instagram(instagram), value: instagram) }
           }
         }
