@@ -26,7 +26,7 @@ struct HelpCallout: View {
     var backgroundColor: Color {
       switch self {
       case .tip: return Color(red: 0.85, green: 0.95, blue: 0.88)
-      case .info: return Color.accentBlue.opacity(0.12)
+      case .info: return Color.accentPrimary.opacity(0.12)
       case .warning: return Color.warningBackground
       case .important: return Color.errorBackground
       }
@@ -35,7 +35,7 @@ struct HelpCallout: View {
     var iconColor: Color {
       switch self {
       case .tip: return .primaryGreen
-      case .info: return .accentBlue
+      case .info: return .accentPrimary
       case .warning: return .warningOrange
       case .important: return .errorRed
       }

@@ -69,7 +69,7 @@ struct GettingStartedChecklistWidget: View {
         value: Double(nuxProgress.checklist.completedCount),
         total: Double(NuxChecklistKey.allCases.count)
       )
-      .tint(Color.accentBlue)
+      .tint(Color.accentPrimary)
       .accessibilityLabel(String(localized: "Getting started progress"))
       .accessibilityValue(String(localized: "\(nuxProgress.checklist.percentage) percent complete"))
 
@@ -167,12 +167,12 @@ struct GettingStartedChecklistWidget: View {
     } label: {
       HStack(spacing: 8) {
         Image(systemName: "arrow.uturn.backward.circle")
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .accessibilityHidden(true)
 
         Text("Resume getting started")
           .font(.subheadline)
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
 
         Spacer()
 
@@ -182,7 +182,7 @@ struct GettingStartedChecklistWidget: View {
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 12)
-      .background(Color.accentBlue.opacity(0.08))
+      .background(Color.accentPrimary.opacity(0.08))
       .clipShape(.rect(cornerRadius: 10))
     }
     .buttonStyle(.plain)

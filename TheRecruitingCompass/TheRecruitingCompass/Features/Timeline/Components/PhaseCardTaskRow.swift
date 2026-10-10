@@ -73,7 +73,7 @@ struct PhaseCardTaskRow: View {
           }
 
           if hasWhy, let why = task.whyItMatters {
-            calloutBox(title: String(localized: "Why It Matters"), text: why, color: Color.accentBlue)
+            calloutBox(title: String(localized: "Why It Matters"), text: why, color: Color.accentPrimary)
           }
 
           if hasRisk, let risk = task.failureRisk {

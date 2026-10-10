@@ -48,7 +48,7 @@ struct ProfileCompletenessCard: View {
             } label: {
               HStack(spacing: 10) {
                 Image(systemName: field.icon)
-                  .foregroundStyle(Color.accentBlue)
+                  .foregroundStyle(Color.accentPrimary)
                   .frame(width: 20)
                   .accessibilityHidden(true)
 

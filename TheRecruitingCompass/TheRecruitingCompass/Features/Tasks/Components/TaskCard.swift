@@ -66,7 +66,7 @@ struct TaskCard: View {
                 .font(.caption2.weight(.medium))
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(Color.accentBlue.opacity(0.2))
+                .background(Color.accentPrimary.opacity(0.2))
                 .clipShape(Capsule())
                 .accessibilityHidden(true)
             }

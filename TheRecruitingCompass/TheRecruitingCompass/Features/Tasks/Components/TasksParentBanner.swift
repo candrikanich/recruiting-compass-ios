@@ -39,7 +39,7 @@ struct TasksParentBanner: View {
     .padding()
     .background(
       LinearGradient(
-        gradient: Gradient(colors: [Color.accentBlue, Color(hex: "#2563EB")]),
+        gradient: Gradient(colors: [Color.accentPrimary, Color(hex: "#2563EB")]),
         startPoint: .leading,
         endPoint: .trailing
       )

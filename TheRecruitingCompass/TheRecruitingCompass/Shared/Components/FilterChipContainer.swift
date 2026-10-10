@@ -52,7 +52,7 @@ struct FilterChipContainer<Content: View>: View {
   private var clearAllColor: Color {
     switch style {
     case .outlined:
-      return Color.accentBlue
+      return Color.accentPrimary
     case .filled:
       return .white
     }

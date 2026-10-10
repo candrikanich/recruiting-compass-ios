@@ -30,7 +30,7 @@ enum CommunicationType: Sendable {
 
   var iconColor: Color {
     switch self {
-    case .email: return .accentBlue
+    case .email: return .accentPrimary
     case .phone: return .successGreen
     case .call: return Color.Brand.purple600
     case .twitter: return Color.Brand.slate700

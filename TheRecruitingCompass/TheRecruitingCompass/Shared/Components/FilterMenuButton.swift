@@ -44,7 +44,7 @@ struct FilterMenuButton: View {
   private var foregroundColor: Color {
     switch style {
     case .capsule:
-      return isActive ? Color.accentBlue : Color.primary
+      return isActive ? Color.accentPrimary : Color.primary
     case .rounded:
       return isActive ? .white : .primary
     }
@@ -53,7 +53,7 @@ struct FilterMenuButton: View {
   private var backgroundColor: Color {
     switch style {
     case .capsule:
-      return isActive ? Color.accentBlue.opacity(0.12) : Color(.secondarySystemBackground)
+      return isActive ? Color.accentPrimary.opacity(0.12) : Color(.secondarySystemBackground)
     case .rounded:
       return isActive ? Color.blue : Color(.systemGray6)
     }

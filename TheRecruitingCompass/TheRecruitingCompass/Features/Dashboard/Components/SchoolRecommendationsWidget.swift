@@ -58,7 +58,7 @@ struct SchoolRecommendationsWidget: View {
             .font(.caption2)
             .accessibilityHidden(true)
         }
-        .foregroundStyle(Color.accentBlue)
+        .foregroundStyle(Color.accentPrimary)
       }
       .buttonStyle(.plain)
       .accessibilityLabel(String(localized: "See all schools"))
@@ -81,8 +81,8 @@ struct SchoolRecommendationsWidget: View {
             .font(.caption2.weight(.medium))
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(Color.accentBlue.opacity(0.12))
-            .foregroundStyle(Color.accentBlue)
+            .background(Color.accentPrimary.opacity(0.12))
+            .foregroundStyle(Color.accentPrimary)
             .clipShape(.capsule)
         }
 

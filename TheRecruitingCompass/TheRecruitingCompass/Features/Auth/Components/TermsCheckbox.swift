@@ -13,7 +13,7 @@ struct TermsCheckbox: View {
           .font(.system(size: checkboxSize))
           .foregroundStyle(
             isChecked
-              ? Color.accentBlue
+              ? Color.accentPrimary
               : Color.iconGray
           )
           .accessibilityHidden(true)
@@ -33,7 +33,7 @@ struct TermsCheckbox: View {
           Button(action: onTermsPressed) {
             Text("Terms of Service")
               .font(.footnote.weight(.semibold))
-              .foregroundStyle(Color.accentBlue)
+              .foregroundStyle(Color.accentPrimary)
               .underline()
           }
           .accessibilityLabel(String(localized: "Read Terms of Service"))
@@ -47,7 +47,7 @@ struct TermsCheckbox: View {
           Button(action: onPrivacyPressed) {
             Text("Privacy Policy")
               .font(.footnote.weight(.semibold))
-              .foregroundStyle(Color.accentBlue)
+              .foregroundStyle(Color.accentPrimary)
               .underline()
           }
           .accessibilityLabel(String(localized: "Read Privacy Policy"))

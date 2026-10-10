@@ -175,7 +175,7 @@ struct LoginView: View {
       Button(action: { viewModel.rememberMe.toggle() }) {
         HStack(spacing: 6) {
           Image(systemName: viewModel.rememberMe ? "checkmark.square.fill" : "square")
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
             .accessibilityHidden(true)
 
           Text("Remember me")
@@ -247,7 +247,7 @@ struct LoginView: View {
               .font(.caption.weight(.semibold))
               .accessibilityHidden(true)
           }
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
         }

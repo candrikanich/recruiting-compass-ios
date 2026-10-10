@@ -480,7 +480,7 @@ private struct QuickCommChannelScreen: View {
     HStack(spacing: 12) {
       Image(systemName: systemImage)
         .font(.body)
-        .foregroundStyle(Color.accentBlue)
+        .foregroundStyle(Color.accentPrimary)
         .frame(width: 28)
         .accessibilityHidden(true)
       Text(title)
@@ -585,7 +585,7 @@ private struct QuickCommTemplatePicker: View {
         Spacer()
         if isSelected {
           Image(systemName: "checkmark.circle.fill")
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
             .accessibilityHidden(true)
         }
       }
@@ -678,7 +678,7 @@ private struct QuickCommAddMetricCTA: View {
     Button(action: onTap) {
       HStack(spacing: 12) {
         Image(systemName: "chart.bar.fill")
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 2) {
           Text("Add a metric to strengthen this email")
@@ -696,7 +696,7 @@ private struct QuickCommAddMetricCTA: View {
       }
       .padding(12)
       .frame(maxWidth: .infinity, alignment: .leading)
-      .background(Color.accentBlue.opacity(0.08))
+      .background(Color.accentPrimary.opacity(0.08))
       .clipShape(RoundedRectangle(cornerRadius: 10))
       .contentShape(Rectangle())
     }

@@ -20,7 +20,7 @@ struct OfferCard: View {
         } label: {
           Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
             .font(.title3)
-            .foregroundStyle(isSelected ? Color.accentBlue : .secondary)
+            .foregroundStyle(isSelected ? Color.accentPrimary : .secondary)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }

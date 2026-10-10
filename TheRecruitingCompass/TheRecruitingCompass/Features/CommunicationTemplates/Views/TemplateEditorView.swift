@@ -38,7 +38,7 @@ struct TemplateEditorView: View {
   private var predefinedCopyBanner: some View {
     HStack(alignment: .top, spacing: 8) {
       Image(systemName: "doc.on.doc")
-        .foregroundStyle(Color.accentBlue)
+        .foregroundStyle(Color.accentPrimary)
         .accessibilityHidden(true)
       Text("You're customizing a copy. The built-in template stays unchanged; Save creates your own editable version.")
         .font(.caption)
@@ -46,7 +46,7 @@ struct TemplateEditorView: View {
     }
     .padding(12)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color.accentBlue.opacity(0.08))
+    .background(Color.accentPrimary.opacity(0.08))
     .clipShape(RoundedRectangle(cornerRadius: 10))
     .accessibilityElement(children: .combine)
   }
@@ -124,7 +124,7 @@ struct TemplateEditorView: View {
               .font(.caption.monospaced())
               .padding(.horizontal, 10)
               .padding(.vertical, 6)
-              .background(Color.accentBlue.opacity(0.1))
+              .background(Color.accentPrimary.opacity(0.1))
               .clipShape(Capsule())
           }
           .buttonStyle(.plain)
@@ -148,7 +148,7 @@ struct TemplateEditorView: View {
           .foregroundStyle(.white)
           .frame(maxWidth: .infinity)
           .padding(.vertical, 14)
-          .background(viewModel.canSave ? Color.accentBlue : Color.gray)
+          .background(viewModel.canSave ? Color.accentPrimary : Color.gray)
           .clipShape(RoundedRectangle(cornerRadius: 12))
       }
       .disabled(!viewModel.canSave)

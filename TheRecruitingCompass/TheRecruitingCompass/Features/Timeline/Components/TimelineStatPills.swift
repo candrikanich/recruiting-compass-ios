@@ -39,7 +39,7 @@ struct TimelineStatPills: View {
         icon: "checklist",
         label: String(localized: "Tasks"),
         value: "\(taskCompleted)/\(taskTotal)",
-        accent: Color.accentBlue,
+        accent: Color.accentPrimary,
         progress: Double(taskCompleted),
         total: Double(taskTotal),
         accessibility: String(localized: "Tasks \(taskCompleted) of \(taskTotal) complete, \(taskPercent) percent")

@@ -17,7 +17,7 @@ struct CoachAnalyticsCard: View {
         HStack {
           Text("Outreach History & Analytics").font(.subheadline.bold())
           Spacer()
-          Text("All Time").font(.caption).foregroundStyle(Color.accentBlue)
+          Text("All Time").font(.caption).foregroundStyle(Color.accentPrimary)
         }
 
         metricRow(label: "Sent / Received", value: "\(insights.sent)/\(insights.received)") {

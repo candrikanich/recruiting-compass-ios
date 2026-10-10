@@ -44,7 +44,7 @@ struct CoachDetailHeader: View {
           if let school {
             Text(school.name)
               .font(.subheadline)
-              .foregroundStyle(Color.accentBlue)
+              .foregroundStyle(Color.accentPrimary)
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -70,7 +70,7 @@ struct CoachDetailHeader: View {
   private var contactBlock: some View {
     VStack(alignment: .leading, spacing: 8) {
       if let email = coach.contactEmail, shows(.email) {
-        contactRow(icon: "envelope", asset: nil, text: email, tint: Color.accentBlue, action: onEmail)
+        contactRow(icon: "envelope", asset: nil, text: email, tint: Color.accentPrimary, action: onEmail)
       }
       if let phone = coach.contactPhone {
         contactRow(icon: "phone", asset: nil, text: PhoneFormatter.formatDisplay(phone), tint: .primary) {

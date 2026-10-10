@@ -15,8 +15,14 @@ final class AnalyticsChartColorsTests: XCTestCase {
     XCTAssertEqual(AnalyticsChartColors.palette[1], AnalyticsChartColors.secondary)
     XCTAssertEqual(AnalyticsChartColors.palette[2], AnalyticsChartColors.tertiary)
     XCTAssertEqual(AnalyticsChartColors.palette[3], AnalyticsChartColors.quaternary)
-    XCTAssertEqual(AnalyticsChartColors.palette[4], AnalyticsChartColors.purple)
-    XCTAssertEqual(AnalyticsChartColors.palette[5], AnalyticsChartColors.pink)
+    XCTAssertEqual(AnalyticsChartColors.palette[4], AnalyticsChartColors.accent)
+    XCTAssertEqual(AnalyticsChartColors.palette[5], AnalyticsChartColors.accentDeep)
+  }
+
+  func testPrimary_IsForest500AndAccentsAreGold() {
+    XCTAssertEqual(AnalyticsChartColors.primary, Color.Brand.forest500)
+    XCTAssertEqual(AnalyticsChartColors.accent, Color.Brand.gold400)
+    XCTAssertEqual(AnalyticsChartColors.accentDeep, Color.Brand.gold500)
   }
 
   // MARK: - Color At Index Tests
@@ -24,7 +30,7 @@ final class AnalyticsChartColorsTests: XCTestCase {
   func testColorAtIndex_ReturnsCorrectColor() {
     XCTAssertEqual(AnalyticsChartColors.color(at: 0), AnalyticsChartColors.primary)
     XCTAssertEqual(AnalyticsChartColors.color(at: 1), AnalyticsChartColors.secondary)
-    XCTAssertEqual(AnalyticsChartColors.color(at: 5), AnalyticsChartColors.pink)
+    XCTAssertEqual(AnalyticsChartColors.color(at: 5), AnalyticsChartColors.accentDeep)
   }
 
   func testColorAtIndex_WrapsAround() {

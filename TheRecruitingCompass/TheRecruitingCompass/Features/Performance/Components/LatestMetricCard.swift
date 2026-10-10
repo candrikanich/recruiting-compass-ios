@@ -14,7 +14,7 @@ struct LatestMetricCard: View {
         Text(metric.metricType.format(metric.value))
           .font(.title)
           .bold()
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
 
         if !metric.unit.isEmpty {
           Text(metric.unit)

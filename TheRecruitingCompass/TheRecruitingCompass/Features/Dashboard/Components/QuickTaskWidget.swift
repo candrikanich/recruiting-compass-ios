@@ -24,7 +24,7 @@ struct QuickTaskWidget: View {
             onClearCompleted()
           }
           .font(.caption)
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .accessibilityLabel(String(localized: "Clear completed tasks"))
           .accessibilityHint("Removes all completed tasks from the list")
         }

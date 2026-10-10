@@ -18,7 +18,7 @@ struct TasksProgressCard: View {
             .frame(height: 12)
 
           RoundedRectangle(cornerRadius: 6)
-            .fill(Color.accentBlue)
+            .fill(Color.accentPrimary)
             .frame(width: total > 0 ? geo.size.width * CGFloat(completed) / CGFloat(total) : 0, height: 12)
         }
       }

@@ -59,7 +59,7 @@ private struct HelpOverviewCard: View {
     VStack(alignment: .leading, spacing: 12) {
       Image(systemName: section.icon)
         .font(.title2)
-        .foregroundStyle(Color.accentBlue)
+        .foregroundStyle(Color.accentPrimary)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {

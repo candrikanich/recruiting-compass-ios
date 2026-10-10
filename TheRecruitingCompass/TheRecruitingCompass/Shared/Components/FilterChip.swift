@@ -65,7 +65,7 @@ struct FilterChip: View {
   private var foregroundColor: Color {
     switch style {
     case .outlined:
-      return Color.accentBlue
+      return Color.accentPrimary
     case .filled:
       return .white
     }
@@ -74,7 +74,7 @@ struct FilterChip: View {
   private var backgroundColor: Color {
     switch style {
     case .outlined:
-      return Color.accentBlue.opacity(0.12)
+      return Color.accentPrimary.opacity(0.12)
     case .filled:
       return Color.blue
     }

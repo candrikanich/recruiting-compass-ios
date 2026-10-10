@@ -16,7 +16,7 @@ struct MetricTypeFilterBar: View {
               .fontWeight(.semibold)
               .padding(.horizontal, 12)
               .padding(.vertical, 10)
-              .background(isSelected(type) ? Color.accentBlue : Color(.systemGray6))
+              .background(isSelected(type) ? Color.accentPrimary : Color(.systemGray6))
               .foregroundStyle(isSelected(type) ? .white : .primary)
               .clipShape(Capsule())
           }

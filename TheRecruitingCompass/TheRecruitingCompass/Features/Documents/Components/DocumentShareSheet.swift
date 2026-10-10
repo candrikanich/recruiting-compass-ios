@@ -50,7 +50,7 @@ struct DocumentShareSheet: View {
         Spacer()
         if viewModel.selectedSchoolIds.contains(school.id) {
           Image(systemName: "checkmark.circle.fill")
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
         }
       }
       .frame(minHeight: 44)

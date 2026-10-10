@@ -80,9 +80,9 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
     case .offers: return .green
     case .performance: return .orange
     case .analytics: return .purple
-    case .activity: return .accentBlue
-    case .inboundDrafts: return .accentBlue
-    case .helpCenter: return .accentBlue
+    case .activity: return .accentPrimary
+    case .inboundDrafts: return .accentPrimary
+    case .helpCenter: return .accentPrimary
     case .publicProfile: return .teal
     case .notifications: return .orange
     case .settings: return Color.iconGray

@@ -29,7 +29,7 @@ struct TemplateCardView: View {
         } label: {
           Image(systemName: "pencil")
             .font(.body)
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }

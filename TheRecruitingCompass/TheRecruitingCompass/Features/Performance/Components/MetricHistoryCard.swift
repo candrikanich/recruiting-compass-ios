@@ -25,8 +25,8 @@ struct MetricHistoryCard: View {
                 .fontWeight(.semibold)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Color.accentBlue.opacity(0.12))
-                .foregroundStyle(Color.accentBlue)
+                .background(Color.accentPrimary.opacity(0.12))
+                .foregroundStyle(Color.accentPrimary)
                 .clipShape(Capsule())
             }
           }
@@ -45,8 +45,8 @@ struct MetricHistoryCard: View {
           .fontWeight(.semibold)
           .padding(.horizontal, 10)
           .padding(.vertical, 6)
-          .background(Color.accentBlue.opacity(metric.isPrimary ? 0.18 : 0.1))
-          .foregroundStyle(metric.isPrimary ? Color.accentBlue : Color.secondary)
+          .background(Color.accentPrimary.opacity(metric.isPrimary ? 0.18 : 0.1))
+          .foregroundStyle(metric.isPrimary ? Color.accentPrimary : Color.secondary)
           .clipShape(RoundedRectangle(cornerRadius: 8))
           .accessibilityLabel(primaryButtonLabel)
 
@@ -55,8 +55,8 @@ struct MetricHistoryCard: View {
             .fontWeight(.semibold)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(Color.accentBlue.opacity(0.1))
-            .foregroundStyle(Color.accentBlue)
+            .background(Color.accentPrimary.opacity(0.1))
+            .foregroundStyle(Color.accentPrimary)
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
           Button("Delete", action: onDelete)

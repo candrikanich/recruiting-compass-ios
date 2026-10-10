@@ -45,7 +45,7 @@ struct PerformanceMetricsWidget: View {
                 .font(.caption)
                 .accessibilityHidden(true)
             }
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
           }
           .accessibilityLabel(String(localized: isShowingAll
             ? "Show fewer metrics"

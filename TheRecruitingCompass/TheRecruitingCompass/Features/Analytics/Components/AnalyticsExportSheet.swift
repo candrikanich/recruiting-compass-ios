@@ -15,7 +15,7 @@ struct AnalyticsExportSheet: View {
             HStack(spacing: 12) {
               Image(systemName: format.iconName)
                 .font(.title3)
-                .foregroundStyle(format == .pdf ? Color.accentBlue : Color.iconGray)
+                .foregroundStyle(format == .pdf ? Color.accentPrimary : Color.iconGray)
                 .frame(width: 32)
                 .accessibilityHidden(true)
 
@@ -31,7 +31,7 @@ struct AnalyticsExportSheet: View {
               Spacer()
 
               Image(systemName: "arrow.down.circle")
-                .foregroundStyle(Color.accentBlue)
+                .foregroundStyle(Color.accentPrimary)
                 .accessibilityHidden(true)
             }
           }

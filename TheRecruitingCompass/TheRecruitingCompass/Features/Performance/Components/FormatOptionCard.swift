@@ -10,7 +10,7 @@ struct FormatOptionCard: View {
       HStack(spacing: 16) {
         Image(systemName: format.icon)
           .font(.title2)
-          .foregroundStyle(isSelected ? Color.accentBlue : .secondary)
+          .foregroundStyle(isSelected ? Color.accentPrimary : .secondary)
           .frame(width: 40)
 
         VStack(alignment: .leading, spacing: 4) {
@@ -27,17 +27,17 @@ struct FormatOptionCard: View {
 
         if isSelected {
           Image(systemName: "checkmark.circle.fill")
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
         }
       }
       .padding()
       .background(
         RoundedRectangle(cornerRadius: 12)
-          .fill(isSelected ? Color.accentBlue.opacity(0.1) : Color(.systemGray6))
+          .fill(isSelected ? Color.accentPrimary.opacity(0.1) : Color(.systemGray6))
       )
       .overlay(
         RoundedRectangle(cornerRadius: 12)
-          .stroke(isSelected ? Color.accentBlue : Color.clear, lineWidth: 2)
+          .stroke(isSelected ? Color.accentPrimary : Color.clear, lineWidth: 2)
       )
     }
     .buttonStyle(.plain)

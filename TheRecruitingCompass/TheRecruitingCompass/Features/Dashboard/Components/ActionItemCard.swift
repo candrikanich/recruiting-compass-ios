@@ -48,7 +48,7 @@ struct ActionItemCard: View {
 
           Button(String(localized: "Learn More")) { showHelp = true }
             .font(.subheadline)
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
             .accessibilityHint("Shows detailed guidance for this suggestion")
         }
 
@@ -96,7 +96,7 @@ struct ActionItemCard: View {
       iconLabelButton(
         systemName: "checkmark.circle.fill",
         title: String(localized: "Done"),
-        tint: Color.accentBlue,
+        tint: Color.accentPrimary,
         action: onComplete
       )
       .accessibilityLabel(String(localized: "Complete suggestion"))

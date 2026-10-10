@@ -40,7 +40,7 @@ struct CoachFollowupWidget: View {
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 8)
             .padding(.vertical, 2)
-            .background(Color.accentBlue.opacity(0.15))
+            .background(Color.accentPrimary.opacity(0.15))
             .clipShape(Capsule())
         }
       }
@@ -81,7 +81,7 @@ struct CoachFollowupWidget: View {
           } label: {
             Text("View all \(coaches.count) coaches")
               .font(.caption)
-              .foregroundStyle(Color.accentBlue)
+              .foregroundStyle(Color.accentPrimary)
           }
           .frame(minHeight: 44)
         }

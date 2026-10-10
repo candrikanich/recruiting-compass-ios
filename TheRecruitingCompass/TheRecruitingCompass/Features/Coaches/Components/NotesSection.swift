@@ -29,7 +29,7 @@ struct NotesSection: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay(
           RoundedRectangle(cornerRadius: 8)
-            .stroke(isFocused ? Color.accentBlue : Color.borderGray, lineWidth: isFocused ? 2 : 1)
+            .stroke(isFocused ? Color.accentPrimary : Color.borderGray, lineWidth: isFocused ? 2 : 1)
         )
         .focused($isFocused)
         .accessibilityLabel(String(localized: "\(title) editor"))

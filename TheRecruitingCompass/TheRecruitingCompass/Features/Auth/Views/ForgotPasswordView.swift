@@ -172,18 +172,18 @@ struct ForgotPasswordView: View {
         HStack {
           if viewModel.isLoading {
             ProgressView()
-              .tint(Color.accentBlue)
+              .tint(Color.accentPrimary)
           }
           Text(resendButtonText)
             .font(.callout.weight(.semibold))
         }
         .frame(maxWidth: .infinity)
         .frame(minHeight: 48)
-        .foregroundStyle(Color.accentBlue)
+        .foregroundStyle(Color.accentPrimary)
         .background(Color.clear)
         .overlay(
           RoundedRectangle(cornerRadius: 8)
-            .stroke(Color.accentBlue, lineWidth: 1.5)
+            .stroke(Color.accentPrimary, lineWidth: 1.5)
         )
         .opacity(viewModel.canResendEmail ? 1 : 0.5)
       }
@@ -193,7 +193,7 @@ struct ForgotPasswordView: View {
       Button(action: { viewModel.resetForm() }) {
         Text("Use Different Email")
           .font(.footnote.weight(.semibold))
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
       }

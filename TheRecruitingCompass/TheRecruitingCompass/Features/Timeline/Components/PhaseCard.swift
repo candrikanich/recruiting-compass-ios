@@ -59,7 +59,7 @@ struct PhaseCard: View {
 
           HStack(spacing: 8) {
             ProgressView(value: Double(completedCount), total: max(1, Double(totalCount)))
-              .tint(isCurrentPhase ? Color.accentBlue : Color.secondary)
+              .tint(isCurrentPhase ? Color.accentPrimary : Color.secondary)
             Text("\(percentComplete)%")
               .font(.caption.weight(.semibold))
               .foregroundStyle(.secondary)
@@ -91,7 +91,7 @@ struct PhaseCard: View {
         .fill(Color(.secondarySystemBackground))
         .overlay {
           RoundedRectangle(cornerRadius: 12)
-            .stroke(isCurrentPhase ? Color.accentBlue.opacity(0.5) : Color.clear, lineWidth: 2)
+            .stroke(isCurrentPhase ? Color.accentPrimary.opacity(0.5) : Color.clear, lineWidth: 2)
         }
     )
     .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -124,7 +124,7 @@ struct PhaseCard: View {
     } else if percentComplete > 0 {
       Image(systemName: "circle.lefthalf.filled")
         .font(.title2)
-        .foregroundStyle(Color.accentBlue)
+        .foregroundStyle(Color.accentPrimary)
     } else {
       Image(systemName: "circle")
         .font(.title2)

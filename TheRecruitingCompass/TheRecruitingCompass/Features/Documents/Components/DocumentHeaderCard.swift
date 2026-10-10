@@ -15,7 +15,7 @@ struct DocumentHeaderCard: View {
             .fontWeight(.semibold)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(Color.accentBlue.opacity(0.2))
+            .background(Color.accentPrimary.opacity(0.2))
             .foregroundStyle(.primary)
             .clipShape(.rect(cornerRadius: 6))
           Text(document.title)
@@ -38,7 +38,7 @@ struct DocumentHeaderCard: View {
             .frame(minWidth: 88, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)
-        .tint(.accentBlue)
+        .tint(.accentPrimary)
         .accessibilityLabel(String(localized: "Edit document metadata"))
 
         Button(action: onShare) {

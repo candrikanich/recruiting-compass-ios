@@ -19,7 +19,7 @@ struct ExportFormatSheet: View {
         // Icon
         Image(systemName: "square.and.arrow.up")
           .font(.system(size: iconSize))
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .padding(.top)
 
         // Title

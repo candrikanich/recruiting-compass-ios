@@ -17,7 +17,7 @@ struct DashboardTimelineSummaryCard: View {
   private var badgeColor: Color {
     switch phase {
     case .freshman: return .successGreen
-    case .sophomore: return .accentBlue
+    case .sophomore: return .accentPrimary
     case .junior: return .purple
     case .senior: return Color(hex: "F59E0B")
     case .committed: return .successGreen
@@ -55,7 +55,7 @@ struct DashboardTimelineSummaryCard: View {
               .accessibilityHidden(true)
           }
           .font(.caption.weight(.semibold))
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .padding(.vertical, 4)
           .contentShape(Rectangle())
         }

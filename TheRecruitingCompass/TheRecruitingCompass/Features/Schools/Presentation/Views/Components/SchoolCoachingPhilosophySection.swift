@@ -26,7 +26,7 @@ struct SchoolCoachingPhilosophySection: View {
         Button(action: onEdit) {
           Text("Edit")
             .font(.subheadline)
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
         }
         .accessibilityLabel(String(localized: "Edit coaching philosophy"))
         .accessibilityHint("Opens form to edit coaching philosophy details")
@@ -75,11 +75,11 @@ struct SchoolCoachingPhilosophySection: View {
             HStack {
               Text(isExpanded ? String(localized: "Show Less") : String(localized: "Show More"))
                 .font(.subheadline)
-                .foregroundStyle(Color.accentBlue)
+                .foregroundStyle(Color.accentPrimary)
 
               Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                 .font(.caption)
-                .foregroundStyle(Color.accentBlue)
+                .foregroundStyle(Color.accentPrimary)
                 .accessibilityHidden(true)
             }
             .frame(maxWidth: .infinity)

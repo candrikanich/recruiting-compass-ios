@@ -17,7 +17,7 @@ struct DocumentVersionRow: View {
               .fontWeight(.semibold)
               .padding(.horizontal, 6)
               .padding(.vertical, 2)
-              .background(Color.accentBlue.opacity(0.2))
+              .background(Color.accentPrimary.opacity(0.2))
               .clipShape(.rect(cornerRadius: 4))
           }
         }

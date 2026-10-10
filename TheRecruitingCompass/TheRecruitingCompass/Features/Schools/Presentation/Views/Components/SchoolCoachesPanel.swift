@@ -32,7 +32,7 @@ struct SchoolCoachesPanel: View {
           Button(action: onAddCoach) {
             Image(systemName: "plus.circle.fill")
               .font(.title3)
-              .foregroundStyle(Color.accentBlue)
+              .foregroundStyle(Color.accentPrimary)
           }
           .accessibilityLabel(String(localized: "Add coach"))
           .accessibilityHint("Add a new coach to this school")
@@ -42,7 +42,7 @@ struct SchoolCoachesPanel: View {
           Button(action: onSeeAll) {
             Text("See All (\(coaches.count))")
               .font(.subheadline)
-              .foregroundStyle(Color.accentBlue)
+              .foregroundStyle(Color.accentPrimary)
           }
           .accessibilityLabel(String(localized: "See all \(coaches.count) coaches"))
           .accessibilityHint("View complete list of coaches")

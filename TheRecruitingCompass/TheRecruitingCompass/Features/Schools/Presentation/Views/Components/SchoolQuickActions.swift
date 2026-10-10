@@ -19,7 +19,7 @@ struct SchoolQuickActions: View {
           icon: "plus.message.fill",
           title: String(localized: "Log Interaction"),
           gradient: LinearGradient(
-            colors: [Color.accentBlue, Color.accentBlue.opacity(0.7)],
+            colors: [Color.accentPrimary, Color.accentPrimary.opacity(0.7)],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
           ),

@@ -219,7 +219,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
   }
 
   func testToast_InfoColorMeetsContrastRequirements() {
-    XCTAssertEqual(ToastType.info.iconColor, .accentBlue)
+    XCTAssertEqual(ToastType.info.iconColor, .accentPrimary)
   }
 
   // MARK: - Button State (disabled state announced by VoiceOver via .disabled)

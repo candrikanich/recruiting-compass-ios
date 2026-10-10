@@ -201,7 +201,7 @@ private struct CoachCardActionsSection: View {
     switch channel {
     case .email:
       if let email = coach.contactEmail {
-        outreachButton(icon: "envelope.fill", color: Color.accentBlue, label: String(localized: "Email coach"),
+        outreachButton(icon: "envelope.fill", color: Color.accentPrimary, label: String(localized: "Email coach"),
                        fallback: .email(email), value: email)
       }
     case .text:

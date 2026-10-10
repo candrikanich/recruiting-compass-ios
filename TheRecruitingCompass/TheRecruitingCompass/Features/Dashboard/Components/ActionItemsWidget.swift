@@ -46,7 +46,7 @@ struct ActionItemsWidget: View {
                 .font(.caption)
                 .accessibilityHidden(true)
             }
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
           }
           .buttonStyle(.plain)
           .accessibilityLabel(String(localized: "View all action items"))

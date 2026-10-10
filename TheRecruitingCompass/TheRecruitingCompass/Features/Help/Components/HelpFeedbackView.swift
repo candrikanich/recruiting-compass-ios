@@ -86,7 +86,7 @@ struct HelpFeedbackView: View {
         Link("Contact support", destination: url)
           .font(.caption)
           .fontWeight(.medium)
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
       }
     }
     .accessibilityElement(children: .combine)

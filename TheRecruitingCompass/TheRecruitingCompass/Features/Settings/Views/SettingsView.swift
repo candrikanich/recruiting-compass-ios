@@ -172,7 +172,7 @@ struct SettingsView: View {
               icon: "doc.text.fill",
               title: String(localized: "Communication Templates"),
               description: String(localized: "Create and manage email, text, and social media templates"),
-              color: .accentBlue
+              color: .accentPrimary
             )
           }
         } header: {
@@ -219,7 +219,7 @@ struct SettingsView: View {
                 icon: "tray.and.arrow.down.fill",
                 title: String(localized: "Review Forwarded Coach Emails"),
                 description: String(localized: "Confirm or discard drafts created from forwarded emails"),
-                color: .accentBlue
+                color: .accentPrimary
               )
             }
           } header: {

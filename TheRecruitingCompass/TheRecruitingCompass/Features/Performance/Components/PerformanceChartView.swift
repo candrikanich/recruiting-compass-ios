@@ -19,7 +19,7 @@ struct PerformanceChartView: View {
             x: .value("Date", metric.recordedDate),
             y: .value("Value", metric.value)
           )
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .interpolationMethod(.catmullRom)
 
           AreaMark(
@@ -28,7 +28,7 @@ struct PerformanceChartView: View {
           )
           .foregroundStyle(
             LinearGradient(
-              colors: [Color.accentBlue.opacity(0.2), Color.accentBlue.opacity(0.02)],
+              colors: [Color.accentPrimary.opacity(0.2), Color.accentPrimary.opacity(0.02)],
               startPoint: .top,
               endPoint: .bottom
             )
@@ -39,7 +39,7 @@ struct PerformanceChartView: View {
             x: .value("Date", metric.recordedDate),
             y: .value("Value", metric.value)
           )
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .symbolSize(metric.id == selectedMetric?.id ? 120 : 40)
         }
 

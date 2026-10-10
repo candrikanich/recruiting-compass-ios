@@ -23,7 +23,7 @@ struct HelpBadge: View {
 
     var color: Color {
       switch self {
-      case .new: return .accentBlue
+      case .new: return .accentPrimary
       case .required: return .errorRed
       case .optional: return Color.iconGray
       }

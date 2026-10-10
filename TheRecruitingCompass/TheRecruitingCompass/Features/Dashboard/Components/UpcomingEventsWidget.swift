@@ -51,7 +51,7 @@ struct UpcomingEventsWidget: View {
           Button(action: presentCreateEvent) {
             Text("Add Event")
               .font(.caption.weight(.semibold))
-              .foregroundStyle(Color.accentBlue)
+              .foregroundStyle(Color.accentPrimary)
           }
           .accessibilityHint("Opens the form to create a new event")
         }
@@ -74,7 +74,7 @@ struct UpcomingEventsWidget: View {
                 .font(.caption)
                 .accessibilityHidden(true)
             }
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
           }
           .accessibilityLabel(String(localized: isShowingAll
             ? "Show fewer events"
@@ -87,7 +87,7 @@ struct UpcomingEventsWidget: View {
         Button(action: { isShowingAllEvents = true }) {
           Text("View All Events")
             .font(.caption.weight(.semibold))
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
         }
         .accessibilityHint("Opens the full events list")
       }

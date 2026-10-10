@@ -226,7 +226,7 @@ private struct SignupRoleHeaderView: View {
             Text("Change Role")
               .font(.caption)
           }
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
         }
         .accessibilityLabel(String(localized: "Change role selection"))
         .accessibilityHint("Return to role selection screen")
@@ -698,7 +698,7 @@ private struct SignupSignInSectionView: View {
             .font(.caption.weight(.semibold))
             .accessibilityHidden(true)
         }
-        .foregroundStyle(Color.accentBlue)
+        .foregroundStyle(Color.accentPrimary)
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }

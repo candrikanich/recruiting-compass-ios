@@ -32,7 +32,7 @@ struct Suggestion: Codable, Identifiable, Sendable {
       switch self {
       case .high: return .errorRed
       case .medium: return .amberGold
-      case .low: return .accentBlue
+      case .low: return .accentPrimary
       case .unknown: return .iconGray
       }
     }

@@ -20,19 +20,19 @@ struct AtAGlanceSummary: View {
         MetricCard(
           title: "Schools with Offers",
           value: schoolsWithOffers,
-          color: .accentBlue
+          color: .accentPrimary
         )
 
         MetricCard(
           title: "Interactions This Month",
           value: "\(interactionsThisMonth)",
-          color: .accentBlue
+          color: .accentPrimary
         )
 
         MetricCard(
           title: "Days Until Graduation",
           value: daysUntilGraduation,
-          color: .accentBlue
+          color: .accentPrimary
         )
       }
     }

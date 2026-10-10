@@ -13,7 +13,7 @@ struct MarketingOptInCheckbox: View {
       HStack(alignment: .top, spacing: 10) {
         Image(systemName: isChecked ? "checkmark.square.fill" : "square")
           .font(.system(size: checkboxSize))
-          .foregroundStyle(isChecked ? Color.accentBlue : Color.iconGray)
+          .foregroundStyle(isChecked ? Color.accentPrimary : Color.iconGray)
           .accessibilityHidden(true)
 
         Text(Self.copy)
