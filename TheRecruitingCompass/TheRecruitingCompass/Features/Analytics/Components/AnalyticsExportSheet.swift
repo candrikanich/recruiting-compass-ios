@@ -14,24 +14,24 @@ struct AnalyticsExportSheet: View {
           } label: {
             HStack(spacing: 12) {
               Image(systemName: format.iconName)
-                .font(.title3)
-                .foregroundStyle(format == .pdf ? Color.accentBlue : Color.iconGray)
+                .font(.brand(.title3))
+                .foregroundStyle(format == .pdf ? Color.accentPrimary : Color.iconGray)
                 .frame(width: 32)
                 .accessibilityHidden(true)
 
               VStack(alignment: .leading, spacing: 2) {
                 Text(format.displayName)
-                  .font(.body)
+                  .font(.brand(.body))
                   .foregroundStyle(Color.darkSlate)
                 Text(".\(format.fileExtension) file")
-                  .font(.caption)
+                  .font(.brand(.caption))
                   .foregroundStyle(Color.secondaryText)
               }
 
               Spacer()
 
               Image(systemName: "arrow.down.circle")
-                .foregroundStyle(Color.accentBlue)
+                .foregroundStyle(Color.accentPrimary)
                 .accessibilityHidden(true)
             }
           }

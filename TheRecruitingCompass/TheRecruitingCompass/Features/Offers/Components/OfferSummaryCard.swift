@@ -8,12 +8,12 @@ struct OfferSummaryCard: View {
   var body: some View {
     VStack(spacing: 4) {
       Text("\(count)")
-        .font(.title2)
+        .font(.brand(.title2))
         .bold()
         .foregroundStyle(color)
 
       Text(title)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
     }
     .frame(maxWidth: .infinity)

@@ -32,7 +32,7 @@ struct PrivacyPolicyView: View {
       VStack(alignment: .leading, spacing: 24) {
         if !viewModel.lastUpdated.isEmpty {
           Text("Last Updated: \(viewModel.lastUpdated)")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
             .frame(maxWidth: .infinity)
             .multilineTextAlignment(.center)
@@ -65,23 +65,23 @@ struct PrivacyPolicyView: View {
     let contact = PrivacyPolicyContent.contact
     VStack(alignment: .leading, spacing: 8) {
       Text(contact.name)
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(Color.darkSlate)
 
       Text(contact.address)
-        .font(.body)
+        .font(.brand(.body))
         .foregroundStyle(Color.secondaryText)
 
       HStack(spacing: 4) {
         Text("Privacy inquiries:")
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(Color.secondaryText)
         LegalEmailLink(email: contact.privacyEmail)
       }
 
       HStack(spacing: 4) {
         Text("General support:")
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(Color.secondaryText)
         LegalEmailLink(email: contact.supportEmail)
       }

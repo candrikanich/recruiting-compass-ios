@@ -11,7 +11,7 @@ struct SchoolNotesSection: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text(title)
-          .font(.headline)
+          .font(.brand(.headline))
           .accessibilityAddTraits(.isHeader)
 
         Spacer()

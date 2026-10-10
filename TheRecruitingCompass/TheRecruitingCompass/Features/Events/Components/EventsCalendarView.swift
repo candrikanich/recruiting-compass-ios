@@ -46,7 +46,7 @@ struct EventsCalendarView: View {
       Spacer()
 
       Text(title)
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       Spacer()
@@ -65,7 +65,7 @@ struct EventsCalendarView: View {
     LazyVGrid(columns: columns, spacing: 4) {
       ForEach(weekdays, id: \.self) { day in
         Text(day)
-          .font(.caption)
+          .font(.brand(.caption))
           .fontWeight(.semibold)
           .foregroundStyle(.secondary)
           .frame(minHeight: 20)
@@ -108,7 +108,7 @@ private struct DayCellView: View {
     Button(action: onTap) {
       VStack(spacing: 2) {
         Text(dayNumber)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(isToday ? .bold : .regular)
           .foregroundStyle(textColor)
           .frame(width: 32, height: 32)

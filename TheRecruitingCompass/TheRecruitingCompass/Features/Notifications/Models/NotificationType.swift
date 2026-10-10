@@ -34,15 +34,15 @@ enum NotificationType: String, Codable, CaseIterable, Sendable {
     }
   }
 
-  var emoji: String {
+  var systemImage: String {
     switch self {
-    case .followUpReminder: return "\u{1F514}"
-    case .deadlineAlert: return "\u{23F0}"
-    case .weeklyDigest: return "\u{1F4CA}"
-    case .inboundInteraction: return "\u{1F4E7}"
-    case .offer: return "\u{1F389}"
-    case .event: return "\u{1F4C5}"
-    case .unknown: return "\u{2139}\u{FE0F}"
+    case .followUpReminder: return "bell.fill"
+    case .deadlineAlert: return "clock"
+    case .weeklyDigest: return "chart.bar"
+    case .inboundInteraction: return "envelope"
+    case .offer: return "trophy"
+    case .event: return "calendar"
+    case .unknown: return "tray"
     }
   }
 }

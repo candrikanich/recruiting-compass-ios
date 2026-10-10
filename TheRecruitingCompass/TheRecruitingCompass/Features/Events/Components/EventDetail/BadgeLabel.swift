@@ -8,7 +8,7 @@ struct BadgeLabel: View {
 
   var body: some View {
     Text(text)
-      .font(.caption)
+      .font(.brand(.caption))
       .fontWeight(.semibold)
       .padding(.horizontal, 10)
       .padding(.vertical, 4)

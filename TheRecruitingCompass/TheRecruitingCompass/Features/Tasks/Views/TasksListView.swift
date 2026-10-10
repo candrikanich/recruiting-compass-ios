@@ -33,7 +33,7 @@ struct TasksListView: View {
       LazyVStack(spacing: 16) {
         parentBannerIfNeeded
         Text(headerTitle)
-          .font(.title2.weight(.semibold))
+          .font(.brand(.title2, weight: .semibold))
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.horizontal)
         athleteSwitcherIfNeeded
@@ -118,8 +118,8 @@ struct TasksListView: View {
       .padding(.top, 4)
 
       if viewModel.showSuccessMessage {
-        Text("Great job! 🎉")
-          .font(.subheadline.weight(.medium))
+        Text("Great job!")
+          .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(Color.successGreen)
           .padding(.vertical, 6)
           .accessibilityLabel(String(localized: "Great job"))

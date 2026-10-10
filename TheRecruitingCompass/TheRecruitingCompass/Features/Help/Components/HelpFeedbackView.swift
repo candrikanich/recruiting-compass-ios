@@ -19,11 +19,11 @@ struct HelpFeedbackView: View {
       if !viewModel.submitted {
         VStack(alignment: .leading, spacing: 8) {
           Text("Was this page helpful?")
-            .font(.body)
+            .font(.brand(.body))
             .fontWeight(.medium)
             .foregroundStyle(.primary)
           Text("Your feedback helps us improve our docs.")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
 
           HStack(spacing: 12) {
@@ -31,7 +31,7 @@ struct HelpFeedbackView: View {
               Task { await viewModel.submit(helpful: true) }
             } label: {
               Label("Yes", systemImage: "hand.thumbsup")
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .fontWeight(.medium)
             }
             .buttonStyle(HelpFeedbackButtonStyle(highlight: true))
@@ -43,7 +43,7 @@ struct HelpFeedbackView: View {
               Task { await viewModel.submit(helpful: false) }
             } label: {
               Label("No", systemImage: "hand.thumbsdown")
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .fontWeight(.medium)
             }
             .buttonStyle(HelpFeedbackButtonStyle(highlight: false))
@@ -54,14 +54,14 @@ struct HelpFeedbackView: View {
 
           if let errorMessage = viewModel.errorMessage {
             Text(errorMessage)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.errorRed)
               .accessibilityLabel(String(localized: "\(errorMessage)"))
           }
         }
       } else {
         Label("Thanks for your feedback!", systemImage: "checkmark.circle.fill")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
           .foregroundStyle(Color.primaryGreen)
           .accessibilityLabel(String(localized: "Thanks for your feedback!"))
@@ -77,16 +77,16 @@ struct HelpFeedbackView: View {
   private var supportLink: some View {
     HStack(spacing: 6) {
       Image(systemName: "envelope")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
       Text("Need more help?")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
       if let url = URL(string: "mailto:support@therecruitingcompass.com") {
         Link("Contact support", destination: url)
-          .font(.caption)
+          .font(.brand(.caption))
           .fontWeight(.medium)
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
       }
     }
     .accessibilityElement(children: .combine)

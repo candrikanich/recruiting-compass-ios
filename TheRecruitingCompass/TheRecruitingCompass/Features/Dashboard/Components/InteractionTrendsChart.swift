@@ -19,7 +19,7 @@ struct InteractionTrendsChart: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Interaction Trends (30 Days)")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       Divider()
@@ -33,14 +33,14 @@ struct InteractionTrendsChart: View {
 
           if let lastInteractionDate {
             Text("No interactions in the last 30 days")
-              .font(.body)
+              .font(.brand(.body))
               .foregroundStyle(Color.secondaryText)
             Text("Last one: \(lastInteractionDate.formatted(.dateTime.month(.abbreviated).day()))")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.secondaryText)
           } else {
             Text("No interaction data yet")
-              .font(.body)
+              .font(.brand(.body))
               .foregroundStyle(Color.secondaryText)
           }
         }
@@ -53,7 +53,7 @@ struct InteractionTrendsChart: View {
             x: .value("Date", trend.calendarDay(), unit: .day),
             y: .value("Count", trend.count)
           )
-          .foregroundStyle(Color.primaryGreen.gradient)
+          .foregroundStyle(Color.accentFill)
         }
         .frame(height: 200)
         .chartXAxis {
@@ -71,7 +71,7 @@ struct InteractionTrendsChart: View {
         .accessibilityChartDescriptor(InteractionTrendsChartDescriptor(trends: trends))
 
         Text("\(totalInteractions) interactions in the last 30 days")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .accessibilityHidden(true)
       }

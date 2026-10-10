@@ -124,14 +124,14 @@ struct NotificationsListView: View {
 
     case .offerDetail:
       Text("Offer details coming soon")
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Offer")
 
     case .eventDetail:
       Text("Event details coming soon")
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Event")

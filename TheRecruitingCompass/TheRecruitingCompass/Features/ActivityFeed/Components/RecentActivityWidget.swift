@@ -15,7 +15,7 @@ struct RecentActivityWidget: View {
       // Header
       HStack {
         Text("Recent Activity")
-          .font(.headline)
+          .font(.brand(.headline))
           .accessibilityAddTraits(.isHeader)
 
         Spacer()
@@ -24,8 +24,8 @@ struct RecentActivityWidget: View {
           Task { await viewModel.loadActivities() }
         } label: {
           Image(systemName: "arrow.clockwise")
-            .font(.subheadline)
-            .foregroundStyle(Color.accentBlue)
+            .font(.brand(.subheadline))
+            .foregroundStyle(Color.accentPrimary)
         }
         .frame(minWidth: 44, minHeight: 44)
         .accessibilityLabel(refreshAccessibilityLabel)
@@ -40,7 +40,7 @@ struct RecentActivityWidget: View {
           .padding(.vertical, 16)
       } else if viewModel.recentActivities.isEmpty {
         Text("No recent activity")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .padding(.vertical, 16)
       } else {
@@ -61,12 +61,12 @@ struct RecentActivityWidget: View {
         NavigationLink(value: ActivityFeedDestination.fullPage) {
           HStack(spacing: 4) {
             Text("View All Activity")
-              .font(.caption)
+              .font(.brand(.caption))
             Image(systemName: "chevron.right")
-              .font(.caption)
+              .font(.brand(.caption))
               .accessibilityHidden(true)
           }
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
         }
         .frame(minWidth: 44, minHeight: 44)
         .accessibilityLabel(viewAllAccessibilityLabel)

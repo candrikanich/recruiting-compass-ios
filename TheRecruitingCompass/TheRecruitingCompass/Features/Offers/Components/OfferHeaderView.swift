@@ -9,7 +9,7 @@ struct OfferHeaderView: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(alignment: .center, spacing: 12) {
         Text(status.displayName)
-          .font(.caption)
+          .font(.brand(.caption))
           .fontWeight(.semibold)
           .padding(.horizontal, 10)
           .padding(.vertical, 4)
@@ -20,14 +20,14 @@ struct OfferHeaderView: View {
           .accessibilityLabel(String(localized: "Status: \(status.displayName)"))
 
         Text(schoolName)
-          .font(.title2)
+          .font(.brand(.title2))
           .bold()
           .accessibilityIdentifier("offer-detail-school-name")
           .accessibilityAddTraits(.isHeader)
       }
 
       Text(offerType.displayName)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .accessibilityLabel(String(localized: "Offer type: \(offerType.displayName)"))
     }

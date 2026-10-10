@@ -27,23 +27,23 @@ struct OfferFinancialSummary: View {
 
       VStack(spacing: 4) {
         Text("Deadline")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
 
         Text(deadlineText)
-          .font(.title2)
+          .font(.brand(.title2))
           .bold()
           .foregroundStyle(deadlineUrgency.color)
 
         if let urgencyLabel = deadlineUrgency.label {
           Text(urgencyLabel)
-            .font(.caption2)
+            .font(.brand(.caption2))
             .fontWeight(.semibold)
             .foregroundStyle(deadlineUrgency.color)
         }
 
         Text(formattedDeadlineDate)
-          .font(.caption2)
+          .font(.brand(.caption2))
           .foregroundStyle(.secondary)
           .lineLimit(1)
       }
@@ -82,11 +82,11 @@ struct OfferFinancialSummary: View {
   ) -> some View {
     VStack(spacing: 4) {
       Text(label)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       Text(value)
-        .font(.title2)
+        .font(.brand(.title2))
         .bold()
         .foregroundStyle(color)
     }

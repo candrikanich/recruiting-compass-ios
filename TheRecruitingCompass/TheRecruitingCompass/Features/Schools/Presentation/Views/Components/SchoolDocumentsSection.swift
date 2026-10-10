@@ -77,7 +77,7 @@ struct SchoolDocumentsSection: View {
   private var header: some View {
     HStack {
       Label("Documents", systemImage: "doc")
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.primary)
 
       Spacer()
@@ -88,7 +88,7 @@ struct SchoolDocumentsSection: View {
         HStack(spacing: 4) {
           Image(systemName: "plus")
           Text("Upload")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
         }
       }
       .accessibilityLabel(String(localized: "Upload document"))
@@ -125,17 +125,17 @@ private struct DocumentsEmptyState: View {
   var body: some View {
     VStack(spacing: 12) {
       Image(systemName: "doc.text")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .imageScale(.large)
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
       Text("No Documents")
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.secondary)
 
       Text("Upload transcripts, highlights, and more to share with this school")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.tertiary)
         .multilineTextAlignment(.center)
     }

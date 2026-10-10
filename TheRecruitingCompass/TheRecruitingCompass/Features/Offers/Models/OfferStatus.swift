@@ -32,7 +32,7 @@ enum OfferStatus: String, Codable, CaseIterable, Sendable {
   var statusColor: Color {
     switch self {
     case .accepted: return .successGreen
-    case .pending: return .accentBlue
+    case .pending: return .accentPrimary
     case .declined: return .errorRed
     case .expired: return .iconGray
     case .unknown: return .iconGray

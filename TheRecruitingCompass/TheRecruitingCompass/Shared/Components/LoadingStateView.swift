@@ -14,7 +14,7 @@ struct LoadingStateView: View {
         .accessibilityLabel(message)
 
       Text(message)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
     }

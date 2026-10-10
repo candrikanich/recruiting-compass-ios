@@ -32,7 +32,7 @@ struct TermsOfServiceView: View {
       VStack(alignment: .leading, spacing: 24) {
         if !viewModel.lastUpdated.isEmpty {
           Text("Last Updated: \(viewModel.lastUpdated)")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
             .frame(maxWidth: .infinity)
             .multilineTextAlignment(.center)
@@ -515,16 +515,16 @@ struct TermsOfServiceView: View {
 
       VStack(alignment: .leading, spacing: 8) {
         Text("The Recruiting Compass LLC")
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(Color.darkSlate)
 
         Text("34125 Center Ridge Rd #1012\nNorth Ridgeville, OH 44039")
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(Color.secondaryText)
 
         HStack(spacing: 4) {
           Text("Email:")
-            .font(.body)
+            .font(.brand(.body))
             .foregroundStyle(Color.secondaryText)
           LegalEmailLink(email: "support@therecruitingcompass.com")
         }

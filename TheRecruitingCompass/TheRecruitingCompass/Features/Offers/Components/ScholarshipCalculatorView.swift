@@ -78,7 +78,7 @@ struct ScholarshipCalculatorView: View {
   private var headerRow: some View {
     HStack {
       Text("Scholarship Calculator")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       Spacer()
@@ -87,7 +87,7 @@ struct ScholarshipCalculatorView: View {
         withAnimation { isExpanded.toggle() }
       } label: {
         Text(isExpanded ? String(localized: "Hide") : String(localized: "Calculate"))
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.semibold)
       }
       .buttonStyle(.bordered)
@@ -126,7 +126,7 @@ struct ScholarshipCalculatorView: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text("Years to Calculate")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
 
         Picker("Years", selection: $years) {
@@ -143,7 +143,7 @@ struct ScholarshipCalculatorView: View {
   @ViewBuilder
   private var resultsSection: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-      resultCard(label: String(localized: "Annual Scholarship"), value: annualScholarship, color: .blue)
+      resultCard(label: String(localized: "Annual Scholarship"), value: annualScholarship, color: Color.accentPrimary)
       resultCard(label: String(localized: "Annual Net Cost"), value: annualNetCost, color: .orange)
       resultCard(label: String(localized: "Total Scholarship (\(years)yr)"), value: totalScholarship, color: .green)
       resultCard(label: String(localized: "Total Net Cost (\(years)yr)"), value: totalNetCost, color: .red)
@@ -154,32 +154,32 @@ struct ScholarshipCalculatorView: View {
   private var yearBreakdown: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Year-by-Year Breakdown")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .fontWeight(.semibold)
 
       ForEach(1...years, id: \.self) { year in
         HStack {
           Text("Year \(year)")
-            .font(.caption)
+            .font(.brand(.caption))
             .fontWeight(.medium)
             .frame(width: 50, alignment: .leading)
 
           Spacer()
 
           Text(Self.formatCurrency(annualCost))
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
 
           Text("-\(Self.formatCurrency(annualScholarship))")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.green)
 
           Text("-\(Self.formatCurrency(additionalAid))")
-            .font(.caption)
-            .foregroundStyle(.blue)
+            .font(.brand(.caption))
+            .foregroundStyle(Color.accentPrimary)
 
           Text(Self.formatCurrency(annualNetCost))
-            .font(.caption)
+            .font(.brand(.caption))
             .bold()
             .foregroundStyle(.red)
             .frame(width: 70, alignment: .trailing)
@@ -235,7 +235,7 @@ struct ScholarshipCalculatorView: View {
   ) -> some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(label)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       TextField(label, value: value, format: .number)
@@ -245,7 +245,7 @@ struct ScholarshipCalculatorView: View {
         .accessibilityHint(hint)
 
       Text(hint)
-        .font(.caption2)
+        .font(.brand(.caption2))
         .foregroundStyle(.tertiary)
         .accessibilityHidden(true)
     }
@@ -254,11 +254,11 @@ struct ScholarshipCalculatorView: View {
   private func resultCard(label: String, value: Double, color: Color) -> some View {
     VStack(spacing: 4) {
       Text(label)
-        .font(.caption2)
+        .font(.brand(.caption2))
         .foregroundStyle(color)
 
       Text(Self.formatCurrency(value))
-        .font(.title3)
+        .font(.brand(.title3))
         .bold()
         .foregroundStyle(color)
     }

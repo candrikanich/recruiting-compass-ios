@@ -34,6 +34,7 @@ struct TheRecruitingCompassApp: App {
   init() {
     CrashReporting.start()
     Analytics.setup()
+    BrandFont.configureNavigationBarAppearance()
   }
 
   var body: some Scene {
@@ -330,7 +331,7 @@ private struct AuthenticatedContent: View {
 private struct SessionLoadingView: View {
   var body: some View {
     ZStack {
-      LinearGradient.landingBackground
+      Color.Brand.forest600
         .ignoresSafeArea()
 
       CompassLoadingAnimation()

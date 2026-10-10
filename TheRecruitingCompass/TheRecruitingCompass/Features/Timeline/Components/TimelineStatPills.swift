@@ -39,7 +39,7 @@ struct TimelineStatPills: View {
         icon: "checklist",
         label: String(localized: "Tasks"),
         value: "\(taskCompleted)/\(taskTotal)",
-        accent: Color.accentBlue,
+        accent: Color.accentPrimary,
         progress: Double(taskCompleted),
         total: Double(taskTotal),
         accessibility: String(localized: "Tasks \(taskCompleted) of \(taskTotal) complete, \(taskPercent) percent")
@@ -69,15 +69,15 @@ struct TimelineStatPills: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 5) {
         Image(systemName: icon)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(accent)
         Text(label)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
 
       Text(value)
-        .font(.title3.weight(.bold))
+        .font(.brand(.title3, weight: .bold))
         .foregroundStyle(.primary)
         .contentTransition(.numericText())
 

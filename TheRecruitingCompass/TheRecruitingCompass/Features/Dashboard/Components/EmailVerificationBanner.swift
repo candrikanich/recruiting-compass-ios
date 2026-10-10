@@ -24,7 +24,7 @@ struct EmailVerificationBanner: View {
           .foregroundStyle(.orange)
           .accessibilityHidden(true)
         Text("Please verify your email address")
-          .font(.subheadline.weight(.semibold))
+          .font(.brand(.subheadline, weight: .semibold))
         Spacer()
         Button(action: { viewModel.isDismissed = true }) {
           Image(systemName: "xmark")
@@ -36,13 +36,13 @@ struct EmailVerificationBanner: View {
       }
 
       Text("Check your inbox for a verification link — some features may be limited until it's confirmed.")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       if let resendMessage = viewModel.resendMessage {
         Text(resendMessage)
-          .font(.caption.weight(.medium))
-          .foregroundStyle(viewModel.resendFailed ? .red : .blue)
+          .font(.brand(.caption, weight: .medium))
+          .foregroundStyle(viewModel.resendFailed ? .red : Color.accentPrimary)
       }
 
       Button(action: { Task { await viewModel.resend() } }) {
@@ -50,7 +50,7 @@ struct EmailVerificationBanner: View {
           ProgressView().controlSize(.small)
         } else {
           Text("Resend email")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
         }
       }
       .frame(minWidth: 44, minHeight: 44)

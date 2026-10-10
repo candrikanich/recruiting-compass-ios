@@ -17,8 +17,8 @@ struct DashboardTimelineSummaryCard: View {
   private var badgeColor: Color {
     switch phase {
     case .freshman: return .successGreen
-    case .sophomore: return .accentBlue
-    case .junior: return .purple
+    case .sophomore: return .accentPrimary
+    case .junior: return Color.Category.gold
     case .senior: return Color(hex: "F59E0B")
     case .committed: return .successGreen
     case .unknown: return .secondary
@@ -29,7 +29,7 @@ struct DashboardTimelineSummaryCard: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 10) {
         Text(phase.displayLabel)
-          .font(.caption.weight(.semibold))
+          .font(.brand(.caption, weight: .semibold))
           .foregroundStyle(badgeColor)
           .padding(.horizontal, 12)
           .padding(.vertical, 6)
@@ -42,7 +42,7 @@ struct DashboardTimelineSummaryCard: View {
             .frame(width: 10, height: 10)
           (Text("\(statusScore)").fontWeight(.bold)
             + Text("/100").foregroundStyle(.secondary))
-            .font(.headline)
+            .font(.brand(.headline))
             .monospacedDigit()
         }
 
@@ -54,8 +54,8 @@ struct DashboardTimelineSummaryCard: View {
             Image(systemName: "arrow.right")
               .accessibilityHidden(true)
           }
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(Color.accentBlue)
+          .font(.brand(.caption, weight: .semibold))
+          .foregroundStyle(Color.accentPrimary)
           .padding(.vertical, 4)
           .contentShape(Rectangle())
         }
@@ -80,12 +80,12 @@ struct DashboardTimelineSummaryCard: View {
     if let taskTitle {
       VStack(alignment: .leading, spacing: 2) {
         Text(taskTitle)
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(.primary)
           .lineLimit(1)
         if let taskWhyItMatters {
           Text(taskWhyItMatters)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
             .lineLimit(1)
         }
@@ -93,7 +93,7 @@ struct DashboardTimelineSummaryCard: View {
       .frame(maxWidth: .infinity, alignment: .leading)
     } else {
       Text("No pending priorities")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
     }

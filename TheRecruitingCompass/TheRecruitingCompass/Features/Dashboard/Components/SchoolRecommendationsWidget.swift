@@ -42,7 +42,7 @@ struct SchoolRecommendationsWidget: View {
           .accessibilityHidden(true)
 
         Text("Recommended Schools")
-          .font(.headline)
+          .font(.brand(.headline))
           .accessibilityAddTraits(.isHeader)
       }
 
@@ -53,12 +53,12 @@ struct SchoolRecommendationsWidget: View {
       } label: {
         HStack(spacing: 4) {
           Text("See all")
-            .font(.caption)
+            .font(.brand(.caption))
           Image(systemName: "chevron.right")
-            .font(.caption2)
+            .font(.brand(.caption2))
             .accessibilityHidden(true)
         }
-        .foregroundStyle(Color.accentBlue)
+        .foregroundStyle(Color.accentPrimary)
       }
       .buttonStyle(.plain)
       .accessibilityLabel(String(localized: "See all schools"))
@@ -71,31 +71,31 @@ struct SchoolRecommendationsWidget: View {
   private func recommendationCard(_ rec: SchoolRecommendation) -> some View {
     VStack(alignment: .leading, spacing: 10) {
       Text(rec.name)
-        .font(.subheadline.weight(.semibold))
+        .font(.brand(.subheadline, weight: .semibold))
         .lineLimit(2)
         .fixedSize(horizontal: false, vertical: true)
 
       HStack(spacing: 6) {
         if let division = rec.division {
           Text(division)
-            .font(.caption2.weight(.medium))
+            .font(.brand(.caption2, weight: .medium))
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(Color.accentBlue.opacity(0.12))
-            .foregroundStyle(Color.accentBlue)
+            .background(Color.accentPrimary.opacity(0.12))
+            .foregroundStyle(Color.accentPrimary)
             .clipShape(.capsule)
         }
 
         if let state = rec.state {
           Text(state)
-            .font(.caption2)
+            .font(.brand(.caption2))
             .foregroundStyle(Color.secondaryText)
         }
       }
 
       if let reason = rec.reasons.first {
         Text(reason)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .lineLimit(2)
       }
@@ -107,7 +107,7 @@ struct SchoolRecommendationsWidget: View {
           onAdd(rec)
         } label: {
           Text("Add")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .frame(maxWidth: .infinity)
             .frame(minHeight: 32)
         }
@@ -118,7 +118,7 @@ struct SchoolRecommendationsWidget: View {
           onDismiss(rec)
         } label: {
           Text("Skip")
-            .font(.caption.weight(.medium))
+            .font(.brand(.caption, weight: .medium))
             .frame(maxWidth: .infinity)
             .frame(minHeight: 32)
         }

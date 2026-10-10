@@ -74,7 +74,7 @@ struct PlayerDetailsView: View {
                         viewModel.selectedTab = index
                     } label: {
                         Text(title)
-                            .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                            .font(.brand(.subheadline, weight: isSelected ? .semibold : .regular))
                             .foregroundStyle(isSelected ? Color.white : Color.primary)
                             .padding(.vertical, 8)
                             .padding(.horizontal, 16)

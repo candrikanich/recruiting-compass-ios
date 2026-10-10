@@ -59,23 +59,23 @@ struct EventRow: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: eventTypeIcon)
-        .font(.title3)
-        .foregroundStyle(Color.primaryGreen)
+        .font(.brand(.title3))
+        .foregroundStyle(Color.accentPrimary)
         .frame(width: 32)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
         Text(event.name)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.semibold)
 
         Text(eventDateFormatted)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
 
         if let location = event.location {
           Text(location)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
       }

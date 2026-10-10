@@ -32,7 +32,7 @@ struct UpcomingMilestonesWidget: View {
     VStack(alignment: .leading, spacing: 12) {
       if milestones.isEmpty {
         Text(String(localized: "No upcoming milestones in the next 6 months."))
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(Color.secondaryText)
       } else {
         ForEach(Array(milestones.enumerated()), id: \.offset) { _, milestone in
@@ -58,16 +58,17 @@ struct UpcomingMilestonesWidget: View {
     showsExternalLinkAffordance: Bool
   ) -> some View {
     HStack(alignment: .top, spacing: 12) {
-      Text(icon(for: milestone.type))
-        .font(.title2)
+      Image(systemName: icon(for: milestone.type))
+        .font(.brand(.title2))
+        .foregroundStyle(Color.accentPrimary)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 2) {
         Text(milestone.title)
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
         if let description = milestone.description {
           Text(description)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
       }
@@ -76,11 +77,11 @@ struct UpcomingMilestonesWidget: View {
 
       VStack(alignment: .trailing, spacing: 2) {
         Text(formattedDate(milestone.date))
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
         if showsExternalLinkAffordance {
           Image(systemName: "arrow.up.right")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
             .accessibilityHidden(true)
         }
@@ -99,11 +100,11 @@ struct UpcomingMilestonesWidget: View {
 
   private func icon(for type: MilestoneType) -> String {
     switch type {
-    case .test: return "📝"
-    case .deadline: return "⏰"
-    case .ncaaPeriod: return "📋"
-    case .application: return "📧"
-    case .signing: return "✍️"
+    case .test: return "square.and.pencil"
+    case .deadline: return "clock"
+    case .ncaaPeriod: return "list.clipboard"
+    case .application: return "envelope"
+    case .signing: return "pencil"
     }
   }
 }

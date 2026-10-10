@@ -17,12 +17,12 @@ struct BadgeView: View {
     HStack(spacing: 4) {
       if let icon {
         Image(systemName: icon)
-          .font(.caption)
+          .font(.brand(.caption))
           .accessibilityHidden(true)
       }
       Text(text)
     }
-    .font(.caption)
+    .font(.brand(.caption))
     .fontWeight(.medium)
     .padding(.horizontal, icon != nil ? 12 : 8)
     .padding(.vertical, 6)

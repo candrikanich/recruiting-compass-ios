@@ -6,15 +6,15 @@ struct PersonalFitCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Personal Fit").font(.headline)
+                Text("Personal Fit").font(.brand(.headline))
                 Spacer()
                 Text("Based on your preferences")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.brand(.caption)).foregroundStyle(.secondary)
             }
 
             if analysis.availableSignals == 0 {
                 Text("Add your home state, campus size preference, and cost sensitivity in your profile to see personal fit.")
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(.brand(.subheadline)).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 ForEach(analysis.orderedSignals, id: \.label) { signal in
@@ -36,12 +36,12 @@ private struct PersonalFitSignalRow: View {
             HStack(spacing: 8) {
                 BadgeView(text: signal.label, color: signal.strength.badgeColor)
                 if let value = signal.value {
-                    Text(value).font(.subheadline).fontWeight(.medium)
+                    Text(value).font(.brand(.subheadline)).fontWeight(.medium)
                 }
                 Spacer()
             }
             Text(signal.explanation)
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.brand(.caption)).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityElement(children: .combine)

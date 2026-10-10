@@ -15,8 +15,8 @@ struct InteractionAnalyticsCards: View {
         title: "Total",
         value: analytics.totalCount,
         icon: "bubble.left.and.bubble.right.fill",
-        backgroundColor: Color.blue.opacity(0.1),
-        iconColor: .blue
+        backgroundColor: Color.accentPrimary.opacity(0.1),
+        iconColor: Color.accentPrimary
       )
 
       AnalyticsCard(
@@ -31,8 +31,8 @@ struct InteractionAnalyticsCards: View {
         title: "Inbound",
         value: analytics.inboundCount,
         icon: "arrow.down.circle.fill",
-        backgroundColor: Color.purple.opacity(0.1),
-        iconColor: .purple
+        backgroundColor: Color.Category.gold.opacity(0.1),
+        iconColor: Color.Category.gold
       )
 
       AnalyticsCard(

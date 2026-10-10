@@ -13,7 +13,7 @@ struct MetricCardView: View {
     VStack(alignment: .leading, spacing: Layout.contentSpacing) {
       HStack {
         Text(metric.displayName)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
         Spacer()
         if metric.verified {
@@ -25,18 +25,18 @@ struct MetricCardView: View {
 
       HStack(alignment: .firstTextBaseline, spacing: Layout.valueSpacing) {
         Text(metric.formattedValue)
-          .font(.title2)
+          .font(.brand(.title2))
           .bold()
           .foregroundStyle(.primary)
       }
 
       Text(metric.formattedDate)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       if let notes = metric.notes, !notes.isEmpty {
         Text(notes)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .lineLimit(2)
       }

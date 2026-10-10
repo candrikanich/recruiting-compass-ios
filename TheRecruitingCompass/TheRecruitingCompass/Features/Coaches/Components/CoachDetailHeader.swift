@@ -36,22 +36,22 @@ struct CoachDetailHeader: View {
 
         VStack(alignment: .leading, spacing: 2) {
           Text(coach.fullName)
-            .font(.headline)
+            .font(.brand(.headline))
             .accessibilityAddTraits(.isHeader)
           Text(coach.role.displayName)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
           if let school {
             Text(school.name)
-              .font(.subheadline)
-              .foregroundStyle(Color.accentBlue)
+              .font(.brand(.subheadline))
+              .foregroundStyle(Color.accentPrimary)
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
       }
 
       HStack(spacing: 8) {
-        iconButton(system: "pencil", tint: Color.Brand.blue600, bg: Color.Brand.blue100,
+        iconButton(system: "pencil", tint: Color.accentPrimary, bg: Color.Brand.forest100,
                    label: "Edit coach", action: onEdit)
         iconButton(system: "trash", tint: Color.Brand.red600, bg: Color.Brand.red100,
                    label: "Delete coach", action: onDelete)
@@ -70,7 +70,7 @@ struct CoachDetailHeader: View {
   private var contactBlock: some View {
     VStack(alignment: .leading, spacing: 8) {
       if let email = coach.contactEmail, shows(.email) {
-        contactRow(icon: "envelope", asset: nil, text: email, tint: Color.accentBlue, action: onEmail)
+        contactRow(icon: "envelope", asset: nil, text: email, tint: Color.accentPrimary, action: onEmail)
       }
       if let phone = coach.contactPhone {
         contactRow(icon: "phone", asset: nil, text: PhoneFormatter.formatDisplay(phone), tint: .primary) {
@@ -101,9 +101,9 @@ struct CoachDetailHeader: View {
     Button(action: action) {
       HStack(spacing: 8) {
         if let icon {
-          Image(systemName: icon).font(.caption).frame(width: 16).foregroundStyle(.secondary)
+          Image(systemName: icon).font(.brand(.caption)).frame(width: 16).foregroundStyle(.secondary)
         }
-        Text(text).font(.subheadline).foregroundStyle(tint)
+        Text(text).font(.brand(.subheadline)).foregroundStyle(tint)
         Spacer(minLength: 0)
       }
       .contentShape(Rectangle())
@@ -119,7 +119,7 @@ struct CoachDetailHeader: View {
         Image(asset).renderingMode(.template).resizable().scaledToFit()
           .frame(width: 14, height: 14).foregroundStyle(.secondary)
         Text(handle.hasPrefix("@") ? String(handle.dropFirst()) : handle)
-          .font(.subheadline).foregroundStyle(.primary)
+          .font(.brand(.subheadline)).foregroundStyle(.primary)
         Image(systemName: "arrow.up.right")
           .font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
       }

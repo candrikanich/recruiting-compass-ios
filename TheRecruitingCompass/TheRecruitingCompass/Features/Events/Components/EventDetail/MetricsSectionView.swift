@@ -67,7 +67,7 @@ struct MetricsSectionView: View {
           .accessibilityHint("Exports metrics as CSV file")
         }
         Text("\(metrics.count)")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
     }

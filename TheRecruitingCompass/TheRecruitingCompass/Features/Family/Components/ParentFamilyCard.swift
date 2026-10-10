@@ -7,7 +7,7 @@ struct ParentFamilyCard: View {
     VStack(alignment: .leading, spacing: 8) {
       VStack(alignment: .leading, spacing: 8) {
         Text(family.familyName)
-          .font(.headline)
+          .font(.brand(.headline))
 
         HStack(spacing: 8) {
           Text(family.familyCode)
@@ -17,7 +17,7 @@ struct ParentFamilyCard: View {
           Spacer()
 
           Text("Joined")
-            .font(.caption)
+            .font(.brand(.caption))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(Color.green.opacity(0.2))

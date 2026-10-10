@@ -191,7 +191,7 @@ private struct AddSchoolAutocompleteToggleSection: View {
             // Show character count hint if user has started typing but hasn't reached minimum
             if !searchQuery.isEmpty && searchQuery.count < 3 {
               Text("\(3 - searchQuery.count) more character\(searchQuery.count == 2 ? "" : "s") needed")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
 

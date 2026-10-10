@@ -67,7 +67,7 @@ struct HomeLocationView: View {
         Text("Address")
       } footer: {
         Text("Your home location is used to calculate distances to schools. Changes save automatically.")
-          .font(.caption)
+          .font(.brand(.caption))
       }
 
       // Coordinates Section
@@ -96,10 +96,10 @@ struct HomeLocationView: View {
               .foregroundStyle(.green)
             VStack(alignment: .leading, spacing: 4) {
               Text("Coordinates Ready")
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .fontWeight(.medium)
               Text(viewModel.coordinatesText)
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
           }
@@ -125,7 +125,7 @@ struct HomeLocationView: View {
                 .fontWeight(.medium)
             }
           }
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .accessibilityElement(children: .combine)
           .accessibilityLabel(
             String(localized: "Latitude \(latitude.formatted(.number.precision(.fractionLength(6)))), Longitude \(longitude.formatted(.number.precision(.fractionLength(6))))")
@@ -135,7 +135,7 @@ struct HomeLocationView: View {
         Text("Coordinates")
       } footer: {
         Text("Coordinates are automatically calculated from your address for distance calculations.")
-          .font(.caption)
+          .font(.brand(.caption))
       }
     }
     .navigationTitle("Home Location")

@@ -48,7 +48,7 @@ struct SchoolDetailHeader: View {
         // School logo or initials
         ZStack {
           RoundedRectangle(cornerRadius: 12)
-            .fill(Color.blue.opacity(0.2))
+            .fill(Color.accentPrimary.opacity(0.2))
             .frame(width: 56, height: 56)
 
           if let faviconUrl = school.faviconUrl, let url = URL(string: faviconUrl) {
@@ -58,17 +58,17 @@ struct SchoolDetailHeader: View {
                 .scaledToFit()
             } placeholder: {
               Text(school.initials)
-                .font(.title2)
+                .font(.brand(.title2))
                 .bold()
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.accentPrimary)
             }
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 12))
           } else {
             Text(school.initials)
-              .font(.title2)
+              .font(.brand(.title2))
               .bold()
-              .foregroundStyle(.blue)
+              .foregroundStyle(Color.accentPrimary)
           }
         }
         .accessibilityHidden(true)
@@ -87,21 +87,21 @@ struct SchoolDetailHeader: View {
           }
 
           Text(school.name)
-            .font(.title2)
+            .font(.brand(.title2))
             .bold()
             .lineLimit(2)
             .minimumScaleFactor(0.9)
 
           if let mascot = school.mascot, !mascot.isEmpty {
             Text("\(school.name) \(mascot)")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
 
           if let location = displayLocation {
             Label {
               Text(location)
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)

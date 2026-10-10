@@ -21,7 +21,7 @@ struct FormErrorSummary: View {
             .accessibilityHidden(true)
 
           Text("Please fix the following errors:")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.semibold)
             .foregroundStyle(.white)
             .fixedSize(horizontal: false, vertical: true)
@@ -46,7 +46,7 @@ struct FormErrorSummary: View {
                 .accessibilityHidden(true)
 
               Text(error)
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.white)
                 .fixedSize(horizontal: false, vertical: true)
             }

@@ -9,24 +9,24 @@ struct PlanView: View {
       Section {
         VStack(alignment: .leading, spacing: 6) {
           Text("Current plan")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
           if entitlementStore.isLoading || !entitlementStore.hasLoaded {
             ProgressView()
           } else {
             Text(entitlementStore.planLabel)
-              .font(.headline)
+              .font(.brand(.headline))
           }
           if let message = entitlementStore.errorMessage {
             Text(message)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.red)
           } else if entitlementStore.subscription?.status == .founding {
             Text("""
               You joined during our founding period. Your family keeps full access at no \
               charge for as long as this account is active. Thank you for being early.
               """)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
         }

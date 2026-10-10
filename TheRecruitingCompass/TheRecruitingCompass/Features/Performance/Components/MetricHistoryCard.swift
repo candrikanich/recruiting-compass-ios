@@ -18,20 +18,20 @@ struct MetricHistoryCard: View {
         VStack(alignment: .leading, spacing: 4) {
           HStack(spacing: 6) {
             Text(metric.displayName)
-              .font(.headline)
+              .font(.brand(.headline))
             if metric.isPrimary {
               Text("Headline")
-                .font(.caption2)
+                .font(.brand(.caption2))
                 .fontWeight(.semibold)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Color.accentBlue.opacity(0.12))
-                .foregroundStyle(Color.accentBlue)
+                .background(Color.accentPrimary.opacity(0.12))
+                .foregroundStyle(Color.accentPrimary)
                 .clipShape(Capsule())
             }
           }
           Text(metric.formattedDate)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         }
 
@@ -41,26 +41,26 @@ struct MetricHistoryCard: View {
           Button(action: onTogglePrimary) {
             Image(systemName: metric.isPrimary ? "star.fill" : "star")
           }
-          .font(.caption)
+          .font(.brand(.caption))
           .fontWeight(.semibold)
           .padding(.horizontal, 10)
           .padding(.vertical, 6)
-          .background(Color.accentBlue.opacity(metric.isPrimary ? 0.18 : 0.1))
-          .foregroundStyle(metric.isPrimary ? Color.accentBlue : Color.secondary)
+          .background(Color.accentPrimary.opacity(metric.isPrimary ? 0.18 : 0.1))
+          .foregroundStyle(metric.isPrimary ? Color.accentPrimary : Color.secondary)
           .clipShape(RoundedRectangle(cornerRadius: 8))
           .accessibilityLabel(primaryButtonLabel)
 
           Button("Edit", action: onEdit)
-            .font(.caption)
+            .font(.brand(.caption))
             .fontWeight(.semibold)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(Color.accentBlue.opacity(0.1))
-            .foregroundStyle(Color.accentBlue)
+            .background(Color.accentPrimary.opacity(0.1))
+            .foregroundStyle(Color.accentPrimary)
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
           Button("Delete", action: onDelete)
-            .font(.caption)
+            .font(.brand(.caption))
             .fontWeight(.semibold)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
@@ -73,20 +73,20 @@ struct MetricHistoryCard: View {
       HStack(spacing: 24) {
         VStack(alignment: .leading, spacing: 2) {
           Text("Value")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
           Text(metric.formattedValue)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .bold()
         }
 
         if metric.verified {
           VStack(alignment: .leading, spacing: 2) {
             Text("Status")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
             Label("Verified", systemImage: "checkmark.seal.fill")
-              .font(.caption)
+              .font(.brand(.caption))
               .fontWeight(.semibold)
               .foregroundStyle(Color.successGreen)
           }
@@ -96,7 +96,7 @@ struct MetricHistoryCard: View {
       if let notes = metric.notes, !notes.isEmpty {
         Divider()
         Text(notes)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .lineLimit(3)
       }

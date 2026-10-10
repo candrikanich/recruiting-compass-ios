@@ -14,7 +14,7 @@ struct HelpSectionHeader: View {
   var body: some View {
     HStack(alignment: .firstTextBaseline, spacing: 8) {
       Text(title)
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.primary)
 
       if let badge {

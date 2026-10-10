@@ -32,7 +32,7 @@ struct ActionItemCard: View {
 
         VStack(alignment: .leading, spacing: 4) {
           Text(suggestion.urgency.displayName)
-            .font(.caption)
+            .font(.brand(.caption))
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(suggestion.urgency.color.opacity(0.15))
@@ -41,14 +41,14 @@ struct ActionItemCard: View {
             .accessibilityHidden(true)
 
           Text(suggestion.message)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.medium)
             .foregroundStyle(Color.primary)
             .lineLimit(3)
 
           Button(String(localized: "Learn More")) { showHelp = true }
-            .font(.subheadline)
-            .foregroundStyle(Color.accentBlue)
+            .font(.brand(.subheadline))
+            .foregroundStyle(Color.accentPrimary)
             .accessibilityHint("Shows detailed guidance for this suggestion")
         }
 
@@ -80,7 +80,7 @@ struct ActionItemCard: View {
     HStack(spacing: 12) {
       if let label = cta.label {
         Button(label) { presentCTA() }
-          .font(.subheadline.weight(.semibold))
+          .font(.brand(.subheadline, weight: .semibold))
           .lineLimit(1)
           .fixedSize(horizontal: true, vertical: false)
           .padding(.horizontal, 14)
@@ -96,7 +96,7 @@ struct ActionItemCard: View {
       iconLabelButton(
         systemName: "checkmark.circle.fill",
         title: String(localized: "Done"),
-        tint: Color.accentBlue,
+        tint: Color.accentPrimary,
         action: onComplete
       )
       .accessibilityLabel(String(localized: "Complete suggestion"))
@@ -122,9 +122,9 @@ struct ActionItemCard: View {
     Button(action: action) {
       VStack(spacing: 2) {
         Image(systemName: systemName)
-          .font(.title3)
+          .font(.brand(.title3))
         Text(title)
-          .font(.caption2)
+          .font(.brand(.caption2))
       }
       .foregroundStyle(tint)
       .frame(minWidth: 52, minHeight: 44)

@@ -17,18 +17,18 @@ struct SelectedCollegeCard: View {
     HStack(spacing: 12) {
       // Checkmark icon
       Image(systemName: "checkmark.circle.fill")
-        .font(.title2)
+        .font(.brand(.title2))
         .foregroundStyle(.green)
         .accessibilityHidden(true)
 
       // College info
       VStack(alignment: .leading, spacing: 4) {
         Text("Selected: \(college.name)")
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(.primary)
 
         Text(college.location)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
 
         if isEnrichmentLoading {
@@ -39,18 +39,18 @@ struct SelectedCollegeCard: View {
               .accessibilityLabel(String(localized: "Loading college data"))
 
             Text("Fetching college data...")
-              .font(.caption)
-              .foregroundStyle(.blue)
+              .font(.brand(.caption))
+              .foregroundStyle(Color.accentPrimary)
           }
         } else {
           HStack(spacing: 4) {
             Image(systemName: "checkmark.circle.fill")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.green)
               .accessibilityHidden(true)
 
             Text("College data and map coordinates loaded")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.green)
           }
         }
@@ -63,7 +63,7 @@ struct SelectedCollegeCard: View {
         onClear()
       } label: {
         Image(systemName: "xmark.circle.fill")
-          .font(.title3)
+          .font(.brand(.title3))
           .foregroundStyle(.gray)
       }
       .buttonStyle(.plain)

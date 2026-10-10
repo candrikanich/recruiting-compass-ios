@@ -230,7 +230,7 @@ struct AddInteractionView: View {
           VStack(alignment: .leading) {
             Text(direction.displayName)
             Text(direction.subtitle)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
           }
           .tag(direction)
@@ -327,10 +327,10 @@ struct AddInteractionView: View {
     Section {
       VStack(alignment: .leading, spacing: 16) {
         Text("Coach Interest Level")
-          .font(.headline)
+          .font(.brand(.headline))
 
         Text("Answer these questions to gauge the coach's level of interest based on their response.")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
 
         ForEach(Array(InterestCalibration.questions.enumerated()), id: \.offset) { index, question in

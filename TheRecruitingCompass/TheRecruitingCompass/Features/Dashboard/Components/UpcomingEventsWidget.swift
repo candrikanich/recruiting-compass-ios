@@ -37,7 +37,7 @@ struct UpcomingEventsWidget: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Upcoming Events")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       Divider()
@@ -45,13 +45,13 @@ struct UpcomingEventsWidget: View {
       if sortedEvents.isEmpty {
         VStack(alignment: .leading, spacing: 8) {
           Text("No upcoming events scheduled")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
 
           Button(action: presentCreateEvent) {
             Text("Add Event")
-              .font(.caption.weight(.semibold))
-              .foregroundStyle(Color.accentBlue)
+              .font(.brand(.caption, weight: .semibold))
+              .foregroundStyle(Color.accentPrimary)
           }
           .accessibilityHint("Opens the form to create a new event")
         }
@@ -69,12 +69,12 @@ struct UpcomingEventsWidget: View {
               Text(isShowingAll
                 ? String(localized: "Show less")
                 : String(localized: "Show \(sortedEvents.count - 3) more events"))
-                .font(.caption)
+                .font(.brand(.caption))
               Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
-                .font(.caption)
+                .font(.brand(.caption))
                 .accessibilityHidden(true)
             }
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
           }
           .accessibilityLabel(String(localized: isShowingAll
             ? "Show fewer events"
@@ -86,8 +86,8 @@ struct UpcomingEventsWidget: View {
 
         Button(action: { isShowingAllEvents = true }) {
           Text("View All Events")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(Color.accentBlue)
+            .font(.brand(.caption, weight: .semibold))
+            .foregroundStyle(Color.accentPrimary)
         }
         .accessibilityHint("Opens the full events list")
       }

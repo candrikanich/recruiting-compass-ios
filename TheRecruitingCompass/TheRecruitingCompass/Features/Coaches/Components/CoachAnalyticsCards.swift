@@ -15,8 +15,8 @@ struct CoachAnalyticsCards: View {
         title: "Total Coaches",
         value: analytics.totalCount,
         icon: "person.2.fill",
-        backgroundColor: Color.blue.opacity(0.1),
-        iconColor: .blue,
+        backgroundColor: Color.accentPrimary.opacity(0.1),
+        iconColor: Color.accentPrimary,
         accessibilityLabelOverride: analytics.totalCount == 1
           ? "1 total coach"
           : "\(analytics.totalCount) total coaches"

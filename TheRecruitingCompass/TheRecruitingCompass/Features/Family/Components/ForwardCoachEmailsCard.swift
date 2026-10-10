@@ -16,17 +16,17 @@ struct ForwardCoachEmailsCard: View {
       VStack(spacing: FamilyConstants.Spacing.medium) {
         if let familyName {
           Text(familyName)
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
 
         Text("Forward Coach Emails")
-          .font(.headline)
+          .font(.brand(.headline))
           .frame(maxWidth: .infinity, alignment: .leading)
 
         Text("Forward or CC emails from coaches to this address to automatically draft an interaction log entry for your family.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -61,7 +61,7 @@ struct ForwardCoachEmailsCard: View {
           }
           .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
         }
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
       }
     }
     .padding(FamilyConstants.Spacing.medium)

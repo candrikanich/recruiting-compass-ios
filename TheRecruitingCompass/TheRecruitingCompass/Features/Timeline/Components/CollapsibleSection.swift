@@ -6,6 +6,7 @@ import SwiftUI
 /// is what makes all wrapped sections render at equal width.
 struct CollapsibleSection<Content: View>: View {
   let title: String
+  var systemImage: String?
   let isExpanded: Bool
   let onToggle: () -> Void
   @ViewBuilder let content: () -> Content
@@ -14,8 +15,13 @@ struct CollapsibleSection<Content: View>: View {
     VStack(alignment: .leading, spacing: 12) {
       Button(action: onToggle) {
         HStack {
+          if let systemImage {
+            Image(systemName: systemImage)
+              .foregroundStyle(Color.accentPrimary)
+              .accessibilityHidden(true)
+          }
           Text(title)
-            .font(.headline)
+            .font(.brand(.headline))
           Spacer()
           Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
             .foregroundStyle(Color.secondaryText)

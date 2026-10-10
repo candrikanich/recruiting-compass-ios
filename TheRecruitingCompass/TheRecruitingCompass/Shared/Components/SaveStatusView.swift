@@ -25,7 +25,7 @@ struct SaveStatusView: View {
                 ProgressView()
                     .scaleEffect(0.8)
                 Text("Saving...")
-                    .font(.caption)
+                    .font(.brand(.caption))
                     .foregroundStyle(.secondary)
             }
             .accessibilityElement(children: .combine)
@@ -35,7 +35,7 @@ struct SaveStatusView: View {
                     .foregroundStyle(.green)
                     .accessibilityHidden(true)
                 Text("Saved")
-                    .font(.caption)
+                    .font(.brand(.caption))
                     .foregroundStyle(.secondary)
             }
         }

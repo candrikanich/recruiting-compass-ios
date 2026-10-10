@@ -23,7 +23,7 @@ struct HelpBadge: View {
 
     var color: Color {
       switch self {
-      case .new: return .accentBlue
+      case .new: return .accentPrimary
       case .required: return .errorRed
       case .optional: return Color.iconGray
       }
@@ -34,7 +34,7 @@ struct HelpBadge: View {
 
   var body: some View {
     Text(type.label)
-      .font(.caption)
+      .font(.brand(.caption))
       .fontWeight(.semibold)
       .foregroundStyle(.white)
       .padding(.horizontal, 8)

@@ -56,13 +56,13 @@ struct FamilyManagementView: View {
   private var unsupportedRoleView: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Image(systemName: "exclamationmark.triangle")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(.orange)
         .accessibilityHidden(true)
       Text("Family Management Unavailable")
-        .font(.headline)
+        .font(.brand(.headline))
       Text("This feature is only available for players and parents.")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
         .padding(.horizontal, FamilyConstants.Spacing.extraLarge)

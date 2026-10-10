@@ -17,14 +17,14 @@ struct PerformanceMetricsWidget: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Performance Metrics")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       Divider()
 
       if recentMetrics.isEmpty {
         Text("No performance metrics recorded")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .padding(.vertical)
       } else {
@@ -40,12 +40,12 @@ struct PerformanceMetricsWidget: View {
               Text(isShowingAll
                 ? String(localized: "Show less")
                 : String(localized: "Show \(recentMetrics.count - 4) more metrics"))
-                .font(.caption)
+                .font(.brand(.caption))
               Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
-                .font(.caption)
+                .font(.brand(.caption))
                 .accessibilityHidden(true)
             }
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
           }
           .accessibilityLabel(String(localized: isShowingAll
             ? "Show fewer metrics"

@@ -120,14 +120,14 @@ struct PublicProfileCard: View {
         HStack {
             HStack(spacing: 6) {
                 Image(systemName: "viewfinder.circle").accessibilityHidden(true)
-                Text("RecruitingCompass").font(.footnote.weight(.semibold))
+                Text("RecruitingCompass").font(.brand(.footnote, weight: .semibold))
             }
             .foregroundStyle(.white)
             Spacer()
             HStack(spacing: 6) {
                 Circle().fill(Color.green).frame(width: 6, height: 6)
                 Text(String(localized: "Verified Coach Access"))
-                    .font(.caption2.weight(.medium))
+                    .font(.brand(.caption2, weight: .medium))
             }
             .foregroundStyle(Color.green.opacity(0.9))
             .padding(.horizontal, 10)
@@ -153,14 +153,14 @@ struct PublicProfileCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 10) {
                     Text(data.playerName)
-                        .font(.title2.weight(.bold))
+                        .font(.brand(.title2, weight: .bold))
                         .foregroundStyle(.white)
                     if let sport = data.credentials?.primarySport, !sport.isEmpty {
                         Text(sport)
-                            .font(.caption.weight(.semibold))
+                            .font(.brand(.caption, weight: .semibold))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 3)
-                            .background(Color.blue)
+                            .background(Color.accentFill)
                             .foregroundStyle(.white)
                             .clipShape(Capsule())
                     }
@@ -168,13 +168,13 @@ struct PublicProfileCard: View {
 
                 if let physicals = physicalsLine {
                     Text(physicals)
-                        .font(.subheadline)
+                        .font(.brand(.subheadline))
                         .foregroundStyle(.white.opacity(0.7))
                 }
 
                 if let bio = data.bio {
                     Text(bio)
-                        .font(.callout)
+                        .font(.brand(.callout))
                         .foregroundStyle(.white.opacity(0.85))
                 }
 
@@ -250,8 +250,8 @@ struct PublicProfileCard: View {
                 }
                 Link(destination: link.url) {
                     HStack(spacing: 4) {
-                        Image(systemName: link.systemImage).font(.caption2)
-                        Text(link.handle).font(.caption)
+                        Image(systemName: link.systemImage).font(.brand(.caption2))
+                        Text(link.handle).font(.brand(.caption))
                     }
                 }
                 .foregroundStyle(.white.opacity(0.8))
@@ -267,17 +267,17 @@ struct PublicProfileCard: View {
     private var heroActions: some View {
         HStack(spacing: 12) {
             Label(String(localized: "Contact Player"), systemImage: "envelope")
-                .font(.footnote.weight(.medium))
+                .font(.brand(.footnote, weight: .medium))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
                 .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
                 .foregroundStyle(.white)
 
             Label(String(localized: "Express Interest"), systemImage: "star.fill")
-                .font(.footnote.weight(.medium))
+                .font(.brand(.footnote, weight: .medium))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(Color.blue)
+                .background(Color.accentFill)
                 .foregroundStyle(.white)
                 .clipShape(Capsule())
         }
@@ -291,7 +291,7 @@ struct PublicProfileCard: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Label(String(localized: "Powered by The Recruiting Compass"), systemImage: "viewfinder.circle")
-                    .font(.caption)
+                    .font(.brand(.caption))
                     .foregroundStyle(Color.Text.muted)
                 Spacer()
                 if let social = data.social, !social.isEmpty {
@@ -308,7 +308,7 @@ struct PublicProfileCard: View {
             }
             if let updatedAt = data.updatedAt {
                 Text(String(localized: "Profile last updated: \(Self.footerDateFormatter.string(from: updatedAt))"))
-                    .font(.caption2)
+                    .font(.brand(.caption2))
                     .foregroundStyle(Color.Text.muted)
             }
         }

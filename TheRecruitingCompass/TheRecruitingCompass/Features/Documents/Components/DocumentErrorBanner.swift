@@ -7,11 +7,11 @@ struct DocumentErrorBanner: View {
   var body: some View {
     HStack {
       Text(error)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.white)
       Spacer()
       Button("Retry", action: onRetry)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.white)
     }
     .padding()

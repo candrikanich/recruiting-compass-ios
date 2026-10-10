@@ -179,7 +179,7 @@ private struct InteractionAddSchoolAutocompleteToggleSection: View {
 
             if !searchQuery.isEmpty && searchQuery.count < 3 {
               Text("\(3 - searchQuery.count) more character\(searchQuery.count == 2 ? "" : "s") needed")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
 

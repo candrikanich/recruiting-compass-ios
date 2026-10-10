@@ -15,7 +15,7 @@ struct SchoolCardView: View {
   }
 
   private var initialsFont: Font {
-    sizeCategory.isAccessibilityCategory ? .title2.bold() : .body.bold()
+    sizeCategory.isAccessibilityCategory ? .brand(.title2, weight: .bold) : .brand(.body, weight: .bold)
   }
 
   var body: some View {
@@ -47,12 +47,12 @@ struct SchoolCardView: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text(school.name)
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(.primary)
 
         if let location = school.location {
           Text(location)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
         }
       }
@@ -69,7 +69,7 @@ struct SchoolCardView: View {
   private var deleteButton: some View {
     Button(role: .destructive, action: onDelete) {
       Image(systemName: "trash")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(Color.errorRed)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
@@ -106,13 +106,7 @@ struct SchoolCardView: View {
       .font(initialsFont)
       .foregroundStyle(.white)
       .frame(width: initialsSize, height: initialsSize)
-      .background(
-        LinearGradient(
-          colors: [.blueGradientStart, Color(hex: "7C3AED")],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-      )
+      .background(Color.Brand.gold600)
       .clipShape(RoundedRectangle(cornerRadius: 10))
   }
 
@@ -149,7 +143,7 @@ struct SchoolCardView: View {
             .accessibilityHidden(true)
 
           Text(conference)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
         }
         .accessibilityLabel(String(localized: "Conference: \(conference)"))
@@ -162,7 +156,7 @@ struct SchoolCardView: View {
             .accessibilityHidden(true)
 
           Text(notes)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
             .lineLimit(2)
         }

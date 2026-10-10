@@ -56,17 +56,17 @@ struct ParentOnboardingBanner: View {
   private var inviteCtaBanner: some View {
     HStack(spacing: 12) {
       Image(systemName: "person.badge.plus")
-        .font(.title3)
+        .font(.brand(.title3))
         .foregroundStyle(Color.amberGold)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
         Text("Connect your athlete to get started")
-          .font(.subheadline.weight(.semibold))
+          .font(.brand(.subheadline, weight: .semibold))
           .foregroundStyle(Color.warningBannerTitle)
 
         Text("Invite them to join your family or share your family code.")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.warningBannerBody)
       }
 
@@ -78,7 +78,7 @@ struct ParentOnboardingBanner: View {
             onInviteTapped()
           } label: {
             Text("Invite Athlete")
-              .font(.caption.weight(.semibold))
+              .font(.brand(.caption, weight: .semibold))
               .foregroundStyle(.white)
               .padding(.horizontal, 12)
               .padding(.vertical, 8)
@@ -89,7 +89,7 @@ struct ParentOnboardingBanner: View {
 
           NavigationLink(value: DashboardDestination.familyManagement) {
             Text("Family Management")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.warningBannerBody)
           }
           .accessibilityLabel(String(localized: "Open Family Management"))
@@ -97,7 +97,7 @@ struct ParentOnboardingBanner: View {
       } else {
         NavigationLink(value: DashboardDestination.familyManagement) {
           Text("Invite Athlete")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .foregroundStyle(.white)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -122,12 +122,12 @@ struct ParentOnboardingBanner: View {
   private var connectedBanner: some View {
     HStack(spacing: 12) {
       Image(systemName: "checkmark.circle.fill")
-        .font(.title3)
+        .font(.brand(.title3))
         .foregroundStyle(Color.successBannerIcon)
         .accessibilityHidden(true)
 
       Text("You're connected! Your athlete has joined your family.")
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
         .foregroundStyle(Color.successBannerText)
     }
     .padding()

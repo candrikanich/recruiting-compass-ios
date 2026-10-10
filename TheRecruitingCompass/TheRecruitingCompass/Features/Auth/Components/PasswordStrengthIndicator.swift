@@ -46,14 +46,14 @@ struct PasswordStrengthIndicator: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
         Text("Strength")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .accessibilityHidden(true)
 
         Spacer()
 
         Text(strengthText)
-          .font(.caption.weight(.semibold))
+          .font(.brand(.caption, weight: .semibold))
           .foregroundStyle(strengthColor)
       }
       .accessibilityElement(children: .combine)
@@ -78,12 +78,12 @@ struct PasswordStrengthIndicator: View {
           ForEach(strengthResult.errors, id: \.self) { error in
             HStack(spacing: 6) {
               Image(systemName: "circle.fill")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(Color.secondaryText)
                 .accessibilityHidden(true)
 
               Text("Missing \(error)")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(Color.secondaryText)
             }
           }
@@ -99,25 +99,25 @@ struct PasswordStrengthIndicator: View {
   VStack(spacing: 20) {
     VStack(alignment: .leading) {
       Text("No password")
-        .font(.caption.weight(.semibold))
+        .font(.brand(.caption, weight: .semibold))
       PasswordStrengthIndicator(password: "")
     }
 
     VStack(alignment: .leading) {
       Text("Weak password")
-        .font(.caption.weight(.semibold))
+        .font(.brand(.caption, weight: .semibold))
       PasswordStrengthIndicator(password: "weak")
     }
 
     VStack(alignment: .leading) {
       Text("Fair password")
-        .font(.caption.weight(.semibold))
+        .font(.brand(.caption, weight: .semibold))
       PasswordStrengthIndicator(password: "Password12")
     }
 
     VStack(alignment: .leading) {
       Text("Strong password")
-        .font(.caption.weight(.semibold))
+        .font(.brand(.caption, weight: .semibold))
       PasswordStrengthIndicator(password: "StrongPass123")
     }
 

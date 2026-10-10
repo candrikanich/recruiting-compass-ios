@@ -11,10 +11,10 @@ struct NotificationCard: View, Equatable {
   }
 
   private enum Palette {
-    static let unreadTitle = Color(hex: "#1E40AF")
-    static let unreadBackground = Color(hex: "#EFF6FF")
-    static let unreadBar = Color(hex: "#3B82F6")
-    static let readBar = Color(hex: "#9CA3AF")
+    static let unreadTitle = Color(hex: "#1D3B19")
+    static let unreadBackground = Color(hex: "#F3F7F1")
+    static let unreadBar = Color(hex: "#4A7D3F")
+    static let readBar = Color(hex: "#A8A29E")
   }
 
   var body: some View {
@@ -22,14 +22,15 @@ struct NotificationCard: View, Equatable {
 
     Button(action: onTap) {
       HStack(alignment: .top, spacing: 12) {
-        Text(notification.type.emoji)
-          .font(.title3)
+        Image(systemName: notification.type.systemImage)
+          .font(.brand(.title3))
+          .foregroundStyle(Color.accentPrimary)
           .accessibilityHidden(true)
 
         VStack(alignment: .leading, spacing: 4) {
           HStack(spacing: 8) {
             Text(notification.title)
-              .font(notification.isRead ? .body : .body.weight(.semibold))
+              .font(notification.isRead ? .brand(.body) : .brand(.body, weight: .semibold))
               .foregroundStyle(notification.isRead ? .primary : Palette.unreadTitle)
               .lineLimit(2)
               .multilineTextAlignment(.leading)
@@ -38,13 +39,13 @@ struct NotificationCard: View, Equatable {
           }
 
           Text(notification.message)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
             .lineLimit(3)
             .multilineTextAlignment(.leading)
 
           Text(relative)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         }
 

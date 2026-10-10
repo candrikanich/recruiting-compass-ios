@@ -12,12 +12,12 @@ struct PositionChipsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Positions")
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
 
             if availablePositions.isEmpty {
                 Text("Select a sport above to choose positions")
-                    .font(.caption)
+                    .font(.brand(.caption))
                     .foregroundStyle(.tertiary)
             } else {
                 ChipFlowLayout(spacing: 8) {
@@ -54,7 +54,7 @@ private struct PositionChip: View {
     var body: some View {
         Button(action: onTap) {
             Text(title)
-                .font(.caption)
+                .font(.brand(.caption))
                 .fontWeight(isSelected ? .semibold : .regular)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)

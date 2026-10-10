@@ -18,7 +18,7 @@ struct DocumentCardView: View {
         thumbnailSection
         typeBadge
         Text(document.title)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
           .lineLimit(2)
           .multilineTextAlignment(.leading)
@@ -63,11 +63,11 @@ struct DocumentCardView: View {
 
   @ViewBuilder
   private var typeBadge: some View {
-    Text("\(document.typeEmoji) \(document.type.label)")
-      .font(.caption)
+    Label(document.type.label, systemImage: document.typeSystemImage)
+      .font(.brand(.caption))
       .padding(.horizontal, 8)
       .padding(.vertical, 4)
-      .background(Color.blue.opacity(0.2))
+      .background(Color.accentPrimary.opacity(0.2))
       .foregroundStyle(.primary)
       .clipShape(.rect(cornerRadius: 6))
   }
@@ -75,7 +75,7 @@ struct DocumentCardView: View {
   @ViewBuilder
   private var metadataRow: some View {
     Text("\(schoolName) • v\(document.version) • \(document.displayDate)")
-      .font(.caption)
+      .font(.brand(.caption))
       .foregroundStyle(.secondary)
       .lineLimit(1)
   }
@@ -83,7 +83,7 @@ struct DocumentCardView: View {
   @ViewBuilder
   private var sharedBadge: some View {
     Text("Shared: \(document.sharedWithSchools.count)")
-      .font(.caption)
+      .font(.brand(.caption))
       .padding(.horizontal, 6)
       .padding(.vertical, 2)
       .background(Color.green.opacity(0.2))

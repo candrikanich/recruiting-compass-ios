@@ -11,25 +11,25 @@ struct DetailGridItem: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 6) {
         Image(systemName: icon)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .accessibilityHidden(true)
 
         Text(title)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
 
       HStack {
         Text(value)
-          .font(.body)
+          .font(.brand(.body))
           .fontWeight(.medium)
           .lineLimit(2)
 
         if isTappable {
           Spacer()
           Image(systemName: "chevron.right")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
             .accessibilityHidden(true)
         }

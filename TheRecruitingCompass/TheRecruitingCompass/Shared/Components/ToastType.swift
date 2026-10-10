@@ -19,7 +19,7 @@ enum ToastType {
     switch self {
     case .success: return .successGreen
     case .error: return .errorRed
-    case .info: return .accentBlue
+    case .info: return .accentPrimary
     case .warning: return Color(hex: "F59E0B") // Amber
     }
   }

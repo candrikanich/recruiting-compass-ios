@@ -12,11 +12,11 @@ struct PreferenceRow: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text(preferenceLabel)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
 
         Text(valueDescription)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
 
@@ -24,7 +24,7 @@ struct PreferenceRow: View {
 
       if preference.isDealbreaker {
         Text("DEALBREAKER")
-          .font(.caption)
+          .font(.brand(.caption))
           .bold()
           .foregroundStyle(.white)
           .padding(.horizontal, 8)
@@ -56,10 +56,10 @@ struct PreferenceRow: View {
 
   private var categoryColor: Color {
     switch preference.category {
-    case .location: return .blue
+    case .location: return Color.accentPrimary
     case .academic: return .green
     case .program: return .orange
-    case .custom: return .purple
+    case .custom: return Color.Category.gold
     }
   }
 

@@ -8,14 +8,14 @@ struct AthleteSelector: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Select Athlete")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       Divider()
 
       if athletes.isEmpty {
         Text("No linked athletes found")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .padding(.vertical)
           .accessibilityHint("Add family members to your account to select them here")

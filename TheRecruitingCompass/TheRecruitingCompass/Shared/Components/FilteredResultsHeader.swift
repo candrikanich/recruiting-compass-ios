@@ -30,13 +30,13 @@ struct FilteredResultsHeader: View {
   var body: some View {
     HStack {
       Text(resultText)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .fontWeight(.semibold)
         .foregroundStyle(.secondary)
 
       if let filterText {
         Text(filterText)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
 

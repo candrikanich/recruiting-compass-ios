@@ -56,7 +56,7 @@ struct SettingsView: View {
             HStack {
               VStack(alignment: .leading, spacing: 4) {
                 Text("Family code")
-                  .font(.caption)
+                  .font(.brand(.caption))
                   .foregroundStyle(.secondary)
                 Text(code)
                   .font(.system(.body, design: .monospaced).weight(.medium))
@@ -72,7 +72,7 @@ struct SettingsView: View {
                 }
               } label: {
                 Text(showCodeCopied ? String(localized: "Copied!") : String(localized: "Copy"))
-                  .font(.caption.weight(.medium))
+                  .font(.brand(.caption, weight: .medium))
               }
               .buttonStyle(.bordered)
               .disabled(showCodeCopied)
@@ -100,7 +100,7 @@ struct SettingsView: View {
               icon: "house.fill",
               title: String(localized: "Home Location"),
               description: String(localized: "Set your home address to calculate distances to schools"),
-              color: .blue,
+              color: Color.accentPrimary,
               badgeStatus: viewModel.homeLocationStatus
             )
           }
@@ -120,7 +120,7 @@ struct SettingsView: View {
               icon: "play.rectangle.fill",
               title: String(localized: "Video Links"),
               description: String(localized: "Highlight and film links coaches can watch"),
-              color: .blue
+              color: Color.accentPrimary
             )
           }
         } header: {
@@ -134,7 +134,7 @@ struct SettingsView: View {
               icon: "target",
               title: String(localized: "School Preferences"),
               description: String(localized: "Set criteria for finding your ideal schools"),
-              color: .purple,
+              color: Color.Category.gold,
               badgeStatus: viewModel.schoolPreferencesStatus
             )
           }
@@ -149,7 +149,7 @@ struct SettingsView: View {
               icon: "slider.horizontal.3",
               title: String(localized: "Dashboard Customization"),
               description: String(localized: "Show or hide dashboard widgets"),
-              color: .blue
+              color: Color.accentPrimary
             )
           }
         } header: {
@@ -172,7 +172,7 @@ struct SettingsView: View {
               icon: "doc.text.fill",
               title: String(localized: "Communication Templates"),
               description: String(localized: "Create and manage email, text, and social media templates"),
-              color: .accentBlue
+              color: .accentPrimary
             )
           }
         } header: {
@@ -185,7 +185,7 @@ struct SettingsView: View {
           Section {
             VStack(alignment: .leading, spacing: 8) {
               Text("Forward or CC emails from coaches to this address to automatically draft an interaction log entry for your family.")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
 
               HStack {
@@ -205,7 +205,7 @@ struct SettingsView: View {
                   }
                 } label: {
                   Text(copiedFamilyUnitId == entry.familyUnitId ? String(localized: "Copied!") : String(localized: "Copy"))
-                    .font(.caption.weight(.medium))
+                    .font(.brand(.caption, weight: .medium))
                 }
                 .buttonStyle(.bordered)
                 .disabled(copiedFamilyUnitId == entry.familyUnitId)
@@ -219,7 +219,7 @@ struct SettingsView: View {
                 icon: "tray.and.arrow.down.fill",
                 title: String(localized: "Review Forwarded Coach Emails"),
                 description: String(localized: "Confirm or discard drafts created from forwarded emails"),
-                color: .accentBlue
+                color: .accentPrimary
               )
             }
           } header: {
@@ -234,7 +234,7 @@ struct SettingsView: View {
               icon: "person.circle.fill",
               title: String(localized: "User Settings"),
               description: String(localized: "Photo, name, email, password, and account settings"),
-              color: .blue
+              color: Color.accentPrimary
             )
           }
         } header: {
@@ -354,7 +354,7 @@ private struct SettingsRow: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: icon)
-        .font(.title3)
+        .font(.brand(.title3))
         .foregroundStyle(.white)
         .frame(width: 36, height: 36)
         .background(color)
@@ -364,18 +364,18 @@ private struct SettingsRow: View {
       VStack(alignment: .leading, spacing: 4) {
         HStack(spacing: 6) {
           Text(title)
-            .font(.body)
+            .font(.brand(.body))
             .fontWeight(.medium)
             .foregroundStyle(.primary)
 
           if let status = badgeStatus {
             HStack(spacing: 3) {
               Image(systemName: status.iconName)
-                .font(.caption2)
+                .font(.brand(.caption2))
                 .accessibilityHidden(true)
               Text(status.label)
             }
-            .font(.caption.weight(.medium))
+            .font(.brand(.caption, weight: .medium))
             .foregroundStyle(status.foregroundColor)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -385,7 +385,7 @@ private struct SettingsRow: View {
         }
 
         Text(description)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .lineLimit(2)
       }

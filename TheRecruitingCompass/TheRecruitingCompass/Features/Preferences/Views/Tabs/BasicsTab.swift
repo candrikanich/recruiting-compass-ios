@@ -186,7 +186,7 @@ struct BasicsTab: View {
         fieldID: String
     ) -> some View {
         HStack {
-            Text(label).font(.body)
+            Text(label).font(.brand(.body))
             Spacer()
             TextField(placeholder.isEmpty ? label : placeholder, text: Binding(
                 get: { viewModel.details[keyPath: keyPath] ?? "" },
@@ -216,7 +216,7 @@ struct BasicsTab: View {
         fieldID: String
     ) -> some View {
         HStack {
-            Text(label).font(.body)
+            Text(label).font(.brand(.body))
             Spacer()
             TextField(placeholder.isEmpty ? label : placeholder, text: Binding(
                 get: { PhoneFormatter.formatNational(viewModel.details[keyPath: keyPath] ?? "") },
@@ -289,7 +289,7 @@ struct BasicsTab: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
             HStack(spacing: 8) {
                 ForEach(options, id: \.value) { opt in
@@ -299,7 +299,7 @@ struct BasicsTab: View {
                         viewModel.markChanged()
                     } label: {
                         Text(opt.label)
-                            .font(.subheadline.weight(.semibold))
+                            .font(.brand(.subheadline, weight: .semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
                             .background(isSelected ? Color.accentColor : Color(.tertiarySystemFill))
@@ -314,7 +314,7 @@ struct BasicsTab: View {
             }
 
             Text("Used for personal fit analysis")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
         }
         .padding(.horizontal)
@@ -373,7 +373,7 @@ struct BasicsTab: View {
     @ViewBuilder
     private var genderRow: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(String(localized: "Gender (optional)")).font(.subheadline.weight(.medium))
+            Text(String(localized: "Gender (optional)")).font(.brand(.subheadline, weight: .medium))
             Picker(String(localized: "Gender"), selection: Binding(
                 get: { viewModel.details.gender ?? "" },
                 set: {
@@ -398,7 +398,7 @@ struct BasicsTab: View {
     private func cardSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title)
-                .font(.footnote)
+                .font(.brand(.footnote))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
                 .padding(.horizontal, 4)

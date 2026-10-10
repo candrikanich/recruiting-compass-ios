@@ -19,7 +19,7 @@ struct CoachInteractionsLogSection: View {
         Spacer()
         if viewModel.hasActiveFilters {
           Button("Clear") { viewModel.clearFilters() }
-            .font(.footnote)
+            .font(.brand(.footnote))
         }
       }
 
@@ -129,8 +129,8 @@ struct CoachInteractionsLogSection: View {
       content()
     } label: {
       HStack(spacing: 4) {
-        Text(title).font(.footnote.weight(.medium))
-        Image(systemName: "chevron.down").font(.caption2)
+        Text(title).font(.brand(.footnote, weight: .medium))
+        Image(systemName: "chevron.down").font(.brand(.caption2))
       }
       .padding(.horizontal, 10)
       .padding(.vertical, 6)
@@ -146,8 +146,8 @@ struct CoachInteractionsLogSection: View {
                   label: Color.secondaryText, value: .primary,
                   background: Color(uiColor: .systemGray6), border: Color(uiColor: .separator))
       summaryTile(String(localized: "Sent"), "\(sentCount)",
-                  label: Color.Brand.blue600, value: Color.Brand.blue600,
-                  background: Color.Brand.blue100, border: Color.Brand.blue100)
+                  label: Color.accentPrimary, value: Color.accentPrimary,
+                  background: Color.Brand.forest100, border: Color.Brand.forest100)
       summaryTile(String(localized: "Received"), "\(receivedCount)",
                   label: Color.Brand.emerald600, value: Color.Brand.emerald600,
                   background: Color.Brand.emerald100, border: Color.Brand.emerald100)
@@ -159,10 +159,10 @@ struct CoachInteractionsLogSection: View {
                            background: Color, border: Color) -> some View {
     HStack(spacing: 6) {
       Text(label.uppercased())
-        .font(.caption2.bold())
+        .font(.brand(.caption2, weight: .bold))
         .foregroundStyle(labelColor)
       Text(value)
-        .font(.subheadline.bold())
+        .font(.brand(.subheadline, weight: .bold))
         .foregroundStyle(valueColor)
     }
     .frame(maxWidth: .infinity)
@@ -176,7 +176,7 @@ struct CoachInteractionsLogSection: View {
 
   private func emptyState(_ text: String) -> some View {
     Text(text)
-      .font(.body)
+      .font(.brand(.body))
       .foregroundStyle(.secondary)
       .italic()
       .padding(.vertical, 8)
@@ -215,10 +215,10 @@ private struct ExpandableInteractionRow: View {
           VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
               Text(interaction.type.displayName)
-                .font(.subheadline.weight(.semibold))
+                .font(.brand(.subheadline, weight: .semibold))
                 .foregroundStyle(.primary)
               Text(interaction.direction == .outbound ? String(localized: "Sent") : String(localized: "Received"))
-                .font(.caption2.weight(.medium))
+                .font(.brand(.caption2, weight: .medium))
                 .foregroundStyle(interaction.direction.badgeColor.foregroundColor)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
@@ -227,7 +227,7 @@ private struct ExpandableInteractionRow: View {
             }
             if let subject = interaction.subject, !subject.isEmpty {
               Text(subject)
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(Color.secondaryText)
                 .lineLimit(1)
             }
@@ -237,10 +237,10 @@ private struct ExpandableInteractionRow: View {
 
           VStack(alignment: .trailing, spacing: 4) {
             Text(interaction.displayDate, style: .date)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.secondaryText)
             Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-              .font(.caption2)
+              .font(.brand(.caption2))
               .foregroundStyle(Color.secondaryText)
               .accessibilityHidden(true)
           }
@@ -251,19 +251,19 @@ private struct ExpandableInteractionRow: View {
       if isExpanded {
         if let content = interaction.content, !content.isEmpty {
           Text(content)
-            .font(.footnote)
+            .font(.brand(.footnote))
             .foregroundStyle(.primary)
             .frame(maxWidth: .infinity, alignment: .leading)
         } else {
           Text("No message content")
-            .font(.footnote)
+            .font(.brand(.footnote))
             .foregroundStyle(.secondary)
             .italic()
         }
 
         if let sentiment = interaction.sentiment {
           Text(sentiment.displayName)
-            .font(.caption.weight(.medium))
+            .font(.brand(.caption, weight: .medium))
             .foregroundStyle(sentiment.badgeColor.foregroundColor)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -273,7 +273,7 @@ private struct ExpandableInteractionRow: View {
 
         if interaction.hasAttachments {
           Label("\(interaction.attachmentCount) attachment\(interaction.attachmentCount == 1 ? "" : "s")", systemImage: "paperclip")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
 
@@ -282,7 +282,7 @@ private struct ExpandableInteractionRow: View {
             Spacer()
             Button(role: .destructive, action: onDelete) {
               Label("Delete", systemImage: "trash")
-                .font(.caption)
+                .font(.brand(.caption))
             }
             .buttonStyle(.bordered)
             .controlSize(.small)

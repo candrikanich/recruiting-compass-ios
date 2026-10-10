@@ -55,7 +55,7 @@ struct AsyncButton: View {
   var body: some View {
     Button(role: style == .destructive ? .destructive : nil, action: performAction) {
       label
-        .font(.callout.weight(.semibold))
+        .font(.brand(.callout, weight: .semibold))
         .multilineTextAlignment(.center)
         .fixedSize(horizontal: false, vertical: true)
         .frame(
@@ -112,7 +112,7 @@ struct AsyncButton: View {
   private var background: some View {
     switch style {
     case .primary:
-      LinearGradient.primaryButton
+      Color.accentFill
     case .secondary:
       Color.Brand.slate100
     case .destructive:

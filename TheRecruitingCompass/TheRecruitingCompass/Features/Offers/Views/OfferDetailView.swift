@@ -73,12 +73,12 @@ struct OfferDetailView: View {
   private var notFoundView: some View {
     VStack(spacing: 16) {
       Image(systemName: "doc.questionmark")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
       Text("Offer not found")
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.secondary)
 
       Button("Return to Offers") {

@@ -52,7 +52,7 @@ struct FamilyManagementPlayerView: View {
   private var familyCodeCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Text("Your Family Code")
-        .font(.headline)
+        .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
       if let code = viewModel.familyCode {
@@ -68,7 +68,7 @@ struct FamilyManagementPlayerView: View {
 
           if let date = viewModel.formattedCodeGeneratedAt {
             Text("Created \(date)")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
           }
 
@@ -120,16 +120,16 @@ struct FamilyManagementPlayerView: View {
   private var inviteByEmailCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Text("Invite Parent by Email")
-        .font(.headline)
+        .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Text("They'll receive a link to join your family.")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Text("Invites expire after 30 days.")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -174,10 +174,10 @@ struct FamilyManagementPlayerView: View {
       VStack(spacing: FamilyConstants.Spacing.medium) {
         HStack {
           Text("Pending Invitations")
-            .font(.headline)
+            .font(.brand(.headline))
           Spacer()
           Text("\(viewModel.pendingInvitations.count)")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
         }
 
@@ -185,23 +185,23 @@ struct FamilyManagementPlayerView: View {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
               Text(invite.invitedEmail)
-                .font(.subheadline.weight(.medium))
+                .font(.brand(.subheadline, weight: .medium))
               Text("Expires \(formattedExpiry(invite.expiresAt ?? ""))")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
             Spacer()
             Button("Resend") {
               Task { await viewModel.resendInvitation(invite) }
             }
-            .font(.caption)
+            .font(.brand(.caption))
             .buttonStyle(.bordered)
             .accessibilityLabel(String(localized: "Resend invite to \(invite.invitedEmail)"))
 
             Button("Revoke") {
               Task { await viewModel.revokeInvitation(invite) }
             }
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.red)
             .buttonStyle(.bordered)
             .tint(.red)
@@ -230,10 +230,10 @@ struct FamilyManagementPlayerView: View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       HStack {
         Text("Family Members")
-          .font(.headline)
+          .font(.brand(.headline))
         Spacer()
         Text("\(viewModel.familyMembers.count)")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
       }
 
@@ -258,13 +258,13 @@ struct FamilyManagementPlayerView: View {
   private var emptyMembersState: some View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       Image(systemName: "person.2.slash")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
       Text("No family members yet")
-        .font(.headline)
+        .font(.brand(.headline))
       Text("Share your family code to invite parents")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
     }

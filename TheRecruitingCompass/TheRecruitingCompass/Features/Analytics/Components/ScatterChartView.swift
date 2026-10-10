@@ -29,12 +29,12 @@ struct ScatterChartView: View {
     VStack(alignment: .leading, spacing: 12) {
       VStack(alignment: .leading, spacing: 4) {
         Text(title)
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(Color.darkSlate)
           .accessibilityAddTraits(.isHeader)
 
         Text(dataSet.label)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(Color.secondaryText)
       }
 
@@ -129,7 +129,7 @@ struct ScatterChartView: View {
     HStack {
       Spacer()
       Text(dataSet.xAxisLabel)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(Color.secondaryText)
       Spacer()
     }
@@ -139,13 +139,13 @@ struct ScatterChartView: View {
     HStack {
       VStack(alignment: .leading, spacing: 2) {
         Text(point.label)
-          .font(.subheadline.bold())
+          .font(.brand(.subheadline, weight: .bold))
           .foregroundStyle(Color.darkSlate)
         Text("\(dataSet.xAxisLabel): \(point.x.formatted(.number.precision(.fractionLength(1))))")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
         Text("\(dataSet.yAxisLabel): \(point.y.formatted(.number.precision(.fractionLength(1))))")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
       }
       Spacer()

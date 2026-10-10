@@ -9,16 +9,16 @@ struct DownloadFallbackView: View {
   var body: some View {
     VStack(spacing: 16) {
       Image(systemName: "arrow.down.circle")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(.secondary)
       Text("Preview not available for this file type")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
       if let downloadURL = URL(string: url) {
         Link(destination: downloadURL) {
           Label("Download to view", systemImage: "arrow.down")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
         }
         .buttonStyle(.borderedProminent)
         .accessibilityLabel(String(localized: "Download to view"))

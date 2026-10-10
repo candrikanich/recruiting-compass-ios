@@ -15,10 +15,10 @@ struct DateRangeToolbar: View {
             }
           } label: {
             Text(range.displayName)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .padding(.horizontal, 14)
               .padding(.vertical, 8)
-              .background(isSelected(range) ? Color.accentBlue : Color(.secondarySystemBackground))
+              .background(isSelected(range) ? Color.accentPrimary : Color(.secondarySystemBackground))
               .foregroundStyle(isSelected(range) ? .white : Color.darkSlate)
               .clipShape(Capsule())
           }
@@ -35,11 +35,11 @@ struct DateRangeToolbar: View {
             Image(systemName: "calendar")
               .accessibilityHidden(true)
             Text("Custom")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
           }
           .padding(.horizontal, 14)
           .padding(.vertical, 8)
-          .background(isCustomSelected ? Color.accentBlue : Color(.secondarySystemBackground))
+          .background(isCustomSelected ? Color.accentPrimary : Color(.secondarySystemBackground))
           .foregroundStyle(isCustomSelected ? .white : Color.darkSlate)
           .clipShape(Capsule())
         }

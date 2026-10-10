@@ -16,7 +16,7 @@ struct DocumentEditSheet: View {
             }
           if viewModel.editTitle.count >= 100 {
             Text("\(viewModel.editTitle.count)/100 characters")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
           }
         } header: {
@@ -45,7 +45,7 @@ struct DocumentEditSheet: View {
             }
           if viewModel.editDescription.count >= 500 {
             Text("\(viewModel.editDescription.count)/500 characters")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
           }
         } header: {

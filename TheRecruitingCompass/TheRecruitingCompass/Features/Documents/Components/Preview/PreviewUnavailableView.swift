@@ -9,10 +9,10 @@ struct PreviewUnavailableView: View {
   var body: some View {
     VStack(spacing: 8) {
       Image(systemName: icon)
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(.secondary)
       Text(message)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
     }
     .frame(maxWidth: .infinity)

@@ -38,16 +38,15 @@ enum DocumentType: String, Codable, CaseIterable, Sendable {
     }
   }
 
-  var typeEmoji: String {
+  var systemImage: String {
     switch self {
-    case .highlightVideo: return "🎥"
-    case .transcript: return "📄"
-    case .resume: return "📋"
-    case .recLetter: return "💌"
-    case .questionnaire: return "📝"
-    case .statsSheet: return "📊"
-    case .coachAttachment: return "📎"
-    case .other: return "📁"
+    case .highlightVideo: return "video"
+    case .transcript: return "doc.text"
+    case .resume: return "list.clipboard"
+    case .recLetter: return "envelope"
+    case .questionnaire: return "square.and.pencil"
+    case .statsSheet: return "chart.bar"
+    case .coachAttachment, .other: return "paperclip"
     }
   }
 

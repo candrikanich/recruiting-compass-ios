@@ -17,7 +17,7 @@ struct ProfileQRCodeView: View {
                     .accessibilityLabel(String(localized: "QR code linking to your public profile"))
             }
             Text(String(localized: "Coaches can scan directly at tournaments"))
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(Color.Text.muted)
                 .multilineTextAlignment(.center)
         }

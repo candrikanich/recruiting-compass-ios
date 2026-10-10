@@ -18,22 +18,22 @@ struct MetricRow: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: metricIcon)
-        .font(.title3)
-        .foregroundStyle(Color.primaryGreen)
+        .font(.brand(.title3))
+        .foregroundStyle(Color.accentPrimary)
         .frame(width: 32)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
         Text(metric.displayName)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.semibold)
 
         Text(formattedValue)
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(Color.darkSlate)
 
         Text(dateFormatted)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
       }
 

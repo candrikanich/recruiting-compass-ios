@@ -21,12 +21,12 @@ struct AnalyticsCard: View {
         Spacer()
 
         Text("\(value)")
-          .font(.title.weight(.bold))
+          .font(.brand(.title, weight: .bold))
           .foregroundStyle(.primary)
       }
 
       Text(title)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
     }
     .padding(12)

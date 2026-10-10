@@ -28,21 +28,21 @@ struct SchoolBasicInfoDisplaySection: View {
       let stripped = handle.hasPrefix("@") ? String(handle.dropFirst()) : handle
       HStack(alignment: .top) {
         Text("\(label):")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         Spacer()
         if let url = URL(string: "\(baseURL)\(stripped)") {
           Link(destination: url) {
             HStack(spacing: 4) {
               Text(handle)
-                .font(.subheadline)
+                .font(.brand(.subheadline))
               Image(systemName: "safari")
-                .font(.subheadline)
+                .font(.brand(.subheadline))
             }
           }
         } else {
           Text(handle)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
         }
       }
       .accessibilityElement(children: .combine)
@@ -54,7 +54,7 @@ struct SchoolBasicInfoDisplaySection: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text("Contact & Social")
-          .font(.headline)
+          .font(.brand(.headline))
           .accessibilityAddTraits(.isHeader)
 
         Spacer()
@@ -72,15 +72,15 @@ struct SchoolBasicInfoDisplaySection: View {
       if let phone = school.phone, !phone.isEmpty {
         HStack(alignment: .top) {
           Text("Phone:")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
           Spacer()
           if let url = URL(string: "tel:\(phone.filter { !$0.isWhitespace })") {
             Link(phone, destination: url)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
           } else {
             Text(phone)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
           }
         }
         .accessibilityElement(children: .combine)
@@ -92,7 +92,7 @@ struct SchoolBasicInfoDisplaySection: View {
 
       if !hasContactInfo {
         Text("No contact info yet. Tap Edit to add a website, socials, or phone.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
       }
 
@@ -102,24 +102,24 @@ struct SchoolBasicInfoDisplaySection: View {
           : "https://\(website)"
         HStack(alignment: .top) {
           Text("Website:")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
           Spacer()
           if let url = URL(string: urlString) {
             Link(destination: url) {
               HStack(spacing: 4) {
                 Text(website)
-                  .font(.subheadline)
+                  .font(.brand(.subheadline))
                   .multilineTextAlignment(.trailing)
                   .lineLimit(2)
                   .truncationMode(.middle)
                 Image(systemName: "safari")
-                  .font(.subheadline)
+                  .font(.brand(.subheadline))
               }
             }
           } else {
             Text(website)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .multilineTextAlignment(.trailing)
           }
         }
@@ -134,7 +134,7 @@ struct SchoolBasicInfoDisplaySection: View {
       if let colors = school.schoolColors, !colors.isEmpty {
         HStack(alignment: .top) {
           Text("Colors:")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
           Spacer()
           HStack(spacing: 6) {
@@ -153,15 +153,15 @@ struct SchoolBasicInfoDisplaySection: View {
       if let conferenceUrl = ConferenceUrlLookup.url(for: school.conference), let conference = school.conference {
         HStack(alignment: .top) {
           Text("Conference:")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
           Spacer()
           Link(destination: conferenceUrl) {
             HStack(spacing: 4) {
               Text(conference)
-                .font(.subheadline)
+                .font(.brand(.subheadline))
               Image(systemName: "safari")
-                .font(.subheadline)
+                .font(.brand(.subheadline))
             }
           }
         }
@@ -175,24 +175,24 @@ struct SchoolBasicInfoDisplaySection: View {
           : "https://\(athleticsUrl)"
         HStack(alignment: .top) {
           Text("Athletics:")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
           Spacer()
           if let url = URL(string: urlString) {
             Link(destination: url) {
               HStack(spacing: 4) {
                 Text(athleticsUrl)
-                  .font(.subheadline)
+                  .font(.brand(.subheadline))
                   .multilineTextAlignment(.trailing)
                   .lineLimit(2)
                   .truncationMode(.middle)
                 Image(systemName: "safari")
-                  .font(.subheadline)
+                  .font(.brand(.subheadline))
               }
             }
           } else {
             Text(athleticsUrl)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .multilineTextAlignment(.trailing)
           }
         }
@@ -211,10 +211,10 @@ struct SchoolBasicInfoDisplaySection: View {
   // Use in-app preview or add mock data factory
   VStack {
     Text("SchoolBasicInfoDisplaySection Preview")
-      .font(.caption)
+      .font(.brand(.caption))
       .foregroundStyle(.secondary)
     Text("Add mock School factory for preview")
-      .font(.caption)
+      .font(.brand(.caption))
       .foregroundStyle(.secondary)
   }
   .padding()

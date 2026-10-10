@@ -10,7 +10,7 @@ struct ParentOnboardingWizardView: View {
   var body: some View {
     NavigationStack {
       ZStack {
-        LinearGradient.primaryBackground
+        Color.Brand.forest600
           .ignoresSafeArea()
 
         VStack(spacing: 0) {
@@ -20,7 +20,7 @@ struct ParentOnboardingWizardView: View {
           }
           if let error = viewModel.errorMessage {
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.red)
               .padding(.horizontal)
               .padding(.bottom, 8)
@@ -55,24 +55,24 @@ struct ParentOnboardingWizardView: View {
     VStack(alignment: .leading, spacing: FamilyConstants.Spacing.medium) {
       VStack(alignment: .leading, spacing: 4) {
         Text("Welcome to The Recruiting Compass")
-          .font(.title2.weight(.semibold))
+          .font(.brand(.title2, weight: .semibold))
         Text("Tell us about your player")
-          .font(.headline)
+          .font(.brand(.headline))
         Text("We'll pre-fill their profile so they can hit the ground running. Name, sport, and graduation year are optional.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
       }
 
       VStack(alignment: .leading, spacing: FamilyConstants.Spacing.small) {
         Text("Player's first name")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
         TextField("First name", text: $viewModel.playerFirstName)
           .textContentType(.givenName)
           .accessibilityLabel(String(localized: "Athlete first name"))
           .formFieldStyle()
 
         Text("Player's date of birth")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
         DatePicker(
           "mm/dd/yyyy",
           selection: $viewModel.playerDateOfBirth,
@@ -86,7 +86,7 @@ struct ParentOnboardingWizardView: View {
         }
 
         Text("Recruiting Compass is for ages 13 and up. By entering a date of birth, you confirm the player is 13 or older.")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(
             viewModel.hasConfirmedDateOfBirth && viewModel.isPlayerUnderAge
               ? Color.red
@@ -94,7 +94,7 @@ struct ParentOnboardingWizardView: View {
           )
 
         Text("Primary sport (optional)")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
         Picker("Sport", selection: $viewModel.playerSport) {
           Text("Select sport").tag("")
           ForEach(viewModel.sports, id: \.self) { sport in
@@ -109,7 +109,7 @@ struct ParentOnboardingWizardView: View {
 
         if !viewModel.playerSport.isEmpty {
           Text("Position (optional)")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
           Picker("Position", selection: $viewModel.playerPosition) {
             Text("Select position").tag("")
             ForEach(viewModel.positionsForSport, id: \.self) { pos in
@@ -121,7 +121,7 @@ struct ParentOnboardingWizardView: View {
         }
 
         Text("Graduation year (optional)")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
         Picker("Graduation year", selection: Binding(
           get: { viewModel.playerGraduationYear.map { String($0) } ?? "" },
           set: { viewModel.playerGraduationYear = Int($0) }
@@ -150,13 +150,13 @@ struct ParentOnboardingWizardView: View {
             .padding(.vertical, 12)
         } else {
           Text("Get Started")
-            .font(.callout.weight(.semibold))
+            .font(.brand(.callout, weight: .semibold))
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
         }
       }
       .foregroundStyle(.white)
-      .background(LinearGradient.primaryButton)
+      .background(Color.accentFill)
       .clipShape(.rect(cornerRadius: 8))
       .opacity(viewModel.isPlayerDetailsValid && !viewModel.isLoading ? 1 : 0.5)
       .disabled(!viewModel.isPlayerDetailsValid || viewModel.isLoading)

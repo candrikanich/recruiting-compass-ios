@@ -19,18 +19,18 @@ struct ExportFormatSheet: View {
         // Icon
         Image(systemName: "square.and.arrow.up")
           .font(.system(size: iconSize))
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .padding(.top)
 
         // Title
         Text("Export Metrics")
-          .font(.title2)
+          .font(.brand(.title2))
           .bold()
 
         // Format Selection
         VStack(alignment: .leading, spacing: 12) {
           Text("Select Format")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.semibold)
             .foregroundStyle(.secondary)
 

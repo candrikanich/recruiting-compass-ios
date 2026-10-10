@@ -262,7 +262,7 @@ final class AppNotificationTests: XCTestCase {
 
   func testNotificationTypeEmojis() {
     for type in NotificationType.allCases {
-      XCTAssertFalse(type.emoji.isEmpty, "Emoji should not be empty for \(type.rawValue)")
+      XCTAssertFalse(type.systemImage.isEmpty, "Symbol should not be empty for \(type.rawValue)")
     }
   }
 

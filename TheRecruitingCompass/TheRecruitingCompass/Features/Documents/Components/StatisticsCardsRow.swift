@@ -9,7 +9,7 @@ struct DocumentStatisticsCardsRow: View {
         DocumentStatCard(
           label: "Total Documents",
           value: "\(statistics.total)",
-          color: .blue
+          color: Color.accentPrimary
         )
         DocumentStatCard(
           label: "Shared Documents",
@@ -19,7 +19,7 @@ struct DocumentStatisticsCardsRow: View {
         DocumentStatCard(
           label: "Most Common Type",
           value: statistics.mostCommonType,
-          color: .purple
+          color: Color.Category.gold
         )
         DocumentStatCard(
           label: "Total Storage",
@@ -45,10 +45,10 @@ private struct DocumentStatCard: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(label)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
       Text(value)
-        .font(.title2)
+        .font(.brand(.title2))
         .bold()
         .foregroundStyle(color)
     }

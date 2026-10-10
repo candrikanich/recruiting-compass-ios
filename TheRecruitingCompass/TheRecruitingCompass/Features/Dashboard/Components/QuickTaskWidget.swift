@@ -14,7 +14,7 @@ struct QuickTaskWidget: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text("Quick Tasks")
-          .font(.headline)
+          .font(.brand(.headline))
           .accessibilityAddTraits(.isHeader)
 
         Spacer()
@@ -23,8 +23,8 @@ struct QuickTaskWidget: View {
           Button("Clear Completed") {
             onClearCompleted()
           }
-          .font(.caption)
-          .foregroundStyle(Color.accentBlue)
+          .font(.brand(.caption))
+          .foregroundStyle(Color.accentPrimary)
           .accessibilityLabel(String(localized: "Clear completed tasks"))
           .accessibilityHint("Removes all completed tasks from the list")
         }
@@ -54,7 +54,7 @@ struct QuickTaskWidget: View {
 
       if tasks.isEmpty {
         Text("No tasks yet. Add your first task above!")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .padding(.vertical)
       } else {

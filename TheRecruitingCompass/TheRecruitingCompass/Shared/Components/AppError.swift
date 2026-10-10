@@ -56,8 +56,8 @@ enum AppError: Equatable, Identifiable {
                 headline: String(localized: "That page ran a different route."),
                 body: String(localized: "We couldn't find what you're looking for. It may have moved, or the link might be off."),
                 iconName: "magnifyingglass",
-                iconBackground: Color(hex: "EFF6FF"),
-                iconForeground: Color(hex: "3B82F6"),
+                iconBackground: Color(hex: "F3F7F1"),
+                iconForeground: Color(hex: "4A7D3F"),
                 primaryButtonLabel: String(localized: "Go to Dashboard"),
                 secondaryButtonLabel: String(localized: "Search Schools"),
                 statusCode: nil
@@ -100,8 +100,8 @@ enum AppError: Equatable, Identifiable {
                 headline: String(localized: "We're taking a timeout."),
                 body: String(localized: "Something on our end isn't cooperating right now. Your recruiting data is safe — we're just temporarily offline. Try again in a few minutes."),
                 iconName: "clock.fill",
-                iconBackground: Color(hex: "F8FAFC"),
-                iconForeground: Color(hex: "64748B"),
+                iconBackground: Color(hex: "FAFAF8"),
+                iconForeground: Color(hex: "6B645F"),
                 primaryButtonLabel: String(localized: "Try Again"),
                 secondaryButtonLabel: String(localized: "Go Home"),
                 statusCode: nil
@@ -111,8 +111,8 @@ enum AppError: Equatable, Identifiable {
                 headline: String(localized: "Looks like the connection dropped."),
                 body: String(localized: "We can't reach our servers right now. Check your connection and try again."),
                 iconName: "wifi.slash",
-                iconBackground: Color(hex: "F8FAFC"),
-                iconForeground: Color(hex: "64748B"),
+                iconBackground: Color(hex: "FAFAF8"),
+                iconForeground: Color(hex: "6B645F"),
                 primaryButtonLabel: String(localized: "Try Again"),
                 secondaryButtonLabel: nil,
                 statusCode: nil
@@ -133,8 +133,8 @@ enum AppError: Equatable, Identifiable {
                 headline: String(localized: "Something went sideways."),
                 body: String(localized: "We hit an unexpected snag. Your data is safe — try refreshing or head back home."),
                 iconName: "exclamationmark.circle.fill",
-                iconBackground: Color(hex: "F8FAFC"),
-                iconForeground: Color(hex: "64748B"),
+                iconBackground: Color(hex: "FAFAF8"),
+                iconForeground: Color(hex: "6B645F"),
                 primaryButtonLabel: String(localized: "Try Again"),
                 secondaryButtonLabel: String(localized: "Go Home"),
                 statusCode: nil

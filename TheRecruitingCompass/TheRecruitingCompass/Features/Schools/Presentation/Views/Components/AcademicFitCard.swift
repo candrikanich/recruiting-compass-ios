@@ -9,8 +9,8 @@ struct AcademicFitCard: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       VStack(alignment: .leading, spacing: 2) {
-        Text("Academic Fit").font(.headline)
-        Text("Test score comparison").font(.caption).foregroundStyle(.secondary)
+        Text("Academic Fit").font(.brand(.headline))
+        Text("Test score comparison").font(.brand(.caption)).foregroundStyle(.secondary)
       }
 
       if analysis.hasSchoolData {
@@ -19,11 +19,11 @@ struct AcademicFitCard: View {
         }
         if let rate = analysis.admissionRate {
           Text("Acceptance rate: \(Int((rate * 100).rounded()))%")
-            .font(.caption).foregroundStyle(.secondary)
+            .font(.brand(.caption)).foregroundStyle(.secondary)
         }
       } else {
         Text("No academic data for this school yet.")
-          .font(.subheadline).foregroundStyle(.secondary)
+          .font(.brand(.subheadline)).foregroundStyle(.secondary)
         Button(action: onLookup) {
           if isEnriching {
             ProgressView()
@@ -34,7 +34,7 @@ struct AcademicFitCard: View {
         .disabled(isEnriching)
         .accessibilityLabel(String(localized: "Look up this school's academic profile"))
         if let enrichError {
-          Text(enrichError).font(.caption).foregroundStyle(.red)
+          Text(enrichError).font(.brand(.caption)).foregroundStyle(.red)
         }
       }
     }
@@ -50,11 +50,11 @@ private struct AcademicFitSignalRow: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       HStack {
-        Text(signal.label).font(.subheadline).fontWeight(.medium)
+        Text(signal.label).font(.brand(.subheadline)).fontWeight(.medium)
         Spacer()
         BadgeView(text: signal.strength.label, color: signal.strength.badgeColor)
       }
-      Text(signal.explanation).font(.caption).foregroundStyle(.secondary)
+      Text(signal.explanation).font(.brand(.caption)).foregroundStyle(.secondary)
     }
     .accessibilityElement(children: .combine)
   }

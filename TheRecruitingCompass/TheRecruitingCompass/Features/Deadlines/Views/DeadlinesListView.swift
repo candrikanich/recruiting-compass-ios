@@ -187,7 +187,7 @@ struct DeadlinesListView: View {
   private func categoryChip(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
     Button(action: action) {
       Text(title)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(isSelected ? Color.accentColor : Color(.secondarySystemBackground))
@@ -238,7 +238,7 @@ struct DeadlinesListView: View {
           .accessibilityLabel(String(localized: "Previous month"))
 
           Spacer()
-          Text(viewModel.displayedMonthTitle).font(.headline)
+          Text(viewModel.displayedMonthTitle).font(.brand(.headline))
           Spacer()
 
           Button {

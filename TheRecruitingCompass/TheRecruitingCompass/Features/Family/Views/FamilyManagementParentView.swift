@@ -25,11 +25,11 @@ struct FamilyManagementParentView: View {
   private var joinFamilyCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Text("Join a Family")
-        .font(.headline)
+        .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Text("Enter a family code shared by a player")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -56,7 +56,7 @@ struct FamilyManagementParentView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, FamilyConstants.Spacing.small)
-        .background(viewModel.isCodeInputValid && !viewModel.isLoading ? Color.blue : Color.gray)
+        .background(viewModel.isCodeInputValid && !viewModel.isLoading ? Color.accentFill : Color.gray)
         .foregroundStyle(.white)
         .clipShape(.rect(cornerRadius: 8))
         .disabled(!viewModel.isCodeInputValid || viewModel.isLoading)
@@ -75,16 +75,16 @@ struct FamilyManagementParentView: View {
   private var inviteByEmailCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Text("Invite Player by Email")
-        .font(.headline)
+        .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
         Text("They'll receive a link to join your family.")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Text("Invites expire after 30 days.")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -129,10 +129,10 @@ struct FamilyManagementParentView: View {
       VStack(spacing: FamilyConstants.Spacing.medium) {
         HStack {
           Text("Pending Invitations")
-            .font(.headline)
+            .font(.brand(.headline))
           Spacer()
           Text("\(viewModel.pendingInvitations.count)")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
         }
 
@@ -140,23 +140,23 @@ struct FamilyManagementParentView: View {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
               Text(invite.invitedEmail)
-                .font(.subheadline.weight(.medium))
+                .font(.brand(.subheadline, weight: .medium))
               Text("Expires \(formattedExpiry(invite.expiresAt ?? ""))")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
             Spacer()
             Button("Resend") {
               Task { await viewModel.resendInvitation(invite) }
             }
-            .font(.caption)
+            .font(.brand(.caption))
             .buttonStyle(.bordered)
             .accessibilityLabel(String(localized: "Resend invite to \(invite.invitedEmail)"))
 
             Button("Revoke") {
               Task { await viewModel.revokeInvitation(invite) }
             }
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.red)
             .buttonStyle(.bordered)
             .tint(.red)
@@ -185,10 +185,10 @@ struct FamilyManagementParentView: View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       HStack {
         Text("My Families")
-          .font(.headline)
+          .font(.brand(.headline))
         Spacer()
         Text("\(viewModel.parentFamilies.count)")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
       }
 
@@ -213,13 +213,13 @@ struct FamilyManagementParentView: View {
   private var emptyFamiliesState: some View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       Image(systemName: "person.2.slash")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
       Text("No families joined yet")
-        .font(.headline)
+        .font(.brand(.headline))
       Text("Ask a player to share their family code")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
     }

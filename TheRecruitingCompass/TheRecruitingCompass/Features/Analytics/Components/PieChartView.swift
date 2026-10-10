@@ -11,7 +11,7 @@ struct PieChartView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text(title)
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(Color.darkSlate)
         .accessibilityAddTraits(.isHeader)
 
@@ -69,10 +69,10 @@ struct PieChartView: View {
       if total > 0 {
         VStack(spacing: 2) {
           Text("\(total)")
-            .font(.title2.bold())
+            .font(.brand(.title2, weight: .bold))
             .foregroundStyle(Color.darkSlate)
           Text("Total")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
       }
@@ -90,14 +90,14 @@ struct PieChartView: View {
             .frame(width: 10, height: 10)
 
           Text(segment.label)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
             .lineLimit(1)
 
           Spacer()
 
           Text("\(segment.value)")
-            .font(.caption.bold())
+            .font(.brand(.caption, weight: .bold))
             .foregroundStyle(Color.darkSlate)
         }
       }

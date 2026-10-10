@@ -105,7 +105,7 @@ struct ActivityFeedView: View {
         viewModel.previousPage()
       } label: {
         Label("Previous", systemImage: "chevron.left")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
       }
       .disabled(!viewModel.hasPreviousPage)
       .frame(minWidth: 44, minHeight: 44)
@@ -114,7 +114,7 @@ struct ActivityFeedView: View {
       Spacer()
 
       Text(pageIndicatorAccessibilityLabel(currentPage: viewModel.currentPage, totalPages: viewModel.totalPages))
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .accessibilityLabel(pageIndicatorAccessibilityLabel(
           currentPage: viewModel.currentPage, totalPages: viewModel.totalPages))
@@ -126,7 +126,7 @@ struct ActivityFeedView: View {
         viewModel.nextPage()
       } label: {
         Label("Next", systemImage: "chevron.right")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .labelStyle(.trailingIcon)
       }
       .disabled(!viewModel.hasNextPage)
@@ -145,18 +145,18 @@ struct ActivityFeedView: View {
   private var emptyState: some View {
     VStack(spacing: 16) {
       Image(systemName: "sparkles")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .imageScale(.large)
         .foregroundStyle(Color.iconGray)
         .accessibilityHidden(true)
 
       Text("No activities found")
-        .font(.title3)
+        .font(.brand(.title3))
         .fontWeight(.medium)
         .foregroundStyle(.primary)
 
       Text("Your recruiting activity will appear here")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
     }
@@ -170,16 +170,16 @@ struct ActivityFeedView: View {
   private var filteredEmptyState: some View {
     VStack(spacing: 16) {
       Image(systemName: "line.3.horizontal.decrease.circle")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(Color.iconGray)
         .accessibilityHidden(true)
 
       Text("No activities found")
-        .font(.title3)
+        .font(.brand(.title3))
         .fontWeight(.medium)
 
       Text("Try adjusting your filters or search query")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
 
       Button("Clear Filters") {
@@ -195,13 +195,13 @@ struct ActivityFeedView: View {
   private func errorState(_ message: String) -> some View {
     VStack(spacing: 16) {
       Image(systemName: "exclamationmark.triangle")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .imageScale(.large)
         .foregroundStyle(Color.errorRed)
         .accessibilityHidden(true)
 
       Text(message)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
 

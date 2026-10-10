@@ -52,14 +52,14 @@ struct SidebarView: View {
           .frame(width: 32, height: 32)
           .overlay {
             Text(initials(for: user))
-              .font(.caption.bold())
+              .font(.brand(.caption, weight: .bold))
               .foregroundStyle(Color.accentColor)
           }
         VStack(alignment: .leading, spacing: 2) {
           Text(user.fullName ?? user.email)
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
           Text(user.email)
-            .font(.caption2)
+            .font(.brand(.caption2))
             .foregroundStyle(.secondary)
         }
       }

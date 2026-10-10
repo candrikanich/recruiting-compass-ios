@@ -9,7 +9,7 @@ struct SignupView: View {
 
   var body: some View {
     ZStack {
-      LinearGradient.primaryBackground
+      Color.Brand.forest600
       .ignoresSafeArea()
 
       VStack(spacing: 0) {
@@ -74,10 +74,10 @@ private struct SignupBackButtonView: View {
       Button(action: onBack) {
         HStack(spacing: 4) {
           Image(systemName: "arrow.left")
-            .font(.footnote.weight(.semibold))
+            .font(.brand(.footnote, weight: .semibold))
             .accessibilityHidden(true)
           Text("Back")
-            .font(.footnote.weight(.semibold))
+            .font(.brand(.footnote, weight: .semibold))
         }
         .foregroundStyle(Color.darkSlate)
       }
@@ -109,11 +109,11 @@ private struct SignupRoleSelectionView: View {
 
       VStack(alignment: .leading, spacing: 12) {
         Text("Select Your Role")
-          .font(.title3.weight(.semibold))
+          .font(.brand(.title3, weight: .semibold))
           .foregroundStyle(Color.darkSlate)
 
         Text("Choose the account type that best fits your needs")
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(Color.secondaryText)
       }
 
@@ -221,12 +221,12 @@ private struct SignupRoleHeaderView: View {
         Button(action: { viewModel.backToRoleSelection() }) {
           HStack(spacing: 4) {
             Image(systemName: "arrow.left")
-              .font(.caption.weight(.semibold))
+              .font(.brand(.caption, weight: .semibold))
               .accessibilityHidden(true)
             Text("Change Role")
-              .font(.caption)
+              .font(.brand(.caption))
           }
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
         }
         .accessibilityLabel(String(localized: "Change role selection"))
         .accessibilityHint("Return to role selection screen")
@@ -236,12 +236,12 @@ private struct SignupRoleHeaderView: View {
         if let role = viewModel.selectedRole {
           HStack(spacing: 6) {
             Image(systemName: role.icon)
-              .font(.footnote)
+              .font(.brand(.footnote))
               .accessibilityHidden(true)
             Text(role.displayName)
-              .font(.footnote.weight(.semibold))
+              .font(.brand(.footnote, weight: .semibold))
           }
-          .foregroundStyle(Color.primaryGreen)
+          .foregroundStyle(Color.accentPrimary)
         }
       }
       .frame(minHeight: 44)
@@ -327,7 +327,7 @@ private struct SignupDateOfBirthFieldView: View {
           .foregroundStyle(Color.darkSlate)
           .accessibilityHidden(true)
         Text("Date of Birth")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(Color.darkSlate)
       }
 
@@ -344,12 +344,12 @@ private struct SignupDateOfBirthFieldView: View {
       }
 
       Text("Recruiting Compass is for ages 13 and up. By entering a date of birth, you confirm you are 13 or older.")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(Color.secondary)
 
       if let error = viewModel.fieldErrors[.dateOfBirth] {
         Text(error)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.red)
       }
 
@@ -376,7 +376,7 @@ private struct SignupPlayerDetailsFieldsView: View {
           .foregroundStyle(Color.darkSlate)
           .accessibilityHidden(true)
         Text("Primary Sport")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(Color.darkSlate)
       }
       Picker(String(localized: "Primary Sport"), selection: $viewModel.primarySport) {
@@ -388,7 +388,7 @@ private struct SignupPlayerDetailsFieldsView: View {
       .pickerStyle(.menu)
       if let error = viewModel.fieldErrors[.primarySport] {
         Text(error)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.red)
       }
     }
@@ -400,7 +400,7 @@ private struct SignupPlayerDetailsFieldsView: View {
           .foregroundStyle(Color.darkSlate)
           .accessibilityHidden(true)
         Text("Graduation Year")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(Color.darkSlate)
       }
       Picker(String(localized: "Graduation Year"), selection: $viewModel.graduationYear) {
@@ -412,7 +412,7 @@ private struct SignupPlayerDetailsFieldsView: View {
       .pickerStyle(.menu)
       if let error = viewModel.fieldErrors[.graduationYear] {
         Text(error)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.red)
       }
     }
@@ -424,7 +424,7 @@ private struct SignupPlayerDetailsFieldsView: View {
             .foregroundStyle(Color.darkSlate)
             .accessibilityHidden(true)
           Text("Gender (Optional)")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .foregroundStyle(Color.darkSlate)
         }
         Picker(String(localized: "Gender"), selection: $viewModel.gender) {
@@ -443,7 +443,7 @@ private struct SignupPlayerDetailsFieldsView: View {
           .foregroundStyle(Color.darkSlate)
           .accessibilityHidden(true)
         Text("Zip Code (Optional)")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(Color.darkSlate)
       }
       LoginFormField(
@@ -496,7 +496,7 @@ private struct SignupGuardianEmailFieldView: View {
       )
 
       Text("Add a parent or guardian now, or invite one later from your dashboard. We'll email them a link — you can start using the app right away, but sending messages to coaches and publishing your profile stay locked until they confirm.")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(Color.secondary)
     }
   }
@@ -658,7 +658,7 @@ private struct SignupCreateAccountButtonView: View {
     }) {
       HStack {
         Text(viewModel.isLoading ? String(localized: "Creating Account...") : String(localized: "Create Account"))
-          .font(.callout.weight(.semibold))
+          .font(.brand(.callout, weight: .semibold))
 
         if viewModel.isLoading {
           ProgressView()
@@ -670,7 +670,7 @@ private struct SignupCreateAccountButtonView: View {
       .frame(minHeight: 48)
       .foregroundStyle(.white)
       .background(
-        LinearGradient.primaryButton
+        Color.accentFill
       )
       .clipShape(.rect(cornerRadius: 8))
       .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
@@ -687,18 +687,18 @@ private struct SignupSignInSectionView: View {
   var body: some View {
     HStack {
       Text("Already have an account?")
-        .font(.footnote)
+        .font(.brand(.footnote))
         .foregroundStyle(Color.tertiaryText)
 
       Button(action: onSignIn) {
         HStack(spacing: 4) {
           Text("Sign In")
-            .font(.footnote.weight(.semibold))
+            .font(.brand(.footnote, weight: .semibold))
           Image(systemName: "arrow.right")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .accessibilityHidden(true)
         }
-        .foregroundStyle(Color.accentBlue)
+        .foregroundStyle(Color.accentPrimary)
         .frame(minHeight: 44)
         .contentShape(Rectangle())
       }

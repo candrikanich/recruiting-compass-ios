@@ -22,7 +22,8 @@ struct TimelineGuidanceView: View {
     ScrollView {
       VStack(spacing: 16) {
         CollapsibleSection(
-          title: String(localized: "⚡ What Matters Right Now"),
+          title: String(localized: "What Matters Right Now"),
+          systemImage: "bolt",
           isExpanded: whatMattersExpanded,
           onToggle: { whatMattersExpanded.toggle() }
         ) {
@@ -34,7 +35,8 @@ struct TimelineGuidanceView: View {
         }
 
         CollapsibleSection(
-          title: String(localized: "📆 Recruiting Calendar"),
+          title: String(localized: "Recruiting Calendar"),
+          systemImage: "calendar",
           isExpanded: calendarExpanded,
           onToggle: { calendarExpanded.toggle() }
         ) {
@@ -47,7 +49,8 @@ struct TimelineGuidanceView: View {
         }
 
         CollapsibleSection(
-          title: String(localized: "❓ Common Worries"),
+          title: String(localized: "Common Worries"),
+          systemImage: "questionmark.circle",
           isExpanded: worriesExpanded,
           onToggle: { worriesExpanded.toggle() }
         ) {
@@ -55,7 +58,8 @@ struct TimelineGuidanceView: View {
         }
 
         CollapsibleSection(
-          title: String(localized: "🛡️ What NOT to Stress About"),
+          title: String(localized: "What NOT to Stress About"),
+          systemImage: "checkmark.shield",
           isExpanded: stressExpanded,
           onToggle: { stressExpanded.toggle() }
         ) {

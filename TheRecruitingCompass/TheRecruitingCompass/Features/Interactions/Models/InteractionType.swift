@@ -71,18 +71,18 @@ enum InteractionType: String, Codable, CaseIterable, Sendable {
 
   var tintColor: Color {
     switch self {
-    case .email:          return Color.Brand.blue600
-    case .phoneCall:      return Color.Brand.purple600
-    case .text:           return Color.Brand.emerald600
-    case .inPersonVisit:  return Color.Brand.orange600
-    case .virtualMeeting: return Color.Brand.indigo600
-    case .camp:           return Color.Brand.orange600
-    case .showcase:       return Color.Brand.purple500
-    case .tweet:          return Color.Brand.blue500
-    case .directMessage:  return Color.Brand.purple600
-    case .game:           return Color.Brand.emerald600
-    case .unofficialVisit: return Color.Brand.indigo600
-    case .officialVisit:  return Color.Brand.blue600
+    case .email:          return Color.Category.forest
+    case .phoneCall:      return Color.Category.gold
+    case .text:           return Color.Category.clay
+    case .inPersonVisit:  return Color.Category.slate
+    case .virtualMeeting: return Color.Category.forest
+    case .camp:           return Color.Category.gold
+    case .showcase:       return Color.Category.clay
+    case .tweet:          return Color.Category.slate
+    case .directMessage:  return Color.Category.forest
+    case .game:           return Color.Category.gold
+    case .unofficialVisit: return Color.Category.clay
+    case .officialVisit:  return Color.Category.forest
     case .other:          return Color.Brand.slate500
     case .unknown:        return Color.Brand.slate500
     }

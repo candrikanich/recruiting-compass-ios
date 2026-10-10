@@ -19,7 +19,7 @@ struct DeadlinesCalendarGridView: View {
       HStack(spacing: 0) {
         ForEach(Array(Self.weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
           Text(symbol)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
         }
@@ -45,7 +45,7 @@ struct DeadlinesCalendarGridView: View {
     } label: {
       VStack(spacing: 4) {
         Text("\(day.dayNumber)")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(day.isCurrentMonth ? .primary : .secondary)
         HStack(spacing: 2) {
           ForEach(Array(items.prefix(Self.maxDots).enumerated()), id: \.offset) { _, item in

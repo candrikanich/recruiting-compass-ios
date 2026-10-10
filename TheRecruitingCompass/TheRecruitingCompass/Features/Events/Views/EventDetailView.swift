@@ -119,11 +119,11 @@ struct EventDetailView: View {
   private var notFoundView: some View {
     VStack(spacing: Layout.errorSpacing) {
       Image(systemName: "calendar.badge.exclamationmark")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
       Text("Event not found")
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.secondary)
       Button("Return to Events") {
         dismiss()
@@ -225,7 +225,7 @@ struct EventDetailView: View {
   private func errorState(message: String) -> some View {
     VStack(spacing: Layout.errorSpacing) {
       Image(systemName: "exclamationmark.triangle")
-        .font(.largeTitle).foregroundStyle(.secondary).accessibilityHidden(true)
+        .font(.brand(.largeTitle)).foregroundStyle(.secondary).accessibilityHidden(true)
       Text(message).multilineTextAlignment(.center)
       Button("Retry") { Task { await viewModel.loadAll() } }.buttonStyle(.bordered)
     }
@@ -234,10 +234,10 @@ struct EventDetailView: View {
 
   private func successToast(_ message: String) -> some View {
     Text(message)
-      .font(.subheadline).fontWeight(.medium).foregroundStyle(.white)
+      .font(.brand(.subheadline)).fontWeight(.medium).foregroundStyle(.white)
       .padding(.horizontal, Layout.toastHorizontalPadding)
       .padding(.vertical, Layout.toastVerticalPadding)
-      .background(.green.gradient, in: Capsule())
+      .background(.green, in: Capsule())
       .shadow(radius: Layout.toastShadowRadius)
       .padding(.bottom, Layout.toastBottomPadding)
       .accessibilityAddTraits(.updatesFrequently)

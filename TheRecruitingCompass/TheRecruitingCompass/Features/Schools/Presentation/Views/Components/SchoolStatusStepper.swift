@@ -55,7 +55,7 @@ struct SchoolStatusStepper: View {
         }
 
         Text(status.stepperLabel)
-          .font(.caption2)
+          .font(.brand(.caption2))
           .fontWeight(state == .current ? .semibold : .regular)
           .foregroundStyle(state == .upcoming ? Color.secondary : Color.primary)
           .multilineTextAlignment(.center)
@@ -90,13 +90,13 @@ struct SchoolStatusStepper: View {
         Image(systemName: "pause.circle.fill")
           .foregroundStyle(.secondary)
         Text("Not pursuing")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         Spacer()
         Button("Reactivate") {
           Task { await onSelect(.researching) }
         }
-        .font(.subheadline.weight(.semibold))
+        .font(.brand(.subheadline, weight: .semibold))
         .disabled(isUpdating)
       }
       .padding(.horizontal, 12)
@@ -108,7 +108,7 @@ struct SchoolStatusStepper: View {
         Task { await onSelect(.notPursuing) }
       } label: {
         Label("Mark not pursuing", systemImage: "xmark.circle")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
       }
       .disabled(isUpdating)
       .accessibilityHint(Text("Removes this school from the active recruiting funnel"))

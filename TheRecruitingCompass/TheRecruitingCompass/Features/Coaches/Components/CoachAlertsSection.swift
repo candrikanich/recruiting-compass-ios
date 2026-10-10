@@ -17,7 +17,7 @@ struct CoachAlertsSection: View {
       if insights.channelPreferenceAlert, let channel = insights.preferredChannel {
         banner(
           icon: "info.circle.fill",
-          tint: Color.Brand.blue600, bg: Color.Brand.blue100, border: Color.Brand.blue100,
+          tint: Color.accentPrimary, bg: Color.Brand.forest100, border: Color.Brand.forest100,
           title: "Channel Preference detected",
           message: "Prefers responding via \(channel.displayName).")
       }
@@ -35,8 +35,8 @@ struct CoachAlertsSection: View {
         .clipShape(Circle())
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 2) {
-        Text(title).font(.subheadline.bold()).foregroundStyle(tint)
-        Text(message).font(.footnote).foregroundStyle(.secondary)
+        Text(title).font(.brand(.subheadline, weight: .bold)).foregroundStyle(tint)
+        Text(message).font(.brand(.footnote)).foregroundStyle(.secondary)
       }
       Spacer(minLength: 0)
     }
