@@ -237,7 +237,7 @@ struct EventDetailView: View {
       .font(.subheadline).fontWeight(.medium).foregroundStyle(.white)
       .padding(.horizontal, Layout.toastHorizontalPadding)
       .padding(.vertical, Layout.toastVerticalPadding)
-      .background(.green.gradient, in: Capsule())
+      .background(.green, in: Capsule())
       .shadow(radius: Layout.toastShadowRadius)
       .padding(.bottom, Layout.toastBottomPadding)
       .accessibilityAddTraits(.updatesFrequently)

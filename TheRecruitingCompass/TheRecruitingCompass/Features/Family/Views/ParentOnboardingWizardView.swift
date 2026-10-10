@@ -10,7 +10,7 @@ struct ParentOnboardingWizardView: View {
   var body: some View {
     NavigationStack {
       ZStack {
-        LinearGradient.primaryBackground
+        Color.Brand.forest600
           .ignoresSafeArea()
 
         VStack(spacing: 0) {
@@ -156,7 +156,7 @@ struct ParentOnboardingWizardView: View {
         }
       }
       .foregroundStyle(.white)
-      .background(LinearGradient.primaryButton)
+      .background(Color.accentFill)
       .clipShape(.rect(cornerRadius: 8))
       .opacity(viewModel.isPlayerDetailsValid && !viewModel.isLoading ? 1 : 0.5)
       .disabled(!viewModel.isPlayerDetailsValid || viewModel.isLoading)

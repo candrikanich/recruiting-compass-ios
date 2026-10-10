@@ -70,7 +70,7 @@ struct FunnelChartView: View {
       GeometryReader { geo in
         let barWidth = max(geo.size.width * widthFraction, 60)
         RoundedRectangle(cornerRadius: 8)
-          .fill(stage.color.gradient)
+          .fill(stage.color)
           .frame(width: barWidth, height: 44)
           .overlay {
             Text("\(stage.value)")

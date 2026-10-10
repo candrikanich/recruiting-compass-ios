@@ -9,7 +9,7 @@ struct AppErrorView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient.primaryBackground
+            Color.Brand.forest600
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
@@ -95,7 +95,7 @@ struct AppErrorView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
                 .foregroundStyle(.white)
-                .background(LinearGradient.primaryButton)
+                .background(Color.accentFill)
                 .clipShape(.rect(cornerRadius: 8))
         }
         .accessibilityLabel(config.primaryButtonLabel)

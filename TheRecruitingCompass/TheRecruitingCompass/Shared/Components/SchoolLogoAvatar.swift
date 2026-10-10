@@ -52,13 +52,7 @@ struct SchoolLogoAvatar: View {
       .font(resolvedFont)
       .foregroundStyle(.white)
       .frame(width: resolvedSize, height: resolvedSize)
-      .background(
-        LinearGradient(
-          colors: [.blueGradientStart, Color(hex: "7C3AED")],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-      )
+      .background(Color.Brand.gold600)
   }
 }
 

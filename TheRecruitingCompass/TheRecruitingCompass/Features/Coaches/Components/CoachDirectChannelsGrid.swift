@@ -35,17 +35,16 @@ struct CoachDirectChannelsGrid: View {
   private func channelPill(_ channel: CoachChannel) -> some View {
     switch channel {
     case .email:
-      pill(label: "Email", system: "envelope.fill", fill: AnyShapeStyle(Color.Brand.blue500), action: onEmail)
+      pill(label: "Email", system: "envelope.fill", fill: AnyShapeStyle(Color.Brand.forest600), action: onEmail)
     case .text:
-      pill(label: "Text", system: "message.fill", fill: AnyShapeStyle(Color.Brand.emerald500), action: onText)
+      pill(label: "Text", system: "message.fill", fill: AnyShapeStyle(Color.Brand.emerald700), action: onText)
     case .call:
-      pill(label: "Call", system: "phone.fill", fill: AnyShapeStyle(Color.Brand.orange500), action: onCall)
+      pill(label: "Call", system: "phone.fill", fill: AnyShapeStyle(Color.Brand.orange700), action: onCall)
     case .twitter:
-      pill(label: "Twitter", asset: "LogoX", fill: AnyShapeStyle(Color.Brand.sky500), action: onTwitter)
+      pill(label: "Twitter", asset: "LogoX", fill: AnyShapeStyle(Color.Brand.forest700), action: onTwitter)
     case .instagram:
       pill(label: "Instagram", asset: "LogoInstagram",
-           fill: AnyShapeStyle(LinearGradient(colors: [Color.Brand.fuchsia500, Color.Brand.pink500],
-                                              startPoint: .topLeading, endPoint: .bottomTrailing)),
+           fill: AnyShapeStyle(Color.Brand.gold700),
            action: onInstagram)
     }
   }

@@ -7,7 +7,7 @@ struct UpdateRequiredView: View {
 
   var body: some View {
     ZStack {
-      LinearGradient.landingBackground
+      Color.Brand.forest600
         .ignoresSafeArea()
 
       VStack(spacing: 24) {

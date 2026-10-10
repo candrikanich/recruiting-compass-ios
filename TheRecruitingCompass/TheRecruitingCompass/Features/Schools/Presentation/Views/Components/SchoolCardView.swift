@@ -106,13 +106,7 @@ struct SchoolCardView: View {
       .font(initialsFont)
       .foregroundStyle(.white)
       .frame(width: initialsSize, height: initialsSize)
-      .background(
-        LinearGradient(
-          colors: [.blueGradientStart, Color(hex: "7C3AED")],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-      )
+      .background(Color.Brand.gold600)
       .clipShape(RoundedRectangle(cornerRadius: 10))
   }
 

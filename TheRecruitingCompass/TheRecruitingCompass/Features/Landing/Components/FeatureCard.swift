@@ -50,5 +50,5 @@ struct FeatureCard: View {
     }
     .padding()
   }
-  .background(LinearGradient.landingBackground)
+  .background(Color.Brand.forest600)
 }

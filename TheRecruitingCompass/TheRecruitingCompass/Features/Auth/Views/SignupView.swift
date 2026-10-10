@@ -9,7 +9,7 @@ struct SignupView: View {
 
   var body: some View {
     ZStack {
-      LinearGradient.primaryBackground
+      Color.Brand.forest600
       .ignoresSafeArea()
 
       VStack(spacing: 0) {
@@ -670,7 +670,7 @@ private struct SignupCreateAccountButtonView: View {
       .frame(minHeight: 48)
       .foregroundStyle(.white)
       .background(
-        LinearGradient.primaryButton
+        Color.accentFill
       )
       .clipShape(.rect(cornerRadius: 8))
       .opacity(viewModel.isButtonDisabled ? 0.5 : 1)

@@ -404,10 +404,7 @@ private struct DashboardLoadingSection: View {
         StatCard(
           title: String(localized: "Loading"),
           count: 0,
-          subtitle: nil,
-          description: nil,
           icon: "circle",
-          gradientColors: [Color.Brand.slate100, Color.Brand.slate100],
           isEnabled: false,
           destination: nil
         )

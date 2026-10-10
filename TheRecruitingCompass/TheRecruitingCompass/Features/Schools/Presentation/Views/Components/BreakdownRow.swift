@@ -29,7 +29,7 @@ struct BreakdownRow: View {
 
           // Progress
           RoundedRectangle(cornerRadius: 4)
-            .fill(color.gradient)
+            .fill(color)
             .frame(width: geometry.size.width * (score / 100), height: 6)
         }
       }

@@ -33,7 +33,7 @@ struct SessionExpiredSheet: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
                     .foregroundStyle(.white)
-                    .background(LinearGradient.primaryButton)
+                    .background(Color.accentFill)
                     .clipShape(.rect(cornerRadius: 8))
             }
             .accessibilityLabel(String(localized: "Sign in again"))

@@ -26,13 +26,7 @@ struct PerformanceChartView: View {
             x: .value("Date", metric.recordedDate),
             y: .value("Value", metric.value)
           )
-          .foregroundStyle(
-            LinearGradient(
-              colors: [Color.accentPrimary.opacity(0.2), Color.accentPrimary.opacity(0.02)],
-              startPoint: .top,
-              endPoint: .bottom
-            )
-          )
+          .foregroundStyle(Color.Brand.forest500.opacity(0.12))
           .interpolationMethod(.catmullRom)
 
           PointMark(

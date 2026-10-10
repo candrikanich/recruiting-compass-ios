@@ -53,7 +53,7 @@ struct InteractionTrendsChart: View {
             x: .value("Date", trend.calendarDay(), unit: .day),
             y: .value("Count", trend.count)
           )
-          .foregroundStyle(Color.primaryGreen.gradient)
+          .foregroundStyle(Color.accentFill)
         }
         .frame(height: 200)
         .chartXAxis {

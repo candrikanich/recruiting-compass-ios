@@ -111,11 +111,6 @@ extension Color {
   static let accentPrimary = Color(light: Color.Brand.forest600, dark: Color.Brand.forest400)
   /// Solid fill behind white text (buttons, avatars). forest-500 in dark keeps white text at 4.9:1.
   static let accentFill = Color(light: Color.Brand.forest600, dark: Color.Brand.forest500)
-  // Gradient-only aliases, removed with AppGradients in the flatten phase.
-  static let emeraldGradientStart = Color.Brand.emerald500
-  static let emeraldGradientEnd = Color.Brand.emerald600
-  static let blueGradientStart = Color.Brand.forest500
-  static let blueGradientEnd = Color.Brand.forest700
   static let errorRed = Color.Brand.red600
   static let errorBackground = Color.Brand.red100
   static let errorBorder = Color(hex: "fecaca")
@@ -144,6 +139,10 @@ extension Color {
     static let muted       = Color(light: Color(hex: "ECEBE5"), dark: Color(hex: "292524"))  // muted fills
     static let border      = Color(light: warmInk.opacity(0.12), dark: Color.white.opacity(0.1))
     static let borderStrong = Color(light: warmInk.opacity(0.22), dark: Color.white.opacity(0.2))
+    // Brand-tinted banner (parent preview): forest-50 fill, forest-200 bottom border, forest-700 text.
+    static let brandTint       = Color(light: Color.Brand.forest50, dark: Color.Brand.forest900)
+    static let brandTintBorder = Color(light: Color.Brand.forest200, dark: Color.Brand.forest700)
+    static let onBrandTint     = Color(light: Color.Brand.forest700, dark: Color.Brand.forest200)
     // Tinted status banners (e.g. ParentOnboardingBanner) — light tint on light mode, dark low-luminance tint on dark mode.
     static let warningTint   = Color(light: Color(hex: "FFFBEB"), dark: Color(hex: "3A2A0A"))
     static let warningAccent = Color(light: Color(hex: "F59E0B"), dark: Color(hex: "D97706"))

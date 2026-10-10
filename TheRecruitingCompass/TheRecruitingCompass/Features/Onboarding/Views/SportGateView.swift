@@ -70,12 +70,8 @@ struct SportGateView: View {
 
   var body: some View {
     ZStack {
-      LinearGradient(
-        colors: [Color(red: 0.94, green: 0.96, blue: 1), Color(red: 0.88, green: 0.9, blue: 1)],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
-      .ignoresSafeArea()
+      Color.Surface.background
+        .ignoresSafeArea()
 
       VStack(spacing: 24) {
         HStack {

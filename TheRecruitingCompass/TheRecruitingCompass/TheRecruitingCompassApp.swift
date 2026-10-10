@@ -330,7 +330,7 @@ private struct AuthenticatedContent: View {
 private struct SessionLoadingView: View {
   var body: some View {
     ZStack {
-      LinearGradient.landingBackground
+      Color.Brand.forest600
         .ignoresSafeArea()
 
       CompassLoadingAnimation()

@@ -112,7 +112,7 @@ struct AsyncButton: View {
   private var background: some View {
     switch style {
     case .primary:
-      LinearGradient.primaryButton
+      Color.accentFill
     case .secondary:
       Color.Brand.slate100
     case .destructive:

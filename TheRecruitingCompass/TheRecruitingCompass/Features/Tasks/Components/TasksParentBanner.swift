@@ -11,16 +11,16 @@ struct TasksParentBanner: View {
     HStack(spacing: 12) {
       Image(systemName: "eye")
         .font(sizeCategory.isAccessibilityCategory ? .title3 : .subheadline)
-        .foregroundStyle(.white)
+        .foregroundStyle(Color.Surface.onBrandTint)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 2) {
         Text("Parent Preview Mode")
           .font(.subheadline.weight(.semibold))
-          .foregroundStyle(.white)
+          .foregroundStyle(Color.Surface.onBrandTint)
         Text("Viewing \(athleteName)'s Tasks (Read-Only)")
           .font(.caption)
-          .foregroundStyle(.white.opacity(0.9))
+          .foregroundStyle(Color.Surface.onBrandTint)
       }
 
       Spacer()
@@ -28,7 +28,7 @@ struct TasksParentBanner: View {
       Button(action: onDismiss) {
         Image(systemName: "xmark.circle.fill")
           .font(sizeCategory.isAccessibilityCategory ? .title2 : .title3)
-          .foregroundStyle(.white.opacity(0.9))
+          .foregroundStyle(Color.Surface.onBrandTint)
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
       }
@@ -37,13 +37,10 @@ struct TasksParentBanner: View {
       .accessibilityHint("Returns to athlete selection")
     }
     .padding()
-    .background(
-      LinearGradient(
-        gradient: Gradient(colors: [Color.accentPrimary, Color(hex: "#2563EB")]),
-        startPoint: .leading,
-        endPoint: .trailing
-      )
-    )
+    .background(Color.Surface.brandTint)
+    .overlay(alignment: .bottom) {
+      Rectangle().fill(Color.Surface.brandTintBorder).frame(height: 1)
+    }
     .accessibilityElement(children: .combine)
     .accessibilityLabel(String(localized: "Parent preview mode, viewing \(athleteName)'s tasks, read only"))
   }

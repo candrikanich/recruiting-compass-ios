@@ -8,7 +8,7 @@ struct InviteJoinView: View {
   var body: some View {
     NavigationStack {
       ZStack {
-        LinearGradient.primaryBackground
+        Color.Brand.forest600
           .ignoresSafeArea()
 
         InviteJoinStateContent(viewModel: viewModel, presentedLegal: $presentedLegal, dismiss: dismiss)

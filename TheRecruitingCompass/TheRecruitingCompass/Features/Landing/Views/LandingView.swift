@@ -8,7 +8,7 @@ struct LandingView: View {
 
   var body: some View {
     ZStack {
-      LinearGradient.landingBackground
+      Color.Brand.forest600
         .ignoresSafeArea()
 
       ScrollView {
@@ -153,7 +153,7 @@ struct LandingView: View {
             .padding(.vertical, 14)
             .padding(.horizontal, 16)
             .frame(minHeight: 48)
-            .background(LinearGradient.primaryButton)
+            .background(Color.accentFill)
             .foregroundStyle(.white)
             .clipShape(.rect(cornerRadius: 12))
             .shadow(radius: 5)

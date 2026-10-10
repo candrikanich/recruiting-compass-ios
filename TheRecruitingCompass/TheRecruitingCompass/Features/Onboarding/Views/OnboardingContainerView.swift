@@ -29,7 +29,7 @@ struct OnboardingContainerView: View {
   var body: some View {
     NavigationStack {
       ZStack {
-        LinearGradient.primaryBackground
+        Color.Brand.forest600
           .ignoresSafeArea()
 
         VStack(spacing: 0) {

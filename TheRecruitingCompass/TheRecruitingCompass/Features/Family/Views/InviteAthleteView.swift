@@ -49,7 +49,7 @@ struct InviteAthleteView: View {
           .frame(maxWidth: .infinity)
           .frame(minHeight: 48)
           .foregroundStyle(.white)
-          .background(LinearGradient.primaryButton)
+          .background(Color.accentFill)
           .clipShape(.rect(cornerRadius: 8))
           .opacity(!viewModel.isInviteStepValid || viewModel.isLoading ? 0.5 : 1)
           .disabled(!viewModel.isInviteStepValid || viewModel.isLoading)

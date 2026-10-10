@@ -564,11 +564,7 @@ private struct InitialsAvatar: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [Color.blue.opacity(0.7), Color.blue],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Color.accentFill
             Text(initials)
                 .font(.title2.weight(.semibold))
                 .foregroundStyle(.white)

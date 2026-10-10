@@ -33,13 +33,7 @@ struct PlayerCompletenessCard: View {
                     .fill(Color(.systemGray5))
                     .frame(maxWidth: .infinity, maxHeight: 8)
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(
-                        LinearGradient(
-                            colors: [.red, .yellow, .green],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .fill(Color.accentFill)
                     .frame(maxWidth: .infinity, maxHeight: 8)
                     .scaleEffect(x: max(score, 0.001), anchor: .leading)
                     .animation(reduceMotion ? nil : .spring(response: 0.4), value: score)
