@@ -34,6 +34,7 @@ struct TheRecruitingCompassApp: App {
   init() {
     CrashReporting.start()
     Analytics.setup()
+    BrandFont.configureNavigationBarAppearance()
   }
 
   var body: some Scene {
