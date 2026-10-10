@@ -67,7 +67,7 @@ struct EventRowView: View {
     let label = event.attended
       ? String(localized: "Attended")
       : event.registered ? String(localized: "Registered") : String(localized: "Not Registered")
-    let color: Color = event.attended ? .green : event.registered ? .blue : .gray
+    let color: Color = event.attended ? .green : event.registered ? Color.accentPrimary : .gray
     Text(label)
       .font(.caption)
       .fontWeight(.semibold)
@@ -80,10 +80,10 @@ struct EventRowView: View {
 
   private var typeColor: Color {
     switch EventType(rawValue: event.type) {
-    case .showcase: return .purple
+    case .showcase: return Color.Category.gold
     case .camp: return .green
-    case .officialVisit: return .blue
-    case .unofficialVisit: return .cyan
+    case .officialVisit: return Color.accentPrimary
+    case .unofficialVisit: return Color.Category.clay
     case .game: return .orange
     case nil: return .gray
     }

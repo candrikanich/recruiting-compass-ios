@@ -220,7 +220,7 @@ private struct ProfileEmailSection: View {
                     systemImage: "envelope.badge"
                 )
                 .font(.subheadline)
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.accentPrimary)
                 .accessibilityLabel(String(localized: "Verification email sent. Check your inbox."))
             }
 

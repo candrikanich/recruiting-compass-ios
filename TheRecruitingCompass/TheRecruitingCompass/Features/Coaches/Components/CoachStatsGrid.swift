@@ -50,7 +50,7 @@ struct CoachStatsGrid: View {
       valueColor: .primary,
       highlighted: false
     ) {
-      subPill("\(insights.totalInteractions) logged", text: Color.Brand.blue600, background: Color.Brand.blue100)
+      subPill("\(insights.totalInteractions) logged", text: Color.accentPrimary, background: Color.Brand.forest100)
     }
   }
 

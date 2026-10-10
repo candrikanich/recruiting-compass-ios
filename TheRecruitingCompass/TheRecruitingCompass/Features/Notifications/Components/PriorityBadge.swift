@@ -31,10 +31,10 @@ struct PriorityBadge: View, Equatable {
 
   private enum Palette {
     static let highText = Color(hex: "#B91C1C")
-    static let normalText = Color(hex: "#1D4ED8")
-    static let mutedText = Color(hex: "#4B5563")
+    static let normalText = Color(hex: "#254B20")
+    static let mutedText = Color(hex: "#57534E")
     static let highBackground = Color(hex: "#FEE2E2")
-    static let normalBackground = Color(hex: "#DBEAFE")
-    static let mutedBackground = Color(hex: "#F3F4F6")
+    static let normalBackground = Color(hex: "#E3EDE0")
+    static let mutedBackground = Color(hex: "#F5F5F0")
   }
 }

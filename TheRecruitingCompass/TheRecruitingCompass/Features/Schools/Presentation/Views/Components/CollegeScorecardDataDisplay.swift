@@ -16,7 +16,7 @@ struct CollegeScorecardDataDisplay: View {
       // Section Header
       HStack {
         Image(systemName: "chart.bar.fill")
-          .foregroundStyle(.blue)
+          .foregroundStyle(Color.accentPrimary)
           .accessibilityHidden(true)
 
         Text("College Scorecard Data")
@@ -124,7 +124,7 @@ struct CollegeScorecardDataDisplay: View {
       }
     }
     .padding()
-    .background(Color.blue.opacity(0.05))
+    .background(Color.accentPrimary.opacity(0.05))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .contain)
     .accessibilityLabel(String(localized: "College Scorecard academic data"))
@@ -137,7 +137,7 @@ struct CollegeScorecardDataDisplay: View {
       HStack(spacing: 4) {
         Image(systemName: icon)
           .font(.caption)
-          .foregroundStyle(.blue)
+          .foregroundStyle(Color.accentPrimary)
           .accessibilityHidden(true)
 
         Text(label)

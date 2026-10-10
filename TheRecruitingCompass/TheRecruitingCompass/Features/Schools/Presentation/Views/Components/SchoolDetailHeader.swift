@@ -48,7 +48,7 @@ struct SchoolDetailHeader: View {
         // School logo or initials
         ZStack {
           RoundedRectangle(cornerRadius: 12)
-            .fill(Color.blue.opacity(0.2))
+            .fill(Color.accentPrimary.opacity(0.2))
             .frame(width: 56, height: 56)
 
           if let faviconUrl = school.faviconUrl, let url = URL(string: faviconUrl) {
@@ -60,7 +60,7 @@ struct SchoolDetailHeader: View {
               Text(school.initials)
                 .font(.title2)
                 .bold()
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.accentPrimary)
             }
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -68,7 +68,7 @@ struct SchoolDetailHeader: View {
             Text(school.initials)
               .font(.title2)
               .bold()
-              .foregroundStyle(.blue)
+              .foregroundStyle(Color.accentPrimary)
           }
         }
         .accessibilityHidden(true)

@@ -54,7 +54,7 @@ struct WarningBanner: View {
     WarningBanner(
       title: "Info",
       message: "This is an informational message.",
-      color: .blue
+      color: Color.accentPrimary
     )
   }
   .padding()

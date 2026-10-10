@@ -105,7 +105,7 @@ struct ProfileCompletenessCard: View {
   private var ringColor: Color {
     if percentage >= 0.80 { return Color.successGreen }
     if percentage >= 0.50 { return Color.amberGold }
-    return Color.Brand.blue600
+    return Color.accentPrimary
   }
 
   // MARK: - Compact Bar (>= 80%)

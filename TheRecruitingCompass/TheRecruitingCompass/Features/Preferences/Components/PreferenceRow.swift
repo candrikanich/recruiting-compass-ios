@@ -56,10 +56,10 @@ struct PreferenceRow: View {
 
   private var categoryColor: Color {
     switch preference.category {
-    case .location: return .blue
+    case .location: return Color.accentPrimary
     case .academic: return .green
     case .program: return .orange
-    case .custom: return .purple
+    case .custom: return Color.Category.gold
     }
   }
 

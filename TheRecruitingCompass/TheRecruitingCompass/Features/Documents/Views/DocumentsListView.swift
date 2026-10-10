@@ -204,7 +204,7 @@ struct DocumentsListView: View {
         .fontWeight(.semibold)
         .foregroundStyle(.white)
         .frame(width: 64, height: 64)
-        .background(Color.blue)
+        .background(Color.accentFill)
         .clipShape(Circle())
         .brandShadowSm()
     }

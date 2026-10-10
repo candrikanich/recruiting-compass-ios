@@ -42,8 +42,8 @@ struct RoleSelectionCard: View {
       .padding(16)
       .background(
         isSelected
-          ? Color.primaryGreen
-          : Color.primaryGreen.opacity(0.85)
+          ? Color.accentFill
+          : Color.accentFill.opacity(0.85)
       )
       .clipShape(.rect(cornerRadius: 12))
     }

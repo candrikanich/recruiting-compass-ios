@@ -10,7 +10,7 @@ struct AthleteRow: View {
       HStack(spacing: 12) {
         Image(systemName: "person.circle.fill")
           .font(.title2)
-          .foregroundStyle(isSelected ? Color.primaryGreen : Color.iconGray)
+          .foregroundStyle(isSelected ? Color.accentPrimary : Color.iconGray)
 
         VStack(alignment: .leading, spacing: 2) {
           Text(athlete.role.capitalized)
@@ -27,11 +27,11 @@ struct AthleteRow: View {
 
         if isSelected {
           Image(systemName: "checkmark.circle.fill")
-            .foregroundStyle(Color.primaryGreen)
+            .foregroundStyle(Color.accentPrimary)
         }
       }
       .padding(12)
-      .background(isSelected ? Color.primaryGreen.opacity(0.1) : Color(.secondarySystemBackground))
+      .background(isSelected ? Color.accentPrimary.opacity(0.1) : Color(.secondarySystemBackground))
       .clipShape(.rect(cornerRadius: 8))
     }
     .buttonStyle(.plain)

@@ -76,7 +76,7 @@ struct FilterChip: View {
     case .outlined:
       return Color.accentPrimary.opacity(0.12)
     case .filled:
-      return Color.blue
+      return Color.accentFill
     }
   }
 

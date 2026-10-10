@@ -11,7 +11,7 @@ struct TemplateCard: View {
       HStack(spacing: 12) {
         Image(systemName: icon)
           .font(.title2)
-          .foregroundStyle(.blue)
+          .foregroundStyle(Color.accentPrimary)
           .frame(width: 40)
 
         VStack(alignment: .leading, spacing: 4) {

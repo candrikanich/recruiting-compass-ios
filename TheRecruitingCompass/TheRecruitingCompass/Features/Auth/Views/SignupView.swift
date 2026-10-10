@@ -241,7 +241,7 @@ private struct SignupRoleHeaderView: View {
             Text(role.displayName)
               .font(.footnote.weight(.semibold))
           }
-          .foregroundStyle(Color.primaryGreen)
+          .foregroundStyle(Color.accentPrimary)
         }
       }
       .frame(minHeight: 44)

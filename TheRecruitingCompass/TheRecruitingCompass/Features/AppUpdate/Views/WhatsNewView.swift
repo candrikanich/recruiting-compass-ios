@@ -16,7 +16,7 @@ struct WhatsNewView: View {
             HStack(alignment: .top, spacing: 16) {
               Image(systemName: highlight.systemImage)
                 .font(.title2)
-                .foregroundStyle(Color.primaryGreen)
+                .foregroundStyle(Color.accentPrimary)
                 .frame(width: 36)
                 .accessibilityHidden(true)
 
@@ -41,7 +41,7 @@ struct WhatsNewView: View {
             .frame(maxWidth: .infinity, minHeight: 50)
         }
         .buttonStyle(.borderedProminent)
-        .tint(Color.primaryGreen)
+        .tint(Color.accentPrimary)
         .padding(24)
       }
     }

@@ -85,7 +85,7 @@ struct ResetPasswordView: View {
     VStack(spacing: 24) {
       Image(systemName: "lock.rotation")
         .font(.system(size: iconSize))
-        .foregroundStyle(Color.primaryGreen)
+        .foregroundStyle(Color.accentPrimary)
         .padding(.vertical, 12)
         .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
         .accessibilityHidden(true)

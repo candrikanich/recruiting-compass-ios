@@ -73,17 +73,17 @@ enum MoreMenuSection: String, CaseIterable, Identifiable {
 
   var color: Color {
     switch self {
-    case .timeline: return .blue
-    case .events: return .purple
+    case .timeline: return Color.accentPrimary
+    case .events: return Color.Category.gold
     case .deadlines: return .red
-    case .documents: return .blue
+    case .documents: return Color.accentPrimary
     case .offers: return .green
     case .performance: return .orange
-    case .analytics: return .purple
+    case .analytics: return Color.Category.gold
     case .activity: return .accentPrimary
     case .inboundDrafts: return .accentPrimary
     case .helpCenter: return .accentPrimary
-    case .publicProfile: return .teal
+    case .publicProfile: return Color.Category.clay
     case .notifications: return .orange
     case .settings: return Color.iconGray
     }

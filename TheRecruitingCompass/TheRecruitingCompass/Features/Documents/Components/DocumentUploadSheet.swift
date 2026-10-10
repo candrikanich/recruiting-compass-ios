@@ -77,7 +77,7 @@ struct DocumentUploadSheet: View {
             VStack(alignment: .leading, spacing: 8) {
               if viewModel.uploadProgress > 0 && viewModel.uploadProgress < 1 {
                 ProgressView(value: viewModel.uploadProgress)
-                  .tint(.blue)
+                  .tint(Color.accentPrimary)
               } else {
                 ProgressView()
               }

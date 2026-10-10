@@ -33,11 +33,6 @@ extension Color {
     static let clay100 = Color(hex: "f2e6dc")
     static let clay600 = Color(hex: "6b4423")
     static let clay700 = Color(hex: "573719")
-    // Blue — primary actions, links, in-progress
-    static let blue100 = Color(hex: "dbeafe")
-    static let blue500 = Color(hex: "3b82f6")
-    static let blue600 = Color(hex: "2563eb")
-    static let blue700 = Color(hex: "1d4ed8")
     // Emerald — success, completed, inbound
     static let emerald100 = Color(hex: "d1fae5")
     static let emerald200 = Color(hex: "bbf7d0")
@@ -52,11 +47,6 @@ extension Color {
     static let orange600 = Color(hex: "ea580c")
     static let orange700 = Color(hex: "c2410c")
     static let orange800 = Color(hex: "9a3412")
-    // Purple — secondary, outbound, academic
-    static let purple100 = Color(hex: "ede9fe")
-    static let purple500 = Color(hex: "8b5cf6")
-    static let purple600 = Color(hex: "7c3aed")
-    static let purple700 = Color(hex: "6d28d9")
     // Red — error, danger, destructive, negative
     static let red100 = Color(hex: "fee2e2")
     static let red200 = Color(hex: "fecaca")
@@ -75,17 +65,16 @@ extension Color {
     static let slate700 = Color(hex: "44403c")
     static let slate800 = Color(hex: "292524")
     static let slate900 = Color(hex: "1c1917")
-    // Pink — Instagram brand mark tint (web brand-pink-500)
-    static let pink500 = Color(hex: "ec4899")
-    // Sky — Twitter channel button (web brand-sky-500)
-    static let sky500 = Color(hex: "0ea5e9")
-    // Fuchsia — Instagram channel gradient start (web brand-fuchsia-500)
-    static let fuchsia500 = Color(hex: "d946ef")
-    // Indigo — accent (reserved for future button use)
-    static let indigo100 = Color(hex: "e0e7ff")
-    static let indigo500 = Color(hex: "6366f1")
-    static let indigo600 = Color(hex: "4f46e5")
-    static let indigo700 = Color(hex: "4338ca")
+  }
+
+  // MARK: - Categorical Palette
+  // Forest -> gold -> clay -> slate, in that order, before adding anything else. Adaptive so the hues
+  // stay legible on dark cards (the 600 steps fail AA there).
+  enum Category {
+    static let forest = Color.accentPrimary
+    static let gold = Color(light: Color.Brand.gold600, dark: Color.Brand.gold400)
+    static let clay = Color(light: Color.Brand.clay600, dark: Color(hex: "c49a7a"))
+    static let slate = Color(light: Color.Brand.slate600, dark: Color.Brand.slate400)
   }
 
   // MARK: - Semantic Aliases

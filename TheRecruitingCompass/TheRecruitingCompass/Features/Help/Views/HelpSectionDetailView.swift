@@ -237,7 +237,10 @@ private struct HelpPhasesContent: View {
           .font(.subheadline)
           .foregroundStyle(.secondary)
         letterStatusRow(label: "Requested", color: .orange, text: "You've submitted the request. Waiting for the recommender to confirm.")
-        letterStatusRow(label: "In progress", color: .blue, text: "The recommender has confirmed they'll write it.")
+        letterStatusRow(
+          label: "In progress", color: Color.accentPrimary,
+          text: "The recommender has confirmed they'll write it."
+        )
         letterStatusRow(label: "Received", color: .green, text: "The letter has been submitted to the school or delivered to you.")
       }
     }

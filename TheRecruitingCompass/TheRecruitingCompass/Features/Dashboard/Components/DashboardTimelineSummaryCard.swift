@@ -18,7 +18,7 @@ struct DashboardTimelineSummaryCard: View {
     switch phase {
     case .freshman: return .successGreen
     case .sophomore: return .accentPrimary
-    case .junior: return .purple
+    case .junior: return Color.Category.gold
     case .senior: return Color(hex: "F59E0B")
     case .committed: return .successGreen
     case .unknown: return .secondary

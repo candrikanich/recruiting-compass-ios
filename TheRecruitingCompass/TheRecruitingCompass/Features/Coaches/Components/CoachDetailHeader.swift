@@ -51,7 +51,7 @@ struct CoachDetailHeader: View {
       }
 
       HStack(spacing: 8) {
-        iconButton(system: "pencil", tint: Color.Brand.blue600, bg: Color.Brand.blue100,
+        iconButton(system: "pencil", tint: Color.accentPrimary, bg: Color.Brand.forest100,
                    label: "Edit coach", action: onEdit)
         iconButton(system: "trash", tint: Color.Brand.red600, bg: Color.Brand.red100,
                    label: "Delete coach", action: onDelete)

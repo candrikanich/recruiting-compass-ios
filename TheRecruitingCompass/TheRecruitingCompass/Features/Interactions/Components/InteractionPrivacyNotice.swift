@@ -5,18 +5,18 @@ struct InteractionPrivacyNotice: View {
     HStack(alignment: .top, spacing: 12) {
       Image(systemName: "info.circle.fill")
         .font(.title3)
-        .foregroundStyle(.blue)
+        .foregroundStyle(Color.accentPrimary)
         .accessibilityHidden(true)
 
       Text("Your recruiting interactions are visible to your linked parent(s)")
         .font(.subheadline)
-        .foregroundStyle(.blue.opacity(0.9))
+        .foregroundStyle(Color.accentPrimary.opacity(0.9))
         .fixedSize(horizontal: false, vertical: true)
 
       Spacer(minLength: 0)
     }
     .padding(12)
-    .background(Color.blue.opacity(0.1))
+    .background(Color.accentPrimary.opacity(0.1))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .combine)
     .accessibilityLabel(String(localized: "Privacy notice: Your recruiting interactions are visible to your linked parents"))

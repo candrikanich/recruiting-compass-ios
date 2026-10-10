@@ -67,7 +67,7 @@ struct DocumentCardView: View {
       .font(.caption)
       .padding(.horizontal, 8)
       .padding(.vertical, 4)
-      .background(Color.blue.opacity(0.2))
+      .background(Color.accentPrimary.opacity(0.2))
       .foregroundStyle(.primary)
       .clipShape(.rect(cornerRadius: 6))
   }

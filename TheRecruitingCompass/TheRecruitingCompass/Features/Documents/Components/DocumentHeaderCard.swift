@@ -47,7 +47,7 @@ struct DocumentHeaderCard: View {
             .frame(minWidth: 88, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)
-        .tint(.primaryGreen)
+        .tint(Color.accentFill)
         .accessibilityLabel(String(localized: "Share document with schools"))
 
         Button(role: .destructive, action: onDelete) {

@@ -16,7 +16,7 @@ struct DocumentFilterSheet: View {
                 Spacer()
                 if viewModel.selectedTypes.contains(type) {
                   Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(Color.accentPrimary)
                 }
               }
             }

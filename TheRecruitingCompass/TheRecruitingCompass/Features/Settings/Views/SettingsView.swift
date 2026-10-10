@@ -100,7 +100,7 @@ struct SettingsView: View {
               icon: "house.fill",
               title: String(localized: "Home Location"),
               description: String(localized: "Set your home address to calculate distances to schools"),
-              color: .blue,
+              color: Color.accentPrimary,
               badgeStatus: viewModel.homeLocationStatus
             )
           }
@@ -120,7 +120,7 @@ struct SettingsView: View {
               icon: "play.rectangle.fill",
               title: String(localized: "Video Links"),
               description: String(localized: "Highlight and film links coaches can watch"),
-              color: .blue
+              color: Color.accentPrimary
             )
           }
         } header: {
@@ -134,7 +134,7 @@ struct SettingsView: View {
               icon: "target",
               title: String(localized: "School Preferences"),
               description: String(localized: "Set criteria for finding your ideal schools"),
-              color: .purple,
+              color: Color.Category.gold,
               badgeStatus: viewModel.schoolPreferencesStatus
             )
           }
@@ -149,7 +149,7 @@ struct SettingsView: View {
               icon: "slider.horizontal.3",
               title: String(localized: "Dashboard Customization"),
               description: String(localized: "Show or hide dashboard widgets"),
-              color: .blue
+              color: Color.accentPrimary
             )
           }
         } header: {
@@ -234,7 +234,7 @@ struct SettingsView: View {
               icon: "person.circle.fill",
               title: String(localized: "User Settings"),
               description: String(localized: "Photo, name, email, password, and account settings"),
-              color: .blue
+              color: Color.accentPrimary
             )
           }
         } header: {

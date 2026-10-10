@@ -20,12 +20,12 @@ struct FamilyMemberCard: View {
   var body: some View {
     HStack(spacing: FamilyConstants.Spacing.small) {
       Circle()
-        .fill(Color.blue.opacity(0.2))
+        .fill(Color.accentPrimary.opacity(0.2))
         .frame(width: 44, height: 44)
         .overlay(
           Text(initials)
             .font(.headline)
-            .foregroundStyle(.blue)
+            .foregroundStyle(Color.accentPrimary)
         )
         .accessibilityHidden(true)
 

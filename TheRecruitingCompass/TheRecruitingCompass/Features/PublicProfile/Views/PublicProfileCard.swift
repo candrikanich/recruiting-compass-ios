@@ -160,7 +160,7 @@ struct PublicProfileCard: View {
                             .font(.caption.weight(.semibold))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 3)
-                            .background(Color.blue)
+                            .background(Color.accentFill)
                             .foregroundStyle(.white)
                             .clipShape(Capsule())
                     }
@@ -277,7 +277,7 @@ struct PublicProfileCard: View {
                 .font(.footnote.weight(.medium))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(Color.blue)
+                .background(Color.accentFill)
                 .foregroundStyle(.white)
                 .clipShape(Capsule())
         }

@@ -40,7 +40,7 @@ struct UpdateRequiredView: View {
             .frame(maxWidth: .infinity, minHeight: 50)
         }
         .buttonStyle(.borderedProminent)
-        .tint(Color.primaryGreen)
+        .tint(Color.accentFill)
         .accessibilityHint("Opens the App Store")
 
         Text("You're on version \(AppInfo.displayVersion)")

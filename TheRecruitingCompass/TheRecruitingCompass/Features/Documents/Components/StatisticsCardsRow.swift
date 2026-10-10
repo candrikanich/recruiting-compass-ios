@@ -9,7 +9,7 @@ struct DocumentStatisticsCardsRow: View {
         DocumentStatCard(
           label: "Total Documents",
           value: "\(statistics.total)",
-          color: .blue
+          color: Color.accentPrimary
         )
         DocumentStatCard(
           label: "Shared Documents",
@@ -19,7 +19,7 @@ struct DocumentStatisticsCardsRow: View {
         DocumentStatCard(
           label: "Most Common Type",
           value: statistics.mostCommonType,
-          color: .purple
+          color: Color.Category.gold
         )
         DocumentStatCard(
           label: "Total Storage",

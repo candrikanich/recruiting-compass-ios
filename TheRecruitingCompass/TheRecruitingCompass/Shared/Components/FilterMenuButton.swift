@@ -55,7 +55,7 @@ struct FilterMenuButton: View {
     case .capsule:
       return isActive ? Color.accentPrimary.opacity(0.12) : Color(.secondarySystemBackground)
     case .rounded:
-      return isActive ? Color.blue : Color(.systemGray6)
+      return isActive ? Color.accentFill : Color(.systemGray6)
     }
   }
 

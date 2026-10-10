@@ -19,7 +19,7 @@ struct MetricRow: View {
     HStack(spacing: 12) {
       Image(systemName: metricIcon)
         .font(.title3)
-        .foregroundStyle(Color.primaryGreen)
+        .foregroundStyle(Color.accentPrimary)
         .frame(width: 32)
         .accessibilityHidden(true)
 

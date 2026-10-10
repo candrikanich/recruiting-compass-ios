@@ -42,7 +42,7 @@ struct EmailVerificationBanner: View {
       if let resendMessage = viewModel.resendMessage {
         Text(resendMessage)
           .font(.caption.weight(.medium))
-          .foregroundStyle(viewModel.resendFailed ? .red : .blue)
+          .foregroundStyle(viewModel.resendFailed ? .red : Color.accentPrimary)
       }
 
       Button(action: { Task { await viewModel.resend() } }) {

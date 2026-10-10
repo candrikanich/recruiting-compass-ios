@@ -16,11 +16,11 @@ extension TaskWithStatus {
 
   var categoryColor: Color {
     switch category.lowercased() {
-    case "academic": return Color.Brand.blue600
-    case "athletic": return Color.Brand.purple600
-    case "recruiting": return Color.Brand.emerald600
-    case "exposure": return Color.Brand.orange600
-    case "mindset": return Color.Brand.pink500
+    case "academic": return Color.Category.forest
+    case "athletic": return Color.Category.gold
+    case "recruiting": return Color.Category.clay
+    case "exposure": return Color.Category.slate
+    case "mindset": return Color.Category.forest
     default: return .secondary
     }
   }

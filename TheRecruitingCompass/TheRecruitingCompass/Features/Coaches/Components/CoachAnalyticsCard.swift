@@ -24,7 +24,7 @@ struct CoachAnalyticsCard: View {
           GeometryReader { geo in
             ZStack(alignment: .leading) {
               Capsule().fill(Color.Brand.emerald500)
-              Capsule().fill(Color.Brand.blue500).frame(width: geo.size.width * sentFraction)
+              Capsule().fill(Color.Brand.forest500).frame(width: geo.size.width * sentFraction)
             }
           }
           .frame(height: 6)

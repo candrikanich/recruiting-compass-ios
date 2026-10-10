@@ -11,10 +11,10 @@ struct NotificationCard: View, Equatable {
   }
 
   private enum Palette {
-    static let unreadTitle = Color(hex: "#1E40AF")
-    static let unreadBackground = Color(hex: "#EFF6FF")
-    static let unreadBar = Color(hex: "#3B82F6")
-    static let readBar = Color(hex: "#9CA3AF")
+    static let unreadTitle = Color(hex: "#1D3B19")
+    static let unreadBackground = Color(hex: "#F3F7F1")
+    static let unreadBar = Color(hex: "#4A7D3F")
+    static let readBar = Color(hex: "#A8A29E")
   }
 
   var body: some View {

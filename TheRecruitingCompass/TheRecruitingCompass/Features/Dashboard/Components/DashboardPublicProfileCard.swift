@@ -55,7 +55,7 @@ struct DashboardPublicProfileCard: View {
   private var header: some View {
     HStack(spacing: 8) {
       Image(systemName: "person.crop.circle.badge.checkmark")
-        .foregroundStyle(.teal)
+        .foregroundStyle(Color.Category.clay)
         .accessibilityHidden(true)
       Text(String(localized: "Public Profile"))
         .font(.headline)

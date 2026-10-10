@@ -127,7 +127,7 @@ struct SchoolFilterBar: View {
       .padding(.horizontal, 12)
       .padding(.vertical, 8)
       .frame(minHeight: chipHeight)
-      .background(filters.isFavoritesOnly ? Color.blue : Color(.systemGray5))
+      .background(filters.isFavoritesOnly ? Color.accentFill : Color(.systemGray5))
       .clipShape(Capsule())
     }
     .accessibilityLabel(String(localized: "Favorites filter"))

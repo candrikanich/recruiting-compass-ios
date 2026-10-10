@@ -56,7 +56,7 @@ struct FamilyManagementParentView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, FamilyConstants.Spacing.small)
-        .background(viewModel.isCodeInputValid && !viewModel.isLoading ? Color.blue : Color.gray)
+        .background(viewModel.isCodeInputValid && !viewModel.isLoading ? Color.accentFill : Color.gray)
         .foregroundStyle(.white)
         .clipShape(.rect(cornerRadius: 8))
         .disabled(!viewModel.isCodeInputValid || viewModel.isLoading)

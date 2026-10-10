@@ -6,7 +6,7 @@ struct StatusHistoryRow: View {
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
       Image(systemName: "arrow.right.circle.fill")
-        .foregroundStyle(.blue)
+        .foregroundStyle(Color.accentPrimary)
         .font(.title3)
         .accessibilityHidden(true)
 

@@ -37,7 +37,7 @@ enum TemplateType: String, Codable, CaseIterable, Sendable {
     switch self {
     case .email: return .accentPrimary
     case .message: return .successGreen
-    case .social: return .cyan
+    case .social: return Color.Category.clay
     case .unknown: return .gray
     }
   }

@@ -143,7 +143,7 @@ struct ScholarshipCalculatorView: View {
   @ViewBuilder
   private var resultsSection: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-      resultCard(label: String(localized: "Annual Scholarship"), value: annualScholarship, color: .blue)
+      resultCard(label: String(localized: "Annual Scholarship"), value: annualScholarship, color: Color.accentPrimary)
       resultCard(label: String(localized: "Annual Net Cost"), value: annualNetCost, color: .orange)
       resultCard(label: String(localized: "Total Scholarship (\(years)yr)"), value: totalScholarship, color: .green)
       resultCard(label: String(localized: "Total Net Cost (\(years)yr)"), value: totalNetCost, color: .red)
@@ -176,7 +176,7 @@ struct ScholarshipCalculatorView: View {
 
           Text("-\(Self.formatCurrency(additionalAid))")
             .font(.caption)
-            .foregroundStyle(.blue)
+            .foregroundStyle(Color.accentPrimary)
 
           Text(Self.formatCurrency(annualNetCost))
             .font(.caption)

@@ -81,7 +81,7 @@ struct ActivityEventItem: View {
   private var iconBackgroundColor: Color {
     switch event.type {
     case .interaction: return .accentPrimary
-    case .schoolStatusChange: return .primaryGreen
+    case .schoolStatusChange: return Color.Brand.gold600
     case .documentUpload: return .amberGold
     }
   }

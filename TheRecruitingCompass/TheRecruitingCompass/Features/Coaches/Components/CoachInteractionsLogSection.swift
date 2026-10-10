@@ -146,8 +146,8 @@ struct CoachInteractionsLogSection: View {
                   label: Color.secondaryText, value: .primary,
                   background: Color(uiColor: .systemGray6), border: Color(uiColor: .separator))
       summaryTile(String(localized: "Sent"), "\(sentCount)",
-                  label: Color.Brand.blue600, value: Color.Brand.blue600,
-                  background: Color.Brand.blue100, border: Color.Brand.blue100)
+                  label: Color.accentPrimary, value: Color.accentPrimary,
+                  background: Color.Brand.forest100, border: Color.Brand.forest100)
       summaryTile(String(localized: "Received"), "\(receivedCount)",
                   label: Color.Brand.emerald600, value: Color.Brand.emerald600,
                   background: Color.Brand.emerald100, border: Color.Brand.emerald100)

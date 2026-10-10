@@ -37,7 +37,7 @@ struct GuardianPendingBanner: View {
       if let resendMessage = viewModel.resendMessage {
         Text(resendMessage)
           .font(.caption.weight(.medium))
-          .foregroundStyle(.blue)
+          .foregroundStyle(Color.accentPrimary)
       }
 
       Button(action: { Task { await viewModel.resend() } }) {

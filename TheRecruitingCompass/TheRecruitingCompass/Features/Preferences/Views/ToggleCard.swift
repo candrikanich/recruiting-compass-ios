@@ -16,7 +16,7 @@ struct ToggleCard: View {
       VStack(spacing: 8) {
         Image(systemName: icon)
           .font(.title2)
-          .foregroundStyle(isComingSoon ? Color.gray.opacity(0.4) : (isOn ? Color.blue : Color.gray))
+          .foregroundStyle(isComingSoon ? Color.gray.opacity(0.4) : (isOn ? Color.accentPrimary : Color.gray))
 
         Text(label)
           .font(.caption)
@@ -47,11 +47,13 @@ struct ToggleCard: View {
       .padding(.vertical, 12)
       .background(
         RoundedRectangle(cornerRadius: 8)
-          .fill(isComingSoon ? Color(.systemGray6).opacity(0.5) : (isOn ? Color.blue.opacity(0.1) : Color(.systemGray6)))
+          .fill(isComingSoon
+                ? Color(.systemGray6).opacity(0.5)
+                : (isOn ? Color.accentPrimary.opacity(0.1) : Color(.systemGray6)))
       )
       .overlay(
         RoundedRectangle(cornerRadius: 8)
-          .stroke(isOn && !isComingSoon ? Color.blue : Color.clear, lineWidth: 3)
+          .stroke(isOn && !isComingSoon ? Color.accentPrimary : Color.clear, lineWidth: 3)
       )
       .scaleEffect(isOn && !isComingSoon ? 1.0 : 0.98)
     }

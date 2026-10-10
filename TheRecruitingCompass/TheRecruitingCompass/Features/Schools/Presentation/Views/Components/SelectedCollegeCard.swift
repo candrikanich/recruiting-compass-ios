@@ -40,7 +40,7 @@ struct SelectedCollegeCard: View {
 
             Text("Fetching college data...")
               .font(.caption)
-              .foregroundStyle(.blue)
+              .foregroundStyle(Color.accentPrimary)
           }
         } else {
           HStack(spacing: 4) {

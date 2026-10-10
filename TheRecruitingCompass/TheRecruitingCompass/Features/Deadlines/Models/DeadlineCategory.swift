@@ -47,10 +47,10 @@ enum DeadlineCategory: String, Codable, Sendable, CaseIterable, Identifiable {
 
   var color: Color {
     switch self {
-    case .application:   return .blue
+    case .application:   return Color.accentPrimary
     case .decision:      return .green
     case .financial_aid: return .orange
-    case .visit:         return .purple
+    case .visit:         return Color.Category.gold
     case .custom:        return .gray
     case .unknown:       return .gray
     }

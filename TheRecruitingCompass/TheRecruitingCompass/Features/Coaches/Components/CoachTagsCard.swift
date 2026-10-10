@@ -52,7 +52,7 @@ struct CoachTagsCard: View {
     } label: {
       Label("Add Tag", systemImage: "plus")
         .font(.footnote.weight(.semibold))
-        .foregroundStyle(Color.Brand.blue600)
+        .foregroundStyle(Color.accentPrimary)
     }
     .accessibilityLabel("Add tag")
   }

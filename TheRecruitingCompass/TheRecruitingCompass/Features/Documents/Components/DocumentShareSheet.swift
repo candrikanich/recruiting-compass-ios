@@ -79,7 +79,7 @@ struct DocumentShareSheet: View {
             Task { await viewModel.saveShare() }
           }
           .disabled(viewModel.selectedSchoolIds.isEmpty)
-          .tint(Color.primaryGreen)
+          .tint(Color.accentFill)
         }
       }
     }

@@ -32,9 +32,9 @@ enum CommunicationType: Sendable {
     switch self {
     case .email: return .accentPrimary
     case .phone: return .successGreen
-    case .call: return Color.Brand.purple600
+    case .call: return Color.Brand.orange700
     case .twitter: return Color.Brand.slate700
-    case .instagram: return Color.Brand.pink500
+    case .instagram: return Color.Brand.gold700
     }
   }
 

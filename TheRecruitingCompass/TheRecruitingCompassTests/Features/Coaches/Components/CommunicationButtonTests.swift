@@ -21,7 +21,7 @@ final class CommunicationButtonTests: XCTestCase {
 
   func testCallType_IconColor() {
     let type = CommunicationType.call("555-1234")
-    XCTAssertEqual(type.iconColor, Color.Brand.purple600)
+    XCTAssertEqual(type.iconColor, Color.Brand.orange700)
   }
 
   func testCallType_AccessibilityLabel() {

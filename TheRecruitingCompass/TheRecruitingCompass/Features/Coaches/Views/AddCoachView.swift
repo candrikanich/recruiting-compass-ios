@@ -145,7 +145,7 @@ struct AddCoachView: View {
   private var infoPrompt: some View {
     HStack(spacing: 12) {
       Image(systemName: "info.circle.fill")
-        .foregroundStyle(.blue)
+        .foregroundStyle(Color.accentPrimary)
         .accessibilityHidden(true)
 
       Text("Please select a school to continue")
