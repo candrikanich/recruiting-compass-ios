@@ -198,7 +198,7 @@ final class OffersListViewModel {
     defer { isSubmitting = false }
 
     do {
-      let request = OfferCreateRequest(userId: userId, form: formState)
+      let request = OfferCreateRequest(userId: userId, familyUnitId: familyUnitId, form: formState)
       let newOffer = try await offersService.createOffer(request)
       allOffers.insert(newOffer, at: 0)
       formState.reset()

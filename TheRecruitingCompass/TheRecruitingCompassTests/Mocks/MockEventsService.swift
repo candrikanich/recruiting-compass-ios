@@ -44,6 +44,8 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   // MARK: - Error Flags
 
   var shouldThrowCreateEvent = false
+  /// Takes precedence over `shouldThrowCreateEvent` so tests can throw a specific error type.
+  var createEventError: Error?
   var shouldThrowFetchEvent = false
   /// When shouldThrowFetchEvent is true, use this code (404 = not found, others = generic error).
   var fetchEventErrorCode = 404
@@ -93,6 +95,7 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   func createEvent(_ request: CreateEventRequest) async throws -> FullEvent {
     createEventCallCount += 1
     lastCreateEventRequest = request
+    if let createEventError { throw createEventError }
     if shouldThrowCreateEvent {
       throw NSError(
         domain: "MockEventsService",
