@@ -9,17 +9,17 @@ struct AthleteRow: View {
     Button(action: onSelect) {
       HStack(spacing: 12) {
         Image(systemName: "person.circle.fill")
-          .font(.title2)
+          .font(.brand(.title2))
           .foregroundStyle(isSelected ? Color.accentPrimary : Color.iconGray)
 
         VStack(alignment: .leading, spacing: 2) {
           Text(athlete.role.capitalized)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.semibold)
             .foregroundStyle(Color.darkSlate)
 
           Text("ID: \(athlete.userId.prefix(8))...")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
 

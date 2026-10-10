@@ -21,7 +21,7 @@ struct CollapsibleSection<Content: View>: View {
               .accessibilityHidden(true)
           }
           Text(title)
-            .font(.headline)
+            .font(.brand(.headline))
           Spacer()
           Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
             .foregroundStyle(Color.secondaryText)

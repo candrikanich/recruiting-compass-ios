@@ -200,7 +200,7 @@ struct DocumentsListView: View {
       viewModel.presentUploadForm()
     } label: {
       Image(systemName: "plus")
-        .font(.title2)
+        .font(.brand(.title2))
         .fontWeight(.semibold)
         .foregroundStyle(.white)
         .frame(width: 64, height: 64)
@@ -216,13 +216,13 @@ struct DocumentsListView: View {
   private var errorBanner: some View {
     HStack {
       Text(viewModel.errorMessage ?? "")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.white)
       Spacer()
       Button("Retry") {
         Task { await viewModel.loadDocuments() }
       }
-      .font(.caption)
+      .font(.brand(.caption))
       .foregroundStyle(.white)
     }
     .padding()

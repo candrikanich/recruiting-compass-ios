@@ -14,7 +14,7 @@ struct CollegeDataSection: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text("College Data")
-          .font(.headline)
+          .font(.brand(.headline))
           .accessibilityAddTraits(.isHeader)
 
         Spacer()
@@ -29,7 +29,7 @@ struct CollegeDataSection: View {
               .accessibilityLabel(String(localized: "Looking up college data"))
           } else {
             Label("Lookup", systemImage: "magnifyingglass")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
           }
         }
         .disabled(isLookingUp)
@@ -44,7 +44,7 @@ struct CollegeDataSection: View {
             .accessibilityHidden(true)
 
           Text(error)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         }
         .padding(.vertical, 8)
@@ -70,7 +70,7 @@ struct CollegeDataSection: View {
 
           if let scholarshipLine {
             Text(scholarshipLine)
-              .font(.subheadline.weight(.medium))
+              .font(.brand(.subheadline, weight: .medium))
               .padding(8)
               .frame(maxWidth: .infinity, alignment: .leading)
               .background(Color(.systemGray5))
@@ -79,7 +79,7 @@ struct CollegeDataSection: View {
 
           if info.undergradSize == nil && info.admissionRate == nil {
             Text("No college data available. Use 'Lookup' to fetch from College Scorecard.")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
               .italic()
               .padding(.vertical, 4)

@@ -24,19 +24,19 @@ struct FamilyMemberCard: View {
         .frame(width: 44, height: 44)
         .overlay(
           Text(initials)
-            .font(.headline)
+            .font(.brand(.headline))
             .foregroundStyle(Color.accentPrimary)
         )
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
         Text(displayName)
-          .font(.headline)
+          .font(.brand(.headline))
 
         HStack(spacing: 8) {
           if member.isParent {
             Text("Parent")
-              .font(.caption)
+              .font(.brand(.caption))
               .padding(.horizontal, 8)
               .padding(.vertical, 4)
               .background(Color.green.opacity(0.2))
@@ -48,7 +48,7 @@ struct FamilyMemberCard: View {
              let date = FamilyMemberCard.isoParser.date(from: addedAt)
                ?? FamilyMemberCard.isoParserFallback.date(from: addedAt) {
             Text("Joined \(DateFormatter.memberJoinDate.string(from: date))")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
           }
         }

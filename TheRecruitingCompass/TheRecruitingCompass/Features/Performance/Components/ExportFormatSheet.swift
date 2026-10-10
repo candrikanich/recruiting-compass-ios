@@ -24,13 +24,13 @@ struct ExportFormatSheet: View {
 
         // Title
         Text("Export Metrics")
-          .font(.title2)
+          .font(.brand(.title2))
           .bold()
 
         // Format Selection
         VStack(alignment: .leading, spacing: 12) {
           Text("Select Format")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.semibold)
             .foregroundStyle(.secondary)
 

@@ -25,14 +25,14 @@ struct TermsCheckbox: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text("I agree to the")
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(Color.tertiaryText)
           .accessibilityHidden(true)
 
         HStack(spacing: 0) {
           Button(action: onTermsPressed) {
             Text("Terms of Service")
-              .font(.footnote.weight(.semibold))
+              .font(.brand(.footnote, weight: .semibold))
               .foregroundStyle(Color.accentPrimary)
               .underline()
           }
@@ -40,13 +40,13 @@ struct TermsCheckbox: View {
           .accessibilityHint("Opens Terms of Service")
 
           Text(" and ")
-            .font(.footnote)
+            .font(.brand(.footnote))
             .foregroundStyle(Color.tertiaryText)
             .accessibilityHidden(true)
 
           Button(action: onPrivacyPressed) {
             Text("Privacy Policy")
-              .font(.footnote.weight(.semibold))
+              .font(.brand(.footnote, weight: .semibold))
               .foregroundStyle(Color.accentPrimary)
               .underline()
           }

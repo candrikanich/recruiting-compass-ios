@@ -15,14 +15,14 @@ struct SchoolProsConsSection: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text("Pros & Cons")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       HStack(alignment: .top, spacing: 16) {
         // Pros column
         VStack(alignment: .leading, spacing: 8) {
           Text("Pros")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.semibold)
             .foregroundStyle(.green)
 
@@ -52,7 +52,7 @@ struct SchoolProsConsSection: View {
               } else {
                 Image(systemName: "plus.circle.fill")
                   .foregroundStyle(.green)
-                  .font(.title2)
+                  .font(.brand(.title2))
                   .accessibilityHidden(true)
               }
             }
@@ -67,7 +67,7 @@ struct SchoolProsConsSection: View {
         // Cons column
         VStack(alignment: .leading, spacing: 8) {
           Text("Cons")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.semibold)
             .foregroundStyle(.red)
 
@@ -97,7 +97,7 @@ struct SchoolProsConsSection: View {
               } else {
                 Image(systemName: "plus.circle.fill")
                   .foregroundStyle(.red)
-                  .font(.title2)
+                  .font(.brand(.title2))
                   .accessibilityHidden(true)
               }
             }

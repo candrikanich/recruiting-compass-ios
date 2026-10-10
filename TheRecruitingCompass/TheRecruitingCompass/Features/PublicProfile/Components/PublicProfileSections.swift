@@ -54,23 +54,23 @@ extension PublicProfileCard {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(metric.label.uppercased())
-                    .font(.caption2.weight(.semibold))
+                    .font(.brand(.caption2, weight: .semibold))
                     .foregroundStyle(Color.Text.muted)
                 Spacer()
                 if metric.verified {
                     Image(systemName: "checkmark.seal.fill")
-                        .font(.caption2)
+                        .font(.brand(.caption2))
                         .foregroundStyle(.green)
                         .accessibilityLabel(String(localized: "Verified"))
                 }
             }
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(metric.value)
-                    .font(.title3.weight(.bold))
+                    .font(.brand(.title3, weight: .bold))
                     .foregroundStyle(Color.Text.primary)
                 if !metric.unit.isEmpty {
                     Text(metric.unit)
-                        .font(.caption)
+                        .font(.brand(.caption))
                         .foregroundStyle(Color.Text.muted)
                 }
             }
@@ -132,18 +132,18 @@ extension PublicProfileCard {
                         ZStack {
                             RoundedRectangle(cornerRadius: 8).fill(Color.Surface.muted)
                             Image(systemName: "play.circle.fill")
-                                .font(.title2)
+                                .font(.brand(.title2))
                                 .foregroundStyle(Color.Text.muted)
                         }
                         .frame(width: 64, height: 40)
-                        Text(label).font(.footnote.weight(.medium))
+                        Text(label).font(.brand(.footnote, weight: .medium))
                         Spacer()
-                        Image(systemName: "arrow.up.right").font(.caption2)
+                        Image(systemName: "arrow.up.right").font(.brand(.caption2))
                     }
                 }
                 .accessibilityLabel(String(localized: "Film link: \(label)"))
             } else {
-                Text(label).font(.footnote).foregroundStyle(Color.Text.secondary)
+                Text(label).font(.brand(.footnote)).foregroundStyle(Color.Text.secondary)
             }
         }
     }
@@ -176,7 +176,7 @@ extension PublicProfileCard {
                 }
                 if let ncaaId = data.credentials?.ncaaId {
                     Text(String(localized: "NCAA Eligibility Center ID: \(ncaaId)"))
-                        .font(.caption)
+                        .font(.brand(.caption))
                         .foregroundStyle(Color.Text.muted)
                         .padding(.top, 8)
                         .padding(.horizontal, 10)
@@ -187,10 +187,10 @@ extension PublicProfileCard {
                 if let coreCourses = academics.coreCourses, !coreCourses.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Core Courses")
-                            .font(.caption)
+                            .font(.brand(.caption))
                             .foregroundStyle(Color.Text.muted)
                         Text(coreCourses.joined(separator: ", "))
-                            .font(.footnote)
+                            .font(.brand(.footnote))
                             .foregroundStyle(Color.Text.secondary)
                     }
                     .padding(.top, 8)
@@ -208,7 +208,7 @@ extension PublicProfileCard {
         sectionContainer(title: String(localized: "Target Program & Values"), icon: "target") {
             if let lookingFor = data.lookingFor, !lookingFor.isEmpty {
                 Text(lookingFor)
-                    .font(.footnote)
+                    .font(.brand(.footnote))
                     .foregroundStyle(Color.Text.secondary)
             }
             if !data.valuesTags.isEmpty {
@@ -239,21 +239,21 @@ extension PublicProfileCard {
     private func teamHistoryRow(_ entry: PublicProfileData.TeamHistoryEntry) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 8) {
-                Text(entry.name).font(.footnote.weight(.semibold))
+                Text(entry.name).font(.brand(.footnote, weight: .semibold))
                 Text(entry.level)
-                    .font(.caption2.weight(.medium))
+                    .font(.brand(.caption2, weight: .medium))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 2)
                     .background(Color.Surface.muted)
                     .clipShape(Capsule())
                 if let years = entry.years {
-                    Text(years).font(.caption).foregroundStyle(Color.Text.muted)
+                    Text(years).font(.brand(.caption)).foregroundStyle(Color.Text.muted)
                 }
             }
             if let coach = entry.coach, !coach.isEmpty {
                 let contactSuffix = entry.contact.map { " — Reference Contact: \($0)" } ?? ""
                 Text("Coach: \(coach)\(contactSuffix)")
-                    .font(.caption)
+                    .font(.brand(.caption))
                     .foregroundStyle(Color.Text.secondary)
             }
         }
@@ -281,7 +281,7 @@ extension PublicProfileCard {
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Label {
-                Text(title).font(.subheadline.weight(.semibold))
+                Text(title).font(.brand(.subheadline, weight: .semibold))
             } icon: {
                 Image(systemName: icon)
             }
@@ -299,11 +299,11 @@ extension PublicProfileCard {
     func detailRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .font(.footnote)
+                .font(.brand(.footnote))
                 .foregroundStyle(Color.Text.muted)
             Spacer()
             Text(value)
-                .font(.footnote)
+                .font(.brand(.footnote))
                 .fontWeight(.medium)
                 .foregroundStyle(Color.Text.primary)
         }
@@ -311,7 +311,7 @@ extension PublicProfileCard {
 
     func emptyStateText(_ text: String) -> some View {
         Text(text)
-            .font(.footnote)
+            .font(.brand(.footnote))
             .foregroundStyle(Color.Text.muted)
     }
 }
@@ -335,7 +335,7 @@ struct FlowChips: View {
             HStack(spacing: 6) {
                 ForEach(chips, id: \.self) { chip in
                     Text(chip)
-                        .font(.caption)
+                        .font(.brand(.caption))
                         .fontWeight(.medium)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)

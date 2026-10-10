@@ -15,11 +15,11 @@ struct ParentPreviewBanner: View {
 
       VStack(alignment: .leading, spacing: 2) {
         Text("Parent Preview Mode")
-          .font(.subheadline.weight(.semibold))
+          .font(.brand(.subheadline, weight: .semibold))
           .foregroundStyle(Color.Surface.onBrandTint)
 
         Text("Viewing \(athleteName)'s dashboard")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.Surface.onBrandTint)
       }
 

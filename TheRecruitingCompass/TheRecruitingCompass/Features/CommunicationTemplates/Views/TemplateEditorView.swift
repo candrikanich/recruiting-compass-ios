@@ -41,7 +41,7 @@ struct TemplateEditorView: View {
         .foregroundStyle(Color.accentPrimary)
         .accessibilityHidden(true)
       Text("You're customizing a copy. The built-in template stays unchanged; Save creates your own editable version.")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
     }
     .padding(12)
@@ -55,7 +55,7 @@ struct TemplateEditorView: View {
   private var nameField: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text("Template Name")
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
         .foregroundStyle(.primary)
 
       TextField("e.g. Initial Contact Email", text: $viewModel.formData.name)
@@ -69,7 +69,7 @@ struct TemplateEditorView: View {
   private var typePicker: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text("Template Type")
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
         .foregroundStyle(.primary)
 
       Picker("Type", selection: $viewModel.formData.type) {
@@ -87,7 +87,7 @@ struct TemplateEditorView: View {
   private var bodyEditor: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text("Body")
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
         .foregroundStyle(.primary)
 
       TextEditor(text: $viewModel.formData.body)
@@ -107,11 +107,11 @@ struct TemplateEditorView: View {
   private var variablesGuide: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Available Variables")
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
         .foregroundStyle(.primary)
 
       Text("Tap a variable to insert it into the body.")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       FlowLayout(spacing: 8) {
@@ -121,7 +121,7 @@ struct TemplateEditorView: View {
             bodyFieldFocused = true
           } label: {
             Text("{{" + variable.key + "}}")
-              .font(.caption.monospaced())
+              .font(.brand(.caption).monospaced())
               .padding(.horizontal, 10)
               .padding(.vertical, 6)
               .background(Color.accentPrimary.opacity(0.1))
@@ -144,7 +144,7 @@ struct TemplateEditorView: View {
         Task { await viewModel.saveTemplate() }
       } label: {
         Text(saveButtonLabel)
-          .font(.body.weight(.semibold))
+          .font(.brand(.body, weight: .semibold))
           .foregroundStyle(.white)
           .frame(maxWidth: .infinity)
           .padding(.vertical, 14)
@@ -159,7 +159,7 @@ struct TemplateEditorView: View {
         viewModel.cancelEdit()
       } label: {
         Text("Cancel")
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity)
           .padding(.vertical, 14)
@@ -172,7 +172,7 @@ struct TemplateEditorView: View {
           viewModel.confirmDelete(id: editingTemplate.id)
         } label: {
           Text("Delete Template")
-            .font(.body.weight(.medium))
+            .font(.brand(.body, weight: .medium))
             .foregroundStyle(Color.errorRed)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)

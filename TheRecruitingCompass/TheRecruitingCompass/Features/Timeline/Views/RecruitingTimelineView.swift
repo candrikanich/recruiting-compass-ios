@@ -64,7 +64,7 @@ struct RecruitingTimelineView: View {
             onDismiss: { familyManager.clearAthleteSelection() }
           )
           Text(headerTitle)
-            .font(.title2.weight(.semibold))
+            .font(.brand(.title2, weight: .semibold))
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
           TimelineAthleteSwitcher(
@@ -233,7 +233,7 @@ private struct TimelineMainContent: View {
 
       if showSuccessMessage {
         Text("Great job!")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(Color.successGreen)
           .padding(.vertical, 6)
           .accessibilityLabel(String(localized: "Great job"))

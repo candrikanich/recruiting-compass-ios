@@ -50,12 +50,12 @@ struct EmptyStateView: View {
 
       VStack(spacing: 8) {
         Text(title)
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(.primary)
           .fixedSize(horizontal: false, vertical: true)
 
         Text(message)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
           .multilineTextAlignment(.center)
           .fixedSize(horizontal: false, vertical: true)

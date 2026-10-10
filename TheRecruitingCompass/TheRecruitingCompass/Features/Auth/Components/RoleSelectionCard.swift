@@ -18,11 +18,11 @@ struct RoleSelectionCard: View {
 
           VStack(alignment: .leading, spacing: 4) {
             Text(role.displayName)
-              .font(.callout.weight(.semibold))
+              .font(.brand(.callout, weight: .semibold))
               .foregroundStyle(.white)
 
             Text(role.description)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.white.opacity(0.85))
               .lineLimit(2)
           }

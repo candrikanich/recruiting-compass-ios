@@ -44,19 +44,19 @@ struct AppErrorView: View {
             iconCircle
 
             Text(config.headline)
-                .font(.title2.bold())
+                .font(.brand(.title2, weight: .bold))
                 .foregroundStyle(Color.primary)
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
 
             Text(config.body)
-                .font(.body)
+                .font(.brand(.body))
                 .foregroundStyle(Color.secondary)
                 .multilineTextAlignment(.center)
 
             if let code = config.statusCode {
                 Text("Error \(code)")
-                    .font(.caption.monospacedDigit())
+                    .font(.brand(.caption).monospacedDigit())
                     .foregroundStyle(Color(uiColor: .tertiaryLabel))
             }
 
@@ -81,7 +81,7 @@ struct AppErrorView: View {
                 .frame(width: 56, height: 56)
 
             Image(systemName: config.iconName)
-                .font(.title2)
+                .font(.brand(.title2))
                 .foregroundStyle(config.iconForeground)
         }
         .accessibilityHidden(true)
@@ -91,7 +91,7 @@ struct AppErrorView: View {
     private var primaryButton: some View {
         Button(action: onPrimary) {
             Text(config.primaryButtonLabel)
-                .font(.callout.weight(.semibold))
+                .font(.brand(.callout, weight: .semibold))
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
                 .foregroundStyle(.white)
@@ -104,7 +104,7 @@ struct AppErrorView: View {
     private func secondaryButton(label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.callout.weight(.semibold))
+                .font(.brand(.callout, weight: .semibold))
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
                 .foregroundStyle(Color.primary)
@@ -120,7 +120,7 @@ struct AppErrorView: View {
             "Need help? Contact support",
             destination: URL(string: "mailto:support@therecruitingcompass.com")!
         )
-        .font(.footnote)
+        .font(.brand(.footnote))
         .foregroundStyle(.white.opacity(0.7))
         .accessibilityLabel(String(localized: "Contact support"))
         .accessibilityHint("Opens email to support@therecruitingcompass.com")

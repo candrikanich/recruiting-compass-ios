@@ -14,17 +14,17 @@ struct AnalyticsExportSheet: View {
           } label: {
             HStack(spacing: 12) {
               Image(systemName: format.iconName)
-                .font(.title3)
+                .font(.brand(.title3))
                 .foregroundStyle(format == .pdf ? Color.accentPrimary : Color.iconGray)
                 .frame(width: 32)
                 .accessibilityHidden(true)
 
               VStack(alignment: .leading, spacing: 2) {
                 Text(format.displayName)
-                  .font(.body)
+                  .font(.brand(.body))
                   .foregroundStyle(Color.darkSlate)
                 Text(".\(format.fileExtension) file")
-                  .font(.caption)
+                  .font(.brand(.caption))
                   .foregroundStyle(Color.secondaryText)
               }
 

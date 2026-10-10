@@ -22,7 +22,7 @@ struct OfferComparisonSheet: View {
   private func comparisonColumn(_ offer: Offer) -> some View {
     VStack(alignment: .leading, spacing: 12) {
       Text(schoolNameFor(offer.schoolId))
-        .font(.headline)
+        .font(.brand(.headline))
         .lineLimit(2)
         .accessibilityAddTraits(.isHeader)
 
@@ -50,11 +50,11 @@ struct OfferComparisonSheet: View {
   private func comparisonRow(_ label: String, value: String) -> some View {
     VStack(alignment: .leading, spacing: 2) {
       Text(label)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       Text(value)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.primary)
     }
     .accessibilityElement(children: .combine)

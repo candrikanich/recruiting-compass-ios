@@ -58,7 +58,7 @@ struct SchoolDetailHeader: View {
                 .scaledToFit()
             } placeholder: {
               Text(school.initials)
-                .font(.title2)
+                .font(.brand(.title2))
                 .bold()
                 .foregroundStyle(Color.accentPrimary)
             }
@@ -66,7 +66,7 @@ struct SchoolDetailHeader: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
           } else {
             Text(school.initials)
-              .font(.title2)
+              .font(.brand(.title2))
               .bold()
               .foregroundStyle(Color.accentPrimary)
           }
@@ -87,21 +87,21 @@ struct SchoolDetailHeader: View {
           }
 
           Text(school.name)
-            .font(.title2)
+            .font(.brand(.title2))
             .bold()
             .lineLimit(2)
             .minimumScaleFactor(0.9)
 
           if let mascot = school.mascot, !mascot.isEmpty {
             Text("\(school.name) \(mascot)")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
 
           if let location = displayLocation {
             Label {
               Text(location)
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)

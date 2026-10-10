@@ -11,7 +11,7 @@ struct DocumentHeaderCard: View {
       HStack(alignment: .top) {
         VStack(alignment: .leading, spacing: 8) {
           Label(document.typeLabel, systemImage: document.typeSystemImage)
-            .font(.caption)
+            .font(.brand(.caption))
             .fontWeight(.semibold)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
@@ -19,13 +19,13 @@ struct DocumentHeaderCard: View {
             .foregroundStyle(.primary)
             .clipShape(.rect(cornerRadius: 6))
           Text(document.title)
-            .font(.title2)
+            .font(.brand(.title2))
             .bold()
             .lineLimit(2)
             .truncationMode(.tail)
           if let desc = document.description, !desc.isEmpty {
             Text(desc)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
         }
@@ -34,7 +34,7 @@ struct DocumentHeaderCard: View {
       HStack(spacing: 12) {
         Button(action: onEdit) {
           Label("Edit", systemImage: "pencil")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .frame(minWidth: 88, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)
@@ -43,7 +43,7 @@ struct DocumentHeaderCard: View {
 
         Button(action: onShare) {
           Label("Share", systemImage: "square.and.arrow.up")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .frame(minWidth: 88, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)
@@ -52,7 +52,7 @@ struct DocumentHeaderCard: View {
 
         Button(role: .destructive, action: onDelete) {
           Label("Delete", systemImage: "trash")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .frame(minWidth: 88, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)

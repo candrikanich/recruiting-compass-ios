@@ -343,7 +343,7 @@ struct CoachDetailView: View {
             startSendProfile(coach: coach)
           } label: {
             Label("Send Profile", systemImage: "square.and.arrow.up")
-              .font(.body)
+              .font(.brand(.body))
           }
           .buttonStyle(.bordered)
           .accessibilityLabel(String(localized: "Send Profile"))
@@ -360,7 +360,7 @@ struct CoachDetailView: View {
   private var profileLinkStats: some View {
     if let count = sendProfileVM.viewCount {
       Text("Viewed \(count) \(count == 1 ? "time" : "times")")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
     }
     Button {
@@ -375,7 +375,7 @@ struct CoachDetailView: View {
         linkCopied ? "Copied" : "Copy Link",
         systemImage: linkCopied ? "checkmark" : "doc.on.doc"
       )
-      .font(.caption)
+      .font(.brand(.caption))
     }
     .buttonStyle(.borderless)
     .accessibilityLabel(String(localized: "Copy profile link"))

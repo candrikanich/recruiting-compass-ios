@@ -121,7 +121,7 @@ struct SchoolFilterBar: View {
           .accessibilityHidden(true)
         Text("Favorites")
       }
-      .font(.subheadline)
+      .font(.brand(.subheadline))
       .fontWeight(.medium)
       .foregroundStyle(filters.isFavoritesOnly ? .white : .primary)
       .padding(.horizontal, 12)
@@ -175,18 +175,18 @@ struct SchoolFilterBar: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
         Text("Max Distance")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
 
         Spacer()
 
         if let maxDistance = filters.maxDistance {
           Text("\(Int(maxDistance)) miles")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         } else {
           Text("No limit")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         }
       }
@@ -213,7 +213,7 @@ struct SchoolFilterBar: View {
         .accessibilityHidden(true)
 
       Text("Distance filter disabled: Set home location in settings")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
     }
     .padding(.horizontal, 4)

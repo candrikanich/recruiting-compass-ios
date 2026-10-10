@@ -126,7 +126,7 @@ struct AthleticsTab: View {
     @ViewBuilder
     private var heightRow: some View {
         HStack {
-            Text("Height").font(.body)
+            Text("Height").font(.brand(.body))
             Spacer()
             Picker(
                 "Feet",
@@ -165,7 +165,7 @@ struct AthleticsTab: View {
     @ViewBuilder
     private var weightRow: some View {
         HStack {
-            Text("Weight (lbs)").font(.body)
+            Text("Weight (lbs)").font(.brand(.body))
             Spacer()
             TextField("Weight", value: Binding(
                 get: { viewModel.details.weightLbs },
@@ -200,15 +200,15 @@ struct AthleticsTab: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Video Links")
-                        .font(.body)
+                        .font(.brand(.body))
                         .foregroundStyle(.primary)
                     Text("Hudl, YouTube, or Vimeo highlight reels")
-                        .font(.caption)
+                        .font(.brand(.caption))
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
+                    .font(.brand(.footnote, weight: .semibold))
                     .foregroundStyle(.tertiary)
             }
             .padding()
@@ -238,7 +238,7 @@ struct AthleticsTab: View {
     @ViewBuilder
     private func serviceRow(_ service: RecruitingServices.ServiceDef) -> some View {
         HStack {
-            Text(service.label).font(.body)
+            Text(service.label).font(.brand(.body))
             Spacer()
             TextField(service.placeholder, text: Binding(
                 get: { viewModel.details[attributeKey: service.key] ?? "" },
@@ -270,7 +270,7 @@ struct AthleticsTab: View {
     private func prepBaseballExtras(_ service: RecruitingServices.ServiceDef) -> some View {
         divider
         HStack {
-            Text("PBR State").font(.body)
+            Text("PBR State").font(.brand(.body))
             Spacer()
             TextField(String(localized: "State (e.g. OH)"), text: Binding(
                 get: { viewModel.details.prepBaseballState ?? "" },
@@ -300,7 +300,7 @@ struct AthleticsTab: View {
                     Text("View profile")
                     Image(systemName: "arrow.up.right.square")
                 }
-                .font(.caption)
+                .font(.brand(.caption))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
@@ -316,7 +316,7 @@ struct AthleticsTab: View {
                     Text(title)
                     Image(systemName: "arrow.up.right.square")
                 }
-                .font(.caption)
+                .font(.brand(.caption))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
@@ -333,7 +333,7 @@ struct AthleticsTab: View {
     private func positionPriorityCard(_ positions: [String]) -> some View {
         VStack(spacing: 0) {
             Text("Order matters — your first pick is what coaches see (they recruit for specific positions).")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
@@ -349,9 +349,9 @@ struct AthleticsTab: View {
     private func positionPriorityRow(index: Int, pos: String, count: Int) -> some View {
         HStack(spacing: 12) {
             priorityBadge(index)
-            Text(pos).font(.body)
+            Text(pos).font(.brand(.body))
             Text(CanonicalPositions.abbreviation(sport: viewModel.details.primarySport, pos))
-                .font(.caption.monospaced())
+                .font(.brand(.caption).monospaced())
                 .foregroundStyle(.tertiary)
             Spacer()
             Button {
@@ -372,7 +372,7 @@ struct AthleticsTab: View {
             .disabled(index == count - 1 || viewModel.isReadOnly)
             .accessibilityLabel(String(localized: "Move \(pos) down"))
         }
-        .font(.footnote.weight(.semibold))
+        .font(.brand(.footnote, weight: .semibold))
         .foregroundStyle(.secondary)
         .padding(.horizontal)
         .padding(.vertical, 12)
@@ -387,7 +387,7 @@ struct AthleticsTab: View {
             badgeLabel(String(localized: "SECONDARY"), background: Color(.tertiarySystemFill), foreground: .primary)
         default:
             Text("\(index + 1)")
-                .font(.caption.bold())
+                .font(.brand(.caption, weight: .bold))
                 .foregroundStyle(.tertiary)
                 .frame(width: 28)
         }
@@ -395,7 +395,7 @@ struct AthleticsTab: View {
 
     private func badgeLabel(_ text: String, background: Color, foreground: Color) -> some View {
         Text(text)
-            .font(.caption2.bold())
+            .font(.brand(.caption2, weight: .bold))
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
             .background(background)
@@ -407,7 +407,7 @@ struct AthleticsTab: View {
 
     private func textRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, String?>, fieldID: String) -> some View {
         HStack {
-            Text(label).font(.body)
+            Text(label).font(.brand(.body))
             Spacer()
             TextField(label, text: Binding(
                 get: { viewModel.details[keyPath: keyPath] ?? "" },
@@ -436,7 +436,7 @@ struct AthleticsTab: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
             HStack(spacing: 8) {
                 ForEach(options, id: \.value) { opt in
@@ -445,7 +445,7 @@ struct AthleticsTab: View {
                         selection.wrappedValue = opt.value
                     } label: {
                         Text(opt.label)
-                            .font(.subheadline.weight(.semibold))
+                            .font(.brand(.subheadline, weight: .semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
                             .background(isSelected ? Color.accentColor : Color(.tertiarySystemFill))
@@ -468,7 +468,7 @@ struct AthleticsTab: View {
     private func cardSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title)
-                .font(.footnote)
+                .font(.brand(.footnote))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
                 .padding(.horizontal, 4)

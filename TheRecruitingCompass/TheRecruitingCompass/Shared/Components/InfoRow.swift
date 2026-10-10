@@ -8,13 +8,13 @@ struct InfoRow: View {
   var body: some View {
     HStack(alignment: .top) {
       Text(label + ":")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
 
       Spacer()
 
       Text(value)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .multilineTextAlignment(.trailing)
     }
     .accessibilityElement(children: .combine)

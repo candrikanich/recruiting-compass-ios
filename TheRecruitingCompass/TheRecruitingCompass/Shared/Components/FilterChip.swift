@@ -25,7 +25,7 @@ struct FilterChip: View {
   var body: some View {
     HStack(spacing: 4) {
       Text(label)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .fontWeight(style == .filled ? .medium : .regular)
 
       Button {
@@ -59,7 +59,7 @@ struct FilterChip: View {
   }
 
   private var iconFont: Font {
-    style == .outlined ? .caption2 : .caption
+    style == .outlined ? .brand(.caption2) : .brand(.caption)
   }
 
   private var foregroundColor: Color {

@@ -14,10 +14,10 @@ struct CoachFollowupRow: View {
       Button(action: onProfile) {
         VStack(alignment: .leading, spacing: 2) {
           Text(coach.fullName)
-            .font(.subheadline.weight(.semibold))
+            .font(.brand(.subheadline, weight: .semibold))
             .foregroundStyle(Color.primary)
           Text("\(schoolName) · \(CoachFollowup.daysSinceLabel(coach, asOf: Date.now))")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
             .lineLimit(1)
         }
@@ -41,7 +41,7 @@ struct CoachFollowupRow: View {
       if coach.contactEmail == nil && coach.contactPhone == nil {
         Button(action: onProfile) {
           Label(String(localized: "Add contact info"), systemImage: "person.crop.circle.badge.plus")
-            .font(.caption)
+            .font(.brand(.caption))
             .labelStyle(.titleAndIcon)
         }
         .buttonStyle(.bordered)
@@ -56,7 +56,7 @@ struct CoachFollowupRow: View {
                           action: @escaping () -> Void) -> some View {
     Button(action: action) {
       Image(systemName: systemImage)
-        .font(.subheadline.weight(.semibold))
+        .font(.brand(.subheadline, weight: .semibold))
         .foregroundStyle(.tint)
         .frame(width: 36, height: 36)
         .background(Color(uiColor: .systemGray6), in: .circle)

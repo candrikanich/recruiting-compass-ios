@@ -46,7 +46,7 @@ struct GuardianClaimView: View {
   private var confirmedContent: some View {
     VStack(alignment: .leading, spacing: 12) {
       Label("You're connected!", systemImage: "checkmark.circle.fill")
-        .font(.title3.weight(.semibold))
+        .font(.brand(.title3, weight: .semibold))
         .foregroundStyle(.green)
       Text("Your athlete's account is confirmed. They now have full access to coach messaging and profile publishing.")
         .foregroundStyle(.secondary)
@@ -59,17 +59,17 @@ struct GuardianClaimView: View {
   private func loadedContent(_ details: GuardianClaimDetails) -> some View {
     VStack(alignment: .leading, spacing: 16) {
       Text("\(details.playerName) wants you to confirm their Recruiting Compass account.")
-        .font(.headline)
+        .font(.brand(.headline))
 
       if let errorMessage = viewModel.errorMessage {
         Text(errorMessage)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.red)
       }
 
       if viewModel.isAuthenticated && !viewModel.isAuthenticatedAsGuardian {
         Text("You're signed in with a different account than \(details.guardianEmail). Sign out to confirm with the right one.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         Button("Sign Out") { Task { await viewModel.signOutToSwitchAccount() } }
           .buttonStyle(.bordered)
@@ -85,7 +85,7 @@ struct GuardianClaimView: View {
         .disabled(viewModel.isConfirming)
       } else {
         Text("Sign in with \(details.guardianEmail) to confirm.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
 
         LoginFormField(
@@ -132,7 +132,7 @@ struct GuardianClaimView: View {
         .disabled(viewModel.isConfirming || viewModel.loginEmail.isEmpty || viewModel.loginPassword.isEmpty)
 
         Text("Don't have an account yet? Create one with this same email from the app's sign-in screen, then come back to this link.")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
     }

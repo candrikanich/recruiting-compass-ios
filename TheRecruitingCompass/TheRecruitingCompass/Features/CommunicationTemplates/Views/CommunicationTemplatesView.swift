@@ -51,7 +51,7 @@ struct CommunicationTemplatesView: View {
       }
     } label: {
       Text(title)
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
         .foregroundStyle(isActive ? .white : .primary)
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
@@ -128,7 +128,7 @@ struct CommunicationTemplatesView: View {
       viewModel.selectFilter(type)
     } label: {
       Text("\(label) (\(count))")
-        .font(.caption.weight(.medium))
+        .font(.brand(.caption, weight: .medium))
         .foregroundStyle(isSelected ? .white : .primary)
         .padding(.horizontal, 14)
         .padding(.vertical, 8)

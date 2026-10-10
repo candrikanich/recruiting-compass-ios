@@ -14,7 +14,7 @@ struct CoachMetricsSection: View {
 
       if metrics.totalInteractions == 0 {
         Text("No analytics yet — log an interaction to start.")
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(.secondary)
           .italic()
           .padding(.vertical, 8)
@@ -35,11 +35,11 @@ struct CoachMetricsSection: View {
       ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
         HStack {
           Text(row.label)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(Color.secondaryText)
           Spacer()
           Text(row.value)
-            .font(.subheadline.weight(.semibold))
+            .font(.brand(.subheadline, weight: .semibold))
             .foregroundStyle(.primary)
         }
         .padding(.vertical, 10)
@@ -61,10 +61,10 @@ struct CoachMetricsSection: View {
     let above = comparison.coach.responseRate >= comparison.schoolAverageResponseRate
     HStack(spacing: 8) {
       Text("Ranks #\(comparison.rank) of \(comparison.totalCoaches) coaches by response rate")
-        .font(.footnote)
+        .font(.brand(.footnote))
         .foregroundStyle(.primary)
       Text(above ? "Above avg (\(comparison.schoolAverageResponseRate)%)" : "Below avg (\(comparison.schoolAverageResponseRate)%)")
-        .font(.caption.weight(.medium))
+        .font(.brand(.caption, weight: .medium))
         .foregroundStyle((above ? BadgeColor.emerald : BadgeColor.orange).foregroundColor)
         .padding(.horizontal, 8)
         .padding(.vertical, 3)
@@ -79,11 +79,11 @@ struct CoachMetricsSection: View {
       ForEach(Array(insights.enumerated()), id: \.offset) { _, insight in
         HStack(alignment: .top, spacing: 8) {
           Image(systemName: "lightbulb.fill")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(BadgeColor.blue.foregroundColor)
             .accessibilityHidden(true)
           Text(insight)
-            .font(.footnote)
+            .font(.brand(.footnote))
             .foregroundStyle(.primary)
         }
         .padding(10)

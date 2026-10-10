@@ -19,11 +19,11 @@ struct PlayerCompletenessCard: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Profile Completeness")
-                    .font(.subheadline)
+                    .font(.brand(.subheadline))
                     .fontWeight(.semibold)
                 Spacer()
                 Text("\(percentage)%")
-                    .font(.subheadline)
+                    .font(.brand(.subheadline))
                     .bold()
                     .foregroundStyle(progressColor)
             }

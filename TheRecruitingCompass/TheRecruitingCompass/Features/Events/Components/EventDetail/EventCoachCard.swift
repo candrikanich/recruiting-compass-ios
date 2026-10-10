@@ -32,10 +32,10 @@ struct EventCoachCard: View {
 
       VStack(alignment: .leading, spacing: Layout.nameSpacing) {
         Text(coach.fullName)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
         Text(coach.role.displayName)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
 
@@ -58,7 +58,7 @@ struct EventCoachCard: View {
   @ViewBuilder
   private var initialsCircle: some View {
     Text(coach.initials)
-      .font(.caption)
+      .font(.brand(.caption))
       .bold()
       .foregroundStyle(.white)
       .frame(width: Layout.initialsSize, height: Layout.initialsSize)
@@ -75,7 +75,7 @@ struct EventCoachCard: View {
           quickCommunicationContext = Self.quickCommunicationContext(for: coach, schoolName: schoolName)
         } label: {
           Image(systemName: "envelope")
-            .font(.body)
+            .font(.brand(.body))
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
@@ -87,7 +87,7 @@ struct EventCoachCard: View {
          let phoneURL = URL(string: "tel:\(phone)") {
         Link(destination: phoneURL) {
           Image(systemName: "phone")
-            .font(.body)
+            .font(.brand(.body))
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }

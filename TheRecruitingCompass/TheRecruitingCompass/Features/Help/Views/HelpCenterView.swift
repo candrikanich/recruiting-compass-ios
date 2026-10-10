@@ -37,12 +37,12 @@ struct HelpCenterView: View {
   private var headerView: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Help Center")
-        .font(.title2)
+        .font(.brand(.title2))
         .bold()
         .foregroundStyle(.primary)
 
       Text("Everything you need to use The Recruiting Compass.")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -58,18 +58,18 @@ private struct HelpOverviewCard: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Image(systemName: section.icon)
-        .font(.title2)
+        .font(.brand(.title2))
         .foregroundStyle(Color.accentPrimary)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
         Text(section.title)
-          .font(.body)
+          .font(.brand(.body))
           .fontWeight(.semibold)
           .foregroundStyle(.primary)
 
         Text(section.description)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .lineLimit(3)
       }

@@ -57,7 +57,7 @@ struct DeadlineRow: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: deadline.icon)
-        .font(.body)
+        .font(.brand(.body))
         .foregroundStyle(.white)
         .frame(width: 28, height: 28)
         .background(deadline.color)
@@ -66,7 +66,7 @@ struct DeadlineRow: View {
 
       VStack(alignment: .leading, spacing: 2) {
         Text(deadline.label)
-          .font(.body.weight(.medium))
+          .font(.brand(.body, weight: .medium))
         HStack(spacing: 6) {
           Text(formattedDate)
           Text("\u{2022}")
@@ -76,14 +76,14 @@ struct DeadlineRow: View {
             Text(deadline.sourceBadge)
           }
         }
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
       }
 
       Spacer(minLength: 8)
 
       Text(daysUntilLabel)
-        .font(.caption.weight(.semibold))
+        .font(.brand(.caption, weight: .semibold))
         .foregroundStyle(daysUntil.map { $0 < 0 ? Color.secondary : deadline.color } ?? .secondary)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)

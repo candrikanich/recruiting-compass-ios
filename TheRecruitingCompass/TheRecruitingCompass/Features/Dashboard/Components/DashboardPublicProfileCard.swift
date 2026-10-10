@@ -58,7 +58,7 @@ struct DashboardPublicProfileCard: View {
         .foregroundStyle(Color.Category.clay)
         .accessibilityHidden(true)
       Text(String(localized: "Public Profile"))
-        .font(.headline)
+        .font(.brand(.headline))
     }
   }
 
@@ -73,11 +73,11 @@ struct DashboardPublicProfileCard: View {
   @ViewBuilder
   private func publishedContent(url: URL) -> some View {
     Text(String(localized: "Share this link with coaches. Anyone with it can view the profile."))
-      .font(.subheadline)
+      .font(.brand(.subheadline))
       .foregroundStyle(.secondary)
 
     Text(url.absoluteString)
-      .font(.caption.monospaced())
+      .font(.brand(.caption).monospaced())
       .foregroundStyle(.primary)
       .lineLimit(1)
       .truncationMode(.middle)
@@ -101,7 +101,7 @@ struct DashboardPublicProfileCard: View {
             .accessibilityHidden(true)
           Text(didCopy ? String(localized: "Copied!") : String(localized: "Copy link"))
         }
-        .font(.callout.weight(.semibold))
+        .font(.brand(.callout, weight: .semibold))
         .frame(maxWidth: .infinity)
         .frame(minHeight: 44)
       }
@@ -112,7 +112,7 @@ struct DashboardPublicProfileCard: View {
         showEditor = true
       } label: {
         Text(String(localized: "Manage"))
-          .font(.callout.weight(.semibold))
+          .font(.brand(.callout, weight: .semibold))
           .frame(maxWidth: .infinity)
           .frame(minHeight: 44)
       }
@@ -123,14 +123,14 @@ struct DashboardPublicProfileCard: View {
   @ViewBuilder
   private var unpublishedContent: some View {
     Text(String(localized: "Publish a public profile to get a shareable link for coaches."))
-      .font(.subheadline)
+      .font(.brand(.subheadline))
       .foregroundStyle(.secondary)
 
     Button {
       showEditor = true
     } label: {
       Text(String(localized: "Set up public profile"))
-        .font(.callout.weight(.semibold))
+        .font(.brand(.callout, weight: .semibold))
         .frame(maxWidth: .infinity)
         .frame(minHeight: 44)
     }

@@ -31,7 +31,7 @@ struct CoachCardView: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 8) {
         Text(coach.fullName)
-          .font(.body)
+          .font(.brand(.body))
           .fontWeight(.medium)
           .foregroundStyle(.primary)
 
@@ -92,12 +92,12 @@ private struct CoachCardHeaderSection: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text(coach.fullName)
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(.primary)
 
         if showSchoolMeta {
           Text(schoolName)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
         }
       }
@@ -114,7 +114,7 @@ private struct CoachCardRoleBadge: View {
 
   var body: some View {
     Text(role.displayName)
-      .font(.caption)
+      .font(.brand(.caption))
       .fontWeight(.medium)
       .foregroundStyle(.white)
       .padding(.horizontal, 10)
@@ -151,13 +151,13 @@ private struct CoachCardContentSection: View {
 private func contactRow(icon: String, text: String) -> some View {
   HStack(spacing: 8) {
     Image(systemName: icon)
-      .font(.caption)
+      .font(.brand(.caption))
       .foregroundStyle(.secondary)
       .frame(width: 16)
       .accessibilityHidden(true)
 
     Text(text)
-      .font(.subheadline)
+      .font(.brand(.subheadline))
       .foregroundStyle(.secondary)
   }
 }
@@ -165,13 +165,13 @@ private func contactRow(icon: String, text: String) -> some View {
 private func lastContactRow(date: Date) -> some View {
   HStack(spacing: 8) {
     Image(systemName: "clock")
-      .font(.caption)
+      .font(.brand(.caption))
       .foregroundStyle(.secondary)
       .frame(width: 16)
       .accessibilityHidden(true)
 
     Text("Last contact: \(RelativeTimeFormatter.string(from: date))")
-      .font(.caption)
+      .font(.brand(.caption))
       .foregroundStyle(Color.tertiaryText)
   }
 }

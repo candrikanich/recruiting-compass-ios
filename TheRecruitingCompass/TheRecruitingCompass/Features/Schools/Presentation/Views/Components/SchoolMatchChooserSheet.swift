@@ -10,9 +10,9 @@ struct SchoolMatchChooserSheet: View {
       List(matches) { match in
         Button { onSelect(match) } label: {
           VStack(alignment: .leading, spacing: 2) {
-            Text(match.name).font(.body).foregroundStyle(.primary)
+            Text(match.name).font(.brand(.body)).foregroundStyle(.primary)
             if let sub = subtitle(for: match) {
-              Text(sub).font(.caption).foregroundStyle(.secondary)
+              Text(sub).font(.brand(.caption)).foregroundStyle(.secondary)
             }
           }
         }

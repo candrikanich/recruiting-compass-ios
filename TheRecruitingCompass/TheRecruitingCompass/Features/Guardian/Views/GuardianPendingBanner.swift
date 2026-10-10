@@ -25,18 +25,18 @@ struct GuardianPendingBanner: View {
           .foregroundStyle(.orange)
           .accessibilityHidden(true)
         Text("Waiting on your guardian")
-          .font(.subheadline.weight(.semibold))
+          .font(.brand(.subheadline, weight: .semibold))
       }
 
       if let masked = viewModel.status?.guardianEmailMasked {
         Text("We emailed \(masked) to confirm your account. Sending messages to coaches and publishing your profile stay locked until they do.")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
 
       if let resendMessage = viewModel.resendMessage {
         Text(resendMessage)
-          .font(.caption.weight(.medium))
+          .font(.brand(.caption, weight: .medium))
           .foregroundStyle(Color.accentPrimary)
       }
 
@@ -45,7 +45,7 @@ struct GuardianPendingBanner: View {
           ProgressView().controlSize(.small)
         } else {
           Text("Resend confirmation email")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
         }
       }
       .frame(minWidth: 44, minHeight: 44)

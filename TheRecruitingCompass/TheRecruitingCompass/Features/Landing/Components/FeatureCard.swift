@@ -14,11 +14,11 @@ struct FeatureCard: View {
         .accessibilityHidden(true)
 
       Text(title)
-        .font(.headline.weight(.semibold))
+        .font(.brand(.headline, weight: .semibold))
         .foregroundStyle(.white)
 
       Text(description)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(Color.white.opacity(0.85))
         .multilineTextAlignment(.center)
         .fixedSize(horizontal: false, vertical: true)

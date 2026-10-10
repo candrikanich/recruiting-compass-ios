@@ -12,35 +12,35 @@ struct EventRowView: View {
       }
 
       Text(event.name)
-        .font(.headline)
+        .font(.brand(.headline))
         .lineLimit(2)
 
       Label(formattedDate, systemImage: "calendar")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
 
       if let time = event.startTime, !time.isEmpty {
         Label(time, systemImage: "clock")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
       }
 
       if let location = locationLine {
         Label(location, systemImage: "mappin")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
           .lineLimit(1)
       }
 
       if let cost = event.cost, cost > 0 {
         Label(cost.formatted(.currency(code: "USD")), systemImage: "dollarsign.circle")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
       }
 
       if let notes = event.performanceNotes, !notes.isEmpty {
         Text(notes)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .lineLimit(2)
           .padding(.top, 2)
@@ -53,7 +53,7 @@ struct EventRowView: View {
   private var typeBadge: some View {
     let eventType = EventType(rawValue: event.type)
     Text(eventType?.displayName ?? event.type)
-      .font(.caption)
+      .font(.brand(.caption))
       .fontWeight(.semibold)
       .padding(.horizontal, 8)
       .padding(.vertical, 3)
@@ -69,7 +69,7 @@ struct EventRowView: View {
       : event.registered ? String(localized: "Registered") : String(localized: "Not Registered")
     let color: Color = event.attended ? .green : event.registered ? Color.accentPrimary : .gray
     Text(label)
-      .font(.caption)
+      .font(.brand(.caption))
       .fontWeight(.semibold)
       .padding(.horizontal, 8)
       .padding(.vertical, 3)

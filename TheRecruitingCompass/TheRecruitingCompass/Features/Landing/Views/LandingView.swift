@@ -44,12 +44,12 @@ struct LandingView: View {
         .accessibilityHidden(true)
 
       Text("The Recruiting Compass")
-        .font(.title)
+        .font(.brand(.title))
         .bold()
         .foregroundStyle(.white)
 
       Text("Your College Recruiting Command Center")
-        .font(.title3.weight(.semibold))
+        .font(.brand(.title3, weight: .semibold))
         .foregroundStyle(.white)
         .multilineTextAlignment(.center)
 
@@ -57,7 +57,7 @@ struct LandingView: View {
         Navigate college recruiting from finding schools to signing day. \
         For 19 sports. No recruiting service required.
         """)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(Color.white.opacity(0.9))
         .multilineTextAlignment(.center)
         .fixedSize(horizontal: false, vertical: true)
@@ -97,10 +97,10 @@ struct LandingView: View {
   private func statItem(_ value: String, label: String) -> some View {
     VStack(spacing: 2) {
       Text(value)
-        .font(.title3.weight(.bold))
+        .font(.brand(.title3, weight: .bold))
         .foregroundStyle(.white)
       Text(label)
-        .font(.caption2.weight(.medium))
+        .font(.brand(.caption2, weight: .medium))
         .foregroundStyle(Color.white.opacity(0.75))
     }
     .frame(maxWidth: .infinity)
@@ -134,7 +134,7 @@ struct LandingView: View {
   @ViewBuilder
   private var tagline: some View {
     Text("Built for student athletes and their families.")
-      .font(.footnote.weight(.medium))
+      .font(.brand(.footnote, weight: .medium))
       .foregroundStyle(Color.white.opacity(0.7))
   }
 
@@ -147,7 +147,7 @@ struct LandingView: View {
         action: { showSignup = true },
         label: {
           Text("Start Now")
-            .font(.headline.weight(.semibold))
+            .font(.brand(.headline, weight: .semibold))
             .lineLimit(2)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
@@ -171,7 +171,7 @@ struct LandingView: View {
         action: { showLogin = true },
         label: {
           Text("Sign In")
-            .font(.headline.weight(.semibold))
+            .font(.brand(.headline, weight: .semibold))
             .lineLimit(2)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)

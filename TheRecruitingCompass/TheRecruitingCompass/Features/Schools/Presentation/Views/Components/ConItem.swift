@@ -8,17 +8,17 @@ struct ConItem: View {
     HStack(spacing: 8) {
       Image(systemName: "xmark.circle.fill")
         .foregroundStyle(.red)
-        .font(.caption)
+        .font(.brand(.caption))
         .accessibilityHidden(true)
 
       Text(text)
-        .font(.body)
+        .font(.brand(.body))
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Button(action: onRemove) {
         Image(systemName: "xmark.circle.fill")
           .foregroundStyle(.secondary)
-          .font(.caption)
+          .font(.brand(.caption))
           .accessibilityHidden(true)
       }
       .frame(minWidth: 44, minHeight: 44)

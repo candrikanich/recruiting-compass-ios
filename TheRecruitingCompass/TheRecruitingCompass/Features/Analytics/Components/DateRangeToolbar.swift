@@ -15,7 +15,7 @@ struct DateRangeToolbar: View {
             }
           } label: {
             Text(range.displayName)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .padding(.horizontal, 14)
               .padding(.vertical, 8)
               .background(isSelected(range) ? Color.accentPrimary : Color(.secondarySystemBackground))
@@ -35,7 +35,7 @@ struct DateRangeToolbar: View {
             Image(systemName: "calendar")
               .accessibilityHidden(true)
             Text("Custom")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
           }
           .padding(.horizontal, 14)
           .padding(.vertical, 8)

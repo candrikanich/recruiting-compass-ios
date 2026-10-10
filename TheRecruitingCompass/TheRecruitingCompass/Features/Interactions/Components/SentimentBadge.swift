@@ -5,7 +5,7 @@ struct SentimentBadge: View {
 
   var body: some View {
     Text(sentiment.displayName)
-      .font(.caption)
+      .font(.brand(.caption))
       .fontWeight(.medium)
       .foregroundStyle(sentiment.badgeColor.foregroundColor)
       .padding(.horizontal, 8)

@@ -22,7 +22,7 @@ struct DocumentFilterBar: View {
             Text(sortBy.label)
               .lineLimit(1)
             Image(systemName: "chevron.down")
-              .font(.caption)
+              .font(.brand(.caption))
           }
           .padding(.horizontal, 12)
           .padding(.vertical, 8)
@@ -47,7 +47,7 @@ struct DocumentFilterBar: View {
                 .foregroundStyle(.secondary)
             }
           }
-          .font(.subheadline)
+          .font(.brand(.subheadline))
         }
         .accessibilityLabel(String(localized: activeFilterCount > 0 ? "Filter documents. \(activeFilterCount) filters active." : "Filter documents"))
 
@@ -84,7 +84,7 @@ struct DocumentFilterBar: View {
         Button("Clear filters", role: .destructive) {
           onClearFilters()
         }
-        .font(.caption)
+        .font(.brand(.caption))
       }
     }
     .padding()

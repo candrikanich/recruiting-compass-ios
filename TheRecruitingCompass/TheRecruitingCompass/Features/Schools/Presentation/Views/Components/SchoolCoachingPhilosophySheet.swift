@@ -92,7 +92,7 @@ private struct PhilosophyField: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(title)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .fontWeight(.medium)
 
       TextEditor(text: $text)

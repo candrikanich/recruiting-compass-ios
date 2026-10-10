@@ -35,8 +35,8 @@ struct CoachAlertsSection: View {
         .clipShape(Circle())
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 2) {
-        Text(title).font(.subheadline.bold()).foregroundStyle(tint)
-        Text(message).font(.footnote).foregroundStyle(.secondary)
+        Text(title).font(.brand(.subheadline, weight: .bold)).foregroundStyle(tint)
+        Text(message).font(.brand(.footnote)).foregroundStyle(.secondary)
       }
       Spacer(minLength: 0)
     }

@@ -14,7 +14,7 @@ struct DocumentShareSheet: View {
             Button("Remove", role: .destructive) {
               Task { await viewModel.removeShare(schoolId: schoolId) }
             }
-            .font(.caption)
+            .font(.brand(.caption))
             .accessibilityLabel(String(localized: "Remove \(viewModel.schoolName(for: schoolId))"))
           }
         }
@@ -30,7 +30,7 @@ struct DocumentShareSheet: View {
       }
       if viewModel.availableSchoolsForShare.isEmpty {
         Text("No other schools to add")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity)
       }

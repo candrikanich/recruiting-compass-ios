@@ -5,7 +5,7 @@ struct ConferenceBadge: View {
 
   var body: some View {
     Text(conference)
-      .font(.caption)
+      .font(.brand(.caption))
       .fontWeight(.medium)
       .padding(.horizontal, 10)
       .padding(.vertical, 5)

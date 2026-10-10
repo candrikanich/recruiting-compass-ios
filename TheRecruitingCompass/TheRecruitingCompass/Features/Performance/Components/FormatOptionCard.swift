@@ -9,17 +9,17 @@ struct FormatOptionCard: View {
     Button(action: onTap) {
       HStack(spacing: 16) {
         Image(systemName: format.icon)
-          .font(.title2)
+          .font(.brand(.title2))
           .foregroundStyle(isSelected ? Color.accentPrimary : .secondary)
           .frame(width: 40)
 
         VStack(alignment: .leading, spacing: 4) {
           Text(format.displayName)
-            .font(.headline)
+            .font(.brand(.headline))
             .foregroundStyle(.primary)
 
           Text(format.description)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         }
 

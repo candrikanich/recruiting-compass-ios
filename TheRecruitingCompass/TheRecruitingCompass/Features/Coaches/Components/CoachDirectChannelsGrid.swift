@@ -59,7 +59,7 @@ struct CoachDirectChannelsGrid: View {
         } else if let system {
           Image(systemName: system).font(.system(size: 14, weight: .semibold))
         }
-        Text(label).font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.7)
+        Text(label).font(.brand(.subheadline, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
       }
       .foregroundStyle(.white)
       .frame(maxWidth: .infinity, minHeight: 44)

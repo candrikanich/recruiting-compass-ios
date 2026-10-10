@@ -92,7 +92,7 @@ struct NotificationPreferencesView: View {
       Section {
         if let pushSetupError = viewModel.pushSetupError {
           Label(pushSetupError, systemImage: "exclamationmark.triangle.fill")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(Color.errorRed)
         }
         if pushAuthStatus == .denied {
@@ -100,7 +100,7 @@ struct NotificationPreferencesView: View {
             Image(systemName: "bell.slash")
               .foregroundStyle(.secondary)
             Text("Push notifications are disabled in iOS Settings.")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
             Spacer()
             Button("Open Settings") {
@@ -108,7 +108,7 @@ struct NotificationPreferencesView: View {
                 openURL(url)
               }
             }
-            .font(.subheadline)
+            .font(.brand(.subheadline))
           }
           .accessibilityElement(children: .contain)
         } else {
@@ -128,10 +128,10 @@ struct NotificationPreferencesView: View {
       } footer: {
         if pushAuthStatus == .notDetermined {
           Text("Push notifications have not been enabled yet. You'll be prompted when you next use the app.")
-            .font(.caption)
+            .font(.brand(.caption))
         } else if pushAuthStatus == .authorized || pushAuthStatus == .provisional {
           Text("Controls which notification types trigger a push alert on your device.")
-            .font(.caption)
+            .font(.brand(.caption))
         }
       }
 
@@ -189,7 +189,7 @@ private struct MarketingEmailsSection: View {
     Section {
       if let errorMessage = viewModel.errorMessage {
         Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(Color.errorRed)
       }
       Toggle("Marketing Emails", isOn: Binding(
@@ -205,7 +205,7 @@ private struct MarketingEmailsSection: View {
       Text(
         "Recruiting tips, product updates and offers from The Recruiting Compass. You can unsubscribe anytime."
       )
-      .font(.caption)
+      .font(.brand(.caption))
     }
   }
 }

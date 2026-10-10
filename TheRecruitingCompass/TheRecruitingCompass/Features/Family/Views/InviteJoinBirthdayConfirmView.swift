@@ -14,7 +14,7 @@ struct InviteJoinBirthdayConfirmView: View {
               .foregroundStyle(Color.darkSlate)
               .accessibilityHidden(true)
             Text("Confirm Your Birthday")
-              .font(.headline)
+              .font(.brand(.headline))
               .foregroundStyle(Color.darkSlate)
           }
 
@@ -23,7 +23,7 @@ struct InviteJoinBirthdayConfirmView: View {
               ? "Your parent entered this birthday — please confirm it's correct."
               : "Please confirm your birthday."
           )
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(Color.secondary)
 
           DatePicker(
@@ -37,7 +37,7 @@ struct InviteJoinBirthdayConfirmView: View {
 
           if let error = viewModel.birthdayConfirmError {
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.red)
           }
         }

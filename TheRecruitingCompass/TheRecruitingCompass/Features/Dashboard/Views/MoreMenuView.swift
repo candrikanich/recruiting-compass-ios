@@ -147,7 +147,7 @@ private struct MoreMenuRow: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: icon)
-        .font(.title3)
+        .font(.brand(.title3))
         .foregroundStyle(.white)
         .frame(width: 36, height: 36)
         .background(color)
@@ -157,12 +157,12 @@ private struct MoreMenuRow: View {
       VStack(alignment: .leading, spacing: 4) {
         HStack {
           Text(title)
-            .font(.body)
+            .font(.brand(.body))
             .fontWeight(.medium)
             .foregroundStyle(.primary)
           if let count = badgeCount {
             Text("\(count)")
-              .font(.caption)
+              .font(.brand(.caption))
               .fontWeight(.semibold)
               .foregroundStyle(.white)
               .padding(.horizontal, 8)
@@ -172,7 +172,7 @@ private struct MoreMenuRow: View {
           }
         }
         Text(description)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .lineLimit(2)
       }

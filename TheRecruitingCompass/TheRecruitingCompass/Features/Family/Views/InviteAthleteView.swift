@@ -13,15 +13,15 @@ struct InviteAthleteView: View {
         VStack(alignment: .leading, spacing: FamilyConstants.Spacing.medium) {
           VStack(alignment: .leading, spacing: 4) {
             Text("Invite your player")
-              .font(.headline)
+              .font(.brand(.headline))
             Text("Send them an email invite or share your family code.")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
 
           VStack(alignment: .leading, spacing: FamilyConstants.Spacing.small) {
             Text("Player's email address")
-              .font(.subheadline.weight(.medium))
+              .font(.brand(.subheadline, weight: .medium))
             TextField("player@example.com", text: $viewModel.inviteEmail)
               .keyboardType(.emailAddress)
               .textContentType(.emailAddress)
@@ -32,7 +32,7 @@ struct InviteAthleteView: View {
 
           if let error = viewModel.errorMessage {
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.red)
           }
 
@@ -43,7 +43,7 @@ struct InviteAthleteView: View {
               ProgressView().tint(.white)
             } else {
               Text("Send Invite")
-                .font(.callout.weight(.semibold))
+                .font(.brand(.callout, weight: .semibold))
             }
           }
           .frame(maxWidth: .infinity)
@@ -56,7 +56,7 @@ struct InviteAthleteView: View {
           .accessibilityLabel(String(localized: "Send invite"))
 
           Text("Or share your family code")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .foregroundStyle(.secondary)
             .padding(.top, FamilyConstants.Spacing.small)
 
@@ -64,7 +64,7 @@ struct InviteAthleteView: View {
             HStack(spacing: FamilyConstants.Spacing.small) {
               ProgressView()
               Text("Loading family code…")
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity)
@@ -93,13 +93,13 @@ struct InviteAthleteView: View {
               .buttonStyle(.bordered)
               .accessibilityLabel(String(localized: "Copy family code"))
               Text("Your player enters this code during their signup.")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
           } else {
             VStack(alignment: .leading, spacing: FamilyConstants.Spacing.small) {
               Text("Family code couldn't be loaded.")
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
               Button("Retry") {
                 Task { await viewModel.loadFamilyCode() }

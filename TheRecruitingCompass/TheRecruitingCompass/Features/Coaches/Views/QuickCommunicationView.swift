@@ -126,7 +126,7 @@ struct QuickCommunicationView: View {
     .safeAreaInset(edge: .bottom) {
       NavigationLink(value: QuickCommStep.details(channel)) {
         Text("Next")
-          .font(.body.weight(.medium))
+          .font(.brand(.body, weight: .medium))
           .frame(maxWidth: .infinity)
           .padding(.vertical, 12)
       }
@@ -174,7 +174,7 @@ struct QuickCommunicationView: View {
           ? QuickCommStep.completeInfo(channel) : QuickCommStep.preview(channel))
       } label: {
         Text("Preview & Send")
-          .font(.body.weight(.medium))
+          .font(.brand(.body, weight: .medium))
           .frame(maxWidth: .infinity)
           .padding(.vertical, 12)
       }
@@ -197,7 +197,7 @@ struct QuickCommunicationView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 16) {
         Text("A few details make this message land with \(viewModel.schoolDisplayName).")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
 
         ForEach(viewModel.missingInfoFields) { field in
@@ -206,7 +206,7 @@ struct QuickCommunicationView: View {
 
         if isParent && viewModel.missingInfoFields.contains(where: { !$0.editableByParent }) {
           Text("Ask the athlete to answer these.")
-            .font(.caption2)
+            .font(.brand(.caption2))
             .foregroundStyle(.tertiary)
         }
       }
@@ -229,7 +229,7 @@ struct QuickCommunicationView: View {
         Task { await viewModel.commitMissingInfo() }  // persist prefs-backed + questionnaire
       } label: {
         Text("Continue")
-          .font(.body.weight(.medium))
+          .font(.brand(.body, weight: .medium))
           .frame(maxWidth: .infinity)
           .padding(.vertical, 12)
       }
@@ -275,19 +275,19 @@ struct QuickCommunicationView: View {
         )
         if !viewModel.unresolvedKeys.isEmpty {
           Text("Fill these before sending: \(viewModel.unresolvedKeys.joined(separator: ", "))")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.warningOrange)
             .accessibilityIdentifier("quickCommUnresolvedNotice")
         }
         if viewModel.textBodyOverLimit {
           Text("Text is \(viewModel.textOverLimitCount) characters over the \(QuickCommunicationViewModel.textLimit)-character limit — shorten it to send.")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.warningOrange)
             .accessibilityIdentifier("quickCommOverLimitNotice")
         }
         if let warning = viewModel.sendWarning {
           Text(warning)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.warningOrange)
             .accessibilityIdentifier("quickCommSendWarning")
         }
@@ -479,16 +479,16 @@ private struct QuickCommChannelScreen: View {
   private func channelRow(title: String, systemImage: String) -> some View {
     HStack(spacing: 12) {
       Image(systemName: systemImage)
-        .font(.body)
+        .font(.brand(.body))
         .foregroundStyle(Color.accentPrimary)
         .frame(width: 28)
         .accessibilityHidden(true)
       Text(title)
-        .font(.body.weight(.medium))
+        .font(.brand(.body, weight: .medium))
         .foregroundStyle(.primary)
       Spacer()
       Image(systemName: "chevron.right")
-        .font(.caption.weight(.semibold))
+        .font(.brand(.caption, weight: .semibold))
         .foregroundStyle(.tertiary)
         .accessibilityHidden(true)
     }
@@ -506,7 +506,7 @@ private struct QuickCommRecipientSection: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(recipientLine)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.primary)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -528,7 +528,7 @@ private struct QuickCommTemplateSection: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Use a template")
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
         .foregroundStyle(.secondary)
 
       if isLoading && templates.isEmpty {
@@ -559,7 +559,7 @@ private struct QuickCommTemplatePicker: View {
       templateOption(nil, label: String(localized: "None"))
       ForEach(groupTemplatesByStage(templates), id: \.label) { group in
         Text(group.label)
-          .font(.caption.weight(.semibold))
+          .font(.brand(.caption, weight: .semibold))
           .foregroundStyle(.secondary)
           .padding(.top, 12)
           .padding(.bottom, 2)
@@ -580,7 +580,7 @@ private struct QuickCommTemplatePicker: View {
     } label: {
       HStack {
         Text(label)
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(.primary)
         Spacer()
         if isSelected {
@@ -614,7 +614,7 @@ private struct QuickCommSpecificityField: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text(title)
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
       Group {
         if singleLine {
           TextField(prompt, text: $text)
@@ -641,10 +641,10 @@ private struct QuickCommQuestionnaireField: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text(title)
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
       Toggle(isOn: $completed) {
         Text(prompt)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
     }
@@ -659,11 +659,11 @@ private struct QuickCommSubjectField: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Subject")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
       TextField(String(localized: "Subject"), text: $subject)
         .textFieldStyle(.roundedBorder)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
     }
     .accessibilityIdentifier("quickCommSubjectField")
   }
@@ -682,15 +682,15 @@ private struct QuickCommAddMetricCTA: View {
           .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 2) {
           Text("Add a metric to strengthen this email")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .foregroundStyle(.primary)
           Text("Coaches look for numbers — your key performance metrics, etc.")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         }
         Spacer()
         Image(systemName: "chevron.right")
-          .font(.caption.weight(.semibold))
+          .font(.brand(.caption, weight: .semibold))
           .foregroundStyle(.tertiary)
           .accessibilityHidden(true)
       }
@@ -718,17 +718,17 @@ private struct QuickCommBodyEditor: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Message")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
       TextEditor(text: $text)
-        .font(.caption)
+        .font(.brand(.caption))
         .frame(minHeight: 160)
         .padding(4)
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(uiColor: .separator)))
         .accessibilityIdentifier("quickCommBodyEditor")
       if isTextMessage {
         Text("\(characterCount)/\(limit)")
-          .font(.caption2.monospacedDigit())
+          .font(.brand(.caption2).monospacedDigit())
           .foregroundStyle(overLimit ? Color.errorRed : Color.secondary)
           .frame(maxWidth: .infinity, alignment: .trailing)
           .accessibilityLabel(String(localized: "\(characterCount) of \(limit) characters"))
@@ -745,10 +745,10 @@ private struct QuickCommBodyPreview: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Preview — what the coach sees")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
       Text(preview)
-        .font(.caption)
+        .font(.brand(.caption))
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(8)
         .background(Color(uiColor: .tertiarySystemFill))
@@ -773,7 +773,7 @@ private struct QuickCommActionsSection: View {
         if showEmail {
           Button(action: onSendEmail) {
             Label("Send Email", systemImage: "envelope.fill")
-              .font(.body.weight(.medium))
+              .font(.brand(.body, weight: .medium))
               .frame(maxWidth: .infinity)
               .padding(.vertical, 12)
           }
@@ -785,7 +785,7 @@ private struct QuickCommActionsSection: View {
         if showText {
           Button(action: onSendText) {
             Label("Send Text", systemImage: "message.fill")
-              .font(.body.weight(.medium))
+              .font(.brand(.body, weight: .medium))
               .frame(maxWidth: .infinity)
               .padding(.vertical, 12)
           }

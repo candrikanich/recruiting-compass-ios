@@ -68,7 +68,7 @@ struct CoachStatsGrid: View {
   @ViewBuilder
   private func subPill(_ text: LocalizedStringKey, text textColor: Color, background: Color) -> some View {
     Text(text)
-      .font(.caption2.bold())
+      .font(.brand(.caption2, weight: .bold))
       .foregroundStyle(textColor)
       .lineLimit(1)
       .minimumScaleFactor(0.7)
@@ -84,14 +84,14 @@ struct CoachStatsGrid: View {
   ) -> some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(label)
-        .font(.caption2.bold())
+        .font(.brand(.caption2, weight: .bold))
         .textCase(.uppercase)
         .foregroundStyle(.secondary)
         .lineLimit(1)
         .minimumScaleFactor(0.8)
 
       Text(value)
-        .font(sizeCategory.isAccessibilityCategory ? .title3.bold() : .title2.bold())
+        .font(sizeCategory.isAccessibilityCategory ? .brand(.title3, weight: .bold) : .brand(.title2, weight: .bold))
         .foregroundStyle(valueColor)
         .lineLimit(1)
         .minimumScaleFactor(0.6)

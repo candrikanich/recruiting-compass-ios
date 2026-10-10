@@ -66,10 +66,10 @@ struct EmailVerificationView: View {
       Button(action: { dismiss() }) {
         HStack(spacing: 4) {
           Image(systemName: "arrow.left")
-            .font(.footnote.weight(.semibold))
+            .font(.brand(.footnote, weight: .semibold))
             .accessibilityHidden(true)
           Text("Back to Welcome")
-            .font(.footnote.weight(.semibold))
+            .font(.brand(.footnote, weight: .semibold))
         }
         .foregroundStyle(Color.darkSlate)
         .frame(minHeight: 44)
@@ -114,16 +114,16 @@ struct EmailVerificationView: View {
   private var headerSection: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text(viewModel.headlineText)
-        .font(.title2.weight(.semibold))
+        .font(.brand(.title2, weight: .semibold))
         .foregroundStyle(Color.darkSlate)
 
       Text(viewModel.subtitleText)
-        .font(.footnote)
+        .font(.brand(.footnote))
         .foregroundStyle(Color.secondaryText)
 
       if let summary = viewModel.draftedOnboardingSummary {
         Text(summary)
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(Color.secondaryText)
       }
     }
@@ -155,7 +155,7 @@ struct EmailVerificationView: View {
     }) {
       HStack {
         Text(viewModel.actionButtonText)
-          .font(.callout.weight(.semibold))
+          .font(.brand(.callout, weight: .semibold))
 
         if viewModel.verificationState == .checking {
           ProgressView()
@@ -179,7 +179,7 @@ struct EmailVerificationView: View {
   private var cooldownText: some View {
     if viewModel.shouldShowCooldownText {
       Text("Resend email in \(viewModel.resendCooldownSeconds)s")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(Color.secondaryText)
         .frame(maxWidth: .infinity, alignment: .center)
         .accessibilityLabel(String(localized: "Resend available in \(viewModel.resendCooldownSeconds) seconds"))

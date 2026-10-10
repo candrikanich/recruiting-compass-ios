@@ -37,7 +37,7 @@ struct InteractionCard: View {
   private var deleteButton: some View {
     Button(role: .destructive, action: onDelete) {
       Image(systemName: "trash")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(Color.errorRed)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
@@ -66,7 +66,7 @@ struct InteractionCard: View {
         VStack(alignment: .leading, spacing: 4) {
           HStack(spacing: 8) {
             Text(interaction.type.displayName)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .fontWeight(.medium)
               .foregroundStyle(.primary)
 
@@ -88,7 +88,7 @@ struct InteractionCard: View {
       // Subject
       if let subject = interaction.subject, !subject.isEmpty {
         Text(subject)
-          .font(.headline)
+          .font(.brand(.headline))
           .lineLimit(1)
           .foregroundStyle(.primary)
       }
@@ -98,19 +98,19 @@ struct InteractionCard: View {
         HStack(spacing: 4) {
           if let schoolName {
             Text(schoolName)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
 
           if schoolName != nil && coachName != nil {
             Text("•")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
 
           if let coachName {
             Text(coachName)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
         }
@@ -120,7 +120,7 @@ struct InteractionCard: View {
       // Content preview
       if let content = interaction.content, !content.isEmpty {
         Text(content)
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(.secondary)
           .lineLimit(2)
       }
@@ -128,12 +128,12 @@ struct InteractionCard: View {
       // Date
       HStack(spacing: 4) {
         Image(systemName: "calendar")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .accessibilityHidden(true)
 
         Text(DateFormatting.mediumDateShortTime(interaction.displayDate))
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
     }

@@ -56,7 +56,7 @@ struct LoginFormField: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(label)
-        .font(.footnote.weight(.semibold))
+        .font(.brand(.footnote, weight: .semibold))
         .foregroundStyle(Color.primary)
         .accessibilityHidden(true)
 
@@ -78,7 +78,7 @@ struct LoginFormField: View {
 
       if let error {
         Text(error)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.errorRed)
           .accessibilityLabel(String(localized: "Error: \(error)"))
       }

@@ -9,22 +9,22 @@ struct WhatsNewView: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 28) {
           Text("What's New in \(release.version.description)")
-            .font(.largeTitle.bold())
+            .font(.brand(.largeTitle, weight: .bold))
             .accessibilityAddTraits(.isHeader)
 
           ForEach(release.highlights) { highlight in
             HStack(alignment: .top, spacing: 16) {
               Image(systemName: highlight.systemImage)
-                .font(.title2)
+                .font(.brand(.title2))
                 .foregroundStyle(Color.accentPrimary)
                 .frame(width: 36)
                 .accessibilityHidden(true)
 
               VStack(alignment: .leading, spacing: 4) {
                 Text(highlight.title)
-                  .font(.headline)
+                  .font(.brand(.headline))
                 Text(highlight.detail)
-                  .font(.subheadline)
+                  .font(.brand(.subheadline))
                   .foregroundStyle(.secondary)
               }
             }
@@ -37,7 +37,7 @@ struct WhatsNewView: View {
       .safeAreaInset(edge: .bottom) {
         Button(action: onDismiss) {
           Text("Continue")
-            .font(.headline)
+            .font(.brand(.headline))
             .frame(maxWidth: .infinity, minHeight: 50)
         }
         .buttonStyle(.borderedProminent)

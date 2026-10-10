@@ -17,19 +17,19 @@ struct SessionExpiredSheet: View {
                     .accessibilityHidden(true)
 
                 Text("You've been away for a while.")
-                    .font(.title3.bold())
+                    .font(.brand(.title3, weight: .bold))
                     .multilineTextAlignment(.center)
                     .accessibilityAddTraits(.isHeader)
 
                 Text("For your security, we signed you out after a period of inactivity. Log back in to continue.")
-                    .font(.body)
+                    .font(.brand(.body))
                     .foregroundStyle(Color.secondary)
                     .multilineTextAlignment(.center)
             }
 
             Button(action: onSignIn) {
                 Text("Sign In Again")
-                    .font(.callout.weight(.semibold))
+                    .font(.brand(.callout, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
                     .foregroundStyle(.white)

@@ -56,7 +56,7 @@ struct SettingsView: View {
             HStack {
               VStack(alignment: .leading, spacing: 4) {
                 Text("Family code")
-                  .font(.caption)
+                  .font(.brand(.caption))
                   .foregroundStyle(.secondary)
                 Text(code)
                   .font(.system(.body, design: .monospaced).weight(.medium))
@@ -72,7 +72,7 @@ struct SettingsView: View {
                 }
               } label: {
                 Text(showCodeCopied ? String(localized: "Copied!") : String(localized: "Copy"))
-                  .font(.caption.weight(.medium))
+                  .font(.brand(.caption, weight: .medium))
               }
               .buttonStyle(.bordered)
               .disabled(showCodeCopied)
@@ -185,7 +185,7 @@ struct SettingsView: View {
           Section {
             VStack(alignment: .leading, spacing: 8) {
               Text("Forward or CC emails from coaches to this address to automatically draft an interaction log entry for your family.")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
 
               HStack {
@@ -205,7 +205,7 @@ struct SettingsView: View {
                   }
                 } label: {
                   Text(copiedFamilyUnitId == entry.familyUnitId ? String(localized: "Copied!") : String(localized: "Copy"))
-                    .font(.caption.weight(.medium))
+                    .font(.brand(.caption, weight: .medium))
                 }
                 .buttonStyle(.bordered)
                 .disabled(copiedFamilyUnitId == entry.familyUnitId)
@@ -354,7 +354,7 @@ private struct SettingsRow: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: icon)
-        .font(.title3)
+        .font(.brand(.title3))
         .foregroundStyle(.white)
         .frame(width: 36, height: 36)
         .background(color)
@@ -364,18 +364,18 @@ private struct SettingsRow: View {
       VStack(alignment: .leading, spacing: 4) {
         HStack(spacing: 6) {
           Text(title)
-            .font(.body)
+            .font(.brand(.body))
             .fontWeight(.medium)
             .foregroundStyle(.primary)
 
           if let status = badgeStatus {
             HStack(spacing: 3) {
               Image(systemName: status.iconName)
-                .font(.caption2)
+                .font(.brand(.caption2))
                 .accessibilityHidden(true)
               Text(status.label)
             }
-            .font(.caption.weight(.medium))
+            .font(.brand(.caption, weight: .medium))
             .foregroundStyle(status.foregroundColor)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -385,7 +385,7 @@ private struct SettingsRow: View {
         }
 
         Text(description)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .lineLimit(2)
       }

@@ -69,7 +69,7 @@ struct DocumentUploadSheet: View {
 
           if let type = viewModel.uploadType {
             Text("Allowed: \(type.allowedExtensions.joined(separator: ", "))")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
           }
 
@@ -84,14 +84,14 @@ struct DocumentUploadSheet: View {
               Text(viewModel.uploadProgress > 0 && viewModel.uploadProgress < 1
                 ? "\(Int(viewModel.uploadProgress * 100))%"
                 : String(localized: "Uploading..."))
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
           }
 
           if let uploadError = viewModel.uploadError {
             Text(uploadError)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.red)
           }
         } header: {

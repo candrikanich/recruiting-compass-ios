@@ -12,14 +12,14 @@ struct UpdateRequiredView: View {
 
       VStack(spacing: 24) {
         Image(systemName: "arrow.down.app.fill")
-          .font(.largeTitle)
+          .font(.brand(.largeTitle))
           .imageScale(.large)
           .foregroundStyle(.white)
           .accessibilityHidden(true)
 
         VStack(spacing: 12) {
           Text("Update Required")
-            .font(.title.bold())
+            .font(.brand(.title, weight: .bold))
             .foregroundStyle(.white)
             .accessibilityAddTraits(.isHeader)
 
@@ -27,7 +27,7 @@ struct UpdateRequiredView: View {
             // swiftlint:disable:next line_length
             "This version of The Recruiting Compass is no longer supported. Update to version \(requiredVersion.description) or later to keep using the app — your data is safe and will be waiting for you."
           )
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(.white.opacity(0.9))
           .multilineTextAlignment(.center)
         }
@@ -36,7 +36,7 @@ struct UpdateRequiredView: View {
           openURL(AppInfo.appStoreURL)
         } label: {
           Text("Update Now")
-            .font(.headline)
+            .font(.brand(.headline))
             .frame(maxWidth: .infinity, minHeight: 50)
         }
         .buttonStyle(.borderedProminent)
@@ -44,7 +44,7 @@ struct UpdateRequiredView: View {
         .accessibilityHint("Opens the App Store")
 
         Text("You're on version \(AppInfo.displayVersion)")
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(.white.opacity(0.7))
       }
       .padding(32)

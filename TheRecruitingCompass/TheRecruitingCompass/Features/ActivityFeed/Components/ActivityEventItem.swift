@@ -19,7 +19,7 @@ struct ActivityEventItem: View {
           .frame(width: iconSize, height: iconSize)
 
         Image(systemName: event.icon)
-          .font(compact ? .caption : .body)
+          .font(compact ? .brand(.caption) : .brand(.body))
           .foregroundStyle(iconBackgroundColor)
       }
       .accessibilityHidden(true)
@@ -27,14 +27,14 @@ struct ActivityEventItem: View {
       // Content
       VStack(alignment: .leading, spacing: compact ? 2 : 4) {
         Text(event.title)
-          .font(compact ? .subheadline : .headline)
+          .font(compact ? .brand(.subheadline) : .brand(.headline))
           .fontWeight(.medium)
           .foregroundStyle(.primary)
           .lineLimit(1)
 
         if !event.description.isEmpty {
           Text(event.description)
-            .font(compact ? .caption : .subheadline)
+            .font(compact ? .brand(.caption) : .brand(.subheadline))
             .foregroundStyle(.secondary)
             .lineLimit(2)
         }
@@ -45,12 +45,12 @@ struct ActivityEventItem: View {
       // Time + chevron
       VStack(alignment: .trailing, spacing: 4) {
         Text(event.timestamp, format: .relative(presentation: .named))
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.tertiaryText)
 
         if event.isClickable {
           Image(systemName: "chevron.right")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.iconGray)
             .accessibilityHidden(true)
         }

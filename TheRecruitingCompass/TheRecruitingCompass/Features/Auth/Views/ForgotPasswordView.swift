@@ -21,10 +21,10 @@ struct ForgotPasswordView: View {
           Button(action: { dismiss() }) {
             HStack(spacing: 4) {
               Image(systemName: "arrow.left")
-                .font(.footnote.weight(.semibold))
+                .font(.brand(.footnote, weight: .semibold))
                 .accessibilityHidden(true)
               Text("Back to Login")
-                .font(.footnote.weight(.semibold))
+                .font(.brand(.footnote, weight: .semibold))
             }
             .foregroundStyle(Color.darkSlate)
           }
@@ -72,11 +72,11 @@ struct ForgotPasswordView: View {
 
       VStack(spacing: 8) {
         Text("Forgot Password?")
-          .font(.title3.weight(.semibold))
+          .font(.brand(.title3, weight: .semibold))
           .foregroundStyle(Color.darkSlate)
 
         Text("Enter your email and we'll send you a link to reset your password.")
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(Color.secondaryText)
           .multilineTextAlignment(.center)
       }
@@ -109,7 +109,7 @@ struct ForgotPasswordView: View {
       }) {
         HStack {
           Text(viewModel.isLoading ? String(localized: "Sending...") : String(localized: "Send Reset Link"))
-            .font(.callout.weight(.semibold))
+            .font(.brand(.callout, weight: .semibold))
 
           if viewModel.isLoading {
             ProgressView()
@@ -141,16 +141,16 @@ struct ForgotPasswordView: View {
 
       VStack(spacing: 8) {
         Text("Check Your Email")
-          .font(.title3.weight(.semibold))
+          .font(.brand(.title3, weight: .semibold))
           .foregroundStyle(Color.darkSlate)
           .accessibilityIdentifier("ForgotPasswordCheckEmailHeading")
 
         Text("We've sent a password reset link to:")
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(Color.secondaryText)
 
         Text(viewModel.submittedEmail)
-          .font(.footnote.weight(.semibold))
+          .font(.brand(.footnote, weight: .semibold))
           .foregroundStyle(Color.darkSlate)
       }
 
@@ -175,7 +175,7 @@ struct ForgotPasswordView: View {
               .tint(Color.accentPrimary)
           }
           Text(resendButtonText)
-            .font(.callout.weight(.semibold))
+            .font(.brand(.callout, weight: .semibold))
         }
         .frame(maxWidth: .infinity)
         .frame(minHeight: 48)
@@ -192,7 +192,7 @@ struct ForgotPasswordView: View {
 
       Button(action: { viewModel.resetForm() }) {
         Text("Use Different Email")
-          .font(.footnote.weight(.semibold))
+          .font(.brand(.footnote, weight: .semibold))
           .foregroundStyle(Color.accentPrimary)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
@@ -203,10 +203,10 @@ struct ForgotPasswordView: View {
       Button(action: { dismiss() }) {
         HStack(spacing: 4) {
           Image(systemName: "arrow.left")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .accessibilityHidden(true)
           Text("Back to Login")
-            .font(.footnote.weight(.semibold))
+            .font(.brand(.footnote, weight: .semibold))
         }
         .foregroundStyle(Color.tertiaryText)
         .frame(minHeight: 44)

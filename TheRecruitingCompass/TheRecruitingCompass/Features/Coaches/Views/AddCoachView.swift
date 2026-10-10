@@ -149,7 +149,7 @@ struct AddCoachView: View {
         .accessibilityHidden(true)
 
       Text("Please select a school to continue")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
     }
     .padding(.vertical, 8)

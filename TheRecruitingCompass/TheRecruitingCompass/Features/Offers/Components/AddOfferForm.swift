@@ -11,7 +11,7 @@ struct AddOfferForm: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text("Log New Offer")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       SchoolPicker(
@@ -36,7 +36,7 @@ struct AddOfferForm: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text("Scholarship %")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
 
         Stepper("\(formState.scholarshipPercentage)%", value: $formState.scholarshipPercentage, in: 0...100, step: 5)
@@ -45,7 +45,7 @@ struct AddOfferForm: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text("Scholarship Amount")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
 
         TextField("e.g. 50000", text: $formState.scholarshipAmount)
@@ -68,7 +68,7 @@ struct AddOfferForm: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text("Notes")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
 
         TextEditor(text: $formState.notes)
@@ -85,7 +85,7 @@ struct AddOfferForm: View {
         VStack(alignment: .leading, spacing: 4) {
           ForEach(formState.validationErrors, id: \.self) { error in
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.errorRed)
               .accessibilityLabel(String(localized: "Error: \(error)"))
           }

@@ -370,7 +370,7 @@ struct CreateEventView: View {
 
       if let hint = viewModel.submitHint {
         Text(hint)
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(.secondary)
           .multilineTextAlignment(.center)
           .accessibilityIdentifier("create-event-required-hint")
@@ -401,7 +401,7 @@ struct CreateEventView: View {
   private func validationMessage(for field: String) -> some View {
     if let message = viewModel.validationErrors[field] {
       Text(message)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.red)
         .accessibilityLabel(String(localized: "Error: \(message)"))
     }

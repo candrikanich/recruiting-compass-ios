@@ -23,14 +23,14 @@ struct NotificationCard: View, Equatable {
     Button(action: onTap) {
       HStack(alignment: .top, spacing: 12) {
         Image(systemName: notification.type.systemImage)
-          .font(.title3)
+          .font(.brand(.title3))
           .foregroundStyle(Color.accentPrimary)
           .accessibilityHidden(true)
 
         VStack(alignment: .leading, spacing: 4) {
           HStack(spacing: 8) {
             Text(notification.title)
-              .font(notification.isRead ? .body : .body.weight(.semibold))
+              .font(notification.isRead ? .brand(.body) : .brand(.body, weight: .semibold))
               .foregroundStyle(notification.isRead ? .primary : Palette.unreadTitle)
               .lineLimit(2)
               .multilineTextAlignment(.leading)
@@ -39,13 +39,13 @@ struct NotificationCard: View, Equatable {
           }
 
           Text(notification.message)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
             .lineLimit(3)
             .multilineTextAlignment(.leading)
 
           Text(relative)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         }
 

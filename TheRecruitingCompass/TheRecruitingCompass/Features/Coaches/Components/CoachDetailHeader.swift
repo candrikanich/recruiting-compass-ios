@@ -36,14 +36,14 @@ struct CoachDetailHeader: View {
 
         VStack(alignment: .leading, spacing: 2) {
           Text(coach.fullName)
-            .font(.headline)
+            .font(.brand(.headline))
             .accessibilityAddTraits(.isHeader)
           Text(coach.role.displayName)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
           if let school {
             Text(school.name)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(Color.accentPrimary)
           }
         }
@@ -101,9 +101,9 @@ struct CoachDetailHeader: View {
     Button(action: action) {
       HStack(spacing: 8) {
         if let icon {
-          Image(systemName: icon).font(.caption).frame(width: 16).foregroundStyle(.secondary)
+          Image(systemName: icon).font(.brand(.caption)).frame(width: 16).foregroundStyle(.secondary)
         }
-        Text(text).font(.subheadline).foregroundStyle(tint)
+        Text(text).font(.brand(.subheadline)).foregroundStyle(tint)
         Spacer(minLength: 0)
       }
       .contentShape(Rectangle())
@@ -119,7 +119,7 @@ struct CoachDetailHeader: View {
         Image(asset).renderingMode(.template).resizable().scaledToFit()
           .frame(width: 14, height: 14).foregroundStyle(.secondary)
         Text(handle.hasPrefix("@") ? String(handle.dropFirst()) : handle)
-          .font(.subheadline).foregroundStyle(.primary)
+          .font(.brand(.subheadline)).foregroundStyle(.primary)
         Image(systemName: "arrow.up.right")
           .font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
       }

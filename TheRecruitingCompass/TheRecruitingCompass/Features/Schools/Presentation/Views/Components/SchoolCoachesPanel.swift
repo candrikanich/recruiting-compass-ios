@@ -23,7 +23,7 @@ struct SchoolCoachesPanel: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Label("Coaches", systemImage: "person.2")
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(.primary)
 
         Spacer()
@@ -31,7 +31,7 @@ struct SchoolCoachesPanel: View {
         if let onAddCoach {
           Button(action: onAddCoach) {
             Image(systemName: "plus.circle.fill")
-              .font(.title3)
+              .font(.brand(.title3))
               .foregroundStyle(Color.accentPrimary)
           }
           .accessibilityLabel(String(localized: "Add coach"))
@@ -41,7 +41,7 @@ struct SchoolCoachesPanel: View {
         if hasMoreCoaches {
           Button(action: onSeeAll) {
             Text("See All (\(coaches.count))")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(Color.accentPrimary)
           }
           .accessibilityLabel(String(localized: "See all \(coaches.count) coaches"))
@@ -95,24 +95,24 @@ private struct CoachesEmptyState: View {
   var body: some View {
     VStack(spacing: 12) {
       Image(systemName: "person.crop.circle.badge.questionmark")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .imageScale(.large)
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
       Text("No Coaches Added")
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.secondary)
 
       Text("Add coaches to track your recruiting contacts")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.tertiary)
         .multilineTextAlignment(.center)
 
       if let onAddCoach {
         Button(action: onAddCoach) {
           Label("Add Coach", systemImage: "plus")
-            .font(.subheadline.weight(.semibold))
+            .font(.brand(.subheadline, weight: .semibold))
         }
         .buttonStyle(.borderedProminent)
         .controlSize(.small)

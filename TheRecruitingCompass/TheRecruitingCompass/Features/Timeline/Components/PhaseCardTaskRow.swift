@@ -40,7 +40,7 @@ struct PhaseCardTaskRow: View {
         }
       } label: {
         Image(systemName: task.statusIconName)
-          .font(.title3)
+          .font(.brand(.title3))
           .foregroundStyle(task.statusColor)
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
@@ -50,13 +50,13 @@ struct PhaseCardTaskRow: View {
       VStack(alignment: .leading, spacing: 6) {
         HStack(alignment: .top, spacing: 8) {
           Text(task.title)
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .foregroundStyle(.primary)
             .frame(maxWidth: .infinity, alignment: .leading)
 
           if isExpandable {
             Image(systemName: "chevron.down")
-              .font(.caption.weight(.semibold))
+              .font(.brand(.caption, weight: .semibold))
               .foregroundStyle(.tertiary)
               .rotationEffect(.degrees(isExpanded ? 180 : 0))
               .padding(.top, 2)
@@ -68,7 +68,7 @@ struct PhaseCardTaskRow: View {
         if isExpanded {
           if let description = task.description, !description.isEmpty {
             Text(description)
-              .font(.footnote)
+              .font(.brand(.footnote))
               .foregroundStyle(.secondary)
           }
 
@@ -128,9 +128,9 @@ struct PhaseCardTaskRow: View {
   private func badge(_ text: String, color: Color, icon: String? = nil) -> some View {
     HStack(spacing: 3) {
       if let icon {
-        Image(systemName: icon).font(.caption2)
+        Image(systemName: icon).font(.brand(.caption2))
       }
-      Text(text).font(.caption2.weight(.medium))
+      Text(text).font(.brand(.caption2, weight: .medium))
     }
     .foregroundStyle(color)
     .padding(.horizontal, 6)
@@ -143,10 +143,10 @@ struct PhaseCardTaskRow: View {
   private func calloutBox(title: String, text: String, color: Color) -> some View {
     VStack(alignment: .leading, spacing: 2) {
       Text(title)
-        .font(.caption2.weight(.bold))
+        .font(.brand(.caption2, weight: .bold))
         .foregroundStyle(color)
       Text(text)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
     }
     .frame(maxWidth: .infinity, alignment: .leading)

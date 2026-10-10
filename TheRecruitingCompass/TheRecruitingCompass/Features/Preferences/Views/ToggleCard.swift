@@ -15,11 +15,11 @@ struct ToggleCard: View {
     } label: {
       VStack(spacing: 8) {
         Image(systemName: icon)
-          .font(.title2)
+          .font(.brand(.title2))
           .foregroundStyle(isComingSoon ? Color.gray.opacity(0.4) : (isOn ? Color.accentPrimary : Color.gray))
 
         Text(label)
-          .font(.caption)
+          .font(.brand(.caption))
           .fontWeight(.medium)
           .foregroundStyle(isComingSoon ? Color.secondary.opacity(0.5) : Color.primary)
           .multilineTextAlignment(.center)
@@ -27,7 +27,7 @@ struct ToggleCard: View {
 
         if isComingSoon {
           Text("Coming Soon")
-            .font(.caption2.weight(.semibold))
+            .font(.brand(.caption2, weight: .semibold))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 4)
             .padding(.vertical, 2)
@@ -35,11 +35,11 @@ struct ToggleCard: View {
             .clipShape(.rect(cornerRadius: 4))
         } else if isOn {
           Image(systemName: "checkmark.circle.fill")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.green)
         } else {
           Image(systemName: "circle")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.gray)
         }
       }

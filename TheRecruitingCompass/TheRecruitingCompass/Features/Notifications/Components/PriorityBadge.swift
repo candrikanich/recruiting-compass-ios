@@ -21,7 +21,7 @@ struct PriorityBadge: View, Equatable {
 
   var body: some View {
     Text(priority.label)
-      .font(.caption.weight(.bold))
+      .font(.brand(.caption, weight: .bold))
       .foregroundStyle(textColor)
       .padding(.horizontal, 6)
       .padding(.vertical, 2)

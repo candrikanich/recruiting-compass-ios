@@ -7,36 +7,36 @@ struct StatusHistoryRow: View {
     HStack(alignment: .top, spacing: 12) {
       Image(systemName: "arrow.right.circle.fill")
         .foregroundStyle(Color.accentPrimary)
-        .font(.title3)
+        .font(.brand(.title3))
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
         HStack(spacing: 8) {
           if let previous = entry.previousStatus {
             Text(previous)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
               .strikethrough()
           }
 
           Image(systemName: "arrow.right")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
             .accessibilityHidden(true)
 
           Text(entry.newStatus)
-            .font(.caption)
+            .font(.brand(.caption))
             .fontWeight(.semibold)
             .foregroundStyle(.primary)
         }
 
         Text(entry.changedAt, style: .relative)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.tertiary)
 
         if let notes = entry.notes, !notes.isEmpty {
           Text(notes)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
             .italic()
             .padding(.top, 2)

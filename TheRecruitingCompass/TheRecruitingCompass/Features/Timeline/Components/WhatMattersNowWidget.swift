@@ -11,24 +11,24 @@ struct WhatMattersNowWidget: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text(String(localized: "\(phaseLabel) year priorities to focus on"))
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(Color.secondaryText)
 
       if items.isEmpty {
         Text(String(localized: "All tasks complete! Keep up the great work."))
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(Color.secondaryText)
       } else {
         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
           Button(action: { onSelectTask(item.taskId) }) {
             HStack(alignment: .top, spacing: 8) {
               Text("\(index + 1)")
-                .font(.caption.weight(.bold))
+                .font(.brand(.caption, weight: .bold))
               VStack(alignment: .leading, spacing: 2) {
                 Text(item.title)
-                  .font(.subheadline.weight(.medium))
+                  .font(.brand(.subheadline, weight: .medium))
                 Text(item.whyItMatters)
-                  .font(.caption)
+                  .font(.brand(.caption))
                   .foregroundStyle(Color.secondaryText)
                   .lineLimit(2)
               }

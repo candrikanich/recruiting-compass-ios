@@ -42,7 +42,7 @@ struct FilterChipContainer<Content: View>: View {
     Button("Clear all") {
       onClearAll()
     }
-    .font(.subheadline)
+    .font(.brand(.subheadline))
     .fontWeight(style == .filled ? .medium : .regular)
     .foregroundStyle(clearAllColor)
     .accessibilityLabel(String(localized: "Clear all filters"))

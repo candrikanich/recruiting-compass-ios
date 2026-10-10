@@ -340,10 +340,10 @@ struct SchoolDetailView: View {
     )) {
       VStack(alignment: .leading, spacing: 2) {
         Text("Recruiting questionnaire completed")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
         Text("Enables the \"I've completed your recruiting questionnaire\" line in coach outreach for this school.")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
     }

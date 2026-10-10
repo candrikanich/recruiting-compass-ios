@@ -79,7 +79,7 @@ struct SportGateView: View {
           Button("Sign out") {
             Task { try? await authManager.logout() }
           }
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(.secondary)
         }
 
@@ -87,17 +87,17 @@ struct SportGateView: View {
 
         VStack(spacing: 12) {
           Text("Pick Your Sport")
-            .font(.title.weight(.bold))
+            .font(.brand(.title, weight: .bold))
             .multilineTextAlignment(.center)
           Text("Choose your primary sport so we can tailor your recruiting experience.")
-            .font(.body)
+            .font(.brand(.body))
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
         }
 
         VStack(alignment: .leading, spacing: 8) {
           Text("Primary Sport *")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
           Picker("Sport", selection: $viewModel.selectedSport) {
             Text("Select your sport").tag("")
             ForEach(viewModel.sports, id: \.self) { sport in
@@ -112,7 +112,7 @@ struct SportGateView: View {
 
           if let error = viewModel.errorMessage {
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.red)
           }
         }

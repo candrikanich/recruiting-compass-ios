@@ -12,7 +12,7 @@ struct MetricTypeFilterBar: View {
             selectedType = type
           } label: {
             Text(type.displayName)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .fontWeight(.semibold)
               .padding(.horizontal, 12)
               .padding(.vertical, 10)

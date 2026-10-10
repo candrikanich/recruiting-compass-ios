@@ -12,14 +12,14 @@ struct ActionItemsWidget: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Action Items")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       Divider()
 
       if suggestions.isEmpty && pendingCount == 0 {
         Text("No action items at this time")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .padding(.vertical)
       } else {
@@ -41,9 +41,9 @@ struct ActionItemsWidget: View {
           NavigationLink(value: DashboardDestination.suggestions) {
             HStack(spacing: 4) {
               Text("Show \(moreCount) more")
-                .font(.caption)
+                .font(.brand(.caption))
               Image(systemName: "chevron.right")
-                .font(.caption)
+                .font(.brand(.caption))
                 .accessibilityHidden(true)
             }
             .foregroundStyle(Color.accentPrimary)

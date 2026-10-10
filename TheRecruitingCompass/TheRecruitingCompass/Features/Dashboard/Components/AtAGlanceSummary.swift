@@ -8,7 +8,7 @@ struct AtAGlanceSummary: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("At a Glance")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       Divider()

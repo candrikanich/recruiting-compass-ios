@@ -4,12 +4,12 @@ struct InteractionPrivacyNotice: View {
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
       Image(systemName: "info.circle.fill")
-        .font(.title3)
+        .font(.brand(.title3))
         .foregroundStyle(Color.accentPrimary)
         .accessibilityHidden(true)
 
       Text("Your recruiting interactions are visible to your linked parent(s)")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(Color.accentPrimary.opacity(0.9))
         .fixedSize(horizontal: false, vertical: true)
 

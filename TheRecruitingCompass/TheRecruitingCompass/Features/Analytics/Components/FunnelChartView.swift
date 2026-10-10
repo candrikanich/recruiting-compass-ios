@@ -11,7 +11,7 @@ struct FunnelChartView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text(title)
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(Color.darkSlate)
         .accessibilityAddTraits(.isHeader)
 
@@ -64,7 +64,7 @@ struct FunnelChartView: View {
 
     return VStack(spacing: 4) {
       Text(stage.label)
-        .font(.subheadline.bold())
+        .font(.brand(.subheadline, weight: .bold))
         .foregroundStyle(Color.darkSlate)
 
       GeometryReader { geo in
@@ -74,7 +74,7 @@ struct FunnelChartView: View {
           .frame(width: barWidth, height: 44)
           .overlay {
             Text("\(stage.value)")
-              .font(.subheadline.bold())
+              .font(.brand(.subheadline, weight: .bold))
               .foregroundStyle(.white)
           }
           .frame(maxWidth: .infinity)
@@ -92,10 +92,10 @@ struct FunnelChartView: View {
     return HStack(spacing: 4) {
       Spacer()
       Image(systemName: "arrow.down")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(Color.iconGray)
       Text("\(rate)%")
-        .font(.caption.bold())
+        .font(.brand(.caption, weight: .bold))
         .foregroundStyle(Color.secondaryText)
       Spacer()
     }

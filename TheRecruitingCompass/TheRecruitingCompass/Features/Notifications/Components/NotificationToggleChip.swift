@@ -18,7 +18,7 @@ struct NotificationToggleChip: View {
         }
         Text(label)
       }
-        .font(.subheadline.weight(.semibold))
+        .font(.brand(.subheadline, weight: .semibold))
         .foregroundStyle(isActive ? .white : .secondary)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)

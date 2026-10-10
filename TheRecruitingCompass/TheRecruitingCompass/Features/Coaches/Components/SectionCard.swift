@@ -10,7 +10,7 @@ struct SectionCard<Content: View>: View {
     VStack(alignment: .leading, spacing: 12) {
       if let label {
         Text(label)
-          .font(.caption.bold())
+          .font(.brand(.caption, weight: .bold))
           .textCase(.uppercase)
           .foregroundStyle(Color.secondaryText)
           .tracking(0.5)

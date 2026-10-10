@@ -32,12 +32,12 @@ struct CoachFollowupWidget: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text("Coaches Needing Follow-up")
-          .font(.headline)
+          .font(.brand(.headline))
           .accessibilityAddTraits(.isHeader)
         Spacer()
         if !coaches.isEmpty {
           Text("\(coaches.count)")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .padding(.horizontal, 8)
             .padding(.vertical, 2)
             .background(Color.accentPrimary.opacity(0.15))
@@ -53,9 +53,9 @@ struct CoachFollowupWidget: View {
       case .allCaughtUp:
         VStack(alignment: .leading, spacing: 2) {
           Text("All caught up!")
-            .font(.subheadline.weight(.semibold))
+            .font(.brand(.subheadline, weight: .semibold))
           Text("No coaches need immediate follow-up")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
         .padding(.vertical)
@@ -80,7 +80,7 @@ struct CoachFollowupWidget: View {
             isShowingAllCoaches = true
           } label: {
             Text("View all \(coaches.count) coaches")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.accentPrimary)
           }
           .frame(minHeight: 44)
@@ -125,11 +125,11 @@ struct CoachFollowupWidget: View {
   private var onboardingCTA: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(schools.isEmpty ? "Start tracking your recruiting" : "Add your first coach")
-        .font(.subheadline.weight(.semibold))
+        .font(.brand(.subheadline, weight: .semibold))
       Text(schools.isEmpty
            ? "Follow a school to get coach follow-up reminders"
            : "Add a coach to start getting follow-up reminders")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(Color.secondaryText)
       Button {
         if schools.isEmpty {
@@ -139,7 +139,7 @@ struct CoachFollowupWidget: View {
         }
       } label: {
         Text(schools.isEmpty ? "Follow a School" : "Add a Coach")
-          .font(.caption.weight(.semibold))
+          .font(.brand(.caption, weight: .semibold))
       }
       .buttonStyle(.borderedProminent)
       .frame(minHeight: 44)

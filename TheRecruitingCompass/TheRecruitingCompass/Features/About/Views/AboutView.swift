@@ -8,7 +8,7 @@ struct AboutView: View {
             Section {
                 // swiftlint:disable:next line_length
                 Text("The Recruiting Compass helps high school student athletes and their families manage the college recruiting journey — tracking schools, coaches, interactions, and timelines in one place. We believe every athlete deserves clarity, control, and a fair shot. No professional service required.")
-                .font(.body)
+                .font(.brand(.body))
                 .foregroundStyle(.primary)
                 .padding(.vertical, 4)
             }
@@ -32,7 +32,7 @@ struct AboutView: View {
                     .accessibilityHint("Enter your feedback message")
 
                     Text("\(viewModel.characterCount) / 5000")
-                        .font(.caption)
+                        .font(.brand(.caption))
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                 }
@@ -40,13 +40,13 @@ struct AboutView: View {
                 switch viewModel.submissionState {
                 case .success:
                     Label("Thanks for your message — we'll be in touch soon.", systemImage: "checkmark.circle.fill")
-                        .font(.subheadline)
+                        .font(.brand(.subheadline))
                         .foregroundStyle(Color.primaryGreen)
                         .accessibilityLabel(String(localized: "Message sent successfully"))
 
                 case .failure(let message):
                     Label(message, systemImage: "exclamationmark.circle.fill")
-                        .font(.subheadline)
+                        .font(.brand(.subheadline))
                         .foregroundStyle(Color.errorRed)
                         .accessibilityLabel(String(localized: "Error: \(message)"))
 
@@ -79,7 +79,7 @@ struct AboutView: View {
             Section {
                 Link(destination: URL(string: "mailto:hello@therecruitingcompass.com")!) {
                     Label("hello@therecruitingcompass.com", systemImage: "envelope")
-                        .font(.subheadline)
+                        .font(.brand(.subheadline))
                 }
                 .accessibilityLabel(String(localized: "Email us at hello@therecruitingcompass.com"))
             } header: {

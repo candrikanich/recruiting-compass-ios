@@ -392,7 +392,7 @@ private struct SchoolFormNotesField: View {
         HStack {
           Spacer()
           Text("\(formState.notes.count) / \(SchoolFormState.notesCharacterLimit)")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(formState.notes.count > SchoolFormState.notesCharacterLimit ? .red : .secondary)
             .accessibilityLabel(String(localized: "\(formState.notes.count) characters entered, limit \(SchoolFormState.notesCharacterLimit)"))
         }

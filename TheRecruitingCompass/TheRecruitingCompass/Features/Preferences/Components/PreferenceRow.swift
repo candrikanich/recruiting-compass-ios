@@ -12,11 +12,11 @@ struct PreferenceRow: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text(preferenceLabel)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
 
         Text(valueDescription)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
 
@@ -24,7 +24,7 @@ struct PreferenceRow: View {
 
       if preference.isDealbreaker {
         Text("DEALBREAKER")
-          .font(.caption)
+          .font(.brand(.caption))
           .bold()
           .foregroundStyle(.white)
           .padding(.horizontal, 8)

@@ -20,7 +20,7 @@ struct CollegeScorecardDataDisplay: View {
           .accessibilityHidden(true)
 
         Text("College Scorecard Data")
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(.primary)
       }
 
@@ -136,17 +136,17 @@ struct CollegeScorecardDataDisplay: View {
     VStack(alignment: .leading, spacing: 4) {
       HStack(spacing: 4) {
         Image(systemName: icon)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.accentPrimary)
           .accessibilityHidden(true)
 
         Text(label)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
 
       Text(value)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .fontWeight(.medium)
         .foregroundStyle(.primary)
     }

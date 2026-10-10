@@ -18,14 +18,14 @@ struct SchoolCoachingPhilosophySection: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Label("Coaching Philosophy", systemImage: "quote.bubble")
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(.primary)
 
         Spacer()
 
         Button(action: onEdit) {
           Text("Edit")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(Color.accentPrimary)
         }
         .accessibilityLabel(String(localized: "Edit coaching philosophy"))
@@ -74,11 +74,11 @@ struct SchoolCoachingPhilosophySection: View {
           } label: {
             HStack {
               Text(isExpanded ? String(localized: "Show Less") : String(localized: "Show More"))
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(Color.accentPrimary)
 
               Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(Color.accentPrimary)
                 .accessibilityHidden(true)
             }
@@ -114,12 +114,12 @@ private struct PhilosophyRow: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(label)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .fontWeight(.medium)
         .foregroundStyle(.secondary)
 
       Text(displayValue)
-        .font(.body)
+        .font(.brand(.body))
         .foregroundStyle(valueColor)
         .lineLimit(isExpanded ? nil : 2)
         .fixedSize(horizontal: false, vertical: true)
@@ -140,17 +140,17 @@ private struct PhilosophyEmptyState: View {
   var body: some View {
     VStack(spacing: 12) {
       Image(systemName: "quote.bubble")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .imageScale(.large)
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
 
       Text("No Philosophy Added")
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.secondary)
 
       Text("Add coaching philosophy to capture the program's values")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.tertiary)
         .multilineTextAlignment(.center)
     }

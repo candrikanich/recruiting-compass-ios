@@ -18,7 +18,7 @@ struct LegalEmailLink: View {
         } label: {
           Text(email)
         }
-        .font(.body.weight(.medium))
+        .font(.brand(.body, weight: .medium))
         .foregroundStyle(Color.accentPrimary)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
@@ -28,7 +28,7 @@ struct LegalEmailLink: View {
         }
       } else {
         Text(email)
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(Color.accentPrimary)
       }
     }

@@ -44,11 +44,11 @@ struct GettingStartedChecklistWidget: View {
       HStack {
         VStack(alignment: .leading, spacing: 4) {
           Text("Getting Started")
-            .font(.headline)
+            .font(.brand(.headline))
             .accessibilityAddTraits(.isHeader)
 
           Text("\(nuxProgress.checklist.completedCount) of \(NuxChecklistKey.allCases.count)")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
 
@@ -58,7 +58,7 @@ struct GettingStartedChecklistWidget: View {
           onDismiss()
         } label: {
           Text("I'm good for now")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
         .buttonStyle(.plain)
@@ -104,18 +104,18 @@ struct GettingStartedChecklistWidget: View {
       HStack(spacing: 12) {
         Image(systemName: isCompleted ? "checkmark.circle.fill" : "minus.circle")
           .foregroundStyle(isCompleted ? Color.successGreen : Color.Brand.slate400)
-          .font(.title3)
+          .font(.brand(.title3))
           .accessibilityHidden(true)
 
         Text(label(for: key))
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(isCompleted ? Color.secondaryText : .primary)
           .strikethrough(isCompleted)
           .frame(maxWidth: .infinity, alignment: .leading)
 
         if !isCompleted {
           Image(systemName: "chevron.right")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
             .accessibilityHidden(true)
         }
@@ -137,10 +137,10 @@ struct GettingStartedChecklistWidget: View {
     HStack(spacing: 12) {
       VStack(alignment: .leading, spacing: 4) {
         Text("You're all set!")
-          .font(.subheadline.weight(.semibold))
+          .font(.brand(.subheadline, weight: .semibold))
 
         Text("Getting started checklist complete")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
       }
 
@@ -167,13 +167,13 @@ struct GettingStartedChecklistWidget: View {
           .accessibilityHidden(true)
 
         Text("Resume getting started")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(Color.accentPrimary)
 
         Spacer()
 
         Text("\(nuxProgress.checklist.completedCount)/\(NuxChecklistKey.allCases.count)")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
       }
       .padding(.horizontal, 16)

@@ -9,13 +9,13 @@ struct BreakdownRow: View {
     VStack(spacing: 6) {
       HStack {
         Text(label)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
 
         Spacer()
 
         Text("\(Int(score))")
-          .font(.caption)
+          .font(.brand(.caption))
           .fontWeight(.semibold)
           .foregroundStyle(color)
       }

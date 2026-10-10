@@ -16,7 +16,7 @@ struct StatCard: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(alignment: .firstTextBaseline, spacing: 8) {
         Text(title)
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(Color.Text.secondary)
         Spacer()
         Image(systemName: icon)
@@ -26,13 +26,13 @@ struct StatCard: View {
       }
 
       Text("\(count)")
-        .font(.title.weight(.semibold))
+        .font(.brand(.title, weight: .semibold))
         .monospacedDigit()
         .foregroundStyle(Color.Text.primary)
 
       if let badge {
         Text(badge)
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(Color.Brand.orange700)
       }
     }

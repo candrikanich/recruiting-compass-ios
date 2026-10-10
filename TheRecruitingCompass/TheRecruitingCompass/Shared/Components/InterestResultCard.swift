@@ -14,19 +14,19 @@ struct InterestResultCard: View {
     HStack(spacing: 12) {
       if let systemImage = level.systemImage {
         Image(systemName: systemImage)
-          .font(.title)
+          .font(.brand(.title))
           .foregroundStyle(level.badgeColor.foregroundColor)
           .accessibilityHidden(true)
       }
 
       VStack(alignment: .leading, spacing: 4) {
         Text(level.displayName)
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(level.badgeColor.foregroundColor)
 
         if let description {
           Text(description)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         }
       }

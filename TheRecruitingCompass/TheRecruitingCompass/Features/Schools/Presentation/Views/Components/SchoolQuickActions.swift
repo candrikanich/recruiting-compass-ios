@@ -10,7 +10,7 @@ struct SchoolQuickActions: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Label("Quick Actions", systemImage: "bolt")
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.primary)
         .accessibilityAddTraits(.isHeader)
 
@@ -68,7 +68,7 @@ private struct QuickActionButton: View {
     Button(action: action) {
       VStack(spacing: 8) {
         Image(systemName: icon)
-          .font(sizeCategory.isAccessibilityCategory ? .title2 : .title3)
+          .font(sizeCategory.isAccessibilityCategory ? .brand(.title2) : .brand(.title3))
           .foregroundStyle(style.iconForeground)
           .frame(width: 48, height: 48)
           .background(style.iconBackground)
@@ -77,7 +77,7 @@ private struct QuickActionButton: View {
           .accessibilityHidden(true)
 
         Text(title)
-          .font(.caption)
+          .font(.brand(.caption))
           .fontWeight(.medium)
           .foregroundStyle(.primary)
           .multilineTextAlignment(.center)

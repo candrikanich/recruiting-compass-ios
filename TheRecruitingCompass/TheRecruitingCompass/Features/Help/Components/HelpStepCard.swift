@@ -16,7 +16,7 @@ struct HelpStepCard: View {
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
       Text("\(step)")
-        .font(.title2)
+        .font(.brand(.title2))
         .bold()
         .foregroundStyle(Color.accentPrimary)
         .frame(width: 32, height: 32)
@@ -26,12 +26,12 @@ struct HelpStepCard: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text(title)
-          .font(.body)
+          .font(.brand(.body))
           .fontWeight(.semibold)
           .foregroundStyle(.primary)
 
         Text(bodyText)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
           .fixedSize(horizontal: false, vertical: true)
       }

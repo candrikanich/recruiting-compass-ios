@@ -10,10 +10,10 @@ struct DocumentVersionHistoryCard: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Version History")
-        .font(.headline)
+        .font(.brand(.headline))
       if versions.isEmpty {
         Text("No previous versions")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity)
           .padding()
@@ -24,7 +24,7 @@ struct DocumentVersionHistoryCard: View {
       }
       Button(action: onUploadTap) {
         Label("Upload New Version", systemImage: "plus")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
           .frame(maxWidth: .infinity, minHeight: 44)
       }
       .accessibilityLabel(String(localized: "Upload New Version"))
@@ -38,7 +38,7 @@ struct DocumentVersionHistoryCard: View {
               .progressViewStyle(.linear)
               .tint(.white)
             Text("\(Int(uploadProgress * 100))%")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.white)
           }
           .padding()

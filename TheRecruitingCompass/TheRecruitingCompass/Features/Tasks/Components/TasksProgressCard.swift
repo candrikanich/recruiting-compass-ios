@@ -8,7 +8,7 @@ struct TasksProgressCard: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("You've completed \(completed) of \(total) tasks (\(percentage)%)")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.primary)
 
       GeometryReader { geo in

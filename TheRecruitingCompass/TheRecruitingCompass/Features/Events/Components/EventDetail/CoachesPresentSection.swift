@@ -33,14 +33,14 @@ struct CoachesPresentSection: View {
     Section {
       if !isEventLinkedToSchool {
         Text("Event not linked to school")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
           .accessibilityLabel(String(localized: "Event not linked to school"))
       } else {
         if let emptyText = emptyStateText {
           Text(emptyText)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityLabel(emptyText)
@@ -86,7 +86,7 @@ struct CoachesPresentSection: View {
         Text("Coaches Present")
         Spacer()
         Text("\(coachesAtEvent.count)")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
     }

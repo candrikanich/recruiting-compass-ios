@@ -48,12 +48,12 @@ struct HelpCallout: View {
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
       Image(systemName: type.icon)
-        .font(.title3)
+        .font(.brand(.title3))
         .foregroundStyle(type.iconColor)
         .accessibilityHidden(true)
 
       Text(text)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.primary)
         .fixedSize(horizontal: false, vertical: true)
     }

@@ -17,7 +17,7 @@ struct MarketingOptInCheckbox: View {
           .accessibilityHidden(true)
 
         Text(Self.copy)
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(Color.tertiaryText)
           .multilineTextAlignment(.leading)
           .fixedSize(horizontal: false, vertical: true)

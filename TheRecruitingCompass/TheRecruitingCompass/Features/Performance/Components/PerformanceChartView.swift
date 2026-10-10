@@ -72,9 +72,9 @@ struct PerformanceChartView: View {
   private func selectionCallout(for metric: PerformanceMetric) -> some View {
     VStack(spacing: 2) {
       Text("\(metric.metricType.format(metric.value)) \(metric.unit)")
-        .font(.headline)
+        .font(.brand(.headline))
       Text(metric.recordedDate, format: .dateTime.month(.abbreviated).day().year())
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
     }
     .padding(.horizontal, 8)

@@ -5,7 +5,7 @@ struct LegalBodyText: View {
 
   var body: some View {
     Text(text)
-      .font(.body)
+      .font(.brand(.body))
       .foregroundStyle(Color.secondaryText)
       .fixedSize(horizontal: false, vertical: true)
   }

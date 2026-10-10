@@ -39,9 +39,9 @@ struct CoachProfileMetaCard: View {
   @ViewBuilder
   private func row(label: LocalizedStringKey, value: String) -> some View {
     HStack {
-      Text(label).font(.subheadline).foregroundStyle(.secondary)
+      Text(label).font(.brand(.subheadline)).foregroundStyle(.secondary)
       Spacer()
-      Text(value).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+      Text(value).font(.brand(.subheadline, weight: .semibold)).foregroundStyle(.primary)
     }
     .accessibilityElement(children: .combine)
   }

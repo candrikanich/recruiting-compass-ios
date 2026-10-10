@@ -20,7 +20,7 @@ struct SchoolLogoAvatar: View {
   }
 
   private var resolvedFont: Font {
-    initialsFont ?? (sizeCategory.isAccessibilityCategory ? .title2.bold() : .body.bold())
+    initialsFont ?? (sizeCategory.isAccessibilityCategory ? .brand(.title2, weight: .bold) : .brand(.body, weight: .bold))
   }
 
   var body: some View {

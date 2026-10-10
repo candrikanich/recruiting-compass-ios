@@ -69,7 +69,7 @@ struct AcademicsSocialTab: View {
         fieldID: String
     ) -> some View {
         HStack {
-            Text(label).font(.body)
+            Text(label).font(.brand(.body))
             Spacer()
             TextField(placeholder.isEmpty ? label : placeholder, text: Binding(
                 get: { viewModel.details[keyPath: keyPath] ?? "" },
@@ -93,7 +93,7 @@ struct AcademicsSocialTab: View {
 
     private func numericRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, Double?>, fieldID: String) -> some View {
         HStack {
-            Text(label).font(.body)
+            Text(label).font(.brand(.body))
             Spacer()
             TextField("–", value: Binding(
                 get: { viewModel.details[keyPath: keyPath] },
@@ -115,7 +115,7 @@ struct AcademicsSocialTab: View {
 
     private func intRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, Int?>, fieldID: String) -> some View {
         HStack {
-            Text(label).font(.body)
+            Text(label).font(.brand(.body))
             Spacer()
             TextField("–", value: Binding(
                 get: { viewModel.details[keyPath: keyPath] },
@@ -140,7 +140,7 @@ struct AcademicsSocialTab: View {
     private func cardSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title)
-                .font(.footnote)
+                .font(.brand(.footnote))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
                 .padding(.horizontal, 4)

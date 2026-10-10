@@ -10,16 +10,16 @@ struct TasksParentBanner: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: "eye")
-        .font(sizeCategory.isAccessibilityCategory ? .title3 : .subheadline)
+        .font(sizeCategory.isAccessibilityCategory ? .brand(.title3) : .brand(.subheadline))
         .foregroundStyle(Color.Surface.onBrandTint)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 2) {
         Text("Parent Preview Mode")
-          .font(.subheadline.weight(.semibold))
+          .font(.brand(.subheadline, weight: .semibold))
           .foregroundStyle(Color.Surface.onBrandTint)
         Text("Viewing \(athleteName)'s Tasks (Read-Only)")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.Surface.onBrandTint)
       }
 
@@ -27,7 +27,7 @@ struct TasksParentBanner: View {
 
       Button(action: onDismiss) {
         Image(systemName: "xmark.circle.fill")
-          .font(sizeCategory.isAccessibilityCategory ? .title2 : .title3)
+          .font(sizeCategory.isAccessibilityCategory ? .brand(.title2) : .brand(.title3))
           .foregroundStyle(Color.Surface.onBrandTint)
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())

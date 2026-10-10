@@ -6,7 +6,7 @@ struct ProfileDataExportRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Download a copy of all your data as a ZIP file. You can request one export per day.")
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
 
             if let url = viewModel.exportDownloadURL {
@@ -35,7 +35,7 @@ struct ProfileDataExportRow: View {
 
             if let error = viewModel.exportError {
                 Text(error)
-                    .font(.subheadline)
+                    .font(.brand(.subheadline))
                     .foregroundStyle(Color.errorRed)
                     .accessibilityLabel(String(localized: "Error: \(error)"))
             }

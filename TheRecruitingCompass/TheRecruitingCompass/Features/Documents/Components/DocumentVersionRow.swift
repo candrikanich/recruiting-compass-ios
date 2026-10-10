@@ -9,11 +9,11 @@ struct DocumentVersionRow: View {
       VStack(alignment: .leading, spacing: 4) {
         HStack(spacing: 8) {
           Text("v\(version.version)")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.semibold)
           if version.isCurrent {
             Text("Current")
-              .font(.caption)
+              .font(.brand(.caption))
               .fontWeight(.semibold)
               .padding(.horizontal, 6)
               .padding(.vertical, 2)
@@ -22,7 +22,7 @@ struct DocumentVersionRow: View {
           }
         }
         Text(version.displayDate)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
       Spacer()
@@ -30,7 +30,7 @@ struct DocumentVersionRow: View {
         if let url = URL(string: version.fileUrl) {
           Link(destination: url) {
             Text("View")
-              .font(.caption)
+              .font(.brand(.caption))
           }
           .buttonStyle(.bordered)
         }
@@ -38,7 +38,7 @@ struct DocumentVersionRow: View {
           Button("Restore") {
             onRestore(version)
           }
-          .font(.caption)
+          .font(.brand(.caption))
           .buttonStyle(.bordered)
           .frame(minHeight: 44)
           .contentShape(Rectangle())

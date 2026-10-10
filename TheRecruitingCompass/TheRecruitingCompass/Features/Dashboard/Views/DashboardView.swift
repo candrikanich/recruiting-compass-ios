@@ -367,14 +367,14 @@ private struct DashboardHeaderSection: View {
     VStack(alignment: .leading, spacing: 8) {
       if isParentPreviewMode {
         Text("\(selectedAthleteName)'s Dashboard")
-          .font(.title2)
+          .font(.brand(.title2))
           .bold()
           .accessibilityAddTraits(.isHeader)
       } else {
         Text(isEmpty
           ? String(localized: "Welcome, \(userFirstName)!")
           : String(localized: "Welcome back, \(userFirstName)!"))
-          .font(.title2)
+          .font(.brand(.title2))
           .bold()
           .accessibilityAddTraits(.isHeader)
       }
@@ -436,7 +436,7 @@ private struct DashboardLogoutButton: View {
           Image(systemName: "rectangle.portrait.and.arrow.right")
             .accessibilityHidden(true)
           Text(isLoggingOut ? String(localized: "Logging out...") : String(localized: "Log Out"))
-            .font(.callout.weight(.semibold))
+            .font(.brand(.callout, weight: .semibold))
         }
         .frame(maxWidth: .infinity)
         .frame(minHeight: 48)

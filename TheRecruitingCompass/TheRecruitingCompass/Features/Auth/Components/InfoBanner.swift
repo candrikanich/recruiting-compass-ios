@@ -18,9 +18,9 @@ struct InfoBanner: View {
             .accessibilityHidden(true)
           VStack(alignment: .leading, spacing: 4) {
             Text(title)
-              .font(.footnote.weight(.semibold))
+              .font(.brand(.footnote, weight: .semibold))
             Text(subtitle)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.secondaryText)
           }
           Spacer()

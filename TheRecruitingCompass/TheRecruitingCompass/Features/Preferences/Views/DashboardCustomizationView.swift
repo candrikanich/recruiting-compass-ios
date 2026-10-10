@@ -81,12 +81,12 @@ struct DashboardCustomizationView: View {
           Button(viewModel.allStatsCardsEnabled ? "Deselect All" : "Select All") {
             viewModel.toggleAllStatsCards(!viewModel.allStatsCardsEnabled)
           }
-          .font(.caption)
+          .font(.brand(.caption))
           .accessibilityLabel(viewModel.allStatsCardsEnabled ? String(localized: "Deselect all stats cards") : String(localized: "Select all stats cards"))
         }
       } footer: {
         Text("Choose which summary statistics appear on your dashboard.")
-          .font(.caption)
+          .font(.brand(.caption))
       }
 
       // Dashboard Widgets Section — reorderable live widgets (drag to arrange, toggle to show/hide)
@@ -112,12 +112,12 @@ struct DashboardCustomizationView: View {
           Button(viewModel.allWidgetsEnabled ? "Deselect All" : "Select All") {
             viewModel.toggleAllWidgets(!viewModel.allWidgetsEnabled)
           }
-          .font(.caption)
+          .font(.brand(.caption))
           .accessibilityLabel(viewModel.allWidgetsEnabled ? String(localized: "Deselect all widgets") : String(localized: "Select all widgets"))
         }
       } footer: {
         Text("Tap Edit to drag widgets into your preferred order. Toggle to show or hide each on your dashboard.")
-          .font(.caption)
+          .font(.brand(.caption))
       }
 
       // Coming Soon — widgets not yet available
@@ -148,7 +148,7 @@ struct DashboardCustomizationView: View {
         Text("Coming Soon")
       } footer: {
         Text("These widgets aren't available yet.")
-          .font(.caption)
+          .font(.brand(.caption))
       }
 
       // Reset Section

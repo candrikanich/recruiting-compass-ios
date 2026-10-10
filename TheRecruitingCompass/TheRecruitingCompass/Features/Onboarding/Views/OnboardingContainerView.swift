@@ -91,12 +91,12 @@ struct OnboardingContainerView: View {
     Spacer()
     VStack(spacing: 16) {
       Image(systemName: "exclamationmark.triangle")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(.secondary)
       Text("Couldn't load your info")
-        .font(.headline)
+        .font(.brand(.headline))
       Text("Check your connection and try again.")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
       Button("Try Again") {
@@ -116,7 +116,7 @@ struct OnboardingContainerView: View {
       Button("Sign out") {
         Task { try? await authManager.logout() }
       }
-      .font(.footnote)
+      .font(.brand(.footnote))
       .foregroundStyle(.secondary)
     }
     .padding(.horizontal, 24)
@@ -135,7 +135,7 @@ struct OnboardingContainerView: View {
       Spacer()
 
       Text(step == .tellAboutYou ? "Step 1 of 2" : "Step 2 of 2")
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
         .foregroundStyle(.secondary)
     }
     .padding(.horizontal, 24)

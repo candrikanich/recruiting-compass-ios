@@ -35,7 +35,7 @@ private struct DocumentViewerIconButton: View {
   var body: some View {
     Button(action: action) {
       Image(systemName: systemName)
-        .font(.title2)
+        .font(.brand(.title2))
         .foregroundStyle(isEnabled ? .white : .gray)
         .frame(minWidth: DocumentViewerLayout.toolbarButtonMinSize, minHeight: DocumentViewerLayout.toolbarButtonMinSize)
         .contentShape(Rectangle())
@@ -183,7 +183,7 @@ struct DocumentViewerView: View {
         Spacer()
 
         Text(viewModel.document?.title ?? String(localized: "Document"))
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(.white)
           .lineLimit(1)
           .truncationMode(.tail)
@@ -218,7 +218,7 @@ struct DocumentViewerView: View {
             .tint(.white)
           if viewModel.downloadProgress > 0, viewModel.downloadProgress < 1 {
             Text("\(Int(viewModel.downloadProgress * 100))%")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.white)
           }
         }
@@ -248,7 +248,7 @@ struct DocumentViewerView: View {
           Spacer()
 
           Text("\(viewModel.currentIndex + 1) of \(coll.documents.count)")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.white)
             .accessibilityLabel(String(localized: "Document \(viewModel.currentIndex + 1) of \(coll.documents.count)"))
 
@@ -288,12 +288,12 @@ struct DocumentViewerView: View {
 
       VStack(spacing: 20) {
         Image(systemName: "exclamationmark.triangle")
-          .font(.largeTitle)
+          .font(.brand(.largeTitle))
           .foregroundStyle(.white)
           .accessibilityHidden(true)
 
         Text(viewModel.errorMessage ?? String(localized: "Something went wrong"))
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.white)
           .multilineTextAlignment(.center)
           .padding(.horizontal)

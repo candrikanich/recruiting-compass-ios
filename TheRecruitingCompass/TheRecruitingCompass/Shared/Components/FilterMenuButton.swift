@@ -23,11 +23,11 @@ struct FilterMenuButton: View {
   var body: some View {
     HStack(spacing: style == .capsule ? 4 : 6) {
       Text(label)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .fontWeight(style == .rounded && isActive ? .semibold : .regular)
 
       Image(systemName: "chevron.down")
-        .font(.caption)
+        .font(.brand(.caption))
         .accessibilityHidden(true)
     }
     .foregroundStyle(foregroundColor)

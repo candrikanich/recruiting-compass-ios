@@ -5,7 +5,7 @@ struct TrendIndicator: View {
 
   var body: some View {
     Label(trend.label, systemImage: trend.systemImage)
-      .font(.caption)
+      .font(.brand(.caption))
       .fontWeight(.semibold)
       .padding(.horizontal, 8)
       .padding(.vertical, 4)

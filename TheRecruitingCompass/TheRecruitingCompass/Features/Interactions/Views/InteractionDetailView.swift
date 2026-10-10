@@ -134,13 +134,13 @@ struct InteractionDetailView: View {
   private func headerSection(interaction: Interaction) -> some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(viewModel.displaySubject)
-        .font(.title2)
+        .font(.brand(.title2))
         .bold()
         .accessibilityAddTraits(.isHeader)
         .accessibilityIdentifier("interaction-subject")
 
       Text(viewModel.formattedDate)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .accessibilityLabel(String(localized: "Occurred at \(viewModel.formattedDate)"))
     }
@@ -184,12 +184,12 @@ struct InteractionDetailView: View {
   private func contentSection(interaction: Interaction) -> some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Content")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       if let content = interaction.content {
         Text(content)
-          .font(.body)
+          .font(.brand(.body))
           .textSelection(.enabled)
       }
     }
@@ -204,7 +204,7 @@ struct InteractionDetailView: View {
   private var detailsGrid: some View {
     VStack(spacing: 16) {
       Text("Details")
-        .font(.headline)
+        .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityAddTraits(.isHeader)
 
@@ -281,12 +281,12 @@ struct InteractionDetailView: View {
   private func metadataSection(interaction: Interaction) -> some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Created: \(formatMetadataDate(interaction.createdAt))")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       if viewModel.hasAttachments {
         Text("Attachments: \(viewModel.interaction?.attachmentCount ?? 0)")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
     }
