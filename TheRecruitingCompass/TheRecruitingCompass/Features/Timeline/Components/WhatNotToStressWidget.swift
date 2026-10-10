@@ -19,7 +19,9 @@ struct WhatNotToStressWidget: View {
       } else {
         ForEach(items) { item in
           HStack(alignment: .top, spacing: 8) {
-            Text(item.icon)
+            Image(systemName: item.systemImage)
+              .foregroundStyle(Color.accentPrimary)
+              .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
               Text(item.title).font(.subheadline.weight(.medium))
               Text(item.message)

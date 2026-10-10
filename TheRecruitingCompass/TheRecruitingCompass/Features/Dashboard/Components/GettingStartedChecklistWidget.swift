@@ -102,8 +102,8 @@ struct GettingStartedChecklistWidget: View {
       }
     } label: {
       HStack(spacing: 12) {
-        Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
-          .foregroundStyle(isCompleted ? Color.successGreen : Color.secondaryText)
+        Image(systemName: isCompleted ? "checkmark.circle.fill" : "minus.circle")
+          .foregroundStyle(isCompleted ? Color.successGreen : Color.Brand.slate400)
           .font(.title3)
           .accessibilityHidden(true)
 
@@ -135,10 +135,6 @@ struct GettingStartedChecklistWidget: View {
   @ViewBuilder
   private var completeBanner: some View {
     HStack(spacing: 12) {
-      Text("🎉")
-        .font(.title3)
-        .accessibilityHidden(true)
-
       VStack(alignment: .leading, spacing: 4) {
         Text("You're all set!")
           .font(.subheadline.weight(.semibold))

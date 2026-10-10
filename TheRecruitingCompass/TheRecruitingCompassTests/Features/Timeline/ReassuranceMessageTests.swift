@@ -7,7 +7,7 @@ final class ReassuranceMessageTests: XCTestCase {
     }
 
     func testEveryEntryHasIcon() {
-        XCTAssertTrue(ReassuranceMessage.all.allSatisfy { !$0.icon.isEmpty })
+        XCTAssertTrue(ReassuranceMessage.all.allSatisfy { !$0.systemImage.isEmpty })
     }
 
     func testForPhaseFiltersByPhase() {

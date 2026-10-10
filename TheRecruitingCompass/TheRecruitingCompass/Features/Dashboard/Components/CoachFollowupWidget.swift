@@ -52,7 +52,7 @@ struct CoachFollowupWidget: View {
         onboardingCTA
       case .allCaughtUp:
         VStack(alignment: .leading, spacing: 2) {
-          Text("🎉 All caught up!")
+          Text("All caught up!")
             .font(.subheadline.weight(.semibold))
           Text("No coaches need immediate follow-up")
             .font(.caption)
@@ -124,7 +124,7 @@ struct CoachFollowupWidget: View {
   @ViewBuilder
   private var onboardingCTA: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Text(schools.isEmpty ? "🏫 Start tracking your recruiting" : "🎯 Add your first coach")
+      Text(schools.isEmpty ? "Start tracking your recruiting" : "Add your first coach")
         .font(.subheadline.weight(.semibold))
       Text(schools.isEmpty
            ? "Follow a school to get coach follow-up reminders"

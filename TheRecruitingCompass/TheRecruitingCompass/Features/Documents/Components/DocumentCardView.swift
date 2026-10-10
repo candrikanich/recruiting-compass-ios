@@ -63,7 +63,7 @@ struct DocumentCardView: View {
 
   @ViewBuilder
   private var typeBadge: some View {
-    Text("\(document.typeEmoji) \(document.type.label)")
+    Label(document.type.label, systemImage: document.typeSystemImage)
       .font(.caption)
       .padding(.horizontal, 8)
       .padding(.vertical, 4)

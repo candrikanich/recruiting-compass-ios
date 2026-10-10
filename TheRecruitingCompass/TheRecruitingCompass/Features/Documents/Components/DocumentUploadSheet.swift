@@ -20,7 +20,7 @@ struct DocumentUploadSheet: View {
           )) {
             Text("Select Type").tag(nil as DocumentType?)
             ForEach(DocumentType.uploadableCases, id: \.self) { type in
-              Text("\(type.typeEmoji) \(type.label)").tag(type as DocumentType?)
+              Label(type.label, systemImage: type.systemImage).tag(type as DocumentType?)
             }
           }
           .accessibilityLabel(String(localized: "Document type"))

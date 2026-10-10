@@ -22,8 +22,9 @@ struct NotificationCard: View, Equatable {
 
     Button(action: onTap) {
       HStack(alignment: .top, spacing: 12) {
-        Text(notification.type.emoji)
+        Image(systemName: notification.type.systemImage)
           .font(.title3)
+          .foregroundStyle(Color.accentPrimary)
           .accessibilityHidden(true)
 
         VStack(alignment: .leading, spacing: 4) {

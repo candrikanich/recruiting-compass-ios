@@ -2,6 +2,7 @@ import SwiftUI
 
 struct NotificationToggleChip: View {
   let label: String
+  var systemImage: String?
   let isActive: Bool
   let action: () -> Void
 
@@ -11,7 +12,12 @@ struct NotificationToggleChip: View {
 
   var body: some View {
     Button(action: action) {
-      Text(label)
+      HStack(spacing: 6) {
+        if let systemImage {
+          Image(systemName: systemImage).accessibilityHidden(true)
+        }
+        Text(label)
+      }
         .font(.subheadline.weight(.semibold))
         .foregroundStyle(isActive ? .white : .secondary)
         .padding(.horizontal, 12)

@@ -10,7 +10,7 @@ struct DocumentHeaderCard: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(alignment: .top) {
         VStack(alignment: .leading, spacing: 8) {
-          Text("\(document.typeEmoji) \(document.typeLabel)")
+          Label(document.typeLabel, systemImage: document.typeSystemImage)
             .font(.caption)
             .fontWeight(.semibold)
             .padding(.horizontal, 10)

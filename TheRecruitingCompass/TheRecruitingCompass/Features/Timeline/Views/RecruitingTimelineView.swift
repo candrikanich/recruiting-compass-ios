@@ -232,7 +232,7 @@ private struct TimelineMainContent: View {
       .padding(.horizontal)
 
       if showSuccessMessage {
-        Text("Great job! 🎉")
+        Text("Great job!")
           .font(.subheadline.weight(.medium))
           .foregroundStyle(Color.successGreen)
           .padding(.vertical, 6)

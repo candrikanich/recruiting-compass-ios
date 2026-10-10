@@ -118,7 +118,7 @@ struct TasksListView: View {
       .padding(.top, 4)
 
       if viewModel.showSuccessMessage {
-        Text("Great job! 🎉")
+        Text("Great job!")
           .font(.subheadline.weight(.medium))
           .foregroundStyle(Color.successGreen)
           .padding(.vertical, 6)

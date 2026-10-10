@@ -12,9 +12,12 @@ struct InterestResultCard: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      Text(level.emoji)
-        .font(.title)
-        .accessibilityHidden(true)
+      if let systemImage = level.systemImage {
+        Image(systemName: systemImage)
+          .font(.title)
+          .foregroundStyle(level.badgeColor.foregroundColor)
+          .accessibilityHidden(true)
+      }
 
       VStack(alignment: .leading, spacing: 4) {
         Text(level.displayName)

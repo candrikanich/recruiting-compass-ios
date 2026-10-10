@@ -12,7 +12,7 @@ struct DocumentFilterSheet: View {
               viewModel.toggleType(type)
             } label: {
               HStack {
-                Text("\(type.typeEmoji) \(type.label)")
+                Label(type.label, systemImage: type.systemImage)
                 Spacer()
                 if viewModel.selectedTypes.contains(type) {
                   Image(systemName: "checkmark.circle.fill")

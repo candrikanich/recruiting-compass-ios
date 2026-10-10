@@ -324,7 +324,7 @@ struct FlowChips: View {
     init(chips: [String]) { self.chips = chips }
     init(awardChips awards: [PublicProfileData.AwardEntry]) {
         self.chips = awards.map { award in
-            award.year.map { "🏅 \(award.title) · \($0)" } ?? "🏅 \(award.title)"
+            award.year.map { "\(award.title) · \($0)" } ?? award.title
         }
     }
 

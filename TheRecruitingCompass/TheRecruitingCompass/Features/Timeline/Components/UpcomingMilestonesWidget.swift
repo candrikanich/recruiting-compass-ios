@@ -58,8 +58,9 @@ struct UpcomingMilestonesWidget: View {
     showsExternalLinkAffordance: Bool
   ) -> some View {
     HStack(alignment: .top, spacing: 12) {
-      Text(icon(for: milestone.type))
+      Image(systemName: icon(for: milestone.type))
         .font(.title2)
+        .foregroundStyle(Color.accentPrimary)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 2) {
@@ -99,11 +100,11 @@ struct UpcomingMilestonesWidget: View {
 
   private func icon(for type: MilestoneType) -> String {
     switch type {
-    case .test: return "📝"
-    case .deadline: return "⏰"
-    case .ncaaPeriod: return "📋"
-    case .application: return "📧"
-    case .signing: return "✍️"
+    case .test: return "square.and.pencil"
+    case .deadline: return "clock"
+    case .ncaaPeriod: return "list.clipboard"
+    case .application: return "envelope"
+    case .signing: return "pencil"
     }
   }
 }

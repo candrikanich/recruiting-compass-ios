@@ -110,7 +110,7 @@ final class NotificationsListViewAccessibilityTests: XCTestCase {
   func testAllNotificationTypes_HaveDescriptiveLabels() {
     for type in NotificationType.allCases {
       XCTAssertFalse(type.label.isEmpty, "\(type.rawValue) should have non-empty label for VoiceOver announcements")
-      XCTAssertFalse(type.emoji.isEmpty, "\(type.rawValue) should have non-empty emoji")
+      XCTAssertFalse(type.systemImage.isEmpty, "\(type.rawValue) should have a symbol")
     }
   }
 
