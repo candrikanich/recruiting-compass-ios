@@ -15,7 +15,7 @@
     "@playwright/test": "^1.63.0",
     "@supabase/supabase-js": "^2.117.3",
     "@types/node": "^25.9.9",
-    "typescript": "^5.8.0"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "dotenv": "^17.2.4"
