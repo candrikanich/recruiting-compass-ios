@@ -94,8 +94,8 @@ struct AppErrorView: View {
                 .font(.brand(.callout, weight: .semibold))
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
-                .foregroundStyle(.white)
-                .background(Color.accentFill)
+                .foregroundStyle(Color.Brand.forest900)
+                .background(Color.Brand.gold400)
                 .clipShape(.rect(cornerRadius: 8))
         }
         .accessibilityLabel(config.primaryButtonLabel)

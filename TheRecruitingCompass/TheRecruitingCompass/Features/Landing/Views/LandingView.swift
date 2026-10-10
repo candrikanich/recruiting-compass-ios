@@ -153,8 +153,9 @@ struct LandingView: View {
             .padding(.vertical, 14)
             .padding(.horizontal, 16)
             .frame(minHeight: 48)
-            .background(Color.accentFill)
-            .foregroundStyle(.white)
+            // Gold, not forest: the landing page itself is forest, so a forest CTA would vanish.
+            .background(Color.Brand.gold400)
+            .foregroundStyle(Color.Brand.forest900)
             .clipShape(.rect(cornerRadius: 12))
             .shadow(radius: 5)
         }
