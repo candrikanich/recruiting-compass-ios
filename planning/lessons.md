@@ -48,3 +48,12 @@ Source: https://x.com/rvaniaaaa/status/2083542830086000704
 - **Stream, don't barrier**: When `/trc` dispatches several dev agents, verify each PR as it lands instead of waiting for all of them. Wait for everything only when a step really needs all the results, like the train cut or a cross-PR conflict check.
 - **Schema-shaped node output**: Subagents feeding a merge step should return a fixed shape, e.g. `{file, line, severity, claim, evidence}` per finding. Then plain code can dedupe and count without reading free text.
 - **Cap the first fan-out**: Run a new audit fan-out on 20 or fewer items first and read the usage. Go wider only if the fan-out and the verifier both found something one agent would have missed.
+
+## Two-Way Doors: Don't Code Yourself into a Corner (Google TotT) — 2026-10-07
+Source: https://testing.googleblog.com/2026/10/two-way-doors-dont-code-yourself-into.html
+
+- **Shipped binaries are one-way doors**: Every App Store build freezes the Supabase columns, enum values, web API paths, deep links and push payloads it reads until the update gate moves past it — and 1.0 has no gate, so whatever it reads is permanent until 1.0 installs fade out on their own.
+- **Server enums need an `unknown` fallback**: A String-backed `Codable` enum without a custom `init(from:)` fails the whole PostgREST response on one unknown value — never add a server enum value until every gated-in build decodes it tolerantly. Example: `Direction`, `Sentiment`, `TaskStatus`, `DeadlineCategory` have no fallback (2026-10-07)
+- **Remote kill switch before risky features**: The only remote control is the whole-app version gate, so a broken feature in a live build can't be turned off — add per-feature flags to `app_config` through an RPC, with missing keys meaning "on".
+- **Raw tables are the public API**: iOS reads 26 tables directly with snake_case CodingKeys that mirror columns 1:1, so the DB schema is the wire format — only add columns, and route new iOS features through RPCs or views that can change underneath.
+- **Version stored on-device data**: Keychain session JSON and UserDefaults Codable blobs aren't versioned, so a shape change logs people out or throws — wrap them in `{version, payload}` and fall back to a reset when decoding fails.
