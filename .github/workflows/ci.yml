@@ -131,14 +131,14 @@ jobs:
           XCCONFIG
 
       - name: Cache SPM packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
           key: spm-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: spm-
 
       - name: Cache DerivedData
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/Library/Developer/Xcode/DerivedData
           key: deriveddata-${{ hashFiles('TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj', 'TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
