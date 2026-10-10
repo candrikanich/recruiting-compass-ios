@@ -383,6 +383,21 @@ final class CreateEventViewModelTests: XCTestCase {
     XCTAssertEqual(mockService.lastCreateEventRequest?.familyUnitId, "test-family-id")
   }
 
+  func testCreateEvent_emptyFamilyUnitId_omitsFamilyUnitIdFromEncodedRequest() async throws {
+    let soloSut = CreateEventViewModel(eventsService: mockService, userId: "solo-user", familyUnitId: "")
+    soloSut.formData.type = .showcase
+    soloSut.formData.name = "Solo Event"
+    soloSut.formData.startDate = date("2026-04-15")
+
+    _ = await soloSut.createEvent()
+
+    let request = try XCTUnwrap(mockService.lastCreateEventRequest)
+    XCTAssertNil(request.familyUnitId)
+    let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any]
+    XCTAssertFalse(json?.keys.contains("family_unit_id") ?? true)
+    XCTAssertEqual(json?["user_id"] as? String, "solo-user")
+  }
+
   func testCreateEvent_permissionDenied_postgrest42501_showsPermissionMessage() async {
     fillRequiredFields()
     mockService.createEventError = PostgrestError(code: "42501", message: "new row violates row-level security")

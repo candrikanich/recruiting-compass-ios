@@ -108,6 +108,18 @@ final class CreateEventDataTests: XCTestCase {
     XCTAssertEqual(json?["user_id"] as? String, "athlete-1")
   }
 
+  func testCreateEventRequest_nilFamilyUnitId_omitsKey() throws {
+    var data = CreateEventData()
+    data.type = .camp
+    data.name = "Test"
+    data.startDate = date("2026-06-01")
+
+    let request = CreateEventRequest.from(formData: data, userId: "athlete-1", familyUnitId: nil)
+    let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any]
+
+    XCTAssertFalse(json?.keys.contains("family_unit_id") ?? true)
+  }
+
   func testCreateEventRequest_from_emptyOptionals_convertToNil() {
     var data = CreateEventData()
     data.type = .camp

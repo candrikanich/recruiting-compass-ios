@@ -218,7 +218,12 @@ final class CreateEventViewModel {
     errorMessage = nil
     defer { isSaving = false }
 
-    let request = CreateEventRequest.from(formData: formData, userId: userId, familyUnitId: familyUnitId)
+    // Solo users (or a tap before family load finishes) have no family id; "" would fail the uuid column.
+    let request = CreateEventRequest.from(
+      formData: formData,
+      userId: userId,
+      familyUnitId: familyUnitId.isEmpty ? nil : familyUnitId
+    )
     do {
       let event = try await eventsService.createEvent(request)
       logger.info("Event created successfully: \(event.id)")

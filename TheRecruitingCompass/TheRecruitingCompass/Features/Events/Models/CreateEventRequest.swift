@@ -21,7 +21,7 @@ struct CreateEventRequest: Encodable, Sendable {
   let attended: Bool
   let performanceNotes: String?
   let userId: String
-  let familyUnitId: String
+  let familyUnitId: String?
 
   enum CodingKeys: String, CodingKey {
     case type, name, location, address, city, state, url, description, cost, registered, attended
@@ -37,7 +37,7 @@ struct CreateEventRequest: Encodable, Sendable {
     case familyUnitId = "family_unit_id"
   }
 
-  static func from(formData: CreateEventData, userId: String, familyUnitId: String) -> CreateEventRequest {
+  static func from(formData: CreateEventData, userId: String, familyUnitId: String?) -> CreateEventRequest {
     CreateEventRequest(
       type: formData.type?.rawValue ?? "",
       name: formData.name.trimmingCharacters(in: .whitespaces),
