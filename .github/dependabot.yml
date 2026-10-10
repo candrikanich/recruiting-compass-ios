@@ -15,7 +15,7 @@ updates:
       # swift-clocks 1.1+ depends on swift-issue-reporting while supabase-swift still
       # depends on xctest-dynamic-overlay; both declare an IssueReporting target, so the
       # graph fails to resolve (Xcode Cloud build 83). Lift once supabase-swift migrates.
-      - dependency-name: "swift-clocks"
+      - dependency-name: "github.com/pointfreeco/swift-clocks"
         versions: [">=1.1.0"]
 
   - package-ecosystem: npm
