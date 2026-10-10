@@ -19,8 +19,8 @@ extension TaskWithStatus {
     case "academic": return Color.Category.forest
     case "athletic": return Color.Category.gold
     case "recruiting": return Color.Category.clay
-    case "exposure": return Color.Category.slate
-    case "mindset": return Color(light: Color.Brand.forest500, dark: Color.Brand.forest300)
+    case "exposure": return Color.Category.orange
+    case "mindset": return Color.Category.slate
     default: return .secondary
     }
   }

@@ -46,11 +46,11 @@ struct LandingView: View {
       Text("The Recruiting Compass")
         .font(.brand(.title))
         .bold()
-        .foregroundStyle(.white)
+        .foregroundStyle(Color.Brand.slate100)
 
       Text("Your College Recruiting Command Center")
         .font(.brand(.title3, weight: .semibold))
-        .foregroundStyle(.white)
+        .foregroundStyle(Color.Brand.gold400)
         .multilineTextAlignment(.center)
 
       Text("""

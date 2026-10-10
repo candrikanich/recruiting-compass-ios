@@ -75,6 +75,7 @@ extension Color {
     static let gold = Color(light: Color.Brand.gold600, dark: Color.Brand.gold400)
     static let clay = Color(light: Color.Brand.clay600, dark: Color(hex: "c49a7a"))
     static let slate = Color(light: Color.Brand.slate600, dark: Color.Brand.slate400)
+    static let orange = Color(light: Color.Brand.orange700, dark: Color.Brand.orange500)
   }
 
   // MARK: - Semantic Aliases
