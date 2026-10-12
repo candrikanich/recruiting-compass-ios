@@ -154,27 +154,33 @@ final class SignupScreenObject {
       XCTFail("Signup form did not appear", file: file, line: line)
       return
     }
-    firstNameField.tap()
-    firstNameField.typeText(first)
-
-    if !last.isEmpty {
-      lastNameField.tap()
-      lastNameField.typeText(last)
-    }
-
-    emailField.tap()
-    emailField.typeText(data.email)
-
-    passwordField.tap()
-    passwordField.typeText(data.password)
-
-    confirmPasswordField.tap()
-    confirmPasswordField.typeText(data.password)
+    focusAndType(firstNameField, first, file: file, line: line)
+    if !last.isEmpty { focusAndType(lastNameField, last, file: file, line: line) }
+    focusAndType(emailField, data.email, file: file, line: line)
+    focusAndType(passwordField, data.password, file: file, line: line)
+    focusAndType(confirmPasswordField, data.password, file: file, line: line)
 
     if let familyCode = data.familyCode, familyCodeField.waitForExistence(timeout: 1) {
-      familyCodeField.tap()
-      familyCodeField.typeText(familyCode)
+      focusAndType(familyCodeField, familyCode, file: file, line: line)
     }
+  }
+
+  /// With the keyboard up the scroll view shrinks, so a field near its bottom edge can sit under the
+  /// keyboard and a tap there never moves focus. Scroll the form until the tap actually takes focus.
+  private func focusAndType(
+    _ field: XCUIElement, _ text: String, file: StaticString, line: UInt
+  ) {
+    let hasFocus = NSPredicate(format: "hasKeyboardFocus == true")
+    for _ in 0..<4 {
+      field.tap()
+      let focused = XCTNSPredicateExpectation(predicate: hasFocus, object: field)
+      if XCTWaiter.wait(for: [focused], timeout: 2) == .completed {
+        field.typeText(text)
+        return
+      }
+      app.scrollViews.firstMatch.swipeUp(velocity: .slow)
+    }
+    XCTFail("Could not focus \(field.identifier.isEmpty ? field.label : field.identifier)", file: file, line: line)
   }
 
   func acceptTerms(file: StaticString = #filePath, line: UInt = #line) {
