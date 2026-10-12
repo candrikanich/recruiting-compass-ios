@@ -297,6 +297,9 @@ run_tests() {
 }
 
 SUMMARY="no result bundle"
+FAILURES=""
+FIRST_FAILURE=""
+LAST_PASS_FILE="$STATE_DIR/last-pass-sha"
 summarize() {
   local bundle
   bundle="$(ls -td "$RESULTS"/attempt-*.xcresult 2>/dev/null | head -1 || true)"
@@ -306,16 +309,85 @@ summarize() {
   FAILED=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["failedTests"])' "$RESULTS/summary.json")
   SKIPPED=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["skippedTests"])' "$RESULTS/summary.json")
   SUMMARY="$PASSED passed, $FAILED failed, $SKIPPED skipped"
+  if [ "$FAILED" -gt 0 ] &&
+    xcrun xcresulttool get test-results tests --path "$bundle" > "$RESULTS/tests.json"; then
+    FAILURES="$(python3 -I "$IOS_DIR/scripts/e2e/xcresult-failures.py" "$RESULTS/tests.json" || true)"
+    FIRST_FAILURE="$(python3 -I "$IOS_DIR/scripts/e2e/xcresult-failures.py" "$RESULTS/tests.json" --oneline || true)"
+  fi
   # Tests XCTSkip when login fails, so nothing passing is a broken
   # environment reporting green, not a passing suite.
   [ "$PASSED" -gt 0 ]
 }
 
+# Without the failing test and its cause, a red nightly means opening the
+# result bundle by hand; put both in the issue and the notification instead.
+report_body() {
+  local sha=$1 detail=$2 last_pass
+  printf 'Nightly local iOS E2E (%s) failed on %s at `%s`: **%s**.\n\n' "$SUITE" "$(date +%Y-%m-%d)" "$sha" "$detail"
+  if [ -n "$FAILURES" ]; then
+    printf '### Failed tests\n\n%s\n\n' "$FAILURES"
+  else
+    printf '### Last log lines\n\n```\n%s\n```\n\n' "$(grep -vE '^\s*$' "$LOG" | tail -25)"
+  fi
+  last_pass="$(cat "$LAST_PASS_FILE" 2>/dev/null || true)"
+  if [ -n "$last_pass" ] && git -C "$IOS_DIR" cat-file -e "$last_pass" 2>/dev/null; then
+    printf '### iOS commits since last pass (`%s`)\n\n```\n%s\n```\n\n' "$last_pass" \
+      "$(git -C "$IOS_DIR" log --oneline --first-parent "$last_pass..HEAD" | head -20)"
+  fi
+  printf 'Web checkout: `%s`. Log on the Mac: `%s`; result bundles in `%s`.\n' \
+    "$(git -C "$WEB_DIR" rev-parse --short HEAD)" "${LOG/#$HOME/~}" "${RESULTS/#$HOME/~}"
+}
+
+notify() {
+  local message=$1 url=$2
+  if command -v terminal-notifier >/dev/null 2>&1; then
+    terminal-notifier -title "$ISSUE_TITLE" -message "$message" -sound Basso \
+      ${url:+-open "$url"} >/dev/null 2>&1 || true
+  else
+    osascript -e 'on run argv' -e 'display notification (item 1 of argv) with title (item 2 of argv)' \
+      -e 'end run' "$message" "$ISSUE_TITLE" >/dev/null 2>&1 || true
+  fi
+}
+
+# Issues gh opens under your own account never email you, so failures also go
+# out through Resend. Key and recipient live in one Keychain item (this repo is
+# public), added once with:
+#   security add-generic-password -s recruiting-compass-nightly-e2e-resend \
+#     -a you@example.com -w re_xxx -T /usr/bin/security
+# No item, no email; the issue and notification still happen.
+EMAIL_KEYCHAIN_SERVICE="recruiting-compass-nightly-e2e-resend"
+EMAIL_FROM="The Recruiting Compass CI <info@therecruitingcompass.com>"
+email_report() {
+  local subject=$1 body=$2 key to code
+  key="$(security find-generic-password -s "$EMAIL_KEYCHAIN_SERVICE" -w 2>/dev/null)" || {
+    log "No $EMAIL_KEYCHAIN_SERVICE Keychain item; skipping failure email"
+    return 0
+  }
+  to="$(security find-generic-password -s "$EMAIL_KEYCHAIN_SERVICE" 2>/dev/null |
+    sed -n 's/^ *"acct"<blob>="\(.*\)"$/\1/p')"
+  [ -n "$to" ] || { log "Keychain item has no account (recipient); skipping failure email"; return 0; }
+  code="$(python3 -I -c '
+import json, sys
+print(json.dumps({"from": sys.argv[1], "to": [sys.argv[2]], "subject": sys.argv[3], "text": sys.argv[4]}))
+' "$EMAIL_FROM" "$to" "$subject" "$body" |
+    curl -sS -o "$STATE_DIR/email-response.json" -w '%{http_code}' --max-time 30 \
+      -H @<(printf 'Authorization: Bearer %s\n' "$key") \
+      -H 'Content-Type: application/json' \
+      --data @- https://api.resend.com/emails)" || code="curl error"
+  case "$code" in
+    2??) log "Failure email sent" ;;
+    *) log "Failure email not sent (HTTP $code): $(cat "$STATE_DIR/email-response.json" 2>/dev/null)" ;;
+  esac
+}
+
 report() {
   local status=$1 detail=$2
-  [ "$REPORT" -eq 1 ] || return 0
-  local sha existing body
+  local sha existing url
   sha="$(git -C "$IOS_DIR" rev-parse --short HEAD)"
+  if [ "$status" = pass ]; then
+    git -C "$IOS_DIR" rev-parse HEAD > "$LAST_PASS_FILE"
+  fi
+  [ "$REPORT" -eq 1 ] || return 0
   existing="$(gh issue list -R "$ISSUE_REPO" --state open --search "\"$ISSUE_TITLE\" in:title" --json number -q '.[0].number' || true)"
   if [ "$status" = pass ]; then
     if [ -n "$existing" ]; then
@@ -323,14 +395,14 @@ report() {
     fi
     return 0
   fi
-  body="Nightly local iOS E2E ($SUITE) failed on $(date +%Y-%m-%d) at \`$sha\`: $detail.
-Log on the Mac: \`${LOG/#$HOME/~}\`; result bundles in \`${RESULTS/#$HOME/~}\`."
   if [ -n "$existing" ]; then
-    gh issue comment "$existing" -R "$ISSUE_REPO" --body "$body"
+    url="$(report_body "$sha" "$detail" | gh issue comment "$existing" -R "$ISSUE_REPO" --body-file - || true)"
   else
-    gh issue create -R "$ISSUE_REPO" --title "$ISSUE_TITLE" --label bug --body "$body"
+    url="$(report_body "$sha" "$detail" | gh issue create -R "$ISSUE_REPO" --title "$ISSUE_TITLE" --label bug --body-file - || true)"
   fi
-  osascript -e "display notification \"$detail\" with title \"$ISSUE_TITLE\"" >/dev/null 2>&1 || true
+  notify "${FIRST_FAILURE:-$detail}" "$url"
+  email_report "$ISSUE_TITLE: ${FIRST_FAILURE:-$detail}" \
+    "$(printf '%s\n\n' "${url:-GitHub issue could not be filed; see the log below.}"; report_body "$sha" "$detail")"
 }
 
 fail() {
