@@ -349,6 +349,37 @@ notify() {
   fi
 }
 
+# Issues gh opens under your own account never email you, so failures also go
+# out through Resend. Key and recipient live in one Keychain item (this repo is
+# public), added once with:
+#   security add-generic-password -s recruiting-compass-nightly-e2e-resend \
+#     -a you@example.com -w re_xxx -T /usr/bin/security
+# No item, no email; the issue and notification still happen.
+EMAIL_KEYCHAIN_SERVICE="recruiting-compass-nightly-e2e-resend"
+EMAIL_FROM="The Recruiting Compass CI <info@therecruitingcompass.com>"
+email_report() {
+  local subject=$1 body=$2 key to code
+  key="$(security find-generic-password -s "$EMAIL_KEYCHAIN_SERVICE" -w 2>/dev/null)" || {
+    log "No $EMAIL_KEYCHAIN_SERVICE Keychain item; skipping failure email"
+    return 0
+  }
+  to="$(security find-generic-password -s "$EMAIL_KEYCHAIN_SERVICE" 2>/dev/null |
+    sed -n 's/^ *"acct"<blob>="\(.*\)"$/\1/p')"
+  [ -n "$to" ] || { log "Keychain item has no account (recipient); skipping failure email"; return 0; }
+  code="$(python3 -I -c '
+import json, sys
+print(json.dumps({"from": sys.argv[1], "to": [sys.argv[2]], "subject": sys.argv[3], "text": sys.argv[4]}))
+' "$EMAIL_FROM" "$to" "$subject" "$body" |
+    curl -sS -o "$STATE_DIR/email-response.json" -w '%{http_code}' --max-time 30 \
+      -H @<(printf 'Authorization: Bearer %s\n' "$key") \
+      -H 'Content-Type: application/json' \
+      --data @- https://api.resend.com/emails)" || code="curl error"
+  case "$code" in
+    2??) log "Failure email sent" ;;
+    *) log "Failure email not sent (HTTP $code): $(cat "$STATE_DIR/email-response.json" 2>/dev/null)" ;;
+  esac
+}
+
 report() {
   local status=$1 detail=$2
   local sha existing url
@@ -370,6 +401,8 @@ report() {
     url="$(report_body "$sha" "$detail" | gh issue create -R "$ISSUE_REPO" --title "$ISSUE_TITLE" --label bug --body-file - || true)"
   fi
   notify "${FIRST_FAILURE:-$detail}" "$url"
+  email_report "$ISSUE_TITLE: ${FIRST_FAILURE:-$detail}" \
+    "$(printf '%s\n\n' "${url:-GitHub issue could not be filed; see the log below.}"; report_body "$sha" "$detail")"
 }
 
 fail() {
