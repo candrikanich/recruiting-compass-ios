@@ -9,26 +9,7 @@ struct PhaseCardTaskRow: View {
 
   @State private var isExpanded = false
 
-  private var isCompleted: Bool { task.effectiveStatus == .completed }
-
-  /// Web parity (`components/Timeline/TaskItem.vue`): the failure-risk callout
-  /// only surfaces as a phase nears completion, not on every open task.
-  private var showFailureRisk: Bool { !isCompleted && phaseProgress >= 75 }
-
-  private var hasDescription: Bool {
-    (task.description?.isEmpty == false)
-  }
-
-  private var hasWhy: Bool {
-    (task.whyItMatters?.isEmpty == false) && !isCompleted
-  }
-
-  private var hasRisk: Bool {
-    (task.failureRisk?.isEmpty == false) && showFailureRisk
-  }
-
-  /// Whether the row has any collapsible detail worth a tap.
-  private var isExpandable: Bool { hasDescription || hasWhy || hasRisk }
+  private var isExpandable: Bool { a11y.isExpandable }
 
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
@@ -66,17 +47,17 @@ struct PhaseCardTaskRow: View {
         badgeRow
 
         if isExpanded {
-          if let description = task.description, !description.isEmpty {
+          if let description = a11y.visibleDescription {
             Text(description)
               .font(.brand(.footnote))
               .foregroundStyle(.secondary)
           }
 
-          if hasWhy, let why = task.whyItMatters {
+          if let why = a11y.visibleWhyItMatters {
             calloutBox(title: String(localized: "Why It Matters"), text: why, color: Color.accentPrimary)
           }
 
-          if hasRisk, let risk = task.failureRisk {
+          if let risk = a11y.visibleFailureRisk {
             calloutBox(title: String(localized: "Don't Miss This"), text: risk, color: Color.amberGold)
           }
         }
@@ -93,10 +74,28 @@ struct PhaseCardTaskRow: View {
       guard isExpandable else { return }
       withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() }
     }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(accessibilityLabel)
-    .accessibilityHint(accessibilityHint)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(a11y.label)
+    .accessibilityHint(a11y.hint)
     .accessibilityAddTraits(isExpandable ? .isButton : [])
+    .accessibilityActions {
+      ForEach(a11y.actions, id: \.name) { action in
+        Button(action.name) { perform(action) }
+      }
+    }
+  }
+
+  private var a11y: TimelineTaskAccessibility {
+    TimelineTaskAccessibility(
+      task: task, phaseProgress: phaseProgress, isRecovery: task.athleteTask?.isRecoveryTask == true, isExpanded: isExpanded)
+  }
+
+  private func perform(_ action: TimelineTaskAccessibility.Action) {
+    switch action {
+    case .markComplete: onCheckboxTap()
+    case .explainLock: onLockedTap()
+    case .showDetails, .hideDetails: withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() }
+    }
   }
 
   @ViewBuilder
@@ -156,24 +155,5 @@ struct PhaseCardTaskRow: View {
       Rectangle().fill(color).frame(width: 3)
     }
     .clipShape(RoundedRectangle(cornerRadius: 6))
-  }
-
-  private var accessibilityLabel: String {
-    var parts = [task.title, task.categoryLabel]
-    if task.required { parts.append(String(localized: "Required")) }
-    parts.append(task.effectiveStatus.displayName)
-    return parts.joined(separator: ", ")
-  }
-
-  private var accessibilityHint: String {
-    if task.isLocked {
-      return String(localized: "Locked until prerequisites complete")
-    }
-    if isExpandable {
-      return isExpanded
-        ? String(localized: "Double tap to collapse details")
-        : String(localized: "Double tap to show details")
-    }
-    return String(localized: "Double tap to mark complete")
   }
 }
