@@ -136,7 +136,9 @@ extension FamilyServiceImpl {
     let url = baseURL
       .appendingPathComponent("api/family/invite")
       .appendingPathComponent(safeToken)
-    let (data, response) = try await URLSession.shared.data(from: url)
+    var request = URLRequest(url: url)
+    request.addClientHeaders()
+    let (data, response) = try await URLSession.shared.data(for: request)
 
     guard let http = response as? HTTPURLResponse else {
       throw FamilyError.serverError("Invalid response")
