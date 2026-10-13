@@ -29,6 +29,11 @@ When editing or creating source files, always use the full double-nested path, e
 
 - **Simulator names churn** between Xcode betas — run `xcrun simctl list devices available | grep iPhone` and target by `id=` rather than assuming `name=iPhone 17` exists.
 - CI uses `platform=iOS Simulator,OS=latest,name=iPhone 16` with explicit boot; `OS=latest` prevents xcodebuild from selecting unstable simulator clones.
+- **Simulator hygiene (this Mac gets overrun by simulators and grinds to a halt).** Always pass
+  `-parallel-testing-enabled NO` (no clone simulators), and shut down whatever simulator you booted when the run ends —
+  pass or fail: `./scripts/shutdown_test_simulator.sh '<destination>'` (the `make` test targets already do this; `KEEP_SIM=1`
+  opts out for debugging). Shut down your own device by `id=`/name — never `simctl shutdown all`, other agents may be
+  mid-run. A cloned simulator gets `xcrun simctl shutdown <id> && xcrun simctl delete <id>`.
 - **~3700 unit tests.** The full suite exceeds 10 minutes — run the affected test classes via `-only-testing:` for fast evidence and trust the xcodebuild exit code.
 
 ### Environment Configuration
