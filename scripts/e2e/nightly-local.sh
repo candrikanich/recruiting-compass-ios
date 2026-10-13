@@ -87,7 +87,7 @@ fi
 
 SIM_UDID=""
 cleanup() {
-  "$LOCAL_SUPABASE" stop || true
+  timeout 120 "$LOCAL_SUPABASE" stop || true
   [ -n "$SIM_UDID" ] && xcrun simctl shutdown "$SIM_UDID" >/dev/null 2>&1 || true
   rmdir "$LOCK" 2>/dev/null || true
   # Keep two weeks of logs.
@@ -95,22 +95,39 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Docker Desktop's backend can stay up while its VM's engine is unreachable;
+# the socket then accepts requests and hangs or answers 500 (#381: a 4.4-hour
+# hang at 02:30). So health means a bounded round trip to the engine, and a
+# backend without an engine gets restarted rather than waited on.
+docker_ok() {
+  timeout 20 docker ps -q >/dev/null 2>&1
+}
+
 ensure_docker() {
-  docker info >/dev/null 2>&1 && return 0
-  log "Docker is not running; starting Docker Desktop"
-  open -a Docker
-  for _ in $(seq 1 60); do
-    sleep 3
-    docker info >/dev/null 2>&1 && return 0
+  docker_ok && return 0
+  if pgrep -qf com.docker.backend; then
+    log "Docker Desktop is running but its engine is not answering; restarting it"
+    timeout 120 docker desktop restart >/dev/null 2>&1 || open -a Docker
+  else
+    log "Docker is not running; starting Docker Desktop"
+    open -a Docker
+  fi
+  local deadline=$((SECONDS + 300))
+  while [ "$SECONDS" -lt "$deadline" ]; do
+    sleep 10
+    docker_ok && return 0
   done
-  log "Docker did not come up within 3 minutes"
+  log "Docker engine did not answer within 5 minutes"
   return 1
 }
+
+# A cold start pulls images, which takes minutes; half an hour means it is wedged.
+STACK_START_SECONDS=1800
 
 # Callers use `fn || fail`, which disables set -e inside fn, so every step
 # below returns its own failure explicitly.
 start_stack() {
-  "$LOCAL_SUPABASE" start || return 1
+  timeout "$STACK_START_SECONDS" "$LOCAL_SUPABASE" start || return 1
   local key value
   while IFS='=' read -r key value; do
     case "$key" in
@@ -118,7 +135,7 @@ start_stack() {
       NUXT_PUBLIC_SUPABASE_ANON_KEY) SUPABASE_ANON_KEY="$value" ;;
       SUPABASE_SERVICE_ROLE_KEY) SUPABASE_SERVICE_ROLE_KEY="$value" ;;
     esac
-  done < <("$LOCAL_SUPABASE" env)
+  done < <(timeout 60 "$LOCAL_SUPABASE" env)
   [ -n "${SUPABASE_URL:-}" ] && [ -n "${SUPABASE_ANON_KEY:-}" ] && [ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ] || return 1
   log "Local Supabase at $SUPABASE_URL"
 }
@@ -412,7 +429,7 @@ fail() {
 }
 
 log "iOS E2E ($SUITE) at $(git -C "$IOS_DIR" rev-parse --short HEAD), web $(git -C "$WEB_DIR" rev-parse --short HEAD)"
-ensure_docker || fail "Docker Desktop did not start"
+ensure_docker || fail "Docker engine is not answering"
 start_stack || fail "local Supabase stack did not start"
 seed || fail "seed:e2e failed"
 ensure_xcconfig
