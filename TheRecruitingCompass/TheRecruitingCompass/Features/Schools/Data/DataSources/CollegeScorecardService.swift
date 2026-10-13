@@ -154,6 +154,7 @@ actor CollegeScorecardService: CollegeScorecardManaging {
     }
 
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
 
