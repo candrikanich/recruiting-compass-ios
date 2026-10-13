@@ -36,11 +36,22 @@ final class CreateEventViewModel {
   var newSchoolName = ""
   var newSchoolLocation = ""
 
+  static let familyNotLoadedMessage = String(
+    localized: "Your family account is still loading. Please wait a moment and try again."
+  )
+
   // MARK: - Dependencies
 
   private let eventsService: any EventsManaging
   private let userId: String
   private let familyUnitId: String
+
+  /// The one place an empty or whitespace family id is normalized to nil. Solo users, and taps before the
+  /// family loads, have none; sending "" fails the uuid column with 22P02.
+  private var resolvedFamilyUnitId: String? {
+    let trimmed = familyUnitId.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed.isEmpty ? nil : trimmed
+  }
 
   // MARK: - Computed Properties
 
@@ -80,6 +91,7 @@ final class CreateEventViewModel {
 
   func loadSchools() async {
     logger.debug("Loading schools for event form")
+    guard let familyUnitId = resolvedFamilyUnitId else { return }
     isLoading = true
     defer { isLoading = false }
 
@@ -123,6 +135,13 @@ final class CreateEventViewModel {
   func saveNewSchool() async {
     let trimmedName = newSchoolName.trimmingCharacters(in: .whitespaces)
     guard !trimmedName.isEmpty else { return }
+
+    // Mirrors web's "Family context not loaded": schools are family-scoped, so one without a family
+    // would be invisible to every list that filters on family_unit_id.
+    guard let familyUnitId = resolvedFamilyUnitId else {
+      errorMessage = Self.familyNotLoadedMessage
+      return
+    }
 
     logger.debug("Creating new school: \(trimmedName)")
     let location = newSchoolLocation.trimmingCharacters(in: .whitespaces)
@@ -218,11 +237,10 @@ final class CreateEventViewModel {
     errorMessage = nil
     defer { isSaving = false }
 
-    // Solo users (or a tap before family load finishes) have no family id; "" would fail the uuid column.
     let request = CreateEventRequest.from(
       formData: formData,
       userId: userId,
-      familyUnitId: familyUnitId.isEmpty ? nil : familyUnitId
+      familyUnitId: resolvedFamilyUnitId
     )
     do {
       let event = try await eventsService.createEvent(request)

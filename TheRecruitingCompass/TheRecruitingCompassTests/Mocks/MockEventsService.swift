@@ -163,7 +163,12 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
     return stubbedSchools
   }
 
-  func createSchool(name: String, location: String?, userId: String, familyUnitId: String) async throws -> SchoolSummary {
+  func createSchool(
+    name: String,
+    location: String?,
+    userId: String,
+    familyUnitId: String?
+  ) async throws -> SchoolSummary {
     createSchoolCallCount += 1
     lastCreateSchoolName = name
     lastCreateSchoolLocation = location
