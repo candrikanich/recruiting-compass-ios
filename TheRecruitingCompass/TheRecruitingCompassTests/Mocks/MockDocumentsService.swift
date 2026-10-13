@@ -5,6 +5,7 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
 
   var fetchDocumentsCallCount = 0
   var uploadDocumentCallCount = 0
+  var lastUploadDocumentFamilyUnitId: String?
   var deleteDocumentCallCount = 0
 
   var lastFetchDocumentsUserId: String?
@@ -59,9 +60,11 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
     title: String,
     description: String?,
     schoolId: String?,
-    version: Int
+    version: Int,
+    familyUnitId: String?
   ) async throws -> Document {
     uploadDocumentCallCount += 1
+    lastUploadDocumentFamilyUnitId = familyUnitId
     lastUploadDocumentUserId = userId
     lastUploadDocumentTitle = title
     lastUploadDocumentType = type

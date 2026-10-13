@@ -13,7 +13,8 @@ protocol DocumentsManaging: Sendable {
     title: String,
     description: String?,
     schoolId: String?,
-    version: Int
+    version: Int,
+    familyUnitId: String?
   ) async throws -> Document
   func fetchVersionHistory(documentId: String, document: Document) async throws -> [DocumentVersion]
   func updateDocumentIsCurrent(id: String, isCurrent: Bool) async throws

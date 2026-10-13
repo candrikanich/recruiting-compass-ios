@@ -402,7 +402,8 @@ final class DocumentDetailViewModel {
         title: doc.title,
         description: doc.description,
         schoolId: doc.schoolId,
-        version: newVersion
+        version: newVersion,
+        familyUnitId: familyManager.resolvedFamilyUnitId
       )
       uploadProgress = 1
       document = newDoc

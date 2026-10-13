@@ -15,8 +15,9 @@ private struct DocumentUpdatePayload: Encodable {
   }
 }
 
-private struct DocumentInsertPayload: Encodable {
+struct DocumentInsertPayload: Encodable {
   let userId: String
+  let familyUnitId: String?
   let uploadedBy: String
   let type: String
   let title: String
@@ -30,6 +31,7 @@ private struct DocumentInsertPayload: Encodable {
 
   enum CodingKeys: String, CodingKey {
     case userId = "user_id"
+    case familyUnitId = "family_unit_id"
     case uploadedBy = "uploaded_by"
     case type, title, description
     case fileUrl = "file_url"
@@ -197,7 +199,8 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
     title: String,
     description: String?,
     schoolId: String?,
-    version: Int
+    version: Int,
+    familyUnitId: String?
   ) async throws -> Document {
     logger.debug("Uploading document: \(title) type: \(type.rawValue)")
 
@@ -219,6 +222,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
 
     let payload = DocumentInsertPayload(
       userId: userId,
+      familyUnitId: FamilyUnitID.normalized(familyUnitId),
       uploadedBy: userId,
       type: type.rawValue,
       title: title,

@@ -343,7 +343,8 @@ final class DocumentsListViewModel {
         title: uploadTitle.trimmingCharacters(in: .whitespaces),
         description: uploadDescription.isEmpty ? nil : uploadDescription,
         schoolId: uploadSchoolId,
-        version: uploadVersion
+        version: uploadVersion,
+        familyUnitId: familyManager.resolvedFamilyUnitId
       )
 
       uploadProgress = 1

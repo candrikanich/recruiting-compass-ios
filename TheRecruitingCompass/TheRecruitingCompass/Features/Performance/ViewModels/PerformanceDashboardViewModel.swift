@@ -227,7 +227,11 @@ final class PerformanceDashboardViewModel {
     )
 
     do {
-      let newMetric = try await performanceService.createMetric(userId: userId, request: request)
+      let newMetric = try await performanceService.createMetric(
+        userId: userId,
+        familyUnitId: familyManager.resolvedFamilyUnitId,
+        request: request
+      )
       metrics.append(newMetric)
       addFormState.reset()
       showAddForm = false

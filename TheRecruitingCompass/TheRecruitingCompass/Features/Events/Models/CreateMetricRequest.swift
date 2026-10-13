@@ -2,6 +2,7 @@ import Foundation
 
 struct CreateMetricRequest: Encodable, Sendable {
   let userId: String
+  let familyUnitId: String?
   let metricType: String
   let value: Double
   let unit: String
@@ -13,6 +14,7 @@ struct CreateMetricRequest: Encodable, Sendable {
   enum CodingKeys: String, CodingKey {
     case value, unit, verified, notes
     case userId = "user_id"
+    case familyUnitId = "family_unit_id"
     case metricType = "metric_type"
     case recordedDate = "recorded_date"
     case eventId = "event_id"
