@@ -428,6 +428,58 @@ final class CreateEventViewModelTests: XCTestCase {
     XCTAssertFalse(sut.errorMessage?.lowercased().contains("connection") == true)
   }
 
+  // MARK: - Add school (inline)
+
+  private func fillNewSchool() {
+    sut.newSchoolName = "Oregon State"
+    sut.showAddSchoolModal = true
+  }
+
+  func testSaveNewSchool_withFamily_stampsFamilyUnitId() async {
+    fillNewSchool()
+
+    await sut.saveNewSchool()
+
+    XCTAssertEqual(mockService.createSchoolCallCount, 1)
+    XCTAssertEqual(mockService.lastCreateSchoolFamilyUnitId, "test-family-id")
+    XCTAssertEqual(sut.formData.schoolId, mockService.stubbedCreatedSchool.id)
+    XCTAssertFalse(sut.showAddSchoolModal)
+  }
+
+  func testSaveNewSchool_emptyFamilyUnitId_blocksWithFamilyMessageAndSendsNothing() async {
+    let soloSut = CreateEventViewModel(eventsService: mockService, userId: "solo-user", familyUnitId: "")
+    soloSut.newSchoolName = "Oregon State"
+    soloSut.showAddSchoolModal = true
+
+    await soloSut.saveNewSchool()
+
+    XCTAssertEqual(mockService.createSchoolCallCount, 0)
+    XCTAssertEqual(soloSut.errorMessage, CreateEventViewModel.familyNotLoadedMessage)
+    XCTAssertFalse(soloSut.errorMessage?.lowercased().contains("connection") == true)
+    XCTAssertTrue(soloSut.showAddSchoolModal, "modal stays open so the typed name is not lost")
+    XCTAssertEqual(soloSut.newSchoolName, "Oregon State")
+  }
+
+  func testSaveNewSchool_whitespaceFamilyUnitId_isTreatedAsMissing() async {
+    let soloSut = CreateEventViewModel(eventsService: mockService, userId: "solo-user", familyUnitId: "  \n")
+    soloSut.newSchoolName = "Oregon State"
+
+    await soloSut.saveNewSchool()
+
+    XCTAssertEqual(mockService.createSchoolCallCount, 0)
+    XCTAssertEqual(soloSut.errorMessage, CreateEventViewModel.familyNotLoadedMessage)
+  }
+
+  func testLoadSchools_emptyFamilyUnitId_doesNotQueryWithEmptyUuid() async {
+    let soloSut = CreateEventViewModel(eventsService: mockService, userId: "solo-user", familyUnitId: "")
+
+    await soloSut.loadSchools()
+
+    XCTAssertNil(mockService.lastFetchSchoolsFamilyUnitId)
+    XCTAssertNil(soloSut.errorMessage)
+    XCTAssertTrue(soloSut.schools.isEmpty)
+  }
+
   // MARK: - Required-field state
 
   func testMissingRequiredFields_emptyForm_listsTypeNameStartDate() {

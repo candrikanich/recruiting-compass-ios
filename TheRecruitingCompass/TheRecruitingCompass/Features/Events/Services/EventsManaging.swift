@@ -36,7 +36,12 @@ protocol EventsManaging: Sendable {
   /// Creates a minimal school record inline from the event form. Writes both
   /// `user_id` and `family_unit_id` so the new school shows up in the
   /// family-scoped Schools list and this picker.
-  func createSchool(name: String, location: String?, userId: String, familyUnitId: String) async throws -> SchoolSummary
+  func createSchool(
+    name: String,
+    location: String?,
+    userId: String,
+    familyUnitId: String?
+  ) async throws -> SchoolSummary
   /// Returns the display name of a single school, or nil when the school can't be found.
   func fetchSchoolName(schoolId: String) async throws -> String?
   /// Returns coaches associated with a specific school, scoped to the user.

@@ -198,22 +198,13 @@ final class EventsServiceImpl: EventsManaging, Sendable {
     }
   }
 
-  func createSchool(name: String, location: String?, userId: String, familyUnitId: String) async throws -> SchoolSummary {
+  func createSchool(
+    name: String,
+    location: String?,
+    userId: String,
+    familyUnitId: String?
+  ) async throws -> SchoolSummary {
     logger.debug("Creating school: \(name)")
-
-    struct CreateSchoolRequest: Encodable {
-      let name: String
-      let location: String?
-      let userId: String
-      let familyUnitId: String
-      let status: String
-
-      enum CodingKeys: String, CodingKey {
-        case name, location, status
-        case userId = "user_id"
-        case familyUnitId = "family_unit_id"
-      }
-    }
 
     let request = CreateSchoolRequest(
       name: name,
