@@ -38,15 +38,29 @@ struct TimelineTaskAccessibility {
   }
 
   let task: TaskWithStatus
+  let phaseProgress: Int
   let isRecovery: Bool
   let isExpanded: Bool
 
   private var isCompleted: Bool { task.effectiveStatus == .completed }
 
-  private var hasDetails: Bool {
-    let hasText = { (text: String?) in text?.isEmpty == false }
-    return hasText(task.description) || (hasText(task.whyItMatters) && !isCompleted)
-      || (hasText(task.failureRisk) && !isCompleted)
+  /// Web parity (`components/Timeline/TaskItem.vue`): the failure-risk callout
+  /// only surfaces as a phase nears completion, not on every open task.
+  private var showsFailureRisk: Bool { !isCompleted && phaseProgress >= 75 }
+
+  /// Single source of truth for which detail text the row can reveal; the view renders these same values.
+  var visibleDescription: String? { task.description.flatMap { $0.isEmpty ? nil : $0 } }
+
+  var visibleWhyItMatters: String? {
+    isCompleted ? nil : task.whyItMatters.flatMap { $0.isEmpty ? nil : $0 }
+  }
+
+  var visibleFailureRisk: String? {
+    showsFailureRisk ? task.failureRisk.flatMap { $0.isEmpty ? nil : $0 } : nil
+  }
+
+  var isExpandable: Bool {
+    visibleDescription != nil || visibleWhyItMatters != nil || visibleFailureRisk != nil
   }
 
   var label: String {
@@ -61,35 +75,25 @@ struct TimelineTaskAccessibility {
   }
 
   private var detailText: [String] {
-    var details: [String] = []
-    if let description = task.description, !description.isEmpty { details.append(description) }
-    if !isCompleted, let why = task.whyItMatters, !why.isEmpty {
-      details.append("\(String(localized: "Why It Matters")): \(why)")
-    }
-    if !isCompleted, let risk = task.failureRisk, !risk.isEmpty {
-      details.append("\(String(localized: "Don't Miss This")): \(risk)")
-    }
-    return details
+    [
+      visibleDescription,
+      visibleWhyItMatters.map { "\(String(localized: "Why It Matters")): \($0)" },
+      visibleFailureRisk.map { "\(String(localized: "Don't Miss This")): \($0)" }
+    ].compactMap { $0 }
   }
 
   var hint: String {
     if task.isLocked { return String(localized: "Locked until prerequisites complete") }
-    return isCompleted
-      ? String(localized: "Use the actions rotor to show details")
-      : String(localized: "Use the actions rotor for Mark complete or Show details")
-  }
-
-  var checkboxLabel: String {
-    isCompleted
-      ? String(localized: "\(task.title), completed")
-      : String(localized: "Mark \(task.title) complete")
+    guard !actions.isEmpty else { return "" }
+    let names = actions.map(\.name).joined(separator: ", ")
+    return String(localized: "Actions available: \(names)")
   }
 
   var actions: [Action] {
     if task.isLocked { return [.explainLock] }
     var actions: [Action] = []
     if !isCompleted { actions.append(.markComplete) }
-    if hasDetails { actions.append(isExpanded ? .hideDetails : .showDetails) }
+    if isExpandable { actions.append(isExpanded ? .hideDetails : .showDetails) }
     return actions
   }
 }
