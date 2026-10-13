@@ -46,6 +46,7 @@ struct PhaseCardTaskRow: View {
           .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
+      .accessibilityLabel(a11y.checkboxLabel)
 
       VStack(alignment: .leading, spacing: 6) {
         HStack(alignment: .top, spacing: 8) {
@@ -93,10 +94,27 @@ struct PhaseCardTaskRow: View {
       guard isExpandable else { return }
       withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() }
     }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(accessibilityLabel)
-    .accessibilityHint(accessibilityHint)
-    .accessibilityAddTraits(isExpandable ? .isButton : [])
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(a11y.label)
+    .accessibilityHint(a11y.hint)
+    .accessibilityActions {
+      ForEach(a11y.actions, id: \.name) { action in
+        Button(action.name) { perform(action) }
+      }
+    }
+  }
+
+  private var a11y: TimelineTaskAccessibility {
+    TimelineTaskAccessibility(
+      task: task, isRecovery: task.athleteTask?.isRecoveryTask == true, isExpanded: isExpanded)
+  }
+
+  private func perform(_ action: TimelineTaskAccessibility.Action) {
+    switch action {
+    case .markComplete: onCheckboxTap()
+    case .explainLock: onLockedTap()
+    case .showDetails, .hideDetails: withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() }
+    }
   }
 
   @ViewBuilder
@@ -156,24 +174,5 @@ struct PhaseCardTaskRow: View {
       Rectangle().fill(color).frame(width: 3)
     }
     .clipShape(RoundedRectangle(cornerRadius: 6))
-  }
-
-  private var accessibilityLabel: String {
-    var parts = [task.title, task.categoryLabel]
-    if task.required { parts.append(String(localized: "Required")) }
-    parts.append(task.effectiveStatus.displayName)
-    return parts.joined(separator: ", ")
-  }
-
-  private var accessibilityHint: String {
-    if task.isLocked {
-      return String(localized: "Locked until prerequisites complete")
-    }
-    if isExpandable {
-      return isExpanded
-        ? String(localized: "Double tap to collapse details")
-        : String(localized: "Double tap to show details")
-    }
-    return String(localized: "Double tap to mark complete")
   }
 }

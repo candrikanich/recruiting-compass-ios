@@ -69,6 +69,10 @@ struct PhaseCard: View {
         .padding()
       }
       .buttonStyle(.plain)
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel(headerAccessibility.label)
+      .accessibilityValue(headerAccessibility.value)
+      .accessibilityHint(headerAccessibility.hint)
 
       if isExpanded, !tasks.isEmpty {
         VStack(spacing: 8) {
@@ -95,9 +99,11 @@ struct PhaseCard: View {
         }
     )
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "\(phase.displayLabel), \(completedCount) of \(totalCount) tasks complete"))
-    .accessibilityHint("Double tap to expand or collapse")
+  }
+
+  private var headerAccessibility: PhaseCardAccessibility {
+    PhaseCardAccessibility(
+      phaseLabel: phase.displayLabel, completed: completedCount, total: totalCount, isExpanded: isExpanded)
   }
 
   @ViewBuilder private var currentPhaseBadge: some View {
