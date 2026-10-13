@@ -7,6 +7,10 @@ SCHEME := TheRecruitingCompass
 # runtime is unusable locally: DESTINATION := platform=iOS Simulator,id=<UDID>
 -include Makefile.local
 DESTINATION ?= platform=iOS Simulator,name=iPhone 17
+IPAD_DESTINATION := platform=iOS Simulator,name=iPad Air 11-inch (M4)
+# Every test target shuts its simulator down afterwards (even on failure) so runs don't pile up
+# booted simulators and grind the Mac to a halt. KEEP_SIM=1 leaves it running for debugging.
+SHUTDOWN_SIM := ./scripts/shutdown_test_simulator.sh
 WEB_DIR := ../recruiting-compass-web
 
 .PHONY: build test test-ui test-unit test-unit-fast build-ipad test-ipad test-all-devices \
@@ -22,50 +26,46 @@ build:
 # Do not invoke a second `make test` in parallel — DerivedData build.db will lock.
 test:
 	$(MAKE) test-unit DESTINATION='$(DESTINATION)'
-	./scripts/run_ui_tests_resilient.sh "$(PROJECT_DIR)" "$(SCHEME)" "$(DESTINATION)"
+	$(MAKE) test-ui DESTINATION='$(DESTINATION)'
 
 # UI tests only with simulator preflight and retry
 test-ui:
-	./scripts/run_ui_tests_resilient.sh "$(PROJECT_DIR)" "$(SCHEME)" "$(DESTINATION)"
+	./scripts/run_ui_tests_resilient.sh "$(PROJECT_DIR)" "$(SCHEME)" "$(DESTINATION)"; \
+	status=$$?; $(SHUTDOWN_SIM) '$(DESTINATION)'; exit $$status
 
 # Unit tests only (skip UI tests) - significantly faster
 # Explicitly disable parallel simulators (Xcode may default to clones otherwise).
 test-unit:
-	cd $(PROJECT_DIR) && xcodebuild test \
+	(cd $(PROJECT_DIR) && xcodebuild test \
 		-scheme $(SCHEME) \
 		-destination '$(DESTINATION)' \
 		-skip-testing:TheRecruitingCompassUITests \
 		-parallel-testing-enabled NO \
 		-maximum-concurrent-test-simulator-destinations 1 \
-		-quiet
+		-quiet); \
+	status=$$?; $(SHUTDOWN_SIM) '$(DESTINATION)'; exit $$status
 
-# Unit tests with parallel execution - fastest option
-# Uses multiple simulator clones when available
-test-unit-fast:
-	cd $(PROJECT_DIR) && xcodebuild test \
-		-scheme $(SCHEME) \
-		-destination '$(DESTINATION)' \
-		-skip-testing:TheRecruitingCompassUITests \
-		-parallel-testing-enabled YES \
-		-maximum-concurrent-test-simulator-destinations 2 \
-		-quiet
+# Kept as an alias: parallel clone simulators overran this Mac, so all local runs are serial now.
+test-unit-fast: test-unit
 
 # iPad build target
 build-ipad:
 	cd $(PROJECT_DIR) && xcodebuild build \
 		-scheme $(SCHEME) \
-		-destination 'platform=iOS Simulator,name=iPad Air 11-inch (M4)' \
+		-destination '$(IPAD_DESTINATION)' \
 		$(XCARGS)
 
 # iPad unit tests (skip UI tests for iPad device testing)
 test-ipad:
-	cd $(PROJECT_DIR) && xcodebuild test \
+	(cd $(PROJECT_DIR) && xcodebuild test \
 		-scheme $(SCHEME) \
-		-destination 'platform=iOS Simulator,name=iPad Air 11-inch (M4)' \
+		-destination '$(IPAD_DESTINATION)' \
 		-skip-testing:TheRecruitingCompassUITests \
 		-disable-concurrent-destination-testing \
+		-parallel-testing-enabled NO \
 		-test-timeouts-enabled YES \
-		$(XCARGS)
+		$(XCARGS)); \
+	status=$$?; $(SHUTDOWN_SIM) '$(IPAD_DESTINATION)'; exit $$status
 
 # Test all devices (iPhone + iPad)
 test-all-devices: test-unit test-ipad
@@ -104,7 +104,7 @@ e2e-seed: e2e-precheck
 
 # Full local E2E: ensure stack is up -> seed -> run UI tests against local Supabase.
 e2e-local: e2e-seed
-	./scripts/run_ui_tests_resilient.sh "$(PROJECT_DIR)" "$(SCHEME)" "$(DESTINATION)"
+	$(MAKE) test-ui DESTINATION='$(DESTINATION)'
 
 # Override DESTINATION if needed (e.g. simulator resource limits):
 #   make test-unit DESTINATION='platform=iOS Simulator,name=iPhone 16e'
