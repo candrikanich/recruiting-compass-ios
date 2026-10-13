@@ -9,7 +9,7 @@ struct DocumentPreviewView: View {
       if document.isVideo {
         VideoPreviewView(url: document.fileUrl, isFullscreen: isFullscreen)
       } else if document.isImage {
-        ImagePreviewView(url: document.fileUrl, isFullscreen: isFullscreen)
+        ImagePreviewView(url: document.fileUrl, isFullscreen: isFullscreen, title: document.title)
       } else if document.isPDF {
         PDFPreviewView(url: document.fileUrl, isFullscreen: isFullscreen)
       } else {

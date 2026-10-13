@@ -373,4 +373,37 @@ final class DocumentViewerViewModelTests: XCTestCase {
 
     XCTAssertNil(sut.errorMessage)
   }
+
+  // MARK: - Toolbar auto-hide (#253)
+
+  private func makeVideoViewModel(assistiveTechRunning: Bool) -> DocumentViewerViewModel {
+    DocumentViewerViewModel(
+      document: .mock(),
+      documentsService: mockDocuments,
+      autoHideDelay: .milliseconds(30),
+      isAssistiveTechnologyRunning: { assistiveTechRunning }
+    )
+  }
+
+  func testScheduleToolbarAutoHide_withoutAssistiveTech_hidesToolbarForVideo() async throws {
+    sut = makeVideoViewModel(assistiveTechRunning: false)
+    sut.scheduleToolbarAutoHide()
+    try await Task.sleep(for: .milliseconds(200))
+    XCTAssertFalse(sut.isToolbarVisible)
+  }
+
+  func testScheduleToolbarAutoHide_withAssistiveTech_keepsToolbarVisible() async throws {
+    sut = makeVideoViewModel(assistiveTechRunning: true)
+    sut.scheduleToolbarAutoHide()
+    try await Task.sleep(for: .milliseconds(200))
+    XCTAssertTrue(sut.isToolbarVisible)
+  }
+
+  func testToggleToolbar_withAssistiveTech_neverSchedulesHide() async throws {
+    sut = makeVideoViewModel(assistiveTechRunning: true)
+    sut.toggleToolbar()
+    sut.toggleToolbar()
+    try await Task.sleep(for: .milliseconds(200))
+    XCTAssertTrue(sut.isToolbarVisible)
+  }
 }

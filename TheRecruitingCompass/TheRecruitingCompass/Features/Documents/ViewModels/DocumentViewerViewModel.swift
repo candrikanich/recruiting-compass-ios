@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import UIKit
 
 // MARK: - Download Error Mapping
 
@@ -65,14 +66,22 @@ final class DocumentViewerViewModel {
   // MARK: - Dependencies
 
   private let documentsService: any DocumentsManaging
+  private let autoHideDelay: Duration
+  private let isAssistiveTechnologyRunning: () -> Bool
 
   // MARK: - Init
 
   init(
     document: Document? = nil,
     collection: DocumentCollection? = nil,
-    documentsService: (any DocumentsManaging)? = nil
+    documentsService: (any DocumentsManaging)? = nil,
+    autoHideDelay: Duration = .seconds(3),
+    isAssistiveTechnologyRunning: @escaping () -> Bool = {
+      UIAccessibility.isVoiceOverRunning || UIAccessibility.isSwitchControlRunning
+    }
   ) {
+    self.autoHideDelay = autoHideDelay
+    self.isAssistiveTechnologyRunning = isAssistiveTechnologyRunning
     self.document = document
     self.collection = collection
     self.documentsService = documentsService ?? DocumentsServiceImpl()
@@ -132,13 +141,19 @@ final class DocumentViewerViewModel {
   }
 
   func scheduleToolbarAutoHide() {
-    guard document?.isVideo == true else { return }
+    guard document?.isVideo == true, !isAssistiveTechnologyRunning() else { return }
     cancelToolbarAutoHide()
     toolbarAutoHideTask = Task { @MainActor in
-      try? await Task.sleep(for: .seconds(3))
+      try? await Task.sleep(for: autoHideDelay)
       guard !Task.isCancelled else { return }
       isToolbarVisible = false
     }
+  }
+
+  func toggleToolbar() {
+    cancelToolbarAutoHide()
+    isToolbarVisible.toggle()
+    if isToolbarVisible { scheduleToolbarAutoHide() }
   }
 
   // MARK: - Download

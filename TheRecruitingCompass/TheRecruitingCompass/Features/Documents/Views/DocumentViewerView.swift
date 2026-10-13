@@ -69,10 +69,8 @@ struct DocumentViewerView: View {
 
       contentArea
 
-      if viewModel.isToolbarVisible {
-        topToolbar
-          .animation(.easeInOut(duration: DocumentViewerLayout.toolbarAnimationDuration), value: viewModel.isToolbarVisible)
-      }
+      topToolbar
+        .animation(.easeInOut(duration: DocumentViewerLayout.toolbarAnimationDuration), value: viewModel.isToolbarVisible)
 
       if viewModel.collection != nil && viewModel.isToolbarVisible {
         bottomNavigationBar
@@ -105,13 +103,14 @@ struct DocumentViewerView: View {
         }
     )
     .onTapGesture {
-      viewModel.cancelToolbarAutoHide()
       withAnimation(.easeInOut(duration: DocumentViewerLayout.toolbarAnimationDuration)) {
-        viewModel.isToolbarVisible.toggle()
+        viewModel.toggleToolbar()
       }
-      if viewModel.isToolbarVisible, viewModel.document?.isVideo == true {
-        viewModel.scheduleToolbarAutoHide()
-      }
+    }
+    .accessibilityAction(.escape) { dismiss() }
+    .accessibilityAction(named: Text("Show controls")) {
+      viewModel.isToolbarVisible = true
+      viewModel.scheduleToolbarAutoHide()
     }
     .onChange(of: viewModel.document?.id) { _, _ in
       viewModel.cancelToolbarAutoHide()
@@ -187,6 +186,8 @@ struct DocumentViewerView: View {
           .foregroundStyle(.white)
           .lineLimit(1)
           .truncationMode(.tail)
+          .opacity(viewModel.isToolbarVisible ? 1 : 0)
+          .accessibilityHidden(!viewModel.isToolbarVisible)
 
         Spacer()
 
@@ -207,9 +208,13 @@ struct DocumentViewerView: View {
             action: { Task { await viewModel.downloadDocument() } }
           )
         }
+        .opacity(viewModel.isToolbarVisible ? 1 : 0)
+        .allowsHitTesting(viewModel.isToolbarVisible)
+        .accessibilityHidden(!viewModel.isToolbarVisible)
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 12)
+      .background(Color.black.opacity(viewModel.isToolbarVisible ? DocumentViewerLayout.overlayOpacity : 0))
 
       if viewModel.isDownloading {
         VStack(spacing: 4) {
@@ -228,8 +233,6 @@ struct DocumentViewerView: View {
 
       Spacer()
     }
-    .background(Color.black.opacity(DocumentViewerLayout.overlayOpacity))
-    .transition(.opacity)
   }
 
   @ViewBuilder
@@ -303,6 +306,7 @@ struct DocumentViewerView: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(.white)
+        .foregroundStyle(.black)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
         .accessibilityLabel(String(localized: "Retry loading document"))

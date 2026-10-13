@@ -5,10 +5,11 @@ import SwiftUI
 struct ImagePreviewView: View {
   let url: String
   var isFullscreen: Bool = false
+  var title: String?
 
   var body: some View {
     if let imageURL = URL(string: url) {
-      ZoomableImageView(url: imageURL)
+      ZoomableImageView(url: imageURL, title: title)
         .modifier(ImagePreviewLayoutModifier(isFullscreen: isFullscreen))
     } else {
       PreviewUnavailableView(icon: "photo", message: "Preview unavailable")
@@ -31,6 +32,7 @@ private struct ImagePreviewLayoutModifier: ViewModifier {
 
 struct ZoomableImageView: View {
   let url: URL
+  var title: String?
 
   @State private var scale: CGFloat = 1.0
   @State private var lastScale: CGFloat = 1.0
@@ -47,6 +49,16 @@ struct ZoomableImageView: View {
         image
           .resizable()
           .scaledToFit()
+          .accessibilityLabel(title ?? String(localized: "Document image"))
+          .accessibilityZoomAction { action in
+            let step: CGFloat = action.direction == .zoomIn ? 1 : -1
+            scale = min(max(scale + step, minScale), maxScale)
+            lastScale = scale
+            if scale == minScale {
+              offset = .zero
+              lastOffset = .zero
+            }
+          }
           .scaleEffect(scale)
           .offset(offset)
           .gesture(
