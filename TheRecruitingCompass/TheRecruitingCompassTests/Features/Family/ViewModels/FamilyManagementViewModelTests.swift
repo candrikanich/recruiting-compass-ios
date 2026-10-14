@@ -28,6 +28,29 @@ final class FamilyManagementViewModelTests: XCTestCase {
     mockInboundDraftsService = nil
   }
 
+  // MARK: - sendEmailInvite errors
+
+  func testSendEmailInvite_serverRejection_showsServerMessage() async {
+    let message = "This person is already a member of your family"
+    mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = FamilyError.serverError(message)
+    sut.inviteEmail = "member@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(sut.errorMessage, message)
+  }
+
+  func testSendEmailInvite_nonServerError_usesGenericMessage() async {
+    mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = URLError(.notConnectedToInternet)
+    sut.inviteEmail = "member@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(sut.errorMessage, "Failed to send invite. Please try again.")
+  }
+
   // MARK: - Test Helpers
 
   private func makeUser(id: String = "user-1", role: UserRole = .player) -> User {

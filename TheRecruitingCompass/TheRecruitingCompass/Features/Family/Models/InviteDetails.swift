@@ -21,8 +21,6 @@ struct InviteDetails: Codable, Sendable, Equatable {
   let emailExists: Bool
   /// Optional prefill from parent-entered player details (only for player invitees).
   let prefill: InvitePrefill?
-  /// When true, logged-in email differs from invite email; accept still succeeds. Informational only.
-  let emailMismatch: Bool?
 
   var memberRole: UserRole? { UserRole(rawValue: role) }
 
@@ -34,10 +32,9 @@ struct InviteDetails: Codable, Sendable, Equatable {
     case inviterName
     case emailExists
     case prefill
-    case emailMismatch
   }
 
-  init(invitationId: String, email: String, role: String, familyName: String, inviterName: String? = nil, emailExists: Bool = false, prefill: InvitePrefill? = nil, emailMismatch: Bool? = nil) {
+  init(invitationId: String, email: String, role: String, familyName: String, inviterName: String? = nil, emailExists: Bool = false, prefill: InvitePrefill? = nil) {
     self.invitationId = invitationId
     self.email = email
     self.role = role
@@ -45,7 +42,6 @@ struct InviteDetails: Codable, Sendable, Equatable {
     self.inviterName = inviterName
     self.emailExists = emailExists
     self.prefill = prefill
-    self.emailMismatch = emailMismatch
   }
 
   init(from decoder: Decoder) throws {
@@ -57,6 +53,5 @@ struct InviteDetails: Codable, Sendable, Equatable {
     inviterName = try c.decodeIfPresent(String.self, forKey: .inviterName)
     emailExists = try c.decodeIfPresent(Bool.self, forKey: .emailExists) ?? false
     prefill = try c.decodeIfPresent(InvitePrefill.self, forKey: .prefill)
-    emailMismatch = try c.decodeIfPresent(Bool.self, forKey: .emailMismatch)
   }
 }

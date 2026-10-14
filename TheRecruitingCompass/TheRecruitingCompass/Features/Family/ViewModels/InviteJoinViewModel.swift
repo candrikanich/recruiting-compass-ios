@@ -156,9 +156,6 @@ final class InviteJoinViewModel {
         )
       }
       successMessage = "You're connected!"
-      if inviteDetails?.emailMismatch == true {
-        successMessage = "You're connected! (You used a different email than the invite.)"
-      }
       showSuccessToast = true
       try? await Task.sleep(for: .milliseconds(1500))
       navigateToDashboard = true
@@ -166,7 +163,7 @@ final class InviteJoinViewModel {
       errorMessage = err.errorDescription
     } catch {
       logger.error("acceptInvite: \(error.localizedDescription)")
-      errorMessage = (error as? AuthError)?.errorDescription ?? "Failed to connect to family. Please try again."
+      errorMessage = Self.acceptErrorMessage(for: error)
     }
   }
 
@@ -176,36 +173,18 @@ final class InviteJoinViewModel {
 
     let first = signupFirstName.trimmingCharacters(in: .whitespaces)
     let last = signupLastName.trimmingCharacters(in: .whitespaces)
-    if first.isEmpty || last.isEmpty {
-      signupError = "Please enter your first and last name"
-      return
-    }
-
     let role = UserRole(rawValue: invite.role) ?? .player
     let dobString = Self.dateOnlyFormatter.string(from: signupDateOfBirth)
 
-    if role == .player && COPPAHelper.isUnderAge(dobString) {
-      signupError = "Players must be 13 or older"
-      return
-    }
-
-    if signupPassword != signupConfirmPassword {
-      signupError = "Passwords don't match"
-      return
-    }
-    if signupPassword.count < 8 {
-      signupError = "Password must be at least 8 characters"
-      return
-    }
-    if !signupAgreeToTerms {
-      signupError = "Please agree to the Terms and Privacy Policy"
+    if let validationError = signupValidationError(first: first, last: last, role: role, dobString: dobString) {
+      signupError = validationError
       return
     }
 
     isAccepting = true
     defer { isAccepting = false }
 
-    var acceptResponse: AcceptInviteResponse?
+    var acceptResult: Result<AcceptInviteResponse, Error>?
     do {
       let fullName = "\(first) \(last)"
       let captchaToken = try await turnstileTokenProvider.getToken()
@@ -216,8 +195,7 @@ final class InviteJoinViewModel {
       // (loadInvite/InviteDetails.prefill) never carries this player data — Athlete PII is only
       // released here, after the authenticated caller has proven they're the invitee — so there
       // is nothing for signupAndConnect to pass into signup()'s own pending_* metadata.
-      // beforePublish is throwing: a failed acceptInvite aborts signup() itself, so
-      // isAuthenticated never publishes true for an invite that didn't actually get accepted.
+      // A failed acceptInvite does NOT abort signup (the account already exists); see beforePublish below.
       try await authManager.signup(
         email: invite.email,
         password: signupPassword,
@@ -237,14 +215,24 @@ final class InviteJoinViewModel {
         marketingEmailOptIn: isMarketingOptInVisible ? signupMarketingOptIn : nil,
         beforePublish: { [weak self] in
           guard let self else { return }
-          acceptResponse = try await self.familyService.acceptInvite(token: self.token)
+          // The account exists once signUp returns. Swallow an accept failure here so signup still
+          // publishes the session; the user then retries accept (or closes) while signed in,
+          // instead of hitting a duplicate-account error on a re-signup.
+          acceptResult = await self.attemptAccept()
         }
       )
 
-      successMessage = "You're connected!"
-      if inviteDetails?.emailMismatch == true {
-        successMessage = "You're connected! (You used a different email than the invite.)"
+      let acceptResponse: AcceptInviteResponse?
+      switch acceptResult {
+      case .failure(let failure):
+        logger.error("signupAndConnect: account created, accept failed: \(failure.localizedDescription)")
+        errorMessage = Self.acceptErrorMessage(for: failure)
+        return
+      case .success(let response): acceptResponse = response
+      case nil: acceptResponse = nil
       }
+
+      successMessage = "You're connected!"
       showSuccessToast = true
       try? await Task.sleep(for: .milliseconds(1500))
 
@@ -258,6 +246,29 @@ final class InviteJoinViewModel {
       logger.error("signupAndConnect: \(error.localizedDescription)")
       signupError = (error as? AuthError)?.errorDescription ?? "Could not create account. Please try again."
     }
+  }
+
+  private func signupValidationError(first: String, last: String, role: UserRole, dobString: String) -> String? {
+    if first.isEmpty || last.isEmpty { return "Please enter your first and last name" }
+    if role == .player && COPPAHelper.isUnderAge(dobString) { return "Players must be 13 or older" }
+    if signupPassword != signupConfirmPassword { return "Passwords don't match" }
+    if signupPassword.count < 8 { return "Password must be at least 8 characters" }
+    if !signupAgreeToTerms { return "Please agree to the Terms and Privacy Policy" }
+    return nil
+  }
+
+  private func attemptAccept() async -> Result<AcceptInviteResponse, Error> {
+    do {
+      return .success(try await familyService.acceptInvite(token: token))
+    } catch {
+      return .failure(error)
+    }
+  }
+
+  private static func acceptErrorMessage(for error: Error) -> String {
+    (error as? AuthError)?.errorDescription
+      ?? (error as? FamilyError)?.errorDescription
+      ?? "Failed to connect to family. Please try again."
   }
 
   private func prefillBirthdayConfirmStep(from response: AcceptInviteResponse?) {

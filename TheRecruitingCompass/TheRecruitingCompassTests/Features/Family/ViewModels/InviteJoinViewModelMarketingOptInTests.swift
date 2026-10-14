@@ -39,8 +39,7 @@ final class InviteJoinViewModelMarketingOptInTests: XCTestCase {
       familyName: "Test Family",
       inviterName: "Test Inviter",
       emailExists: false,
-      prefill: nil,
-      emailMismatch: nil
+      prefill: nil
     )
     await viewModel.loadInvite()
   }
