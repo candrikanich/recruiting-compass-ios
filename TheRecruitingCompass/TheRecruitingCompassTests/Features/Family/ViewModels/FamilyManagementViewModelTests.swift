@@ -326,11 +326,11 @@ final class FamilyManagementViewModelTests: XCTestCase {
   func testRegenerateCode_error_setsError() async {
     sut.familyId = "family-1"
     mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = FamilyError.serverError("Only the family owner can regenerate the code")
 
     await sut.regenerateCode()
 
-    XCTAssertNotNil(sut.errorMessage)
-    XCTAssertEqual(sut.errorMessage, "Failed to regenerate code. Please try again.")
+    XCTAssertEqual(sut.errorMessage, "Only the family owner can regenerate the code")
     XCTAssertFalse(sut.isLoading)
   }
 
@@ -366,11 +366,11 @@ final class FamilyManagementViewModelTests: XCTestCase {
     sut.memberToRemove = member
     sut.familyMembers = [member]
     mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = FamilyError.serverError("Only the family owner can remove members")
 
     await sut.removeMember()
 
-    XCTAssertNotNil(sut.errorMessage)
-    XCTAssertEqual(sut.errorMessage, "Failed to remove family member. Please try again.")
+    XCTAssertEqual(sut.errorMessage, "Only the family owner can remove members")
     XCTAssertEqual(sut.familyMembers.count, 1) // Not removed
     XCTAssertFalse(sut.isLoading)
   }

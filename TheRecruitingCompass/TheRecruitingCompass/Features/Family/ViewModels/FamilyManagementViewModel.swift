@@ -201,7 +201,7 @@ final class FamilyManagementViewModel {
       showSuccess("Family code regenerated successfully!")
     } catch {
       logger.error("Failed to regenerate code: \(error.localizedDescription)")
-      errorMessage = "Failed to regenerate code. Please try again."
+      errorMessage = error.localizedDescription
     }
   }
 
@@ -228,7 +228,7 @@ final class FamilyManagementViewModel {
       showSuccess("Family member removed successfully!")
     } catch {
       logger.error("Failed to remove member: \(error.localizedDescription)")
-      errorMessage = "Failed to remove family member. Please try again."
+      errorMessage = error.localizedDescription
     }
   }
 
