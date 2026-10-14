@@ -7,13 +7,23 @@ import OSLog
 extension FamilyServiceImpl {
   // Surfaces the h3 `createError` body (`{statusCode, statusMessage}`) from the invite API
   // so the UI shows the real reason (e.g. "already a member") instead of a generic string.
-  static func serverErrorMessage(from data: Data, statusCode: Int) -> String {
+  static func serverErrorMessage(
+    from data: Data,
+    statusCode: Int,
+    fallback: String = "Failed to send invite"
+  ) -> String {
     struct ServerError: Decodable { let statusMessage: String? }
     if let decoded = try? JSONDecoder().decode(ServerError.self, from: data),
        let message = decoded.statusMessage, !message.isEmpty {
       return message
     }
-    return "Failed to send invite (status \(statusCode))"
+    return "\(fallback) (status \(statusCode))"
+  }
+
+  /// Accept failures (403 wrong email, 409 used, 410 expired, one-player-per-family 409s) carry the
+  /// message web's join.vue shows; keep it instead of a generic string.
+  static func acceptInviteFailure(data: Data, statusCode: Int) -> FamilyError {
+    .serverError(serverErrorMessage(from: data, statusCode: statusCode, fallback: "Failed to accept invite"))
   }
 
   func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails? = nil) async throws {
@@ -187,7 +197,7 @@ extension FamilyServiceImpl {
     let (data, response) = try await URLSession.shared.data(for: request)
     guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
       familyServiceLogger.error("acceptInvite failed: status=\((response as? HTTPURLResponse)?.statusCode ?? -1)")
-      throw FamilyError.serverError("Failed to accept invite")
+      throw Self.acceptInviteFailure(data: data, statusCode: (response as? HTTPURLResponse)?.statusCode ?? -1)
     }
     do {
       let decoded = try JSONDecoder().decode(AcceptInviteResponse.self, from: data)

@@ -104,14 +104,30 @@ final class InviteJoinViewModelTests: XCTestCase {
     XCTAssertTrue(viewModel.navigateToDashboard)
   }
 
-  func testAccept_emailMismatch_showsMismatchMessage() async {
-    mockFamilyService.stubbedInviteDetails = makeInviteDetails(emailMismatch: true)
-    await viewModel.loadInvite()
+  func testAccept_authenticated_serverRejection_showsServerMessage() async {
     mockAuthManager.isAuthenticated = true
+    let message = "This invitation was sent to a different email address"
+    mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = FamilyError.serverError(message)
 
     await viewModel.accept()
 
-    XCTAssertEqual(viewModel.successMessage, "You're connected! (You used a different email than the invite.)")
+    XCTAssertEqual(viewModel.errorMessage, message)
+    XCTAssertFalse(viewModel.navigateToDashboard)
+  }
+
+  func testAccept_login_serverRejection_showsServerMessage() async {
+    mockAuthManager.isAuthenticated = false
+    viewModel.loginEmail = "user@example.com"
+    viewModel.loginPassword = "password123"
+    let message = "This invitation has expired"
+    mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = FamilyError.serverError(message)
+
+    await viewModel.accept()
+
+    XCTAssertEqual(viewModel.errorMessage, message)
+    XCTAssertFalse(mockAuthManager.isAuthenticated)
   }
 
   func testAccept_loginFails_setsErrorMessage_doesNotAcceptInvite() async {
@@ -286,19 +302,42 @@ final class InviteJoinViewModelTests: XCTestCase {
     XCTAssertEqual(mockAuthManager.capturedSignupSkipVerificationEmail, true)
   }
 
-  func testSignupAndConnect_acceptInviteFails_setsSignupErrorAndDoesNotNavigate() async {
+  // The account exists the moment signup succeeds, so a rejected accept must leave the user
+  // signed in (retry via the authenticated Connect button, or Close) instead of reporting
+  // "Could not create account" and stranding them on a duplicate-account error.
+  func testSignupAndConnect_acceptInviteFails_keepsUserSignedInWithServerMessage() async {
     mockFamilyService.stubbedInviteDetails = makeInviteDetails(role: "player")
     await viewModel.loadInvite()
     setValidSignupFields()
     viewModel.signupDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    let message = "This family already has a player"
     mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = FamilyError.serverError(message)
 
     await viewModel.signupAndConnect()
 
     XCTAssertEqual(mockAuthManager.signupCallCount, 1)
-    XCTAssertNotNil(viewModel.signupError)
+    XCTAssertTrue(mockAuthManager.isAuthenticated)
+    XCTAssertEqual(viewModel.errorMessage, message)
+    XCTAssertNil(viewModel.signupError)
     XCTAssertFalse(viewModel.navigateToDashboard)
-    XCTAssertFalse(mockAuthManager.isAuthenticated, "signup must not publish isAuthenticated when the beforePublish hook throws")
+    XCTAssertFalse(viewModel.showBirthdayConfirmStep)
+  }
+
+  func testSignupAndConnect_acceptInviteFails_thenRetryAcceptSucceeds() async {
+    mockFamilyService.stubbedInviteDetails = makeInviteDetails(role: "parent")
+    await viewModel.loadInvite()
+    setValidSignupFields()
+    mockFamilyService.shouldSucceed = false
+    await viewModel.signupAndConnect()
+
+    mockFamilyService.shouldSucceed = true
+    await viewModel.accept()
+
+    XCTAssertEqual(mockAuthManager.signupCallCount, 1)
+    XCTAssertEqual(mockFamilyService.acceptInviteCallCount, 2)
+    XCTAssertNil(viewModel.errorMessage)
+    XCTAssertTrue(viewModel.navigateToDashboard)
   }
 
   func testSignupAndConnect_signupFails_setsSignupError() async {
@@ -446,7 +485,6 @@ final class InviteJoinViewModelTests: XCTestCase {
   private func makeInviteDetails(
     email: String = "invitee@example.com",
     role: String = "parent",
-    emailMismatch: Bool? = nil,
     prefill: InvitePrefill? = nil,
     emailExists: Bool = false
   ) -> InviteDetails {
@@ -457,8 +495,7 @@ final class InviteJoinViewModelTests: XCTestCase {
       familyName: "Test Family",
       inviterName: "Test Inviter",
       emailExists: emailExists,
-      prefill: prefill,
-      emailMismatch: emailMismatch
+      prefill: prefill
     )
   }
 }

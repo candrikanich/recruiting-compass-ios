@@ -345,7 +345,7 @@ final class FamilyManagementViewModel {
       showSuccess("Invite sent to \(email)!")
     } catch {
       logger.error("Failed to send invite: \(error.localizedDescription)")
-      errorMessage = "Failed to send invite. Please try again."
+      errorMessage = (error as? FamilyError)?.errorDescription ?? "Failed to send invite. Please try again."
     }
   }
 

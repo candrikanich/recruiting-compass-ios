@@ -160,8 +160,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     familyName: "Test Family",
     inviterName: "Test Player",
     emailExists: false,
-    prefill: nil,
-    emailMismatch: nil
+    prefill: nil
   )
   var declineInviteCallCount = 0
   var lastDeclinedToken: String?
