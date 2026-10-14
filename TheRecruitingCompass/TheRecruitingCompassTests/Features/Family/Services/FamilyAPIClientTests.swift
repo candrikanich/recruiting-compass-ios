@@ -97,6 +97,78 @@ final class FamilyAPIClientTests: XCTestCase {
     XCTAssertEqual(captured?.url?.path, "/api/family/code/join")
   }
 
+  func test_savePlayerDetails_postsWebBodyWithExplicitFamilyUnitId() async throws {
+    nonisolated(unsafe) var captured: URLRequest?
+    nonisolated(unsafe) var capturedBody: Data?
+    respond(200, #"{"success":true}"#) {
+      captured = $0
+      capturedBody = $0.httpBodyStream.flatMap { Self.read($0) } ?? $0.httpBody
+    }
+    let details = PendingPlayerDetails(
+      firstName: " Sam ", lastName: "Rivera", sport: "Soccer", position: "Goalie",
+      graduationYear: 2028, playerDob: "2010-04-02"
+    )
+
+    let outcome = try await makeClient().savePlayerDetails(familyId: "fam-1", details: details)
+
+    XCTAssertEqual(outcome, .saved)
+    XCTAssertEqual(captured?.httpMethod, "POST")
+    XCTAssertEqual(captured?.url?.path, "/api/family/player-details")
+    XCTAssertEqual(captured?.url?.query, "familyUnitId=fam-1")
+    XCTAssertEqual(captured?.value(forHTTPHeaderField: "Authorization"), "Bearer tok-1")
+    XCTAssertEqual(captured?.value(forHTTPHeaderField: "X-Client-Platform"), "ios")
+    let json = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(capturedBody)) as? [String: Any])
+    XCTAssertEqual(json["playerName"] as? String, "Sam Rivera")
+    XCTAssertEqual(json["sport"] as? String, "Soccer")
+    XCTAssertEqual(json["position"] as? String, "Goalie")
+    XCTAssertEqual(json["graduationYear"] as? Int, 2028)
+    XCTAssertEqual(json["playerDob"] as? String, "2010-04-02")
+    XCTAssertNil(json["first_name"])
+  }
+
+  func test_savePlayerDetails_omitsAbsentOptionalsAndTrimsEmptyLastName() async throws {
+    nonisolated(unsafe) var capturedBody: Data?
+    respond(200, #"{"success":true}"#) { capturedBody = $0.httpBodyStream.flatMap { Self.read($0) } ?? $0.httpBody }
+    let details = PendingPlayerDetails(
+      firstName: "Sam", lastName: "", sport: nil, position: nil, graduationYear: nil, playerDob: nil
+    )
+
+    _ = try await makeClient().savePlayerDetails(familyId: "fam-1", details: details)
+
+    let json = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(capturedBody)) as? [String: Any])
+    XCTAssertEqual(json["playerName"] as? String, "Sam")
+    XCTAssertEqual(Set(json.keys), ["playerName"])
+  }
+
+  func test_savePlayerDetails_404_reportsEndpointUnavailableForOlderServers() async throws {
+    respond(404, #"{"statusCode":404,"message":"Page not found: /api/family/player-details"}"#)
+
+    let outcome = try await makeClient().savePlayerDetails(
+      familyId: "fam-1",
+      details: PendingPlayerDetails(
+        firstName: "Sam", lastName: "R", sport: nil, position: nil, graduationYear: nil, playerDob: nil
+      )
+    )
+
+    XCTAssertEqual(outcome, .endpointUnavailable)
+  }
+
+  func test_savePlayerDetails_403_throwsServerMessage() async {
+    respond(403, #"{"statusCode":403,"message":"Not a member of this family"}"#)
+
+    do {
+      _ = try await makeClient().savePlayerDetails(
+        familyId: "fam-1",
+        details: PendingPlayerDetails(
+          firstName: "Sam", lastName: "R", sport: nil, position: nil, graduationYear: nil, playerDob: nil
+        )
+      )
+      XCTFail("expected throw")
+    } catch {
+      XCTAssertEqual(error.localizedDescription, "Not a member of this family")
+    }
+  }
+
   private static func read(_ stream: InputStream) -> Data {
     stream.open()
     defer { stream.close() }
