@@ -54,6 +54,9 @@ final class FamilyManager {
     return familyUnit?.id
   }
 
+  /// `familyUnitId` normalized for inserts: nil (never "") when no family is loaded yet.
+  var resolvedFamilyUnitId: String? { FamilyUnitID.normalized(familyUnitId) }
+
   init(
     familyService: (any FamilyManaging)? = nil,
     authManager: (any AuthManaging)? = nil

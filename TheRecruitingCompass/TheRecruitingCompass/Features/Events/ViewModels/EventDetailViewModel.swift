@@ -327,6 +327,7 @@ final class EventDetailViewModel {
         assert(interactionData.type != .unknown, "InteractionType.unknown is decode-only")
         let request = CreateInteractionRequest(
           userId: userId,
+          familyUnitId: familyManager.resolvedFamilyUnitId,
           eventId: eventId,
           coachId: interactionData.coachId,
           type: interactionData.type.serverValue,
@@ -420,6 +421,7 @@ final class EventDetailViewModel {
       do {
         let request = CreateMetricRequest(
           userId: userId,
+          familyUnitId: familyManager.resolvedFamilyUnitId,
           metricType: newMetricData.metricType.rawValue,
           value: value,
           unit: newMetricData.unit.isEmpty ? newMetricData.metricType.defaultUnit : newMetricData.unit,

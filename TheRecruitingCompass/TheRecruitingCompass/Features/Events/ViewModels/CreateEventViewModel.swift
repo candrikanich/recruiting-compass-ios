@@ -49,8 +49,7 @@ final class CreateEventViewModel {
   /// The one place an empty or whitespace family id is normalized to nil. Solo users, and taps before the
   /// family loads, have none; sending "" fails the uuid column with 22P02.
   private var resolvedFamilyUnitId: String? {
-    let trimmed = familyUnitId.trimmingCharacters(in: .whitespacesAndNewlines)
-    return trimmed.isEmpty ? nil : trimmed
+    FamilyUnitID.normalized(familyUnitId)
   }
 
   // MARK: - Computed Properties

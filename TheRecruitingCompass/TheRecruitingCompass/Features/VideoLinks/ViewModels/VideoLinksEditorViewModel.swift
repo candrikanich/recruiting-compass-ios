@@ -27,7 +27,7 @@ final class VideoLinksEditorViewModel {
        familyUnitId: String?, isReadOnly: Bool) {
     self.service = service
     self.athleteUserId = athleteUserId
-    self.familyUnitId = familyUnitId
+    self.familyUnitId = FamilyUnitID.normalized(familyUnitId)
     self.isReadOnly = isReadOnly
   }
 

@@ -28,7 +28,7 @@ final class UnknownEnumWriteBackTests: XCTestCase {
 
   func testCreateInteractionRequest_omitsUnknownSentiment() throws {
     let request = CreateInteractionRequest(
-      userId: "u", eventId: "e", coachId: nil, type: "email",
+      userId: "u", familyUnitId: nil, eventId: "e", coachId: nil, type: "email",
       direction: Direction.inbound.serverValue, sentiment: Sentiment.unknown.serverValue, notes: nil)
     let encoded = try keys(request)
     XCTAssertFalse(encoded.contains("sentiment"))
@@ -37,7 +37,7 @@ final class UnknownEnumWriteBackTests: XCTestCase {
 
   func testCreateInteractionRequest_omitsUnknownDirection() throws {
     let request = CreateInteractionRequest(
-      userId: "u", eventId: "e", coachId: nil, type: "email",
+      userId: "u", familyUnitId: nil, eventId: "e", coachId: nil, type: "email",
       direction: Direction.unknown.serverValue, sentiment: Sentiment.neutral.serverValue, notes: nil)
     let encoded = try keys(request)
     XCTAssertFalse(encoded.contains("direction"))
@@ -126,7 +126,7 @@ final class UnknownEnumWriteBackTests: XCTestCase {
 
   func testCreateInteractionRequest_omitsUnknownType() throws {
     let request = CreateInteractionRequest(
-      userId: "u", eventId: "e", coachId: nil, type: InteractionType.unknown.serverValue,
+      userId: "u", familyUnitId: nil, eventId: "e", coachId: nil, type: InteractionType.unknown.serverValue,
       direction: nil, sentiment: nil, notes: nil)
     XCTAssertFalse(try keys(request).contains("type"))
   }

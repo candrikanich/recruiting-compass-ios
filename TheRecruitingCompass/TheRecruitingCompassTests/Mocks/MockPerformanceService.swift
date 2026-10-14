@@ -20,6 +20,7 @@ final class MockPerformanceService: PerformanceManaging, @unchecked Sendable {
 
   var lastFetchUserId: String?
   var lastCreateUserId: String?
+  var lastCreateFamilyUnitId: String?
   var lastCreateRequest: MetricCreateRequest?
   var lastUpdateId: String?
   var lastUpdateRequest: MetricUpdateRequest?
@@ -39,8 +40,13 @@ final class MockPerformanceService: PerformanceManaging, @unchecked Sendable {
     return mockMetrics
   }
 
-  func createMetric(userId: String, request: MetricCreateRequest) async throws -> PerformanceMetric {
+  func createMetric(
+    userId: String,
+    familyUnitId: String?,
+    request: MetricCreateRequest
+  ) async throws -> PerformanceMetric {
     createMetricCallCount += 1
+    lastCreateFamilyUnitId = familyUnitId
     lastCreateUserId = userId
     lastCreateRequest = request
 
