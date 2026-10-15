@@ -35,18 +35,44 @@ struct FamilyAPIClient: Sendable {
     _ = try await send("POST", "api/family/code/join", body: ["familyCode": familyCode])
   }
 
+  /// POST /api/family/player-details. `familyUnitId` is always sent explicitly: the server default (newest
+  /// family joined) is only a convenience for old clients.
+  func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws {
+    _ = try await send(
+      "POST", "api/family/player-details",
+      query: [URLQueryItem(name: "familyUnitId", value: familyId)],
+      jsonBody: try JSONEncoder().encode(PlayerDetailsRequest(details))
+    )
+  }
+
   private func send(_ method: String, _ path: String, body: [String: String]? = nil) async throws -> Data {
+    try await send(method, path, jsonBody: try body.map { try JSONEncoder().encode($0) })
+  }
+
+  private func send(
+    _ method: String, _ path: String, query: [URLQueryItem] = [], jsonBody: Data? = nil
+  ) async throws -> Data {
     guard let baseURL else {
       familyServiceLogger.error("\(path, privacy: .public): API_BASE_URL is not configured")
       throw FamilyError.serverError(Self.notConfiguredMessage)
     }
-    var request = URLRequest(url: baseURL.appendingPathComponent(path))
+    var url = baseURL.appendingPathComponent(path)
+    if !query.isEmpty {
+      // Never fall through without the query: a dropped familyUnitId would silently target the server default.
+      guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+        throw FamilyError.serverError(Self.genericFailureMessage)
+      }
+      components.queryItems = query
+      guard let withQuery = components.url else { throw FamilyError.serverError(Self.genericFailureMessage) }
+      url = withQuery
+    }
+    var request = URLRequest(url: url)
     request.addClientHeaders()
     request.httpMethod = method
     request.setValue("Bearer \(try await tokenProvider())", forHTTPHeaderField: "Authorization")
-    if let body {
+    if let jsonBody {
       request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-      request.httpBody = try JSONEncoder().encode(body)
+      request.httpBody = jsonBody
     }
 
     let data: Data
@@ -74,5 +100,27 @@ struct FamilyAPIClient: Sendable {
     guard let body = try? JSONDecoder().decode(ErrorBody.self, from: data) else { return nil }
     let text = (body.message ?? body.statusMessage)?.trimmingCharacters(in: .whitespacesAndNewlines)
     return text?.isEmpty == false ? text : nil
+  }
+}
+
+/// Wire shape of POST /api/family/player-details (server/api/family/player-details.post.ts): one combined
+/// `playerName`, camelCase keys, absent optionals omitted. Distinct from PendingPlayerDetails, whose
+/// first_name/last_name shape is still what the invite route and the legacy direct write use.
+private struct PlayerDetailsRequest: Encodable {
+  let playerName: String
+  let playerDob: String?
+  let graduationYear: Int?
+  let sport: String?
+  let position: String?
+
+  init(_ details: PendingPlayerDetails) {
+    playerName = [details.firstName, details.lastName]
+      .map { $0.trimmingCharacters(in: .whitespaces) }
+      .filter { !$0.isEmpty }
+      .joined(separator: " ")
+    playerDob = details.playerDob
+    graduationYear = details.graduationYear
+    sport = details.sport
+    position = details.position
   }
 }

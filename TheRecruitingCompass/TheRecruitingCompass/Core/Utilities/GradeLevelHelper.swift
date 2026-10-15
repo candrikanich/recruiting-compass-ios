@@ -20,7 +20,10 @@ enum GradeLevelHelper {
   /// still be offered as a pickable "expected" graduation year, so the floor rolls to next year
   /// starting July 1 — same pivot month as `calculateCurrentGrade`, kept in sync for consistency.
   static func allowedGraduationYears(referenceDate: Date) -> [Int] {
-    let calendar = Calendar.current
+    // UTC, like web's getGraduationYearOptions(): the server validates against its own UTC clock, so a
+    // local-time pivot would offer a year it rejects (400) for a few hours around Jul 1 / Jan 1.
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "UTC") ?? .gmt
     let year = calendar.component(.year, from: referenceDate)
     let month = calendar.component(.month, from: referenceDate)
     let floor = month >= 7 ? year + 1 : year

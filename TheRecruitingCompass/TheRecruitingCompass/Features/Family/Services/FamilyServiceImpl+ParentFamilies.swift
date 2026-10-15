@@ -5,24 +5,8 @@ import OSLog
 extension FamilyServiceImpl {
   func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws {
     familyServiceLogger.debug("Saving player details for family: \(familyId, privacy: .private)")
-    struct UpdatePayload: Encodable {
-      let pendingPlayerDetails: PendingPlayerDetails
-
-      enum CodingKeys: String, CodingKey {
-        case pendingPlayerDetails = "pending_player_details"
-      }
-    }
-    do {
-      try await supabaseManager.client
-        .from("family_units")
-        .update(UpdatePayload(pendingPlayerDetails: details))
-        .eq("id", value: familyId)
-        .execute()
-      familyServiceLogger.info("Player details saved for family: \(familyId, privacy: .private)")
-    } catch {
-      familyServiceLogger.error("savePlayerDetails failed: \(error.localizedDescription)")
-      throw error
-    }
+    try await apiClient.savePlayerDetails(familyId: familyId, details: details)
+    familyServiceLogger.info("Player details saved for family: \(familyId, privacy: .private)")
   }
 
   func getParentFamilies() async throws -> [ParentFamilyData] {
