@@ -3,6 +3,7 @@
 
     python3 scripts/sim_sweep.py            # act
     python3 scripts/sim_sweep.py --dry-run  # print what it would do
+    python3 scripts/sim_sweep.py --tests-running  # exit 0 + print them if any xcodebuild test runs
 
 Runs hourly from launchd (scripts/install-sim-sweep.sh). Several agents share this
 Mac, so nothing here is global: a device named by a running xcodebuild/simctl/xctest
@@ -36,6 +37,8 @@ KEEP_FILE = Path.home() / ".config/recruiting-compass/sim-sweep-keep"
 UDID_RE = re.compile(r"[0-9A-Fa-f]{8}-(?:[0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}")
 DESTINATION_NAME_RE = re.compile(r"name=([^,]+?)(?:,|\s+-|$)")
 SIM_PROCESS_RE = re.compile(r"\b(xcodebuild|simctl|xctest)\b")
+TEST_ACTIONS = {"test", "test-without-building"}
+BOOLEAN_FLAGS = {"-quiet", "-verbose", "-json", "-allowProvisioningUpdates", "-disableAutomaticPackageResolution"}
 
 
 @dataclass(frozen=True)
@@ -94,6 +97,28 @@ def plan(
     return actions
 
 
+def xcodebuild_test_runs(processes: list[str]) -> list[str]:
+    """Command lines of running `xcodebuild test` / `test-without-building` processes.
+
+    Matches on the executable, not a substring, so the shells and scripts that launched
+    xcodebuild (or a grep for it) don't count as a second run.
+    """
+    return [p for p in processes if _is_xcodebuild_test(p.split())]
+
+
+def _is_xcodebuild_test(tokens: list[str]) -> bool:
+    if not tokens or Path(tokens[0]).name != "xcodebuild":
+        return False
+    prev = ""
+    for token in tokens[1:]:
+        # A bare word right after a value-taking option is its value (`-scheme test`), not an action.
+        takes_value = prev.startswith("-") and prev not in BOOLEAN_FLAGS
+        if token in TEST_ACTIONS and not takes_value:
+            return True
+        prev = token
+    return False
+
+
 def _devices(*set_args: str) -> list[dict]:
     out = subprocess.run(
         ["xcrun", "simctl", *set_args, "list", "devices", "-j"], capture_output=True, text=True, check=True
@@ -117,6 +142,10 @@ def _simctl(*args: str) -> None:
 
 
 def main() -> int:
+    if "--tests-running" in sys.argv[1:]:
+        runs = xcodebuild_test_runs(_processes())
+        print("\n".join(runs))
+        return 0 if runs else 1
     dry_run = "--dry-run" in sys.argv[1:]
     actions = plan(_devices(), _devices("--set", "testing"), _processes(), _keep(), datetime.now(timezone.utc))
     stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

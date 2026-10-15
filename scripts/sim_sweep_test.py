@@ -1,9 +1,9 @@
-"""Unit tests for sim_sweep.plan(). Run: python3 -m unittest discover -s scripts -p 'sim_sweep_test.py'"""
+"""Unit tests for sim_sweep. Run: python3 -m unittest discover -s scripts -p 'sim_sweep_test.py'"""
 
 import unittest
 from datetime import datetime, timedelta, timezone
 
-from sim_sweep import Action, plan
+from sim_sweep import Action, plan, xcodebuild_test_runs
 
 NOW = datetime(2026, 10, 14, 12, 0, tzinfo=timezone.utc)
 UDID_A = "11111111-1111-1111-1111-111111111111"
@@ -86,6 +86,36 @@ class CloneTests(unittest.TestCase):
         clones = [device("Clone 1 of iPhone 17", UDID_A, "Booted", 9)]
         procs = [f"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -destination id={UDID_B}"]
         self.assertEqual(run([], clones=clones, processes=procs), [])
+
+
+class XcodebuildTestRunsTests(unittest.TestCase):
+    XCODEBUILD = "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild"
+
+    def test_finds_xcodebuild_test(self):
+        procs = [f"{self.XCODEBUILD} test -scheme X -destination id={UDID_A}"]
+        self.assertEqual(xcodebuild_test_runs(procs), procs)
+
+    def test_finds_xcodebuild_test_without_building(self):
+        procs = [f"{self.XCODEBUILD} test-without-building -project P -destination id={UDID_A}"]
+        self.assertEqual(xcodebuild_test_runs(procs), procs)
+
+    def test_ignores_build_for_testing(self):
+        self.assertEqual(xcodebuild_test_runs([f"{self.XCODEBUILD} build-for-testing -scheme X"]), [])
+
+    def test_ignores_test_word_in_an_argument_value(self):
+        self.assertEqual(xcodebuild_test_runs([f"{self.XCODEBUILD} build -scheme test -only-testing:X/test"]), [])
+
+    def test_finds_test_action_after_a_boolean_flag(self):
+        procs = [f"{self.XCODEBUILD} -quiet test -scheme X"]
+        self.assertEqual(xcodebuild_test_runs(procs), procs)
+
+    def test_ignores_shells_and_scripts_that_mention_xcodebuild_test(self):
+        procs = [
+            "/bin/zsh -c xcodebuild test -scheme X",
+            "bash -x scripts/e2e/nightly-local.sh --suite smoke",
+            "grep xcodebuild test",
+        ]
+        self.assertEqual(xcodebuild_test_runs(procs), [])
 
 
 if __name__ == "__main__":
