@@ -221,7 +221,7 @@ final class FamilyServiceImplTests: XCTestCase {
     mockService.shouldSucceed = true
 
     // When
-    try await mockService.joinFamilyWithCode(familyCode: "FAM-ABC123")
+    _ = try await mockService.joinFamilyWithCode(familyCode: "FAM-ABC123")
 
     // Then
     XCTAssertEqual(mockService.joinFamilyWithCodeCallCount, 1)
@@ -235,7 +235,7 @@ final class FamilyServiceImplTests: XCTestCase {
 
     // When/Then
     do {
-      try await mockService.joinFamilyWithCode(familyCode: "INVALID")
+      _ = try await mockService.joinFamilyWithCode(familyCode: "INVALID")
       XCTFail("Expected error to be thrown")
     } catch {
       XCTAssertTrue(error is FamilyError)

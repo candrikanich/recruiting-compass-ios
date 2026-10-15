@@ -125,7 +125,8 @@ final class FamilyManager {
   /// Display-only, so a failure leaves the switcher without family text rather than failing the load.
   private func loadFamilyLabels(userId: String, session loadSession: Int) async {
     do {
-      let addresses = try await inboundDraftsService.fetchForwardingAddress(accessToken: authManager.session?.accessToken)
+      let token = authManager.session?.accessToken
+      let addresses = try await inboundDraftsService.fetchForwardingAddress(accessToken: token)
       guard isCurrent(userId, loadSession) else { return }
       familyLabels = Dictionary(
         addresses.compactMap { entry in
