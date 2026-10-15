@@ -5,40 +5,8 @@ import OSLog
 extension FamilyServiceImpl {
   func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws {
     familyServiceLogger.debug("Saving player details for family: \(familyId, privacy: .private)")
-    do {
-      guard try await apiClient.savePlayerDetails(familyId: familyId, details: details) == .endpointUnavailable
-      else {
-        familyServiceLogger.info("Player details saved via API for family: \(familyId, privacy: .private)")
-        return
-      }
-    } catch {
-      familyServiceLogger.error("savePlayerDetails API failed: \(error.localizedDescription)")
-      throw error
-    }
-    // TODO(#369): remove once every server (prod included) serves /api/family/player-details.
-    familyServiceLogger.notice("player-details endpoint missing (older server); using direct write")
-    try await saveViaDirectWrite(familyId: familyId, details: details)
-  }
-
-  private func saveViaDirectWrite(familyId: String, details: PendingPlayerDetails) async throws {
-    struct UpdatePayload: Encodable {
-      let pendingPlayerDetails: PendingPlayerDetails
-
-      enum CodingKeys: String, CodingKey {
-        case pendingPlayerDetails = "pending_player_details"
-      }
-    }
-    do {
-      try await supabaseManager.client
-        .from("family_units")
-        .update(UpdatePayload(pendingPlayerDetails: details))
-        .eq("id", value: familyId)
-        .execute()
-      familyServiceLogger.info("Player details saved for family: \(familyId, privacy: .private)")
-    } catch {
-      familyServiceLogger.error("savePlayerDetails failed: \(error.localizedDescription)")
-      throw error
-    }
+    try await apiClient.savePlayerDetails(familyId: familyId, details: details)
+    familyServiceLogger.info("Player details saved for family: \(familyId, privacy: .private)")
   }
 
   func getParentFamilies() async throws -> [ParentFamilyData] {

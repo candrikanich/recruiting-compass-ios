@@ -16,7 +16,7 @@ final class GradeLevelHelperTests: XCTestCase {
 
   func testAllowedGraduationYears_June_IsSixConsecutiveYears_FloorIsCurrentYear() {
     // Class of 2026 hasn't graduated yet as of June 1 (graduation lands June 1) — still selectable.
-    let ref = date(2026, 6, 1)
+    let ref = utcDate(2026, 6, 1)
     let years = GradeLevelHelper.allowedGraduationYears(referenceDate: ref)
     XCTAssertEqual(years, Array(2026...2031), "6 years through June, matching web's fixed currentYear...+5")
   }
@@ -25,14 +25,14 @@ final class GradeLevelHelperTests: XCTestCase {
     // Class of 2026 graduated in May/June — by July it should no longer be a pickable "expected"
     // year. The window shrinks to 5 (rather than sliding to 2032) so the ceiling never exceeds
     // web's fixed currentYear+5 validation.
-    let ref = date(2026, 7, 1)
+    let ref = utcDate(2026, 7, 1)
     let years = GradeLevelHelper.allowedGraduationYears(referenceDate: ref)
     XCTAssertEqual(years, Array(2027...2031), "Already-graduated class of 2026 dropped; ceiling stays at calendarYear+5")
   }
 
   func testAllowedGraduationYears_September_CurrentFreshmanClassIsIncluded() {
     // Sept 2026: current freshmen (started HS this fall) graduate 2030 — must be in the range.
-    let ref = date(2026, 9, 21)
+    let ref = utcDate(2026, 9, 21)
     let years = GradeLevelHelper.allowedGraduationYears(referenceDate: ref)
     XCTAssertEqual(years, Array(2027...2031))
     XCTAssertTrue(years.contains(2030), "Current freshman class (2030) must be selectable")
@@ -135,6 +135,27 @@ final class GradeLevelHelperTests: XCTestCase {
   func testDaysUntilGraduation_PastGraduationReturnsNil() {
     let ref = date(2027, 6, 2)
     XCTAssertNil(GradeLevelHelper.daysUntilGraduation(graduationYear: 2027, referenceDate: ref))
+  }
+
+  func testAllowedGraduationYears_usesUTC_aroundJulyFirstBoundary() {
+    // 2026-06-30T23:30-05:00 is already July 1 in UTC; the server (UTC) has rolled the floor.
+    let justAfterUTCRoll = ISO8601DateFormatter().date(from: "2026-06-30T23:30:00-05:00")!
+    XCTAssertEqual(GradeLevelHelper.allowedGraduationYears(referenceDate: justAfterUTCRoll), Array(2027...2031))
+    // 2026-07-01T00:30+05:00 is still June 30 in UTC; the server has not rolled yet.
+    let justBeforeUTCRoll = ISO8601DateFormatter().date(from: "2026-07-01T00:30:00+05:00")!
+    XCTAssertEqual(GradeLevelHelper.allowedGraduationYears(referenceDate: justBeforeUTCRoll), Array(2026...2031))
+  }
+
+  func testAllowedGraduationYears_usesUTCYearAroundNewYear() {
+    // Dec 31 evening in the US is already Jan 1 in UTC: the server's year (and ceiling) has advanced.
+    let ref = ISO8601DateFormatter().date(from: "2026-12-31T20:00:00-05:00")!
+    XCTAssertEqual(GradeLevelHelper.allowedGraduationYears(referenceDate: ref), Array(2027...2032))
+  }
+
+  private func utcDate(_ year: Int, _ month: Int, _ day: Int) -> Date {
+    var utc = Calendar(identifier: .gregorian)
+    utc.timeZone = TimeZone(identifier: "UTC")!
+    return utc.date(from: DateComponents(year: year, month: month, day: day, hour: 12))!
   }
 
   private func date(_ year: Int, _ month: Int, _ day: Int) -> Date {

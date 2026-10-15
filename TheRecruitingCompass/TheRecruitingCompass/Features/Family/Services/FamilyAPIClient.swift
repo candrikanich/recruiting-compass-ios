@@ -35,52 +35,36 @@ struct FamilyAPIClient: Sendable {
     _ = try await send("POST", "api/family/code/join", body: ["familyCode": familyCode])
   }
 
-  enum PlayerDetailsOutcome: Equatable, Sendable {
-    case saved
-    /// 404 from a server that predates POST /api/family/player-details (it reaches prod with the next web
-    /// promotion). Lets the caller fall back to the legacy direct write instead of failing onboarding.
-    case endpointUnavailable
-  }
-
   /// POST /api/family/player-details. `familyUnitId` is always sent explicitly: the server default (newest
   /// family joined) is only a convenience for old clients.
-  func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws -> PlayerDetailsOutcome {
-    let path = "api/family/player-details"
-    let (data, status) = try await perform(
-      "POST", path,
+  func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws {
+    _ = try await send(
+      "POST", "api/family/player-details",
       query: [URLQueryItem(name: "familyUnitId", value: familyId)],
       jsonBody: try JSONEncoder().encode(PlayerDetailsRequest(details))
     )
-    if status == 404 { return .endpointUnavailable }
-    try Self.requireSuccess(status, data: data, method: "POST", path: path)
-    return .saved
   }
 
   private func send(_ method: String, _ path: String, body: [String: String]? = nil) async throws -> Data {
-    let (data, status) = try await perform(method, path, jsonBody: try body.map { try JSONEncoder().encode($0) })
-    try Self.requireSuccess(status, data: data, method: method, path: path)
-    return data
+    try await send(method, path, jsonBody: try body.map { try JSONEncoder().encode($0) })
   }
 
-  private static func requireSuccess(_ status: Int, data: Data, method: String, path: String) throws {
-    guard (200..<300).contains(status) else {
-      familyServiceLogger.error("\(method) \(path, privacy: .public) failed: status=\(status)")
-      throw FamilyError.serverError(serverMessage(in: data) ?? genericFailureMessage)
-    }
-  }
-
-  /// Sends the request and returns the raw status; only transport failures throw.
-  private func perform(
+  private func send(
     _ method: String, _ path: String, query: [URLQueryItem] = [], jsonBody: Data? = nil
-  ) async throws -> (Data, Int) {
+  ) async throws -> Data {
     guard let baseURL else {
       familyServiceLogger.error("\(path, privacy: .public): API_BASE_URL is not configured")
       throw FamilyError.serverError(Self.notConfiguredMessage)
     }
     var url = baseURL.appendingPathComponent(path)
-    if !query.isEmpty, var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+    if !query.isEmpty {
+      // Never fall through without the query: a dropped familyUnitId would silently target the server default.
+      guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+        throw FamilyError.serverError(Self.genericFailureMessage)
+      }
       components.queryItems = query
-      url = components.url ?? url
+      guard let withQuery = components.url else { throw FamilyError.serverError(Self.genericFailureMessage) }
+      url = withQuery
     }
     var request = URLRequest(url: url)
     request.addClientHeaders()
@@ -91,13 +75,20 @@ struct FamilyAPIClient: Sendable {
       request.httpBody = jsonBody
     }
 
+    let data: Data
+    let response: URLResponse
     do {
-      let (data, response) = try await session.data(for: request)
-      return (data, (response as? HTTPURLResponse)?.statusCode ?? -1)
+      (data, response) = try await session.data(for: request)
     } catch {
       familyServiceLogger.error("\(method) \(path, privacy: .public) network error: \(error.localizedDescription)")
       throw FamilyError.serverError(error.localizedDescription)
     }
+    guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+      let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+      familyServiceLogger.error("\(method) \(path, privacy: .public) failed: status=\(status)")
+      throw FamilyError.serverError(Self.serverMessage(in: data) ?? Self.genericFailureMessage)
+    }
+    return data
   }
 
   /// h3 error bodies carry `message` (and `statusMessage`); anything else is not safe to show.

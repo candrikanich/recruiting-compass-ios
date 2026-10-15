@@ -109,9 +109,8 @@ final class FamilyAPIClientTests: XCTestCase {
       graduationYear: 2028, playerDob: "2010-04-02"
     )
 
-    let outcome = try await makeClient().savePlayerDetails(familyId: "fam-1", details: details)
+    try await makeClient().savePlayerDetails(familyId: "fam-1", details: details)
 
-    XCTAssertEqual(outcome, .saved)
     XCTAssertEqual(captured?.httpMethod, "POST")
     XCTAssertEqual(captured?.url?.path, "/api/family/player-details")
     XCTAssertEqual(captured?.url?.query, "familyUnitId=fam-1")
@@ -133,31 +132,34 @@ final class FamilyAPIClientTests: XCTestCase {
       firstName: "Sam", lastName: "", sport: nil, position: nil, graduationYear: nil, playerDob: nil
     )
 
-    _ = try await makeClient().savePlayerDetails(familyId: "fam-1", details: details)
+    try await makeClient().savePlayerDetails(familyId: "fam-1", details: details)
 
     let json = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(capturedBody)) as? [String: Any])
     XCTAssertEqual(json["playerName"] as? String, "Sam")
     XCTAssertEqual(Set(json.keys), ["playerName"])
   }
 
-  func test_savePlayerDetails_404_reportsEndpointUnavailableForOlderServers() async throws {
+  func test_savePlayerDetails_404_throwsLikeAnyOtherFailure() async {
     respond(404, #"{"statusCode":404,"message":"Page not found: /api/family/player-details"}"#)
 
-    let outcome = try await makeClient().savePlayerDetails(
-      familyId: "fam-1",
-      details: PendingPlayerDetails(
-        firstName: "Sam", lastName: "R", sport: nil, position: nil, graduationYear: nil, playerDob: nil
+    do {
+      try await makeClient().savePlayerDetails(
+        familyId: "fam-1",
+        details: PendingPlayerDetails(
+          firstName: "Sam", lastName: "R", sport: nil, position: nil, graduationYear: nil, playerDob: nil
+        )
       )
-    )
-
-    XCTAssertEqual(outcome, .endpointUnavailable)
+      XCTFail("expected throw")
+    } catch {
+      XCTAssertEqual(error.localizedDescription, "Page not found: /api/family/player-details")
+    }
   }
 
   func test_savePlayerDetails_403_throwsServerMessage() async {
     respond(403, #"{"statusCode":403,"message":"Not a member of this family"}"#)
 
     do {
-      _ = try await makeClient().savePlayerDetails(
+      try await makeClient().savePlayerDetails(
         familyId: "fam-1",
         details: PendingPlayerDetails(
           firstName: "Sam", lastName: "R", sport: nil, position: nil, graduationYear: nil, playerDob: nil
