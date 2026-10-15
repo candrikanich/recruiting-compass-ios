@@ -1,3 +1,4 @@
+import Auth
 import Foundation
 import Supabase
 import Helpers
@@ -121,11 +122,16 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
   }
 
   func signIn(email: String, password: String, captchaToken: String) async throws -> (user: User, session: Session) {
-    let response = try await client.auth.signIn(
-      email: email,
-      password: password,
-      captchaToken: captchaToken
-    )
+    let response: Auth.Session
+    do {
+      response = try await client.auth.signIn(
+        email: email,
+        password: password,
+        captchaToken: captchaToken
+      )
+    } catch {
+      throw SupabaseAuthErrors.signInError(for: error) ?? error
+    }
 
     // Fetch user profile from database with retry
     guard let user = try await fetchUserProfileWithRetry(
