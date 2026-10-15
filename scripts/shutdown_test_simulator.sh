@@ -16,7 +16,6 @@ elif [[ "$destination" =~ name=([^,]+) ]]; then
 fi
 [[ -n "$device" ]] && xcrun simctl shutdown "$device" >/dev/null 2>&1
 
-# Parallel/clone runs boot throwaway devices in Xcode's separate "testing" device set.
-xcrun simctl --set testing shutdown all >/dev/null 2>&1
-xcrun simctl --set testing delete all >/dev/null 2>&1
+# Clones in Xcode's "testing" device set may belong to another agent's live run, so they are
+# left to scripts/sim_sweep.py, which clears them only while no xcodebuild is running.
 exit 0

@@ -34,6 +34,9 @@ When editing or creating source files, always use the full double-nested path, e
   pass or fail: `./scripts/shutdown_test_simulator.sh '<destination>'` (the `make` test targets already do this; `KEEP_SIM=1`
   opts out for debugging). Shut down your own device by `id=`/name — never `simctl shutdown all`, other agents may be
   mid-run. A cloned simulator gets `xcrun simctl shutdown <id> && xcrun simctl delete <id>`.
+  Name every throwaway simulator `trc-<issue>` or `agent-<label>`: the hourly sweep (`scripts/sim_sweep.py`, installed
+  by `scripts/install-sim-sweep.sh`) deletes those once they've been shut down for 24h, and shuts down any device booted 3h+
+  that no running xcodebuild/simctl names. Other names are never deleted; exempt one via `~/.config/recruiting-compass/sim-sweep-keep`.
 - **~3700 unit tests.** The full suite exceeds 10 minutes — run the affected test classes via `-only-testing:` for fast evidence and trust the xcodebuild exit code.
 
 ### Environment Configuration
