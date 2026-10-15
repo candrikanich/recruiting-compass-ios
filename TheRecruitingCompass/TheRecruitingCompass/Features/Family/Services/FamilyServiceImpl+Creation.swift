@@ -76,9 +76,10 @@ extension FamilyServiceImpl {
 
   // MARK: - Family Management (Parent)
 
-  func joinFamilyWithCode(familyCode: String) async throws {
+  func joinFamilyWithCode(familyCode: String) async throws -> JoinFamilyResponse? {
     familyServiceLogger.debug("Joining family with code")
-    try await apiClient.joinFamily(familyCode: familyCode)
+    let response = try await apiClient.joinFamily(familyCode: familyCode)
     familyServiceLogger.info("Joined family via API")
+    return response
   }
 }

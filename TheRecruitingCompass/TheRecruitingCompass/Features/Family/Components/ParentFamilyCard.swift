@@ -2,11 +2,13 @@ import SwiftUI
 
 struct ParentFamilyCard: View {
   let family: ParentFamilyData
+  /// Server-resolved family label (falls back to the stored name when none is known).
+  let label: String
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       VStack(alignment: .leading, spacing: 8) {
-        Text(family.familyName)
+        Text(label)
           .font(.brand(.headline))
 
         HStack(spacing: 8) {
@@ -43,6 +45,6 @@ struct ParentFamilyCard: View {
   }
 
   var cardAccessibilityLabel: String {
-    String(localized: "\(family.familyName), code \(FamilyUtilities.formatCodeForVoiceOver(family.familyCode)), joined")
+    String(localized: "\(label), code \(FamilyUtilities.formatCodeForVoiceOver(family.familyCode)), joined")
   }
 }

@@ -28,6 +28,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   var stubbedCurrentMember: FamilyMember?
   var stubbedFamilyMembers: [FamilyMember] = []
   var stubbedFamilyUnit: FamilyUnit?
+  var stubbedJoinResponse: JoinFamilyResponse?
   var familyUnitIdsToFail: Set<String> = []
   var membersByFamilyUnitId: [String: [FamilyMember]] = [:]
   var mockCreateFamilyResponse = CreateFamilyResponse(
@@ -124,13 +125,14 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     }
   }
 
-  func joinFamilyWithCode(familyCode: String) async throws {
+  func joinFamilyWithCode(familyCode: String) async throws -> JoinFamilyResponse? {
     joinFamilyWithCodeCallCount += 1
     lastFamilyCodeJoined = familyCode
 
     if !shouldSucceed {
       throw mockError
     }
+    return stubbedJoinResponse
   }
 
   func getParentFamilies() async throws -> [ParentFamilyData] {

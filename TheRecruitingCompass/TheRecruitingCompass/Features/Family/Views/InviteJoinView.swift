@@ -190,7 +190,7 @@ private struct InviteJoinInviteContent: View {
           Text("You're invited to join")
             .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
-          Text("\(invite.familyName)'s recruiting journey")
+          Text(invite.headline)
             .font(.brand(.title2, weight: .bold))
             .multilineTextAlignment(.center)
           Text(
@@ -239,7 +239,7 @@ private struct InviteJoinAuthenticatedConnectSection: View {
   var body: some View {
     VStack(spacing: 12) {
       AsyncButton(
-        title: String(localized: "Connect to \(invite.familyName)"),
+        title: String(localized: "Connect to \(invite.displayLabel)"),
         loadingTitle: String(localized: "Please wait..."),
         isLoading: viewModel.isAccepting
       ) {

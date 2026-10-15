@@ -31,8 +31,9 @@ struct FamilyAPIClient: Sendable {
     _ = try await send("DELETE", "api/family/members/\(memberId)")
   }
 
-  func joinFamily(familyCode: String) async throws {
-    _ = try await send("POST", "api/family/code/join", body: ["familyCode": familyCode])
+  func joinFamily(familyCode: String) async throws -> JoinFamilyResponse? {
+    let data = try await send("POST", "api/family/code/join", body: ["familyCode": familyCode])
+    return try? JSONDecoder().decode(JoinFamilyResponse.self, from: data)
   }
 
   /// POST /api/family/player-details. `familyUnitId` is always sent explicitly: the server default (newest

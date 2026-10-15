@@ -231,7 +231,7 @@ struct FamilyManagementParentView: View {
   private var familiesList: some View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       ForEach(viewModel.parentFamilies) { family in
-        ParentFamilyCard(family: family)
+        ParentFamilyCard(family: family, label: viewModel.displayLabel(for: family))
       }
     }
   }
@@ -242,7 +242,7 @@ struct FamilyManagementParentView: View {
     ForEach(viewModel.inboundAddresses) { entry in
       ForwardCoachEmailsCard(
         address: entry.address,
-        familyName: viewModel.inboundAddresses.count > 1 ? entry.familyName : nil,
+        familyName: viewModel.inboundAddresses.count > 1 ? entry.displayLabel : nil,
         onCopy: { viewModel.copyInboundAddressToClipboard(entry.address) }
       )
     }

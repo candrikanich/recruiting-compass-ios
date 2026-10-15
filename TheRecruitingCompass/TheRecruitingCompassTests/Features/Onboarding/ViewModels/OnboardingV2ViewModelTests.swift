@@ -432,7 +432,7 @@ private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
     fatalError("Not used in onboarding v2 tests")
   }
   func removeFamilyMember(memberId: String) async throws {}
-  func joinFamilyWithCode(familyCode: String) async throws {}
+  func joinFamilyWithCode(familyCode: String) async throws -> JoinFamilyResponse? { nil }
   func getParentFamilies() async throws -> [ParentFamilyData] { [] }
   func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?) async throws {}
   func fetchPendingInvitations() async throws -> [FamilyInvitation] { [] }
