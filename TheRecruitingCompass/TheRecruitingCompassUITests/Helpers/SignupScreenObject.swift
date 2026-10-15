@@ -166,21 +166,33 @@ final class SignupScreenObject {
   }
 
   /// With the keyboard up the scroll view shrinks, so a field near its bottom edge can sit under the
-  /// keyboard and a tap there never moves focus. Scroll the form until the tap actually takes focus.
+  /// keyboard. Tapping there lands on a key and types a stray character into the field that already has
+  /// focus, so retries scroll first and only tap once the field is hittable and clear of the keyboard.
   private func focusAndType(
     _ field: XCUIElement, _ text: String, file: StaticString, line: UInt
   ) {
     let hasFocus = NSPredicate(format: "hasKeyboardFocus == true")
+    let scrollView = app.scrollViews.firstMatch
     for _ in 0..<4 {
-      field.tap()
-      let focused = XCTNSPredicateExpectation(predicate: hasFocus, object: field)
-      if XCTWaiter.wait(for: [focused], timeout: 2) == .completed {
-        field.typeText(text)
-        return
+      let keyboard = app.keyboards.firstMatch
+      let keyboardFrame = keyboard.exists ? keyboard.frame : nil
+      if Self.isTapSafe(fieldFrame: field.frame, hittable: field.isHittable, keyboardFrame: keyboardFrame) {
+        field.tap()
+        let focused = XCTNSPredicateExpectation(predicate: hasFocus, object: field)
+        if XCTWaiter.wait(for: [focused], timeout: 2) == .completed {
+          field.typeText(text)
+          return
+        }
       }
-      app.scrollViews.firstMatch.swipeUp(velocity: .slow)
+      scrollView.swipeUp(velocity: .slow)
     }
     XCTFail("Could not focus \(field.identifier.isEmpty ? field.label : field.identifier)", file: file, line: line)
+  }
+
+  static func isTapSafe(fieldFrame: CGRect, hittable: Bool, keyboardFrame: CGRect?) -> Bool {
+    guard hittable else { return false }
+    guard let keyboardFrame else { return true }
+    return !fieldFrame.intersects(keyboardFrame)
   }
 
   func acceptTerms(file: StaticString = #filePath, line: UInt = #line) {
