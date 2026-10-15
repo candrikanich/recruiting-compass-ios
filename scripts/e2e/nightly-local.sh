@@ -188,17 +188,15 @@ print(ios["identifier"], (exact or plain or phones)[-1]["identifier"])')
   log "Simulator $SIM_NAME: $SIM_UDID"
 }
 
-# Erase + boot only our own device. A full CoreSimulatorService restart would
-# also kill a developer's open simulators, so it is reserved for retries after
-# a wedge.
+# Erase + boot only our own device. Other agents' simulators share this Mac, so
+# recovery never uses `simctl shutdown all` or restarts CoreSimulatorService:
+# after a wedge ("hard") we delete our device and create a fresh one instead.
 reset_sim() {
   local hard="${1:-}"
+  xcrun simctl shutdown "$SIM_UDID" >/dev/null 2>&1 || true
   if [ "$hard" = hard ]; then
-    xcrun simctl shutdown all || true
-    killall -9 CoreSimulatorService || true
-    sleep 5
-  else
-    xcrun simctl shutdown "$SIM_UDID" >/dev/null 2>&1 || true
+    xcrun simctl delete "$SIM_UDID" || true
+    ensure_simulator || fail "could not recreate the $SIM_NAME simulator"
   fi
   xcrun simctl erase "$SIM_UDID" || true
   xcrun simctl boot "$SIM_UDID" || true
