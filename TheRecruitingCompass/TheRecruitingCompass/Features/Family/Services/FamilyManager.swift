@@ -15,6 +15,9 @@ final class FamilyManager {
   var familyMembers: [FamilyMember] = []
   var selectedAthleteId: String?
   var familyUnit: FamilyUnit?
+  /// Server-resolved family labels by family unit id (from `/api/family/inbound-address`); empty on API versions
+  /// without `familyLabel`, in which case the athlete switcher shows no family text.
+  var familyLabels: [String: String] = [:]
 
   /// Advanced by `reset()`. A load only writes while its session is still current, so a request
   /// from before a sign-out can't land in a later session — even one for the same user.
@@ -30,6 +33,7 @@ final class FamilyManager {
   }
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
+  private let inboundDraftsService: any InboundDraftsAPIManaging
 
   var isParentViewingAthlete: Bool {
     guard let current = currentMember else { return false }
@@ -59,8 +63,10 @@ final class FamilyManager {
 
   init(
     familyService: (any FamilyManaging)? = nil,
-    authManager: (any AuthManaging)? = nil
+    authManager: (any AuthManaging)? = nil,
+    inboundDraftsService: (any InboundDraftsAPIManaging)? = nil
   ) {
+    self.inboundDraftsService = inboundDraftsService ?? InboundDraftsAPIService()
     self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
   }
@@ -110,8 +116,26 @@ final class FamilyManager {
       } else {
         logger.warning("No family unit ID found for user \(userId)")
       }
+      await loadFamilyLabels(userId: userId, session: loadSession)
     } catch {
       logger.error("Failed to load family data: \(error.localizedDescription)")
+    }
+  }
+
+  /// Display-only, so a failure leaves the switcher without family text rather than failing the load.
+  private func loadFamilyLabels(userId: String, session loadSession: Int) async {
+    do {
+      let token = authManager.session?.accessToken
+      let addresses = try await inboundDraftsService.fetchForwardingAddress(accessToken: token)
+      guard isCurrent(userId, loadSession) else { return }
+      familyLabels = Dictionary(
+        addresses.compactMap { entry in
+          FamilyLabel.display(label: entry.familyLabel, legacyName: nil).map { (entry.familyUnitId, $0) }
+        },
+        uniquingKeysWith: { first, _ in first }
+      )
+    } catch {
+      logger.error("Failed to load family labels: \(error.localizedDescription)")
     }
   }
 
@@ -132,6 +156,7 @@ final class FamilyManager {
     familyMembers = []
     selectedAthleteId = nil
     familyUnit = nil
+    familyLabels = [:]
   }
 
   /// A load that outlives its session (sign-out or account switch mid-request) must not

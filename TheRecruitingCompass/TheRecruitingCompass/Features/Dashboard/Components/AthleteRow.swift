@@ -2,8 +2,15 @@ import SwiftUI
 
 struct AthleteRow: View {
   let athlete: FamilyMember
+  var familyLabel: String?
   let isSelected: Bool
   let onSelect: () -> Void
+
+  private var accessibilityText: String {
+    let base = String(localized: "\(athlete.role.capitalized) - ID: \(athlete.userId.prefix(8))")
+    guard let familyLabel else { return base }
+    return String(localized: "\(familyLabel), \(base)")
+  }
 
   var body: some View {
     Button(action: onSelect) {
@@ -17,6 +24,12 @@ struct AthleteRow: View {
             .font(.brand(.subheadline))
             .fontWeight(.semibold)
             .foregroundStyle(Color.darkSlate)
+
+          if let familyLabel {
+            Text(familyLabel)
+              .font(.brand(.caption))
+              .foregroundStyle(Color.secondaryText)
+          }
 
           Text("ID: \(athlete.userId.prefix(8))...")
             .font(.brand(.caption))
@@ -36,7 +49,7 @@ struct AthleteRow: View {
     }
     .buttonStyle(.plain)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "\(athlete.role.capitalized) - ID: \(athlete.userId.prefix(8))"))
+    .accessibilityLabel(accessibilityText)
     .accessibilityValue(isSelected ? "Selected" : "Not selected")
     .accessibilityHint("Double tap to select this athlete")
   }

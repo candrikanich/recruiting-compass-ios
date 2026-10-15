@@ -219,6 +219,7 @@ struct DashboardView: View {
         && !viewModel.isParentPreviewMode {
         DashboardAthleteSelectorSection(
           athletes: familyManager.athletes,
+          familyLabels: familyManager.familyLabels,
           selectedAthleteId: familyManager.selectedAthleteId,
           onSelect: { athleteId in viewModel.selectAthlete(athleteId) }
         )
@@ -385,12 +386,14 @@ private struct DashboardHeaderSection: View {
 
 private struct DashboardAthleteSelectorSection: View {
   let athletes: [FamilyMember]
+  let familyLabels: [String: String]
   let selectedAthleteId: String?
   let onSelect: (String) -> Void
 
   var body: some View {
     AthleteSelector(
       athletes: athletes,
+      familyLabels: familyLabels,
       selectedAthleteId: selectedAthleteId,
       onSelect: onSelect
     )

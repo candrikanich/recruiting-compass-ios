@@ -103,6 +103,19 @@ final class FamilyManagementViewModel {
     }
   }
 
+  /// Families are read straight from Supabase (no label there), so labels come from the inbound-address endpoint,
+  /// which returns the server's `familyLabel` for every family the user belongs to.
+  func displayLabel(for family: ParentFamilyData) -> String {
+    inboundAddresses.first { $0.familyUnitId == family.familyId }?.displayLabel ?? family.familyName
+  }
+
+  /// Heading for the player's family code card. Only a server `familyLabel` changes it: the stored name is
+  /// usually the generic "My Family", which must not replace "Your Family Code" on API versions without labels.
+  var playerFamilyCodeHeading: String {
+    let label = inboundAddresses.first { $0.familyUnitId == familyId }?.familyLabel
+    return FamilyLabel.codeHeading(forServerLabel: label)
+  }
+
   func copyInboundAddressToClipboard(_ address: String) {
     UIPasteboard.general.string = address
     showSuccess("Address copied to clipboard!")
@@ -295,15 +308,16 @@ final class FamilyManagementViewModel {
     defer { isLoading = false }
 
     do {
-      try await familyService.joinFamilyWithCode(familyCode: code)
+      let response = try await familyService.joinFamilyWithCode(familyCode: code)
 
-      // Reload parent families
+      // Reload parent families, then the inbound addresses that carry their server-resolved labels
       await loadParentData()
+      await loadInboundAddress()
 
       // Clear input
       codeInput = ""
 
-      showSuccess("Successfully joined family!")
+      showSuccess(response?.displayLabel.map { "Successfully joined \($0)!" } ?? "Successfully joined family!")
     } catch let error as FamilyError {
       errorMessage = error.errorDescription
     } catch {

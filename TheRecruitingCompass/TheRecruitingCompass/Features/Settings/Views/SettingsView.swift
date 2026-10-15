@@ -223,7 +223,7 @@ struct SettingsView: View {
               )
             }
           } header: {
-            Text(viewModel.inboundAddresses.count > 1 ? "Coach Email Forwarding — \(entry.familyName)" : "Coach Email Forwarding")
+            Text(viewModel.inboundAddresses.count > 1 ? "Coach Email Forwarding — \(entry.displayLabel)" : "Coach Email Forwarding")
           }
         }
 

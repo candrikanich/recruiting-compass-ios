@@ -70,6 +70,7 @@ struct RecruitingTimelineView: View {
           TimelineAthleteSwitcher(
             isViewingAsParent: viewModel.isViewingAsParent,
             athletes: familyManager.athletes,
+            familyLabels: familyManager.familyLabels,
             selectedAthleteId: familyManager.selectedAthleteId,
             onSelect: { athleteId in
               familyManager.selectAthlete(athleteId)
@@ -168,6 +169,7 @@ private struct TimelineParentBanner: View {
 private struct TimelineAthleteSwitcher: View {
   let isViewingAsParent: Bool
   let athletes: [FamilyMember]
+  let familyLabels: [String: String]
   let selectedAthleteId: String?
   let onSelect: (String) -> Void
 
@@ -175,6 +177,7 @@ private struct TimelineAthleteSwitcher: View {
     if isViewingAsParent, !athletes.isEmpty {
       AthleteSelector(
         athletes: athletes,
+        familyLabels: familyLabels,
         selectedAthleteId: selectedAthleteId,
         onSelect: onSelect
       )

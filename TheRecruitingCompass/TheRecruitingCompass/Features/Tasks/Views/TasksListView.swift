@@ -89,6 +89,7 @@ struct TasksListView: View {
     if viewModel.isViewingAsParent, !familyManager.athletes.isEmpty {
       AthleteSelector(
         athletes: familyManager.athletes,
+        familyLabels: familyManager.familyLabels,
         selectedAthleteId: familyManager.selectedAthleteId,
         onSelect: { athleteId in
           familyManager.selectAthlete(athleteId)

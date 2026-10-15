@@ -294,6 +294,51 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertEqual(sut.inboundAddresses.map(\.familyUnitId), ["family-1", "family-2"])
   }
 
+  func testDisplayLabel_parentFamily_usesServerLabelFromInboundAddress() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [
+      ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x"),
+      ParentFamilyData(familyId: "family-2", familyCode: "FAM-XYZ456", familyName: "Jones Family", codeGeneratedAt: "x")
+    ]
+    mockInboundDraftsService.addressesToReturn = [
+      InboundFamilyAddress(familyUnitId: "family-1", familyName: "Smith Family", familyLabel: "Alex's Family", address: "a@b.c")
+    ]
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.displayLabel(for: sut.parentFamilies[0]), "Alex's Family")
+    // No label for family-2 (old API or fetch gap): keep the stored name, never compute one.
+    XCTAssertEqual(sut.displayLabel(for: sut.parentFamilies[1]), "Jones Family")
+  }
+
+  func testPlayerFamilyCodeHeading_usesServerLabelElseGenericHeading() async {
+    mockAuthManager.setMockUser(makeUser(role: .player))
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(familyName: "My Family")
+    mockInboundDraftsService.addressesToReturn = [
+      InboundFamilyAddress(familyUnitId: "family-1", familyName: "My Family", familyLabel: "Alex's Family", address: "a@b.c")
+    ]
+    await sut.loadData()
+    XCTAssertEqual(sut.playerFamilyCodeHeading, "Alex's family code")
+
+    // Old prod: no label, stored name is the generic default; heading must not change.
+    mockInboundDraftsService.addressesToReturn = [
+      InboundFamilyAddress(familyUnitId: "family-1", familyName: "My Family", address: "a@b.c")
+    ]
+    await sut.loadData()
+    XCTAssertEqual(sut.playerFamilyCodeHeading, "Your Family Code")
+  }
+
+  func testJoinFamily_successMessageUsesServerLabel() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    sut.codeInput = "FAM-ABC123"
+    mockFamilyService.mockParentFamilies = []
+    mockFamilyService.stubbedJoinResponse = JoinFamilyResponse(familyId: "f", familyName: "Smith Family", familyLabel: "Alex's Family")
+
+    await sut.joinFamily()
+
+    XCTAssertEqual(sut.successMessage, "Successfully joined Alex's Family!")
+  }
+
   func testLoadData_inboundAddressFetchFailure_doesNotSetErrorOrFailLoad() async {
     mockAuthManager.setMockUser(makeUser(role: .player))
     mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()

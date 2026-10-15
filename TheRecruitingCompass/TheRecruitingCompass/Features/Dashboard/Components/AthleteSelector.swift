@@ -2,6 +2,8 @@ import SwiftUI
 
 struct AthleteSelector: View {
   let athletes: [FamilyMember]
+  /// Server-resolved family labels by family unit id; rows without one show no family text.
+  var familyLabels: [String: String] = [:]
   let selectedAthleteId: String?
   let onSelect: (String) -> Void
 
@@ -24,6 +26,7 @@ struct AthleteSelector: View {
           ForEach(athletes) { athlete in
             AthleteRow(
               athlete: athlete,
+              familyLabel: familyLabels[athlete.familyUnitId],
               isSelected: athlete.id == selectedAthleteId,
               onSelect: { onSelect(athlete.id) }
             )

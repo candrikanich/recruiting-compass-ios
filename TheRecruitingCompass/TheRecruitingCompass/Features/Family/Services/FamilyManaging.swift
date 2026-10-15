@@ -20,7 +20,8 @@ protocol FamilyManaging: Sendable {
 
   // Family Management methods (Parent)
   /// Adds the current user to an existing family using the given join code.
-  func joinFamilyWithCode(familyCode: String) async throws
+  /// Returns the server's join response (nil when its body couldn't be read — the join still succeeded).
+  func joinFamilyWithCode(familyCode: String) async throws -> JoinFamilyResponse?
   /// Returns all family units the current parent user is associated with.
   func getParentFamilies() async throws -> [ParentFamilyData]
 

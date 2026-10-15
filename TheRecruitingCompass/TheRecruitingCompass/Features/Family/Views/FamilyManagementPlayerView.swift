@@ -51,7 +51,7 @@ struct FamilyManagementPlayerView: View {
   @ViewBuilder
   private var familyCodeCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
-      Text("Your Family Code")
+      Text(viewModel.playerFamilyCodeHeading)
         .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -278,7 +278,7 @@ struct FamilyManagementPlayerView: View {
     ForEach(viewModel.inboundAddresses) { entry in
       ForwardCoachEmailsCard(
         address: entry.address,
-        familyName: viewModel.inboundAddresses.count > 1 ? entry.familyName : nil,
+        familyName: viewModel.inboundAddresses.count > 1 ? entry.displayLabel : nil,
         onCopy: { viewModel.copyInboundAddressToClipboard(entry.address) }
       )
     }
