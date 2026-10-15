@@ -37,6 +37,10 @@ When editing or creating source files, always use the full double-nested path, e
   Name every throwaway simulator `trc-<issue>` or `agent-<label>`: the hourly sweep (`scripts/sim_sweep.py`, installed
   by `scripts/install-sim-sweep.sh`) deletes those once they've been shut down for 24h, and shuts down any device booted 3h+
   that no running xcodebuild/simctl names. Other names are never deleted; exempt one via `~/.config/recruiting-compass/sim-sweep-keep`.
+- **One simulator test run at a time.** Before any `xcodebuild test` / `test-without-building` (including a manual
+  `scripts/e2e/nightly-local.sh` run), check `python3 scripts/sim_sweep.py --tests-running` — exit 0 lists runs already
+  going. If one is, wait for it or ask Chris; two cold-booting simulators starve each other until both stall and retry.
+  The nightly script waits on its own (up to `NIGHTLY_E2E_OTHER_RUNS_WAIT_SECONDS`, default 1h).
 - **~3700 unit tests.** The full suite exceeds 10 minutes — run the affected test classes via `-only-testing:` for fast evidence and trust the xcodebuild exit code.
 
 ### Environment Configuration
