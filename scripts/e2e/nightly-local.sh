@@ -122,23 +122,53 @@ ensure_docker() {
   return 1
 }
 
-# A cold start pulls images, which takes minutes; half an hour means it is wedged.
-STACK_START_SECONDS=1800
+# A warm start takes under a minute and a cold one pulls images for a few. The
+# start has both hung silently at "Starting database..." for the full budget
+# and failed silently right after "Started" (#403), and neither reproduced, so
+# the budget is split into a short first attempt and one retry (`start` stops
+# any leftover stack first), and each attempt logs what failed.
+STACK_ATTEMPT_SECONDS=(600 1200)
 
 # Callers use `fn || fail`, which disables set -e inside fn, so every step
 # below returns its own failure explicitly.
-start_stack() {
-  timeout "$STACK_START_SECONDS" "$LOCAL_SUPABASE" start || return 1
-  local key value
+start_stack_attempt() {
+  local attempt=$1 limit=$2 of=$3 rc=0 env_out key value missing=""
+  timeout "$limit" "$LOCAL_SUPABASE" start || rc=$?
+  if [ "$rc" -eq 124 ]; then
+    log "supabase start timed out after ${limit}s on attempt $attempt of $of"
+    return 1
+  elif [ "$rc" -ne 0 ]; then
+    log "supabase start exited $rc on attempt $attempt of $of"
+    return 1
+  fi
+  env_out="$(timeout 60 "$LOCAL_SUPABASE" env)" || rc=$?
+  [ "$rc" -eq 0 ] || log "local-supabase.sh env exited $rc on attempt $attempt of $of"
+  SUPABASE_URL="" SUPABASE_ANON_KEY="" SUPABASE_SERVICE_ROLE_KEY=""
   while IFS='=' read -r key value; do
     case "$key" in
       TEST_SUPABASE_URL) SUPABASE_URL="$value" ;;
       NUXT_PUBLIC_SUPABASE_ANON_KEY) SUPABASE_ANON_KEY="$value" ;;
       SUPABASE_SERVICE_ROLE_KEY) SUPABASE_SERVICE_ROLE_KEY="$value" ;;
     esac
-  done < <(timeout 60 "$LOCAL_SUPABASE" env)
-  [ -n "${SUPABASE_URL:-}" ] && [ -n "${SUPABASE_ANON_KEY:-}" ] && [ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ] || return 1
-  log "Local Supabase at $SUPABASE_URL"
+  done <<<"$env_out"
+  [ -n "$SUPABASE_URL" ] || missing+=" TEST_SUPABASE_URL"
+  [ -n "$SUPABASE_ANON_KEY" ] || missing+=" NUXT_PUBLIC_SUPABASE_ANON_KEY"
+  [ -n "$SUPABASE_SERVICE_ROLE_KEY" ] || missing+=" SUPABASE_SERVICE_ROLE_KEY"
+  if [ -n "$missing" ]; then
+    log "env returned no${missing} on attempt $attempt of $of"
+    return 1
+  fi
+}
+
+start_stack() {
+  local i of=${#STACK_ATTEMPT_SECONDS[@]}
+  for i in "${!STACK_ATTEMPT_SECONDS[@]}"; do
+    if start_stack_attempt $((i + 1)) "${STACK_ATTEMPT_SECONDS[$i]}" "$of"; then
+      log "Local Supabase at $SUPABASE_URL"
+      return 0
+    fi
+  done
+  return 1
 }
 
 seed() {
