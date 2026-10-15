@@ -1,31 +1,52 @@
+import Combine
 import Foundation
+import OSLog
+import Sentry
 import WebKit
 
-/// Plain `print` (like the rest of the app) so failures show in the Xcode console;
-/// failures otherwise collapse into a generic `.captchaFailed`.
+/// Unified log (not `print`) so failures are readable from a Release build via Console or `log show`,
+/// plus Sentry so failures on devices we don't hold (App Review rejected 1.0 twice on this) are visible.
 private struct TurnstileLog {
-  func error(_ message: String) { print("[Turnstile] \(message)") }
+  private let logger = Logger(subsystem: "com.recruitingcompass", category: "Turnstile")
+  func error(_ message: String) {
+    logger.error("[Turnstile] \(message, privacy: .public)")
+    SentrySDK.capture(message: "[Turnstile] \(message)")
+  }
 }
 
-/// Owns the single WKWebView that runs an invisible Cloudflare Turnstile widget and
-/// bridges its JS callbacks back to Swift. One shared instance backs every auth flow
-/// that needs a captcha token (login, signup, password reset).
+/// Owns the single WKWebView that runs the Cloudflare Turnstile widget and bridges its JS
+/// callbacks back to Swift. One shared instance backs every auth flow that needs a captcha
+/// token (login, signup, password reset).
+///
+/// The site key is a Managed widget: most devices pass without seeing anything, but Cloudflare
+/// can demand a checkbox tap. The web view therefore stays a hidden 1×1 view until the widget
+/// reports it needs interaction, then `isChallengeVisible` flips and `TurnstileChallengeOverlay`
+/// shows it. Keeping it hidden unconditionally left an unsolvable challenge that timed out as
+/// "Couldn't verify you're human" (iPad App Review rejection, 2026-10-15).
 ///
 /// The page is loaded via `loadHTMLString(_:baseURL:)` with `baseURL` set to the prod
 /// web domain so `document.location.hostname` resolves to a hostname already
 /// allow-listed for this site key in the Cloudflare Turnstile dashboard (the HTML
 /// content itself is still local, never fetched over the network).
 @MainActor
-final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
+final class TurnstileTokenProvider: NSObject, ObservableObject, TurnstileTokenProviding {
   nonisolated deinit {}
 
   static let shared = TurnstileTokenProvider()
 
+  /// No-interaction challenges finish in a couple of seconds; a person solving the checkbox needs longer.
+  private static let tokenTimeout: Duration = .seconds(10)
+  private static let interactiveTimeout: Duration = .seconds(120)
+
   /// The WKWebView `TurnstileWidgetView` mounts. Created once, lives for the app's lifetime.
   let webView: WKWebView
 
+  /// True while Cloudflare is waiting for the user to complete an interactive challenge.
+  @Published private(set) var isChallengeVisible = false
+
   private var isWidgetReady = false
   private var pendingContinuation: CheckedContinuation<String, Error>?
+  private var tokenTimeoutTask: Task<Void, Never>?
   private var readyContinuations: [CheckedContinuation<Void, Error>] = []
   private var readyTimeoutTask: Task<Void, Never>?
   private var hasRetriedAfterExpiry = false
@@ -98,41 +119,58 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   private func executeChallenge() async throws -> String {
     // Single-flight: this app never runs two captcha challenges concurrently. Superseding
     // a still-pending call (rather than leaking its continuation) is correct behavior here.
-    if let existing = pendingContinuation {
+    if pendingContinuation != nil {
       Self.log.error("Turnstile challenge superseded by a newer request")
-      existing.resume(throwing: AuthError.captchaFailed)
-      pendingContinuation = nil
+      failPending()
     }
-
-    let timeoutTask = Task { @MainActor [weak self] in
-      // A cancelled sleep means this call already finished (or was superseded); bail out so a
-      // stale task can't time out the newer call's `pendingContinuation`.
-      do { try await Task.sleep(for: .seconds(10)) } catch { return }
-      guard let self, self.pendingContinuation != nil else { return }
-      Self.log.error("Turnstile token timeout after 10s")
-      self.pendingContinuation?.resume(throwing: AuthError.captchaFailed)
-      self.pendingContinuation = nil
-    }
-    defer { timeoutTask.cancel() }
 
     return try await withCheckedThrowingContinuation { continuation in
       pendingContinuation = continuation
+      armTokenTimeout(Self.tokenTimeout)
       Task { @MainActor [weak self] in
         guard let self else { return }
         do {
           try await self.webView.evaluateJavaScript("window.twReset(); window.twExecute(); null;")
         } catch {
           Self.log.error("Turnstile evaluateJavaScript failed: \(error.localizedDescription)")
-          // A JS-evaluation failure must still surface as `.captchaFailed`, not the raw
-          // WKError — and only if this continuation hasn't already been resumed by a
-          // callback or the timeout.
-          if self.pendingContinuation != nil {
-            self.pendingContinuation?.resume(throwing: AuthError.captchaFailed)
-            self.pendingContinuation = nil
-          }
+          // A JS-evaluation failure must still surface as `.captchaFailed`, not the raw WKError.
+          self.failPending()
         }
       }
     }
+  }
+
+  /// Replaces any running timeout, so a stale timer can never fail a newer challenge or cut off
+  /// a user who is mid-way through an interactive one.
+  private func armTokenTimeout(_ timeout: Duration) {
+    tokenTimeoutTask?.cancel()
+    tokenTimeoutTask = Task { @MainActor [weak self] in
+      do { try await Task.sleep(for: timeout) } catch { return }
+      guard let self, self.pendingContinuation != nil else { return }
+      Self.log.error("Turnstile token timeout after \(timeout) (interactive: \(self.isChallengeVisible))")
+      self.failPending()
+    }
+  }
+
+  private func finishChallenge() {
+    tokenTimeoutTask?.cancel()
+    tokenTimeoutTask = nil
+    pendingContinuation = nil
+    isChallengeVisible = false
+  }
+
+  /// No-op when nothing is pending, so a late callback after a timeout or cancel is harmless.
+  private func failPending() {
+    let continuation = pendingContinuation
+    finishChallenge()
+    continuation?.resume(throwing: AuthError.captchaFailed)
+  }
+
+  /// The user dismissed the interactive challenge instead of solving it.
+  func cancelChallenge() {
+    guard pendingContinuation != nil else { return }
+    Self.log.error("Turnstile interactive challenge cancelled by user")
+    failPending()
   }
 
   fileprivate func handleReady() {
@@ -144,46 +182,54 @@ final class TurnstileTokenProvider: NSObject, TurnstileTokenProviding {
   }
 
   fileprivate func handleToken(_ token: String) {
-    pendingContinuation?.resume(returning: token)
-    pendingContinuation = nil
+    let continuation = pendingContinuation
+    finishChallenge()
+    continuation?.resume(returning: token)
   }
 
-  fileprivate func handleError() {
-    pendingContinuation?.resume(throwing: AuthError.captchaFailed)
-    pendingContinuation = nil
+  fileprivate func handleError(code: String?) {
+    Self.log.error("Turnstile error-callback code=\(code ?? "none")")
+    failPending()
+  }
+
+  fileprivate func handleInteractionRequired() {
+    guard pendingContinuation != nil else { return }
+    isChallengeVisible = true
+    armTokenTimeout(Self.interactiveTimeout)
   }
 
   fileprivate func handleExpired() {
     Self.log.error("Turnstile expired-callback (already retried: \(self.hasRetriedAfterExpiry))")
     guard !hasRetriedAfterExpiry else {
-      pendingContinuation?.resume(throwing: AuthError.captchaFailed)
-      pendingContinuation = nil
+      failPending()
       return
     }
     hasRetriedAfterExpiry = true
     Task { try? await webView.evaluateJavaScript("window.twReset(); window.twExecute(); null;") }
   }
 
+  // `appearance: 'interaction-only'` keeps the widget blank unless Cloudflare needs a tap, and
+  // `before-interactive-callback` is what tells Swift to show it. (`size: 'invisible'`, used
+  // before, is not a Turnstile option.)
   private static let html = """
   <!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>html, body { margin: 0; padding: 0; background: transparent; }</style>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad" async defer></script>
   <script>
     var widgetId;
+    function post(message) { webkit.messageHandlers.turnstile.postMessage(message); }
     function onTurnstileLoad() {
       widgetId = turnstile.render('#widget', {
         sitekey: '\(TurnstileConfigEmbedded.siteKey)',
-        size: 'invisible',
-        callback: function(token) {
-          webkit.messageHandlers.turnstile.postMessage({type: 'token', token: token});
-        },
-        'error-callback': function(code) {
-          webkit.messageHandlers.turnstile.postMessage({type: 'error', code: String(code)});
-        },
-        'expired-callback': function() {
-          webkit.messageHandlers.turnstile.postMessage({type: 'expired'});
-        }
+        appearance: 'interaction-only',
+        execution: 'execute',
+        callback: function(token) { post({type: 'token', token: token}); },
+        'error-callback': function(code) { post({type: 'error', code: String(code)}); },
+        'expired-callback': function() { post({type: 'expired'}); },
+        'before-interactive-callback': function() { post({type: 'interactive'}); },
+        'unsupported-callback': function() { post({type: 'error', code: 'unsupported'}); }
       });
-      webkit.messageHandlers.turnstile.postMessage({type: 'ready'});
+      post({type: 'ready'});
     }
     window.twExecute = function() { if (widgetId) { turnstile.execute(widgetId); } };
     window.twReset = function() { if (widgetId) { turnstile.reset(widgetId); } };
@@ -207,15 +253,16 @@ extension TurnstileTokenProvider: WKScriptMessageHandler {
         if let token = body["token"] as? String {
           self.handleToken(token)
         } else {
-          self.handleError()
+          self.handleError(code: "missing-token")
         }
+      case "interactive":
+        self.handleInteractionRequired()
       case "expired":
         self.handleExpired()
       case "error":
-        Self.log.error("Turnstile error-callback code=\(body["code"] as? String ?? "none")")
-        self.handleError()
+        self.handleError(code: body["code"] as? String)
       default:
-        self.handleError()
+        self.handleError(code: "unknown-message-\(type)")
       }
     }
   }

@@ -129,10 +129,7 @@ struct TheRecruitingCompassApp: App {
       }
       .overlay {
         if !authManager.isAuthenticated {
-          TurnstileWidgetView()
-            .frame(width: 1, height: 1)
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
+          TurnstileChallengeOverlay()
         }
       }
       .task {
