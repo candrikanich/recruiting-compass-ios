@@ -27,11 +27,8 @@ struct InviteDetails: Codable, Sendable, Equatable {
 
   var displayLabel: String { FamilyLabel.display(label: familyLabel, legacyName: familyName) ?? familyName }
 
-  /// Headline on the invite screen. Labels already read "Alex's Family"; the legacy name needs the possessive added.
-  var headline: String {
-    FamilyLabel.display(label: familyLabel, legacyName: nil).map { "Join \($0)" }
-      ?? "\(familyName)'s recruiting journey"
-  }
+  /// The server's label when it sent one; nil on API versions without `familyLabel` (view keeps the legacy copy).
+  var serverLabel: String? { FamilyLabel.display(label: familyLabel, legacyName: nil) }
 
   var memberRole: UserRole? { UserRole(rawValue: role) }
 

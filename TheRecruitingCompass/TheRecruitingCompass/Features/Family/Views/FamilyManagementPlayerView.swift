@@ -51,16 +51,9 @@ struct FamilyManagementPlayerView: View {
   @ViewBuilder
   private var familyCodeCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
-      Text("Your Family Code")
+      Text(viewModel.playerFamilyCodeHeading)
         .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
-
-      if let label = viewModel.playerFamilyLabel {
-        Text(label)
-          .font(.brand(.subheadline))
-          .foregroundStyle(.secondary)
-          .frame(maxWidth: .infinity, alignment: .leading)
-      }
 
       if let code = viewModel.familyCode {
         VStack(spacing: FamilyConstants.Spacing.small) {

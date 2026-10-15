@@ -183,16 +183,27 @@ private struct InviteJoinInviteContent: View {
   @Bindable var viewModel: InviteJoinViewModel
   @Binding var presentedLegal: LegalDocument?
 
+  @ViewBuilder
+  private var inviteHeading: some View {
+    if let label = invite.serverLabel {
+      Text("You're invited to join \(label) on The Recruiting Compass")
+        .font(.brand(.title2, weight: .bold))
+        .multilineTextAlignment(.center)
+    } else {
+      Text("You're invited to join")
+        .font(.brand(.subheadline))
+        .foregroundStyle(.secondary)
+      Text("\(invite.familyName)'s recruiting journey")
+        .font(.brand(.title2, weight: .bold))
+        .multilineTextAlignment(.center)
+    }
+  }
+
   var body: some View {
     ScrollView {
       VStack(spacing: 24) {
         VStack(spacing: 8) {
-          Text("You're invited to join")
-            .font(.brand(.subheadline))
-            .foregroundStyle(.secondary)
-          Text(invite.headline)
-            .font(.brand(.title2, weight: .bold))
-            .multilineTextAlignment(.center)
+          inviteHeading
           Text(
             invite.inviterName.map { "\($0) invited you as a \(invite.role)." }
               ?? "You've been invited to join as a \(invite.role)."

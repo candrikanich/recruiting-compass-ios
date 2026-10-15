@@ -91,10 +91,37 @@ final class FamilyAPIClientTests: XCTestCase {
     nonisolated(unsafe) var captured: URLRequest?
     respond(200, #"{"success":true}"#) { captured = $0 }
 
-    try await makeClient().joinFamily(familyCode: "FAM-ABC123")
+    _ = try await makeClient().joinFamily(familyCode: "FAM-ABC123")
 
     XCTAssertEqual(captured?.httpMethod, "POST")
     XCTAssertEqual(captured?.url?.path, "/api/family/code/join")
+  }
+
+  func test_joinWithCode_decodesFamilyLabel() async throws {
+    respond(200, #"{"success":true,"familyId":"f1","familyLabel":"Alex's Family"}"#)
+
+    let response = try await makeClient().joinFamily(familyCode: "FAM-ABC123")
+
+    XCTAssertEqual(response?.displayLabel, "Alex's Family")
+  }
+
+  func test_joinWithCode_unreadable2xxBodyReturnsNilInsteadOfThrowing() async throws {
+    respond(200, "<html>not json</html>")
+
+    let response = try await makeClient().joinFamily(familyCode: "FAM-ABC123")
+
+    XCTAssertNil(response)
+  }
+
+  func test_joinWithCode_conflictStillThrowsServerMessage() async {
+    respond(409, #"{"message":"This family already has a player"}"#)
+
+    do {
+      _ = try await makeClient().joinFamily(familyCode: "FAM-ABC123")
+      XCTFail("expected throw")
+    } catch {
+      XCTAssertEqual(error.localizedDescription, "This family already has a player")
+    }
   }
 
   func test_savePlayerDetails_postsWebBodyWithExplicitFamilyUnitId() async throws {

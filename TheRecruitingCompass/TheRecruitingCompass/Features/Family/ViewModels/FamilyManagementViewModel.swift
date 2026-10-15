@@ -106,13 +106,14 @@ final class FamilyManagementViewModel {
   /// Families are read straight from Supabase (no label there), so labels come from the inbound-address endpoint,
   /// which returns the server's `familyLabel` for every family the user belongs to.
   func displayLabel(for family: ParentFamilyData) -> String {
-    inboundAddresses.first { $0.familyUnitId == family.familyId }?.displayLabel ?? family.displayLabel
+    inboundAddresses.first { $0.familyUnitId == family.familyId }?.displayLabel ?? family.familyName
   }
 
-  /// The signed-in player's own family label; nil until a label or legacy name is known.
-  var playerFamilyLabel: String? {
-    let entry = inboundAddresses.first { $0.familyUnitId == familyId }
-    return FamilyLabel.display(label: entry?.familyLabel, legacyName: entry?.familyName ?? familyName)
+  /// Heading for the player's family code card. Only a server `familyLabel` changes it: the stored name is
+  /// usually the generic "My Family", which must not replace "Your Family Code" on API versions without labels.
+  var playerFamilyCodeHeading: String {
+    let label = inboundAddresses.first { $0.familyUnitId == familyId }?.familyLabel
+    return FamilyLabel.codeHeading(forServerLabel: label)
   }
 
   func copyInboundAddressToClipboard(_ address: String) {

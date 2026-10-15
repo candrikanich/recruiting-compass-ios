@@ -10,6 +10,16 @@ enum FamilyLabel {
       .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
       .first { !$0.isEmpty }
   }
+
+  /// "Alex's Family" -> "Alex's family code" (web `toFamilyCodeLabel`); a missing or blank server label keeps the
+  /// generic heading. Only reshapes the server's string, never builds a name.
+  static func codeHeading(forServerLabel label: String?) -> String {
+    guard let label = display(label: label, legacyName: nil) else { return String(localized: "Your Family Code") }
+    let suffix = " Family"
+    guard label.hasSuffix(suffix) else { return String(localized: "Your Family Code") }
+    let stem = String(label.dropLast(suffix.count))
+    return String(localized: "\(stem) family code")
+  }
 }
 
 /// Response from `POST /api/family/code/join`. Every field is optional: the join itself already succeeded when the

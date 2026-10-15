@@ -15,6 +15,17 @@ final class FamilyLabelTests: XCTestCase {
     XCTAssertNil(FamilyLabel.display(label: nil, legacyName: nil))
   }
 
+  func test_codeHeading_reshapesServerLabel() {
+    XCTAssertEqual(FamilyLabel.codeHeading(forServerLabel: "Alex's Family"), "Alex's family code")
+    XCTAssertEqual(FamilyLabel.codeHeading(forServerLabel: "Your Family"), "Your family code")
+  }
+
+  func test_codeHeading_fallsBackWithoutServerLabel() {
+    XCTAssertEqual(FamilyLabel.codeHeading(forServerLabel: nil), "Your Family Code")
+    XCTAssertEqual(FamilyLabel.codeHeading(forServerLabel: " "), "Your Family Code")
+    XCTAssertEqual(FamilyLabel.codeHeading(forServerLabel: "Smith Household"), "Your Family Code")
+  }
+
   func test_inviteDetails_decodesFamilyLabel() throws {
     let json = Data("""
     {"invitationId":"i","role":"player","familyName":"Smith Family","familyLabel":"Alex's Family",
@@ -23,7 +34,7 @@ final class FamilyLabelTests: XCTestCase {
     let details = try JSONDecoder().decode(InviteDetails.self, from: json)
     XCTAssertEqual(details.familyLabel, "Alex's Family")
     XCTAssertEqual(details.displayLabel, "Alex's Family")
-    XCTAssertEqual(details.headline, "Join Alex's Family")
+    XCTAssertEqual(details.serverLabel, "Alex's Family")
   }
 
   func test_inviteDetails_withoutFamilyLabel_keepsLegacyCopy() throws {
@@ -33,7 +44,7 @@ final class FamilyLabelTests: XCTestCase {
     let details = try JSONDecoder().decode(InviteDetails.self, from: json)
     XCTAssertNil(details.familyLabel)
     XCTAssertEqual(details.displayLabel, "Smith Family")
-    XCTAssertEqual(details.headline, "Smith Family's recruiting journey")
+    XCTAssertNil(details.serverLabel)
   }
 
   func test_inboundAddress_decodesWithAndWithoutFamilyLabel() throws {

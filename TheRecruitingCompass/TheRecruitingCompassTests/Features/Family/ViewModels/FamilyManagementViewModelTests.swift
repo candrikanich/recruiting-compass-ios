@@ -311,18 +311,21 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertEqual(sut.displayLabel(for: sut.parentFamilies[1]), "Jones Family")
   }
 
-  func testPlayerFamilyLabel_usesServerLabelThenLegacyName() async {
+  func testPlayerFamilyCodeHeading_usesServerLabelElseGenericHeading() async {
     mockAuthManager.setMockUser(makeUser(role: .player))
-    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(familyName: "My Family")
     mockInboundDraftsService.addressesToReturn = [
-      InboundFamilyAddress(familyUnitId: "family-1", familyName: "Test Family", familyLabel: "Alex's Family", address: "a@b.c")
+      InboundFamilyAddress(familyUnitId: "family-1", familyName: "My Family", familyLabel: "Alex's Family", address: "a@b.c")
     ]
     await sut.loadData()
-    XCTAssertEqual(sut.playerFamilyLabel, "Alex's Family")
+    XCTAssertEqual(sut.playerFamilyCodeHeading, "Alex's family code")
 
-    mockInboundDraftsService.addressesToReturn = []
+    // Old prod: no label, stored name is the generic default; heading must not change.
+    mockInboundDraftsService.addressesToReturn = [
+      InboundFamilyAddress(familyUnitId: "family-1", familyName: "My Family", address: "a@b.c")
+    ]
     await sut.loadData()
-    XCTAssertEqual(sut.playerFamilyLabel, "Test Family")
+    XCTAssertEqual(sut.playerFamilyCodeHeading, "Your Family Code")
   }
 
   func testJoinFamily_successMessageUsesServerLabel() async {

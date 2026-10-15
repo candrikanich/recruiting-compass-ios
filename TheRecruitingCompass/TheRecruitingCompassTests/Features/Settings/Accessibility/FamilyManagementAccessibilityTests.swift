@@ -129,7 +129,7 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
 
   func testParentFamilyCard_LabelIncludesNameAndVoiceOverCode() {
     let family = makeMockParentFamily(name: "Smith Family", code: "FAM-123456")
-    let label = ParentFamilyCard(family: family, label: family.displayLabel).cardAccessibilityLabel
+    let label = ParentFamilyCard(family: family, label: family.familyName).cardAccessibilityLabel
 
     XCTAssertTrue(label.contains("Smith Family"), "Parent family card label should include the family name")
     XCTAssertTrue(label.contains("1 2 3 4 5 6"), "Code should be spelled out for VoiceOver")
@@ -137,8 +137,8 @@ final class FamilyManagementAccessibilityTests: XCTestCase {
 
   func testParentFamilyCard_ScalesWithDynamicType() {
     let family = makeMockParentFamily(name: "Smith Family", code: "FAM-ABC123")
-    let cardNormal = ParentFamilyCard(family: family, label: family.displayLabel).environment(\.sizeCategory, .large)
-    let cardA11y = ParentFamilyCard(family: family, label: family.displayLabel).environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
+    let cardNormal = ParentFamilyCard(family: family, label: family.familyName).environment(\.sizeCategory, .large)
+    let cardA11y = ParentFamilyCard(family: family, label: family.familyName).environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
 
     XCTAssertNotNil(UIHostingController(rootView: cardNormal).view)
     XCTAssertNotNil(UIHostingController(rootView: cardA11y).view)

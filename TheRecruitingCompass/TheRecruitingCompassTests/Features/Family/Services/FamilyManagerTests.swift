@@ -128,4 +128,23 @@ struct FamilyManagerTests {
 
     #expect(sut.familyUnitId == "family-new")
   }
+
+  @Test func loadsServerFamilyLabelsAndIgnoresMissingOnes() async {
+    let service = MockFamilyService()
+    let auth = MockAuthManager()
+    auth.setMockUser(user("parent-a", role: .parent))
+    let inbound = MockInboundDraftsAPIService()
+    inbound.addressesToReturn = [
+      InboundFamilyAddress(familyUnitId: "family-a", familyName: "My Family", familyLabel: "Alex's Family", address: "x"),
+      InboundFamilyAddress(familyUnitId: "family-b", familyName: "My Family", address: "y")
+    ]
+    service.stubbedCurrentMember = member(id: "m-p", userId: "parent-a", familyUnitId: "family-a", role: "parent")
+    let sut = FamilyManager(familyService: service, authManager: auth, inboundDraftsService: inbound)
+
+    await sut.loadFamilyData()
+
+    #expect(sut.familyLabels == ["family-a": "Alex's Family"])
+    sut.reset()
+    #expect(sut.familyLabels.isEmpty)
+  }
 }
