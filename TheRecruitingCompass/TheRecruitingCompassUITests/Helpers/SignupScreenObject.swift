@@ -168,6 +168,8 @@ final class SignupScreenObject {
   /// With the keyboard up the scroll view shrinks, so a field near its bottom edge can sit under the
   /// keyboard. Tapping there lands on a key and types a stray character into the field that already has
   /// focus, so retries scroll first and only tap once the field is hittable and clear of the keyboard.
+  /// Retries drag by the field's measured distance rather than swiping: even a slow swipe flings about a
+  /// screen, which carried Password from just below the visible card to above it (nightly 2026-10-16).
   private func focusAndType(
     _ field: XCUIElement, _ text: String, file: StaticString, line: UInt
   ) {
@@ -184,15 +186,40 @@ final class SignupScreenObject {
           return
         }
       }
-      scrollView.swipeUp(velocity: .slow)
+      let visible = Self.visibleFormArea(scrollFrame: scrollView.frame, keyboardFrame: keyboardFrame)
+      drag(from: visible, by: Self.dragOffset(toReveal: field.frame, in: visible))
     }
     XCTFail("Could not focus \(field.identifier.isEmpty ? field.label : field.identifier)", file: file, line: line)
+  }
+
+  /// Holds before releasing so the scroll view stops where the finger does, with no momentum. Starts in
+  /// the card's side padding: a drag that begins on the focused field moves its caret instead of scrolling.
+  private func drag(from visible: CGRect, by offset: CGFloat) {
+    let origin = app.coordinate(withNormalizedOffset: .zero)
+    let start = origin.withOffset(CGVector(dx: visible.minX + 12, dy: visible.midY))
+    start.press(
+      forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: 0, dy: offset)),
+      withVelocity: .slow, thenHoldForDuration: 0.3)
   }
 
   static func isTapSafe(fieldFrame: CGRect, hittable: Bool, keyboardFrame: CGRect?) -> Bool {
     guard hittable else { return false }
     guard let keyboardFrame else { return true }
     return !fieldFrame.intersects(keyboardFrame)
+  }
+
+  static func visibleFormArea(scrollFrame: CGRect, keyboardFrame: CGRect?) -> CGRect {
+    guard let keyboardFrame, keyboardFrame.minY < scrollFrame.maxY else { return scrollFrame }
+    var visible = scrollFrame
+    visible.size.height = max(0, keyboardFrame.minY - scrollFrame.minY)
+    return visible
+  }
+
+  /// Vertical drag that moves the field toward the middle of the visible area. Capped below half its
+  /// height so a drag starting from the middle never leaves the scroll view.
+  static func dragOffset(toReveal fieldFrame: CGRect, in visible: CGRect) -> CGFloat {
+    let limit = visible.height * 0.4
+    return min(limit, max(-limit, visible.midY - fieldFrame.midY))
   }
 
   func acceptTerms(file: StaticString = #filePath, line: UInt = #line) {
