@@ -21,9 +21,8 @@ enum FaqEntries {
       category: "general",
       question: "How much does The Recruiting Compass cost?",
       answer: """
-        It's free right now. Every family that signs up during our founding period keeps full access free \
-        for life — no card, no catch. After the founding window closes, new families get a 30-day free \
-        trial, then $99/year or $12.99/month for the whole family.
+        It's free. Every family that signs up during our founding period keeps full access free for life — \
+        no card, no catch.
         """
     ),
     FaqEntry(

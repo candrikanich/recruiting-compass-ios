@@ -1,50 +1,45 @@
 import SwiftUI
 
-struct MetricRow: View {
+/// One metric as a box in the dashboard Performance grid (mirrors web's PerformanceMetricsWidget tiles).
+struct MetricTile: View {
   let metric: PerformanceMetric
 
-  private var dateFormatted: String {
-    metric.formattedDate
-  }
-
-  private var metricIcon: String {
-    MetricRegistry.def(for: metric.metricType.rawValue).icon
-  }
-
-  private var formattedValue: String {
-    metric.formattedValue
-  }
-
   var body: some View {
-    HStack(spacing: 12) {
-      Image(systemName: metricIcon)
-        .font(.brand(.title3))
-        .foregroundStyle(Color.accentPrimary)
-        .frame(width: 32)
-        .accessibilityHidden(true)
+    VStack(spacing: 6) {
+      Text(metric.displayName)
+        .font(.brand(.caption))
+        .fontWeight(.medium)
+        .foregroundStyle(Color.Text.secondary)
+        .multilineTextAlignment(.center)
+        .lineLimit(2)
+        .minimumScaleFactor(0.85)
 
-      VStack(alignment: .leading, spacing: 4) {
-        Text(metric.displayName)
-          .font(.brand(.subheadline))
-          .fontWeight(.semibold)
-
-        Text(formattedValue)
-          .font(.brand(.body))
-          .foregroundStyle(Color.darkSlate)
-
-        Text(dateFormatted)
-          .font(.brand(.caption))
-          .foregroundStyle(Color.secondaryText)
+      HStack(alignment: .firstTextBaseline, spacing: 3) {
+        Text(metric.metricType.format(metric.value))
+          .font(.brand(.title3))
+          .bold()
+          .foregroundStyle(Color.accentPrimary)
+        if !metric.unit.isEmpty {
+          Text(metric.unit)
+            .font(.brand(.caption))
+            .foregroundStyle(Color.Text.muted)
+        }
       }
+      .lineLimit(1)
+      .minimumScaleFactor(0.7)
 
-      Spacer()
+      Text(metric.formattedDate)
+        .font(.brand(.caption2))
+        .foregroundStyle(Color.Text.secondary)
     }
-    .padding(12)
-    .frame(minHeight: 44)
-    .background(Color(.secondarySystemBackground))
-    .clipShape(.rect(cornerRadius: 8))
+    .frame(maxWidth: .infinity, minHeight: 96)
+    .padding(.horizontal, 8)
+    .padding(.vertical, 12)
+    .background(Color.Surface.background)
+    .clipShape(.rect(cornerRadius: 10))
+    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.Surface.border, lineWidth: 1))
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "\(metric.displayName): \(formattedValue)"))
-    .accessibilityValue("Recorded \(dateFormatted)")
+    .accessibilityLabel(String(localized: "\(metric.displayName): \(metric.formattedValue)"))
+    .accessibilityValue("Recorded \(metric.formattedDate)")
   }
 }

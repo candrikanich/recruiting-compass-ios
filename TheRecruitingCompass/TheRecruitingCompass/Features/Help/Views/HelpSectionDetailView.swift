@@ -306,7 +306,9 @@ private struct HelpAccountContent: View {
 
       sectionBlock {
         HelpSectionHeader(title: "Changing your password")
-        HelpStepCard(step: 1, title: "Go to Account settings", bodyText: "Navigate to Settings → Account.")
+        HelpStepCard(
+          step: 1, title: "Go to User Settings", bodyText: "Navigate to More → Settings → User Settings."
+        )
         HelpStepCard(step: 2, title: "Tap Change password", bodyText: "Enter your current password, then your new password twice to confirm.")
         HelpStepCard(step: 3, title: "Save", bodyText: "Tap Update password. You'll be asked to log in again with your new credentials.", isLast: true)
       }
@@ -319,7 +321,11 @@ private struct HelpAccountContent: View {
         bulletList(items: [
           ("What we store", "your athlete profile, school list, coach interactions, and app activity"),
           ("Who can see it", "only you and family members you've invited"),
-          ("To delete your account", "go to Settings → Account → Delete account. This permanently removes all your data.")
+          (
+            "To delete your account",
+            "go to More → Settings → User Settings → Data & Privacy → Request Account Deletion. "
+              + "Your account and data are permanently deleted after 30 days; you can cancel any time before then."
+          )
         ])
         HelpCallout(type: .important, text: "Account deletion is permanent and cannot be undone. Export your data before deleting if you want to keep a record of your recruiting history.")
       }

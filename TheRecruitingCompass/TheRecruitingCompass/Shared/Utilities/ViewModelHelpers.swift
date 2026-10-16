@@ -4,6 +4,12 @@ import OSLog
 /// Shared helpers for ViewModels (loading flags, error handling). Use from @MainActor ViewModels.
 enum ViewModelHelpers {
 
+  /// A `.task` is cancelled when its view disappears (a push, a tab switch); the SDK then surfaces
+  /// `URLError(.cancelled)` or `CancellationError`. Neither is a failure the user should see.
+  static func isCancellation(_ error: Error) -> Bool {
+    error is CancellationError || (error as NSError).code == NSURLErrorCancelled
+  }
+
   /// Sets the loading flag to true for the duration of `operation`, then false. Use for isLoading, isSaving, isDeleting, etc.
   /// Pass a setter to avoid passing actor-isolated `inout` across async boundaries (e.g. `set: { self.isUpdating = $0 }`).
   @MainActor
@@ -23,7 +29,7 @@ enum ViewModelHelpers {
     logger: Logger? = nil,
     setMessage: (String) -> Void
   ) {
-    if error is CancellationError || (error as NSError).code == NSURLErrorCancelled {
+    if isCancellation(error) {
       let fileName = (file as NSString).lastPathComponent
       logger?.debug("[\(fileName):\(function)] cancelled")
       return

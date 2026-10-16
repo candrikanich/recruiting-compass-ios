@@ -175,6 +175,9 @@ final class NotificationsListViewModel {
       applyNotifications(fresh)
       errorMessage = nil
       logger.info("Loaded \(fresh.count) notifications")
+    } catch let error where ViewModelHelpers.isCancellation(error) {
+      // Tapping a notification pushes a view and cancels this .task; that isn't a failed load.
+      logger.debug("Notifications fetch cancelled")
     } catch {
       if notifications.isEmpty {
         errorMessage = "Failed to load notifications. Please try again."

@@ -122,19 +122,11 @@ struct NotificationsListView: View {
           .foregroundStyle(.secondary)
       }
 
-    case .offerDetail:
-      Text("Offer details coming soon")
-        .font(.brand(.headline))
-        .foregroundStyle(.secondary)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .navigationTitle("Offer")
+    case .offerDetail(let id):
+      OfferDetailView(offerId: id)
 
-    case .eventDetail:
-      Text("Event details coming soon")
-        .font(.brand(.headline))
-        .foregroundStyle(.secondary)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .navigationTitle("Event")
+    case .eventDetail(let id):
+      EventDetailView(eventId: id)
 
     case .inboundDraftsList:
       InboundDraftsView()

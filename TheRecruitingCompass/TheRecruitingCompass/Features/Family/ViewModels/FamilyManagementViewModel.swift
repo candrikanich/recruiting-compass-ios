@@ -15,6 +15,8 @@ final class FamilyManagementViewModel {
   var familyId: String?
   var familyName: String?
   var codeGeneratedAt: String?
+  /// The family has no code and generating one failed — show a retry, not a spinner.
+  var familyCodeUnavailable = false
   var familyMembers: [FamilyMember] = []
   var pendingInvitations: [FamilyInvitation] = []
   var inviteEmail: String = ""
@@ -135,6 +137,9 @@ final class FamilyManagementViewModel {
         familyId = familyUnit.id
         familyName = familyUnit.familyName
         codeGeneratedAt = familyUnit.codeGeneratedAt
+        if familyCode == nil {
+          await generateMissingFamilyCode(familyId: familyUnit.id)
+        }
 
         // Load family members and pending invitations
         await loadFamilyMembers(familyUnitId: familyUnit.id)
@@ -147,6 +152,26 @@ final class FamilyManagementViewModel {
       logger.error("Failed to load player data: \(error.localizedDescription)")
       errorMessage = "Failed to load family data. Please try again."
     }
+  }
+
+  /// Some families were created without a code (seeded / legacy rows). Generate one rather than
+  /// leaving the code card spinning forever.
+  private func generateMissingFamilyCode(familyId: String) async {
+    do {
+      let response = try await familyService.regenerateCode(familyId: familyId)
+      familyCode = response.familyCode
+      codeGeneratedAt = Self.isoFormatter.string(from: Date.now)
+      familyCodeUnavailable = false
+    } catch {
+      logger.error("Failed to generate missing family code: \(error.localizedDescription)")
+      familyCodeUnavailable = true
+    }
+  }
+
+  func retryMissingFamilyCode() async {
+    guard let familyId else { return }
+    familyCodeUnavailable = false
+    await generateMissingFamilyCode(familyId: familyId)
   }
 
   private func loadFamilyMembers(familyUnitId: String) async {

@@ -242,8 +242,9 @@ final class DashboardViewModel {
 
       loadQuickTasks()
       await fetchVisibleWidgets(familyUnitId: familyUnitId)
-    } catch is CancellationError {
-      // Superseded by a newer fetch (e.g. pull-to-refresh racing the view's .task) — that one owns the result.
+    } catch let error where ViewModelHelpers.isCancellation(error) {
+      // Superseded by a newer fetch (pull-to-refresh racing the view's .task), or the view's .task was
+      // cancelled by a push / tab switch — either way this fetch doesn't own the result.
       logger.debug("fetchDashboardData cancelled, superseded by a newer fetch")
       return
     } catch {
@@ -381,7 +382,7 @@ final class DashboardViewModel {
 
   func addTask(_ text: String) {
     let newTask = QuickTask(text: text)
-    quickTasks.append(newTask)
+    quickTasks.insert(newTask, at: 0)
     saveQuickTasks()
   }
 
@@ -432,6 +433,8 @@ final class DashboardViewModel {
         logger.warning("Failed to load suggestions after refresh: \(error.localizedDescription)")
         suggestionsError = "Couldn't load action items. Pull to refresh."
       }
+    } catch let error where ViewModelHelpers.isCancellation(error) {
+      logger.debug("fetchSuggestions cancelled")
     } catch {
       logger.warning("Failed to load suggestions: \(error.localizedDescription)")
       suggestionsError = "Couldn't load action items. Pull to refresh."
@@ -587,23 +590,8 @@ final class DashboardViewModel {
           let userId = authManager.user?.id else { return }
     do {
       let schoolsService = SchoolsServiceImpl(supabaseManager: .shared)
-      let request = SchoolCreateRequest(
-        userId: userId,
-        familyUnitId: familyUnitId,
-        name: recommendation.name,
-        location: nil,
-        city: nil,
-        state: recommendation.state,
-        division: recommendation.division,
-        conference: recommendation.conference,
-        website: nil,
-        twitterHandle: nil,
-        instagramHandle: nil,
-        ncaaId: nil,
-        notes: nil,
-        status: "tracking",
-        academicInfo: nil,
-        faviconUrl: nil
+      let request = SchoolCreateRequest.from(
+        recommendation: recommendation, userId: userId, familyUnitId: familyUnitId
       )
       _ = try await schoolsService.createSchool(request: request)
       recommendations.removeAll { $0.id == recommendation.id }

@@ -102,6 +102,19 @@ struct FamilyManagementPlayerView: View {
             .accessibilityHint("Creates a new code and invalidates the old one")
           }
         }
+      } else if viewModel.familyCodeUnavailable {
+        VStack(spacing: FamilyConstants.Spacing.small) {
+          Text("Your family code isn't available right now.")
+            .font(.brand(.subheadline))
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+          Button("Try again") {
+            Task { await viewModel.retryMissingFamilyCode() }
+          }
+          .buttonStyle(.bordered)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, FamilyConstants.Spacing.medium)
       } else {
         ProgressView()
           .accessibilityLabel(String(localized: "Loading family code"))

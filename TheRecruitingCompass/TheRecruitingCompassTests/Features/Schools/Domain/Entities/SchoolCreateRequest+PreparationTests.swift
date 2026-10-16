@@ -450,4 +450,32 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     // Then
     XCTAssertNil(request.academicInfo)
   }
+
+  // MARK: - from(recommendation:)
+
+  // Prod bug (build 111/115): adding a dashboard recommendation sent status "tracking", which is not a
+  // school_status enum value, so every insert 400'd and the user saw "Couldn't add school".
+  func test_fromRecommendation_usesAStatusTheDatabaseAccepts() {
+    let request = SchoolCreateRequest.from(
+      recommendation: SchoolRecommendation(catalogKey: "k1", name: "State U", score: 0.9, reasons: []),
+      userId: "user-1",
+      familyUnitId: "fam-1"
+    )
+    XCTAssertNotNil(SchoolStatus(rawValue: request.status), "status must be a school_status enum value")
+    XCTAssertEqual(request.status, SchoolStatus.researching.rawValue)
+  }
+
+  func test_fromRecommendation_carriesRecommendationFields() {
+    let recommendation = SchoolRecommendation(
+      catalogKey: "k1", name: "State U", division: "D1", conference: "Big Ten", state: "OH",
+      website: "https://stateu.edu", score: 0.9, reasons: []
+    )
+    let request = SchoolCreateRequest.from(recommendation: recommendation, userId: "user-1", familyUnitId: "fam-1")
+    XCTAssertEqual(request.name, "State U")
+    XCTAssertEqual(request.division, "D1")
+    XCTAssertEqual(request.conference, "Big Ten")
+    XCTAssertEqual(request.state, "OH")
+    XCTAssertEqual(request.userId, "user-1")
+    XCTAssertEqual(request.familyUnitId, "fam-1")
+  }
 }

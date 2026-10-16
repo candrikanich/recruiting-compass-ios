@@ -37,6 +37,8 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     familyId: "family-1",
     familyName: "Test Family"
   )
+  /// Fails only regenerateCode (shouldSucceed fails every call).
+  var regenerateCodeError: Error?
   var mockRegenerateCodeResponse = RegenerateFamilyCodeResponse(
     familyCode: "FAM-XYZ789"
   )
@@ -108,6 +110,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   func regenerateCode(familyId: String) async throws -> RegenerateFamilyCodeResponse {
     regenerateCodeCallCount += 1
     lastFamilyIdRegenerated = familyId
+    if let regenerateCodeError { throw regenerateCodeError }
 
     if !shouldSucceed {
       throw mockError

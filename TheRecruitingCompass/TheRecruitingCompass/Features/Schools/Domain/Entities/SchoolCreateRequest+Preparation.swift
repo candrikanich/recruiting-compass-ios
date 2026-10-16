@@ -124,4 +124,30 @@ extension SchoolCreateRequest {
       distanceFromHome: nil
     )
   }
+
+  /// Creates a SchoolCreateRequest for a school added from the dashboard recommendations.
+  static func from(
+    recommendation: SchoolRecommendation,
+    userId: String,
+    familyUnitId: String
+  ) -> SchoolCreateRequest {
+    SchoolCreateRequest(
+      userId: userId,
+      familyUnitId: familyUnitId,
+      name: recommendation.name,
+      location: nil,
+      city: nil,
+      state: recommendation.state,
+      division: recommendation.division,
+      conference: recommendation.conference,
+      website: nil,
+      twitterHandle: nil,
+      instagramHandle: nil,
+      ncaaId: nil,
+      notes: nil,
+      status: SchoolStatus.researching.rawValue,
+      academicInfo: nil,
+      faviconUrl: nil
+    )
+  }
 }
