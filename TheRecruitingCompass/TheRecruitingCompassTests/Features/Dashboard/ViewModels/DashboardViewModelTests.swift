@@ -450,7 +450,7 @@ final class DashboardViewModelTests: XCTestCase {
     authenticateUser()
     sut.addTask("Task 1")
     sut.addTask("Task 2")
-    let taskIdToDelete = sut.quickTasks.first!.id
+    let taskIdToDelete = sut.quickTasks.first { $0.text == "Task 1" }!.id
 
     sut.deleteTask(taskIdToDelete)
 
@@ -462,7 +462,7 @@ final class DashboardViewModelTests: XCTestCase {
     authenticateUser()
     sut.addTask("Incomplete task")
     sut.addTask("Completed task")
-    let completedId = sut.quickTasks.last!.id
+    let completedId = sut.quickTasks.first { $0.text == "Completed task" }!.id
     sut.toggleTaskCompletion(completedId)
 
     sut.clearCompletedTasks()
@@ -908,5 +908,29 @@ final class DashboardViewModelTests: XCTestCase {
     let withVideo = sut.profileCompleteness
 
     XCTAssertEqual(withVideo - withoutVideo, 0.15, accuracy: 0.0001)
+  }
+
+  // MARK: - Cancellation (a widget tap / tab switch cancels the view's .task mid-fetch)
+
+  func testFetchDashboardData_urlCancelled_showsNoError() async {
+    authenticateUser()
+    setupFamilyContext()
+    mockDashboardService.fetchStatsError = URLError(.cancelled)
+
+    await sut.fetchDashboardData()
+
+    XCTAssertNil(sut.errorMessage)
+    XCTAssertFalse(sut.isLoading)
+  }
+
+  // MARK: - Quick tasks: newest first, so a new task is visible without scrolling the widget
+
+  func testAddTask_insertsNewestFirst() {
+    authenticateUser()
+    sut.addTask("First")
+    sut.addTask("Second")
+
+    XCTAssertEqual(sut.quickTasks.map(\.text), ["Second", "First"])
+    XCTAssertEqual(mockTaskStorage.storedTasks.values.first?.map(\.text), ["Second", "First"])
   }
 }

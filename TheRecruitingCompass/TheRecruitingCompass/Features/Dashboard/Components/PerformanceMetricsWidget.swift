@@ -6,12 +6,16 @@ struct PerformanceMetricsWidget: View {
 
   @State private var isShowingAll = false
 
+  /// A full 3×2 / 2×3 grid before "Show more".
+  private static let collapsedCount = 6
+  private let columns = [GridItem(.adaptive(minimum: 120), spacing: 12)]
+
   init(metrics: [PerformanceMetric]) {
     self.recentMetrics = metrics.sorted(by: { $0.recordedDate > $1.recordedDate })
   }
 
   private var visibleMetrics: [PerformanceMetric] {
-    isShowingAll ? recentMetrics : Array(recentMetrics.prefix(4))
+    isShowingAll ? recentMetrics : Array(recentMetrics.prefix(Self.collapsedCount))
   }
 
   var body: some View {
@@ -28,18 +32,18 @@ struct PerformanceMetricsWidget: View {
           .foregroundStyle(Color.secondaryText)
           .padding(.vertical)
       } else {
-        VStack(spacing: 12) {
+        LazyVGrid(columns: columns, spacing: 12) {
           ForEach(visibleMetrics) { metric in
-            MetricRow(metric: metric)
+            MetricTile(metric: metric)
           }
         }
 
-        if recentMetrics.count > 4 {
+        if recentMetrics.count > Self.collapsedCount {
           Button(action: { isShowingAll.toggle() }) {
             HStack(spacing: 4) {
               Text(isShowingAll
                 ? String(localized: "Show less")
-                : String(localized: "Show \(recentMetrics.count - 4) more metrics"))
+                : String(localized: "Show \(recentMetrics.count - Self.collapsedCount) more"))
                 .font(.brand(.caption))
               Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
                 .font(.brand(.caption))
@@ -51,7 +55,7 @@ struct PerformanceMetricsWidget: View {
             ? "Show fewer metrics"
             : "Show all \(recentMetrics.count) metrics"))
           .accessibilityHint(isShowingAll
-            ? "Collapses the list to show only 4 metrics"
+            ? "Collapses the grid to show only the most recent metrics"
             : "Expands the list to show all metrics")
         }
       }

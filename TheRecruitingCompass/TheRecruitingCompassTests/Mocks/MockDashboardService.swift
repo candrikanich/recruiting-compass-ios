@@ -29,6 +29,8 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   // MARK: - Error Flags
 
   var shouldThrowFetchStats = false
+  /// Thrown by fetchStats when set (takes precedence over shouldThrowFetchStats).
+  var fetchStatsError: Error?
   var shouldThrowFetchSuggestions = false
   var shouldThrowFetchEvents = false
   var shouldThrowFetchMetrics = false
@@ -61,6 +63,7 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
     fetchStatsCallCount += 1
     lastFetchStatsFamilyUnitId = familyUnitId
     lastFetchStatsUserId = userId
+    if let fetchStatsError { throw fetchStatsError }
     if shouldThrowFetchStats {
       throw NSError(domain: "MockDashboard", code: 1, userInfo: [NSLocalizedDescriptionKey: "Mock fetch stats error"])
     }

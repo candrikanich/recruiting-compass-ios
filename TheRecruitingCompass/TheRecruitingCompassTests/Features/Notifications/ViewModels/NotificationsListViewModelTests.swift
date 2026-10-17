@@ -880,4 +880,23 @@ final class NotificationsListViewModelTests: XCTestCase {
       updatedAt: nil
     )
   }
+
+  // MARK: - Cancellation (tapping a notification pushes a view and cancels the list's .task)
+
+  func testFetchNotifications_urlCancelled_showsNoError() async {
+    mockService.fetchError = URLError(.cancelled)
+
+    await viewModel.fetchNotifications()
+
+    XCTAssertNil(viewModel.errorMessage)
+    XCTAssertFalse(viewModel.isLoading)
+  }
+
+  func testFetchNotifications_swiftCancellation_showsNoError() async {
+    mockService.fetchError = CancellationError()
+
+    await viewModel.fetchNotifications()
+
+    XCTAssertNil(viewModel.errorMessage)
+  }
 }

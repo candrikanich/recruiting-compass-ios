@@ -120,37 +120,6 @@ struct DashboardCustomizationView: View {
           .font(.brand(.caption))
       }
 
-      // Coming Soon — widgets not yet available
-      Section {
-        LazyVGrid(columns: columns, spacing: 12) {
-          ToggleCard(icon: "bell.badge.fill", label: String(localized: "Notifications"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "link", label: String(localized: "Linked Accounts"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "doc.badge.ellipsis", label: String(localized: "Offer Status"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "chart.pie.fill", label: String(localized: "School Interest"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "map.fill", label: String(localized: "School Map"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "doc.richtext", label: String(localized: "Recent Docs"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "chart.bar.xaxis", label: String(localized: "Interaction Stats"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "building.columns.fill", label: String(localized: "School Status"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "clock.badge.checkmark", label: String(localized: "Coach Response"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "exclamationmark.triangle.fill", label: String(localized: "Deadlines"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-        }
-      } header: {
-        Text("Coming Soon")
-      } footer: {
-        Text("These widgets aren't available yet.")
-          .font(.brand(.caption))
-      }
-
       // Reset Section
       Section {
         Button("Reset to Defaults") {
