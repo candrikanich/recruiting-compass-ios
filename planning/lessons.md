@@ -4,6 +4,14 @@ Actionable patterns extracted from articles and project experience.
 
 ---
 
+## Core (Recurring)
+
+Patterns seen 2+ times. Each entry keeps its `**Times seen:**` counter; a new sighting increments it instead of adding a duplicate.
+
+- **Migration versions collide and reorder across parallel PRs**: Pick the next free version against `origin/develop` AND every open PR at PR time, not at branch time. If an older-numbered migration lands after newer ones are applied anywhere (QA included), renumber it to the end and rebase any function bodies on the current definitions. Why: Train 1 had a duplicate `20261014000200` that broke replay, and a PR numbered `000800` went out of order once `000900` was on QA, so it would have re-created a function from an older body. **Times seen:** 2
+
+---
+
 ## Design Systems Checklist (Tyler Coderre) — 2026-03-10
 Source: https://tylercoderre.com/projects/design-systems-checklist.html?ref=sidebar
 
@@ -57,3 +65,11 @@ Source: https://testing.googleblog.com/2026/10/two-way-doors-dont-code-yourself-
 - **Remote kill switch before risky features**: The only remote control is the whole-app version gate, so a broken feature in a live build can't be turned off — add per-feature flags to `app_config` through an RPC, with missing keys meaning "on".
 - **Raw tables are the public API**: iOS reads 26 tables directly with snake_case CodingKeys that mirror columns 1:1, so the DB schema is the wire format — only add columns, and route new iOS features through RPCs or views that can change underneath.
 - **Version stored on-device data**: Keychain session JSON and UserDefaults Codable blobs aren't versioned, so a shape change logs people out or throws — wrap them in `{version, payload}` and fall back to a reset when decoding fails.
+
+## Train 1 Retro (project experience) — 2026-10-17
+Source: Train 1 close (family-model PRs, iOS 1.0 review cycle)
+
+- **Independent verification on auth/RLS/minors PRs**: Every PR touching auth, RLS, or minors' data gets a separate verifier that runs mutation tests and live probes. Treat a "relaxed" or loosened test as a blocker until it is proven to be a legitimate narrowing. Why: most family-model PRs failed first-pass verification, including real security holes: a minor self-editing DOB ("turns 18 tomorrow" bypass), guardian removal from a second account, email shown as the name on invite links, and weakened tests. **Times seen:** 1
+- **Stacked/parallel PRs need a written merge order**: Every stacked or interdependent PR states its merge order and any "must ship together" constraint in the PR body. A safety guard must be on develop before the next promotion that carries the code it guards. Why: develop promotes to prod as a whole, so a guard (web #1268) that is still in review while its target is already on develop would ship the risk without the guard. **Times seen:** 1
+- **Machine load causes false failures**: Run at most one local Supabase stack per agent, check `uptime` before heavy runs, and hold new agent dispatches while load is above 200. Make timing tests load-independent (CPU time, or relative budgets with a fixed ceiling). Why: load averages of 300–990 from parallel agents and local stacks produced timing-test flakes, stalled type-checks, and CI fork-worker timeouts that looked like real regressions. Related: "Hidden edges in parallel agents" above. **Times seen:** 1
+- **`core.hooksPath=/dev/null` is for `git merge` only**: Use `git -c core.hooksPath=/dev/null merge …` only to dodge the post-merge hook that prunes `.claude/worktrees/*`. Never use it on `git commit`. Why: on a commit it skips the pre-commit hooks, which amounts to bypassing them. **Times seen:** 1
