@@ -21,6 +21,10 @@ struct PlanView: View {
             Text(message)
               .font(.brand(.caption))
               .foregroundStyle(.red)
+            Button("Try again") {
+              Task { await loadPlan() }
+            }
+            .font(.brand(.subheadline))
           } else if entitlementStore.subscription?.status == .founding {
             Text("""
               You joined during our founding period. Your family keeps full access at no \
@@ -39,8 +43,17 @@ struct PlanView: View {
     .navigationTitle("Plan")
     .navigationBarTitleDisplayMode(.inline)
     .task {
-      await entitlementStore.load(familyUnitId: familyManager.familyUnitId)
+      await loadPlan()
     }
+  }
+
+  /// Plan can be opened before family data has loaded (Settings' load is cancelled by the push),
+  /// so make sure the family is known before reading its plan.
+  private func loadPlan() async {
+    if familyManager.familyUnitId == nil {
+      await familyManager.loadFamilyData()
+    }
+    await entitlementStore.load(familyUnitId: familyManager.familyUnitId)
   }
 }
 

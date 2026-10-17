@@ -33,7 +33,7 @@ final class EntitlementStoreTests: XCTestCase {
     await store.load(familyUnitId: nil)
     XCTAssertNil(store.subscription)
     XCTAssertFalse(store.canWrite)
-    XCTAssertEqual(store.planLabel, PlanLabel.unavailable)
+    XCTAssertEqual(store.planLabel, PlanLabel.noFamily)
     XCTAssertEqual(mock.requestedFamilyIds, ["fam-1"])
     XCTAssertTrue(store.hasLoaded)
   }
@@ -102,6 +102,59 @@ final class EntitlementStoreTests: XCTestCase {
     await staleLoad.value
 
     XCTAssertNil(store.subscription)
+    XCTAssertFalse(store.hasLoaded)
+    XCTAssertFalse(store.isLoading)
+  }
+  // App Review rejection (1.0 build 111): a freshly signed-up account with no family yet saw
+  // "Plan unavailable", which reads as broken. No family is a setup step, not a failure.
+  func test_nilFamilyPromptsSetupInsteadOfUnavailable() async {
+    let (store, _) = makeStore(nil)
+    await store.load(familyUnitId: nil)
+    XCTAssertEqual(store.planLabel, PlanLabel.noFamily)
+    XCTAssertNotEqual(store.planLabel, PlanLabel.unavailable)
+    XCTAssertNil(store.errorMessage)
+  }
+
+  // App Review rejection (1.0 build 111): Settings' `.task` load was still in flight when the
+  // reviewer tapped Plan; the push cancelled it after PlanView's own load had succeeded, and the
+  // cancellation was reported as "Unable to load your plan" over the good result.
+  func test_loadCancelledByNavigationDoesNotClobberNewerSuccessfulLoad() async {
+    let (store, mock) = makeStore(founding)
+    let gate = AsyncGate(blockedEntries: 1)
+    mock.fetchGate = { await gate.wait() }
+
+    let settingsLoad = Task { await store.load(familyUnitId: "fam-1") }
+    await gate.untilEntered()
+    await store.load(familyUnitId: "fam-1")
+    XCTAssertEqual(store.subscription, founding)
+
+    settingsLoad.cancel()
+    mock.error = URLError(.cancelled)
+    gate.open()
+    await settingsLoad.value
+
+    XCTAssertEqual(store.subscription, founding)
+    XCTAssertEqual(store.planLabel, "Founding Family — free for life")
+    XCTAssertNil(store.errorMessage)
+    XCTAssertTrue(store.hasLoaded)
+    XCTAssertFalse(store.isLoading)
+  }
+
+  func test_swiftCancellationErrorIsNotShownAsFailure() async {
+    let (store, mock) = makeStore(founding)
+    await store.load(familyUnitId: "fam-1")
+    mock.error = CancellationError()
+    await store.load(familyUnitId: "fam-1")
+    XCTAssertEqual(store.subscription, founding)
+    XCTAssertNil(store.errorMessage)
+    XCTAssertFalse(store.isLoading)
+  }
+
+  func test_cancelledFirstLoadLeavesStoreNotYetLoaded() async {
+    let (store, mock) = makeStore(founding)
+    mock.error = URLError(.cancelled)
+    await store.load(familyUnitId: "fam-1")
+    XCTAssertNil(store.errorMessage)
     XCTAssertFalse(store.hasLoaded)
     XCTAssertFalse(store.isLoading)
   }

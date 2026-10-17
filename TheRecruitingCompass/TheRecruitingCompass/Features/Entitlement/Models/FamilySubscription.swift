@@ -14,6 +14,7 @@ enum SubscriptionStatus: String, Codable, Sendable {
 
 enum PlanLabel {
   static let unavailable = String(localized: "Plan unavailable")
+  static let noFamily = String(localized: "Finish setting up your family to see your plan")
 }
 
 struct FamilySubscription: Codable, Sendable, Equatable {

@@ -18,6 +18,9 @@ final class EntitlementStore {
   /// leave `subscription` nil, but only the latter should render `planLabel`/`canWrite` as final.
   private(set) var hasLoaded = false
 
+  /// The last completed load had no family to look up — a setup step, not a failure.
+  private var loadedWithoutFamily = false
+
   /// Advanced by `reset()`; a fetch only applies while its session is still current.
   private var session = 0
 
@@ -30,7 +33,10 @@ final class EntitlementStore {
   /// has run for the active family (e.g. on session restore / family switch), or this will
   /// incorrectly read as read-only.
   var canWrite: Bool { subscription?.canWrite() ?? false }
-  var planLabel: String { subscription?.planLabel() ?? PlanLabel.unavailable }
+  var planLabel: String {
+    if let subscription { return subscription.planLabel() }
+    return loadedWithoutFamily ? PlanLabel.noFamily : PlanLabel.unavailable
+  }
 
   init(service: any EntitlementManaging = EntitlementServiceImpl(supabaseManager: .shared)) {
     self.service = service
@@ -43,12 +49,14 @@ final class EntitlementStore {
     errorMessage = nil
     isLoading = false
     hasLoaded = false
+    loadedWithoutFamily = false
   }
 
   func load(familyUnitId: String?) async {
     guard let familyUnitId else {
       subscription = nil
       errorMessage = nil
+      loadedWithoutFamily = true
       hasLoaded = true
       return
     }
@@ -62,7 +70,11 @@ final class EntitlementStore {
     }
     guard loadSession == session else { return }
     isLoading = false
+    // A view's `.task` is cancelled when the view disappears — Settings' load is cancelled the moment
+    // Plan is pushed. That is not a failed load: keep whatever a concurrent load produced.
+    if case .failure(let error) = result, Self.isCancellation(error) { return }
     hasLoaded = true
+    loadedWithoutFamily = false
     switch result {
     case .success(let fetched):
       subscription = fetched
@@ -74,5 +86,9 @@ final class EntitlementStore {
       errorMessage = String(localized: "Unable to load your plan. Please try again.")
       logger.error("Failed to load entitlement: \(error.localizedDescription)")
     }
+  }
+
+  private static func isCancellation(_ error: Error) -> Bool {
+    error is CancellationError || (error as? URLError)?.code == .cancelled
   }
 }
