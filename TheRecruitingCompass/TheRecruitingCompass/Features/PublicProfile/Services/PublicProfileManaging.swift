@@ -7,6 +7,8 @@ enum PublicProfileAPIError: LocalizedError, Equatable {
     case notMember
     case notConfigured
     case server(Int)
+    /// Server-provided message (403/404/400 from `/api/player/profile`), shown verbatim.
+    case serverMessage(String)
 
     var errorDescription: String? {
         switch self {
@@ -15,13 +17,14 @@ enum PublicProfileAPIError: LocalizedError, Equatable {
         case .slugInvalid: return "That custom URL is invalid or reserved."
         case .notMember: return "You don't have permission to edit this profile."
         case .notConfigured: return "Public profile is not available."
+        case .serverMessage(let message): return message
         case .server: return "Couldn't save changes. Please try again."
         }
     }
 }
 
 protocol PublicProfileManaging: Sendable {
-    func fetchProfile(accessToken: String?) async throws -> PlayerProfile?
+    func fetchProfile(athleteId: String?, accessToken: String?) async throws -> PlayerProfile?
     func updateProfile(_ payload: UpdateProfilePayload, accessToken: String?) async throws
     func fetchTrackingLink(coachId: String, accessToken: String?) async throws
         -> ProfileTrackingLink?

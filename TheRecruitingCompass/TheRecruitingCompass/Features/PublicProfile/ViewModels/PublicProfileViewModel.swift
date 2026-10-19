@@ -68,6 +68,18 @@ final class PublicProfileViewModel {
 
     private var token: String? { authManager.session?.accessToken }
 
+    /// A parent has no public profile of their own (family spec §9 item 17). True when a parent is
+    /// viewing this editor without a selected athlete, so load/save must not run at all.
+    var hasNoEditableProfile: Bool {
+        authManager.user?.role == .parent && (targetUserId == nil || targetUserId == authManager.user?.id)
+    }
+
+    /// The athlete this editor is pinned to (fixed at init). nil = the caller's own row (player accounts).
+    private var athleteId: String? {
+        guard let targetUserId, targetUserId != authManager.user?.id else { return nil }
+        return targetUserId
+    }
+
     /// Fails open on any lookup error — a status-check failure must never
     /// fabricate a publish lock.
     func refreshGuardianStatus() async {
@@ -81,16 +93,20 @@ final class PublicProfileViewModel {
         isLoading = true
         defer { isLoading = false }
         availableSchools = await fetchSchoolsData()
+        guard !hasNoEditableProfile else { return }
+        let athleteId = athleteId
         do {
-            guard let loaded = try await service.fetchProfile(accessToken: token) else { return }
+            guard let loaded = try await service.fetchProfile(athleteId: athleteId, accessToken: token) else { return }
             apply(loaded)
         } catch PublicProfileAPIError.unauthorized {
             let refreshed = await retryAfterRefresh {
-                try await self.service.fetchProfile(accessToken: self.token)
+                try await self.service.fetchProfile(athleteId: athleteId, accessToken: self.token)
             }
             if let refreshed, let profile = refreshed {
                 apply(profile)
             }
+        } catch let error as PublicProfileAPIError {
+            if case .serverMessage(let message) = error { saveError = message }
         } catch {
             // leave state as-is; view shows unconfigured/empty
         }
@@ -98,6 +114,10 @@ final class PublicProfileViewModel {
 
     func save() async {
         saveError = nil
+        guard !hasNoEditableProfile else {
+            saveError = String(localized: "Select an athlete to edit their public profile.")
+            return
+        }
         // Slug validity is independent of the other fields: an invalid/reserved local slug
         // must not block persisting the rest. Only the vanity_slug key itself is conditional;
         // when invalid it's omitted so the server keeps the existing slug.
@@ -149,7 +169,8 @@ final class PublicProfileViewModel {
             awards: awards,
             commitmentStatus: commitmentStatus,
             committedSchoolId: committedSchoolPayload,
-            sectionConfig: sections
+            sectionConfig: sections,
+            athleteId: athleteId
         )
     }
 

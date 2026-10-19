@@ -106,6 +106,7 @@ struct MoreMenuView: View {
       HelpCenterView()
     case .publicProfile:
       PublicTab(targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id)
+        .id(familyManager.selectedAthleteId)
         .navigationTitle("Public Profile")
         .navigationBarTitleDisplayMode(.inline)
     case .notifications:

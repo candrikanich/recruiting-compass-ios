@@ -49,7 +49,7 @@ final class SendProfileViewModel {
     /// button until the profile is public.
     func loadPublishState() async {
         let token = authManager.session?.accessToken
-        let profile = try? await service.fetchProfile(accessToken: token)
+        let profile = try? await service.fetchProfile(athleteId: nil, accessToken: token)
         isPublished = profile?.isPublished ?? false
     }
 
@@ -57,7 +57,7 @@ final class SendProfileViewModel {
     /// so the view can offer copy-link and show view stats (web parity).
     func loadTrackingInfo(for coachId: String) async {
         let token = authManager.session?.accessToken
-        guard let profile = try? await service.fetchProfile(accessToken: token) else {
+        guard let profile = try? await service.fetchProfile(athleteId: nil, accessToken: token) else {
             isPublished = false
             return
         }
@@ -81,7 +81,7 @@ final class SendProfileViewModel {
         guardianPendingPrompt = false
         let token = authManager.session?.accessToken
 
-        guard let profile = try? await service.fetchProfile(accessToken: token) else {
+        guard let profile = try? await service.fetchProfile(athleteId: nil, accessToken: token) else {
             return .failed
         }
         guard profile.isPublished else {

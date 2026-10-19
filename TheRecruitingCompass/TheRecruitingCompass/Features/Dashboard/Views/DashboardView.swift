@@ -143,6 +143,7 @@ struct DashboardView: View {
       DashboardPublicProfileCard(
         targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
       )
+      .id(familyManager.selectedAthleteId)
 
       Spacer()
         .frame(height: 32)
@@ -183,6 +184,7 @@ struct DashboardView: View {
           targetUserId: familyManager.selectedAthlete?.userId
             ?? authManager.user?.id
         )
+        .id(familyManager.selectedAthleteId)
 
         if !viewModel.isEmpty {
           dashboardAllWidgets(onlyWidthClasses: [.sidebar])

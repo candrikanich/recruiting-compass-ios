@@ -398,4 +398,79 @@ final class PublicProfileViewModelTests: XCTestCase {
 
         XCTAssertFalse(vm.isGuardianPending, "A failed status check must never fabricate a publish lock")
     }
+
+    // MARK: - Parent edits the selected athlete (ios#360)
+
+    private func authManager(userId: String, role: UserRole?) -> MockAuthManager {
+        let mgr = MockAuthManager()
+        mgr.setMockUser(User(
+            id: userId, email: "x@example.com", emailConfirmedAt: nil, fullName: "X",
+            createdAt: "", updatedAt: "", role: role, dateOfBirth: nil
+        ))
+        mgr.setMockSession(Session(
+            accessToken: "tok", tokenType: "bearer", expiresIn: 3600,
+            expiresAt: Int(Date().timeIntervalSince1970) + 3600, refreshToken: "r",
+            user: User(id: userId, email: "x@example.com", emailConfirmedAt: nil, fullName: "X",
+                       createdAt: "", updatedAt: "", role: role, dateOfBirth: nil)))
+        return mgr
+    }
+
+    private func makeVM(
+        _ mock: MockPublicProfileManaging, userId: String, role: UserRole?, target: String?
+    ) -> PublicProfileViewModel {
+        PublicProfileViewModel(
+            service: mock, authManager: authManager(userId: userId, role: role), targetUserId: target
+        )
+    }
+
+    func testParentLoadAndSaveSendSelectedAthleteId() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
+        await vm.save()
+        XCTAssertEqual(mock.fetchedAthleteIds, ["athlete-A"])
+        XCTAssertEqual(mock.updatedPayloads.first?.athleteId, "athlete-A")
+    }
+
+    func testEditsStayPinnedToTheAthleteTheyWereMadeFor() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vmA = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        let vmB = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-B")
+        await vmA.load()
+        vmA.bio = "edited for A"
+        await vmB.load()  // switcher moves to B before A's debounced save fires
+        await vmA.save()
+        XCTAssertEqual(mock.updatedPayloads.map(\.athleteId), ["athlete-A"])
+    }
+
+    func testPlayerOmitsAthleteId() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = makeVM(mock, userId: "u1", role: .player, target: "u1")
+        await vm.load()
+        await vm.save()
+        XCTAssertEqual(mock.fetchedAthleteIds, [nil])
+        XCTAssertNil(mock.updatedPayloads.first?.athleteId)
+    }
+
+    func testParentWithoutSelectedAthleteNeverTouchesOwnRow() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "parent-1")
+        await vm.load()
+        await vm.save()
+        XCTAssertTrue(mock.fetchedAthleteIds.isEmpty)
+        XCTAssertTrue(mock.updatedPayloads.isEmpty)
+        XCTAssertNotNil(vm.saveError)
+    }
+
+    func testSaveShowsServerMessage() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.serverMessage("Not authorized to edit this athlete's profile")
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.save()
+        XCTAssertEqual(vm.saveError, "Not authorized to edit this athlete's profile")
+    }
 }

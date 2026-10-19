@@ -12,7 +12,7 @@ final class MockPublicProfileManagingTests: XCTestCase {
             showAcademics: true, showAthletic: true, showFilm: true, showSchools: true,
             createdAt: "", updatedAt: ""
         )
-        let result = try await mock.fetchProfile(accessToken: "t")
+        let result = try await mock.fetchProfile(athleteId: nil, accessToken: "t")
         XCTAssertEqual(result?.hashSlug, "ab12cd")
     }
 

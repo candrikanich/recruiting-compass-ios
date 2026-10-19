@@ -69,6 +69,7 @@ struct PublicTab: View {
             await vm.assembleCard()
             await vm.refreshGuardianStatus()
         }
+        .onDisappear(perform: flushPendingSaves)
         .sheet(item: $exportedPDF) { pdf in
             ActivityShareSheet(activityItems: [pdf.url])
         }
@@ -497,6 +498,18 @@ struct PublicTab: View {
             await vm.save()
             await vm.assembleCard()
         }
+    }
+
+    /// Writes any pending bio/looking-for edit now, to the athlete this editor is pinned to, so an
+    /// athlete switch (which rebuilds this view) or navigation never drops or redirects an edit.
+    private func flushPendingSaves() {
+        guard bioSaveTask != nil || lookingForSaveTask != nil else { return }
+        bioSaveTask?.cancel()
+        lookingForSaveTask?.cancel()
+        bioSaveTask = nil
+        lookingForSaveTask = nil
+        let capturedVM = vm
+        Task { await capturedVM.save() }
     }
 
     /// Debounced auto-save, since `TextEditor` has no reliable commit event

@@ -4,11 +4,13 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
     var stubProfile: PlayerProfile?
     var stubTrackingLink: ProfileTrackingLink?
     var errorToThrow: Error?
+    private(set) var fetchedAthleteIds: [String?] = []
     private(set) var updatedPayloads: [UpdateProfilePayload] = []
     private(set) var createdCoachIds: [String] = []
     private(set) var fetchedTrackingCoachIds: [String] = []
 
-    func fetchProfile(accessToken: String?) async throws -> PlayerProfile? {
+    func fetchProfile(athleteId: String?, accessToken: String?) async throws -> PlayerProfile? {
+        fetchedAthleteIds.append(athleteId)
         if let errorToThrow { throw errorToThrow }
         return stubProfile
     }

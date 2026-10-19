@@ -257,6 +257,8 @@ struct UpdateProfilePayload: Encodable, Equatable {
     var commitmentStatus: CommitmentStatus?
     var committedSchoolId: String??
     var sectionConfig: [ProfileSection]?
+    /// Parent delegate writes: the athlete whose row to update. nil = the caller's own row (player accounts).
+    var athleteId: String?
 
     init(
         bio: String?? = nil, isPublished: Bool? = nil,
@@ -264,7 +266,7 @@ struct UpdateProfilePayload: Encodable, Equatable {
         bannerUrl: String?? = nil, lookingFor: String?? = nil,
         valuesTags: [String]? = nil, awards: [ProfileAward]? = nil,
         commitmentStatus: CommitmentStatus? = nil, committedSchoolId: String?? = nil,
-        sectionConfig: [ProfileSection]? = nil
+        sectionConfig: [ProfileSection]? = nil, athleteId: String? = nil
     ) {
         self.bio = bio
         self.isPublished = isPublished
@@ -277,6 +279,7 @@ struct UpdateProfilePayload: Encodable, Equatable {
         self.commitmentStatus = commitmentStatus
         self.committedSchoolId = committedSchoolId
         self.sectionConfig = sectionConfig
+        self.athleteId = athleteId
     }
 
     enum CodingKeys: String, CodingKey {
@@ -291,6 +294,7 @@ struct UpdateProfilePayload: Encodable, Equatable {
         case commitmentStatus = "commitment_status"
         case committedSchoolId = "committed_school_id"
         case sectionConfig = "section_config"
+        case athleteId
     }
 
     func encode(to encoder: Encoder) throws {
@@ -307,5 +311,6 @@ struct UpdateProfilePayload: Encodable, Equatable {
         try container.encodeIfPresent(commitmentStatus?.serverValue, forKey: .commitmentStatus)
         if let committedSchoolId { try container.encode(committedSchoolId, forKey: .committedSchoolId) }
         try container.encodeIfPresent(sectionConfig, forKey: .sectionConfig)
+        try container.encodeIfPresent(athleteId, forKey: .athleteId)
     }
 }
