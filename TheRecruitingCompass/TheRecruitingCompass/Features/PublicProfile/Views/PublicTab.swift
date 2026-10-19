@@ -11,8 +11,6 @@ import UIKit
 /// (reorder + eye toggle), Recruitment Status, then a live preview + QR code.
 struct PublicTab: View {
     @State private var vm: PublicProfileViewModel
-    @State private var bioSaveTask: Task<Void, Never>?
-    @State private var lookingForSaveTask: Task<Void, Never>?
     @State private var exportedPDF: ExportedProfilePDF?
     @State private var isExporting = false
     @State private var isShowingShareSheet = false
@@ -41,7 +39,9 @@ struct PublicTab: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if !vm.isConfigured {
+                if vm.hasNoEditableProfile {
+                    selectAthleteNotice
+                } else if !vm.isConfigured {
                     unconfiguredNotice
                 } else {
                     workspaceBar
@@ -69,7 +69,10 @@ struct PublicTab: View {
             await vm.assembleCard()
             await vm.refreshGuardianStatus()
         }
-        .onDisappear(perform: flushPendingSaves)
+        .onDisappear {
+            let capturedVM = vm
+            Task { await capturedVM.flushPendingSaves() }
+        }
         .sheet(item: $exportedPDF) { pdf in
             ActivityShareSheet(activityItems: [pdf.url])
         }
@@ -218,7 +221,7 @@ struct PublicTab: View {
                     if newValue.count > bioCharacterLimit {
                         vm.bio = String(newValue.prefix(bioCharacterLimit))
                     }
-                    scheduleDebouncedSave(&bioSaveTask)
+                    vm.scheduleDebouncedSave(.bio)
                 }
             Text("\(vm.bio.count)/\(bioCharacterLimit)")
                 .font(.brand(.caption))
@@ -238,7 +241,7 @@ struct PublicTab: View {
                     if newValue.count > lookingForCharacterLimit {
                         vm.lookingFor = String(newValue.prefix(lookingForCharacterLimit))
                     }
-                    scheduleDebouncedSave(&lookingForSaveTask)
+                    vm.scheduleDebouncedSave(.lookingFor)
                 }
             Text("\(vm.lookingFor.count)/\(lookingForCharacterLimit)")
                 .font(.brand(.caption))
@@ -465,6 +468,17 @@ struct PublicTab: View {
     }
 
     @ViewBuilder
+    private var selectAthleteNotice: some View {
+        Text(String(localized: "Select an athlete to edit their public profile."))
+            .font(.brand(.subheadline))
+            .foregroundStyle(.secondary)
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.Surface.card)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    @ViewBuilder
     private var unconfiguredNotice: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Public profile not available"))
@@ -497,32 +511,6 @@ struct PublicTab: View {
         Task {
             await vm.save()
             await vm.assembleCard()
-        }
-    }
-
-    /// Writes any pending bio/looking-for edit now, to the athlete this editor is pinned to, so an
-    /// athlete switch (which rebuilds this view) or navigation never drops or redirects an edit.
-    private func flushPendingSaves() {
-        guard bioSaveTask != nil || lookingForSaveTask != nil else { return }
-        bioSaveTask?.cancel()
-        lookingForSaveTask?.cancel()
-        bioSaveTask = nil
-        lookingForSaveTask = nil
-        let capturedVM = vm
-        Task { await capturedVM.save() }
-    }
-
-    /// Debounced auto-save, since `TextEditor` has no reliable commit event
-    /// (`.onSubmit` never fires for multi-line text) and would otherwise lose
-    /// edits unless another control happens to be touched afterward.
-    private func scheduleDebouncedSave(_ task: inout Task<Void, Never>?) {
-        task?.cancel()
-        let capturedVM = vm
-        task = Task {
-            try? await Task.sleep(nanoseconds: 700_000_000)
-            if Task.isCancelled { return }
-            await capturedVM.save()
-            await capturedVM.assembleCard()
         }
     }
 }

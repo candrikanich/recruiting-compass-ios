@@ -473,4 +473,34 @@ final class PublicProfileViewModelTests: XCTestCase {
         await vm.save()
         XCTAssertEqual(vm.saveError, "Not authorized to edit this athlete's profile")
     }
+
+    func testParentWithoutSelectedAthleteHasNoEditableProfile() {
+        let mock = MockPublicProfileManaging()
+        XCTAssertTrue(makeVM(mock, userId: "p", role: .parent, target: nil).hasNoEditableProfile)
+        XCTAssertTrue(makeVM(mock, userId: "p", role: .parent, target: "p").hasNoEditableProfile)
+        XCTAssertFalse(makeVM(mock, userId: "p", role: .parent, target: "a").hasNoEditableProfile)
+        XCTAssertFalse(makeVM(mock, userId: "u", role: .player, target: "u").hasNoEditableProfile)
+    }
+
+    func testDebouncedSaveClearsItselfAfterFiring() async throws {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        vm.scheduleDebouncedSave(.bio, delay: .milliseconds(10))
+        XCTAssertTrue(vm.hasPendingDebouncedSave)
+        try await Task.sleep(for: .milliseconds(300))
+        XCTAssertFalse(vm.hasPendingDebouncedSave)
+        XCTAssertEqual(mock.updatedPayloads.count, 1)
+        await vm.flushPendingSaves()
+        XCTAssertEqual(mock.updatedPayloads.count, 1, "flush after a fired save must not re-send")
+    }
+
+    func testFlushSavesPendingEditToPinnedAthlete() async {
+        let mock = MockPublicProfileManaging()
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        vm.scheduleDebouncedSave(.lookingFor, delay: .seconds(60))
+        await vm.flushPendingSaves()
+        XCTAssertEqual(mock.updatedPayloads.map(\.athleteId), ["athlete-A"])
+        XCTAssertFalse(vm.hasPendingDebouncedSave)
+    }
 }

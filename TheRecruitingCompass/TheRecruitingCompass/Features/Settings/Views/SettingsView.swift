@@ -305,6 +305,7 @@ struct SettingsView: View {
             userRole: authManager.user?.role ?? .player,
             targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
           )
+          .id(familyManager.selectedAthleteId)
         case .schoolPreferences:
           SchoolPreferencesView(
             preferenceService: preferenceService,

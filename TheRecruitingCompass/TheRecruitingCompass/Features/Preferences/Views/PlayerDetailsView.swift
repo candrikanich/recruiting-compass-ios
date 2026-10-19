@@ -103,7 +103,7 @@ struct PlayerDetailsView: View {
         case 1:  AthleticsTab(viewModel: viewModel)
         case 2:  AcademicsSocialTab(viewModel: viewModel)
         case 3:  HistoryTab(viewModel: viewModel)
-        case 4:  PublicTab(viewModel: viewModel)
+        case 4:  PublicTab(viewModel: viewModel).id(viewModel.publicTargetUserId)
         default: BasicsTab(viewModel: viewModel)
         }
     }

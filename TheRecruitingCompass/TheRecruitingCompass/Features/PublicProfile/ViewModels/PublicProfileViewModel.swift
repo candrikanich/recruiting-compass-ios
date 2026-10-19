@@ -200,6 +200,35 @@ final class PublicProfileViewModel {
         }
     }
 
+    // MARK: - Debounced text saves
+
+    enum DebouncedField: Hashable { case bio, lookingFor }
+
+    private var debouncedSaves: [DebouncedField: Task<Void, Never>] = [:]
+    var hasPendingDebouncedSave: Bool { !debouncedSaves.isEmpty }
+
+    /// Debounced auto-save, since `TextEditor` has no reliable commit event. The task is tied to this
+    /// view model, so it can only write to the athlete this editor is pinned to, and it clears itself
+    /// once fired so a later flush doesn't re-send the whole profile.
+    func scheduleDebouncedSave(_ field: DebouncedField, delay: Duration = .milliseconds(700)) {
+        debouncedSaves[field]?.cancel()
+        debouncedSaves[field] = Task { [weak self] in
+            try? await Task.sleep(for: delay)
+            guard !Task.isCancelled, let self else { return }
+            debouncedSaves[field] = nil
+            await save()
+            await assembleCard()
+        }
+    }
+
+    /// Saves now if an edit is still waiting on its debounce (athlete switch, navigation away).
+    func flushPendingSaves() async {
+        guard hasPendingDebouncedSave else { return }
+        debouncedSaves.values.forEach { $0.cancel() }
+        debouncedSaves = [:]
+        await save()
+    }
+
     // MARK: - Section Configuration (reorder + eye toggle)
 
     func isSectionVisible(_ key: ProfileSectionKey) -> Bool {

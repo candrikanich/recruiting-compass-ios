@@ -41,6 +41,7 @@ struct ProfileView: View {
                     userRole: user?.role ?? .player,
                     targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
                 )
+                .id(familyManager.selectedAthleteId)
             }
         }
         .task {
