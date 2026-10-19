@@ -267,7 +267,7 @@ final class AppNotificationTests: XCTestCase {
   }
 
   func testNotificationType_CaseIterable() {
-    XCTAssertEqual(NotificationType.allCases.count, 7) // 6 known + .unknown
+    XCTAssertEqual(NotificationType.allCases.count, 8) // 7 known (incl. familyUpdate) + .unknown
   }
 
   func testDecodingDailyDigestAliasesToWeeklyDigest() throws {
