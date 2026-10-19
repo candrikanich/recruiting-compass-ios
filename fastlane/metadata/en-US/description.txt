@@ -29,7 +29,7 @@ FEATURES
 • Public profile for sharing with coaches
 • Video links management
 • Family accounts with shared data access
-• COPPA-compliant — ages 13-17 join via parent invitation
+• For ages 13 and up — teens 13-17 can sign up, and a parent or guardian confirms the account to unlock messaging coaches and publishing a profile
 • VoiceOver and Dynamic Type accessibility
 • Face ID / Touch ID quick unlock
 • Push notifications for recruiting updates

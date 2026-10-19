@@ -481,13 +481,12 @@ struct TermsOfServiceView: View {
           "billing period are shown before you subscribe."
       )
       LegalBodyText(text:
-        "(c) Billing and cancellation. Subscriptions purchased through the Apple App Store are billed and managed by Apple; cancel " +
-          "through your Apple ID subscription settings. Subscriptions purchased on our website are billed by our payment processor; " +
-          "cancel from your account settings. Cancellation takes effect at the end of the current billing period."
+        "(c) Billing and cancellation. Subscriptions are purchased through the Apple App Store and are billed and managed by " +
+          "Apple; cancel through your Apple ID subscription settings. Cancellation takes effect at the end of the current " +
+          "billing period."
       )
       LegalBodyText(text:
-        "(d) Refunds. Refunds for App Store purchases are governed by Apple's policies. For website purchases, contact us at the " +
-          "address in Section 23; refunds are at our discretion except where required by law."
+        "(d) Refunds. Refunds for App Store purchases are governed by Apple's policies."
       )
       LegalBodyText(text:
         "(e) Free trials and read-only access. We may offer a free trial. When a trial or subscription ends, your family account " +

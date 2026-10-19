@@ -51,10 +51,10 @@ final class PrivacyPolicyContentTests: XCTestCase {
     XCTAssertEqual(parts.day, 2)
   }
 
-  func testTermsRevisionIsUnchanged() {
+  func testTermsRevisionIsOctober19_2026() {
     let parts = Calendar(identifier: .gregorian).dateComponents(
       [.year, .month, .day], from: LegalRevision.termsLastUpdated)
-    XCTAssertEqual([parts.year, parts.month, parts.day], [2026, 9, 3])
+    XCTAssertEqual([parts.year, parts.month, parts.day], [2026, 10, 19])
   }
 
   func testMarketingEmailsSubsectionDescribesAdultOptIn() throws {
