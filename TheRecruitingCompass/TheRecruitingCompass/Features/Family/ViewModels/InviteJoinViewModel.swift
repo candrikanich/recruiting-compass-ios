@@ -306,7 +306,11 @@ final class InviteJoinViewModel {
       logger.error("confirmBirthday: failed to persist DOB, continuing anyway: \(error.localizedDescription)")
       // Tell the player their edit didn't save, but never block reaching the dashboard over it —
       // they can retry from their profile. Toast is on InviteJoinView, shown right before dismiss.
-      birthdaySaveFailedMessage = "Couldn't save your birthday. You can update it later in your profile."
+      if case ProfileServiceError.dateOfBirth(let serverMessage) = error {
+        birthdaySaveFailedMessage = serverMessage
+      } else {
+        birthdaySaveFailedMessage = "Couldn't save your birthday. You can update it later in your profile."
+      }
       showBirthdaySaveFailedToast = true
       try? await Task.sleep(for: .milliseconds(1200))
     }

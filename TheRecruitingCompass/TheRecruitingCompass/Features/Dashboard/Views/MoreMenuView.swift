@@ -74,6 +74,8 @@ struct MoreMenuView: View {
       EventDetailView(eventId: eventId)
     case .offerDetail(let offerId):
       OfferDetailView(offerId: offerId)
+    case .familyManagement:
+      FamilyManagementView()
     case .helpSection(let slug):
       let helpSection = HelpSection(slug: slug) ?? .gettingStarted
       HelpSectionDetailView(section: helpSection)

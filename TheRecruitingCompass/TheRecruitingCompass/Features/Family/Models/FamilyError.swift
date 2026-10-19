@@ -6,6 +6,10 @@ enum FamilyError: LocalizedError {
   case alreadyMember
   case notFound
   case serverError(String)
+  /// 409 last_member_confirmation_required: leaving deletes the family; resend with confirmDeleteFamily.
+  case lastMemberConfirmationRequired(String)
+  /// 409 family_busy_retry that outlived the automatic retry.
+  case busyRetry(String)
 
   var errorDescription: String? {
     switch self {
@@ -17,7 +21,7 @@ enum FamilyError: LocalizedError {
       return "You are already a member of this family"
     case .notFound:
       return "Family code not found. Please check and try again"
-    case .serverError(let message):
+    case .serverError(let message), .lastMemberConfirmationRequired(let message), .busyRetry(let message):
       return message
     }
   }

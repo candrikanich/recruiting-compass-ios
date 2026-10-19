@@ -69,7 +69,7 @@ final class PushPreferencesServiceImpl: PushPreferencesManaging, Sendable {
     func seedDefaultPreferences(userId: String) async throws {
         do {
             let rows = NotificationType.allCases
-                .filter { $0 != .unknown }
+                .filter(\.hasPushPreference)
                 .map { PushPreferenceUpsert(userId: userId, notificationType: $0.rawValue, pushEnabled: true) }
             try await supabaseManager.client
                 .from("notification_preferences")

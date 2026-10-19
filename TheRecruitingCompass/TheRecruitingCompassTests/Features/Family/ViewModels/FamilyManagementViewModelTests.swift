@@ -580,4 +580,152 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
     XCTAssertNil(sut.errorMessage)
   }
+
+  // MARK: - Leave flow & server-driven gating (ios#365)
+
+  private func parentFamily(canLeave: Bool? = true, reason: String? = nil) -> ParentFamilyData {
+    var family = ParentFamilyData(
+      familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith", codeGeneratedAt: "x"
+    )
+    family.canLeave = canLeave
+    family.leaveBlockedReason = reason
+    return family
+  }
+
+  func testLoadData_asParent_carriesServerLeaveVerdictAndMemberRules() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [parentFamily(canLeave: nil)]
+    var blocked = makeFamilyMember(id: "m1", role: "parent")
+    blocked.canRemove = false
+    blocked.removeBlockedReason = "Only guardian."
+    mockFamilyService.stubbedDetailByFamilyId["family-1"] = FamilyMembersDetail(
+      members: [blocked], canLeave: false, leaveBlockedReason: "Invite another guardian first."
+    )
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.parentFamilies.first?.canLeave, false)
+    XCTAssertEqual(sut.parentFamilies.first?.leaveBlockedReason, "Invite another guardian first.")
+    XCTAssertEqual(sut.parentFamilies.first?.members.first?.removeBlockedReason, "Only guardian.")
+  }
+
+  func testLoadData_detailEndpointDown_fallsBackToDirectReadWithNoRuleVerdicts() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [parentFamily(canLeave: nil)]
+    mockFamilyService.detailError = FamilyError.serverError("down")
+    mockFamilyService.stubbedFamilyMembers = [makeFamilyMember(id: "m1")]
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.parentFamilies.first?.members.count, 1)
+    XCTAssertNil(sut.parentFamilies.first?.canLeave, "no verdict means no Leave button")
+    XCTAssertNil(sut.parentFamilies.first?.members.first?.canRemove)
+  }
+
+  func testLeave_success_sendsUnconfirmed_dropsFamily_andRefreshesContext() async {
+    sut.parentFamilies = [parentFamily()]
+    var refreshed = false
+    sut.onMembershipChanged = { refreshed = true }
+    sut.confirmLeave(sut.parentFamilies[0])
+
+    await sut.leaveFamily()
+
+    XCTAssertEqual(mockFamilyService.leaveCalls.map(\.familyId), ["family-1"])
+    XCTAssertEqual(mockFamilyService.leaveCalls.map(\.confirm), [false])
+    XCTAssertTrue(sut.parentFamilies.isEmpty)
+    XCTAssertTrue(refreshed)
+    XCTAssertEqual(sut.successMessage, "You left the family.")
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  func testLeave_lastMember_asksForConfirmation_thenResendsWithConfirmDeleteFamily() async {
+    sut.parentFamilies = [parentFamily()]
+    mockFamilyService.leaveResults = [
+      .failure(FamilyError.lastMemberConfirmationRequired("Leaving deletes the family and all of its data.")),
+      .success(.familyDeleted)
+    ]
+    sut.confirmLeave(sut.parentFamilies[0])
+
+    await sut.leaveFamily()
+
+    XCTAssertTrue(sut.showLastMemberConfirmation)
+    XCTAssertEqual(sut.lastMemberLeaveWarning, "Leaving deletes the family and all of its data.")
+    XCTAssertEqual(sut.parentFamilies.count, 1, "nothing removed until the user confirms")
+    XCTAssertNil(sut.errorMessage, "the confirmation prompt is not an error")
+
+    await sut.leaveFamily(confirmDeleteFamily: true)
+
+    XCTAssertEqual(mockFamilyService.leaveCalls.map(\.confirm), [false, true])
+    XCTAssertTrue(sut.parentFamilies.isEmpty)
+    XCTAssertEqual(sut.successMessage, "Family deleted.")
+  }
+
+  func testLeave_cancelAtLastMemberPrompt_neverSendsConfirm() async {
+    sut.parentFamilies = [parentFamily()]
+    mockFamilyService.leaveResults = [.failure(FamilyError.lastMemberConfirmationRequired("warn"))]
+    sut.confirmLeave(sut.parentFamilies[0])
+    await sut.leaveFamily()
+
+    sut.cancelLeave()
+
+    XCTAssertEqual(mockFamilyService.leaveCalls.count, 1)
+    XCTAssertFalse(sut.showLastMemberConfirmation)
+    XCTAssertEqual(sut.parentFamilies.count, 1)
+  }
+
+  func testLeave_serverRefusal_showsServerMessage_andKeepsFamily() async {
+    sut.parentFamilies = [parentFamily()]
+    mockFamilyService.leaveResults = [
+      .failure(FamilyError.serverError("You're the player's only guardian, so you can leave once they turn 18."))
+    ]
+    sut.confirmLeave(sut.parentFamilies[0])
+
+    await sut.leaveFamily()
+
+    XCTAssertEqual(sut.errorMessage, "You're the player's only guardian, so you can leave once they turn 18.")
+    XCTAssertEqual(sut.parentFamilies.count, 1)
+  }
+
+  func testLeave_busyRetryError_showsRetryableServerMessage() async {
+    sut.parentFamilies = [parentFamily()]
+    mockFamilyService.leaveResults = [
+      .failure(FamilyError.busyRetry("Someone else just changed this family. Please try again."))
+    ]
+    sut.confirmLeave(sut.parentFamilies[0])
+
+    await sut.leaveFamily()
+
+    XCTAssertEqual(sut.errorMessage, "Someone else just changed this family. Please try again.")
+    XCTAssertEqual(sut.parentFamilies.count, 1)
+  }
+
+  func testRemoveMember_refreshesParentFamilyRulesAfterSuccess() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    var family = parentFamily()
+    let member = makeFamilyMember(id: "m2", role: "parent")
+    family.members = [member]
+    sut.parentFamilies = [family]
+    mockFamilyService.stubbedDetailByFamilyId["family-1"] = FamilyMembersDetail(members: [], canLeave: false,
+                                                                                leaveBlockedReason: "Only member.")
+    sut.confirmRemoveMember(member)
+
+    await sut.removeMember()
+
+    XCTAssertEqual(sut.parentFamilies.first?.members.count, 0)
+    XCTAssertEqual(sut.parentFamilies.first?.leaveBlockedReason, "Only member.")
+  }
+
+  func testMemberCard_disabledRemoveShowsServerReason_andUnknownVerdictShowsNothing() {
+    var blocked = makeFamilyMember()
+    blocked.canRemove = false
+    blocked.removeBlockedReason = "Only guardian."
+    XCTAssertEqual(FamilyMemberCard(member: blocked, onRemove: {}).blockedReason, "Only guardian.")
+
+    var allowed = makeFamilyMember()
+    allowed.canRemove = true
+    allowed.removeBlockedReason = "stale"
+    XCTAssertNil(FamilyMemberCard(member: allowed, onRemove: {}).blockedReason)
+
+    XCTAssertNil(FamilyMemberCard(member: makeFamilyMember(), onRemove: {}).blockedReason)
+  }
 }

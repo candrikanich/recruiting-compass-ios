@@ -431,6 +431,10 @@ private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
   func regenerateCode(familyId: String) async throws -> RegenerateFamilyCodeResponse {
     fatalError("Not used in onboarding v2 tests")
   }
+  func fetchFamilyDetail(familyUnitId: String) async throws -> FamilyMembersDetail {
+    FamilyMembersDetail(members: [])
+  }
+  func leaveFamily(familyId: String, confirmDeleteFamily: Bool) async throws -> FamilyLeaveOutcome { .left }
   func removeFamilyMember(memberId: String) async throws {}
   func joinFamilyWithCode(familyCode: String) async throws -> JoinFamilyResponse? { nil }
   func getParentFamilies() async throws -> [ParentFamilyData] { [] }

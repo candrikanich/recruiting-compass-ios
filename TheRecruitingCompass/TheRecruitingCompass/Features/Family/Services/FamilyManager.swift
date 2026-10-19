@@ -115,6 +115,9 @@ final class FamilyManager {
         }
       } else {
         logger.warning("No family unit ID found for user \(userId)")
+        // Left or removed from the last family: drop its cached rows too.
+        familyMembers = []
+        selectedAthleteId = nil
       }
       await loadFamilyLabels(userId: userId, session: loadSession)
     } catch {

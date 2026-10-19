@@ -7,6 +7,9 @@ struct FamilyMember: Codable, Identifiable, Sendable {
   let role: String
   let addedAt: String?
   let user: FamilyMemberUser?
+  /// Server verdict from GET /api/family/members (nil from the direct-Supabase read or older servers: treat as not removable).
+  var canRemove: Bool?
+  var removeBlockedReason: String?
 
   var memberRole: UserRole? { UserRole(rawValue: role) }
 
@@ -21,5 +24,7 @@ struct FamilyMember: Codable, Identifiable, Sendable {
     case role
     case addedAt = "added_at"
     case user
+    case canRemove
+    case removeBlockedReason
   }
 }

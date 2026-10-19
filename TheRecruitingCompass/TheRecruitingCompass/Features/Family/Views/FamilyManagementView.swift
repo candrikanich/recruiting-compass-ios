@@ -3,12 +3,14 @@ import SwiftUI
 struct FamilyManagementView: View {
   @State private var viewModel = FamilyManagementViewModel()
   @Environment(AuthManager.self) private var authManager
+  @Environment(FamilyManager.self) private var familyManager
 
   var body: some View {
     contentView
       .navigationTitle("Family Management")
       .navigationBarTitleDisplayMode(.large)
       .task {
+        viewModel.onMembershipChanged = { await familyManager.loadFamilyData() }
         await viewModel.loadData()
       }
       .refreshable {
@@ -22,6 +24,45 @@ struct FamilyManagementView: View {
         if let error = viewModel.errorMessage {
           Text(error)
         }
+      }
+      .confirmationDialog(
+        "Remove Family Member",
+        isPresented: $viewModel.showDeleteConfirmation,
+        titleVisibility: .visible
+      ) {
+        Button("Remove", role: .destructive) {
+          Task { await viewModel.removeMember() }
+        }
+        Button("Cancel", role: .cancel) {}
+      } message: {
+        if let member = viewModel.memberToRemove,
+           let name = member.user?.fullName ?? member.user?.email {
+          Text("Remove \(name) from family?")
+        }
+      }
+      .confirmationDialog(
+        "Leave Family",
+        isPresented: $viewModel.showLeaveConfirmation,
+        titleVisibility: .visible
+      ) {
+        Button("Leave Family", role: .destructive) {
+          Task { await viewModel.leaveFamily() }
+        }
+        Button("Cancel", role: .cancel) { viewModel.cancelLeave() }
+      } message: {
+        Text("You'll lose access to this family's recruiting data.")
+      }
+      .confirmationDialog(
+        "Delete Family?",
+        isPresented: $viewModel.showLastMemberConfirmation,
+        titleVisibility: .visible
+      ) {
+        Button("Leave and Delete Family", role: .destructive) {
+          Task { await viewModel.leaveFamily(confirmDeleteFamily: true) }
+        }
+        Button("Cancel", role: .cancel) { viewModel.cancelLeave() }
+      } message: {
+        Text(viewModel.lastMemberLeaveWarning ?? "Leaving deletes the family and all of its data.")
       }
       .toast(
         isShowing: $viewModel.showSuccessToast,

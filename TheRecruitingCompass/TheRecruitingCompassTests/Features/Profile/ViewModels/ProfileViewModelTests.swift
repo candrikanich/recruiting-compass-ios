@@ -388,6 +388,39 @@ final class ProfileViewModelTests: XCTestCase {
     XCTAssertFalse(message.contains("tomorrow"))
   }
 
+  // MARK: - Date-of-birth server errors (ios#395)
+
+  func testSavePersonalInfo_serverDateOfBirthRejection_showsServerMessageOnField() async {
+    viewModel.loadInitialState()
+    mockProfileService.shouldThrowOnUpdatePersonalInfo = true
+    mockProfileService.errorToThrow = ProfileServiceError.dateOfBirth("Ask your parent to confirm first.")
+
+    await viewModel.savePersonalInfo()
+
+    XCTAssertEqual(viewModel.dateOfBirthError, "Ask your parent to confirm first.")
+    XCTAssertNil(viewModel.personalInfoMessage, "must not also report a generic result")
+  }
+
+  func testSavePersonalInfo_otherFailure_keepsGenericMessageAndNoFieldError() async {
+    viewModel.loadInitialState()
+    mockProfileService.shouldThrowOnUpdatePersonalInfo = true
+    mockProfileService.errorToThrow = ProfileServiceError.serverError("boom")
+
+    await viewModel.savePersonalInfo()
+
+    XCTAssertNil(viewModel.dateOfBirthError)
+    XCTAssertEqual(viewModel.personalInfoMessage?.text, "Failed to save. Please try again.")
+  }
+
+  func testSavePersonalInfo_clearsPreviousDateOfBirthErrorOnRetry() async {
+    viewModel.loadInitialState()
+    viewModel.dateOfBirthError = "old"
+
+    await viewModel.savePersonalInfo()
+
+    XCTAssertNil(viewModel.dateOfBirthError)
+  }
+
   // MARK: - Helpers
 
   private func userMock(profilePhotoUrl: String? = nil) -> User {

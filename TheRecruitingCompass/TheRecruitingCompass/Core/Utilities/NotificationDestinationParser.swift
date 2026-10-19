@@ -56,6 +56,8 @@ enum NotificationDestinationParser {
         // Path-style /coaches/<id> is not a valid coach URL in this app.
         if url.contains("/inbox/inbound-drafts") {
             return .inboundDraftsList
+        } else if url.contains("/settings/family-management") {
+            return .familyManagement
         } else if url.contains("/coaches") {
             return extractId(from: url, pattern: "highlight=").map { .coachDetail(id: $0) }
         } else if url.contains("/schools/") {

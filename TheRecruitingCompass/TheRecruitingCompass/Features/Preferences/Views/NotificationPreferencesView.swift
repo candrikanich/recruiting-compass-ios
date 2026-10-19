@@ -112,7 +112,7 @@ struct NotificationPreferencesView: View {
           }
           .accessibilityElement(children: .contain)
         } else {
-          ForEach(NotificationType.allCases.filter { $0 != .unknown }, id: \.self) { type in
+          ForEach(NotificationType.allCases.filter(\.hasPushPreference), id: \.self) { type in
             Toggle(type.label, isOn: Binding(
               get: { viewModel.pushPreferences[type] ?? true },
               set: { enabled in

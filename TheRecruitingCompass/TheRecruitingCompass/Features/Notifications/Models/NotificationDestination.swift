@@ -11,6 +11,8 @@ enum NotificationDestination: Hashable, Sendable {
   /// `relatedEntityType == "inbound_email_draft"`, not by `type`. See
   /// `NotificationDestinationParser`.
   case inboundDraftsList
+  /// `family_update` rows carry action_url `/settings/family-management`.
+  case familyManagement
 }
 
 extension NotificationDestination {

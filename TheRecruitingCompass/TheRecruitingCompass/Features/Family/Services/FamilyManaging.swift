@@ -15,6 +15,12 @@ protocol FamilyManaging: Sendable {
   func createFamily(role: UserRole) async throws -> CreateFamilyResponse
   /// Rotates the family join code and returns the updated code.
   func regenerateCode(familyId: String) async throws -> RegenerateFamilyCodeResponse
+  /// Members plus the server's per-member `canRemove`/reasons and the caller's leave verdict (web API).
+  func fetchFamilyDetail(familyUnitId: String) async throws -> FamilyMembersDetail
+  /// Leaves the family (parents only). Throws `FamilyError.lastMemberConfirmationRequired` until
+  /// `confirmDeleteFamily` is true when the caller is the last member.
+  @discardableResult
+  func leaveFamily(familyId: String, confirmDeleteFamily: Bool) async throws -> FamilyLeaveOutcome
   /// Removes the specified member from the family unit.
   func removeFamilyMember(memberId: String) async throws
 

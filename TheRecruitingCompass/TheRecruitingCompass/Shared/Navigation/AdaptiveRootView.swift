@@ -90,6 +90,7 @@ struct AdaptiveRootView: View {
     case .offerDetail: return .offers
     case .eventDetail: return .events
     case .inboundDraftsList: return .inboundDrafts
+    case .familyManagement: return .settings
     }
   }
 
@@ -143,6 +144,8 @@ struct AdaptiveRootView: View {
             EventDetailView(eventId: eventId)
           case .offerDetail(let offerId):
             OfferDetailView(offerId: offerId)
+          case .familyManagement:
+            FamilyManagementView()
           case .section, .helpSection:
             EmptyView()
           }
