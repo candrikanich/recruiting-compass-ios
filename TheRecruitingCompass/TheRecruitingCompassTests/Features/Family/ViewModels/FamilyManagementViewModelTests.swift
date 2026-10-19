@@ -715,6 +715,18 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertEqual(sut.parentFamilies.first?.leaveBlockedReason, "Only member.")
   }
 
+  func testRemoveMember_success_refreshesAppWideFamilyContext() async {
+    let member = makeFamilyMember(id: "m1")
+    sut.familyMembers = [member]
+    sut.memberToRemove = member
+    var refreshed = false
+    sut.onMembershipChanged = { refreshed = true }
+
+    await sut.removeMember()
+
+    XCTAssertTrue(refreshed)
+  }
+
   func testMemberCard_disabledRemoveShowsServerReason_andUnknownVerdictShowsNothing() {
     var blocked = makeFamilyMember()
     blocked.canRemove = false

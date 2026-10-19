@@ -118,4 +118,5 @@ struct FamilyManagementView: View {
     FamilyManagementView()
   }
   .environment(AuthManager.shared)
+  .environment(FamilyManager.shared)
 }

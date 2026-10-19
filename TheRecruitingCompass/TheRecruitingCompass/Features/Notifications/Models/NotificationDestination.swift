@@ -13,6 +13,8 @@ enum NotificationDestination: Hashable, Sendable {
   case inboundDraftsList
   /// `family_update` rows carry action_url `/settings/family-management`.
   case familyManagement
+  /// A push tap that names no routable entity.
+  case notificationsList
 }
 
 extension NotificationDestination {

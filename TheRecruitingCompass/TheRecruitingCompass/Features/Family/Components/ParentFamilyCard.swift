@@ -52,17 +52,17 @@ struct ParentFamilyCard: View {
   /// absent when the server said nothing.
   @ViewBuilder
   private var leaveControl: some View {
-    if family.canLeave == true || family.leaveBlockedReason != nil {
+    if family.leaveControl.isVisible {
       VStack(alignment: .leading, spacing: 4) {
         Button(role: .destructive, action: onLeave) {
           Text("Leave Family")
             .frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.bordered)
-        .disabled(family.canLeave != true)
+        .disabled(!family.leaveControl.isEnabled)
         .accessibilityLabel(String(localized: "Leave \(label)"))
-        .accessibilityHint(family.canLeave == true ? "" : (family.leaveBlockedReason ?? ""))
-        if family.canLeave != true, let reason = family.leaveBlockedReason {
+        .accessibilityHint(family.leaveControl.reason ?? "")
+        if let reason = family.leaveControl.reason {
           Text(reason)
             .font(.brand(.caption))
             .foregroundStyle(.secondary)

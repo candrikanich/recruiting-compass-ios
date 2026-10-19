@@ -11,6 +11,8 @@ struct ParentFamilyData: Codable, Identifiable, Sendable {
   var canLeave: Bool?
   var leaveBlockedReason: String?
 
+  var leaveControl: ServerControl { ServerControl(allowed: canLeave, blockedReason: leaveBlockedReason) }
+
   enum CodingKeys: String, CodingKey {
     case familyId = "family_id"
     case familyCode = "family_code"

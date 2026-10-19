@@ -91,6 +91,7 @@ struct AdaptiveRootView: View {
     case .eventDetail: return .events
     case .inboundDraftsList: return .inboundDrafts
     case .familyManagement: return .settings
+    case .notificationsList: return .dashboard
     }
   }
 

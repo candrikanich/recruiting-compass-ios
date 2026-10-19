@@ -292,6 +292,7 @@ final class FamilyManagementViewModel {
 
       showSuccess("Family member removed successfully!")
       await refreshMembers(inFamily: member.familyUnitId)
+      await onMembershipChanged?()
     } catch {
       logger.error("Failed to remove member: \(error.localizedDescription)")
       errorMessage = error.localizedDescription

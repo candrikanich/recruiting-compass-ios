@@ -107,7 +107,8 @@ final class FamilyManager {
 
         if currentMember?.isAthlete == true {
           selectedAthleteId = currentMember?.id
-        } else if currentMember?.isParent == true, selectedAthleteId == nil {
+        } else if currentMember?.isParent == true, !familyMembers.contains(where: { $0.id == selectedAthleteId }) {
+          // Nothing selected, or the selection belonged to a family the parent just left.
           // Mirror web: a parent auto-views an athlete. Web sorts by closest
           // graduation year; that field isn't loaded here, so default to the
           // first linked athlete (deterministic for single-athlete families).

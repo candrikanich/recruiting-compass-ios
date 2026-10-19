@@ -52,9 +52,21 @@ protocol ProfileManaging: Sendable {
 
 final class ProfileServiceImpl: ProfileManaging, Sendable {
     private let supabaseManager: SupabaseManager
+    private let session: URLSession
+    private let baseURLOverride: URL?
+    private let tokenProviderOverride: (@Sendable () async throws -> String)?
 
-    init(supabaseManager: SupabaseManager = .shared) {
+    /// `session`, `baseURL` and `tokenProvider` exist so request/response wiring can be tested without the network.
+    init(
+        supabaseManager: SupabaseManager = .shared,
+        session: URLSession = .shared,
+        baseURL: URL? = nil,
+        tokenProvider: (@Sendable () async throws -> String)? = nil
+    ) {
         self.supabaseManager = supabaseManager
+        self.session = session
+        self.baseURLOverride = baseURL
+        self.tokenProviderOverride = tokenProvider
     }
 
     func updatePersonalInfo(fullName: String, dateOfBirth: String?) async throws {
@@ -248,13 +260,18 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
 
     // MARK: - Shared request helper
 
+    private func accessToken() async throws -> String {
+        if let tokenProviderOverride { return try await tokenProviderOverride() }
+        return try await supabaseManager.client.auth.session.accessToken
+    }
+
     private func post<B: Encodable>(path: String, method: String, body: B) async throws {
-        guard let baseURL = SupabaseConfig.apiBaseURL else {
+        guard let baseURL = baseURLOverride ?? SupabaseConfig.apiBaseURL else {
             logger.error("apiBaseURL not configured")
             throw ProfileServiceError.notConfigured
         }
         let url = baseURL.appendingPathComponent(path)
-        let token = try await supabaseManager.client.auth.session.accessToken
+        let token = try await accessToken()
 
         var request = URLRequest(url: url)
         request.addClientHeaders()
@@ -268,7 +285,7 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await session.data(for: request)
         } catch {
             logger.error("ProfileService network error: \(error.localizedDescription)")
             throw ProfileServiceError.networkError(error)

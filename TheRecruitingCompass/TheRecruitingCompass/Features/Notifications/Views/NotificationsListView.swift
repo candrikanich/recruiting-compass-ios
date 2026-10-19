@@ -133,6 +133,9 @@ struct NotificationsListView: View {
 
     case .familyManagement:
       FamilyManagementView()
+
+    case .notificationsList:
+      EmptyView()
     }
   }
 }

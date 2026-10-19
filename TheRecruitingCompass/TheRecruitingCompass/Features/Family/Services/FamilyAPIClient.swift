@@ -77,7 +77,7 @@ struct FamilyAPIClient: Sendable {
       return try await performSend(method, path, query: query, jsonBody: jsonBody)
     } catch FamilyError.busyRetry {
       // The server rolled the change back on a deadlock, so repeating it once is safe.
-      try? await Task.sleep(for: busyRetryDelay)
+      try await Task.sleep(for: busyRetryDelay)
       return try await performSend(method, path, query: query, jsonBody: jsonBody)
     }
   }
