@@ -19,7 +19,7 @@ final class MarketingClipRecorderTests: XCTestCase {
     markerDir = URL(fileURLWithPath: dir)
 
     app = XCUIApplication()
-    E2ETestEnvironment.configure(app)
+    E2ETestEnvironment.configure(app, animated: true)
     app.launchArguments.append("--local-captcha-bypass")
     app.launchEnvironment["API_BASE_URL"] = env["MARKETING_API_BASE_URL"] ?? "http://localhost:3003"
     app.launch()
