@@ -7,32 +7,24 @@ final class OnboardingManagerTests: XCTestCase {
   var sut: OnboardingManager!
   var mockOnboardingService: MockOnboardingService!
   var mockAuthManager: MockAuthManager!
-  var mockFamilyService: MockFamilyService!
   var mockPreferenceService: MockPreferenceService!
-
-  private static let parentKey = "parent_onboarding_complete_test-parent-id"
 
   override func setUp() {
     super.setUp()
     mockOnboardingService = MockOnboardingService()
     mockAuthManager = MockAuthManager()
-    mockFamilyService = MockFamilyService()
     mockPreferenceService = MockPreferenceService()
     sut = OnboardingManager(
       onboardingService: mockOnboardingService,
       authManager: mockAuthManager,
-      familyService: mockFamilyService,
       preferenceService: mockPreferenceService
     )
-    UserDefaults.standard.removeObject(forKey: Self.parentKey)
   }
 
   override func tearDown() {
-    UserDefaults.standard.removeObject(forKey: Self.parentKey)
     sut = nil
     mockOnboardingService = nil
     mockAuthManager = nil
-    mockFamilyService = nil
     mockPreferenceService = nil
     super.tearDown()
   }
@@ -76,15 +68,13 @@ final class OnboardingManagerTests: XCTestCase {
     XCTAssertEqual(sut.needsOnboarding, false)
   }
 
-  func testPlayerChecksOnboardingServiceNotFamilyService() async {
+  func testPlayerChecksTheOnboardingFlag() async {
     mockAuthManager.user = makeUser(role: .player)
     mockOnboardingService.isOnboardingCompleteResult = true
 
     await sut.loadStatus()
 
     XCTAssertEqual(mockOnboardingService.isOnboardingCompleteCallCount, 1)
-    XCTAssertEqual(mockFamilyService.getFamilyUnitCallCount, 0,
-      "Players should not trigger a family DB lookup")
   }
 
   // MARK: - Sport Gate (needsSportOnly)
@@ -142,7 +132,6 @@ final class OnboardingManagerTests: XCTestCase {
 
   func testParentIsNeverSportGated() async {
     mockAuthManager.user = makeUser(role: .parent)
-    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
     mockPreferenceService.stubbedPlayerDetails = makePlayerDetails(sport: nil)
 
     await sut.loadStatus()
@@ -150,66 +139,44 @@ final class OnboardingManagerTests: XCTestCase {
     XCTAssertFalse(sut.needsSportOnly, "Parents use a different flow and are never sport-gated")
   }
 
-  // MARK: - Parent Tests (DB check)
+  // MARK: - Parent Tests (onboarding flag, independent of family membership)
 
-  func testParentWithExistingFamilyInDBSkipsOnboarding() async {
+  func testParentWithCompletedOnboardingSkipsIt() async {
     mockAuthManager.user = makeUser(role: .parent)
-    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockOnboardingService.isOnboardingCompleteResult = true
 
     await sut.loadStatus()
 
     XCTAssertEqual(sut.needsOnboarding, false)
   }
 
-  func testParentWithExistingFamilyInDBCachesUserDefaultsFlag() async {
+  func testParentWithIncompleteOnboardingNeedsIt_evenThoughTheServerGaveThemAFamily() async {
     mockAuthManager.user = makeUser(role: .parent)
-    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
-
-    await sut.loadStatus()
-
-    let cached = UserDefaults.standard.bool(forKey: Self.parentKey)
-    XCTAssertTrue(cached, "Should cache the result so future launches skip the DB call")
-  }
-
-  func testParentWithNoFamilyInDBNeedsOnboarding() async {
-    mockAuthManager.user = makeUser(role: .parent)
-    mockFamilyService.stubbedFamilyUnit = nil
+    mockOnboardingService.isOnboardingCompleteResult = false
 
     await sut.loadStatus()
 
     XCTAssertEqual(sut.needsOnboarding, true)
   }
 
-  func testParentWithLocalCacheSkipsDBLookup() async {
+  func testParentOnboardingIgnoresAnyDeviceCachedFlag() async {
     mockAuthManager.user = makeUser(role: .parent)
-    UserDefaults.standard.set(true, forKey: Self.parentKey)
+    UserDefaults.standard.set(true, forKey: "parent_onboarding_complete_test-parent-id")
+    defer { UserDefaults.standard.removeObject(forKey: "parent_onboarding_complete_test-parent-id") }
+    mockOnboardingService.isOnboardingCompleteResult = false
+
+    await sut.loadStatus()
+
+    XCTAssertEqual(sut.needsOnboarding, true)
+  }
+
+  func testParentWithFlagErrorDefaultsToSkippingOnboarding() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockOnboardingService.shouldThrowError = true
 
     await sut.loadStatus()
 
     XCTAssertEqual(sut.needsOnboarding, false)
-    XCTAssertEqual(mockFamilyService.getFamilyUnitCallCount, 0,
-      "Should use UserDefaults fast-path and skip DB call")
-  }
-
-  func testParentWithFamilyDBErrorDefaultsToSkippingOnboarding() async {
-    mockAuthManager.user = makeUser(role: .parent)
-    mockFamilyService.shouldSucceed = false
-
-    await sut.loadStatus()
-
-    XCTAssertEqual(sut.needsOnboarding, false)
-  }
-
-  // MARK: - markParentOnboardingComplete
-
-  func testMarkParentOnboardingCompleteSetsFlagAndNeedsOnboardingFalse() {
-    mockAuthManager.user = makeUser(role: .parent)
-
-    sut.markParentOnboardingComplete()
-
-    XCTAssertEqual(sut.needsOnboarding, false)
-    let cached = UserDefaults.standard.bool(forKey: Self.parentKey)
-    XCTAssertTrue(cached)
   }
 
   // MARK: - Helpers
@@ -233,20 +200,6 @@ final class OnboardingManagerTests: XCTestCase {
     var details = PlayerDetails.default
     details.primarySport = sport
     return details
-  }
-
-  private func makeFamilyUnit() -> FamilyUnit {
-    FamilyUnit(
-      id: "family-unit-1",
-      createdByUserId: "test-parent-id",
-      familyName: "Test Family",
-      familyCode: "FAM-ABC123",
-      codeGeneratedAt: "2024-01-01T00:00:00Z",
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z",
-      homeLatitude: nil,
-      homeLongitude: nil
-    )
   }
 
   // MARK: - Reset (account switch)

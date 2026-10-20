@@ -198,7 +198,7 @@ final class DashboardViewModel {
     let targetUserId = familyManager.selectedAthlete?.userId ?? userId
 
     guard let familyUnitId = familyManager.familyUnitId else {
-      // Mirrors web: no family yet — show empty state. User creates from Family tab when inviting parent.
+      // Unreachable behind the family-required gate; the empty state only covers a load that raced it.
       logger.debug("No family unit for user \(userId), showing empty stats")
       stats = DashboardStats(
         coachCount: 0,

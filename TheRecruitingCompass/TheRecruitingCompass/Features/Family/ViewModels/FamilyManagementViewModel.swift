@@ -141,7 +141,6 @@ final class FamilyManagementViewModel {
     }
 
     do {
-      // Fetch or create family unit
       if let familyUnit = try await familyService.getFamilyUnit(forUserId: userId) {
         familyCode = familyUnit.familyCode
         familyId = familyUnit.id
@@ -155,8 +154,10 @@ final class FamilyManagementViewModel {
         await loadFamilyMembers(familyUnitId: familyUnit.id)
         await loadPendingInvitations()
       } else {
-        // No family unit exists, create one
-        await createFamily()
+        // The family-required gate keeps family-less users off this screen, so this is an invariant
+        // violation. Never create one here: an invited player would end up in a second family.
+        logger.error("Player has no family unit despite the family-required gate")
+        errorMessage = "We couldn't find your family. Please sign out and back in."
       }
     } catch {
       logger.error("Failed to load player data: \(error.localizedDescription)")
@@ -210,30 +211,6 @@ final class FamilyManagementViewModel {
     } catch {
       logger.error("Family detail unavailable, using direct read: \(error.localizedDescription)")
       return FamilyMembersDetail(members: try await service.fetchFamilyMembers(familyUnitId: familyUnitId))
-    }
-  }
-
-  func createFamily() async {
-    isLoading = true
-    errorMessage = nil
-    defer { isLoading = false }
-
-    do {
-      let role = isPlayer ? UserRole.player : UserRole.parent
-      let response = try await familyService.createFamily(role: role)
-      familyCode = response.familyCode
-      familyId = response.familyId
-      familyName = response.familyName
-      codeGeneratedAt = Self.isoFormatter.string(from: Date.now)
-      familyMembers = []
-
-      showSuccess("Family created successfully!")
-    } catch let error as FamilyError {
-      logger.error("Failed to create family: \(error.localizedDescription)")
-      errorMessage = error.errorDescription ?? "Failed to create family. Please try again."
-    } catch {
-      logger.error("Failed to create family: \(error.localizedDescription)")
-      errorMessage = "Failed to create family. Please try again."
     }
   }
 
@@ -357,13 +334,9 @@ final class FamilyManagementViewModel {
   // MARK: - Parent Actions
   private func loadParentData() async {
     do {
+      // Empty here means the parent just left their last family; the family-required gate takes over,
+      // so nothing is created on their behalf.
       parentFamilies = try await familyService.getParentFamilies()
-
-      // If parent has no family, create one (symmetric: parents can create families)
-      if parentFamilies.isEmpty {
-        await createFamily()
-        parentFamilies = try await familyService.getParentFamilies()
-      }
       parentFamilies = await withMembersLoaded(parentFamilies)
       await loadPendingInvitations()
     } catch {

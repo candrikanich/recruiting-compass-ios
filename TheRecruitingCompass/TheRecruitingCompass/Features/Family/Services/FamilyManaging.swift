@@ -37,6 +37,9 @@ protocol FamilyManaging: Sendable {
   func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?) async throws
   /// Returns all pending (unsettled) email invitations for the current family.
   func fetchPendingInvitations() async throws -> [FamilyInvitation]
+  /// Invitations addressed to the signed-in user's own email (RLS-scoped), for the family-required gate.
+  /// Pending and unexpired only; the token column is not readable by the invitee and is never selected.
+  func fetchInvitationsAddressed(toEmail email: String) async throws -> [FamilyInvitation]
   /// Cancels a pending invitation so it can no longer be accepted.
   func revokeInvitation(id: String) async throws
   /// Re-sends the invitation email for an existing pending invite.

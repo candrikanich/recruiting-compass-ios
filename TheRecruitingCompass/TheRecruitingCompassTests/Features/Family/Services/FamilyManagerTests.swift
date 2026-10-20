@@ -180,4 +180,84 @@ struct FamilyManagerTests {
     sut.reset()
     #expect(sut.familyLabels.isEmpty)
   }
+
+  // MARK: - Family-required gate state (#396)
+
+  @Test func membershipStaysUnknownUntilTheFirstReadFinishes() {
+    let sut = FamilyManager(familyService: MockFamilyService(), authManager: MockAuthManager())
+    #expect(sut.membership == .unknown)
+  }
+
+  @Test func userWithAFamilyIsAMember() async {
+    let service = MockFamilyService()
+    let auth = MockAuthManager()
+    auth.setMockUser(user("parent-1", role: .parent))
+    service.stubbedCurrentMember = member(id: "m1", userId: "parent-1", familyUnitId: "family-1", role: "parent")
+    let sut = FamilyManager(familyService: service, authManager: auth)
+
+    await sut.loadFamilyData()
+
+    #expect(sut.membership == .member)
+  }
+
+  @Test func userWithNoFamilyIsGated() async {
+    let auth = MockAuthManager()
+    auth.setMockUser(user("parent-1", role: .parent))
+    let sut = FamilyManager(familyService: MockFamilyService(), authManager: auth)
+
+    await sut.loadFamilyData()
+
+    #expect(sut.membership == FamilyMembershipStatus.none)
+  }
+
+  @Test func failedFirstReadFailsClosedInsteadOfGatingOrAdmitting() async {
+    let service = MockFamilyService()
+    service.shouldSucceed = false
+    let auth = MockAuthManager()
+    auth.setMockUser(user("parent-1", role: .parent))
+    let sut = FamilyManager(familyService: service, authManager: auth)
+
+    await sut.loadFamilyData()
+
+    #expect(sut.membership == .failed)
+  }
+
+  @Test func failedRefreshNeverDemotesAKnownMember() async {
+    let service = MockFamilyService()
+    let auth = MockAuthManager()
+    auth.setMockUser(user("parent-1", role: .parent))
+    service.stubbedCurrentMember = member(id: "m1", userId: "parent-1", familyUnitId: "family-1", role: "parent")
+    let sut = FamilyManager(familyService: service, authManager: auth)
+    await sut.loadFamilyData()
+
+    service.shouldSucceed = false
+    await sut.loadFamilyData()
+
+    #expect(sut.membership == .member)
+  }
+
+  @Test func leavingTheLastFamilyRoutesToTheGate() async {
+    let service = MockFamilyService()
+    let auth = MockAuthManager()
+    auth.setMockUser(user("parent-1", role: .parent))
+    service.stubbedCurrentMember = member(id: "m1", userId: "parent-1", familyUnitId: "family-1", role: "parent")
+    let sut = FamilyManager(familyService: service, authManager: auth)
+    await sut.loadFamilyData()
+
+    service.stubbedCurrentMember = nil
+    await sut.loadFamilyData()
+
+    #expect(sut.membership == FamilyMembershipStatus.none)
+  }
+
+  @Test func resetReturnsToUnknownSoANewAccountIsNeverGatedOnStaleState() async {
+    let auth = MockAuthManager()
+    auth.setMockUser(user("parent-1", role: .parent))
+    let sut = FamilyManager(familyService: MockFamilyService(), authManager: auth)
+    await sut.loadFamilyData()
+
+    sut.reset()
+
+    #expect(sut.membership == .unknown)
+  }
 }

@@ -12,7 +12,6 @@ final class SignupViewModelMarketingOptInTests: XCTestCase {
     mockAuthManager = MockAuthManager()
     sut = SignupViewModel(
       authManager: mockAuthManager,
-      familyService: MockFamilyService(),
       guardianService: MockGuardianService(),
       turnstileTokenProvider: MockTurnstileTokenProvider()
     )

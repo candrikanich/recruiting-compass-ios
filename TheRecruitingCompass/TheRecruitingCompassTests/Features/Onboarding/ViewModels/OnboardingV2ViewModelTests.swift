@@ -440,6 +440,7 @@ private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
   func getParentFamilies() async throws -> [ParentFamilyData] { [] }
   func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?) async throws {}
   func fetchPendingInvitations() async throws -> [FamilyInvitation] { [] }
+  func fetchInvitationsAddressed(toEmail email: String) async throws -> [FamilyInvitation] { [] }
   func revokeInvitation(id: String) async throws {}
   func resendInvitation(id: String, email: String, role: String) async throws {}
   func lookupInviteByToken(_ token: String) async throws -> InviteDetails {

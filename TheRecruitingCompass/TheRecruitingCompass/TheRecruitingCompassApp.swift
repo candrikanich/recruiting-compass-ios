@@ -193,12 +193,16 @@ struct TheRecruitingCompassApp: App {
           }
         }
       )
-      .sheet(item: $pendingInvite) { pending in
-        InviteJoinView(viewModel: InviteJoinViewModel(token: pending.id))
-      }
-      .sheet(item: $pendingGuardianClaim) { pending in
-        GuardianClaimView(viewModel: GuardianClaimViewModel(token: pending.id))
-      }
+      .sheet(
+        item: $pendingInvite,
+        onDismiss: { Task { await familyManager.loadFamilyData() } },
+        content: { pending in InviteJoinView(viewModel: InviteJoinViewModel(token: pending.id)) }
+      )
+      .sheet(
+        item: $pendingGuardianClaim,
+        onDismiss: { Task { await familyManager.loadFamilyData() } },
+        content: { pending in GuardianClaimView(viewModel: GuardianClaimViewModel(token: pending.id)) }
+      )
       .environment(authManager)
       .environment(familyManager)
       .environment(networkMonitor)
@@ -277,39 +281,59 @@ private struct AuthenticatedContent: View {
 
   var body: some View {
     ZStack(alignment: .top) {
-      // Precedence: full onboarding > sport-only gate > dashboard.
-      if onboardingManager.needsOnboarding == true {
-        OnboardingWrapperView(onComplete: {
-          Task { await familyManager.loadFamilyData() }
-        })
-      } else if onboardingManager.needsOnboarding == false {
-        if onboardingManager.needsSportOnly {
-          SportGateView(onComplete: {
-            Task { await onboardingManager.loadStatus() }
-          })
-        } else {
-          AdaptiveRootView(pendingPushDestination: $pendingPushDestination)
-            .task { appUpdateManager.evaluateWhatsNew() }
-            .sheet(item: whatsNewBinding) { release in
-              WhatsNewView(release: release, onDismiss: appUpdateManager.dismissWhatsNew)
-            }
-          if !networkMonitor.isConnected {
-            OfflineBanner()
-          }
-        }
-      } else {
+      switch FamilyGate.route(for: familyManager.membership) {
+      case .loading:
         SessionLoadingView()
+      case .retry:
+        FamilyLoadFailedView(retry: { await familyManager.loadFamilyData() })
+      case .setup:
+        FamilySetupView(familyManager: familyManager)
+      case .passThrough:
+        appContent
       }
+    }
+    // A parent removed from (or a member of a deleted) family reaches the gate on the next foreground.
+    .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+      Task { await familyManager.loadFamilyData() }
     }
     // Keyed by user id, not isAuthenticated: resetUserScopedState() puts onboarding back to
     // "loading", so any change of user must reload it or routing would stall.
     .task(id: authManager.user?.id) {
       if authManager.isAuthenticated {
+        async let family: Void = familyManager.loadFamilyData()
         await onboardingManager.loadStatus()
+        await family
         if let userId = authManager.user?.id {
           await nuxProgressManager.load(userId: userId)
         }
       }
+    }
+  }
+
+  // Precedence: full onboarding > sport-only gate > dashboard.
+  @ViewBuilder
+  private var appContent: some View {
+    if onboardingManager.needsOnboarding == true {
+      OnboardingWrapperView(onComplete: {
+        Task { await familyManager.loadFamilyData() }
+      })
+    } else if onboardingManager.needsOnboarding == false {
+      if onboardingManager.needsSportOnly {
+        SportGateView(onComplete: {
+          Task { await onboardingManager.loadStatus() }
+        })
+      } else {
+        AdaptiveRootView(pendingPushDestination: $pendingPushDestination)
+          .task { appUpdateManager.evaluateWhatsNew() }
+          .sheet(item: whatsNewBinding) { release in
+            WhatsNewView(release: release, onDismiss: appUpdateManager.dismissWhatsNew)
+          }
+        if !networkMonitor.isConnected {
+          OfflineBanner()
+        }
+      }
+    } else {
+      SessionLoadingView()
     }
   }
 

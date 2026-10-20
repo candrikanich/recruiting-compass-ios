@@ -50,6 +50,11 @@ extension FamilyServiceImpl {
       throw FamilyError.serverError("Failed to create family")
     }
 
+    if http.statusCode == 409 {
+      familyServiceLogger.warning("createFamily: 409, the account already has a family or a pending invite")
+      throw FamilyError.createConflict
+    }
+
     guard (200..<300).contains(http.statusCode) else {
       let body = String(data: data, encoding: .utf8) ?? "(unreadable)"
       familyServiceLogger.error("createFamily failed: status=\(http.statusCode), body=\(body, privacy: .private)")
