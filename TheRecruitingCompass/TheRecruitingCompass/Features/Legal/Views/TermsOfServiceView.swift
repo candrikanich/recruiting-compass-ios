@@ -470,36 +470,8 @@ struct TermsOfServiceView: View {
   @ViewBuilder
   private var section22Subscriptions: some View {
     VStack(alignment: .leading, spacing: sectionSpacing) {
-      LegalSectionHeader(text: "22. Subscriptions and Payments")
-      LegalBodyText(text:
-        "(a) Free access. The Service is currently offered at no charge. Families who create an account before we begin charging " +
-          "(\"Founding Families\") keep full access at no charge for as long as their family account remains active."
-      )
-      LegalBodyText(text:
-        "(b) Paid plans. We may introduce paid subscription plans. Where offered, a subscription is billed per family account, covers " +
-          "every member of that family, and renews automatically at the end of each billing period until cancelled. The price and " +
-          "billing period are shown before you subscribe."
-      )
-      LegalBodyText(text:
-        "(c) Billing and cancellation. Subscriptions purchased through the Apple App Store are billed and managed by Apple; cancel " +
-          "through your Apple ID subscription settings. Subscriptions purchased on our website are billed by our payment processor; " +
-          "cancel from your account settings. Cancellation takes effect at the end of the current billing period."
-      )
-      LegalBodyText(text:
-        "(d) Refunds. Refunds for App Store purchases are governed by Apple's policies. For website purchases, contact us at the " +
-          "address in Section 23; refunds are at our discretion except where required by law."
-      )
-      LegalBodyText(text:
-        "(e) Free trials and read-only access. We may offer a free trial. When a trial or subscription ends, your family account " +
-          "becomes read-only: you can view and export your data but cannot add or change it, and your public athlete profile is not " +
-          "available until a subscription is active."
-      )
-      LegalBodyText(text:
-        "(f) Price changes. We will give existing subscribers at least 30 days' notice before a price change takes effect."
-      )
-      LegalBodyText(text:
-        "(g) Your data. We do not delete your data when a subscription lapses. Section 14 continues to apply."
-      )
+      LegalSectionHeader(text: TermsOfServiceContent.subscriptionsHeading)
+      ForEach(TermsOfServiceContent.subscriptionClauses, id: \.self) { LegalBodyText(text: $0) }
     }
   }
 
