@@ -119,6 +119,34 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     return mockRegenerateCodeResponse
   }
 
+  var stubbedDetailByFamilyId: [String: FamilyMembersDetail] = [:]
+  var detailError: Error?
+  var fetchFamilyDetailCallCount = 0
+
+  func fetchFamilyDetail(familyUnitId: String) async throws -> FamilyMembersDetail {
+    lock.lock()
+    fetchFamilyDetailCallCount += 1
+    fetchFamilyMembersCallCount += 1
+    lastFamilyUnitIdFetched = familyUnitId
+    let detail = stubbedDetailByFamilyId[familyUnitId]
+    let fallback = membersByFamilyUnitId[familyUnitId] ?? stubbedFamilyMembers
+    let shouldThrow = !shouldSucceed || familyUnitIdsToFail.contains(familyUnitId)
+    let error = detailError ?? mockError
+    lock.unlock()
+    if detailError != nil || shouldThrow { throw error }
+    return detail ?? FamilyMembersDetail(members: fallback)
+  }
+
+  /// Each call pops the next entry; the last one repeats. An Error entry throws.
+  var leaveResults: [Result<FamilyLeaveOutcome, Error>] = [.success(.left)]
+  var leaveCalls: [(familyId: String, confirm: Bool)] = []
+
+  func leaveFamily(familyId: String, confirmDeleteFamily: Bool) async throws -> FamilyLeaveOutcome {
+    leaveCalls.append((familyId, confirmDeleteFamily))
+    let result = leaveResults.count > 1 ? leaveResults.removeFirst() : leaveResults[0]
+    return try result.get()
+  }
+
   func removeFamilyMember(memberId: String) async throws {
     removeFamilyMemberCallCount += 1
     lastMemberIdRemoved = memberId

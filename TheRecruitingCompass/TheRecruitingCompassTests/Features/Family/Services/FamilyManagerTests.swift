@@ -61,6 +61,39 @@ struct FamilyManagerTests {
     #expect(sut.selectedAthleteId == "m-athlete-b")
   }
 
+  @Test func parentWhoLeftTheSelectedAthletesFamilyIsMovedToAnAthleteInARemainingFamily() async {
+    let service = MockFamilyService()
+    let auth = MockAuthManager()
+    auth.setMockUser(user("parent-1", role: .parent))
+    let sut = FamilyManager(familyService: service, authManager: auth)
+    sut.selectedAthleteId = "m-athlete-a"
+    let parentB = member(id: "m-parent-b", userId: "parent-1", familyUnitId: "family-b", role: "parent")
+    let athleteB = member(id: "m-athlete-b", userId: "athlete-b", familyUnitId: "family-b", role: "player")
+    service.stubbedCurrentMember = parentB
+    service.stubbedFamilyMembers = [parentB, athleteB]
+
+    await sut.loadFamilyData()
+
+    #expect(sut.selectedAthleteId == "m-athlete-b")
+  }
+
+  @Test func parentKeepsTheirSelectedAthleteWhileTheyStillShareAFamily() async {
+    let service = MockFamilyService()
+    let auth = MockAuthManager()
+    auth.setMockUser(user("parent-1", role: .parent))
+    let sut = FamilyManager(familyService: service, authManager: auth)
+    let parent = member(id: "m-parent", userId: "parent-1", familyUnitId: "family-a", role: "parent")
+    let first = member(id: "m-athlete-1", userId: "athlete-1", familyUnitId: "family-a", role: "player")
+    let second = member(id: "m-athlete-2", userId: "athlete-2", familyUnitId: "family-a", role: "player")
+    sut.selectedAthleteId = "m-athlete-2"
+    service.stubbedCurrentMember = parent
+    service.stubbedFamilyMembers = [parent, first, second]
+
+    await sut.loadFamilyData()
+
+    #expect(sut.selectedAthleteId == "m-athlete-2")
+  }
+
   @Test func concurrentLoadWaitsForTheLoadAlreadyInFlight() async {
     let service = MockFamilyService()
     let gate = AsyncGate()

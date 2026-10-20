@@ -74,6 +74,17 @@ extension FamilyServiceImpl {
     familyServiceLogger.info("Family member removed: \(memberId, privacy: .private)")
   }
 
+  func fetchFamilyDetail(familyUnitId: String) async throws -> FamilyMembersDetail {
+    try await apiClient.fetchMembers(familyId: familyUnitId)
+  }
+
+  func leaveFamily(familyId: String, confirmDeleteFamily: Bool) async throws -> FamilyLeaveOutcome {
+    familyServiceLogger.debug("Leaving family: \(familyId, privacy: .private)")
+    let outcome = try await apiClient.leaveFamily(familyId: familyId, confirmDeleteFamily: confirmDeleteFamily)
+    familyServiceLogger.info("Left family: \(outcome.rawValue, privacy: .public)")
+    return outcome
+  }
+
   // MARK: - Family Management (Parent)
 
   func joinFamilyWithCode(familyCode: String) async throws -> JoinFamilyResponse? {

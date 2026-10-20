@@ -7,6 +7,8 @@ enum NotificationType: String, Codable, CaseIterable, Sendable {
   case inboundInteraction = "inbound_interaction"
   case offer
   case event
+  /// Join / removal / leave notices from the family rules (web `family_update`).
+  case familyUpdate = "family_update"
   case unknown
 
   init(from decoder: Decoder) throws {
@@ -22,6 +24,9 @@ enum NotificationType: String, Codable, CaseIterable, Sendable {
     self = NotificationType(rawValue: rawValue) ?? .unknown
   }
 
+  /// Types that have a push on/off row. `family_update` is a safeguard notice the server always sends.
+  var hasPushPreference: Bool { self != .unknown && self != .familyUpdate }
+
   var label: String {
     switch self {
     case .followUpReminder: return String(localized: "Follow-ups")
@@ -30,6 +35,7 @@ enum NotificationType: String, Codable, CaseIterable, Sendable {
     case .inboundInteraction: return String(localized: "Inbound")
     case .offer: return String(localized: "Offers")
     case .event: return String(localized: "Events")
+    case .familyUpdate: return String(localized: "Family")
     case .unknown: return String(localized: "Other")
     }
   }
@@ -42,6 +48,7 @@ enum NotificationType: String, Codable, CaseIterable, Sendable {
     case .inboundInteraction: return "envelope"
     case .offer: return "trophy"
     case .event: return "calendar"
+    case .familyUpdate: return "person.2"
     case .unknown: return "tray"
     }
   }

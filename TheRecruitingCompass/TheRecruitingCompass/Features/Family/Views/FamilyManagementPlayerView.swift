@@ -14,6 +14,7 @@ struct FamilyManagementPlayerView: View {
         pendingInvitationsSection
         familyMembersSection
         forwardCoachEmailsSection
+        leaveGuidance
       }
       .padding(.horizontal, FamilyConstants.Spacing.medium)
       .padding(.top, FamilyConstants.Spacing.medium)
@@ -30,21 +31,15 @@ struct FamilyManagementPlayerView: View {
     } message: {
       Text("Are you sure? The old code will stop working and anyone trying to join with the old code will not be able to.")
     }
-    .confirmationDialog(
-      "Remove Family Member",
-      isPresented: $viewModel.showDeleteConfirmation,
-      titleVisibility: .visible
-    ) {
-      Button("Remove", role: .destructive) {
-        Task { await viewModel.removeMember() }
-      }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      if let member = viewModel.memberToRemove,
-         let name = member.user?.fullName ?? member.user?.email {
-        Text("Remove \(name) from family?")
-      }
-    }
+  }
+
+  /// Players own the family and never get a Leave action; the server refuses it too.
+  @ViewBuilder
+  private var leaveGuidance: some View {
+    Text("Players can't leave a family. To stop using the app, request account deletion from Profile.")
+      .font(.brand(.caption))
+      .foregroundStyle(.secondary)
+      .frame(maxWidth: .infinity, alignment: .leading)
   }
 
   // MARK: - Family Code Card

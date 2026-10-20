@@ -107,6 +107,12 @@ struct MainTabView: View {
     case .inboundDraftsList:
       morePath = [.section(.inboundDrafts)]
       selectedTab = .more
+    case .notificationsList:
+      morePath = [.section(.notifications)]
+      selectedTab = .more
+    case .familyManagement:
+      morePath = [.familyManagement]
+      selectedTab = .more
     }
   }
 

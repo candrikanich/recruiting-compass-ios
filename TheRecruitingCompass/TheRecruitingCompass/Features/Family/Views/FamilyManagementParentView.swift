@@ -231,7 +231,12 @@ struct FamilyManagementParentView: View {
   private var familiesList: some View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       ForEach(viewModel.parentFamilies) { family in
-        ParentFamilyCard(family: family, label: viewModel.displayLabel(for: family))
+        ParentFamilyCard(
+          family: family,
+          label: viewModel.displayLabel(for: family),
+          onRemoveMember: { viewModel.confirmRemoveMember($0) },
+          onLeave: { viewModel.confirmLeave(family) }
+        )
       }
     }
   }

@@ -166,6 +166,12 @@ private struct ProfilePersonalInfoSection: View {
 
             if isAthlete {
                 DateOfBirthField(value: $viewModel.dateOfBirth)
+                if let dobError = viewModel.dateOfBirthError {
+                    Label(dobError, systemImage: "exclamationmark.circle.fill")
+                        .font(.brand(.subheadline))
+                        .foregroundStyle(Color.errorRed)
+                        .accessibilityLabel(String(localized: "Date of birth error: \(dobError)"))
+                }
             }
 
             if let msg = viewModel.personalInfoMessage {

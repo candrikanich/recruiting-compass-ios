@@ -38,11 +38,21 @@ final class FamilyManagementViewModel {
   var memberToRemove: FamilyMember?
   var showRegenerateConfirmation = false
 
+  // MARK: - Leave State (parents)
+  var familyToLeave: ParentFamilyData?
+  var showLeaveConfirmation = false
+  /// The server's own warning text once it has asked for confirmation to delete an emptied family.
+  var lastMemberLeaveWarning: String?
+  var showLastMemberConfirmation = false
+
   // MARK: - Dependencies
   private let familyService: any FamilyManaging
   private let authManager: any AuthManaging
   private let inboundDraftsService: any InboundDraftsAPIManaging
   private static let isoFormatter = ISO8601DateFormatter()
+
+  /// Called after a leave so app-wide family context (FamilyManager) drops the family and its cached rows.
+  var onMembershipChanged: (@MainActor () async -> Void)?
 
   private var accessToken: String? { authManager.session?.accessToken }
 
@@ -179,10 +189,27 @@ final class FamilyManagementViewModel {
     defer { loadingMembers = false }
 
     do {
-      familyMembers = try await familyService.fetchFamilyMembers(familyUnitId: familyUnitId)
+      familyMembers = try await fetchDetail(familyUnitId: familyUnitId).members
     } catch {
       logger.error("Failed to load family members: \(error.localizedDescription)")
       errorMessage = "Failed to load family members"
+    }
+  }
+
+  private func fetchDetail(familyUnitId: String) async throws -> FamilyMembersDetail {
+    try await Self.fetchDetail(familyUnitId: familyUnitId, via: familyService)
+  }
+
+  /// The web API carries the server's removal/leave verdicts. If it is unreachable the direct read keeps the list
+  /// visible, with every rule field nil — which the UI treats as "no Remove, no Leave", never as allowed.
+  nonisolated private static func fetchDetail(
+    familyUnitId: String, via service: any FamilyManaging
+  ) async throws -> FamilyMembersDetail {
+    do {
+      return try await service.fetchFamilyDetail(familyUnitId: familyUnitId)
+    } catch {
+      logger.error("Family detail unavailable, using direct read: \(error.localizedDescription)")
+      return FamilyMembersDetail(members: try await service.fetchFamilyMembers(familyUnitId: familyUnitId))
     }
   }
 
@@ -264,10 +291,67 @@ final class FamilyManagementViewModel {
       memberToRemove = nil
 
       showSuccess("Family member removed successfully!")
+      await refreshMembers(inFamily: member.familyUnitId)
+      await onMembershipChanged?()
     } catch {
       logger.error("Failed to remove member: \(error.localizedDescription)")
       errorMessage = error.localizedDescription
+      memberToRemove = nil
+      // A busy-retry or a stale verdict: re-read so the buttons match what the server now says.
+      await refreshMembers(inFamily: member.familyUnitId)
     }
+  }
+
+  /// Re-reads one family's members and rule verdicts after a change, so no stale Remove/Leave stays enabled.
+  private func refreshMembers(inFamily familyUnitId: String) async {
+    if familyId == familyUnitId {
+      await loadFamilyMembers(familyUnitId: familyUnitId)
+    } else if let index = parentFamilies.firstIndex(where: { $0.familyId == familyUnitId }),
+              let detail = try? await fetchDetail(familyUnitId: familyUnitId) {
+      parentFamilies[index].members = detail.members
+      parentFamilies[index].canLeave = detail.canLeave
+      parentFamilies[index].leaveBlockedReason = detail.leaveBlockedReason
+    }
+  }
+
+  // MARK: - Leave (parents)
+  func confirmLeave(_ family: ParentFamilyData) {
+    familyToLeave = family
+    showLeaveConfirmation = true
+  }
+
+  func leaveFamily(confirmDeleteFamily: Bool = false) async {
+    guard let family = familyToLeave else { return }
+    isLoading = true
+    errorMessage = nil
+    showLeaveConfirmation = false
+    showLastMemberConfirmation = false
+    defer { isLoading = false }
+
+    do {
+      let outcome = try await familyService.leaveFamily(
+        familyId: family.familyId, confirmDeleteFamily: confirmDeleteFamily
+      )
+      familyToLeave = nil
+      parentFamilies.removeAll { $0.familyId == family.familyId }
+      inboundAddresses.removeAll { $0.familyUnitId == family.familyId }
+      await onMembershipChanged?()
+      showSuccess(outcome == .familyDeleted ? "Family deleted." : "You left the family.")
+    } catch FamilyError.lastMemberConfirmationRequired(let warning) {
+      lastMemberLeaveWarning = warning
+      showLastMemberConfirmation = true
+    } catch {
+      logger.error("Failed to leave family: \(error.localizedDescription)")
+      errorMessage = (error as? FamilyError)?.errorDescription ?? "Failed to leave the family. Please try again."
+      familyToLeave = nil
+      await refreshMembers(inFamily: family.familyId)
+    }
+  }
+
+  func cancelLeave() {
+    familyToLeave = nil
+    showLeaveConfirmation = false
+    showLastMemberConfirmation = false
   }
 
   // MARK: - Parent Actions
@@ -292,11 +376,11 @@ final class FamilyManagementViewModel {
     var updated = families
     var anyFailed = false
 
-    await withTaskGroup(of: (Int, Result<[FamilyMember], Error>).self) { group in
+    await withTaskGroup(of: (Int, Result<FamilyMembersDetail, Error>).self) { group in
       for (index, family) in updated.enumerated() {
         group.addTask { [familyService] in
           do {
-            return (index, .success(try await familyService.fetchFamilyMembers(familyUnitId: family.familyId)))
+            return (index, .success(try await Self.fetchDetail(familyUnitId: family.familyId, via: familyService)))
           } catch {
             return (index, .failure(error))
           }
@@ -305,8 +389,10 @@ final class FamilyManagementViewModel {
 
       for await (index, result) in group {
         switch result {
-        case .success(let members):
-          updated[index].members = members
+        case .success(let detail):
+          updated[index].members = detail.members
+          updated[index].canLeave = detail.canLeave
+          updated[index].leaveBlockedReason = detail.leaveBlockedReason
         case .failure(let error):
           anyFailed = true
           logger.error("Failed to load members for family \(updated[index].familyId): \(error.localizedDescription)")

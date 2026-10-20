@@ -13,6 +13,8 @@ enum ProfileServiceError: LocalizedError {
     case networkError(Error)
     case noPendingDeletion
     case exportRateLimited
+    /// The server's own text for a rejected date of birth (400 fieldErrors / 403 date_of_birth_locked_for_minor).
+    case dateOfBirth(String)
 
     var errorDescription: String? {
         switch self {
@@ -26,6 +28,8 @@ enum ProfileServiceError: LocalizedError {
             return "Network error. Please check your connection."
         case .noPendingDeletion:
             return "No pending deletion to cancel."
+        case .dateOfBirth(let message):
+            return message
         case .exportRateLimited:
             return "You can only export your data once per day. Please try again tomorrow."
         }
@@ -48,9 +52,21 @@ protocol ProfileManaging: Sendable {
 
 final class ProfileServiceImpl: ProfileManaging, Sendable {
     private let supabaseManager: SupabaseManager
+    private let session: URLSession
+    private let baseURLOverride: URL?
+    private let tokenProviderOverride: (@Sendable () async throws -> String)?
 
-    init(supabaseManager: SupabaseManager = .shared) {
+    /// `session`, `baseURL` and `tokenProvider` exist so request/response wiring can be tested without the network.
+    init(
+        supabaseManager: SupabaseManager = .shared,
+        session: URLSession = .shared,
+        baseURL: URL? = nil,
+        tokenProvider: (@Sendable () async throws -> String)? = nil
+    ) {
         self.supabaseManager = supabaseManager
+        self.session = session
+        self.baseURLOverride = baseURL
+        self.tokenProviderOverride = tokenProvider
     }
 
     func updatePersonalInfo(fullName: String, dateOfBirth: String?) async throws {
@@ -221,15 +237,41 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
             : .serverError("Too many requests. Please wait a moment and try again.")
     }
 
+    /// Picks the server's date-of-birth message out of a failed PATCH /api/user/profile, if it carries one.
+    static func dateOfBirthError(from body: Data) -> ProfileServiceError? {
+        struct Body: Decodable {
+            struct Payload: Decodable {
+                struct Fields: Decodable { let date_of_birth: [String]? }
+                let code: String?
+                let fieldErrors: Fields?
+            }
+            let statusMessage: String?
+            let message: String?
+            let data: Payload?
+        }
+        guard let decoded = try? JSONDecoder().decode(Body.self, from: body) else { return nil }
+        let fieldMessage = decoded.data?.fieldErrors?.date_of_birth?.first
+        let lockedMessage = decoded.data?.code == "date_of_birth_locked_for_minor"
+            ? (decoded.statusMessage ?? decoded.message) : nil
+        guard let text = (fieldMessage ?? lockedMessage)?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !text.isEmpty else { return nil }
+        return .dateOfBirth(text)
+    }
+
     // MARK: - Shared request helper
 
+    private func accessToken() async throws -> String {
+        if let tokenProviderOverride { return try await tokenProviderOverride() }
+        return try await supabaseManager.client.auth.session.accessToken
+    }
+
     private func post<B: Encodable>(path: String, method: String, body: B) async throws {
-        guard let baseURL = SupabaseConfig.apiBaseURL else {
+        guard let baseURL = baseURLOverride ?? SupabaseConfig.apiBaseURL else {
             logger.error("apiBaseURL not configured")
             throw ProfileServiceError.notConfigured
         }
         let url = baseURL.appendingPathComponent(path)
-        let token = try await supabaseManager.client.auth.session.accessToken
+        let token = try await accessToken()
 
         var request = URLRequest(url: url)
         request.addClientHeaders()
@@ -243,7 +285,7 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await session.data(for: request)
         } catch {
             logger.error("ProfileService network error: \(error.localizedDescription)")
             throw ProfileServiceError.networkError(error)
@@ -259,6 +301,7 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
         if !(200..<300).contains(http.statusCode) {
             let body = String(data: data, encoding: .utf8) ?? "(unreadable)"
             logger.error("ProfileService failed (\(http.statusCode)): \(body, privacy: .private)")
+            if let dobError = Self.dateOfBirthError(from: data) { throw dobError }
             throw ProfileServiceError.serverError("Request failed. Please try again.")
         }
 

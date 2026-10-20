@@ -23,6 +23,8 @@ final class ProfileViewModel {
     var dateOfBirth: String = ""
     var isSavingPersonalInfo = false
     var personalInfoMessage: SectionMessage?
+    /// Server's reason the date of birth was rejected; shown on the field, not as a generic save failure.
+    var dateOfBirthError: String?
 
     // MARK: - Section 3: Email
 
@@ -185,6 +187,7 @@ final class ProfileViewModel {
         guard isPersonalInfoValid, !isSavingPersonalInfo else { return }
         isSavingPersonalInfo = true
         personalInfoMessage = nil
+        dateOfBirthError = nil
         defer { isSavingPersonalInfo = false }
 
         let trimmedName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -211,6 +214,9 @@ final class ProfileViewModel {
             personalInfoMessage = .success("Saved!")
             try? await Task.sleep(for: .seconds(2))
             personalInfoMessage = nil
+        } catch ProfileServiceError.dateOfBirth(let message) {
+            logger.error("Personal info save rejected the date of birth")
+            dateOfBirthError = message
         } catch {
             logger.error("Personal info save failed: \(error.localizedDescription)")
             personalInfoMessage = .error("Failed to save. Please try again.")

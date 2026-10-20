@@ -13,6 +13,8 @@ struct FamilyAPIClient: Sendable {
   let session: URLSession
   let baseURL: URL?
   let tokenProvider: @Sendable () async throws -> String
+  /// Pause before the single automatic retry of a 409 `family_busy_retry` (a database deadlock that rolled back).
+  var busyRetryDelay: Duration = .milliseconds(400)
 
   static func live(_ supabaseManager: SupabaseManager) -> FamilyAPIClient {
     FamilyAPIClient(
@@ -29,6 +31,24 @@ struct FamilyAPIClient: Sendable {
 
   func removeMember(memberId: String) async throws {
     _ = try await send("DELETE", "api/family/members/\(memberId)")
+  }
+
+  func fetchMembers(familyId: String) async throws -> FamilyMembersDetail {
+    let data = try await send("GET", "api/family/members", query: [URLQueryItem(name: "familyId", value: familyId)])
+    return try JSONDecoder().decode(FamilyMembersDetail.self, from: data)
+  }
+
+  /// POST /api/family/leave. `confirmDeleteFamily` is only sent once the user has confirmed the last-member
+  /// delete warning the server asked for (409 `last_member_confirmation_required`).
+  func leaveFamily(familyId: String, confirmDeleteFamily: Bool) async throws -> FamilyLeaveOutcome {
+    struct Body: Encodable {
+      let familyId: String
+      let confirmDeleteFamily: Bool?
+    }
+    let body = Body(familyId: familyId, confirmDeleteFamily: confirmDeleteFamily ? true : nil)
+    let data = try await send("POST", "api/family/leave", jsonBody: try JSONEncoder().encode(body))
+    struct Result: Decodable { let outcome: FamilyLeaveOutcome? }
+    return (try? JSONDecoder().decode(Result.self, from: data))?.outcome ?? .left
   }
 
   func joinFamily(familyCode: String) async throws -> JoinFamilyResponse? {
@@ -52,6 +72,18 @@ struct FamilyAPIClient: Sendable {
 
   private func send(
     _ method: String, _ path: String, query: [URLQueryItem] = [], jsonBody: Data? = nil
+  ) async throws -> Data {
+    do {
+      return try await performSend(method, path, query: query, jsonBody: jsonBody)
+    } catch FamilyError.busyRetry {
+      // The server rolled the change back on a deadlock, so repeating it once is safe.
+      try await Task.sleep(for: busyRetryDelay)
+      return try await performSend(method, path, query: query, jsonBody: jsonBody)
+    }
+  }
+
+  private func performSend(
+    _ method: String, _ path: String, query: [URLQueryItem], jsonBody: Data?
   ) async throws -> Data {
     guard let baseURL else {
       familyServiceLogger.error("\(path, privacy: .public): API_BASE_URL is not configured")
@@ -87,9 +119,27 @@ struct FamilyAPIClient: Sendable {
     guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
       let status = (response as? HTTPURLResponse)?.statusCode ?? -1
       familyServiceLogger.error("\(method) \(path, privacy: .public) failed: status=\(status)")
-      throw FamilyError.serverError(Self.serverMessage(in: data) ?? Self.genericFailureMessage)
+      throw Self.error(forFailure: data)
     }
     return data
+  }
+
+  /// Every failure keeps the server's own text; the machine-readable `data.code` only picks the case.
+  static func error(forFailure data: Data) -> FamilyError {
+    let message = serverMessage(in: data) ?? genericFailureMessage
+    switch errorCode(in: data) {
+    case "last_member_confirmation_required": return .lastMemberConfirmationRequired(message)
+    case "family_busy_retry": return .busyRetry(message)
+    default: return .serverError(message)
+    }
+  }
+
+  private static func errorCode(in data: Data) -> String? {
+    struct ErrorBody: Decodable {
+      struct Payload: Decodable { let code: String? }
+      let data: Payload?
+    }
+    return (try? JSONDecoder().decode(ErrorBody.self, from: data))?.data?.code
   }
 
   /// h3 error bodies carry `message` (and `statusMessage`); anything else is not safe to show.

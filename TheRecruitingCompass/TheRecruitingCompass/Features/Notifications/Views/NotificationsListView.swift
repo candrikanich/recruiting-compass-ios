@@ -130,6 +130,12 @@ struct NotificationsListView: View {
 
     case .inboundDraftsList:
       InboundDraftsView()
+
+    case .familyManagement:
+      FamilyManagementView()
+
+    case .notificationsList:
+      EmptyView()
     }
   }
 }
