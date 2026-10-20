@@ -96,6 +96,17 @@ enum FaqEntries {
         """
     ),
     FaqEntry(
+      id: "family-required",
+      category: "family",
+      question: "Why am I asked to create or join a family?",
+      answer: """
+        Every account belongs to a family, which is created for you at signup. If you were invited, you join \
+        that family instead. If you're removed from your only family or it is deleted, you'll be asked to \
+        create a new one or join one with a Family Code. Invited but still asked to create or join? Open the \
+        invite link from your email, or join with the family code.
+        """
+    ),
+    FaqEntry(
       id: "privacy",
       category: "account",
       question: "Is my data private?",

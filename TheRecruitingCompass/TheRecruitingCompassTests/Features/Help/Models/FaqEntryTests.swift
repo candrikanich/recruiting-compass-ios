@@ -17,4 +17,11 @@ final class FaqEntryTests: XCTestCase {
       }
     }
   }
+
+  func test_familyRequiredEntryFollowsFamilyEntry() {
+    let ids = FaqEntries.all.map(\.id)
+    let family = ids.firstIndex(of: "family")
+    XCTAssertNotNil(family)
+    XCTAssertEqual(ids.firstIndex(of: "family-required"), family.map { $0 + 1 })
+  }
 }
