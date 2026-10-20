@@ -12,7 +12,6 @@ import UserNotifications
 import os
 import PostHog
 
-@main
 struct TheRecruitingCompassApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
   @State private var authManager = AuthManager.shared
@@ -35,6 +34,9 @@ struct TheRecruitingCompassApp: App {
     CrashReporting.start()
     Analytics.setup()
     BrandFont.configureNavigationBarAppearance()
+    if LaunchEnvironment.disablesAnimations(arguments: ProcessInfo.processInfo.arguments) {
+      UIView.setAnimationsEnabled(false)
+    }
   }
 
   var body: some Scene {

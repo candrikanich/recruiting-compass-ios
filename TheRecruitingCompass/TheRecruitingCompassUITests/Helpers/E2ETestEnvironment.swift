@@ -26,8 +26,10 @@ enum E2ETestEnvironment {
   }()
 
   /// Launch arguments + environment every E2E test should apply to its XCUIApplication.
-  static func configure(_ app: XCUIApplication) {
-    app.launchArguments = ["--uitesting"]
+  /// Animations are off by default (faster, less simulator CPU, fewer mid-transition taps);
+  /// recordings and timing baselines pass `animated: true` to see what users see.
+  static func configure(_ app: XCUIApplication, animated: Bool = false) {
+    app.launchArguments = animated ? ["--uitesting"] : ["--uitesting", "--disable-animations"]
     // A remote E2E project means a CI runner, which never completes the Cloudflare
     // challenge; that project has captcha disabled, so the app may skip it. Local runs
     // keep exercising the real widget.

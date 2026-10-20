@@ -13,7 +13,7 @@ final class PerformanceBaselineTests: XCTestCase {
       "Set PERF_BASELINE=1 to record the performance baseline"
     )
     app = XCUIApplication()
-    E2ETestEnvironment.configure(app)
+    E2ETestEnvironment.configure(app, animated: true)
     app.launchArguments.append("--local-captcha-bypass")
     // Timeline and Action Items are served by the web API; run it locally (`nuxi dev` on :3003).
     app.launchEnvironment["API_BASE_URL"] =
@@ -144,6 +144,7 @@ final class PerformanceBaselineTests: XCTestCase {
   }
 
   private func mark(_ name: String) {
-    print("PERF_MARK \(name) \(Date().timeIntervalSince1970)")
+    // Machine-read by scripts/perf/network-table.mjs from the xcodebuild log, so not a debug print.
+    FileHandle.standardOutput.write(Data("PERF_MARK \(name) \(Date().timeIntervalSince1970)\n".utf8))
   }
 }
