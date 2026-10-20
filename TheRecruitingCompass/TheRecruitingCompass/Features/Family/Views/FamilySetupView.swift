@@ -147,19 +147,15 @@ struct FamilySetupView: View {
   }
 
   private func signOut() {
-    Task {
-      do {
-        try await authManager.logout()
-      } catch {
-        signOutError = error.localizedDescription
-      }
-    }
+    Task { signOutError = await GateSignOut.perform(using: authManager) }
   }
 }
 
 /// The family lookup failed, so the user is neither let into the app (they may have no family) nor sent to the
 /// create screen (they may already have one).
 struct FamilyLoadFailedView: View {
+  @Environment(AuthManager.self) private var authManager
+  @State private var signOutError: String?
   let retry: () async -> Void
 
   var body: some View {
@@ -172,6 +168,14 @@ struct FamilyLoadFailedView: View {
         .buttonStyle(.borderedProminent)
         .frame(minHeight: 44)
         .accessibilityIdentifier("family-load-retry")
+      Button("Sign out", role: .destructive) {
+        Task { signOutError = await GateSignOut.perform(using: authManager) }
+      }
+      .frame(minHeight: 44)
+      .accessibilityIdentifier("family-load-sign-out")
+      if let signOutError {
+        Text(signOutError).font(.brand(.footnote)).foregroundStyle(.red)
+      }
     }
   }
 }

@@ -85,4 +85,22 @@ final class FamilyGateTests: XCTestCase {
   func test_unknownEmail_neverMatches() {
     XCTAssertTrue(FamilyGate.validPendingInvitations([invitation()], email: nil, now: now).isEmpty)
   }
+
+  // MARK: - Sign out from gate screens
+
+  @MainActor
+  func test_gateSignOut_logsOut_andReportsNoError() async {
+    let auth = MockAuthManager()
+    let message = await GateSignOut.perform(using: auth)
+    XCTAssertNil(message)
+    XCTAssertEqual(auth.logoutCallCount, 1)
+  }
+
+  @MainActor
+  func test_gateSignOut_surfacesAFailure() async {
+    let auth = MockAuthManager()
+    auth.shouldThrowLogoutError = true
+    let message = await GateSignOut.perform(using: auth)
+    XCTAssertNotNil(message)
+  }
 }

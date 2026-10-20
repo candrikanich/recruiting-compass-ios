@@ -260,4 +260,23 @@ struct FamilyManagerTests {
 
     #expect(sut.membership == .unknown)
   }
+
+  @Test func loadingRefreshingAndLeavingTheLastFamilyNeverCreateAFamily() async {
+    let service = MockFamilyService()
+    let auth = MockAuthManager()
+    auth.setMockUser(user("parent-1", role: .parent))
+    let sut = FamilyManager(familyService: service, authManager: auth)
+
+    await sut.loadFamilyData()
+    #expect(sut.membership == FamilyMembershipStatus.none)
+
+    service.stubbedCurrentMember = member(id: "m1", userId: "parent-1", familyUnitId: "family-1", role: "parent")
+    await sut.loadFamilyData()
+    await sut.loadFamilyData()
+    service.stubbedCurrentMember = nil
+    await sut.loadFamilyData()
+
+    #expect(sut.membership == FamilyMembershipStatus.none)
+    #expect(service.createFamilyCallCount == 0)
+  }
 }

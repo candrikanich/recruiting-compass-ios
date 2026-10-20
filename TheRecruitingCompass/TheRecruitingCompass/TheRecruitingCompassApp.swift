@@ -296,6 +296,12 @@ private struct AuthenticatedContent: View {
     .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
       Task { await familyManager.loadFamilyData() }
     }
+    // Joining or creating a family on the gate (or via an invite or claim sheet) must re-evaluate onboarding, or a
+    // parent who just joined would land in the wizard instead of the dashboard.
+    .onChange(of: familyManager.membership) { old, new in
+      guard old == .none, new == .member else { return }
+      Task { await onboardingManager.loadStatus(isInFamily: true) }
+    }
     // Keyed by user id, not isAuthenticated: resetUserScopedState() puts onboarding back to
     // "loading", so any change of user must reload it or routing would stall.
     .task(id: authManager.user?.id) {

@@ -168,6 +168,17 @@ final class OnboardingManagerTests: XCTestCase {
     XCTAssertEqual(sut.needsOnboarding, true)
   }
 
+  func testParentWhoJoinsAFamilyAfterTheGateLeavesOnboardingOnReevaluation() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockOnboardingService.isOnboardingCompleteResult = false
+    await sut.loadStatus(isInFamily: false)
+    XCTAssertEqual(sut.needsOnboarding, true)
+
+    await sut.loadStatus(isInFamily: true)
+
+    XCTAssertEqual(sut.needsOnboarding, false)
+  }
+
   func testPlayerRuleIgnoresFamilyMembership() async {
     mockAuthManager.user = makeUser(role: .player)
     mockOnboardingService.isOnboardingCompleteResult = false

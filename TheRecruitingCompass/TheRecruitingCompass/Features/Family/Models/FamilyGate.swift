@@ -68,3 +68,17 @@ enum FamilyGate {
     return fractional.date(from: value) ?? ISO8601DateFormatter().date(from: value)
   }
 }
+
+/// Sign-out offered on every gate screen so a user whose session was revoked elsewhere is never stuck.
+enum GateSignOut {
+  /// Returns an error message to show, or nil on success.
+  @MainActor
+  static func perform(using authManager: any AuthManaging) async -> String? {
+    do {
+      try await authManager.logout()
+      return nil
+    } catch {
+      return error.localizedDescription
+    }
+  }
+}
