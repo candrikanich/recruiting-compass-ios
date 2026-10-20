@@ -7,7 +7,7 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 /// Whether a user still has to go through onboarding. The completion flag write is best-effort on both
 /// platforms, so a parent already in a family passes without it (web PR #1391 matches this rule).
 enum OnboardingGate {
-  static func needsOnboarding(role: UserRole, flagComplete: Bool, isInFamily: Bool) -> Bool {
+  static func needsOnboarding(role: UserRole?, flagComplete: Bool, isInFamily: Bool) -> Bool {
     if flagComplete { return false }
     return role == .parent ? !isInFamily : true
   }
