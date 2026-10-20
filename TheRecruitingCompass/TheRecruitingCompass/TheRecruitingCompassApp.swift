@@ -285,7 +285,7 @@ private struct AuthenticatedContent: View {
       case .loading:
         SessionLoadingView()
       case .retry:
-        FamilyLoadFailedView(retry: { await familyManager.loadFamilyData() })
+        FamilyLoadFailedView(retry: { await loadFamilyAndOnboarding() })
       case .setup:
         FamilySetupView(familyManager: familyManager)
       case .passThrough:
@@ -300,14 +300,18 @@ private struct AuthenticatedContent: View {
     // "loading", so any change of user must reload it or routing would stall.
     .task(id: authManager.user?.id) {
       if authManager.isAuthenticated {
-        async let family: Void = familyManager.loadFamilyData()
-        await onboardingManager.loadStatus()
-        await family
+        await loadFamilyAndOnboarding()
         if let userId = authManager.user?.id {
           await nuxProgressManager.load(userId: userId)
         }
       }
     }
+  }
+
+  /// Family first: a parent in a family passes onboarding even if the best-effort completion flag is unset.
+  private func loadFamilyAndOnboarding() async {
+    await familyManager.loadFamilyData()
+    await onboardingManager.loadStatus(isInFamily: familyManager.membership == .member)
   }
 
   // Precedence: full onboarding > sport-only gate > dashboard.
@@ -320,7 +324,7 @@ private struct AuthenticatedContent: View {
     } else if onboardingManager.needsOnboarding == false {
       if onboardingManager.needsSportOnly {
         SportGateView(onComplete: {
-          Task { await onboardingManager.loadStatus() }
+          Task { await onboardingManager.loadStatus(isInFamily: familyManager.membership == .member) }
         })
       } else {
         AdaptiveRootView(pendingPushDestination: $pendingPushDestination)

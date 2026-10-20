@@ -4,9 +4,17 @@ import OSLog
 
 private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "OnboardingManager")
 
-/// Holds onboarding gate state. Players and parents must complete onboarding (the shared
-/// `onboarding_complete` flag web's middleware also gates on) before seeing the dashboard. Whether the
-/// user belongs to a family is a separate check, owned by `FamilyManager` and the family-required gate.
+/// Whether a user still has to go through onboarding. The completion flag write is best-effort on both
+/// platforms, so a parent already in a family passes without it (web PR #1391 matches this rule).
+enum OnboardingGate {
+  static func needsOnboarding(role: UserRole, flagComplete: Bool, isInFamily: Bool) -> Bool {
+    if flagComplete { return false }
+    return role == .parent ? !isInFamily : true
+  }
+}
+
+/// Holds onboarding gate state. Players must complete onboarding (the shared `onboarding_complete` flag);
+/// parents pass with the flag or by being in a family (see `OnboardingGate`).
 @Observable
 @MainActor
 final class OnboardingManager {
@@ -37,7 +45,7 @@ final class OnboardingManager {
   }
 
   /// Call when user becomes authenticated.
-  func loadStatus() async {
+  func loadStatus(isInFamily: Bool) async {
     guard let user = authManager.user else {
       needsOnboarding = false
       needsSportOnly = false
@@ -51,7 +59,9 @@ final class OnboardingManager {
     do {
       let complete = try await onboardingService.isOnboardingComplete(userId: user.id)
       guard loadSession == session else { return }
-      needsOnboarding = !complete
+      needsOnboarding = OnboardingGate.needsOnboarding(
+        role: user.role, flagComplete: complete, isInFamily: isInFamily
+      )
 
       // Parents are never sport-gated: the sport lives on the linked athlete's preferences.
       guard user.role != .parent else { return }

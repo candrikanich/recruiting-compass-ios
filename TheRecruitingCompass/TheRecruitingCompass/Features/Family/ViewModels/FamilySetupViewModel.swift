@@ -37,8 +37,8 @@ final class FamilySetupViewModel {
     self.onMembershipChanged = onMembershipChanged
   }
 
-  /// A failed lookup falls back to offering create (web parity). Create is still an explicit tap, and the server
-  /// answers 409 when an invite is pending.
+  /// A failed lookup falls back to offering create (web parity). Create is still an explicit tap; a server guard
+  /// (409, web#1390) is not built yet.
   func checkForPendingInvite() async {
     isChecking = true
     defer { isChecking = false }

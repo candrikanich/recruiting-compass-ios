@@ -34,7 +34,7 @@ final class OnboardingManagerTests: XCTestCase {
   func testNoUserDefaultsToNotNeedingOnboarding() async {
     mockAuthManager.user = nil
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertEqual(sut.needsOnboarding, false)
   }
@@ -45,7 +45,7 @@ final class OnboardingManagerTests: XCTestCase {
     mockAuthManager.user = makeUser(role: .player)
     mockOnboardingService.isOnboardingCompleteResult = true
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertEqual(sut.needsOnboarding, false)
   }
@@ -54,7 +54,7 @@ final class OnboardingManagerTests: XCTestCase {
     mockAuthManager.user = makeUser(role: .player)
     mockOnboardingService.isOnboardingCompleteResult = false
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertEqual(sut.needsOnboarding, true)
   }
@@ -63,7 +63,7 @@ final class OnboardingManagerTests: XCTestCase {
     mockAuthManager.user = makeUser(role: .player)
     mockOnboardingService.shouldThrowError = true
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertEqual(sut.needsOnboarding, false)
   }
@@ -72,7 +72,7 @@ final class OnboardingManagerTests: XCTestCase {
     mockAuthManager.user = makeUser(role: .player)
     mockOnboardingService.isOnboardingCompleteResult = true
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertEqual(mockOnboardingService.isOnboardingCompleteCallCount, 1)
   }
@@ -84,7 +84,7 @@ final class OnboardingManagerTests: XCTestCase {
     mockOnboardingService.isOnboardingCompleteResult = true
     mockPreferenceService.stubbedPlayerDetails = makePlayerDetails(sport: nil)
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertEqual(sut.needsOnboarding, false)
     XCTAssertTrue(sut.needsSportOnly, "A complete player with a null sport must be gated")
@@ -95,7 +95,7 @@ final class OnboardingManagerTests: XCTestCase {
     mockOnboardingService.isOnboardingCompleteResult = true
     mockPreferenceService.stubbedPlayerDetails = makePlayerDetails(sport: "   ")
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertTrue(sut.needsSportOnly, "Blank/whitespace sport counts as unset")
   }
@@ -105,7 +105,7 @@ final class OnboardingManagerTests: XCTestCase {
     mockOnboardingService.isOnboardingCompleteResult = true
     mockPreferenceService.stubbedPlayerDetails = makePlayerDetails(sport: "Baseball")
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertFalse(sut.needsSportOnly, "A player with a real sport is not gated")
   }
@@ -115,7 +115,7 @@ final class OnboardingManagerTests: XCTestCase {
     mockOnboardingService.isOnboardingCompleteResult = true
     mockPreferenceService.stubbedPlayerDetails = nil
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertTrue(sut.needsSportOnly, "No prefs row means no sport, so gate")
   }
@@ -125,7 +125,7 @@ final class OnboardingManagerTests: XCTestCase {
     mockOnboardingService.isOnboardingCompleteResult = true
     mockPreferenceService.errorToThrow = NSError(domain: "test", code: 1)
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertFalse(sut.needsSportOnly, "A read error must fail open, never lock the user out")
   }
@@ -134,7 +134,7 @@ final class OnboardingManagerTests: XCTestCase {
     mockAuthManager.user = makeUser(role: .parent)
     mockPreferenceService.stubbedPlayerDetails = makePlayerDetails(sport: nil)
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertFalse(sut.needsSportOnly, "Parents use a different flow and are never sport-gated")
   }
@@ -145,36 +145,51 @@ final class OnboardingManagerTests: XCTestCase {
     mockAuthManager.user = makeUser(role: .parent)
     mockOnboardingService.isOnboardingCompleteResult = true
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertEqual(sut.needsOnboarding, false)
   }
 
-  func testParentWithIncompleteOnboardingNeedsIt_evenThoughTheServerGaveThemAFamily() async {
+  func testParentInAFamilyWithoutTheFlagPasses() async {
     mockAuthManager.user = makeUser(role: .parent)
     mockOnboardingService.isOnboardingCompleteResult = false
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: true)
+
+    XCTAssertEqual(sut.needsOnboarding, false)
+  }
+
+  func testParentWithNeitherFamilyNorFlagIsGated() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockOnboardingService.isOnboardingCompleteResult = false
+
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertEqual(sut.needsOnboarding, true)
   }
 
-  func testParentOnboardingIgnoresAnyDeviceCachedFlag() async {
-    mockAuthManager.user = makeUser(role: .parent)
-    UserDefaults.standard.set(true, forKey: "parent_onboarding_complete_test-parent-id")
-    defer { UserDefaults.standard.removeObject(forKey: "parent_onboarding_complete_test-parent-id") }
+  func testPlayerRuleIgnoresFamilyMembership() async {
+    mockAuthManager.user = makeUser(role: .player)
     mockOnboardingService.isOnboardingCompleteResult = false
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: true)
 
     XCTAssertEqual(sut.needsOnboarding, true)
+  }
+
+  func testGateTruthTable() {
+    XCTAssertFalse(OnboardingGate.needsOnboarding(role: .parent, flagComplete: true, isInFamily: false))
+    XCTAssertFalse(OnboardingGate.needsOnboarding(role: .parent, flagComplete: false, isInFamily: true))
+    XCTAssertTrue(OnboardingGate.needsOnboarding(role: .parent, flagComplete: false, isInFamily: false))
+    XCTAssertFalse(OnboardingGate.needsOnboarding(role: .player, flagComplete: true, isInFamily: false))
+    XCTAssertTrue(OnboardingGate.needsOnboarding(role: .player, flagComplete: false, isInFamily: true))
   }
 
   func testParentWithFlagErrorDefaultsToSkippingOnboarding() async {
     mockAuthManager.user = makeUser(role: .parent)
     mockOnboardingService.shouldThrowError = true
 
-    await sut.loadStatus()
+    await sut.loadStatus(isInFamily: false)
 
     XCTAssertEqual(sut.needsOnboarding, false)
   }
@@ -220,7 +235,7 @@ final class OnboardingManagerTests: XCTestCase {
     let gate = AsyncGate()
     mockOnboardingService.isOnboardingCompleteGate = { await gate.wait() }
 
-    let staleCheck = Task { await sut.loadStatus() }
+    let staleCheck = Task { await sut.loadStatus(isInFamily: false) }
     await gate.untilEntered()
     sut.reset()
     gate.open()

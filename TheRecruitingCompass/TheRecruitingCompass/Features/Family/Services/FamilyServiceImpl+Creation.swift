@@ -51,7 +51,7 @@ extension FamilyServiceImpl {
     }
 
     if http.statusCode == 409 {
-      familyServiceLogger.warning("createFamily: 409, the account already has a family or a pending invite")
+      familyServiceLogger.warning("createFamily: 409, the account already has a family")
       throw FamilyError.createConflict
     }
 

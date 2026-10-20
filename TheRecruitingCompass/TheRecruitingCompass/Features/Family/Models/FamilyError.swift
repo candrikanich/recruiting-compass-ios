@@ -10,7 +10,8 @@ enum FamilyError: LocalizedError {
   case lastMemberConfirmationRequired(String)
   /// 409 family_busy_retry that outlived the automatic retry.
   case busyRetry(String)
-  /// 409 on create: the server already has a family or a pending invite for this account (web#1390 guard).
+  /// 409 on create. Future-proofing for the server guard tracked in web#1390 (not built yet); the client
+  /// itself never offers Create while an invite is pending.
   case createConflict
 
   var errorDescription: String? {
