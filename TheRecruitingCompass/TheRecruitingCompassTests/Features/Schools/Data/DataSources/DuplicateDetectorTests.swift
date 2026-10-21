@@ -395,7 +395,7 @@ final class DuplicateDetectorTests: XCTestCase {
 
   // MARK: - extractDomain() Helper Tests
 
-  func testExtractDomain_httpsWithWWW_stripsWWW() throws {
+  func testExtractDomain_httpsWithWWW_stripsWWW() {
     // When
     let domain = DuplicateDetector.extractDomainForTesting(from: "https://www.stanford.edu")
 
@@ -403,7 +403,7 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(domain, "stanford.edu")
   }
 
-  func testExtractDomain_httpsWithoutWWW_returnsHost() throws {
+  func testExtractDomain_httpsWithoutWWW_returnsHost() {
     // When
     let domain = DuplicateDetector.extractDomainForTesting(from: "https://stanford.edu")
 
@@ -411,7 +411,7 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(domain, "stanford.edu")
   }
 
-  func testExtractDomain_httpWithWWW_stripsWWW() throws {
+  func testExtractDomain_httpWithWWW_stripsWWW() {
     // When
     let domain = DuplicateDetector.extractDomainForTesting(from: "http://www.stanford.edu")
 
@@ -419,7 +419,7 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(domain, "stanford.edu")
   }
 
-  func testExtractDomain_noScheme_addsSchemeThenExtracts() throws {
+  func testExtractDomain_noScheme_addsSchemeThenExtracts() {
     // When
     let domain = DuplicateDetector.extractDomainForTesting(from: "www.stanford.edu")
 
@@ -427,7 +427,7 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(domain, "stanford.edu")
   }
 
-  func testExtractDomain_withPath_returnsOnlyDomain() throws {
+  func testExtractDomain_withPath_returnsOnlyDomain() {
     // When
     let domain = DuplicateDetector.extractDomainForTesting(from: "https://www.stanford.edu/athletics/baseball")
 
@@ -435,7 +435,7 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(domain, "stanford.edu")
   }
 
-  func testExtractDomain_withQueryString_returnsOnlyDomain() throws {
+  func testExtractDomain_withQueryString_returnsOnlyDomain() {
     // When
     let domain = DuplicateDetector.extractDomainForTesting(from: "https://www.stanford.edu?page=home")
 
@@ -443,7 +443,7 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(domain, "stanford.edu")
   }
 
-  func testExtractDomain_withSubdomain_includesSubdomain() throws {
+  func testExtractDomain_withSubdomain_includesSubdomain() {
     // When
     let domain = DuplicateDetector.extractDomainForTesting(from: "https://athletics.stanford.edu")
 
@@ -451,7 +451,7 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(domain, "athletics.stanford.edu")
   }
 
-  func testExtractDomain_invalidURL_returnsNil() throws {
+  func testExtractDomain_invalidURL_returnsNil() {
     // When
     let domain = DuplicateDetector.extractDomainForTesting(from: "not a valid url")
 
@@ -459,7 +459,7 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertNil(domain)
   }
 
-  func testExtractDomain_emptyString_returnsNil() throws {
+  func testExtractDomain_emptyString_returnsNil() {
     // When
     let domain = DuplicateDetector.extractDomainForTesting(from: "")
 
@@ -467,7 +467,7 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertNil(domain)
   }
 
-  func testExtractDomain_wwwCaseInsensitive_stripsCorrectly() throws {
+  func testExtractDomain_wwwCaseInsensitive_stripsCorrectly() {
     // When
     let domain1 = DuplicateDetector.extractDomainForTesting(from: "https://WWW.stanford.edu")
     let domain2 = DuplicateDetector.extractDomainForTesting(from: "https://Www.stanford.edu")

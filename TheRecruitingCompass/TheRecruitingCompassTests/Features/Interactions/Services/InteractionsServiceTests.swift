@@ -313,7 +313,7 @@ final class InteractionsServiceTests: XCTestCase {
 
   // MARK: - Reset Tests
 
-  func testReset_ClearsAllState() throws {
+  func testReset_ClearsAllState() {
     // Given
     mockService.mockInteractions = [createInteraction(id: "1")]
     mockService.mockSchools = [createSchool(id: "1", name: "School")]

@@ -1,8 +1,9 @@
-// swiftlint:disable file_length type_body_length
+// swiftlint:disable file_length
 import XCTest
 @testable import TheRecruitingCompass
 
 @MainActor
+// swiftlint:disable:next type_body_length
 final class EventDetailViewModelTests: XCTestCase {
   nonisolated deinit {}
 
