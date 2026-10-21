@@ -141,7 +141,8 @@ struct DashboardView: View {
       }
 
       DashboardPublicProfileCard(
-        targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+        targetUserId: PublicProfileTarget.userId(
+          user: authManager.user, selectedAthleteUserId: familyManager.selectedAthlete?.userId)
       )
       .id(familyManager.selectedAthleteId)
 
@@ -181,8 +182,8 @@ struct DashboardView: View {
     } sidebarContent: {
       VStack(spacing: 16) {
         DashboardPublicProfileCard(
-          targetUserId: familyManager.selectedAthlete?.userId
-            ?? authManager.user?.id
+          targetUserId: PublicProfileTarget.userId(
+            user: authManager.user, selectedAthleteUserId: familyManager.selectedAthlete?.userId)
         )
         .id(familyManager.selectedAthleteId)
 

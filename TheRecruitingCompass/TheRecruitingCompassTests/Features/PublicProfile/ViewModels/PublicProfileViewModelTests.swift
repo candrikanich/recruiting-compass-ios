@@ -433,6 +433,24 @@ final class PublicProfileViewModelTests: XCTestCase {
         XCTAssertEqual(mock.updatedPayloads.first?.athleteId, "athlete-A")
     }
 
+    func testParentLoadRetryAfterTokenRefreshStillSendsSelectedAthleteId() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        mock.errorToThrowOnce = PublicProfileAPIError.unauthorized
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
+        XCTAssertEqual(mock.fetchedAthleteIds, ["athlete-A", "athlete-A"])
+    }
+
+    func testParentSaveRetryAfterTokenRefreshStillSendsSelectedAthleteId() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrowOnce = PublicProfileAPIError.unauthorized
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.save()
+        XCTAssertEqual(mock.attemptedPayloads.map(\.athleteId), ["athlete-A", "athlete-A"])
+        XCTAssertEqual(mock.updatedPayloads.map(\.athleteId), ["athlete-A"])
+    }
+
     func testEditsStayPinnedToTheAthleteTheyWereMadeFor() async {
         let mock = MockPublicProfileManaging()
         mock.stubProfile = makeProfile()
