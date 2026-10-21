@@ -107,21 +107,34 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertTrue(viewModel.isInviteStepValid)
   }
 
+  private func makeFamilyUnit(id: String = "family-1", code: String? = "FAM-TEST01") -> FamilyUnit {
+    FamilyUnit(
+      id: id, createdByUserId: "parent-1", familyName: "Test Family", familyCode: code,
+      codeGeneratedAt: nil, createdAt: nil, updatedAt: nil, homeLatitude: nil, homeLongitude: nil
+    )
+  }
+
   // MARK: - loadFamilyCode
 
-  func testLoadFamilyCode_success_setsFamilyCode() async {
-    mockFamilyService.mockCreateFamilyResponse = CreateFamilyResponse(
-      success: true,
-      familyCode: "FAM-TEST01",
-      familyId: "family-1",
-      familyName: "Test Family"
-    )
+  func testLoadFamilyCode_success_readsTheExistingFamily_neverCreatesOne() async {
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
 
     await viewModel.loadFamilyCode()
 
+    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 0)
     XCTAssertEqual(viewModel.familyCode, "FAM-TEST01")
     XCTAssertFalse(viewModel.isLoadingFamilyCode)
     XCTAssertNil(viewModel.errorMessage)
+  }
+
+  func testLoadFamilyCode_noFamily_setsErrorAndNeverCreates() async {
+    mockFamilyService.stubbedFamilyUnit = nil
+
+    await viewModel.loadFamilyCode()
+
+    XCTAssertNil(viewModel.familyCode)
+    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 0)
+    XCTAssertEqual(viewModel.errorMessage, "Couldn't load your family code. Please try again.")
   }
 
   func testLoadFamilyCode_failure_setsErrorAndClearsCode() async {
@@ -201,7 +214,7 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.didComplete)
   }
 
-  func testFinishOnboarding_success_createsFamilySavesDetailsAndCompletes() async {
+  func testFinishOnboarding_success_savesDetailsToTheExistingFamilyAndCompletes() async {
     viewModel.playerFirstName = "Alex"
     viewModel.playerLastName = "Rivera"
     viewModel.playerSport = "Baseball"
@@ -209,17 +222,11 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     viewModel.playerGraduationYear = 2028
     viewModel.hasConfirmedDateOfBirth = true
     viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
-    mockFamilyService.mockCreateFamilyResponse = CreateFamilyResponse(
-      success: true,
-      familyCode: "FAM-TEST01",
-      familyId: "family-42",
-      familyName: "Test Family"
-    )
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(id: "family-42")
 
     await viewModel.finishOnboarding()
 
-    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 1)
-    XCTAssertEqual(mockFamilyService.lastCreatedFamilyRole, .parent)
+    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 0)
     XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 1)
     XCTAssertEqual(mockFamilyService.lastSavePlayerDetailsFamilyId, "family-42")
     XCTAssertEqual(mockFamilyService.lastSavePlayerDetails?.firstName, "Alex")
@@ -244,6 +251,7 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     viewModel.hasConfirmedDateOfBirth = true
     viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
     mockOnboardingService.shouldThrowError = true
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
 
     await viewModel.finishOnboarding()
 
@@ -253,7 +261,21 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertNil(viewModel.errorMessage)
   }
 
-  func testFinishOnboarding_createFamilyFails_setsErrorAndSkipsCompletion() async {
+  func testFinishOnboarding_noFamily_setsErrorAndNeverCreatesOne() async {
+    viewModel.playerFirstName = "Alex"
+    viewModel.hasConfirmedDateOfBirth = true
+    viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.stubbedFamilyUnit = nil
+
+    await viewModel.finishOnboarding()
+
+    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 0)
+    XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 0)
+    XCTAssertFalse(viewModel.didComplete)
+    XCTAssertNotNil(viewModel.errorMessage)
+  }
+
+  func testFinishOnboarding_familyLookupFails_setsErrorAndSkipsCompletion() async {
     viewModel.playerFirstName = "Alex"
     viewModel.hasConfirmedDateOfBirth = true
     viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now

@@ -15,6 +15,8 @@ final class FamilyManager {
   var familyMembers: [FamilyMember] = []
   var selectedAthleteId: String?
   var familyUnit: FamilyUnit?
+  /// Drives the family-required gate. Stays `unknown` until the first read finishes (loading is not "no family").
+  private(set) var membership: FamilyMembershipStatus = .unknown
   /// Server-resolved family labels by family unit id (from `/api/family/inbound-address`); empty on API versions
   /// without `familyLabel`, in which case the athlete switcher shows no family text.
   var familyLabels: [String: String] = [:]
@@ -98,8 +100,10 @@ final class FamilyManager {
       guard isCurrent(userId, loadSession) else { return }
       familyUnit = unit
       logger.debug("Fetched family unit: \(self.familyUnit?.id ?? "none")")
+      membership = FamilyGate.status(afterReading: self.familyUnitId)
 
-      // Mirrors web: no auto-create. User creates family from Family tab when inviting parent.
+      // No client auto-create: the server creates the family at signup and the family-required gate is the
+      // backstop for anyone left without one.
       if let familyUnitId = self.familyUnitId {
         let members = try await familyService.fetchFamilyMembers(familyUnitId: familyUnitId)
         guard isCurrent(userId, loadSession) else { return }
@@ -123,6 +127,9 @@ final class FamilyManager {
       await loadFamilyLabels(userId: userId, session: loadSession)
     } catch {
       logger.error("Failed to load family data: \(error.localizedDescription)")
+      if isCurrent(userId, loadSession) {
+        membership = FamilyGate.status(afterFailedReadFrom: membership)
+      }
     }
   }
 
@@ -161,6 +168,7 @@ final class FamilyManager {
     selectedAthleteId = nil
     familyUnit = nil
     familyLabels = [:]
+    membership = .unknown
   }
 
   /// A load that outlives its session (sign-out or account switch mid-request) must not

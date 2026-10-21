@@ -52,7 +52,6 @@ final class SignupViewModel {
   var shouldNavigateToVerifyEmail = false
 
   private let authManager: any AuthManaging
-  private let familyService: any FamilyManaging
   private let guardianService: any GuardianManaging
   private let turnstileTokenProvider: any TurnstileTokenProviding
   private let formValidator = FormValidator.self
@@ -190,12 +189,10 @@ final class SignupViewModel {
 
   init(
     authManager: (any AuthManaging)? = nil,
-    familyService: (any FamilyManaging)? = nil,
     guardianService: (any GuardianManaging)? = nil,
     turnstileTokenProvider: (any TurnstileTokenProviding)? = nil
   ) {
     self.authManager = authManager ?? AuthManager.shared
-    self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.guardianService = guardianService ?? GuardianServiceImpl()
     self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
   }
@@ -377,18 +374,8 @@ final class SignupViewModel {
         beforePublish: nil
       )
 
-      // Create family for both roles (mirrors web: POST /api/family/create)
-      if authManager.isAuthenticated {
-        do {
-          _ = try await familyService.createFamily(role: role)
-        } catch {
-          // intentionally silent: signup itself succeeded and must not be blocked.
-          // The dashboard onboarding banner detects the missing family and walks
-          // the user through creating one, so that is the recovery surface.
-          signupLogger.error("Family creation failed during signup: \(error.localizedDescription)")
-        }
-      }
-
+      // No client-side family creation: the server creates it atomically with the account (web#1302), and
+      // the family-required gate covers anyone left without one.
       // Only show email verification when no session (e.g. confirmation required)
       if !authManager.isAuthenticated {
         shouldNavigateToVerifyEmail = true
@@ -400,8 +387,9 @@ final class SignupViewModel {
 
   /// Standalone signup for a 13-17 player who names a guardian, via the
   /// dedicated `signup-minor` endpoint (parity with web PR #784). No family
-  /// is created here — the guardian's later confirmation creates the family
-  /// unit and links the player into it. The account itself IS auto-confirmed
+  /// is created client-side: the server creates it at signup with the player
+  /// as owner, and the guardian's later confirmation joins into it (web#1302).
+  /// The account itself IS auto-confirmed
   /// and sessioned immediately though (parity with the adult path, #167) —
   /// establishSession(fromTokenHash:) below lands the player on the
   /// dashboard, where GuardianPendingBanner/EmailVerificationBanner show.

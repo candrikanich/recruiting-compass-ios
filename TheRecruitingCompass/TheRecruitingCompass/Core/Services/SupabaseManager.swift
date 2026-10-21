@@ -163,9 +163,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     marketingEmailOptIn: Bool? = nil
   ) async throws -> (user: User, session: Session?) {
     // family_code isn't accepted by the web signup endpoint's metadata (server/api/auth/signup.post.ts
-    // ALLOWED_METADATA_KEYS) — family creation is its own step after signup (see
-    // SignupViewModel.signup(), which already passes familyCode: nil here and calls
-    // familyService.createFamily(role:) afterward, mirroring web's flow).
+    // ALLOWED_METADATA_KEYS). The server creates the family atomically with the account (web#1302); the
+    // device never creates one after signup, and the family-required gate covers anyone left without one.
     _ = familyCode
 
     // Carried across the email-confirmation gap and flushed into real preferences by

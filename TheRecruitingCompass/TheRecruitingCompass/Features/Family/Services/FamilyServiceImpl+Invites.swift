@@ -111,6 +111,17 @@ extension FamilyServiceImpl {
     }
   }
 
+  func fetchInvitationsAddressed(toEmail email: String) async throws -> [FamilyInvitation] {
+    try await supabaseManager.client
+      .from("family_invitations")
+      .select("id, family_unit_id, invited_email, role, status, expires_at")
+      .eq("status", value: FamilyInvitation.Status.pending.rawValue)
+      .eq("invited_email", value: email.lowercased())
+      .gt("expires_at", value: ISO8601DateFormatter().string(from: .now))
+      .execute()
+      .value
+  }
+
   func revokeInvitation(id: String) async throws {
     familyServiceLogger.debug("Revoking invitation: \(id, privacy: .private)")
     guard let baseURL = SupabaseConfig.apiBaseURL else {

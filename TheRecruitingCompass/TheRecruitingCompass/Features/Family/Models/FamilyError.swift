@@ -10,6 +10,9 @@ enum FamilyError: LocalizedError {
   case lastMemberConfirmationRequired(String)
   /// 409 family_busy_retry that outlived the automatic retry.
   case busyRetry(String)
+  /// 409 on create. Future-proofing for the server guard tracked in web#1390 (not built yet); the client
+  /// itself never offers Create while an invite is pending.
+  case createConflict
 
   var errorDescription: String? {
     switch self {
@@ -21,6 +24,8 @@ enum FamilyError: LocalizedError {
       return "You are already a member of this family"
     case .notFound:
       return "Family code not found. Please check and try again"
+    case .createConflict:
+      return "We found an existing family or invitation for your account. Checking again\u{2026}"
     case .serverError(let message), .lastMemberConfirmationRequired(let message), .busyRetry(let message):
       return message
     }

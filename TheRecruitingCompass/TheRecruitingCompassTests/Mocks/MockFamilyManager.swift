@@ -224,6 +224,16 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     return stubbedPendingInvitations
   }
 
+  var stubbedAddressedInvitations: [FamilyInvitation] = []
+  var addressedInvitationsError: Error?
+  var lastAddressedEmail: String?
+
+  func fetchInvitationsAddressed(toEmail email: String) async throws -> [FamilyInvitation] {
+    lastAddressedEmail = email
+    if let addressedInvitationsError { throw addressedInvitationsError }
+    return stubbedAddressedInvitations
+  }
+
   func revokeInvitation(id: String) async throws {
     revokeInvitationCallCount += 1
     lastRevokedInvitationId = id

@@ -6,7 +6,6 @@ final class SignupViewModelTests: XCTestCase {
   nonisolated deinit {}
   var sut: SignupViewModel!
   var mockAuthManager: MockAuthManager!
-  var mockFamilyService: MockFamilyService!
   var mockGuardianService: MockGuardianService!
   var mockTurnstileProvider: MockTurnstileTokenProvider!
 
@@ -14,12 +13,10 @@ final class SignupViewModelTests: XCTestCase {
   override func setUp() {
     super.setUp()
     mockAuthManager = MockAuthManager()
-    mockFamilyService = MockFamilyService()
     mockGuardianService = MockGuardianService()
     mockTurnstileProvider = MockTurnstileTokenProvider()
     sut = SignupViewModel(
       authManager: mockAuthManager,
-      familyService: mockFamilyService,
       guardianService: mockGuardianService,
       turnstileTokenProvider: mockTurnstileProvider
     )
@@ -28,7 +25,6 @@ final class SignupViewModelTests: XCTestCase {
   override func tearDown() {
     sut = nil
     mockAuthManager = nil
-    mockFamilyService = nil
     mockGuardianService = nil
     mockTurnstileProvider = nil
     super.tearDown()
@@ -778,7 +774,7 @@ final class SignupViewModelTests: XCTestCase {
   func testSignupFetchesAndForwardsCaptchaToken() async {
     let mockTurnstile = MockTurnstileTokenProvider()
     mockTurnstile.tokenToReturn = "captcha-signup-456"
-    sut = SignupViewModel(authManager: mockAuthManager, familyService: mockFamilyService, turnstileTokenProvider: mockTurnstile)
+    sut = SignupViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstile)
     fillValidForm()
 
     await sut.signup()
@@ -790,7 +786,7 @@ final class SignupViewModelTests: XCTestCase {
   func testSignupSurfacesCaptchaFailure() async {
     let mockTurnstile = MockTurnstileTokenProvider()
     mockTurnstile.shouldThrowError = true
-    sut = SignupViewModel(authManager: mockAuthManager, familyService: mockFamilyService, turnstileTokenProvider: mockTurnstile)
+    sut = SignupViewModel(authManager: mockAuthManager, turnstileTokenProvider: mockTurnstile)
     fillValidForm()
 
     await sut.signup()
