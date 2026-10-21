@@ -83,7 +83,6 @@ struct DashboardWidgetStack: View {
       if visibility.eventsSummary {
         UpcomingEventsWidget(
           events: events,
-          familyUnitId: familyUnitId,
           userId: userId,
           onEventCreated: onEventCreated
         )
