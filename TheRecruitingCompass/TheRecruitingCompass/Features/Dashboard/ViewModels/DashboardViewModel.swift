@@ -52,10 +52,15 @@ final class DashboardViewModel {
   /// True only after the last `fetchPlayerProfile()` loaded every completeness input without error.
   private var isProfileCompletenessSettled = false
   var recommendations: [SchoolRecommendation] = []
-  /// Catalog keys added from the recommendations widget. The web API caches recommendations per athlete
-  /// for 2 minutes and iOS inserts schools straight into Supabase (no cache bust), so a refetch inside
-  /// that window would bring a just-added school back.
-  private var addedRecommendationKeys: Set<String> = []
+  /// Catalog keys added from the recommendations widget, with when they were added. The web API caches
+  /// recommendations per athlete for 2 minutes and iOS inserts schools straight into Supabase (no cache
+  /// bust), so a refetch inside that window would bring a just-added school back. Entries expire with the
+  /// cache so a school that is later deleted can be recommended again.
+  private var addedRecommendationKeys: [String: Date] = [:]
+  private static let recommendationsCacheTTL: TimeInterval = 120
+  private static let recommendationsLimit = 6
+  /// Server-side cap on `limit` for `/api/schools/recommendations`.
+  private static let recommendationsMaxLimit = 12
   var isLoading = false
   var isLoggingOut = false
   var errorMessage: String?
@@ -80,6 +85,7 @@ final class DashboardViewModel {
   private let deadlinesService: any DeadlinesManaging
   private let videoLinksService: any VideoLinksManaging
   private let schoolsService: any SchoolsManaging
+  private let now: @Sendable () -> Date
 
   /// The user whose recruiting data the dashboard shows. When a parent is
   /// viewing an athlete, events/metrics/offers belong to the athlete (interactions are family-wide);
@@ -181,7 +187,8 @@ final class DashboardViewModel {
     recommendationService: (any SchoolRecommendationManaging)? = nil,
     deadlinesService: (any DeadlinesManaging)? = nil,
     videoLinksService: (any VideoLinksManaging)? = nil,
-    schoolsService: (any SchoolsManaging)? = nil
+    schoolsService: (any SchoolsManaging)? = nil,
+    now: @escaping @Sendable () -> Date = { .now }
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.dashboardService = dashboardService ?? DashboardServiceImpl(supabaseManager: .shared)
@@ -191,7 +198,8 @@ final class DashboardViewModel {
     self.recommendationService = recommendationService ?? SchoolRecommendationServiceImpl(supabaseManager: .shared)
     self.deadlinesService = deadlinesService ?? DeadlinesServiceImpl(supabaseManager: .shared)
     self.videoLinksService = videoLinksService ?? VideoLinksServiceImpl(supabaseManager: .shared)
-    self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
+    self.schoolsService = schoolsService ?? SchoolsFactory.makeRepository()
+    self.now = now
   }
 
   func fetchDashboardData() async {
@@ -586,8 +594,14 @@ final class DashboardViewModel {
   func fetchRecommendations() async {
     guard let userId = targetUserId else { return }
     do {
-      let fetched = try await recommendationService.fetchRecommendations(athleteId: userId, limit: 6)
-      recommendations = fetched.filter { !addedRecommendationKeys.contains($0.catalogKey) }
+      let cutoff = now().addingTimeInterval(-Self.recommendationsCacheTTL)
+      addedRecommendationKeys = addedRecommendationKeys.filter { $0.value > cutoff }
+      // Over-fetch by the hidden count so a stale list still fills the widget.
+      let limit = min(Self.recommendationsLimit + addedRecommendationKeys.count, Self.recommendationsMaxLimit)
+      let fetched = try await recommendationService.fetchRecommendations(athleteId: userId, limit: limit)
+      recommendations = Array(
+        fetched.filter { addedRecommendationKeys[$0.catalogKey] == nil }.prefix(Self.recommendationsLimit)
+      )
     } catch {
       logger.warning("Failed to load recommendations: \(error.localizedDescription)")
     }
@@ -601,7 +615,7 @@ final class DashboardViewModel {
         recommendation: recommendation, userId: userId, familyUnitId: familyUnitId
       )
       _ = try await schoolsService.createSchool(request: request)
-      addedRecommendationKeys.insert(recommendation.catalogKey)
+      addedRecommendationKeys[recommendation.catalogKey] = now()
       recommendations.removeAll { $0.id == recommendation.id }
       await fetchDashboardData()
     } catch {

@@ -12,6 +12,7 @@ final class DashboardViewModelRecommendationsTests: XCTestCase {
   private var mockSchoolsService: MockSchoolsService!
   private var recommendationService: StubRecommendationService!
   private var familyManager: FamilyManager!
+  private var clock: TestClock!
 
   private let ballState = SchoolRecommendation(
     catalogKey: "ball state university", name: "Ball State University", division: "D1", state: "IN",
@@ -30,6 +31,8 @@ final class DashboardViewModelRecommendationsTests: XCTestCase {
     mockSchoolsService.stubbedCreatedSchool = .mock(id: "school-1", name: "Ball State University")
     recommendationService = StubRecommendationService()
     familyManager = FamilyManager(familyService: mockFamilyService, authManager: mockAuthManager)
+    clock = TestClock()
+    let clock = clock!
     sut = DashboardViewModel(
       authManager: mockAuthManager,
       dashboardService: MockDashboardService(),
@@ -37,8 +40,10 @@ final class DashboardViewModelRecommendationsTests: XCTestCase {
       familyManager: familyManager,
       preferenceService: MockPreferenceService(),
       recommendationService: recommendationService,
+      deadlinesService: MockDeadlinesService(),
       videoLinksService: MockVideoLinksService(),
-      schoolsService: mockSchoolsService
+      schoolsService: mockSchoolsService,
+      now: { clock.now }
     )
   }
 
@@ -49,6 +54,7 @@ final class DashboardViewModelRecommendationsTests: XCTestCase {
     mockSchoolsService = nil
     recommendationService = nil
     familyManager = nil
+    clock = nil
     super.tearDown()
   }
 
@@ -85,6 +91,32 @@ final class DashboardViewModelRecommendationsTests: XCTestCase {
 
     XCTAssertEqual(sut.recommendations.map(\.catalogKey), [ballState.catalogKey, mountUnion.catalogKey])
     XCTAssertNotNil(sut.errorMessage)
+  }
+
+  func testAddedSchoolCanReturnOnceServerCacheExpires() async {
+    await signInAsParent()
+    recommendationService.stubbedRecommendations = [ballState, mountUnion]
+    await sut.addRecommendedSchool(ballState)
+
+    // E.g. the school was deleted from the Schools tab and the server recommends it again.
+    clock.now = clock.now.addingTimeInterval(121)
+    await sut.fetchRecommendations()
+
+    XCTAssertEqual(sut.recommendations.map(\.catalogKey), [ballState.catalogKey, mountUnion.catalogKey])
+  }
+
+  func testOverFetchesByHiddenCountToFillWidget() async {
+    await signInAsParent()
+    let recs = (0..<8).map { index in
+      SchoolRecommendation(catalogKey: "school \(index)", name: "School \(index)", score: 1, reasons: [])
+    }
+    recommendationService.stubbedRecommendations = recs
+    await sut.addRecommendedSchool(recs[0])
+
+    await sut.fetchRecommendations()
+
+    XCTAssertEqual(recommendationService.lastLimit, 7)
+    XCTAssertEqual(sut.recommendations.map(\.catalogKey), recs[1...6].map(\.catalogKey))
   }
 
   // MARK: - Helpers
@@ -129,11 +161,17 @@ final class DashboardViewModelRecommendationsTests: XCTestCase {
 private final class StubRecommendationService: SchoolRecommendationManaging, @unchecked Sendable {
   var stubbedRecommendations: [SchoolRecommendation] = []
   var fetchCallCount = 0
+  var lastLimit: Int?
 
   func fetchRecommendations(athleteId: String, limit: Int) async throws -> [SchoolRecommendation] {
     fetchCallCount += 1
-    return stubbedRecommendations
+    lastLimit = limit
+    return Array(stubbedRecommendations.prefix(limit))
   }
 
   func dismissRecommendation(catalogKey: String, athleteId: String) async throws {}
+}
+
+private final class TestClock: @unchecked Sendable {
+  var now = Date(timeIntervalSince1970: 1_800_000_000)
 }
