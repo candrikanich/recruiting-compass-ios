@@ -230,6 +230,10 @@ final class CreateEventViewModel {
   func createEvent() async -> String? {
     guard !isLoading, !isSaving else { return nil }
     guard validateForm() else { return nil }
+    guard let familyUnitId = resolvedFamilyUnitId else {
+      errorMessage = Self.familyNotLoadedMessage
+      return nil
+    }
 
     logger.debug("Creating event: \(self.formData.name)")
     isSaving = true
@@ -239,7 +243,7 @@ final class CreateEventViewModel {
     let request = CreateEventRequest.from(
       formData: formData,
       userId: userId,
-      familyUnitId: resolvedFamilyUnitId
+      familyUnitId: familyUnitId
     )
     do {
       let event = try await eventsService.createEvent(request)

@@ -238,7 +238,7 @@ struct SchoolDetailView: View {
       NavigationStack {
         AddCoachView(
           coachesService: CoachesServiceImpl(supabaseManager: .shared),
-          familyUnitId: familyManager.familyUnitId ?? "",
+          familyUnitId: familyManager.resolvedFamilyUnitId,
           userId: viewModel.currentUserId ?? "",
           navigationPath: .constant(NavigationPath()),
           preselectedSchoolId: schoolId

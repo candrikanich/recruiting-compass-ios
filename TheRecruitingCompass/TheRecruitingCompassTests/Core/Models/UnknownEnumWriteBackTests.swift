@@ -13,7 +13,7 @@ final class UnknownEnumWriteBackTests: XCTestCase {
     return Set(object?.keys.map { $0 } ?? [])
   }
 
-  func testServerValue_nilForUnknown_rawValueOtherwise() {
+  func testServerValue_nilForUnknown_rawValueOtherwise() throws {
     XCTAssertNil(Direction.unknown.serverValue)
     XCTAssertNil(Sentiment.unknown.serverValue)
     XCTAssertNil(TaskStatus.unknown.serverValue)
@@ -45,7 +45,7 @@ final class UnknownEnumWriteBackTests: XCTestCase {
   }
 
   func testInteractionCreateRequest_omitsUnknownSentiment() throws {
-    let request = InteractionCreateRequest(
+    let request = try InteractionCreateRequest(
       schoolId: nil, coachId: nil, type: .email, direction: .outbound, occurredAt: .now,
       subject: nil, content: nil, sentiment: .unknown, loggedBy: "u", familyUnitId: "f")
     XCTAssertFalse(try keys(request).contains("sentiment"))
@@ -78,7 +78,7 @@ final class UnknownEnumWriteBackTests: XCTestCase {
 
   // MARK: - #311 / #314 follow-ups
 
-  func testServerValue_nilForUnknown_forRemainingWrittenEnums() {
+  func testServerValue_nilForUnknown_forRemainingWrittenEnums() throws {
     XCTAssertNil(InteractionType.unknown.serverValue)
     XCTAssertNil(OfferStatus.unknown.serverValue)
     XCTAssertNil(OfferType.unknown.serverValue)
@@ -118,7 +118,7 @@ final class UnknownEnumWriteBackTests: XCTestCase {
   }
 
   func testInteractionCreateRequest_encodesKnownType() throws {
-    let known = InteractionCreateRequest(
+    let known = try InteractionCreateRequest(
       schoolId: nil, coachId: nil, type: .phoneCall, direction: .outbound, occurredAt: .now,
       subject: nil, content: nil, sentiment: nil, loggedBy: "u", familyUnitId: "f")
     XCTAssertTrue(try keys(known).contains("type"))
@@ -164,7 +164,7 @@ final class UnknownEnumWriteBackTests: XCTestCase {
     XCTAssertTrue(try keys(known).contains("platform"))
   }
 
-  func testSchoolStatusHistoryRow_omitsUnknownPreviousStatus() {
+  func testSchoolStatusHistoryRow_omitsUnknownPreviousStatus() throws {
     let unknown = SchoolsRepositoryImpl.statusHistoryRow(
       schoolId: "s", previous: .unknown, new: .contacted, userId: "u", changedAt: "t")
     XCTAssertNil(unknown["previous_status"])
@@ -174,13 +174,13 @@ final class UnknownEnumWriteBackTests: XCTestCase {
     XCTAssertEqual(known["previous_status"], "researching")
   }
 
-  func testTimelinePhaseUnknown_hasNoGradeLevel() {
+  func testTimelinePhaseUnknown_hasNoGradeLevel() throws {
     XCTAssertNil(TimelinePhase.unknown.gradeLevel)
     XCTAssertEqual(TimelinePhase.senior.gradeLevel, 12)
     XCTAssertEqual(TimelinePhase.committed.gradeLevel, 12)
   }
 
-  func testInteractionBreakdown_countsUnknownSentimentsAndTypes() {
+  func testInteractionBreakdown_countsUnknownSentimentsAndTypes() throws {
     let result = AnalyticsServiceImpl.interactionBreakdown(rows: [
       (type: "email", sentiment: "positive"),
       (type: "carrier_pigeon", sentiment: "ecstatic"),

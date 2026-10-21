@@ -16,7 +16,7 @@ struct AddSchoolView: View {
 
   init(
     schoolsService: SchoolsManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String,
     navigationPath: Binding<NavigationPath>
   ) {

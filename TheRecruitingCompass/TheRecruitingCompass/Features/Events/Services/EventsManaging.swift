@@ -35,7 +35,7 @@ protocol EventsManaging: Sendable {
   func fetchSchools(familyUnitId: String) async throws -> [SchoolSummary]
   /// Creates a minimal school record inline from the event form. Writes both
   /// `user_id` and `family_unit_id` so the new school shows up in the
-  /// family-scoped Schools list and this picker.
+  /// family-scoped Schools list and this picker. Throws `FamilyUnitID.MissingError` when there is no family.
   func createSchool(
     name: String,
     location: String?,

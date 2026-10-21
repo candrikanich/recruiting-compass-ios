@@ -133,14 +133,14 @@ struct CoachesListView: View {
     case .add:
       AddCoachView(
         coachesService: viewModel.coachesService,
-        familyUnitId: familyManager.familyUnitId ?? "",
+        familyUnitId: familyManager.resolvedFamilyUnitId,
         userId: authManager.user?.id ?? "",
         navigationPath: $navigationPath
       )
     case .addSchool:
       AddSchoolView(
         schoolsService: SchoolsServiceImpl(supabaseManager: .shared),
-        familyUnitId: familyManager.familyUnitId ?? "",
+        familyUnitId: familyManager.resolvedFamilyUnitId,
         userId: authManager.user?.id ?? "",
         navigationPath: $navigationPath
       )

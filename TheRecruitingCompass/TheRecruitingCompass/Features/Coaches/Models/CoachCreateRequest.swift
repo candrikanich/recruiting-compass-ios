@@ -32,11 +32,12 @@ struct CoachCreateRequest: Encodable, Sendable {
     case source
   }
 
+  /// Throws `FamilyUnitID.MissingError` rather than build a payload with a blank `family_unit_id`.
   /// `tags`/`source` default so existing call sites compile unchanged.
   init(
     schoolId: String,
     userId: String,
-    familyUnitId: String,
+    familyUnitId: String?,
     role: String,
     firstName: String,
     lastName: String,
@@ -47,10 +48,10 @@ struct CoachCreateRequest: Encodable, Sendable {
     notes: String? = nil,
     tags: [String] = [],
     source: String? = nil
-  ) {
+  ) throws {
     self.schoolId = schoolId
     self.userId = userId
-    self.familyUnitId = familyUnitId
+    self.familyUnitId = try FamilyUnitID.require(familyUnitId)
     self.role = role
     self.firstName = firstName
     self.lastName = lastName

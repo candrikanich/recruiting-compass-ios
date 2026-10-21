@@ -8,7 +8,7 @@ struct DashboardWidgetStack: View {
   let visibility: WidgetVisibility
   let suggestions: [Suggestion]
   let pendingCount: Int
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
   let coachesNeedingFollowup: [Coach]
   let allCoaches: [Coach]
@@ -83,7 +83,8 @@ struct DashboardWidgetStack: View {
       if visibility.eventsSummary {
         UpcomingEventsWidget(
           events: events,
-          familyUnitId: familyUnitId,
+          // Event creation normalizes a blank id itself and is reworked in #390; left untouched here.
+          familyUnitId: familyUnitId ?? "",
           userId: userId,
           onEventCreated: onEventCreated
         )

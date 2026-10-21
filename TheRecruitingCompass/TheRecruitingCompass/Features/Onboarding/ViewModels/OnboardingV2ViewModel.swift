@@ -204,10 +204,7 @@ final class OnboardingV2ViewModel {
 
     do {
       let familyUnit = try await familyService.getFamilyUnit(forUserId: userId)
-      guard let familyUnitId = familyUnit?.id else {
-        logger.warning("No family unit found; cannot create school")
-        return false
-      }
+      let familyUnitId = try FamilyUnitID.require(familyUnit?.id)
 
       var division = recommendation.division.flatMap(Division.init(rawValue:))
       var conference = recommendation.conference
@@ -238,7 +235,7 @@ final class OnboardingV2ViewModel {
         website: recommendation.website ?? scorecardData?.website ?? "",
         status: .researching
       )
-      let request = SchoolCreateRequest.from(
+      let request = try SchoolCreateRequest.from(
         form: form,
         scorecardData: scorecardData,
         userId: userId,
@@ -260,6 +257,10 @@ final class OnboardingV2ViewModel {
       OnboardingAnalytics.schoolAdded(schoolName: recommendation.name)
       logger.info("Added school from recommendation: \(recommendation.name)")
       return true
+    } catch let error as FamilyUnitID.MissingError {
+      logger.warning("No family unit found; refusing to create school")
+      errorMessage = error.localizedDescription
+      return false
     } catch {
       logger.error("Failed to add school: \(error.localizedDescription)")
       errorMessage = "Couldn't add \(recommendation.name). Please try again."

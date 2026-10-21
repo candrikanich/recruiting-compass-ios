@@ -40,7 +40,7 @@ final class AddCoachViewModel {
   // MARK: - Dependencies
 
   private let coachesService: CoachesManaging
-  private let familyUnitId: String
+  private let familyUnitId: String?
   private let userId: String
   private let preselectedSchoolId: String?
   nonisolated(unsafe) private let announcer: AccessibilityAnnouncing
@@ -65,7 +65,7 @@ final class AddCoachViewModel {
 
   nonisolated init(
     coachesService: CoachesManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String,
     announcer: AccessibilityAnnouncing,
     preselectedSchoolId: String? = nil
@@ -80,7 +80,7 @@ final class AddCoachViewModel {
   /// Convenience initializer with default announcer
   convenience init(
     coachesService: CoachesManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String,
     preselectedSchoolId: String? = nil
   ) {
@@ -120,7 +120,12 @@ final class AddCoachViewModel {
       return
     }
 
-    logger.debug("Loading schools for family unit: \(self.familyUnitId)")
+    guard let familyUnitId = FamilyUnitID.normalized(familyUnitId) else {
+      submitError = FamilyUnitID.MissingError.missing.errorDescription
+      return
+    }
+
+    logger.debug("Loading schools for family unit: \(familyUnitId)")
     isLoadingSchools = true
     submitError = nil
     defer { isLoadingSchools = false }
@@ -193,13 +198,21 @@ final class AddCoachViewModel {
     }
 
     // 2. Prepare data with sanitization
-    guard let request = CoachCreateRequest.from(
-      form: formState,
-      schoolId: schoolId,
-      userId: userId,
-      familyUnitId: familyUnitId
-    ) else {
-      submitError = "Failed to prepare coach data. Please check all required fields."
+    let request: CoachCreateRequest
+    do {
+      guard let prepared = try CoachCreateRequest.from(
+        form: formState,
+        schoolId: schoolId,
+        userId: userId,
+        familyUnitId: familyUnitId
+      ) else {
+        submitError = "Failed to prepare coach data. Please check all required fields."
+        return nil
+      }
+      request = prepared
+    } catch {
+      logger.error("Refusing to create coach: \(error.localizedDescription)")
+      submitError = error.localizedDescription
       return nil
     }
 
@@ -216,7 +229,7 @@ final class AddCoachViewModel {
 
       // Invalidate CoachesListViewModel's cached list (Phase 3.6) so the new
       // coach appears immediately on next visit instead of waiting out the TTL.
-      await InMemoryCache.shared.remove(forKey: ListCacheKeys.coaches(familyUnitId: familyUnitId))
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.coaches(familyUnitId: request.familyUnitId))
 
       // Success announcement with haptic feedback
       let announcement = "Coach \(newCoach.firstName) \(newCoach.lastName) added successfully"

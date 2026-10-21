@@ -40,7 +40,7 @@ extension AddSchoolViewModel {
 
     do {
       // Fetch all schools for this family unit
-      let existingSchools = try await schoolsService.fetchSchools(familyUnitId: familyUnitId)
+      let existingSchools = try await schoolsService.fetchSchools(familyUnitId: request.familyUnitId)
       duplicateLogger.debug("Fetched \(existingSchools.count) existing schools for duplicate check")
 
       // Run duplicate detection
@@ -86,7 +86,7 @@ extension AddSchoolViewModel {
 
   /// Build SchoolCreateRequest from current form state
   func buildCurrentRequest() -> SchoolCreateRequest? {
-    SchoolCreateRequest.from(
+    try? SchoolCreateRequest.from(
       form: formState,
       scorecardData: scorecardData,
       userId: userId,
@@ -106,7 +106,7 @@ extension AddSchoolViewModel {
 
       // Invalidate SchoolsListViewModel's cached list (Phase 3.6) so the new
       // school appears immediately on next visit instead of waiting out the TTL.
-      await InMemoryCache.shared.remove(forKey: ListCacheKeys.schools(familyUnitId: familyUnitId))
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.schools(familyUnitId: request.familyUnitId))
 
       // Phase 5: Fetch and persist favicon — fire-and-forget, do not await
       let faviconService = schoolFaviconService

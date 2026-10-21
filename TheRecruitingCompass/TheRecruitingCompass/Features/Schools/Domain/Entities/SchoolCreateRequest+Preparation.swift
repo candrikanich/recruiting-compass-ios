@@ -18,12 +18,13 @@ extension SchoolCreateRequest {
   ///   - userId: The current user ID
   ///   - familyUnitId: The family unit ID
   /// - Returns: SchoolCreateRequest ready for API submission
+  /// - Throws: `FamilyUnitID.MissingError` when there is no family to stamp
   static func from(
     form: SchoolFormState,
     scorecardData: CollegeDataResult? = nil,
     userId: String,
-    familyUnitId: String
-  ) -> SchoolCreateRequest {
+    familyUnitId: String?
+  ) throws -> SchoolCreateRequest {
     // Required: name (trim whitespace)
     let name = form.name.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -73,7 +74,7 @@ extension SchoolCreateRequest {
       scorecardData: scorecardData
     )
 
-    return SchoolCreateRequest(
+    return try SchoolCreateRequest(
       userId: userId,
       familyUnitId: familyUnitId,
       name: name,
@@ -129,9 +130,9 @@ extension SchoolCreateRequest {
   static func from(
     recommendation: SchoolRecommendation,
     userId: String,
-    familyUnitId: String
-  ) -> SchoolCreateRequest {
-    SchoolCreateRequest(
+    familyUnitId: String?
+  ) throws -> SchoolCreateRequest {
+    try SchoolCreateRequest(
       userId: userId,
       familyUnitId: familyUnitId,
       name: recommendation.name,

@@ -17,14 +17,15 @@ final class VideoLinksEditorViewModelTests: XCTestCase {
       healthStatus: .unknown, lastHealthCheck: nil, createdAt: nil, updatedAt: nil)
   }
 
-  func test_addLink_blankFamilyUnitId_isSentAsNilNotEmptyString() async {
+  func test_addLink_blankFamilyUnitId_refusesToInsert() async {
     let mock = MockVideoLinksService()
     let vm = VideoLinksEditorViewModel(service: mock, athleteUserId: "u1", familyUnitId: "  ", isReadOnly: false)
 
     let ok = await vm.addLink(platform: .youtube, url: "https://youtu.be/x", title: nil)
 
-    XCTAssertTrue(ok)
-    XCTAssertNil(mock.links.first?.familyUnitId)
+    XCTAssertFalse(ok)
+    XCTAssertTrue(mock.links.isEmpty)
+    XCTAssertNotNil(vm.errorMessage)
   }
 
   func test_loadPopulatesLinks() async {

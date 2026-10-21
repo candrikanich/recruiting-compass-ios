@@ -44,6 +44,10 @@ final class VideoLinksEditorViewModel {
         : String(localized: "You can add up to 5 video links.")
       return false
     }
+    guard let familyUnitId else {
+      errorMessage = FamilyUnitID.MissingError.missing.errorDescription
+      return false
+    }
     isSubmitting = true; defer { isSubmitting = false }
     do {
       let created = try await service.createVideoLink(.init(

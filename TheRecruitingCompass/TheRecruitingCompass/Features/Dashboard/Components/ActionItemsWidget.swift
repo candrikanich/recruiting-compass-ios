@@ -3,7 +3,7 @@ import SwiftUI
 struct ActionItemsWidget: View {
   let suggestions: [Suggestion]
   let pendingCount: Int
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
   let onDismiss: (String) -> Void
   let onComplete: (String) -> Void

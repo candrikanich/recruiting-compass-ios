@@ -9,7 +9,7 @@ struct AddInteractionView: View {
   @FocusState private var focusedField: String?
 
   private let schoolsService: any SchoolsManaging
-  private let familyUnitId: String
+  private let familyUnitId: String?
   private let userId: String
 
   /// Called on a successful log with the auto-advance toast message (or nil).
@@ -18,7 +18,7 @@ struct AddInteractionView: View {
 
   init(
     interactionsService: InteractionsManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String,
     preselectedSchoolId: String? = nil,
     draftToConfirm: InboundEmailDraft? = nil,

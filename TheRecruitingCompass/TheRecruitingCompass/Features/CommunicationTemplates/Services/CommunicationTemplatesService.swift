@@ -57,9 +57,8 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
       // RLS enforces the same scope; this filter keeps the payload tight and still
       // returns predefined/global built-ins (family_unit_id NULL) via the OR.
       let familyUnitId = await Self.activeFamilyUnitId()
-      let orFilter = familyUnitId.isEmpty
-        ? "is_predefined.eq.true"
-        : "family_unit_id.eq.\(familyUnitId),is_predefined.eq.true"
+      let orFilter = familyUnitId.map { "family_unit_id.eq.\($0),is_predefined.eq.true" }
+        ?? "is_predefined.eq.true"
       let templates: [CommunicationTemplate] = try await supabaseManager.client
         .from("communication_templates")
         .select()
@@ -84,11 +83,11 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
     do {
       let session = try await supabaseManager.client.auth.session
       let userId = session.user.id.uuidString
-      let familyUnitId = await Self.activeFamilyUnitId()
+      let familyUnitId = try FamilyUnitID.require(await Self.activeFamilyUnitId())
       let payload = makePayload(
         from: formData,
         userId: userId,
-        familyUnitId: familyUnitId.isEmpty ? nil : familyUnitId
+        familyUnitId: familyUnitId
       )
       let template: CommunicationTemplate = try await supabaseManager.client
         .from("communication_templates")
@@ -157,9 +156,9 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
 
   /// Resolves the caller's active family unit id off the main actor. Mirrors how
   /// every other family-scoped iOS service reads `FamilyManager` (interactions,
-  /// offers). Returns "" when unresolved so the caller falls back to predefined-only.
-  private static func activeFamilyUnitId() async -> String {
-    await MainActor.run { FamilyManager.shared.familyUnitId ?? "" }
+  /// offers). Nil when unresolved: reads fall back to predefined-only, creates refuse.
+  private static func activeFamilyUnitId() async -> String? {
+    await MainActor.run { FamilyManager.shared.resolvedFamilyUnitId }
   }
 
   private func makeUpdatePayload(from formData: TemplateFormData) -> TemplateUpdatePayload {

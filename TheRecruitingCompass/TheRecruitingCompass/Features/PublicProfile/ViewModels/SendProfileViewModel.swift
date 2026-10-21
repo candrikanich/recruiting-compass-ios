@@ -151,19 +151,19 @@ final class SendProfileViewModel {
             errorMessage = String(localized: "Profile sent, but logging it failed.")
             return
         }
-        let request = InteractionCreateRequest(
-            schoolId: message.schoolId,
-            coachId: message.coachId,
-            type: channel == .email ? .email : .text,
-            direction: .outbound,
-            occurredAt: Date(),
-            subject: message.subject,
-            content: message.url.absoluteString,
-            sentiment: nil,
-            loggedBy: loggedBy,
-            familyUnitId: message.familyUnitId
-        )
         do {
+            let request = try InteractionCreateRequest(
+                schoolId: message.schoolId,
+                coachId: message.coachId,
+                type: channel == .email ? .email : .text,
+                direction: .outbound,
+                occurredAt: Date(),
+                subject: message.subject,
+                content: message.url.absoluteString,
+                sentiment: nil,
+                loggedBy: loggedBy,
+                familyUnitId: message.familyUnitId
+            )
             _ = try await interactionsService.createInteraction(request)
             successMessage = String(localized: "Logged profile sent to coach.")
         } catch {

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ActionItemCard: View {
   let suggestion: Suggestion
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
   let onDismiss: () -> Void
   let onComplete: () -> Void

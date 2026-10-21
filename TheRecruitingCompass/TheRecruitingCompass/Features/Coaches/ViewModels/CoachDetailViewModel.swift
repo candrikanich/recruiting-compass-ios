@@ -268,11 +268,11 @@ final class CoachDetailViewModel {
       return
     }
     let subject = pending.channel == .twitter ? "Twitter DM" : "Instagram DM"
-    let request = InteractionCreateRequest(
-      schoolId: coach.schoolId, coachId: coach.id, type: .directMessage, direction: .outbound,
-      occurredAt: .now, subject: subject, content: nil, sentiment: nil,
-      loggedBy: userId, familyUnitId: familyUnitId)
     do {
+      let request = try InteractionCreateRequest(
+        schoolId: coach.schoolId, coachId: coach.id, type: .directMessage, direction: .outbound,
+        occurredAt: .now, subject: subject, content: nil, sentiment: nil,
+        loggedBy: userId, familyUnitId: familyUnitId)
       _ = try await interactionsService.createInteraction(request)
       pendingSocialDM = nil
       await loadDetails()
