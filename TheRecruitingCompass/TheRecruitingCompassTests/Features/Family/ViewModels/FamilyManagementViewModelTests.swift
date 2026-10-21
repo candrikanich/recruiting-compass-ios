@@ -295,16 +295,16 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertEqual(sut.displayLabel(for: sut.parentFamilies[1]), "Jones Family")
   }
 
-  func testCanInvitePlayer_trueUntilAFamilyHasAPlayer() {
-    XCTAssertTrue(sut.canInvitePlayer)
+  func testParentFamilyHasPlayer_falseUntilAFamilyHasAPlayer() {
+    XCTAssertFalse(sut.parentFamilyHasPlayer)
 
     var family = ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x")
     family.members = [makeFamilyMember(id: "m1", role: "parent")]
     sut.parentFamilies = [family]
-    XCTAssertTrue(sut.canInvitePlayer)
+    XCTAssertFalse(sut.parentFamilyHasPlayer)
 
     sut.parentFamilies[0].members.append(makeFamilyMember(id: "m2", userId: "user-2", role: "player"))
-    XCTAssertFalse(sut.canInvitePlayer)
+    XCTAssertTrue(sut.parentFamilyHasPlayer)
   }
 
   func testPlayerFamilyCodeHeading_usesServerLabelElseGenericHeading() async {

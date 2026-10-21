@@ -8,7 +8,7 @@ struct FamilyManagementParentView: View {
     ScrollView {
       VStack(spacing: FamilyConstants.Spacing.large) {
         joinFamilyCard
-        if featureFlags.isEnabled(.familyInvites) && viewModel.canInvitePlayer {
+        if featureFlags.isEnabled(.familyInvites) {
           inviteByEmailCard
         }
         pendingInvitationsSection
@@ -74,11 +74,13 @@ struct FamilyManagementParentView: View {
   @ViewBuilder
   private var inviteByEmailCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
-      Text("Invite Player by Email")
+      Text(viewModel.parentFamilyHasPlayer ? "Invite Family to Follow Along" : "Invite Player by Email")
         .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
-        Text("They'll receive a link to join your family.")
+      Text(viewModel.parentFamilyHasPlayer
+        ? "Parents, step-parents, grandparents, and other relatives get a link to follow the recruiting journey."
+        : "They'll receive a link to join your family.")
         .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -89,12 +91,14 @@ struct FamilyManagementParentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
 
       HStack(spacing: FamilyConstants.Spacing.small) {
-        TextField("player@example.com", text: $viewModel.inviteEmail)
+        TextField(viewModel.parentFamilyHasPlayer ? "name@example.com" : "player@example.com", text: $viewModel.inviteEmail)
           .textFieldStyle(.roundedBorder)
           .keyboardType(.emailAddress)
           .textContentType(.emailAddress)
           .autocapitalization(.none)
-          .accessibilityLabel(String(localized: "Player email address"))
+          .accessibilityLabel(viewModel.parentFamilyHasPlayer
+            ? String(localized: "Family member email address")
+            : String(localized: "Player email address"))
 
         Button {
           Task { await viewModel.sendEmailInvite() }

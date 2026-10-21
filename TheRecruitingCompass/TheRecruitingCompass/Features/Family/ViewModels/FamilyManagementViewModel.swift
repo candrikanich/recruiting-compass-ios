@@ -75,9 +75,9 @@ final class FamilyManagementViewModel {
     return trimmed.contains("@") && trimmed.contains(".")
   }
 
-  /// Parents are only offered a player invite until one of their families has a player.
-  var canInvitePlayer: Bool {
-    !parentFamilies.contains { family in family.members.contains(where: \.isAthlete) }
+  /// A family has one player; once it does, a parent's invites go to other family members instead.
+  var parentFamilyHasPlayer: Bool {
+    parentFamilies.contains { family in family.members.contains(where: \.isAthlete) }
   }
 
   var formattedCodeGeneratedAt: String? {
@@ -435,7 +435,7 @@ final class FamilyManagementViewModel {
     }
 
     let email = inviteEmail.trimmingCharacters(in: .whitespaces)
-    let inviteRole = isPlayer ? "parent" : "player"
+    let inviteRole = isPlayer || parentFamilyHasPlayer ? "parent" : "player"
 
     isLoading = true
     errorMessage = nil
