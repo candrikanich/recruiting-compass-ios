@@ -52,6 +52,10 @@ final class DashboardViewModel {
   /// True only after the last `fetchPlayerProfile()` loaded every completeness input without error.
   private var isProfileCompletenessSettled = false
   var recommendations: [SchoolRecommendation] = []
+  /// Catalog keys added from the recommendations widget. The web API caches recommendations per athlete
+  /// for 2 minutes and iOS inserts schools straight into Supabase (no cache bust), so a refetch inside
+  /// that window would bring a just-added school back.
+  private var addedRecommendationKeys: Set<String> = []
   var isLoading = false
   var isLoggingOut = false
   var errorMessage: String?
@@ -579,7 +583,8 @@ final class DashboardViewModel {
   func fetchRecommendations() async {
     guard let userId = targetUserId else { return }
     do {
-      recommendations = try await recommendationService.fetchRecommendations(athleteId: userId, limit: 6)
+      let fetched = try await recommendationService.fetchRecommendations(athleteId: userId, limit: 6)
+      recommendations = fetched.filter { !addedRecommendationKeys.contains($0.catalogKey) }
     } catch {
       logger.warning("Failed to load recommendations: \(error.localizedDescription)")
     }
@@ -594,6 +599,7 @@ final class DashboardViewModel {
         recommendation: recommendation, userId: userId, familyUnitId: familyUnitId
       )
       _ = try await schoolsService.createSchool(request: request)
+      addedRecommendationKeys.insert(recommendation.catalogKey)
       recommendations.removeAll { $0.id == recommendation.id }
       await fetchDashboardData()
     } catch {
