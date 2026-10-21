@@ -18,10 +18,28 @@ final class FaqEntryTests: XCTestCase {
     }
   }
 
-  func test_familyRequiredEntryFollowsFamilyEntry() {
-    let ids = FaqEntries.all.map(\.id)
-    let family = ids.firstIndex(of: "family")
-    XCTAssertNotNil(family)
-    XCTAssertEqual(ids.firstIndex(of: "family-required"), family.map { $0 + 1 })
+  // Mirrors canonicalIds in web's tests/unit/components/Help/faqEntries.spec.ts; the canonical FAQ is web's
+  // components/Help/faqEntries.ts. Same ids, same order.
+  private let canonicalIds = [
+    "cost",
+    "availability",
+    "web-vs-ios",
+    "sports",
+    "calendars",
+    "templates",
+    "recruiting-service",
+    "family",
+    "family-required",
+    "privacy",
+    "too-early",
+    "different",
+    "why-no-athletic-fit",
+    "template-hidden",
+    "task-locked",
+    "share-document"
+  ]
+
+  func test_matchesCanonicalFaqIdsAndOrder() {
+    XCTAssertEqual(FaqEntries.all.map(\.id), canonicalIds)
   }
 }
