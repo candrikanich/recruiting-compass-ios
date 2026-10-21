@@ -91,8 +91,9 @@ enum FaqEntries {
       question: "Can parents and athletes share an account?",
       answer: """
         Yes. Parents and athletes join one family account — by email invite or Family Code — and see the \
-        same schools, coaches, interactions, and timeline. One family account can also track more than one \
-        athlete; switch between them from the header.
+        same schools, coaches, interactions, and timeline. Each family is built around one \
+        athlete; a parent with more than one athlete joins each athlete's family and switches between them \
+        from the header.
         """
     ),
     FaqEntry(
