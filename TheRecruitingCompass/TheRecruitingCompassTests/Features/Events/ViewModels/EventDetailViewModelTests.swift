@@ -1,3 +1,4 @@
+// swiftlint:disable file_length type_body_length
 import XCTest
 @testable import TheRecruitingCompass
 
@@ -21,8 +22,14 @@ final class EventDetailViewModelTests: XCTestCase {
       role: .player
     ))
     mockService.stubbedFetchedEvent = .mock()
+    let familyManager = FamilyManager(familyService: MockFamilyService(), authManager: mockAuthManager)
+    familyManager.currentMember = FamilyMember(
+      id: "member-1", userId: "test-user-id", familyUnitId: "family-1", role: "athlete",
+      addedAt: "2025-01-01T00:00:00Z", user: nil
+    )
     sut = EventDetailViewModel(
       eventsService: mockService,
+      familyManager: familyManager,
       authManager: mockAuthManager,
       eventId: "test-event-id"
     )

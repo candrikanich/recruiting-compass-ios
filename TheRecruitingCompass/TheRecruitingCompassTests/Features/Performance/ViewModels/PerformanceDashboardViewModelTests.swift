@@ -1,3 +1,4 @@
+// swiftlint:disable file_length type_body_length
 import XCTest
 @testable import TheRecruitingCompass
 
@@ -16,8 +17,14 @@ final class PerformanceDashboardViewModelTests: XCTestCase {
     // Fresh instance per test — InMemoryCache.shared would leak state across tests.
     mockCache = InMemoryCache()
 
+    let familyManager = FamilyManager(familyService: MockFamilyService(), authManager: mockAuthManager)
+    familyManager.currentMember = FamilyMember(
+      id: "member-1", userId: "user-1", familyUnitId: "family-1", role: "athlete",
+      addedAt: "2025-01-01T00:00:00Z", user: nil
+    )
     viewModel = PerformanceDashboardViewModel(
       performanceService: mockService,
+      familyManager: familyManager,
       authManager: mockAuthManager,
       cache: mockCache
     )

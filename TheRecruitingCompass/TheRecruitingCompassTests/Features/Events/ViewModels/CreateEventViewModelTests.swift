@@ -383,19 +383,17 @@ final class CreateEventViewModelTests: XCTestCase {
     XCTAssertEqual(mockService.lastCreateEventRequest?.familyUnitId, "test-family-id")
   }
 
-  func testCreateEvent_emptyFamilyUnitId_omitsFamilyUnitIdFromEncodedRequest() async throws {
+  func testCreateEvent_emptyFamilyUnitId_refusesToInsert() async {
     let soloSut = CreateEventViewModel(eventsService: mockService, userId: "solo-user", familyUnitId: "")
     soloSut.formData.type = .showcase
     soloSut.formData.name = "Solo Event"
     soloSut.formData.startDate = date("2026-04-15")
 
-    _ = await soloSut.createEvent()
+    let id = await soloSut.createEvent()
 
-    let request = try XCTUnwrap(mockService.lastCreateEventRequest)
-    XCTAssertNil(request.familyUnitId)
-    let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any]
-    XCTAssertFalse(json?.keys.contains("family_unit_id") ?? true)
-    XCTAssertEqual(json?["user_id"] as? String, "solo-user")
+    XCTAssertNil(id)
+    XCTAssertEqual(mockService.createEventCallCount, 0)
+    XCTAssertEqual(soloSut.errorMessage, CreateEventViewModel.familyNotLoadedMessage)
   }
 
   func testCreateEvent_permissionDenied_postgrest42501_showsPermissionMessage() async {
