@@ -51,6 +51,32 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertEqual(sut.errorMessage, "Failed to send invite. Please try again.")
   }
 
+  func testSendEmailInvite_parentWhoseFamilyHasPlayer_invitesWithParentRole() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    var family = ParentFamilyData(
+      familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x"
+    )
+    family.members = [makeFamilyMember(id: "m1", userId: "user-1", role: "parent"),
+                      makeFamilyMember(id: "m2", userId: "user-2", role: "player")]
+    sut.parentFamilies = [family]
+    sut.inviteEmail = "grandma@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.sendEmailInviteCallCount, 1)
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "parent")
+  }
+
+  func testSendEmailInvite_parentWhoseFamilyHasNoPlayer_invitesWithPlayerRole() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    sut.inviteEmail = "kid@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.sendEmailInviteCallCount, 1)
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "player")
+  }
+
   // MARK: - Test Helpers
 
   private func makeUser(id: String = "user-1", role: UserRole = .player) -> User {

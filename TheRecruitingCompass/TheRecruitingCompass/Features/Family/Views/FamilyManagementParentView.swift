@@ -91,7 +91,10 @@ struct FamilyManagementParentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
 
       HStack(spacing: FamilyConstants.Spacing.small) {
-        TextField(viewModel.parentFamilyHasPlayer ? "name@example.com" : "player@example.com", text: $viewModel.inviteEmail)
+        TextField(
+          viewModel.parentFamilyHasPlayer ? "name@example.com" : "player@example.com",
+          text: $viewModel.inviteEmail
+        )
           .textFieldStyle(.roundedBorder)
           .keyboardType(.emailAddress)
           .textContentType(.emailAddress)
