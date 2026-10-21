@@ -74,10 +74,7 @@ final class InviteJoinViewModel {
   // selected calendar day, so formatting/parsing must use the device's local timezone
   // (matching COPPAHelper's parser) — forcing GMT shifts the day for any device not on UTC.
   private static var dateOnlyFormatter: DateFormatter {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    return formatter
+    COPPAHelper.makeDateOfBirthFormatter()
   }
 
   var inviteDetails: InviteDetails? {
