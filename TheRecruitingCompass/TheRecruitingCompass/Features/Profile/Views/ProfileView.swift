@@ -39,8 +39,10 @@ struct ProfileView: View {
                 PlayerDetailsView(
                     preferenceService: preferenceService,
                     userRole: user?.role ?? .player,
-                    targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+                    targetUserId: PublicProfileTarget.userId(
+                        user: authManager.user, selectedAthleteUserId: familyManager.selectedAthlete?.userId)
                 )
+                .id(familyManager.selectedAthleteId)
             }
         }
         .task {

@@ -30,7 +30,7 @@ final class PublicProfileServiceImplTests: XCTestCase {
 
     func testFetchProfileReturnsNilWhenTokenMissing() async throws {
         let service = PublicProfileServiceImpl(session: makeSession())
-        let result = try await service.fetchProfile(accessToken: nil)
+        let result = try await service.fetchProfile(athleteId: nil, accessToken: nil)
         XCTAssertNil(result)  // no token → treated as unconfigured, no throw
     }
 
@@ -48,7 +48,7 @@ final class PublicProfileServiceImplTests: XCTestCase {
         let service = PublicProfileServiceImpl(
             session: makeSession(), baseURLOverride: URL(string: "https://test.local")!
         )
-        let result = try await service.fetchProfile(accessToken: "tok")
+        let result = try await service.fetchProfile(athleteId: nil, accessToken: "tok")
         XCTAssertEqual(result?.headerColor, "blue")
         XCTAssertTrue(result?.isPublished == true)
     }
@@ -75,6 +75,106 @@ final class PublicProfileServiceImplTests: XCTestCase {
             XCTAssertEqual(e, .slugTaken)
         } catch {
             XCTFail("wrong error: \(error)")
+        }
+    }
+
+    // MARK: - Parent delegate (ios#360)
+
+    private func okResponse(_ request: URLRequest, _ body: Data = Data("{}".utf8)) -> (HTTPURLResponse, Data) {
+        (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, body)
+    }
+
+    func testFetchProfileSendsAthleteIdQuery() async throws {
+        var seenQuery: String?
+        StubURLProtocol.handler = { [self] request in
+            seenQuery = request.url?.query
+            return okResponse(request, Data())
+        }
+        let service = PublicProfileServiceImpl(
+            session: makeSession(), baseURLOverride: URL(string: "https://test.local")!
+        )
+        _ = try await service.fetchProfile(athleteId: "athlete-9", accessToken: "tok")
+        XCTAssertEqual(seenQuery, "athleteId=athlete-9")
+    }
+
+    func testFetchProfileOmitsAthleteIdForPlayer() async throws {
+        var seenQuery: String? = "unset"
+        StubURLProtocol.handler = { [self] request in
+            seenQuery = request.url?.query
+            return okResponse(request, Data())
+        }
+        let service = PublicProfileServiceImpl(
+            session: makeSession(), baseURLOverride: URL(string: "https://test.local")!
+        )
+        _ = try await service.fetchProfile(athleteId: nil, accessToken: "tok")
+        XCTAssertNil(seenQuery)
+    }
+
+    func testUpdateSendsAthleteIdInBody() async throws {
+        seedCSRFCookie()
+        var putBody: [String: Any]?
+        StubURLProtocol.handler = { [self] request in
+            if request.httpMethod == "PUT", let stream = request.httpBodyStream {
+                stream.open()
+                var data = Data()
+                var buffer = [UInt8](repeating: 0, count: 4096)
+                while stream.hasBytesAvailable {
+                    let count = stream.read(&buffer, maxLength: buffer.count)
+                    if count <= 0 { break }
+                    data.append(buffer, count: count)
+                }
+                putBody = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            }
+            return okResponse(request)
+        }
+        let service = PublicProfileServiceImpl(
+            session: makeSession(), baseURLOverride: URL(string: "https://test.local")!
+        )
+        let payload = UpdateProfilePayload(bio: .some("hi"), athleteId: "athlete-9")
+        try await service.updateProfile(payload, accessToken: "tok")
+        XCTAssertEqual(putBody?["athleteId"] as? String, "athlete-9")
+    }
+
+    func testUpdateSurfacesServerMessageOn403() async {
+        seedCSRFCookie()
+        StubURLProtocol.handler = { [self] request in
+            if request.httpMethod == "PUT" {
+                let body = Data(#"{"statusCode":403,"message":"Not authorized to edit this athlete's profile"}"#.utf8)
+                return (HTTPURLResponse(url: request.url!, statusCode: 403, httpVersion: nil, headerFields: nil)!, body)
+            }
+            return okResponse(request)
+        }
+        let service = PublicProfileServiceImpl(
+            session: makeSession(), baseURLOverride: URL(string: "https://test.local")!
+        )
+        do {
+            try await service.updateProfile(UpdateProfilePayload(athleteId: "athlete-9"), accessToken: "tok")
+            XCTFail("expected throw")
+        } catch {
+            XCTAssertEqual(
+                (error as? LocalizedError)?.errorDescription,
+                "Not authorized to edit this athlete's profile"
+            )
+        }
+    }
+
+    func testUpdateSurfacesServerMessageOn404() async {
+        seedCSRFCookie()
+        StubURLProtocol.handler = { [self] request in
+            if request.httpMethod == "PUT" {
+                let body = Data(#"{"message":"No profile found to update"}"#.utf8)
+                return (HTTPURLResponse(url: request.url!, statusCode: 404, httpVersion: nil, headerFields: nil)!, body)
+            }
+            return okResponse(request)
+        }
+        let service = PublicProfileServiceImpl(
+            session: makeSession(), baseURLOverride: URL(string: "https://test.local")!
+        )
+        do {
+            try await service.updateProfile(UpdateProfilePayload(), accessToken: "tok")
+            XCTFail("expected throw")
+        } catch {
+            XCTAssertEqual((error as? LocalizedError)?.errorDescription, "No profile found to update")
         }
     }
 }

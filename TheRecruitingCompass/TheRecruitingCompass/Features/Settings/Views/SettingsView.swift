@@ -303,8 +303,10 @@ struct SettingsView: View {
           PlayerDetailsView(
             preferenceService: preferenceService,
             userRole: authManager.user?.role ?? .player,
-            targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+            targetUserId: PublicProfileTarget.userId(
+              user: authManager.user, selectedAthleteUserId: familyManager.selectedAthlete?.userId)
           )
+          .id(familyManager.selectedAthleteId)
         case .schoolPreferences:
           SchoolPreferencesView(
             preferenceService: preferenceService,
