@@ -210,7 +210,7 @@ final class EventsServiceImpl: EventsManaging, Sendable {
       name: name,
       location: location,
       userId: userId,
-      familyUnitId: familyUnitId,
+      familyUnitId: try FamilyUnitID.require(familyUnitId),
       status: SchoolStatus.researching.rawValue
     )
     do {

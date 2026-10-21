@@ -213,6 +213,10 @@ final class PerformanceDashboardViewModel {
     guard let userId = targetUserId else { return }
     guard addFormState.isValid, let parsedValue = addFormState.parsedValue else { return }
     guard let type = addFormState.metricType, let metricKey = addFormState.resolvedMetricKey else { return }
+    guard let familyUnitId = familyManager.resolvedFamilyUnitId else {
+      errorMessage = FamilyUnitID.MissingError.missing.errorDescription
+      return
+    }
 
     isSubmitting = true
     defer { isSubmitting = false }
@@ -229,7 +233,7 @@ final class PerformanceDashboardViewModel {
     do {
       let newMetric = try await performanceService.createMetric(
         userId: userId,
-        familyUnitId: familyManager.resolvedFamilyUnitId,
+        familyUnitId: familyUnitId,
         request: request
       )
       metrics.append(newMetric)

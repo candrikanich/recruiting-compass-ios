@@ -45,7 +45,7 @@ final class UnknownEnumWriteBackTests: XCTestCase {
   }
 
   func testInteractionCreateRequest_omitsUnknownSentiment() throws {
-    let request = InteractionCreateRequest(
+    let request = try InteractionCreateRequest(
       schoolId: nil, coachId: nil, type: .email, direction: .outbound, occurredAt: .now,
       subject: nil, content: nil, sentiment: .unknown, loggedBy: "u", familyUnitId: "f")
     XCTAssertFalse(try keys(request).contains("sentiment"))
@@ -118,7 +118,7 @@ final class UnknownEnumWriteBackTests: XCTestCase {
   }
 
   func testInteractionCreateRequest_encodesKnownType() throws {
-    let known = InteractionCreateRequest(
+    let known = try InteractionCreateRequest(
       schoolId: nil, coachId: nil, type: .phoneCall, direction: .outbound, occurredAt: .now,
       subject: nil, content: nil, sentiment: nil, loggedBy: "u", familyUnitId: "f")
     XCTAssertTrue(try keys(known).contains("type"))

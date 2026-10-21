@@ -26,9 +26,16 @@ final class EventDetailAccessibilityTests: XCTestCase {
     authManager: MockAuthManager? = nil,
     eventId: String = "event-1"
   ) -> EventDetailViewModel {
-    EventDetailViewModel(
+    let auth = authManager ?? makeAuthManager()
+    let familyManager = FamilyManager(familyService: MockFamilyService(), authManager: auth)
+    familyManager.currentMember = FamilyMember(
+      id: "member-1", userId: "test-user-id", familyUnitId: "family-1", role: "athlete",
+      addedAt: "2026-01-01T00:00:00Z", user: nil
+    )
+    return EventDetailViewModel(
       eventsService: service,
-      authManager: authManager ?? makeAuthManager(),
+      familyManager: familyManager,
+      authManager: auth,
       eventId: eventId
     )
   }

@@ -85,7 +85,7 @@ struct DashboardView: View {
         onDismiss: { Task { await viewModel.fetchDashboardData() } },
         content: {
           DashboardAddSchoolSheet(
-            familyUnitId: familyManager.currentMember?.familyUnitId ?? "",
+            familyUnitId: FamilyUnitID.normalized(familyManager.currentMember?.familyUnitId),
             userId: authManager.user?.id ?? ""
           )
         }
@@ -462,7 +462,7 @@ private struct DashboardLogoutButton: View {
 // MARK: - Add School Sheet
 
 private struct DashboardAddSchoolSheet: View {
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
 
   @State private var navigationPath = NavigationPath()

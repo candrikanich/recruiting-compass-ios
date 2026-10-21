@@ -12,7 +12,7 @@ struct InteractionAddSchoolSheet: View {
 
   init(
     schoolsService: any SchoolsManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String,
     prefillWebsite: String?,
     onSchoolCreated: @escaping (School) -> Void

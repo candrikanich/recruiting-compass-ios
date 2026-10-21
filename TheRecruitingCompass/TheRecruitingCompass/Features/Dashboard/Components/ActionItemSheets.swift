@@ -3,7 +3,7 @@ import SwiftUI
 /// Presents the Add School flow in its own navigation stack (for action-item CTAs).
 /// Mirrors DashboardView's DashboardAddSchoolSheet so it can be reused from the card.
 struct ActionItemAddSchoolSheet: View {
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
 
   @State private var navigationPath = NavigationPath()
@@ -27,7 +27,7 @@ struct ActionItemAddSchoolSheet: View {
 
 /// Presents the Log Interaction flow in its own navigation stack (for action-item CTAs).
 struct ActionItemAddInteractionSheet: View {
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
 
   var body: some View {

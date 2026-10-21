@@ -58,7 +58,7 @@ final class AddSchoolViewModel {
   internal let collegeScorecardService: CollegeScorecardManaging
   internal let ncaaDatabase: NcaaDatabaseManaging
   internal let schoolFaviconService: SchoolFaviconManaging
-  internal let familyUnitId: String
+  internal let familyUnitId: String?
   internal let userId: String
   nonisolated(unsafe) internal let announcer: AccessibilityAnnouncing
 
@@ -79,7 +79,7 @@ final class AddSchoolViewModel {
     collegeScorecardService: CollegeScorecardManaging,
     ncaaDatabase: NcaaDatabaseManaging,
     schoolFaviconService: SchoolFaviconManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String,
     announcer: AccessibilityAnnouncing
   ) {
@@ -95,7 +95,7 @@ final class AddSchoolViewModel {
   /// Convenience initializer with default dependencies
   convenience init(
     schoolsService: SchoolsManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String
   ) {
     self.init(
@@ -192,12 +192,19 @@ final class AddSchoolViewModel {
     }
 
     // 2. Prepare data with sanitization
-    let request = SchoolCreateRequest.from(
-      form: formState,
-      scorecardData: scorecardData, // Phase 3: Include College Scorecard data if available
-      userId: userId,
-      familyUnitId: familyUnitId
-    )
+    let request: SchoolCreateRequest
+    do {
+      request = try SchoolCreateRequest.from(
+        form: formState,
+        scorecardData: scorecardData, // Phase 3: Include College Scorecard data if available
+        userId: userId,
+        familyUnitId: familyUnitId
+      )
+    } catch {
+      logger.error("Refusing to create school: \(error.localizedDescription)")
+      submitError = error.localizedDescription
+      return nil
+    }
 
     logger.debug("Prepared request: \(request.name) (\(request.status))")
 

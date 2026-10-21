@@ -8,7 +8,7 @@ struct DashboardWidgetStack: View {
   let visibility: WidgetVisibility
   let suggestions: [Suggestion]
   let pendingCount: Int
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
   let coachesNeedingFollowup: [Coach]
   let allCoaches: [Coach]

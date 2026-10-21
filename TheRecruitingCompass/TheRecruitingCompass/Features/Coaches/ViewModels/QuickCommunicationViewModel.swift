@@ -646,7 +646,7 @@ final class QuickCommunicationViewModel {
     }
 
     do {
-      let request = InteractionCreateRequest(
+      let request = try InteractionCreateRequest(
         schoolId: coach.schoolId,
         coachId: coach.id,
         type: channel == .email ? .email : .text,
@@ -661,7 +661,7 @@ final class QuickCommunicationViewModel {
       _ = try await interactionsService.createInteraction(request)
       await updateLastContactDate()
 
-      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: request.familyUnitId))
       await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: loggedBy))
 
       successMessage = channel == .email
@@ -686,7 +686,7 @@ final class QuickCommunicationViewModel {
     }
 
     do {
-      let request = InteractionCreateRequest(
+      let request = try InteractionCreateRequest(
         schoolId: coach.schoolId,
         coachId: coach.id,
         type: .directMessage,
@@ -701,7 +701,7 @@ final class QuickCommunicationViewModel {
       _ = try await interactionsService.createInteraction(request)
       await updateLastContactDate()
 
-      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: request.familyUnitId))
       await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: loggedBy))
 
       successMessage = String(localized: "Logged Instagram DM to Coach \(coach.fullName).")

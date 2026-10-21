@@ -322,12 +322,16 @@ final class EventDetailViewModel {
 
   func logInteraction() async {
     guard let userId else { return }
+    guard let familyUnitId = familyManager.resolvedFamilyUnitId else {
+      errorMessage = FamilyUnitID.MissingError.missing.errorDescription
+      return
+    }
     await ViewModelHelpers.withLoading(set: { self.isLoggingInteraction = $0 }) {
       do {
         assert(interactionData.type != .unknown, "InteractionType.unknown is decode-only")
         let request = CreateInteractionRequest(
           userId: userId,
-          familyUnitId: familyManager.resolvedFamilyUnitId,
+          familyUnitId: familyUnitId,
           eventId: eventId,
           coachId: interactionData.coachId,
           type: interactionData.type.serverValue,
@@ -417,11 +421,15 @@ final class EventDetailViewModel {
 
   func addMetric() async {
     guard let userId, let value = newMetricData.parsedValue else { return }
+    guard let familyUnitId = familyManager.resolvedFamilyUnitId else {
+      errorMessage = FamilyUnitID.MissingError.missing.errorDescription
+      return
+    }
     await ViewModelHelpers.withLoading(set: { self.isSavingMetric = $0 }) {
       do {
         let request = CreateMetricRequest(
           userId: userId,
-          familyUnitId: familyManager.resolvedFamilyUnitId,
+          familyUnitId: familyUnitId,
           metricType: newMetricData.metricType.rawValue,
           value: value,
           unit: newMetricData.unit.isEmpty ? newMetricData.metricType.defaultUnit : newMetricData.unit,

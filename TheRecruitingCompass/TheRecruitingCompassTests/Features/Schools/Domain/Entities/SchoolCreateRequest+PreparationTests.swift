@@ -13,7 +13,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
 
   // MARK: - Initialization Tests
 
-  func testFrom_withAllFields_createsRequestCorrectly() {
+  func testFrom_withAllFields_createsRequestCorrectly() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = " Harvard University "
@@ -29,7 +29,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .recruited
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       scorecardData: nil,
       userId: "user-123",
@@ -54,14 +54,14 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.academicInfo) // MVP: always nil
   }
 
-  func testFrom_withRequiredFieldsOnly_createsRequestCorrectly() {
+  func testFrom_withRequiredFieldsOnly_createsRequestCorrectly() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "Stanford"
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user-abc",
       familyUnitId: "family-xyz"
@@ -85,7 +85,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.academicInfo)
   }
 
-  func testFrom_withMixedRequiredAndOptional_createsRequestCorrectly() {
+  func testFrom_withMixedRequiredAndOptional_createsRequestCorrectly() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "MIT"
@@ -95,7 +95,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     // Leave other fields empty
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user-1",
       familyUnitId: "family-1"
@@ -117,14 +117,14 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
 
   // MARK: - Field Transformation Tests
 
-  func testFrom_nameIsTrimmed() {
+  func testFrom_nameIsTrimmed() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "   Yale University   "
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -134,7 +134,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertEqual(request.name, "Yale University")
   }
 
-  func testFrom_emptyLocationConvertsToNil() {
+  func testFrom_emptyLocationConvertsToNil() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -142,7 +142,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -152,7 +152,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.location)
   }
 
-  func testFrom_whitespaceOnlyLocationConvertsToNil() {
+  func testFrom_whitespaceOnlyLocationConvertsToNil() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -160,7 +160,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -170,7 +170,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.location)
   }
 
-  func testFrom_emptyCityConvertsToNil() {
+  func testFrom_emptyCityConvertsToNil() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -178,7 +178,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -188,7 +188,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.city)
   }
 
-  func testFrom_emptyStateConvertsToNil() {
+  func testFrom_emptyStateConvertsToNil() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -196,7 +196,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -206,7 +206,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.state)
   }
 
-  func testFrom_divisionConvertsToRawValue() {
+  func testFrom_divisionConvertsToRawValue() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -214,7 +214,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -224,7 +224,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertEqual(request.division, "NAIA")
   }
 
-  func testFrom_nilDivisionStaysNil() {
+  func testFrom_nilDivisionStaysNil() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -232,7 +232,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -242,7 +242,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.division)
   }
 
-  func testFrom_emptyConferenceConvertsToNil() {
+  func testFrom_emptyConferenceConvertsToNil() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -250,7 +250,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -260,7 +260,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.conference)
   }
 
-  func testFrom_websiteIsTrimmedAndNilIfEmpty() {
+  func testFrom_websiteIsTrimmedAndNilIfEmpty() throws {
     // Given
     var formState1 = SchoolFormState()
     formState1.name = "School"
@@ -273,12 +273,12 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState2.status = .interested
 
     // When
-    let request1 = SchoolCreateRequest.from(
+    let request1 = try SchoolCreateRequest.from(
       form: formState1,
       userId: "user",
       familyUnitId: "family"
     )
-    let request2 = SchoolCreateRequest.from(
+    let request2 = try SchoolCreateRequest.from(
       form: formState2,
       userId: "user",
       familyUnitId: "family"
@@ -289,7 +289,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request2.website)
   }
 
-  func testFrom_twitterHandleStripsLeadingAt() {
+  func testFrom_twitterHandleStripsLeadingAt() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -297,7 +297,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -307,7 +307,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertEqual(request.twitterHandle, "SchoolAthletics")
   }
 
-  func testFrom_instagramHandleStripsLeadingAt() {
+  func testFrom_instagramHandleStripsLeadingAt() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -315,7 +315,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -325,7 +325,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertEqual(request.instagramHandle, "school.athletics")
   }
 
-  func testFrom_emptyTwitterHandleConvertsToNil() {
+  func testFrom_emptyTwitterHandleConvertsToNil() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -333,7 +333,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -343,7 +343,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.twitterHandle)
   }
 
-  func testFrom_emptyInstagramHandleConvertsToNil() {
+  func testFrom_emptyInstagramHandleConvertsToNil() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -351,7 +351,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -361,7 +361,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.instagramHandle)
   }
 
-  func testFrom_notesStripsHtmlTags() {
+  func testFrom_notesStripsHtmlTags() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -369,7 +369,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -379,7 +379,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertEqual(request.notes, "This is great school")
   }
 
-  func testFrom_emptyNotesConvertsToNil() {
+  func testFrom_emptyNotesConvertsToNil() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
@@ -387,7 +387,7 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -397,14 +397,14 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.notes)
   }
 
-  func testFrom_statusConvertsToRawValue() {
+  func testFrom_statusConvertsToRawValue() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
     formState.status = .offerReceived
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -416,14 +416,14 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
 
   // MARK: - MVP Constraints Tests
 
-  func testFrom_ncaaIdIsAlwaysNilInMVP() {
+  func testFrom_ncaaIdIsAlwaysNilInMVP() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       userId: "user",
       familyUnitId: "family"
@@ -433,14 +433,14 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.ncaaId)
   }
 
-  func testFrom_academicInfoIsAlwaysNilInMVP() {
+  func testFrom_academicInfoIsAlwaysNilInMVP() throws {
     // Given
     var formState = SchoolFormState()
     formState.name = "School"
     formState.status = .interested
 
     // When
-    let request = SchoolCreateRequest.from(
+    let request = try SchoolCreateRequest.from(
       form: formState,
       scorecardData: nil,
       userId: "user",
@@ -455,8 +455,8 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
 
   // Prod bug (build 111/115): adding a dashboard recommendation sent status "tracking", which is not a
   // school_status enum value, so every insert 400'd and the user saw "Couldn't add school".
-  func test_fromRecommendation_usesAStatusTheDatabaseAccepts() {
-    let request = SchoolCreateRequest.from(
+  func test_fromRecommendation_usesAStatusTheDatabaseAccepts() throws {
+    let request = try SchoolCreateRequest.from(
       recommendation: SchoolRecommendation(catalogKey: "k1", name: "State U", score: 0.9, reasons: []),
       userId: "user-1",
       familyUnitId: "fam-1"
@@ -465,12 +465,12 @@ final class SchoolCreateRequestPreparationTests: XCTestCase {
     XCTAssertEqual(request.status, SchoolStatus.researching.rawValue)
   }
 
-  func test_fromRecommendation_carriesRecommendationFields() {
+  func test_fromRecommendation_carriesRecommendationFields() throws {
     let recommendation = SchoolRecommendation(
       catalogKey: "k1", name: "State U", division: "D1", conference: "Big Ten", state: "OH",
       website: "https://stateu.edu", score: 0.9, reasons: []
     )
-    let request = SchoolCreateRequest.from(recommendation: recommendation, userId: "user-1", familyUnitId: "fam-1")
+    let request = try SchoolCreateRequest.from(recommendation: recommendation, userId: "user-1", familyUnitId: "fam-1")
     XCTAssertEqual(request.name, "State U")
     XCTAssertEqual(request.division, "D1")
     XCTAssertEqual(request.conference, "Big Ten")

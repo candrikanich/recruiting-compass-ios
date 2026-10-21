@@ -34,7 +34,7 @@ struct InteractionCreateRequest: Codable, Sendable {
     return f
   }()
 
-  /// Create a request from form state
+  /// Create a request from form state. Throws `FamilyUnitID.MissingError` rather than send a blank family id.
   init(
     schoolId: String?,
     coachId: String?,
@@ -46,8 +46,8 @@ struct InteractionCreateRequest: Codable, Sendable {
     content: String?,
     sentiment: Sentiment?,
     loggedBy: String,
-    familyUnitId: String
-  ) {
+    familyUnitId: String?
+  ) throws {
     self.schoolId = schoolId
     self.coachId = coachId
     self.eventId = eventId
@@ -67,6 +67,6 @@ struct InteractionCreateRequest: Codable, Sendable {
     self.content = trimmedContent.flatMap { DataSanitizer.nilIfEmpty(DataSanitizer.stripHtmlTags($0)) }
 
     self.loggedBy = loggedBy
-    self.familyUnitId = familyUnitId
+    self.familyUnitId = try FamilyUnitID.require(familyUnitId)
   }
 }

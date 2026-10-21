@@ -37,4 +37,41 @@ struct SchoolCreateRequest: Encodable, Sendable {
     case academicInfo = "academic_info"
     case faviconUrl = "favicon_url"
   }
+
+  /// Throws `FamilyUnitID.MissingError` rather than build a payload with a blank `family_unit_id`.
+  init(
+    userId: String,
+    familyUnitId: String?,
+    name: String,
+    location: String?,
+    city: String?,
+    state: String?,
+    division: String?,
+    conference: String?,
+    website: String?,
+    twitterHandle: String?,
+    instagramHandle: String?,
+    ncaaId: String?,
+    notes: String?,
+    status: String,
+    academicInfo: AcademicInfo?,
+    faviconUrl: String?
+  ) throws {
+    self.userId = userId
+    self.familyUnitId = try FamilyUnitID.require(familyUnitId)
+    self.name = name
+    self.location = location
+    self.city = city
+    self.state = state
+    self.division = division
+    self.conference = conference
+    self.website = website
+    self.twitterHandle = twitterHandle
+    self.instagramHandle = instagramHandle
+    self.ncaaId = ncaaId
+    self.notes = notes
+    self.status = status
+    self.academicInfo = academicInfo
+    self.faviconUrl = faviconUrl
+  }
 }

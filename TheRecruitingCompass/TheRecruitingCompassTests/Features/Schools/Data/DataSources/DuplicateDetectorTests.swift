@@ -56,8 +56,8 @@ final class DuplicateDetectorTests: XCTestCase {
     name: String,
     website: String? = nil,
     ncaaId: String? = nil
-  ) -> SchoolCreateRequest {
-    SchoolCreateRequest(
+  ) throws -> SchoolCreateRequest {
+    try SchoolCreateRequest(
       userId: "user",
       familyUnitId: "family",
       name: name,
@@ -79,9 +79,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   // MARK: - Name Match Tests (Priority 1)
 
-  func testFindDuplicate_exactNameMatch_returnsNameMatch() {
+  func testFindDuplicate_exactNameMatch_returnsNameMatch() throws {
     // Given
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "University of Florida",
       website: "https://different-site.com"
     )
@@ -95,9 +95,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.matchType, .name)
   }
 
-  func testFindDuplicate_nameMatchCaseInsensitive_returnsNameMatch() {
+  func testFindDuplicate_nameMatchCaseInsensitive_returnsNameMatch() throws {
     // Given
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "university of florida"
     )
 
@@ -110,9 +110,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.matchType, .name)
   }
 
-  func testFindDuplicate_nameMatchWithWhitespace_returnsNameMatch() {
+  func testFindDuplicate_nameMatchWithWhitespace_returnsNameMatch() throws {
     // Given
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "  University of Florida  "
     )
 
@@ -125,9 +125,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.matchType, .name)
   }
 
-  func testFindDuplicate_nameMatchTakesPriorityOverDomain() {
+  func testFindDuplicate_nameMatchTakesPriorityOverDomain() throws {
     // Given - input matches BOTH name and domain
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "University of Florida",
       website: "https://www.ufl.edu"
     )
@@ -141,9 +141,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.matchType, .name) // Not .domain
   }
 
-  func testFindDuplicate_nameMatchTakesPriorityOverNcaaId() {
+  func testFindDuplicate_nameMatchTakesPriorityOverNcaaId() throws {
     // Given - input matches BOTH name and NCAA ID
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "University of Florida",
       ncaaId: "134130"
     )
@@ -159,9 +159,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   // MARK: - Domain Match Tests (Priority 2)
 
-  func testFindDuplicate_domainMatch_returnsDomainMatch() {
+  func testFindDuplicate_domainMatch_returnsDomainMatch() throws {
     // Given - different name, same domain
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "UF", // Different name
       website: "https://www.ufl.edu" // Same domain
     )
@@ -175,9 +175,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.matchType, .domain)
   }
 
-  func testFindDuplicate_domainMatchIgnoresWWW_returnsDomainMatch() {
+  func testFindDuplicate_domainMatchIgnoresWWW_returnsDomainMatch() throws {
     // Given - domain with www vs without www
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School",
       website: "https://stanford.edu" // No www
     )
@@ -191,9 +191,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.matchType, .domain)
   }
 
-  func testFindDuplicate_domainMatchCaseInsensitive_returnsDomainMatch() {
+  func testFindDuplicate_domainMatchCaseInsensitive_returnsDomainMatch() throws {
     // Given
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School",
       website: "https://WWW.UFL.EDU"
     )
@@ -207,9 +207,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.matchType, .domain)
   }
 
-  func testFindDuplicate_domainMatchWithHTTP_returnsDomainMatch() {
+  func testFindDuplicate_domainMatchWithHTTP_returnsDomainMatch() throws {
     // Given - HTTP vs HTTPS shouldn't matter
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School",
       website: "http://www.ufl.edu" // HTTP
     )
@@ -223,9 +223,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.matchType, .domain)
   }
 
-  func testFindDuplicate_domainMatchWithPath_returnsDomainMatch() {
+  func testFindDuplicate_domainMatchWithPath_returnsDomainMatch() throws {
     // Given - URL path shouldn't affect domain matching
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School",
       website: "https://www.ufl.edu/athletics/baseball"
     )
@@ -239,9 +239,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.matchType, .domain)
   }
 
-  func testFindDuplicate_domainMatchWithSubdomain_noMatch() {
+  func testFindDuplicate_domainMatchWithSubdomain_noMatch() throws {
     // Given - subdomain should be considered part of the domain
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School",
       website: "https://athletics.ufl.edu" // Different subdomain
     )
@@ -254,9 +254,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertNil(result.duplicate)
   }
 
-  func testFindDuplicate_domainMatchTakesPriorityOverNcaaId() {
+  func testFindDuplicate_domainMatchTakesPriorityOverNcaaId() throws {
     // Given - input matches BOTH domain and NCAA ID (but not name)
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School",
       website: "https://www.ufl.edu",
       ncaaId: "134130"
@@ -273,9 +273,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   // MARK: - NCAA ID Match Tests (Priority 3)
 
-  func testFindDuplicate_ncaaIdMatch_returnsNcaaIdMatch() {
+  func testFindDuplicate_ncaaIdMatch_returnsNcaaIdMatch() throws {
     // Given - different name and domain, same NCAA ID
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School",
       website: "https://different-site.com",
       ncaaId: "134130" // Same NCAA ID as UF
@@ -290,10 +290,10 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.matchType, .ncaaId)
   }
 
-  func testFindDuplicate_ncaaIdMatchCaseSensitive_noMatch() {
+  func testFindDuplicate_ncaaIdMatchCaseSensitive_noMatch() throws {
     // Given - NCAA IDs are case-sensitive (numeric typically)
     // This test assumes NCAA IDs are case-sensitive; if they're not, update detector logic
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School",
       ncaaId: "134130" // Exact match needed
     )
@@ -306,9 +306,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.matchType, .ncaaId)
   }
 
-  func testFindDuplicate_emptyNcaaId_noMatch() {
+  func testFindDuplicate_emptyNcaaId_noMatch() throws {
     // Given
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School",
       ncaaId: "" // Empty string
     )
@@ -322,9 +322,9 @@ final class DuplicateDetectorTests: XCTestCase {
 
   // MARK: - No Match Tests
 
-  func testFindDuplicate_noMatch_returnsNil() {
+  func testFindDuplicate_noMatch_returnsNil() throws {
     // Given - completely unique school
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "New Unique School",
       website: "https://unique-school.edu",
       ncaaId: "999999"
@@ -339,9 +339,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertNil(result.matchType)
   }
 
-  func testFindDuplicate_emptySchoolsList_returnsNil() {
+  func testFindDuplicate_emptySchoolsList_returnsNil() throws {
     // Given
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Any School"
     )
 
@@ -353,9 +353,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertNil(result.duplicate)
   }
 
-  func testFindDuplicate_noWebsiteInInput_skipsDomainCheck() {
+  func testFindDuplicate_noWebsiteInInput_skipsDomainCheck() throws {
     // Given - no website provided in input
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School"
     )
 
@@ -366,9 +366,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertFalse(result.isDuplicate)
   }
 
-  func testFindDuplicate_noWebsiteInExisting_skipsDomainCheck() {
+  func testFindDuplicate_noWebsiteInExisting_skipsDomainCheck() throws {
     // Given - Harvard has no website
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School",
       website: "https://harvard.edu"
     )
@@ -380,9 +380,9 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertFalse(result.isDuplicate)
   }
 
-  func testFindDuplicate_noNcaaIdInInput_skipsNcaaIdCheck() {
+  func testFindDuplicate_noNcaaIdInInput_skipsNcaaIdCheck() throws {
     // Given
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School"
     )
 
@@ -479,14 +479,14 @@ final class DuplicateDetectorTests: XCTestCase {
 
   // MARK: - Edge Cases
 
-  func testFindDuplicate_multipleMatches_returnsFirst() {
+  func testFindDuplicate_multipleMatches_returnsFirst() throws {
     // Given - two schools with same domain
     let schools = [
       School.mock(id: "1", name: "School A", website: "https://same.edu", ncaaId: nil),
       School.mock(id: "2", name: "School B", website: "https://same.edu", ncaaId: nil)
     ]
 
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "Different School",
       website: "https://same.edu"
     )
@@ -499,13 +499,13 @@ final class DuplicateDetectorTests: XCTestCase {
     XCTAssertEqual(result.duplicate?.id, "1")
   }
 
-  func testFindDuplicate_specialCharactersInName_matchesExactly() {
+  func testFindDuplicate_specialCharactersInName_matchesExactly() throws {
     // Given
     let schools = [
       School.mock(id: "1", name: "St. Mary's College", website: nil, ncaaId: nil)
     ]
 
-    let input = makeRequest(
+    let input = try makeRequest(
       name: "St. Mary's College"
     )
 

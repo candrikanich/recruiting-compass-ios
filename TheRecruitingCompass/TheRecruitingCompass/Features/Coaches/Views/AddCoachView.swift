@@ -16,7 +16,7 @@ struct AddCoachView: View {
 
   init(
     coachesService: CoachesManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String,
     navigationPath: Binding<NavigationPath>,
     preselectedSchoolId: String? = nil

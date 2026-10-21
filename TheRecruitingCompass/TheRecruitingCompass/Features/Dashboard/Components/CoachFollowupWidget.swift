@@ -8,7 +8,7 @@ struct CoachFollowupWidget: View {
   /// `allCoachesData` (see `CoachFollowupWidget.vue`).
   let allCoaches: [Coach]
   let schools: [School]
-  var familyUnitId: String = ""
+  var familyUnitId: String?
   var userId: String = ""
   /// Reload the dashboard after a send so the just-contacted coach drops off this list.
   var onCoachContacted: (() -> Void)?
@@ -158,7 +158,7 @@ struct CoachFollowupWidget: View {
 /// Presents the Add School flow for the follow-up widget's empty-state CTA, mirroring
 /// `ActionItemAddSchoolSheet` (`ActionItemSheets.swift`).
 private struct CoachFollowupAddSchoolSheet: View {
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
 
   @State private var navigationPath = NavigationPath()
@@ -183,7 +183,7 @@ private struct CoachFollowupAddSchoolSheet: View {
 /// Presents the Add Coach flow for the follow-up widget's empty-state CTA, mirroring
 /// `CoachesListView`'s `.add` navigation destination.
 private struct CoachFollowupAddCoachSheet: View {
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
 
   @State private var navigationPath = NavigationPath()

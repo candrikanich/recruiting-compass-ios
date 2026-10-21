@@ -142,7 +142,7 @@ final class DashboardViewModel {
   }
 
   var actingUserId: String { authManager.user?.id ?? "" }
-  var currentFamilyUnitId: String { familyManager.currentMember?.familyUnitId ?? "" }
+  var currentFamilyUnitId: String? { FamilyUnitID.normalized(familyManager.currentMember?.familyUnitId) }
 
   var selectedAthleteName: String {
     if let athlete = familyManager.selectedAthlete {
@@ -608,16 +608,18 @@ final class DashboardViewModel {
   }
 
   func addRecommendedSchool(_ recommendation: SchoolRecommendation) async {
-    guard let familyUnitId = familyManager.familyUnitId,
-          let userId = authManager.user?.id else { return }
+    guard let userId = authManager.user?.id else { return }
     do {
-      let request = SchoolCreateRequest.from(
-        recommendation: recommendation, userId: userId, familyUnitId: familyUnitId
+      let request = try SchoolCreateRequest.from(
+        recommendation: recommendation, userId: userId, familyUnitId: familyManager.familyUnitId
       )
       _ = try await schoolsService.createSchool(request: request)
       addedRecommendationKeys[recommendation.catalogKey] = now()
       recommendations.removeAll { $0.id == recommendation.id }
       await fetchDashboardData()
+    } catch let error as FamilyUnitID.MissingError {
+      logger.warning("Refusing to add recommended school: \(error.localizedDescription)")
+      errorMessage = error.localizedDescription
     } catch {
       logger.warning("Failed to add recommended school: \(error.localizedDescription)")
       errorMessage = "Couldn't add school. Please try again."

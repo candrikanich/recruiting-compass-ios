@@ -193,6 +193,10 @@ final class OffersListViewModel {
   func createOffer() async {
     guard formState.isValid else { return }
     guard let userId = targetUserId else { return }
+    guard let familyUnitId = FamilyUnitID.normalized(familyUnitId) else {
+      errorMessage = FamilyUnitID.MissingError.missing.errorDescription
+      return
+    }
 
     isSubmitting = true
     defer { isSubmitting = false }

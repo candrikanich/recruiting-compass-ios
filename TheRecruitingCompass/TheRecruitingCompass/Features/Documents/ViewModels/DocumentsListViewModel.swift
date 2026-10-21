@@ -324,6 +324,11 @@ final class DocumentsListViewModel {
       return
     }
 
+    guard let familyUnitId = familyManager.resolvedFamilyUnitId else {
+      uploadError = FamilyUnitID.MissingError.missing.errorDescription
+      return
+    }
+
     isUploading = true
     uploadError = nil
     defer { isUploading = false; uploadProgress = 0 }
@@ -344,7 +349,7 @@ final class DocumentsListViewModel {
         description: uploadDescription.isEmpty ? nil : uploadDescription,
         schoolId: uploadSchoolId,
         version: uploadVersion,
-        familyUnitId: familyManager.resolvedFamilyUnitId
+        familyUnitId: familyUnitId
       )
 
       uploadProgress = 1
