@@ -89,4 +89,30 @@ final class CreateEventLaunchTests: XCTestCase {
     sut.familyChanged(familyUnitId: nil, membership: .unknown)
     XCTAssertEqual(sut.phase, .waitingForFamily)
   }
+
+  func test_retryThenAlertDismissal_doesNotCancelTheWait() {
+    var sut = CreateEventLaunch()
+    sut.tap(familyUnitId: nil, membership: .failed)
+    sut.retry(membership: .unknown)
+    sut.familyChanged(familyUnitId: "fam-1", membership: .member)
+    XCTAssertEqual(sut.phase, .presenting(familyUnitId: "fam-1"))
+  }
+
+  func test_dismissWhileWaiting_isIgnored() {
+    var sut = CreateEventLaunch()
+    sut.tap(familyUnitId: nil, membership: .failed)
+    sut.retry(membership: .unknown)
+    sut.dismiss()
+    sut.familyChanged(familyUnitId: "fam-1", membership: .member)
+    XCTAssertEqual(sut.phase, .presenting(familyUnitId: "fam-1"))
+  }
+
+  func test_memberWithBlankId_keepsWaitingUntilResolvedIdArrives() {
+    var sut = CreateEventLaunch()
+    sut.tap(familyUnitId: nil, membership: .member)
+    sut.familyChanged(familyUnitId: nil, membership: .member)
+    XCTAssertTrue(sut.isWaiting)
+    sut.familyChanged(familyUnitId: "fam-1", membership: .member)
+    XCTAssertEqual(sut.phase, .presenting(familyUnitId: "fam-1"))
+  }
 }

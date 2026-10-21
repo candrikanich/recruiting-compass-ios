@@ -34,7 +34,10 @@ struct CreateEventLaunch: Equatable {
     if phase == .waitingForFamily { phase = .idle }
   }
 
-  mutating func dismiss() { phase = .idle }
+  /// Ignored while waiting: only `cancel()` ends a wait, so an alert's auto-dismiss can't undo a Retry.
+  mutating func dismiss() {
+    if phase != .waitingForFamily { phase = .idle }
+  }
 
   /// `.none` goes idle: the family-required gate takes over, so no separate no-family copy here (ios#390 re-scope).
   private static func phase(

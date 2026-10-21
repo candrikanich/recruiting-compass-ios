@@ -8,7 +8,6 @@ private struct PresentedFamily: Identifiable, Equatable {
 }
 
 struct UpcomingEventsWidget: View {
-  let familyUnitId: String
   let userId: String
   /// Reload the dashboard after a create so the new event appears in this widget.
   var onEventCreated: (() -> Void)?
@@ -22,9 +21,8 @@ struct UpcomingEventsWidget: View {
   @State private var createEventLaunch = CreateEventLaunch()
   @Environment(FamilyManager.self) private var familyManager
 
-  init(events: [FullEvent], familyUnitId: String, userId: String, onEventCreated: (() -> Void)? = nil) {
+  init(events: [FullEvent], userId: String, onEventCreated: (() -> Void)? = nil) {
     self.sortedEvents = events.sorted { $0.startDate < $1.startDate }
-    self.familyUnitId = familyUnitId
     self.userId = userId
     self.onEventCreated = onEventCreated
   }
@@ -119,7 +117,7 @@ struct UpcomingEventsWidget: View {
         )
       }
     }
-    .onChange(of: familyUnitId) { _, _ in familyDidChange() }
+    .onChange(of: familyManager.resolvedFamilyUnitId) { _, _ in familyDidChange() }
     .onChange(of: familyManager.membership) { _, _ in familyDidChange() }
     .onDisappear { createEventLaunch.cancel() }
     .alert(
@@ -146,16 +144,21 @@ struct UpcomingEventsWidget: View {
   private var showingLoadFailure: Binding<Bool> {
     Binding(
       get: { createEventLaunch.phase == .failed },
-      set: { if !$0 { createEventLaunch.dismiss() } }
+      // Every alert button flips this to false, including Retry; only Cancel may end the wait.
+      set: { _ in }
     )
   }
 
   private func presentCreateEvent() {
-    createEventLaunch.tap(familyUnitId: familyUnitId, membership: familyManager.membership)
+    createEventLaunch.tap(
+      familyUnitId: familyManager.resolvedFamilyUnitId, membership: familyManager.membership
+    )
   }
 
   private func familyDidChange() {
-    createEventLaunch.familyChanged(familyUnitId: familyUnitId, membership: familyManager.membership)
+    createEventLaunch.familyChanged(
+      familyUnitId: familyManager.resolvedFamilyUnitId, membership: familyManager.membership
+    )
   }
 
   private func retryFamilyLoad() {
@@ -224,7 +227,6 @@ struct UpcomingEventsWidget: View {
         updatedAt: "2026-02-01T12:00:00Z"
       )
     ],
-    familyUnitId: "family-1",
     userId: "user-1"
   )
   .padding()
