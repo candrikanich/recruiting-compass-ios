@@ -79,6 +79,7 @@ final class DashboardViewModel {
   private let recommendationService: any SchoolRecommendationManaging
   private let deadlinesService: any DeadlinesManaging
   private let videoLinksService: any VideoLinksManaging
+  private let schoolsService: any SchoolsManaging
 
   /// The user whose recruiting data the dashboard shows. When a parent is
   /// viewing an athlete, events/metrics/offers belong to the athlete (interactions are family-wide);
@@ -179,7 +180,8 @@ final class DashboardViewModel {
     preferenceService: (any PreferenceManaging)? = nil,
     recommendationService: (any SchoolRecommendationManaging)? = nil,
     deadlinesService: (any DeadlinesManaging)? = nil,
-    videoLinksService: (any VideoLinksManaging)? = nil
+    videoLinksService: (any VideoLinksManaging)? = nil,
+    schoolsService: (any SchoolsManaging)? = nil
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.dashboardService = dashboardService ?? DashboardServiceImpl(supabaseManager: .shared)
@@ -189,6 +191,7 @@ final class DashboardViewModel {
     self.recommendationService = recommendationService ?? SchoolRecommendationServiceImpl(supabaseManager: .shared)
     self.deadlinesService = deadlinesService ?? DeadlinesServiceImpl(supabaseManager: .shared)
     self.videoLinksService = videoLinksService ?? VideoLinksServiceImpl(supabaseManager: .shared)
+    self.schoolsService = schoolsService ?? SchoolsServiceImpl(supabaseManager: .shared)
   }
 
   func fetchDashboardData() async {
@@ -594,7 +597,6 @@ final class DashboardViewModel {
     guard let familyUnitId = familyManager.familyUnitId,
           let userId = authManager.user?.id else { return }
     do {
-      let schoolsService = SchoolsServiceImpl(supabaseManager: .shared)
       let request = SchoolCreateRequest.from(
         recommendation: recommendation, userId: userId, familyUnitId: familyUnitId
       )
