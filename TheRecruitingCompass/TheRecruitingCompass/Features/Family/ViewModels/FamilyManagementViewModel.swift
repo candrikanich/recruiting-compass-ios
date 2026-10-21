@@ -75,6 +75,11 @@ final class FamilyManagementViewModel {
     return trimmed.contains("@") && trimmed.contains(".")
   }
 
+  /// A family has one player; once it does, a parent's invites go to other family members instead.
+  var parentFamilyHasPlayer: Bool {
+    parentFamilies.contains { family in family.members.contains(where: \.isAthlete) }
+  }
+
   var formattedCodeGeneratedAt: String? {
     guard let timestamp = codeGeneratedAt else { return nil }
     return DateFormatter.familyCodeDate.string(from: Self.isoFormatter.date(from: timestamp) ?? Date.now)
@@ -430,7 +435,7 @@ final class FamilyManagementViewModel {
     }
 
     let email = inviteEmail.trimmingCharacters(in: .whitespaces)
-    let inviteRole = isPlayer ? "parent" : "player"
+    let inviteRole = isPlayer || parentFamilyHasPlayer ? "parent" : "player"
 
     isLoading = true
     errorMessage = nil
