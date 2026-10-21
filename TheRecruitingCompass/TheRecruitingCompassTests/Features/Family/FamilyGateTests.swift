@@ -86,6 +86,27 @@ final class FamilyGateTests: XCTestCase {
     XCTAssertTrue(FamilyGate.validPendingInvitations([invitation()], email: nil, now: now).isEmpty)
   }
 
+  // MARK: - Onboarding re-evaluation on membership transitions
+
+  func test_reevaluatesOnboarding_whenMembershipBecomesMemberFromAnyNonMemberState() {
+    for old in [FamilyMembershipStatus.none, .failed, .unknown] {
+      XCTAssertTrue(FamilyGate.shouldReevaluateOnboarding(from: old, to: .member), "\(old) -> member")
+    }
+  }
+
+  func test_doesNotReevaluateOnboarding_whenAlreadyMember() {
+    XCTAssertFalse(FamilyGate.shouldReevaluateOnboarding(from: .member, to: .member))
+  }
+
+  func test_doesNotReevaluateOnboarding_whenLeavingOrStayingOutOfMember() {
+    let states: [FamilyMembershipStatus] = [.none, .failed, .unknown]
+    for old in [FamilyMembershipStatus.member] + states {
+      for new in states {
+        XCTAssertFalse(FamilyGate.shouldReevaluateOnboarding(from: old, to: new), "\(old) -> \(new)")
+      }
+    }
+  }
+
   // MARK: - Sign out from gate screens
 
   @MainActor

@@ -301,7 +301,7 @@ private struct AuthenticatedContent: View {
     // Joining or creating a family on the gate (or via an invite or claim sheet) must re-evaluate onboarding, or a
     // parent who just joined would land in the wizard instead of the dashboard.
     .onChange(of: familyManager.membership) { old, new in
-      guard old == .none, new == .member else { return }
+      guard FamilyGate.shouldReevaluateOnboarding(from: old, to: new) else { return }
       Task { await onboardingManager.loadStatus(isInFamily: true) }
     }
     // Keyed by user id, not isAuthenticated: resetUserScopedState() puts onboarding back to
