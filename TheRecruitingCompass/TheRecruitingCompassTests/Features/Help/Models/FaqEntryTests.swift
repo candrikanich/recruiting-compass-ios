@@ -42,4 +42,15 @@ final class FaqEntryTests: XCTestCase {
   func test_matchesCanonicalFaqIdsAndOrder() {
     XCTAssertEqual(FaqEntries.all.map(\.id), canonicalIds)
   }
+
+  // Mirrors web faqEntries.ts `family` byte for byte (web#1398). Each family has one athlete.
+  func test_familyEntryMatchesCanonicalCopy() {
+    let family = FaqEntries.all.first { $0.id == "family" }
+    XCTAssertEqual(
+      family?.answer,
+      "Yes. Parents and athletes join one family account — by email invite or Family Code — and see the same "
+        + "schools, coaches, interactions, and timeline. Each family is built around one athlete; a parent with more "
+        + "than one athlete joins each athlete's family and switches between them from the header."
+    )
+  }
 }
