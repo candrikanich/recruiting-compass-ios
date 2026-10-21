@@ -93,6 +93,21 @@ final class DashboardViewModelRecommendationsTests: XCTestCase {
     XCTAssertNotNil(sut.errorMessage)
   }
 
+  func testNoFamily_refusesToAddAndKeepsSchoolRecommended() async {
+    mockAuthManager.setMockUser(User(
+      id: "parent-user-id", email: "parent@example.com", emailConfirmedAt: nil, fullName: nil,
+      createdAt: "2024-01-01T00:00:00Z", updatedAt: "2024-01-01T00:00:00Z", role: nil, dateOfBirth: nil
+    ))
+    recommendationService.stubbedRecommendations = [ballState, mountUnion]
+    await sut.fetchRecommendations()
+
+    await sut.addRecommendedSchool(ballState)
+
+    XCTAssertEqual(mockSchoolsService.createSchoolCallCount, 0)
+    XCTAssertEqual(sut.errorMessage, FamilyUnitID.MissingError.missing.errorDescription)
+    XCTAssertEqual(sut.recommendations.map(\.catalogKey), [ballState.catalogKey, mountUnion.catalogKey])
+  }
+
   func testAddedSchoolCanReturnOnceServerCacheExpires() async {
     await signInAsParent()
     recommendationService.stubbedRecommendations = [ballState, mountUnion]
