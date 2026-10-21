@@ -38,6 +38,13 @@ enum FamilyGate {
     current == .member ? .member : .failed
   }
 
+  /// Joining, creating, or a late successful load after a failed first read must re-run onboarding, or a parent
+  /// who is now in a family would land in the wizard. Only a transition INTO `.member` counts; staying a member
+  /// or leaving it must not, so the re-evaluation can't loop.
+  static func shouldReevaluateOnboarding(from old: FamilyMembershipStatus, to new: FamilyMembershipStatus) -> Bool {
+    old != .member && new == .member
+  }
+
   /// Pending, unexpired invitations addressed to `email` (case-insensitive). Declined, accepted and expired
   /// ones are ignored, as are other people's, which RLS can also return to a member of the sender's family.
   static func validPendingInvitations(
