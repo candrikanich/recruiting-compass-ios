@@ -50,7 +50,7 @@ struct SchoolCardView: View {
           .font(.brand(.headline))
           .foregroundStyle(.primary)
 
-        if let location = school.location {
+        if let location = school.displayLocation {
           Text(location)
             .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
