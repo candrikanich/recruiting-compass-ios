@@ -8,7 +8,7 @@ struct FamilyManagementParentView: View {
     ScrollView {
       VStack(spacing: FamilyConstants.Spacing.large) {
         joinFamilyCard
-        if featureFlags.isEnabled(.familyInvites) {
+        if featureFlags.isEnabled(.familyInvites) && viewModel.canInvitePlayer {
           inviteByEmailCard
         }
         pendingInvitationsSection

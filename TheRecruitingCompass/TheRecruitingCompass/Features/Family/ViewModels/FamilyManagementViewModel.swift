@@ -75,6 +75,11 @@ final class FamilyManagementViewModel {
     return trimmed.contains("@") && trimmed.contains(".")
   }
 
+  /// Parents are only offered a player invite until one of their families has a player.
+  var canInvitePlayer: Bool {
+    !parentFamilies.contains { family in family.members.contains(where: \.isAthlete) }
+  }
+
   var formattedCodeGeneratedAt: String? {
     guard let timestamp = codeGeneratedAt else { return nil }
     return DateFormatter.familyCodeDate.string(from: Self.isoFormatter.date(from: timestamp) ?? Date.now)
