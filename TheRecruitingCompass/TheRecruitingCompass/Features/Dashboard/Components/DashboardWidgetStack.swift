@@ -83,8 +83,6 @@ struct DashboardWidgetStack: View {
       if visibility.eventsSummary {
         UpcomingEventsWidget(
           events: events,
-          // Event creation normalizes a blank id itself and is reworked in #390; left untouched here.
-          familyUnitId: familyUnitId ?? "",
           userId: userId,
           onEventCreated: onEventCreated
         )

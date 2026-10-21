@@ -79,11 +79,7 @@ final class SignupViewModel {
     }
   }
 
-  private static let dobFormatter: DateFormatter = {
-    let f = DateFormatter()
-    f.dateFormat = "yyyy-MM-dd"
-    return f
-  }()
+  private static let dobFormatter = COPPAHelper.makeDateOfBirthFormatter()
 
   private var dobString: String {
     Self.dobFormatter.string(from: dateOfBirth)
