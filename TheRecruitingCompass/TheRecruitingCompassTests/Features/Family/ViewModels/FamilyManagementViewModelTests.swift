@@ -307,6 +307,23 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertTrue(sut.parentFamilyHasPlayer)
   }
 
+  func testSendEmailInvite_asParent_invitesPlayerUntilFamilyHasOne() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    var family = ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x")
+    family.members = [makeFamilyMember(id: "m1", role: "parent")]
+    sut.parentFamilies = [family]
+
+    sut.inviteEmail = "kid@example.com"
+    await sut.sendEmailInvite()
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "player")
+
+    sut.parentFamilies[0].members.append(makeFamilyMember(id: "m2", userId: "user-2", role: "player"))
+    sut.inviteEmail = "grandma@example.com"
+    await sut.sendEmailInvite()
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "parent")
+    XCTAssertEqual(mockFamilyService.sendEmailInviteCallCount, 2)
+  }
+
   func testPlayerFamilyCodeHeading_usesServerLabelElseGenericHeading() async {
     mockAuthManager.setMockUser(makeUser(role: .player))
     mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(familyName: "My Family")
