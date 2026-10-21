@@ -533,11 +533,7 @@ private struct ProfileDeletionPendingState: View {
 private struct DateOfBirthField: View {
     @Binding var value: String
 
-    private static let dobFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd"
-        return f
-    }()
+    private static let dobFormatter = COPPAHelper.makeDateOfBirthFormatter()
 
     private var date: Binding<Date> {
         Binding(

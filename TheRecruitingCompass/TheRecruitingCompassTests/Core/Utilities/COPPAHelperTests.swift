@@ -139,4 +139,37 @@ final class COPPAHelperTests: XCTestCase {
     XCTAssertTrue(isUnderAge("2000-02-30"))
     XCTAssertTrue(isUnderAge("2000-13-01"))
   }
+
+  // MARK: - Non-Gregorian device calendars (age-gate bypass)
+
+  private static let nonGregorian: [(Calendar.Identifier, String)] = [
+    (.buddhist, "th_TH"), (.japanese, "ja_JP"), (.islamicUmmAlQura, "ar_SA"), (.republicOfChina, "zh_TW")
+  ]
+
+  func testIsUnderAge_NonGregorianDeviceCalendar_StillGatesAtThirteen() {
+    for (identifier, localeID) in Self.nonGregorian {
+      var cal = Calendar(identifier: identifier)
+      cal.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+      cal.locale = Locale(identifier: localeID)
+      let gregorian = Self.calendar(in: "America/Los_Angeles")
+      let birthdayNoon = instant(2026, 6, 15, 12, 0, in: gregorian)
+      let dayBefore = instant(2026, 6, 14, 12, 0, in: gregorian)
+      XCTAssertTrue(COPPAHelper.isUnderAge("2013-06-15", now: dayBefore, calendar: cal), "\(identifier) 12yo")
+      XCTAssertFalse(COPPAHelper.isUnderAge("2013-06-15", now: birthdayNoon, calendar: cal), "\(identifier) 13yo")
+      XCTAssertTrue(COPPAHelper.requiresGuardianInvite("2013-06-15", now: birthdayNoon, calendar: cal))
+      XCTAssertFalse(COPPAHelper.requiresGuardianInvite("2008-06-15", now: birthdayNoon, calendar: cal))
+    }
+  }
+
+  func testIsUnderAge_SignedOrPaddedComponents_FailClosed() {
+    for dob in ["+201-01-01", " 2010-01-01", "2010-+1-01", "2010-01-+1", "-201-01-01", "2010-01-01 "] {
+      XCTAssertTrue(isUnderAge(dob), "\(dob) must fail closed")
+    }
+  }
+
+  func testDateOfBirthFormatter_NonGregorianLocale_WritesGregorianYear() {
+    let gregorian = Self.calendar(in: TimeZone.current.identifier)
+    let date = instant(2013, 6, 15, 12, 0, in: gregorian)
+    XCTAssertEqual(COPPAHelper.makeDateOfBirthFormatter().string(from: date), "2013-06-15")
+  }
 }

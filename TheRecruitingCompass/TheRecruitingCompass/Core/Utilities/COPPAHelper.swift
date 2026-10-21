@@ -17,7 +17,11 @@ enum COPPAHelper {
   /// `calendar` field by field, so no time zone can shift the birthday (mirrors web's `ageFromDateOfBirth`).
   static func age(fromDateOfBirth dateOfBirth: String, now: Date = .now, calendar: Calendar = .current) -> Int? {
     guard let dob = dateComponents(from: dateOfBirth) else { return nil }
-    let today = calendar.dateComponents([.year, .month, .day], from: now)
+    // The injected calendar contributes only its time zone: a Buddhist or Japanese calendar would
+    // number years differently from the Gregorian DOB and let an under-13 through.
+    var gregorian = Calendar(identifier: .gregorian)
+    gregorian.timeZone = calendar.timeZone
+    let today = gregorian.dateComponents([.year, .month, .day], from: now)
     guard let year = today.year, let month = today.month, let day = today.day else { return nil }
     let birthdayPassed = (month, day) >= (dob.month, dob.day)
     return year - dob.year - (birthdayPassed ? 0 : 1)
@@ -42,10 +46,22 @@ enum COPPAHelper {
     return years >= minimumAge && years < adultAge
   }
 
+  /// Formatter for the stored `yyyy-MM-dd` DOB. Pinned to POSIX locale and the Gregorian calendar so a
+  /// Buddhist/Japanese/Hijri device setting never writes a non-Gregorian year into the DOB.
+  static func makeDateOfBirthFormatter() -> DateFormatter {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.timeZone = .autoupdatingCurrent
+    formatter.dateFormat = "yyyy-MM-dd"
+    return formatter
+  }
+
   private static func dateComponents(from string: String) -> (year: Int, month: Int, day: Int)? {
     let parts = string.prefix(10).split(separator: "-", omittingEmptySubsequences: false)
     guard parts.count == 3, string.count == 10 || string.dropFirst(10).first == "T",
           parts[0].count == 4, parts[1].count == 2, parts[2].count == 2,
+          parts.allSatisfy({ $0.allSatisfy { $0.isASCII && $0.isWholeNumber } }),
           let year = Int(parts[0]), let month = Int(parts[1]), let day = Int(parts[2])
     else { return nil }
     var gregorian = Calendar(identifier: .gregorian)
