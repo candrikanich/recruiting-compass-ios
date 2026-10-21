@@ -39,6 +39,9 @@ is public (so the Mac is never a GitHub runner for it). A launchd agent runs
 - runs the smoke classes on a dedicated, erased "Nightly E2E iPhone" simulator,
 - opens/updates the issue "Nightly iOS E2E (local) is failing" on failure and
   closes it on the next pass. Logs: `~/Library/Logs/recruiting-compass/`.
+- on failure, has `claude -p` (Read/Write tools only) classify it as runner/env
+  vs app code into `~/nightly-triage/<run id>.md`. Skipped if
+  `NIGHTLY_E2E_CLAUDE_BIN` (default `~/.local/bin/claude`) isn't executable.
 
 ```bash
 scripts/e2e/install-nightly.sh              # install / refresh the agent

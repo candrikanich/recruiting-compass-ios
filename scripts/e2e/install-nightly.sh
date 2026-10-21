@@ -17,6 +17,10 @@ CI_DIR="${NIGHTLY_E2E_CI_DIR:-$HOME/ci}"
 IOS_CLONE="$CI_DIR/recruiting-compass-ios"
 WEB_CLONE="$CI_DIR/recruiting-compass-web"
 LOG_DIR="$HOME/Library/Logs/recruiting-compass"
+# A real binary, not whatever `command -v claude` finds: terminal wrappers put
+# per-session shims first on PATH that are gone by 02:30. Optional; without it
+# nightly-local.sh skips the Claude triage of failures.
+CLAUDE_BIN="${NIGHTLY_E2E_CLAUDE_BIN:-$HOME/.local/bin/claude}"
 
 if [ "${1:-}" = --uninstall ]; then
   launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
@@ -58,6 +62,7 @@ cat > "$PLIST" <<PLIST
   <dict>
     <key>PATH</key><string>$path</string>
     <key>NIGHTLY_E2E_WEB_DIR</key><string>$WEB_CLONE</string>
+    <key>NIGHTLY_E2E_CLAUDE_BIN</key><string>$CLAUDE_BIN</string>
   </dict>
   <key>StartCalendarInterval</key>
   <dict>
@@ -76,3 +81,4 @@ launchctl bootstrap "gui/$(id -u)" "$PLIST"
 echo "Installed $LABEL: 02:30 daily from $IOS_CLONE."
 echo "Run now:  launchctl kickstart gui/$(id -u)/$LABEL"
 echo "Logs:     $LOG_DIR/ios-nightly-e2e-*.log"
+[ -x "$CLAUDE_BIN" ] || echo "Note: no claude at $CLAUDE_BIN; failures won't be triaged (set NIGHTLY_E2E_CLAUDE_BIN)."
