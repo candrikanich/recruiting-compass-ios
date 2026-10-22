@@ -74,30 +74,11 @@ private struct HelpGettingStartedContent: View {
       }
 
       sectionBlock {
-        HelpSectionHeader(title: HelpFamilyCopy.sectionTitle)
-        Text(HelpFamilyCopy.everyAccountIntro)
-          .font(.brand(.subheadline))
-          .foregroundStyle(.secondary)
-        bulletList(items: [
-          ("Created for you", HelpFamilyCopy.createdForYou),
-          ("Invited? You join instead", HelpFamilyCopy.invitedJoin),
-          ("Removed, or your family was deleted?", HelpFamilyCopy.removedOrDeleted)
-        ])
-        Text(HelpFamilyCopy.saveRefusedIntro)
-          .font(.brand(.subheadline))
-          .foregroundStyle(.secondary)
-        bulletList(items: [
-          ("Still loading", HelpFamilyCopy.refusedStillLoading),
-          ("Couldn't load", HelpFamilyCopy.refusedLookupFailed),
-          ("No family yet", HelpFamilyCopy.refusedMissing)
-        ])
-      }
-
-      sectionBlock {
         HelpSectionHeader(title: "Adding family members")
         Text(HelpFamilyCopy.addingFamilyIntro)
           .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
+        HelpCallout(type: .info, text: HelpFamilyCopy.gettingStartedCallout)
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
         HelpStepCard(step: 2, title: "Invite a family member", bodyText: "Enter their email address and tap Send invite. They'll receive an email to create their account and join your family unit.", isLast: true)
         HelpCallout(type: .info, text: "Family members can view and edit your athlete profile, school list, and interactions — everyone in the family works together.")
@@ -292,6 +273,28 @@ private struct HelpAccountContent: View {
       }
 
       sectionBlock {
+        HelpSectionHeader(title: HelpFamilyCopy.sectionTitle)
+        Text(HelpFamilyCopy.everyAccountIntro)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.secondary)
+        familyRow("Created for you", HelpFamilyCopy.createdForYou)
+        familyRow("Invited? You join instead", HelpFamilyCopy.invitedJoin)
+        familyRow("Removed, or your family was deleted?", HelpFamilyCopy.removedOrDeleted)
+        Text(HelpFamilyCopy.missingFamilyIntro)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.secondary)
+        Text(HelpFamilyCopy.stillLoading)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.primary)
+        Text(HelpFamilyCopy.loadFailed)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.primary)
+        Text(HelpFamilyCopy.noFamilyYet)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.primary)
+      }
+
+      sectionBlock {
         HelpSectionHeader(title: "Notification preferences")
         Text("Control which notifications you receive and how you receive them.")
           .font(.brand(.subheadline))
@@ -440,6 +443,12 @@ private func sectionBlock<Content: View>(@ViewBuilder content: () -> Content) ->
     content()
   }
   .frame(maxWidth: .infinity, alignment: .leading)
+}
+
+private func familyRow(_ title: String, _ detail: String) -> some View {
+  Text(verbatim: "• \(title) — \(detail)")
+    .font(.brand(.subheadline))
+    .foregroundStyle(.primary)
 }
 
 private func bulletList(items: [(String, String)]) -> some View {

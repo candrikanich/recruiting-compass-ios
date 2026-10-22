@@ -5,14 +5,19 @@ final class HelpFamilyCopyTests: XCTestCase {
   private var allCopy: [String] {
     [
       HelpFamilyCopy.addingFamilyIntro, HelpFamilyCopy.everyAccountIntro, HelpFamilyCopy.createdForYou,
-      HelpFamilyCopy.invitedJoin, HelpFamilyCopy.removedOrDeleted, HelpFamilyCopy.saveRefusedIntro,
-      HelpFamilyCopy.refusedStillLoading, HelpFamilyCopy.refusedLookupFailed, HelpFamilyCopy.refusedMissing
+      HelpFamilyCopy.invitedJoin, HelpFamilyCopy.removedOrDeleted, HelpFamilyCopy.missingFamilyIntro,
+      HelpFamilyCopy.stillLoading, HelpFamilyCopy.loadFailed, HelpFamilyCopy.noFamilyYet,
+      HelpFamilyCopy.gettingStartedCallout
     ]
   }
 
   func test_familyIsCreatedAutomaticallyAtSignup() {
     XCTAssertTrue(HelpFamilyCopy.createdForYou.contains("created automatically"))
-    XCTAssertTrue(HelpFamilyCopy.addingFamilyIntro.contains("created automatically"))
+    XCTAssertTrue(HelpFamilyCopy.gettingStartedCallout.contains("created for you automatically"))
+  }
+
+  func test_addingFamilyIntroDoesNotRepeatTheCallout() {
+    XCTAssertFalse(HelpFamilyCopy.addingFamilyIntro.contains("created automatically"))
   }
 
   func test_invitedUsersJoinTheExistingFamily() {
@@ -25,18 +30,22 @@ final class HelpFamilyCopyTests: XCTestCase {
     XCTAssertTrue(text.contains("Family Code"))
   }
 
-  func test_refusalMessagesMatchWhatTheAppShows() {
-    XCTAssertEqual(HelpFamilyCopy.refusedStillLoading, FamilyUnitID.MissingError.missing.errorDescription)
-    XCTAssertEqual(HelpFamilyCopy.refusedStillLoading, CreateEventViewModel.familyNotLoadedMessage)
-    XCTAssertTrue(HelpFamilyCopy.refusedLookupFailed.contains("We couldn't load your family"))
-    XCTAssertTrue(HelpFamilyCopy.refusedMissing.contains("Family Code"))
+  func test_stillLoadingQuotesTheMessageTheAppShows() {
+    XCTAssertTrue(HelpFamilyCopy.stillLoading.contains(FamilyUnitID.MissingError.missing.errorDescription ?? "?"))
+    XCTAssertTrue(HelpFamilyCopy.stillLoading.contains(CreateEventViewModel.familyNotLoadedMessage))
+  }
+
+  func test_onlyStillLoadingIsDescribedAsARefusedSave() {
+    XCTAssertTrue(HelpFamilyCopy.stillLoading.contains("save is stopped"))
+    XCTAssertFalse(HelpFamilyCopy.loadFailed.contains("save"))
+    XCTAssertFalse(HelpFamilyCopy.noFamilyYet.contains("save"))
+    XCTAssertTrue(HelpFamilyCopy.loadFailed.contains("when you open the app"))
+    XCTAssertTrue(HelpFamilyCopy.noFamilyYet.contains("Family Code"))
   }
 
   func test_lastReviewedIsBumpedAndOldCopyIsGone() {
     XCTAssertEqual(HelpFamilyCopy.lastReviewed, "October 2026")
-    let oldIntro = "Parents and guardians can be added as family members to view and collaborate "
-      + "on your recruiting journey."
-    XCTAssertNotEqual(HelpFamilyCopy.addingFamilyIntro, oldIntro)
+    XCTAssertTrue(HelpFamilyCopy.addingFamilyIntro.hasPrefix("Your family already exists"))
   }
 
   func test_noCoppaClaim() {
