@@ -17,7 +17,7 @@ final class HelpSectionDetailViewTests: XCTestCase {
     if let text = node as? String { return [text] }
     guard depth < 40 else { return [] }
     let mirror = Mirror(reflecting: node)
-    guard let style = mirror.displayStyle, [.struct, .enum, .tuple, .optional].contains(style) else { return [] }
+    guard let style = mirror.displayStyle, [.struct, .enum, .tuple, .optional, .collection].contains(style) else { return [] }
     var children = mirror.children.map(\.value)
     if let view = node as? any View, !(node is HelpFeedbackView), let body = evaluatedBody(of: view) {
       children.append(body)

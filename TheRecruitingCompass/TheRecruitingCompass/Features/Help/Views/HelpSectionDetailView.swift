@@ -277,21 +277,15 @@ private struct HelpAccountContent: View {
         Text(HelpFamilyCopy.everyAccountIntro)
           .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
-        familyRow("Created for you", HelpFamilyCopy.createdForYou)
-        familyRow("Invited? You join instead", HelpFamilyCopy.invitedJoin)
-        familyRow("Removed, or your family was deleted?", HelpFamilyCopy.removedOrDeleted)
+        bulletList(items: [
+          ("Created for you", HelpFamilyCopy.createdForYou),
+          ("Invited? You join instead", HelpFamilyCopy.invitedJoin),
+          ("Removed, or your family was deleted?", HelpFamilyCopy.removedOrDeleted)
+        ])
         Text(HelpFamilyCopy.missingFamilyIntro)
           .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
-        Text(HelpFamilyCopy.stillLoading)
-          .font(.brand(.subheadline))
-          .foregroundStyle(.primary)
-        Text(HelpFamilyCopy.loadFailed)
-          .font(.brand(.subheadline))
-          .foregroundStyle(.primary)
-        Text(HelpFamilyCopy.noFamilyYet)
-          .font(.brand(.subheadline))
-          .foregroundStyle(.primary)
+        bulletList(lines: [HelpFamilyCopy.stillLoading, HelpFamilyCopy.loadFailed, HelpFamilyCopy.noFamilyYet])
       }
 
       sectionBlock {
@@ -445,20 +439,18 @@ private func sectionBlock<Content: View>(@ViewBuilder content: () -> Content) ->
   .frame(maxWidth: .infinity, alignment: .leading)
 }
 
-private func familyRow(_ title: String, _ detail: String) -> some View {
-  Text(verbatim: "• \(title) — \(detail)")
-    .font(.brand(.subheadline))
-    .foregroundStyle(.primary)
+private func bulletList(items: [(String, String)]) -> some View {
+  bulletList(lines: items.map { "\($0.0) — \($0.1)" })
 }
 
-private func bulletList(items: [(String, String)]) -> some View {
+private func bulletList(lines: [String]) -> some View {
   VStack(alignment: .leading, spacing: 8) {
-    ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+    ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
       HStack(alignment: .top, spacing: 8) {
         Text("•")
           .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
-        Text("\(item.0) — \(item.1)")
+        Text(verbatim: line)
           .font(.brand(.subheadline))
           .foregroundStyle(.primary)
       }
