@@ -20,6 +20,7 @@ final class FamilyManagementViewModel {
   var familyMembers: [FamilyMember] = []
   var pendingInvitations: [FamilyInvitation] = []
   var inviteEmail: String = ""
+  var inviteRole: InviteRole = .player
 
   // MARK: - Parent State
   var parentFamilies: [ParentFamilyData] = []
@@ -73,6 +74,19 @@ final class FamilyManagementViewModel {
   var isEmailInviteValid: Bool {
     let trimmed = inviteEmail.trimmingCharacters(in: .whitespaces)
     return trimmed.contains("@") && trimmed.contains(".")
+  }
+
+  enum InviteRole: String, CaseIterable, Identifiable {
+    case player
+    case parent
+
+    var id: String { rawValue }
+    var label: String { rawValue.capitalized }
+  }
+
+  /// Only a parent whose family has no player yet may pick; a family has one player, never a second.
+  var offersInviteRoleChoice: Bool {
+    isParent && !parentFamilyHasPlayer
   }
 
   /// A family has one player; once it does, a parent's invites go to other family members instead.
@@ -435,14 +449,14 @@ final class FamilyManagementViewModel {
     }
 
     let email = inviteEmail.trimmingCharacters(in: .whitespaces)
-    let inviteRole = isPlayer || parentFamilyHasPlayer ? "parent" : "player"
+    let role = offersInviteRoleChoice ? inviteRole.rawValue : InviteRole.parent.rawValue
 
     isLoading = true
     errorMessage = nil
     defer { isLoading = false }
 
     do {
-      try await familyService.sendEmailInvite(email: email, role: inviteRole, pendingPlayerDetails: nil)
+      try await familyService.sendEmailInvite(email: email, role: role, pendingPlayerDetails: nil)
       inviteEmail = ""
       await loadPendingInvitations()
       showSuccess("Invite sent to \(email)!")

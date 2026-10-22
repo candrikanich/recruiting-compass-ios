@@ -77,6 +77,67 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertEqual(mockFamilyService.lastInviteRole, "player")
   }
 
+  func testSendEmailInvite_parentWithNoPlayer_choosingParentInvitesWithParentRole() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    sut.inviteRole = .parent
+    sut.inviteEmail = "coparent@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "parent")
+  }
+
+  func testSendEmailInvite_parentWithNoPlayer_choosingPlayerInvitesWithPlayerRole() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    sut.inviteRole = .player
+    sut.inviteEmail = "kid@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "player")
+  }
+
+  func testSendEmailInvite_player_neverInvitesPlayerEvenIfChoiceIsPlayer() async {
+    mockAuthManager.setMockUser(makeUser(role: .player))
+    sut.inviteRole = .player
+    sut.inviteEmail = "mom@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "parent")
+  }
+
+  func testSendEmailInvite_parentWhoseFamilyHasPlayer_neverInvitesPlayerEvenIfChoiceIsPlayer() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    var family = ParentFamilyData(
+      familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x"
+    )
+    family.members = [makeFamilyMember(id: "m2", userId: "user-2", role: "player")]
+    sut.parentFamilies = [family]
+    sut.inviteRole = .player
+    sut.inviteEmail = "grandma@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "parent")
+  }
+
+  func testOffersInviteRoleChoice_onlyForParentWithNoPlayer() {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    XCTAssertTrue(sut.offersInviteRoleChoice)
+
+    var family = ParentFamilyData(
+      familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x"
+    )
+    family.members = [makeFamilyMember(id: "m2", userId: "user-2", role: "player")]
+    sut.parentFamilies = [family]
+    XCTAssertFalse(sut.offersInviteRoleChoice)
+
+    mockAuthManager.setMockUser(makeUser(role: .player))
+    sut.parentFamilies = []
+    XCTAssertFalse(sut.offersInviteRoleChoice)
+  }
+
   // MARK: - Test Helpers
 
   private func makeUser(id: String = "user-1", role: UserRole = .player) -> User {

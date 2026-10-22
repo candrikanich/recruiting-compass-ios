@@ -74,7 +74,7 @@ struct FamilyManagementParentView: View {
   @ViewBuilder
   private var inviteByEmailCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
-      Text(viewModel.parentFamilyHasPlayer ? "Invite Family to Follow Along" : "Invite Player by Email")
+      Text(viewModel.parentFamilyHasPlayer ? "Invite Family to Follow Along" : "Invite a Family Member")
         .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -90,18 +90,32 @@ struct FamilyManagementParentView: View {
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
+      if viewModel.offersInviteRoleChoice {
+        HStack {
+          Text("Role")
+            .font(.brand(.subheadline))
+          Spacer()
+          Picker("Role", selection: $viewModel.inviteRole) {
+            ForEach(FamilyManagementViewModel.InviteRole.allCases) { role in
+              Text(role.label).tag(role)
+            }
+          }
+          .pickerStyle(.menu)
+          .accessibilityLabel(String(localized: "Invite role"))
+        }
+        .frame(minHeight: 44)
+      }
+
       HStack(spacing: FamilyConstants.Spacing.small) {
         TextField(
-          viewModel.parentFamilyHasPlayer ? "name@example.com" : "player@example.com",
+          "name@example.com",
           text: $viewModel.inviteEmail
         )
           .textFieldStyle(.roundedBorder)
           .keyboardType(.emailAddress)
           .textContentType(.emailAddress)
           .autocapitalization(.none)
-          .accessibilityLabel(viewModel.parentFamilyHasPlayer
-            ? String(localized: "Family member email address")
-            : String(localized: "Player email address"))
+          .accessibilityLabel(String(localized: "Family member email address"))
 
         Button {
           Task { await viewModel.sendEmailInvite() }
