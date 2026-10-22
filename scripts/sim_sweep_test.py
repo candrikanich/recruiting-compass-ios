@@ -3,7 +3,7 @@
 import unittest
 from datetime import datetime, timedelta, timezone
 
-from sim_sweep import Action, plan, xcodebuild_test_runs
+from sim_sweep import Action, lock_holder, plan, xcodebuild_test_runs
 
 NOW = datetime(2026, 10, 14, 12, 0, tzinfo=timezone.utc)
 UDID_A = "11111111-1111-1111-1111-111111111111"
@@ -20,8 +20,8 @@ def device(name, udid, state="Shutdown", hours_ago=48.0):
     }
 
 
-def run(devices, clones=(), processes=(), keep=()):
-    return plan(list(devices), list(clones), list(processes), set(keep), NOW)
+def run(devices, clones=(), processes=(), keep=(), lock_held=False):
+    return plan(list(devices), list(clones), list(processes), set(keep), NOW, lock_held)
 
 
 class ShutdownTests(unittest.TestCase):
@@ -86,6 +86,55 @@ class CloneTests(unittest.TestCase):
         clones = [device("Clone 1 of iPhone 17", UDID_A, "Booted", 9)]
         procs = [f"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -destination id={UDID_B}"]
         self.assertEqual(run([], clones=clones, processes=procs), [])
+
+    def test_leaves_clone_set_alone_while_the_test_lock_is_held(self):
+        clones = [device("Clone 1 of iPhone 17", UDID_A, "Shutdown", 9)]
+        self.assertEqual(run([], clones=clones, lock_held=True), [])
+
+
+ORPHAN = "/Library/Developer/CoreSimulator/Volumes/iOS_24B5084k/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.2.simruntime/Contents/Resources/RuntimeRoot/System/Library/Frameworks/Metal.framework/XPCServices/MTLCompilerService.xpc/MTLCompilerService"
+KILL_ORPHANS = Action("kill-orphans", "", "2 simulator runtime services")
+
+
+class OrphanTests(unittest.TestCase):
+    def test_kills_runtime_services_when_nothing_is_booted(self):
+        procs = [ORPHAN, ORPHAN.replace("MTLCompilerService", "SetStoreUpdateService")]
+        self.assertEqual(run([device("iPhone 17", UDID_A)], processes=procs), [KILL_ORPHANS])
+
+    def test_leaves_them_while_a_simulator_is_booted(self):
+        self.assertEqual(run([device("iPhone 17", UDID_A, "Booted", 0.5)], processes=[ORPHAN, ORPHAN]), [])
+
+    def test_leaves_them_while_a_clone_is_booted(self):
+        clones = [device("Clone 1 of iPhone 17", UDID_A, "Booted", 0.1)]
+        procs = [ORPHAN, ORPHAN, "xcodebuild test -destination id=X"]
+        self.assertEqual(run([], clones=clones, processes=procs), [])
+
+    def test_leaves_them_while_the_test_lock_is_held(self):
+        self.assertEqual(run([], processes=[ORPHAN, ORPHAN], lock_held=True), [])
+
+    def test_leaves_them_while_xcodebuild_runs(self):
+        self.assertEqual(run([], processes=[ORPHAN, ORPHAN, "/usr/bin/xcodebuild build -scheme X"]), [])
+
+    def test_host_metal_compiler_is_not_an_orphan(self):
+        host = "/System/Library/Frameworks/Metal.framework/Versions/A/XPCServices/MTLCompilerService.xpc/MTLCompilerService"
+        self.assertEqual(run([], processes=[host]), [])
+
+
+class LockHolderTests(unittest.TestCase):
+    OWNER = "pid=4242\nlabel=run-ios-tests unit tests\ndir=/w\nbranch=b\nstarted=2026-10-22 09:00:00\n"
+
+    def test_live_holder_is_described(self):
+        self.assertEqual(
+            lock_holder(self.OWNER, alive=lambda pid: pid == 4242),
+            "pid=4242 label=run-ios-tests unit tests dir=/w branch=b started=2026-10-22 09:00:00",
+        )
+
+    def test_dead_holder_is_stale(self):
+        self.assertIsNone(lock_holder(self.OWNER, alive=lambda pid: False))
+
+    def test_no_owner_file(self):
+        self.assertIsNone(lock_holder(None, alive=lambda pid: True))
+        self.assertIsNone(lock_holder("garbage", alive=lambda pid: True))
 
 
 class XcodebuildTestRunsTests(unittest.TestCase):

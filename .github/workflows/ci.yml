@@ -96,6 +96,12 @@ jobs:
       - name: Run SwiftLint
         run: swiftlint lint --config .swiftlint.yml --reporter github-actions-logging
 
+      # macOS-only: exercises the real lockf-based test lock with xcodebuild/xcrun stubbed.
+      - name: Self-test run-ios-tests and sim sweep
+        run: |
+          scripts/run-ios-tests.test.sh
+          python3 -m unittest discover -s scripts -p 'sim_sweep_test.py'
+
   build-and-test:
     name: Build & Unit Tests
     runs-on: macos-15

@@ -13,6 +13,11 @@ REPO=$(cd "$(dirname "$0")/.." && pwd)
 MARKERS=${MARKER_DIR:-$(mktemp -d /tmp/rc-clip-markers.XXXXXX)}
 mkdir -p "$OUT/raw"
 
+# Wait for any other simulator test run on this Mac (scripts/lib/ios-test-lock.sh) before booting.
+source "$REPO/scripts/lib/ios-test-lock.sh"
+trap ios_test_lock_release EXIT
+ios_test_lock_acquire "${CLIP_LOCK_WAIT_SECONDS:-7200}" "record-marketing-clips" || exit $?
+
 xcrun simctl boot "$SIM" 2>/dev/null || true
 xcrun simctl bootstatus "$SIM" -b >/dev/null
 
@@ -40,7 +45,7 @@ watch_markers() {
 }
 watch_markers &
 WATCHER=$!
-trap 'kill $WATCHER 2>/dev/null; pkill -INT -f "io $SIM recordVideo" 2>/dev/null || true' EXIT
+trap 'kill $WATCHER 2>/dev/null; pkill -INT -f "io $SIM recordVideo" 2>/dev/null || true; ios_test_lock_release' EXIT
 
 cd "$REPO/TheRecruitingCompass"
 set +e

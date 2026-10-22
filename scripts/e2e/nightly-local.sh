@@ -32,7 +32,7 @@ SIM_NAME="Nightly E2E iPhone"
 # Per-test allowances cap a single test at 300s, so 10 quiet minutes means the
 # run is wedged, not slow.
 STALL_SECONDS=600
-OTHER_RUNS_WAIT_SECONDS="${NIGHTLY_E2E_OTHER_RUNS_WAIT_SECONDS:-3600}"
+OTHER_RUNS_WAIT_SECONDS="${NIGHTLY_E2E_OTHER_RUNS_WAIT_SECONDS:-7200}"
 
 export E2E_SUPABASE_PROJECT_ID=rc-ios-e2e
 export E2E_SUPABASE_PORT_PREFIX=463
@@ -80,6 +80,9 @@ if [ ! -x "$LOCAL_SUPABASE" ]; then
   exit 1
 fi
 
+# shellcheck source=../lib/ios-test-lock.sh
+. "$IOS_DIR/scripts/lib/ios-test-lock.sh"
+
 LOCK="$STATE_DIR/run.lock"
 if ! mkdir "$LOCK" 2>/dev/null; then
   log "Another run holds $LOCK; exiting."
@@ -90,6 +93,7 @@ SIM_UDID=""
 cleanup() {
   timeout 120 "$LOCAL_SUPABASE" stop || true
   [ -n "$SIM_UDID" ] && xcrun simctl shutdown "$SIM_UDID" >/dev/null 2>&1 || true
+  ios_test_lock_release
   rmdir "$LOCK" 2>/dev/null || true
   # Keep two weeks of logs.
   find "$LOG_DIR" -name 'ios-nightly-e2e-*.log' -mtime +14 -delete 2>/dev/null || true
@@ -219,31 +223,11 @@ print(ios["identifier"], (exact or plain or phones)[-1]["identifier"])')
   log "Simulator $SIM_NAME: $SIM_UDID"
 }
 
-# Cold-booting our freshly erased device beside another agent's xcodebuild test
-# run starves both until one stalls, and the stall retry erases and cold-boots
-# again. Wait for those runs first; past the cap, run anyway rather than skip
-# the night. A failing check counts as idle (exit 0 means runs were found).
-wait_for_other_test_runs() {
-  local waited=0
-  while /usr/bin/python3 "$IOS_DIR/scripts/sim_sweep.py" --tests-running >/dev/null 2>&1; do
-    if [ "$waited" -ge "$OTHER_RUNS_WAIT_SECONDS" ]; then
-      log "Another xcodebuild test run is still going after ${waited}s; starting anyway"
-      return 0
-    fi
-    [ "$waited" -eq 0 ] && log "Waiting for another xcodebuild test run to finish"
-    sleep 30
-    waited=$((waited + 30))
-  done
-  [ "$waited" -gt 0 ] && log "Other test runs finished after ${waited}s"
-  return 0
-}
-
 # Erase + boot only our own device. Other agents' simulators share this Mac, so
 # recovery never uses `simctl shutdown all` or restarts CoreSimulatorService:
 # after a wedge ("hard") we delete our device and create a fresh one instead.
 reset_sim() {
   local hard="${1:-}"
-  wait_for_other_test_runs
   xcrun simctl shutdown "$SIM_UDID" >/dev/null 2>&1 || true
   if [ "$hard" = hard ]; then
     xcrun simctl delete "$SIM_UDID" || true
@@ -483,9 +467,13 @@ start_stack || fail "local Supabase stack did not start"
 seed || fail "seed:e2e failed"
 ensure_xcconfig
 ensure_simulator || fail "could not find or create the $SIM_NAME simulator"
-reset_sim
 log "Building for testing"
 build_for_testing || fail "build-for-testing failed"
+# Simulator time is shared with every agent's scripts/run-ios-tests.sh run: two cold boots side by
+# side starve this Mac until both stall. Wait our turn, but never boot beside another run.
+ios_test_lock_acquire "$OTHER_RUNS_WAIT_SECONDS" "nightly E2E ($SUITE)" ||
+  fail "another iOS test run held the simulator lock for ${OTHER_RUNS_WAIT_SECONDS}s"
+reset_sim
 select_tests || fail "smoke suite list is stale"
 tests_rc=0
 run_tests || tests_rc=$?
