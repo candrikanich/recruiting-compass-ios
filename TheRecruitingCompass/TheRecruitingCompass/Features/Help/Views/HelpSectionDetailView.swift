@@ -10,12 +10,10 @@ import SwiftUI
 struct HelpSectionDetailView: View {
   let section: HelpSection
 
-  private let lastReviewed = "August 2026"
-
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 32) {
-        Text("Last reviewed: \(lastReviewed)")
+        Text("Last reviewed: \(HelpFamilyCopy.lastReviewed)")
           .font(.brand(.caption))
           .foregroundStyle(.secondary)
 
@@ -76,8 +74,28 @@ private struct HelpGettingStartedContent: View {
       }
 
       sectionBlock {
+        HelpSectionHeader(title: HelpFamilyCopy.sectionTitle)
+        Text(HelpFamilyCopy.everyAccountIntro)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.secondary)
+        bulletList(items: [
+          ("Created for you", HelpFamilyCopy.createdForYou),
+          ("Invited? You join instead", HelpFamilyCopy.invitedJoin),
+          ("Removed, or your family was deleted?", HelpFamilyCopy.removedOrDeleted)
+        ])
+        Text(HelpFamilyCopy.saveRefusedIntro)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.secondary)
+        bulletList(items: [
+          ("Still loading", HelpFamilyCopy.refusedStillLoading),
+          ("Couldn't load", HelpFamilyCopy.refusedLookupFailed),
+          ("No family yet", HelpFamilyCopy.refusedMissing)
+        ])
+      }
+
+      sectionBlock {
         HelpSectionHeader(title: "Adding family members")
-        Text("Parents and guardians can be added as family members to view and collaborate on your recruiting journey.")
+        Text(HelpFamilyCopy.addingFamilyIntro)
           .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
