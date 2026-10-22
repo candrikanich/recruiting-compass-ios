@@ -47,4 +47,9 @@ final class HelpSectionDetailViewTests: XCTestCase {
     XCTAssertFalse(text.contains(HelpFamilyCopy.everyAccountIntro))
     XCTAssertFalse(text.contains(HelpFamilyCopy.noFamilyYet))
   }
+
+  func test_bulletRowRendersItsLine() {
+    let text = Self.strings(in: HelpBulletRow(line: "probe").body, depth: 0)
+    XCTAssertTrue(text.contains("probe"), "bullet row body must render its line, got \(text)")
+  }
 }

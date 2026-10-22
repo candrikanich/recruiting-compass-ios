@@ -446,14 +446,23 @@ private func bulletList(items: [(String, String)]) -> some View {
 private func bulletList(lines: [String]) -> some View {
   VStack(alignment: .leading, spacing: 8) {
     ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
-      HStack(alignment: .top, spacing: 8) {
-        Text("•")
-          .font(.brand(.subheadline))
-          .foregroundStyle(.secondary)
-        Text(verbatim: line)
-          .font(.brand(.subheadline))
-          .foregroundStyle(.primary)
-      }
+      HelpBulletRow(line: line)
+    }
+  }
+}
+
+/// Internal (not private) so tests can evaluate `body`; ForEach's content closure is unreachable by reflection.
+struct HelpBulletRow: View {
+  let line: String
+
+  var body: some View {
+    HStack(alignment: .top, spacing: 8) {
+      Text("•")
+        .font(.brand(.subheadline))
+        .foregroundStyle(.secondary)
+      Text(verbatim: line)
+        .font(.brand(.subheadline))
+        .foregroundStyle(.primary)
     }
   }
 }
