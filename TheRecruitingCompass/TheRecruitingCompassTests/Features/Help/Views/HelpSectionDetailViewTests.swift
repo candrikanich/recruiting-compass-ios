@@ -33,8 +33,8 @@ final class HelpSectionDetailViewTests: XCTestCase {
     let text = renderedText(.account)
     for copy in [
       HelpFamilyCopy.sectionTitle, HelpFamilyCopy.everyAccountIntro, HelpFamilyCopy.createdForYou,
-      HelpFamilyCopy.invitedJoin, HelpFamilyCopy.removedOrDeleted, HelpFamilyCopy.missingFamilyIntro, HelpFamilyCopy.stillLoading, HelpFamilyCopy.loadFailed,
-      HelpFamilyCopy.noFamilyYet
+      HelpFamilyCopy.invitedJoin, HelpFamilyCopy.removedOrDeleted, HelpFamilyCopy.missingFamilyIntro,
+      HelpFamilyCopy.stillLoading, HelpFamilyCopy.loadFailed, HelpFamilyCopy.noFamilyYet
     ] {
       XCTAssertTrue(text.contains(copy), "Account & Settings help is missing: \(copy)")
     }
