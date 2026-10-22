@@ -89,6 +89,10 @@ final class FamilyManagementViewModel {
     isParent && !parentFamilyHasPlayer
   }
 
+  var inviteCardTitle: String {
+    parentFamilyHasPlayer ? "Invite Family to Follow Along" : "Invite a Family Member"
+  }
+
   /// A family has one player; once it does, a parent's invites go to other family members instead.
   var parentFamilyHasPlayer: Bool {
     parentFamilies.contains { family in family.members.contains(where: \.isAthlete) }

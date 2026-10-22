@@ -74,7 +74,7 @@ struct FamilyManagementParentView: View {
   @ViewBuilder
   private var inviteByEmailCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
-      Text(viewModel.parentFamilyHasPlayer ? "Invite Family to Follow Along" : "Invite a Family Member")
+      Text(viewModel.inviteCardTitle)
         .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -94,6 +94,7 @@ struct FamilyManagementParentView: View {
         HStack {
           Text("Role")
             .font(.brand(.subheadline))
+            .accessibilityHidden(true)
           Spacer()
           Picker("Role", selection: $viewModel.inviteRole) {
             ForEach(FamilyManagementViewModel.InviteRole.allCases) { role in

@@ -138,6 +138,19 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertFalse(sut.offersInviteRoleChoice)
   }
 
+  func testInviteCardTitle_dependsOnWhetherFamilyHasPlayer() {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    XCTAssertEqual(sut.inviteCardTitle, "Invite a Family Member")
+    XCTAssertNotEqual(sut.inviteCardTitle, "Invite Player by Email")
+
+    var family = ParentFamilyData(
+      familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x"
+    )
+    family.members = [makeFamilyMember(id: "m2", userId: "user-2", role: "player")]
+    sut.parentFamilies = [family]
+    XCTAssertEqual(sut.inviteCardTitle, "Invite Family to Follow Along")
+  }
+
   // MARK: - Test Helpers
 
   private func makeUser(id: String = "user-1", role: UserRole = .player) -> User {
