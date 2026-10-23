@@ -141,7 +141,7 @@ final class FormValidatorTests: XCTestCase {
 
   func testValidateFamilyCodeWithInvalidFormat() {
     let result = FormValidator.validateFamilyCode("INVALID-CODE")
-    XCTAssertEqual(result, "Family code must be in format FAM-XXXXXX")
+    XCTAssertEqual(result, "Family Code must be in format FAM-XXXXXX")
   }
 
   func testValidateFamilyCodeWithNil() {
@@ -156,11 +156,11 @@ final class FormValidatorTests: XCTestCase {
 
   func testValidateFamilyCodeWithTooShort() {
     let result = FormValidator.validateFamilyCode("FAM-ABC")
-    XCTAssertEqual(result, "Family code must be in format FAM-XXXXXX")
+    XCTAssertEqual(result, "Family Code must be in format FAM-XXXXXX")
   }
 
   func testValidateFamilyCodeWithTooLong() {
     let result = FormValidator.validateFamilyCode("FAM-ABC12345")
-    XCTAssertEqual(result, "Family code must be in format FAM-XXXXXX")
+    XCTAssertEqual(result, "Family Code must be in format FAM-XXXXXX")
   }
 }

@@ -55,7 +55,7 @@ enum FormValidator {
     let trimmed = code.trimmingCharacters(in: .whitespaces)
     guard !trimmed.isEmpty else { return nil }
     guard trimmed.wholeMatch(of: familyCodeRegex) != nil else {
-      return "Family code must be in format FAM-XXXXXX"
+      return "Family Code must be in format FAM-XXXXXX"
     }
     return nil
   }

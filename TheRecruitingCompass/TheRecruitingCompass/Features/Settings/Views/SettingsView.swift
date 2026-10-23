@@ -55,7 +55,7 @@ struct SettingsView: View {
           if let code = familyManager.familyUnit?.familyCode {
             HStack {
               VStack(alignment: .leading, spacing: 4) {
-                Text("Family code")
+                Text("Family Code")
                   .font(.brand(.caption))
                   .foregroundStyle(.secondary)
                 Text(code)
@@ -76,7 +76,9 @@ struct SettingsView: View {
               }
               .buttonStyle(.bordered)
               .disabled(showCodeCopied)
-              .accessibilityLabel(showCodeCopied ? String(localized: "Copied to clipboard") : String(localized: "Copy family code"))
+              .accessibilityLabel(
+                showCodeCopied ? String(localized: "Copied to clipboard") : String(localized: "Copy Family Code")
+              )
             }
             .padding(.vertical, 4)
           }

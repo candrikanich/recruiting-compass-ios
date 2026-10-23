@@ -134,7 +134,7 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
 
     XCTAssertNil(viewModel.familyCode)
     XCTAssertEqual(mockFamilyService.createFamilyCallCount, 0)
-    XCTAssertEqual(viewModel.errorMessage, "Couldn't load your family code. Please try again.")
+    XCTAssertEqual(viewModel.errorMessage, "Couldn't load your Family Code. Please try again.")
   }
 
   func testLoadFamilyCode_failure_setsErrorAndClearsCode() async {
@@ -143,7 +143,7 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     await viewModel.loadFamilyCode()
 
     XCTAssertNil(viewModel.familyCode)
-    XCTAssertEqual(viewModel.errorMessage, "Couldn't load your family code. Please try again.")
+    XCTAssertEqual(viewModel.errorMessage, "Couldn't load your Family Code. Please try again.")
   }
 
   // MARK: - sendInvite

@@ -74,7 +74,7 @@ struct FamilyManagementPlayerView: View {
                   .frame(maxWidth: .infinity)
               }
               .buttonStyle(.bordered)
-              .accessibilityLabel(String(localized: "Copy family code to clipboard"))
+              .accessibilityLabel(String(localized: "Copy Family Code to clipboard"))
 
               ShareLink(
                 item: "Join my family on The Recruiting Compass with code: \(code)",
@@ -84,7 +84,7 @@ struct FamilyManagementPlayerView: View {
                 }
               )
               .buttonStyle(.bordered)
-              .accessibilityLabel(String(localized: "Share family code"))
+              .accessibilityLabel(String(localized: "Share Family Code"))
             }
 
             Button(action: { viewModel.confirmRegenerateCode() }) {
@@ -93,13 +93,13 @@ struct FamilyManagementPlayerView: View {
             }
             .buttonStyle(.bordered)
             .tint(.red)
-            .accessibilityLabel(String(localized: "Regenerate family code"))
+            .accessibilityLabel(String(localized: "Regenerate Family Code"))
             .accessibilityHint("Creates a new code and invalidates the old one")
           }
         }
       } else if viewModel.familyCodeUnavailable {
         VStack(spacing: FamilyConstants.Spacing.small) {
-          Text("Your family code isn't available right now.")
+          Text("Your Family Code isn't available right now.")
             .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
@@ -112,7 +112,7 @@ struct FamilyManagementPlayerView: View {
         .padding(.vertical, FamilyConstants.Spacing.medium)
       } else {
         ProgressView()
-          .accessibilityLabel(String(localized: "Loading family code"))
+          .accessibilityLabel(String(localized: "Loading Family Code"))
           .frame(maxWidth: .infinity)
           .padding(.vertical, FamilyConstants.Spacing.extraLarge)
       }
@@ -271,7 +271,7 @@ struct FamilyManagementPlayerView: View {
         .accessibilityHidden(true)
       Text("No family members yet")
         .font(.brand(.headline))
-      Text("Share your family code to invite parents")
+      Text("Share your Family Code to invite parents")
         .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)

@@ -63,7 +63,7 @@ final class FamilySetupViewModel {
 
   func joinWithCode() async {
     guard isCodeValid else {
-      errorMessage = "That doesn't look like a family code. Codes look like FAM-ABC123."
+      errorMessage = "That doesn't look like a Family Code. Codes look like FAM-ABC123."
       return
     }
     let code = normalizedCode

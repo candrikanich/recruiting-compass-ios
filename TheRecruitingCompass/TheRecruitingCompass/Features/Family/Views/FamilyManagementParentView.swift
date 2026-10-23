@@ -28,7 +28,7 @@ struct FamilyManagementParentView: View {
         .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
-      Text("Enter a family code shared by a player")
+      Text("Enter a Family Code shared by a player")
         .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -42,7 +42,7 @@ struct FamilyManagementParentView: View {
           .onChange(of: viewModel.codeInput) { _, _ in
             viewModel.formatCodeInput()
           }
-          .accessibilityLabel(String(localized: "Enter family code"))
+          .accessibilityLabel(String(localized: "Enter Family Code"))
           .accessibilityHint("Enter a code like FAM-XXXXXX")
 
         Button(action: { Task { await viewModel.joinFamily() } }) {
@@ -61,7 +61,9 @@ struct FamilyManagementParentView: View {
         .clipShape(.rect(cornerRadius: 8))
         .disabled(!viewModel.isCodeInputValid || viewModel.isLoading)
         .accessibilityLabel(String(localized: "Join family button"))
-        .accessibilityHint(viewModel.isCodeInputValid ? "Join the family using the entered code" : "Enter a valid family code to enable")
+        .accessibilityHint(
+          viewModel.isCodeInputValid ? "Join the family using the entered code" : "Enter a valid Family Code to enable"
+        )
       }
     }
     .padding(FamilyConstants.Spacing.medium)
@@ -240,7 +242,7 @@ struct FamilyManagementParentView: View {
         .accessibilityHidden(true)
       Text("No families joined yet")
         .font(.brand(.headline))
-      Text("Ask a player to share their family code")
+      Text("Ask a player to share their Family Code")
         .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
