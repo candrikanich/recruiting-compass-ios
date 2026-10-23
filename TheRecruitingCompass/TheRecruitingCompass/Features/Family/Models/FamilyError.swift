@@ -19,11 +19,11 @@ enum FamilyError: LocalizedError {
     case .notAuthenticated:
       return "You must be logged in to perform this action"
     case .invalidCode:
-      return "Invalid family code format. Codes look like FAM-XXXXXX"
+      return "Invalid Family Code format. Codes look like FAM-XXXXXX"
     case .alreadyMember:
       return "You are already a member of this family"
     case .notFound:
-      return "Family code not found. Please check and try again"
+      return "Family Code not found. Please check and try again"
     case .createConflict:
       return "We found an existing family or invitation for your account. Checking again\u{2026}"
     case .serverError(let message), .lastMemberConfirmationRequired(let message), .busyRetry(let message):

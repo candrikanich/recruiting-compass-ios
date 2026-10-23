@@ -72,7 +72,7 @@ struct FamilySetupView: View {
   private var inviteNotice: some View {
     Label {
       Text("You've been invited to join a family. Open the invitation link from your email to join it, "
-        + "or enter the family code below. If you can't find the email, ask the person who invited you to resend it.")
+        + "or enter the Family Code below. If you can't find the email, ask the person who invited you to resend it.")
         .font(.brand(.subheadline))
     } icon: {
       Image(systemName: "envelope.badge")
@@ -87,7 +87,7 @@ struct FamilySetupView: View {
   private var createSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Start a new family").font(.brand(.headline))
-      Text("You'll get a family code to share with the people you want to invite.")
+      Text("You'll get a Family Code to share with the people you want to invite.")
         .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
       Button {
@@ -104,7 +104,7 @@ struct FamilySetupView: View {
   @ViewBuilder
   private var joinSection: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Text("Join with a family code").font(.brand(.headline))
+      Text("Join with a Family Code").font(.brand(.headline))
       Text("Already invited? Enter the code a family member shared with you.")
         .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
@@ -113,7 +113,7 @@ struct FamilySetupView: View {
         .autocorrectionDisabled()
         .textFieldStyle(.roundedBorder)
         .frame(minHeight: 44)
-        .accessibilityLabel("Family code")
+        .accessibilityLabel("Family Code")
         .accessibilityIdentifier("family-code-input")
       Button {
         Task { await viewModel.joinWithCode() }

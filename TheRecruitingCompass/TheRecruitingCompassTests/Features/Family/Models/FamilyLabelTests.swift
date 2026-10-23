@@ -16,8 +16,8 @@ final class FamilyLabelTests: XCTestCase {
   }
 
   func test_codeHeading_reshapesServerLabel() {
-    XCTAssertEqual(FamilyLabel.codeHeading(forServerLabel: "Alex's Family"), "Alex's family code")
-    XCTAssertEqual(FamilyLabel.codeHeading(forServerLabel: "Your Family"), "Your family code")
+    XCTAssertEqual(FamilyLabel.codeHeading(forServerLabel: "Alex's Family"), "Alex's Family Code")
+    XCTAssertEqual(FamilyLabel.codeHeading(forServerLabel: "Your Family"), "Your Family Code")
   }
 
   func test_codeHeading_fallsBackWithoutServerLabel() {

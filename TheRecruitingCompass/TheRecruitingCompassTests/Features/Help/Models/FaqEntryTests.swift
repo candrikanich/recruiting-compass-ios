@@ -53,4 +53,22 @@ final class FaqEntryTests: XCTestCase {
         + "than one athlete joins each athlete's family and switches between them from the header."
     )
   }
+
+  // Chris's 2026-10-23 decision: "Family Code" is a proper noun in all user-facing copy.
+  func test_noFaqEntryUsesLowercaseFamilyCode() {
+    for entry in FaqEntries.all {
+      for text in [entry.question, entry.answer] {
+        let withoutCanonical = text.replacingOccurrences(of: "Family Code", with: "")
+        XCTAssertNil(
+          withoutCanonical.range(of: "family code", options: .caseInsensitive),
+          "FAQ '\(entry.id)' must spell it 'Family Code': \(text)"
+        )
+      }
+    }
+  }
+
+  func test_familyRequiredEntryMatchesCanonicalJoinWording() {
+    let answer = FaqEntries.all.first { $0.id == "family-required" }?.answer
+    XCTAssertTrue(answer?.hasSuffix("or join with a Family Code.") ?? false, answer ?? "entry missing")
+  }
 }

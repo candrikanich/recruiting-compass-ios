@@ -330,7 +330,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
     XCTAssertEqual(UIPasteboard.general.string, "FAM-ABC123")
     XCTAssertTrue(sut.showSuccessToast)
-    XCTAssertEqual(sut.successMessage, "Family code copied to clipboard!")
+    XCTAssertEqual(sut.successMessage, "Family Code copied to clipboard!")
   }
 
   // MARK: - Inbound Address Tests
@@ -431,7 +431,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
       InboundFamilyAddress(familyUnitId: "family-1", familyName: "My Family", familyLabel: "Alex's Family", address: "a@b.c")
     ]
     await sut.loadData()
-    XCTAssertEqual(sut.playerFamilyCodeHeading, "Alex's family code")
+    XCTAssertEqual(sut.playerFamilyCodeHeading, "Alex's Family Code")
 
     // Old prod: no label, stored name is the generic default; heading must not change.
     mockInboundDraftsService.addressesToReturn = [
@@ -490,7 +490,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertNotNil(sut.codeGeneratedAt)
     XCTAssertFalse(sut.showRegenerateConfirmation)
     XCTAssertTrue(sut.showSuccessToast)
-    XCTAssertEqual(sut.successMessage, "Family code regenerated successfully!")
+    XCTAssertEqual(sut.successMessage, "Family Code regenerated successfully!")
     XCTAssertFalse(sut.isLoading)
   }
 
@@ -649,7 +649,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
     await sut.joinFamily()
 
     XCTAssertNotNil(sut.errorMessage)
-    XCTAssertEqual(sut.errorMessage, "Invalid family code format. Codes look like FAM-XXXXXX")
+    XCTAssertEqual(sut.errorMessage, "Invalid Family Code format. Codes look like FAM-XXXXXX")
     XCTAssertEqual(mockFamilyService.joinFamilyWithCodeCallCount, 0)
   }
 
@@ -674,7 +674,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
     await sut.joinFamily()
 
-    XCTAssertEqual(sut.errorMessage, "Invalid family code format. Codes look like FAM-XXXXXX")
+    XCTAssertEqual(sut.errorMessage, "Invalid Family Code format. Codes look like FAM-XXXXXX")
     XCTAssertFalse(sut.isLoading)
   }
 

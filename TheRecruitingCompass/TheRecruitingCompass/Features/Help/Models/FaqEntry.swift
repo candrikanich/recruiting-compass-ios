@@ -104,7 +104,7 @@ enum FaqEntries {
         Every account belongs to a family, which is created for you at signup. If you were invited, you join \
         that family instead. If you're removed from your only family or it is deleted, you'll be asked to \
         create a new one or join one with a Family Code. Invited but still asked to create or join? Open the \
-        invite link from your email, or join with the family code.
+        invite link from your email, or join with a Family Code.
         """
     ),
     FaqEntry(

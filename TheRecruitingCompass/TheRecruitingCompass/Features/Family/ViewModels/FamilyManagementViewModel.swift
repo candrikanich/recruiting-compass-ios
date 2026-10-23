@@ -240,7 +240,7 @@ final class FamilyManagementViewModel {
   func copyCodeToClipboard() {
     guard let code = familyCode else { return }
     UIPasteboard.general.string = code
-    showSuccess("Family code copied to clipboard!")
+    showSuccess("Family Code copied to clipboard!")
   }
 
   func confirmRegenerateCode() {
@@ -263,7 +263,7 @@ final class FamilyManagementViewModel {
       familyCode = response.familyCode
       codeGeneratedAt = Self.isoFormatter.string(from: Date.now)
 
-      showSuccess("Family code regenerated successfully!")
+      showSuccess("Family Code regenerated successfully!")
     } catch {
       logger.error("Failed to regenerate code: \(error.localizedDescription)")
       errorMessage = error.localizedDescription
@@ -406,7 +406,7 @@ final class FamilyManagementViewModel {
     let code = codeInput.trimmingCharacters(in: .whitespaces).uppercased()
 
     guard isCodeInputValid else {
-      errorMessage = "Invalid family code format. Codes look like FAM-XXXXXX"
+      errorMessage = "Invalid Family Code format. Codes look like FAM-XXXXXX"
       return
     }
 

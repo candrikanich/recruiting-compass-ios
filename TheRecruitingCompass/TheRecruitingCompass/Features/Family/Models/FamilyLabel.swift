@@ -11,14 +11,14 @@ enum FamilyLabel {
       .first { !$0.isEmpty }
   }
 
-  /// "Alex's Family" -> "Alex's family code" (web `toFamilyCodeLabel`); a missing or blank server label keeps the
+  /// "Alex's Family" -> "Alex's Family Code" (web `toFamilyCodeLabel`); a missing or blank server label keeps the
   /// generic heading. Only reshapes the server's string, never builds a name.
   static func codeHeading(forServerLabel label: String?) -> String {
     guard let label = display(label: label, legacyName: nil) else { return String(localized: "Your Family Code") }
     let suffix = " Family"
     guard label.hasSuffix(suffix) else { return String(localized: "Your Family Code") }
     let stem = String(label.dropLast(suffix.count))
-    return String(localized: "\(stem) family code")
+    return String(localized: "\(stem) Family Code")
   }
 }
 

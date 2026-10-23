@@ -65,7 +65,7 @@ struct ParentOnboardingBanner: View {
           .font(.brand(.subheadline, weight: .semibold))
           .foregroundStyle(Color.warningBannerTitle)
 
-        Text("Invite them to join your family or share your family code.")
+        Text("Invite them to join your family or share your Family Code.")
           .font(.brand(.caption))
           .foregroundStyle(Color.warningBannerBody)
       }
