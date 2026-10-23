@@ -10,12 +10,10 @@ import SwiftUI
 struct HelpSectionDetailView: View {
   let section: HelpSection
 
-  private let lastReviewed = "August 2026"
-
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 32) {
-        Text("Last reviewed: \(lastReviewed)")
+        Text("Last reviewed: \(HelpFamilyCopy.lastReviewed)")
           .font(.brand(.caption))
           .foregroundStyle(.secondary)
 
@@ -77,9 +75,10 @@ private struct HelpGettingStartedContent: View {
 
       sectionBlock {
         HelpSectionHeader(title: "Adding family members")
-        Text("Parents and guardians can be added as family members to view and collaborate on your recruiting journey.")
+        Text(HelpFamilyCopy.addingFamilyIntro)
           .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
+        HelpCallout(type: .info, text: HelpFamilyCopy.gettingStartedCallout)
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
         HelpStepCard(step: 2, title: "Invite a family member", bodyText: "Enter their email address and tap Send invite. They'll receive an email to create their account and join your family unit.", isLast: true)
         HelpCallout(type: .info, text: "Family members can view and edit your athlete profile, school list, and interactions — everyone in the family works together.")
@@ -274,6 +273,22 @@ private struct HelpAccountContent: View {
       }
 
       sectionBlock {
+        HelpSectionHeader(title: HelpFamilyCopy.sectionTitle)
+        Text(HelpFamilyCopy.everyAccountIntro)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.secondary)
+        bulletList(items: [
+          ("Created for you", HelpFamilyCopy.createdForYou),
+          ("Invited? You join instead", HelpFamilyCopy.invitedJoin),
+          ("Removed, or your family was deleted?", HelpFamilyCopy.removedOrDeleted)
+        ])
+        Text(HelpFamilyCopy.missingFamilyIntro)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.secondary)
+        bulletList(lines: [HelpFamilyCopy.stillLoading, HelpFamilyCopy.loadFailed, HelpFamilyCopy.noFamilyYet])
+      }
+
+      sectionBlock {
         HelpSectionHeader(title: "Notification preferences")
         Text("Control which notifications you receive and how you receive them.")
           .font(.brand(.subheadline))
@@ -425,16 +440,29 @@ private func sectionBlock<Content: View>(@ViewBuilder content: () -> Content) ->
 }
 
 private func bulletList(items: [(String, String)]) -> some View {
+  bulletList(lines: items.map { "\($0.0) — \($0.1)" })
+}
+
+private func bulletList(lines: [String]) -> some View {
   VStack(alignment: .leading, spacing: 8) {
-    ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-      HStack(alignment: .top, spacing: 8) {
-        Text("•")
-          .font(.brand(.subheadline))
-          .foregroundStyle(.secondary)
-        Text("\(item.0) — \(item.1)")
-          .font(.brand(.subheadline))
-          .foregroundStyle(.primary)
-      }
+    ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+      HelpBulletRow(line: line)
+    }
+  }
+}
+
+/// Internal (not private) so tests can evaluate `body`; ForEach's content closure is unreachable by reflection.
+struct HelpBulletRow: View {
+  let line: String
+
+  var body: some View {
+    HStack(alignment: .top, spacing: 8) {
+      Text("•")
+        .font(.brand(.subheadline))
+        .foregroundStyle(.secondary)
+      Text(verbatim: line)
+        .font(.brand(.subheadline))
+        .foregroundStyle(.primary)
     }
   }
 }
