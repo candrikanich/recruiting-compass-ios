@@ -13,17 +13,20 @@ final class HelpSectionDetailViewTests: XCTestCase {
 
   /// Walks the SwiftUI value tree (evaluating each composite view's `body`) and collects every `T` it holds.
   /// Reflection instead of a hosted accessibility tree, which SwiftUI does not populate without assistive tech.
-  private static func values<T>(of type: T.Type, in node: Any, depth: Int = 0) -> [T] {
+  private static func values<T>(of kind: T.Type, in node: Any, depth: Int = 0) -> [T] {
     if let match = node as? T { return [match] }
     guard depth < 40 else { return [] }
     let mirror = Mirror(reflecting: node)
     let walkable: [Mirror.DisplayStyle] = [.struct, .enum, .tuple, .optional, .collection]
     guard let style = mirror.displayStyle, walkable.contains(style) else { return [] }
     var children = mirror.children.map(\.value)
-    if let view = node as? any View, !(node is HelpFeedbackView), let body = evaluatedBody(of: view) {
+    // SwiftUI containers (VStack...) already expose their content as stored properties; evaluating their `body`
+    // as well would visit every child twice, which would hide a duplicated card from an exactly-one check.
+    let isFrameworkView = String(reflecting: type(of: node)).hasPrefix("SwiftUI.")
+    if let view = node as? any View, !isFrameworkView, !(node is HelpFeedbackView), let body = evaluatedBody(of: view) {
       children.append(body)
     }
-    return children.flatMap { values(of: type, in: $0, depth: depth + 1) }
+    return children.flatMap { values(of: kind, in: $0, depth: depth + 1) }
   }
 
   private static func evaluatedBody<V: View>(of view: V) -> Any? {
