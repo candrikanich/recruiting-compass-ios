@@ -48,18 +48,43 @@ final class HelpSectionDetailViewTests: XCTestCase {
     XCTAssertFalse(text.contains(HelpFamilyCopy.noFamilyYet))
   }
 
-  func test_gettingStartedInviteStepSaysWhoPicksARole() {
-    let text = renderedText(.gettingStarted)
-    XCTAssertTrue(text.contains(HelpFamilyCopy.inviteFamilyMemberStep), "invite step missing role rule")
-    XCTAssertTrue(text.contains("chooses a role (Player or Parent)"))
-    XCTAssertFalse(text.contains(Self.oldFamilyInviteStep), "old invite step without role rule still shown")
+  /// Literal copy of the role rule in web `pages/help/family.vue` / `account.vue` (web#1447). Deliberately not the
+  /// `HelpFamilyCopy` constant, so wording drift in the app copy turns these red.
+  private static let webRoleRule =
+    "Only a parent whose family has no player yet chooses a role (Player or Parent) first. "
+    + "A player, or a parent whose family already has a player, invites parents and relatives only"
+
+  /// Every `HelpStepCard` in the section's view tree, so tests can assert on a specific step, not the whole page.
+  private static func stepCards(in node: Any, depth: Int = 0) -> [HelpStepCard] {
+    if let card = node as? HelpStepCard { return [card] }
+    guard depth < 40 else { return [] }
+    let mirror = Mirror(reflecting: node)
+    guard let style = mirror.displayStyle, [.struct, .enum, .tuple, .optional, .collection].contains(style) else { return [] }
+    var children = mirror.children.map(\.value)
+    if let view = node as? any View, !(node is HelpFeedbackView), let body = evaluatedBody(of: view) {
+      children.append(body)
+    }
+    return children.flatMap { stepCards(in: $0, depth: depth + 1) }
   }
 
-  func test_accountInviteStepSaysWhoPicksARole() {
-    let text = renderedText(.account)
-    XCTAssertTrue(text.contains(HelpFamilyCopy.inviteMemberStep), "invite step missing role rule")
-    XCTAssertTrue(text.contains("invites parents and relatives only"))
-    XCTAssertFalse(text.contains(Self.oldAccountInviteStep), "old invite step without role rule still shown")
+  private func inviteStepBody(_ section: HelpSection, title: String) throws -> String {
+    let cards = Self.stepCards(in: HelpSectionDetailView(section: section))
+    let card = try XCTUnwrap(cards.first { $0.step == 2 && $0.title == title }, "no step 2 card titled \(title)")
+    return card.bodyText
+  }
+
+  func test_gettingStartedInviteStepSaysWhoPicksARole() throws {
+    let body = try inviteStepBody(.gettingStarted, title: "Invite a family member")
+    XCTAssertTrue(body.contains(Self.webRoleRule + ", so there is no role to pick."), "got: \(body)")
+    XCTAssertEqual(body, HelpFamilyCopy.inviteFamilyMemberStep)
+    XCTAssertFalse(body.contains(Self.oldFamilyInviteStep), "old invite step without role rule still shown")
+  }
+
+  func test_accountInviteStepSaysWhoPicksARole() throws {
+    let body = try inviteStepBody(.account, title: "Invite a member")
+    XCTAssertTrue(body.contains(Self.webRoleRule), "got: \(body)")
+    XCTAssertEqual(body, HelpFamilyCopy.inviteMemberStep)
+    XCTAssertFalse(body.contains(Self.oldAccountInviteStep), "old invite step without role rule still shown")
   }
 
   private static let oldFamilyInviteStep =

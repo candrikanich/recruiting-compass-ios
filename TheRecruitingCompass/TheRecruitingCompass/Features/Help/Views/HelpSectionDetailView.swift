@@ -80,7 +80,9 @@ private struct HelpGettingStartedContent: View {
           .foregroundStyle(.secondary)
         HelpCallout(type: .info, text: HelpFamilyCopy.gettingStartedCallout)
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
-        HelpStepCard(step: 2, title: "Invite a family member", bodyText: HelpFamilyCopy.inviteFamilyMemberStep, isLast: true)
+        HelpStepCard(
+          step: 2, title: "Invite a family member", bodyText: HelpFamilyCopy.inviteFamilyMemberStep, isLast: true
+        )
         HelpCallout(type: .info, text: "Family members can view and edit your athlete profile, school list, and interactions — everyone in the family works together.")
       }
 
