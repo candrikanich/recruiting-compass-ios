@@ -80,7 +80,7 @@ private struct HelpGettingStartedContent: View {
           .foregroundStyle(.secondary)
         HelpCallout(type: .info, text: HelpFamilyCopy.gettingStartedCallout)
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
-        HelpStepCard(step: 2, title: "Invite a family member", bodyText: "Enter their email address and tap Send invite. They'll receive an email to create their account and join your family unit.", isLast: true)
+        HelpStepCard(step: 2, title: "Invite a family member", bodyText: HelpFamilyCopy.inviteFamilyMemberStep, isLast: true)
         HelpCallout(type: .info, text: "Family members can view and edit your athlete profile, school list, and interactions — everyone in the family works together.")
       }
 
@@ -267,7 +267,7 @@ private struct HelpAccountContent: View {
           .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
-        HelpStepCard(step: 2, title: "Invite a member", bodyText: "Enter their email and tap Send invite. They'll receive an invitation to create a linked account.")
+        HelpStepCard(step: 2, title: "Invite a member", bodyText: HelpFamilyCopy.inviteMemberStep)
         HelpStepCard(step: 3, title: "Manage access", bodyText: "To remove a family member, tap the three-dot menu next to their name and select Remove.", isLast: true)
         HelpCallout(type: .info, text: "A family member's account is linked to your athlete profile — they can view and edit profile information alongside the athlete.")
       }

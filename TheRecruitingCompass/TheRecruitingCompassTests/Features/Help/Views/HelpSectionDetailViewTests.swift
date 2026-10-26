@@ -48,6 +48,26 @@ final class HelpSectionDetailViewTests: XCTestCase {
     XCTAssertFalse(text.contains(HelpFamilyCopy.noFamilyYet))
   }
 
+  func test_gettingStartedInviteStepSaysWhoPicksARole() {
+    let text = renderedText(.gettingStarted)
+    XCTAssertTrue(text.contains(HelpFamilyCopy.inviteFamilyMemberStep), "invite step missing role rule")
+    XCTAssertTrue(text.contains("chooses a role (Player or Parent)"))
+    XCTAssertFalse(text.contains(Self.oldFamilyInviteStep), "old invite step without role rule still shown")
+  }
+
+  func test_accountInviteStepSaysWhoPicksARole() {
+    let text = renderedText(.account)
+    XCTAssertTrue(text.contains(HelpFamilyCopy.inviteMemberStep), "invite step missing role rule")
+    XCTAssertTrue(text.contains("invites parents and relatives only"))
+    XCTAssertFalse(text.contains(Self.oldAccountInviteStep), "old invite step without role rule still shown")
+  }
+
+  private static let oldFamilyInviteStep =
+    "Enter their email address and tap Send invite. They'll receive an email to create their account "
+    + "and join your family unit."
+  private static let oldAccountInviteStep =
+    "Enter their email and tap Send invite. They'll receive an invitation to create a linked account."
+
   func test_bulletRowRendersItsLine() {
     let text = Self.strings(in: HelpBulletRow(line: "probe").body, depth: 0)
     XCTAssertTrue(text.contains("probe"), "bullet row body must render its line, got \(text)")
