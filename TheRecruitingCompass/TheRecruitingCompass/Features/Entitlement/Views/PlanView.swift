@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PlanView: View {
-  static let footerCopy = "Your plan covers one player; each additional sibling is $49/year or $6.49/month."
+  static let footerCopy = "Your plan covers one player's family. Each sibling's family is $49/year or $6.49/month."
 
   @Environment(EntitlementStore.self) private var entitlementStore
   @Environment(FamilyManager.self) private var familyManager
