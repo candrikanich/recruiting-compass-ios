@@ -18,11 +18,13 @@ final class FaqEntryTests: XCTestCase {
     }
   }
 
-  // Same 3.1.1 rule for the Plan screen footer and Terms section 22: no amounts anywhere in the app.
-  func test_planFooterAndTermsQuoteNoPrice() {
+  // Same 3.1.1 rule, scoped to the billing surfaces: the Plan screen's founding text and footer, and Terms
+  // section 22. Other Terms sections (e.g. the liability cap) legitimately quote amounts.
+  func test_planScreenAndTermsBillingQuoteNoPrice() {
     let pricePattern = try! NSRegularExpression(
-      pattern: #"\$\s?\d|/\s?(year|yr|month|mo)\b"#, options: .caseInsensitive)
-    let texts = [PlanView.footerCopy, TermsOfServiceContent.subscriptionsHeading]
+      pattern: #"\$\s?\d|\d+(\.\d+)?\s?(USD|dollars?)|/\s?(year|yr|month|mo)\b|per\s+(year|month)"#,
+      options: .caseInsensitive)
+    let texts = [PlanView.footerCopy, PlanView.foundingCopy, TermsOfServiceContent.subscriptionsHeading]
       + TermsOfServiceContent.subscriptionClauses
     for text in texts {
       let range = NSRange(text.startIndex..., in: text)

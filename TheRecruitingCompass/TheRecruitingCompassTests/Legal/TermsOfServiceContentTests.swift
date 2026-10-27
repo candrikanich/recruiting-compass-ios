@@ -30,8 +30,12 @@ final class TermsOfServiceContentTests: XCTestCase {
       "billed per player's family, and each sibling's family has its own subscription"))
     XCTAssertTrue(subscriptionText.contains("renews automatically at the end of each billing period until cancelled"))
     XCTAssertTrue(subscriptionText.contains("Prices are shown before you subscribe."))
-    for old in ["billed per family account", "covers every member of that family", "sibling player", "first player"] {
-      XCTAssertFalse(subscriptionText.contains(old), old)
+    let denied = [
+      "billed per family", "every member", "whole family",
+      "sibling player", "first player", "additional sibling"
+    ]
+    for old in denied {
+      XCTAssertNil(subscriptionText.range(of: old, options: .caseInsensitive), old)
     }
   }
 }

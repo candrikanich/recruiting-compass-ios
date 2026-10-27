@@ -10,10 +10,12 @@ final class PlanViewCopyTests: XCTestCase {
     )
   }
 
-  func testFooterDropsWholeFamilyClaim() {
-    XCTAssertFalse(PlanView.footerCopy.contains("whole family"))
-    XCTAssertFalse(PlanView.footerCopy.contains("every parent and athlete"))
-    XCTAssertFalse(PlanView.footerCopy.contains("additional sibling"))
-    XCTAssertFalse(PlanView.footerCopy.contains("sibling's family"))
+  func testFooterDropsOriginalAndFirstRoundWording() {
+    let denied = [
+      "whole family", "every parent and athlete", "additional sibling", "sibling's family", "sibling player"
+    ]
+    for old in denied {
+      XCTAssertNil(PlanView.footerCopy.range(of: old, options: .caseInsensitive), old)
+    }
   }
 }
