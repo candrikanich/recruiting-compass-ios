@@ -1,1 +1,11 @@
+Family setup and management are easier, plus a round of fixes.
 
+• No family yet? You'll be asked to create one or join with a Family Code.
+• Parents can now leave a family, and Family Management explains when Remove or Leave isn't available.
+• Parents can choose whether an email invite is for the player or another parent. Once your family has its player, invite relatives to follow along.
+• Family changes now show up in your notifications.
+• Clearer birthday errors on your profile, plus updated Help, FAQ and Terms.
+• Fixed the public profile editor for parents: it now edits the selected athlete.
+• Fixed recommended schools reappearing on your dashboard after you add them.
+• Fixed the Schools list missing city and state, and Add Event opening before your family loaded.
+• Fixed the signup age check being a day off near a 13th or 18th birthday.
