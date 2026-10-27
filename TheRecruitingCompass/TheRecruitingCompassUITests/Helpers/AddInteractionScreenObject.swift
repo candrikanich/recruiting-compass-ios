@@ -147,11 +147,20 @@ final class AddInteractionScreenObject {
       XCTFail("\"Log new interaction\" toolbar button not found", file: file, line: line)
       return false
     }
-    addButton.tap()
+    // Right after the tab switch the toolbar button can exist before it has a frame; XCUITest
+    // then synthesizes the tap at {-1, -1} and it is silently dropped (nightly #477).
+    for _ in 0..<3 where !navigationTitle.exists {
+      addButton.tap()
+      _ = navigationTitle.waitForExistence(timeout: 5)
+    }
+    guard navigationTitle.exists else {
+      XCTFail("Log Interaction form did not open after tapping \"Log new interaction\"", file: file, line: line)
+      return false
+    }
 
     // The form shows a loading row until schools are fetched; the school picker marks it ready.
-    guard waitForScreenToLoad(), schoolPicker.waitForExistence(timeout: 15) else {
-      XCTFail("Log Interaction form did not open and load", file: file, line: line)
+    guard schoolPicker.waitForExistence(timeout: 15) else {
+      XCTFail("Log Interaction form opened but schools did not load", file: file, line: line)
       return false
     }
     return true
