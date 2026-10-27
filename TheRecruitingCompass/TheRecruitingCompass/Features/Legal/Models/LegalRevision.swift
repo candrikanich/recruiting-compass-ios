@@ -8,9 +8,10 @@ enum LegalRevision {
   /// October 2, 2026 — current Privacy Policy revision.
   static let lastUpdated: Date = makeDate(year: 2026, month: 10, day: 2)
 
-  /// October 19, 2026 — Terms revision that removed website-billing language from §22 (restore with web billing, web#617).
+  /// October 26, 2026 — Terms revision that made §22 billing per player (web#1510); Oct 19 removed website-billing language
+  /// (restore with web billing, web#617).
   /// Mirrors web `CURRENT_TERMS_VERSION` (utils/legal.ts) and pages/legal/terms.vue "Last Updated". Bump in lockstep.
-  static let termsLastUpdated: Date = makeDate(year: 2026, month: 10, day: 19)
+  static let termsLastUpdated: Date = makeDate(year: 2026, month: 10, day: 26)
 
   private static func makeDate(year: Int, month: Int, day: Int) -> Date {
     var components = DateComponents()

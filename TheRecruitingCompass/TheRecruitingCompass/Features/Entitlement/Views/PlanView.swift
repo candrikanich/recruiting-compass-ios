@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct PlanView: View {
+  static let footerCopy = "Your plan covers one player; each additional sibling is $49/year or $6.49/month."
+
   @Environment(EntitlementStore.self) private var entitlementStore
   @Environment(FamilyManager.self) private var familyManager
 
@@ -37,7 +39,7 @@ struct PlanView: View {
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
       } footer: {
-        Text("Your plan covers your whole family — every parent and athlete in this family account.")
+        Text(Self.footerCopy)
       }
     }
     .navigationTitle("Plan")
