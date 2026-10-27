@@ -43,4 +43,18 @@ enum HelpFamilyCopy {
   static let addingFamilyIntro =
     "Your family already exists from the moment you sign up. Parents and guardians can be added as family "
     + "members to view and collaborate on your recruiting journey."
+
+  /// Mirrors web `pages/help/family.vue` / `account.vue` step 2 (web#1447). Matches the Player/Parent picker
+  /// in `FamilyManagementParentView`, which only a parent whose family has no player yet sees.
+  private static let inviteRoleRule =
+    "Only a parent whose family has no player yet chooses a role (Player or Parent) first. A player, or a "
+    + "parent whose family already has a player, invites parents and relatives only, so there is no role to pick."
+
+  static let inviteFamilyMemberStep =
+    "Enter their email address and tap Send invite. " + inviteRoleRule
+    + " They'll receive an email to create their account and join your family unit."
+
+  static let inviteMemberStep =
+    "Enter their email and tap Send invite. " + inviteRoleRule
+    + " They'll receive an invitation to create a linked account."
 }
