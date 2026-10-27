@@ -6,7 +6,7 @@ final class PlanViewCopyTests: XCTestCase {
   func testFooterDescribesPerPlayerPlan() {
     XCTAssertEqual(
       PlanView.footerCopy,
-      "Your plan covers one player's family. Each sibling's family is $49/year or $6.49/month."
+      "Your plan covers one player's family. Each sibling gets their own family."
     )
   }
 
@@ -14,5 +14,6 @@ final class PlanViewCopyTests: XCTestCase {
     XCTAssertFalse(PlanView.footerCopy.contains("whole family"))
     XCTAssertFalse(PlanView.footerCopy.contains("every parent and athlete"))
     XCTAssertFalse(PlanView.footerCopy.contains("additional sibling"))
+    XCTAssertFalse(PlanView.footerCopy.contains("sibling's family"))
   }
 }

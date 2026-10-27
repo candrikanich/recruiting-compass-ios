@@ -25,10 +25,11 @@ final class TermsOfServiceContentTests: XCTestCase {
     XCTAssertTrue(subscriptionText.contains("Refunds for App Store purchases are governed by Apple's policies."))
   }
 
-  func testBillsPerPlayersFamily() {
-    XCTAssertTrue(subscriptionText.contains("billed per player's family"))
-    XCTAssertTrue(subscriptionText.contains("$99/year or $12.99/month for a player's family"))
-    XCTAssertTrue(subscriptionText.contains("$49/year or $6.49/month for each sibling's family"))
+  func testBillsPerPlayersFamilyWithoutAmounts() {
+    XCTAssertTrue(subscriptionText.contains(
+      "billed per player's family, and each sibling's family has its own subscription"))
+    XCTAssertTrue(subscriptionText.contains("renews automatically at the end of each billing period until cancelled"))
+    XCTAssertTrue(subscriptionText.contains("Prices are shown before you subscribe."))
     for old in ["billed per family account", "covers every member of that family", "sibling player", "first player"] {
       XCTAssertFalse(subscriptionText.contains(old), old)
     }

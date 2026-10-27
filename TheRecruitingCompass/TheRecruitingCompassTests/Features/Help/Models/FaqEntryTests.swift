@@ -18,6 +18,18 @@ final class FaqEntryTests: XCTestCase {
     }
   }
 
+  // Same 3.1.1 rule for the Plan screen footer and Terms section 22: no amounts anywhere in the app.
+  func test_planFooterAndTermsQuoteNoPrice() {
+    let pricePattern = try! NSRegularExpression(
+      pattern: #"\$\s?\d|/\s?(year|yr|month|mo)\b"#, options: .caseInsensitive)
+    let texts = [PlanView.footerCopy, TermsOfServiceContent.subscriptionsHeading]
+      + TermsOfServiceContent.subscriptionClauses
+    for text in texts {
+      let range = NSRange(text.startIndex..., in: text)
+      XCTAssertNil(pricePattern.firstMatch(in: text, range: range), "quotes a price: \(text)")
+    }
+  }
+
   // Mirrors canonicalIds in web's tests/unit/components/Help/faqEntries.spec.ts; the canonical FAQ is web's
   // components/Help/faqEntries.ts. Same ids, same order.
   private let canonicalIds = [
