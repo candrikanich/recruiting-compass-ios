@@ -1,6 +1,12 @@
 import SwiftUI
 
 struct PlanView: View {
+  static let foundingCopy = """
+    You joined during our founding period. Your family keeps full access at no \
+    charge for as long as this account is active. Thank you for being early.
+    """
+  static let footerCopy = "Your plan covers one player's family. Each sibling gets their own family."
+
   @Environment(EntitlementStore.self) private var entitlementStore
   @Environment(FamilyManager.self) private var familyManager
 
@@ -26,10 +32,7 @@ struct PlanView: View {
             }
             .font(.brand(.subheadline))
           } else if entitlementStore.subscription?.status == .founding {
-            Text("""
-              You joined during our founding period. Your family keeps full access at no \
-              charge for as long as this account is active. Thank you for being early.
-              """)
+            Text(Self.foundingCopy)
               .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
@@ -37,7 +40,7 @@ struct PlanView: View {
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
       } footer: {
-        Text("Your plan covers your whole family — every parent and athlete in this family account.")
+        Text(Self.footerCopy)
       }
     }
     .navigationTitle("Plan")
