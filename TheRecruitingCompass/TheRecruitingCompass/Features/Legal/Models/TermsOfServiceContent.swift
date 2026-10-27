@@ -9,9 +9,9 @@ enum TermsOfServiceContent {
     "(a) Free access. The Service is currently offered at no charge. Families who create an account before we begin charging " +
         "(\"Founding Families\") keep full access at no charge for as long as their family account remains active.",
     "(b) Paid plans. We may introduce paid subscription plans. Where offered, a subscription is billed per player: " +
-        "$99 per year or $12.99 per month for the first player, and $49 per year or $6.49 per month for each additional sibling. " +
-        "A subscription renews automatically at the end of each billing period until cancelled. The price and billing period " +
-        "are shown before you subscribe.",
+        "$99/year or $12.99/month for the first player, and $49/year or $6.49/month for each additional sibling player in " +
+        "the family. It renews automatically at the end of each billing period until cancelled. The price and billing " +
+        "period are shown before you subscribe.",
     "(c) Billing and cancellation. Subscriptions are purchased through the Apple App Store and are billed and managed by " +
         "Apple; cancel through your Apple ID subscription settings. Cancellation takes effect at the end of the current " +
         "billing period.",
