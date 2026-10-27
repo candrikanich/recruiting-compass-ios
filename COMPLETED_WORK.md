@@ -113,3 +113,10 @@ No auto-delete, compress, or review candidates found by the scanner this run.
 - Kept: 0 files (active/future-looking)
 
 No auto-delete, compress, or review candidates found by the scanner this run.
+
+## Doc Cleanup Run — 2026-10-27
+- Deleted: 0 files (session debris)
+- Compressed: 0 files → domain history
+- Kept: 0 files (active/future-looking)
+
+No auto-delete, compress, or review candidates found by the scanner this run.
