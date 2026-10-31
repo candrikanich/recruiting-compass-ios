@@ -26,6 +26,7 @@ IOS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 WEB_DIR="${NIGHTLY_E2E_WEB_DIR:-$HOME/ci/recruiting-compass-web}"
 STATE_DIR="${NIGHTLY_E2E_STATE_DIR:-$HOME/Library/Application Support/recruiting-compass/ios-nightly-e2e}"
 LOG_DIR="${NIGHTLY_E2E_LOG_DIR:-$HOME/Library/Logs/recruiting-compass}"
+DOCKER_LOG_DIR="${NIGHTLY_E2E_DOCKER_LOG_DIR:-$HOME/Library/Containers/com.docker.docker/Data/log}"
 ISSUE_REPO="candrikanich/recruiting-compass-ios"
 ISSUE_TITLE="Nightly iOS E2E (local) is failing"
 TRIAGE_DIR="${NIGHTLY_E2E_TRIAGE_DIR:-$HOME/nightly-triage}"
@@ -167,6 +168,31 @@ start_stack_attempt() {
   fi
 }
 
+# #494: the database container's ContainerStart stalled while the engine kept
+# answering API calls, so ensure_docker saw nothing wrong. The next `start` or
+# cleanup removes the container, and Docker Desktop rotates init.log about every
+# 7 minutes, so the evidence has to be saved before moving on. Four init.log
+# files span a whole 20-minute attempt, including the call that never returned.
+save_stack_diagnostics() {
+  local attempt=$1 db="supabase_db_$E2E_SUPABASE_PROJECT_ID" file
+  local out="$LOG_DIR/ios-nightly-e2e-$RUN_ID-stack-attempt-$attempt.log"
+  {
+    date -u +%Y-%m-%dT%H:%M:%SZ
+    uptime
+    timeout 20 docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Image}}'
+    timeout 20 docker inspect "$db"
+    timeout 20 docker logs --timestamps --tail 500 "$db"
+    timeout 20 docker system df
+    for file in $(ls -rt "$DOCKER_LOG_DIR"/vm/init.log* | tail -n 4); do
+      echo "--- $file"
+      cat "$file"
+    done
+    echo "--- backend log"
+    tail -n 2000 "$DOCKER_LOG_DIR/host/com.docker.backend.log"
+  } >"$out" 2>&1 || true
+  log "Saved stack diagnostics from attempt $attempt to $out"
+}
+
 start_stack() {
   local i of=${#STACK_ATTEMPT_SECONDS[@]}
   for i in "${!STACK_ATTEMPT_SECONDS[@]}"; do
@@ -174,6 +200,7 @@ start_stack() {
       log "Local Supabase at $SUPABASE_URL"
       return 0
     fi
+    save_stack_diagnostics $((i + 1))
   done
   return 1
 }
