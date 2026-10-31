@@ -45,10 +45,12 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         try Self.mapStatus(response, body: data)
     }
 
-    func fetchTrackingLink(coachId: String, accessToken: String?) async throws -> ProfileTrackingLink? {
+    func fetchTrackingLink(
+        coachId: String, athleteId: String?, accessToken: String?
+    ) async throws -> ProfileTrackingLink? {
         guard let baseURL, let token = accessToken, !token.isEmpty else { return nil }
         let safeId = coachId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? coachId
-        let url = baseURL.appendingPathComponent("api/player/profile/tracking-links").appendingPathComponent(safeId)
+        let url = Self.trackingLinkURL(baseURL: baseURL, safeCoachId: safeId, athleteId: athleteId)
         var request = URLRequest(url: url)
         request.addClientHeaders()
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -59,13 +61,15 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         return try JSONDecoder().decode(ProfileTrackingLink.self, from: data)
     }
 
-    func createTrackingLink(coachId: String, accessToken: String?) async throws -> ProfileTrackingLink {
+    func createTrackingLink(
+        coachId: String, athleteId: String?, accessToken: String?
+    ) async throws -> ProfileTrackingLink {
         guard let baseURL, let token = accessToken, !token.isEmpty else {
             throw PublicProfileAPIError.notConfigured
         }
         let csrf = try await fetchCSRFToken(baseURL: baseURL)
         let safeId = coachId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? coachId
-        let url = baseURL.appendingPathComponent("api/player/profile/tracking-links").appendingPathComponent(safeId)
+        let url = Self.trackingLinkURL(baseURL: baseURL, safeCoachId: safeId, athleteId: athleteId)
         var request = URLRequest(url: url)
         request.addClientHeaders()
         request.httpMethod = "POST"
@@ -75,6 +79,16 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         let (data, response) = try await session.data(for: request)
         try Self.mapStatus(response)
         return try JSONDecoder().decode(ProfileTrackingLink.self, from: data)
+    }
+
+    /// `?athleteId=` makes the server resolve the selected athlete's profile for a parent; players omit it.
+    private static func trackingLinkURL(baseURL: URL, safeCoachId: String, athleteId: String?) -> URL {
+        var url = baseURL.appendingPathComponent("api/player/profile/tracking-links")
+            .appendingPathComponent(safeCoachId)
+        if let athleteId {
+            url.append(queryItems: [URLQueryItem(name: "athleteId", value: athleteId)])
+        }
+        return url
     }
 
     /// h3 error bodies carry `message`; used for statuses where the server's wording is the useful part.

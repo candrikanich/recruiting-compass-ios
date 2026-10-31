@@ -12,6 +12,8 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
     private(set) var attemptedPayloads: [UpdateProfilePayload] = []
     private(set) var createdCoachIds: [String] = []
     private(set) var fetchedTrackingCoachIds: [String] = []
+    private(set) var fetchedTrackingAthleteIds: [String?] = []
+    private(set) var createdTrackingAthleteIds: [String?] = []
 
     func fetchProfile(athleteId: String?, accessToken: String?) async throws -> PlayerProfile? {
         fetchedAthleteIds.append(athleteId)
@@ -34,17 +36,19 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
         updatedPayloads.append(payload)
     }
 
-    func fetchTrackingLink(coachId: String, accessToken: String?) async throws
+    func fetchTrackingLink(coachId: String, athleteId: String?, accessToken: String?) async throws
         -> ProfileTrackingLink? {
         if let errorToThrow { throw errorToThrow }
         fetchedTrackingCoachIds.append(coachId)
+        fetchedTrackingAthleteIds.append(athleteId)
         return stubTrackingLink
     }
 
-    func createTrackingLink(coachId: String, accessToken: String?) async throws
+    func createTrackingLink(coachId: String, athleteId: String?, accessToken: String?) async throws
         -> ProfileTrackingLink {
         if let errorToThrow { throw errorToThrow }
         createdCoachIds.append(coachId)
+        createdTrackingAthleteIds.append(athleteId)
         guard let stub = stubTrackingLink else {
             return ProfileTrackingLink(
                 id: "mock", profileId: "p1", coachId: coachId,

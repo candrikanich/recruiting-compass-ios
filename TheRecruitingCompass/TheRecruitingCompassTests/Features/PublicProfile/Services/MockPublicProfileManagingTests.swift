@@ -27,7 +27,7 @@ final class MockPublicProfileManagingTests: XCTestCase {
         let mock = MockPublicProfileManaging()
         mock.errorToThrow = PublicProfileAPIError.slugTaken
         do {
-            _ = try await mock.createTrackingLink(coachId: "c1", accessToken: "t")
+            _ = try await mock.createTrackingLink(coachId: "c1", athleteId: nil, accessToken: "t")
             XCTFail("expected throw")
         } catch let e as PublicProfileAPIError {
             XCTAssertEqual(e, .slugTaken)

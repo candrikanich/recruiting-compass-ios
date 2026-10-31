@@ -110,6 +110,43 @@ final class PublicProfileServiceImplTests: XCTestCase {
         XCTAssertNil(seenQuery)
     }
 
+    func testTrackingLinkRequestsCarryAthleteIdQuery() async throws {
+        seedCSRFCookie()
+        var seen: [URL] = []
+        StubURLProtocol.handler = { [self] request in
+            if request.url?.path.contains("tracking-links") == true {
+                seen.append(request.url!)
+            }
+            let link = #"{"id":"t1","profile_id":"p1","coach_id":"c1","ref_token":"r","view_count":0,"created_at":""}"#
+            return okResponse(request, Data(link.utf8))
+        }
+        let service = PublicProfileServiceImpl(
+            session: makeSession(), baseURLOverride: URL(string: "https://test.local")!
+        )
+        _ = try await service.fetchTrackingLink(coachId: "c1", athleteId: "athlete-9", accessToken: "tok")
+        _ = try await service.createTrackingLink(coachId: "c1", athleteId: "athlete-9", accessToken: "tok")
+        XCTAssertEqual(seen.map(\.query), ["athleteId=athlete-9", "athleteId=athlete-9"])
+        let expectedPath = "/api/player/profile/tracking-links/c1"
+        XCTAssertEqual(seen.map(\.path), [expectedPath, expectedPath])
+    }
+
+    func testTrackingLinkRequestsOmitAthleteIdForPlayer() async throws {
+        seedCSRFCookie()
+        var queries: [String?] = []
+        StubURLProtocol.handler = { [self] request in
+            if request.url?.path.contains("tracking-links") == true { queries.append(request.url?.query) }
+            let link = #"{"id":"t1","profile_id":"p1","coach_id":"c1","ref_token":"r","view_count":0,"created_at":""}"#
+            return okResponse(request, Data(link.utf8))
+        }
+        let service = PublicProfileServiceImpl(
+            session: makeSession(), baseURLOverride: URL(string: "https://test.local")!
+        )
+        _ = try await service.fetchTrackingLink(coachId: "c1", athleteId: nil, accessToken: "tok")
+        _ = try await service.createTrackingLink(coachId: "c1", athleteId: nil, accessToken: "tok")
+        XCTAssertEqual(queries.count, 2)
+        XCTAssertTrue(queries.allSatisfy { $0 == nil })
+    }
+
     func testUpdateSendsAthleteIdInBody() async throws {
         seedCSRFCookie()
         var putBody: [String: Any]?

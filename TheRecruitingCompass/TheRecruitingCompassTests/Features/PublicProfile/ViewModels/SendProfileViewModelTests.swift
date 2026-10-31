@@ -29,11 +29,13 @@ final class SendProfileViewModelTests: XCTestCase {
         authManager: MockAuthManager,
         preference: MockPreferenceService = MockPreferenceService(),
         photo: MockProfilePhotoService = MockProfilePhotoService(),
-        interactions: MockInteractionsService = MockInteractionsService()
+        interactions: MockInteractionsService = MockInteractionsService(),
+        familyManager: FamilyManager? = nil
     ) -> SendProfileViewModel {
         SendProfileViewModel(
             service: service, authManager: authManager,
-            preferenceService: preference, photoService: photo, interactionsService: interactions
+            preferenceService: preference, photoService: photo, interactionsService: interactions,
+            familyManager: familyManager ?? FamilyManager(familyService: MockFamilyService(), authManager: authManager)
         )
     }
 
@@ -132,17 +134,17 @@ final class SendProfileViewModelTests: XCTestCase {
 
     func testPrepareParentUsesPhotoServiceNameForAthlete() async {
         let service = MockPublicProfileManaging()
-        service.stubProfile = makeProfile(userId: "athlete-9")   // not the signed-in user
+        service.stubProfile = makeProfile(userId: ParentViewingAthleteFixture.athleteUserId)
         let photo = MockProfilePhotoService()
         photo.stubbedFullName = "Athlete Smith"
-        // parent is signed in
-        let auth = selfAuth(userId: "parent-1", fullName: "Parent Smith")
-        let vm = makeVM(service: service, authManager: auth, photo: photo)
+        let auth = MockAuthManager()
+        let family = ParentViewingAthleteFixture.makeFamilyManager(authManager: auth)
+        let vm = makeVM(service: service, authManager: auth, photo: photo, familyManager: family)
 
         let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
 
         guard case let .email(message) = result else { return XCTFail("expected .email") }
-        XCTAssertEqual(photo.lastFullNameUserId, "athlete-9")
+        XCTAssertEqual(photo.lastFullNameUserId, ParentViewingAthleteFixture.athleteUserId)
         XCTAssertTrue(message.subject.contains("Athlete Smith"), message.subject)
         XCTAssertFalse(message.subject.contains("Parent Smith"), message.subject)
     }
@@ -200,6 +202,93 @@ final class SendProfileViewModelTests: XCTestCase {
         XCTAssertTrue(vm.isPublished)
         XCTAssertNil(vm.trackingURL)
         XCTAssertNil(vm.viewCount)
+    }
+
+    // MARK: - athlete targeting (#422)
+
+    private let athleteUserId = ParentViewingAthleteFixture.athleteUserId
+
+    private func parentVM(service: MockPublicProfileManaging) -> SendProfileViewModel {
+        let auth = MockAuthManager()
+        let family = ParentViewingAthleteFixture.makeFamilyManager(authManager: auth)
+        return makeVM(service: service, authManager: auth, familyManager: family)
+    }
+
+    func testParentLoadPublishStateReadsSelectedAthleteProfile() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: athleteUserId)
+
+        let vm = parentVM(service: service)
+        await vm.loadPublishState()
+
+        XCTAssertEqual(service.fetchedAthleteIds, [athleteUserId])
+        XCTAssertTrue(vm.isPublished)
+    }
+
+    func testParentLoadTrackingInfoSendsAthleteIdOnProfileAndLink() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: athleteUserId)
+
+        await parentVM(service: service).loadTrackingInfo(for: "c1")
+
+        XCTAssertEqual(service.fetchedAthleteIds, [athleteUserId])
+        XCTAssertEqual(service.fetchedTrackingAthleteIds, [athleteUserId])
+    }
+
+    func testParentPrepareSendsAthleteIdOnProfileAndTrackingLink() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: athleteUserId)
+
+        let result = await parentVM(service: service).prepare(for: makeCoach(email: "coach@x.edu"))
+
+        guard case .email = result else { return XCTFail("expected .email, got \(result)") }
+        XCTAssertEqual(service.fetchedAthleteIds, [athleteUserId])
+        XCTAssertEqual(service.createdTrackingAthleteIds, [athleteUserId])
+    }
+
+    func testPlayerPrepareSendsNoAthleteId() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile()
+
+        _ = await makeVM(service: service, authManager: selfAuth()).prepare(for: makeCoach(email: "coach@x.edu"))
+
+        XCTAssertEqual(service.fetchedAthleteIds, [nil])
+        XCTAssertEqual(service.createdTrackingAthleteIds, [nil])
+    }
+
+    func testPlayerLoadTrackingInfoSendsNoAthleteId() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile()
+
+        await makeVM(service: service, authManager: selfAuth()).loadTrackingInfo(for: "c1")
+
+        XCTAssertEqual(service.fetchedAthleteIds, [nil])
+        XCTAssertEqual(service.fetchedTrackingAthleteIds, [nil])
+    }
+
+    func testParentWithoutSelectedAthleteNeverCallsServiceAndFails() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: "someone-else")
+        let auth = MockAuthManager()
+        let family = ParentViewingAthleteFixture.makeFamilyManager(authManager: auth)
+        family.selectedAthleteId = nil
+        let vm = makeVM(service: service, authManager: auth, familyManager: family)
+
+        let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+
+        guard case .failed = result else { return XCTFail("expected .failed, got \(result)") }
+        XCTAssertTrue(service.fetchedAthleteIds.isEmpty)
+        XCTAssertTrue(service.createdTrackingAthleteIds.isEmpty)
+    }
+
+    func testParentNeverSendsProfileOfADifferentAthleteThanSelected() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: "other-athlete")   // server returned a different athlete's row
+
+        let result = await parentVM(service: service).prepare(for: makeCoach(email: "coach@x.edu"))
+
+        guard case .failed = result else { return XCTFail("expected .failed, got \(result)") }
+        XCTAssertTrue(service.createdTrackingAthleteIds.isEmpty)
     }
 
     // MARK: - logSend (interaction logging on confirmed send only)
