@@ -32,5 +32,7 @@ final class SocialLinkBuilderTests: XCTestCase {
         XCTAssertNil(SocialLinkBuilder.twitterURL(nil))
         XCTAssertNil(SocialLinkBuilder.twitterURL("  "))
         XCTAssertNil(SocialLinkBuilder.facebookURL(""))
+        XCTAssertNil(SocialLinkBuilder.facebookURL("javascript:alert(1)"))
+        XCTAssertNil(SocialLinkBuilder.facebookURL("ftp://facebook.com/player"))
     }
 }

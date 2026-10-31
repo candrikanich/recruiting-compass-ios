@@ -35,6 +35,15 @@ final class PublicProfileDataTests: XCTestCase {
         XCTAssertEqual(a, b)
     }
 
+    func testFilmItemLinkURLOnlyForHttpAndHttps() {
+        func link(_ url: String) -> URL? { PublicProfileData.FilmItem(title: nil, url: url).linkURL }
+        XCTAssertEqual(link("https://hudl.com/x")?.host, "hudl.com")
+        XCTAssertNotNil(link("HTTP://hudl.com/x"))
+        for bad in ["javascript:alert(1)", "data:text/html,hi", "file:///etc/hosts", "ftp://x/y", "hudl.com/x"] {
+            XCTAssertNil(link(bad), bad)
+        }
+    }
+
     func testMetricEntryIdentifiableByKey() {
         let entry = PublicProfileData.MetricEntry(
             key: "batting_avg", label: "Batting Average", value: ".410", unit: "", verified: true

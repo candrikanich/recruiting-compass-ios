@@ -26,6 +26,10 @@ struct VideoLinkUpdatePayload: Encodable {
   let position: Int?
 }
 
+enum VideoLinksServiceError: Error, Equatable {
+  case nonHTTPURL
+}
+
 final class VideoLinksServiceImpl: VideoLinksManaging, Sendable {
   private let supabaseManager: SupabaseManager
 
@@ -52,6 +56,7 @@ final class VideoLinksServiceImpl: VideoLinksManaging, Sendable {
     logger.debug("Creating video link for user: \(request.userId)")
 
     assert(request.platform != .unknown, "VideoLinkPlatform.unknown is decode-only")
+    guard HTTPURL.isValid(request.url) else { throw VideoLinksServiceError.nonHTTPURL }
     let payload = VideoLinkInsertPayload(
       userId: request.userId,
       familyUnitId: request.familyUnitId,
@@ -86,6 +91,7 @@ final class VideoLinksServiceImpl: VideoLinksManaging, Sendable {
   func updateVideoLink(id: String, userId: String, _ request: VideoLinkUpdateRequest) async throws -> VideoLink {
     logger.debug("Updating video link: \(id)")
 
+    if let url = request.url, !HTTPURL.isValid(url) { throw VideoLinksServiceError.nonHTTPURL }
     let payload = Self.updatePayload(request)
 
     let link: VideoLink = try await supabaseManager.client

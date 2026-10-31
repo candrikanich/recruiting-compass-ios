@@ -126,7 +126,7 @@ extension PublicProfileCard {
         // No thumbnail URL exists in the data model yet (web + iOS both show a
         // placeholder card) — parity with web `HighlightsReel.vue`.
         return Group {
-            if let url = URL(string: item.url) {
+            if let url = item.linkURL {
                 Link(destination: url) {
                     HStack(spacing: 10) {
                         ZStack {

@@ -28,6 +28,32 @@ final class VideoLinksEditorViewModelTests: XCTestCase {
     XCTAssertNotNil(vm.errorMessage)
   }
 
+  func test_addLink_nonHttpURL_refusesToInsert() async {
+    let (vm, mock) = makeVM()
+    for bad in ["javascript:alert(1)", "ftp://x.com/a", "hudl.com/x", "data:text/html,hi", "file:///x"] {
+      let ok = await vm.addLink(platform: .hudl, url: bad, title: nil)
+      XCTAssertFalse(ok, bad)
+    }
+    XCTAssertTrue(mock.links.isEmpty)
+    XCTAssertNotNil(vm.errorMessage)
+  }
+
+  func test_updateLink_nonHttpURL_refusesToSend() async {
+    let (vm, mock) = makeVM(seed: [link("a", 0)])
+    await vm.load()
+    let ok = await vm.updateLink(id: "a", platform: .hudl, url: "javascript:alert(1)", title: nil)
+    XCTAssertFalse(ok)
+    XCTAssertEqual(mock.links.first?.url, "https://hudl.com/a")
+    XCTAssertNotNil(vm.errorMessage)
+  }
+
+  func test_addLink_mixedCaseHttpsStillSaves() async {
+    let (vm, mock) = makeVM()
+    let ok = await vm.addLink(platform: .hudl, url: "HTTPS://hudl.com/x", title: nil)
+    XCTAssertTrue(ok)
+    XCTAssertEqual(mock.links.count, 1)
+  }
+
   func test_loadPopulatesLinks() async {
     let (vm, _) = makeVM(seed: [link("a", 0), link("b", 1)])
     await vm.load()

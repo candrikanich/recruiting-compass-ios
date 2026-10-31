@@ -294,7 +294,7 @@ struct AthleticsTab: View {
             value: viewModel.details[attributeKey: service.key],
             state: viewModel.details.prepBaseballState,
             name: viewModel.athleteName
-        ), let url = URL(string: urlString) {
+        ), let url = HTTPURL.url(from: urlString) {
             Link(destination: url) {
                 HStack(spacing: 4) {
                     Text("View profile")

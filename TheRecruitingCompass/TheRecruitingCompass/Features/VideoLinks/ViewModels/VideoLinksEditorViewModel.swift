@@ -19,6 +19,8 @@ final class VideoLinksEditorViewModel {
   let maxLinks = 5
   var canAddLink: Bool { !isReadOnly && links.count < maxLinks }
 
+  private static let invalidURLMessage = String(localized: "The link must start with http:// or https://")
+
   private let service: any VideoLinksManaging
   private let athleteUserId: String
   private let familyUnitId: String?
@@ -48,6 +50,10 @@ final class VideoLinksEditorViewModel {
       errorMessage = FamilyUnitID.MissingError.missing.errorDescription
       return false
     }
+    guard HTTPURL.isValid(url) else {
+      errorMessage = Self.invalidURLMessage
+      return false
+    }
     isSubmitting = true; defer { isSubmitting = false }
     do {
       let created = try await service.createVideoLink(.init(
@@ -65,6 +71,10 @@ final class VideoLinksEditorViewModel {
   func updateLink(id: String, platform: VideoLinkPlatform, url: String, title: String?) async -> Bool {
     guard !isReadOnly else {
       errorMessage = String(localized: "Only the player can edit video links.")
+      return false
+    }
+    guard HTTPURL.isValid(url) else {
+      errorMessage = Self.invalidURLMessage
       return false
     }
     isSubmitting = true; defer { isSubmitting = false }
