@@ -41,6 +41,9 @@ When editing or creating source files, always use the full double-nested path, e
   hand-made throwaway simulator `trc-<issue>`/`agent-<label>` so the hourly sweep (`scripts/sim_sweep.py`) can delete
   it; `~/.config/recruiting-compass/sim-sweep-keep` exempts a device from the sweep and from shutdown.
   `python3 scripts/sim_sweep.py --tests-running` shows who holds the lock.
+  Never rename or delete DerivedData, and never shut down keep-listed devices (including Perf iPhone 17).
+  When waiting on a run, match the script's final line, not `started`, with one monitor per run. On exit 124,
+  report the stall instead of retrying in a loop.
 - **~3700 unit tests.** The full suite exceeds 10 minutes — run the affected test classes via `--only` for fast evidence and trust the exit code.
 
 ### Environment Configuration
