@@ -29,8 +29,8 @@ enum SocialLinkBuilder {
         guard let urlString else { return nil }
         let trimmed = urlString.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return nil }
-        let normalized = trimmed.hasPrefix("http") ? trimmed : "https://\(trimmed)"
-        return URL(string: normalized)
+        let hasScheme = trimmed.range(of: "^[A-Za-z][A-Za-z0-9+.-]*:(?!\\d)", options: .regularExpression) != nil
+        return HTTPURL.url(from: hasScheme ? trimmed : "https://\(trimmed)")
     }
 
     /// One brand-social row entry: platform label, display handle (`@name`),

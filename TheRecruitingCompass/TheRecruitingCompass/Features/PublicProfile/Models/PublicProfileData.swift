@@ -128,6 +128,9 @@ struct PublicProfileData: Equatable, Sendable {
     struct FilmItem: Equatable, Sendable {
         let title: String?
         let url: String
+
+        /// Only http(s) links are tappable; anything else renders as plain text.
+        var linkURL: URL? { HTTPURL.url(from: url) }
     }
 
     /// One team-history row (grade-level school team or travel/club team).

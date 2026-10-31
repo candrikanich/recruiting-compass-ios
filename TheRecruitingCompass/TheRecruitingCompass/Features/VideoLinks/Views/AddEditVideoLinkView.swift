@@ -17,10 +17,8 @@ struct AddEditVideoLinkView: View {
     _title = State(initialValue: editingLink?.title ?? "")
   }
 
-  private var isValidURL: Bool {
-    guard let parsed = URL(string: url), parsed.scheme != nil else { return false }
-    return !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-  }
+  private var isValidURL: Bool { HTTPURL.isValid(url) }
+  private var showsURLError: Bool { !url.isEmpty && !isValidURL }
 
   var body: some View {
     Form {
@@ -38,6 +36,13 @@ struct AddEditVideoLinkView: View {
           .autocorrectionDisabled()
           .accessibilityLabel(String(localized: "Video URL field"))
           .accessibilityHint("Required. Paste the link to your film")
+
+        if showsURLError {
+          Text("The link must start with http:// or https://")
+            .font(.brand(.caption))
+            .foregroundStyle(Color.errorRed)
+            .accessibilityLabel(String(localized: "The link must start with http:// or https://"))
+        }
 
         TextField("Title (optional)", text: $title)
           .accessibilityLabel(String(localized: "Title field"))
