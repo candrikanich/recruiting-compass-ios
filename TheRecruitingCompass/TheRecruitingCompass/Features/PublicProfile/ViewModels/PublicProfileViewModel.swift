@@ -118,6 +118,14 @@ final class PublicProfileViewModel {
             saveError = String(localized: "Select an athlete to edit their public profile.")
             return
         }
+        // The editor's fields are client defaults until a load succeeds; sending them would
+        // overwrite the stored profile with values the user never saw.
+        guard profile != nil else {
+            saveError = String(
+                localized: "Your profile didn't load, so changes can't be saved. Reopen this screen to retry."
+            )
+            return
+        }
         // Slug validity is independent of the other fields: an invalid/reserved local slug
         // must not block persisting the rest. Only the vanity_slug key itself is conditional;
         // when invalid it's omitted so the server keeps the existing slug.
