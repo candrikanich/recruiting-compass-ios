@@ -103,6 +103,18 @@ final class PublicProfileViewModelTests: XCTestCase {
         XCTAssertNil(mock.updatedPayloads.last?.vanitySlug)
     }
 
+    func testSaveAfterFailedLoadSendsNothingAndShowsRetryMessage() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = nil
+        vm.bio = "typed after a failed load"
+        await vm.save()
+        XCTAssertTrue(mock.attemptedPayloads.isEmpty)
+        XCTAssertNotNil(vm.saveError)
+    }
+
     func testSaveSurfacesServerErrorMessage() async {
         let mock = MockPublicProfileManaging()
         mock.stubProfile = makeProfile()
@@ -444,8 +456,10 @@ final class PublicProfileViewModelTests: XCTestCase {
 
     func testParentSaveRetryAfterTokenRefreshStillSendsSelectedAthleteId() async {
         let mock = MockPublicProfileManaging()
-        mock.errorToThrowOnce = PublicProfileAPIError.unauthorized
+        mock.stubProfile = makeProfile()
         let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
+        mock.errorToThrowOnce = PublicProfileAPIError.unauthorized
         await vm.save()
         XCTAssertEqual(mock.attemptedPayloads.map(\.athleteId), ["athlete-A", "athlete-A"])
         XCTAssertEqual(mock.updatedPayloads.map(\.athleteId), ["athlete-A"])
@@ -486,8 +500,10 @@ final class PublicProfileViewModelTests: XCTestCase {
 
     func testSaveShowsServerMessage() async {
         let mock = MockPublicProfileManaging()
-        mock.errorToThrow = PublicProfileAPIError.serverMessage("Not authorized to edit this athlete's profile")
+        mock.stubProfile = makeProfile()
         let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
+        mock.errorToThrow = PublicProfileAPIError.serverMessage("Not authorized to edit this athlete's profile")
         await vm.save()
         XCTAssertEqual(vm.saveError, "Not authorized to edit this athlete's profile")
     }
@@ -504,6 +520,7 @@ final class PublicProfileViewModelTests: XCTestCase {
         let mock = MockPublicProfileManaging()
         mock.stubProfile = makeProfile()
         let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
         vm.scheduleDebouncedSave(.bio, delay: .milliseconds(10))
         XCTAssertTrue(vm.hasPendingDebouncedSave)
         try await Task.sleep(for: .milliseconds(300))
@@ -515,7 +532,9 @@ final class PublicProfileViewModelTests: XCTestCase {
 
     func testFlushSavesPendingEditToPinnedAthlete() async {
         let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
         let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
         vm.scheduleDebouncedSave(.lookingFor, delay: .seconds(60))
         await vm.flushPendingSaves()
         XCTAssertEqual(mock.updatedPayloads.map(\.athleteId), ["athlete-A"])
