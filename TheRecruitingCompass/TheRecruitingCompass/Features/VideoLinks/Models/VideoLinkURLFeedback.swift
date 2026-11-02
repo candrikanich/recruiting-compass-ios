@@ -8,6 +8,6 @@ struct VideoLinkURLFeedback: Equatable {
 
   init(input: String) {
     canSave = HTTPURL.isValid(input)
-    showsMessage = !input.isEmpty && !canSave && !HTTPURL.canBecomeValid(input)
+    showsMessage = !canSave && !HTTPURL.canBecomeValid(input)
   }
 }
