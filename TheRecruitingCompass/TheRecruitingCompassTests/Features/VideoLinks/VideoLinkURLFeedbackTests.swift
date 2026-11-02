@@ -9,7 +9,8 @@ final class VideoLinkURLFeedbackTests: XCTestCase {
   }
 
   func test_inputThatCanStillBecomeValid_disablesSaveWithoutMessage() {
-    for typing in ["h", "HT", "http", "https:", "https:/", "http://", "https://"] {
+    for typing in ["h", "HT", "http", "https:", "https:/", "http://", "https://",
+                   "https:///etc", "https://?x"] {
       let feedback = VideoLinkURLFeedback(input: typing)
       XCTAssertFalse(feedback.canSave, typing)
       XCTAssertFalse(feedback.showsMessage, typing)
@@ -17,7 +18,8 @@ final class VideoLinkURLFeedbackTests: XCTestCase {
   }
 
   func test_inputThatCanNeverBecomeValid_disablesSaveAndShowsMessage() {
-    for bad in ["ftp://x", "javascript:alert(1)", "hudl.com/x", " https://hudl.com/x", "x"] {
+    for bad in ["ftp://x", "javascript:alert(1)", "hudl.com/x", " https://hudl.com/x", "x",
+                "https:hudl.com", "http:hudl.com", "https:/hudl.com", "https:x"] {
       let feedback = VideoLinkURLFeedback(input: bad)
       XCTAssertFalse(feedback.canSave, bad)
       XCTAssertTrue(feedback.showsMessage, bad)

@@ -129,7 +129,7 @@ struct PublicProfileData: Equatable, Sendable {
         let title: String?
         let url: String
 
-        /// Only http(s) links are tappable; anything else renders as plain text.
+        /// Only http(s) links are tappable; anything else has no link (film rows without one are dropped).
         var linkURL: URL? { HTTPURL.url(from: url) }
     }
 

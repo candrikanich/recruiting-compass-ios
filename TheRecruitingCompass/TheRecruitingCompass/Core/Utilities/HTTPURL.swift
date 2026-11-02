@@ -3,7 +3,7 @@ import Foundation
 /// The backend rejects non-http(s) `video_links.url` (web#1494), and user-supplied URLs must never be opened with
 /// another scheme (`javascript:`, `file:`, `tel:` ...). Parity with web's http(s)-only check.
 enum HTTPURL {
-  static let invalidMessage = String(localized: "The link must start with http:// or https://")
+  static let invalidMessage = String(localized: "URL must start with http:// or https://")
 
   private static let schemes = ["http://", "https://"]
 

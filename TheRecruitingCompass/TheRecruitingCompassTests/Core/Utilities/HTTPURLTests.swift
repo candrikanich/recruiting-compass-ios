@@ -11,11 +11,16 @@ final class HTTPURLTests: XCTestCase {
   func test_rejectsOtherSchemesAndSchemeLessInput() {
     let rejected = ["javascript:alert(1)", "data:text/html,hi", "file:///etc/passwd", "ftp://host/x",
                     "hudl.com/x", "www.youtube.com/watch", "", " https://hudl.com/x", "httpx://hudl.com",
-                    "https:hudl.com", "http:/hudl.com", "https://", "http://", "https:///etc/passwd"]
+                    "https:hudl.com", "http:/hudl.com", "https://", "http://", "https:///etc/passwd", "https://@/x", "https://:80/x"]
     for value in rejected {
       XCTAssertFalse(HTTPURL.isValid(value), value)
       XCTAssertNil(HTTPURL.url(from: value), value)
     }
+  }
+
+  func test_invalidMessageMatchesWebCopy() {
+    XCTAssertEqual(HTTPURL.invalidMessage, "URL must start with http:// or https://")
+    XCTAssertNotEqual(HTTPURL.invalidMessage, "The link must start with http:// or https://")
   }
 
   func test_urlFromReturnsParsedHttpURL() {

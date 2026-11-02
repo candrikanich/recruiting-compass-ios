@@ -338,15 +338,15 @@ final class PublicProfileViewModel {
         return iso.date(from: raw)
     }
 
-    /// One card per `metric_type` (newest by `created_at` wins), ranked
-    /// primary+verified first, capped at 6 — byte-parity with web
-    /// `buildPublicMetrics`. Value/unit come from `MetricType`/`MetricRegistry`,
-    /// never the stored row's `unit`/`display_value`.
     /// Web drops film rows that aren't http(s) links; so do we.
     nonisolated static func buildFilm(from videos: [VideoLink]) -> [PublicProfileData.FilmItem] {
         videos.map { PublicProfileData.FilmItem(title: $0.title, url: $0.url) }.filter { $0.linkURL != nil }
     }
 
+    /// One card per `metric_type` (newest by `created_at` wins), ranked
+    /// primary+verified first, capped at 6 — byte-parity with web
+    /// `buildPublicMetrics`. Value/unit come from `MetricType`/`MetricRegistry`,
+    /// never the stored row's `unit`/`display_value`.
     static func buildMetrics(from rows: [PerformanceMetric]) -> [PublicProfileData.MetricEntry] {
         var newestByType: [String: PerformanceMetric] = [:]
         for row in rows {
