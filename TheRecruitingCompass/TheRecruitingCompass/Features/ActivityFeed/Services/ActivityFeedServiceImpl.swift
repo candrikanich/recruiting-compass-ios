@@ -9,6 +9,9 @@ private let logger = Logger(
 
 /// Sendable: Stateless service with no mutable properties
 final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
+  /// Per-source cap; matches web so both platforms merge the same window of entries.
+  static let perSourceLimit = 200
+
   private let supabaseManager: SupabaseManager
 
   init(supabaseManager: SupabaseManager) {
@@ -22,7 +25,7 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
         .select("id, school_id, type, content, subject, occurred_at, created_at, direction, logged_by, family_unit_id, updated_at, sentiment, coach_id, attachments")
         .eq("family_unit_id", value: familyUnitId)
         .order("created_at", ascending: false)
-        .limit(50)
+        .limit(Self.perSourceLimit)
         .execute()
         .value
     }
@@ -35,7 +38,7 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
         .select("id, school_id, new_status, previous_status, notes, changed_at, changed_by, created_at, schools!inner(family_unit_id)")
         .eq("schools.family_unit_id", value: familyUnitId)
         .order("changed_at", ascending: false)
-        .limit(50)
+        .limit(Self.perSourceLimit)
         .execute()
         .value
     }
@@ -48,7 +51,7 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
         .select("id, title, type, created_at, user_id")
         .eq("family_unit_id", value: familyUnitId)
         .order("created_at", ascending: false)
-        .limit(50)
+        .limit(Self.perSourceLimit)
         .execute()
         .value
     }

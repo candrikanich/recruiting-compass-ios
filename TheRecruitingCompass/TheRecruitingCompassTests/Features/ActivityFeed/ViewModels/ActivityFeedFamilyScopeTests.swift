@@ -143,7 +143,7 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     authenticateUser(id: "me")
     let event = ActivityEventFactory.fromInteraction(makeInteraction(id: "i", loggedBy: "gone"), schoolName: nil)
 
-    XCTAssertEqual(sut.actorLabel(for: event), "Former member")
+    XCTAssertEqual(sut.actorLabel(for: event), "A former family member")
   }
 
   func testActorLabel_statusChangeAndDocument_resolveTheirActors() {
@@ -182,5 +182,20 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     try await Task.sleep(for: .milliseconds(300))
 
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+  }
+
+  func testAddRealtimeEvent_alreadyInFeedAfterReload_isNotDoubled() async {
+    authenticateUser()
+    mockService.mockInteractions = [makeInteraction(id: "dup")]
+    await sut.loadActivities()
+    let racing = ActivityEventFactory.fromInteraction(makeInteraction(id: "dup"), schoolName: nil)
+
+    sut.addRealtimeEvent(racing)
+
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-dup"])
+  }
+
+  func testPerSourceLimit_matchesWeb() {
+    XCTAssertEqual(ActivityFeedServiceImpl.perSourceLimit, 200)
   }
 }

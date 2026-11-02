@@ -59,7 +59,7 @@ final class ActivityFeedViewModel {
   }
 
   static let youLabel = "You"
-  static let formerMemberLabel = "Former member"
+  static let formerMemberLabel = "A former family member"
 
   // MARK: - Computed Properties
 
