@@ -211,6 +211,55 @@ final class PublicProfileViewModelTests: XCTestCase {
         XCTAssertTrue(vm.isPublished)
     }
 
+    func testUnauthorizedLoadWhoseRefreshFailsEndsInFailedState() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.unauthorized
+        let auth = MockAuthManager()
+        auth.shouldThrowRefreshError = true
+        let vm = PublicProfileViewModel(service: mock, authManager: auth)
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .failed("Couldn't load your public profile. Please try again."))
+    }
+
+    func testRetryShowsLoadingWhileTheReloadIsInFlight() async {
+        let gate = GatedProfileService(stub: makeProfile())
+        let vm = PublicProfileViewModel(service: gate, authManager: MockAuthManager())
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .failed("Couldn't load your public profile. Please try again."))
+        gate.holdNextFetch = true
+        let retry = Task { await vm.load() }
+        for _ in 0..<2000 where !gate.isHolding { try? await Task.sleep(for: .milliseconds(5)) }
+        XCTAssertTrue(gate.isHolding)
+        XCTAssertEqual(vm.loadState, .loading)
+        gate.release()
+        await retry.value
+        XCTAssertEqual(vm.loadState, .loaded)
+    }
+
+    func testContentStateMapsLoadStateToWhatTheScreenRenders() {
+        func state(
+            _ load: PublicProfileViewModel.LoadState, noProfile: Bool = false, configured: Bool = true
+        ) -> PublicProfileViewModel.ContentState {
+            PublicProfileViewModel.contentState(
+                hasNoEditableProfile: noProfile, isConfigured: configured, loadState: load
+            )
+        }
+        XCTAssertEqual(state(.loading), .loading)
+        XCTAssertEqual(state(.failed("x")), .failed("x"))
+        XCTAssertEqual(state(.loaded), .editor)
+        XCTAssertEqual(state(.failed("x"), noProfile: true), .selectAthlete)
+        XCTAssertEqual(state(.loaded, configured: false), .unconfigured)
+        XCTAssertEqual(state(.failed("x"), configured: false), .unconfigured)
+    }
+
+    func testFailedLoadNeverMapsToEditorContent() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        XCTAssertNotEqual(vm.contentState, .editor)
+    }
+
     func testFlushAfterFailedLoadSendsNothing() async {
         let mock = MockPublicProfileManaging()
         mock.errorToThrow = PublicProfileAPIError.server(500)
@@ -645,5 +694,36 @@ final class PublicProfileViewModelTests: XCTestCase {
         await vm.flushPendingSaves()
         XCTAssertEqual(mock.updatedPayloads.map(\.athleteId), ["athlete-A"])
         XCTAssertFalse(vm.hasPendingDebouncedSave)
+    }
+}
+
+/// Fails the first fetch; a later fetch can be held in flight until `release()`.
+private final class GatedProfileService: PublicProfileManaging, @unchecked Sendable {
+    private let stub: PlayerProfile
+    private var calls = 0
+    private var continuation: CheckedContinuation<Void, Never>?
+    var holdNextFetch = false
+    private(set) var isHolding = false
+
+    init(stub: PlayerProfile) { self.stub = stub }
+
+    func fetchProfile(athleteId: String?, accessToken: String?) async throws -> PlayerProfile? {
+        calls += 1
+        if calls == 1 { throw PublicProfileAPIError.server(500) }
+        if holdNextFetch {
+            await withCheckedContinuation {
+                continuation = $0
+                isHolding = true
+            }
+        }
+        return stub
+    }
+
+    func release() { continuation?.resume(); continuation = nil }
+
+    func updateProfile(_ payload: UpdateProfilePayload, accessToken: String?) async throws {}
+    func fetchTrackingLink(coachId: String, accessToken: String?) async throws -> ProfileTrackingLink? { nil }
+    func createTrackingLink(coachId: String, accessToken: String?) async throws -> ProfileTrackingLink {
+        throw PublicProfileAPIError.notConfigured
     }
 }

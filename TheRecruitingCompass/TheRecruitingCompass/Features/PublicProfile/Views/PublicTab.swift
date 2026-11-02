@@ -39,17 +39,18 @@ struct PublicTab: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if vm.hasNoEditableProfile {
+                switch vm.contentState {
+                case .selectAthlete:
                     selectAthleteNotice
-                } else if !vm.isConfigured {
+                case .unconfigured:
                     unconfiguredNotice
-                } else if case .failed(let message) = vm.loadState {
+                case .failed(let message):
                     loadFailedNotice(message)
-                } else if vm.loadState == .loading {
+                case .loading:
                     ProgressView()
                         .frame(maxWidth: .infinity, minHeight: 120)
                         .accessibilityLabel(String(localized: "Loading public profile"))
-                } else {
+                case .editor:
                     workspaceBar
                     shareCard
                     appearanceCard

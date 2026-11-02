@@ -57,6 +57,29 @@ final class PublicProfileViewModel {
         return loadError.map(LoadState.failed) ?? .loading
     }
 
+    enum ContentState: Equatable {
+        case selectAthlete
+        case unconfigured
+        case loading
+        case failed(String)
+        case editor
+    }
+
+    /// What `PublicTab` renders. The view switches over this exhaustively, so a branch cannot be dropped silently.
+    var contentState: ContentState {
+        Self.contentState(hasNoEditableProfile: hasNoEditableProfile, isConfigured: isConfigured, loadState: loadState)
+    }
+
+    static func contentState(hasNoEditableProfile: Bool, isConfigured: Bool, loadState: LoadState) -> ContentState {
+        if hasNoEditableProfile { return .selectAthlete }
+        if !isConfigured { return .unconfigured }
+        switch loadState {
+        case .loading: return .loading
+        case .failed(let message): return .failed(message)
+        case .loaded: return .editor
+        }
+    }
+
     private static let notLoadedMessage = String(
         localized: "Your profile didn't load, so changes can't be saved. Reopen this screen to retry."
     )
