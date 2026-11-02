@@ -170,6 +170,11 @@ struct CoachDetailView: View {
       } message: {
         Text("Sending your profile to coaches stays locked until your guardian confirms your account.")
       }
+      .alert("Send Profile", isPresented: sendProfileErrorBinding) {
+        Button("OK") { sendProfileVM.errorMessage = nil }
+      } message: {
+        Text(sendProfileVM.errorMessage ?? "")
+      }
       .confirmationDialog("Delete Coach", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
         Button("Delete", role: .destructive) {
           Task {
@@ -214,8 +219,10 @@ struct CoachDetailView: View {
       .task {
         await viewModel.loadCoach()
         await viewModel.loadDetails()
-        await sendProfileVM.loadTrackingInfo(for: coachId)
         await subscribeRealtime()
+      }
+      .task(id: sendProfileVM.selectionKey) {
+        await sendProfileVM.loadTrackingInfo(for: coachId)
       }
       .onDisappear {
         let service = realtimeService
@@ -379,6 +386,13 @@ struct CoachDetailView: View {
     }
     .buttonStyle(.borderless)
     .accessibilityLabel(String(localized: "Copy profile link"))
+  }
+
+  private var sendProfileErrorBinding: Binding<Bool> {
+    Binding(
+      get: { sendProfileVM.errorMessage != nil },
+      set: { if !$0 { sendProfileVM.errorMessage = nil } }
+    )
   }
 
   private var channelChoiceBinding: Binding<Bool> {

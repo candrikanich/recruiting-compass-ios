@@ -6,6 +6,8 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
     var errorToThrow: Error?
     /// Thrown by the next profile fetch/update only, then cleared — models a 401 that a token refresh fixes.
     var errorToThrowOnce: Error?
+    /// Runs inside `createTrackingLink`, i.e. while a send is mid-flight.
+    var onCreateTrackingLink: (() -> Void)?
     private(set) var fetchedAthleteIds: [String?] = []
     private(set) var updatedPayloads: [UpdateProfilePayload] = []
     /// Every `updateProfile` call, including ones that threw — `updatedPayloads` only has successes.
@@ -47,6 +49,7 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
     func createTrackingLink(coachId: String, athleteId: String?, accessToken: String?) async throws
         -> ProfileTrackingLink {
         if let errorToThrow { throw errorToThrow }
+        onCreateTrackingLink?()
         createdCoachIds.append(coachId)
         createdTrackingAthleteIds.append(athleteId)
         guard let stub = stubTrackingLink else {
