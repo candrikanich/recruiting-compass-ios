@@ -42,12 +42,24 @@ final class ActivityFeedViewModel {
   private let familyManager: FamilyManager
   private let authManager: any AuthManaging
 
-  /// The user whose activity we read. When a parent is viewing an athlete,
-  /// activity belongs to the athlete (mirrors web + OffersListViewModel);
-  /// otherwise the logged-in user's own id.
-  var userId: String? {
-    familyManager.selectedAthlete?.userId ?? authManager.user?.id
+  /// The active family. The feed is scoped to it (family sees the same data), never to the signed-in
+  /// user and never to all of a multi-family user's families.
+  var familyUnitId: String? { familyManager.resolvedFamilyUnitId }
+
+  /// "You" for the signed-in user, otherwise the member's name; a member who has left has no
+  /// `family_members` row any more, so they fall back to a generic label.
+  func actorLabel(for event: ActivityEvent) -> String? {
+    guard let actorId = event.actorUserId else { return nil }
+    if actorId == authManager.user?.id { return Self.youLabel }
+    let user = familyManager.familyMembers.first { $0.userId == actorId }?.user
+    let name = [user?.fullName, user?.email]
+      .compactMap { $0?.trimmingCharacters(in: .whitespaces) }
+      .first { !$0.isEmpty }
+    return name ?? Self.formerMemberLabel
   }
+
+  static let youLabel = "You"
+  static let formerMemberLabel = "Former member"
 
   // MARK: - Computed Properties
 
@@ -105,6 +117,8 @@ final class ActivityFeedViewModel {
   // MARK: - Initialization
 
   private let cache: (any CacheManaging)?
+  private let reloadDebounce: Duration
+  private var pendingReload: Task<Void, Never>?
 
   /// TTL for cached activity feed (seconds). Short, and deliberately not
   /// invalidated from the many VMs that create interactions/status-changes/
@@ -117,12 +131,14 @@ final class ActivityFeedViewModel {
     activityService: (any ActivityFeedManaging)? = nil,
     familyManager: FamilyManager? = nil,
     authManager: (any AuthManaging)? = nil,
-    cache: (any CacheManaging)? = nil
+    cache: (any CacheManaging)? = nil,
+    reloadDebounce: Duration = .milliseconds(1500)
   ) {
     self.activityService = activityService ?? ActivityFeedServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
     self.cache = cache
+    self.reloadDebounce = reloadDebounce
   }
 
   // Prevent compiler-synthesized main-actor-isolated deinit.
@@ -131,9 +147,10 @@ final class ActivityFeedViewModel {
 
   // MARK: - Data Loading
 
-  func loadActivities() async {
-    guard let userId else {
-      logger.warning("No user ID available for activity feed")
+  /// - Parameter forceRefresh: skip the cache; used when a realtime signal says the data changed.
+  func loadActivities(forceRefresh: Bool = false) async {
+    guard let familyUnitId else {
+      logger.warning("No active family for activity feed")
       errorMessage = "Unable to load activities. Please sign in."
       return
     }
@@ -142,10 +159,10 @@ final class ActivityFeedViewModel {
     errorMessage = nil
     defer { isLoading = false }
 
-    let cacheKey = ListCacheKeys.activities(userId: userId)
+    let cacheKey = ListCacheKeys.activities(familyUnitId: familyUnitId)
     let cacheToUse = cache ?? InMemoryCache.shared
 
-    if let cached = await cacheToUse.get([ActivityEvent].self, forKey: cacheKey) {
+    if !forceRefresh, let cached = await cacheToUse.get([ActivityEvent].self, forKey: cacheKey) {
       activities = cached
       currentPage = 1
       logger.info("Loaded \(cached.count) activity events from cache")
@@ -153,9 +170,9 @@ final class ActivityFeedViewModel {
     }
 
     do {
-      async let interactionsTask = activityService.fetchInteractions(userId: userId)
-      async let statusChangesTask = activityService.fetchStatusChanges(userId: userId)
-      async let documentsTask = activityService.fetchDocuments(userId: userId)
+      async let interactionsTask = activityService.fetchInteractions(familyUnitId: familyUnitId)
+      async let statusChangesTask = activityService.fetchStatusChanges(familyUnitId: familyUnitId)
+      async let documentsTask = activityService.fetchDocuments(familyUnitId: familyUnitId)
 
       let (interactions, statusChanges, documents) = try await (
         interactionsTask, statusChangesTask, documentsTask
@@ -224,6 +241,22 @@ final class ActivityFeedViewModel {
   }
 
   // MARK: - Realtime Updates
+
+  /// Reloads once the burst settles. A status change is an UPDATE on `schools` and then a separate
+  /// INSERT into `school_status_history`; reloading on the first signal would miss the history row.
+  func scheduleDebouncedReload() {
+    pendingReload?.cancel()
+    pendingReload = Task { [weak self, reloadDebounce] in
+      try? await Task.sleep(for: reloadDebounce)
+      guard !Task.isCancelled else { return }
+      await self?.loadActivities(forceRefresh: true)
+    }
+  }
+
+  func cancelPendingReload() {
+    pendingReload?.cancel()
+    pendingReload = nil
+  }
 
   /// Add a new activity event from realtime update (deduplicates by ID)
   func addRealtimeEvent(_ event: ActivityEvent) {

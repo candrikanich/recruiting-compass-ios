@@ -7,22 +7,22 @@ final class MockActivityRealtimeService: ActivityRealtimeManaging, @unchecked Se
 
   var subscribeCallCount = 0
   var unsubscribeCallCount = 0
-  var lastSubscribedUserId: String?
   var lastSubscribedFamilyUnitId: String?
   var lastOnInsert: (@MainActor @Sendable (ActivityEvent) -> Void)?
   var lastOnChange: (@MainActor @Sendable () -> Void)?
+  var lastOnSchoolsChange: (@MainActor @Sendable () -> Void)?
 
   func subscribe(
-    userId: String,
-    familyUnitId: String?,
+    familyUnitId: String,
     onInsert: @escaping @MainActor @Sendable (ActivityEvent) -> Void,
-    onChange: @escaping @MainActor @Sendable () -> Void
+    onChange: @escaping @MainActor @Sendable () -> Void,
+    onSchoolsChange: @escaping @MainActor @Sendable () -> Void
   ) async throws {
     subscribeCallCount += 1
-    lastSubscribedUserId = userId
     lastSubscribedFamilyUnitId = familyUnitId
     lastOnInsert = onInsert
     lastOnChange = onChange
+    lastOnSchoolsChange = onSchoolsChange
     if shouldThrowOnSubscribe { throw errorToThrow }
   }
 

@@ -20,8 +20,8 @@ enum ActivityRealtimeError: LocalizedError {
 
 /// Real-time activity feed service using Supabase Realtime subscriptions.
 ///
-/// Subscribes to interactions (family_unit_id), documents (family_unit_id),
-/// and school_status_history (changed_by — lacks family_unit_id).
+/// Subscribes to interactions, documents and schools, all filtered by family_unit_id.
+/// (`school_status_history` is not in the realtime publication, so a schools change stands in for it.)
 /// INSERTs are decoded and enriched for instant feed append; UPDATE/DELETE
 /// trigger a full reload via the `onChange` callback.
 actor ActivityRealtimeService: ActivityRealtimeManaging {
@@ -29,7 +29,7 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
   private let activityService: any ActivityFeedManaging
 
   private var interactionsChannel: RealtimeChannelV2?
-  private var statusChangesChannel: RealtimeChannelV2?
+  private var schoolsChannel: RealtimeChannelV2?
   private var documentsChannel: RealtimeChannelV2?
 
   init(
@@ -43,20 +43,20 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
   // MARK: - ActivityRealtimeManaging
 
   func subscribe(
-    userId: String,
-    familyUnitId: String?,
+    familyUnitId: String,
     onInsert: @escaping @MainActor @Sendable (ActivityEvent) -> Void,
-    onChange: @escaping @MainActor @Sendable () -> Void
+    onChange: @escaping @MainActor @Sendable () -> Void,
+    onSchoolsChange: @escaping @MainActor @Sendable () -> Void
   ) async throws {
     await unsubscribe()
 
-    logger.info("Subscribing to realtime activity updates for user: \(userId), family: \(familyUnitId ?? "none")")
+    logger.info("Subscribing to realtime activity updates for family: \(familyUnitId)")
 
-    // Interactions — use family_unit_id when available (catches family member changes)
-    let interactionsFilter = familyUnitId.map { "family_unit_id=eq.\($0)" } ?? "logged_by=eq.\(userId)"
+    let familyFilter = "family_unit_id=eq.\(familyUnitId)"
+    let interactionsFilter = familyFilter
     let interactionsChannel = supabaseManager.client
       .realtimeV2
-      .exclusiveChannel("activity-interactions-\(familyUnitId ?? userId)")
+      .exclusiveChannel("activity-interactions-\(familyUnitId)")
 
     _ = interactionsChannel
       .onPostgresChange(
@@ -100,58 +100,33 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
       throw ActivityRealtimeError.subscriptionFailed
     }
 
-    // School status history — no family_unit_id column, stays user-scoped
-    let statusChangesChannel = supabaseManager.client
+    let schoolsChannel = supabaseManager.client
       .realtimeV2
-      .exclusiveChannel("activity-status-\(userId)")
+      .exclusiveChannel("activity-schools-\(familyUnitId)")
 
-    _ = statusChangesChannel
+    _ = schoolsChannel
       .onPostgresChange(
-        InsertAction.self,
+        AnyAction.self,
         schema: "public",
-        table: "school_status_history",
-        filter: "changed_by=eq.\(userId)"
-      ) { [weak self] action in
-        guard let self = self else { return }
-        Task { @MainActor in
-          await self.handleStatusChangeInsert(record: action.record, onInsert: onInsert)
-        }
-      }
-
-    _ = statusChangesChannel
-      .onPostgresChange(
-        UpdateAction.self,
-        schema: "public",
-        table: "school_status_history",
-        filter: "changed_by=eq.\(userId)"
+        table: "schools",
+        filter: familyFilter
       ) { _ in
-        Task { @MainActor in onChange() }
-      }
-
-    _ = statusChangesChannel
-      .onPostgresChange(
-        DeleteAction.self,
-        schema: "public",
-        table: "school_status_history",
-        filter: "changed_by=eq.\(userId)"
-      ) { _ in
-        Task { @MainActor in onChange() }
+        Task { @MainActor in onSchoolsChange() }
       }
 
     do {
-      try await statusChangesChannel.subscribeWithError()
-      self.statusChangesChannel = statusChangesChannel
+      try await schoolsChannel.subscribeWithError()
+      self.schoolsChannel = schoolsChannel
     } catch {
-      await supabaseManager.client.realtimeV2.removeChannel(statusChangesChannel)
-      logger.error("Failed to subscribe to status changes: \(error.localizedDescription)")
+      await supabaseManager.client.realtimeV2.removeChannel(schoolsChannel)
+      logger.error("Failed to subscribe to schools: \(error.localizedDescription)")
       throw ActivityRealtimeError.subscriptionFailed
     }
 
-    // Documents — use family_unit_id when available
-    let documentsFilter = familyUnitId.map { "family_unit_id=eq.\($0)" } ?? "user_id=eq.\(userId)"
+    let documentsFilter = familyFilter
     let documentsChannel = supabaseManager.client
       .realtimeV2
-      .exclusiveChannel("activity-documents-\(familyUnitId ?? userId)")
+      .exclusiveChannel("activity-documents-\(familyUnitId)")
 
     _ = documentsChannel
       .onPostgresChange(
@@ -206,9 +181,9 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
       interactionsChannel = nil
     }
 
-    if let channel = statusChangesChannel {
+    if let channel = schoolsChannel {
       await supabaseManager.client.realtimeV2.removeChannel(channel)
-      statusChangesChannel = nil
+      schoolsChannel = nil
     }
 
     if let channel = documentsChannel {
@@ -242,27 +217,6 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
       onInsert(event)
     } catch {
       logger.error("Failed to process realtime interaction: \(error.localizedDescription)")
-    }
-  }
-
-  @MainActor
-  private func handleStatusChangeInsert(
-    record: JSONObject,
-    onInsert: @MainActor @Sendable (ActivityEvent) -> Void
-  ) async {
-
-    do {
-      let statusChange = try record.decode(as: SchoolStatusHistory.self)
-
-      let schoolNames = try await activityService.fetchSchoolNames(schoolIds: [statusChange.schoolId])
-      let schoolName = schoolNames[statusChange.schoolId]
-
-      let event = ActivityEventFactory.fromStatusChange(statusChange, schoolName: schoolName)
-
-      logger.debug("Received realtime status change insert: \(event.id)")
-      onInsert(event)
-    } catch {
-      logger.error("Failed to process realtime status change: \(error.localizedDescription)")
     }
   }
 

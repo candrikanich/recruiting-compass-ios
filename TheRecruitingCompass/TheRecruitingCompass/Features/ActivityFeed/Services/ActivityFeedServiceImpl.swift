@@ -15,12 +15,12 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
     self.supabaseManager = supabaseManager
   }
 
-  func fetchInteractions(userId: String) async throws -> [Interaction] {
+  func fetchInteractions(familyUnitId: String) async throws -> [Interaction] {
     try await logger.fetch("interactions") {
       try await supabaseManager.client
         .from("interactions")
         .select("id, school_id, type, content, subject, occurred_at, created_at, direction, logged_by, family_unit_id, updated_at, sentiment, coach_id, attachments")
-        .eq("logged_by", value: userId)
+        .eq("family_unit_id", value: familyUnitId)
         .order("created_at", ascending: false)
         .limit(50)
         .execute()
@@ -28,12 +28,12 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
     }
   }
 
-  func fetchStatusChanges(userId: String) async throws -> [SchoolStatusHistory] {
+  func fetchStatusChanges(familyUnitId: String) async throws -> [SchoolStatusHistory] {
     try await logger.fetch("status changes") {
       try await supabaseManager.client
         .from("school_status_history")
-        .select("id, school_id, new_status, previous_status, notes, changed_at, changed_by, created_at")
-        .eq("changed_by", value: userId)
+        .select("id, school_id, new_status, previous_status, notes, changed_at, changed_by, created_at, schools!inner(family_unit_id)")
+        .eq("schools.family_unit_id", value: familyUnitId)
         .order("changed_at", ascending: false)
         .limit(50)
         .execute()
@@ -41,12 +41,12 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
     }
   }
 
-  func fetchDocuments(userId: String) async throws -> [DocumentRecord] {
+  func fetchDocuments(familyUnitId: String) async throws -> [DocumentRecord] {
     try await logger.fetch("documents") {
       try await supabaseManager.client
         .from("documents")
-        .select("id, title, type, created_at")
-        .eq("user_id", value: userId)
+        .select("id, title, type, created_at, user_id")
+        .eq("family_unit_id", value: familyUnitId)
         .order("created_at", ascending: false)
         .limit(50)
         .execute()

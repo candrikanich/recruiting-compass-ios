@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ActivityFeedView: View {
   @State private var viewModel = ActivityFeedViewModel()
+  @Environment(FamilyManager.self) private var familyManager
 
   var body: some View {
     Group {
@@ -18,7 +19,7 @@ struct ActivityFeedView: View {
     .navigationTitle(navigationTitleText)
     .searchable(text: $viewModel.searchQuery, prompt: "Search activities...")
     .refreshable { await viewModel.loadActivities() }
-    .task { await viewModel.loadActivities() }
+    .task(id: familyManager.familyUnitId) { await viewModel.loadActivities() }
   }
 
   // MARK: - Accessibility
@@ -48,13 +49,13 @@ struct ActivityFeedView: View {
           ForEach(viewModel.paginatedActivities) { event in
             if event.isClickable {
               NavigationLink(value: ActivityDestination(event: event)) {
-                ActivityEventItem(event: event)
+                ActivityEventItem(event: event, actorLabel: viewModel.actorLabel(for: event))
               }
               .buttonStyle(.plain)
               .padding(.horizontal, 16)
               .padding(.vertical, 4)
             } else {
-              ActivityEventItem(event: event)
+              ActivityEventItem(event: event, actorLabel: viewModel.actorLabel(for: event))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 4)
             }
@@ -237,4 +238,5 @@ extension LabelStyle where Self == TrailingIconLabelStyle {
   NavigationStack {
     ActivityFeedView()
   }
+  .environment(FamilyManager.shared)
 }

@@ -48,11 +48,13 @@ struct RecentActivityWidget: View {
           ForEach(viewModel.recentActivities) { event in
             if event.isClickable {
               NavigationLink(value: ActivityDestination(event: event)) {
-                ActivityEventItem(event: event, compact: true)
+                ActivityEventItem(
+                  event: event, compact: true, actorLabel: viewModel.actorLabel(for: event))
               }
               .buttonStyle(.plain)
             } else {
-              ActivityEventItem(event: event, compact: true)
+              ActivityEventItem(
+                  event: event, compact: true, actorLabel: viewModel.actorLabel(for: event))
             }
           }
         }
@@ -82,7 +84,11 @@ struct RecentActivityWidget: View {
     .task {
       await loadAndSubscribe()
     }
+    .onChange(of: familyManager.familyUnitId) { _, _ in
+      resubscribeForActiveFamily()
+    }
     .onDisappear {
+      viewModel.cancelPendingReload()
       backgroundCleanupTask?.cancel()
       let service = realtimeService
       realtimeService = nil
@@ -115,12 +121,22 @@ struct RecentActivityWidget: View {
 
   // MARK: - Private Methods
 
+  private func resubscribeForActiveFamily() {
+    backgroundCleanupTask?.cancel()
+    let service = realtimeService
+    realtimeService = nil
+    Task {
+      await service?.unsubscribe()
+      await loadAndSubscribe()
+    }
+  }
+
   private func loadAndSubscribe() async {
     // Load initial activities
     await viewModel.loadActivities()
 
     // Subscribe to realtime updates
-    guard let userId = viewModel.userId else { return }
+    guard let familyUnitId = viewModel.familyUnitId else { return }
 
     // Avoid re-subscribing when a live subscription already exists. `.task` and
     // the scenePhase `.active` transition can both fire on appear; a second
@@ -134,13 +150,15 @@ struct RecentActivityWidget: View {
 
     do {
       try await service.subscribe(
-        userId: userId,
-        familyUnitId: familyManager.familyUnitId,
+        familyUnitId: familyUnitId,
         onInsert: { [viewModel] newEvent in
           viewModel.addRealtimeEvent(newEvent)
         },
         onChange: { [viewModel] in
-          Task { await viewModel.loadActivities() }
+          Task { await viewModel.loadActivities(forceRefresh: true) }
+        },
+        onSchoolsChange: { [viewModel] in
+          viewModel.scheduleDebouncedReload()
         }
       )
     } catch {

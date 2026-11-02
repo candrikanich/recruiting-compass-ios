@@ -25,16 +25,16 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
 
   // MARK: - Captured Arguments
 
-  var lastFetchInteractionsUserId: String?
-  var lastFetchStatusChangesUserId: String?
-  var lastFetchDocumentsUserId: String?
+  var lastFetchInteractionsFamilyUnitId: String?
+  var lastFetchStatusChangesFamilyUnitId: String?
+  var lastFetchDocumentsFamilyUnitId: String?
   var lastFetchSchoolNamesIds: [String]?
 
   // MARK: - ActivityFeedManaging
 
-  func fetchInteractions(userId: String) async throws -> [Interaction] {
+  func fetchInteractions(familyUnitId: String) async throws -> [Interaction] {
     fetchInteractionsCallCount += 1
-    lastFetchInteractionsUserId = userId
+    lastFetchInteractionsFamilyUnitId = familyUnitId
     if shouldThrowOnInteractions {
       throw NSError(
         domain: "MockActivityFeed",
@@ -45,9 +45,9 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
     return mockInteractions
   }
 
-  func fetchStatusChanges(userId: String) async throws -> [SchoolStatusHistory] {
+  func fetchStatusChanges(familyUnitId: String) async throws -> [SchoolStatusHistory] {
     fetchStatusChangesCallCount += 1
-    lastFetchStatusChangesUserId = userId
+    lastFetchStatusChangesFamilyUnitId = familyUnitId
     if shouldThrowOnStatusChanges {
       throw NSError(
         domain: "MockActivityFeed",
@@ -58,9 +58,9 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
     return mockStatusChanges
   }
 
-  func fetchDocuments(userId: String) async throws -> [DocumentRecord] {
+  func fetchDocuments(familyUnitId: String) async throws -> [DocumentRecord] {
     fetchDocumentsCallCount += 1
-    lastFetchDocumentsUserId = userId
+    lastFetchDocumentsFamilyUnitId = familyUnitId
     if shouldThrowOnDocuments {
       throw NSError(
         domain: "MockActivityFeed",
@@ -99,9 +99,9 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
     fetchStatusChangesCallCount = 0
     fetchDocumentsCallCount = 0
     fetchSchoolNamesCallCount = 0
-    lastFetchInteractionsUserId = nil
-    lastFetchStatusChangesUserId = nil
-    lastFetchDocumentsUserId = nil
+    lastFetchInteractionsFamilyUnitId = nil
+    lastFetchStatusChangesFamilyUnitId = nil
+    lastFetchDocumentsFamilyUnitId = nil
     lastFetchSchoolNamesIds = nil
   }
 }
