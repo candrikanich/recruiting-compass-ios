@@ -142,8 +142,6 @@ extension PublicProfileCard {
                     }
                 }
                 .accessibilityLabel(String(localized: "Film link: \(label)"))
-            } else {
-                Text(label).font(.brand(.footnote)).foregroundStyle(Color.Text.secondary)
             }
         }
     }

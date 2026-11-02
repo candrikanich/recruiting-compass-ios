@@ -19,8 +19,6 @@ final class VideoLinksEditorViewModel {
   let maxLinks = 5
   var canAddLink: Bool { !isReadOnly && links.count < maxLinks }
 
-  private static let invalidURLMessage = String(localized: "The link must start with http:// or https://")
-
   private let service: any VideoLinksManaging
   private let athleteUserId: String
   private let familyUnitId: String?
@@ -50,8 +48,8 @@ final class VideoLinksEditorViewModel {
       errorMessage = FamilyUnitID.MissingError.missing.errorDescription
       return false
     }
-    guard HTTPURL.isValid(url) else {
-      errorMessage = Self.invalidURLMessage
+    guard let url = HTTPURL.cleaned(url) else {
+      errorMessage = HTTPURL.invalidMessage
       return false
     }
     isSubmitting = true; defer { isSubmitting = false }
@@ -73,8 +71,8 @@ final class VideoLinksEditorViewModel {
       errorMessage = String(localized: "Only the player can edit video links.")
       return false
     }
-    guard HTTPURL.isValid(url) else {
-      errorMessage = Self.invalidURLMessage
+    guard let url = HTTPURL.cleaned(url) else {
+      errorMessage = HTTPURL.invalidMessage
       return false
     }
     isSubmitting = true; defer { isSubmitting = false }
