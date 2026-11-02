@@ -60,11 +60,13 @@ final class SendProfileViewModel {
     func loadTrackingInfo(for coachId: String) async {
         let token = authManager.session?.accessToken
         let loadedTarget = target
+        loadGeneration += 1
+        let generation = loadGeneration
         // Drop the previous athlete's link before any await so it can't be copied while this loads.
         if loadedKey != selectionKey { clearTrackingInfo() }
         loadedKey = selectionKey
         guard let profile = await fetchSelectedProfile(target: loadedTarget, token: token) else {
-            guard loadedTarget == target else { return }
+            guard isCurrent(generation, loadedTarget) else { return }
             clearTrackingInfo()
             return
         }
@@ -72,8 +74,8 @@ final class SendProfileViewModel {
         let link = profile.isPublished
             ? try? await service.fetchTrackingLink(coachId: coachId, athleteId: athleteId, accessToken: token)
             : nil
-        // A newer load owns the state once the selection moved on.
-        guard loadedTarget == target else { return }
+        // A newer load owns the state once the selection moved on or another load started.
+        guard isCurrent(generation, loadedTarget) else { return }
         isPublished = profile.isPublished
         guard let link else {
             clearTrackingInfo(keepingPublished: true)
@@ -189,16 +191,25 @@ final class SendProfileViewModel {
         }
     }
 
-    /// Copy the current tracking link to the pasteboard. No-op if none exists.
-    func copyTrackingLink() {
-        guard let url = trackingURL, loadedKey == selectionKey else { return }
+    /// Copy the current tracking link to the pasteboard. Returns whether anything was copied; a link
+    /// loaded for another athlete is never copied.
+    @discardableResult
+    func copyTrackingLink() -> Bool {
+        guard let url = trackingURL, loadedKey == selectionKey else { return false }
         UIPasteboard.general.string = url.absoluteString
+        return true
     }
 
     // MARK: - Private
 
     /// The `selectionKey` the published tracking state was loaded for.
     private var loadedKey: String?
+    /// Bumped per `loadTrackingInfo`; only the latest load may write state, even for the same athlete.
+    private var loadGeneration = 0
+
+    private func isCurrent(_ generation: Int, _ loadedTarget: Target) -> Bool {
+        generation == loadGeneration && loadedTarget == target
+    }
 
     private enum Target: Equatable {
         /// `athleteId` nil = the caller's own row (player); non-nil = the parent's selected athlete.

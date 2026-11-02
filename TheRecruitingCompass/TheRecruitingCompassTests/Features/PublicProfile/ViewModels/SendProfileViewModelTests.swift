@@ -506,6 +506,63 @@ final class SendProfileViewModelTests: XCTestCase {
         XCTAssertEqual(UIPasteboard.general.string, "sentinel")
     }
 
+    func testCopyLinkCopiesTheLoadedLinkAndReportsSuccess() async {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, _) = parentSetup(service: service)
+        await vm.loadTrackingInfo(for: "c1")
+        UIPasteboard.general.string = "sentinel"
+
+        XCTAssertTrue(vm.copyTrackingLink())
+
+        XCTAssertEqual(UIPasteboard.general.string, vm.trackingURL?.absoluteString)
+        XCTAssertNotEqual(UIPasteboard.general.string, "sentinel")
+    }
+
+    func testCopyLinkReportsRefusalForAnotherAthletesLink() async {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, family) = parentSetup(service: service)
+        await vm.loadTrackingInfo(for: "c1")
+        Fixture.selectSecondAthlete(in: family)
+
+        XCTAssertFalse(vm.copyTrackingLink())
+    }
+
+    func testCopyLinkReportsFailureWhenNothingIsLoaded() {
+        let vm = makeVM(service: MockPublicProfileManaging(), authManager: selfAuth())
+
+        XCTAssertFalse(vm.copyTrackingLink())
+    }
+
+    func testStaleSameAthleteLoadResolvingLastCannotWipeTheLatestLoad() async {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, family) = parentSetup(service: service)
+        var firstLoadResume: CheckedContinuation<Void, Never>?
+        service.onFetchProfile = { [unowned service] in
+            service.onFetchProfile = nil
+            await withCheckedContinuation { firstLoadResume = $0 }
+        }
+        let firstLoad = Task { await vm.loadTrackingInfo(for: "c1") }
+        while firstLoadResume == nil { await Task.yield() }
+
+        Fixture.selectSecondAthlete(in: family)
+        family.selectedAthleteId = "member-athlete-1"   // A -> B -> A
+        await vm.loadTrackingInfo(for: "c1")
+        XCTAssertNotNil(vm.trackingURL)
+
+        service.stubProfile = nil   // the stale first load now fails
+        firstLoadResume?.resume()
+        await firstLoad.value
+
+        XCTAssertNotNil(vm.trackingURL)
+        XCTAssertTrue(vm.isPublished)
+    }
+
     func testPlayerWithEmptySessionNameFallsBackToProfileName() async {
         let service = MockPublicProfileManaging()
         service.stubProfile = makeProfile()

@@ -369,11 +369,12 @@ struct CoachDetailView: View {
         .foregroundStyle(.secondary)
     }
     Button {
-      sendProfileVM.copyTrackingLink()
-      linkCopied = true
-      Task {
-        try? await Task.sleep(for: .seconds(2))
-        linkCopied = false
+      if sendProfileVM.copyTrackingLink() {
+        linkCopied = true
+        Task {
+          try? await Task.sleep(for: .seconds(2))
+          linkCopied = false
+        }
       }
     } label: {
       Label(
