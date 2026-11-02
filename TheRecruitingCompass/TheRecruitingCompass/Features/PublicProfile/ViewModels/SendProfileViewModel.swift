@@ -60,6 +60,9 @@ final class SendProfileViewModel {
     func loadTrackingInfo(for coachId: String) async {
         let token = authManager.session?.accessToken
         let loadedTarget = target
+        // Drop the previous athlete's link before any await so it can't be copied while this loads.
+        if loadedKey != selectionKey { clearTrackingInfo() }
+        loadedKey = selectionKey
         guard let profile = await fetchSelectedProfile(target: loadedTarget, token: token) else {
             guard loadedTarget == target else { return }
             clearTrackingInfo()
@@ -188,11 +191,14 @@ final class SendProfileViewModel {
 
     /// Copy the current tracking link to the pasteboard. No-op if none exists.
     func copyTrackingLink() {
-        guard let url = trackingURL else { return }
+        guard let url = trackingURL, loadedKey == selectionKey else { return }
         UIPasteboard.general.string = url.absoluteString
     }
 
     // MARK: - Private
+
+    /// The `selectionKey` the published tracking state was loaded for.
+    private var loadedKey: String?
 
     private enum Target: Equatable {
         /// `athleteId` nil = the caller's own row (player); non-nil = the parent's selected athlete.
@@ -238,15 +244,17 @@ final class SendProfileViewModel {
     }
 
     /// The athlete's display name, or nil when it can't be determined — a coach must never get a blank
-    /// name. When a parent sends the athlete's profile the session name is the parent's, so look it up.
+    /// name. A parent sends the athlete's profile, so the session name (the parent's) is never used for them.
     private func resolvePlayerName(athleteUserId: String) async -> String? {
-        let name: String?
-        if Self.sameUser(athleteUserId, authManager.user?.id) {
-            name = authManager.user?.fullName
-        } else {
-            name = try? await photoService.fullName(userId: athleteUserId)
+        if Self.sameUser(athleteUserId, authManager.user?.id),
+           let own = Self.nonBlank(authManager.user?.fullName) {
+            return own
         }
-        guard let name, !name.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
+        return Self.nonBlank(try? await photoService.fullName(userId: athleteUserId))
+    }
+
+    private static func nonBlank(_ name: String?) -> String? {
+        guard let name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
         return name
     }
 

@@ -7,6 +7,7 @@ enum ParentViewingAthleteFixture {
   static let parentUserId = "parent-user-1"
   static let athleteUserId = "athlete-user-1"
   static let familyUnitId = "family-1"
+  static let secondAthleteUserId = "athlete-user-2"
 
   static func parentUser() -> User {
     User(
@@ -34,6 +35,16 @@ enum ParentViewingAthleteFixture {
     familyManager.familyMembers = [parent, athlete]
     familyManager.selectedAthleteId = athlete.id
     return familyManager
+  }
+
+  /// Adds a second athlete and selects them, as the athlete selector does.
+  @MainActor
+  static func selectSecondAthlete(in familyManager: FamilyManager) {
+    let second = member(id: "member-athlete-2", userId: secondAthleteUserId, role: "player")
+    if !familyManager.familyMembers.contains(where: { $0.id == second.id }) {
+      familyManager.familyMembers.append(second)
+    }
+    familyManager.selectedAthleteId = second.id
   }
 
   private static func member(id: String, userId: String, role: String) -> FamilyMember {

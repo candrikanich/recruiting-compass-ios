@@ -221,9 +221,7 @@ struct CoachDetailView: View {
         await viewModel.loadDetails()
         await subscribeRealtime()
       }
-      .task(id: sendProfileVM.selectionKey) {
-        await sendProfileVM.loadTrackingInfo(for: coachId)
-      }
+      .modifier(SendProfileLoadModifier(viewModel: sendProfileVM, coachId: coachId))
       .onDisappear {
         let service = realtimeService
         realtimeService = nil

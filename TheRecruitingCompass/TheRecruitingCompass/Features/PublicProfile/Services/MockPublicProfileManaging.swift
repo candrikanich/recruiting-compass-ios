@@ -8,6 +8,9 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
     var errorToThrowOnce: Error?
     /// Runs inside `createTrackingLink`, i.e. while a send is mid-flight.
     var onCreateTrackingLink: (() -> Void)?
+    /// Runs at the start of `fetchProfile`, i.e. while a load is mid-flight.
+    var onFetchProfile: (() async -> Void)?
+    var onFetchTrackingLink: (() -> Void)?
     private(set) var fetchedAthleteIds: [String?] = []
     private(set) var updatedPayloads: [UpdateProfilePayload] = []
     /// Every `updateProfile` call, including ones that threw — `updatedPayloads` only has successes.
@@ -19,6 +22,7 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
 
     func fetchProfile(athleteId: String?, accessToken: String?) async throws -> PlayerProfile? {
         fetchedAthleteIds.append(athleteId)
+        await onFetchProfile?()
         if let once = errorToThrowOnce {
             errorToThrowOnce = nil
             throw once
@@ -40,6 +44,7 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
 
     func fetchTrackingLink(coachId: String, athleteId: String?, accessToken: String?) async throws
         -> ProfileTrackingLink? {
+        onFetchTrackingLink?()
         if let errorToThrow { throw errorToThrow }
         fetchedTrackingCoachIds.append(coachId)
         fetchedTrackingAthleteIds.append(athleteId)

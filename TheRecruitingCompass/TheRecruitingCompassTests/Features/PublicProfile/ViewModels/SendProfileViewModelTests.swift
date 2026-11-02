@@ -402,6 +402,136 @@ final class SendProfileViewModelTests: XCTestCase {
         XCTAssertTrue(service.createdTrackingAthleteIds.isEmpty)
     }
 
+    // MARK: - #422 round 2: stale state, name fallback
+
+    private typealias Fixture = ParentViewingAthleteFixture
+
+    private func link(views: Int = 3) -> ProfileTrackingLink {
+        ProfileTrackingLink(
+            id: "t1", profileId: "p1", coachId: "c1", refToken: "tok", viewCount: views,
+            lastViewedAt: "2026-08-20T00:00:00Z", createdAt: ""
+        )
+    }
+
+    private func parentSetup(
+        service: MockPublicProfileManaging
+    ) -> (vm: SendProfileViewModel, family: FamilyManager) {
+        let auth = MockAuthManager()
+        let family = Fixture.makeFamilyManager(authManager: auth)
+        let photo = MockProfilePhotoService()
+        photo.stubbedFullName = "Athlete Smith"
+        return (makeVM(service: service, authManager: auth, photo: photo, familyManager: family), family)
+    }
+
+    func testStaleFailedLoadDoesNotClearTheNewSelectionsState() async {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, family) = parentSetup(service: service)
+        service.onFetchProfile = { [unowned service] in
+            service.onFetchProfile = nil
+            Fixture.selectSecondAthlete(in: family)
+            service.stubProfile = self.makeProfile(userId: Fixture.secondAthleteUserId)
+            await vm.loadTrackingInfo(for: "c1")
+            service.stubProfile = nil   // the first (now stale) load fails
+        }
+
+        await vm.loadTrackingInfo(for: "c1")
+
+        XCTAssertNotNil(vm.trackingURL)
+        XCTAssertTrue(vm.isPublished)
+    }
+
+    func testStaleSuccessfulLoadIsDiscardedAfterSelectionChange() async {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, family) = parentSetup(service: service)
+        service.onFetchTrackingLink = { Fixture.selectSecondAthlete(in: family) }
+
+        await vm.loadTrackingInfo(for: "c1")
+
+        XCTAssertNil(vm.trackingURL)
+        XCTAssertNil(vm.viewCount)
+        XCTAssertFalse(vm.isPublished)
+    }
+
+    func testReloadWithoutALinkClearsThePreviousLinkAndStats() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile()
+        service.stubTrackingLink = link()
+        let vm = makeVM(service: service, authManager: selfAuth())
+        await vm.loadTrackingInfo(for: "c1")
+        XCTAssertNotNil(vm.trackingURL)
+
+        service.stubTrackingLink = nil
+        await vm.loadTrackingInfo(for: "c1")
+
+        XCTAssertNil(vm.trackingURL)
+        XCTAssertNil(vm.viewCount)
+        XCTAssertNil(vm.lastViewedAt)
+        XCTAssertTrue(vm.isPublished)
+    }
+
+    func testSwitchingAthleteClearsLinkBeforeTheReloadAwaits() async {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, family) = parentSetup(service: service)
+        await vm.loadTrackingInfo(for: "c1")
+        XCTAssertNotNil(vm.trackingURL)
+
+        Fixture.selectSecondAthlete(in: family)
+        service.stubProfile = makeProfile(userId: Fixture.secondAthleteUserId)
+        var seenMidFlight: (URL?, Int?, Bool)?
+        service.onFetchProfile = { seenMidFlight = (vm.trackingURL, vm.viewCount, vm.isPublished) }
+        await vm.loadTrackingInfo(for: "c1")
+
+        XCTAssertNil(seenMidFlight?.0)
+        XCTAssertNil(seenMidFlight?.1)
+        XCTAssertEqual(seenMidFlight?.2, false)
+    }
+
+    func testCopyLinkDoesNotCopyThePreviousAthletesLinkAfterSwitching() async {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, family) = parentSetup(service: service)
+        await vm.loadTrackingInfo(for: "c1")
+        Fixture.selectSecondAthlete(in: family)
+        UIPasteboard.general.string = "sentinel"
+
+        vm.copyTrackingLink()
+
+        XCTAssertEqual(UIPasteboard.general.string, "sentinel")
+    }
+
+    func testPlayerWithEmptySessionNameFallsBackToProfileName() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile()
+        let photo = MockProfilePhotoService()
+        photo.stubbedFullName = "Owen Lookup"
+        let vm = makeVM(service: service, authManager: selfAuth(fullName: ""), photo: photo)
+
+        let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+
+        guard case let .email(message) = result else { return XCTFail("expected .email, got \(result)") }
+        XCTAssertTrue(message.subject.contains("Owen Lookup"), message.subject)
+    }
+
+    func testPlayerWithBlankSessionAndLookupNamesIsRefused() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile()
+        let photo = MockProfilePhotoService()
+        photo.stubbedFullName = " \n"
+        let vm = makeVM(service: service, authManager: selfAuth(fullName: "\n"), photo: photo)
+
+        let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+
+        guard case .failed = result else { return XCTFail("expected .failed, got \(result)") }
+        XCTAssertTrue(service.createdTrackingAthleteIds.isEmpty)
+    }
+
     // MARK: - logSend (interaction logging on confirmed send only)
 
     func testLogSendEmailCreatesOutboundEmailInteraction() async {
