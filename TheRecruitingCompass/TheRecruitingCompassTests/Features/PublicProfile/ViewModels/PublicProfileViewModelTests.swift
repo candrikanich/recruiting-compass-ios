@@ -103,6 +103,9 @@ final class PublicProfileViewModelTests: XCTestCase {
         XCTAssertNil(mock.updatedPayloads.last?.vanitySlug)
     }
 
+    private static let notLoadedMessage =
+        "Your profile didn't load, so changes can't be saved. Reopen this screen to retry."
+
     func testSaveAfterFailedLoadSendsNothingAndShowsRetryMessage() async {
         let mock = MockPublicProfileManaging()
         mock.errorToThrow = PublicProfileAPIError.server(500)
@@ -112,7 +115,110 @@ final class PublicProfileViewModelTests: XCTestCase {
         vm.bio = "typed after a failed load"
         await vm.save()
         XCTAssertTrue(mock.attemptedPayloads.isEmpty)
-        XCTAssertNotNil(vm.saveError)
+        XCTAssertEqual(vm.saveError, Self.notLoadedMessage)
+        XCTAssertNotEqual(vm.saveError, "Couldn't save changes. Please try again.")
+    }
+
+    func testToggleOnlySaveAfterFailedLoadSendsNothing() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = nil
+        vm.isPublished = true
+        vm.toggleSectionVisibility(.awards)
+        await vm.save()
+        XCTAssertTrue(mock.attemptedPayloads.isEmpty)
+        XCTAssertEqual(vm.saveError, Self.notLoadedMessage)
+    }
+
+    func testFailedLoadShowsRetryStateInsteadOfEditor() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        XCTAssertEqual(vm.loadState, .loading)
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .failed("Couldn't load your public profile. Please try again."))
+    }
+
+    func testFailedLoadWithNoProfileDataShowsRetryState() async {
+        let mock = MockPublicProfileManaging()
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .failed("Couldn't load your public profile. Please try again."))
+    }
+
+    func testServerMessageOnLoadIsShownInRetryState() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.serverMessage("Not authorized to edit this athlete's profile")
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .failed("Not authorized to edit this athlete's profile"))
+    }
+
+    func testRetryAfterFailedLoadShowsEditorWithStoredValues() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = nil
+        mock.stubProfile = makeProfile(published: true)
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .loaded)
+        XCTAssertTrue(vm.isPublished)
+    }
+
+    func testFailedLoadKeepsMoreSpecificRefusalThanReopen() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.serverMessage("Not authorized to edit this athlete's profile")
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        await vm.save()
+        XCTAssertEqual(vm.saveError, "Not authorized to edit this athlete's profile")
+        XCTAssertTrue(mock.attemptedPayloads.isEmpty)
+    }
+
+    func testSuccessfulLoadClearsRefusalFromSaveDuringLoad() async {
+        let mock = MockPublicProfileManaging()
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.save()
+        XCTAssertEqual(vm.saveError, Self.notLoadedMessage)
+        mock.stubProfile = makeProfile()
+        await vm.load()
+        XCTAssertNil(vm.saveError)
+    }
+
+    func testSuccessfulLoadKeepsUnrelatedSaveError() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = PublicProfileAPIError.serverMessage("Not authorized")
+        await vm.save()
+        mock.errorToThrow = nil
+        await vm.load()
+        XCTAssertEqual(vm.saveError, "Not authorized")
+    }
+
+    func testFailedReloadOnLoadedViewModelKeepsEditorAndLoadedValues() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile(published: true)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .loaded)
+        XCTAssertTrue(vm.isPublished)
+    }
+
+    func testFlushAfterFailedLoadSendsNothing() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        vm.scheduleDebouncedSave(.bio, delay: .seconds(60))
+        await vm.flushPendingSaves()
+        XCTAssertTrue(mock.attemptedPayloads.isEmpty)
     }
 
     func testSaveSurfacesServerErrorMessage() async {
