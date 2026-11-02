@@ -252,6 +252,11 @@ final class PublicProfileViewModelTests: XCTestCase {
         XCTAssertEqual(state(.failed("x"), configured: false), .unconfigured)
     }
 
+    func testParentWithNoSelectedAthleteSeesSelectAthleteContent() {
+        let vm = makeVM(MockPublicProfileManaging(), userId: "parent-1", role: .parent, target: nil)
+        XCTAssertEqual(vm.contentState, .selectAthlete)
+    }
+
     func testFailedLoadNeverMapsToEditorContent() async {
         let mock = MockPublicProfileManaging()
         mock.errorToThrow = PublicProfileAPIError.server(500)
