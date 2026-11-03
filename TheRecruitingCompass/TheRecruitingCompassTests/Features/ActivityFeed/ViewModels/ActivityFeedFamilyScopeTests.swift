@@ -181,7 +181,7 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     let status = ActivityEventFactory.fromStatusChange(
       makeStatusChange(id: "s", changedBy: "mom"), schoolName: "UCLA")
     let document = ActivityEventFactory.fromDocument(
-      DocumentRecord(id: "d", title: "T", type: nil, createdAt: "2026-02-10T10:00:00.000Z", userId: "me"))
+      DocumentRecord(id: "d", title: "T", type: nil, createdAt: "2026-02-10T10:00:00.000Z", uploadedBy: "me"))
 
     XCTAssertEqual(sut.actorLabel(for: status), "Mom")
     XCTAssertEqual(sut.actorLabel(for: document), "You")
@@ -226,6 +226,38 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     sut.addRealtimeEvent(racing, forFamily: "family-1")
 
     XCTAssertEqual(sut.activities.map(\.id), ["interaction-dup"])
+  }
+
+  func testActorLabel_document_creditsUploaderNotOwner() {
+    authenticateUser(id: "parent")
+    familyManager.familyMembers = [Self.member(id: "m-me", userId: "parent")]
+    let confirmedDraft = ActivityEventFactory.fromDocument(DocumentRecord(
+      id: "d", title: "T", type: nil, createdAt: "2026-02-10T10:00:00.000Z", uploadedBy: "parent"))
+
+    XCTAssertEqual(confirmedDraft.actorUserId, "parent")
+    XCTAssertEqual(sut.actorLabel(for: confirmedDraft), "You")
+  }
+
+  func testActorLabel_documentWithNullUploader_isFormerMember() {
+    authenticateUser(id: "me")
+    familyManager.familyMembers = [Self.member(id: "m-me", userId: "me")]
+    let orphan = ActivityEventFactory.fromDocument(
+      DocumentRecord(id: "d", title: "T", type: nil, createdAt: "2026-02-10T10:00:00.000Z"))
+
+    XCTAssertEqual(sut.actorLabel(for: orphan), "A former family member")
+  }
+
+  func testDebouncedReload_thatFails_keepsTheListAndShowsNoError() async throws {
+    authenticateUser()
+    mockService.mockInteractions = [makeInteraction(id: "kept")]
+    await sut.loadActivities()
+    mockService.shouldThrowOnInteractions = true
+
+    sut.scheduleDebouncedReload()
+    try await Task.sleep(for: .milliseconds(400))
+
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-kept"])
+    XCTAssertNil(sut.errorMessage)
   }
 
   // MARK: - Races and lifecycle

@@ -52,7 +52,7 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
     try await logger.fetch("documents") {
       try await client
         .from("documents")
-        .select("id, title, type, created_at, user_id")
+        .select("id, title, type, created_at, uploaded_by")
         .eq("family_unit_id", value: familyUnitId)
         .order("created_at", ascending: false)
         .limit(Self.perSourceLimit)

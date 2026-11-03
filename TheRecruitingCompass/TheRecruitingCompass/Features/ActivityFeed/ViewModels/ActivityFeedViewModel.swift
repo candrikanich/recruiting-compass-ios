@@ -233,7 +233,8 @@ final class ActivityFeedViewModel {
       if Task.isCancelled || error is CancellationError || (error as? URLError)?.code == .cancelled
         || !isStillActive(familyUnitId) { return }
       logger.error("Failed to load activities: \(error.localizedDescription)")
-      errorMessage = "Failed to load activities. Please try again."
+      // A failed background/forced reload must keep the list the user is looking at, not replace it with an error.
+      if activities.isEmpty { errorMessage = "Failed to load activities. Please try again." }
     }
   }
 

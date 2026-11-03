@@ -69,6 +69,7 @@ final class ActivityFeedServiceImplQueryTests: XCTestCase {
     XCTAssertEqual(params["family_unit_id"], "eq.fam-A")
     XCTAssertEqual(params["limit"], "200")
     XCTAssertNil(params["user_id"])
+    XCTAssertTrue(params["select"]?.contains("uploaded_by") == true)
   }
 
   func testFetchStatusChanges_filtersThroughInnerJoinedSchoolsAndCapsAt200_neverByUser() async throws {

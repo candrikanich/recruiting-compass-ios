@@ -77,7 +77,7 @@ enum ActivityEventFactory {
       entityName: document.title,
       isClickable: false,
       clickUrl: nil,
-      actorUserId: document.userId
+      actorUserId: document.uploadedBy
     )
   }
 
