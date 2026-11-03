@@ -45,6 +45,8 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
   static let statusHistoryTable = "school_status_history"
   /// No filter: the table has no family column. RLS limits delivery to the user's families.
   static let statusHistoryFilter: String? = nil
+  /// INSERT only: the history is append-only, and an UPDATE/DELETE of an old row changes nothing the feed shows.
+  static let statusHistoryEvent: PostgresChangeEvent = .insert
 
   // MARK: - ActivityRealtimeManaging
 
@@ -84,10 +86,24 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     guard try await join(schools, generation: generation, label: "schools") else { return }
 
     let statusHistory = realtime.exclusiveChannel("activity-status-\(familyUnitId)")
-    _ = statusHistory.onPostgresChange(
-      InsertAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
-    ) { _ in
-      Task { @MainActor in onStatusHistoryInsert() }
+    let notify: @Sendable () -> Void = { Task { @MainActor in onStatusHistoryInsert() } }
+    switch Self.statusHistoryEvent {
+    case .insert:
+      _ = statusHistory.onPostgresChange(
+        InsertAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
+      ) { _ in notify() }
+    case .update:
+      _ = statusHistory.onPostgresChange(
+        UpdateAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
+      ) { _ in notify() }
+    case .delete:
+      _ = statusHistory.onPostgresChange(
+        DeleteAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
+      ) { _ in notify() }
+    case .all:
+      _ = statusHistory.onPostgresChange(
+        AnyAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
+      ) { _ in notify() }
     }
     guard try await join(statusHistory, generation: generation, label: "status history") else { return }
 

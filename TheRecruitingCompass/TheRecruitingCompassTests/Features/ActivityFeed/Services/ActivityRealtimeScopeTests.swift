@@ -1,3 +1,4 @@
+import Supabase
 import XCTest
 @testable import TheRecruitingCompass
 
@@ -9,6 +10,7 @@ final class ActivityRealtimeScopeTests: XCTestCase {
   func testStatusHistorySubscription_isTheUnfilteredHistoryTable() {
     XCTAssertEqual(ActivityRealtimeService.statusHistoryTable, "school_status_history")
     XCTAssertNil(ActivityRealtimeService.statusHistoryFilter, "the table has no family column to filter on")
+    XCTAssertEqual(ActivityRealtimeService.statusHistoryEvent, .insert)
   }
 
   func testChannelRegistry_refusesAChannelJoinedForAnEndedSubscription() {
