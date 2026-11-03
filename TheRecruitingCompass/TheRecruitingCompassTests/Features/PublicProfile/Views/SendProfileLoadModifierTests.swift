@@ -14,6 +14,11 @@ final class SendProfileLoadModifierTests: XCTestCase {
 
     func testChangingTheSelectedAthleteReloadsTrackingInfo() async {
         let service = MockPublicProfileManaging()
+        service.stubProfile = PlayerProfile(
+            id: "p1", userId: ParentViewingAthleteFixture.athleteUserId, familyUnitId: "f1", hashSlug: "ab",
+            vanitySlug: "owen", isPublished: true, bio: nil, headerColor: "slate", showAcademics: true,
+            showAthletic: true, showFilm: true, showSchools: true, createdAt: "", updatedAt: ""
+        )
         let auth = MockAuthManager()
         let family = ParentViewingAthleteFixture.makeFamilyManager(authManager: auth)
         let vm = SendProfileViewModel(
@@ -30,6 +35,7 @@ final class SendProfileLoadModifierTests: XCTestCase {
 
         await waitUntil { service.fetchedAthleteIds.count == 1 }
         XCTAssertEqual(service.fetchedAthleteIds, [ParentViewingAthleteFixture.athleteUserId])
+        XCTAssertEqual(service.fetchedTrackingCoachIds, ["c1"])
 
         ParentViewingAthleteFixture.selectSecondAthlete(in: family)
         await waitUntil { service.fetchedAthleteIds.count == 2 }

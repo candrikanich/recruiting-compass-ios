@@ -563,6 +563,138 @@ final class SendProfileViewModelTests: XCTestCase {
         XCTAssertTrue(vm.isPublished)
     }
 
+    // MARK: - #422 round 4
+
+    /// Parks the next `fetchProfile` until `release()`; `waitUntilParked()` returns once it is suspended.
+    private func parkNextProfileFetch(
+        _ service: MockPublicProfileManaging
+    ) -> (waitUntilParked: () async -> Void, release: () -> Void) {
+        var resume: CheckedContinuation<Void, Never>?
+        service.onFetchProfile = { [unowned service] in
+            service.onFetchProfile = nil
+            await withCheckedContinuation { resume = $0 }
+        }
+        return (
+            { while resume == nil { await Task.yield() } },
+            { resume?.resume() }
+        )
+    }
+
+    func testStaleLoadWhoseLinkFetchComesBackEmptyCannotWipeTheNewerLoadsLink() async {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, _) = parentSetup(service: service)
+        let parked = parkNextProfileFetch(service)
+        let firstLoad = Task { await vm.loadTrackingInfo(for: "c1") }
+        await parked.waitUntilParked()
+
+        await vm.loadTrackingInfo(for: "c1")
+        XCTAssertNotNil(vm.trackingURL)
+
+        service.stubTrackingLink = nil   // the stale load's profile fetch succeeds, its link fetch is empty
+        parked.release()
+        await firstLoad.value
+
+        XCTAssertNotNil(vm.trackingURL)
+        XCTAssertEqual(vm.viewCount, 3)
+    }
+
+    func testInFlightLoadCannotWipeTheLinkASendJustCreated() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)   // no existing link
+        let (vm, _) = parentSetup(service: service)
+        let parked = parkNextProfileFetch(service)
+        let load = Task { await vm.loadTrackingInfo(for: "c1") }
+        await parked.waitUntilParked()
+
+        let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+        guard case .email = result else { return XCTFail("expected .email, got \(result)") }
+        XCTAssertNotNil(vm.trackingURL)
+
+        parked.release()
+        await load.value
+
+        XCTAssertNotNil(vm.trackingURL)
+    }
+
+    func testSelectionChangedWhileProfileFetchIsInFlightNeverMarksPublishedOrPrompts() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId, isPublished: false)
+        let (vm, family) = parentSetup(service: service)
+        service.onFetchProfile = { Fixture.selectSecondAthlete(in: family) }
+
+        let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+
+        guard case .failed = result else { return XCTFail("expected .failed, got \(result)") }
+        XCTAssertFalse(vm.notPublishedPrompt)
+        XCTAssertFalse(vm.isPublished)
+    }
+
+    func testSelectionChangedDuringPublishedProfileFetchDoesNotMarkPublished() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, family) = parentSetup(service: service)
+        service.onFetchProfile = { Fixture.selectSecondAthlete(in: family) }
+
+        _ = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+
+        XCTAssertFalse(vm.isPublished)
+    }
+
+    func testSelectionChangedDuringGuardianLookupNeverPromptsForTheOldAthlete() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let auth = MockAuthManager()
+        let family = Fixture.makeFamilyManager(authManager: auth)
+        auth.setMockSession(Session(
+            accessToken: "t", tokenType: "bearer", expiresIn: 3600, expiresAt: 0,
+            refreshToken: "r", user: Fixture.parentUser()
+        ))
+        let guardian = MockGuardianService()
+        guardian.mockStatus = GuardianStatus(locked: true, guardianEmailMasked: nil, expiresAt: nil, status: nil)
+        guardian.onFetchStatus = { Fixture.selectSecondAthlete(in: family) }
+        let vm = SendProfileViewModel(
+            service: service, authManager: auth, preferenceService: MockPreferenceService(),
+            photoService: MockProfilePhotoService(), interactionsService: MockInteractionsService(),
+            guardianService: guardian, familyManager: family
+        )
+
+        let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+
+        guard case .failed = result else { return XCTFail("expected .failed, got \(result)") }
+        XCTAssertFalse(vm.guardianPendingPrompt)
+    }
+
+    func testSuccessfulCopyShowsCopiedStateThatThenResets() async throws {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, _) = parentSetup(service: service)
+        vm.copiedFeedbackDuration = .milliseconds(100)
+        await vm.loadTrackingInfo(for: "c1")
+        XCTAssertFalse(vm.linkCopied)
+
+        vm.copyTrackingLink()
+        XCTAssertTrue(vm.linkCopied)
+
+        try await Task.sleep(for: .milliseconds(600))
+        XCTAssertFalse(vm.linkCopied)
+    }
+
+    func testRefusedCopyNeverShowsCopiedState() async {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, family) = parentSetup(service: service)
+        await vm.loadTrackingInfo(for: "c1")
+        Fixture.selectSecondAthlete(in: family)
+
+        vm.copyTrackingLink()
+
+        XCTAssertFalse(vm.linkCopied)
+    }
+
     func testPlayerWithEmptySessionNameFallsBackToProfileName() async {
         let service = MockPublicProfileManaging()
         service.stubProfile = makeProfile()

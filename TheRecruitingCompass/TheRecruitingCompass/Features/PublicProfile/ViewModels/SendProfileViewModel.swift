@@ -29,6 +29,10 @@ final class SendProfileViewModel {
     var lastViewedAt: String?
     var errorMessage: String?
     var successMessage: String?
+    /// True briefly after a successful copy; the view's "Copied" label reads this, never its own flag.
+    private(set) var linkCopied = false
+    var copiedFeedbackDuration: Duration = .seconds(2)
+    private var copiedResetTask: Task<Void, Never>?
 
     init(
         service: PublicProfileManaging = PublicProfileServiceImpl(),
@@ -93,9 +97,12 @@ final class SendProfileViewModel {
         guardianPendingPrompt = false
         let token = authManager.session?.accessToken
         let preparedTarget = target
+        // Supersede any in-flight load so it can't overwrite the link this send creates.
+        loadGeneration += 1
 
         guard case let .resolved(athleteId) = preparedTarget,
-              let profile = await fetchSelectedProfile(target: preparedTarget, token: token) else {
+              let profile = await fetchSelectedProfile(target: preparedTarget, token: token),
+              preparedTarget == target else {
             return failSend()
         }
         guard profile.isPublished else {
@@ -107,7 +114,12 @@ final class SendProfileViewModel {
         // COPPA-adjacent lock: a self-signed-up 13-17 player can't share their profile
         // until their named guardian confirms, independent of the publish toggle. Fails
         // open on any lookup error — matches the rest of the guardian-gating in this app.
-        if let token, let status = try? await guardianService.fetchStatus(accessToken: token), status.locked {
+        var guardianLocked = false
+        if let token, let status = try? await guardianService.fetchStatus(accessToken: token) {
+            guardianLocked = status.locked
+        }
+        guard preparedTarget == target else { return failSend() }
+        if guardianLocked {
             guardianPendingPrompt = true
             return .guardianPending
         }
@@ -133,6 +145,7 @@ final class SendProfileViewModel {
         // The selection can change while the lookups above are in flight; never send for a different athlete.
         guard preparedTarget == target else { return failSend() }
         // Surface the link for copy + view stats now that it exists.
+        loadedKey = selectionKey
         trackingURL = url
         viewCount = link.viewCount
         lastViewedAt = link.lastViewedAt
@@ -197,6 +210,13 @@ final class SendProfileViewModel {
     func copyTrackingLink() -> Bool {
         guard let url = trackingURL, loadedKey == selectionKey else { return false }
         UIPasteboard.general.string = url.absoluteString
+        linkCopied = true
+        copiedResetTask?.cancel()
+        copiedResetTask = Task { [weak self, copiedFeedbackDuration] in
+            try? await Task.sleep(for: copiedFeedbackDuration)
+            guard !Task.isCancelled else { return }
+            self?.linkCopied = false
+        }
         return true
     }
 
@@ -249,6 +269,7 @@ final class SendProfileViewModel {
 
     private func clearTrackingInfo(keepingPublished: Bool = false) {
         if !keepingPublished { isPublished = false }
+        linkCopied = false
         trackingURL = nil
         viewCount = nil
         lastViewedAt = nil

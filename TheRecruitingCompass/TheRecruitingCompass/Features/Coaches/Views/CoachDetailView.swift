@@ -21,14 +21,10 @@ struct CoachDetailView: View {
 
   @State private var viewModel: CoachDetailViewModel
   @State private var quickCommunicationContext: QuickCommunicationContext?
-  @State private var sendProfileVM = SendProfileViewModel(
-    service: PublicProfileServiceImpl(),
-    authManager: AuthManager.shared
-  )
+  @State private var sendProfileVM: SendProfileViewModel
   @State private var shareItem: ShareURL?
   @State private var profileComposer: ProfileComposerContext?
   @State private var pendingChannelChoice: SendProfileMessage?
-  @State private var linkCopied = false
   @State private var showLogInteraction = false
   @State private var showSocialDMConfirm = false
   @State private var realtimeService: CoachDetailRealtimeService?
@@ -38,14 +34,24 @@ struct CoachDetailView: View {
   @Environment(\.scenePhase) private var scenePhase
   @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
-  init(coachId: String, allCoaches: [Coach] = [], allSchools: [School] = []) {
+  init(
+    coachId: String,
+    allCoaches: [Coach] = [],
+    allSchools: [School] = [],
+    viewModel: CoachDetailViewModel? = nil,
+    sendProfileViewModel: SendProfileViewModel? = nil
+  ) {
     self.coachId = coachId
     self.allCoaches = allCoaches
     self.allSchools = allSchools
-    _viewModel = State(initialValue: CoachDetailViewModel(
+    _viewModel = State(initialValue: viewModel ?? CoachDetailViewModel(
       coachId: coachId,
       allCoaches: allCoaches,
       allSchools: allSchools
+    ))
+    _sendProfileVM = State(initialValue: sendProfileViewModel ?? SendProfileViewModel(
+      service: PublicProfileServiceImpl(),
+      authManager: AuthManager.shared
     ))
   }
 
@@ -369,17 +375,11 @@ struct CoachDetailView: View {
         .foregroundStyle(.secondary)
     }
     Button {
-      if sendProfileVM.copyTrackingLink() {
-        linkCopied = true
-        Task {
-          try? await Task.sleep(for: .seconds(2))
-          linkCopied = false
-        }
-      }
+      sendProfileVM.copyTrackingLink()
     } label: {
       Label(
-        linkCopied ? "Copied" : "Copy Link",
-        systemImage: linkCopied ? "checkmark" : "doc.on.doc"
+        sendProfileVM.linkCopied ? "Copied" : "Copy Link",
+        systemImage: sendProfileVM.linkCopied ? "checkmark" : "doc.on.doc"
       )
       .font(.brand(.caption))
     }
