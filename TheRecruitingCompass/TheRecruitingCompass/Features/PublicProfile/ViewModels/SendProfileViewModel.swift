@@ -225,7 +225,8 @@ final class SendProfileViewModel {
 
     /// The `selectionKey` the published tracking state was loaded for.
     private var loadedKey: String?
-    /// Bumped per `loadTrackingInfo`; only the latest load may write state, even for the same athlete.
+    /// Bumped per `loadTrackingInfo` and when `prepare()` writes its link; only the latest writer may update
+    /// state, even for the same athlete.
     private var loadGeneration = 0
 
     private func isCurrent(_ generation: Int, _ loadedTarget: Target) -> Bool {
