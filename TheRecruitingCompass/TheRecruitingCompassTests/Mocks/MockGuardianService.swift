@@ -45,7 +45,10 @@ final class MockGuardianService: GuardianManaging, @unchecked Sendable {
     return mockSignupMinorResult
   }
 
+  var onFetchStatus: (() -> Void)?
+
   func fetchStatus(accessToken: String) async throws -> GuardianStatus {
+    onFetchStatus?()
     fetchStatusCallCount += 1
     if shouldThrowFetchStatusError { throw mockErrorToThrow }
     return mockStatus

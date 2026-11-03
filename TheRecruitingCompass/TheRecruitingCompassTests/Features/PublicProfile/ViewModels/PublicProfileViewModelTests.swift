@@ -727,8 +727,12 @@ private final class GatedProfileService: PublicProfileManaging, @unchecked Senda
     func release() { continuation?.resume(); continuation = nil }
 
     func updateProfile(_ payload: UpdateProfilePayload, accessToken: String?) async throws {}
-    func fetchTrackingLink(coachId: String, accessToken: String?) async throws -> ProfileTrackingLink? { nil }
-    func createTrackingLink(coachId: String, accessToken: String?) async throws -> ProfileTrackingLink {
+    func fetchTrackingLink(
+        coachId: String, athleteId: String?, accessToken: String?
+    ) async throws -> ProfileTrackingLink? { nil }
+    func createTrackingLink(
+        coachId: String, athleteId: String?, accessToken: String?
+    ) async throws -> ProfileTrackingLink {
         throw PublicProfileAPIError.notConfigured
     }
 }

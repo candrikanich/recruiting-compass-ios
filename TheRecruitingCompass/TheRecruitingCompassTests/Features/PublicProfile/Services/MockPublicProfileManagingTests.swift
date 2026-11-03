@@ -27,12 +27,26 @@ final class MockPublicProfileManagingTests: XCTestCase {
         let mock = MockPublicProfileManaging()
         mock.errorToThrow = PublicProfileAPIError.slugTaken
         do {
-            _ = try await mock.createTrackingLink(coachId: "c1", accessToken: "t")
+            _ = try await mock.createTrackingLink(coachId: "c1", athleteId: nil, accessToken: "t")
             XCTFail("expected throw")
         } catch let e as PublicProfileAPIError {
             XCTAssertEqual(e, .slugTaken)
         } catch {
             XCTFail("unexpected error: \(error)")
         }
+    }
+
+    func testLinkHooksFireBeforeTheConfiguredErrorForBothLinkCalls() async {
+        struct Boom: Error {}
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = Boom()
+        var fired: [String] = []
+        mock.onFetchTrackingLink = { fired.append("fetch") }
+        mock.onCreateTrackingLink = { fired.append("create") }
+
+        _ = try? await mock.fetchTrackingLink(coachId: "c1", athleteId: nil, accessToken: nil)
+        _ = try? await mock.createTrackingLink(coachId: "c1", athleteId: nil, accessToken: nil)
+
+        XCTAssertEqual(fired, ["fetch", "create"])
     }
 }

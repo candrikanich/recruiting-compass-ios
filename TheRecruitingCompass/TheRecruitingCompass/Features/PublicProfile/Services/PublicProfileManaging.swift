@@ -26,8 +26,8 @@ enum PublicProfileAPIError: LocalizedError, Equatable {
 protocol PublicProfileManaging: Sendable {
     func fetchProfile(athleteId: String?, accessToken: String?) async throws -> PlayerProfile?
     func updateProfile(_ payload: UpdateProfilePayload, accessToken: String?) async throws
-    func fetchTrackingLink(coachId: String, accessToken: String?) async throws
+    func fetchTrackingLink(coachId: String, athleteId: String?, accessToken: String?) async throws
         -> ProfileTrackingLink?
-    func createTrackingLink(coachId: String, accessToken: String?) async throws
+    func createTrackingLink(coachId: String, athleteId: String?, accessToken: String?) async throws
         -> ProfileTrackingLink
 }
