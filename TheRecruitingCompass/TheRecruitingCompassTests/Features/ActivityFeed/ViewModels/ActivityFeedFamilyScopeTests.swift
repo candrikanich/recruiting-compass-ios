@@ -565,6 +565,30 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     XCTAssertNil(sut.errorMessage)
   }
 
+  func testStaleLoadFinishing_doesNotSwitchOffTheSpinnerWhileNewFamilyLoads() async {
+    authenticateUser()
+    let gateA = FetchGate()
+    let gateB = FetchGate()
+    mockService.beforeFetchInteractions = { family in
+      await (family == "family-A" ? gateA : gateB).wait()
+    }
+    switchFamily(to: "family-A")
+    let loadA = Task { await sut.loadActivities() }
+    await gateA.waitUntilWaiting()
+    switchFamily(to: "family-B")
+    let loadB = Task { await sut.loadActivities() }
+    await gateB.waitUntilWaiting()
+
+    await gateA.open()
+    await loadA.value
+
+    XCTAssertTrue(sut.isLoading, "B is still loading")
+    XCTAssertEqual(sut.presentation, .loading)
+    await gateB.open()
+    await loadB.value
+    XCTAssertFalse(sut.isLoading)
+  }
+
   func testRefresh_failureWithEntriesShowing_reportsTheError() async {
     authenticateUser()
     mockService.mockInteractions = [makeInteraction(id: "x")]

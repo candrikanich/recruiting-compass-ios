@@ -144,6 +144,7 @@ final class ActivityFeedViewModel {
   private var subscribedFamilyUnitId: String?
   /// The family the entries in `activities` belong to; a load for any other family clears them first.
   private var displayedFamilyUnitId: String?
+  private var loadSequence = 0
 
   /// TTL for cached activity feed (seconds). Short, and deliberately not
   /// invalidated from the many VMs that create interactions/status-changes/
@@ -194,9 +195,12 @@ final class ActivityFeedViewModel {
       self.displayedFamilyUnitId = nil
     }
 
+    loadSequence += 1
+    let thisLoad = loadSequence
     isLoading = true
     errorMessage = nil
-    defer { isLoading = false }
+    // Only the newest load may switch the spinner off; a stale one finishing first would flash the empty state.
+    defer { if thisLoad == loadSequence { isLoading = false } }
 
     let cacheKey = ListCacheKeys.activities(familyUnitId: familyUnitId)
     let cacheToUse = cache ?? InMemoryCache.shared
