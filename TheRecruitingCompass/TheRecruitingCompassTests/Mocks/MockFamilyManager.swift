@@ -15,7 +15,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   // MARK: - Call Counts
 
   var fetchFamilyMembersCallCount = 0
-  var getCurrentMemberCallCount = 0
+  var getMembershipsCallCount = 0
   var getFamilyUnitCallCount = 0
   var createFamilyCallCount = 0
   var regenerateCodeCallCount = 0
@@ -70,19 +70,37 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     return result
   }
 
-  /// Awaited inside `getCurrentMember` so tests can hold a load in flight.
-  var getCurrentMemberGate: (@Sendable () async -> Void)?
+  /// Awaited inside `getMemberships` so tests can hold a load in flight.
+  var getMembershipsGate: (@Sendable () async -> Void)?
+  /// Most recently joined first. Defaults to the single `stubbedCurrentMember`.
+  var stubbedMemberships: [FamilyMember]?
+  var familyUnitIdsWithPlayerStub: Set<String> = []
+  var unitsById: [String: FamilyUnit] = [:]
 
-  func getCurrentMember(userId: String) async throws -> FamilyMember? {
-    getCurrentMemberCallCount += 1
+  func getMemberships(userId: String) async throws -> [FamilyMember] {
+    getMembershipsCallCount += 1
     lastUserIdFetched = userId
-    await getCurrentMemberGate?()
+    await getMembershipsGate?()
 
     if !shouldSucceed {
       throw mockError
     }
 
-    return stubbedCurrentMember
+    return stubbedMemberships ?? stubbedCurrentMember.map { [$0] } ?? []
+  }
+
+  func familyUnitIdsWithPlayer(among familyUnitIds: [String]) async throws -> Set<String> {
+    if !shouldSucceed {
+      throw mockError
+    }
+    return familyUnitIdsWithPlayerStub.intersection(familyUnitIds)
+  }
+
+  func getFamilyUnit(id: String) async throws -> FamilyUnit? {
+    if !shouldSucceed {
+      throw mockError
+    }
+    return unitsById[id] ?? stubbedFamilyUnit
   }
 
   func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit? {
@@ -285,7 +303,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     mockError = FamilyError.serverError("Mock error")
 
     fetchFamilyMembersCallCount = 0
-    getCurrentMemberCallCount = 0
+    getMembershipsCallCount = 0
     getFamilyUnitCallCount = 0
     createFamilyCallCount = 0
     regenerateCodeCallCount = 0

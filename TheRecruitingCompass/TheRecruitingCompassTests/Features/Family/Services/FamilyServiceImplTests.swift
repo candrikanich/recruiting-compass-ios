@@ -49,32 +49,6 @@ final class FamilyServiceImplTests: XCTestCase {
     }
   }
 
-  func testGetCurrentMember_Success_ReturnsMember() async throws {
-    // Given
-    let expectedMember = createFamilyMember(id: "member1", userId: "user1")
-    mockService.stubbedCurrentMember = expectedMember
-
-    // When
-    let result = try await mockService.getCurrentMember(userId: "user1")
-
-    // Then
-    XCTAssertNotNil(result)
-    XCTAssertEqual(result?.id, "member1")
-    XCTAssertEqual(mockService.getCurrentMemberCallCount, 1)
-    XCTAssertEqual(mockService.lastUserIdFetched, "user1")
-  }
-
-  func testGetCurrentMember_NotFound_ReturnsNil() async throws {
-    // Given
-    mockService.stubbedCurrentMember = nil
-
-    // When
-    let result = try await mockService.getCurrentMember(userId: "user1")
-
-    // Then
-    XCTAssertNil(result)
-  }
-
   func testGetFamilyUnit_Success_ReturnsUnit() async throws {
     // Given
     let expectedUnit = createFamilyUnit(id: "family1", createdByUserId: "user1")

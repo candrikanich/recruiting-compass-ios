@@ -85,9 +85,8 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     return members
   }
 
-  func getCurrentMember(userId: String) async throws -> FamilyMember? {
-    familyServiceLogger.debug("Fetching current member for user: \(userId, privacy: .private)")
-    // Fetch family_member record
+  func getMemberships(userId: String) async throws -> [FamilyMember] {
+    familyServiceLogger.debug("Fetching memberships for user: \(userId, privacy: .private)")
     struct FamilyMemberRow: Codable {
       let id: String
       let userId: String
@@ -104,19 +103,15 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
       }
     }
 
-    let memberRows: [FamilyMemberRow] = try await supabaseManager.client
+    // Most recently joined first, the same order as web's `getCallerFamilyUnitIds`.
+    let rows: [FamilyMemberRow] = try await supabaseManager.client
       .from("family_members")
       .select("id, user_id, family_unit_id, role, added_at")
       .eq("user_id", value: userId)
-      .limit(1)
+      .order("added_at", ascending: false)
       .execute()
       .value
 
-    guard let row = memberRows.first else {
-      return nil
-    }
-
-    // Fetch user details
     let users: [FamilyMemberUser] = try await supabaseManager.client
       .from("users")
       .select("id, email, full_name, role")
@@ -125,50 +120,49 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
       .execute()
       .value
 
-    let member = FamilyMember(
-      id: row.id,
-      userId: row.userId,
-      familyUnitId: row.familyUnitId,
-      role: row.role,
-      addedAt: row.addedAt,
-      user: users.first
-    )
-    familyServiceLogger.debug("Current member fetched: \(member.id, privacy: .private) role=\(member.role)")
-    return member
+    return rows.map {
+      FamilyMember(
+        id: $0.id,
+        userId: $0.userId,
+        familyUnitId: $0.familyUnitId,
+        role: $0.role,
+        addedAt: $0.addedAt,
+        user: users.first
+      )
+    }
   }
 
-  func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit? {
-    familyServiceLogger.debug("Fetching family unit for user: \(userId, privacy: .private)")
-    struct MemberRow: Codable {
+  func familyUnitIdsWithPlayer(among familyUnitIds: [String]) async throws -> Set<String> {
+    struct Row: Codable {
       let familyUnitId: String
-      enum CodingKeys: String, CodingKey {
-        case familyUnitId = "family_unit_id"
-      }
+      enum CodingKeys: String, CodingKey { case familyUnitId = "family_unit_id" }
     }
-    let rows: [MemberRow] = try await supabaseManager.client
+    let rows: [Row] = try await supabaseManager.client
       .from("family_members")
       .select("family_unit_id")
-      .eq("user_id", value: userId)
-      .limit(1)
+      .in("family_unit_id", values: familyUnitIds)
+      .eq("role", value: "player")
       .execute()
       .value
+    return Set(rows.map(\.familyUnitId))
+  }
 
-    guard let row = rows.first else {
-      familyServiceLogger.debug("No family unit found for user: \(userId, privacy: .private)")
-      return nil
-    }
-
+  func getFamilyUnit(id: String) async throws -> FamilyUnit? {
     let units: [FamilyUnit] = try await supabaseManager.client
       .from("family_units")
       .select()
-      .eq("id", value: row.familyUnitId)
+      .eq("id", value: id)
       .limit(1)
       .execute()
       .value
-
-    if let unit = units.first {
-      familyServiceLogger.debug("Fetched family unit: \(unit.id, privacy: .private)")
-    }
     return units.first
+  }
+
+  func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit? {
+    guard let membership = try await getMemberships(userId: userId).first else {
+      familyServiceLogger.debug("No family unit found for user: \(userId, privacy: .private)")
+      return nil
+    }
+    return try await getFamilyUnit(id: membership.familyUnitId)
   }
 }

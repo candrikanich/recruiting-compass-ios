@@ -97,7 +97,7 @@ struct FamilyManagerTests {
   @Test func concurrentLoadWaitsForTheLoadAlreadyInFlight() async {
     let service = MockFamilyService()
     let gate = AsyncGate()
-    service.getCurrentMemberGate = { await gate.wait() }
+    service.getMembershipsGate = { await gate.wait() }
     service.stubbedCurrentMember = member(id: "m-a", userId: "user-a", familyUnitId: "family-a", role: "player")
     let auth = MockAuthManager()
     auth.setMockUser(user("user-a", role: .player))
@@ -114,13 +114,13 @@ struct FamilyManagerTests {
 
     #expect(await second.value == "family-a")
     await first.value
-    #expect(service.getCurrentMemberCallCount == 1)
+    #expect(service.getMembershipsCallCount == 1)
   }
 
   @Test func loadStartedForPreviousUserIsDiscardedAfterSwitch() async {
     let service = MockFamilyService()
     let gate = AsyncGate()
-    service.getCurrentMemberGate = { await gate.wait() }
+    service.getMembershipsGate = { await gate.wait() }
     service.stubbedCurrentMember = member(id: "m-a", userId: "user-a", familyUnitId: "family-a", role: "player")
     let auth = MockAuthManager()
     auth.setMockUser(user("user-a", role: .player))
@@ -141,7 +141,7 @@ struct FamilyManagerTests {
   @Test func loadFromAnEarlierSessionOfTheSameUserIsDiscarded() async {
     let service = MockFamilyService()
     let gate = AsyncGate(blockedEntries: 1)
-    service.getCurrentMemberGate = { await gate.wait() }
+    service.getMembershipsGate = { await gate.wait() }
     let auth = MockAuthManager()
     auth.setMockUser(user("user-a", role: .player))
     let sut = FamilyManager(familyService: service, authManager: auth)

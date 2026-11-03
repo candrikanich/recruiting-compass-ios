@@ -5,9 +5,13 @@ protocol FamilyManaging: Sendable {
   // Existing methods
   /// Returns all members belonging to the given family unit.
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember]
-  /// Returns the `FamilyMember` record for the currently authenticated user, or `nil` if not in a family.
-  func getCurrentMember(userId: String) async throws -> FamilyMember?
-  /// Returns the `FamilyUnit` the given user belongs to, or `nil` if they have not joined one.
+  /// Every family membership of the user, most recently joined first (a parent can be in several families).
+  func getMemberships(userId: String) async throws -> [FamilyMember]
+  /// The subset of `familyUnitIds` that has a player (athlete) member.
+  func familyUnitIdsWithPlayer(among familyUnitIds: [String]) async throws -> Set<String>
+  /// Returns the family unit with this id, or `nil` if it doesn't exist.
+  func getFamilyUnit(id: String) async throws -> FamilyUnit?
+  /// The user's most recently joined family unit, or `nil` if they have not joined one.
   func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit?
 
   // Family Management methods (Player + Parent)

@@ -6,6 +6,7 @@ import SwiftUI
 struct AdaptiveRootView: View {
   @Binding var pendingPushDestination: NotificationDestination?
   @Environment(\.horizontalSizeClass) private var sizeClass
+  @Environment(FamilyManager.self) private var familyManager
   @State private var selectedDestination: AppDestination? = .dashboard
   @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
   @State private var coachesPrefilterSchoolId: String?
@@ -17,11 +18,15 @@ struct AdaptiveRootView: View {
   }
 
   var body: some View {
-    if sizeClass == .regular {
-      iPadLayout
-    } else {
-      MainTabView(pendingPushDestination: $pendingPushDestination)
+    // Keyed on the family switch so every tab rebuilds and reloads for the newly selected family.
+    Group {
+      if sizeClass == .regular {
+        iPadLayout
+      } else {
+        MainTabView(pendingPushDestination: $pendingPushDestination)
+      }
     }
+    .id(familyManager.familySwitchCount)
   }
 
   @ViewBuilder
