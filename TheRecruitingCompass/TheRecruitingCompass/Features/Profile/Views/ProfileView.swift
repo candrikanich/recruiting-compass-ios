@@ -223,13 +223,10 @@ private struct ProfileEmailSection: View {
             }
 
             if viewModel.emailVerificationBannerVisible {
-                Label(
-                    "A verification email has been sent to your new address. Check your inbox to confirm the change.",
-                    systemImage: "envelope.badge"
-                )
+                Label(ProfileViewModel.emailChangePendingMessage, systemImage: "envelope.badge")
                 .font(.brand(.subheadline))
                 .foregroundStyle(Color.accentPrimary)
-                .accessibilityLabel(String(localized: "Verification email sent. Check your inbox."))
+                .accessibilityLabel(ProfileViewModel.emailChangePendingMessage)
             }
 
             if viewModel.isEmailFormExpanded {

@@ -35,6 +35,14 @@ final class ProfileViewModel {
     var emailMessage: SectionMessage?
     var emailVerificationBannerVisible = false
 
+    /// Mirrors web `EMAIL_CHANGE_PENDING_COPY`. True under either "secure email change" setting: one or two
+    /// inboxes may get a link and the change completes only after all are confirmed.
+    static let emailChangePendingMessage =
+        "We sent a confirmation link to your new address. Depending on your account's security settings, "
+        + "we may also send one to your current address. Open every link we send: your email changes only "
+        + "after all of them are confirmed. Until then you keep signing in with your current email. "
+        + "Once it changes, we may ask you to verify your new address."
+
     // MARK: - Section 4: Password
 
     var currentPassword: String = ""

@@ -198,6 +198,21 @@ final class ProfileViewModelTests: XCTestCase {
     XCTAssertTrue(viewModel.emailVerificationBannerVisible)
   }
 
+  func testEmailChangePendingMessage_matchesWebCopy() {
+    XCTAssertEqual(
+      ProfileViewModel.emailChangePendingMessage,
+      "We sent a confirmation link to your new address. Depending on your account's security settings, "
+        + "we may also send one to your current address. Open every link we send: your email changes only "
+        + "after all of them are confirmed. Until then you keep signing in with your current email. "
+        + "Once it changes, we may ask you to verify your new address."
+    )
+  }
+
+  func testEmailChangePendingMessage_dropsOldSingleInboxWording() {
+    XCTAssertFalse(ProfileViewModel.emailChangePendingMessage.contains("A verification email has been sent"))
+    XCTAssertFalse(ProfileViewModel.emailChangePendingMessage.contains("Check your inbox to confirm the change"))
+  }
+
   func testSubmitEmailChange_wrongPassword_setsSpecificErrorMessage() async {
     mockProfileService.shouldThrowOnChangeEmail = true
     mockProfileService.errorToThrow = ProfileServiceError.wrongPassword
