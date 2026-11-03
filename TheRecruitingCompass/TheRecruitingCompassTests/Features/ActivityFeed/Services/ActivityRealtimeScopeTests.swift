@@ -132,6 +132,7 @@ final class ActivityRealtimeScopeTests: XCTestCase {
   func testJoinAll_requiredFailure_throwsItAndNeverTriesHistory() async {
     let registry = ChannelRegistry<String>()
     var subscribed: [String] = []
+    var removed: [String] = []
 
     do {
       try await registry.joinAll(
@@ -140,11 +141,13 @@ final class ActivityRealtimeScopeTests: XCTestCase {
           .init(channel: "documents", subscribe: { subscribed.append("documents") })
         ],
         bestEffort: .init(channel: "history", subscribe: { subscribed.append("history") }),
-        generation: registry.generation, remove: { _ in }, onBestEffortFailure: { _ in })
+        generation: registry.generation, remove: { removed.append($0) }, onBestEffortFailure: { _ in })
       XCTFail("expected the required join's error")
     } catch {
       XCTAssertTrue(error is JoinFailure)
     }
     XCTAssertTrue(subscribed.isEmpty)
+    // Created-but-unjoined channels stay registered with the client and would be resubscribed on reconnect.
+    XCTAssertEqual(Set(removed), ["interactions", "documents", "history"])
   }
 }

@@ -589,6 +589,72 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     XCTAssertFalse(sut.isLoading)
   }
 
+  func testPresentation_reloadWithEntriesShowing_staysContent() async {
+    authenticateUser()
+    mockService.mockInteractions = [makeInteraction(id: "shown")]
+    await sut.loadActivities()
+    let gate = FetchGate()
+    mockService.beforeFetchInteractions = { _ in await gate.wait() }
+
+    let reload = Task { await sut.loadActivities(forceRefresh: true) }
+    await gate.waitUntilWaiting()
+
+    XCTAssertTrue(sut.isLoading)
+    XCTAssertEqual(sut.presentation, .content, "a reload must not swap the list for a spinner")
+    await gate.open()
+    await reload.value
+  }
+
+  func testPresentation_errorWinsOverEntriesThatArriveLater_likeWeb() async {
+    authenticateUser()
+    mockService.shouldThrowOnInteractions = true
+    await sut.refresh()
+
+    sut.addRealtimeEvent(
+      ActivityEventFactory.fromInteraction(makeInteraction(id: "live"), schoolName: nil), forFamily: "family-1")
+
+    XCTAssertEqual(sut.presentation, .failed("Failed to load activities. Please try again."))
+  }
+
+  func testLoadAndSubscribe_familySwitchedMidLoad_doesNotSubscribeTheNewFamilyOnTopOfOldRows() async {
+    authenticateUser()
+    mockService.interactionsByFamily = [
+      "family-A": [makeInteraction(id: "A1")], "family-B": [makeInteraction(id: "B1")]
+    ]
+    switchFamily(to: "family-A")
+    await sut.loadActivities()
+    await mockCache.removeAll()
+    let gateA = FetchGate()
+    let gateB = FetchGate()
+    mockService.beforeFetchInteractions = { family in await (family == "family-A" ? gateA : gateB).wait() }
+    let appear = Task { await sut.loadAndSubscribe() }
+    await gateA.waitUntilWaiting()
+    switchFamily(to: "family-B")
+    await gateA.open()
+    await appear.value
+
+    XCTAssertEqual(mockRealtime.subscribeCallCount, 0, "A was loaded; B's subscription belongs to familyDidChange")
+    let switchLoad = Task { await sut.familyDidChange() }
+    await gateB.waitUntilWaiting()
+    XCTAssertFalse(sut.activities.map(\.id).contains("interaction-A1"), "A's row shown under B")
+    await gateB.open()
+    await switchLoad.value
+    XCTAssertEqual(mockRealtime.subscribedFamilyUnitIds, ["family-B"])
+  }
+
+  func testAddRealtimeEvent_doesNotRetagRowsOnScreenFromAnotherFamily() async {
+    authenticateUser()
+    mockService.interactionsByFamily = ["family-A": [makeInteraction(id: "A1")]]
+    switchFamily(to: "family-A")
+    await sut.loadActivities()
+
+    switchFamily(to: "family-B")
+    sut.addRealtimeEvent(
+      ActivityEventFactory.fromInteraction(makeInteraction(id: "liveB"), schoolName: nil), forFamily: "family-B")
+
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-liveB"], "A's row re-tagged as B's")
+  }
+
   func testRefresh_failureWithEntriesShowing_reportsTheError() async {
     authenticateUser()
     mockService.mockInteractions = [makeInteraction(id: "x")]

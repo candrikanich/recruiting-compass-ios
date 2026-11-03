@@ -80,7 +80,8 @@ final class ActivityFeedViewModel {
   /// What the feed surfaces (widget and page) should show. A failure with nothing to show is an error, never "empty".
   var presentation: Presentation {
     if isLoading && activities.isEmpty { return .loading }
-    if let errorMessage, activities.isEmpty { return .failed(errorMessage) }
+    // Like web: the error stays until a load succeeds, even if live entries arrive meanwhile.
+    if let errorMessage { return .failed(errorMessage) }
     return activities.isEmpty ? .empty : .content
   }
 
@@ -326,8 +327,11 @@ final class ActivityFeedViewModel {
   // MARK: - Realtime lifecycle
 
   func loadAndSubscribe() async {
+    let loadedFamilyUnitId = familyUnitId
     await loadActivities()
-    await startRealtime()
+    // Subscribe to the family that was loaded. If it changed meanwhile, `familyDidChange()` owns the new one.
+    guard let loadedFamilyUnitId, isStillActive(loadedFamilyUnitId) else { return }
+    await startRealtime(for: loadedFamilyUnitId)
   }
 
   /// Single teardown path (disappear, background, family switch): no live channels, no pending reload.
@@ -343,9 +347,9 @@ final class ActivityFeedViewModel {
     await loadAndSubscribe()
   }
 
-  private func startRealtime() async {
+  private func startRealtime(for familyUnitId: String) async {
     // `.task` and the scenePhase `.active` transition can both fire on appear; one live subscription only.
-    guard let familyUnitId, subscribedFamilyUnitId != familyUnitId else { return }
+    guard subscribedFamilyUnitId != familyUnitId else { return }
     subscribedFamilyUnitId = familyUnitId
     do {
       try await realtime.subscribe(
@@ -380,7 +384,9 @@ final class ActivityFeedViewModel {
       return
     }
     if !activities.contains(where: { $0.id == event.id }) {
-      show([event] + activities, for: familyUnitId)
+      // Rows already on screen from another family must not be re-tagged as this event's family.
+      let onScreen = displayedFamilyUnitId == nil || displayedFamilyUnitId == familyUnitId ? activities : []
+      show([event] + onScreen, for: familyUnitId)
       logger.debug("Added realtime event: \(event.id)")
     } else {
       logger.debug("Skipped duplicate realtime event: \(event.id)")
