@@ -33,7 +33,16 @@ final class ProfileViewModel {
     var emailCurrentPassword: String = ""
     var isSavingEmail = false
     var emailMessage: SectionMessage?
-    var emailVerificationBannerVisible = false
+    /// Set only while a change request is pending; the view renders exactly this text.
+    private(set) var emailPendingMessage: String?
+
+    /// Mirrors web `EMAIL_CHANGE_PENDING_COPY`. True under either "secure email change" setting: one or two
+    /// inboxes may get a link and the change completes only after all are confirmed.
+    static let emailChangePendingMessage =
+        "We sent a confirmation link to your new address. Depending on your account's security settings, "
+        + "we may also send one to your current address. Open every link we send: your email changes only "
+        + "after all of them are confirmed. Until then you keep signing in with your current email. "
+        + "Once it changes, we may ask you to verify your new address."
 
     // MARK: - Section 4: Password
 
@@ -229,6 +238,7 @@ final class ProfileViewModel {
         guard !isSavingEmail else { return }
         isSavingEmail = true
         emailMessage = nil
+        emailPendingMessage = nil
         defer { isSavingEmail = false }
 
         do {
@@ -236,7 +246,7 @@ final class ProfileViewModel {
             isEmailFormExpanded = false
             newEmail = ""
             emailCurrentPassword = ""
-            emailVerificationBannerVisible = true
+            emailPendingMessage = Self.emailChangePendingMessage
         } catch let error as ProfileServiceError {
             logger.error("Email change failed: \(error.localizedDescription)")
             emailMessage = .error(error.errorDescription ?? "Failed to update email.")

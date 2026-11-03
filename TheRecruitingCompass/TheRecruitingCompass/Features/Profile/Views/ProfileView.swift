@@ -222,14 +222,10 @@ private struct ProfileEmailSection: View {
                 .accessibilityLabel(String(localized: "Current email: \(email)"))
             }
 
-            if viewModel.emailVerificationBannerVisible {
-                Label(
-                    "A verification email has been sent to your new address. Check your inbox to confirm the change.",
-                    systemImage: "envelope.badge"
-                )
-                .font(.brand(.subheadline))
-                .foregroundStyle(Color.accentPrimary)
-                .accessibilityLabel(String(localized: "Verification email sent. Check your inbox."))
+            if let pendingMessage = viewModel.emailPendingMessage {
+                Label(pendingMessage, systemImage: "envelope.badge")
+                    .font(.brand(.subheadline))
+                    .foregroundStyle(Color.accentPrimary)
             }
 
             if viewModel.isEmailFormExpanded {
