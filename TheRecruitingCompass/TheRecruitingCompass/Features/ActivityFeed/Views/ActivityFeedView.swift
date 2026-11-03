@@ -207,7 +207,7 @@ struct ActivityFeedView: View {
         .multilineTextAlignment(.center)
 
       Button("Try Again") {
-        Task { await viewModel.loadActivities() }
+        Task { await viewModel.refresh() }
       }
       .buttonStyle(.borderedProminent)
       .frame(minWidth: 44, minHeight: 44)

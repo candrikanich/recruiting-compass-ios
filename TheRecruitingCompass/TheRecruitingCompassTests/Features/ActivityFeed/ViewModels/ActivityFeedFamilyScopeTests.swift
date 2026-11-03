@@ -574,6 +574,54 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     await sut.refresh()
 
     XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.activities.isEmpty, "the page only shows its error when the list is empty")
+    XCTAssertEqual(sut.presentation, .failed("Failed to load activities. Please try again."))
+  }
+
+  func testPresentation_failureWithNothingToShow_isAnErrorNeverEmpty() async {
+    authenticateUser()
+    mockService.shouldThrowOnInteractions = true
+
+    await sut.loadActivities()
+
+    XCTAssertEqual(sut.presentation, .failed("Failed to load activities. Please try again."))
+  }
+
+  func testCachedFeedForPreviousFamily_isClearedWhileNewFamilyLoads() async {
+    authenticateUser()
+    let cachedEvent = ActivityEventFactory.fromInteraction(makeInteraction(id: "cachedA"), schoolName: nil)
+    await mockCache.set([cachedEvent], forKey: ListCacheKeys.activities(familyUnitId: "family-A"), ttlSeconds: 60)
+    switchFamily(to: "family-A")
+    await sut.loadActivities()
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-cachedA"], "served from the cache")
+
+    let gate = FetchGate()
+    mockService.beforeFetchInteractions = { _ in await gate.wait() }
+    switchFamily(to: "family-B")
+    let load = Task { await sut.loadActivities() }
+    await gate.waitUntilWaiting()
+
+    XCTAssertTrue(sut.activities.isEmpty, "A's cached entries on screen while B loads")
+    await gate.open()
+    await load.value
+  }
+
+  func testRealtimeInsertIntoEmptyFeed_isClearedWhenTheFamilySwitches() async {
+    authenticateUser()
+    switchFamily(to: "family-A")
+    sut.addRealtimeEvent(
+      ActivityEventFactory.fromInteraction(makeInteraction(id: "liveA"), schoolName: nil), forFamily: "family-A")
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-liveA"])
+
+    let gate = FetchGate()
+    mockService.beforeFetchInteractions = { _ in await gate.wait() }
+    switchFamily(to: "family-B")
+    let load = Task { await sut.loadActivities() }
+    await gate.waitUntilWaiting()
+
+    XCTAssertTrue(sut.activities.isEmpty, "A's live entry on screen while B loads")
+    await gate.open()
+    await load.value
   }
 
   func testSupersededSubscribe_allowsTheNextStartToResubscribe() async {

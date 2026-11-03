@@ -79,4 +79,72 @@ final class ActivityRealtimeScopeTests: XCTestCase {
     XCTAssertEqual(failures, 1)
     XCTAssertEqual(registry.drain(), ["interactions", "documents"])
   }
+
+  // MARK: - joinAll
+
+  func testJoinAll_requiredSuperseded_throwsSupersededAndSkipsTheRest() async {
+    let registry = ChannelRegistry<String>()
+    var subscribed: [String] = []
+    var removed: [String] = []
+
+    do {
+      try await registry.joinAll(
+        required: [
+          .init(channel: "interactions", subscribe: { subscribed.append("interactions") }),
+          .init(channel: "schools", subscribe: { _ = registry.drain(); subscribed.append("schools") }),
+          .init(channel: "documents", subscribe: { subscribed.append("documents") })
+        ],
+        bestEffort: .init(channel: "history", subscribe: { subscribed.append("history") }),
+        generation: registry.generation,
+        remove: { removed.append($0) },
+        onBestEffortFailure: { _ in }
+      )
+      XCTFail("a superseded required join must throw")
+    } catch {
+      XCTAssertEqual(error as? ActivityRealtimeError, .subscriptionSuperseded)
+    }
+    XCTAssertEqual(subscribed, ["interactions", "schools"], "nothing is joined after the subscription ended")
+    XCTAssertEqual(Set(removed), ["schools", "documents", "history"])
+  }
+
+  func testJoinAll_joinsHistoryLastAndKeepsEverythingWhenItFails() async throws {
+    let registry = ChannelRegistry<String>()
+    var order: [String] = []
+    var failures = 0
+
+    try await registry.joinAll(
+      required: [
+        .init(channel: "interactions", subscribe: { order.append("interactions") }),
+        .init(channel: "schools", subscribe: { order.append("schools") }),
+        .init(channel: "documents", subscribe: { order.append("documents") })
+      ],
+      bestEffort: .init(channel: "history", subscribe: { order.append("history"); throw JoinFailure() }),
+      generation: registry.generation,
+      remove: { _ in },
+      onBestEffortFailure: { _ in failures += 1 }
+    )
+
+    XCTAssertEqual(order, ["interactions", "schools", "documents", "history"])
+    XCTAssertEqual(failures, 1)
+    XCTAssertEqual(registry.drain(), ["interactions", "schools", "documents"])
+  }
+
+  func testJoinAll_requiredFailure_throwsItAndNeverTriesHistory() async {
+    let registry = ChannelRegistry<String>()
+    var subscribed: [String] = []
+
+    do {
+      try await registry.joinAll(
+        required: [
+          .init(channel: "interactions", subscribe: { throw JoinFailure() }),
+          .init(channel: "documents", subscribe: { subscribed.append("documents") })
+        ],
+        bestEffort: .init(channel: "history", subscribe: { subscribed.append("history") }),
+        generation: registry.generation, remove: { _ in }, onBestEffortFailure: { _ in })
+      XCTFail("expected the required join's error")
+    } catch {
+      XCTAssertTrue(error is JoinFailure)
+    }
+    XCTAssertTrue(subscribed.isEmpty)
+  }
 }

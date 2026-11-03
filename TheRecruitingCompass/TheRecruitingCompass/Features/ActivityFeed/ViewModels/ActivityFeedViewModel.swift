@@ -70,6 +70,20 @@ final class ActivityFeedViewModel {
 
   // MARK: - Computed Properties
 
+  enum Presentation: Equatable {
+    case loading
+    case failed(String)
+    case empty
+    case content
+  }
+
+  /// What the feed surfaces (widget and page) should show. A failure with nothing to show is an error, never "empty".
+  var presentation: Presentation {
+    if isLoading && activities.isEmpty { return .loading }
+    if let errorMessage, activities.isEmpty { return .failed(errorMessage) }
+    return activities.isEmpty ? .empty : .content
+  }
+
   /// Cached derived list — recomputed via `recomputeFilteredActivities()` whenever
   /// `activities`, `selectedType`, `selectedDateRange`, or `searchQuery` change.
   /// Do not compute this inline elsewhere; it would go stale silently.
@@ -189,8 +203,7 @@ final class ActivityFeedViewModel {
 
     if !forceRefresh, let cached = await cacheToUse.get([ActivityEvent].self, forKey: cacheKey) {
       guard isStillActive(familyUnitId) else { return }
-      activities = cached
-      displayedFamilyUnitId = familyUnitId
+      show(cached, for: familyUnitId)
       currentPage = 1
       logger.info("Loaded \(cached.count) activity events from cache")
       return
@@ -239,8 +252,7 @@ final class ActivityFeedViewModel {
       await cacheToUse.set(events, forKey: cacheKey, ttlSeconds: Self.activitiesCacheTTL)
       // The family can change while the fetches are in flight; a late result must not replace the new feed.
       guard isStillActive(familyUnitId) else { return }
-      activities = events
-      displayedFamilyUnitId = familyUnitId
+      show(events, for: familyUnitId)
       currentPage = 1
 
       logger.info("Loaded \(events.count) activity events")
@@ -256,6 +268,12 @@ final class ActivityFeedViewModel {
         errorMessage = "Failed to load activities. Please try again."
       }
     }
+  }
+
+  /// The only place entries are written, so the family they belong to can never be forgotten.
+  private func show(_ events: [ActivityEvent], for familyUnitId: String) {
+    activities = events
+    displayedFamilyUnitId = familyUnitId
   }
 
   private func isStillActive(_ familyUnitId: String) -> Bool { self.familyUnitId == familyUnitId }
@@ -358,8 +376,7 @@ final class ActivityFeedViewModel {
       return
     }
     if !activities.contains(where: { $0.id == event.id }) {
-      activities.insert(event, at: 0)
-      displayedFamilyUnitId = familyUnitId
+      show([event] + activities, for: familyUnitId)
       logger.debug("Added realtime event: \(event.id)")
     } else {
       logger.debug("Skipped duplicate realtime event: \(event.id)")

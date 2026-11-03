@@ -7,7 +7,7 @@ nonisolated private let logger = Logger(
   category: "ActivityRealtimeService"
 )
 
-enum ActivityRealtimeError: LocalizedError {
+enum ActivityRealtimeError: LocalizedError, Equatable {
   case subscriptionFailed
   /// `unsubscribe()` (or a newer `subscribe()`) ended this subscription while it was still joining.
   case subscriptionSuperseded
@@ -79,18 +79,10 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     _ = interactions.onPostgresChange(DeleteAction.self, schema: "public", table: "interactions", filter: filter) { _ in
       Task { @MainActor in onChange() }
     }
-    guard try await join(interactions, generation: generation, label: "interactions") else {
-      throw ActivityRealtimeError.subscriptionSuperseded
-    }
-
     let schools = realtime.exclusiveChannel("activity-schools-\(familyUnitId)")
     _ = schools.onPostgresChange(AnyAction.self, schema: "public", table: "schools", filter: filter) { _ in
       Task { @MainActor in onSchoolsChange() }
     }
-    guard try await join(schools, generation: generation, label: "schools") else {
-      throw ActivityRealtimeError.subscriptionSuperseded
-    }
-
     let documents = realtime.exclusiveChannel("activity-documents-\(familyUnitId)")
     _ = documents.onPostgresChange(InsertAction.self, schema: "public", table: "documents", filter: filter) {
       [weak self] action in
@@ -103,13 +95,32 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     _ = documents.onPostgresChange(DeleteAction.self, schema: "public", table: "documents", filter: filter) { _ in
       Task { @MainActor in onChange() }
     }
-    guard try await join(documents, generation: generation, label: "documents") else {
+    // Own channel and own function (receives only the payload-free signal), so a history row can never be rendered.
+    let statusHistory = makeStatusHistoryChannel(familyUnitId: familyUnitId, onInsert: onStatusHistoryInsert)
+
+    do {
+      try await registry.joinAll(
+        required: [
+          .init(channel: interactions, subscribe: { try await interactions.subscribeWithError() }),
+          .init(channel: schools, subscribe: { try await schools.subscribeWithError() }),
+          .init(channel: documents, subscribe: { try await documents.subscribeWithError() })
+        ],
+        bestEffort: .init(channel: statusHistory, subscribe: { try await statusHistory.subscribeWithError() }),
+        generation: generation,
+        remove: { await self.supabaseManager.client.realtimeV2.removeChannel($0) },
+        onBestEffortFailure: {
+          logger.info("Status-history channel unavailable (\($0.localizedDescription)); using schools reload")
+        }
+      )
+    } catch ActivityRealtimeError.subscriptionSuperseded {
+      logger.info("Subscription superseded while joining; channels removed")
       throw ActivityRealtimeError.subscriptionSuperseded
+    } catch {
+      logger.error("Failed to subscribe to activity channels: \(error.localizedDescription)")
+      throw ActivityRealtimeError.subscriptionFailed
     }
 
-    await joinStatusHistory(familyUnitId: familyUnitId, generation: generation, onInsert: onStatusHistoryInsert)
-
-    logger.info("Successfully subscribed to all activity channels")
+    logger.info("Successfully subscribed to activity channels")
   }
 
   func unsubscribe() async {
@@ -119,43 +130,20 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     }
   }
 
-  /// Joins `channel`; see `ChannelRegistry.join`.
-  /// - Returns: false when the subscription was superseded and the caller must stop.
-  private func join(_ channel: RealtimeChannelV2, generation: Int, label: String) async throws -> Bool {
-    do {
-      return try await registry.join(
-        channel, generation: generation,
-        subscribe: { try await channel.subscribeWithError() },
-        remove: { await self.supabaseManager.client.realtimeV2.removeChannel($0) }
-      )
-    } catch {
-      logger.error("Failed to subscribe to \(label): \(error.localizedDescription)")
-      throw ActivityRealtimeError.subscriptionFailed
-    }
-  }
-
-  /// Its own channel and its own function: the history table has no family column, so a multi-family user also
-  /// receives the other family's rows here. It only receives `onInsert` (a payload-free "something changed" signal),
-  /// so a row can never be rendered. And it is best-effort: while the table is not in the realtime publication the
-  /// server rejects this channel, which must not take the feed's other channels down with it.
-  private func joinStatusHistory(
+  /// The history table has no family column, so a multi-family user also receives the other family's rows here:
+  /// this only ever reports "something changed" (no payload), and the join is best-effort. While the table is not in
+  /// the realtime publication the server rejects this channel, which must not take the feed's other channels down.
+  private func makeStatusHistoryChannel(
     familyUnitId: String,
-    generation: Int,
     onInsert: @escaping @MainActor @Sendable () -> Void
-  ) async {
+  ) -> RealtimeChannelV2 {
     let channel = supabaseManager.client.realtimeV2.exclusiveChannel("activity-status-\(familyUnitId)")
     _ = channel.onPostgresChange(
       InsertAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
     ) { _ in
       Task { @MainActor in onInsert() }
     }
-    let adopted = await registry.joinBestEffort(
-      channel, generation: generation,
-      subscribe: { try await channel.subscribeWithError() },
-      remove: { await self.supabaseManager.client.realtimeV2.removeChannel($0) },
-      onFailure: { logger.info("Status-history channel unavailable (\($0.localizedDescription)); using schools reload") }
-    )
-    if !adopted { logger.debug("Status-history channel not adopted") }
+    return channel
   }
 
   // MARK: - Private Helpers
@@ -222,14 +210,22 @@ final class ChannelRegistry<Channel> {
     return channels
   }
 
+  struct Step {
+    let channel: Channel
+    let subscribe: () async throws -> Void
+  }
+
   /// Subscribes `channel`, then adopts it for `generation`. If the subscription ended while joining, or the join
   /// failed, the channel is removed instead.
+  /// `isolation` keeps this on the caller's actor: the registry is actor-confined state, and `adopt` must not
+  /// run on the global executor while the actor calls `drain`.
   /// - Returns: true when adopted, false when superseded. Throws the join's error after removing the channel.
   func join(
     _ channel: Channel,
     generation: Int,
     subscribe: () async throws -> Void,
-    remove: (Channel) async -> Void
+    remove: (Channel) async -> Void,
+    isolation: isolated (any Actor)? = #isolation
   ) async throws -> Bool {
     do {
       try await subscribe()
@@ -250,7 +246,8 @@ final class ChannelRegistry<Channel> {
     generation: Int,
     subscribe: () async throws -> Void,
     remove: (Channel) async -> Void,
-    onFailure: (Error) -> Void
+    onFailure: (Error) -> Void,
+    isolation: isolated (any Actor)? = #isolation
   ) async -> Bool {
     do {
       return try await join(channel, generation: generation, subscribe: subscribe, remove: remove)
@@ -258,5 +255,39 @@ final class ChannelRegistry<Channel> {
       onFailure(error)
       return false
     }
+  }
+
+  /// Joins the required channels in order, then the best-effort one last. A required join that finds the
+  /// subscription superseded throws `subscriptionSuperseded`; a failing required join throws its error and the
+  /// best-effort channel is not attempted. A failing best-effort join is reported and leaves the rest adopted.
+  func joinAll(
+    required: [Step],
+    bestEffort: Step,
+    generation: Int,
+    remove: (Channel) async -> Void,
+    onBestEffortFailure: (Error) -> Void,
+    isolation: isolated (any Actor)? = #isolation
+  ) async throws {
+    for (index, step) in required.enumerated() {
+      let adopted: Bool
+      do {
+        adopted = try await join(step.channel, generation: generation, subscribe: step.subscribe, remove: remove)
+      } catch {
+        await removeUnjoined(Array(required[(index + 1)...]) + [bestEffort], remove: remove)
+        throw error
+      }
+      guard adopted else {
+        await removeUnjoined(Array(required[(index + 1)...]) + [bestEffort], remove: remove)
+        throw ActivityRealtimeError.subscriptionSuperseded
+      }
+    }
+    _ = await joinBestEffort(
+      bestEffort.channel, generation: generation, subscribe: bestEffort.subscribe, remove: remove,
+      onFailure: onBestEffortFailure)
+  }
+
+  /// Channels that were created but never reached `join` would otherwise stay registered with the client.
+  private func removeUnjoined(_ steps: [Step], remove: (Channel) async -> Void) async {
+    for step in steps { await remove(step.channel) }
   }
 }

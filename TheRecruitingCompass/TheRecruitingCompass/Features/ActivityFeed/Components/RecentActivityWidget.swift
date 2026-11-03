@@ -29,16 +29,34 @@ struct RecentActivityWidget: View {
 
       Divider()
 
-      if viewModel.isLoading && viewModel.activities.isEmpty {
+      switch viewModel.presentation {
+      case .loading:
         ProgressView()
           .frame(maxWidth: .infinity, alignment: .center)
           .padding(.vertical, 16)
-      } else if viewModel.recentActivities.isEmpty {
+      case .failed(let message):
+        VStack(spacing: 8) {
+          Text(message)
+            .font(.brand(.caption))
+            .foregroundStyle(Color.secondaryText)
+            .multilineTextAlignment(.center)
+          Button("Try Again") {
+            Task { await viewModel.refresh() }
+          }
+          .font(.brand(.caption))
+          .frame(minWidth: 44, minHeight: 44)
+          .accessibilityIdentifier("recent-activity-retry")
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("recent-activity-error-state")
+      case .empty:
         Text("No recent activity")
           .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .padding(.vertical, 16)
-      } else {
+      case .content:
         VStack(spacing: 8) {
           ForEach(viewModel.recentActivities) { event in
             if event.isClickable {
