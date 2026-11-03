@@ -97,8 +97,6 @@ final class SendProfileViewModel {
         guardianPendingPrompt = false
         let token = authManager.session?.accessToken
         let preparedTarget = target
-        // Supersede any in-flight load so it can't overwrite the link this send creates.
-        loadGeneration += 1
 
         guard case let .resolved(athleteId) = preparedTarget,
               let profile = await fetchSelectedProfile(target: preparedTarget, token: token),
@@ -145,6 +143,9 @@ final class SendProfileViewModel {
         // The selection can change while the lookups above are in flight; never send for a different athlete.
         guard preparedTarget == target else { return failSend() }
         // Surface the link for copy + view stats now that it exists.
+        // Supersede any load still in flight (including ones started during this send) so none can overwrite
+        // the link written here. Early returns above leave valid in-flight loads alone.
+        loadGeneration += 1
         loadedKey = selectionKey
         trackingURL = url
         viewCount = link.viewCount
@@ -279,15 +280,10 @@ final class SendProfileViewModel {
     /// name. A parent sends the athlete's profile, so the session name (the parent's) is never used for them.
     private func resolvePlayerName(athleteUserId: String) async -> String? {
         if Self.sameUser(athleteUserId, authManager.user?.id),
-           let own = Self.nonBlank(authManager.user?.fullName) {
+           let own = authManager.user?.fullName.nonBlankTrimmed {
             return own
         }
-        return Self.nonBlank(try? await photoService.fullName(userId: athleteUserId))
-    }
-
-    private static func nonBlank(_ name: String?) -> String? {
-        guard let name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
-        return name
+        return (try? await photoService.fullName(userId: athleteUserId)).nonBlankTrimmed
     }
 
     private func buildURL(profile: PlayerProfile, refToken: String) -> URL? {

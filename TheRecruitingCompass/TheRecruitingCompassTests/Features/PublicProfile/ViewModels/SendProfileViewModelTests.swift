@@ -666,6 +666,76 @@ final class SendProfileViewModelTests: XCTestCase {
         XCTAssertFalse(vm.guardianPendingPrompt)
     }
 
+    func testCopiedStateDoesNotFollowTheUserToTheNextAthlete() async {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, family) = parentSetup(service: service)
+        await vm.loadTrackingInfo(for: "c1")
+        XCTAssertTrue(vm.copyTrackingLink())
+        XCTAssertTrue(vm.linkCopied)
+
+        Fixture.selectSecondAthlete(in: family)
+        service.stubProfile = makeProfile(userId: Fixture.secondAthleteUserId)
+        await vm.loadTrackingInfo(for: "c1")
+
+        XCTAssertFalse(vm.linkCopied)
+    }
+
+    /// Parks the next `fetchTrackingLink` until `release()`.
+    private func parkNextLinkFetch(
+        _ service: MockPublicProfileManaging
+    ) -> (waitUntilParked: () async -> Void, release: () -> Void) {
+        var resume: CheckedContinuation<Void, Never>?
+        service.onFetchTrackingLink = { [unowned service] in
+            service.onFetchTrackingLink = nil
+            await withCheckedContinuation { resume = $0 }
+        }
+        return (
+            { while resume == nil { await Task.yield() } },
+            { resume?.resume() }
+        )
+    }
+
+    func testLoadStartedWhileASendIsInFlightCannotWipeTheLinkTheSendWrites() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)   // no existing link
+        let (vm, _) = parentSetup(service: service)
+        let sendParked = parkNextProfileFetch(service)
+        let send = Task { await vm.prepare(for: makeCoach(email: "coach@x.edu")) }
+        await sendParked.waitUntilParked()
+        let linkParked = parkNextLinkFetch(service)
+        let midSendLoad = Task { await vm.loadTrackingInfo(for: "c1") }
+        await linkParked.waitUntilParked()
+
+        sendParked.release()
+        _ = await send.value
+        XCTAssertNotNil(vm.trackingURL)
+        linkParked.release()
+        await midSendLoad.value
+
+        XCTAssertNotNil(vm.trackingURL)
+    }
+
+    func testSendThatReturnsEarlyDoesNotDiscardAnInFlightLoad() async {
+        let service = MockPublicProfileManaging()
+        service.stubTrackingLink = link()
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId)
+        let (vm, _) = parentSetup(service: service)
+        let linkParked = parkNextLinkFetch(service)
+        let load = Task { await vm.loadTrackingInfo(for: "c1") }
+        await linkParked.waitUntilParked()
+
+        service.stubProfile = makeProfile(userId: Fixture.athleteUserId, isPublished: false)
+        let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+        guard case .notPublished = result else { return XCTFail("expected .notPublished, got \(result)") }
+        linkParked.release()
+        await load.value
+
+        XCTAssertNotNil(vm.trackingURL)
+        XCTAssertEqual(vm.viewCount, 3)
+    }
+
     func testSuccessfulCopyShowsCopiedStateThatThenResets() async throws {
         let service = MockPublicProfileManaging()
         service.stubTrackingLink = link()
@@ -706,6 +776,17 @@ final class SendProfileViewModelTests: XCTestCase {
 
         guard case let .email(message) = result else { return XCTFail("expected .email, got \(result)") }
         XCTAssertTrue(message.subject.contains("Owen Lookup"), message.subject)
+    }
+
+    func testPlayerNameFromSessionIsTrimmedBeforeItReachesTheCoach() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile()
+        let vm = makeVM(service: service, authManager: selfAuth(fullName: "  Owen Padded \n"))
+
+        let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+
+        guard case let .email(message) = result else { return XCTFail("expected .email, got \(result)") }
+        XCTAssertEqual(message.subject, "Owen Padded Recruiting Profile")
     }
 
     func testPlayerWithBlankSessionAndLookupNamesIsRefused() async {

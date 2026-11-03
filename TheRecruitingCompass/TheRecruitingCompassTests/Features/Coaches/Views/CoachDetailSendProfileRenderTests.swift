@@ -41,17 +41,21 @@ final class CoachDetailSendProfileRenderTests: XCTestCase {
             coachesService: MockCoachesService(), interactionsService: MockInteractionsService(),
             authManager: auth, cache: InMemoryCache()
         )
+        let realtime = MockCoachDetailRealtimeService()
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         window.rootViewController = UIHostingController(rootView: NavigationStack {
             CoachDetailView(
-                coachId: coach.id, allCoaches: [coach], viewModel: detailVM, sendProfileViewModel: sendVM
+                coachId: coach.id, allCoaches: [coach], viewModel: detailVM, sendProfileViewModel: sendVM,
+                makeRealtimeService: { realtime }
             )
         })
         window.makeKeyAndVisible()
         defer { window.isHidden = true }
 
-        await waitUntil { !service.fetchedTrackingCoachIds.isEmpty }
+        await waitUntil { !service.fetchedTrackingCoachIds.isEmpty && !realtime.subscribedCoachIds.isEmpty }
 
         XCTAssertEqual(service.fetchedTrackingCoachIds, [coach.id])
+        // The screen's realtime subscription goes through the injected mock, never a live channel.
+        XCTAssertEqual(realtime.subscribedCoachIds, [coach.id])
     }
 }

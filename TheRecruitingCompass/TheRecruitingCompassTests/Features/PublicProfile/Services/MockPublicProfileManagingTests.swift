@@ -35,4 +35,18 @@ final class MockPublicProfileManagingTests: XCTestCase {
             XCTFail("unexpected error: \(error)")
         }
     }
+
+    func testLinkHooksFireBeforeTheConfiguredErrorForBothLinkCalls() async {
+        struct Boom: Error {}
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = Boom()
+        var fired: [String] = []
+        mock.onFetchTrackingLink = { fired.append("fetch") }
+        mock.onCreateTrackingLink = { fired.append("create") }
+
+        _ = try? await mock.fetchTrackingLink(coachId: "c1", athleteId: nil, accessToken: nil)
+        _ = try? await mock.createTrackingLink(coachId: "c1", athleteId: nil, accessToken: nil)
+
+        XCTAssertEqual(fired, ["fetch", "create"])
+    }
 }

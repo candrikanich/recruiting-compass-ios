@@ -27,7 +27,8 @@ struct CoachDetailView: View {
   @State private var pendingChannelChoice: SendProfileMessage?
   @State private var showLogInteraction = false
   @State private var showSocialDMConfirm = false
-  @State private var realtimeService: CoachDetailRealtimeService?
+  @State private var realtimeService: (any CoachDetailRealtimeManaging)?
+  private let makeRealtimeService: @Sendable () -> any CoachDetailRealtimeManaging
   @Environment(\.sizeCategory) private var sizeCategory
   @Environment(\.dismiss) private var dismiss
   @Environment(\.openURL) private var openURL
@@ -39,8 +40,10 @@ struct CoachDetailView: View {
     allCoaches: [Coach] = [],
     allSchools: [School] = [],
     viewModel: CoachDetailViewModel? = nil,
-    sendProfileViewModel: SendProfileViewModel? = nil
+    sendProfileViewModel: SendProfileViewModel? = nil,
+    makeRealtimeService: @escaping @Sendable () -> any CoachDetailRealtimeManaging = { CoachDetailRealtimeService() }
   ) {
+    self.makeRealtimeService = makeRealtimeService
     self.coachId = coachId
     self.allCoaches = allCoaches
     self.allSchools = allSchools
@@ -246,7 +249,7 @@ struct CoachDetailView: View {
 
   private func subscribeRealtime() async {
     guard realtimeService == nil else { return }
-    let service = CoachDetailRealtimeService()
+    let service = makeRealtimeService()
     realtimeService = service
     do {
       try await service.subscribe(coachId: coachId) { [viewModel] in

@@ -10,7 +10,7 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
     var onCreateTrackingLink: (() -> Void)?
     /// Runs at the start of `fetchProfile`, i.e. while a load is mid-flight.
     var onFetchProfile: (() async -> Void)?
-    var onFetchTrackingLink: (() -> Void)?
+    var onFetchTrackingLink: (() async -> Void)?
     private(set) var fetchedAthleteIds: [String?] = []
     private(set) var updatedPayloads: [UpdateProfilePayload] = []
     /// Every `updateProfile` call, including ones that threw — `updatedPayloads` only has successes.
@@ -44,7 +44,7 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
 
     func fetchTrackingLink(coachId: String, athleteId: String?, accessToken: String?) async throws
         -> ProfileTrackingLink? {
-        onFetchTrackingLink?()
+        await onFetchTrackingLink?()
         if let errorToThrow { throw errorToThrow }
         fetchedTrackingCoachIds.append(coachId)
         fetchedTrackingAthleteIds.append(athleteId)
@@ -53,8 +53,8 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
 
     func createTrackingLink(coachId: String, athleteId: String?, accessToken: String?) async throws
         -> ProfileTrackingLink {
-        if let errorToThrow { throw errorToThrow }
         onCreateTrackingLink?()
+        if let errorToThrow { throw errorToThrow }
         createdCoachIds.append(coachId)
         createdTrackingAthleteIds.append(athleteId)
         guard let stub = stubTrackingLink else {
