@@ -677,6 +677,22 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     XCTAssertEqual(sut.activities.map(\.id), ["interaction-B1"])
   }
 
+  func testFamilyDidChange_familyBecomesNil_rowsHiddenWhileChannelsTearDown() async {
+    authenticateUser()
+    mockService.interactionsByFamily = ["family-A": [makeInteraction(id: "A1")]]
+    switchFamily(to: "family-A")
+    await sut.loadAndSubscribe()
+    let gate = FetchGate()
+    mockRealtime.beforeUnsubscribe = { await gate.wait() }
+    familyManager.currentMember = nil
+    let change = Task { await sut.familyDidChange() }
+    await gate.waitUntilWaiting()
+
+    XCTAssertTrue(sut.activities.isEmpty, "A's rows during teardown: \(sut.activities.map(\.id))")
+    await gate.open()
+    await change.value
+  }
+
   func testRefresh_failureWithEntriesShowing_reportsTheError() async {
     authenticateUser()
     mockService.mockInteractions = [makeInteraction(id: "x")]
