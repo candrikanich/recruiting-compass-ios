@@ -7,8 +7,8 @@ protocol FamilyManaging: Sendable {
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember]
   /// Every family membership of the user, most recently joined first (a parent can be in several families).
   func getMemberships(userId: String) async throws -> [FamilyMember]
-  /// The subset of `familyUnitIds` that has a player (athlete) member.
-  func familyUnitIdsWithPlayer(among familyUnitIds: [String]) async throws -> Set<String>
+  /// The player (athlete) members of the given families, with the graduation year used to pick a default family.
+  func familyPlayers(among familyUnitIds: [String]) async throws -> [FamilyPlayer]
   /// Returns the family unit with this id, or `nil` if it doesn't exist.
   func getFamilyUnit(id: String) async throws -> FamilyUnit?
   /// The user's most recently joined family unit, or `nil` if they have not joined one.

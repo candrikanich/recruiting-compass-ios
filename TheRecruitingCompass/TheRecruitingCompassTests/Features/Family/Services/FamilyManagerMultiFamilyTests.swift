@@ -32,7 +32,7 @@ struct FamilyManagerMultiFamilyTests {
     return defaults
   }
 
-  /// Parent in family-new (joined last, no player) and family-old (has a player).
+  /// Parent in family-new (joined last, player graduates 2029) and family-old (player graduates 2027).
   private func makeSUT(
     defaults: UserDefaults? = nil
   ) -> (FamilyManager, MockFamilyService, UserDefaults) {
@@ -44,9 +44,15 @@ struct FamilyManagerMultiFamilyTests {
       member("pm-new", family: "family-new", role: "parent", userId: "parent-1"),
       member("pm-old", family: "family-old", role: "parent", userId: "parent-1")
     ]
-    service.familyUnitIdsWithPlayerStub = ["family-old"]
+    service.familyPlayersStub = [
+      FamilyPlayer(familyUnitId: "family-new", graduationYear: 2029),
+      FamilyPlayer(familyUnitId: "family-old", graduationYear: 2027)
+    ]
     service.membersByFamilyUnitId = [
-      "family-new": [member("pm-new", family: "family-new", role: "parent", userId: "parent-1")],
+      "family-new": [
+        member("pm-new", family: "family-new", role: "parent", userId: "parent-1"),
+        member("ath-new", family: "family-new", role: "player")
+      ],
       "family-old": [
         member("pm-old", family: "family-old", role: "parent", userId: "parent-1"),
         member("ath-old", family: "family-old", role: "player")
@@ -56,7 +62,7 @@ struct FamilyManagerMultiFamilyTests {
     return (sut, service, store)
   }
 
-  @Test func defaultsToMostRecentFamilyThatHasAPlayer() async {
+  @Test func defaultsToTheFamilyWhosePlayerIsClosestToGraduation() async {
     let (sut, _, _) = makeSUT()
 
     await sut.loadFamilyData()
@@ -65,40 +71,61 @@ struct FamilyManagerMultiFamilyTests {
     #expect(sut.selectedAthleteId == "ath-old")
   }
 
-  @Test func defaultsToMostRecentFamilyWhenNoneHasAPlayer() async {
+  @Test func equalOrMissingGraduationYearsFallBackToMostRecentlyJoined() async {
     let (sut, service, _) = makeSUT()
-    service.familyUnitIdsWithPlayerStub = []
+    service.familyPlayersStub = [
+      FamilyPlayer(familyUnitId: "family-new", graduationYear: nil),
+      FamilyPlayer(familyUnitId: "family-old", graduationYear: nil)
+    ]
 
     await sut.loadFamilyData()
 
     #expect(sut.familyUnitId == "family-new")
   }
 
-  @Test func switchingFamilyScopesEverythingToTheSelectedFamily() async {
+  @Test func noPlayersAnywhereFallsBackToMostRecentlyJoined() async {
+    let (sut, service, _) = makeSUT()
+    service.familyPlayersStub = []
+
+    await sut.loadFamilyData()
+
+    #expect(sut.familyUnitId == "family-new")
+  }
+
+  @Test func switchingFamilyScopesEverythingToTheSelectedFamilyAndRebuildsViews() async {
     let (sut, _, _) = makeSUT()
     await sut.loadFamilyData()
+    #expect(sut.familySwitchCount == 0)
 
     await sut.switchFamily(to: "family-new")
 
     #expect(sut.familyUnitId == "family-new")
     #expect(sut.currentMember?.familyUnitId == "family-new")
     #expect(sut.resolvedFamilyUnitId == "family-new")
-    #expect(sut.familyMembers.map(\.familyUnitId) == ["family-new"])
-    #expect(sut.selectedAthleteId == nil)
+    #expect(sut.familyMembers.map(\.familyUnitId) == ["family-new", "family-new"])
+    #expect(sut.selectedAthleteId == "ath-new")
+    #expect(sut.familySwitchCount == 1)
+  }
+
+  @Test func reselectingTheCurrentFamilyDoesNotRebuildViews() async {
+    let (sut, _, _) = makeSUT()
+    await sut.loadFamilyData()
+
+    await sut.switchFamily(to: "family-old")
+
+    #expect(sut.familySwitchCount == 0)
   }
 
   @Test func selectionPersistsAcrossLaunches() async {
-    // No family has a player, so the default is family-new; the saved choice must beat it.
-    let (first, firstService, defaults) = makeSUT()
-    firstService.familyUnitIdsWithPlayerStub = []
+    // The default is family-old; the saved choice must beat it.
+    let (first, _, defaults) = makeSUT()
     await first.loadFamilyData()
-    await first.switchFamily(to: "family-old")
+    await first.switchFamily(to: "family-new")
 
-    let (relaunched, relaunchedService, _) = makeSUT(defaults: defaults)
-    relaunchedService.familyUnitIdsWithPlayerStub = []
+    let (relaunched, _, _) = makeSUT(defaults: defaults)
     await relaunched.loadFamilyData()
 
-    #expect(relaunched.familyUnitId == "family-old")
+    #expect(relaunched.familyUnitId == "family-new")
   }
 
   @Test func savedFamilyTheParentNoLongerBelongsToFallsBackToTheDefault() async {
@@ -128,6 +155,50 @@ struct FamilyManagerMultiFamilyTests {
     #expect(sut.familyChoices.map(\.label) == ["Maya's Family", "Alex's Family"])
     #expect(sut.familyChoices.map(\.id) == ["family-new", "family-old"])
   }
+
+  @Test func unlabelledFamiliesStayDistinguishable() async {
+    let (sut, _, _) = makeSUT()
+    await sut.loadFamilyData()
+
+    let labels = sut.familyChoices.map(\.label)
+    #expect(Set(labels).count == 2)
+  }
+
+  @Test func aLoadInFlightWhenTheUserSwitchesDoesNotRestoreTheOldFamily() async {
+    let (sut, service, defaults) = makeSUT()
+    let gate = AsyncGate()
+    service.fetchFamilyMembersGate = { familyId in
+      if familyId == "family-old" { await gate.wait() }
+    }
+
+    let load = Task { await sut.loadFamilyData() }
+    await gate.untilEntered()
+    await sut.switchFamily(to: "family-new")
+    gate.open()
+    await load.value
+
+    #expect(sut.familyUnitId == "family-new")
+    #expect(sut.selectedAthleteId == "ath-new")
+    #expect(defaults.string(forKey: "selectedFamilyId.parent-1") == "family-new")
+  }
+
+  @Test func lastPickedFamilyWinsWhenSwitchesOverlap() async {
+    let (sut, service, defaults) = makeSUT()
+    await sut.loadFamilyData()
+    let gate = AsyncGate()
+    service.fetchFamilyMembersGate = { familyId in
+      if familyId == "family-new" { await gate.wait() }
+    }
+
+    let slowSwitch = Task { await sut.switchFamily(to: "family-new") }
+    await gate.untilEntered()
+    await sut.switchFamily(to: "family-old")
+    gate.open()
+    await slowSwitch.value
+
+    #expect(sut.familyUnitId == "family-old")
+    #expect(defaults.string(forKey: "selectedFamilyId.parent-1") == "family-old")
+  }
 }
 
 @Suite("FamilySelection")
@@ -139,21 +210,47 @@ struct FamilySelectionTests {
   @Test func savedFamilyWinsWhileStillAMember() {
     let result = FamilySelection.resolve(
       memberships: [member("a"), member("b")],
-      familyIdsWithPlayer: ["a"],
+      players: [FamilyPlayer(familyUnitId: "a", graduationYear: 2026)],
       savedFamilyId: "b"
     )
     #expect(result == "b")
   }
 
-  @Test func noMembershipsResolvesToNil() {
-    #expect(FamilySelection.resolve(memberships: [], familyIdsWithPlayer: [], savedFamilyId: "x") == nil)
+  @Test func closestGraduationWinsAndFamiliesWithoutAYearComeLast() {
+    let result = FamilySelection.resolve(
+      memberships: [member("a"), member("b"), member("c")],
+      players: [
+        FamilyPlayer(familyUnitId: "a", graduationYear: nil),
+        FamilyPlayer(familyUnitId: "b", graduationYear: 2029),
+        FamilyPlayer(familyUnitId: "c", graduationYear: 2027)
+      ],
+      savedFamilyId: nil
+    )
+    #expect(result == "c")
   }
 
-  @Test func choicesDeduplicateFamiliesAndFallBackToAGenericLabel() {
+  @Test func aFamilyWithSeveralPlayersCountsItsClosestGraduation() {
+    let result = FamilySelection.resolve(
+      memberships: [member("a"), member("b")],
+      players: [
+        FamilyPlayer(familyUnitId: "a", graduationYear: 2028),
+        FamilyPlayer(familyUnitId: "b", graduationYear: 2030),
+        FamilyPlayer(familyUnitId: "b", graduationYear: 2026)
+      ],
+      savedFamilyId: nil
+    )
+    #expect(result == "b")
+  }
+
+  @Test func noMembershipsResolvesToNil() {
+    #expect(FamilySelection.resolve(memberships: [], players: [], savedFamilyId: "x") == nil)
+  }
+
+  @Test func choicesDeduplicateFamiliesAndNumberUnlabelledOnes() {
     let choices = FamilySelection.choices(
       memberships: [member("a"), member("a"), member("b")],
       labels: ["a": "A's Family"]
     )
-    #expect(choices.map(\.label) == ["A's Family", "Family"])
+    #expect(choices.map(\.label) == ["A's Family", "Family 2"])
   }
 }

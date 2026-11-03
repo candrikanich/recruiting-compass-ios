@@ -25,7 +25,7 @@ protocol DashboardManaging: Sendable {
   /// - Parameters:
   ///   - location: The user's home location string, used for geo-relevant suggestions.
   ///   - accessToken: Bearer token for the web API; pass the Supabase session access token.
-  func fetchSuggestions(location: String, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int)
+  func fetchSuggestions(location: String, athleteId: String?, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int)
   /// Marks a suggestion as dismissed so it no longer appears in the Action Items widget.
   func dismissSuggestion(id: String, accessToken: String?) async throws
   /// Marks a suggestion as completed.

@@ -56,6 +56,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   // MARK: - FamilyManaging Implementation
 
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember] {
+    await fetchFamilyMembersGate?(familyUnitId)
     lock.lock()
     fetchFamilyMembersCallCount += 1
     lastFamilyUnitIdFetched = familyUnitId
@@ -74,7 +75,9 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   var getMembershipsGate: (@Sendable () async -> Void)?
   /// Most recently joined first. Defaults to the single `stubbedCurrentMember`.
   var stubbedMemberships: [FamilyMember]?
-  var familyUnitIdsWithPlayerStub: Set<String> = []
+  var familyPlayersStub: [FamilyPlayer] = []
+  /// Awaited inside `fetchFamilyMembers` with the family id so a test can hold one family's load in flight.
+  var fetchFamilyMembersGate: (@Sendable (String) async -> Void)?
   var unitsById: [String: FamilyUnit] = [:]
 
   func getMemberships(userId: String) async throws -> [FamilyMember] {
@@ -89,11 +92,11 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     return stubbedMemberships ?? stubbedCurrentMember.map { [$0] } ?? []
   }
 
-  func familyUnitIdsWithPlayer(among familyUnitIds: [String]) async throws -> Set<String> {
+  func familyPlayers(among familyUnitIds: [String]) async throws -> [FamilyPlayer] {
     if !shouldSucceed {
       throw mockError
     }
-    return familyUnitIdsWithPlayerStub.intersection(familyUnitIds)
+    return familyPlayersStub.filter { familyUnitIds.contains($0.familyUnitId) }
   }
 
   func getFamilyUnit(id: String) async throws -> FamilyUnit? {

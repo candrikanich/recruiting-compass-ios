@@ -24,6 +24,9 @@ final class FamilyManager {
   private(set) var memberships: [FamilyMember] = []
   /// Bumped whenever the user switches family, so the root views can rebuild and drop the old family's state.
   private(set) var familySwitchCount = 0
+  /// Advanced by every `switchFamily`. A load or switch only applies while its epoch is the latest, so the last
+  /// family the user picked wins over an older in-flight load or an earlier, slower switch.
+  private var selectionEpoch = 0
 
   /// Advanced by `reset()`. A load only writes while its session is still current, so a request
   /// from before a sign-out can't land in a later session — even one for the same user.
@@ -101,23 +104,26 @@ final class FamilyManager {
 
   private func performLoad(userId: String, session loadSession: Int) async {
     do {
+      let epoch = selectionEpoch
       let all = try await familyService.getMemberships(userId: userId)
       guard isCurrent(userId, loadSession) else { return }
       memberships = all
 
-      let withPlayer = all.count > 1
-        ? try await familyService.familyUnitIdsWithPlayer(among: all.map(\.familyUnitId))
+      let players = all.count > 1
+        ? try await familyService.familyPlayers(among: all.map(\.familyUnitId))
         : []
-      guard isCurrent(userId, loadSession) else { return }
+      guard isCurrent(userId, loadSession), epoch == selectionEpoch else { return }
 
       // No client auto-create: the server creates the family at signup and the family-required gate is the
       // backstop for anyone left without one.
       if let familyId = FamilySelection.resolve(
         memberships: all,
-        familyIdsWithPlayer: withPlayer,
+        players: players,
         savedFamilyId: defaults.string(forKey: Self.savedFamilyKey(userId))
       ) {
-        guard try await activate(familyId: familyId, userId: userId, session: loadSession) else { return }
+        guard try await activate(familyId: familyId, userId: userId, session: loadSession, epoch: epoch) else {
+          return
+        }
       } else {
         logger.warning("No family unit ID found for user \(userId)")
         // Left or removed from the last family: drop its cached rows too.
@@ -136,12 +142,15 @@ final class FamilyManager {
     }
   }
 
-  /// Makes `familyId` the family everything reads from. Returns false when the session ended mid-request.
-  private func activate(familyId: String, userId: String, session loadSession: Int) async throws -> Bool {
+  /// Makes `familyId` the family everything reads from. Returns false when the session ended or a newer
+  /// selection superseded this one mid-request. Moving off a previous family bumps `familySwitchCount`,
+  /// whoever caused it, so the views rebuild instead of showing the old family's state.
+  private func activate(familyId: String, userId: String, session loadSession: Int, epoch: Int) async throws -> Bool {
     let unit = try await familyService.getFamilyUnit(id: familyId)
     let members = try await familyService.fetchFamilyMembers(familyUnitId: familyId)
-    guard isCurrent(userId, loadSession) else { return false }
+    guard isCurrent(userId, loadSession), epoch == selectionEpoch else { return false }
 
+    let previousFamilyId = familyUnitId
     currentMember = memberships.first { $0.familyUnitId == familyId }
     familyUnit = unit
     membership = FamilyGate.status(afterReading: self.familyUnitId)
@@ -151,22 +160,22 @@ final class FamilyManager {
       selectedAthleteId = currentMember?.id
     } else if currentMember?.isParent == true, !familyMembers.contains(where: { $0.id == selectedAthleteId }) {
       // Nothing selected, or the selection belonged to another family the parent left or switched away from.
-      // Mirror web: a parent auto-views an athlete. Web sorts by closest graduation year; that field isn't
-      // loaded here, so default to the first linked athlete (deterministic for single-athlete families).
+      // Default to the first linked athlete (deterministic for single-athlete families).
       selectedAthleteId = familyMembers.first { $0.isAthlete }?.id
     }
+    if let previousFamilyId, previousFamilyId != familyId { familySwitchCount += 1 }
     return true
   }
 
   /// Switches a multi-family parent to another family they belong to and remembers the choice per user.
   func switchFamily(to familyId: String) async {
-    guard familyId != familyUnitId,
-          memberships.contains(where: { $0.familyUnitId == familyId }),
+    guard memberships.contains(where: { $0.familyUnitId == familyId }),
           let userId = authManager.user?.id else { return }
+    selectionEpoch += 1
+    let epoch = selectionEpoch
     do {
-      guard try await activate(familyId: familyId, userId: userId, session: session) else { return }
+      guard try await activate(familyId: familyId, userId: userId, session: session, epoch: epoch) else { return }
       defaults.set(familyId, forKey: Self.savedFamilyKey(userId))
-      familySwitchCount += 1
     } catch {
       logger.error("Failed to switch family: \(error.localizedDescription)")
     }

@@ -57,6 +57,8 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   var stubbedSuggestions: [Suggestion] = []
   var stubbedSuggestionsPendingCount: Int = 0
 
+  var lastSuggestionsAthleteId: String?
+
   // MARK: - DashboardManaging
 
   func fetchStats(familyUnitId: String, userId: String) async throws -> DashboardStats {
@@ -130,8 +132,9 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
     return stubbedMetrics
   }
 
-  func fetchSuggestions(location: String, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int) {
+  func fetchSuggestions(location: String, athleteId: String?, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int) {
     fetchSuggestionsCallCount += 1
+    lastSuggestionsAthleteId = athleteId
     if shouldThrowFetchSuggestions {
       throw NSError(domain: "MockDashboard", code: 2, userInfo: [NSLocalizedDescriptionKey: "Mock fetch suggestions error"])
     }
