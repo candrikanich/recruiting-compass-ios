@@ -9,46 +9,53 @@ private let logger = Logger(
 
 /// Sendable: Stateless service with no mutable properties
 final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
-  private let supabaseManager: SupabaseManager
+  /// Per-source cap; matches web so both platforms merge the same window of entries.
+  static let perSourceLimit = 200
 
-  init(supabaseManager: SupabaseManager) {
-    self.supabaseManager = supabaseManager
+  private let client: SupabaseClient
+
+  init(client: SupabaseClient) {
+    self.client = client
   }
 
-  func fetchInteractions(userId: String) async throws -> [Interaction] {
+  convenience init(supabaseManager: SupabaseManager) {
+    self.init(client: supabaseManager.client)
+  }
+
+  func fetchInteractions(familyUnitId: String) async throws -> [Interaction] {
     try await logger.fetch("interactions") {
-      try await supabaseManager.client
+      try await client
         .from("interactions")
         .select("id, school_id, type, content, subject, occurred_at, created_at, direction, logged_by, family_unit_id, updated_at, sentiment, coach_id, attachments")
-        .eq("logged_by", value: userId)
+        .eq("family_unit_id", value: familyUnitId)
         .order("created_at", ascending: false)
-        .limit(50)
+        .limit(Self.perSourceLimit)
         .execute()
         .value
     }
   }
 
-  func fetchStatusChanges(userId: String) async throws -> [SchoolStatusHistory] {
+  func fetchStatusChanges(familyUnitId: String) async throws -> [SchoolStatusHistory] {
     try await logger.fetch("status changes") {
-      try await supabaseManager.client
+      try await client
         .from("school_status_history")
-        .select("id, school_id, new_status, previous_status, notes, changed_at, changed_by, created_at")
-        .eq("changed_by", value: userId)
+        .select("id, school_id, new_status, previous_status, notes, changed_at, changed_by, created_at, schools!inner(family_unit_id)")
+        .eq("schools.family_unit_id", value: familyUnitId)
         .order("changed_at", ascending: false)
-        .limit(50)
+        .limit(Self.perSourceLimit)
         .execute()
         .value
     }
   }
 
-  func fetchDocuments(userId: String) async throws -> [DocumentRecord] {
+  func fetchDocuments(familyUnitId: String) async throws -> [DocumentRecord] {
     try await logger.fetch("documents") {
-      try await supabaseManager.client
+      try await client
         .from("documents")
-        .select("id, title, type, created_at")
-        .eq("user_id", value: userId)
+        .select("id, title, type, created_at, uploaded_by")
+        .eq("family_unit_id", value: familyUnitId)
         .order("created_at", ascending: false)
-        .limit(50)
+        .limit(Self.perSourceLimit)
         .execute()
         .value
     }
@@ -65,7 +72,7 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
     }
 
     do {
-      let records: [SchoolNameRecord] = try await supabaseManager.client
+      let records: [SchoolNameRecord] = try await client
         .from("schools")
         .select("id, name")
         .in("id", values: schoolIds)

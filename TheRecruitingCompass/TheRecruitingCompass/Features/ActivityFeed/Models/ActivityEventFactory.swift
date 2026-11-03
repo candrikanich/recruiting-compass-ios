@@ -27,7 +27,8 @@ enum ActivityEventFactory {
       entityId: interaction.schoolId,
       entityName: resolvedSchoolName,
       isClickable: true,
-      clickUrl: interaction.schoolId.map { "/schools/\($0)" }
+      clickUrl: interaction.schoolId.map { "/schools/\($0)" },
+      actorUserId: interaction.loggedBy
     )
   }
 
@@ -53,7 +54,8 @@ enum ActivityEventFactory {
       entityId: history.schoolId,
       entityName: resolvedSchoolName,
       isClickable: true,
-      clickUrl: "/schools/\(history.schoolId)"
+      clickUrl: "/schools/\(history.schoolId)",
+      actorUserId: history.changedBy
     )
   }
 
@@ -74,7 +76,8 @@ enum ActivityEventFactory {
       entityId: document.id,
       entityName: document.title,
       isClickable: false,
-      clickUrl: nil
+      clickUrl: nil,
+      actorUserId: document.uploadedBy
     )
   }
 

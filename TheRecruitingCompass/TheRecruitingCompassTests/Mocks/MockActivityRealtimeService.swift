@@ -7,27 +7,38 @@ final class MockActivityRealtimeService: ActivityRealtimeManaging, @unchecked Se
 
   var subscribeCallCount = 0
   var unsubscribeCallCount = 0
-  var lastSubscribedUserId: String?
   var lastSubscribedFamilyUnitId: String?
+  var subscribedFamilyUnitIds: [String] = []
+  var events: [String] = []
   var lastOnInsert: (@MainActor @Sendable (ActivityEvent) -> Void)?
   var lastOnChange: (@MainActor @Sendable () -> Void)?
+  var lastOnStatusHistoryInsert: (@MainActor @Sendable () -> Void)?
+  var lastOnSchoolsChange: (@MainActor @Sendable () -> Void)?
 
   func subscribe(
-    userId: String,
-    familyUnitId: String?,
+    familyUnitId: String,
     onInsert: @escaping @MainActor @Sendable (ActivityEvent) -> Void,
-    onChange: @escaping @MainActor @Sendable () -> Void
+    onChange: @escaping @MainActor @Sendable () -> Void,
+    onSchoolsChange: @escaping @MainActor @Sendable () -> Void,
+    onStatusHistoryInsert: @escaping @MainActor @Sendable () -> Void
   ) async throws {
     subscribeCallCount += 1
-    lastSubscribedUserId = userId
+    subscribedFamilyUnitIds.append(familyUnitId)
+    events.append("subscribe:\(familyUnitId)")
     lastSubscribedFamilyUnitId = familyUnitId
     lastOnInsert = onInsert
     lastOnChange = onChange
+    lastOnSchoolsChange = onSchoolsChange
+    lastOnStatusHistoryInsert = onStatusHistoryInsert
     if shouldThrowOnSubscribe { throw errorToThrow }
   }
 
+  var beforeUnsubscribe: (@Sendable () async -> Void)?
+
   func unsubscribe() async {
     unsubscribeCallCount += 1
+    await beforeUnsubscribe?()
+    events.append("unsubscribe")
   }
 
   /// Test helper: simulate the realtime channel delivering a new event.
@@ -40,5 +51,15 @@ final class MockActivityRealtimeService: ActivityRealtimeManaging, @unchecked Se
   @MainActor
   func simulateChange() {
     lastOnChange?()
+  }
+
+  @MainActor
+  func simulateStatusHistoryInsert() {
+    lastOnStatusHistoryInsert?()
+  }
+
+  @MainActor
+  func simulateSchoolsChange() {
+    lastOnSchoolsChange?()
   }
 }
