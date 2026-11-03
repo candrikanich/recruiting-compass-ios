@@ -35,6 +35,28 @@ final class PublicProfileDataTests: XCTestCase {
         XCTAssertEqual(a, b)
     }
 
+    func testFilmItemLinkURLOnlyForHttpAndHttps() {
+        func link(_ url: String) -> URL? { PublicProfileData.FilmItem(title: nil, url: url).linkURL }
+        XCTAssertEqual(link("https://hudl.com/x")?.host, "hudl.com")
+        XCTAssertNotNil(link("HTTP://hudl.com/x"))
+        for bad in ["javascript:alert(1)", "data:text/html,hi", "file:///etc/hosts", "ftp://x/y", "hudl.com/x"] {
+            XCTAssertNil(link(bad), bad)
+        }
+    }
+
+    func testFilmItemsDropNonHttpRows() {
+        func video(_ url: String, _ title: String?) -> VideoLink {
+            VideoLink(id: url, userId: "u", familyUnitId: "f", platform: .hudl, url: url, title: title, position: 0,
+                      healthStatus: .unknown, lastHealthCheck: nil, createdAt: nil, updatedAt: nil)
+        }
+        let items = PublicProfileViewModel.buildFilm(from: [
+            video("https://hudl.com/x", "Hudl"), video("javascript:alert(1)", "Bad"),
+            video("hudl.com/y", nil), video("http://youtu.be/z", nil)
+        ])
+        XCTAssertEqual(items.map(\.url), ["https://hudl.com/x", "http://youtu.be/z"])
+        XCTAssertTrue(PublicProfileViewModel.buildFilm(from: [video("ftp://x", nil)]).isEmpty)
+    }
+
     func testMetricEntryIdentifiableByKey() {
         let entry = PublicProfileData.MetricEntry(
             key: "batting_avg", label: "Batting Average", value: ".410", unit: "", verified: true

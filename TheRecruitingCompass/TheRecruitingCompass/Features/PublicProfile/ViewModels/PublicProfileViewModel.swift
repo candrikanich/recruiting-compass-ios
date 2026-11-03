@@ -317,7 +317,7 @@ final class PublicProfileViewModel {
             academics: isSectionVisible(.academics) ? academicsSection(from: details) : nil,
             credentials: credentialsRow(from: details),
             metrics: isSectionVisible(.metrics) ? Self.buildMetrics(from: metricRows) : nil,
-            film: isSectionVisible(.film) ? videos.map { PublicProfileData.FilmItem(title: $0.title, url: $0.url) } : nil,
+            film: isSectionVisible(.film) ? Self.buildFilm(from: videos) : nil,
             lookingFor: isSectionVisible(.values) ? (lookingFor.isEmpty ? nil : lookingFor) : nil,
             valuesTags: isSectionVisible(.values) ? valuesTags : [],
             teamHistory: isSectionVisible(.teamHistory) ? Self.buildTeamHistory(from: details) : nil,
@@ -336,6 +336,11 @@ final class PublicProfileViewModel {
         if let date = iso.date(from: raw) { return date }
         iso.formatOptions = [.withInternetDateTime]
         return iso.date(from: raw)
+    }
+
+    /// Web drops film rows that aren't http(s) links; so do we.
+    nonisolated static func buildFilm(from videos: [VideoLink]) -> [PublicProfileData.FilmItem] {
+        videos.map { PublicProfileData.FilmItem(title: $0.title, url: $0.url) }.filter { $0.linkURL != nil }
     }
 
     /// One card per `metric_type` (newest by `created_at` wins), ranked

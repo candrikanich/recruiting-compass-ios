@@ -48,6 +48,10 @@ final class VideoLinksEditorViewModel {
       errorMessage = FamilyUnitID.MissingError.missing.errorDescription
       return false
     }
+    guard let url = HTTPURL.cleaned(url) else {
+      errorMessage = HTTPURL.invalidMessage
+      return false
+    }
     isSubmitting = true; defer { isSubmitting = false }
     do {
       let created = try await service.createVideoLink(.init(
@@ -65,6 +69,10 @@ final class VideoLinksEditorViewModel {
   func updateLink(id: String, platform: VideoLinkPlatform, url: String, title: String?) async -> Bool {
     guard !isReadOnly else {
       errorMessage = String(localized: "Only the player can edit video links.")
+      return false
+    }
+    guard let url = HTTPURL.cleaned(url) else {
+      errorMessage = HTTPURL.invalidMessage
       return false
     }
     isSubmitting = true; defer { isSubmitting = false }
