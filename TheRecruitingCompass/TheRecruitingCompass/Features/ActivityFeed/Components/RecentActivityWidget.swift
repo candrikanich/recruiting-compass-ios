@@ -1,12 +1,7 @@
 import SwiftUI
-import OSLog
-
-private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "ActivityFeed")
 
 struct RecentActivityWidget: View {
   @State private var viewModel = ActivityFeedViewModel()
-  @State private var realtimeService: ActivityRealtimeService?
-  @State private var backgroundCleanupTask: Task<Void, Never>?
   @Environment(\.scenePhase) private var scenePhase
   @Environment(FamilyManager.self) private var familyManager
 
@@ -21,7 +16,7 @@ struct RecentActivityWidget: View {
         Spacer()
 
         Button {
-          Task { await viewModel.loadActivities() }
+          Task { await viewModel.refresh() }
         } label: {
           Image(systemName: "arrow.clockwise")
             .font(.brand(.subheadline))
@@ -82,33 +77,19 @@ struct RecentActivityWidget: View {
     .brandShadowSm()
     .accessibilityIdentifier("recent-activity-widget")
     .task {
-      await loadAndSubscribe()
+      await viewModel.loadAndSubscribe()
     }
     .onChange(of: familyManager.familyUnitId) { _, _ in
-      resubscribeForActiveFamily()
+      Task { await viewModel.familyDidChange() }
     }
     .onDisappear {
-      viewModel.cancelPendingReload()
-      backgroundCleanupTask?.cancel()
-      let service = realtimeService
-      realtimeService = nil
-      Task {
-        await service?.unsubscribe()
-      }
+      Task { await viewModel.tearDownRealtime() }
     }
     .onChange(of: scenePhase) { _, newValue in
       if newValue == .active {
-        backgroundCleanupTask?.cancel()
-        Task {
-          await loadAndSubscribe()
-        }
+        Task { await viewModel.loadAndSubscribe() }
       } else if newValue == .background {
-        backgroundCleanupTask?.cancel()
-        let service = realtimeService
-        realtimeService = nil
-        backgroundCleanupTask = Task {
-          await service?.unsubscribe()
-        }
+        Task { await viewModel.tearDownRealtime() }
       }
     }
   }
@@ -118,54 +99,6 @@ struct RecentActivityWidget: View {
   var refreshAccessibilityLabel: String { String(localized: "Refresh activities") }
   var viewAllAccessibilityLabel: String { String(localized: "View all activity") }
   var viewAllAccessibilityHint: String { "Opens the full activity history page" }
-
-  // MARK: - Private Methods
-
-  private func resubscribeForActiveFamily() {
-    backgroundCleanupTask?.cancel()
-    let service = realtimeService
-    realtimeService = nil
-    Task {
-      await service?.unsubscribe()
-      await loadAndSubscribe()
-    }
-  }
-
-  private func loadAndSubscribe() async {
-    // Load initial activities
-    await viewModel.loadActivities()
-
-    // Subscribe to realtime updates
-    guard let familyUnitId = viewModel.familyUnitId else { return }
-
-    // Avoid re-subscribing when a live subscription already exists. `.task` and
-    // the scenePhase `.active` transition can both fire on appear; a second
-    // subscribe would reuse the already-joined channel topic and register a
-    // postgresChange listener after the join (a no-op that logs a warning) while
-    // leaking the overwritten service.
-    guard realtimeService == nil else { return }
-
-    let service = ActivityRealtimeService(supabaseManager: .shared)
-    realtimeService = service
-
-    do {
-      try await service.subscribe(
-        familyUnitId: familyUnitId,
-        onInsert: { [viewModel] newEvent in
-          viewModel.addRealtimeEvent(newEvent)
-        },
-        onChange: { [viewModel] in
-          Task { await viewModel.loadActivities(forceRefresh: true) }
-        },
-        onSchoolsChange: { [viewModel] in
-          viewModel.scheduleDebouncedReload()
-        }
-      )
-    } catch {
-      // Log error but don't fail - widget still works without realtime
-      logger.error("Failed to subscribe to realtime updates: \(error.localizedDescription)")
-    }
-  }
 }
 
 #Preview {

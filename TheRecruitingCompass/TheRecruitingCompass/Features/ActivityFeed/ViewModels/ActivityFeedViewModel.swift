@@ -48,17 +48,22 @@ final class ActivityFeedViewModel {
 
   /// "You" for the signed-in user, otherwise the member's name; a member who has left has no
   /// `family_members` row any more, so they fall back to a generic label.
-  func actorLabel(for event: ActivityEvent) -> String? {
-    guard let actorId = event.actorUserId else { return nil }
-    if actorId == authManager.user?.id { return Self.youLabel }
-    let user = familyManager.familyMembers.first { $0.userId == actorId }?.user
+  func actorLabel(for event: ActivityEvent) -> String {
+    if let actorId = event.actorUserId, actorId == authManager.user?.id { return Self.youLabel }
+    // Until the active family's members are loaded (cold start, failed lookup, mid family switch) nobody can be
+    // called "former" — absence from an unloaded list says nothing.
+    guard familyManager.familyMembers.contains(where: { $0.familyUnitId == familyUnitId }) else {
+      return Self.unknownMemberLabel
+    }
+    let user = familyManager.familyMembers.first { $0.userId == event.actorUserId }?.user
     let name = [user?.fullName, user?.email]
-      .compactMap { $0?.trimmingCharacters(in: .whitespaces) }
+      .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
       .first { !$0.isEmpty }
     return name ?? Self.formerMemberLabel
   }
 
   static let youLabel = "You"
+  static let unknownMemberLabel = "A family member"
   static let formerMemberLabel = "A former family member"
 
   // MARK: - Computed Properties
@@ -119,6 +124,8 @@ final class ActivityFeedViewModel {
   private let cache: (any CacheManaging)?
   private let reloadDebounce: Duration
   private var pendingReload: Task<Void, Never>?
+  private let realtime: any ActivityRealtimeManaging
+  private var subscribedFamilyUnitId: String?
 
   /// TTL for cached activity feed (seconds). Short, and deliberately not
   /// invalidated from the many VMs that create interactions/status-changes/
@@ -132,13 +139,15 @@ final class ActivityFeedViewModel {
     familyManager: FamilyManager? = nil,
     authManager: (any AuthManaging)? = nil,
     cache: (any CacheManaging)? = nil,
-    reloadDebounce: Duration = .milliseconds(1500)
+    reloadDebounce: Duration = .milliseconds(1500),
+    realtime: (any ActivityRealtimeManaging)? = nil
   ) {
     self.activityService = activityService ?? ActivityFeedServiceImpl(supabaseManager: .shared)
     self.familyManager = familyManager ?? .shared
     self.authManager = authManager ?? AuthManager.shared
     self.cache = cache
     self.reloadDebounce = reloadDebounce
+    self.realtime = realtime ?? ActivityRealtimeService(supabaseManager: .shared)
   }
 
   // Prevent compiler-synthesized main-actor-isolated deinit.
@@ -151,6 +160,8 @@ final class ActivityFeedViewModel {
   func loadActivities(forceRefresh: Bool = false) async {
     guard let familyUnitId else {
       logger.warning("No active family for activity feed")
+      // Leaving the last family must not leave that family's entries on screen.
+      activities = []
       errorMessage = "Unable to load activities. Please sign in."
       return
     }
@@ -163,6 +174,7 @@ final class ActivityFeedViewModel {
     let cacheToUse = cache ?? InMemoryCache.shared
 
     if !forceRefresh, let cached = await cacheToUse.get([ActivityEvent].self, forKey: cacheKey) {
+      guard isStillActive(familyUnitId) else { return }
       activities = cached
       currentPage = 1
       logger.info("Loaded \(cached.count) activity events from cache")
@@ -209,16 +221,26 @@ final class ActivityFeedViewModel {
       // Sort by timestamp descending
       events.sort { $0.timestamp > $1.timestamp }
 
+      await cacheToUse.set(events, forKey: cacheKey, ttlSeconds: Self.activitiesCacheTTL)
+      // The family can change while the fetches are in flight; a late result must not replace the new feed.
+      guard isStillActive(familyUnitId) else { return }
       activities = events
       currentPage = 1
-      await cacheToUse.set(events, forKey: cacheKey, ttlSeconds: Self.activitiesCacheTTL)
 
       logger.info("Loaded \(events.count) activity events")
     } catch {
+      // A superseded load (cancelled task, or the family changed meanwhile) must not flash an error.
+      if Task.isCancelled || error is CancellationError || (error as? URLError)?.code == .cancelled
+        || !isStillActive(familyUnitId) { return }
       logger.error("Failed to load activities: \(error.localizedDescription)")
       errorMessage = "Failed to load activities. Please try again."
     }
   }
+
+  private func isStillActive(_ familyUnitId: String) -> Bool { self.familyUnitId == familyUnitId }
+
+  /// Pull-to-refresh / Refresh button: the user asked for fresh data, so skip the 60 s cache.
+  func refresh() async { await loadActivities(forceRefresh: true) }
 
   // MARK: - Pagination
 
@@ -258,8 +280,59 @@ final class ActivityFeedViewModel {
     pendingReload = nil
   }
 
-  /// Add a new activity event from realtime update (deduplicates by ID)
-  func addRealtimeEvent(_ event: ActivityEvent) {
+  // MARK: - Realtime lifecycle
+
+  func loadAndSubscribe() async {
+    await loadActivities()
+    await startRealtime()
+  }
+
+  /// Single teardown path (disappear, background, family switch): no live channels, no pending reload.
+  func tearDownRealtime() async {
+    cancelPendingReload()
+    subscribedFamilyUnitId = nil
+    await realtime.unsubscribe()
+  }
+
+  /// The active family changed: drop the old family's entries and channels, then load and subscribe for the new one.
+  func familyDidChange() async {
+    await tearDownRealtime()
+    activities = []
+    await loadAndSubscribe()
+  }
+
+  private func startRealtime() async {
+    // `.task` and the scenePhase `.active` transition can both fire on appear; one live subscription only.
+    guard let familyUnitId, subscribedFamilyUnitId != familyUnitId else { return }
+    subscribedFamilyUnitId = familyUnitId
+    do {
+      try await realtime.subscribe(
+        familyUnitId: familyUnitId,
+        onInsert: { [weak self] event in self?.addRealtimeEvent(event, forFamily: familyUnitId) },
+        onChange: { [weak self] in
+          guard let self, self.isStillActive(familyUnitId) else { return }
+          Task { await self.refresh() }
+        },
+        onSchoolsChange: { [weak self] in
+          guard let self, self.isStillActive(familyUnitId) else { return }
+          self.scheduleDebouncedReload()
+        }
+      )
+    } catch {
+      // The feed still works without realtime.
+      if subscribedFamilyUnitId == familyUnitId { subscribedFamilyUnitId = nil }
+      logger.error("Failed to subscribe to realtime updates: \(error.localizedDescription)")
+    }
+  }
+
+  /// Add a new activity event from realtime update (deduplicates by ID).
+  /// - Parameter familyUnitId: the family whose subscription delivered it; an event from a family that is no
+  ///   longer active (insert handlers outlive `unsubscribe()`) is dropped.
+  func addRealtimeEvent(_ event: ActivityEvent, forFamily familyUnitId: String) {
+    guard isStillActive(familyUnitId) else {
+      logger.debug("Dropped realtime event from inactive family: \(event.id)")
+      return
+    }
     if !activities.contains(where: { $0.id == event.id }) {
       activities.insert(event, at: 0)
       logger.debug("Added realtime event: \(event.id)")

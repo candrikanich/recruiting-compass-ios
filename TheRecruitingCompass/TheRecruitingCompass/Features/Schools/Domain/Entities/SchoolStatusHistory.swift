@@ -5,7 +5,8 @@ struct SchoolStatusHistory: Identifiable, Codable, Sendable {
   let schoolId: String
   let previousStatus: String?
   let newStatus: String
-  let changedBy: String
+  /// NULL once the member who made the change is deleted (`ON DELETE SET NULL`).
+  let changedBy: String?
   let changedAt: Date
   let notes: String?
   let createdAt: Date
@@ -28,7 +29,7 @@ struct SchoolStatusHistory: Identifiable, Codable, Sendable {
     schoolId = try container.decode(String.self, forKey: .schoolId)
     previousStatus = try container.decodeIfPresent(String.self, forKey: .previousStatus)
     newStatus = try container.decode(String.self, forKey: .newStatus)
-    changedBy = try container.decode(String.self, forKey: .changedBy)
+    changedBy = try container.decodeIfPresent(String.self, forKey: .changedBy)
     notes = try container.decodeIfPresent(String.self, forKey: .notes)
 
     let fractionalFormatter = ISO8601DateFormatter()
@@ -70,7 +71,7 @@ struct SchoolStatusHistory: Identifiable, Codable, Sendable {
     try container.encode(schoolId, forKey: .schoolId)
     try container.encodeIfPresent(previousStatus, forKey: .previousStatus)
     try container.encode(newStatus, forKey: .newStatus)
-    try container.encode(changedBy, forKey: .changedBy)
+    try container.encodeIfPresent(changedBy, forKey: .changedBy)
     try container.encodeIfPresent(notes, forKey: .notes)
 
     let iso8601Formatter = ISO8601DateFormatter()
@@ -86,7 +87,7 @@ struct SchoolStatusHistory: Identifiable, Codable, Sendable {
     schoolId: String,
     previousStatus: String?,
     newStatus: String,
-    changedBy: String,
+    changedBy: String?,
     changedAt: Date,
     notes: String? = nil,
     createdAt: Date

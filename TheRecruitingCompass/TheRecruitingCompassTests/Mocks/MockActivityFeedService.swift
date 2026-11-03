@@ -8,6 +8,10 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
   var mockStatusChanges: [SchoolStatusHistory] = []
   var mockDocuments: [DocumentRecord] = []
   var mockSchoolNames: [String: String] = [:]
+  /// Takes precedence over `mockInteractions` for a family.
+  var interactionsByFamily: [String: [Interaction]] = [:]
+  /// Awaited at the start of `fetchInteractions`, so a test can hold one family's fetch open.
+  var beforeFetchInteractions: (@Sendable (String) async -> Void)?
 
   // MARK: - Error Flags
 
@@ -35,6 +39,7 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
   func fetchInteractions(familyUnitId: String) async throws -> [Interaction] {
     fetchInteractionsCallCount += 1
     lastFetchInteractionsFamilyUnitId = familyUnitId
+    await beforeFetchInteractions?(familyUnitId)
     if shouldThrowOnInteractions {
       throw NSError(
         domain: "MockActivityFeed",
@@ -42,7 +47,7 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
         userInfo: [NSLocalizedDescriptionKey: "Mock interactions fetch error"]
       )
     }
-    return mockInteractions
+    return interactionsByFamily[familyUnitId] ?? mockInteractions
   }
 
   func fetchStatusChanges(familyUnitId: String) async throws -> [SchoolStatusHistory] {

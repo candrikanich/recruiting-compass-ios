@@ -12,15 +12,19 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
   /// Per-source cap; matches web so both platforms merge the same window of entries.
   static let perSourceLimit = 200
 
-  private let supabaseManager: SupabaseManager
+  private let client: SupabaseClient
 
-  init(supabaseManager: SupabaseManager) {
-    self.supabaseManager = supabaseManager
+  init(client: SupabaseClient) {
+    self.client = client
+  }
+
+  convenience init(supabaseManager: SupabaseManager) {
+    self.init(client: supabaseManager.client)
   }
 
   func fetchInteractions(familyUnitId: String) async throws -> [Interaction] {
     try await logger.fetch("interactions") {
-      try await supabaseManager.client
+      try await client
         .from("interactions")
         .select("id, school_id, type, content, subject, occurred_at, created_at, direction, logged_by, family_unit_id, updated_at, sentiment, coach_id, attachments")
         .eq("family_unit_id", value: familyUnitId)
@@ -33,7 +37,7 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
 
   func fetchStatusChanges(familyUnitId: String) async throws -> [SchoolStatusHistory] {
     try await logger.fetch("status changes") {
-      try await supabaseManager.client
+      try await client
         .from("school_status_history")
         .select("id, school_id, new_status, previous_status, notes, changed_at, changed_by, created_at, schools!inner(family_unit_id)")
         .eq("schools.family_unit_id", value: familyUnitId)
@@ -46,7 +50,7 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
 
   func fetchDocuments(familyUnitId: String) async throws -> [DocumentRecord] {
     try await logger.fetch("documents") {
-      try await supabaseManager.client
+      try await client
         .from("documents")
         .select("id, title, type, created_at, user_id")
         .eq("family_unit_id", value: familyUnitId)
@@ -68,7 +72,7 @@ final class ActivityFeedServiceImpl: ActivityFeedManaging, Sendable {
     }
 
     do {
-      let records: [SchoolNameRecord] = try await supabaseManager.client
+      let records: [SchoolNameRecord] = try await client
         .from("schools")
         .select("id, name")
         .in("id", values: schoolIds)

@@ -27,10 +27,7 @@ enum ActivityRealtimeError: LocalizedError {
 actor ActivityRealtimeService: ActivityRealtimeManaging {
   private let supabaseManager: SupabaseManager
   private let activityService: any ActivityFeedManaging
-
-  private var interactionsChannel: RealtimeChannelV2?
-  private var schoolsChannel: RealtimeChannelV2?
-  private var documentsChannel: RealtimeChannelV2?
+  private var registry = ChannelRegistry<RealtimeChannelV2>()
 
   init(
     supabaseManager: SupabaseManager,
@@ -38,6 +35,11 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
   ) {
     self.supabaseManager = supabaseManager
     self.activityService = activityService ?? ActivityFeedServiceImpl(supabaseManager: supabaseManager)
+  }
+
+  /// The one place the feed's realtime scope is defined: every table is filtered to the active family.
+  nonisolated static func familyFilter(_ familyUnitId: String) -> String {
+    "family_unit_id=eq.\(familyUnitId)"
   }
 
   // MARK: - ActivityRealtimeManaging
@@ -49,149 +51,74 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     onSchoolsChange: @escaping @MainActor @Sendable () -> Void
   ) async throws {
     await unsubscribe()
+    let generation = registry.generation
 
     logger.info("Subscribing to realtime activity updates for family: \(familyUnitId)")
 
-    let familyFilter = "family_unit_id=eq.\(familyUnitId)"
-    let interactionsFilter = familyFilter
-    let interactionsChannel = supabaseManager.client
-      .realtimeV2
-      .exclusiveChannel("activity-interactions-\(familyUnitId)")
+    let filter = Self.familyFilter(familyUnitId)
+    let realtime = supabaseManager.client.realtimeV2
 
-    _ = interactionsChannel
-      .onPostgresChange(
-        InsertAction.self,
-        schema: "public",
-        table: "interactions",
-        filter: interactionsFilter
-      ) { [weak self] action in
-        guard let self = self else { return }
-        Task { @MainActor in
-          await self.handleInteractionInsert(record: action.record, onInsert: onInsert)
-        }
-      }
-
-    _ = interactionsChannel
-      .onPostgresChange(
-        UpdateAction.self,
-        schema: "public",
-        table: "interactions",
-        filter: interactionsFilter
-      ) { _ in
-        Task { @MainActor in onChange() }
-      }
-
-    _ = interactionsChannel
-      .onPostgresChange(
-        DeleteAction.self,
-        schema: "public",
-        table: "interactions",
-        filter: interactionsFilter
-      ) { _ in
-        Task { @MainActor in onChange() }
-      }
-
-    do {
-      try await interactionsChannel.subscribeWithError()
-      self.interactionsChannel = interactionsChannel
-    } catch {
-      await supabaseManager.client.realtimeV2.removeChannel(interactionsChannel)
-      logger.error("Failed to subscribe to interactions: \(error.localizedDescription)")
-      throw ActivityRealtimeError.subscriptionFailed
+    let interactions = realtime.exclusiveChannel("activity-interactions-\(familyUnitId)")
+    _ = interactions.onPostgresChange(InsertAction.self, schema: "public", table: "interactions", filter: filter) {
+      [weak self] action in
+      guard let self else { return }
+      Task { @MainActor in await self.handleInteractionInsert(record: action.record, onInsert: onInsert) }
     }
-
-    let schoolsChannel = supabaseManager.client
-      .realtimeV2
-      .exclusiveChannel("activity-schools-\(familyUnitId)")
-
-    _ = schoolsChannel
-      .onPostgresChange(
-        AnyAction.self,
-        schema: "public",
-        table: "schools",
-        filter: familyFilter
-      ) { _ in
-        Task { @MainActor in onSchoolsChange() }
-      }
-
-    do {
-      try await schoolsChannel.subscribeWithError()
-      self.schoolsChannel = schoolsChannel
-    } catch {
-      await supabaseManager.client.realtimeV2.removeChannel(schoolsChannel)
-      logger.error("Failed to subscribe to schools: \(error.localizedDescription)")
-      throw ActivityRealtimeError.subscriptionFailed
+    _ = interactions.onPostgresChange(UpdateAction.self, schema: "public", table: "interactions", filter: filter) { _ in
+      Task { @MainActor in onChange() }
     }
-
-    let documentsFilter = familyFilter
-    let documentsChannel = supabaseManager.client
-      .realtimeV2
-      .exclusiveChannel("activity-documents-\(familyUnitId)")
-
-    _ = documentsChannel
-      .onPostgresChange(
-        InsertAction.self,
-        schema: "public",
-        table: "documents",
-        filter: documentsFilter
-      ) { [weak self] action in
-        guard let self = self else { return }
-        Task { @MainActor in
-          await self.handleDocumentInsert(record: action.record, onInsert: onInsert)
-        }
-      }
-
-    _ = documentsChannel
-      .onPostgresChange(
-        UpdateAction.self,
-        schema: "public",
-        table: "documents",
-        filter: documentsFilter
-      ) { _ in
-        Task { @MainActor in onChange() }
-      }
-
-    _ = documentsChannel
-      .onPostgresChange(
-        DeleteAction.self,
-        schema: "public",
-        table: "documents",
-        filter: documentsFilter
-      ) { _ in
-        Task { @MainActor in onChange() }
-      }
-
-    do {
-      try await documentsChannel.subscribeWithError()
-      self.documentsChannel = documentsChannel
-    } catch {
-      await supabaseManager.client.realtimeV2.removeChannel(documentsChannel)
-      logger.error("Failed to subscribe to documents: \(error.localizedDescription)")
-      throw ActivityRealtimeError.subscriptionFailed
+    _ = interactions.onPostgresChange(DeleteAction.self, schema: "public", table: "interactions", filter: filter) { _ in
+      Task { @MainActor in onChange() }
     }
+    guard try await join(interactions, generation: generation, label: "interactions") else { return }
+
+    let schools = realtime.exclusiveChannel("activity-schools-\(familyUnitId)")
+    _ = schools.onPostgresChange(AnyAction.self, schema: "public", table: "schools", filter: filter) { _ in
+      Task { @MainActor in onSchoolsChange() }
+    }
+    guard try await join(schools, generation: generation, label: "schools") else { return }
+
+    let documents = realtime.exclusiveChannel("activity-documents-\(familyUnitId)")
+    _ = documents.onPostgresChange(InsertAction.self, schema: "public", table: "documents", filter: filter) {
+      [weak self] action in
+      guard let self else { return }
+      Task { @MainActor in await self.handleDocumentInsert(record: action.record, onInsert: onInsert) }
+    }
+    _ = documents.onPostgresChange(UpdateAction.self, schema: "public", table: "documents", filter: filter) { _ in
+      Task { @MainActor in onChange() }
+    }
+    _ = documents.onPostgresChange(DeleteAction.self, schema: "public", table: "documents", filter: filter) { _ in
+      Task { @MainActor in onChange() }
+    }
+    guard try await join(documents, generation: generation, label: "documents") else { return }
 
     logger.info("Successfully subscribed to all activity channels")
   }
 
   func unsubscribe() async {
     logger.info("Unsubscribing from all activity channels")
-
-    if let channel = interactionsChannel {
+    for channel in registry.drain() {
       await supabaseManager.client.realtimeV2.removeChannel(channel)
-      interactionsChannel = nil
     }
+  }
 
-    if let channel = schoolsChannel {
+  /// Joins `channel`. This actor is reentrant: `unsubscribe()` can run while the join is suspended, and
+  /// then the channel belongs to a dead subscription, so it is removed instead of adopted.
+  /// - Returns: false when the subscription was superseded and the caller must stop.
+  private func join(_ channel: RealtimeChannelV2, generation: Int, label: String) async throws -> Bool {
+    do {
+      try await channel.subscribeWithError()
+    } catch {
       await supabaseManager.client.realtimeV2.removeChannel(channel)
-      schoolsChannel = nil
+      logger.error("Failed to subscribe to \(label): \(error.localizedDescription)")
+      throw ActivityRealtimeError.subscriptionFailed
     }
-
-    if let channel = documentsChannel {
+    guard registry.adopt(channel, generation: generation) else {
       await supabaseManager.client.realtimeV2.removeChannel(channel)
-      documentsChannel = nil
+      logger.info("Subscription superseded while joining \(label); channel removed")
+      return false
     }
-
-    logger.info("Unsubscribed from all activity channels")
+    return true
   }
 
   // MARK: - Private Helpers
@@ -236,5 +163,24 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     } catch {
       logger.error("Failed to process realtime document: \(error.localizedDescription)")
     }
+  }
+}
+
+/// Tracks the channels of the current subscription. `drain()` ends the subscription (bumping the
+/// generation), after which a channel still being joined for the old generation is refused.
+struct ChannelRegistry<Channel> {
+  private(set) var generation = 0
+  private var channels: [Channel] = []
+
+  mutating func adopt(_ channel: Channel, generation joinedFor: Int) -> Bool {
+    guard joinedFor == generation else { return false }
+    channels.append(channel)
+    return true
+  }
+
+  mutating func drain() -> [Channel] {
+    generation += 1
+    defer { channels = [] }
+    return channels
   }
 }

@@ -626,7 +626,7 @@ final class ActivityFeedViewModelTests: XCTestCase {
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
 
     let newEvent = ActivityEventFactory.fromInteraction(createInteraction(id: "realtime-1"), schoolName: nil)
-    sut.addRealtimeEvent(newEvent)
+    sut.addRealtimeEvent(newEvent, forFamily: "family-1")
     await sut.loadActivities()
 
     // Still cached — the realtime insert didn't invalidate it.
@@ -666,7 +666,7 @@ final class ActivityFeedViewModelTests: XCTestCase {
       createInteraction(id: "realtime-1"),
       schoolName: nil
     )
-    sut.addRealtimeEvent(newEvent)
+    sut.addRealtimeEvent(newEvent, forFamily: "family-1")
 
     XCTAssertEqual(sut.filteredActivities.count, 3)
   }

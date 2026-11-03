@@ -10,12 +10,14 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
   var mockAuthManager: MockAuthManager!
   var mockCache: InMemoryCache!
   var familyManager: FamilyManager!
+  var mockRealtime: MockActivityRealtimeService!
 
   override func setUp() {
     super.setUp()
     mockService = MockActivityFeedService()
     mockAuthManager = MockAuthManager()
     mockCache = InMemoryCache()
+    mockRealtime = MockActivityRealtimeService()
     familyManager = FamilyManager(familyService: MockFamilyService(), authManager: mockAuthManager)
     familyManager.currentMember = Self.member(id: "m-me", userId: "test-user-id", familyUnitId: "family-1")
     sut = ActivityFeedViewModel(
@@ -23,7 +25,8 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
       familyManager: familyManager,
       authManager: mockAuthManager,
       cache: mockCache,
-      reloadDebounce: .milliseconds(50)
+      reloadDebounce: .milliseconds(50),
+      realtime: mockRealtime
     )
   }
 
@@ -33,6 +36,7 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     mockAuthManager = nil
     mockCache = nil
     familyManager = nil
+    mockRealtime = nil
     super.tearDown()
   }
 
@@ -68,7 +72,7 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     )
   }
 
-  private func makeStatusChange(id: String, changedBy: String) -> SchoolStatusHistory {
+  private func makeStatusChange(id: String, changedBy: String?) -> SchoolStatusHistory {
     SchoolStatusHistory(
       id: id, schoolId: "school-1", previousStatus: nil, newStatus: "researching",
       changedBy: changedBy, changedAt: Date(), notes: nil, createdAt: Date()
@@ -139,8 +143,33 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     XCTAssertEqual(sut.actorLabel(for: event), "dad@example.com")
   }
 
+  func testActorLabel_membersNotLoaded_isNeutralNotFormer() {
+    authenticateUser(id: "me")
+    familyManager.familyMembers = []
+    let event = ActivityEventFactory.fromInteraction(makeInteraction(id: "i", loggedBy: "dad"), schoolName: nil)
+
+    XCTAssertEqual(sut.actorLabel(for: event), "A family member")
+  }
+
+  func testActorLabel_membersOfPreviousFamilyOnly_isNeutralNotFormer() {
+    authenticateUser(id: "me")
+    familyManager.familyMembers = [Self.member(id: "m2", userId: "dad", familyUnitId: "other-family", fullName: "Dad")]
+    let event = ActivityEventFactory.fromInteraction(makeInteraction(id: "i", loggedBy: "dad"), schoolName: nil)
+
+    XCTAssertEqual(sut.actorLabel(for: event), "A family member")
+  }
+
+  func testActorLabel_nilActor_isFormerMember() {
+    authenticateUser(id: "me")
+    familyManager.familyMembers = [Self.member(id: "m-me", userId: "me")]
+    let event = ActivityEventFactory.fromStatusChange(makeStatusChange(id: "s", changedBy: nil), schoolName: nil)
+
+    XCTAssertEqual(sut.actorLabel(for: event), "A former family member")
+  }
+
   func testActorLabel_memberWhoLeft_usesFallback() {
     authenticateUser(id: "me")
+    familyManager.familyMembers = [Self.member(id: "m-me", userId: "me")]
     let event = ActivityEventFactory.fromInteraction(makeInteraction(id: "i", loggedBy: "gone"), schoolName: nil)
 
     XCTAssertEqual(sut.actorLabel(for: event), "A former family member")
@@ -158,19 +187,23 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     XCTAssertEqual(sut.actorLabel(for: document), "You")
   }
 
-  func testScheduleDebouncedReload_burstCollapsesToOneForcedReload() async throws {
+  func testScheduleDebouncedReload_callsInsideTheWindowRestartTheTimer() async throws {
     authenticateUser()
-    await sut.loadActivities()
+    let slow = ActivityFeedViewModel(
+      activityService: mockService, familyManager: familyManager, authManager: mockAuthManager,
+      cache: mockCache, reloadDebounce: .milliseconds(400), realtime: mockRealtime
+    )
+    await slow.loadActivities()
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
 
-    sut.scheduleDebouncedReload()
-    sut.scheduleDebouncedReload()
-    sut.scheduleDebouncedReload()
-    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1, "must not reload before the debounce elapses")
+    slow.scheduleDebouncedReload()
+    try await Task.sleep(for: .milliseconds(200))
+    slow.scheduleDebouncedReload()
+    try await Task.sleep(for: .milliseconds(300))
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1, "500 ms in, but only 300 ms since the last call")
 
-    try await Task.sleep(for: .milliseconds(400))
-
-    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2, "one reload, bypassing the 60s cache")
+    try await Task.sleep(for: .milliseconds(500))
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2, "one reload, bypassing the 60 s cache")
   }
 
   func testCancelPendingReload_preventsReload() async throws {
@@ -190,12 +223,161 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     await sut.loadActivities()
     let racing = ActivityEventFactory.fromInteraction(makeInteraction(id: "dup"), schoolName: nil)
 
-    sut.addRealtimeEvent(racing)
+    sut.addRealtimeEvent(racing, forFamily: "family-1")
 
     XCTAssertEqual(sut.activities.map(\.id), ["interaction-dup"])
   }
 
-  func testPerSourceLimit_matchesWeb() {
-    XCTAssertEqual(ActivityFeedServiceImpl.perSourceLimit, 200)
+  // MARK: - Races and lifecycle
+
+  func testLoadActivities_staleFetchForPreviousFamily_doesNotOverwriteNewFamilyFeed() async {
+    authenticateUser()
+    mockService.interactionsByFamily = [
+      "family-A": [makeInteraction(id: "from-A")],
+      "family-B": [makeInteraction(id: "from-B")]
+    ]
+    let gate = FetchGate()
+    mockService.beforeFetchInteractions = { family in
+      if family == "family-A" { await gate.wait() }
+    }
+    familyManager.currentMember = Self.member(id: "m", userId: "test-user-id", familyUnitId: "family-A")
+    let staleLoad = Task { await sut.loadActivities(forceRefresh: true) }
+    await gate.waitUntilWaiting()
+
+    familyManager.currentMember = Self.member(id: "m", userId: "test-user-id", familyUnitId: "family-B")
+    await sut.loadActivities()
+    await gate.open()
+    await staleLoad.value
+
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-from-B"])
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  func testLoadActivities_cancelledLoad_doesNotShowError() async {
+    authenticateUser()
+    mockService.shouldThrowOnInteractions = true
+    let task = Task { await sut.loadActivities(forceRefresh: true) }
+    task.cancel()
+    await task.value
+
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  func testAddRealtimeEvent_fromInactiveFamily_isDropped() {
+    let event = ActivityEventFactory.fromInteraction(makeInteraction(id: "late"), schoolName: nil)
+
+    sut.addRealtimeEvent(event, forFamily: "previous-family")
+
+    XCTAssertTrue(sut.activities.isEmpty)
+  }
+
+  func testAddRealtimeEvent_fromActiveFamily_isAdded() {
+    let event = ActivityEventFactory.fromInteraction(makeInteraction(id: "now"), schoolName: nil)
+
+    sut.addRealtimeEvent(event, forFamily: "family-1")
+
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-now"])
+  }
+
+  func testFamilyDidChange_resubscribesForNewFamilyAndReloads() async {
+    authenticateUser()
+    mockService.interactionsByFamily = [
+      "family-1": [makeInteraction(id: "one")],
+      "family-2": [makeInteraction(id: "two")]
+    ]
+    await sut.loadAndSubscribe()
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-one"])
+
+    familyManager.currentMember = Self.member(id: "m", userId: "test-user-id", familyUnitId: "family-2")
+    await sut.familyDidChange()
+
+    XCTAssertEqual(mockRealtime.events, ["subscribe:family-1", "unsubscribe", "subscribe:family-2"])
+    XCTAssertEqual(mockService.lastFetchInteractionsFamilyUnitId, "family-2")
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-two"])
+  }
+
+  func testLoadAndSubscribe_twice_subscribesOnce() async {
+    authenticateUser()
+    await sut.loadAndSubscribe()
+    await sut.loadAndSubscribe()
+
+    XCTAssertEqual(mockRealtime.subscribeCallCount, 1)
+  }
+
+  func testLoadActivities_familyBecomesNil_clearsEntries() async {
+    authenticateUser()
+    mockService.mockInteractions = [makeInteraction(id: "x")]
+    await sut.loadActivities()
+    XCTAssertFalse(sut.activities.isEmpty)
+
+    familyManager.currentMember = nil
+    await sut.loadActivities()
+
+    XCTAssertTrue(sut.activities.isEmpty)
+  }
+
+  func testRefresh_bypassesTheCache() async {
+    authenticateUser()
+    await sut.loadActivities()
+    await sut.loadActivities()
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1, "second plain load is served from cache")
+
+    await sut.refresh()
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2)
+  }
+
+  func testTearDownRealtime_cancelsPendingReloadAndUnsubscribes() async throws {
+    authenticateUser()
+    await sut.loadAndSubscribe()
+    sut.scheduleDebouncedReload()
+
+    await sut.tearDownRealtime()
+    try await Task.sleep(for: .milliseconds(300))
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+    XCTAssertEqual(mockRealtime.events.last, "unsubscribe")
+  }
+
+  func testSchoolsChangeCallback_schedulesDebouncedReload() async throws {
+    authenticateUser()
+    await sut.loadAndSubscribe()
+
+    mockRealtime.simulateSchoolsChange()
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+    try await Task.sleep(for: .milliseconds(400))
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2)
+  }
+
+  func testInteractionChangeCallback_forcesImmediateReload() async throws {
+    authenticateUser()
+    await sut.loadAndSubscribe()
+
+    mockRealtime.simulateChange()
+    try await Task.sleep(for: .milliseconds(200))
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2)
+  }
+}
+
+/// Holds a suspended call open until the test opens it.
+actor FetchGate {
+  private var continuation: CheckedContinuation<Void, Never>?
+  private var isOpen = false
+
+  func wait() async {
+    guard !isOpen else { return }
+    await withCheckedContinuation { continuation = $0 }
+  }
+
+  func waitUntilWaiting() async {
+    while continuation == nil { try? await Task.sleep(for: .milliseconds(5)) }
+  }
+
+  func open() {
+    isOpen = true
+    continuation?.resume()
+    continuation = nil
   }
 }

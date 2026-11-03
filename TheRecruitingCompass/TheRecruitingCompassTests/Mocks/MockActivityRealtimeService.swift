@@ -8,6 +8,8 @@ final class MockActivityRealtimeService: ActivityRealtimeManaging, @unchecked Se
   var subscribeCallCount = 0
   var unsubscribeCallCount = 0
   var lastSubscribedFamilyUnitId: String?
+  var subscribedFamilyUnitIds: [String] = []
+  var events: [String] = []
   var lastOnInsert: (@MainActor @Sendable (ActivityEvent) -> Void)?
   var lastOnChange: (@MainActor @Sendable () -> Void)?
   var lastOnSchoolsChange: (@MainActor @Sendable () -> Void)?
@@ -19,6 +21,8 @@ final class MockActivityRealtimeService: ActivityRealtimeManaging, @unchecked Se
     onSchoolsChange: @escaping @MainActor @Sendable () -> Void
   ) async throws {
     subscribeCallCount += 1
+    subscribedFamilyUnitIds.append(familyUnitId)
+    events.append("subscribe:\(familyUnitId)")
     lastSubscribedFamilyUnitId = familyUnitId
     lastOnInsert = onInsert
     lastOnChange = onChange
@@ -28,6 +32,7 @@ final class MockActivityRealtimeService: ActivityRealtimeManaging, @unchecked Se
 
   func unsubscribe() async {
     unsubscribeCallCount += 1
+    events.append("unsubscribe")
   }
 
   /// Test helper: simulate the realtime channel delivering a new event.
@@ -40,5 +45,10 @@ final class MockActivityRealtimeService: ActivityRealtimeManaging, @unchecked Se
   @MainActor
   func simulateChange() {
     lastOnChange?()
+  }
+
+  @MainActor
+  func simulateSchoolsChange() {
+    lastOnSchoolsChange?()
   }
 }

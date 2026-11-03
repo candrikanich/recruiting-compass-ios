@@ -18,7 +18,7 @@ struct ActivityFeedView: View {
     }
     .navigationTitle(navigationTitleText)
     .searchable(text: $viewModel.searchQuery, prompt: "Search activities...")
-    .refreshable { await viewModel.loadActivities() }
+    .refreshable { await viewModel.refresh() }
     .task(id: familyManager.familyUnitId) { await viewModel.loadActivities() }
   }
 
