@@ -195,7 +195,26 @@ final class ProfileViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.isEmailFormExpanded)
     XCTAssertEqual(viewModel.newEmail, "")
     XCTAssertEqual(viewModel.emailCurrentPassword, "")
-    XCTAssertTrue(viewModel.emailVerificationBannerVisible)
+    XCTAssertEqual(viewModel.emailPendingMessage, ProfileViewModel.emailChangePendingMessage)
+  }
+
+  func testSubmitEmailChange_failureAfterSuccess_clearsPendingMessage() async {
+    await viewModel.submitEmailChange()
+    XCTAssertNotNil(viewModel.emailPendingMessage)
+
+    mockProfileService.shouldThrowOnChangeEmail = true
+    mockProfileService.errorToThrow = NSError(domain: "test", code: 1)
+    await viewModel.submitEmailChange()
+
+    XCTAssertNil(viewModel.emailPendingMessage)
+    guard case .error = viewModel.emailMessage else { return XCTFail("Expected .error message") }
+  }
+
+  func testSubmitEmailChange_failure_neverShowsPendingMessage() async {
+    mockProfileService.shouldThrowOnChangeEmail = true
+    mockProfileService.errorToThrow = NSError(domain: "test", code: 1)
+    await viewModel.submitEmailChange()
+    XCTAssertNil(viewModel.emailPendingMessage)
   }
 
   func testEmailChangePendingMessage_matchesWebCopy() {

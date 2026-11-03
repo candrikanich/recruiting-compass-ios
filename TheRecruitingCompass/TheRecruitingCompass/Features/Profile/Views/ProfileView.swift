@@ -222,11 +222,10 @@ private struct ProfileEmailSection: View {
                 .accessibilityLabel(String(localized: "Current email: \(email)"))
             }
 
-            if viewModel.emailVerificationBannerVisible {
-                Label(ProfileViewModel.emailChangePendingMessage, systemImage: "envelope.badge")
-                .font(.brand(.subheadline))
-                .foregroundStyle(Color.accentPrimary)
-                .accessibilityLabel(ProfileViewModel.emailChangePendingMessage)
+            if let pendingMessage = viewModel.emailPendingMessage {
+                Label(pendingMessage, systemImage: "envelope.badge")
+                    .font(.brand(.subheadline))
+                    .foregroundStyle(Color.accentPrimary)
             }
 
             if viewModel.isEmailFormExpanded {
