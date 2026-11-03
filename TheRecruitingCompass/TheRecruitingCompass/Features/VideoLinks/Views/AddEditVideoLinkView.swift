@@ -17,10 +17,7 @@ struct AddEditVideoLinkView: View {
     _title = State(initialValue: editingLink?.title ?? "")
   }
 
-  private var isValidURL: Bool {
-    guard let parsed = URL(string: url), parsed.scheme != nil else { return false }
-    return !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-  }
+  private var feedback: VideoLinkURLFeedback { VideoLinkURLFeedback(input: url) }
 
   var body: some View {
     Form {
@@ -38,6 +35,12 @@ struct AddEditVideoLinkView: View {
           .autocorrectionDisabled()
           .accessibilityLabel(String(localized: "Video URL field"))
           .accessibilityHint("Required. Paste the link to your film")
+
+        if feedback.showsMessage {
+          Text(verbatim: HTTPURL.invalidMessage)
+            .font(.brand(.caption))
+            .foregroundStyle(Color.errorRed)
+        }
 
         TextField("Title (optional)", text: $title)
           .accessibilityLabel(String(localized: "Title field"))
@@ -66,7 +69,7 @@ struct AddEditVideoLinkView: View {
             Text("Save")
           }
         }
-        .disabled(!isValidURL || viewModel.isSubmitting)
+        .disabled(!feedback.canSave || viewModel.isSubmitting)
       }
     }
   }

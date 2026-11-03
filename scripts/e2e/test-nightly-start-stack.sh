@@ -34,14 +34,18 @@ case "\$1" in
 esac
 EOF
   chmod +x "$tmp/web/scripts/e2e/local-supabase.sh"
-  printf '#!/bin/sh\nexit 0\n' > "$tmp/bin/docker"
+  printf '#!/bin/sh\necho "stub-docker $*"\n' > "$tmp/bin/docker"
   printf '#!/bin/sh\nexit 1\n' > "$tmp/bin/npm"
   chmod +x "$tmp/bin/docker" "$tmp/bin/npm"
+  mkdir -p "$tmp/docker-logs/vm" "$tmp/docker-logs/host"
+  echo "stub-engine-api-line" > "$tmp/docker-logs/vm/init.log"
+  echo "stub-backend-line" > "$tmp/docker-logs/host/com.docker.backend.log"
 
   PATH="$tmp/bin:$PATH" \
     NIGHTLY_E2E_WEB_DIR="$tmp/web" \
     NIGHTLY_E2E_STATE_DIR="$tmp/state" \
     NIGHTLY_E2E_LOG_DIR="$tmp/logs" \
+    NIGHTLY_E2E_DOCKER_LOG_DIR="$tmp/docker-logs" \
     bash "$SCRIPT" --no-update >/dev/null 2>&1 || true
   cat "$tmp"/logs/ios-nightly-e2e-*.log
   rm -rf "$tmp"
@@ -69,6 +73,13 @@ out="$(run_nightly fail,ok env-ok)"
 expect "retry recovers" "$out" "supabase start exited 1 on attempt 1 of 2"
 expect "retry recovers" "$out" "Local Supabase at http://stub"
 expect_not "retry recovers" "$out" "stack did not start"
+expect "diagnostics" "$out" "Saved stack diagnostics from attempt 1 to .*-stack-attempt-1\.log"
+expect_not "diagnostics" "$out" "stack-attempt-2\.log"
+expect "diagnostics" "$out" "stub-docker ps -a"
+expect "diagnostics" "$out" "stub-docker inspect supabase_db_rc-ios-e2e"
+expect "diagnostics" "$out" "stub-docker logs .*supabase_db_rc-ios-e2e"
+expect "diagnostics" "$out" "stub-engine-api-line"
+expect "diagnostics" "$out" "stub-backend-line"
 
 out="$(run_nightly ok,ok env-empty)"
 expect "empty env" "$out" "env returned no TEST_SUPABASE_URL NUXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY on attempt 2 of 2"
@@ -81,6 +92,7 @@ expect "both fail" "$out" "FAILED: local Supabase stack did not start"
 out="$(run_nightly ok env-ok)"
 expect "first try" "$out" "Local Supabase at http://stub"
 expect_not "first try" "$out" "attempt 1 of 2"
+expect_not "first try" "$out" "stack diagnostics"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "$FAILURES expectation(s) failed"

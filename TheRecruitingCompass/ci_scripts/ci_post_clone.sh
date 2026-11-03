@@ -10,7 +10,8 @@
 #
 # SUPABASE_URL is deliberately not written here: project.pbxproj pins it (production) at the
 # project level for Debug and Release, which overrides any xcconfig value. SUPABASE_ANON_KEY
-# must therefore be the production project's anon key.
+# must therefore be the production project's key: the `sb_publishable_...` key (a legacy
+# `anon` JWT also works until Supabase disables it). Nothing in the app depends on the key's shape.
 
 set -eu
 
