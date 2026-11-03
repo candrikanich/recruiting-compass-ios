@@ -316,6 +316,10 @@ final class ActivityFeedViewModel {
         onSchoolsChange: { [weak self] in
           guard let self, self.isStillActive(familyUnitId) else { return }
           self.scheduleDebouncedReload()
+        },
+        onStatusHistoryInsert: { [weak self] in
+          guard let self, self.isStillActive(familyUnitId) else { return }
+          self.scheduleDebouncedReload()
         }
       )
     } catch {

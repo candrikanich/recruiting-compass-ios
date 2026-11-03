@@ -6,6 +6,11 @@ final class ActivityRealtimeScopeTests: XCTestCase {
     XCTAssertEqual(ActivityRealtimeService.familyFilter("fam-A"), "family_unit_id=eq.fam-A")
   }
 
+  func testStatusHistorySubscription_isTheUnfilteredHistoryTable() {
+    XCTAssertEqual(ActivityRealtimeService.statusHistoryTable, "school_status_history")
+    XCTAssertNil(ActivityRealtimeService.statusHistoryFilter, "the table has no family column to filter on")
+  }
+
   func testChannelRegistry_refusesAChannelJoinedForAnEndedSubscription() {
     var registry = ChannelRegistry<String>()
     let generation = registry.generation

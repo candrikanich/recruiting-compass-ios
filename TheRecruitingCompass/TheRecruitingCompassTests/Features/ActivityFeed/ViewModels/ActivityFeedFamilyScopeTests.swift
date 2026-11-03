@@ -359,6 +359,34 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
 
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 2)
   }
+
+  func testStatusHistoryInsert_triggersExactlyOneDebouncedForcedReload_andAppendsNothing() async throws {
+    authenticateUser()
+    mockService.mockInteractions = [makeInteraction(id: "loaded")]
+    await sut.loadAndSubscribe()
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
+
+    mockRealtime.simulateStatusHistoryInsert()
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1, "debounced, not immediate")
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-loaded"], "the payload is never appended")
+    try await Task.sleep(for: .milliseconds(500))
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2)
+  }
+
+  func testStatusHistoryInsert_afterFamilySwitch_isDropped() async throws {
+    authenticateUser()
+    await sut.loadAndSubscribe()
+    let staleCallback = try XCTUnwrap(mockRealtime.lastOnStatusHistoryInsert)
+    familyManager.currentMember = Self.member(id: "m", userId: "test-user-id", familyUnitId: "family-2")
+    await sut.familyDidChange()
+    let fetchesAfterSwitch = mockService.fetchInteractionsCallCount
+
+    staleCallback()
+    try await Task.sleep(for: .milliseconds(500))
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, fetchesAfterSwitch)
+  }
 }
 
 /// Holds a suspended call open until the test opens it.

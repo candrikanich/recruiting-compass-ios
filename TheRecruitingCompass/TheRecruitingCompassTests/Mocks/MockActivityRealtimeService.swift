@@ -12,13 +12,15 @@ final class MockActivityRealtimeService: ActivityRealtimeManaging, @unchecked Se
   var events: [String] = []
   var lastOnInsert: (@MainActor @Sendable (ActivityEvent) -> Void)?
   var lastOnChange: (@MainActor @Sendable () -> Void)?
+  var lastOnStatusHistoryInsert: (@MainActor @Sendable () -> Void)?
   var lastOnSchoolsChange: (@MainActor @Sendable () -> Void)?
 
   func subscribe(
     familyUnitId: String,
     onInsert: @escaping @MainActor @Sendable (ActivityEvent) -> Void,
     onChange: @escaping @MainActor @Sendable () -> Void,
-    onSchoolsChange: @escaping @MainActor @Sendable () -> Void
+    onSchoolsChange: @escaping @MainActor @Sendable () -> Void,
+    onStatusHistoryInsert: @escaping @MainActor @Sendable () -> Void
   ) async throws {
     subscribeCallCount += 1
     subscribedFamilyUnitIds.append(familyUnitId)
@@ -27,6 +29,7 @@ final class MockActivityRealtimeService: ActivityRealtimeManaging, @unchecked Se
     lastOnInsert = onInsert
     lastOnChange = onChange
     lastOnSchoolsChange = onSchoolsChange
+    lastOnStatusHistoryInsert = onStatusHistoryInsert
     if shouldThrowOnSubscribe { throw errorToThrow }
   }
 
@@ -45,6 +48,11 @@ final class MockActivityRealtimeService: ActivityRealtimeManaging, @unchecked Se
   @MainActor
   func simulateChange() {
     lastOnChange?()
+  }
+
+  @MainActor
+  func simulateStatusHistoryInsert() {
+    lastOnStatusHistoryInsert?()
   }
 
   @MainActor

@@ -10,11 +10,15 @@ protocol ActivityRealtimeManaging: Sendable {
   ///   - onSchoolsChange: Callback invoked when any of the family's schools changes. Status changes are an UPDATE on
   ///     `schools` followed by a separate INSERT into `school_status_history` (not in the realtime publication), so
   ///     callers should debounce a reload from this.
+  ///   - onStatusHistoryInsert: Any `school_status_history` INSERT, unfiltered (the table has no family column;
+  ///     RLS limits delivery to the user's families). Carries no payload on purpose: the row may belong to another
+  ///     family of the same user, so callers reload (debounced) instead of appending it.
   func subscribe(
     familyUnitId: String,
     onInsert: @escaping @MainActor @Sendable (ActivityEvent) -> Void,
     onChange: @escaping @MainActor @Sendable () -> Void,
-    onSchoolsChange: @escaping @MainActor @Sendable () -> Void
+    onSchoolsChange: @escaping @MainActor @Sendable () -> Void,
+    onStatusHistoryInsert: @escaping @MainActor @Sendable () -> Void
   ) async throws
 
   /// Unsubscribe from all real-time channels

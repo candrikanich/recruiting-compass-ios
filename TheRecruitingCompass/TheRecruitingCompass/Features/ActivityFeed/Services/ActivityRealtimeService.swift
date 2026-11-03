@@ -42,13 +42,18 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     "family_unit_id=eq.\(familyUnitId)"
   }
 
+  static let statusHistoryTable = "school_status_history"
+  /// No filter: the table has no family column. RLS limits delivery to the user's families.
+  static let statusHistoryFilter: String? = nil
+
   // MARK: - ActivityRealtimeManaging
 
   func subscribe(
     familyUnitId: String,
     onInsert: @escaping @MainActor @Sendable (ActivityEvent) -> Void,
     onChange: @escaping @MainActor @Sendable () -> Void,
-    onSchoolsChange: @escaping @MainActor @Sendable () -> Void
+    onSchoolsChange: @escaping @MainActor @Sendable () -> Void,
+    onStatusHistoryInsert: @escaping @MainActor @Sendable () -> Void
   ) async throws {
     await unsubscribe()
     let generation = registry.generation
@@ -77,6 +82,14 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
       Task { @MainActor in onSchoolsChange() }
     }
     guard try await join(schools, generation: generation, label: "schools") else { return }
+
+    let statusHistory = realtime.exclusiveChannel("activity-status-\(familyUnitId)")
+    _ = statusHistory.onPostgresChange(
+      InsertAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
+    ) { _ in
+      Task { @MainActor in onStatusHistoryInsert() }
+    }
+    guard try await join(statusHistory, generation: generation, label: "status history") else { return }
 
     let documents = realtime.exclusiveChannel("activity-documents-\(familyUnitId)")
     _ = documents.onPostgresChange(InsertAction.self, schema: "public", table: "documents", filter: filter) {
