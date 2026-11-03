@@ -9,11 +9,15 @@ nonisolated private let logger = Logger(
 
 enum ActivityRealtimeError: LocalizedError {
   case subscriptionFailed
+  /// `unsubscribe()` (or a newer `subscribe()`) ended this subscription while it was still joining.
+  case subscriptionSuperseded
 
   var errorDescription: String? {
     switch self {
     case .subscriptionFailed:
       return "Failed to subscribe to realtime updates"
+    case .subscriptionSuperseded:
+      return "Realtime subscription was superseded"
     }
   }
 }
@@ -27,7 +31,7 @@ enum ActivityRealtimeError: LocalizedError {
 actor ActivityRealtimeService: ActivityRealtimeManaging {
   private let supabaseManager: SupabaseManager
   private let activityService: any ActivityFeedManaging
-  private var registry = ChannelRegistry<RealtimeChannelV2>()
+  private let registry = ChannelRegistry<RealtimeChannelV2>()
 
   init(
     supabaseManager: SupabaseManager,
@@ -45,8 +49,6 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
   static let statusHistoryTable = "school_status_history"
   /// No filter: the table has no family column. RLS limits delivery to the user's families.
   static let statusHistoryFilter: String? = nil
-  /// INSERT only: the history is append-only, and an UPDATE/DELETE of an old row changes nothing the feed shows.
-  static let statusHistoryEvent: PostgresChangeEvent = .insert
 
   // MARK: - ActivityRealtimeManaging
 
@@ -77,35 +79,17 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     _ = interactions.onPostgresChange(DeleteAction.self, schema: "public", table: "interactions", filter: filter) { _ in
       Task { @MainActor in onChange() }
     }
-    guard try await join(interactions, generation: generation, label: "interactions") else { return }
+    guard try await join(interactions, generation: generation, label: "interactions") else {
+      throw ActivityRealtimeError.subscriptionSuperseded
+    }
 
     let schools = realtime.exclusiveChannel("activity-schools-\(familyUnitId)")
     _ = schools.onPostgresChange(AnyAction.self, schema: "public", table: "schools", filter: filter) { _ in
       Task { @MainActor in onSchoolsChange() }
     }
-    guard try await join(schools, generation: generation, label: "schools") else { return }
-
-    let statusHistory = realtime.exclusiveChannel("activity-status-\(familyUnitId)")
-    let notify: @Sendable () -> Void = { Task { @MainActor in onStatusHistoryInsert() } }
-    switch Self.statusHistoryEvent {
-    case .insert:
-      _ = statusHistory.onPostgresChange(
-        InsertAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
-      ) { _ in notify() }
-    case .update:
-      _ = statusHistory.onPostgresChange(
-        UpdateAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
-      ) { _ in notify() }
-    case .delete:
-      _ = statusHistory.onPostgresChange(
-        DeleteAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
-      ) { _ in notify() }
-    case .all:
-      _ = statusHistory.onPostgresChange(
-        AnyAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
-      ) { _ in notify() }
+    guard try await join(schools, generation: generation, label: "schools") else {
+      throw ActivityRealtimeError.subscriptionSuperseded
     }
-    guard try await join(statusHistory, generation: generation, label: "status history") else { return }
 
     let documents = realtime.exclusiveChannel("activity-documents-\(familyUnitId)")
     _ = documents.onPostgresChange(InsertAction.self, schema: "public", table: "documents", filter: filter) {
@@ -119,7 +103,11 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     _ = documents.onPostgresChange(DeleteAction.self, schema: "public", table: "documents", filter: filter) { _ in
       Task { @MainActor in onChange() }
     }
-    guard try await join(documents, generation: generation, label: "documents") else { return }
+    guard try await join(documents, generation: generation, label: "documents") else {
+      throw ActivityRealtimeError.subscriptionSuperseded
+    }
+
+    await joinStatusHistory(familyUnitId: familyUnitId, generation: generation, onInsert: onStatusHistoryInsert)
 
     logger.info("Successfully subscribed to all activity channels")
   }
@@ -131,23 +119,43 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
     }
   }
 
-  /// Joins `channel`. This actor is reentrant: `unsubscribe()` can run while the join is suspended, and
-  /// then the channel belongs to a dead subscription, so it is removed instead of adopted.
+  /// Joins `channel`; see `ChannelRegistry.join`.
   /// - Returns: false when the subscription was superseded and the caller must stop.
   private func join(_ channel: RealtimeChannelV2, generation: Int, label: String) async throws -> Bool {
     do {
-      try await channel.subscribeWithError()
+      return try await registry.join(
+        channel, generation: generation,
+        subscribe: { try await channel.subscribeWithError() },
+        remove: { await self.supabaseManager.client.realtimeV2.removeChannel($0) }
+      )
     } catch {
-      await supabaseManager.client.realtimeV2.removeChannel(channel)
       logger.error("Failed to subscribe to \(label): \(error.localizedDescription)")
       throw ActivityRealtimeError.subscriptionFailed
     }
-    guard registry.adopt(channel, generation: generation) else {
-      await supabaseManager.client.realtimeV2.removeChannel(channel)
-      logger.info("Subscription superseded while joining \(label); channel removed")
-      return false
+  }
+
+  /// Its own channel and its own function: the history table has no family column, so a multi-family user also
+  /// receives the other family's rows here. It only receives `onInsert` (a payload-free "something changed" signal),
+  /// so a row can never be rendered. And it is best-effort: while the table is not in the realtime publication the
+  /// server rejects this channel, which must not take the feed's other channels down with it.
+  private func joinStatusHistory(
+    familyUnitId: String,
+    generation: Int,
+    onInsert: @escaping @MainActor @Sendable () -> Void
+  ) async {
+    let channel = supabaseManager.client.realtimeV2.exclusiveChannel("activity-status-\(familyUnitId)")
+    _ = channel.onPostgresChange(
+      InsertAction.self, schema: "public", table: Self.statusHistoryTable, filter: Self.statusHistoryFilter
+    ) { _ in
+      Task { @MainActor in onInsert() }
     }
-    return true
+    let adopted = await registry.joinBestEffort(
+      channel, generation: generation,
+      subscribe: { try await channel.subscribeWithError() },
+      remove: { await self.supabaseManager.client.realtimeV2.removeChannel($0) },
+      onFailure: { logger.info("Status-history channel unavailable (\($0.localizedDescription)); using schools reload") }
+    )
+    if !adopted { logger.debug("Status-history channel not adopted") }
   }
 
   // MARK: - Private Helpers
@@ -197,19 +205,58 @@ actor ActivityRealtimeService: ActivityRealtimeManaging {
 
 /// Tracks the channels of the current subscription. `drain()` ends the subscription (bumping the
 /// generation), after which a channel still being joined for the old generation is refused.
-struct ChannelRegistry<Channel> {
+/// A class on purpose: the owning actor is reentrant, and `join` suspends between reading and writing it.
+final class ChannelRegistry<Channel> {
   private(set) var generation = 0
   private var channels: [Channel] = []
 
-  mutating func adopt(_ channel: Channel, generation joinedFor: Int) -> Bool {
+  func adopt(_ channel: Channel, generation joinedFor: Int) -> Bool {
     guard joinedFor == generation else { return false }
     channels.append(channel)
     return true
   }
 
-  mutating func drain() -> [Channel] {
+  func drain() -> [Channel] {
     generation += 1
     defer { channels = [] }
     return channels
+  }
+
+  /// Subscribes `channel`, then adopts it for `generation`. If the subscription ended while joining, or the join
+  /// failed, the channel is removed instead.
+  /// - Returns: true when adopted, false when superseded. Throws the join's error after removing the channel.
+  func join(
+    _ channel: Channel,
+    generation: Int,
+    subscribe: () async throws -> Void,
+    remove: (Channel) async -> Void
+  ) async throws -> Bool {
+    do {
+      try await subscribe()
+    } catch {
+      await remove(channel)
+      throw error
+    }
+    guard adopt(channel, generation: generation) else {
+      await remove(channel)
+      return false
+    }
+    return true
+  }
+
+  /// Like `join`, but a failed join is reported to `onFailure` and swallowed; true only when adopted.
+  func joinBestEffort(
+    _ channel: Channel,
+    generation: Int,
+    subscribe: () async throws -> Void,
+    remove: (Channel) async -> Void,
+    onFailure: (Error) -> Void
+  ) async -> Bool {
+    do {
+      return try await join(channel, generation: generation, subscribe: subscribe, remove: remove)
+    } catch {
+      onFailure(error)
+      return false
+    }
   }
 }

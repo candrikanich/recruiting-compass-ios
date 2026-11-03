@@ -159,6 +159,14 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     XCTAssertEqual(sut.actorLabel(for: event), "A family member")
   }
 
+  func testActorLabel_nilActor_isFormerMemberEvenWhileMembersLoad() {
+    authenticateUser(id: "me")
+    familyManager.familyMembers = []
+    let event = ActivityEventFactory.fromStatusChange(makeStatusChange(id: "s", changedBy: nil), schoolName: nil)
+
+    XCTAssertEqual(sut.actorLabel(for: event), "A former family member")
+  }
+
   func testActorLabel_nilActor_isFormerMember() {
     authenticateUser(id: "me")
     familyManager.familyMembers = [Self.member(id: "m-me", userId: "me")]
@@ -258,6 +266,17 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
 
     XCTAssertEqual(sut.activities.map(\.id), ["interaction-kept"])
     XCTAssertNil(sut.errorMessage)
+  }
+
+  private func makeSlowViewModel(cache: (any CacheManaging)? = nil) -> ActivityFeedViewModel {
+    ActivityFeedViewModel(
+      activityService: mockService, familyManager: familyManager, authManager: mockAuthManager,
+      cache: cache ?? mockCache, reloadDebounce: .milliseconds(400), realtime: mockRealtime
+    )
+  }
+
+  private func switchFamily(to id: String) {
+    familyManager.currentMember = Self.member(id: "m", userId: "test-user-id", familyUnitId: id)
   }
 
   // MARK: - Races and lifecycle
@@ -371,15 +390,17 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     XCTAssertEqual(mockRealtime.events.last, "unsubscribe")
   }
 
-  func testSchoolsChangeCallback_schedulesDebouncedReload() async throws {
+  func testSchoolsChangeCallback_isDebouncedThenReloadsOnce() async throws {
     authenticateUser()
-    await sut.loadAndSubscribe()
+    let slow = makeSlowViewModel()
+    await slow.loadAndSubscribe()
 
     mockRealtime.simulateSchoolsChange()
-    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
-    try await Task.sleep(for: .milliseconds(400))
+    try await Task.sleep(for: .milliseconds(150))
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 1, "debounced, not immediate")
+    try await Task.sleep(for: .milliseconds(700))
 
-    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2)
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2, "exactly one reload")
   }
 
   func testInteractionChangeCallback_forcesImmediateReload() async throws {
@@ -424,6 +445,155 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
 
     XCTAssertEqual(mockService.fetchInteractionsCallCount, fetchesAfterSwitch)
   }
+
+  // MARK: - Family switch (verifier round 2)
+
+  func testFamilySwitch_whileNewFamilyLoads_previousFamilyEntriesAreGone() async {
+    authenticateUser()
+    mockService.interactionsByFamily = [
+      "family-A": [makeInteraction(id: "A1")], "family-B": [makeInteraction(id: "B1")]
+    ]
+    switchFamily(to: "family-A")
+    await sut.loadActivities()
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-A1"])
+
+    let gate = FetchGate()
+    mockService.beforeFetchInteractions = { family in if family == "family-B" { await gate.wait() } }
+    switchFamily(to: "family-B")
+    let load = Task { await sut.loadActivities() }
+    await gate.waitUntilWaiting()
+
+    XCTAssertTrue(sut.activities.isEmpty, "A's entries on screen while B loads: \(sut.activities.map(\.id))")
+    await gate.open()
+    await load.value
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-B1"])
+  }
+
+  func testFamilySwitch_newFamilyFetchFails_previousFamilyEntriesStayGoneAndErrorShows() async {
+    authenticateUser()
+    mockService.interactionsByFamily = ["family-A": [makeInteraction(id: "A1")]]
+    switchFamily(to: "family-A")
+    await sut.loadActivities()
+    mockService.shouldThrowOnInteractions = true
+
+    switchFamily(to: "family-B")
+    await sut.loadActivities()
+
+    XCTAssertTrue(sut.activities.isEmpty, "family A's entry shown under family B")
+    XCTAssertNotNil(sut.errorMessage)
+  }
+
+  func testStaleInsertClosureFromPreviousSubscription_isDroppedAfterFamilySwitch() async throws {
+    authenticateUser()
+    await sut.loadAndSubscribe()
+    let staleInsert = try XCTUnwrap(mockRealtime.lastOnInsert)
+    switchFamily(to: "family-2")
+    await sut.familyDidChange()
+
+    staleInsert(ActivityEventFactory.fromInteraction(makeInteraction(id: "late"), schoolName: nil))
+
+    XCTAssertTrue(sut.activities.isEmpty)
+  }
+
+  func testStaleOnChangeAndSchoolsChange_doNotReloadAfterFamilySwitch() async throws {
+    authenticateUser()
+    await sut.loadAndSubscribe()
+    let staleChange = try XCTUnwrap(mockRealtime.lastOnChange)
+    let staleSchools = try XCTUnwrap(mockRealtime.lastOnSchoolsChange)
+    switchFamily(to: "family-2")
+    await sut.familyDidChange()
+    let fetches = mockService.fetchInteractionsCallCount
+
+    staleChange()
+    staleSchools()
+    try await Task.sleep(for: .milliseconds(500))
+
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, fetches)
+  }
+
+  func testStaleCachedListForPreviousFamily_doesNotLandAfterSwitch() async {
+    authenticateUser()
+    let cache = GatedCache(inner: InMemoryCache())
+    let staleEvent = ActivityEventFactory.fromInteraction(makeInteraction(id: "cachedA"), schoolName: nil)
+    await cache.inner.set([staleEvent], forKey: ListCacheKeys.activities(familyUnitId: "family-A"), ttlSeconds: 60)
+    cache.gatedKey = ListCacheKeys.activities(familyUnitId: "family-A")
+    mockService.interactionsByFamily = ["family-B": [makeInteraction(id: "B1")]]
+    let viewModel = makeSlowViewModel(cache: cache)
+    switchFamily(to: "family-A")
+    let staleLoad = Task { await viewModel.loadActivities() }
+    await cache.gate.waitUntilWaiting()
+
+    switchFamily(to: "family-B")
+    await viewModel.loadActivities()
+    await cache.gate.open()
+    await staleLoad.value
+
+    XCTAssertEqual(viewModel.activities.map(\.id), ["interaction-B1"])
+  }
+
+  func testStaleFailureForPreviousFamily_doesNotWipeOrErrorTheNewFamilyFeed() async {
+    authenticateUser()
+    mockService.interactionsByFamily = [
+      "family-A": [makeInteraction(id: "A1")], "family-B": [makeInteraction(id: "B1")]
+    ]
+    let gate = FetchGate()
+    mockService.beforeFetchInteractions = { family in if family == "family-A" { await gate.wait() } }
+    switchFamily(to: "family-A")
+    let staleLoad = Task { await sut.loadActivities(forceRefresh: true, loud: true) }
+    await gate.waitUntilWaiting()
+
+    switchFamily(to: "family-B")
+    await sut.loadActivities()
+    mockService.shouldThrowOnInteractions = true
+    await gate.open()
+    await staleLoad.value
+
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-B1"])
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  func testRefresh_failureWithEntriesShowing_reportsTheError() async {
+    authenticateUser()
+    mockService.mockInteractions = [makeInteraction(id: "x")]
+    await sut.loadActivities()
+    mockService.shouldThrowOnInteractions = true
+
+    await sut.refresh()
+
+    XCTAssertNotNil(sut.errorMessage)
+  }
+
+  func testSupersededSubscribe_allowsTheNextStartToResubscribe() async {
+    authenticateUser()
+    mockRealtime.shouldThrowOnSubscribe = true
+    mockRealtime.errorToThrow = ActivityRealtimeError.subscriptionSuperseded
+
+    await sut.loadAndSubscribe()
+    await sut.loadAndSubscribe()
+
+    XCTAssertEqual(mockRealtime.subscribeCallCount, 2, "feed left with no live channels and never resubscribes")
+  }
+}
+
+/// A cache whose `get` for one key waits on a gate, to hold a cache read open across a family switch.
+final class GatedCache: CacheManaging, @unchecked Sendable {
+  let inner: any CacheManaging
+  let gate = FetchGate()
+  var gatedKey: String?
+
+  init(inner: any CacheManaging) { self.inner = inner }
+
+  func get<T: Decodable & Sendable>(_ type: T.Type, forKey key: String) async -> T? {
+    if key == gatedKey { await gate.wait() }
+    return await inner.get(type, forKey: key)
+  }
+
+  func set<T: Encodable & Sendable>(_ value: T, forKey key: String, ttlSeconds: TimeInterval) async {
+    await inner.set(value, forKey: key, ttlSeconds: ttlSeconds)
+  }
+
+  func remove(forKey key: String) async { await inner.remove(forKey: key) }
+  func removeAll() async { await inner.removeAll() }
 }
 
 /// Holds a suspended call open until the test opens it.
