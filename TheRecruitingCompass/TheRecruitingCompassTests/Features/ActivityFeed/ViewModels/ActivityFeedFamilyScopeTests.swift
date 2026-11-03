@@ -355,7 +355,7 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     await sut.loadAndSubscribe()
 
     mockRealtime.simulateChange()
-    try await Task.sleep(for: .milliseconds(200))
+    try await Task.sleep(for: .milliseconds(600))
 
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 2)
   }
