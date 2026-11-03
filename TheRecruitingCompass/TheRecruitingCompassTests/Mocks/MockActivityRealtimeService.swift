@@ -33,8 +33,11 @@ final class MockActivityRealtimeService: ActivityRealtimeManaging, @unchecked Se
     if shouldThrowOnSubscribe { throw errorToThrow }
   }
 
+  var beforeUnsubscribe: (@Sendable () async -> Void)?
+
   func unsubscribe() async {
     unsubscribeCallCount += 1
+    await beforeUnsubscribe?()
     events.append("unsubscribe")
   }
 

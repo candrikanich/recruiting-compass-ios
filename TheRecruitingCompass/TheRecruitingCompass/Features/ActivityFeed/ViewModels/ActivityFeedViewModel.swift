@@ -190,11 +190,7 @@ final class ActivityFeedViewModel {
       return
     }
 
-    // Never show one family's entries (or label them with another family's members) while another loads.
-    if let displayedFamilyUnitId, displayedFamilyUnitId != familyUnitId {
-      activities = []
-      self.displayedFamilyUnitId = nil
-    }
+    dropEntriesNotForActiveFamily()
 
     loadSequence += 1
     let thisLoad = loadSequence
@@ -275,6 +271,13 @@ final class ActivityFeedViewModel {
     }
   }
 
+  /// Never show one family's entries (or label them with another family's members) under another family.
+  private func dropEntriesNotForActiveFamily() {
+    guard let displayedFamilyUnitId, displayedFamilyUnitId != familyUnitId else { return }
+    activities = []
+    self.displayedFamilyUnitId = nil
+  }
+
   /// The only place entries are written, so the family they belong to can never be forgotten.
   private func show(_ events: [ActivityEvent], for familyUnitId: String) {
     activities = events
@@ -343,6 +346,8 @@ final class ActivityFeedViewModel {
 
   /// The active family changed: drop the old family's entries and channels, then load and subscribe for the new one.
   func familyDidChange() async {
+    // Synchronously, before the first await: tearing the old channels down can take many seconds.
+    dropEntriesNotForActiveFamily()
     await tearDownRealtime()
     await loadAndSubscribe()
   }
