@@ -39,6 +39,53 @@ final class PublicProfileViewModel {
     var slugError: String?
     var saveError: String?
     private(set) var cardData: PublicProfileData?
+    /// Why the first load failed; nil until a load has failed and again once one succeeds.
+    private(set) var loadError: String?
+    /// The server's own words for a failed load (e.g. a 403); preferred over generic copy when a save is refused.
+    private var loadServerMessage: String?
+
+    enum LoadState: Equatable {
+        case loading
+        case loaded
+        case failed(String)
+    }
+
+    /// The editor renders only for `.loaded`: its fields are client defaults until the stored profile arrives,
+    /// so showing them would let the user edit (and see "live & public" for) values that were never saved.
+    var loadState: LoadState {
+        if profile != nil { return .loaded }
+        return loadError.map(LoadState.failed) ?? .loading
+    }
+
+    enum ContentState: Equatable {
+        case selectAthlete
+        case unconfigured
+        case loading
+        case failed(String)
+        case editor
+    }
+
+    /// What `PublicTab` renders. The view switches over this exhaustively, so a branch cannot be dropped silently.
+    var contentState: ContentState {
+        Self.contentState(hasNoEditableProfile: hasNoEditableProfile, isConfigured: isConfigured, loadState: loadState)
+    }
+
+    static func contentState(hasNoEditableProfile: Bool, isConfigured: Bool, loadState: LoadState) -> ContentState {
+        if hasNoEditableProfile { return .selectAthlete }
+        if !isConfigured { return .unconfigured }
+        switch loadState {
+        case .loading: return .loading
+        case .failed(let message): return .failed(message)
+        case .loaded: return .editor
+        }
+    }
+
+    private static let notLoadedMessage = String(
+        localized: "Your profile didn't load, so changes can't be saved. Reopen this screen to retry."
+    )
+    private static let loadFailedMessage = String(
+        localized: "Couldn't load your public profile. Please try again."
+    )
 
     var isConfigured: Bool { SupabaseConfig.apiBaseURL != nil }
 
@@ -92,11 +139,14 @@ final class PublicProfileViewModel {
     func load() async {
         isLoading = true
         defer { isLoading = false }
+        if profile == nil { loadError = nil; loadServerMessage = nil }
         availableSchools = await fetchSchoolsData()
         guard !hasNoEditableProfile else { return }
         let athleteId = athleteId
         do {
-            guard let loaded = try await service.fetchProfile(athleteId: athleteId, accessToken: token) else { return }
+            guard let loaded = try await service.fetchProfile(athleteId: athleteId, accessToken: token) else {
+                return markLoadFailed(message: nil)
+            }
             apply(loaded)
         } catch PublicProfileAPIError.unauthorized {
             let refreshed = await retryAfterRefresh {
@@ -104,18 +154,32 @@ final class PublicProfileViewModel {
             }
             if let refreshed, let profile = refreshed {
                 apply(profile)
+            } else {
+                markLoadFailed(message: nil)
             }
-        } catch let error as PublicProfileAPIError {
-            if case .serverMessage(let message) = error { saveError = message }
+        } catch PublicProfileAPIError.serverMessage(let message) {
+            markLoadFailed(message: message)
         } catch {
-            // leave state as-is; view shows unconfigured/empty
+            markLoadFailed(message: nil)
         }
+    }
+
+    /// `loadState` stays `.loaded` when a reload fails after a successful load: those values are ones the user saw.
+    private func markLoadFailed(message: String?) {
+        loadServerMessage = message
+        loadError = message ?? Self.loadFailedMessage
     }
 
     func save() async {
         saveError = nil
         guard !hasNoEditableProfile else {
             saveError = String(localized: "Select an athlete to edit their public profile.")
+            return
+        }
+        // The editor's fields are client defaults until a load succeeds; sending them would
+        // overwrite the stored profile with values the user never saw.
+        guard profile != nil else {
+            saveError = loadServerMessage ?? Self.notLoadedMessage
             return
         }
         // Slug validity is independent of the other fields: an invalid/reserved local slug
@@ -452,6 +516,9 @@ final class PublicProfileViewModel {
 
     private func apply(_ profile: PlayerProfile) {
         self.profile = profile
+        loadError = nil
+        loadServerMessage = nil
+        if saveError == Self.notLoadedMessage { saveError = nil }
         bio = profile.bio ?? ""
         vanitySlug = profile.vanitySlug ?? ""
         isPublished = profile.isPublished

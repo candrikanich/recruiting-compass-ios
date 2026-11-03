@@ -39,11 +39,18 @@ struct PublicTab: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if vm.hasNoEditableProfile {
+                switch vm.contentState {
+                case .selectAthlete:
                     selectAthleteNotice
-                } else if !vm.isConfigured {
+                case .unconfigured:
                     unconfiguredNotice
-                } else {
+                case .failed(let message):
+                    loadFailedNotice(message)
+                case .loading:
+                    ProgressView()
+                        .frame(maxWidth: .infinity, minHeight: 120)
+                        .accessibilityLabel(String(localized: "Loading public profile"))
+                case .editor:
                     workspaceBar
                     shareCard
                     appearanceCard
@@ -476,6 +483,32 @@ struct PublicTab: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.Surface.card)
             .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    @ViewBuilder
+    private func loadFailedNotice(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(String(localized: "Public profile didn't load"))
+                .font(.brand(.headline))
+            Text(message)
+                .font(.brand(.subheadline))
+                .foregroundStyle(.secondary)
+            Button {
+                Task {
+                    await vm.load()
+                    await vm.assembleCard()
+                }
+            } label: {
+                Label(String(localized: "Retry"), systemImage: "arrow.clockwise")
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 44)
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.Surface.card)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     @ViewBuilder
