@@ -363,15 +363,20 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
   func testStatusHistoryInsert_triggersExactlyOneDebouncedForcedReload_andAppendsNothing() async throws {
     authenticateUser()
     mockService.mockInteractions = [makeInteraction(id: "loaded")]
-    await sut.loadAndSubscribe()
+    let slow = ActivityFeedViewModel(
+      activityService: mockService, familyManager: familyManager, authManager: mockAuthManager,
+      cache: mockCache, reloadDebounce: .milliseconds(400), realtime: mockRealtime
+    )
+    await slow.loadAndSubscribe()
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
 
     mockRealtime.simulateStatusHistoryInsert()
+    try await Task.sleep(for: .milliseconds(150))
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 1, "debounced, not immediate")
-    XCTAssertEqual(sut.activities.map(\.id), ["interaction-loaded"], "the payload is never appended")
-    try await Task.sleep(for: .milliseconds(500))
+    XCTAssertEqual(slow.activities.map(\.id), ["interaction-loaded"], "the payload is never appended")
+    try await Task.sleep(for: .milliseconds(700))
 
-    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2)
+    XCTAssertEqual(mockService.fetchInteractionsCallCount, 2, "exactly one reload")
   }
 
   func testStatusHistoryInsert_afterFamilySwitch_isDropped() async throws {
