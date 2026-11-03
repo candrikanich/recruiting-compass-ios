@@ -3,12 +3,14 @@ import SwiftUI
 struct ActivityEventItem: View {
   let event: ActivityEvent
   let compact: Bool
+  let actorLabel: String?
 
   @Environment(\.sizeCategory) private var sizeCategory
 
-  init(event: ActivityEvent, compact: Bool = false) {
+  init(event: ActivityEvent, compact: Bool = false, actorLabel: String? = nil) {
     self.event = event
     self.compact = compact
+    self.actorLabel = actorLabel
   }
 
   var body: some View {
@@ -31,6 +33,13 @@ struct ActivityEventItem: View {
           .fontWeight(.medium)
           .foregroundStyle(.primary)
           .lineLimit(1)
+
+        if let actorLabel {
+          Text(actorLabel)
+            .font(.brand(.caption))
+            .foregroundStyle(Color.tertiaryText)
+            .lineLimit(1)
+        }
 
         if !event.description.isEmpty {
           Text(event.description)
@@ -93,6 +102,7 @@ struct ActivityEventItem: View {
     var parts: [String] = []
     parts.append(event.type.label)
     parts.append(event.title)
+    if let actorLabel { parts.append(actorLabel) }
     if !event.description.isEmpty {
       parts.append(event.description)
     }

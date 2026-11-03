@@ -1,12 +1,7 @@
 import SwiftUI
-import OSLog
-
-private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "ActivityFeed")
 
 struct RecentActivityWidget: View {
   @State private var viewModel = ActivityFeedViewModel()
-  @State private var realtimeService: ActivityRealtimeService?
-  @State private var backgroundCleanupTask: Task<Void, Never>?
   @Environment(\.scenePhase) private var scenePhase
   @Environment(FamilyManager.self) private var familyManager
 
@@ -21,7 +16,7 @@ struct RecentActivityWidget: View {
         Spacer()
 
         Button {
-          Task { await viewModel.loadActivities() }
+          Task { await viewModel.refresh() }
         } label: {
           Image(systemName: "arrow.clockwise")
             .font(.brand(.subheadline))
@@ -34,25 +29,45 @@ struct RecentActivityWidget: View {
 
       Divider()
 
-      if viewModel.isLoading && viewModel.activities.isEmpty {
+      switch viewModel.presentation {
+      case .loading:
         ProgressView()
           .frame(maxWidth: .infinity, alignment: .center)
           .padding(.vertical, 16)
-      } else if viewModel.recentActivities.isEmpty {
+      case .failed(let message):
+        VStack(spacing: 8) {
+          Text(message)
+            .font(.brand(.caption))
+            .foregroundStyle(Color.secondaryText)
+            .multilineTextAlignment(.center)
+          Button("Try Again") {
+            Task { await viewModel.refresh() }
+          }
+          .font(.brand(.caption))
+          .frame(minWidth: 44, minHeight: 44)
+          .accessibilityIdentifier("recent-activity-retry")
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("recent-activity-error-state")
+      case .empty:
         Text("No recent activity")
           .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .padding(.vertical, 16)
-      } else {
+      case .content:
         VStack(spacing: 8) {
           ForEach(viewModel.recentActivities) { event in
             if event.isClickable {
               NavigationLink(value: ActivityDestination(event: event)) {
-                ActivityEventItem(event: event, compact: true)
+                ActivityEventItem(
+                  event: event, compact: true, actorLabel: viewModel.actorLabel(for: event))
               }
               .buttonStyle(.plain)
             } else {
-              ActivityEventItem(event: event, compact: true)
+              ActivityEventItem(
+                  event: event, compact: true, actorLabel: viewModel.actorLabel(for: event))
             }
           }
         }
@@ -80,29 +95,19 @@ struct RecentActivityWidget: View {
     .brandShadowSm()
     .accessibilityIdentifier("recent-activity-widget")
     .task {
-      await loadAndSubscribe()
+      await viewModel.loadAndSubscribe()
+    }
+    .onChange(of: familyManager.familyUnitId) { _, _ in
+      Task { await viewModel.familyDidChange() }
     }
     .onDisappear {
-      backgroundCleanupTask?.cancel()
-      let service = realtimeService
-      realtimeService = nil
-      Task {
-        await service?.unsubscribe()
-      }
+      Task { await viewModel.tearDownRealtime() }
     }
     .onChange(of: scenePhase) { _, newValue in
       if newValue == .active {
-        backgroundCleanupTask?.cancel()
-        Task {
-          await loadAndSubscribe()
-        }
+        Task { await viewModel.loadAndSubscribe() }
       } else if newValue == .background {
-        backgroundCleanupTask?.cancel()
-        let service = realtimeService
-        realtimeService = nil
-        backgroundCleanupTask = Task {
-          await service?.unsubscribe()
-        }
+        Task { await viewModel.tearDownRealtime() }
       }
     }
   }
@@ -112,42 +117,6 @@ struct RecentActivityWidget: View {
   var refreshAccessibilityLabel: String { String(localized: "Refresh activities") }
   var viewAllAccessibilityLabel: String { String(localized: "View all activity") }
   var viewAllAccessibilityHint: String { "Opens the full activity history page" }
-
-  // MARK: - Private Methods
-
-  private func loadAndSubscribe() async {
-    // Load initial activities
-    await viewModel.loadActivities()
-
-    // Subscribe to realtime updates
-    guard let userId = viewModel.userId else { return }
-
-    // Avoid re-subscribing when a live subscription already exists. `.task` and
-    // the scenePhase `.active` transition can both fire on appear; a second
-    // subscribe would reuse the already-joined channel topic and register a
-    // postgresChange listener after the join (a no-op that logs a warning) while
-    // leaking the overwritten service.
-    guard realtimeService == nil else { return }
-
-    let service = ActivityRealtimeService(supabaseManager: .shared)
-    realtimeService = service
-
-    do {
-      try await service.subscribe(
-        userId: userId,
-        familyUnitId: familyManager.familyUnitId,
-        onInsert: { [viewModel] newEvent in
-          viewModel.addRealtimeEvent(newEvent)
-        },
-        onChange: { [viewModel] in
-          Task { await viewModel.loadActivities() }
-        }
-      )
-    } catch {
-      // Log error but don't fail - widget still works without realtime
-      logger.error("Failed to subscribe to realtime updates: \(error.localizedDescription)")
-    }
-  }
 }
 
 #Preview {

@@ -20,5 +20,5 @@ enum ListCacheKeys {
   static func metrics(userId: String) -> String { "metricsList:\(userId)" }
   static func notifications(userId: String) -> String { "notificationsList:\(userId)" }
   static func tasks(athleteId: String, gradeLevel: Int) -> String { "tasksList:\(athleteId):\(gradeLevel)" }
-  static func activities(userId: String) -> String { "activitiesList:\(userId)" }
+  static func activities(familyUnitId: String) -> String { "activitiesList:\(familyUnitId)" }
 }
