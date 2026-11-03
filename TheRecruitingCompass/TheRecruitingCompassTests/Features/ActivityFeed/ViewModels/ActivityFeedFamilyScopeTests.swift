@@ -552,6 +552,19 @@ final class ActivityFeedFamilyScopeTests: XCTestCase {
     XCTAssertNil(sut.errorMessage)
   }
 
+  func testRealtimeChange_thatFails_keepsTheListAndShowsNoError() async throws {
+    authenticateUser()
+    mockService.mockInteractions = [makeInteraction(id: "kept")]
+    await sut.loadAndSubscribe()
+    mockService.shouldThrowOnInteractions = true
+
+    mockRealtime.simulateChange()
+    try await Task.sleep(for: .milliseconds(600))
+
+    XCTAssertEqual(sut.activities.map(\.id), ["interaction-kept"])
+    XCTAssertNil(sut.errorMessage)
+  }
+
   func testRefresh_failureWithEntriesShowing_reportsTheError() async {
     authenticateUser()
     mockService.mockInteractions = [makeInteraction(id: "x")]
