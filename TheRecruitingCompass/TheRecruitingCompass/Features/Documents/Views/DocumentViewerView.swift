@@ -196,8 +196,8 @@ struct DocumentViewerView: View {
             systemName: "square.and.arrow.up",
             accessibilityLabel: String(localized: "Share document"),
             accessibilityIdentifier: "document-viewer-share",
-            isEnabled: !viewModel.shareItems.isEmpty,
-            action: { viewModel.shareDocument() }
+            isEnabled: viewModel.document != nil && !viewModel.isDownloading,
+            action: { Task { await viewModel.shareDocument() } }
           )
 
           DocumentViewerIconButton(

@@ -48,24 +48,18 @@ final class DocumentViewerViewModel {
 
   // MARK: - Computed
 
-  var shareableURL: URL? {
-    guard let fileUrl = document?.fileUrl else { return nil }
-    return URL(string: fileUrl)
-  }
-
   /// Last downloaded file URL (for sharing after download)
   var downloadedFileURL: URL?
 
-  /// Items to share (local file after download, or remote URL)
+  /// The downloaded file itself; a URL is never shared.
   var shareItems: [Any] {
-    if let local = downloadedFileURL { return [local] }
-    if let url = shareableURL { return [url] }
-    return []
+    downloadedFileURL.map { [$0] } ?? []
   }
 
   // MARK: - Dependencies
 
   private let documentsService: any DocumentsManaging
+  private let urlResolver: any DocumentURLResolving
   private let autoHideDelay: Duration
   private let isAssistiveTechnologyRunning: () -> Bool
 
@@ -75,6 +69,7 @@ final class DocumentViewerViewModel {
     document: Document? = nil,
     collection: DocumentCollection? = nil,
     documentsService: (any DocumentsManaging)? = nil,
+    urlResolver: any DocumentURLResolving = DocumentURLResolver(),
     autoHideDelay: Duration = .seconds(3),
     isAssistiveTechnologyRunning: @escaping () -> Bool = {
       UIAccessibility.isVoiceOverRunning || UIAccessibility.isSwitchControlRunning
@@ -85,6 +80,7 @@ final class DocumentViewerViewModel {
     self.document = document
     self.collection = collection
     self.documentsService = documentsService ?? DocumentsServiceImpl()
+    self.urlResolver = urlResolver
 
     if let coll = collection {
       currentIndex = coll.currentIndex
@@ -118,15 +114,44 @@ final class DocumentViewerViewModel {
     }
   }
 
-  // MARK: - Share
+  // MARK: - File URL
 
-  func shareDocument() {
-    guard canShare else { return }
-    presentShareSheet()
+  /// Signs (or passes through) the current document's `file_url` for a download. Resolved on every tap, so a
+  /// retry always gets a fresh signature. A failure surfaces through `errorMessage`; it never degrades to
+  /// the unsigned stored value, and a cancelled or superseded request stays silent.
+  func resolveFileURL() async -> URL? {
+    let requested = document?.fileUrl
+    guard let requested else {
+      errorMessage = "Invalid file URL"
+      return nil
+    }
+    do {
+      let url = try await urlResolver.openableURL(for: requested)
+      return document?.fileUrl == requested ? url : nil
+    } catch {
+      guard document?.fileUrl == requested, !Self.isCancellation(error) else { return nil }
+      if case DocumentURLError.notOpenable = error {
+        errorMessage = "Invalid file URL"
+      } else {
+        errorMessage = userFacingMessage(for: error, fallback: "Unable to open document. Check your connection.")
+      }
+      return nil
+    }
   }
 
-  private var canShare: Bool {
-    shareableURL != nil || downloadedFileURL != nil
+  private static func isCancellation(_ error: Error) -> Bool {
+    error is CancellationError || (error as? URLError)?.code == .cancelled
+  }
+
+  // MARK: - Share
+
+  /// Shares the file itself: downloads it through a freshly signed URL, then presents the share sheet.
+  func shareDocument() async {
+    if downloadedFileURL != nil {
+      presentShareSheet()
+    } else {
+      await downloadDocument()
+    }
   }
 
   private func presentShareSheet() {
@@ -159,12 +184,9 @@ final class DocumentViewerViewModel {
   // MARK: - Download
 
   func downloadDocument() async {
-    guard let urlString = document?.fileUrl,
-          let url = URL(string: urlString) else {
-      errorMessage = "Invalid file URL"
-      return
-    }
+    guard let url = await resolveFileURL() else { return }
 
+    let started = (id: document?.id, title: document?.title)
     downloadProgress = 0
     isDownloading = true
     defer {
@@ -192,13 +214,16 @@ final class DocumentViewerViewModel {
           return
         }
         Task { @MainActor in
+          // The user may have swiped to another document while this one downloaded.
+          guard this.document?.id == started.id else {
+            if case .success(let tempURL) = result { try? FileManager.default.removeItem(at: tempURL) }
+            continuation.resume()
+            return
+          }
           switch result {
           case .success(let tempURL):
             do {
-              let destURL = this.destinationURL(for: url)
-              if FileManager.default.fileExists(atPath: destURL.path) {
-                try FileManager.default.removeItem(at: destURL)
-              }
+              let destURL = try this.destinationURL(for: url, title: started.title)
               try FileManager.default.moveItem(at: tempURL, to: destURL)
               this.downloadProgress = 1
               this.downloadedFileURL = destURL
@@ -218,12 +243,19 @@ final class DocumentViewerViewModel {
     }
   }
 
-  private func destinationURL(for url: URL) -> URL {
-    let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    let baseName = document?.title ?? url.deletingPathExtension().lastPathComponent
-    let ext = url.pathExtension.isEmpty ? "" : "." + url.pathExtension
-    let fileName = baseName + ext
-    return documentsURL.appendingPathComponent(fileName)
+  /// A fresh temp directory per download keeps the share sheet's file name equal to the title without
+  /// colliding with earlier downloads, so nothing existing is ever removed.
+  private func destinationURL(for url: URL, title: String?) throws -> URL {
+    let directory = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    guard let destination = DownloadDestination.url(
+      title: title,
+      fallbackBase: url.deletingPathExtension().lastPathComponent,
+      pathExtension: url.pathExtension,
+      in: directory
+    ) else { throw DocumentURLError.notOpenable }
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    return destination
   }
 
   // MARK: - Collection Navigation

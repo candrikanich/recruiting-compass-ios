@@ -123,30 +123,34 @@ final class DocumentViewerViewModelTests: XCTestCase {
 
   // MARK: - shareDocument
 
-  func testShareDocument_withShareableURL_setsIsShareSheetPresented() {
-    sut = DocumentViewerViewModel(document: .mock(fileUrl: "https://example.com/file.pdf"), documentsService: mockDocuments)
-
-    sut.shareDocument()
-
-    XCTAssertTrue(sut.isShareSheetPresented)
-  }
-
-  func testShareDocument_withDownloadedFileURL_setsIsShareSheetPresented() {
+  func testShareDocument_withDownloadedFile_presentsShareSheet() async {
     sut = DocumentViewerViewModel(document: .mock(), documentsService: mockDocuments)
     sut.downloadedFileURL = URL(fileURLWithPath: "/tmp/test.pdf")
 
-    sut.shareDocument()
+    await sut.shareDocument()
 
     XCTAssertTrue(sut.isShareSheetPresented)
   }
 
-  func testShareDocument_withNoURL_doesNothing() {
+  func testShareDocument_withUnopenableFileUrl_doesNotPresentAndSetsError() async {
     sut = DocumentViewerViewModel(document: .mock(fileUrl: ""), documentsService: mockDocuments)
-    sut.downloadedFileURL = nil
 
-    sut.shareDocument()
+    await sut.shareDocument()
 
     XCTAssertFalse(sut.isShareSheetPresented)
+    XCTAssertEqual(sut.errorMessage, "Invalid file URL")
+  }
+
+  func testShareDocument_whenSigningFails_doesNotShareAnyURL() async {
+    sut = DocumentViewerViewModel(
+      document: .mock(fileUrl: "u1/a.pdf"), documentsService: mockDocuments,
+      urlResolver: StubResolver { _ in throw URLError(.notConnectedToInternet) })
+
+    await sut.shareDocument()
+
+    XCTAssertFalse(sut.isShareSheetPresented)
+    XCTAssertTrue(sut.shareItems.isEmpty)
+    XCTAssertNotNil(sut.errorMessage)
   }
 
   // MARK: - downloadDocument
@@ -322,22 +326,9 @@ final class DocumentViewerViewModelTests: XCTestCase {
     XCTAssertFalse(sut.hasPrevious)
   }
 
-  // MARK: - shareableURL / shareItems
+  // MARK: - shareItems
 
-  func testShareableURL_withValidFileUrl_returnsURL() {
-    sut = DocumentViewerViewModel(document: .mock(fileUrl: "https://example.com/file.pdf"), documentsService: mockDocuments)
-
-    XCTAssertNotNil(sut.shareableURL)
-    XCTAssertEqual(sut.shareableURL?.absoluteString, "https://example.com/file.pdf")
-  }
-
-  func testShareableURL_withNoDocument_returnsNil() {
-    sut = DocumentViewerViewModel(documentsService: mockDocuments)
-
-    XCTAssertNil(sut.shareableURL)
-  }
-
-  func testShareItems_prefersDownloadedFileOverRemoteURL() {
+  func testShareItems_areTheDownloadedFile() {
     let localURL = URL(fileURLWithPath: "/tmp/local.pdf")
     sut = DocumentViewerViewModel(document: .mock(fileUrl: "https://example.com/file.pdf"), documentsService: mockDocuments)
     sut.downloadedFileURL = localURL
@@ -345,18 +336,153 @@ final class DocumentViewerViewModelTests: XCTestCase {
     XCTAssertEqual(sut.shareItems as? [URL], [localURL])
   }
 
-  func testShareItems_withoutDownloadedFile_usesShareableURL() {
+  func testShareItems_withoutDownloadedFile_neverFallBackToARemoteURL() {
     sut = DocumentViewerViewModel(document: .mock(fileUrl: "https://example.com/file.pdf"), documentsService: mockDocuments)
 
-    XCTAssertEqual(sut.shareItems.count, 1)
-    XCTAssertTrue(sut.shareItems.first is URL)
+    XCTAssertTrue(sut.shareItems.isEmpty)
   }
 
-  func testShareItems_withNoURL_returnsEmpty() {
-    sut = DocumentViewerViewModel(document: .mock(fileUrl: ""), documentsService: mockDocuments)
-    sut.downloadedFileURL = nil
+  // MARK: - download vs. swipe
 
-    XCTAssertTrue(sut.shareItems.isEmpty)
+  private func makeLocalSourceFile() throws -> URL {
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("src-\(UUID().uuidString).pdf")
+    try Data("bytes-of-A".utf8).write(to: url)
+    addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+    return url
+  }
+
+  private func makeTwoDocumentViewModel(source: URL) -> DocumentViewerViewModel {
+    let collection = DocumentCollection(
+      documents: [.mock(id: "A", title: "Doc A", fileUrl: "u1/a.pdf"), .mock(id: "B", title: "Doc B", fileUrl: "u1/b.pdf")],
+      currentIndex: 0)
+    return DocumentViewerViewModel(
+      collection: collection, documentsService: mockDocuments, urlResolver: StubResolver { _ in source })
+  }
+
+  func testDownloadDocument_completingOnTheSameDocument_sharesTheFileUnderItsTitle() async throws {
+    sut = makeTwoDocumentViewModel(source: try makeLocalSourceFile())
+
+    await sut.downloadDocument()
+
+    XCTAssertEqual(sut.downloadedFileURL?.deletingPathExtension().lastPathComponent, "Doc A")
+    XCTAssertTrue(sut.isShareSheetPresented)
+  }
+
+  func testDownloadDocument_whenUserSwipesBeforeItCompletes_dropsTheResult() async throws {
+    sut = makeTwoDocumentViewModel(source: try makeLocalSourceFile())
+    let download = Task { await sut.downloadDocument() }
+    while !sut.isDownloading { await Task.yield() }
+
+    sut.nextDocument()
+    await download.value
+
+    XCTAssertEqual(sut.document?.id, "B")
+    XCTAssertNil(sut.downloadedFileURL)
+    XCTAssertFalse(sut.isShareSheetPresented)
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  // MARK: - resolveFileURL
+
+  private struct StubResolver: DocumentURLResolving {
+    let handler: @Sendable (String) async throws -> URL
+    func openableURL(for fileUrl: String) async throws -> URL { try await handler(fileUrl) }
+  }
+
+  func testResolveFileURL_forStoragePath_returnsTheSignedURL() async {
+    let signed = URL(string: "https://proj.supabase.co/storage/v1/object/sign/documents/u1/a.pdf?token=t")!
+    sut = DocumentViewerViewModel(
+      document: .mock(fileUrl: "u1/a.pdf"), documentsService: mockDocuments,
+      urlResolver: StubResolver { _ in signed })
+
+    let url = await sut.resolveFileURL()
+
+    XCTAssertEqual(url, signed)
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  func testResolveFileURL_whenSigningFails_setsError() async {
+    sut = DocumentViewerViewModel(
+      document: .mock(fileUrl: "u1/a.pdf"), documentsService: mockDocuments,
+      urlResolver: StubResolver { _ in throw URLError(.notConnectedToInternet) })
+
+    let url = await sut.resolveFileURL()
+
+    XCTAssertNil(url)
+    XCTAssertNotNil(sut.errorMessage)
+  }
+
+  func testResolveFileURL_forDisallowedScheme_isNotOpened() async {
+    sut = DocumentViewerViewModel(document: .mock(fileUrl: "javascript:alert(1)"), documentsService: mockDocuments)
+
+    let url = await sut.resolveFileURL()
+
+    XCTAssertNil(url)
+    XCTAssertEqual(sut.errorMessage, "Invalid file URL")
+  }
+
+  func testResolveFileURL_onCancellation_staysSilent() async {
+    for error in [CancellationError() as Error, URLError(.cancelled)] {
+      sut = DocumentViewerViewModel(
+        document: .mock(fileUrl: "u1/a.pdf"), documentsService: mockDocuments,
+        urlResolver: StubResolver { _ in throw error })
+
+      let url = await sut.resolveFileURL()
+
+      XCTAssertNil(url)
+      XCTAssertNil(sut.errorMessage, "\(error)")
+    }
+  }
+
+  private final class VMBox: @unchecked Sendable {
+    var vm: DocumentViewerViewModel?
+  }
+
+  func testResolveFileURL_whenDocumentChangesAndSigningFails_doesNotReportTheStaleError() async {
+    let box = VMBox()
+    sut = DocumentViewerViewModel(
+      document: .mock(fileUrl: "u1/a.pdf"), documentsService: mockDocuments,
+      urlResolver: StubResolver { _ in
+        await MainActor.run { box.vm?.document = .mock(fileUrl: "u2/b.pdf") }
+        throw URLError(.notConnectedToInternet)
+      })
+    box.vm = sut
+
+    let url = await sut.resolveFileURL()
+
+    XCTAssertNil(url)
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  func testResolveFileURL_whenDocumentChangesDuringSigning_discardsTheStaleURL() async {
+    let box = VMBox()
+    sut = DocumentViewerViewModel(
+      document: .mock(fileUrl: "u1/a.pdf"), documentsService: mockDocuments,
+      urlResolver: StubResolver { _ in
+        await MainActor.run { box.vm?.document = .mock(fileUrl: "u2/b.pdf") }
+        return URL(string: "https://proj.supabase.co/sign/a")!
+      })
+    box.vm = sut
+
+    let url = await sut.resolveFileURL()
+
+    XCTAssertNil(url)
+  }
+
+  func testResolveFileURL_everyCallSignsAgain() async {
+    let counter = CallCounter()
+    sut = DocumentViewerViewModel(
+      document: .mock(fileUrl: "u1/a.pdf"), documentsService: mockDocuments,
+      urlResolver: StubResolver { _ in
+        let n = await counter.next()
+        return URL(string: "https://proj.supabase.co/sign/\(n)")!
+      })
+
+    let first = await sut.resolveFileURL()
+    let second = await sut.resolveFileURL()
+
+    XCTAssertEqual(first?.lastPathComponent, "1")
+    XCTAssertEqual(second?.lastPathComponent, "2")
   }
 
   // MARK: - Error states
@@ -406,4 +532,9 @@ final class DocumentViewerViewModelTests: XCTestCase {
     try await Task.sleep(for: .milliseconds(200))
     XCTAssertTrue(sut.isToolbarVisible)
   }
+}
+
+private actor CallCounter {
+  private var count = 0
+  func next() -> Int { count += 1; return count }
 }
