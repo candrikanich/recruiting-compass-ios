@@ -216,10 +216,7 @@ final class DocumentViewerViewModel {
           switch result {
           case .success(let tempURL):
             do {
-              let destURL = this.destinationURL(for: url)
-              if FileManager.default.fileExists(atPath: destURL.path) {
-                try FileManager.default.removeItem(at: destURL)
-              }
+              let destURL = try this.destinationURL(for: url)
               try FileManager.default.moveItem(at: tempURL, to: destURL)
               this.downloadProgress = 1
               this.downloadedFileURL = destURL
@@ -239,12 +236,19 @@ final class DocumentViewerViewModel {
     }
   }
 
-  private func destinationURL(for url: URL) -> URL {
-    let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    let baseName = document?.title ?? url.deletingPathExtension().lastPathComponent
-    let ext = url.pathExtension.isEmpty ? "" : "." + url.pathExtension
-    let fileName = baseName + ext
-    return documentsURL.appendingPathComponent(fileName)
+  /// A fresh temp directory per download keeps the share sheet's file name equal to the title without
+  /// colliding with earlier downloads, so nothing existing is ever removed.
+  private func destinationURL(for url: URL) throws -> URL {
+    let directory = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    guard let destination = DownloadDestination.url(
+      title: document?.title,
+      fallbackBase: url.deletingPathExtension().lastPathComponent,
+      pathExtension: url.pathExtension,
+      in: directory
+    ) else { throw DocumentURLError.notOpenable }
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    return destination
   }
 
   // MARK: - Collection Navigation
