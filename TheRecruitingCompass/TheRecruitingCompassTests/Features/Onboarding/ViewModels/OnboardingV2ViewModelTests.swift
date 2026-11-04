@@ -423,8 +423,10 @@ private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
   )
 
   func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit? { stubbedFamilyUnit }
+  func getFamilyUnit(id: String) async throws -> FamilyUnit? { stubbedFamilyUnit }
+  func getMemberships(userId: String) async throws -> [FamilyMember] { [] }
+  func familyPlayers(among familyUnitIds: [String]) async throws -> [FamilyPlayer] { [] }
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember] { [] }
-  func getCurrentMember(userId: String) async throws -> FamilyMember? { nil }
   func createFamily(role: UserRole) async throws -> CreateFamilyResponse {
     fatalError("Not used in onboarding v2 tests")
   }

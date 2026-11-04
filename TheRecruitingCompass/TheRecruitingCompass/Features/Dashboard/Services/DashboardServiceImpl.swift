@@ -310,7 +310,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
   }
 
-  func fetchSuggestions(location: String, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int) {
+  func fetchSuggestions(location: String, athleteId: String?, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int) {
     guard let baseURL = SupabaseConfig.apiBaseURL,
           let token = accessToken, !token.isEmpty else {
       logger.debug("Suggestions API not configured (API_BASE_URL or token missing), returning empty")
@@ -321,6 +321,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       throw SuggestionsAPIError.notConfigured
     }
     components.queryItems = [URLQueryItem(name: "location", value: location)]
+      + (athleteId.map { [URLQueryItem(name: "athleteId", value: $0)] } ?? [])
     guard let url = components.url else {
       throw SuggestionsAPIError.notConfigured
     }

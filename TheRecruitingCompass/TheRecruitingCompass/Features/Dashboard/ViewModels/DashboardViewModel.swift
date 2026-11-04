@@ -432,7 +432,9 @@ final class DashboardViewModel {
     suggestionsError = nil
     defer { isSuggestionsLoading = false }
     do {
-      let result = try await dashboardService.fetchSuggestions(location: "dashboard", accessToken: token)
+      let result = try await dashboardService.fetchSuggestions(
+        location: "dashboard", athleteId: familyManager.selectedAthlete?.userId, accessToken: token
+      )
       suggestions = result.suggestions.sorted { $0.urgency.sortWeight < $1.urgency.sortWeight }
       suggestionsPendingCount = result.pendingCount
     } catch let err as SuggestionsAPIError where err == .unauthorized {
@@ -441,7 +443,9 @@ final class DashboardViewModel {
         _ = try await authManager.refreshSession()
         token = authManager.session?.accessToken
         logger.debug("Retrying suggestions after session refresh (token present: \(token != nil))")
-        let result = try await dashboardService.fetchSuggestions(location: "dashboard", accessToken: token)
+        let result = try await dashboardService.fetchSuggestions(
+        location: "dashboard", athleteId: familyManager.selectedAthlete?.userId, accessToken: token
+      )
         suggestions = result.suggestions.sorted { $0.urgency.sortWeight < $1.urgency.sortWeight }
         suggestionsPendingCount = result.pendingCount
       } catch {

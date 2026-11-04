@@ -46,6 +46,23 @@ final class DashboardViewModelFamilyScopeTests: XCTestCase {
     XCTAssertEqual(mockDashboardService.lastFetchLatestInteractionFamilyUnitId, "family-unit-1")
   }
 
+  func testSuggestionsAreRequestedForTheSelectedAthlete() async {
+    let auth = MockAuthManager()
+    let parentManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: auth)
+    let viewModel = DashboardViewModel(
+      authManager: auth,
+      dashboardService: mockDashboardService,
+      taskStorage: MockQuickTaskStorage(),
+      familyManager: parentManager,
+      preferenceService: MockPreferenceService(),
+      videoLinksService: MockVideoLinksService()
+    )
+
+    await viewModel.fetchSuggestions()
+
+    XCTAssertEqual(mockDashboardService.lastSuggestionsAthleteId, ParentViewingAthleteFixture.athleteUserId)
+  }
+
   func testParentAndAthleteSeeSameTrends() async {
     let recent = ISO8601DateFormatter().string(from: Date.now.addingTimeInterval(-86_400))
     mockDashboardService.stubbedInteractions = [

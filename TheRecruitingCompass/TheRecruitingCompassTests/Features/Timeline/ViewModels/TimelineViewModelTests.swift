@@ -60,11 +60,13 @@ final class TimelineViewModelTests: XCTestCase {
 
     await sut.load()
 
-    // The athlete id drives the local tasks fetch; the endpoints resolve
-    // viewer→athlete server-side, so they receive only the bearer token.
+    // Without the athlete the server picks the one closest to graduation across ALL of a parent's families,
+    // so every endpoint must be told which athlete (and therefore which family) is selected.
     XCTAssertEqual(mockTasksService.lastFetchAthleteId, ParentViewingAthleteFixture.athleteUserId)
     XCTAssertEqual(mockAPIService.phaseCallCount, 1)
     XCTAssertEqual(mockAPIService.statusCallCount, 1)
+    XCTAssertEqual(mockAPIService.requestedAthleteIds.count, 3)
+    XCTAssertTrue(mockAPIService.requestedAthleteIds.allSatisfy { $0 == ParentViewingAthleteFixture.athleteUserId })
   }
 
   // MARK: - load()

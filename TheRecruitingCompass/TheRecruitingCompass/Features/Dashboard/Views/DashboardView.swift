@@ -220,6 +220,11 @@ struct DashboardView: View {
 
       if familyManager.currentMember?.isParent == true
         && !viewModel.isParentPreviewMode {
+        FamilySwitcher(
+          choices: familyManager.familyChoices,
+          selectedFamilyId: familyManager.familyUnitId,
+          onSelect: { familyId in Task { await familyManager.switchFamily(to: familyId) } }
+        )
         DashboardAthleteSelectorSection(
           athletes: familyManager.athletes,
           familyLabels: familyManager.familyLabels,

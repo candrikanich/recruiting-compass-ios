@@ -15,7 +15,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   // MARK: - Call Counts
 
   var fetchFamilyMembersCallCount = 0
-  var getCurrentMemberCallCount = 0
+  var getMembershipsCallCount = 0
   var getFamilyUnitCallCount = 0
   var createFamilyCallCount = 0
   var regenerateCodeCallCount = 0
@@ -56,6 +56,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   // MARK: - FamilyManaging Implementation
 
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember] {
+    await fetchFamilyMembersGate?(familyUnitId)
     lock.lock()
     fetchFamilyMembersCallCount += 1
     lastFamilyUnitIdFetched = familyUnitId
@@ -70,19 +71,39 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     return result
   }
 
-  /// Awaited inside `getCurrentMember` so tests can hold a load in flight.
-  var getCurrentMemberGate: (@Sendable () async -> Void)?
+  /// Awaited inside `getMemberships` so tests can hold a load in flight.
+  var getMembershipsGate: (@Sendable () async -> Void)?
+  /// Most recently joined first. Defaults to the single `stubbedCurrentMember`.
+  var stubbedMemberships: [FamilyMember]?
+  var familyPlayersStub: [FamilyPlayer] = []
+  /// Awaited inside `fetchFamilyMembers` with the family id so a test can hold one family's load in flight.
+  var fetchFamilyMembersGate: (@Sendable (String) async -> Void)?
+  var unitsById: [String: FamilyUnit] = [:]
 
-  func getCurrentMember(userId: String) async throws -> FamilyMember? {
-    getCurrentMemberCallCount += 1
+  func getMemberships(userId: String) async throws -> [FamilyMember] {
+    getMembershipsCallCount += 1
     lastUserIdFetched = userId
-    await getCurrentMemberGate?()
+    await getMembershipsGate?()
 
     if !shouldSucceed {
       throw mockError
     }
 
-    return stubbedCurrentMember
+    return stubbedMemberships ?? stubbedCurrentMember.map { [$0] } ?? []
+  }
+
+  func familyPlayers(among familyUnitIds: [String]) async throws -> [FamilyPlayer] {
+    if !shouldSucceed {
+      throw mockError
+    }
+    return familyPlayersStub.filter { familyUnitIds.contains($0.familyUnitId) }
+  }
+
+  func getFamilyUnit(id: String) async throws -> FamilyUnit? {
+    if !shouldSucceed {
+      throw mockError
+    }
+    return unitsById[id] ?? stubbedFamilyUnit
   }
 
   func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit? {
@@ -285,7 +306,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     mockError = FamilyError.serverError("Mock error")
 
     fetchFamilyMembersCallCount = 0
-    getCurrentMemberCallCount = 0
+    getMembershipsCallCount = 0
     getFamilyUnitCallCount = 0
     createFamilyCallCount = 0
     regenerateCodeCallCount = 0

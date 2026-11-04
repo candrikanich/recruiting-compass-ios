@@ -31,9 +31,11 @@ final class MockTimelineAPIService: TimelineAPIManaging, @unchecked Sendable {
   var statusCallCount = 0
   var whatMattersCallCount = 0
   var lastAccessToken: String?
+  var requestedAthleteIds: [String?] = []
 
-  func fetchPhase(accessToken: String?) async throws -> AthletePhaseResponse {
+  func fetchPhase(accessToken: String?, athleteId: String?) async throws -> AthletePhaseResponse {
     phaseCallCount += 1
+    requestedAthleteIds.append(athleteId)
     lastAccessToken = accessToken
     await fetchPhaseGate?()
     try throwIfNeeded()
@@ -44,8 +46,9 @@ final class MockTimelineAPIService: TimelineAPIManaging, @unchecked Sendable {
     )
   }
 
-  func fetchStatus(accessToken: String?) async throws -> AthleteStatusResponse {
+  func fetchStatus(accessToken: String?, athleteId: String?) async throws -> AthleteStatusResponse {
     statusCallCount += 1
+    requestedAthleteIds.append(athleteId)
     lastAccessToken = accessToken
     try throwIfNeeded()
     return AthleteStatusResponse(
@@ -56,8 +59,9 @@ final class MockTimelineAPIService: TimelineAPIManaging, @unchecked Sendable {
     )
   }
 
-  func fetchWhatMattersNow(accessToken: String?) async throws -> [WhatMattersItem] {
+  func fetchWhatMattersNow(accessToken: String?, athleteId: String?) async throws -> [WhatMattersItem] {
     whatMattersCallCount += 1
+    requestedAthleteIds.append(athleteId)
     lastAccessToken = accessToken
     try throwIfNeeded()
     return stubbedWhatMatters

@@ -156,9 +156,10 @@ final class TimelineViewModel {
   private func fetchSummary() async throws {
     let token = authManager.session?.accessToken
 
-    async let phaseResult = apiService.fetchPhase(accessToken: token)
-    async let statusResult = apiService.fetchStatus(accessToken: token)
-    async let whatMattersResult = apiService.fetchWhatMattersNow(accessToken: token)
+    let athleteId = familyManager.selectedAthlete?.userId
+    async let phaseResult = apiService.fetchPhase(accessToken: token, athleteId: athleteId)
+    async let statusResult = apiService.fetchStatus(accessToken: token, athleteId: athleteId)
+    async let whatMattersResult = apiService.fetchWhatMattersNow(accessToken: token, athleteId: athleteId)
 
     let phaseData = try await phaseResult
     currentPhase = phaseData.phase

@@ -5,16 +5,28 @@ import SwiftUI
 /// entry point; iPhone behavior is unchanged since compact width just delegates to it.
 struct AdaptiveRootView: View {
   @Binding var pendingPushDestination: NotificationDestination?
+  @Environment(FamilyManager.self) private var familyManager
+
+  init(pendingPushDestination: Binding<NotificationDestination?> = .constant(nil)) {
+    self._pendingPushDestination = pendingPushDestination
+  }
+
+  var body: some View {
+    // Keyed on the family switch so the content below, @State view models included, is rebuilt and reloads
+    // for the newly selected family. The state must live in the keyed child: `.id` can't reset its own view's @State.
+    AdaptiveRootContent(pendingPushDestination: $pendingPushDestination)
+      .id(familyManager.familySwitchCount)
+  }
+}
+
+struct AdaptiveRootContent: View {
+  @Binding var pendingPushDestination: NotificationDestination?
   @Environment(\.horizontalSizeClass) private var sizeClass
   @State private var selectedDestination: AppDestination? = .dashboard
   @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
   @State private var coachesPrefilterSchoolId: String?
   @State private var dashboardViewModel = DashboardViewModel()
   @State private var emailVerificationBannerViewModel = EmailVerificationBannerViewModel()
-
-  init(pendingPushDestination: Binding<NotificationDestination?> = .constant(nil)) {
-    self._pendingPushDestination = pendingPushDestination
-  }
 
   var body: some View {
     if sizeClass == .regular {

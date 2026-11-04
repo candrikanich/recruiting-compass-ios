@@ -7,10 +7,15 @@ let familyServiceLogger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingC
 /// Sendable: Stateless service with no mutable properties
 final class FamilyServiceImpl: FamilyManaging, Sendable {
   let supabaseManager: SupabaseManager
+  private let clientOverride: SupabaseClient?
 
-  init(supabaseManager: SupabaseManager) {
+  /// `client` lets tests point the real queries at a stubbed URLSession.
+  init(supabaseManager: SupabaseManager, client: SupabaseClient? = nil) {
     self.supabaseManager = supabaseManager
+    self.clientOverride = client
   }
+
+  var database: SupabaseClient { clientOverride ?? supabaseManager.client }
 
   // MARK: - Membership Queries
 
@@ -85,9 +90,8 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
     return members
   }
 
-  func getCurrentMember(userId: String) async throws -> FamilyMember? {
-    familyServiceLogger.debug("Fetching current member for user: \(userId, privacy: .private)")
-    // Fetch family_member record
+  func getMemberships(userId: String) async throws -> [FamilyMember] {
+    familyServiceLogger.debug("Fetching memberships for user: \(userId, privacy: .private)")
     struct FamilyMemberRow: Codable {
       let id: String
       let userId: String
@@ -104,20 +108,16 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
       }
     }
 
-    let memberRows: [FamilyMemberRow] = try await supabaseManager.client
+    // Most recently joined first, the same order as web's `getCallerFamilyUnitIds`.
+    let rows: [FamilyMemberRow] = try await database
       .from("family_members")
       .select("id, user_id, family_unit_id, role, added_at")
       .eq("user_id", value: userId)
-      .limit(1)
+      .order("added_at", ascending: false)
       .execute()
       .value
 
-    guard let row = memberRows.first else {
-      return nil
-    }
-
-    // Fetch user details
-    let users: [FamilyMemberUser] = try await supabaseManager.client
+    let users: [FamilyMemberUser] = try await database
       .from("users")
       .select("id, email, full_name, role")
       .eq("id", value: userId)
@@ -125,50 +125,56 @@ final class FamilyServiceImpl: FamilyManaging, Sendable {
       .execute()
       .value
 
-    let member = FamilyMember(
-      id: row.id,
-      userId: row.userId,
-      familyUnitId: row.familyUnitId,
-      role: row.role,
-      addedAt: row.addedAt,
-      user: users.first
-    )
-    familyServiceLogger.debug("Current member fetched: \(member.id, privacy: .private) role=\(member.role)")
-    return member
+    return rows.map {
+      FamilyMember(
+        id: $0.id,
+        userId: $0.userId,
+        familyUnitId: $0.familyUnitId,
+        role: $0.role,
+        addedAt: $0.addedAt,
+        user: users.first
+      )
+    }
+  }
+
+  func familyPlayers(among familyUnitIds: [String]) async throws -> [FamilyPlayer] {
+    struct Row: Codable {
+      let familyUnitId: String
+      let users: Graduation
+      struct Graduation: Codable {
+        let graduationYear: Int?
+        enum CodingKeys: String, CodingKey { case graduationYear = "graduation_year" }
+      }
+      enum CodingKeys: String, CodingKey {
+        case familyUnitId = "family_unit_id"
+        case users
+      }
+    }
+    let rows: [Row] = try await database.from("family_members")
+      .select("family_unit_id, users!inner(graduation_year)")
+      .in("family_unit_id", values: familyUnitIds)
+      .eq("role", value: "player")
+      .execute()
+      .value
+    return rows.map { FamilyPlayer(familyUnitId: $0.familyUnitId, graduationYear: $0.users.graduationYear) }
+  }
+
+  func getFamilyUnit(id: String) async throws -> FamilyUnit? {
+    let units: [FamilyUnit] = try await database
+      .from("family_units")
+      .select()
+      .eq("id", value: id)
+      .limit(1)
+      .execute()
+      .value
+    return units.first
   }
 
   func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit? {
-    familyServiceLogger.debug("Fetching family unit for user: \(userId, privacy: .private)")
-    struct MemberRow: Codable {
-      let familyUnitId: String
-      enum CodingKeys: String, CodingKey {
-        case familyUnitId = "family_unit_id"
-      }
-    }
-    let rows: [MemberRow] = try await supabaseManager.client
-      .from("family_members")
-      .select("family_unit_id")
-      .eq("user_id", value: userId)
-      .limit(1)
-      .execute()
-      .value
-
-    guard let row = rows.first else {
+    guard let membership = try await getMemberships(userId: userId).first else {
       familyServiceLogger.debug("No family unit found for user: \(userId, privacy: .private)")
       return nil
     }
-
-    let units: [FamilyUnit] = try await supabaseManager.client
-      .from("family_units")
-      .select()
-      .eq("id", value: row.familyUnitId)
-      .limit(1)
-      .execute()
-      .value
-
-    if let unit = units.first {
-      familyServiceLogger.debug("Fetched family unit: \(unit.id, privacy: .private)")
-    }
-    return units.first
+    return try await getFamilyUnit(id: membership.familyUnitId)
   }
 }
