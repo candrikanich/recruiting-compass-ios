@@ -186,6 +186,7 @@ final class DocumentViewerViewModel {
   func downloadDocument() async {
     guard let url = await resolveFileURL() else { return }
 
+    let started = (id: document?.id, title: document?.title)
     downloadProgress = 0
     isDownloading = true
     defer {
@@ -213,10 +214,16 @@ final class DocumentViewerViewModel {
           return
         }
         Task { @MainActor in
+          // The user may have swiped to another document while this one downloaded.
+          guard this.document?.id == started.id else {
+            if case .success(let tempURL) = result { try? FileManager.default.removeItem(at: tempURL) }
+            continuation.resume()
+            return
+          }
           switch result {
           case .success(let tempURL):
             do {
-              let destURL = try this.destinationURL(for: url)
+              let destURL = try this.destinationURL(for: url, title: started.title)
               try FileManager.default.moveItem(at: tempURL, to: destURL)
               this.downloadProgress = 1
               this.downloadedFileURL = destURL
@@ -238,11 +245,11 @@ final class DocumentViewerViewModel {
 
   /// A fresh temp directory per download keeps the share sheet's file name equal to the title without
   /// colliding with earlier downloads, so nothing existing is ever removed.
-  private func destinationURL(for url: URL) throws -> URL {
+  private func destinationURL(for url: URL, title: String?) throws -> URL {
     let directory = FileManager.default.temporaryDirectory
       .appendingPathComponent(UUID().uuidString, isDirectory: true)
     guard let destination = DownloadDestination.url(
-      title: document?.title,
+      title: title,
       fallbackBase: url.deletingPathExtension().lastPathComponent,
       pathExtension: url.pathExtension,
       in: directory

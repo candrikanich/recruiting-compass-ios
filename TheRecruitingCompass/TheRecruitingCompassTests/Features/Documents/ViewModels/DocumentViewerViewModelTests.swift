@@ -342,6 +342,46 @@ final class DocumentViewerViewModelTests: XCTestCase {
     XCTAssertTrue(sut.shareItems.isEmpty)
   }
 
+  // MARK: - download vs. swipe
+
+  private func makeLocalSourceFile() throws -> URL {
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("src-\(UUID().uuidString).pdf")
+    try Data("bytes-of-A".utf8).write(to: url)
+    addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+    return url
+  }
+
+  private func makeTwoDocumentViewModel(source: URL) -> DocumentViewerViewModel {
+    let collection = DocumentCollection(
+      documents: [.mock(id: "A", title: "Doc A", fileUrl: "u1/a.pdf"), .mock(id: "B", title: "Doc B", fileUrl: "u1/b.pdf")],
+      currentIndex: 0)
+    return DocumentViewerViewModel(
+      collection: collection, documentsService: mockDocuments, urlResolver: StubResolver { _ in source })
+  }
+
+  func testDownloadDocument_completingOnTheSameDocument_sharesTheFileUnderItsTitle() async throws {
+    sut = makeTwoDocumentViewModel(source: try makeLocalSourceFile())
+
+    await sut.downloadDocument()
+
+    XCTAssertEqual(sut.downloadedFileURL?.deletingPathExtension().lastPathComponent, "Doc A")
+    XCTAssertTrue(sut.isShareSheetPresented)
+  }
+
+  func testDownloadDocument_whenUserSwipesBeforeItCompletes_dropsTheResult() async throws {
+    sut = makeTwoDocumentViewModel(source: try makeLocalSourceFile())
+    let download = Task { await sut.downloadDocument() }
+    while !sut.isDownloading { await Task.yield() }
+
+    sut.nextDocument()
+    await download.value
+
+    XCTAssertEqual(sut.document?.id, "B")
+    XCTAssertNil(sut.downloadedFileURL)
+    XCTAssertFalse(sut.isShareSheetPresented)
+    XCTAssertNil(sut.errorMessage)
+  }
+
   // MARK: - resolveFileURL
 
   private struct StubResolver: DocumentURLResolving {
