@@ -145,7 +145,6 @@ struct DocumentViewerView: View {
           .offset(y: dragOffset * 0.3)
           .contentShape(Rectangle())
           .simultaneousGesture(collectionSwipeGesture)
-          .task(id: document.fileUrl) { await viewModel.resolveFileURL() }
       } else if viewModel.errorMessage == nil && !viewModel.isLoading {
         ContentUnavailableView {
           Label("Document not found", systemImage: "doc")
@@ -197,8 +196,8 @@ struct DocumentViewerView: View {
             systemName: "square.and.arrow.up",
             accessibilityLabel: String(localized: "Share document"),
             accessibilityIdentifier: "document-viewer-share",
-            isEnabled: !viewModel.shareItems.isEmpty,
-            action: { viewModel.shareDocument() }
+            isEnabled: viewModel.document != nil && !viewModel.isDownloading,
+            action: { Task { await viewModel.shareDocument() } }
           )
 
           DocumentViewerIconButton(

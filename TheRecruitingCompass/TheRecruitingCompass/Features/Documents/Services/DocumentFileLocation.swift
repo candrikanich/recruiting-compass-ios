@@ -30,7 +30,12 @@ enum DocumentFileLocation: Equatable {
   private static func sameOrigin(_ url: URL, _ origin: URL) -> Bool {
     url.scheme?.lowercased() == origin.scheme?.lowercased()
       && url.host?.lowercased() == origin.host?.lowercased()
-      && url.port == origin.port
+      && effectivePort(url) == effectivePort(origin)
+  }
+
+  /// An explicit default port (":443") is still our origin, as in web's `new URL(raw).origin`.
+  private static func effectivePort(_ url: URL) -> Int? {
+    url.port ?? (url.scheme?.lowercased() == "https" ? 443 : url.scheme?.lowercased() == "http" ? 80 : nil)
   }
 
   /// Exact string prefix, not URL parsing: the parser resolves "%2e%2e" segments, which would turn one
@@ -49,17 +54,17 @@ enum DocumentFileLocation: Equatable {
   }
 
   private static func isStoragePath(_ value: String) -> Bool {
-    let stripped = value.filter { !"\t\n\r".contains($0) }
     return !value.isEmpty
       && !value.unicodeScalars.contains { $0.value < 0x20 || $0.value == 0x7F || $0 == "?" || $0 == "#" }
-      && stripped.firstMatch(of: anyScheme) == nil
+      && value.firstMatch(of: anyScheme) == nil
       && !hasDotSegment(value)
   }
 
   private static func hasDotSegment(_ path: String) -> Bool {
     path.split(omittingEmptySubsequences: false, whereSeparator: { $0 == "/" || $0 == "\\" }).contains { segment in
       guard let decoded = String(segment).removingPercentEncoding else { return true }
-      let visible = decoded.filter { !"\t\n\r".contains($0) }
+      // Scalars, not Characters: Swift fuses "\r\n" into one Character, which a Character filter would miss.
+      let visible = String(String.UnicodeScalarView(decoded.unicodeScalars.filter { !"\t\n\r".unicodeScalars.contains($0) }))
       return visible == "." || visible == ".."
     }
   }
@@ -67,6 +72,16 @@ enum DocumentFileLocation: Equatable {
 
 enum DocumentURLError: Error {
   case notOpenable
+}
+
+extension DocumentURLError {
+  /// Copy for a failed open. A refused value is not a connectivity problem, so it never says "check your connection".
+  static func openFailureMessage(for error: Error) -> String {
+    if case DocumentURLError.notOpenable = error {
+      return String(localized: "This file can't be opened.")
+    }
+    return String(localized: "Check your connection and try again.")
+  }
 }
 
 /// Turns a stored `file_url` into a URL that is safe to open. Storage paths are signed (the bucket goes

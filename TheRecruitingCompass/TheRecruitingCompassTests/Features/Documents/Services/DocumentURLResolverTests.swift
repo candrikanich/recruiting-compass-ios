@@ -38,6 +38,24 @@ final class DocumentURLResolverTests: XCTestCase {
     }
   }
 
+  func testPercentEncodedDotsSplitByCRLF_areRejected() {
+    // Swift fuses "\r\n" into one Character; web strips each scalar, so this is ".." there.
+    XCTAssertEqual(classify("u1/%2e%0d%0a%2e/x.pdf"), .rejected)
+    XCTAssertEqual(classify(publicPrefix + "u1/%2e%0d%0a%2e/x.pdf"), .rejected)
+  }
+
+  func testExplicitDefaultPortOnOwnOrigin_isNeverTreatedAsExternal() {
+    XCTAssertEqual(classify("https://proj.supabase.co:443/storage/v1/object/public/avatars/a.png"), .rejected)
+    XCTAssertEqual(classify("https://proj.supabase.co:443/anything"), .rejected)
+  }
+
+  func testOpenFailureMessage_distinguishesRefusedFromConnectivity() {
+    let refused = DocumentURLError.openFailureMessage(for: DocumentURLError.notOpenable)
+    let offline = DocumentURLError.openFailureMessage(for: URLError(.notConnectedToInternet))
+    XCTAssertNotEqual(refused, offline)
+    XCTAssertFalse(refused.lowercased().contains("connection"))
+  }
+
   func testControlCharactersAndQueryInBarePath_areRejected() {
     for raw in ["u1/a\u{0}b.pdf", "u1/a?b.pdf", "u1/a#b.pdf", ""] {
       XCTAssertEqual(classify(raw), .rejected, raw)

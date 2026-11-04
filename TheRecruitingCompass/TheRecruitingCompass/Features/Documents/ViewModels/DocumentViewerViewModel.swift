@@ -48,17 +48,12 @@ final class DocumentViewerViewModel {
 
   // MARK: - Computed
 
-  /// Openable (signed, for storage paths) URL of the current document; nil until `resolveFileURL()` succeeds.
-  private(set) var shareableURL: URL?
-
   /// Last downloaded file URL (for sharing after download)
   var downloadedFileURL: URL?
 
-  /// Items to share (local file after download, or remote URL)
+  /// The downloaded file itself; a URL is never shared.
   var shareItems: [Any] {
-    if let local = downloadedFileURL { return [local] }
-    if let url = shareableURL { return [url] }
-    return []
+    downloadedFileURL.map { [$0] } ?? []
   }
 
   // MARK: - Dependencies
@@ -121,38 +116,42 @@ final class DocumentViewerViewModel {
 
   // MARK: - File URL
 
-  /// Resolves the current document's `file_url` for sharing and download. A failure surfaces through
-  /// `errorMessage`; it never degrades to the unsigned stored value.
-  @discardableResult
+  /// Signs (or passes through) the current document's `file_url` for a download. Resolved on every tap, so a
+  /// retry always gets a fresh signature. A failure surfaces through `errorMessage`; it never degrades to
+  /// the unsigned stored value, and a cancelled or superseded request stays silent.
   func resolveFileURL() async -> URL? {
     let requested = document?.fileUrl
-    shareableURL = nil
     guard let requested else {
       errorMessage = "Invalid file URL"
       return nil
     }
     do {
       let url = try await urlResolver.openableURL(for: requested)
-      guard document?.fileUrl == requested else { return nil }
-      shareableURL = url
-      return url
-    } catch DocumentURLError.notOpenable {
-      errorMessage = "Invalid file URL"
+      return document?.fileUrl == requested ? url : nil
     } catch {
-      errorMessage = userFacingMessage(for: error, fallback: "Unable to open document. Check your connection.")
+      guard document?.fileUrl == requested, !Self.isCancellation(error) else { return nil }
+      if case DocumentURLError.notOpenable = error {
+        errorMessage = "Invalid file URL"
+      } else {
+        errorMessage = userFacingMessage(for: error, fallback: "Unable to open document. Check your connection.")
+      }
+      return nil
     }
-    return nil
+  }
+
+  private static func isCancellation(_ error: Error) -> Bool {
+    error is CancellationError || (error as? URLError)?.code == .cancelled
   }
 
   // MARK: - Share
 
-  func shareDocument() {
-    guard canShare else { return }
-    presentShareSheet()
-  }
-
-  private var canShare: Bool {
-    shareableURL != nil || downloadedFileURL != nil
+  /// Shares the file itself: downloads it through a freshly signed URL, then presents the share sheet.
+  func shareDocument() async {
+    if downloadedFileURL != nil {
+      presentShareSheet()
+    } else {
+      await downloadDocument()
+    }
   }
 
   private func presentShareSheet() {

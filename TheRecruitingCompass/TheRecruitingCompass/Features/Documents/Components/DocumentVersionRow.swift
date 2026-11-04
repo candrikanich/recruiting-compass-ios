@@ -7,7 +7,7 @@ struct DocumentVersionRow: View {
 
   @Environment(\.openURL) private var openURL
   @State private var isOpening = false
-  @State private var openFailed = false
+  @State private var openFailureMessage: String?
 
   private func openVersion() async {
     isOpening = true
@@ -15,7 +15,7 @@ struct DocumentVersionRow: View {
     do {
       openURL(try await urlResolver.openableURL(for: version.fileUrl))
     } catch {
-      openFailed = true
+      openFailureMessage = DocumentURLError.openFailureMessage(for: error)
     }
   }
 
@@ -65,10 +65,13 @@ struct DocumentVersionRow: View {
       }
     }
     .padding(.vertical, 8)
-    .alert("Unable to open this version", isPresented: $openFailed) {
+    .alert(
+      "Unable to open this version",
+      isPresented: Binding(get: { openFailureMessage != nil }, set: { if !$0 { openFailureMessage = nil } })
+    ) {
       Button("OK", role: .cancel) {}
     } message: {
-      Text("Check your connection and try again.")
+      Text(openFailureMessage ?? "")
     }
   }
 }
