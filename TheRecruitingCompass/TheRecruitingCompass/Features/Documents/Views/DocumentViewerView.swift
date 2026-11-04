@@ -145,6 +145,7 @@ struct DocumentViewerView: View {
           .offset(y: dragOffset * 0.3)
           .contentShape(Rectangle())
           .simultaneousGesture(collectionSwipeGesture)
+          .task(id: document.fileUrl) { await viewModel.resolveFileURL() }
       } else if viewModel.errorMessage == nil && !viewModel.isLoading {
         ContentUnavailableView {
           Label("Document not found", systemImage: "doc")

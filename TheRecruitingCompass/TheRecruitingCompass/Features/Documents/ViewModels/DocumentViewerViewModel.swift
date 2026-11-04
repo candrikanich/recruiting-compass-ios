@@ -48,10 +48,8 @@ final class DocumentViewerViewModel {
 
   // MARK: - Computed
 
-  var shareableURL: URL? {
-    guard let fileUrl = document?.fileUrl else { return nil }
-    return URL(string: fileUrl)
-  }
+  /// Openable (signed, for storage paths) URL of the current document; nil until `resolveFileURL()` succeeds.
+  private(set) var shareableURL: URL?
 
   /// Last downloaded file URL (for sharing after download)
   var downloadedFileURL: URL?
@@ -66,6 +64,7 @@ final class DocumentViewerViewModel {
   // MARK: - Dependencies
 
   private let documentsService: any DocumentsManaging
+  private let urlResolver: any DocumentURLResolving
   private let autoHideDelay: Duration
   private let isAssistiveTechnologyRunning: () -> Bool
 
@@ -75,6 +74,7 @@ final class DocumentViewerViewModel {
     document: Document? = nil,
     collection: DocumentCollection? = nil,
     documentsService: (any DocumentsManaging)? = nil,
+    urlResolver: any DocumentURLResolving = DocumentURLResolver(),
     autoHideDelay: Duration = .seconds(3),
     isAssistiveTechnologyRunning: @escaping () -> Bool = {
       UIAccessibility.isVoiceOverRunning || UIAccessibility.isSwitchControlRunning
@@ -85,6 +85,7 @@ final class DocumentViewerViewModel {
     self.document = document
     self.collection = collection
     self.documentsService = documentsService ?? DocumentsServiceImpl()
+    self.urlResolver = urlResolver
 
     if let coll = collection {
       currentIndex = coll.currentIndex
@@ -116,6 +117,31 @@ final class DocumentViewerViewModel {
     } else if let coll = collection {
       document = coll.currentDocument
     }
+  }
+
+  // MARK: - File URL
+
+  /// Resolves the current document's `file_url` for sharing and download. A failure surfaces through
+  /// `errorMessage`; it never degrades to the unsigned stored value.
+  @discardableResult
+  func resolveFileURL() async -> URL? {
+    let requested = document?.fileUrl
+    shareableURL = nil
+    guard let requested else {
+      errorMessage = "Invalid file URL"
+      return nil
+    }
+    do {
+      let url = try await urlResolver.openableURL(for: requested)
+      guard document?.fileUrl == requested else { return nil }
+      shareableURL = url
+      return url
+    } catch DocumentURLError.notOpenable {
+      errorMessage = "Invalid file URL"
+    } catch {
+      errorMessage = userFacingMessage(for: error, fallback: "Unable to open document. Check your connection.")
+    }
+    return nil
   }
 
   // MARK: - Share
@@ -159,11 +185,7 @@ final class DocumentViewerViewModel {
   // MARK: - Download
 
   func downloadDocument() async {
-    guard let urlString = document?.fileUrl,
-          let url = URL(string: urlString) else {
-      errorMessage = "Invalid file URL"
-      return
-    }
+    guard let url = await resolveFileURL() else { return }
 
     downloadProgress = 0
     isDownloading = true

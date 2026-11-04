@@ -3,6 +3,21 @@ import SwiftUI
 struct DocumentVersionRow: View {
   let version: DocumentVersion
   let onRestore: (DocumentVersion) -> Void
+  var urlResolver: any DocumentURLResolving = DocumentURLResolver()
+
+  @Environment(\.openURL) private var openURL
+  @State private var isOpening = false
+  @State private var openFailed = false
+
+  private func openVersion() async {
+    isOpening = true
+    defer { isOpening = false }
+    do {
+      openURL(try await urlResolver.openableURL(for: version.fileUrl))
+    } catch {
+      openFailed = true
+    }
+  }
 
   var body: some View {
     HStack {
@@ -27,13 +42,15 @@ struct DocumentVersionRow: View {
       }
       Spacer()
       HStack(spacing: 8) {
-        if let url = URL(string: version.fileUrl) {
-          Link(destination: url) {
-            Text("View")
-              .font(.brand(.caption))
-          }
-          .buttonStyle(.bordered)
+        Button {
+          Task { await openVersion() }
+        } label: {
+          Text("View")
+            .font(.brand(.caption))
         }
+        .buttonStyle(.bordered)
+        .disabled(isOpening)
+        .accessibilityLabel(String(localized: "View version \(version.version)"))
         if !version.isCurrent {
           Button("Restore") {
             onRestore(version)
@@ -48,5 +65,10 @@ struct DocumentVersionRow: View {
       }
     }
     .padding(.vertical, 8)
+    .alert("Unable to open this version", isPresented: $openFailed) {
+      Button("OK", role: .cancel) {}
+    } message: {
+      Text("Check your connection and try again.")
+    }
   }
 }

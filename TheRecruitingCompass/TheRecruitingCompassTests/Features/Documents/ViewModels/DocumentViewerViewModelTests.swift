@@ -123,8 +123,9 @@ final class DocumentViewerViewModelTests: XCTestCase {
 
   // MARK: - shareDocument
 
-  func testShareDocument_withShareableURL_setsIsShareSheetPresented() {
+  func testShareDocument_withShareableURL_setsIsShareSheetPresented() async {
     sut = DocumentViewerViewModel(document: .mock(fileUrl: "https://example.com/file.pdf"), documentsService: mockDocuments)
+    await sut.resolveFileURL()
 
     sut.shareDocument()
 
@@ -324,11 +325,47 @@ final class DocumentViewerViewModelTests: XCTestCase {
 
   // MARK: - shareableURL / shareItems
 
-  func testShareableURL_withValidFileUrl_returnsURL() {
+  func testShareableURL_withValidFileUrl_returnsURL() async {
     sut = DocumentViewerViewModel(document: .mock(fileUrl: "https://example.com/file.pdf"), documentsService: mockDocuments)
 
-    XCTAssertNotNil(sut.shareableURL)
+    await sut.resolveFileURL()
+
     XCTAssertEqual(sut.shareableURL?.absoluteString, "https://example.com/file.pdf")
+  }
+
+  func testShareableURL_forStoragePath_isTheSignedURL() async {
+    let signed = URL(string: "https://proj.supabase.co/storage/v1/object/sign/documents/u1/a.pdf?token=t")!
+    let resolver = DocumentURLResolver(supabaseOrigin: URL(string: "https://proj.supabase.co")!) { _ in signed }
+    sut = DocumentViewerViewModel(
+      document: .mock(fileUrl: "u1/a.pdf"), documentsService: mockDocuments, urlResolver: resolver)
+
+    await sut.resolveFileURL()
+
+    XCTAssertEqual(sut.shareableURL, signed)
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  func testResolveFileURL_whenSigningFails_setsErrorAndNeverExposesStoredValue() async {
+    let resolver = DocumentURLResolver(supabaseOrigin: URL(string: "https://proj.supabase.co")!) { _ in
+      throw URLError(.notConnectedToInternet)
+    }
+    sut = DocumentViewerViewModel(
+      document: .mock(fileUrl: "u1/a.pdf"), documentsService: mockDocuments, urlResolver: resolver)
+
+    await sut.resolveFileURL()
+
+    XCTAssertNil(sut.shareableURL)
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertTrue(sut.shareItems.isEmpty)
+  }
+
+  func testResolveFileURL_forDisallowedScheme_isNotOpened() async {
+    sut = DocumentViewerViewModel(document: .mock(fileUrl: "javascript:alert(1)"), documentsService: mockDocuments)
+
+    await sut.resolveFileURL()
+
+    XCTAssertNil(sut.shareableURL)
+    XCTAssertEqual(sut.errorMessage, "Invalid file URL")
   }
 
   func testShareableURL_withNoDocument_returnsNil() {
@@ -345,8 +382,9 @@ final class DocumentViewerViewModelTests: XCTestCase {
     XCTAssertEqual(sut.shareItems as? [URL], [localURL])
   }
 
-  func testShareItems_withoutDownloadedFile_usesShareableURL() {
+  func testShareItems_withoutDownloadedFile_usesShareableURL() async {
     sut = DocumentViewerViewModel(document: .mock(fileUrl: "https://example.com/file.pdf"), documentsService: mockDocuments)
+    await sut.resolveFileURL()
 
     XCTAssertEqual(sut.shareItems.count, 1)
     XCTAssertTrue(sut.shareItems.first is URL)
