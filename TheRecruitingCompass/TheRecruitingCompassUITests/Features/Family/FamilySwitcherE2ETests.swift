@@ -73,7 +73,7 @@ final class FamilySwitcherE2ETests: XCTestCase {
     XCTAssertFalse(schoolRow(containing: oldFamilySchool).exists, "The old family's schools must be gone")
 
     XCTAssertTrue(tabs.goTo(.more))
-    XCTAssertTrue(app.navigationBars["More"].waitForExistence(timeout: 10))
+    XCTAssertTrue(app.navigationBars["More"].waitForExistence(timeout: 10), "The More tab should be back at its root")
     XCTAssertFalse(
       app.navigationBars["Events"].exists,
       "The old family's pushed Events screen must be gone after the switch"
