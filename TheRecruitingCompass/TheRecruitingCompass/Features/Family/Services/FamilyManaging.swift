@@ -38,7 +38,11 @@ protocol FamilyManaging: Sendable {
   // Invite operations (email-based)
   /// Sends an email invitation to join the family unit with the specified role.
   /// - Parameter pendingPlayerDetails: Pre-filled player profile data to attach to the invite, if applicable.
-  func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?) async throws
+  /// - Parameter familyUnitId: The family the invite targets (the selected family for a multi-family parent);
+  ///   nil lets the server fall back to the sender's own family.
+  func sendEmailInvite(
+    email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?, familyUnitId: String?
+  ) async throws
   /// Returns all pending (unsettled) email invitations for the current family.
   func fetchPendingInvitations() async throws -> [FamilyInvitation]
   /// Invitations addressed to the signed-in user's own email (RLS-scoped), for the family-required gate.
@@ -47,7 +51,7 @@ protocol FamilyManaging: Sendable {
   /// Cancels a pending invitation so it can no longer be accepted.
   func revokeInvitation(id: String) async throws
   /// Re-sends the invitation email for an existing pending invite.
-  func resendInvitation(id: String, email: String, role: String) async throws
+  func resendInvitation(id: String, email: String, role: String, familyUnitId: String?) async throws
   /// Looks up invite details by the token embedded in a deep-link URL.
   func lookupInviteByToken(_ token: String) async throws -> InviteDetails
   /// Accepts a family invitation, adding the current user to the family. Returns the response,

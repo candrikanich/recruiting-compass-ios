@@ -67,6 +67,55 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertEqual(mockFamilyService.lastInviteRole, "parent")
   }
 
+  func testSendEmailInvite_sendsSelectedFamilyId() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    sut.parentFamilies = [
+      ParentFamilyData(familyId: "family-A", familyCode: "A", familyName: "A", codeGeneratedAt: "x"),
+      ParentFamilyData(familyId: "family-B", familyCode: "B", familyName: "B", codeGeneratedAt: "x")
+    ]
+    sut.selectedFamilyId = "family-B"
+    sut.inviteEmail = "grandma@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.lastInviteFamilyUnitId, "family-B")
+  }
+
+  func testRoleChoice_followsSelectedFamilyNotAnyFamily() {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    var withPlayer = ParentFamilyData(familyId: "family-A", familyCode: "A", familyName: "A", codeGeneratedAt: "x")
+    withPlayer.members = [makeFamilyMember(id: "m2", userId: "user-2", role: "player")]
+    let withoutPlayer = ParentFamilyData(familyId: "family-B", familyCode: "B", familyName: "B", codeGeneratedAt: "x")
+    sut.parentFamilies = [withPlayer, withoutPlayer]
+
+    sut.selectedFamilyId = "family-B"
+    XCTAssertTrue(sut.offersInviteRoleChoice)
+
+    sut.selectedFamilyId = "family-A"
+    XCTAssertFalse(sut.offersInviteRoleChoice)
+  }
+
+  func testInviteRequestBody_encodesFamilyUnitIdAndParentRole() throws {
+    let body = FamilyServiceImpl.InviteRequestBody(
+      email: "mom@example.com", role: "parent", pendingPlayerDetails: nil, familyUnitId: "family-B"
+    )
+    let json = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: JSONEncoder().encode(body)) as? [String: Any]
+    )
+    XCTAssertEqual(json["family_unit_id"] as? String, "family-B")
+    XCTAssertEqual(json["role"] as? String, "parent")
+  }
+
+  func testInviteRequestBody_omitsFamilyUnitIdWhenNil() throws {
+    let body = FamilyServiceImpl.InviteRequestBody(
+      email: "mom@example.com", role: "parent", pendingPlayerDetails: nil, familyUnitId: nil
+    )
+    let json = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: JSONEncoder().encode(body)) as? [String: Any]
+    )
+    XCTAssertNil(json["family_unit_id"])
+  }
+
   func testSendEmailInvite_parentWhoseFamilyHasNoPlayer_invitesWithPlayerRole() async {
     mockAuthManager.setMockUser(makeUser(role: .parent))
     sut.inviteEmail = "kid@example.com"

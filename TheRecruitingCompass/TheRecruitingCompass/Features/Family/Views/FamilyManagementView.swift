@@ -9,6 +9,9 @@ struct FamilyManagementView: View {
     contentView
       .navigationTitle("Family Management")
       .navigationBarTitleDisplayMode(.large)
+      .onChange(of: familyManager.familyUnitId, initial: true) { _, familyId in
+        viewModel.selectedFamilyId = familyId
+      }
       .task {
         viewModel.onMembershipChanged = { await familyManager.loadFamilyData() }
         await viewModel.loadData()

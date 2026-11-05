@@ -21,6 +21,8 @@ final class FamilyManagementViewModel {
   var pendingInvitations: [FamilyInvitation] = []
   var inviteEmail: String = ""
   var inviteRole: InviteRole = .player
+  /// Mirrors `FamilyManager.familyUnitId` (the family switcher); nil until the view supplies it.
+  var selectedFamilyId: String?
 
   // MARK: - Parent State
   var parentFamilies: [ParentFamilyData] = []
@@ -95,7 +97,18 @@ final class FamilyManagementViewModel {
 
   /// A family has one player; once it does, a parent's invites go to other family members instead.
   var parentFamilyHasPlayer: Bool {
-    parentFamilies.contains { family in family.members.contains(where: \.isAthlete) }
+    guard let targetFamily else {
+      return parentFamilies.contains { family in family.members.contains(where: \.isAthlete) }
+    }
+    return targetFamily.members.contains(where: \.isAthlete)
+  }
+
+  /// The family invites go to: the switcher's selection (a parent may belong to several), else the loaded family.
+  var inviteFamilyId: String? { selectedFamilyId ?? familyId }
+
+  private var targetFamily: ParentFamilyData? {
+    guard let selectedFamilyId else { return nil }
+    return parentFamilies.first { $0.familyId == selectedFamilyId }
   }
 
   var formattedCodeGeneratedAt: String? {
@@ -460,7 +473,9 @@ final class FamilyManagementViewModel {
     defer { isLoading = false }
 
     do {
-      try await familyService.sendEmailInvite(email: email, role: role, pendingPlayerDetails: nil)
+      try await familyService.sendEmailInvite(
+        email: email, role: role, pendingPlayerDetails: nil, familyUnitId: inviteFamilyId
+      )
       inviteEmail = ""
       await loadPendingInvitations()
       showSuccess("Invite sent to \(email)!")
@@ -492,7 +507,9 @@ final class FamilyManagementViewModel {
     defer { isLoading = false }
 
     do {
-      try await familyService.resendInvitation(id: invitation.id, email: email, role: role)
+      try await familyService.resendInvitation(
+        id: invitation.id, email: email, role: role, familyUnitId: invitation.familyUnitId ?? inviteFamilyId
+      )
       await loadPendingInvitations()
       showSuccess("Invite resent to \(email)")
     } catch {
