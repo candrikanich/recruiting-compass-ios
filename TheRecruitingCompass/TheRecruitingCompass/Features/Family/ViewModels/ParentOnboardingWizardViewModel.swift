@@ -189,7 +189,8 @@ final class ParentOnboardingWizardViewModel {
       try await familyService.sendEmailInvite(
         email: inviteEmail.trimmingCharacters(in: .whitespaces),
         role: "player",
-        pendingPlayerDetails: hasPlayerDetails ? pendingPlayerDetails : nil
+        pendingPlayerDetails: hasPlayerDetails ? pendingPlayerDetails : nil,
+        familyUnitId: nil
       )
       successMessage = "Invite sent to \(inviteEmail.trimmingCharacters(in: .whitespaces))!"
       showSuccessToast = true

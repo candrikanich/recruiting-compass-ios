@@ -26,7 +26,26 @@ extension FamilyServiceImpl {
     .serverError(serverErrorMessage(from: data, statusCode: statusCode, fallback: "Failed to accept invite"))
   }
 
-  func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails? = nil) async throws {
+  struct InviteRequestBody: Encodable {
+    let email: String
+    let role: String
+    let pendingPlayerDetails: PendingPlayerDetails?
+    let familyUnitId: String?
+
+    enum CodingKeys: String, CodingKey {
+      case email
+      case role
+      case pendingPlayerDetails = "pending_player_details"
+      case familyUnitId = "family_unit_id"
+    }
+  }
+
+  func sendEmailInvite(
+    email: String,
+    role: String,
+    pendingPlayerDetails: PendingPlayerDetails? = nil,
+    familyUnitId: String? = nil
+  ) async throws {
     guard let baseURL = SupabaseConfig.apiBaseURL else {
       familyServiceLogger.error("sendEmailInvite: API_BASE_URL not configured")
       throw FamilyError.serverError("API base URL not configured. Set API_BASE_URL for invite features.")
@@ -36,24 +55,16 @@ extension FamilyServiceImpl {
 
     let token = try await supabaseManager.client.auth.session.accessToken
 
-    struct Body: Encodable {
-      let email: String
-      let role: String
-      let pendingPlayerDetails: PendingPlayerDetails?
-
-      enum CodingKeys: String, CodingKey {
-        case email
-        case role
-        case pendingPlayerDetails = "pending_player_details"
-      }
-    }
-
     var request = URLRequest(url: baseURL.appendingPathComponent("api/family/invite"))
     request.addClientHeaders()
     request.httpMethod = "POST"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.httpBody = try JSONEncoder().encode(Body(email: email, role: role, pendingPlayerDetails: pendingPlayerDetails))
+    request.httpBody = try JSONEncoder().encode(
+      InviteRequestBody(
+        email: email, role: role, pendingPlayerDetails: pendingPlayerDetails, familyUnitId: familyUnitId
+      )
+    )
 
     let data: Data
     let response: URLResponse
@@ -248,12 +259,12 @@ extension FamilyServiceImpl {
     familyServiceLogger.info("Invite declined: status=\(http.statusCode)")
   }
 
-  func resendInvitation(id: String, email: String, role: String) async throws {
+  func resendInvitation(id: String, email: String, role: String, familyUnitId: String? = nil) async throws {
     familyServiceLogger.debug("Resending invitation to: \(email.prefix(3))***")
     try await revokeInvitation(id: id)
     // Brief delay so server can commit revoke before create (avoids soft-delete/race)
     try await Task.sleep(for: .milliseconds(500))
-    try await sendEmailInvite(email: email, role: role, pendingPlayerDetails: nil)
+    try await sendEmailInvite(email: email, role: role, pendingPlayerDetails: nil, familyUnitId: familyUnitId)
     familyServiceLogger.info("Invitation resent to: \(email.prefix(3))***")
   }
 }

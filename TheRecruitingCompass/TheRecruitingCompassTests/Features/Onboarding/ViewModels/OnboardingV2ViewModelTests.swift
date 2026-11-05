@@ -440,11 +440,13 @@ private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
   func removeFamilyMember(memberId: String) async throws {}
   func joinFamilyWithCode(familyCode: String) async throws -> JoinFamilyResponse? { nil }
   func getParentFamilies() async throws -> [ParentFamilyData] { [] }
-  func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?) async throws {}
+  func sendEmailInvite(
+    email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?, familyUnitId: String?
+  ) async throws {}
   func fetchPendingInvitations() async throws -> [FamilyInvitation] { [] }
   func fetchInvitationsAddressed(toEmail email: String) async throws -> [FamilyInvitation] { [] }
   func revokeInvitation(id: String) async throws {}
-  func resendInvitation(id: String, email: String, role: String) async throws {}
+  func resendInvitation(id: String, email: String, role: String, familyUnitId: String?) async throws {}
   func lookupInviteByToken(_ token: String) async throws -> InviteDetails {
     fatalError("Not used in onboarding v2 tests")
   }
