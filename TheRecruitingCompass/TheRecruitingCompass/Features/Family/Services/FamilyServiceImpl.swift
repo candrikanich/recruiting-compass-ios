@@ -8,11 +8,29 @@ let familyServiceLogger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingC
 final class FamilyServiceImpl: FamilyManaging, Sendable {
   let supabaseManager: SupabaseManager
   private let clientOverride: SupabaseClient?
+  /// Transport for the web-API invite calls; tests swap these to capture the request without a signed-in session.
+  let apiSession: URLSession
+  let apiBaseURL: URL?
+  private let accessTokenOverride: (@Sendable () async throws -> String)?
 
   /// `client` lets tests point the real queries at a stubbed URLSession.
-  init(supabaseManager: SupabaseManager, client: SupabaseClient? = nil) {
+  init(
+    supabaseManager: SupabaseManager,
+    client: SupabaseClient? = nil,
+    apiSession: URLSession = .shared,
+    apiBaseURL: URL? = SupabaseConfig.apiBaseURL,
+    accessToken: (@Sendable () async throws -> String)? = nil
+  ) {
     self.supabaseManager = supabaseManager
     self.clientOverride = client
+    self.apiSession = apiSession
+    self.apiBaseURL = apiBaseURL
+    self.accessTokenOverride = accessToken
+  }
+
+  func apiAccessToken() async throws -> String {
+    if let accessTokenOverride { return try await accessTokenOverride() }
+    return try await supabaseManager.client.auth.session.accessToken
   }
 
   var database: SupabaseClient { clientOverride ?? supabaseManager.client }

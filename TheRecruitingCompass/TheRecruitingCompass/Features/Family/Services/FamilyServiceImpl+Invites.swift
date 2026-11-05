@@ -46,14 +46,14 @@ extension FamilyServiceImpl {
     pendingPlayerDetails: PendingPlayerDetails? = nil,
     familyUnitId: String? = nil
   ) async throws {
-    guard let baseURL = SupabaseConfig.apiBaseURL else {
+    guard let baseURL = apiBaseURL else {
       familyServiceLogger.error("sendEmailInvite: API_BASE_URL not configured")
       throw FamilyError.serverError("API base URL not configured. Set API_BASE_URL for invite features.")
     }
     let inviteURL = baseURL.appendingPathComponent("api/family/invite")
     familyServiceLogger.info("sendEmailInvite: POST \(inviteURL.absoluteString, privacy: .public) email=\(email.prefix(3))*** role=\(role)")
 
-    let token = try await supabaseManager.client.auth.session.accessToken
+    let token = try await apiAccessToken()
 
     var request = URLRequest(url: baseURL.appendingPathComponent("api/family/invite"))
     request.addClientHeaders()
@@ -69,7 +69,7 @@ extension FamilyServiceImpl {
     let data: Data
     let response: URLResponse
     do {
-      (data, response) = try await URLSession.shared.data(for: request)
+      (data, response) = try await apiSession.data(for: request)
     } catch {
       familyServiceLogger.error("sendEmailInvite network error: \(error.localizedDescription, privacy: .public)")
       throw FamilyError.serverError("Failed to send invite: \(error.localizedDescription)")
@@ -135,10 +135,10 @@ extension FamilyServiceImpl {
 
   func revokeInvitation(id: String) async throws {
     familyServiceLogger.debug("Revoking invitation: \(id, privacy: .private)")
-    guard let baseURL = SupabaseConfig.apiBaseURL else {
+    guard let baseURL = apiBaseURL else {
       throw FamilyError.serverError("API base URL not configured")
     }
-    let token = try await supabaseManager.client.auth.session.accessToken
+    let token = try await apiAccessToken()
 
     let safeId = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? id
     var request = URLRequest(
@@ -150,7 +150,7 @@ extension FamilyServiceImpl {
     request.httpMethod = "DELETE"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
-    let (_, response) = try await URLSession.shared.data(for: request)
+    let (_, response) = try await apiSession.data(for: request)
     guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
       familyServiceLogger.error("revokeInvitation failed for: \(id, privacy: .private)")
       throw FamilyError.serverError("Failed to revoke invite")
