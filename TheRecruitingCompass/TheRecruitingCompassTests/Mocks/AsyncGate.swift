@@ -1,12 +1,14 @@
 import Foundation
+import Testing
+import XCTest
 
 /// Holds async calls until `open()` so a test can interleave work with an in-flight request.
 /// Only the first `blockedEntries` callers wait; later callers pass straight through, which lets
 /// a test hold one stale request while a newer one completes.
 ///
-/// Both ends are bounded by `timeout`: a waiter the test never releases opens the gate itself, and
-/// `untilEntered` gives up when nobody arrives. A wrong outcome then fails on the test's own assertions
-/// instead of stalling the run until `run-ios-tests.sh` kills it (#530).
+/// Both ends are bounded by `timeout` so a wrong outcome cannot stall the run until `run-ios-tests.sh` kills it
+/// (#530), and neither bound passes silently: a waiter nobody released records a test failure before it is let
+/// through, and `untilEntered` returns false when nobody arrived, which every call site must assert.
 @MainActor
 final class AsyncGate {
   nonisolated deinit {}
@@ -27,8 +29,8 @@ final class AsyncGate {
     guard !isOpen, enteredCount <= blockedEntries else { return }
     let timeout = timeout
     let watchdog = Task { [weak self] in
-      try? await Task.sleep(for: timeout)
-      self?.open()
+      do { try await Task.sleep(for: timeout) } catch { return }
+      self?.expire()
     }
     await withCheckedContinuation { waiters.append($0) }
     watchdog.cancel()
@@ -41,7 +43,6 @@ final class AsyncGate {
   }
 
   /// Returns false when `count` callers never arrived within the timeout.
-  @discardableResult
   func untilEntered(_ count: Int = 1) async -> Bool {
     let deadline = ContinuousClock.now.advanced(by: timeout)
     while enteredCount < count {
@@ -49,5 +50,13 @@ final class AsyncGate {
       await Task.yield()
     }
     return true
+  }
+
+  private func expire() {
+    guard !isOpen else { return }
+    let message = "AsyncGate: a waiter was never released within \(timeout)"
+    Issue.record(Comment(rawValue: message))
+    XCTFail(message)
+    open()
   }
 }
