@@ -172,7 +172,7 @@ struct FamilyManagerMultiFamilyTests {
     }
 
     let load = Task { await sut.loadFamilyData() }
-    await gate.untilEntered()
+    #expect(await gate.untilEntered())
     await sut.switchFamily(to: "family-new")
     gate.open()
     await load.value
@@ -191,7 +191,7 @@ struct FamilyManagerMultiFamilyTests {
     }
 
     let slowSwitch = Task { await sut.switchFamily(to: "family-new") }
-    await gate.untilEntered()
+    #expect(await gate.untilEntered())
     await sut.switchFamily(to: "family-old")
     gate.open()
     await slowSwitch.value

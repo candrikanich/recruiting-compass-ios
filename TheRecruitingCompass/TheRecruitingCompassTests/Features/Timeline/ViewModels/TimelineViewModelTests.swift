@@ -221,7 +221,8 @@ final class TimelineViewModelTests: XCTestCase {
     mockAPIService.fetchPhaseGate = { await gate.wait() }
 
     let first = Task { await viewModel.loadSummary() }
-    await gate.untilEntered()
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered, "the gated call never started")
     let second = Task { await viewModel.loadSummary() }
     await letPendingTasksRun()
     gate.open()
@@ -238,7 +239,8 @@ final class TimelineViewModelTests: XCTestCase {
     mockTasksService.fetchAllTasksGate = { await gate.wait() }
 
     let first = Task { await viewModel.load() }
-    await gate.untilEntered()
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered, "the gated call never started")
     let second = Task { await viewModel.load() }
     await letPendingTasksRun()
     gate.open()
@@ -263,7 +265,8 @@ final class TimelineViewModelTests: XCTestCase {
     mockTasksService.fetchAllTasksGate = { await gate.wait() }
 
     let load = Task { await viewModel.load() }
-    await gate.untilEntered()
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered, "the gated call never started")
     let refresh = Task { await viewModel.refresh() }
     await letPendingTasksRun()
 

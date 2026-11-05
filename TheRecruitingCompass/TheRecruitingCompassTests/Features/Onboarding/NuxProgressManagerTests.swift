@@ -47,7 +47,7 @@ struct NuxProgressManagerTests {
     let (sut, _) = makeSUT(service: mockService)
 
     let first = Task { await sut.load(userId: "user-1") }
-    await gate.untilEntered()
+    #expect(await gate.untilEntered())
     let second = Task { await sut.load(userId: "user-1") }
     for _ in 0..<50 { await Task.yield() }
     gate.open()
@@ -259,7 +259,7 @@ struct NuxProgressManagerTests {
     let (sut, _) = makeSUT(service: mockService)
 
     let staleLoad = Task { await sut.load(userId: "user-a") }
-    await gate.untilEntered()
+    #expect(await gate.untilEntered())
     sut.reset()  // user-a signs out, user-b signs in
     sut.reset()  // user-b signs out, user-a signs back in
     var fresh = NuxProgress.empty

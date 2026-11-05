@@ -104,7 +104,7 @@ struct FamilyManagerTests {
     let sut = FamilyManager(familyService: service, authManager: auth)
 
     let first = Task { await sut.loadFamilyData() }
-    await gate.untilEntered()
+    #expect(await gate.untilEntered())
     let second = Task { () -> String? in
       await sut.loadFamilyData()
       return sut.familyUnitId
@@ -127,7 +127,7 @@ struct FamilyManagerTests {
     let sut = FamilyManager(familyService: service, authManager: auth)
 
     let staleLoad = Task { await sut.loadFamilyData() }
-    await gate.untilEntered()
+    #expect(await gate.untilEntered())
     auth.setMockUser(user("user-b", role: .player))
     sut.reset()
     gate.open()
@@ -147,7 +147,7 @@ struct FamilyManagerTests {
     let sut = FamilyManager(familyService: service, authManager: auth)
 
     let staleLoad = Task { await sut.loadFamilyData() }
-    await gate.untilEntered()
+    #expect(await gate.untilEntered())
     auth.setMockUser(user("user-b", role: .player))
     sut.reset()
     auth.setMockUser(user("user-a", role: .player))

@@ -7,9 +7,13 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 /// Sendable: Stateless service with no mutable properties
 final class DashboardServiceImpl: DashboardManaging, Sendable {
   private let supabaseManager: SupabaseManager
+  private let session: URLSession
+  private let baseURLOverride: URL?
 
-  init(supabaseManager: SupabaseManager) {
+  init(supabaseManager: SupabaseManager, session: URLSession = .shared, baseURLOverride: URL? = nil) {
     self.supabaseManager = supabaseManager
+    self.session = session
+    self.baseURLOverride = baseURLOverride
   }
 
   func fetchStats(familyUnitId: String, userId: String) async throws -> DashboardStats {
@@ -311,7 +315,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
   }
 
   func fetchSuggestions(location: String, athleteId: String?, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int) {
-    guard let baseURL = SupabaseConfig.apiBaseURL,
+    guard let baseURL = baseURLOverride ?? SupabaseConfig.apiBaseURL,
           let token = accessToken, !token.isEmpty else {
       logger.debug("Suggestions API not configured (API_BASE_URL or token missing), returning empty")
       return ([], 0)
@@ -332,7 +336,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     request.setValue("application/json", forHTTPHeaderField: "Accept")
     // API expects JWT access token only; refresh_token would 401 (supabase.auth.getUser(accessToken))
 
-    let (data, response) = try await URLSession.shared.data(for: request)
+    let (data, response) = try await session.data(for: request)
 
     guard let http = response as? HTTPURLResponse else {
       throw SuggestionsAPIError.invalidResponse

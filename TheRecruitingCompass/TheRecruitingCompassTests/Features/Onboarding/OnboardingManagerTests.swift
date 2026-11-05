@@ -247,7 +247,8 @@ final class OnboardingManagerTests: XCTestCase {
     mockOnboardingService.isOnboardingCompleteGate = { await gate.wait() }
 
     let staleCheck = Task { await sut.loadStatus(isInFamily: false) }
-    await gate.untilEntered()
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered, "the gated call never started")
     sut.reset()
     gate.open()
     await staleCheck.value

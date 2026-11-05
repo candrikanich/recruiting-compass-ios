@@ -96,7 +96,8 @@ final class EntitlementStoreTests: XCTestCase {
     mock.fetchGate = { await gate.wait() }
 
     let staleLoad = Task { await store.load(familyUnitId: "fam-1") }
-    await gate.untilEntered()
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered, "the gated call never started")
     store.reset()
     gate.open()
     await staleLoad.value
@@ -124,7 +125,8 @@ final class EntitlementStoreTests: XCTestCase {
     mock.fetchGate = { await gate.wait() }
 
     let settingsLoad = Task { await store.load(familyUnitId: "fam-1") }
-    await gate.untilEntered()
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered, "the gated call never started")
     await store.load(familyUnitId: "fam-1")
     XCTAssertEqual(store.subscription, founding)
 
