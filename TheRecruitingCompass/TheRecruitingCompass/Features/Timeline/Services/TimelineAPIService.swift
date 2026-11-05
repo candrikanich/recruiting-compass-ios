@@ -16,9 +16,11 @@ enum TimelineAPIError: Error {
 /// 401→`unauthorized`, JSON decode).
 final class TimelineAPIService: TimelineAPIManaging, Sendable {
   private let session: URLSession
+  private let baseURLOverride: URL?
 
-  init(session: URLSession = .shared) {
+  init(session: URLSession = .shared, baseURLOverride: URL? = nil) {
     self.session = session
+    self.baseURLOverride = baseURLOverride
   }
 
   func fetchPhase(accessToken: String?, athleteId: String?) async throws -> AthletePhaseResponse {
@@ -36,7 +38,7 @@ final class TimelineAPIService: TimelineAPIManaging, Sendable {
   /// Without `athleteId` the server picks the athlete closest to graduation across ALL of a parent's families,
   /// so a parent must always send the selected athlete or this screen shows another family's data.
   private func get<T: Decodable>(_ path: String, accessToken: String?, athleteId: String?) async throws -> T {
-    guard let baseURL = SupabaseConfig.apiBaseURL else {
+    guard let baseURL = baseURLOverride ?? SupabaseConfig.apiBaseURL else {
       logger.error("Timeline API not configured (API_BASE_URL missing)")
       throw TimelineAPIError.notConfigured
     }

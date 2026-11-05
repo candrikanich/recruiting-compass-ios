@@ -1,4 +1,5 @@
 import Foundation
+import os
 @testable import TheRecruitingCompass
 
 /// Stubs the shared web timeline endpoints for `TimelineViewModel` tests.
@@ -27,16 +28,33 @@ final class MockTimelineAPIService: TimelineAPIManaging, @unchecked Sendable {
   /// Awaited inside `fetchPhase` so tests can hold a load in flight.
   var fetchPhaseGate: (@Sendable () async -> Void)?
 
-  var phaseCallCount = 0
-  var statusCallCount = 0
-  var whatMattersCallCount = 0
-  var lastAccessToken: String?
-  var requestedAthleteIds: [String?] = []
+  // `fetchSummary` runs the three fetches as concurrent `async let`s, so every recorded call is lock-guarded.
+  private struct Recorded {
+    var phaseCallCount = 0
+    var statusCallCount = 0
+    var whatMattersCallCount = 0
+    var lastAccessToken: String?
+    var requestedAthleteIds: [String?] = []
+  }
+
+  private let recorded = OSAllocatedUnfairLock(initialState: Recorded())
+
+  var phaseCallCount: Int { recorded.withLock { $0.phaseCallCount } }
+  var statusCallCount: Int { recorded.withLock { $0.statusCallCount } }
+  var whatMattersCallCount: Int { recorded.withLock { $0.whatMattersCallCount } }
+  var lastAccessToken: String? { recorded.withLock { $0.lastAccessToken } }
+  var requestedAthleteIds: [String?] { recorded.withLock { $0.requestedAthleteIds } }
+
+  private func record(_ keyPath: WritableKeyPath<Recorded, Int>, accessToken: String?, athleteId: String?) {
+    recorded.withLock {
+      $0[keyPath: keyPath] += 1
+      $0.requestedAthleteIds.append(athleteId)
+      $0.lastAccessToken = accessToken
+    }
+  }
 
   func fetchPhase(accessToken: String?, athleteId: String?) async throws -> AthletePhaseResponse {
-    phaseCallCount += 1
-    requestedAthleteIds.append(athleteId)
-    lastAccessToken = accessToken
+    record(\.phaseCallCount, accessToken: accessToken, athleteId: athleteId)
     await fetchPhaseGate?()
     try throwIfNeeded()
     return AthletePhaseResponse(
@@ -47,9 +65,7 @@ final class MockTimelineAPIService: TimelineAPIManaging, @unchecked Sendable {
   }
 
   func fetchStatus(accessToken: String?, athleteId: String?) async throws -> AthleteStatusResponse {
-    statusCallCount += 1
-    requestedAthleteIds.append(athleteId)
-    lastAccessToken = accessToken
+    record(\.statusCallCount, accessToken: accessToken, athleteId: athleteId)
     try throwIfNeeded()
     return AthleteStatusResponse(
       score: stubbedStatusScore,
@@ -60,9 +76,7 @@ final class MockTimelineAPIService: TimelineAPIManaging, @unchecked Sendable {
   }
 
   func fetchWhatMattersNow(accessToken: String?, athleteId: String?) async throws -> [WhatMattersItem] {
-    whatMattersCallCount += 1
-    requestedAthleteIds.append(athleteId)
-    lastAccessToken = accessToken
+    record(\.whatMattersCallCount, accessToken: accessToken, athleteId: athleteId)
     try throwIfNeeded()
     return stubbedWhatMatters
   }
